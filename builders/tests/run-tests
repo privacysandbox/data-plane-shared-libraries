@@ -107,10 +107,26 @@ function cli_tests_test-tools() {
     "${TOOLS_DIR}/hadolint --version"
     "${TOOLS_DIR}/jq --version"
   )
-  printf "Testing CLI tool wrappers\n"
+  printf "Testing test CLI tool wrappers\n"
   for tool_cmd in "${TOOLS[@]}"; do
     printf "  %s\n" "${tool_cmd}"
-    ${tool_cmd} >/dev/null
+    ${tool_cmd} &>/dev/null
+  done
+}
+
+function cli_tests_utils() {
+  declare -r _image="$1"
+  if [[ ${FAST} -eq 1 ]] || [[ ${_image} != utils ]]; then
+    return
+  fi
+  declare -a -r TOOLS=(
+    "${TOOLS_DIR}/unzip -h"
+    "${TOOLS_DIR}/zip -h"
+  )
+  printf "Testing utils CLI tool wrappers\n"
+  for tool_cmd in "${TOOLS[@]}"; do
+    printf "  %s\n" "${tool_cmd}"
+    ${tool_cmd} &>/dev/null
   done
 }
 
@@ -122,10 +138,10 @@ function cli_tests_release() {
   declare -a -r TOOLS=(
     "${TOOLS_DIR}/buildozer -version"
   )
-  printf "Testing CLI tool wrappers\n"
+  printf "Testing release CLI tool wrappers\n"
   for tool_cmd in "${TOOLS[@]}"; do
     printf "  %s\n" "${tool_cmd}"
-    ${tool_cmd} >/dev/null
+    ${tool_cmd} &>/dev/null
   done
 }
 
@@ -195,9 +211,22 @@ else
   printf "hashes unchanged\n"
 fi
 
+# CLI tests
+
 for img in ${IMAGE_LIST}; do
   cli_tests_test-tools "${img}"
+  cli_tests_utils "${img}"
   cli_tests_release "${img}"
+done
+
+printf "test for error in direct execution of underlying wrapper scripts\n"
+for tool in test-tool utils-tool; do
+  printf "  %s: " "${tool}"
+  if ! "${TOOLS_DIR}"/${tool} &>/dev/null; then
+    printf "ok\n"
+  else
+    printf "failed to exit non-zero\n"
+  fi
 done
 
 exit ${RETCODE}

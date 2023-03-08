@@ -23,7 +23,7 @@ function install_nghttp2() {
 
 function install_apache2_utils() {
   apk --no-cache add \
-    apache2-utils~=2.4.55
+    apache2-utils~=2.4
   ab -V
 }
 
