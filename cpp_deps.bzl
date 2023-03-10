@@ -108,4 +108,14 @@ def cpp_dependencies():
         urls = ["https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip"],
     )
 
+    maybe(
+        http_archive,
+        name = "io_opentelemetry_cpp",
+        sha256 = "20fa97e507d067e9e2ab0c1accfc334f5a4b10d01312e55455dc3733748585f4",
+        strip_prefix = "opentelemetry-cpp-1.8.2",
+        urls = [
+            "https://github.com/open-telemetry/opentelemetry-cpp/archive/refs/tags/v1.8.2.tar.gz",
+        ],
+    )
+
     quiche_dependencies()
