@@ -1,8 +1,18 @@
 workspace(name = "google_privacysandbox_servers_common")
 
-load("//:deps.bzl", repo_dependencies = "dependencies")
+load("//:common_deps.bzl", "common_dependencies")
+load("//:cpp_deps.bzl", "cpp_dependencies")
+load("//:java_deps.bzl", "java_dependencies")
 
-repo_dependencies()
+common_dependencies()
+
+java_dependencies()
+
+cpp_dependencies()
+
+load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+
+rules_pkg_dependencies()
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 

@@ -17,7 +17,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-def dependencies():
+def common_dependencies():
     maybe(
         http_archive,
         name = "bazel_skylib",
@@ -27,19 +27,25 @@ def dependencies():
             "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
         ],
     )
-
-    maybe(
-        http_archive,
-        name = "rules_jvm_external",
-        sha256 = "b17d7388feb9bfa7f2fa09031b32707df529f26c91ab9e5d909eb1676badd9a6",
-        strip_prefix = "rules_jvm_external-4.5",
-        urls = [
-            "https://github.com/bazelbuild/rules_jvm_external/archive/4.5.zip",
-        ],
-    )
     maybe(
         http_archive,
         name = "io_bazel_rules_docker",
         sha256 = "b1e80761a8a8243d03ebca8845e9cc1ba6c82ce7c5179ce2b295cd36f7e394bf",
         urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz"],
+    )
+    maybe(
+        http_archive,
+        name = "rules_pkg",
+        sha256 = "eea0f59c28a9241156a47d7a8e32db9122f3d50b505fae0f33de6ce4d9b61834",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.8.0/rules_pkg-0.8.0.tar.gz",
+            "https://github.com/bazelbuild/rules_pkg/releases/download/0.8.0/rules_pkg-0.8.0.tar.gz",
+        ],
+    )
+    maybe(
+        http_archive,
+        name = "com_google_protobuf",
+        sha256 = "e51cc8fc496f893e2a48beb417730ab6cbcb251142ad8b2cd1951faa5c76fe3d",  # Last updated 2022-09-29
+        strip_prefix = "protobuf-3.20.3",
+        urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v3.20.3/protobuf-cpp-3.20.3.tar.gz"],
     )
