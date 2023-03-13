@@ -20,11 +20,14 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 def quiche_dependencies():
     maybe(
         http_archive,
-        name = "zlib",
-        build_file = "//third_party:zlib.BUILD",
-        sha256 = "91844808532e5ce316b3c010929493c0244f3d37593afd6de04f71821d5136d9",
-        strip_prefix = "zlib-1.2.12",
-        urls = ["https://mirror.bazel.build/zlib.net/zlib-1.2.12.tar.gz"],
+        name = "zlib_archive",
+        build_file = "@//third_party:zlib.BUILD",
+        sha256 = "c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1",
+        strip_prefix = "zlib-1.2.11",
+        urls = [
+            "https://mirror.bazel.build/zlib.net/zlib-1.2.11.tar.gz",
+            "https://zlib.net/zlib-1.2.11.tar.gz",
+        ],
     )
 
     maybe(
@@ -51,13 +54,22 @@ def quiche_dependencies():
 
 def cpp_dependencies():
     maybe(
+        http_archive,
+        name = "com_github_grpc_grpc",
+        sha256 = "6943291f6ac263eed4ae3645a9598e59733de4cc7ff8d30722baf57c12f341d0",  #  Wed Aug 31 14:19:47 2022 -0700
+        strip_prefix = "grpc-f4202cefbb08198081b7ee52e0a87efd5d35e703",
+        urls = ["https://github.com/grpc/grpc/archive/f4202cefbb08198081b7ee52e0a87efd5d35e703.zip"],
+    )
+
+    maybe(
         ### Abseil
         http_archive,
         name = "com_google_absl",
-        sha256 = "dcf71b9cba8dc0ca9940c4b316a0c796be8fab42b070bb6b7cab62b48f0e66c4",  # SHARED_ABSL_SHA
-        strip_prefix = "abseil-cpp-20211102.0",
+        canonical_id = "Abseil LTS 20230125.1",
+        sha256 = "c64575e6d1e814a0123d5c9ea1416b3ba3d03cdb1529148d6932ea3d90674738",
+        strip_prefix = "abseil-cpp-c8a2f92586fe9b4e1aff049108f5db8064924d8e",
         urls = [
-            "https://github.com/abseil/abseil-cpp/archive/refs/tags/20211102.0.tar.gz",
+            "https://github.com/abseil/abseil-cpp/archive/c8a2f92586fe9b4e1aff049108f5db8064924d8e.zip",
         ],
     )
     maybe(
