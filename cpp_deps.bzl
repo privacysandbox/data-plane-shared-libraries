@@ -16,6 +16,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("//third_party:scp_repositories.bzl", "scp_repositories")
 
 def quiche_dependencies():
     maybe(
@@ -53,6 +54,8 @@ def quiche_dependencies():
     )
 
 def cpp_dependencies():
+    scp_repositories()
+
     maybe(
         http_archive,
         name = "com_github_grpc_grpc",

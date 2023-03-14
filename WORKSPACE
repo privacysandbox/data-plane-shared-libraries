@@ -19,6 +19,10 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 ### Also loads bazel-gazelle
 grpc_extra_deps()
 
+load("//third_party:scp_deps.bzl", "scp_deps")
+
+scp_deps()
+
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
 rules_pkg_dependencies()
@@ -69,3 +73,11 @@ go_rules_dependencies()
 go_register_toolchains()
 
 gazelle_dependencies()
+
+load("@control_plane_shared//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp")
+
+import_aws_sdk_cpp()
+
+load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+
+rules_foreign_cc_dependencies()
