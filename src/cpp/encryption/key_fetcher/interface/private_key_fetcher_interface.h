@@ -1,0 +1,60 @@
+/*
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
+#define SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
+
+#include <optional>
+#include <vector>
+
+#include "cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
+#include "cc/public/cpio/interface/private_key_client/type_def.h"
+
+namespace privacy_sandbox::server_common {
+
+// Represents a private key fetched from the Private Key Service.
+struct PrivateKey {
+  // The ID of the private key. Incoming server requests will have a
+  // corresponding public key ID representing the public key that encrypted the
+  // ciphertext in the request.
+  google::scp::cpio::PublicPrivateKeyPairId key_id;
+  // The value of the private key.
+  google::scp::cpio::PrivateKeyValue private_key;
+  // The time when the key was fetched. Used by the PrivateKeyFetcher to clear
+  // out keys that have been cached for longer than a certain duration.
+  // TODO(b/266992860): This should be the timestamp of when the key was
+  //  created, not the fetch time.
+  absl::Time key_fetch_time;
+};
+
+// Interface responsible for fetching and caching private keys.
+class PrivateKeyFetcherInterface {
+ public:
+  virtual ~PrivateKeyFetcherInterface() = default;
+
+  // Fetches and store the private keys for the key IDs passed into the method.
+  virtual void Refresh(
+      const std::vector<google::scp::cpio::PublicPrivateKeyPairId>&
+          key_ids) noexcept = 0;
+
+  // Returns the corresponding PrivateKey, if present.
+  virtual std::optional<PrivateKey> GetKey(
+      const google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept = 0;
+};
+
+}  // namespace privacy_sandbox::server_common
+
+#endif  // SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
