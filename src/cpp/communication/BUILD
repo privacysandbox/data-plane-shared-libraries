@@ -45,3 +45,32 @@ cc_test(
         "@com_google_protobuf//:protobuf",
     ],
 )
+
+cc_library(
+    name = "ohttp_utils",
+    srcs = ["ohttp_utils.cc"],
+    hdrs = ["ohttp_utils.h"],
+    deps = [
+        "//src/cpp/encryption/key_fetcher/interface:private_key_fetcher_interface",
+        "//src/cpp/encryption/key_fetcher/interface:public_key_fetcher_interface",
+        "@com_github_google_glog//:glog",
+        "@com_github_google_quiche//quiche:oblivious_http_unstable_api",
+        "@com_google_absl//absl/hash",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "ohttp_utils_test",
+    size = "small",
+    srcs = [
+        "ohttp_utils_test.cc",
+    ],
+    deps = [
+        ":ohttp_utils",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
