@@ -19,30 +19,26 @@ package(default_visibility = [
 ])
 
 cc_library(
-    name = "bhttp_utils",
+    name = "json_utils",
     hdrs = [
-        "bhttp_utils.h",
+        "json_utils.h",
     ],
     deps = [
         "@com_github_google_glog//:glog",
-        "@com_github_google_quiche//quiche:binary_http_unstable_api",
         "@com_google_absl//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
     ],
 )
 
 cc_test(
-    name = "bhttp_utils_test",
+    name = "json_utils_test",
     size = "small",
     srcs = [
-        "bhttp_utils_test.cc",
+        "json_utils_test.cc",
     ],
     deps = [
-        ":bhttp_utils",
-        "@com_github_google_quiche//quiche:binary_http_unstable_api",
-        "@com_google_absl//absl/status:statusor",
+        ":json_utils",
         "@com_google_googletest//:gtest_main",
-        "@com_google_protobuf//:protobuf",
     ],
 )
 
