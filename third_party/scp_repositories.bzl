@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 def scp_repositories():
@@ -21,13 +22,13 @@ def scp_repositories():
     # latest as of 2022-06-09
     _RULES_BOOST_COMMIT = "789a047e61c0292c3b989514f5ca18a9945b0029"
 
-    http_archive(
+    git_repository(
         name = "com_github_nelhage_rules_boost",
-        sha256 = "c1298755d1e5f458a45c410c56fb7a8d2e44586413ef6e2d48dd83cc2eaf6a98",
-        strip_prefix = "rules_boost-%s" % _RULES_BOOST_COMMIT,
-        urls = [
-            "https://github.com/nelhage/rules_boost/archive/%s.tar.gz" % _RULES_BOOST_COMMIT,
-        ],
+        commit = _RULES_BOOST_COMMIT,
+        patch_args = ["-p1"],
+        patches = ["//third_party:rules_boost.patch"],
+        remote = "https://github.com/nelhage/rules_boost.git",
+        shallow_since = "1652895814 -0700",
     )
 
     http_archive(
