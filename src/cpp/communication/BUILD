@@ -70,3 +70,31 @@ cc_test(
         "@com_google_protobuf//:protobuf",
     ],
 )
+
+cc_library(
+    name = "encoding_utils",
+    srcs = ["encoding_utils.cc"],
+    hdrs = ["encoding_utils.h"],
+    deps = [
+        "@com_github_google_glog//:glog",
+        "@com_github_google_quiche//quiche:oblivious_http_unstable_api",
+        "@com_google_absl//absl/hash",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "encoding_utils_test",
+    size = "small",
+    srcs = [
+        "encoding_utils_test.cc",
+    ],
+    deps = [
+        ":encoding_utils",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
