@@ -19,6 +19,8 @@
 #include <utility>
 #include <vector>
 
+#include <google/protobuf/util/time_util.h>
+
 #include "absl/random/distributions.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
@@ -36,9 +38,10 @@ using ::google::scp::core::FailureExecutionResult;
 using ::google::scp::core::SuccessExecutionResult;
 using ::google::scp::core::errors::GetErrorMessage;
 
-using ::google::scp::cpio::ListPublicKeysRequest;
-using ::google::scp::cpio::ListPublicKeysResponse;
-using ::google::scp::cpio::PublicKey;
+using ::google::cmrt::sdk::public_key_service::v1::ListPublicKeysRequest;
+using ::google::cmrt::sdk::public_key_service::v1::ListPublicKeysResponse;
+using ::google::cmrt::sdk::public_key_service::v1::PublicKey;
+using ::google::protobuf::util::TimeUtil;
 using ::google::scp::cpio::PublicKeyClientInterface;
 using ::google::scp::cpio::PublicKeyClientOptions;
 using ::google::scp::cpio::PublicPrivateKeyPairId;
@@ -48,7 +51,7 @@ static constexpr absl::string_view kKeyFetchFailMessage =
     "ListPublicKeys call failed (status_code: %s)";
 static constexpr absl::string_view kKeyFetchSuccessMessage =
     "Successfully fetched latest public keys: (key IDs: [%s], expiration time: "
-    "%d)";
+    "%s)";
 
 PublicKeyFetcher::PublicKeyFetcher(
     std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>
@@ -66,14 +69,15 @@ absl::Status PublicKeyFetcher::Refresh(
                                   ListPublicKeysResponse response) {
         if (execution_result.Successful()) {
           mutex_.Lock();
-          public_keys_ = response.public_keys;
+          public_keys_ = std::vector<PublicKey>(response.public_keys().begin(),
+                                                response.public_keys().end());
           mutex_.Unlock();
 
           std::vector<PublicPrivateKeyPairId> key_ids = GetKeyIds();
           std::string key_ids_str = absl::StrJoin(key_ids, ", ");
           std::string log =
               absl::StrFormat(kKeyFetchSuccessMessage, key_ids_str,
-                              response.expiration_time_in_ms);
+                              TimeUtil::ToString(response.expiration_time()));
           VLOG(1) << log;
 
           std::move(callback)();
@@ -113,7 +117,7 @@ std::vector<PublicPrivateKeyPairId> PublicKeyFetcher::GetKeyIds() noexcept
   absl::MutexLock l(&mutex_);
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
   for (const auto& entry : public_keys_) {
-    key_pair_ids.push_back(std::string(entry.key_id));
+    key_pair_ids.push_back(std::string(entry.key_id()));
   }
 
   return key_pair_ids;

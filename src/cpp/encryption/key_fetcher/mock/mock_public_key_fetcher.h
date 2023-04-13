@@ -36,8 +36,9 @@ class MockPublicKeyFetcher : public PublicKeyFetcherInterface {
   MOCK_METHOD(std::vector<google::scp::cpio::PublicPrivateKeyPairId>, GetKeyIds,
               (), (noexcept));
 
-  MOCK_METHOD(absl::StatusOr<google::scp::cpio::PublicKey>, GetKey, (),
-              (noexcept));
+  MOCK_METHOD(
+      absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>,
+      GetKey, (), (noexcept));
 };
 
 }  // namespace privacy_sandbox::server_common

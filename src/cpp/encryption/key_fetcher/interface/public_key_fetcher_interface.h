@@ -36,7 +36,8 @@ class PublicKeyFetcherInterface {
       const std::function<void()>& callback) noexcept = 0;
 
   // Returns a public key for encrypting outgoing requests.
-  virtual absl::StatusOr<google::scp::cpio::PublicKey> GetKey() noexcept = 0;
+  virtual absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>
+  GetKey() noexcept = 0;
 
   // Returns the IDs of the cached public keys.
   virtual std::vector<google::scp::cpio::PublicPrivateKeyPairId>

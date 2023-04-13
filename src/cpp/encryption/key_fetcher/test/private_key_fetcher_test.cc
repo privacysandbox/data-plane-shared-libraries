@@ -26,12 +26,12 @@
 namespace privacy_sandbox::server_common {
 namespace {
 
+using ::google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;
+using ::google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse;
 using ::google::scp::core::ExecutionResult;
 using ::google::scp::core::FailureExecutionResult;
 using ::google::scp::core::SuccessExecutionResult;
 using ::google::scp::cpio::Callback;
-using ::google::scp::cpio::ListPrivateKeysByIdsRequest;
-using ::google::scp::cpio::ListPrivateKeysByIdsResponse;
 using ::google::scp::cpio::PrivateKeyClientInterface;
 using ::google::scp::cpio::PublicPrivateKeyPairId;
 using ::testing::Return;
@@ -48,29 +48,35 @@ class MockPrivateKeyClient
   ExecutionResult stop_result_mock = SuccessExecutionResult();
   ExecutionResult Stop() noexcept override { return stop_result_mock; }
 
-  MOCK_METHOD(ExecutionResult, ListPrivateKeysByIds,
-              (google::scp::cpio::ListPrivateKeysByIdsRequest request,
-               google::scp::cpio::Callback<
-                   google::scp::cpio::ListPrivateKeysByIdsResponse>
-                   callback),
-              (noexcept));
+  MOCK_METHOD(
+      ExecutionResult, ListPrivateKeys,
+      (google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest
+           request,
+       google::scp::cpio::Callback<
+           google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>
+           callback),
+      (noexcept));
 };
 
 TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
   std::unique_ptr<MockPrivateKeyClient> mock_private_key_client =
       std::make_unique<MockPrivateKeyClient>();
 
-  ListPrivateKeysByIdsResponse response;
-  response.private_keys = {
-      {"key_id", "pubkey", "privkey", /* expiration_time */ 1}};
+  ListPrivateKeysResponse response;
+  google::cmrt::sdk::private_key_service::v1::PrivateKey key;
+  key.set_key_id("key_id");
+  key.set_public_key("pubkey");
+  key.set_private_key("privkey");
+  key.mutable_creation_time()->set_seconds(ToUnixSeconds(absl::Now()));
+  response.mutable_private_keys()->Add(std::move(key));
 
-  EXPECT_CALL(*mock_private_key_client, ListPrivateKeysByIds)
-      .WillOnce([&](ListPrivateKeysByIdsRequest request,
-                    Callback<ListPrivateKeysByIdsResponse> callback)
-                    -> ExecutionResult {
-        callback(SuccessExecutionResult(), response);
-        return SuccessExecutionResult();
-      });
+  EXPECT_CALL(*mock_private_key_client, ListPrivateKeys)
+      .WillOnce(
+          [&](ListPrivateKeysRequest request,
+              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
+            callback(SuccessExecutionResult(), response);
+            return SuccessExecutionResult();
+          });
 
   std::vector<PublicPrivateKeyPairId> key_ids = {"key_id"};
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client), absl::Hours(1));
@@ -79,7 +85,7 @@ TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
   // Verify all fields were initialized correctly.
   EXPECT_EQ(fetcher.GetKey("key_id").value().key_id, "key_id");
   EXPECT_EQ(fetcher.GetKey("key_id").value().private_key, "privkey");
-  EXPECT_TRUE(fetcher.GetKey("key_id").value().key_fetch_time - absl::Now() <
+  EXPECT_TRUE(fetcher.GetKey("key_id").value().creation_time - absl::Now() <
               absl::Minutes(1));
 }
 
@@ -90,21 +96,28 @@ TEST(PrivateKeyFetcherTest,
 
   // The key fetcher will save the private key on the first refresh and clear
   // it out on the second refresh.
-  EXPECT_CALL(*mock_private_key_client, ListPrivateKeysByIds)
-      .WillOnce([&](ListPrivateKeysByIdsRequest request,
-                    Callback<ListPrivateKeysByIdsResponse> callback)
-                    -> ExecutionResult {
-        ListPrivateKeysByIdsResponse response;
-        response.private_keys = {{"key_id", "pubkey", "privkey", 1}};
-        callback(SuccessExecutionResult(), response);
-        return SuccessExecutionResult();
-      })
-      .WillOnce([&](ListPrivateKeysByIdsRequest request,
-                    Callback<ListPrivateKeysByIdsResponse> callback)
-                    -> ExecutionResult {
-        callback(SuccessExecutionResult(), ListPrivateKeysByIdsResponse());
-        return SuccessExecutionResult();
-      });
+  EXPECT_CALL(*mock_private_key_client, ListPrivateKeys)
+      .WillOnce(
+          [&](ListPrivateKeysRequest request,
+              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
+            ListPrivateKeysResponse response;
+            google::cmrt::sdk::private_key_service::v1::PrivateKey key;
+            key.set_key_id("key_id");
+            key.set_public_key("pubkey");
+            key.set_private_key("privkey");
+            key.mutable_creation_time()->set_seconds(
+                ToUnixSeconds(absl::Now()));
+            response.mutable_private_keys()->Add(std::move(key));
+
+            callback(SuccessExecutionResult(), response);
+            return SuccessExecutionResult();
+          })
+      .WillOnce(
+          [&](ListPrivateKeysRequest request,
+              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
+            callback(SuccessExecutionResult(), ListPrivateKeysResponse());
+            return SuccessExecutionResult();
+          });
 
   std::vector<PublicPrivateKeyPairId> key_ids = {"key_id"};
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client),
@@ -124,21 +137,27 @@ TEST(PrivateKeyFetcherTest, UnsuccessfulSyncPKSCall_CleansOldKeys) {
 
   // The key fetcher will save the private key on the first refresh and clear
   // it out on the second refresh.
-  EXPECT_CALL(*mock_private_key_client, ListPrivateKeysByIds)
-      .WillOnce([&](ListPrivateKeysByIdsRequest request,
-                    Callback<ListPrivateKeysByIdsResponse> callback)
-                    -> ExecutionResult {
-        ListPrivateKeysByIdsResponse response;
-        response.private_keys = {{"key_id", "pubkey", "privkey", 1}};
-        callback(SuccessExecutionResult(), response);
-        return SuccessExecutionResult();
-      })
-      .WillOnce([&](ListPrivateKeysByIdsRequest request,
-                    Callback<ListPrivateKeysByIdsResponse> callback)
-                    -> ExecutionResult {
-        callback(FailureExecutionResult(0), ListPrivateKeysByIdsResponse());
-        return FailureExecutionResult(0);
-      });
+  EXPECT_CALL(*mock_private_key_client, ListPrivateKeys)
+      .WillOnce(
+          [&](ListPrivateKeysRequest request,
+              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
+            ListPrivateKeysResponse response;
+            google::cmrt::sdk::private_key_service::v1::PrivateKey key;
+            key.set_key_id("key_id");
+            key.set_public_key("pubkey");
+            key.set_private_key("privkey");
+            key.mutable_creation_time()->set_seconds(
+                ToUnixSeconds(absl::Now()));
+            response.mutable_private_keys()->Add(std::move(key));
+            callback(SuccessExecutionResult(), response);
+            return SuccessExecutionResult();
+          })
+      .WillOnce(
+          [&](ListPrivateKeysRequest request,
+              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
+            callback(FailureExecutionResult(0), ListPrivateKeysResponse());
+            return FailureExecutionResult(0);
+          });
 
   std::vector<PublicPrivateKeyPairId> key_ids = {"key_id"};
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client),

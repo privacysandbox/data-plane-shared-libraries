@@ -42,27 +42,30 @@ class MockPublicKeyClient : public google::scp::cpio::PublicKeyClientInterface {
 
   MOCK_METHOD(
       ExecutionResult, ListPublicKeys,
-      (google::scp::cpio::ListPublicKeysRequest request,
-       google::scp::cpio::Callback<google::scp::cpio::ListPublicKeysResponse>
+      (google::cmrt::sdk::public_key_service::v1::ListPublicKeysRequest request,
+       google::scp::cpio::Callback<
+           google::cmrt::sdk::public_key_service::v1::ListPublicKeysResponse>
            callback),
       (noexcept));
 };
 
-using google::scp::core::SuccessExecutionResult;
-using google::scp::cpio::ListPublicKeysRequest;
-using google::scp::cpio::ListPublicKeysResponse;
-using google::scp::cpio::PublicKey;
-using google::scp::cpio::PublicKeyClientInterface;
-using google::scp::cpio::PublicPrivateKeyPairId;
-using testing::Return;
+using ::google::cmrt::sdk::public_key_service::v1::ListPublicKeysRequest;
+using ::google::cmrt::sdk::public_key_service::v1::ListPublicKeysResponse;
+using ::google::cmrt::sdk::public_key_service::v1::PublicKey;
+using ::google::scp::core::SuccessExecutionResult;
+using ::google::scp::cpio::PublicKeyClientInterface;
+using ::google::scp::cpio::PublicPrivateKeyPairId;
+using ::testing::Return;
 
 TEST(PublicKeyFetcherTest, SuccessfulRefresh) {
   std::unique_ptr<MockPublicKeyClient> mock_public_key_client =
       std::make_unique<MockPublicKeyClient>();
 
+  PublicKey key;
+  key.set_key_id("key_id");
+  key.set_public_key("key_pubkey");
   ListPublicKeysResponse response;
-  PublicKey key = {"key_id", "key_pubkey"};
-  response.public_keys = {key};
+  response.mutable_public_keys()->Add(std::move(key));
 
   EXPECT_CALL(*mock_public_key_client, ListPublicKeys)
       .WillOnce(
@@ -78,7 +81,7 @@ TEST(PublicKeyFetcherTest, SuccessfulRefresh) {
   EXPECT_TRUE(result_status.ok());
 
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
-  key_pair_ids.push_back(key.key_id);
+  key_pair_ids.push_back(response.public_keys().at(0).key_id());
   EXPECT_EQ(fetcher.GetKeyIds(), key_pair_ids);
 }
 
@@ -101,8 +104,11 @@ TEST(PublicKeyFetcherTest, FailedAsyncListPublicKeysCall) {
   std::unique_ptr<MockPublicKeyClient> mock_public_key_client =
       std::make_unique<MockPublicKeyClient>();
 
+  PublicKey key;
+  key.set_key_id("key_id");
+  key.set_public_key("key_pubkey");
   ListPublicKeysResponse response;
-  response.public_keys = {{"key_id", "key_pubkey"}};
+  response.mutable_public_keys()->Add(std::move(key));
 
   EXPECT_CALL(*mock_public_key_client, ListPublicKeys)
       .WillOnce(
@@ -128,10 +134,13 @@ TEST(PublicKeyFetcherTest, VerifyGetKeyReturnsRandomKey) {
   std::vector<PublicKey> keys;
   for (int i = 0; i < 100; i++) {
     std::string i_str = std::to_string(i);
-    PublicKey key = {"key_id" + i_str, "key_pubkey"};
+    PublicKey key;
+    key.set_key_id("key_id" + i_str);
+    key.set_public_key("key_pubkey");
     keys.push_back(key);
   }
-  response.public_keys = keys;
+
+  response.mutable_public_keys()->Add(keys.begin(), keys.end());
 
   EXPECT_CALL(*mock_public_key_client, ListPublicKeys)
       .WillOnce(
@@ -145,9 +154,10 @@ TEST(PublicKeyFetcherTest, VerifyGetKeyReturnsRandomKey) {
   PublicKeyFetcher fetcher(std::move(mock_public_key_client));
   absl::Status result_status = fetcher.Refresh([]() -> void {});
 
+  // Call GetKey() and validate the result isn't equal to another GetKey() call.
   PublicKey key = fetcher.GetKey().value();
   for (int i = 0; i < 100; i++) {
-    if (key.key_id != fetcher.GetKey()->key_id) {
+    if (key.key_id() != fetcher.GetKey()->key_id()) {
       SUCCEED();
       return;
     }

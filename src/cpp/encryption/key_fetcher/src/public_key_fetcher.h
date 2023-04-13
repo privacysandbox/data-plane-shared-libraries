@@ -49,7 +49,8 @@ class PublicKeyFetcher : public PublicKeyFetcherInterface {
 
   // Fetches a random public key (from the list of five) for encrypting outgoing
   // requests.
-  absl::StatusOr<google::scp::cpio::PublicKey> GetKey() noexcept override;
+  absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>
+  GetKey() noexcept override;
 
   // Returns the IDs of the cached public keys. Used mainly for unit tests.
   std::vector<google::scp::cpio::PublicPrivateKeyPairId> GetKeyIds() noexcept
@@ -63,7 +64,7 @@ class PublicKeyFetcher : public PublicKeyFetcherInterface {
   absl::Mutex mutex_;
 
   // List of the latest public keys fetched  from the Public Key Service.
-  std::vector<google::scp::cpio::PublicKey> public_keys_
+  std::vector<google::cmrt::sdk::public_key_service::v1::PublicKey> public_keys_
       ABSL_GUARDED_BY(mutex_);
 
   // BitGen for randomly choosing a public key to return in GetKey().

@@ -18,12 +18,15 @@
 #define SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
 
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "cc/public/cpio/interface/private_key_client/type_def.h"
 
 namespace privacy_sandbox::server_common {
+
+using PrivateKeyValue = std::string;
 
 // Represents a private key fetched from the Private Key Service.
 struct PrivateKey {
@@ -32,12 +35,10 @@ struct PrivateKey {
   // ciphertext in the request.
   google::scp::cpio::PublicPrivateKeyPairId key_id;
   // The value of the private key.
-  google::scp::cpio::PrivateKeyValue private_key;
-  // The time when the key was fetched. Used by the PrivateKeyFetcher to clear
+  PrivateKeyValue private_key;
+  // Creation timestamp of the key. Used by the PrivateKeyFetcher to clear
   // out keys that have been cached for longer than a certain duration.
-  // TODO(b/266992860): This should be the timestamp of when the key was
-  //  created, not the fetch time.
-  absl::Time key_fetch_time;
+  absl::Time creation_time;
 };
 
 // Interface responsible for fetching and caching private keys.

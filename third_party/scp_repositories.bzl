@@ -33,8 +33,8 @@ def scp_repositories():
 
     http_archive(
         name = "control_plane_shared",
-        strip_prefix = "control-plane-shared-libraries-0.51.6",
+        strip_prefix = "control-plane-shared-libraries-0.64.0",
         urls = [
-            "https://github.com/privacysandbox/control-plane-shared-libraries/archive/refs/tags/v0.51.6.zip",
+            "https://github.com/privacysandbox/control-plane-shared-libraries/archive/refs/tags/v0.64.0.zip",
         ],
     )

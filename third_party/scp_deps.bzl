@@ -16,9 +16,12 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_r
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+load("@control_plane_shared//build_defs/tink:tink_defs.bzl", "import_tink_git")
 
 def scp_deps():
     boost_deps()
+
+    import_tink_git()
 
     maybe(
         http_archive,
@@ -28,11 +31,12 @@ def scp_deps():
         url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.8.0.tar.gz",
     )
 
-    http_archive(
+    maybe(
+        http_archive,
         name = "com_github_nghttp2_nghttp2",
-        build_file = "@control_plane_shared//build_defs/cc:nghttp2.BUILD",
+        build_file = "@control_plane_shared//build_defs/cc/build_targets:nghttp2.BUILD",
         patch_args = ["-p1"],
-        patches = ["@control_plane_shared//build_defs/cc:nghttp2.patch"],
+        patches = ["@control_plane_shared//build_defs/cc/build_targets:nghttp2.patch"],
         sha256 = "62f50f0e9fc479e48b34e1526df8dd2e94136de4c426b7680048181606832b7c",
         strip_prefix = "nghttp2-1.47.0",
         url = "https://github.com/nghttp2/nghttp2/releases/download/v1.47.0/nghttp2-1.47.0.tar.gz",
@@ -96,7 +100,7 @@ def scp_deps():
 
     http_archive(
         name = "rapidjson",
-        build_file = "@control_plane_shared//build_defs/cc:rapidjson.BUILD",
+        build_file = "@control_plane_shared//build_defs/cc/build_targets:rapidjson.BUILD",
         sha256 = "30bd2c428216e50400d493b38ca33a25efb1dd65f79dfc614ab0c957a3ac2c28",
         strip_prefix = "rapidjson-418331e99f859f00bdc8306f69eba67e8693c55e",
         urls = [

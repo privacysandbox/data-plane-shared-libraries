@@ -26,7 +26,7 @@
 
 namespace privacy_sandbox::server_common {
 
-using ::google::scp::cpio::PublicKey;
+using ::google::cmrt::sdk::public_key_service::v1::PublicKey;
 using ::google::scp::cpio::PublicPrivateKeyPairId;
 using ::privacy_sandbox::server_common::PrivateKeyFetcherInterface;
 using ::privacy_sandbox::server_common::PublicKeyFetcherInterface;

@@ -32,13 +32,12 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::GetErrorMessage;
 
-using ::google::scp::cpio::ListPrivateKeysByIdsRequest;
-using ::google::scp::cpio::ListPrivateKeysByIdsResponse;
+using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;
+using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse;
 using ::google::scp::cpio::PrivateKeyClientInterface;
 using ::google::scp::cpio::PrivateKeyClientOptions;
 
 using ::google::scp::core::PublicPrivateKeyPairId;
-using ::google::scp::cpio::PrivateKey;
 
 namespace privacy_sandbox::server_common {
 namespace {
@@ -46,12 +45,18 @@ namespace {
 static constexpr absl::string_view kKeyFetchFailMessage =
     "GetEncryptedPrivateKey call failed (key IDs: %s, status_code: %s)";
 
-void HandleFailure(const std::vector<PublicPrivateKeyPairId>& key_ids,
-                   google::scp::core::StatusCode status_code) noexcept {
+void HandleFailure(
+    const google::protobuf::RepeatedPtrField<std::string>& key_ids,
+    google::scp::core::StatusCode status_code) noexcept {
   std::string key_ids_str = absl::StrJoin(key_ids, ", ");
-  std::string error = absl::StrFormat(kKeyFetchFailMessage, key_ids_str,
-                                      GetErrorMessage(status_code));
+  const std::string error = absl::StrFormat(kKeyFetchFailMessage, key_ids_str,
+                                            GetErrorMessage(status_code));
   VLOG(-1) << error;
+}
+
+absl::Time ProtoToAbslDuration(const google::protobuf::Timestamp& timestamp) {
+  return absl::FromUnixSeconds(timestamp.seconds()) +
+         absl::Nanoseconds(timestamp.nanos());
 }
 
 }  // namespace
@@ -70,33 +75,34 @@ PrivateKeyFetcher::~PrivateKeyFetcher() {
 void PrivateKeyFetcher::Refresh(
     const std::vector<PublicPrivateKeyPairId>& key_ids) noexcept
     ABSL_LOCKS_EXCLUDED(mutex_) {
-  ListPrivateKeysByIdsRequest request = {key_ids};
-  ExecutionResult result = private_key_client_.get()->ListPrivateKeysByIds(
+  ListPrivateKeysRequest request;
+  request.mutable_key_ids()->Add(key_ids.begin(), key_ids.end());
+
+  ExecutionResult result = private_key_client_.get()->ListPrivateKeys(
       request, [keys_map = &private_keys_map_, mu = &mutex_, request](
                    const ExecutionResult result,
-                   const ListPrivateKeysByIdsResponse response) {
+                   const ListPrivateKeysResponse response) {
         if (result.Successful()) {
           absl::MutexLock l(mu);
-          for (google::scp::cpio::PrivateKey private_key :
-               response.private_keys) {
-            PrivateKey key = {private_key.key_id, private_key.private_key,
-                              absl::Now()};
+          for (const auto& private_key : response.private_keys()) {
+            PrivateKey key = {private_key.key_id(), private_key.private_key(),
+                              ProtoToAbslDuration(private_key.creation_time())};
             keys_map->insert_or_assign(key.key_id, key);
           }
         } else {
-          HandleFailure(request.key_ids, result.status_code);
+          HandleFailure(request.key_ids(), result.status_code);
         }
       });
 
   if (!result.Successful()) {
-    HandleFailure(key_ids, result.status_code);
+    HandleFailure(request.key_ids(), result.status_code);
   }
 
   absl::MutexLock l(&mutex_);
   // Clean up keys that have been stored in the cache for longer than the ttl.
   absl::Time cutoff_time = absl::Now() - ttl_;
   for (auto it = private_keys_map_.cbegin(); it != private_keys_map_.cend();) {
-    if (it->second.key_fetch_time < cutoff_time) {
+    if (it->second.creation_time < cutoff_time) {
       private_keys_map_.erase(it++);
     } else {
       it++;
