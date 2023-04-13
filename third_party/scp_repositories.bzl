@@ -22,7 +22,7 @@ def scp_repositories():
         sha256 = "d78f5b488a0f3f0f288230e20b381ef8ee7a3180e2de0fad159aa7709f138dae",
         strip_prefix = "control-plane-shared-libraries-0.64.0",
         patches = [
-            "//third_party:shared_control_plane.patch",
+            "@google_privacysandbox_servers_common//third_party:shared_control_plane.patch",
         ],
         urls = [
             "https://github.com/privacysandbox/control-plane-shared-libraries/archive/refs/tags/v0.64.0.zip",
