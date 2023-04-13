@@ -3,6 +3,9 @@ workspace(name = "google_privacysandbox_servers_common")
 load("//:common_deps.bzl", "common_dependencies")
 load("//:cpp_deps.bzl", "cpp_dependencies")
 load("//:java_deps.bzl", "java_dependencies")
+load("//builders/bazel:deps.bzl", "python_deps")
+
+python_deps("//builders/bazel")
 
 common_dependencies()
 
@@ -22,6 +25,10 @@ grpc_extra_deps()
 load("//third_party:scp_deps.bzl", "scp_deps")
 
 scp_deps()
+
+load("//third_party:scp_deps2.bzl", "scp_deps2")
+
+scp_deps2()
 
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 

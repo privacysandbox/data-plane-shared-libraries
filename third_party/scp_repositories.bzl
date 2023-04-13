@@ -12,28 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+"""Initialize the shared control plane repository."""
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 def scp_repositories():
-    """Entry point for shared control plane repository and dependencies."""
-
-    # Boost
-    # latest as of 2022-06-09
-    _RULES_BOOST_COMMIT = "789a047e61c0292c3b989514f5ca18a9945b0029"
-
-    git_repository(
-        name = "com_github_nelhage_rules_boost",
-        commit = _RULES_BOOST_COMMIT,
-        patch_args = ["-p1"],
-        patches = ["//third_party:rules_boost.patch"],
-        remote = "https://github.com/nelhage/rules_boost.git",
-        shallow_since = "1652895814 -0700",
-    )
-
     http_archive(
         name = "control_plane_shared",
+        sha256 = "d78f5b488a0f3f0f288230e20b381ef8ee7a3180e2de0fad159aa7709f138dae",
         strip_prefix = "control-plane-shared-libraries-0.64.0",
+        patches = [
+            "//third_party:shared_control_plane.patch",
+        ],
         urls = [
             "https://github.com/privacysandbox/control-plane-shared-libraries/archive/refs/tags/v0.64.0.zip",
         ],
