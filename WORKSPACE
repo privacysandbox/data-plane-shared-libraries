@@ -22,11 +22,11 @@ load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 ### Also loads bazel-gazelle
 grpc_extra_deps()
 
-load("//third_party:scp_deps.bzl", "scp_deps")
+load("@google_privacysandbox_servers_common//third_party:scp_deps.bzl", "scp_deps")
 
 scp_deps()
 
-load("//third_party:scp_deps2.bzl", "scp_deps2")
+load("@google_privacysandbox_servers_common//third_party:scp_deps2.bzl", "scp_deps2")
 
 scp_deps2()
 
@@ -50,10 +50,7 @@ load("@google_privacysandbox_servers_common//third_party:maven_deps.bzl", "maven
 
 maven_deps()
 
-load(
-    "@io_bazel_rules_docker//repositories:repositories.bzl",
-    container_repositories = "repositories",
-)
+load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
 
 container_repositories()
 
@@ -61,14 +58,11 @@ load("@io_bazel_rules_docker//repositories:deps.bzl", docker_container_deps = "d
 
 docker_container_deps()
 
-load("//third_party:container_deps.bzl", "container_deps")
+load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "container_deps")
 
 container_deps()
 
-load(
-    "@io_bazel_rules_docker//java:image.bzl",
-    java_image_repos = "repositories",
-)
+load("@io_bazel_rules_docker//java:image.bzl", java_image_repos = "repositories")
 
 java_image_repos()
 
