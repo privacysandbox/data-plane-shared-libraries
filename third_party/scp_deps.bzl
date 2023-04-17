@@ -28,6 +28,10 @@ PROTOBUF_CORE_VERSION = "3.19.4"
 PROTOBUF_SHA_256 = "3bd7828aa5af4b13b99c191e8b1e884ebfa9ad371b0ce264605d347f135d2568"
 
 def scp_deps():
-    scp_sdk_dependencies(PROTOBUF_CORE_VERSION, PROTOBUF_SHA_256)
+    scp_sdk_dependencies(
+        PROTOBUF_CORE_VERSION,
+        PROTOBUF_SHA_256,
+        "@control_plane_shared",
+    )
     import_v8("@control_plane_shared")
     import_tink_git("@control_plane_shared")

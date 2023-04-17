@@ -15,6 +15,8 @@
 """Further initialization of shared control plane dependencies."""
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
 def scp_deps2():
+    protobuf_deps()
     boost_deps()

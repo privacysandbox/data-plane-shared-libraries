@@ -30,10 +30,10 @@
      execl(socket_vendor_path.c_str(), socket_vendor_path.c_str(), nullptr);
      exit(1);
    }
-diff -ru build_defs/cc/sdk.bzl build_defs/cc/sdk.bzl
+diff --git build_defs/cc/sdk.bzl build_defs/cc/sdk.bzl
 --- build_defs/cc/sdk.bzl
 +++ build_defs/cc/sdk.bzl
-@@ -22,7 +22,7 @@ load("//build_defs/cc/bazels:enclaves_kmstools.bzl", "enclaves_kmstools_librarie
+@@ -22,10 +22,10 @@ load("//build_defs/cc/bazels:enclaves_kmstools.bzl", "enclaves_kmstools_librarie
  load("//build_defs/cc/bazels:utils.bzl", "utils")
  load("//build_defs/cc/bazels:golang.bzl", "go_deps")
  load("//build_defs/cc/bazels:grpc.bzl", "grpc")
@@ -41,7 +41,18 @@ diff -ru build_defs/cc/sdk.bzl build_defs/cc/sdk.bzl
 +load("//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp")
  load("//build_defs/cc/bazels:google_cloud_cpp.bzl", "import_google_cloud_cpp")
 
- def sdk_dependencies(protobuf_version, protobuf_repo_hash):
+-def sdk_dependencies(protobuf_version, protobuf_repo_hash):
++def sdk_dependencies(protobuf_version, protobuf_repo_hash, scp_repo_name = ""):
+     protobuf(protobuf_version, protobuf_repo_hash)
+     boost()
+     nghttp2()
+@@ -36,5 +36,5 @@ def sdk_dependencies(protobuf_version, protobuf_repo_hash):
+     utils()
+     go_deps()
+     grpc()
+-    import_aws_sdk_cpp()
++    import_aws_sdk_cpp(scp_repo_name)
+     import_google_cloud_cpp()
 diff --git build_defs/cc/v8.bzl build_defs/cc/v8.bzl
 --- build_defs/cc/v8.bzl
 +++ build_defs/cc/v8.bzl
@@ -67,3 +78,114 @@ diff --git build_defs/cc/v8.bzl build_defs/cc/v8.bzl
      )
 
      new_git_repository(
+
+diff --git build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
+--- build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
++++ build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
+@@ -15,14 +15,14 @@
+ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+
+-def import_aws_sdk_cpp():
++def import_aws_sdk_cpp(scp_repo_name = ""):
+     """
+     Import AWS SDK CPP source code
+     """
+     maybe(
+         http_archive,
+         name = "aws_checksums",
+-        build_file = Label("//build_defs/cc/aws:aws_checksums.BUILD"),
++        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_checksums.BUILD"),
+         sha256 = "6e6bed6f75cf54006b6bafb01b3b96df19605572131a2260fddaf0e87949ced0",
+         strip_prefix = "aws-checksums-0.1.5",
+         urls = [
+@@ -33,7 +33,7 @@ def import_aws_sdk_cpp():
+     maybe(
+         http_archive,
+         name = "aws_c_common",
+-        build_file = Label("//build_defs/cc/aws:aws_c_common.BUILD"),
++        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_c_common.BUILD"),
+         sha256 = "6eb0b806c78b36a32eec9bcba8d2833e3973491a29d46fe3d11edc3f8d3e7f73",
+         strip_prefix = "aws-c-common-0.6.20",
+         urls = [
+@@ -44,7 +44,7 @@ def import_aws_sdk_cpp():
+     maybe(
+         http_archive,
+         name = "aws_c_event_stream",
+-        build_file = Label("//build_defs/cc/aws:aws_c_event_stream.BUILD"),
++        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_c_event_stream.BUILD"),
+         sha256 = "31d880d1c868d3f3df1e1f4b45e56ac73724a4dc3449d04d47fc0746f6f077b6",
+         strip_prefix = "aws-c-event-stream-0.1.4",
+         urls = [
+@@ -55,8 +55,9 @@ def import_aws_sdk_cpp():
+     maybe(
+         http_archive,
+         name = "aws_sdk_cpp",
+-        build_file = Label("//build_defs/cc/aws:aws_sdk_cpp_source_code.BUILD"),
++        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_sdk_cpp_source_code.BUILD"),
+         patch_cmds = [
++            """sed -i.bak 's/UUID::RandomUUID/Aws::Utils::UUID::RandomUUID/g' aws-cpp-sdk-core/source/client/AWSClient.cpp""",
+             # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
+             """sed -i.bak 's/Tags\\.entry/Tag/g' aws-cpp-sdk-sqs/source/model/TagQueueRequest.cpp""",
+         ],
+diff --git build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
+--- build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
++++ build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
+@@ -273,3 +273,57 @@ genrule(
+     ],
+     cmd_bash = "touch '$@'",
+ )
++
++cc_library(
++    name = "transfer",
++    srcs = glob([
++        "aws-cpp-sdk-transfer/source/transfer/*.cpp",  # TRANSFER_SOURCE
++    ]),
++    hdrs = glob([
++        "aws-cpp-sdk-transfer/include/aws/transfer/*.h",  # TRANSFER_HEADERS
++    ]),
++    includes = [
++        "aws-cpp-sdk-transfer/include",
++    ],
++    deps = [
++        ":core",
++        ":s3",
++    ],
++)
++
++cc_library(
++    name = "kinesis",
++    srcs = glob([
++        "aws-cpp-sdk-kinesis/source/*.cpp",  # AWS_KINESIS_SOURCE
++        "aws-cpp-sdk-kinesis/source/model/*.cpp",  # AWS_KINESIS_MODEL_SOURCE
++    ]),
++    hdrs = glob([
++        "aws-cpp-sdk-kinesis/include/aws/kinesis/*.h",  # AWS_KINESIS_HEADERS
++        "aws-cpp-sdk-kinesis/include/aws/kinesis/model/*.h",  # AWS_KINESIS_MODEL_HEADERS
++    ]),
++    includes = [
++        "aws-cpp-sdk-kinesis/include",
++    ],
++    deps = [
++        ":core",
++    ],
++)
++
++cc_library(
++    name = "sns",
++    srcs = glob([
++        "aws-cpp-sdk-sns/source/*.cpp",  # AWS_SNS_SOURCE
++        "aws-cpp-sdk-sns/source/model/*.cpp",  # AWS_SNS_MODEL_SOURCE
++    ]),
++    hdrs = glob([
++        "aws-cpp-sdk-sns/include/aws/sns/*.h",  # AWS_SNS_HEADERS
++        "aws-cpp-sdk-sns/include/aws/sns/model/*.h",  # AWS_SNS_MODEL_HEADERS
++    ]),
++    includes = [
++        "aws-cpp-sdk-sns/include",
++    ],
++    deps = [
++        ":core",
++    ],
++)
++
