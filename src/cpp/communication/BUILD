@@ -98,3 +98,43 @@ cc_test(
         "@com_google_protobuf//:protobuf",
     ],
 )
+
+cc_library(
+    name = "compression",
+    srcs = [
+        "compression.cc",
+        "compression_brotli.cc",
+        "uncompressed.cc",
+    ],
+    hdrs = [
+        "compression.h",
+        "compression_brotli.h",
+        "uncompressed.h",
+    ],
+    deps = [
+        "@brotli//:brotlidec",
+        "@brotli//:brotlienc",
+        "@com_github_google_glog//:glog",
+        "@com_github_google_quiche//quiche:quiche_unstable_api",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "uncompressed_test",
+    srcs = ["uncompressed_test.cc"],
+    deps = [
+        ":compression",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "compression_brotli_test",
+    srcs = ["compression_brotli_test.cc"],
+    deps = [
+        ":compression",
+        "@com_github_google_glog//:glog",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

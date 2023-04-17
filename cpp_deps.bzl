@@ -118,4 +118,12 @@ def cpp_dependencies():
         ],
     )
 
+    maybe(
+        http_archive,
+        name = "brotli",
+        sha256 = "84a9a68ada813a59db94d83ea10c54155f1d34399baf377842ff3ab9b3b3256e",
+        strip_prefix = "brotli-3914999fcc1fda92e750ef9190aa6db9bf7bdb07",
+        urls = ["https://github.com/google/brotli/archive/3914999fcc1fda92e750ef9190aa6db9bf7bdb07.zip"],  # 2022-11-17
+    )
+
     quiche_dependencies()
