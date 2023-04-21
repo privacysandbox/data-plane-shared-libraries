@@ -59,9 +59,11 @@ def cpp_dependencies():
     maybe(
         http_archive,
         name = "com_github_grpc_grpc",
-        sha256 = "6943291f6ac263eed4ae3645a9598e59733de4cc7ff8d30722baf57c12f341d0",  #  Wed Aug 31 14:19:47 2022 -0700
-        strip_prefix = "grpc-f4202cefbb08198081b7ee52e0a87efd5d35e703",
-        urls = ["https://github.com/grpc/grpc/archive/f4202cefbb08198081b7ee52e0a87efd5d35e703.zip"],
+        sha256 = "ec125d7fdb77ecc25b01050a0d5d32616594834d3fe163b016768e2ae42a2df6",
+        strip_prefix = "grpc-1.52.1",
+        urls = [
+            "https://github.com/grpc/grpc/archive/v1.52.1.tar.gz",
+        ],
     )
 
     maybe(
