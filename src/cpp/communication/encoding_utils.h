@@ -36,7 +36,7 @@ inline constexpr int kCompressedDataSizeBytes = 4;
 // Remove once tg/1784417 is merged.
 enum class CompressionType { kUncompressed = 0, kBrotli, kGzip = 2 };
 
-struct EncodedRequest {
+struct DecodedRequest {
   int framing_version;
   CompressionType compression_type;
   std::string compressed_data;
@@ -65,7 +65,7 @@ absl::StatusOr<std::string> EncodeResponsePayload(
 //
 // The input to this method should be the output of HPKE decryption, and the
 // output of this method should be the input to decompression.
-absl::StatusOr<EncodedRequest> DecodeRequestPayload(absl::string_view payload);
+absl::StatusOr<DecodedRequest> DecodeRequestPayload(absl::string_view payload);
 
 }  // namespace privacy_sandbox::server_common
 

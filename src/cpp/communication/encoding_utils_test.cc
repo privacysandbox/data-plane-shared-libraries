@@ -55,7 +55,7 @@ TEST(EncodingUtilsTest, EncodeResponsePayloadFailure_PayloadTooLargeToEncode) {
 TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_NoPadding) {
   const std::string expected_compressed_message = "payload";
   const std::string encoded_payload = "01000000077061796c6f6164";
-  const absl::StatusOr<EncodedRequest> decoded_payload(
+  const absl::StatusOr<DecodedRequest> decoded_payload(
       DecodeRequestPayload(absl::HexStringToBytes(encoded_payload)));
 
   EXPECT_EQ(0, decoded_payload->framing_version);
@@ -66,7 +66,7 @@ TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_NoPadding) {
 TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_WithPadding) {
   const std::string expected_compressed_message = "payload";
   const std::string encoded_payload = "01000000077061796c6f61640000";
-  const absl::StatusOr<EncodedRequest> decoded_payload(
+  const absl::StatusOr<DecodedRequest> decoded_payload(
       DecodeRequestPayload(absl::HexStringToBytes(encoded_payload)));
 
   EXPECT_EQ(0, decoded_payload->framing_version);
@@ -79,7 +79,7 @@ TEST(EncodingUtilsTest, DecodeRequestPayloadFailure_MalformedPayload) {
   // above tests, so the 4 bits that indicate the size of the compressed data is
   // larger than how many bits follow it in the payload.
   const std::string encoded_payload = "01000000077061796c6f616";
-  const absl::StatusOr<EncodedRequest> decoded_payload(
+  const absl::StatusOr<DecodedRequest> decoded_payload(
       DecodeRequestPayload(absl::HexStringToBytes(encoded_payload)));
 
   ASSERT_TRUE(!decoded_payload.ok());

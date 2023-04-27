@@ -62,7 +62,7 @@ absl::StatusOr<std::string> EncodeResponsePayload(
   return std::string(buffer, sizeof(buffer));
 }
 
-absl::StatusOr<EncodedRequest> DecodeRequestPayload(absl::string_view payload) {
+absl::StatusOr<DecodedRequest> DecodeRequestPayload(absl::string_view payload) {
   quiche::QuicheDataReader reader(payload);
 
   uint8_t first_byte;
@@ -87,7 +87,7 @@ absl::StatusOr<EncodedRequest> DecodeRequestPayload(absl::string_view payload) {
 
   // The rest of the payload is padding and can be ignored.
 
-  EncodedRequest req;
+  DecodedRequest req;
   req.framing_version = version_num;
   req.compression_type = static_cast<CompressionType>(compression_type);
   req.compressed_data = std::string(compressed_data);
