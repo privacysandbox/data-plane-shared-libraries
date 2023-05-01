@@ -14,7 +14,6 @@
 #include "src/cpp/communication/compression.h"
 
 #include "glog/logging.h"
-#include "quiche/common/quiche_data_writer.h"
 #include "src/cpp/communication/compression_brotli.h"
 #include "src/cpp/communication/uncompressed.h"
 

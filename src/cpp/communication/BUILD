@@ -81,6 +81,7 @@ cc_library(
         "@com_google_absl//absl/hash",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
+        "@zlib",
     ],
 )
 
@@ -104,11 +105,13 @@ cc_library(
     srcs = [
         "compression.cc",
         "compression_brotli.cc",
+        "compression_gzip.cc",
         "uncompressed.cc",
     ],
     hdrs = [
         "compression.h",
         "compression_brotli.h",
+        "compression_gzip.h",
         "uncompressed.h",
     ],
     deps = [
@@ -135,6 +138,20 @@ cc_test(
     deps = [
         ":compression",
         "@com_github_google_glog//:glog",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "compression_gzip_test",
+    srcs = ["compression_gzip_test.cc"],
+    deps = [
+        ":compression",
+        "@boost//:iostreams",
+        "@brotli//:brotlidec",
+        "@brotli//:brotlienc",
+        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )

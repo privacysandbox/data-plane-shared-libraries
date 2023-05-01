@@ -34,7 +34,7 @@ namespace privacy_sandbox::server_common {
 // Should not be reused across requests.
 // Not intended to be used by multiple threads. Not thread-safe.
 //
-// Input to this object is one or more JSON strings, each being one compression
+// Input to this object is one or more strings, each being one compression
 // group. Output of this object is a byte string concatenating all the
 // compression groups using the defined protocol.
 class CompressionGroupConcatenator {
