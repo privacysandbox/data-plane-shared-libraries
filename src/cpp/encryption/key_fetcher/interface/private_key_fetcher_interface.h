@@ -17,6 +17,7 @@
 #ifndef SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
 #define SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -54,6 +55,21 @@ class PrivateKeyFetcherInterface {
   // Returns the corresponding PrivateKey, if present.
   virtual std::optional<PrivateKey> GetKey(
       const google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept = 0;
+};
+
+// Factory to create PrivateKeyFetcher.
+class PrivateKeyFetcherFactory {
+ public:
+  // Creates a PrivateKeyFetcher given the necessary config and a
+  // TTL of when cached keys should be removed from the cache.
+  static std::unique_ptr<PrivateKeyFetcherInterface> Create(
+      const google::scp::cpio::AccountIdentity& account_identity,
+      const google::scp::cpio::Region& service_region,
+      const google::scp::cpio::PrivateKeyVendingServiceEndpoint&
+          primary_coordinator_endpoint,
+      const google::scp::cpio::PrivateKeyVendingServiceEndpoint&
+          secondary_coordinator_endpoint,
+      absl::Duration key_ttl);
 };
 
 }  // namespace privacy_sandbox::server_common

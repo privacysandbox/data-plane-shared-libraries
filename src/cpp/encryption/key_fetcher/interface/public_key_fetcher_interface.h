@@ -17,6 +17,7 @@
 #ifndef SRC_CPP_ENCRYPTION_KEY_FETCHER_PUBLIC_KEY_FETCHER_INTERFACE_H_
 #define SRC_CPP_ENCRYPTION_KEY_FETCHER_PUBLIC_KEY_FETCHER_INTERFACE_H_
 
+#include <memory>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -42,6 +43,15 @@ class PublicKeyFetcherInterface {
   // Returns the IDs of the cached public keys.
   virtual std::vector<google::scp::cpio::PublicPrivateKeyPairId>
   GetKeyIds() noexcept = 0;
+};
+
+// Factory to create PublicKeyFetcher.
+class PublicKeyFetcherFactory {
+ public:
+  // Creates a PublicKeyFetcher given a list of Public Key Service endpoints.
+  static std::unique_ptr<PublicKeyFetcherInterface> Create(
+      const std::vector<google::scp::cpio::PublicKeyVendingServiceEndpoint>&
+          endpoints);
 };
 
 }  // namespace privacy_sandbox::server_common

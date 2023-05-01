@@ -103,4 +103,14 @@ std::optional<PrivateKey> KeyFetcherManager::GetPrivateKey(
   return private_key_fetcher_->GetKey(key_id);
 }
 
+std::unique_ptr<KeyFetcherManagerInterface> KeyFetcherManagerFactory::Create(
+    absl::Duration key_refresh_period,
+    std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
+    std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
+    std::shared_ptr<privacy_sandbox::server_common::Executor> executor) {
+  return std::make_unique<KeyFetcherManager>(
+      key_refresh_period, std::move(public_key_fetcher),
+      std::move(private_key_fetcher), std::move(executor));
+}
+
 }  // namespace privacy_sandbox::server_common

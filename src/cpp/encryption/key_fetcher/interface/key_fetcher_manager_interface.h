@@ -17,10 +17,13 @@
 #ifndef SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_KEY_FETCHER_MANAGER_INTERFACE_H_
 #define SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_KEY_FETCHER_MANAGER_INTERFACE_H_
 
+#include <memory>
+
 #include "absl/status/statusor.h"
 #include "cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "cc/public/cpio/interface/type_def.h"
 #include "src/cpp/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
+#include "src/cpp/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
 
 namespace privacy_sandbox::server_common {
 
@@ -39,6 +42,18 @@ class KeyFetcherManagerInterface {
   // Fetches the corresponding private key for a public key ID.
   virtual std::optional<PrivateKey> GetPrivateKey(
       google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept = 0;
+};
+
+// Factory to create KeyFetcherManager.
+class KeyFetcherManagerFactory {
+ public:
+  // Creates a KeyFetcherManager given the Public and Private Key Fetchers and
+  // an executor on which to run the periodic background key refresh job.
+  static std::unique_ptr<KeyFetcherManagerInterface> Create(
+      absl::Duration key_refresh_period,
+      std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
+      std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
+      std::shared_ptr<privacy_sandbox::server_common::Executor> executor);
 };
 
 }  // namespace privacy_sandbox::server_common

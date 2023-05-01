@@ -39,6 +39,11 @@ using ::google::scp::cpio::PrivateKeyClientOptions;
 
 using ::google::scp::core::PublicPrivateKeyPairId;
 
+using ::google::scp::cpio::AccountIdentity;
+using ::google::scp::cpio::PrivateKeyVendingEndpoint;
+using ::google::scp::cpio::PrivateKeyVendingServiceEndpoint;
+using ::google::scp::cpio::Region;
+
 namespace privacy_sandbox::server_common {
 namespace {
 
@@ -119,6 +124,28 @@ std::optional<PrivateKey> PrivateKeyFetcher::GetKey(
   }
 
   return std::nullopt;
+}
+
+std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
+    const AccountIdentity& account_identity, const Region& service_region,
+    const PrivateKeyVendingServiceEndpoint& primary_coordinator_endpoint,
+    const PrivateKeyVendingServiceEndpoint& secondary_coordinator_endpoint,
+    absl::Duration key_ttl) {
+  PrivateKeyVendingEndpoint primary, secondary;
+  primary.account_identity = secondary.account_identity = account_identity;
+  primary.service_region = secondary.service_region = service_region;
+  primary.private_key_vending_service_endpoint = primary_coordinator_endpoint;
+  secondary.private_key_vending_service_endpoint =
+      secondary_coordinator_endpoint;
+
+  PrivateKeyClientOptions options;
+  options.primary_private_key_vending_endpoint = primary;
+  options.secondary_private_key_vending_endpoints = {secondary};
+
+  std::unique_ptr<PrivateKeyClientInterface> private_key_client =
+      google::scp::cpio::PrivateKeyClientFactory::Create(options);
+  return std::make_unique<PrivateKeyFetcher>(std::move(private_key_client),
+                                             key_ttl);
 }
 
 }  // namespace privacy_sandbox::server_common

@@ -19,6 +19,7 @@
 #include <utility>
 
 #include <grpc/event_engine/event_engine.h>
+#include <grpc/grpc.h>
 
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/time/clock.h"
@@ -41,7 +42,9 @@ using google::scp::core::SuccessExecutionResult;
 class KeyFetcherManagerTest : public ::testing::Test {
  protected:
   KeyFetcherManagerTest() {
+    grpc_init();
     event_engine_ = grpc_event_engine::experimental::CreateEventEngine();
+    grpc_shutdown();
     executor_ = std::make_shared<EventEngineExecutor>(event_engine_.get());
   }
 

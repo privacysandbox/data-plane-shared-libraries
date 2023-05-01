@@ -123,4 +123,15 @@ std::vector<PublicPrivateKeyPairId> PublicKeyFetcher::GetKeyIds() noexcept
   return key_pair_ids;
 }
 
+std::unique_ptr<PublicKeyFetcherInterface> PublicKeyFetcherFactory::Create(
+    const std::vector<google::scp::cpio::PublicKeyVendingServiceEndpoint>&
+        endpoints) {
+  PublicKeyClientOptions options;
+  options.endpoints = endpoints;
+
+  std::unique_ptr<PublicKeyClientInterface> public_key_client =
+      google::scp::cpio::PublicKeyClientFactory::Create(options);
+  return std::make_unique<PublicKeyFetcher>(std::move(public_key_client));
+}
+
 }  // namespace privacy_sandbox::server_common
