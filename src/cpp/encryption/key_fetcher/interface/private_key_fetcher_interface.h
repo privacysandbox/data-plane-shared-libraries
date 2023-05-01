@@ -63,12 +63,9 @@ class PrivateKeyFetcherFactory {
   // Creates a PrivateKeyFetcher given the necessary config and a
   // TTL of when cached keys should be removed from the cache.
   static std::unique_ptr<PrivateKeyFetcherInterface> Create(
-      const google::scp::cpio::AccountIdentity& account_identity,
-      const google::scp::cpio::Region& service_region,
-      const google::scp::cpio::PrivateKeyVendingServiceEndpoint&
-          primary_coordinator_endpoint,
-      const google::scp::cpio::PrivateKeyVendingServiceEndpoint&
-          secondary_coordinator_endpoint,
+      const google::scp::cpio::PrivateKeyVendingEndpoint& primary_endpoint,
+      const std::vector<google::scp::cpio::PrivateKeyVendingEndpoint>&
+          secondary_endpoints,
       absl::Duration key_ttl);
 };
 

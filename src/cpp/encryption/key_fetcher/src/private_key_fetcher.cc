@@ -127,20 +127,12 @@ std::optional<PrivateKey> PrivateKeyFetcher::GetKey(
 }
 
 std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
-    const AccountIdentity& account_identity, const Region& service_region,
-    const PrivateKeyVendingServiceEndpoint& primary_coordinator_endpoint,
-    const PrivateKeyVendingServiceEndpoint& secondary_coordinator_endpoint,
+    const PrivateKeyVendingEndpoint& primary_endpoint,
+    const std::vector<PrivateKeyVendingEndpoint>& secondary_endpoints,
     absl::Duration key_ttl) {
-  PrivateKeyVendingEndpoint primary, secondary;
-  primary.account_identity = secondary.account_identity = account_identity;
-  primary.service_region = secondary.service_region = service_region;
-  primary.private_key_vending_service_endpoint = primary_coordinator_endpoint;
-  secondary.private_key_vending_service_endpoint =
-      secondary_coordinator_endpoint;
-
   PrivateKeyClientOptions options;
-  options.primary_private_key_vending_endpoint = primary;
-  options.secondary_private_key_vending_endpoints = {secondary};
+  options.primary_private_key_vending_endpoint = primary_endpoint;
+  options.secondary_private_key_vending_endpoints = secondary_endpoints;
 
   std::unique_ptr<PrivateKeyClientInterface> private_key_client =
       google::scp::cpio::PrivateKeyClientFactory::Create(options);
