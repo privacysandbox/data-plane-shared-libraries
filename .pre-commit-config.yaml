@@ -18,6 +18,7 @@ exclude: (?x)^(
   bazel-(bin|out|testlogs|workspace)/.*|
   .bazel_output/.*|
   builders/.*|
+  third_party/.*\.patch|
   version.txt
   )$
 

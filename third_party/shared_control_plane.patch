@@ -1,133 +1,3 @@
---- cc/aws/proxy/src/proxify.cc
-+++ cc/aws/proxy/src/proxify.cc
-@@ -29,11 +29,15 @@ static constexpr char socket_vendor[] = "socket_vendor";
- static constexpr char resolv_conf_path[] = "/etc/resolv.conf";
- static constexpr char use_vc_option[] = "use-vc";
-
--static const char resolv_conf_content[] =
--    "nameserver 8.8.8.8\n"
--    "nameserver 8.8.4.4\n"
--    "nameserver 1.1.1.1\n"
--    "options use-vc";
-+static const char resolv_conf_content[] = R"resolv(
-+; use-vc forces use of TCP for DNS resolutions.
-+; See https://man7.org/linux/man-pages/man5/resolv.conf.5.html
-+options use-vc timeout:2 attempts:5
-+search ec2.internal
-+; Ip of AWS DNS resolver located at base of VPC IPV4 network range, plus two.
-+; See https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#AmazonDNS
-+nameserver 10.0.0.2
-+)resolv";
-
- int main(int argc, char* argv[]) {
-   std::string exe = argv[0];
-@@ -70,7 +74,7 @@ int main(int argc, char* argv[]) {
-   // Run the socket_vendor. If there's already a running socket_vendor, this
-   // will end with a benign failure.
-   if (fork() == 0) {
--    daemon(1, 1);
-+    daemon(1, 0);
-     execl(socket_vendor_path.c_str(), socket_vendor_path.c_str(), nullptr);
-     exit(1);
-   }
-diff --git build_defs/cc/sdk.bzl build_defs/cc/sdk.bzl
---- build_defs/cc/sdk.bzl
-+++ build_defs/cc/sdk.bzl
-@@ -22,10 +22,10 @@ load("//build_defs/cc/bazels:enclaves_kmstools.bzl", "enclaves_kmstools_librarie
- load("//build_defs/cc/bazels:utils.bzl", "utils")
- load("//build_defs/cc/bazels:golang.bzl", "go_deps")
- load("//build_defs/cc/bazels:grpc.bzl", "grpc")
--load("//build_defs/cc/aws:aws_sdk_cpp_deps.bzl", "import_aws_sdk_cpp")
-+load("//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp")
- load("//build_defs/cc/bazels:google_cloud_cpp.bzl", "import_google_cloud_cpp")
-
--def sdk_dependencies(protobuf_version, protobuf_repo_hash):
-+def sdk_dependencies(protobuf_version, protobuf_repo_hash, scp_repo_name = ""):
-     protobuf(protobuf_version, protobuf_repo_hash)
-     boost()
-     nghttp2()
-@@ -36,5 +36,5 @@ def sdk_dependencies(protobuf_version, protobuf_repo_hash):
-     utils()
-     go_deps()
-     grpc()
--    import_aws_sdk_cpp()
-+    import_aws_sdk_cpp(scp_repo_name)
-     import_google_cloud_cpp()
-diff --git build_defs/cc/v8.bzl build_defs/cc/v8.bzl
---- build_defs/cc/v8.bzl
-+++ build_defs/cc/v8.bzl
-@@ -13,7 +13,7 @@
- # limitations under the License.
-
- load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
--load("@rules_python//python:pip.bzl", "pip_install")
-+load("@rules_python//python:pip.bzl", "pip_parse")
- load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-
- def import_v8(scp_repo_name = ""):
-@@ -28,10 +28,10 @@ def import_v8(scp_repo_name = ""):
-         patches = [scp_repo_name + "//build_defs/cc:v8.patch"],
-     )
-
--    pip_install(
-+    pip_parse(
-         name = "v8_python_deps",
-         extra_pip_args = ["--require-hashes"],
--        requirements = "@v8//:bazel/requirements.txt",
-+        requirements_lock = "@v8//:bazel/requirements.txt",
-     )
-
-     new_git_repository(
-
-diff --git build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
---- build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
-+++ build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
-@@ -15,14 +15,14 @@
- load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
- load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-
--def import_aws_sdk_cpp():
-+def import_aws_sdk_cpp(scp_repo_name = ""):
-     """
-     Import AWS SDK CPP source code
-     """
-     maybe(
-         http_archive,
-         name = "aws_checksums",
--        build_file = Label("//build_defs/cc/aws:aws_checksums.BUILD"),
-+        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_checksums.BUILD"),
-         sha256 = "6e6bed6f75cf54006b6bafb01b3b96df19605572131a2260fddaf0e87949ced0",
-         strip_prefix = "aws-checksums-0.1.5",
-         urls = [
-@@ -33,7 +33,7 @@ def import_aws_sdk_cpp():
-     maybe(
-         http_archive,
-         name = "aws_c_common",
--        build_file = Label("//build_defs/cc/aws:aws_c_common.BUILD"),
-+        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_c_common.BUILD"),
-         sha256 = "6eb0b806c78b36a32eec9bcba8d2833e3973491a29d46fe3d11edc3f8d3e7f73",
-         strip_prefix = "aws-c-common-0.6.20",
-         urls = [
-@@ -44,7 +44,7 @@ def import_aws_sdk_cpp():
-     maybe(
-         http_archive,
-         name = "aws_c_event_stream",
--        build_file = Label("//build_defs/cc/aws:aws_c_event_stream.BUILD"),
-+        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_c_event_stream.BUILD"),
-         sha256 = "31d880d1c868d3f3df1e1f4b45e56ac73724a4dc3449d04d47fc0746f6f077b6",
-         strip_prefix = "aws-c-event-stream-0.1.4",
-         urls = [
-@@ -55,8 +55,9 @@ def import_aws_sdk_cpp():
-     maybe(
-         http_archive,
-         name = "aws_sdk_cpp",
--        build_file = Label("//build_defs/cc/aws:aws_sdk_cpp_source_code.BUILD"),
-+        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_sdk_cpp_source_code.BUILD"),
-         patch_cmds = [
-+            """sed -i.bak 's/UUID::RandomUUID/Aws::Utils::UUID::RandomUUID/g' aws-cpp-sdk-core/source/client/AWSClient.cpp""",
-             # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
-             """sed -i.bak 's/Tags\\.entry/Tag/g' aws-cpp-sdk-sqs/source/model/TagQueueRequest.cpp""",
-         ],
 diff --git build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
 --- build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
 +++ build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
@@ -189,3 +59,135 @@ diff --git build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD build_defs/cc/aws/aws
 +    ],
 +)
 +
+diff --git build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
+--- build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
++++ build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
+@@ -15,14 +15,14 @@
+ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+ 
+-def import_aws_sdk_cpp():
++def import_aws_sdk_cpp(scp_repo_name = ""):
+     """
+     Import AWS SDK CPP source code
+     """
+     maybe(
+         http_archive,
+         name = "aws_checksums",
+-        build_file = Label("//build_defs/cc/aws:aws_checksums.BUILD"),
++        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_checksums.BUILD"),
+         sha256 = "6e6bed6f75cf54006b6bafb01b3b96df19605572131a2260fddaf0e87949ced0",
+         strip_prefix = "aws-checksums-0.1.5",
+         urls = [
+@@ -33,7 +33,7 @@ def import_aws_sdk_cpp():
+     maybe(
+         http_archive,
+         name = "aws_c_common",
+-        build_file = Label("//build_defs/cc/aws:aws_c_common.BUILD"),
++        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_c_common.BUILD"),
+         sha256 = "6eb0b806c78b36a32eec9bcba8d2833e3973491a29d46fe3d11edc3f8d3e7f73",
+         strip_prefix = "aws-c-common-0.6.20",
+         urls = [
+@@ -44,7 +44,7 @@ def import_aws_sdk_cpp():
+     maybe(
+         http_archive,
+         name = "aws_c_event_stream",
+-        build_file = Label("//build_defs/cc/aws:aws_c_event_stream.BUILD"),
++        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_c_event_stream.BUILD"),
+         sha256 = "31d880d1c868d3f3df1e1f4b45e56ac73724a4dc3449d04d47fc0746f6f077b6",
+         strip_prefix = "aws-c-event-stream-0.1.4",
+         urls = [
+@@ -55,8 +55,9 @@ def import_aws_sdk_cpp():
+     maybe(
+         http_archive,
+         name = "aws_sdk_cpp",
+-        build_file = Label("//build_defs/cc/aws:aws_sdk_cpp_source_code.BUILD"),
++        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_sdk_cpp_source_code.BUILD"),
+         patch_cmds = [
++            """sed -i.bak 's/UUID::RandomUUID/Aws::Utils::UUID::RandomUUID/g' aws-cpp-sdk-core/source/client/AWSClient.cpp""",
+             # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
+             """sed -i.bak 's/Tags\\.entry/Tag/g' aws-cpp-sdk-sqs/source/model/TagQueueRequest.cpp""",
+         ],
+diff --git build_defs/cc/sdk.bzl build_defs/cc/sdk.bzl
+--- build_defs/cc/sdk.bzl
++++ build_defs/cc/sdk.bzl
+@@ -26,11 +26,11 @@ load("//build_defs/cc/shared:boringssl.bzl", "boringssl")
+ load("//build_defs/cc/shared:cc_utils.bzl", "cc_utils")
+ load("//build_defs/cc/shared:gtest.bzl", "google_test")
+ load("//build_defs/cc/shared:nghttp2.bzl", "nghttp2")
+-load("//build_defs/cc/aws:aws_sdk_cpp_deps.bzl", "import_aws_sdk_cpp")
++load("//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp")
+ load("//build_defs/cc/shared:google_cloud_cpp.bzl", "import_google_cloud_cpp")
+ load("//build_defs/tink:tink_defs.bzl", "import_tink_git")
+ 
+-def sdk_dependencies(protobuf_version, protobuf_repo_hash):
++def sdk_dependencies(protobuf_version, protobuf_repo_hash, scp_repo_name = ""):
+     absl()
+     bazel_docker_rules()
+     bazel_rules_cpp()
+@@ -45,6 +45,6 @@ def sdk_dependencies(protobuf_version, protobuf_repo_hash):
+     grpc()
+     nghttp2()
+     protobuf(protobuf_version, protobuf_repo_hash)
+-    import_aws_sdk_cpp()
++    import_aws_sdk_cpp(scp_repo_name)
+     import_google_cloud_cpp()
+     import_tink_git()
+diff --git build_defs/cc/v8.bzl build_defs/cc/v8.bzl
+--- build_defs/cc/v8.bzl
++++ build_defs/cc/v8.bzl
+@@ -13,7 +13,7 @@
+ # limitations under the License.
+ 
+ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+-load("@rules_python//python:pip.bzl", "pip_install")
++load("@rules_python//python:pip.bzl", "pip_parse")
+ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+ 
+ def import_v8(scp_repo_name = ""):
+@@ -28,10 +28,10 @@ def import_v8(scp_repo_name = ""):
+         patches = [scp_repo_name + "//build_defs/cc:v8.patch"],
+     )
+ 
+-    pip_install(
++    pip_parse(
+         name = "v8_python_deps",
+         extra_pip_args = ["--require-hashes"],
+-        requirements = "@v8//:bazel/requirements.txt",
++        requirements_lock = "@v8//:bazel/requirements.txt",
+     )
+ 
+     new_git_repository(
+diff --git cc/aws/proxy/src/proxify.cc cc/aws/proxy/src/proxify.cc
+--- cc/aws/proxy/src/proxify.cc
++++ cc/aws/proxy/src/proxify.cc
+@@ -29,11 +29,15 @@ static constexpr char socket_vendor[] = "socket_vendor";
+ static constexpr char resolv_conf_path[] = "/etc/resolv.conf";
+ static constexpr char use_vc_option[] = "use-vc";
+ 
+-static const char resolv_conf_content[] =
+-    "nameserver 8.8.8.8\n"
+-    "nameserver 8.8.4.4\n"
+-    "nameserver 1.1.1.1\n"
+-    "options use-vc";
++static const char resolv_conf_content[] = R"resolv(
++; use-vc forces use of TCP for DNS resolutions.
++; See https://man7.org/linux/man-pages/man5/resolv.conf.5.html
++options use-vc timeout:2 attempts:5
++search ec2.internal
++; Ip of AWS DNS resolver located at base of VPC IPV4 network range, plus two.
++; See https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#AmazonDNS
++nameserver 10.0.0.2
++)resolv";
+ 
+ int main(int argc, char* argv[]) {
+   std::string exe = argv[0];
+@@ -70,7 +74,7 @@ int main(int argc, char* argv[]) {
+   // Run the socket_vendor. If there's already a running socket_vendor, this
+   // will end with a benign failure.
+   if (fork() == 0) {
+-    daemon(1, 1);
++    daemon(1, 0);
+     execl(socket_vendor_path.c_str(), socket_vendor_path.c_str(), nullptr);
+     exit(1);
+   }
