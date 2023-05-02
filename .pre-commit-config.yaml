@@ -17,6 +17,7 @@
 exclude: (?x)^(
   bazel-(bin|out|testlogs|workspace)/.*|
   .bazel_output/.*|
+  builders/.*|
   version.txt
   )$
 
@@ -89,21 +90,6 @@ repos:
     types_or:
     - text
 
-  - id: terraform-fmt
-    name: terraform fmt
-    language: script
-    pass_filenames: false
-    entry: tools/terraform fmt -write=true -recursive
-    types_or:
-    - terraform
-
-  - id: hadolint-docker
-    name: Lint Dockerfiles
-    description: Runs hadolint via docker image to lint Dockerfiles
-    language: script
-    types: [ "dockerfile" ]
-    entry: builders/tools/hadolint
-
 - repo: https://github.com/pre-commit/mirrors-prettier
   rev: v2.7.1
   hooks:
@@ -146,9 +132,3 @@ repos:
     args:
     - --filter=-build/c++11,+build/c++17,-build/header_guard,-build/include_order,+build/include_what_you_use,-build/include_subdir,-readability/casting,-readability/todo,-runtime/references
     - --quiet
-
-- repo: https://github.com/psf/black
-  rev: 22.8.0
-  hooks:
-  - id: black
-    name: black python formatter
