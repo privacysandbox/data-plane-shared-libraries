@@ -14,6 +14,7 @@
 
 #include "src/cpp/concurrent/event_engine_executor.h"
 
+#include <memory>
 #include <random>
 #include <utility>
 
@@ -39,8 +40,9 @@ TaskHandle FakeRunAfter(testing::Unused, absl::AnyInvocable<void()> method) {
 }
 
 TEST(EventEngineExecutorTest, RunsUsesEventEngine) {
-  MockEventEngine mock_event_engine;
-  EventEngineExecutor class_under_test(&mock_event_engine);
+  auto mock_event_engine_ptr = std::make_unique<MockEventEngine>();
+  auto& mock_event_engine = *mock_event_engine_ptr.get();
+  EventEngineExecutor class_under_test(std::move(mock_event_engine_ptr));
 
   std::default_random_engine generator(ToUnixSeconds(absl::Now()));
   int value = std::uniform_int_distribution<int>()(generator);
@@ -64,8 +66,9 @@ TEST(EventEngineExecutorTest, RunsUsesEventEngine) {
 }
 
 TEST(EventEngineExecutorTest, RunsAfterUsesEventEngine) {
-  MockEventEngine mock_event_engine;
-  EventEngineExecutor class_under_test(&mock_event_engine);
+  auto mock_event_engine_ptr = std::make_unique<MockEventEngine>();
+  auto& mock_event_engine = *mock_event_engine_ptr.get();
+  EventEngineExecutor class_under_test(std::move(mock_event_engine_ptr));
 
   // generate random delay between 2 and 10 Milliseconds
   std::default_random_engine generator(ToUnixSeconds(absl::Now()));
@@ -96,8 +99,9 @@ TEST(EventEngineExecutorTest, RunsAfterUsesEventEngine) {
 }
 
 TEST(EventEngineExecutorTest, CancelUsesEventEngine) {
-  MockEventEngine mock_event_engine;
-  EventEngineExecutor class_under_test(&mock_event_engine);
+  auto mock_event_engine_ptr = std::make_unique<MockEventEngine>();
+  auto& mock_event_engine = *mock_event_engine_ptr.get();
+  EventEngineExecutor class_under_test(std::move(mock_event_engine_ptr));
 
   absl::Duration delay = absl::Milliseconds(1);
   EXPECT_CALL(mock_event_engine, RunAfter(ToChronoNanoseconds(delay),

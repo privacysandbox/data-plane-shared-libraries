@@ -15,6 +15,10 @@
 #ifndef SRC_CPP_CONCURRENT_EVENT_ENGINE_EXECUTOR_H_
 #define SRC_CPP_CONCURRENT_EVENT_ENGINE_EXECUTOR_H_
 
+#include <memory>
+#include <utility>
+
+#include "grpc/grpc.h"
 #include "include/grpc/event_engine/event_engine.h"
 #include "src/cpp/concurrent/executor.h"
 
@@ -27,8 +31,9 @@ namespace privacy_sandbox::server_common {
 class EventEngineExecutor : public Executor {
  public:
   explicit EventEngineExecutor(
-      grpc_event_engine::experimental::EventEngine* event_engine)
-      : event_engine_(event_engine) {}
+      std::shared_ptr<grpc_event_engine::experimental::EventEngine>
+          event_engine)
+      : event_engine_(std::move(event_engine)) {}
   // EventEngineExecutor is neither copyable nor movable.
   EventEngineExecutor(const EventEngineExecutor&) = delete;
   EventEngineExecutor& operator=(const EventEngineExecutor&) = delete;
@@ -49,7 +54,14 @@ class EventEngineExecutor : public Executor {
   bool Cancel(TaskId task_id) override;
 
  private:
-  grpc_event_engine::experimental::EventEngine* event_engine_;
+  // own EventEngine for the lifetime of EventEngineExecutor
+  std::shared_ptr<grpc_event_engine::experimental::EventEngine> event_engine_;
+};
+
+// Keep an GrpcInit object alive for the duration of grpc usage.
+struct GrpcInit {
+  GrpcInit() { grpc_init(); }
+  ~GrpcInit() { grpc_shutdown(); }
 };
 
 }  // namespace privacy_sandbox::server_common
