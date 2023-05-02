@@ -23,7 +23,6 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
-#include "external/com_github_google_glog/_virtual_includes/glog/glog/logging.h"
 #include "glog/logging.h"
 #include "quiche/oblivious_http/buffers/oblivious_http_request.h"
 #include "quiche/oblivious_http/common/oblivious_http_header_key_config.h"
