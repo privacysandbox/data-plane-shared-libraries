@@ -191,3 +191,479 @@ diff --git cc/aws/proxy/src/proxify.cc cc/aws/proxy/src/proxify.cc
      execl(socket_vendor_path.c_str(), socket_vendor_path.c_str(), nullptr);
      exit(1);
    }
+diff --git cc/public/cpio/mock/crypto_client/BUILD cc/public/cpio/mock/crypto_client/BUILD
+--- /dev/null
++++ cc/public/cpio/mock/crypto_client/BUILD
+@@ -0,0 +1,32 @@
++# Copyright 2022 Google LLC
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++package(default_visibility = ["//visibility:public"])
++
++cc_library(
++    name = "crypto_client_mock",
++    testonly = True,
++    srcs =
++        [
++            "mock_crypto_client.h",
++        ],
++    copts = [
++        "-std=c++17",
++    ],
++    deps = [
++        "//cc:cc_base_include_dir",
++        "//cc/public/cpio/interface/crypto_client",
++        "@com_google_googletest//:gtest",
++    ],
++)
+diff --git cc/public/cpio/mock/crypto_client/mock_crypto_client.h cc/public/cpio/mock/crypto_client/mock_crypto_client.h
+--- /dev/null
++++ cc/public/cpio/mock/crypto_client/mock_crypto_client.h
+@@ -0,0 +1,67 @@
++/*
++ * Copyright 2022 Google LLC
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include <memory>
++
++#include <gmock/gmock.h>
++
++#include "public/core/interface/execution_result.h"
++#include "public/cpio/interface/crypto_client/crypto_client_interface.h"
++
++namespace google::scp::cpio::mock {
++class MockCryptoClient : public CryptoClientInterface {
++ public:
++  MockCryptoClient() {
++    ON_CALL(*this, Init)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Run)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Stop)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++  }
++
++  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
++
++  MOCK_METHOD(
++      core::ExecutionResult, HpkeEncrypt,
++      (cmrt::sdk::crypto_service::v1::HpkeEncryptRequest request,
++       Callback<cmrt::sdk::crypto_service::v1::HpkeEncryptResponse> callback),
++      (noexcept, override));
++
++  MOCK_METHOD(
++      core::ExecutionResult, HpkeDecrypt,
++      (cmrt::sdk::crypto_service::v1::HpkeDecryptRequest request,
++       Callback<cmrt::sdk::crypto_service::v1::HpkeDecryptResponse> callback),
++      (noexcept, override));
++
++  MOCK_METHOD(
++      core::ExecutionResult, AeadEncrypt,
++      (cmrt::sdk::crypto_service::v1::AeadEncryptRequest request,
++       Callback<cmrt::sdk::crypto_service::v1::AeadEncryptResponse> callback),
++      (noexcept, override));
++
++  MOCK_METHOD(
++      core::ExecutionResult, AeadDecrypt,
++      (cmrt::sdk::crypto_service::v1::AeadDecryptRequest request,
++       Callback<cmrt::sdk::crypto_service::v1::AeadDecryptResponse> callback),
++      (noexcept, override));
++};
++
++}  // namespace google::scp::cpio::mock
+diff --git cc/public/cpio/mock/instance_client/BUILD cc/public/cpio/mock/instance_client/BUILD
+--- /dev/null
++++ cc/public/cpio/mock/instance_client/BUILD
+@@ -0,0 +1,32 @@
++# Copyright 2022 Google LLC
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++package(default_visibility = ["//visibility:public"])
++
++cc_library(
++    name = "instance_client_mock",
++    testonly = True,
++    srcs =
++        [
++            "mock_instance_client.h",
++        ],
++    copts = [
++        "-std=c++17",
++    ],
++    deps = [
++        "//cc:cc_base_include_dir",
++        "//cc/public/cpio/interface/instance_client",
++        "@com_google_googletest//:gtest",
++    ],
++)
+diff --git cc/public/cpio/mock/instance_client/mock_instance_client.h cc/public/cpio/mock/instance_client/mock_instance_client.h
+--- /dev/null
++++ cc/public/cpio/mock/instance_client/mock_instance_client.h
+@@ -0,0 +1,60 @@
++/*
++ * Copyright 2022 Google LLC
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include <memory>
++
++#include <gmock/gmock.h>
++
++#include "public/core/interface/execution_result.h"
++#include "public/cpio/interface/instance_client/instance_client_interface.h"
++
++namespace google::scp::cpio::mock {
++class MockInstanceClient : public InstanceClientInterface {
++ public:
++  MockInstanceClient() {
++    ON_CALL(*this, Init)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Run)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Stop)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++  }
++
++  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
++
++  MOCK_METHOD(
++      core::ExecutionResult, GetCurrentInstanceResourceName,
++      (cmrt::sdk::instance_service::v1::GetCurrentInstanceResourceNameRequest
++           request,
++       Callback<cmrt::sdk::instance_service::v1::
++                    GetCurrentInstanceResourceNameResponse>
++           callback),
++      (noexcept, override));
++
++  //   MOCK_METHOD(
++  //       core::ExecutionResult, GetTagsByResourceName,
++  //       (cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest
++  //       request,
++  //        Callback<cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse>
++  //            callback),
++  //       (noexcept, override));
++};
++
++}  // namespace google::scp::cpio::mock
+diff --git cc/public/cpio/mock/parameter_client/BUILD cc/public/cpio/mock/parameter_client/BUILD
+--- /dev/null
++++ cc/public/cpio/mock/parameter_client/BUILD
+@@ -0,0 +1,32 @@
++# Copyright 2022 Google LLC
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++package(default_visibility = ["//visibility:public"])
++
++cc_library(
++    name = "parameter_client_mock",
++    testonly = True,
++    srcs =
++        [
++            "mock_parameter_client.h",
++        ],
++    copts = [
++        "-std=c++17",
++    ],
++    deps = [
++        "//cc:cc_base_include_dir",
++        "//cc/public/cpio/interface/parameter_client",
++        "@com_google_googletest//:gtest",
++    ],
++)
+diff --git cc/public/cpio/mock/parameter_client/mock_parameter_client.h cc/public/cpio/mock/parameter_client/mock_parameter_client.h
+--- /dev/null
++++ cc/public/cpio/mock/parameter_client/mock_parameter_client.h
+@@ -0,0 +1,49 @@
++/*
++ * Copyright 2022 Google LLC
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include <memory>
++
++#include <gmock/gmock.h>
++
++#include "public/core/interface/execution_result.h"
++#include "public/cpio/interface/parameter_client/parameter_client_interface.h"
++
++namespace google::scp::cpio::mock {
++class MockParameterClient : public ParameterClientInterface {
++ public:
++  MockParameterClient() {
++    ON_CALL(*this, Init)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Run)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Stop)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++  }
++
++  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
++
++  MOCK_METHOD(core::ExecutionResult, GetParameter,
++              (cmrt::sdk::parameter_service::v1::GetParameterRequest request,
++               Callback<cmrt::sdk::parameter_service::v1::GetParameterResponse>
++                   callback),
++              (noexcept, override));
++};
++
++}  // namespace google::scp::cpio::mock
+diff --git cc/public/cpio/mock/private_key_client/BUILD cc/public/cpio/mock/private_key_client/BUILD
+--- /dev/null
++++ cc/public/cpio/mock/private_key_client/BUILD
+@@ -0,0 +1,32 @@
++# Copyright 2022 Google LLC
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++package(default_visibility = ["//visibility:public"])
++
++cc_library(
++    name = "private_key_client_mock",
++    testonly = True,
++    srcs =
++        [
++            "mock_private_key_client.h",
++        ],
++    copts = [
++        "-std=c++17",
++    ],
++    deps = [
++        "//cc:cc_base_include_dir",
++        "//cc/public/cpio/interface/private_key_client",
++        "@com_google_googletest//:gtest",
++    ],
++)
+diff --git cc/public/cpio/mock/private_key_client/mock_private_key_client.h cc/public/cpio/mock/private_key_client/mock_private_key_client.h
+--- /dev/null
++++ cc/public/cpio/mock/private_key_client/mock_private_key_client.h
+@@ -0,0 +1,50 @@
++/*
++ * Copyright 2022 Google LLC
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include <memory>
++
++#include <gmock/gmock.h>
++
++#include "public/core/interface/execution_result.h"
++#include "public/cpio/interface/private_key_client/private_key_client_interface.h"
++
++namespace google::scp::cpio::mock {
++class MockPrivateKeyClient : public PrivateKeyClientInterface {
++ public:
++  MockPrivateKeyClient() {
++    ON_CALL(*this, Init)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Run)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Stop)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++  }
++
++  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
++
++  MOCK_METHOD(
++      core::ExecutionResult, ListPrivateKeys,
++      (cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest request,
++       Callback<cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>
++           callback),
++      (noexcept, override));
++};
++
++}  // namespace google::scp::cpio::mock
+diff --git cc/public/cpio/mock/public_key_client/BUILD cc/public/cpio/mock/public_key_client/BUILD
+--- /dev/null
++++ cc/public/cpio/mock/public_key_client/BUILD
+@@ -0,0 +1,32 @@
++# Copyright 2022 Google LLC
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++package(default_visibility = ["//visibility:public"])
++
++cc_library(
++    name = "public_key_client_mock",
++    testonly = True,
++    srcs =
++        [
++            "mock_public_key_client.h",
++        ],
++    copts = [
++        "-std=c++17",
++    ],
++    deps = [
++        "//cc:cc_base_include_dir",
++        "//cc/public/cpio/interface/public_key_client",
++        "@com_google_googletest//:gtest",
++    ],
++)
+diff --git cc/public/cpio/mock/public_key_client/mock_public_key_client.h cc/public/cpio/mock/public_key_client/mock_public_key_client.h
+--- /dev/null
++++ cc/public/cpio/mock/public_key_client/mock_public_key_client.h
+@@ -0,0 +1,50 @@
++/*
++ * Copyright 2022 Google LLC
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include <memory>
++
++#include <gmock/gmock.h>
++
++#include "public/core/interface/execution_result.h"
++#include "public/cpio/interface/public_key_client/public_key_client_interface.h"
++
++namespace google::scp::cpio::mock {
++class MockPublicKeyClient : public PublicKeyClientInterface {
++ public:
++  MockPublicKeyClient() {
++    ON_CALL(*this, Init)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Run)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++    ON_CALL(*this, Stop)
++        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
++  }
++
++  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
++  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
++
++  MOCK_METHOD(
++      core::ExecutionResult, ListPublicKeys,
++      (cmrt::sdk::public_key_service::v1::ListPublicKeysRequest request,
++       Callback<cmrt::sdk::public_key_service::v1::ListPublicKeysResponse>
++           callback),
++      (noexcept, override));
++};
++
++}  // namespace google::scp::cpio::mock
