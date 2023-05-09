@@ -56,7 +56,7 @@ KeyFetcherManager::~KeyFetcherManager() {
   executor_->Cancel(std::move(task_id_));
 }
 
-void KeyFetcherManager::Start() {
+void KeyFetcherManager::Start() noexcept {
   executor_->Run([this]() { RunPeriodicKeyRefresh(); });
 }
 
@@ -70,10 +70,10 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
   std::function<void()> pub_key_refresh_callback = [this]() -> void {
     std::vector<PublicPrivateKeyPairId> public_key_ids =
         public_key_fetcher_->GetKeyIds();
-    std::vector<PublicPrivateKeyPairId>::iterator iterator;
 
     // Filter out any key IDs whose private keys are already cached.
-    for (iterator = public_key_ids.begin(); iterator != public_key_ids.end();) {
+    for (auto iterator = public_key_ids.begin();
+         iterator != public_key_ids.end();) {
       if (private_key_fetcher_->GetKey(*iterator).has_value()) {
         iterator = public_key_ids.erase(iterator);
       } else {
@@ -87,9 +87,13 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
   };
 
   if (!shutdown_requested_.HasBeenNotified()) {
-    public_key_fetcher_->Refresh(pub_key_refresh_callback);
+    absl::Status refresh_status =
+        public_key_fetcher_->Refresh(pub_key_refresh_callback);
+    if (!refresh_status.ok()) {
+      VLOG(1) << "Public key refresh failed: " << refresh_status.message();
+    }
   } else {
-    VLOG(1) << "Shutdown requested; skipping run of KeyFetcherManager's key "
+    VLOG(3) << "Shutdown requested; skipping run of KeyFetcherManager's key "
                "refresh flow.";
   }
 }

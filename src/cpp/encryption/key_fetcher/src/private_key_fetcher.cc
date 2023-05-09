@@ -50,13 +50,14 @@ namespace {
 static constexpr absl::string_view kKeyFetchFailMessage =
     "GetEncryptedPrivateKey call failed (key IDs: %s, status_code: %s)";
 
-void HandleFailure(
+absl::Status HandleFailure(
     const google::protobuf::RepeatedPtrField<std::string>& key_ids,
     google::scp::core::StatusCode status_code) noexcept {
   std::string key_ids_str = absl::StrJoin(key_ids, ", ");
   const std::string error = absl::StrFormat(kKeyFetchFailMessage, key_ids_str,
                                             GetErrorMessage(status_code));
-  VLOG(-1) << error;
+  VLOG(1) << error;
+  return absl::UnavailableError(error);
 }
 
 absl::Time ProtoToAbslDuration(const google::protobuf::Timestamp& timestamp) {
@@ -77,7 +78,7 @@ PrivateKeyFetcher::~PrivateKeyFetcher() {
   VLOG_IF(-1, !result.Successful()) << GetErrorMessage(result.status_code);
 }
 
-void PrivateKeyFetcher::Refresh(
+absl::Status PrivateKeyFetcher::Refresh(
     const std::vector<PublicPrivateKeyPairId>& key_ids) noexcept
     ABSL_LOCKS_EXCLUDED(mutex_) {
   ListPrivateKeysRequest request;
@@ -93,14 +94,19 @@ void PrivateKeyFetcher::Refresh(
             PrivateKey key = {private_key.key_id(), private_key.private_key(),
                               ProtoToAbslDuration(private_key.creation_time())};
             keys_map->insert_or_assign(key.key_id, key);
+            VLOG(3) << absl::StrFormat("Cached private key: (ID: %s)",
+                                       private_key.key_id());
           }
         } else {
-          HandleFailure(request.key_ids(), result.status_code);
+          static_cast<void>(
+              HandleFailure(request.key_ids(), result.status_code));
         }
+
+        VLOG(3) << "Private key refresh flow completed successfully.";
       });
 
   if (!result.Successful()) {
-    HandleFailure(request.key_ids(), result.status_code);
+    return HandleFailure(request.key_ids(), result.status_code);
   }
 
   absl::MutexLock l(&mutex_);
@@ -113,6 +119,8 @@ void PrivateKeyFetcher::Refresh(
       it++;
     }
   }
+
+  return absl::OkStatus();
 }
 
 std::optional<PrivateKey> PrivateKeyFetcher::GetKey(
@@ -136,6 +144,17 @@ std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
 
   std::unique_ptr<PrivateKeyClientInterface> private_key_client =
       google::scp::cpio::PrivateKeyClientFactory::Create(options);
+
+  ExecutionResult init_result = private_key_client->Init();
+  if (!init_result.Successful()) {
+    VLOG(1) << "Failed to initialize private key client.";
+  }
+
+  ExecutionResult run_result = private_key_client->Run();
+  if (!run_result.Successful()) {
+    VLOG(1) << "Failed to run private key client.";
+  }
+
   return std::make_unique<PrivateKeyFetcher>(std::move(private_key_client),
                                              key_ttl);
 }

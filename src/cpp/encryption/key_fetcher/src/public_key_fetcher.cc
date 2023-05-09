@@ -75,24 +75,24 @@ absl::Status PublicKeyFetcher::Refresh(
 
           std::vector<PublicPrivateKeyPairId> key_ids = GetKeyIds();
           std::string key_ids_str = absl::StrJoin(key_ids, ", ");
-          std::string log =
-              absl::StrFormat(kKeyFetchSuccessMessage, key_ids_str,
-                              TimeUtil::ToString(response.expiration_time()));
-          VLOG(1) << log;
-
+          VLOG(3) << absl::StrFormat(
+              kKeyFetchSuccessMessage, key_ids_str,
+              TimeUtil::ToString(response.expiration_time()));
+          VLOG(3) << "Public key refresh flow completed successfully. "
+                     "Executing callback.";
           std::move(callback)();
         }
 
         std::string error =
             absl::StrFormat(kKeyFetchFailMessage,
                             GetErrorMessage(execution_result.status_code));
-        VLOG_IF(-1, !execution_result.Successful()) << error;
+        VLOG_IF(1, !execution_result.Successful()) << error;
       });
 
   if (!result.Successful()) {
     std::string error = absl::StrFormat(kKeyFetchFailMessage,
                                         GetErrorMessage(result.status_code));
-    VLOG(-1) << error;
+    VLOG(1) << error;
     return absl::UnavailableError(error);
   }
 
@@ -108,8 +108,7 @@ absl::StatusOr<PublicKey> PublicKeyFetcher::GetKey() noexcept
 
   int index = absl::Uniform(absl::IntervalClosedOpen, bitgen_, 0,
                             static_cast<int>(public_keys_.size()));
-  PublicKey key = public_keys_.at(index);
-  return key;
+  return public_keys_.at(index);
 }
 
 std::vector<PublicPrivateKeyPairId> PublicKeyFetcher::GetKeyIds() noexcept
@@ -130,7 +129,18 @@ std::unique_ptr<PublicKeyFetcherInterface> PublicKeyFetcherFactory::Create(
   options.endpoints = endpoints;
 
   std::unique_ptr<PublicKeyClientInterface> public_key_client =
-      google::scp::cpio::PublicKeyClientFactory::Create(options);
+      google::scp::cpio::PublicKeyClientFactory::Create(std::move(options));
+
+  ExecutionResult init_result = public_key_client->Init();
+  if (!init_result.Successful()) {
+    VLOG(1) << "Failed to initialize private key client.";
+  }
+
+  ExecutionResult run_result = public_key_client->Run();
+  if (!run_result.Successful()) {
+    VLOG(1) << "Failed to run private key client.";
+  }
+
   return std::make_unique<PublicKeyFetcher>(std::move(public_key_client));
 }
 

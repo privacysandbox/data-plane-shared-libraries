@@ -50,7 +50,7 @@ class KeyFetcherManager : public KeyFetcherManagerInterface {
 
   // Begins the (endlessly running) background thread that periodically wakes to
   // trigger the key fetchers to refresh their key caches.
-  void Start();
+  void Start() noexcept override;
 
   // Fetches a public key used for encrypting outgoing requests.
   absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>

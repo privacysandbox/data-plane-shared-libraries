@@ -33,7 +33,7 @@ class MockPrivateKeyFetcher : public PrivateKeyFetcherInterface {
  public:
   virtual ~MockPrivateKeyFetcher() = default;
 
-  MOCK_METHOD(void, Refresh,
+  MOCK_METHOD(absl::Status, Refresh,
               (const std::vector<google::scp::cpio::PublicPrivateKeyPairId>&),
               (noexcept));
 

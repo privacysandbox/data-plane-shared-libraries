@@ -43,6 +43,5 @@ cc_library(
     deps = [
         ":private_key_fetcher_interface",
         ":public_key_fetcher_interface",
-        "@control_plane_shared//cc/public/cpio/interface/public_key_client",
     ],
 )

@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "cc/public/cpio/interface/private_key_client/type_def.h"
 
@@ -48,7 +49,7 @@ class PrivateKeyFetcherInterface {
   virtual ~PrivateKeyFetcherInterface() = default;
 
   // Fetches and store the private keys for the key IDs passed into the method.
-  virtual void Refresh(
+  virtual absl::Status Refresh(
       const std::vector<google::scp::cpio::PublicPrivateKeyPairId>&
           key_ids) noexcept = 0;
 

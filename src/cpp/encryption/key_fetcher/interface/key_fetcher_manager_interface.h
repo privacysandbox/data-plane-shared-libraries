@@ -22,6 +22,7 @@
 #include "absl/status/statusor.h"
 #include "cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "cc/public/cpio/interface/type_def.h"
+#include "src/cpp/concurrent/executor.h"
 #include "src/cpp/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
 #include "src/cpp/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
 
@@ -42,6 +43,10 @@ class KeyFetcherManagerInterface {
   // Fetches the corresponding private key for a public key ID.
   virtual std::optional<PrivateKey> GetPrivateKey(
       google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept = 0;
+
+  // Queues key refresh jobs on the class' executor as often as defined by
+  // 'key_refresh_period'.
+  virtual void Start() noexcept = 0;
 };
 
 // Factory to create KeyFetcherManager.
@@ -53,7 +58,7 @@ class KeyFetcherManagerFactory {
       absl::Duration key_refresh_period,
       std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
       std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
-      std::shared_ptr<privacy_sandbox::server_common::Executor> executor);
+      std::shared_ptr<Executor> executor);
 };
 
 }  // namespace privacy_sandbox::server_common
