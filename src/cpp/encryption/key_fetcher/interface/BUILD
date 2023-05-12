@@ -43,5 +43,6 @@ cc_library(
     deps = [
         ":private_key_fetcher_interface",
         ":public_key_fetcher_interface",
+        "//src/cpp/concurrent:executor",
     ],
 )
