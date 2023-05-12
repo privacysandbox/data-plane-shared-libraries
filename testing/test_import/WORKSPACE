@@ -14,14 +14,21 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.13.0.tar.gz",
 )
 
-load("@google_privacysandbox_servers_common//third_party:scp_repositories.bzl", "scp_repositories")
+load(
+    "@google_privacysandbox_servers_common//third_party:cpp_deps.bzl",
+    shared_cpp_dependencies = "cpp_dependencies",
+)
 
-scp_repositories()
+shared_cpp_dependencies()
 
-load("@google_privacysandbox_servers_common//third_party:scp_deps.bzl", "scp_deps")
+load("@google_privacysandbox_servers_common//third_party:deps1.bzl", "deps1")
 
-scp_deps()
+deps1()
 
-load("@google_privacysandbox_servers_common//third_party:scp_deps2.bzl", "scp_deps2")
+load("@google_privacysandbox_servers_common//third_party:deps2.bzl", "deps2")
 
-scp_deps2()
+deps2()
+
+load("@google_privacysandbox_servers_common//third_party:deps3.bzl", "deps3")
+
+deps3()

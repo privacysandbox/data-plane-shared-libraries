@@ -2,14 +2,14 @@
 
 Common repository for shared across Privacy Sandbox server teams.
 
-### Telemetry
+### Bazel C++ Dependencies
 
-Importing the telemetry in this package requires dependencies in `cpp_deps.bzl` and the
-opentelemetry dependencies. Example import:
+To import this repo into your project, you first need to add it to your `WORKSPACE` file, using the
+snippet provided in the release you choose:
 
 ```bazel
 http_archive(
-    name = "privacy_sandbox_shared",
+    name = "google_privacysandbox_servers_common",
     sha256 = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
     strip_prefix = "data-plane-shared-libraries-xxxxxx.0",
     urls = [
@@ -17,13 +17,25 @@ http_archive(
     ],
 )
 
-load("@privacy_sandbox_shared//:cpp_deps.bzl", "cpp_dependencies")
+load("@google_privacysandbox_servers_common//third_party:cpp_deps.bzl", "cpp_dependencies")
 
 cpp_dependencies()
 
-load("@io_opentelemetry_cpp//bazel:repository.bzl", "opentelemetry_cpp_deps")
+load("@google_privacysandbox_servers_common//third_party:deps1.bzl", "deps1")
 
-opentelemetry_cpp_deps()
+deps1()
+
+load("@google_privacysandbox_servers_common//third_party:deps2.bzl", "deps2")
+
+deps2()
+
+load("@google_privacysandbox_servers_common//third_party:deps3.bzl", "deps3")
+
+deps3()
+
+load("@google_privacysandbox_servers_common//third_party:deps4.bzl", "deps4")
+
+deps4()
 ```
 
 Additionally the `with_abseil` flag should be set for OpenTelemetry. In your `.bazelrc` include:

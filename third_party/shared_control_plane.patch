@@ -1,6 +1,7 @@
-diff --git build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
---- build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
-+++ build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
+diff --git a/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD b/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
+index 3bce2f8..65de7a6 100644
+--- a/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
++++ b/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
 @@ -273,3 +273,57 @@ genrule(
      ],
      cmd_bash = "touch '$@'",
@@ -59,9 +60,10 @@ diff --git build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD build_defs/cc/aws/aws
 +    ],
 +)
 +
-diff --git build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
---- build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
-+++ build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
+diff --git a/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl b/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
+index d748f47..6b2ccda 100644
+--- a/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
++++ b/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
 @@ -15,14 +15,14 @@
  load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
  load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
@@ -108,34 +110,1815 @@ diff --git build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl build_defs/cc/aws/
              # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
              """sed -i.bak 's/Tags\\.entry/Tag/g' aws-cpp-sdk-sqs/source/model/TagQueueRequest.cpp""",
          ],
-diff --git build_defs/cc/sdk.bzl build_defs/cc/sdk.bzl
---- build_defs/cc/sdk.bzl
-+++ build_defs/cc/sdk.bzl
-@@ -26,11 +26,11 @@ load("//build_defs/cc/shared:boringssl.bzl", "boringssl")
+diff --git a/build_defs/cc/sdk.bzl b/build_defs/cc/sdk.bzl
+index 454bfab..369f4c6 100644
+--- a/build_defs/cc/sdk.bzl
++++ b/build_defs/cc/sdk.bzl
+@@ -12,7 +12,6 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-load("//build_defs/shared:protobuf.bzl", "protobuf")
+ load("//build_defs/shared:absl.bzl", "absl")
+ load("//build_defs/shared:bazel_rules_pkg.bzl", "bazel_rules_pkg")
+ load("//build_defs/shared:bazel_rules_java.bzl", "bazel_rules_java")
+@@ -25,14 +24,13 @@ load("//build_defs/cc/shared:boost.bzl", "boost")
+ load("//build_defs/cc/shared:boringssl.bzl", "boringssl")
  load("//build_defs/cc/shared:cc_utils.bzl", "cc_utils")
  load("//build_defs/cc/shared:gtest.bzl", "google_test")
- load("//build_defs/cc/shared:nghttp2.bzl", "nghttp2")
+-load("//build_defs/cc/shared:nghttp2.bzl", "nghttp2")
 -load("//build_defs/cc/aws:aws_sdk_cpp_deps.bzl", "import_aws_sdk_cpp")
++load("//build_defs/cc/shared:nghttp2.bzl", "nghttp2", "pre_nghttp2")
 +load("//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp")
  load("//build_defs/cc/shared:google_cloud_cpp.bzl", "import_google_cloud_cpp")
  load("//build_defs/tink:tink_defs.bzl", "import_tink_git")
  
 -def sdk_dependencies(protobuf_version, protobuf_repo_hash):
-+def sdk_dependencies(protobuf_version, protobuf_repo_hash, scp_repo_name = ""):
++def sdk_dependencies():
      absl()
-     bazel_docker_rules()
+-    bazel_docker_rules()
      bazel_rules_cpp()
-@@ -45,6 +45,6 @@ def sdk_dependencies(protobuf_version, protobuf_repo_hash):
+     bazel_rules_java()
+     bazel_rules_pkg()
+@@ -42,9 +40,12 @@ def sdk_dependencies(protobuf_version, protobuf_repo_hash):
+     enclaves_kmstools_libraries()
+     go_deps()
+     google_test()
++    import_google_cloud_cpp()
      grpc()
++    pre_nghttp2()
++
++def sdk_dependencies2(scp_repo_name = ""):
++    bazel_docker_rules()
      nghttp2()
-     protobuf(protobuf_version, protobuf_repo_hash)
+-    protobuf(protobuf_version, protobuf_repo_hash)
 -    import_aws_sdk_cpp()
+-    import_google_cloud_cpp()
 +    import_aws_sdk_cpp(scp_repo_name)
-     import_google_cloud_cpp()
      import_tink_git()
-diff --git build_defs/cc/v8.bzl build_defs/cc/v8.bzl
---- build_defs/cc/v8.bzl
-+++ build_defs/cc/v8.bzl
+diff --git a/build_defs/cc/shared/bazel_rules_cpp.bzl b/build_defs/cc/shared/bazel_rules_cpp.bzl
+index 53fb88f..698516d 100644
+--- a/build_defs/cc/shared/bazel_rules_cpp.bzl
++++ b/build_defs/cc/shared/bazel_rules_cpp.bzl
+@@ -20,16 +20,18 @@ def bazel_rules_cpp():
+     maybe(
+         http_archive,
+         name = "rules_cc",
+-        sha256 = "b295cad8c5899e371dde175079c0a2cdc0151f5127acc92366a8c986beb95c76",
+-        strip_prefix = "rules_cc-daf6ace7cfeacd6a83e9ff2ed659f416537b6c74",
+-        urls = ["https://github.com/bazelbuild/rules_cc/archive/daf6ace7cfeacd6a83e9ff2ed659f416537b6c74.zip"],
++        sha256 = "3d9e271e2876ba42e114c9b9bc51454e379cbf0ec9ef9d40e2ae4cec61a31b40",
++        strip_prefix = "rules_cc-0.0.6",
++        urls = [
++            "https://github.com/bazelbuild/rules_cc/releases/download/0.0.6/rules_cc-0.0.6.tar.gz",
++        ],
+     )
+-
+     maybe(
+-        git_repository,
++        http_archive,
+         name = "rules_foreign_cc",
+-        # version 0.8.0
+-        commit = "e208deeae394c2aba5531d1f4edbba82d2e7430c",
+-        remote = "https://github.com/bazelbuild/rules_foreign_cc.git",
+-        shallow_since = "1650286188 -0700",
++        sha256 = "2a4d07cd64b0719b39a7c12218a3e507672b82a97b98c6a89d38565894cf7c51",
++        strip_prefix = "rules_foreign_cc-0.9.0",
++        urls = [
++            "https://github.com/bazelbuild/rules_foreign_cc/archive/refs/tags/0.9.0.tar.gz",
++        ],
+     )
+diff --git a/build_defs/cc/shared/boringssl.bzl b/build_defs/cc/shared/boringssl.bzl
+index d811337..05a5eb9 100644
+--- a/build_defs/cc/shared/boringssl.bzl
++++ b/build_defs/cc/shared/boringssl.bzl
+@@ -12,15 +12,15 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
++load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+ 
+ def boringssl():
+     maybe(
+-        git_repository,
++        # Commit from 2023-02-15.
++        http_archive,
+         name = "boringssl",
+-        # Committed on Oct 3, 2022
+-        # https://github.com/google/boringssl/commit/c2837229f381f5fcd8894f0cca792a94b557ac52
+-        commit = "c2837229f381f5fcd8894f0cca792a94b557ac52",
+-        remote = "https://github.com/google/boringssl.git",
++        strip_prefix = "boringssl-5c22014ca513807ed03c657e8ede076164663979",
++        url = "https://github.com/google/boringssl/archive/5c22014ca513807ed03c657e8ede076164663979.zip",
++        sha256 = "863fc670c456f30923740c1639305132fdfb9d1b25ba385a67ae3862ef12a8af",
+     )
+diff --git a/build_defs/cc/shared/build_targets/libxml2.BUILD b/build_defs/cc/shared/build_targets/libxml2.BUILD
+new file mode 100644
+index 0000000..71eded0
+--- /dev/null
++++ b/build_defs/cc/shared/build_targets/libxml2.BUILD
+@@ -0,0 +1,75 @@
++load("@rules_cc//cc:defs.bzl", "cc_library")
++
++cc_library(
++    name = "xml2",
++    #srcs = glob(["*.c"]),
++    srcs = [
++        "HTMLparser.c",
++        "HTMLtree.c",
++        "SAX.c",
++        "SAX2.c",
++        "buf.c",
++        "c14n.c",
++        "catalog.c",
++        "chvalid.c",
++        "debugXML.c",
++        "dict.c",
++        "encoding.c",
++        "entities.c",
++        "error.c",
++        "globals.c",
++        "hash.c",
++        "legacy.c",
++        "list.c",
++        "nanoftp.c",
++        "nanohttp.c",
++        "parser.c",
++        "parserInternals.c",
++        "pattern.c",
++        "relaxng.c",
++        "schematron.c",
++        "threads.c",
++        "tree.c",
++        "uri.c",
++        "valid.c",
++        "xinclude.c",
++        "xlink.c",
++        "xmlIO.c",
++        "xmlmemory.c",
++        "xmlmodule.c",
++        "xmlreader.c",
++        "xmlregexp.c",
++        "xmlsave.c",
++        "xmlschemas.c",
++        "xmlschemastypes.c",
++        "xmlstring.c",
++        "xmlunicode.c",
++        "xmlwriter.c",
++        "xpath.c",
++        "xpointer.c",
++        "xzlib.c",
++    ],
++    hdrs = glob([
++        "*.h",
++        "include/libxml/*.h",
++    ]),
++    copts = [
++        "-D_REENTRANT",
++        "-DHAVE_CONFIG_H",
++        "-w",
++    ],
++    includes = [
++        ".",
++        "include",
++    ],
++    linkopts = [
++        "-pthread",
++        "-Wl,-rpath,\\$$ORIGIN/../lib",
++    ],
++    linkstatic = False,
++    textual_hdrs = ["trionan.c"],
++    visibility = ["//visibility:public"],
++    deps = [
++        "@madler_zlib//:zlib",
++    ],
++)
+diff --git a/build_defs/cc/shared/build_targets/libxml2.patch b/build_defs/cc/shared/build_targets/libxml2.patch
+new file mode 100644
+index 0000000..457fddb
+--- /dev/null
++++ b/build_defs/cc/shared/build_targets/libxml2.patch
+@@ -0,0 +1,784 @@
++diff config.h config.h
++--- /dev/null
+++++ config.h
++@@ -0,0 +1,291 @@
+++/* config.h.  Generated from config.h.in by configure.  */
+++/* config.h.in.  Generated from configure.ac by autoheader.  */
+++
+++/* A form that will not confuse apibuild.py */
+++#define ATTRIBUTE_DESTRUCTOR __attribute__((destructor))
+++
+++/* Type cast for the gethostbyname() argument */
+++#define GETHOSTBYNAME_ARG_CAST /**/
+++
+++/* Define to 1 if you have the <arpa/inet.h> header file. */
+++#define HAVE_ARPA_INET_H 1
+++
+++/* Define to 1 if you have the <arpa/nameser.h> header file. */
+++#define HAVE_ARPA_NAMESER_H 1
+++
+++/* Define if __attribute__((destructor)) is accepted */
+++#define HAVE_ATTRIBUTE_DESTRUCTOR 1
+++
+++/* Whether struct sockaddr::__ss_family exists */
+++/* #undef HAVE_BROKEN_SS_FAMILY */
+++
+++/* Define to 1 if you have the <ctype.h> header file. */
+++#define HAVE_CTYPE_H 1
+++
+++/* Define to 1 if you have the <dirent.h> header file. */
+++#define HAVE_DIRENT_H 1
+++
+++/* Define to 1 if you have the <dlfcn.h> header file. */
+++#define HAVE_DLFCN_H 1
+++
+++/* Have dlopen based dso */
+++#define HAVE_DLOPEN /**/
+++
+++/* Define to 1 if you have the <dl.h> header file. */
+++/* #undef HAVE_DL_H */
+++
+++/* Define to 1 if you have the <errno.h> header file. */
+++#define HAVE_ERRNO_H 1
+++
+++/* Define to 1 if you have the <fcntl.h> header file. */
+++#define HAVE_FCNTL_H 1
+++
+++/* Define to 1 if you have the <float.h> header file. */
+++#define HAVE_FLOAT_H 1
+++
+++/* Define to 1 if you have the `fprintf' function. */
+++#define HAVE_FPRINTF 1
+++
+++/* Define to 1 if you have the `ftime' function. */
+++#define HAVE_FTIME 1
+++
+++/* Define if getaddrinfo is there */
+++#define HAVE_GETADDRINFO /**/
+++
+++/* Define to 1 if you have the `gettimeofday' function. */
+++#define HAVE_GETTIMEOFDAY 1
+++
+++/* Define to 1 if you have the <inttypes.h> header file. */
+++#define HAVE_INTTYPES_H 1
+++
+++/* Define to 1 if you have the `isascii' function. */
+++#define HAVE_ISASCII 1
+++
+++/* Define if isinf is there */
+++#define HAVE_ISINF /**/
+++
+++/* Define if isnan is there */
+++#define HAVE_ISNAN /**/
+++
+++/* Define if history library is there (-lhistory) */
+++/* #undef HAVE_LIBHISTORY */
+++
+++/* Define if pthread library is there (-lpthread) */
+++#define HAVE_LIBPTHREAD /**/
+++
+++/* Define if readline library is there (-lreadline) */
+++/* #undef HAVE_LIBREADLINE */
+++
+++/* Define to 1 if you have the <limits.h> header file. */
+++#define HAVE_LIMITS_H 1
+++
+++/* Define to 1 if you have the `localtime' function. */
+++#define HAVE_LOCALTIME 1
+++
+++/* Define to 1 if you have the <lzma.h> header file. */
+++/* #undef HAVE_LZMA_H */
+++
+++/* Define to 1 if you have the <malloc.h> header file. */
+++#define HAVE_MALLOC_H 1
+++
+++/* Define to 1 if you have the <math.h> header file. */
+++#define HAVE_MATH_H 1
+++
+++/* Define to 1 if you have the <memory.h> header file. */
+++#define HAVE_MEMORY_H 1
+++
+++/* Define to 1 if you have the `mmap' function. */
+++#define HAVE_MMAP 1
+++
+++/* Define to 1 if you have the `munmap' function. */
+++#define HAVE_MUNMAP 1
+++
+++/* mmap() is no good without munmap() */
+++#if defined(HAVE_MMAP) && !defined(HAVE_MUNMAP)
+++#  undef /**/ HAVE_MMAP
+++#endif
+++
+++/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+++/* #undef HAVE_NDIR_H */
+++
+++/* Define to 1 if you have the <netdb.h> header file. */
+++#define HAVE_NETDB_H 1
+++
+++/* Define to 1 if you have the <netinet/in.h> header file. */
+++#define HAVE_NETINET_IN_H 1
+++
+++/* Define to 1 if you have the <poll.h> header file. */
+++#define HAVE_POLL_H 1
+++
+++/* Define to 1 if you have the `printf' function. */
+++#define HAVE_PRINTF 1
+++
+++/* Define if <pthread.h> is there */
+++#define HAVE_PTHREAD_H /**/
+++
+++/* Define to 1 if you have the `putenv' function. */
+++#define HAVE_PUTENV 1
+++
+++/* Define to 1 if you have the `rand' function. */
+++#define HAVE_RAND 1
+++
+++/* Define to 1 if you have the `rand_r' function. */
+++#define HAVE_RAND_R 1
+++
+++/* Define to 1 if you have the <resolv.h> header file. */
+++#define HAVE_RESOLV_H 1
+++
+++/* Have shl_load based dso */
+++/* #undef HAVE_SHLLOAD */
+++
+++/* Define to 1 if you have the `signal' function. */
+++#define HAVE_SIGNAL 1
+++
+++/* Define to 1 if you have the <signal.h> header file. */
+++#define HAVE_SIGNAL_H 1
+++
+++/* Define to 1 if you have the `snprintf' function. */
+++#define HAVE_SNPRINTF 1
+++
+++/* Define to 1 if you have the `sprintf' function. */
+++#define HAVE_SPRINTF 1
+++
+++/* Define to 1 if you have the `srand' function. */
+++#define HAVE_SRAND 1
+++
+++/* Define to 1 if you have the `sscanf' function. */
+++#define HAVE_SSCANF 1
+++
+++/* Define to 1 if you have the `stat' function. */
+++#define HAVE_STAT 1
+++
+++/* Define to 1 if you have the <stdarg.h> header file. */
+++#define HAVE_STDARG_H 1
+++
+++/* Define to 1 if you have the <stdint.h> header file. */
+++#define HAVE_STDINT_H 1
+++
+++/* Define to 1 if you have the <stdlib.h> header file. */
+++#define HAVE_STDLIB_H 1
+++
+++/* Define to 1 if you have the `strftime' function. */
+++#define HAVE_STRFTIME 1
+++
+++/* Define to 1 if you have the <strings.h> header file. */
+++#define HAVE_STRINGS_H 1
+++
+++/* Define to 1 if you have the <string.h> header file. */
+++#define HAVE_STRING_H 1
+++
+++/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+++   */
+++/* #undef HAVE_SYS_DIR_H */
+++
+++/* Define to 1 if you have the <sys/mman.h> header file. */
+++#define HAVE_SYS_MMAN_H 1
+++
+++/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+++   */
+++/* #undef HAVE_SYS_NDIR_H */
+++
+++/* Define to 1 if you have the <sys/select.h> header file. */
+++#define HAVE_SYS_SELECT_H 1
+++
+++/* Define to 1 if you have the <sys/socket.h> header file. */
+++#define HAVE_SYS_SOCKET_H 1
+++
+++/* Define to 1 if you have the <sys/stat.h> header file. */
+++#define HAVE_SYS_STAT_H 1
+++
+++/* Define to 1 if you have the <sys/timeb.h> header file. */
+++#define HAVE_SYS_TIMEB_H 1
+++
+++/* Define to 1 if you have the <sys/time.h> header file. */
+++#define HAVE_SYS_TIME_H 1
+++
+++/* Define to 1 if you have the <sys/types.h> header file. */
+++#define HAVE_SYS_TYPES_H 1
+++
+++/* Define to 1 if you have the `time' function. */
+++#define HAVE_TIME 1
+++
+++/* Define to 1 if you have the <time.h> header file. */
+++#define HAVE_TIME_H 1
+++
+++/* Define to 1 if you have the <unistd.h> header file. */
+++#define HAVE_UNISTD_H 1
+++
+++/* Whether va_copy() is available */
+++#define HAVE_VA_COPY 1
+++
+++/* Define to 1 if you have the `vfprintf' function. */
+++#define HAVE_VFPRINTF 1
+++
+++/* Define to 1 if you have the `vsnprintf' function. */
+++#define HAVE_VSNPRINTF 1
+++
+++/* Define to 1 if you have the `vsprintf' function. */
+++#define HAVE_VSPRINTF 1
+++
+++/* Define to 1 if you have the <zlib.h> header file. */
+++#define HAVE_ZLIB_H 1
+++
+++/* Whether __va_copy() is available */
+++/* #undef HAVE___VA_COPY */
+++
+++/* Define as const if the declaration of iconv() needs const. */
+++#define ICONV_CONST
+++
+++/* Define to the sub-directory where libtool stores uninstalled libraries. */
+++#define LT_OBJDIR ".libs/"
+++
+++/* Name of package */
+++#define PACKAGE "libxml2"
+++
+++/* Define to the address where bug reports for this package should be sent. */
+++#define PACKAGE_BUGREPORT ""
+++
+++/* Define to the full name of this package. */
+++#define PACKAGE_NAME "libxml2"
+++
+++/* Define to the full name and version of this package. */
+++#define PACKAGE_STRING "libxml2 2.9.12"
+++
+++/* Define to the one symbol short name of this package. */
+++#define PACKAGE_TARNAME "libxml2"
+++
+++/* Define to the home page for this package. */
+++#define PACKAGE_URL ""
+++
+++/* Define to the version of this package. */
+++#define PACKAGE_VERSION "2.9.12"
+++
+++/* Type cast for the send() function 2nd arg */
+++#define SEND_ARG2_CAST /**/
+++
+++/* Define to 1 if you have the ANSI C header files. */
+++#define STDC_HEADERS 1
+++
+++/* Support for IPv6 */
+++#define SUPPORT_IP6 /**/
+++
+++/* Define if va_list is an array type */
+++#define VA_LIST_IS_ARRAY 1
+++
+++/* Version number of package */
+++#define VERSION "2.9.12"
+++
+++/* Determine what socket length (socklen_t) data type is */
+++#define XML_SOCKLEN_T socklen_t
+++
+++/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
+++   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+++   #define below would cause a syntax error. */
+++/* #undef _UINT32_T */
+++
+++/* ss_family is not defined here, use __ss_family instead */
+++/* #undef ss_family */
+++
+++/* Define to the type of an unsigned integer type of width exactly 32 bits if
+++   such a type exists and the standard includes do not define it. */
+++/* #undef uint32_t */
++diff include/libxml/xmlversion.h include/libxml/xmlversion.h
++--- include/libxml/xmlversion.h
+++++ include/libxml/xmlversion.h
++@@ -0,0 +1,485 @@
+++/*
+++ * Summary: compile-time version information
+++ * Description: compile-time version information for the XML library
+++ *
+++ * Copy: See Copyright for the status of this software.
+++ *
+++ * Author: Daniel Veillard
+++ */
+++
+++#ifndef __XML_VERSION_H__
+++#define __XML_VERSION_H__
+++
+++#include <libxml/xmlexports.h>
+++
+++#ifdef __cplusplus
+++extern "C" {
+++#endif
+++
+++/*
+++ * use those to be sure nothing nasty will happen if
+++ * your library and includes mismatch
+++ */
+++#ifndef LIBXML2_COMPILING_MSCCDEF
+++XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
+++#endif /* LIBXML2_COMPILING_MSCCDEF */
+++
+++/**
+++ * LIBXML_DOTTED_VERSION:
+++ *
+++ * the version string like "1.2.3"
+++ */
+++#define LIBXML_DOTTED_VERSION "2.9.12"
+++
+++/**
+++ * LIBXML_VERSION:
+++ *
+++ * the version number: 1.2.3 value is 10203
+++ */
+++#define LIBXML_VERSION 20912
+++
+++/**
+++ * LIBXML_VERSION_STRING:
+++ *
+++ * the version number string, 1.2.3 value is "10203"
+++ */
+++#define LIBXML_VERSION_STRING "20912"
+++
+++/**
+++ * LIBXML_VERSION_EXTRA:
+++ *
+++ * extra version information, used to show a CVS compilation
+++ */
+++#define LIBXML_VERSION_EXTRA ""
+++
+++/**
+++ * LIBXML_TEST_VERSION:
+++ *
+++ * Macro to check that the libxml version in use is compatible with
+++ * the version the software has been compiled against
+++ */
+++#define LIBXML_TEST_VERSION xmlCheckVersion(20912);
+++
+++#ifndef VMS
+++#if 0
+++/**
+++ * WITH_TRIO:
+++ *
+++ * defined if the trio support need to be configured in
+++ */
+++#define WITH_TRIO
+++#else
+++/**
+++ * WITHOUT_TRIO:
+++ *
+++ * defined if the trio support should not be configured in
+++ */
+++#define WITHOUT_TRIO
+++#endif
+++#else /* VMS */
+++/**
+++ * WITH_TRIO:
+++ *
+++ * defined if the trio support need to be configured in
+++ */
+++#define WITH_TRIO 1
+++#endif /* VMS */
+++
+++/**
+++ * LIBXML_THREAD_ENABLED:
+++ *
+++ * Whether the thread support is configured in
+++ */
+++#if 1
+++#define LIBXML_THREAD_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_THREAD_ALLOC_ENABLED:
+++ *
+++ * Whether the allocation hooks are per-thread
+++ */
+++#if 0
+++#define LIBXML_THREAD_ALLOC_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_TREE_ENABLED:
+++ *
+++ * Whether the DOM like tree manipulation API support is configured in
+++ */
+++#if 1
+++#define LIBXML_TREE_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_OUTPUT_ENABLED:
+++ *
+++ * Whether the serialization/saving support is configured in
+++ */
+++#if 1
+++#define LIBXML_OUTPUT_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_PUSH_ENABLED:
+++ *
+++ * Whether the push parsing interfaces are configured in
+++ */
+++#if 1
+++#define LIBXML_PUSH_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_READER_ENABLED:
+++ *
+++ * Whether the xmlReader parsing interface is configured in
+++ */
+++#if 1
+++#define LIBXML_READER_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_PATTERN_ENABLED:
+++ *
+++ * Whether the xmlPattern node selection interface is configured in
+++ */
+++#if 1
+++#define LIBXML_PATTERN_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_WRITER_ENABLED:
+++ *
+++ * Whether the xmlWriter saving interface is configured in
+++ */
+++#if 1
+++#define LIBXML_WRITER_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_SAX1_ENABLED:
+++ *
+++ * Whether the older SAX1 interface is configured in
+++ */
+++#if 1
+++#define LIBXML_SAX1_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_FTP_ENABLED:
+++ *
+++ * Whether the FTP support is configured in
+++ */
+++#if 1
+++#define LIBXML_FTP_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_HTTP_ENABLED:
+++ *
+++ * Whether the HTTP support is configured in
+++ */
+++#if 1
+++#define LIBXML_HTTP_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_VALID_ENABLED:
+++ *
+++ * Whether the DTD validation support is configured in
+++ */
+++#if 1
+++#define LIBXML_VALID_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_HTML_ENABLED:
+++ *
+++ * Whether the HTML support is configured in
+++ */
+++#if 1
+++#define LIBXML_HTML_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_LEGACY_ENABLED:
+++ *
+++ * Whether the deprecated APIs are compiled in for compatibility
+++ */
+++#if 1
+++#define LIBXML_LEGACY_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_C14N_ENABLED:
+++ *
+++ * Whether the Canonicalization support is configured in
+++ */
+++#if 1
+++#define LIBXML_C14N_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_CATALOG_ENABLED:
+++ *
+++ * Whether the Catalog support is configured in
+++ */
+++#if 1
+++#define LIBXML_CATALOG_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_DOCB_ENABLED:
+++ *
+++ * Whether the SGML Docbook support is configured in
+++ */
+++#if 1
+++#define LIBXML_DOCB_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_XPATH_ENABLED:
+++ *
+++ * Whether XPath is configured in
+++ */
+++#if 1
+++#define LIBXML_XPATH_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_XPTR_ENABLED:
+++ *
+++ * Whether XPointer is configured in
+++ */
+++#if 1
+++#define LIBXML_XPTR_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_XINCLUDE_ENABLED:
+++ *
+++ * Whether XInclude is configured in
+++ */
+++#if 1
+++#define LIBXML_XINCLUDE_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_ICONV_ENABLED:
+++ *
+++ * Whether iconv support is available
+++ */
+++#if 1
+++#define LIBXML_ICONV_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_ICU_ENABLED:
+++ *
+++ * Whether icu support is available
+++ */
+++#if 0
+++#define LIBXML_ICU_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_ISO8859X_ENABLED:
+++ *
+++ * Whether ISO-8859-* support is made available in case iconv is not
+++ */
+++#if 1
+++#define LIBXML_ISO8859X_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_DEBUG_ENABLED:
+++ *
+++ * Whether Debugging module is configured in
+++ */
+++#if 1
+++#define LIBXML_DEBUG_ENABLED
+++#endif
+++
+++/**
+++ * DEBUG_MEMORY_LOCATION:
+++ *
+++ * Whether the memory debugging is configured in
+++ */
+++#if 0
+++#define DEBUG_MEMORY_LOCATION
+++#endif
+++
+++/**
+++ * LIBXML_DEBUG_RUNTIME:
+++ *
+++ * Whether the runtime debugging is configured in
+++ */
+++#if 0
+++#define LIBXML_DEBUG_RUNTIME
+++#endif
+++
+++/**
+++ * LIBXML_UNICODE_ENABLED:
+++ *
+++ * Whether the Unicode related interfaces are compiled in
+++ */
+++#if 1
+++#define LIBXML_UNICODE_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_REGEXP_ENABLED:
+++ *
+++ * Whether the regular expressions interfaces are compiled in
+++ */
+++#if 1
+++#define LIBXML_REGEXP_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_AUTOMATA_ENABLED:
+++ *
+++ * Whether the automata interfaces are compiled in
+++ */
+++#if 1
+++#define LIBXML_AUTOMATA_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_EXPR_ENABLED:
+++ *
+++ * Whether the formal expressions interfaces are compiled in
+++ *
+++ * This code is unused and disabled unconditionally for now.
+++ */
+++#if 0
+++#define LIBXML_EXPR_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_SCHEMAS_ENABLED:
+++ *
+++ * Whether the Schemas validation interfaces are compiled in
+++ */
+++#if 1
+++#define LIBXML_SCHEMAS_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_SCHEMATRON_ENABLED:
+++ *
+++ * Whether the Schematron validation interfaces are compiled in
+++ */
+++#if 1
+++#define LIBXML_SCHEMATRON_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_MODULES_ENABLED:
+++ *
+++ * Whether the module interfaces are compiled in
+++ */
+++#if 1
+++#define LIBXML_MODULES_ENABLED
+++/**
+++ * LIBXML_MODULE_EXTENSION:
+++ *
+++ * the string suffix used by dynamic modules (usually shared libraries)
+++ */
+++#define LIBXML_MODULE_EXTENSION ".so"
+++#endif
+++
+++/**
+++ * LIBXML_ZLIB_ENABLED:
+++ *
+++ * Whether the Zlib support is compiled in
+++ */
+++#if 1
+++#define LIBXML_ZLIB_ENABLED
+++#endif
+++
+++/**
+++ * LIBXML_LZMA_ENABLED:
+++ *
+++ * Whether the Lzma support is compiled in
+++ */
+++#if 0
+++#define LIBXML_LZMA_ENABLED
+++#endif
+++
+++#ifdef __GNUC__
+++
+++/**
+++ * ATTRIBUTE_UNUSED:
+++ *
+++ * Macro used to signal to GCC unused function parameters
+++ */
+++
+++#ifndef ATTRIBUTE_UNUSED
+++# if ((__GNUC__ > 2) || ((__GNUC__ == 2) && (__GNUC_MINOR__ >= 7)))
+++#  define ATTRIBUTE_UNUSED __attribute__((unused))
+++# else
+++#  define ATTRIBUTE_UNUSED
+++# endif
+++#endif
+++
+++/**
+++ * LIBXML_ATTR_ALLOC_SIZE:
+++ *
+++ * Macro used to indicate to GCC this is an allocator function
+++ */
+++
+++#ifndef LIBXML_ATTR_ALLOC_SIZE
+++# if (!defined(__clang__) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 3))))
+++#  define LIBXML_ATTR_ALLOC_SIZE(x) __attribute__((alloc_size(x)))
+++# else
+++#  define LIBXML_ATTR_ALLOC_SIZE(x)
+++# endif
+++#else
+++# define LIBXML_ATTR_ALLOC_SIZE(x)
+++#endif
+++
+++/**
+++ * LIBXML_ATTR_FORMAT:
+++ *
+++ * Macro used to indicate to GCC the parameter are printf like
+++ */
+++
+++#ifndef LIBXML_ATTR_FORMAT
+++# if ((__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3)))
+++#  define LIBXML_ATTR_FORMAT(fmt,args) __attribute__((__format__(__printf__,fmt,args)))
+++# else
+++#  define LIBXML_ATTR_FORMAT(fmt,args)
+++# endif
+++#else
+++# define LIBXML_ATTR_FORMAT(fmt,args)
+++#endif
+++
+++#else /* ! __GNUC__ */
+++/**
+++ * ATTRIBUTE_UNUSED:
+++ *
+++ * Macro used to signal to GCC unused function parameters
+++ */
+++#define ATTRIBUTE_UNUSED
+++/**
+++ * LIBXML_ATTR_ALLOC_SIZE:
+++ *
+++ * Macro used to indicate to GCC this is an allocator function
+++ */
+++#define LIBXML_ATTR_ALLOC_SIZE(x)
+++/**
+++ * LIBXML_ATTR_FORMAT:
+++ *
+++ * Macro used to indicate to GCC the parameter are printf like
+++ */
+++#define LIBXML_ATTR_FORMAT(fmt,args)
+++#endif /* __GNUC__ */
+++
+++#ifdef __cplusplus
+++}
+++#endif /* __cplusplus */
+++#endif
+++
+++
+diff --git a/build_defs/cc/shared/build_targets/nghttp2-bazel.patch b/build_defs/cc/shared/build_targets/nghttp2-bazel.patch
+new file mode 100644
+index 0000000..536156d
+--- /dev/null
++++ b/build_defs/cc/shared/build_targets/nghttp2-bazel.patch
+@@ -0,0 +1,508 @@
++diff --git a/lib/config.h b/lib/config.h
++new file mode 100644
++index 00000000..e8aad8ea
++--- /dev/null
+++++ b/lib/config.h
++@@ -0,0 +1,411 @@
+++#ifndef GOOGLE_PRIVACY_SANDBOX__NGHTTP2_CONFIG_H_
+++#define GOOGLE_PRIVACY_SANDBOX__NGHTTP2_CONFIG_H_
+++
+++#include <stdint.h>
+++
+++/* Define if building universal (internal helper macro) */
+++/* #undef AC_APPLE_UNIVERSAL_BUILD */
+++
+++/* Define to 1 to enable debug output. */
+++/* #undef DEBUGBUILD */
+++
+++/* Define to 1 if you have the `accept4' function. */
+++#define HAVE_ACCEPT4 1
+++
+++/* Define to 1 if you have the <arpa/inet.h> header file. */
+++#define HAVE_ARPA_INET_H 1
+++
+++/* Define to 1 if you have the std::atomic_* overloads for std::shared_ptr. */
+++#define HAVE_ATOMIC_STD_SHARED_PTR 1
+++
+++/* HAVE_BOOST_* are only used by the binaries, not included here */
+++/* define if the Boost library is available */
+++/* #undef HAVE_BOOST */
+++
+++/* define if the Boost::ASIO library is available */
+++/* #undef HAVE_BOOST_ASIO */
+++
+++/* define if the Boost::System library is available */
+++/* #undef HAVE_BOOST_SYSTEM */
+++
+++/* define if the Boost::Thread library is available */
+++/* #undef HAVE_BOOST_THREAD */
+++
+++/* Define to 1 if your system has a working `chown' function. */
+++#define HAVE_CHOWN 1
+++
+++/* define if the compiler supports basic C++11 syntax */
+++#define HAVE_CXX11 1
+++
+++/* Define to 1 if you have the declaration of `initgroups', and to 0 if you
+++   don't. */
+++#define HAVE_DECL_INITGROUPS 1
+++
+++/* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
+++   don't. */
+++#define HAVE_DECL_STRERROR_R 1
+++
+++/* Define to 1 if you have the <dlfcn.h> header file. */
+++#define HAVE_DLFCN_H 1
+++
+++/* Define to 1 if you have the `dup2' function. */
+++#define HAVE_DUP2 1
+++
+++/* Define to 1 if you have the <fcntl.h> header file. */
+++#define HAVE_FCNTL_H 1
+++
+++/* Define to 1 if you have the `fork' function. */
+++#define HAVE_FORK 1
+++
+++/* Define to 1 if you have the `getcwd' function. */
+++#define HAVE_GETCWD 1
+++
+++/* Define to 1 if you have the `getpwnam' function. */
+++#define HAVE_GETPWNAM 1
+++
+++/* Define to 1 if you have the <inttypes.h> header file. */
+++#define HAVE_INTTYPES_H 1
+++
+++/* HAVE_JANSSON only used by the binaries, not included here */
+++/* Define to 1 if you have `libjansson` library. */
+++/* #undef HAVE_JANSSON */
+++
+++/* HAVE_LIBSYSTEMD only used by the binaries, not included here */
+++/* Define to 1 if you have `libsystemd` library. */
+++/* #undef HAVE_LIBSYSTEMD */
+++
+++/* HAVE_LIBXML2 only used by the binaries, not included here */
+++/* Define to 1 if you have `libxml2` library. */
+++/* #undef HAVE_LIBXML2 */
+++
+++/* Define to 1 if you have the <limits.h> header file. */
+++#define HAVE_LIMITS_H 1
+++
+++/* Define to 1 if you have the `localtime_r' function. */
+++#define HAVE_LOCALTIME_R 1
+++
+++/* Define to 1 if you have the `memchr' function. */
+++#define HAVE_MEMCHR 1
+++
+++/* Define to 1 if you have the `memmove' function. */
+++#define HAVE_MEMMOVE 1
+++
+++/* Define to 1 if you have the <memory.h> header file. */
+++#define HAVE_MEMORY_H 1
+++
+++/* Define to 1 if you have the `memset' function. */
+++#define HAVE_MEMSET 1
+++
+++/* Define to 1 if you have the `mkostemp' function. */
+++#define HAVE_MKOSTEMP 1
+++
+++/* Define to 1 if you have `mruby` library. */
+++/* #undef HAVE_MRUBY */
+++
+++/* Define to 1 if you have the <netdb.h> header file. */
+++#define HAVE_NETDB_H 1
+++
+++/* Define to 1 if you have the <netinet/in.h> header file. */
+++#define HAVE_NETINET_IN_H 1
+++
+++/* HAVE_NEVERBLEED is only used by the binaries, not included here */
+++/* Define to 1 if you have `neverbleed` library. */
+++/* #undef HAVE_NEVERBLEED */
+++
+++/* Define to 1 if the system has the type `ptrdiff_t'. */
+++#define HAVE_PTRDIFF_T 1
+++
+++/* Define to 1 if you have the <pwd.h> header file. */
+++#define HAVE_PWD_H 1
+++
+++/* If available, contains the Python version number currently in use. */
+++#define HAVE_PYTHON "2.7"
+++
+++/* Define to 1 if struct sockaddr_in6 has sin6_len member. */
+++/* #undef HAVE_SOCKADDR_IN6_SIN6_LEN */
+++
+++/* Define to 1 if struct sockaddr_in has sin_len member. */
+++/* #undef HAVE_SOCKADDR_IN_SIN_LEN */
+++
+++/* Define to 1 if you have the `socket' function. */
+++#define HAVE_SOCKET 1
+++
+++/* Define to 1 if you have the `sqrt' function. */
+++/* #undef HAVE_SQRT */
+++
+++/* Define to 1 if you have the <stddef.h> header file. */
+++#define HAVE_STDDEF_H 1
+++
+++/* Define to 1 if you have the <stdint.h> header file. */
+++#define HAVE_STDINT_H 1
+++
+++/* Define to 1 if you have the <stdlib.h> header file. */
+++#define HAVE_STDLIB_H 1
+++
+++/* Define to 1 if you have the `std::future`. */
+++#define HAVE_STD_FUTURE 1
+++
+++/* Define to 1 if you have the `std::map::emplace`. */
+++#define HAVE_STD_MAP_EMPLACE 1
+++
+++/* Define to 1 if you have the `strchr' function. */
+++#define HAVE_STRCHR 1
+++
+++/* Define to 1 if you have the `strdup' function. */
+++#define HAVE_STRDUP 1
+++
+++/* Define to 1 if you have the `strerror' function. */
+++#define HAVE_STRERROR 1
+++
+++/* Define to 1 if you have the `strerror_r' function. */
+++#define HAVE_STRERROR_R 1
+++
+++/* Define to 1 if you have the <strings.h> header file. */
+++#define HAVE_STRINGS_H 1
+++
+++/* Define to 1 if you have the <string.h> header file. */
+++#define HAVE_STRING_H 1
+++
+++/* Define to 1 if you have the `strndup' function. */
+++#define HAVE_STRNDUP 1
+++
+++/* Define to 1 if you have the `strstr' function. */
+++#define HAVE_STRSTR 1
+++
+++/* Define to 1 if you have the `strtol' function. */
+++#define HAVE_STRTOL 1
+++
+++/* Define to 1 if you have the `strtoul' function. */
+++#define HAVE_STRTOUL 1
+++
+++/* Define to 1 if you have `struct tm.tm_gmtoff` member. */
+++#define HAVE_STRUCT_TM_TM_GMTOFF 1
+++
+++/* Define to 1 if you have the <syslog.h> header file. */
+++#define HAVE_SYSLOG_H 1
+++
+++/* Define to 1 if you have the <sys/socket.h> header file. */
+++#define HAVE_SYS_SOCKET_H 1
+++
+++/* Define to 1 if you have the <sys/stat.h> header file. */
+++#define HAVE_SYS_STAT_H 1
+++
+++/* Define to 1 if you have the <sys/time.h> header file. */
+++#define HAVE_SYS_TIME_H 1
+++
+++/* Define to 1 if you have the <sys/types.h> header file. */
+++#define HAVE_SYS_TYPES_H 1
+++
+++/* Define to 1 if you have thread_local storage specifier. */
+++#define HAVE_THREAD_LOCAL 1
+++
+++/* Define to 1 if you have the `timegm' function. */
+++#define HAVE_TIMEGM 1
+++
+++/* Define to 1 if you have the <time.h> header file. */
+++#define HAVE_TIME_H 1
+++
+++/* Define to 1 if you have the <unistd.h> header file. */
+++#define HAVE_UNISTD_H 1
+++
+++/* Define to 1 if you have the `vfork' function. */
+++#define HAVE_VFORK 1
+++
+++/* Define to 1 if you have the <vfork.h> header file. */
+++/* #undef HAVE_VFORK_H */
+++
+++/* Define to 1 if `fork' works. */
+++#define HAVE_WORKING_FORK 1
+++
+++/* Define to 1 if `vfork' works. */
+++#define HAVE_WORKING_VFORK 1
+++
+++/* Define to 1 if you have the `_Exit' function. */
+++#define HAVE__EXIT 1
+++
+++/* Define to the sub-directory where libtool stores uninstalled libraries. */
+++/* #undef LT_OBJDIR ".libs/" */
+++
+++/* Define to 1 if assertions should be disabled. */
+++/* #undef NDEBUG */
+++
+++/* use NORETURN from ABSL */
+++/* Hint to the compiler that a function never return */
+++#define NGHTTP2_NORETURN ABSL_ATTRIBUTE_NORETURN
+++
+++/* Define to 1 if you want to disable threads. */
+++/* #undef NOTHREADS */
+++
+++/* Name of package */
+++#define PACKAGE "nghttp2"
+++
+++/* Define to the address where bug reports for this package should be sent. */
+++#define PACKAGE_BUGREPORT "t-tujikawa@users.sourceforge.net"
+++
+++/* Define to the full name of this package. */
+++#define PACKAGE_NAME "nghttp2"
+++
+++/* Define to the full name and version of this package. */
+++#define PACKAGE_STRING "nghttp2 1.34.0"
+++
+++/* Define to the one symbol short name of this package. */
+++#define PACKAGE_TARNAME "nghttp2"
+++
+++/* Define to the home page for this package. */
+++#define PACKAGE_URL ""
+++
+++/* Define to the version of this package. */
+++#define PACKAGE_VERSION "1.34.0"
+++
+++/* detect pointer size at compile time */
+++/* The size of `int *', as computed by sizeof. */
+++#if UINTPTR_MAX == UINT64_MAX
+++#define SIZEOF_INT_P 8
+++#elif UINTPTR_MAX == UINT32_MAX
+++#define SIZEOF_INT_P 4
+++#else
+++#error "Unknown int pointer size"
+++#endif
+++
+++/* only used by the binaries, not included here */
+++/* The size of `time_t', as computed by sizeof. */
+++/* #undef SIZEOF_TIME_T */
+++
+++/* Define to 1 if you have the ANSI C header files. */
+++#define STDC_HEADERS 1
+++
+++/* Define to 1 if strerror_r returns char *. */
+++#define STRERROR_R_CHAR_P 1
+++
+++/* Enable extensions on AIX 3, Interix.  */
+++#ifndef _ALL_SOURCE
+++# define _ALL_SOURCE 1
+++#endif
+++/* Enable GNU extensions on systems that have them.  */
+++#ifndef _GNU_SOURCE
+++# define _GNU_SOURCE 1
+++#endif
+++/* Enable threading extensions on Solaris.  */
+++#ifndef _POSIX_PTHREAD_SEMANTICS
+++# define _POSIX_PTHREAD_SEMANTICS 1
+++#endif
+++/* Enable extensions on HP NonStop.  */
+++#ifndef _TANDEM_SOURCE
+++# define _TANDEM_SOURCE 1
+++#endif
+++/* Enable general extensions on Solaris.  */
+++#ifndef __EXTENSIONS__
+++# define __EXTENSIONS__ 1
+++#endif
+++
+++
+++/* Version number of package */
+++#define VERSION "1.34.0"
+++
+++/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+++   significant byte first (like Motorola and SPARC, unlike Intel). */
+++#if defined AC_APPLE_UNIVERSAL_BUILD
+++# if defined __BIG_ENDIAN__
+++#  define WORDS_BIGENDIAN 1
+++# endif
+++#else
+++# ifndef WORDS_BIGENDIAN
+++/* #  undef WORDS_BIGENDIAN */
+++# endif
+++#endif
+++
+++/* Enable large inode numbers on Mac OS X 10.5.  */
+++#ifndef _DARWIN_USE_64_BIT_INODE
+++# define _DARWIN_USE_64_BIT_INODE 1
+++#endif
+++
+++/* Number of bits in a file offset, on hosts where this is settable. */
+++/* #undef _FILE_OFFSET_BITS */
+++
+++/* Define for large files, on AIX-style hosts. */
+++/* #undef _LARGE_FILES */
+++
+++/* Define to 1 if on MINIX. */
+++/* #undef _MINIX */
+++
+++/* Define to 2 if the system does not provide POSIX.1 features except with
+++   this defined. */
+++/* #undef _POSIX_1_SOURCE */
+++
+++/* Define to 1 if you need to in order for `stat' and other things to work. */
+++/* #undef _POSIX_SOURCE */
+++
+++/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
+++   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+++   #define below would cause a syntax error. */
+++/* #undef _UINT32_T */
+++
+++/* Define for Solaris 2.5.1 so the uint64_t typedef from <sys/synch.h>,
+++   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+++   #define below would cause a syntax error. */
+++/* #undef _UINT64_T */
+++
+++/* Define for Solaris 2.5.1 so the uint8_t typedef from <sys/synch.h>,
+++   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+++   #define below would cause a syntax error. */
+++/* #undef _UINT8_T */
+++
+++/* Define to `int' if <sys/types.h> doesn't define. */
+++/* #undef gid_t */
+++
+++/* Define to `__inline__' or `__inline' if that's what the C compiler
+++   calls it, or to nothing if 'inline' is not supported under any name.  */
+++#ifndef __cplusplus
+++/* #undef inline */
+++#endif
+++
+++/* Define to the type of a signed integer type of width exactly 16 bits if
+++   such a type exists and the standard includes do not define it. */
+++/* #undef int16_t */
+++
+++/* Define to the type of a signed integer type of width exactly 32 bits if
+++   such a type exists and the standard includes do not define it. */
+++/* #undef int32_t */
+++
+++/* Define to the type of a signed integer type of width exactly 64 bits if
+++   such a type exists and the standard includes do not define it. */
+++/* #undef int64_t */
+++
+++/* Define to the type of a signed integer type of width exactly 8 bits if such
+++   a type exists and the standard includes do not define it. */
+++/* #undef int8_t */
+++
+++/* Define to `long int' if <sys/types.h> does not define. */
+++/* #undef off_t */
+++
+++/* Define to `int' if <sys/types.h> does not define. */
+++/* #undef pid_t */
+++
+++/* Define to `unsigned int' if <sys/types.h> does not define. */
+++/* #undef size_t */
+++
+++/* Define to `int' if <sys/types.h> does not define. */
+++/* #undef ssize_t */
+++
+++/* Define to `int' if <sys/types.h> doesn't define. */
+++/* #undef uid_t */
+++
+++/* Define to the type of an unsigned integer type of width exactly 16 bits if
+++   such a type exists and the standard includes do not define it. */
+++/* #undef uint16_t */
+++
+++/* Define to the type of an unsigned integer type of width exactly 32 bits if
+++   such a type exists and the standard includes do not define it. */
+++/* #undef uint32_t */
+++
+++/* Define to the type of an unsigned integer type of width exactly 64 bits if
+++   such a type exists and the standard includes do not define it. */
+++/* #undef uint64_t */
+++
+++/* Define to the type of an unsigned integer type of width exactly 8 bits if
+++   such a type exists and the standard includes do not define it. */
+++/* #undef uint8_t */
+++
+++/* Define as `fork' if `vfork' does not work. */
+++/* #undef vfork */
+++#endif  // GOOGLE_PRIVACY_SANDBOX__NGHTTP2_CONFIG_H_
++diff --git a/src/asio_client_session_impl.cc b/src/asio_client_session_impl.cc
++index b96824dd..1d5ab925 100644
++--- a/src/asio_client_session_impl.cc
+++++ b/src/asio_client_session_impl.cc
++@@ -577,7 +577,7 @@ const request *session_impl::submit(boost::system::error_code &ec,
++ }
++ 
++ void session_impl::shutdown() {
++-  if (stopped_) {
+++  if (session_ == nullptr || stopped_) {
++     return;
++   }
++ 
++diff --git a/src/asio_io_service_pool.cc b/src/asio_io_service_pool.cc
++index 01483664..22ab8eca 100644
++--- a/src/asio_io_service_pool.cc
+++++ b/src/asio_io_service_pool.cc
++@@ -58,9 +58,17 @@ void io_service_pool::run(bool asynchronous) {
++   // Create a pool of threads to run all of the io_services.
++   for (std::size_t i = 0; i < io_services_.size(); ++i) {
++     futures_.push_back(std::async(std::launch::async,
++-                                  (size_t(boost::asio::io_service::*)(void)) &
++-                                      boost::asio::io_service::run,
++-                                  io_services_[i]));
+++                                  [io_service = io_services_[i]]() {
+++                                    for(;;) {
+++                                      try {
+++                                        auto ct = io_service->run();
+++                                        return ct;
+++                                      }
+++                                      catch (...) {
+++                                      }
+++                                    }
+++                                    return 0UL;
+++                                  }));
++   }
++ 
++   if (!asynchronous) {
++diff --git a/src/asio_server.cc b/src/asio_server.cc
++index 74c92276..6d262336 100644
++--- a/src/asio_server.cc
+++++ b/src/asio_server.cc
++@@ -188,7 +188,13 @@ void server::start_accept(tcp::acceptor &acceptor, serve_mux &mux) {
++ 
++ void server::stop() {
++   for (auto &acceptor : acceptors_) {
++-    acceptor.close();
+++    std::promise<void> promise;
+++    GET_IO_SERVICE(acceptor).dispatch([&acceptor, &promise]() {
+++      boost::system::error_code ignored_ec;
+++      acceptor.close(ignored_ec);
+++      promise.set_value();
+++    });
+++    promise.get_future().get();
++   }
++   io_service_pool_.stop();
++ }
++diff --git a/src/asio_server_connection.h b/src/asio_server_connection.h
++index a9489658..7756848c 100644
++--- a/src/asio_server_connection.h
+++++ b/src/asio_server_connection.h
++@@ -87,10 +87,15 @@ public:
++   /// Start the first asynchronous operation for the connection.
++   void start() {
++     boost::system::error_code ec;
+++    std::weak_ptr<connection> weak_self = this->shared_from_this();
++ 
++     handler_ = std::make_shared<http2_handler>(
++         GET_IO_SERVICE(socket_), socket_.lowest_layer().remote_endpoint(ec),
++-        [this]() { do_write(); }, mux_);
+++        [weak_self]() {
+++          auto shared_connection = weak_self.lock();
+++          if (!shared_connection) { return; }
+++          shared_connection->do_write();
+++        }, mux_);
++     if (handler_->start() != 0) {
++       stop();
++       return;
++diff --git a/src/asio_server_http2_handler.cc b/src/asio_server_http2_handler.cc
++index c1fc195f..f050256f 100644
++--- a/src/asio_server_http2_handler.cc
+++++ b/src/asio_server_http2_handler.cc
++@@ -298,7 +298,7 @@ int http2_handler::start() {
++     return -1;
++   }
++ 
++-  nghttp2_settings_entry ent{NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 100};
+++  nghttp2_settings_entry ent{NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 10000};
++   nghttp2_submit_settings(session_, NGHTTP2_FLAG_NONE, &ent, 1);
++ 
++   return 0;
+diff --git a/build_defs/cc/shared/build_targets/nghttp2.BUILD b/build_defs/cc/shared/build_targets/nghttp2.BUILD
+index 314743d..cafd254 100644
+--- a/build_defs/cc/shared/build_targets/nghttp2.BUILD
++++ b/build_defs/cc/shared/build_targets/nghttp2.BUILD
+@@ -1,39 +1,142 @@
+-load("@rules_foreign_cc//foreign_cc:defs.bzl", "cmake")
++# Copyright 2022 Google LLC
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
+ 
+ package(
+     default_visibility = ["//visibility:public"],
+ )
+ 
+-filegroup(
+-    name = "all_srcs",
+-    srcs = glob(["**"]),
+-    visibility = ["//visibility:public"],
++cc_library(
++    name = "nghttp2",
++    srcs = glob([
++        "lib/*.c",
++        "lib/*.h",
++    ]),
++    hdrs = ["lib/config.h"] + glob([
++        "lib/includes/nghttp2/*.h",
++    ]),
++    copts = [
++        "-DHAVE_CONFIG_H",
++        "-DBUILDING_NGHTTP2",
++        "-Wno-string-plus-int",
++    ],
++    includes = [
++        "lib",
++        "lib/includes",
++    ],
+ )
+ 
+-cmake(
+-    name = "nghttp2",
+-    cache_entries = {
+-        "Boost_THREAD_LIBRARY": "$EXT_BUILD_DEPS/../../boost/libthread.a",
+-        "Boost_SYSTEM_LIBRARY": "$EXT_BUILD_DEPS/../../boost/libsystem.a",
+-        "ENABLE_ASIO_LIB": "on",
+-        "ENABLE_STATIC_LIB": "on",
+-        "ENABLE_EXAMPLES": "off",
+-    },
+-    defines = ["OPENSSL_IS_BORINGSSL=1"],
+-    env = {"MAKEFLAGS": "-j16"},
+-    lib_source = ":all_srcs",
+-    out_shared_libs = [
+-        "libnghttp2.so.14",
+-        "libnghttp2_asio.so.1",
+-    ],
+-    out_static_libs = [
+-        "libnghttp2.a",
++cc_library(
++    name = "llhttp",
++    srcs = [
++        "third-party/llhttp/src/api.c",
++        "third-party/llhttp/src/http.c",
++        "third-party/llhttp/src/llhttp.c",
++    ],
++    hdrs = [
++        "third-party/llhttp/include/llhttp.h",
++    ],
++    includes = [
++        "third-party/llhttp/include",
++    ],
++)
++
++cc_library(
++    name = "url_parser",
++    srcs = [
++        "third-party/url-parser/url_parser.c",
++    ],
++    hdrs = [
++        "third-party/url-parser/url_parser.h",
++    ],
++    includes = [
++        "third-party",
++    ],
++)
++
++NGHTTP2_ASIO_SOURCES_NO_HEADER = [
++    "src/asio_client_request.cc",
++    "src/asio_client_response.cc",
++    "src/asio_client_session.cc",
++    "src/asio_server_http2.cc",
++    "src/asio_server_request.cc",
++    "src/asio_server_response.cc",
++]
++
++NGHTTP2_ASIO_SOURCES_HEADER = [
++    "src/allocator.h",
++    "src/asio_server_connection.h",
++    "src/base64.h",
++    "src/buffer.h",
++    "src/memchunk.h",
++    "src/nghttp2_config.h",
++    "src/network.h",
++    "src/ssl_compat.h",
++    "src/template.h",
++]
++
++NGHTTP2_ASIO_C_SOURCES_HEADERS = [
++    "src/timegm",
++]
++
++NGHTTP2_ASIO_CC_SOURCES_HEADERS = [
++    "src/http2",
++    "src/tls",
++    "src/util",
++    "src/asio_common",
++    "src/asio_io_service_pool",
++    "src/asio_server_http2_impl",
++    "src/asio_server",
++    "src/asio_server_http2_handler",
++    "src/asio_server_request_impl",
++    "src/asio_server_response_impl",
++    "src/asio_server_stream",
++    "src/asio_server_serve_mux",
++    "src/asio_server_request_handler",
++    "src/asio_server_tls_context",
++    "src/asio_client_session_impl",
++    "src/asio_client_session_tcp_impl",
++    "src/asio_client_session_tls_impl",
++    "src/asio_client_response_impl",
++    "src/asio_client_request_impl",
++    "src/asio_client_stream",
++    "src/asio_client_tls_context",
++]
++
++cc_library(
++    name = "nghttp2_asio",
++    srcs = ["{}.c".format(s) for s in NGHTTP2_ASIO_C_SOURCES_HEADERS] +
++           ["{}.cc".format(s) for s in NGHTTP2_ASIO_CC_SOURCES_HEADERS] +
++           NGHTTP2_ASIO_SOURCES_NO_HEADER,
++    hdrs = glob(["src/includes/nghttp2/*.h"]) + [
++               "lib/config.h",
++           ] + NGHTTP2_ASIO_SOURCES_HEADER +
++           ["{}.h".format(s) for s in NGHTTP2_ASIO_C_SOURCES_HEADERS + NGHTTP2_ASIO_CC_SOURCES_HEADERS],
++    copts = [
++        "-DHAVE_CONFIG_H",
++        "-DBUILDING_NGHTTP2",
++        "-Wno-string-plus-int",
++        "-I.",
++        "-Isrc",
++    ],
++    includes = [
++        "src/includes",
+     ],
+     deps = [
++        ":llhttp",
++        ":nghttp2",
++        ":url_parser",
+         "@boost//:asio_ssl",
+-        "@boost//:system",
+         "@boost//:thread",
+-        "@boringssl//:crypto",
+-        "@boringssl//:ssl",
+     ],
+ )
+diff --git a/build_defs/cc/shared/build_targets/zlib.BUILD b/build_defs/cc/shared/build_targets/zlib.BUILD
+index 5715594..e5e346f 100644
+--- a/build_defs/cc/shared/build_targets/zlib.BUILD
++++ b/build_defs/cc/shared/build_targets/zlib.BUILD
+@@ -1,4 +1,4 @@
+-package(default_visibility = ["//visibility:public"])
++load("@rules_cc//cc:defs.bzl", "cc_library")
+ 
+ cc_library(
+     name = "zlib",
+@@ -6,33 +6,37 @@ cc_library(
+         "adler32.c",
+         "compress.c",
+         "crc32.c",
+-        "crc32.h",
+         "deflate.c",
+-        "deflate.h",
+         "gzclose.c",
+-        "gzguts.h",
+         "gzlib.c",
+         "gzread.c",
+         "gzwrite.c",
+         "infback.c",
+         "inffast.c",
++        "inflate.c",
++        "inftrees.c",
++        "trees.c",
++        "uncompr.c",
++        "zutil.c",
++    ],
++    hdrs = [
++        "crc32.h",
++        "deflate.h",
++        "gzguts.h",
+         "inffast.h",
+         "inffixed.h",
+-        "inflate.c",
+         "inflate.h",
+-        "inftrees.c",
+         "inftrees.h",
+-        "trees.c",
+         "trees.h",
+-        "uncompr.c",
+         "zconf.h",
+-        "zutil.c",
++        "zlib.h",
+         "zutil.h",
+     ],
+-    hdrs = ["zlib.h"],
+-    copts = [
+-        "-Wno-shift-negative-value",
+-        "-DZ_HAVE_UNISTD_H",
++    includes = [
++        ".",
++    ],
++    linkstatic = False,
++    visibility = [
++        "//visibility:public",
+     ],
+-    includes = ["."],
+ )
+diff --git a/build_defs/cc/shared/cc_utils.bzl b/build_defs/cc/shared/cc_utils.bzl
+index b4967de..d1b9a43 100644
+--- a/build_defs/cc/shared/cc_utils.bzl
++++ b/build_defs/cc/shared/cc_utils.bzl
+@@ -24,6 +24,7 @@ def cc_utils():
+         # Commits on Apr 6, 2022
+         commit = "15fa6a342af7b51cb51a22599026e01f1d81957b",
+         remote = "https://github.com/nlohmann/json.git",
++        shallow_since = "1649251595 +0200",
+     )
+ 
+     maybe(
+diff --git a/build_defs/cc/shared/nghttp2.bzl b/build_defs/cc/shared/nghttp2.bzl
+index aaeff13..4362e3f 100644
+--- a/build_defs/cc/shared/nghttp2.bzl
++++ b/build_defs/cc/shared/nghttp2.bzl
+@@ -15,14 +15,39 @@
+ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+ 
++def pre_nghttp2():
++    maybe(
++        http_archive,
++        name = "madler_zlib",
++        build_file = Label("//build_defs/cc/shared/build_targets:zlib.BUILD"),
++        sha256 = "d233fca7cf68db4c16dc5287af61f3cd01ab62495224c66639ca3da537701e42",
++        strip_prefix = "zlib-1.2.13",
++        urls = [
++            "https://github.com/madler/zlib/releases/download/v1.2.13/zlib1213.zip"
++        ],
++    )
++    maybe(
++        http_archive,
++        name = "libxml2",
++        build_file = Label("//build_defs/cc/shared/build_targets:libxml2.BUILD"),
++        patches = [Label("//build_defs/cc/shared/build_targets:libxml2.patch")],
++        sha256 = "c8d6681e38c56f172892c85ddc0852e1fd4b53b4209e7f4ebf17f7e2eae71d92",
++        strip_prefix = "libxml2-2.9.12",
++        urls = [
++            "http://xmlsoft.org/sources/libxml2-2.9.12.tar.gz",
++        ],
++    )
++
+ def nghttp2():
+     maybe(
+         http_archive,
+         name = "com_github_nghttp2_nghttp2",
+         build_file = Label("//build_defs/cc/shared/build_targets:nghttp2.BUILD"),
+         patch_args = ["-p1"],
+-        patches = [Label("//build_defs/cc/shared/build_targets:nghttp2.patch")],
++        patches = [Label("//build_defs/cc/shared/build_targets:nghttp2-bazel.patch")],
+         sha256 = "62f50f0e9fc479e48b34e1526df8dd2e94136de4c426b7680048181606832b7c",
+         strip_prefix = "nghttp2-1.47.0",
+-        url = "https://github.com/nghttp2/nghttp2/releases/download/v1.47.0/nghttp2-1.47.0.tar.gz",
++        urls = [
++            "https://github.com/nghttp2/nghttp2/releases/download/v1.47.0/nghttp2-1.47.0.tar.gz",
++        ],
+     )
+diff --git a/build_defs/cc/shared/rules_boost.patch b/build_defs/cc/shared/rules_boost.patch
+index a74e34e..7614b1f 100644
+--- a/build_defs/cc/shared/rules_boost.patch
++++ b/build_defs/cc/shared/rules_boost.patch
+@@ -15,7 +15,7 @@ diff --git a/boost/boost.bzl b/boost/boost.bzl
+ index ff1630f..c483268 100644
+ --- a/boost/boost.bzl
+ +++ b/boost/boost.bzl
+-@@ -219,10 +219,10 @@ def boost_deps():
++@@ -219,10 +219,3 @@ def boost_deps():
+          ],
+      )
+  
+@@ -26,10 +26,3 @@ index ff1630f..c483268 100644
+ -        strip_prefix = "boringssl-fc44652a42b396e1645d5e72aba053349992136a",
+ -        url = "https://github.com/google/boringssl/archive/fc44652a42b396e1645d5e72aba053349992136a.tar.gz",
+ -    )
+-+#     maybe(
+-+#         http_archive,
+-+#         name = "openssl",
+-+#         sha256 = "6f640262999cd1fb33cf705922e453e835d2d20f3f06fe0d77f6426c19257308",
+-+#         strip_prefix = "boringssl-fc44652a42b396e1645d5e72aba053349992136a",
+-+#         url = "https://github.com/google/boringssl/archive/fc44652a42b396e1645d5e72aba053349992136a.tar.gz",
+-+#     )
+diff --git a/build_defs/cc/v8.bzl b/build_defs/cc/v8.bzl
+index d9e150e..35f6807 100644
+--- a/build_defs/cc/v8.bzl
++++ b/build_defs/cc/v8.bzl
 @@ -13,7 +13,7 @@
  # limitations under the License.
  
@@ -158,9 +1941,172 @@ diff --git build_defs/cc/v8.bzl build_defs/cc/v8.bzl
      )
  
      new_git_repository(
-diff --git cc/aws/proxy/src/proxify.cc cc/aws/proxy/src/proxify.cc
---- cc/aws/proxy/src/proxify.cc
-+++ cc/aws/proxy/src/proxify.cc
+diff --git a/build_defs/shared/absl.bzl b/build_defs/shared/absl.bzl
+index 08d29e6..c4ac383 100644
+--- a/build_defs/shared/absl.bzl
++++ b/build_defs/shared/absl.bzl
+@@ -24,17 +24,19 @@ def absl():
+     maybe(
+         http_archive,
+         name = "bazel_skylib",
+-        sha256 = "f7be3474d42aae265405a592bb7da8e171919d74c16f082a5457840f06054728",
+-        urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/1.2.1/bazel-skylib-1.2.1.tar.gz"],
++        sha256 = "b8a1527901774180afc798aeb28c4634bdccf19c4d98e7bdd1ce79d1fe9aaad7",
++        urls = [
++            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/bazel-skylib-1.4.1.tar.gz",
++            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.1/bazel-skylib-1.4.1.tar.gz",
++        ],
+     )
+-
+     maybe(
+         http_archive,
+         name = "com_google_absl",
+-        sha256 = "81311c17599b3712069ded20cca09a62ab0bf2a89dfa16993786c8782b7ed145",
+-        strip_prefix = "abseil-cpp-20230125.1",
+-        # Committed on Jan 25, 2023.
++        sha256 = "51d676b6846440210da48899e4df618a357e6e44ecde7106f1e44ea16ae8adc7",
++        strip_prefix = "abseil-cpp-20230125.3",
++        # Committed on May 4, 2023
+         urls = [
+-            "https://github.com/abseil/abseil-cpp/archive/20230125.1.tar.gz",
++            "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.3.zip",
+         ],
+     )
+diff --git a/build_defs/shared/bazel_docker_rules.bzl b/build_defs/shared/bazel_docker_rules.bzl
+index 659ce26..96281a5 100644
+--- a/build_defs/shared/bazel_docker_rules.bzl
++++ b/build_defs/shared/bazel_docker_rules.bzl
+@@ -12,7 +12,7 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
++load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+ 
+ # Note: these rules add a dependency on the golang toolchain and must be ordered
+@@ -23,7 +23,6 @@ def bazel_docker_rules():
+     maybe(
+         http_archive,
+         name = "io_bazel_rules_docker",
+-        sha256 = "59d5b42ac315e7eadffa944e86e90c2990110a1c8075f1cd145f487e999d22b3",
+-        strip_prefix = "rules_docker-0.17.0",
+-        urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.17.0/rules_docker-v0.17.0.tar.gz"],
++        sha256 = "b1e80761a8a8243d03ebca8845e9cc1ba6c82ce7c5179ce2b295cd36f7e394bf",
++        urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz"],
+     )
+diff --git a/build_defs/shared/bazel_rules_pkg.bzl b/build_defs/shared/bazel_rules_pkg.bzl
+index 7353b6f..40ee3aa 100644
+--- a/build_defs/shared/bazel_rules_pkg.bzl
++++ b/build_defs/shared/bazel_rules_pkg.bzl
+@@ -19,9 +19,9 @@ def bazel_rules_pkg():
+     maybe(
+         http_archive,
+         name = "rules_pkg",
+-        sha256 = "a89e203d3cf264e564fcb96b6e06dd70bc0557356eb48400ce4b5d97c2c3720d",
++        sha256 = "8f9ee2dc10c1ae514ee599a8b42ed99fa262b757058f65ad3c384289ff70c4b8",
+         urls = [
+-            "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.5.1/rules_pkg-0.5.1.tar.gz",
+-            "https://github.com/bazelbuild/rules_pkg/releases/download/0.5.1/rules_pkg-0.5.1.tar.gz",
++            "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.9.1/rules_pkg-0.9.1.tar.gz",
++            "https://github.com/bazelbuild/rules_pkg/releases/download/0.9.1/rules_pkg-0.9.1.tar.gz",
+         ],
+     )
+diff --git a/build_defs/shared/golang.bzl b/build_defs/shared/golang.bzl
+index 05bae65..401f328 100644
+--- a/build_defs/shared/golang.bzl
++++ b/build_defs/shared/golang.bzl
+@@ -23,13 +23,12 @@ def go_deps():
+     maybe(
+         http_archive,
+         name = "io_bazel_rules_go",
+-        sha256 = "f2dcd210c7095febe54b804bb1cd3a58fe8435a909db2ec04e31542631cf715c",
++        sha256 = "6dc2da7ab4cf5d7bfc7c949776b1b7c733f05e56edc4bcd9022bb249d2e2a996",
+         urls = [
+-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.31.0/rules_go-v0.31.0.zip",
+-            "https://github.com/bazelbuild/rules_go/releases/download/v0.31.0/rules_go-v0.31.0.zip",
++            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.39.1/rules_go-v0.39.1.zip",
++            "https://github.com/bazelbuild/rules_go/releases/download/v0.39.1/rules_go-v0.39.1.zip",
+         ],
+     )
+-
+     maybe(
+         http_archive,
+         name = "bazel_gazelle",
+diff --git a/build_defs/shared/grpc.bzl b/build_defs/shared/grpc.bzl
+index 781666d..ba68273 100644
+--- a/build_defs/shared/grpc.bzl
++++ b/build_defs/shared/grpc.bzl
+@@ -23,9 +23,9 @@ def grpc():
+     maybe(
+         http_archive,
+         name = "com_github_grpc_grpc",
+-        sha256 = "ec125d7fdb77ecc25b01050a0d5d32616594834d3fe163b016768e2ae42a2df6",
+-        strip_prefix = "grpc-1.52.1",
++        sha256 = "8f01dac5a32104acbb76db1e6b447dc5b3dc738cb9bceeee01843d9d01d1d788",
++        strip_prefix = "grpc-1.54.1",
+         urls = [
+-            "https://github.com/grpc/grpc/archive/v1.52.1.tar.gz",
++            "https://github.com/grpc/grpc/archive/refs/tags/v1.54.1.zip",
+         ],
+     )
+diff --git a/build_defs/tink/tink_defs.bzl b/build_defs/tink/tink_defs.bzl
+index ceb28c4..9fc298a 100644
+--- a/build_defs/tink/tink_defs.bzl
++++ b/build_defs/tink/tink_defs.bzl
+@@ -18,9 +18,10 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+ 
+ # Agu 10, 2022
+ # Commit for v1.7.0
+-TINK_COMMIT = "5f92a043d35e03ce4b81561220c71d550865fefa"
+-TINK_SHALLOW_SINCE = "1643960098 -0800"
+ TINK_VERSION = "1.7.0"
++TINK_STRIP_PREFIX = "tink-{}".format(TINK_VERSION)
++TINK_SHA256 = "ff272c968827ce06b262767934dc56ab520caa357a4747fc4a885b1cc711222f"
++TINK_URLS = ["https://github.com/google/tink/archive/refs/tags/v1.7.0.zip"]
+ 
+ # List of Maven dependencies necessary for Tink to compile -- to be included in
+ # the list of Maven dependenceis passed to maven_install by the workspace.
+@@ -54,11 +55,11 @@ def import_tink_git(repo_name = ""):
+     # Tink contains multiple Bazel Workspaces. The "tink_java" workspace is what's
+     # needed but it references the "tink_base" workspace so import both here.
+     maybe(
+-        git_repository,
++        http_archive,
+         name = "tink_base",
+-        commit = TINK_COMMIT,
+-        remote = "https://github.com/google/tink.git",
+-        shallow_since = TINK_SHALLOW_SINCE,
++        sha256 = TINK_SHA256,
++        strip_prefix = TINK_STRIP_PREFIX,
++        urls = TINK_URLS,
+     )
+ 
+     # Note: loading and invoking `tink_java_deps` causes a cyclical dependency issue
+@@ -77,15 +78,9 @@ def import_tink_git(repo_name = ""):
+     )
+ 
+     maybe(
+-        git_repository,
++        http_archive,
+         name = "tink_cc",
+-        commit = TINK_COMMIT,
+-        remote = "https://github.com/google/tink.git",
+-        shallow_since = TINK_SHALLOW_SINCE,
+-        strip_prefix = "cc",
+-        patches = [],
+-        patch_args = [
+-            # Needed to import Git-based patches.
+-            "-p1",
+-        ],
++        sha256 = TINK_SHA256,
++        strip_prefix = "{}/cc".format(TINK_STRIP_PREFIX),
++        urls = TINK_URLS,
+     )
+diff --git a/cc/aws/proxy/src/proxify.cc b/cc/aws/proxy/src/proxify.cc
+index 70c9334..cf986a9 100644
+--- a/cc/aws/proxy/src/proxify.cc
++++ b/cc/aws/proxy/src/proxify.cc
 @@ -29,11 +29,15 @@ static constexpr char socket_vendor[] = "socket_vendor";
  static constexpr char resolv_conf_path[] = "/etc/resolv.conf";
  static constexpr char use_vc_option[] = "use-vc";
@@ -191,479 +2137,267 @@ diff --git cc/aws/proxy/src/proxify.cc cc/aws/proxy/src/proxify.cc
      execl(socket_vendor_path.c_str(), socket_vendor_path.c_str(), nullptr);
      exit(1);
    }
-diff --git cc/public/cpio/mock/crypto_client/BUILD cc/public/cpio/mock/crypto_client/BUILD
---- /dev/null
-+++ cc/public/cpio/mock/crypto_client/BUILD
-@@ -0,0 +1,32 @@
-+# Copyright 2022 Google LLC
-+#
-+# Licensed under the Apache License, Version 2.0 (the "License");
-+# you may not use this file except in compliance with the License.
-+# You may obtain a copy of the License at
-+#
-+#      http://www.apache.org/licenses/LICENSE-2.0
-+#
-+# Unless required by applicable law or agreed to in writing, software
-+# distributed under the License is distributed on an "AS IS" BASIS,
-+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+# See the License for the specific language governing permissions and
-+# limitations under the License.
-+
-+package(default_visibility = ["//visibility:public"])
-+
-+cc_library(
-+    name = "crypto_client_mock",
-+    testonly = True,
-+    srcs =
-+        [
-+            "mock_crypto_client.h",
-+        ],
-+    copts = [
-+        "-std=c++17",
-+    ],
-+    deps = [
-+        "//cc:cc_base_include_dir",
-+        "//cc/public/cpio/interface/crypto_client",
-+        "@com_google_googletest//:gtest",
-+    ],
-+)
-diff --git cc/public/cpio/mock/crypto_client/mock_crypto_client.h cc/public/cpio/mock/crypto_client/mock_crypto_client.h
---- /dev/null
-+++ cc/public/cpio/mock/crypto_client/mock_crypto_client.h
-@@ -0,0 +1,67 @@
-+/*
-+ * Copyright 2022 Google LLC
-+ *
-+ * Licensed under the Apache License, Version 2.0 (the "License");
-+ * you may not use this file except in compliance with the License.
-+ * You may obtain a copy of the License at
-+ *
-+ *      http://www.apache.org/licenses/LICENSE-2.0
-+ *
-+ * Unless required by applicable law or agreed to in writing, software
-+ * distributed under the License is distributed on an "AS IS" BASIS,
-+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+ * See the License for the specific language governing permissions and
-+ * limitations under the License.
-+ */
-+
-+#pragma once
-+
-+#include <memory>
-+
-+#include <gmock/gmock.h>
-+
-+#include "public/core/interface/execution_result.h"
-+#include "public/cpio/interface/crypto_client/crypto_client_interface.h"
-+
-+namespace google::scp::cpio::mock {
-+class MockCryptoClient : public CryptoClientInterface {
-+ public:
-+  MockCryptoClient() {
-+    ON_CALL(*this, Init)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Run)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Stop)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+  }
-+
-+  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
-+
-+  MOCK_METHOD(
-+      core::ExecutionResult, HpkeEncrypt,
-+      (cmrt::sdk::crypto_service::v1::HpkeEncryptRequest request,
-+       Callback<cmrt::sdk::crypto_service::v1::HpkeEncryptResponse> callback),
-+      (noexcept, override));
-+
-+  MOCK_METHOD(
-+      core::ExecutionResult, HpkeDecrypt,
-+      (cmrt::sdk::crypto_service::v1::HpkeDecryptRequest request,
-+       Callback<cmrt::sdk::crypto_service::v1::HpkeDecryptResponse> callback),
-+      (noexcept, override));
-+
-+  MOCK_METHOD(
-+      core::ExecutionResult, AeadEncrypt,
-+      (cmrt::sdk::crypto_service::v1::AeadEncryptRequest request,
-+       Callback<cmrt::sdk::crypto_service::v1::AeadEncryptResponse> callback),
-+      (noexcept, override));
-+
-+  MOCK_METHOD(
-+      core::ExecutionResult, AeadDecrypt,
-+      (cmrt::sdk::crypto_service::v1::AeadDecryptRequest request,
-+       Callback<cmrt::sdk::crypto_service::v1::AeadDecryptResponse> callback),
-+      (noexcept, override));
-+};
-+
-+}  // namespace google::scp::cpio::mock
-diff --git cc/public/cpio/mock/instance_client/BUILD cc/public/cpio/mock/instance_client/BUILD
---- /dev/null
-+++ cc/public/cpio/mock/instance_client/BUILD
-@@ -0,0 +1,32 @@
-+# Copyright 2022 Google LLC
-+#
-+# Licensed under the Apache License, Version 2.0 (the "License");
-+# you may not use this file except in compliance with the License.
-+# You may obtain a copy of the License at
-+#
-+#      http://www.apache.org/licenses/LICENSE-2.0
-+#
-+# Unless required by applicable law or agreed to in writing, software
-+# distributed under the License is distributed on an "AS IS" BASIS,
-+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+# See the License for the specific language governing permissions and
-+# limitations under the License.
-+
-+package(default_visibility = ["//visibility:public"])
-+
-+cc_library(
-+    name = "instance_client_mock",
-+    testonly = True,
-+    srcs =
-+        [
-+            "mock_instance_client.h",
-+        ],
-+    copts = [
-+        "-std=c++17",
-+    ],
-+    deps = [
-+        "//cc:cc_base_include_dir",
-+        "//cc/public/cpio/interface/instance_client",
-+        "@com_google_googletest//:gtest",
-+    ],
-+)
-diff --git cc/public/cpio/mock/instance_client/mock_instance_client.h cc/public/cpio/mock/instance_client/mock_instance_client.h
---- /dev/null
-+++ cc/public/cpio/mock/instance_client/mock_instance_client.h
-@@ -0,0 +1,60 @@
-+/*
-+ * Copyright 2022 Google LLC
-+ *
-+ * Licensed under the Apache License, Version 2.0 (the "License");
-+ * you may not use this file except in compliance with the License.
-+ * You may obtain a copy of the License at
-+ *
-+ *      http://www.apache.org/licenses/LICENSE-2.0
-+ *
-+ * Unless required by applicable law or agreed to in writing, software
-+ * distributed under the License is distributed on an "AS IS" BASIS,
-+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+ * See the License for the specific language governing permissions and
-+ * limitations under the License.
-+ */
-+
-+#pragma once
-+
-+#include <memory>
-+
-+#include <gmock/gmock.h>
-+
-+#include "public/core/interface/execution_result.h"
-+#include "public/cpio/interface/instance_client/instance_client_interface.h"
-+
-+namespace google::scp::cpio::mock {
-+class MockInstanceClient : public InstanceClientInterface {
-+ public:
-+  MockInstanceClient() {
-+    ON_CALL(*this, Init)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Run)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Stop)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+  }
-+
-+  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
-+
-+  MOCK_METHOD(
-+      core::ExecutionResult, GetCurrentInstanceResourceName,
-+      (cmrt::sdk::instance_service::v1::GetCurrentInstanceResourceNameRequest
-+           request,
-+       Callback<cmrt::sdk::instance_service::v1::
-+                    GetCurrentInstanceResourceNameResponse>
-+           callback),
-+      (noexcept, override));
-+
-+  //   MOCK_METHOD(
-+  //       core::ExecutionResult, GetTagsByResourceName,
-+  //       (cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest
-+  //       request,
-+  //        Callback<cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse>
-+  //            callback),
-+  //       (noexcept, override));
-+};
-+
-+}  // namespace google::scp::cpio::mock
-diff --git cc/public/cpio/mock/parameter_client/BUILD cc/public/cpio/mock/parameter_client/BUILD
---- /dev/null
-+++ cc/public/cpio/mock/parameter_client/BUILD
-@@ -0,0 +1,32 @@
-+# Copyright 2022 Google LLC
-+#
-+# Licensed under the Apache License, Version 2.0 (the "License");
-+# you may not use this file except in compliance with the License.
-+# You may obtain a copy of the License at
-+#
-+#      http://www.apache.org/licenses/LICENSE-2.0
-+#
-+# Unless required by applicable law or agreed to in writing, software
-+# distributed under the License is distributed on an "AS IS" BASIS,
-+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+# See the License for the specific language governing permissions and
-+# limitations under the License.
-+
-+package(default_visibility = ["//visibility:public"])
-+
-+cc_library(
-+    name = "parameter_client_mock",
-+    testonly = True,
-+    srcs =
-+        [
-+            "mock_parameter_client.h",
-+        ],
-+    copts = [
-+        "-std=c++17",
-+    ],
-+    deps = [
-+        "//cc:cc_base_include_dir",
-+        "//cc/public/cpio/interface/parameter_client",
-+        "@com_google_googletest//:gtest",
-+    ],
-+)
-diff --git cc/public/cpio/mock/parameter_client/mock_parameter_client.h cc/public/cpio/mock/parameter_client/mock_parameter_client.h
---- /dev/null
-+++ cc/public/cpio/mock/parameter_client/mock_parameter_client.h
-@@ -0,0 +1,49 @@
-+/*
-+ * Copyright 2022 Google LLC
-+ *
-+ * Licensed under the Apache License, Version 2.0 (the "License");
-+ * you may not use this file except in compliance with the License.
-+ * You may obtain a copy of the License at
-+ *
-+ *      http://www.apache.org/licenses/LICENSE-2.0
-+ *
-+ * Unless required by applicable law or agreed to in writing, software
-+ * distributed under the License is distributed on an "AS IS" BASIS,
-+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+ * See the License for the specific language governing permissions and
-+ * limitations under the License.
-+ */
-+
-+#pragma once
-+
-+#include <memory>
-+
-+#include <gmock/gmock.h>
-+
-+#include "public/core/interface/execution_result.h"
-+#include "public/cpio/interface/parameter_client/parameter_client_interface.h"
-+
-+namespace google::scp::cpio::mock {
-+class MockParameterClient : public ParameterClientInterface {
-+ public:
-+  MockParameterClient() {
-+    ON_CALL(*this, Init)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Run)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Stop)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+  }
-+
-+  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
-+
-+  MOCK_METHOD(core::ExecutionResult, GetParameter,
-+              (cmrt::sdk::parameter_service::v1::GetParameterRequest request,
-+               Callback<cmrt::sdk::parameter_service::v1::GetParameterResponse>
-+                   callback),
-+              (noexcept, override));
-+};
-+
-+}  // namespace google::scp::cpio::mock
-diff --git cc/public/cpio/mock/private_key_client/BUILD cc/public/cpio/mock/private_key_client/BUILD
---- /dev/null
-+++ cc/public/cpio/mock/private_key_client/BUILD
-@@ -0,0 +1,32 @@
-+# Copyright 2022 Google LLC
-+#
-+# Licensed under the Apache License, Version 2.0 (the "License");
-+# you may not use this file except in compliance with the License.
-+# You may obtain a copy of the License at
-+#
-+#      http://www.apache.org/licenses/LICENSE-2.0
-+#
-+# Unless required by applicable law or agreed to in writing, software
-+# distributed under the License is distributed on an "AS IS" BASIS,
-+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+# See the License for the specific language governing permissions and
-+# limitations under the License.
-+
-+package(default_visibility = ["//visibility:public"])
-+
-+cc_library(
-+    name = "private_key_client_mock",
-+    testonly = True,
-+    srcs =
-+        [
-+            "mock_private_key_client.h",
-+        ],
-+    copts = [
-+        "-std=c++17",
-+    ],
-+    deps = [
-+        "//cc:cc_base_include_dir",
-+        "//cc/public/cpio/interface/private_key_client",
-+        "@com_google_googletest//:gtest",
-+    ],
-+)
-diff --git cc/public/cpio/mock/private_key_client/mock_private_key_client.h cc/public/cpio/mock/private_key_client/mock_private_key_client.h
---- /dev/null
-+++ cc/public/cpio/mock/private_key_client/mock_private_key_client.h
-@@ -0,0 +1,50 @@
-+/*
-+ * Copyright 2022 Google LLC
-+ *
-+ * Licensed under the Apache License, Version 2.0 (the "License");
-+ * you may not use this file except in compliance with the License.
-+ * You may obtain a copy of the License at
-+ *
-+ *      http://www.apache.org/licenses/LICENSE-2.0
-+ *
-+ * Unless required by applicable law or agreed to in writing, software
-+ * distributed under the License is distributed on an "AS IS" BASIS,
-+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+ * See the License for the specific language governing permissions and
-+ * limitations under the License.
-+ */
-+
-+#pragma once
-+
-+#include <memory>
-+
-+#include <gmock/gmock.h>
-+
-+#include "public/core/interface/execution_result.h"
-+#include "public/cpio/interface/private_key_client/private_key_client_interface.h"
-+
-+namespace google::scp::cpio::mock {
-+class MockPrivateKeyClient : public PrivateKeyClientInterface {
-+ public:
-+  MockPrivateKeyClient() {
-+    ON_CALL(*this, Init)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Run)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Stop)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+  }
-+
-+  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
-+
-+  MOCK_METHOD(
-+      core::ExecutionResult, ListPrivateKeys,
-+      (cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest request,
-+       Callback<cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>
-+           callback),
-+      (noexcept, override));
-+};
-+
-+}  // namespace google::scp::cpio::mock
-diff --git cc/public/cpio/mock/public_key_client/BUILD cc/public/cpio/mock/public_key_client/BUILD
---- /dev/null
-+++ cc/public/cpio/mock/public_key_client/BUILD
-@@ -0,0 +1,32 @@
-+# Copyright 2022 Google LLC
-+#
-+# Licensed under the Apache License, Version 2.0 (the "License");
-+# you may not use this file except in compliance with the License.
-+# You may obtain a copy of the License at
-+#
-+#      http://www.apache.org/licenses/LICENSE-2.0
-+#
-+# Unless required by applicable law or agreed to in writing, software
-+# distributed under the License is distributed on an "AS IS" BASIS,
-+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+# See the License for the specific language governing permissions and
-+# limitations under the License.
-+
-+package(default_visibility = ["//visibility:public"])
-+
-+cc_library(
-+    name = "public_key_client_mock",
-+    testonly = True,
-+    srcs =
-+        [
-+            "mock_public_key_client.h",
-+        ],
-+    copts = [
-+        "-std=c++17",
-+    ],
-+    deps = [
-+        "//cc:cc_base_include_dir",
-+        "//cc/public/cpio/interface/public_key_client",
-+        "@com_google_googletest//:gtest",
-+    ],
-+)
-diff --git cc/public/cpio/mock/public_key_client/mock_public_key_client.h cc/public/cpio/mock/public_key_client/mock_public_key_client.h
---- /dev/null
-+++ cc/public/cpio/mock/public_key_client/mock_public_key_client.h
-@@ -0,0 +1,50 @@
-+/*
-+ * Copyright 2022 Google LLC
-+ *
-+ * Licensed under the Apache License, Version 2.0 (the "License");
-+ * you may not use this file except in compliance with the License.
-+ * You may obtain a copy of the License at
-+ *
-+ *      http://www.apache.org/licenses/LICENSE-2.0
-+ *
-+ * Unless required by applicable law or agreed to in writing, software
-+ * distributed under the License is distributed on an "AS IS" BASIS,
-+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-+ * See the License for the specific language governing permissions and
-+ * limitations under the License.
-+ */
-+
-+#pragma once
-+
-+#include <memory>
-+
-+#include <gmock/gmock.h>
-+
-+#include "public/core/interface/execution_result.h"
-+#include "public/cpio/interface/public_key_client/public_key_client_interface.h"
-+
-+namespace google::scp::cpio::mock {
-+class MockPublicKeyClient : public PublicKeyClientInterface {
-+ public:
-+  MockPublicKeyClient() {
-+    ON_CALL(*this, Init)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Run)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+    ON_CALL(*this, Stop)
-+        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-+  }
-+
-+  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-+  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
-+
-+  MOCK_METHOD(
-+      core::ExecutionResult, ListPublicKeys,
-+      (cmrt::sdk::public_key_service::v1::ListPublicKeysRequest request,
-+       Callback<cmrt::sdk::public_key_service::v1::ListPublicKeysResponse>
-+           callback),
-+      (noexcept, override));
-+};
-+
-+}  // namespace google::scp::cpio::mock
+diff --git a/cc/core/http2_client/src/BUILD b/cc/core/http2_client/src/BUILD
+index 3ab9395..2ff3c8c 100644
+--- a/cc/core/http2_client/src/BUILD
++++ b/cc/core/http2_client/src/BUILD
+@@ -35,6 +35,7 @@ cc_library(
+         "@boost//:asio_ssl",
+         "@boost//:system",
+         "@com_github_nghttp2_nghttp2//:nghttp2",
++        "@com_github_nghttp2_nghttp2//:nghttp2_asio",
+         "@com_google_absl//absl/strings",
+     ],
+ )
+diff --git a/cc/cpio/client_providers/auth_token_provider/src/BUILD b/cc/cpio/client_providers/auth_token_provider/src/BUILD
+index 51dbce4..77cadfb 100644
+--- a/cc/cpio/client_providers/auth_token_provider/src/BUILD
++++ b/cc/cpio/client_providers/auth_token_provider/src/BUILD
+@@ -18,7 +18,6 @@ cc_library(
+     name = "auth_token_provider_lib",
+     srcs = select({
+         "//cc/public/cpio/interface:aws_cpio_lib": ["//cc/cpio/client_providers/auth_token_provider/src/aws:aws_auth_token_provider_srcs"],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": ["//cc/cpio/client_providers/auth_token_provider/src/gcp:gcp_auth_token_provider_srcs"],
+         "//conditions:default": ["//cc/cpio/client_providers/auth_token_provider/src/aws:aws_auth_token_provider_srcs"],
+     }),
+     copts = [
+@@ -27,10 +26,6 @@ cc_library(
+     deps = select({
+         "//cc/public/cpio/interface:aws_cpio_lib": [
+         ],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": [
+-            "@com_google_absl//absl/strings",
+-            "@nlohmann_json//:lib",
+-        ],
+         "//conditions:default": [
+         ],
+     }) + [
+diff --git a/cc/cpio/client_providers/blob_storage_client_provider/src/BUILD b/cc/cpio/client_providers/blob_storage_client_provider/src/BUILD
+index d02443a..57f7407 100644
+--- a/cc/cpio/client_providers/blob_storage_client_provider/src/BUILD
++++ b/cc/cpio/client_providers/blob_storage_client_provider/src/BUILD
+@@ -18,7 +18,6 @@ cc_library(
+     name = "blob_storage_client_provider_lib",
+     srcs = select({
+         "//cc/public/cpio/interface:aws_cpio_lib": ["//cc/cpio/client_providers/blob_storage_client_provider/src/aws:aws_blob_storage_client_provider_srcs"],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": ["//cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_srcs"],
+         "//conditions:default": ["//cc/cpio/client_providers/blob_storage_client_provider/src/aws:aws_blob_storage_client_provider_srcs"],
+     }),
+     copts = [
+@@ -28,9 +27,6 @@ cc_library(
+         "//cc/public/cpio/interface:aws_cpio_lib": [
+             "//cc/cpio/client_providers/blob_storage_client_provider/src/aws:aws_blob_storage_client_provider_lib",
+         ],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": [
+-            "//cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_provider_lib",
+-        ],
+         "//conditions:default": [
+             "//cc/cpio/client_providers/blob_storage_client_provider/src/aws:aws_blob_storage_client_provider_lib",
+         ],
+diff --git a/cc/cpio/client_providers/cloud_initializer/src/BUILD b/cc/cpio/client_providers/cloud_initializer/src/BUILD
+index dbd6429..f4e2e64 100644
+--- a/cc/cpio/client_providers/cloud_initializer/src/BUILD
++++ b/cc/cpio/client_providers/cloud_initializer/src/BUILD
+@@ -18,7 +18,6 @@ cc_library(
+     name = "cloud_initializer_lib",
+     srcs = select({
+         "//cc/public/cpio/interface:aws_cpio_lib": ["//cc/cpio/client_providers/cloud_initializer/src/aws:aws_initializer_srcs"],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": ["//cc/cpio/client_providers/cloud_initializer/src/gcp:no_op_initializer_srcs"],
+         "//conditions:default": ["//cc/cpio/client_providers/cloud_initializer/src/aws:aws_initializer_srcs"],
+     }) + [
+         "//cc/cpio/client_providers/interface:cloud_initializer_interface.h",
+@@ -30,8 +29,6 @@ cc_library(
+         "//cc/public/cpio/interface:aws_cpio_lib": [
+             "@aws_sdk_cpp//:core",
+         ],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": [
+-        ],
+         "//conditions:default": [
+             "@aws_sdk_cpp//:core",
+         ],
+diff --git a/cc/cpio/client_providers/global_cpio/test/BUILD b/cc/cpio/client_providers/global_cpio/test/BUILD
+index 9ee1135..2d51603 100644
+--- a/cc/cpio/client_providers/global_cpio/test/BUILD
++++ b/cc/cpio/client_providers/global_cpio/test/BUILD
+@@ -27,9 +27,6 @@ cc_library(
+             "//cc/public/cpio/interface:aws_cpio_lib": [
+                 "-DAWS_TEST=1",
+             ],
+-            "//cc/public/cpio/interface:gcp_cpio_lib": [
+-                "-DGCP_TEST=1",
+-            ],
+             "//conditions:default": [
+                 "-DAWS_TEST=1",
+             ],
+@@ -42,9 +39,6 @@ cc_library(
+             "//cc/public/cpio/interface:aws_cpio_lib": [
+                 "//cc/cpio/client_providers/instance_client_provider/test/aws:test_aws_instance_client_provider_lib",
+             ],
+-            "//cc/public/cpio/interface:gcp_cpio_lib": [
+-                "//cc/cpio/client_providers/instance_client_provider/test/gcp:test_gcp_instance_client_provider_lib",
+-            ],
+             "//conditions:default": [
+                 "//cc/cpio/client_providers/instance_client_provider/test/aws:test_aws_instance_client_provider_lib",
+             ],
+diff --git a/cc/cpio/client_providers/instance_client_provider/src/BUILD b/cc/cpio/client_providers/instance_client_provider/src/BUILD
+index 33faab2..0fafd99 100644
+--- a/cc/cpio/client_providers/instance_client_provider/src/BUILD
++++ b/cc/cpio/client_providers/instance_client_provider/src/BUILD
+@@ -18,7 +18,6 @@ cc_library(
+     name = "instance_client_provider_lib",
+     srcs = select({
+         "//cc/public/cpio/interface:aws_cpio_lib": ["//cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_srcs"],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": ["//cc/cpio/client_providers/instance_client_provider/src/gcp:gcp_instance_client_provider_srcs"],
+         "//conditions:default": ["//cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_srcs"],
+     }) + ["//cc/cpio/client_providers/interface:instance_client_provider_interface.h"],
+     copts = [
+@@ -31,9 +30,6 @@ cc_library(
+             "@aws_sdk_cpp//:core",
+             "@aws_sdk_cpp//:ec2",
+         ],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": [
+-            "@com_google_absl//absl/strings:str_format",
+-        ],
+         "//conditions:default": [
+             "//cc/core/async_executor/src/aws:core_aws_async_executor_lib",
+             "//cc/cpio/common/src/aws:aws_utils_lib",
+diff --git a/cc/cpio/client_providers/kms_client_provider/src/BUILD b/cc/cpio/client_providers/kms_client_provider/src/BUILD
+index 2d70718..d929746 100644
+--- a/cc/cpio/client_providers/kms_client_provider/src/BUILD
++++ b/cc/cpio/client_providers/kms_client_provider/src/BUILD
+@@ -24,12 +24,6 @@ cc_library(
+             "//cc/public/cpio/interface:aws_cpio_lib_outside_tee": [
+                 "//cc/cpio/client_providers/kms_client_provider/src/aws:nontee_aws_kms_client_provider_srcs",
+             ],
+-            "//cc/public/cpio/interface:gcp_cpio_lib_inside_tee": [
+-                "//cc/cpio/client_providers/kms_client_provider/src/gcp:tee_gcp_kms_client_provider_srcs",
+-            ],
+-            "//cc/public/cpio/interface:gcp_cpio_lib_outside_tee": [
+-                "//cc/cpio/client_providers/kms_client_provider/src/gcp:nontee_gcp_kms_client_provider_srcs",
+-            ],
+         }) + ["//cc/cpio/client_providers/interface:kms_client_provider_interface.h"],
+     copts = [
+         "-std=c++17",
+@@ -41,18 +35,6 @@ cc_library(
+             "//cc/public/cpio/interface:aws_cpio_lib_outside_tee": [
+                 "@aws_sdk_cpp//:kms",
+             ],
+-            "//cc/public/cpio/interface:gcp_cpio_lib_inside_tee": [
+-                "//cc/cpio/client_providers/kms_client_provider/interface/gcp:gcp_kms_client_provider_interface",
+-                "@com_github_googleapis_google_cloud_cpp//:kms",
+-                "@com_google_absl//absl/strings",
+-                "@nlohmann_json//:lib",
+-            ],
+-            "//cc/public/cpio/interface:gcp_cpio_lib_outside_tee": [
+-                "//cc/cpio/client_providers/kms_client_provider/interface/gcp:gcp_kms_client_provider_interface",
+-                "@com_github_googleapis_google_cloud_cpp//:kms",
+-                "@com_google_absl//absl/strings",
+-                "@nlohmann_json//:lib",
+-            ],
+         }) + [
+             "//cc:cc_base_include_dir",
+             "//cc/core/common/uuid/src:uuid_lib",
+diff --git a/cc/cpio/client_providers/metric_client_provider/src/BUILD b/cc/cpio/client_providers/metric_client_provider/src/BUILD
+index 56f5701..c0bee40 100644
+--- a/cc/cpio/client_providers/metric_client_provider/src/BUILD
++++ b/cc/cpio/client_providers/metric_client_provider/src/BUILD
+@@ -18,7 +18,6 @@ cc_library(
+     name = "metric_client_provider_lib",
+     srcs = select({
+         "//cc/public/cpio/interface:aws_cpio_lib": ["//cc/cpio/client_providers/metric_client_provider/src/aws:aws_metric_client_provider_srcs"],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": ["//cc/cpio/client_providers/metric_client_provider/src/gcp:gcp_metric_client_provider_srcs"],
+         "//conditions:default": ["//cc/cpio/client_providers/metric_client_provider/src/aws:aws_metric_client_provider_srcs"],
+     }) + [
+         ":metric_client_provider_srcs",
+@@ -34,10 +33,6 @@ cc_library(
+             "//cc/cpio/common/src/aws:aws_utils_lib",
+             "@aws_sdk_cpp//:monitoring",
+         ],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": [
+-            "//cc/cpio/common/src/gcp:gcp_utils_lib",
+-            "@com_github_googleapis_google_cloud_cpp//:monitoring",
+-        ],
+         "//conditions:default": [
+             "//cc/core/async_executor/src/aws:core_aws_async_executor_lib",
+             "//cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
+diff --git a/cc/cpio/client_providers/parameter_client_provider/src/BUILD b/cc/cpio/client_providers/parameter_client_provider/src/BUILD
+index 7009eef..3604aa5 100644
+--- a/cc/cpio/client_providers/parameter_client_provider/src/BUILD
++++ b/cc/cpio/client_providers/parameter_client_provider/src/BUILD
+@@ -18,7 +18,6 @@ cc_library(
+     name = "parameter_client_provider_lib",
+     srcs = select({
+         "//cc/public/cpio/interface:aws_cpio_lib": ["//cc/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_srcs"],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": ["//cc/cpio/client_providers/parameter_client_provider/src/gcp:gcp_parameter_client_provider_srcs"],
+         "//conditions:default": ["//cc/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_srcs"],
+     }) + [
+         "//cc/cpio/client_providers/interface:parameter_client_provider_interface.h",
+@@ -33,11 +32,6 @@ cc_library(
+             "@aws_sdk_cpp//:core",
+             "@aws_sdk_cpp//:ssm",
+         ],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": [
+-            "//cc/cpio/common/src/gcp:gcp_utils_lib",
+-            "//cc/cpio/client_providers/instance_client_provider/src/gcp:gcp_instance_client_provider",
+-            "@com_github_googleapis_google_cloud_cpp//:secretmanager",
+-        ],
+         "//conditions:default": [
+             "//cc/cpio/common/src/aws:aws_utils_lib",
+             "//cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
+diff --git a/cc/cpio/client_providers/private_key_fetcher_provider/src/BUILD b/cc/cpio/client_providers/private_key_fetcher_provider/src/BUILD
+index 8e47876..d364581 100644
+--- a/cc/cpio/client_providers/private_key_fetcher_provider/src/BUILD
++++ b/cc/cpio/client_providers/private_key_fetcher_provider/src/BUILD
+@@ -18,7 +18,6 @@ cc_library(
+     name = "private_key_fetcher_provider_lib",
+     srcs = select({
+         "//cc/public/cpio/interface:aws_cpio_lib": ["//cc/cpio/client_providers/private_key_fetcher_provider/src/aws:aws_private_key_fetcher_provider_srcs"],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": ["//cc/cpio/client_providers/private_key_fetcher_provider/src/gcp:gcp_private_key_fetcher_provider_srcs"],
+         "//conditions:default": ["//cc/cpio/client_providers/private_key_fetcher_provider/src/aws:aws_private_key_fetcher_provider_srcs"],
+     }) + [
+         "private_key_fetcher_provider_srcs",
+@@ -33,8 +32,6 @@ cc_library(
+             "@com_github_nghttp2_nghttp2//:nghttp2",
+             "@nlohmann_json//:lib",
+         ],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": [
+-        ],
+         "//conditions:default": [
+             "@boost//:system",
+             "@com_github_nghttp2_nghttp2//:nghttp2",
+diff --git a/cc/cpio/client_providers/role_credentials_provider/src/BUILD b/cc/cpio/client_providers/role_credentials_provider/src/BUILD
+index 98c0a12..0d1094b 100644
+--- a/cc/cpio/client_providers/role_credentials_provider/src/BUILD
++++ b/cc/cpio/client_providers/role_credentials_provider/src/BUILD
+@@ -18,7 +18,6 @@ cc_library(
+     name = "role_credentials_provider_lib",
+     srcs = select({
+         "//cc/public/cpio/interface:aws_cpio_lib": ["//cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_srcs"],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": ["//cc/cpio/client_providers/role_credentials_provider/src/gcp:gcp_role_credentials_provider_srcs"],
+         "//conditions:default": ["//cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_srcs"],
+     }) + ["//cc/cpio/client_providers/interface:role_credentials_provider_interface.h"],
+     copts = [
+@@ -31,9 +30,6 @@ cc_library(
+             "@aws_sdk_cpp//:core",
+             "@aws_sdk_cpp//:sts",
+         ],
+-        "//cc/public/cpio/interface:gcp_cpio_lib": [
+-            "//cc/cpio/client_providers/instance_client_provider/src/gcp:gcp_instance_client_provider",
+-        ],
+         "//conditions:default": [
+             "//cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
+             "//cc/cpio/common/src/aws:aws_utils_lib",
+diff --git a/cc/public/cpio/examples/BUILD b/cc/public/cpio/examples/BUILD
+index 17ee579..6b13d50 100644
+--- a/cc/public/cpio/examples/BUILD
++++ b/cc/public/cpio/examples/BUILD
+@@ -25,9 +25,6 @@ cc_binary(
+     testonly = True,
+     srcs = ["blob_storage_client_test.cc"],
+     copts = select({
+-        "//cc/public/cpio/interface:gcp_cpio_lib": [
+-            "-DGCP_CPIO=1",
+-        ],
+         "//conditions:default": [
+         ],
+     }),

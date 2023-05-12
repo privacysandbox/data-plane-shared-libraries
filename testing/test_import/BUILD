@@ -14,6 +14,8 @@
 
 """targets to validate the import of workspace dependencies."""
 
+load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
+
 alias(
     name = "aws_sqs",
     actual = "@aws_sdk_cpp//:sqs",
@@ -22,4 +24,15 @@ alias(
 alias(
     name = "protobuf",
     actual = "@com_google_protobuf//:protobuf",
+)
+
+alias(
+    name = "grpc_cli",
+    actual = "@com_github_grpc_grpc//test/cpp/util:grpc_cli",
+)
+
+proto_descriptor_set(
+    name = "helloworld_descriptor_set",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_grpc_grpc//examples/protos:helloworld_proto"],
 )

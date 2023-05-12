@@ -1,271 +1,224 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
-# Description:
-#   curl is a tool for talking to web servers.
-#   This file builds curl instead of relying on a system installed version.
-licenses(["notice"])  # MIT/X derivative license
+package(features = ["no_copts_tokenization"])
+
+CURL_COPTS = [
+    "-DUSE_OPENSSL=1",
+    "-DHAVE_LIBSSL=1",
+    "-DHAVE_OPENSSL_CRYPTO_H=1",
+    "-DHAVE_OPENSSL_ERR_H=1",
+    "-DHAVE_OPENSSL_PEM_H=1",
+    "-DHAVE_OPENSSL_PKCS12_H=1",
+    "-DHAVE_OPENSSL_RSA_H=1",
+    "-DHAVE_OPENSSL_SSL_H=1",
+    "-DHAVE_OPENSSL_X509_H=1",
+    "-DHAVE_BORINGSSL=1",
+    "-DCURL_DISABLE_DICT=1",
+    "-DCURL_DISABLE_FILE=1",
+    "-DCURL_DISABLE_GOPHER=1",
+    "-DCURL_DISABLE_IMAP=1",
+    "-DCURL_DISABLE_LDAP=1",
+    "-DCURL_DISABLE_LDAPS=1",
+    "-DCURL_DISABLE_POP3=1",
+    "-DCURL_DISABLE_SMTP=1",
+    "-DCURL_DISABLE_TELNET=1",
+    "-DCURL_DISABLE_TFTP=1",
+    "-DCURL_DISABLE_FTP",
+    "-DCURL_DISABLE_NTLM",  # turning it off in configure is not enough
+    "-DENABLE_IPV6=0",
+    "-DGETHOSTNAME_TYPE_ARG2=size_t",
+    "-DGETSERVBYPORT_R_ARGS=6",
+    "-DGETSERVBYPORT_R_BUFSIZE=4096",
+    "-DHAVE_ALARM=1",
+    "-DHAVE_ALLOCA_H=1",
+    "-DHAVE_ARPA_INET_H=1",
+    "-DHAVE_ARPA_TFTP_H=1",
+    "-DHAVE_ASSERT_H=1",
+    "-DHAVE_BASENAME=1",
+    "-DHAVE_BOOL_T=1",
+    "-DHAVE_CLOCK_GETTIME_MONOTONIC=1",
+    "-DHAVE_CONNECT=1",
+    "-DHAVE_DLFCN_H=1",
+    "-DHAVE_ENGINE_LOAD_BUILTIN_ENGINES=1",
+    "-DHAVE_ERRNO_H=1",
+    "-DHAVE_FCNTL=1",
+    "-DHAVE_FCNTL_H=1",
+    "-DHAVE_FCNTL_O_NONBLOCK=1",
+    "-DHAVE_FDOPEN=1",
+    "-DHAVE_FREEADDRINFO=1",
+    "-DHAVE_FREEIFADDRS=1",
+    "-DHAVE_FSETXATTR=1",
+    "-DHAVE_FSETXATTR_5=1",
+    "-DHAVE_FTRUNCATE=1",
+    "-DHAVE_GAI_STRERROR=1",
+    "-DHAVE_GETADDRINFO=1",
+    "-DHAVE_GETADDRINFO_THREADSAFE=1",
+    "-DHAVE_GETEUID=1",
+    "-DHAVE_GETHOSTBYADDR=1",
+    "-DHAVE_GETHOSTBYADDR_R=1",
+    "-DHAVE_GETHOSTBYADDR_R_8=1",
+    "-DHAVE_GETHOSTBYNAME=1",
+    "-DHAVE_GETHOSTBYNAME_R=1",
+    "-DHAVE_GETHOSTBYNAME_R_6=1",
+    "-DHAVE_GETHOSTNAME=1",
+    "-DHAVE_GETIFADDRS=1",
+    "-DHAVE_GETNAMEINFO=1",
+    "-DHAVE_GETPPID=1",
+    "-DHAVE_GETPWUID=1",
+    "-DHAVE_GETPWUID_R=1",
+    "-DHAVE_GETRLIMIT=1",
+    "-DHAVE_GETSERVBYPORT_R=1",
+    "-DHAVE_GETTIMEOFDAY=1",
+    "-DHAVE_GMTIME_R=1",
+    "-DHAVE_IFADDRS_H=1",
+    "-DHAVE_IF_NAMETOINDEX=1",
+    "-DHAVE_INET_NTOP=1",
+    "-DHAVE_INET_PTON=1",
+    "-DHAVE_INTTYPES_H=1",
+    "-DHAVE_IOCTL=1",
+    "-DHAVE_IOCTL_FIONBIO=1",
+    "-DHAVE_IOCTL_SIOCGIFADDR=1",
+    "-DHAVE_LIBGEN_H=1",
+    "-DHAVE_LL=1",
+    "-DHAVE_LOCALE_H=1",
+    "-DHAVE_LOCALTIME_R=1",
+    "-DHAVE_LONGLONG=1",
+    "-DHAVE_MALLOC_H=1",
+    "-DHAVE_MEMORY_H=1",
+    "-DHAVE_NETDB_H=1",
+    "-DHAVE_NETINET_IN_H=1",
+    "-DHAVE_NETINET_TCP_H=1",
+    "-DHAVE_NET_IF_H=1",
+    "-DHAVE_PIPE=1",
+    "-DHAVE_POLL=1",
+    "-DHAVE_POLL_FINE=1",
+    "-DHAVE_POLL_H=1",
+    "-DHAVE_POSIX_STRERROR_R=1",
+    "-DHAVE_PTHREAD_H=1",
+    "-DHAVE_PWD_H=1",
+    "-DHAVE_RECV=1",
+    "-DHAVE_SELECT=1",
+    "-DHAVE_SEND=1",
+    "-DHAVE_SETJMP_H=1",
+    "-DHAVE_SETLOCALE=1",
+    "-DHAVE_SETRLIMIT=1",
+    "-DHAVE_SETSOCKOPT=1",
+    "-DHAVE_SGTTY_H=1",
+    "-DHAVE_SIGACTION=1",
+    "-DHAVE_SIGINTERRUPT=1",
+    "-DHAVE_SIGNAL=1",
+    "-DHAVE_SIGNAL_H=1",
+    "-DHAVE_SIGSETJMP=1",
+    "-DHAVE_SIG_ATOMIC_T=1",
+    "-DHAVE_SOCKADDR_IN6_SIN6_SCOPE_ID=1",
+    "-DHAVE_SOCKET=1",
+    "-DHAVE_SOCKETPAIR=1",
+    "-DHAVE_STDBOOL_H=1",
+    "-DHAVE_STDINT_H=1",
+    "-DHAVE_STDIO_H=1",
+    "-DHAVE_STDLIB_H=1",
+    "-DHAVE_STRCASECMP=1",
+    "-DHAVE_STRDUP=1",
+    "-DHAVE_STRERROR_R=1",
+    "-DHAVE_STRINGS_H=1",
+    "-DHAVE_STRING_H=1",
+    "-DHAVE_STRNCASECMP=1",
+    "-DHAVE_STRSTR=1",
+    "-DHAVE_STRTOK_R=1",
+    "-DHAVE_STRTOLL=1",
+    "-DHAVE_STRUCT_SOCKADDR_STORAGE=1",
+    "-DHAVE_STRUCT_TIMEVAL=1",
+    "-DHAVE_SYS_IOCTL_H=1",
+    "-DHAVE_SYS_PARAM_H=1",
+    "-DHAVE_SYS_POLL_H=1",
+    "-DHAVE_SYS_RESOURCE_H=1",
+    "-DHAVE_SYS_SELECT_H=1",
+    "-DHAVE_SYS_SOCKET_H=1",
+    "-DHAVE_SYS_STAT_H=1",
+    "-DHAVE_SYS_TIME_H=1",
+    "-DHAVE_SYS_TYPES_H=1",
+    "-DHAVE_SYS_UIO_H=1",
+    "-DHAVE_SYS_UN_H=1",
+    "-DHAVE_SYS_WAIT_H=1",
+    "-DHAVE_SYS_XATTR_H=1",
+    "-DHAVE_TERMIOS_H=1",
+    "-DHAVE_TERMIO_H=1",
+    "-DHAVE_TIME_H=1",
+    "-DHAVE_UNISTD_H=1",
+    "-DHAVE_UTIME=1",
+    "-DHAVE_UTIMES=1",
+    "-DHAVE_UTIME_H=1",
+    "-DHAVE_VARIADIC_MACROS_C99=1",
+    "-DHAVE_VARIADIC_MACROS_GCC=1",
+    "-DHAVE_WRITABLE_ARGV=1",
+    "-DHAVE_WRITEV=1",
+    "-DHAVE_LIBZ",
+    "-DHAVE_BROTLI",
+    "-DHAVE_ZLIB_H=1",
+    "-DRECV_TYPE_ARG1=int",
+    "-DRECV_TYPE_ARG2=void*",
+    "-DRECV_TYPE_ARG3=size_t",
+    "-DRECV_TYPE_ARG4=int",
+    "-DRECV_TYPE_RETV=ssize_t",
+    "-DRETSIGTYPE=void",
+    "-DSELECT_QUAL_ARG5=",
+    "-DSELECT_TYPE_ARG1=int",
+    "-DSELECT_TYPE_ARG234=fd_set*",
+    "-DSELECT_TYPE_RETV=int",
+    "-DSEND_QUAL_ARG2=const",
+    "-DSEND_TYPE_ARG1=int",
+    "-DSEND_TYPE_ARG2=void*",
+    "-DSEND_TYPE_ARG3=size_t",
+    "-DSEND_TYPE_ARG4=int",
+    "-DSEND_TYPE_RETV=ssize_t",
+    "-DSIZEOF_CURL_OFF_T=8",
+    "-DSIZEOF_INT=4",
+    "-DSIZEOF_LONG=8",
+    "-DSIZEOF_OFF_T=8",
+    "-DSIZEOF_SHORT=2",
+    "-DSIZEOF_SIZE_T=8",
+    "-DSIZEOF_TIME_T=8",
+    "-DSTDC_HEADERS=1",
+    "-DSTRERROR_R_TYPE_ARG3=size_t",
+    "-DTIME_WITH_SYS_TIME=1",
+    "-DUSE_THREADS_POSIX=1",
+    "-DUSE_UNIX_SOCKETS=1",
+
+    # Extra defines needed by curl
+    "-DBUILDING_LIBCURL",
+    "-DCURL_HIDDEN_SYMBOLS",
+    '-DOS="x86_64-pc-linux-gnu"',
+    '-DRANDOM_FILE="/dev/urandom"',
+    '-DCURL_CA_BUNDLE="/etc/ssl/certs/ca-certificates.crt"',
+
+    # linux opts
+    "-DHAVE_LINUX_TCP_H=1",
+    "-DHAVE_MSG_NOSIGNAL=1",
+]
 
 cc_library(
     name = "curl",
-    srcs = [":include/curl_config.h"] + glob([
-        "lib/**/*.h",
+    srcs = glob([
         "lib/**/*.c",
     ]),
-    hdrs = glob(["include/curl/*.h"]) + [":configure"],
-    copts = [
-        "-Iexternal/curl/lib",
-        "-D_GNU_SOURCE",
-        "-DHAVE_CONFIG_H",
-        "-DCURL_DISABLE_FTP",
-        "-DCURL_DISABLE_NTLM",  # turning it off in configure is not enough
-        "-DHAVE_LIBZ",
-        "-DHAVE_BROTLI",
-        "-DHAVE_ZLIB_H",
-        "-Wno-string-plus-int",
-        "-DCURL_MAX_WRITE_SIZE=65536",
-    ],
+    hdrs = glob([
+        "include/curl/*.h",
+        "lib/**/*.h",
+    ]),
+    copts = CURL_COPTS,
     defines = ["CURL_STATICLIB"],
-    includes = ["include"],
-    linkopts = ["-lrt"],
+    includes = [
+        "include/",
+        "lib/",
+    ],
+    linkopts = [
+        "-lpthread",
+        "-lrt",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "@boringssl//:ssl",
-        "@com_google_brotli//:brotlidec",
+        "@brotli//:brotlidec",
         "@zlib",
     ],
-)
-
-cc_binary(
-    name = "curl_bin",
-    srcs = glob([
-        "src/*.h",
-        "src/*.c",
-    ]) + ["lib/config-win32.h"],
-    copts = [
-        "-Iexternal/curl/lib",
-        "-D_GNU_SOURCE",
-        "-DHAVE_CONFIG_H",
-        "-DCURL_DISABLE_LIBCURL_OPTION",
-        "-Wno-string-plus-int",
-    ],
-    deps = [":curl"],
-)
-
-genrule(
-    name = "configure",
-    outs = ["include/curl_config.h"],
-    cmd_bash = """cat <<EOF >'$@'
-#ifndef EXTERNAL_CURL_INCLUDE_CURL_CONFIG_H_
-#define EXTERNAL_CURL_INCLUDE_CURL_CONFIG_H_
-#include <openssl/opensslv.h>
-#if defined(OPENSSL_IS_BORINGSSL)
-#  define HAVE_BORINGSSL 1
-#endif
-#define CURL_CA_BUNDLE \"/etc/ssl/certs/ca-certificates.crt\"
-#define GETSERVBYPORT_R_ARGS 6
-#define GETSERVBYPORT_R_BUFSIZE 4096
-#define HAVE_CLOCK_GETTIME_MONOTONIC 1
-#define HAVE_CRYPTO_CLEANUP_ALL_EX_DATA 1
-#define HAVE_FSETXATTR_5 1
-#define HAVE_GETHOSTBYADDR_R 1
-#define HAVE_GETHOSTBYADDR_R_8 1
-#define HAVE_GETHOSTBYNAME_R 1
-#define HAVE_GETHOSTBYNAME_R_6 1
-#define HAVE_GETSERVBYPORT_R 1
-#define HAVE_LIBSSL 1
-#define HAVE_MALLOC_H 1
-#define HAVE_MSG_NOSIGNAL 1
-#define HAVE_OPENSSL_CRYPTO_H 1
-#define HAVE_OPENSSL_ERR_H 1
-#define HAVE_OPENSSL_PEM_H 1
-#define HAVE_OPENSSL_PKCS12_H 1
-#define HAVE_OPENSSL_RSA_H 1
-#define HAVE_OPENSSL_SSL_H 1
-#define HAVE_OPENSSL_X509_H 1
-#define HAVE_RAND_EGD 1
-#define HAVE_RAND_STATUS 1
-#define HAVE_SSL_GET_SHUTDOWN 1
-#define HAVE_TERMIOS_H 1
-#define OS \"x86_64-pc-linux-gnu\"
-#define RANDOM_FILE \"/dev/urandom\"
-#define USE_OPENSSL 1
-#define CURL_DISABLE_DICT 1
-#define CURL_DISABLE_FILE 1
-#define CURL_DISABLE_GOPHER 1
-#define CURL_DISABLE_IMAP 1
-#define CURL_DISABLE_LDAP 1
-#define CURL_DISABLE_LDAPS 1
-#define CURL_DISABLE_POP3 1
-#define CURL_DISABLE_SMTP 1
-#define CURL_DISABLE_TELNET 1
-#define CURL_DISABLE_TFTP 1
-#define CURL_EXTERN_SYMBOL __attribute__ ((__visibility__ (\"default\")))
-#define ENABLE_IPV6 1
-#define GETHOSTNAME_TYPE_ARG2 size_t
-#define GETNAMEINFO_QUAL_ARG1 const
-#define GETNAMEINFO_TYPE_ARG1 struct sockaddr *
-#define GETNAMEINFO_TYPE_ARG2 socklen_t
-#define GETNAMEINFO_TYPE_ARG46 socklen_t
-#define GETNAMEINFO_TYPE_ARG7 int
-#define HAVE_ALARM 1
-#define HAVE_ALLOCA_H 1
-#define HAVE_ARPA_INET_H 1
-#define HAVE_ARPA_TFTP_H 1
-#define HAVE_ASSERT_H 1
-#define HAVE_BASENAME 1
-#define HAVE_BOOL_T 1
-#define HAVE_CONNECT 1
-#define HAVE_DLFCN_H 1
-#define HAVE_ERRNO_H 1
-#define HAVE_FCNTL 1
-#define HAVE_FCNTL_H 1
-#define HAVE_FCNTL_O_NONBLOCK 1
-#define HAVE_FDOPEN 1
-#define HAVE_FORK 1
-#define HAVE_FREEADDRINFO 1
-#define HAVE_FREEIFADDRS 1
-#define HAVE_FSETXATTR 1
-#define HAVE_FTRUNCATE 1
-#define HAVE_GAI_STRERROR 1
-#define HAVE_GETADDRINFO 1
-#define HAVE_GETADDRINFO_THREADSAFE 1
-#define HAVE_GETEUID 1
-#define HAVE_GETHOSTBYADDR 1
-#define HAVE_GETHOSTBYNAME 1
-#define HAVE_GETHOSTNAME 1
-#define HAVE_GETIFADDRS 1
-#define HAVE_GETNAMEINFO 1
-#define HAVE_GETPPID 1
-#define HAVE_GETPROTOBYNAME 1
-#define HAVE_GETPWUID 1
-#define HAVE_GETPWUID_R 1
-#define HAVE_GETRLIMIT 1
-#define HAVE_GETTIMEOFDAY 1
-#define HAVE_GMTIME_R 1
-#define HAVE_IFADDRS_H 1
-#define HAVE_IF_NAMETOINDEX 1
-#define HAVE_INET_ADDR 1
-#define HAVE_INET_NTOP 1
-#define HAVE_INET_PTON 1
-#define HAVE_INTTYPES_H 1
-#define HAVE_IOCTL 1
-#define HAVE_IOCTL_FIONBIO 1
-#define HAVE_IOCTL_SIOCGIFADDR 1
-#define HAVE_LIBGEN_H 1
-#define HAVE_LIBZ 1
-#define HAVE_LIMITS_H 1
-#define HAVE_LL 1
-#define HAVE_LOCALE_H 1
-#define HAVE_LOCALTIME_R 1
-#define HAVE_LONGLONG 1
-#define HAVE_MEMORY_H 1
-#define HAVE_NETDB_H 1
-#define HAVE_NETINET_IN_H 1
-#define HAVE_NETINET_TCP_H 1
-#define HAVE_NET_IF_H 1
-#define HAVE_PERROR 1
-#define HAVE_PIPE 1
-#define HAVE_POLL 1
-#define HAVE_POLL_FINE 1
-#define HAVE_POLL_H 1
-#define HAVE_POSIX_STRERROR_R 1
-#define HAVE_PWD_H 1
-#define HAVE_RECV 1
-#define HAVE_SELECT 1
-#define HAVE_SEND 1
-#define HAVE_SETJMP_H 1
-#define HAVE_SETLOCALE 1
-#define HAVE_SETRLIMIT 1
-#define HAVE_SETSOCKOPT 1
-#define HAVE_SGTTY_H 1
-#define HAVE_SIGACTION 1
-#define HAVE_SIGINTERRUPT 1
-#define HAVE_SIGNAL 1
-#define HAVE_SIGNAL_H 1
-#define HAVE_SIGSETJMP 1
-#define HAVE_SIG_ATOMIC_T 1
-#define HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID 1
-#define HAVE_SOCKET 1
-#define HAVE_SOCKETPAIR 1
-#define HAVE_STDBOOL_H 1
-#define HAVE_STDINT_H 1
-#define HAVE_STDIO_H 1
-#define HAVE_STDLIB_H 1
-#define HAVE_STRCASECMP 1
-#define HAVE_STRDUP 1
-#define HAVE_STRERROR_R 1
-#define HAVE_STRINGS_H 1
-#define HAVE_STRING_H 1
-#define HAVE_STRNCASECMP 1
-#define HAVE_STRSTR 1
-#define HAVE_STRTOK_R 1
-#define HAVE_STRTOLL 1
-#define HAVE_STRUCT_SOCKADDR_STORAGE 1
-#define HAVE_STRUCT_TIMEVAL 1
-#define HAVE_SYS_IOCTL_H 1
-#define HAVE_SYS_PARAM_H 1
-#define HAVE_SYS_POLL_H 1
-#define HAVE_SYS_RESOURCE_H 1
-#define HAVE_SYS_SELECT_H 1
-#define HAVE_SYS_SOCKET_H 1
-#define HAVE_SYS_STAT_H 1
-#define HAVE_SYS_TIME_H 1
-#define HAVE_SYS_TYPES_H 1
-#define HAVE_SYS_UIO_H 1
-#define HAVE_SYS_UN_H 1
-#define HAVE_SYS_WAIT_H 1
-#define HAVE_SYS_XATTR_H 1
-#define HAVE_TIME_H 1
-#define HAVE_UNAME 1
-#define HAVE_UNISTD_H 1
-#define HAVE_UTIME 1
-#define HAVE_UTIME_H 1
-#define HAVE_VARIADIC_MACROS_C99 1
-#define HAVE_VARIADIC_MACROS_GCC 1
-#define HAVE_WRITABLE_ARGV 1
-#define HAVE_WRITEV 1
-#define HAVE_ZLIB_H 1
-#define LT_OBJDIR \".libs/\"
-#define PACKAGE \"curl\"
-#define PACKAGE_BUGREPORT \"a suitable curl mailing list: https://curl.haxx.se/mail/\"
-#define PACKAGE_NAME \"curl\"
-#define PACKAGE_STRING \"curl -\"
-#define PACKAGE_TARNAME \"curl\"
-#define PACKAGE_URL \"\"
-#define PACKAGE_VERSION \"-\"
-#define RECV_TYPE_ARG1 int
-#define RECV_TYPE_ARG2 void *
-#define RECV_TYPE_ARG3 size_t
-#define RECV_TYPE_ARG4 int
-#define RECV_TYPE_RETV ssize_t
-#define RETSIGTYPE void
-#define SELECT_QUAL_ARG5
-#define SELECT_TYPE_ARG1 int
-#define SELECT_TYPE_ARG234 fd_set *
-#define SELECT_TYPE_ARG5 struct timeval *
-#define SELECT_TYPE_RETV int
-#define SEND_QUAL_ARG2 const
-#define SEND_TYPE_ARG1 int
-#define SEND_TYPE_ARG2 void *
-#define SEND_TYPE_ARG3 size_t
-#define SEND_TYPE_ARG4 int
-#define SEND_TYPE_RETV ssize_t
-#define SIZEOF_INT 4
-#define SIZEOF_LONG 8
-#define SIZEOF_OFF_T 8
-#define SIZEOF_SHORT 2
-#define SIZEOF_SIZE_T 8
-#define SIZEOF_TIME_T 8
-#define SIZEOF_VOIDP 8
-#define STDC_HEADERS 1
-#define SIZEOF_CURL_OFF_T 8
-#define STRERROR_R_TYPE_ARG3 size_t
-#define TIME_WITH_SYS_TIME 1
-#define VERSION \"-\"
-#define BUILDING_LIBCURL
-#ifndef _DARWIN_USE_64_BIT_INODE
-#  define _DARWIN_USE_64_BIT_INODE 1
-#endif
-#endif  // EXTERNAL_CURL_INCLUDE_CURL_CONFIG_H_
-EOF""",
 )
