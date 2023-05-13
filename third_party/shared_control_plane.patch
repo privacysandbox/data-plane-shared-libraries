@@ -1,8 +1,28 @@
+diff --git a/build_defs/cc/aws/aws_c_common.BUILD b/build_defs/cc/aws/aws_c_common.BUILD
+index ae86a2c..e9db599 100644
+--- a/build_defs/cc/aws/aws_c_common.BUILD
++++ b/build_defs/cc/aws/aws_c_common.BUILD
+@@ -24,6 +24,7 @@ cc_library(
+     includes = [
+         "include",
+     ],
++    linkopts = ["-ldl"],
+     textual_hdrs = glob([
+         "include/**/*.inl",
+     ]),
 diff --git a/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD b/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
-index 3bce2f8..65de7a6 100644
+index 3bce2f8..d139a98 100644
 --- a/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
 +++ b/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
-@@ -273,3 +273,57 @@ genrule(
+@@ -78,6 +78,7 @@ cc_library(
+     includes = [
+         "aws-cpp-sdk-core/include",
+     ],
++    linkopts = ["-ldl"],
+     deps = [
+         "@aws_c_event_stream",
+         "@boringssl//:crypto",
+@@ -273,3 +274,57 @@ genrule(
      ],
      cmd_bash = "touch '$@'",
  )
