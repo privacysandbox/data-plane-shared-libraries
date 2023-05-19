@@ -22,14 +22,14 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 def scp_repositories():
     http_archive(
         name = "control_plane_shared",
-        sha256 = "bd6dde1f7c187aa1edddfa286b0585a12a698ca99d72780658c83c910dc93e7d",
-        strip_prefix = "control-plane-shared-libraries-0.68.0",
+        sha256 = "6d4cd5a33a2cd175e257b7ac99705fade79af1ca1c0c1845a186a2e5c14f6c44",
+        strip_prefix = "control-plane-shared-libraries-0.71.0",
         patch_args = ["-p1"],
         patches = [
             Label("//third_party:shared_control_plane.patch"),
         ],
         urls = [
-            "https://github.com/privacysandbox/control-plane-shared-libraries/archive/refs/tags/v0.68.0.zip",
+            "https://github.com/privacysandbox/control-plane-shared-libraries/archive/refs/tags/v0.71.0.zip",
         ],
     )
 

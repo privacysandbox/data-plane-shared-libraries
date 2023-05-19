@@ -1,8 +1,8 @@
 diff --git a/build_defs/cc/aws/aws_c_common.BUILD b/build_defs/cc/aws/aws_c_common.BUILD
-index ae86a2c..e9db599 100644
+index 9231776..934886c 100644
 --- a/build_defs/cc/aws/aws_c_common.BUILD
 +++ b/build_defs/cc/aws/aws_c_common.BUILD
-@@ -24,6 +24,7 @@ cc_library(
+@@ -26,6 +26,7 @@ cc_library(
      includes = [
          "include",
      ],
@@ -81,7 +81,7 @@ index 3bce2f8..d139a98 100644
 +)
 +
 diff --git a/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl b/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
-index d748f47..6b2ccda 100644
+index 8706c6a..1245987 100644
 --- a/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
 +++ b/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
 @@ -15,14 +15,14 @@
@@ -101,24 +101,6 @@ index d748f47..6b2ccda 100644
          sha256 = "6e6bed6f75cf54006b6bafb01b3b96df19605572131a2260fddaf0e87949ced0",
          strip_prefix = "aws-checksums-0.1.5",
          urls = [
-@@ -33,7 +33,7 @@ def import_aws_sdk_cpp():
-     maybe(
-         http_archive,
-         name = "aws_c_common",
--        build_file = Label("//build_defs/cc/aws:aws_c_common.BUILD"),
-+        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_c_common.BUILD"),
-         sha256 = "6eb0b806c78b36a32eec9bcba8d2833e3973491a29d46fe3d11edc3f8d3e7f73",
-         strip_prefix = "aws-c-common-0.6.20",
-         urls = [
-@@ -44,7 +44,7 @@ def import_aws_sdk_cpp():
-     maybe(
-         http_archive,
-         name = "aws_c_event_stream",
--        build_file = Label("//build_defs/cc/aws:aws_c_event_stream.BUILD"),
-+        build_file = Label(scp_repo_name + "//build_defs/cc/aws:aws_c_event_stream.BUILD"),
-         sha256 = "31d880d1c868d3f3df1e1f4b45e56ac73724a4dc3449d04d47fc0746f6f077b6",
-         strip_prefix = "aws-c-event-stream-0.1.4",
-         urls = [
 @@ -55,8 +55,9 @@ def import_aws_sdk_cpp():
      maybe(
          http_archive,
@@ -130,52 +112,58 @@ index d748f47..6b2ccda 100644
              # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
              """sed -i.bak 's/Tags\\.entry/Tag/g' aws-cpp-sdk-sqs/source/model/TagQueueRequest.cpp""",
          ],
-diff --git a/build_defs/cc/sdk.bzl b/build_defs/cc/sdk.bzl
-index 454bfab..369f4c6 100644
---- a/build_defs/cc/sdk.bzl
-+++ b/build_defs/cc/sdk.bzl
-@@ -12,7 +12,6 @@
+diff --git a/build_defs/cc/sdk_static_lib.bzl b/build_defs/cc/sdk_static_lib.bzl
+index d67006c..369f4c6 100644
+--- a/build_defs/cc/sdk_static_lib.bzl
++++ b/build_defs/cc/sdk_static_lib.bzl
+@@ -12,11 +12,40 @@
  # See the License for the specific language governing permissions and
  # limitations under the License.
  
--load("//build_defs/shared:protobuf.bzl", "protobuf")
- load("//build_defs/shared:absl.bzl", "absl")
- load("//build_defs/shared:bazel_rules_pkg.bzl", "bazel_rules_pkg")
- load("//build_defs/shared:bazel_rules_java.bzl", "bazel_rules_java")
-@@ -25,14 +24,13 @@ load("//build_defs/cc/shared:boost.bzl", "boost")
- load("//build_defs/cc/shared:boringssl.bzl", "boringssl")
- load("//build_defs/cc/shared:cc_utils.bzl", "cc_utils")
- load("//build_defs/cc/shared:gtest.bzl", "google_test")
--load("//build_defs/cc/shared:nghttp2.bzl", "nghttp2")
--load("//build_defs/cc/aws:aws_sdk_cpp_deps.bzl", "import_aws_sdk_cpp")
+-load("//build_defs/cc/aws:aws_sdk_cpp_static_lib_deps.bzl", "import_aws_sdk_cpp")
+-load("//build_defs/cc/aws:aws_nitro_enclaves_sdk_static_lib_deps.bzl", "import_aws_nitro_enclaves_sdk")
+-load("//build_defs/cc:sdk_common.bzl", "sdk_common")
++load("//build_defs/shared:absl.bzl", "absl")
++load("//build_defs/shared:bazel_rules_pkg.bzl", "bazel_rules_pkg")
++load("//build_defs/shared:bazel_rules_java.bzl", "bazel_rules_java")
++load("//build_defs/shared:bazel_docker_rules.bzl", "bazel_docker_rules")
++load("//build_defs/shared:enclaves_kmstools.bzl", "enclaves_kmstools_libraries")
++load("//build_defs/shared:golang.bzl", "go_deps")
++load("//build_defs/shared:grpc.bzl", "grpc")
++load("//build_defs/cc/shared:bazel_rules_cpp.bzl", "bazel_rules_cpp")
++load("//build_defs/cc/shared:boost.bzl", "boost")
++load("//build_defs/cc/shared:boringssl.bzl", "boringssl")
++load("//build_defs/cc/shared:cc_utils.bzl", "cc_utils")
++load("//build_defs/cc/shared:gtest.bzl", "google_test")
 +load("//build_defs/cc/shared:nghttp2.bzl", "nghttp2", "pre_nghttp2")
 +load("//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp")
- load("//build_defs/cc/shared:google_cloud_cpp.bzl", "import_google_cloud_cpp")
- load("//build_defs/tink:tink_defs.bzl", "import_tink_git")
++load("//build_defs/cc/shared:google_cloud_cpp.bzl", "import_google_cloud_cpp")
++load("//build_defs/tink:tink_defs.bzl", "import_tink_git")
  
 -def sdk_dependencies(protobuf_version, protobuf_repo_hash):
+-    sdk_common(protobuf_version, protobuf_repo_hash)
+-    import_aws_sdk_cpp()
+-    import_aws_nitro_enclaves_sdk()
 +def sdk_dependencies():
-     absl()
--    bazel_docker_rules()
-     bazel_rules_cpp()
-     bazel_rules_java()
-     bazel_rules_pkg()
-@@ -42,9 +40,12 @@ def sdk_dependencies(protobuf_version, protobuf_repo_hash):
-     enclaves_kmstools_libraries()
-     go_deps()
-     google_test()
++    absl()
++    bazel_rules_cpp()
++    bazel_rules_java()
++    bazel_rules_pkg()
++    boost()
++    boringssl()
++    cc_utils()
++    enclaves_kmstools_libraries()
++    go_deps()
++    google_test()
 +    import_google_cloud_cpp()
-     grpc()
++    grpc()
 +    pre_nghttp2()
 +
 +def sdk_dependencies2(scp_repo_name = ""):
 +    bazel_docker_rules()
-     nghttp2()
--    protobuf(protobuf_version, protobuf_repo_hash)
--    import_aws_sdk_cpp()
--    import_google_cloud_cpp()
++    nghttp2()
 +    import_aws_sdk_cpp(scp_repo_name)
-     import_tink_git()
++    import_tink_git()
 diff --git a/build_defs/cc/shared/bazel_rules_cpp.bzl b/build_defs/cc/shared/bazel_rules_cpp.bzl
 index 53fb88f..698516d 100644
 --- a/build_defs/cc/shared/bazel_rules_cpp.bzl
