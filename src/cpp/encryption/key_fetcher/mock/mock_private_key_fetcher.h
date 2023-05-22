@@ -25,8 +25,6 @@
 
 namespace privacy_sandbox::server_common {
 
-using ::google::scp::cpio::PublicPrivateKeyPairId;
-
 // Implementation of PrivateKeyFetcherInterface to be used for unit testing any
 // classes that have an instance of PrivateKeyFetcher as a dependency.
 class MockPrivateKeyFetcher : public PrivateKeyFetcherInterface {

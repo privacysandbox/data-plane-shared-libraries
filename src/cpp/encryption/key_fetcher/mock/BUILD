@@ -35,3 +35,13 @@ cc_library(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "mock_key_fetcher_manager",
+    srcs = ["mock_key_fetcher_manager.h"],
+    deps = [
+        "//src/cpp/encryption/key_fetcher/interface:key_fetcher_manager_interface",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
