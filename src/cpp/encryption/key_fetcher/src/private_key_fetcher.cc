@@ -20,6 +20,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/synchronization/notification.h"
 #include "cc/core/interface/errors.h"
 #include "cc/core/interface/type_def.h"
 #include "cc/public/core/interface/execution_result.h"
@@ -83,11 +84,13 @@ absl::Status PrivateKeyFetcher::Refresh(
     ABSL_LOCKS_EXCLUDED(mutex_) {
   ListPrivateKeysRequest request;
   request.mutable_key_ids()->Add(key_ids.begin(), key_ids.end());
-
+  std::shared_ptr<absl::Notification> private_key_fetch_notification =
+      std::make_shared<absl::Notification>();
   ExecutionResult result = private_key_client_.get()->ListPrivateKeys(
-      request, [keys_map = &private_keys_map_, mu = &mutex_, request](
-                   const ExecutionResult result,
-                   const ListPrivateKeysResponse response) {
+      request,
+      [keys_map = &private_keys_map_, mu = &mutex_, request,
+       private_key_fetch_notification](const ExecutionResult result,
+                                       const ListPrivateKeysResponse response) {
         if (result.Successful()) {
           absl::MutexLock l(mu);
           for (const auto& private_key : response.private_keys()) {
@@ -101,7 +104,7 @@ absl::Status PrivateKeyFetcher::Refresh(
           static_cast<void>(
               HandleFailure(request.key_ids(), result.status_code));
         }
-
+        private_key_fetch_notification->Notify();
         VLOG(3) << "Private key refresh flow completed successfully.";
       });
 
@@ -120,6 +123,7 @@ absl::Status PrivateKeyFetcher::Refresh(
     }
   }
 
+  private_key_fetch_notification->WaitForNotification();
   return absl::OkStatus();
 }
 

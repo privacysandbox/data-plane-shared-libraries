@@ -25,6 +25,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/synchronization/notification.h"
 #include "cc/core/interface/errors.h"
 #include "cc/public/core/interface/execution_result.h"
 #include "cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
@@ -60,13 +61,19 @@ PublicKeyFetcher::PublicKeyFetcher(
 
 PublicKeyFetcher::~PublicKeyFetcher() { public_key_client_->Stop(); }
 
+/**
+ * Makes a blocking call to fetch the public keys using the public key client.
+ * UnavailableError status will be returned in case of failure.
+ */
 absl::Status PublicKeyFetcher::Refresh(
     const std::function<void()>& callback) noexcept
     ABSL_LOCKS_EXCLUDED(mutex_) {
+  std::shared_ptr<absl::Notification> public_key_fetch_notification =
+      std::make_shared<absl::Notification>();
   ExecutionResult result = public_key_client_.get()->ListPublicKeys(
       ListPublicKeysRequest(),
-      [this, callback = callback](ExecutionResult execution_result,
-                                  ListPublicKeysResponse response) {
+      [this, callback = callback, public_key_fetch_notification](
+          ExecutionResult execution_result, ListPublicKeysResponse response) {
         if (execution_result.Successful()) {
           mutex_.Lock();
           public_keys_ = std::vector<PublicKey>(response.public_keys().begin(),
@@ -87,6 +94,7 @@ absl::Status PublicKeyFetcher::Refresh(
             absl::StrFormat(kKeyFetchFailMessage,
                             GetErrorMessage(execution_result.status_code));
         VLOG_IF(1, !execution_result.Successful()) << error;
+        public_key_fetch_notification->Notify();
       });
 
   if (!result.Successful()) {
@@ -95,7 +103,7 @@ absl::Status PublicKeyFetcher::Refresh(
     VLOG(1) << error;
     return absl::UnavailableError(error);
   }
-
+  public_key_fetch_notification->WaitForNotification();
   return absl::OkStatus();
 }
 
@@ -133,12 +141,12 @@ std::unique_ptr<PublicKeyFetcherInterface> PublicKeyFetcherFactory::Create(
 
   ExecutionResult init_result = public_key_client->Init();
   if (!init_result.Successful()) {
-    VLOG(1) << "Failed to initialize private key client.";
+    VLOG(1) << "Failed to initialize public key client.";
   }
 
   ExecutionResult run_result = public_key_client->Run();
   if (!run_result.Successful()) {
-    VLOG(1) << "Failed to run private key client.";
+    VLOG(1) << "Failed to run public key client.";
   }
 
   return std::make_unique<PublicKeyFetcher>(std::move(public_key_client));
