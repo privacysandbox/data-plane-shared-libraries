@@ -32,3 +32,7 @@ deps2()
 load("@google_privacysandbox_servers_common//third_party:deps3.bzl", "deps3")
 
 deps3()
+
+load("@google_privacysandbox_servers_common//third_party:deps4.bzl", "deps4")
+
+deps4()
