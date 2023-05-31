@@ -14,7 +14,7 @@
 
 """Initialize the shared control plane dependencies."""
 
-load("@control_plane_shared//build_defs/cc:sdk.bzl", scp_sdk_dependencies = "sdk_dependencies")
+load("@control_plane_shared//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies = "sdk_dependencies")
 
 def deps1():
     scp_sdk_dependencies()

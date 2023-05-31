@@ -20,7 +20,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@build_bazel_rules_swift//swift:repositories.bzl", "swift_rules_dependencies")
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
-load("@control_plane_shared//build_defs/cc:sdk.bzl", scp_sdk_dependencies2 = "sdk_dependencies2")
+load("@control_plane_shared//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies2 = "sdk_dependencies2")
 load("@control_plane_shared//build_defs/cc:v8.bzl", "import_v8")
 load("@control_plane_shared//build_defs/tink:tink_defs.bzl", "import_tink_git")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
@@ -65,7 +65,7 @@ def deps2(
         *,
         go_toolchains_version = GO_TOOLCHAINS_VERSION):
     grpc_deps()
-    scp_sdk_dependencies2("@control_plane_shared")
+    scp_sdk_dependencies2()
     bazel_skylib_workspace()
     go_rules_dependencies()
     go_register_toolchains(version = go_toolchains_version)
