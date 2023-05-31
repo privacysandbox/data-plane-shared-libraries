@@ -49,6 +49,17 @@ def cpp_dependencies():
     )
     maybe(
         http_archive,
+        name = "jq",
+        build_file = "//third_party:jq.BUILD",
+        sha256 = "998c41babeb57b4304e65b4eb73094279b3ab1e63801b6b4bddd487ce009b39d",
+        strip_prefix = "jq-1.4",
+        urls = [
+            "https://mirror.bazel.build/github.com/stedolan/jq/releases/download/jq-1.4/jq-1.4.tar.gz",
+            "https://github.com/stedolan/jq/releases/download/jq-1.4/jq-1.4.tar.gz",
+        ],
+    )
+    maybe(
+        http_archive,
         name = "com_github_gflags_gflags",
         sha256 = "34af2f15cf7367513b352bdcd2493ab14ce43692d2dcd9dfc499492966c64dcf",
         strip_prefix = "gflags-2.2.2",
