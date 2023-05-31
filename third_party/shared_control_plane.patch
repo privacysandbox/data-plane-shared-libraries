@@ -90,8 +90,36 @@ index 1bdbf81..9b1644e 100644
          patch_cmds = [
              """sed -i.bak 's/UUID::RandomUUID/Aws::Utils::UUID::RandomUUID/g' aws-cpp-sdk-core/source/client/AWSClient.cpp""",
              # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
+diff --git a/build_defs/cc/sdk_common.bzl b/build_defs/cc/sdk_common.bzl
+index 4abcb8c..ed9a748 100644
+--- a/build_defs/cc/sdk_common.bzl
++++ b/build_defs/cc/sdk_common.bzl
+@@ -12,7 +12,6 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
+-load("//build_defs/shared:protobuf.bzl", "protobuf")
+ load("//build_defs/shared:absl.bzl", "absl")
+ load("//build_defs/shared:bazel_rules_pkg.bzl", "bazel_rules_pkg")
+ load("//build_defs/shared:bazel_rules_java.bzl", "bazel_rules_java")
+@@ -30,7 +29,7 @@ load("//build_defs/cc/shared:google_cloud_cpp.bzl", "import_google_cloud_cpp")
+ load("//build_defs/tink:tink_defs.bzl", "import_tink_git")
+ load("//build_defs/shared:java_grpc.bzl", "java_grpc")
+ 
+-def sdk_common(protobuf_version, protobuf_repo_hash):
++def sdk_common():
+     absl()
+     bazel_docker_rules()
+     bazel_rules_cpp()
+@@ -45,6 +44,5 @@ def sdk_common(protobuf_version, protobuf_repo_hash):
+     grpc()
+     java_grpc()
+     nghttp2()
+-    protobuf(protobuf_version, protobuf_repo_hash)
+     import_google_cloud_cpp()
+     import_tink_git()
 diff --git a/build_defs/cc/sdk_source_code.bzl b/build_defs/cc/sdk_source_code.bzl
-index 7065a52..4697294 100644
+index 7065a52..baa2cd2 100644
 --- a/build_defs/cc/sdk_source_code.bzl
 +++ b/build_defs/cc/sdk_source_code.bzl
 @@ -17,8 +17,10 @@ load("//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp
@@ -101,7 +129,7 @@ index 7065a52..4697294 100644
 -def sdk_dependencies(protobuf_version, protobuf_repo_hash):
 -    sdk_common(protobuf_version, protobuf_repo_hash)
 +def sdk_dependencies():
-+    sdk_common("3.19.4", "3bd7828aa5af4b13b99c191e8b1e884ebfa9ad371b0ce264605d347f135d2568")
++    sdk_common()
      aws_c_common()
 +
 +def sdk_dependencies2():
