@@ -29,7 +29,8 @@ namespace privacy_sandbox::server_common {
 
 class TelemetryProvider {
  public:
-  static void Init(std::string service_name, std::string build_version);
+  static void Init(std::string service_name, std::string build_version,
+                   bool trace_enabled = true);
 
   static TelemetryProvider& GetInstance();
 
@@ -46,6 +47,8 @@ class TelemetryProvider {
   TelemetryProvider(TelemetryProvider& provider) = delete;
   void operator=(const TelemetryProvider&) = delete;
 
+  bool trace_enabled() const { return trace_enabled_; }
+
  private:
   TelemetryProvider()
       : service_name_("uninitialized"), build_version_("uninitialized") {}
@@ -53,6 +56,7 @@ class TelemetryProvider {
   static TelemetryProvider* telemetry_provider_;
   std::string service_name_;
   std::string build_version_;
+  bool trace_enabled_;
 };
 
 }  // namespace privacy_sandbox::server_common

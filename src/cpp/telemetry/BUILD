@@ -72,6 +72,15 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "telemetry_provider_test",
+    srcs = ["telemetry_provider_test.cc"],
+    deps = [
+        ":telemetry_provider",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "tracing",
     srcs = [

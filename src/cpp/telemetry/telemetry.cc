@@ -51,8 +51,9 @@ using opentelemetry::trace::TracerProvider;
 
 namespace privacy_sandbox::server_common {
 
-void InitTelemetry(std::string service_name, std::string build_version) {
-  TelemetryProvider::Init(service_name, build_version);
+void InitTelemetry(std::string service_name, std::string build_version,
+                   bool trace_enabled) {
+  TelemetryProvider::Init(service_name, build_version, trace_enabled);
 }
 
 void ConfigureMetrics(
@@ -69,6 +70,9 @@ void ConfigureMetrics(
 }
 
 void ConfigureTracer(Resource resource) {
+  if (!TelemetryProvider::GetInstance().trace_enabled()) {
+    return;
+  }
   auto exporter = CreateSpanExporter();
   auto processor = SimpleSpanProcessorFactory::Create(std::move(exporter));
   std::shared_ptr<TracerProvider> provider = TracerProviderFactory::Create(
