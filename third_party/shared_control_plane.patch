@@ -741,6 +741,219 @@ index 3b5b92c..1bc862e 100644
        auth_token_provider, http1_client, cpu_async_executor, io_async_executor);
  }
  }  // namespace google::scp::cpio::client_providers
+diff --git a/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc b/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc
+index d9b2e71..537973b 100644
+--- a/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc
++++ b/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc
+@@ -49,7 +49,6 @@ using google::cmrt::sdk::instance_service::v1::
+ using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
+ using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
+ using google::cmrt::sdk::instance_service::v1::InstanceDetails;
+-using google::protobuf::MapPair;
+ using google::scp::core::AsyncContext;
+ using google::scp::core::AsyncExecutorInterface;
+ using google::scp::core::ExecutionResult;
+@@ -475,13 +474,10 @@ void GcpInstanceClientProvider::OnGetTagsByResourceNameCallback(
+   }
+ 
+   get_tags_context.response = make_shared<GetTagsByResourceNameResponse>();
+-  auto* tags = get_tags_context.response->mutable_tags();
+-
++  auto& tags = *get_tags_context.response->mutable_tags();
+   for (const auto& tag : json_response[kTagBindingsListKey]) {
+-    tags->insert(MapPair(tag[kTagBindingNameKey].get<string>(),
+-                         tag[kTagBindingTagValueKey].get<string>()));
++    tags[tag[kTagBindingNameKey].get<string>()] = tag[kTagBindingTagValueKey].get<string>();
+   }
+-
+   get_tags_context.result = SuccessExecutionResult();
+   get_tags_context.Finish();
+ }
+@@ -683,11 +679,11 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
+   // Extract instance labels.
+   auto labels = json_response.find(kInstanceLabelsKey);
+   if (labels != json_response.end()) {
+-    auto* labels_proto =
+-        get_instance_details_context.response->mutable_instance_details()
++    auto& labels_proto =
++        *get_instance_details_context.response->mutable_instance_details()
+             ->mutable_labels();
+     for (json::iterator it = labels->begin(); it != labels->end(); ++it) {
+-      labels_proto->insert(MapPair(it.key(), it.value().get<string>()));
++      labels_proto[it.key()] = it.value().get<string>();
+     }
+   }
+ 
+diff --git a/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc b/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc
+index ad225e7..56ba6d6 100644
+--- a/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc
++++ b/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc
+@@ -65,7 +65,6 @@ using google::cmrt::sdk::instance_service::v1::
+ using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
+ using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
+ using google::cmrt::sdk::instance_service::v1::InstanceDetails;
+-using google::protobuf::MapPair;
+ using google::scp::core::AsyncContext;
+ using google::scp::core::BytesBuffer;
+ using google::scp::core::ExecutionResult;
+diff --git a/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc b/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc
+index 66c76a6..0acfa1d 100644
+--- a/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc
++++ b/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc
+@@ -38,7 +38,6 @@ using google::cloud::StatusCode;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
+ using google::monitoring::v3::TimeSeries;
+-using google::protobuf::MapPair;
+ using google::protobuf::util::TimeUtil;
+ using google::scp::core::AsyncContext;
+ using google::scp::core::ExecutionResult;
+@@ -141,10 +140,10 @@ void GcpMetricClientUtils::AddResourceToTimeSeries(
+     vector<TimeSeries>& time_series_list) noexcept {
+   MonitoredResource resource;
+   resource.set_type(kResourceType);
+-  auto labels = resource.mutable_labels();
+-  labels->insert(MapPair(string(kProjectIdKey), project_id));
+-  labels->insert(MapPair(string(kInstanceIdKey), instance_id));
+-  labels->insert(MapPair(string(kInstanceZoneKey), instance_zone));
++  auto& labels = *resource.mutable_labels();
++  labels[string(kProjectIdKey)] = project_id;
++  labels[string(kInstanceIdKey)] = instance_id;
++  labels[string(kInstanceZoneKey)] = instance_zone;
+ 
+   for (auto& time_series : time_series_list) {
+     time_series.mutable_resource()->CopyFrom(resource);
+diff --git a/cc/cpio/client_providers/metric_client_provider/src/utils/metric_utils.h b/cc/cpio/client_providers/metric_client_provider/src/utils/metric_utils.h
+index 6e75b57..8eab52a 100644
+--- a/cc/cpio/client_providers/metric_client_provider/src/utils/metric_utils.h
++++ b/cc/cpio/client_providers/metric_client_provider/src/utils/metric_utils.h
+@@ -51,15 +51,15 @@ class MetricUtils {
+     metric->set_unit(MetricClientUtils::ConvertToMetricUnitProto(final_unit));
+ 
+     // Adds the labels from metric_info and additional_labels.
+-    auto labels = metric->mutable_labels();
++    auto& labels = *metric->mutable_labels();
+     if (metric_info->labels) {
+       for (const auto& label : *metric_info->labels) {
+-        labels->insert(protobuf::MapPair(label.first, label.second));
++        labels[label.first] = label.second;
+       }
+     }
+     if (metric_tag && metric_tag->additional_labels) {
+       for (const auto& label : *metric_tag->additional_labels) {
+-        labels->insert(protobuf::MapPair(label.first, label.second));
++        labels[label.first] = label.second;
+       }
+     }
+     *metric->mutable_timestamp() = protobuf::util::TimeUtil::GetCurrentTime();
+diff --git a/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc b/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc
+index 445cf52..dc47efd 100644
+--- a/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc
++++ b/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc
+@@ -41,7 +41,6 @@ using Aws::CloudWatch::Model::StandardUnitMapper::GetStandardUnitForName;
+ using google::cmrt::sdk::metric_service::v1::MetricUnit;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
+-using google::protobuf::MapPair;
+ using google::protobuf::util::TimeUtil;
+ using google::scp::core::AsyncContext;
+ using google::scp::core::ExecutionResult;
+@@ -196,10 +195,10 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumOversizeDimensions) {
+   metric->set_value(kValue);
+   metric->set_unit(kUnit);
+ 
+-  auto metric_labels_ = metric->mutable_labels();
+-  string label_value = "test";
++  constexpr std::string_view label_value = "test";
++  auto& metric_labels_ = *metric->mutable_labels();
+   for (auto i = 0; i < 31; i++) {
+-    metric_labels_->insert(MapPair(to_string(i), label_value));
++    metric_labels_[to_string(i)] = label_value;
+   }
+ 
+   bool parse_request_to_datum_is_called = false;
+diff --git a/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc b/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc
+index d294c93..683f286 100644
+--- a/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc
++++ b/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc
+@@ -37,7 +37,6 @@ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
+ using google::monitoring::v3::Point;
+ using google::monitoring::v3::TimeSeries;
+-using google::protobuf::MapPair;
+ using google::protobuf::util::TimeUtil;
+ using google::scp::core::AsyncContext;
+ using google::scp::core::ExecutionResult;
+@@ -180,9 +179,9 @@ TEST_F(GcpMetricClientUtilsTest, OverSizeLabels) {
+       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
+ 
+   // Adds oversize labels.
+-  auto labels = context.request->add_metrics()->mutable_labels();
++  auto& labels = *context.request->add_metrics()->mutable_labels();
+   for (int i = 0; i < 33; ++i) {
+-    labels->insert(MapPair(string("key") + to_string(i), string("value")));
++    labels[string("key") + to_string(i)] = string("value");
+   }
+   vector<TimeSeries> time_series_list;
+   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
+diff --git a/cc/public/cpio/adapters/metric_client/src/metric_client.cc b/cc/public/cpio/adapters/metric_client/src/metric_client.cc
+index 7c96759..85763cf 100644
+--- a/cc/public/cpio/adapters/metric_client/src/metric_client.cc
++++ b/cc/public/cpio/adapters/metric_client/src/metric_client.cc
+@@ -38,7 +38,6 @@
+ using google::cmrt::sdk::metric_service::v1::Metric;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
+-using google::protobuf::MapPair;
+ using google::protobuf::util::TimeUtil;
+ using google::scp::core::AsyncContext;
+ using google::scp::core::AsyncExecutorInterface;
+diff --git a/cc/public/cpio/examples/local_metric_client_test.cc b/cc/public/cpio/examples/local_metric_client_test.cc
+index bdd40dc..13f8081 100644
+--- a/cc/public/cpio/examples/local_metric_client_test.cc
++++ b/cc/public/cpio/examples/local_metric_client_test.cc
+@@ -29,7 +29,6 @@
+ using google::cmrt::sdk::metric_service::v1::MetricUnit;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
+-using google::protobuf::MapPair;
+ using google::scp::core::AsyncContext;
+ using google::scp::core::ExecutionResult;
+ using google::scp::core::GetErrorMessage;
+@@ -85,8 +84,8 @@ int main(int argc, char* argv[]) {
+   metric->set_name("test_metric");
+   metric->set_value("12");
+   metric->set_unit(MetricUnit::METRIC_UNIT_COUNT);
+-  auto labels = metric->mutable_labels();
+-  labels->insert(MapPair(string("lable_key"), string("label_value")));
++  auto& labels = *metric->mutable_labels();
++  labels[string("label_key")] = string("label_value");
+ 
+   atomic<bool> finished = false;
+   result = metric_client->PutMetrics(
+diff --git a/cc/public/cpio/examples/metric_client_test.cc b/cc/public/cpio/examples/metric_client_test.cc
+index e201e64..037d17b 100644
+--- a/cc/public/cpio/examples/metric_client_test.cc
++++ b/cc/public/cpio/examples/metric_client_test.cc
+@@ -29,7 +29,6 @@
+ using google::cmrt::sdk::metric_service::v1::MetricUnit;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
+ using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
+-using google::protobuf::MapPair;
+ using google::scp::core::AsyncContext;
+ using google::scp::core::ExecutionResult;
+ using google::scp::core::GetErrorMessage;
+@@ -83,8 +82,8 @@ int main(int argc, char* argv[]) {
+   metric->set_name("test_metric");
+   metric->set_value("12");
+   metric->set_unit(MetricUnit::METRIC_UNIT_COUNT);
+-  auto labels = metric->mutable_labels();
+-  labels->insert(MapPair(string("lable_key"), string("label_value")));
++  auto& labels = *metric->mutable_labels();
++  labels[string("label_key")] = string("label_value");
+ 
+   atomic<bool> finished = false;
+   result = metric_client->PutMetrics(
 diff --git a/cc/roma/ipc/src/work_container.cc b/cc/roma/ipc/src/work_container.cc
 index 16805ef..9dca21c 100644
 --- a/cc/roma/ipc/src/work_container.cc
