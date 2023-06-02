@@ -11,7 +11,7 @@ filegroup(
 write_file(
     name = "version",
     out = "version.h",
-    content = '#define JQ_VERSION "1.4"',
+    content = ['#define JQ_VERSION "1.4"'],
 )
 
 cc_library(
