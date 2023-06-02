@@ -50,7 +50,7 @@ def cpp_dependencies():
     maybe(
         http_archive,
         name = "jq",
-        build_file = "//third_party:jq.BUILD",
+        build_file = Label("//third_party:jq.BUILD"),
         sha256 = "998c41babeb57b4304e65b4eb73094279b3ab1e63801b6b4bddd487ce009b39d",
         strip_prefix = "jq-1.4",
         urls = [
