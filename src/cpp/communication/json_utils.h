@@ -38,17 +38,11 @@ absl::StatusOr<ProtoMessage> JsonToProto(absl::string_view json) {
   ProtoMessage result;
   google::protobuf::util::JsonParseOptions options;
   options.ignore_unknown_fields = true;
-
   if (const auto s =
           google::protobuf::util::JsonStringToMessage(json, &result, options);
       !s.ok()) {
-    // protobuf begins to use absl::Status since
-    // https://github.com/protocolbuffers/protobuf/commit/a3c8e2deb05186334b7ee8c1174f44802e38b43d
-    // Once that is available we can simply return the status.
-    // So we should not spend too much time dealing with the conversion now.
-    return absl::InvalidArgumentError(s.message().ToString());
+    return s;
   }
-
   return result;
 }
 
@@ -64,13 +58,8 @@ absl::StatusOr<std::string> ProtoToJson(const ProtoMessage& proto) {
   if (const auto s =
           google::protobuf::util::MessageToJsonString(proto, &body, options);
       !s.ok()) {
-    // protobuf begins to use absl::Status since
-    // https://github.com/protocolbuffers/protobuf/commit/a3c8e2deb05186334b7ee8c1174f44802e38b43d
-    // Once that is available we can simply return the status.
-    // So we should not spend too much time dealing with the conversion now.
-    return absl::InternalError(s.message().ToString());
+    return s;
   }
-
   return body;
 }
 

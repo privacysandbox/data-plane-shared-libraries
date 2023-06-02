@@ -384,7 +384,7 @@ index 05bae65..401f328 100644
          http_archive,
          name = "bazel_gazelle",
 diff --git a/build_defs/shared/grpc.bzl b/build_defs/shared/grpc.bzl
-index 781666d..ba68273 100644
+index 781666d..025e3dd 100644
 --- a/build_defs/shared/grpc.bzl
 +++ b/build_defs/shared/grpc.bzl
 @@ -23,9 +23,9 @@ def grpc():
@@ -393,11 +393,11 @@ index 781666d..ba68273 100644
          name = "com_github_grpc_grpc",
 -        sha256 = "ec125d7fdb77ecc25b01050a0d5d32616594834d3fe163b016768e2ae42a2df6",
 -        strip_prefix = "grpc-1.52.1",
-+        sha256 = "8f01dac5a32104acbb76db1e6b447dc5b3dc738cb9bceeee01843d9d01d1d788",
-+        strip_prefix = "grpc-1.54.1",
++        sha256 = "17c0685da231917a7b3be2671a7b13b550a85fdda5e475313264c5f51c4da3f8",
++        strip_prefix = "grpc-1.55.1",
          urls = [
 -            "https://github.com/grpc/grpc/archive/v1.52.1.tar.gz",
-+            "https://github.com/grpc/grpc/archive/refs/tags/v1.54.1.zip",
++            "https://github.com/grpc/grpc/archive/refs/tags/v1.55.1.zip",
          ],
      )
 diff --git a/cc/aws/proxy/src/proxify.cc b/cc/aws/proxy/src/proxify.cc
@@ -434,3 +434,310 @@ index 70c9334..cf986a9 100644
      execl(socket_vendor_path.c_str(), socket_vendor_path.c_str(), nullptr);
      exit(1);
    }
+diff --git a/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc b/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc
+index 3b5b92c..1bc862e 100644
+--- a/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc
++++ b/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc
+@@ -21,7 +21,6 @@
+ #include <set>
+ #include <string>
+ #include <utility>
+-#include <vector>
+ 
+ #include <aws/ec2/model/DescribeInstancesRequest.h>
+ #include <aws/ec2/model/DescribeTagsRequest.h>
+@@ -60,7 +59,6 @@ using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
+ using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
+ using google::cmrt::sdk::instance_service::v1::InstanceDetails;
+ using google::cmrt::sdk::instance_service::v1::InstanceNetwork;
+-using google::protobuf::MapPair;
+ using google::scp::core::AsyncContext;
+ using google::scp::core::AsyncExecutorInterface;
+ using google::scp::core::ExecutionResult;
+@@ -83,21 +81,6 @@ using google::scp::cpio::common::CpioUtils;
+ using google::scp::cpio::common::CreateClientConfiguration;
+ using nlohmann::json;
+ using std::all_of;
+-using std::begin;
+-using std::bind;
+-using std::cbegin;
+-using std::cend;
+-using std::end;
+-using std::find;
+-using std::make_pair;
+-using std::make_shared;
+-using std::map;
+-using std::move;
+-using std::pair;
+-using std::set;
+-using std::shared_ptr;
+-using std::string;
+-using std::vector;
+ using std::placeholders::_1;
+ using std::placeholders::_2;
+ using std::placeholders::_3;
+@@ -122,7 +105,7 @@ constexpr char kAwsInstanceResourceNameFormat[] =
+ 
+ // Available Regions. Refers to
+ // https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
+-const set<string> kAwsRegionCodes = {
++const std::set<std::string> kAwsRegionCodes = {
+     "us-east-2",      "us-east-1",      "us-west-1",      "us-west-2",
+     "af-south-1",     "ap-east-1",      "ap-south-2",     "ap-southeast-3",
+     "ap-southeast-4", "ap-south-1",     "ap-northeast-3", "ap-northeast-2",
+@@ -136,12 +119,12 @@ constexpr char kDefaultRegionCode[] = "us-east-1";
+ // Returns a pair of iterators - one to the beginning, one to the end.
+ const auto& GetRequiredFieldsForInstanceDynamicData() {
+   static char const* components[3];
+-  using iterator_type = decltype(cbegin(components));
+-  static pair<iterator_type, iterator_type> iterator_pair = []() {
++  using iterator_type = decltype(std::cbegin(components));
++  static std::pair<iterator_type, iterator_type> iterator_pair = []() {
+     components[0] = kAccountIdKey;
+     components[1] = kInstanceIdKey;
+     components[2] = kRegionKey;
+-    return make_pair(cbegin(components), cend(components));
++    return std::make_pair(std::cbegin(components), std::cend(components));
+   }();
+   return iterator_pair;
+ }
+@@ -162,15 +145,15 @@ ExecutionResult AwsInstanceClientProvider::Stop() noexcept {
+   return SuccessExecutionResult();
+ }
+ 
+-ExecutionResultOr<shared_ptr<EC2Client>>
+-AwsInstanceClientProvider::GetEC2ClientByRegion(const string& region) noexcept {
++ExecutionResultOr<std::shared_ptr<EC2Client>>
++AwsInstanceClientProvider::GetEC2ClientByRegion(const std::string& region) noexcept {
+   auto target_region = region.empty() ? kDefaultRegionCode : region;
+   auto it = kAwsRegionCodes.find(target_region);
+   if (it == kAwsRegionCodes.end()) {
+     return FailureExecutionResult(SC_AWS_INSTANCE_CLIENT_INVALID_REGION_CODE);
+   }
+ 
+-  shared_ptr<EC2Client> ec2_client;
++  std::shared_ptr<EC2Client> ec2_client;
+   if (ec2_clients_list_.Find(target_region, ec2_client).Successful()) {
+     return ec2_client;
+   }
+@@ -179,20 +162,20 @@ AwsInstanceClientProvider::GetEC2ClientByRegion(const string& region) noexcept {
+       ec2_factory_->CreateClient(target_region, io_async_executor_);
+   RETURN_IF_FAILURE(ec2_client_or.result());
+ 
+-  ec2_client = move(*ec2_client_or);
+-  ec2_clients_list_.Insert(make_pair(target_region, ec2_client), ec2_client);
++  ec2_client = std::move(*ec2_client_or);
++  ec2_clients_list_.Insert(std::make_pair(target_region, ec2_client), ec2_client);
+ 
+   return ec2_client;
+ }
+ 
+ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
+-    string& resource_name) noexcept {
++    std::string& resource_name) noexcept {
+   GetCurrentInstanceResourceNameRequest request;
+   GetCurrentInstanceResourceNameResponse response;
+   auto execution_result =
+       CpioUtils::AsyncToSync<GetCurrentInstanceResourceNameRequest,
+                              GetCurrentInstanceResourceNameResponse>(
+-          bind(&AwsInstanceClientProvider::GetCurrentInstanceResourceName, this,
++          std::bind(&AwsInstanceClientProvider::GetCurrentInstanceResourceName, this,
+                _1),
+           request, response);
+ 
+@@ -203,7 +186,7 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
+     return execution_result;
+   }
+ 
+-  resource_name = move(*response.mutable_instance_resource_name());
++  resource_name = std::move(*response.mutable_instance_resource_name());
+ 
+   return SuccessExecutionResult();
+ }
+@@ -214,8 +197,8 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceName(
+         get_resource_name_context) noexcept {
+   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
+       get_token_context(
+-          make_shared<GetSessionTokenRequest>(),
+-          bind(&AwsInstanceClientProvider::OnGetSessionTokenCallback, this,
++          std::make_shared<GetSessionTokenRequest>(),
++          std::bind(&AwsInstanceClientProvider::OnGetSessionTokenCallback, this,
+                get_resource_name_context, _1));
+   auto execution_result =
+       auth_token_provider_->GetSessionToken(get_token_context);
+@@ -246,18 +229,18 @@ void AwsInstanceClientProvider::OnGetSessionTokenCallback(
+     return;
+   }
+ 
+-  auto signed_request = make_shared<HttpRequest>();
+-  signed_request->path = make_shared<string>(kAwsInstanceDynamicDataUrl);
++  auto signed_request = std::make_shared<HttpRequest>();
++  signed_request->path = std::make_shared<std::string>(kAwsInstanceDynamicDataUrl);
+   signed_request->method = HttpMethod::GET;
+ 
+   const auto& access_token = *get_token_context.response->session_token;
+-  signed_request->headers = make_shared<core::HttpHeaders>();
++  signed_request->headers = std::make_shared<core::HttpHeaders>();
+   signed_request->headers->insert(
+-      {string(kAuthorizationHeaderKey), access_token});
++      {std::string(kAuthorizationHeaderKey), access_token});
+ 
+   AsyncContext<HttpRequest, HttpResponse> http_context(
+-      move(signed_request),
+-      bind(&AwsInstanceClientProvider::OnGetInstanceResourceNameCallback, this,
++      std::move(signed_request),
++      std::bind(&AwsInstanceClientProvider::OnGetInstanceResourceNameCallback, this,
+            get_resource_name_context, _1));
+ 
+   auto execution_result = http1_client_->PerformRequest(http_context);
+@@ -318,26 +301,26 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
+   }
+ 
+   auto resource_name = absl::StrFormat(
+-      kAwsInstanceResourceNameFormat, json_response[kRegionKey].get<string>(),
+-      json_response[kAccountIdKey].get<string>(),
+-      json_response[kInstanceIdKey].get<string>());
++      kAwsInstanceResourceNameFormat, json_response[kRegionKey].get<std::string>(),
++      json_response[kAccountIdKey].get<std::string>(),
++      json_response[kInstanceIdKey].get<std::string>());
+ 
+   get_resource_name_context.response =
+-      make_shared<GetCurrentInstanceResourceNameResponse>();
++      std::make_shared<GetCurrentInstanceResourceNameResponse>();
+   get_resource_name_context.response->set_instance_resource_name(resource_name);
+   get_resource_name_context.result = SuccessExecutionResult();
+   get_resource_name_context.Finish();
+ }
+ 
+ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
+-    const string& resource_name, InstanceDetails& instance_details) noexcept {
++    const std::string& resource_name, InstanceDetails& instance_details) noexcept {
+   GetInstanceDetailsByResourceNameRequest request;
+   request.set_instance_resource_name(resource_name);
+   GetInstanceDetailsByResourceNameResponse response;
+   auto execution_result =
+       CpioUtils::AsyncToSync<GetInstanceDetailsByResourceNameRequest,
+                              GetInstanceDetailsByResourceNameResponse>(
+-          bind(&AwsInstanceClientProvider::GetInstanceDetailsByResourceName,
++          std::bind(&AwsInstanceClientProvider::GetInstanceDetailsByResourceName,
+                this, _1),
+           request, response);
+ 
+@@ -349,7 +332,7 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
+     return execution_result;
+   }
+ 
+-  instance_details = move(*response.mutable_instance_details());
++  instance_details = std::move(*response.mutable_instance_details());
+ 
+   return SuccessExecutionResult();
+ }
+@@ -390,7 +373,7 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceName(
+   (*ec2_client_or)
+       ->DescribeInstancesAsync(
+           request,
+-          bind(&AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback,
++          std::bind(&AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback,
+                this, get_details_context, _1, _2, _3, _4));
+ 
+   return SuccessExecutionResult();
+@@ -401,7 +384,7 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
+                  GetInstanceDetailsByResourceNameResponse>& get_details_context,
+     const EC2Client*, const DescribeInstancesRequest&,
+     const DescribeInstancesOutcome& outcome,
+-    const shared_ptr<const AsyncCallerContext>&) noexcept {
++    const std::shared_ptr<const AsyncCallerContext>&) noexcept {
+   if (!outcome.IsSuccess()) {
+     const auto& error_type = outcome.GetError().GetErrorType();
+     auto result = EC2ErrorConverter::ConvertEC2Error(
+@@ -432,7 +415,7 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
+       outcome.GetResult().GetReservations()[0].GetInstances()[0];
+ 
+   get_details_context.response =
+-      make_shared<GetInstanceDetailsByResourceNameResponse>();
++      std::make_shared<GetInstanceDetailsByResourceNameResponse>();
+   auto* instance_details =
+       get_details_context.response->mutable_instance_details();
+ 
+@@ -445,9 +428,9 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
+       target_instance.GetPublicIpAddress().c_str());
+ 
+   // Extract instance labels.
+-  auto* labels_proto = instance_details->mutable_labels();
++  auto& labels_proto = *instance_details->mutable_labels();
+   for (const auto& tag : target_instance.GetTags()) {
+-    labels_proto->insert(MapPair(tag.GetKey(), tag.GetValue()));
++    labels_proto[tag.GetKey()] = tag.GetValue();
+   }
+ 
+   FinishContext(SuccessExecutionResult(), get_details_context,
+@@ -490,7 +473,7 @@ ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
+ 
+   (*ec2_client_or)
+       ->DescribeTagsAsync(
+-          request, bind(&AwsInstanceClientProvider::OnDescribeTagsAsyncCallback,
++          request, std::bind(&AwsInstanceClientProvider::OnDescribeTagsAsyncCallback,
+                         this, get_tags_context, _1, _2, _3, _4));
+   return SuccessExecutionResult();
+ }
+@@ -500,7 +483,7 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
+         get_tags_context,
+     const EC2Client*, const DescribeTagsRequest&,
+     const DescribeTagsOutcome& outcome,
+-    const shared_ptr<const AsyncCallerContext>&) noexcept {
++    const std::shared_ptr<const AsyncCallerContext>&) noexcept {
+   if (!outcome.IsSuccess()) {
+     const auto& error_type = outcome.GetError().GetErrorType();
+     auto result = EC2ErrorConverter::ConvertEC2Error(
+@@ -512,35 +495,35 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
+     return;
+   }
+ 
+-  get_tags_context.response = make_shared<GetTagsByResourceNameResponse>();
+-  auto* tags = get_tags_context.response->mutable_tags();
++  get_tags_context.response = std::make_shared<GetTagsByResourceNameResponse>();
++  auto& tags = *get_tags_context.response->mutable_tags();
+ 
+   for (const auto& tag : outcome.GetResult().GetTags()) {
+-    tags->insert(MapPair(tag.GetKey(), tag.GetValue()));
++    tags[tag.GetKey()] = tag.GetValue();
+   }
+ 
+   FinishContext(SuccessExecutionResult(), get_tags_context,
+                 cpu_async_executor_);
+ }
+ 
+-ExecutionResultOr<shared_ptr<EC2Client>> AwsEC2ClientFactory::CreateClient(
+-    const string& region,
+-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
++ExecutionResultOr<std::shared_ptr<EC2Client>> AwsEC2ClientFactory::CreateClient(
++    const std::string& region,
++    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+   auto client_config =
+-      common::CreateClientConfiguration(make_shared<string>(region));
++      common::CreateClientConfiguration(std::make_shared<std::string>(region));
+   client_config->maxConnections = kMaxConcurrentConnections;
+-  client_config->executor = make_shared<AwsAsyncExecutor>(io_async_executor);
+-  return make_shared<EC2Client>(*client_config);
++  client_config->executor = std::make_shared<AwsAsyncExecutor>(io_async_executor);
++  return std::make_shared<EC2Client>(*client_config);
+ }
+ 
+-shared_ptr<InstanceClientProviderInterface>
++std::shared_ptr<InstanceClientProviderInterface>
+ InstanceClientProviderFactory::Create(
+-    const shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
+-    const shared_ptr<HttpClientInterface>& http1_client,
+-    const shared_ptr<HttpClientInterface>& http2_client,
+-    const shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
+-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) {
+-  return make_shared<AwsInstanceClientProvider>(
++    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
++    const std::shared_ptr<HttpClientInterface>& http1_client,
++    const std::shared_ptr<HttpClientInterface>& http2_client,
++    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
++    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
++  return std::make_shared<AwsInstanceClientProvider>(
+       auth_token_provider, http1_client, cpu_async_executor, io_async_executor);
+ }
+ }  // namespace google::scp::cpio::client_providers
