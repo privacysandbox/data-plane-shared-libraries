@@ -741,3 +741,58 @@ index 3b5b92c..1bc862e 100644
        auth_token_provider, http1_client, cpu_async_executor, io_async_executor);
  }
  }  // namespace google::scp::cpio::client_providers
+diff --git a/cc/roma/ipc/src/work_container.cc b/cc/roma/ipc/src/work_container.cc
+index 16805ef..9dca21c 100644
+--- a/cc/roma/ipc/src/work_container.cc
++++ b/cc/roma/ipc/src/work_container.cc
+@@ -16,15 +16,13 @@
+ 
+ #include "work_container.h"
+ 
++#include <mutex>
+ #include <utility>
+ 
+ using google::scp::core::ExecutionResult;
+ using google::scp::core::FailureExecutionResult;
+ using google::scp::core::SuccessExecutionResult;
+ using google::scp::core::errors::SC_ROMA_WORK_CONTAINER_STOPPED;
+-using std::lock_guard;
+-using std::move;
+-using std::unique_ptr;
+ 
+ namespace google::scp::roma::ipc {
+ 
+@@ -33,12 +31,12 @@ ExecutionResult WorkContainer::TryAcquireAdd() {
+   return space_available_semaphore_.TryWait();
+ }
+ 
+-ExecutionResult WorkContainer::Add(unique_ptr<WorkItem> work_item) {
++ExecutionResult WorkContainer::Add(std::unique_ptr<WorkItem> work_item) {
+   auto ctx = SharedMemoryPool::SwitchTo(mem_pool_);
+ 
+   {
+-    lock_guard lock(add_item_mutex_);
+-    items_[add_index_++] = move(work_item);
++    std::lock_guard lock(add_item_mutex_);
++    items_[add_index_++] = std::move(work_item);
+     add_index_ = add_index_ % capacity_;
+   }
+ 
+@@ -73,7 +71,7 @@ ExecutionResult WorkContainer::CompleteRequest(
+     std::unique_ptr<Response> response) {
+   auto ctx = SharedMemoryPool::SwitchTo(mem_pool_);
+ 
+-  items_[acquire_index_++]->Complete(move(response));
++  items_[acquire_index_++]->Complete(std::move(response));
+   acquire_index_ = acquire_index_ % capacity_;
+ 
+   complete_semaphore_.Signal();
+@@ -81,7 +79,7 @@ ExecutionResult WorkContainer::CompleteRequest(
+   return SuccessExecutionResult();
+ }
+ 
+-ExecutionResult WorkContainer::GetCompleted(unique_ptr<WorkItem>& work_item) {
++ExecutionResult WorkContainer::GetCompleted(std::unique_ptr<WorkItem>& work_item) {
+   auto ctx = SharedMemoryPool::SwitchTo(mem_pool_);
+ 
+   // We need to check the stop flag twice. This is so that if the semaphore is
