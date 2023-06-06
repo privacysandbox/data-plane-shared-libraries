@@ -40,7 +40,7 @@ TEST(EncodingUtilsTest, EncodeResponsePayloadSuccess) {
   EXPECT_EQ(absl::BytesToHexString(actual.value()).substr(0, expected.length()),
             expected);
   // The actual value should be encoded and padded to 128 bytes.
-  EXPECT_EQ(128, actual.value().size());
+  EXPECT_EQ(actual.value().size(), 128);
 }
 
 TEST(EncodingUtilsTest, EncodeResponsePayloadFailure_PayloadTooLargeToEncode) {
@@ -52,15 +52,26 @@ TEST(EncodingUtilsTest, EncodeResponsePayloadFailure_PayloadTooLargeToEncode) {
   ASSERT_TRUE(absl::IsInternal(actual.status()));
 }
 
+TEST(EncodingUtilsTest, DecodeMaxVersionMaxZipPayloadSuccess) {
+  const std::string expected_compressed_message = "payload";
+  const std::string encoded_payload = "FF000000077061796c6f6164";
+  const absl::StatusOr<DecodedRequest> decoded_payload(
+      DecodeRequestPayload(absl::HexStringToBytes(encoded_payload)));
+
+  EXPECT_EQ(decoded_payload->framing_version, 7);
+  EXPECT_EQ(static_cast<int>(decoded_payload->compression_type), 31);
+  EXPECT_EQ(decoded_payload->compressed_data, expected_compressed_message);
+}
+
 TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_NoPadding) {
   const std::string expected_compressed_message = "payload";
   const std::string encoded_payload = "01000000077061796c6f6164";
   const absl::StatusOr<DecodedRequest> decoded_payload(
       DecodeRequestPayload(absl::HexStringToBytes(encoded_payload)));
 
-  EXPECT_EQ(0, decoded_payload->framing_version);
-  EXPECT_EQ(CompressionType::kBrotli, decoded_payload->compression_type);
-  EXPECT_EQ(expected_compressed_message, decoded_payload->compressed_data);
+  EXPECT_EQ(decoded_payload->framing_version, 0);
+  EXPECT_EQ(decoded_payload->compression_type, CompressionType::kBrotli);
+  EXPECT_EQ(decoded_payload->compressed_data, expected_compressed_message);
 }
 
 TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_WithPadding) {
@@ -69,9 +80,9 @@ TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_WithPadding) {
   const absl::StatusOr<DecodedRequest> decoded_payload(
       DecodeRequestPayload(absl::HexStringToBytes(encoded_payload)));
 
-  EXPECT_EQ(0, decoded_payload->framing_version);
-  EXPECT_EQ(CompressionType::kBrotli, decoded_payload->compression_type);
-  EXPECT_EQ(expected_compressed_message, decoded_payload->compressed_data);
+  EXPECT_EQ(decoded_payload->framing_version, 0);
+  EXPECT_EQ(decoded_payload->compression_type, CompressionType::kBrotli);
+  EXPECT_EQ(decoded_payload->compressed_data, expected_compressed_message);
 }
 
 TEST(EncodingUtilsTest, DecodeRequestPayloadFailure_MalformedPayload) {

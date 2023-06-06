@@ -14,6 +14,8 @@
 
 #include "src/cpp/communication/encoding_utils.h"
 
+#include <math.h>
+
 #include <memory>
 #include <string>
 
@@ -72,7 +74,8 @@ absl::StatusOr<DecodedRequest> DecodeRequestPayload(absl::string_view payload) {
   }
 
   const int version_num = first_byte >> kNumCompressionTypeBits;
-  const int compression_type = first_byte & kNumCompressionTypeBits;
+  const int compression_type =
+      first_byte & ((int)pow(2, kNumCompressionTypeBits) - 1);
 
   uint32_t compressed_data_length;
   if (!reader.ReadUInt32(&compressed_data_length)) {

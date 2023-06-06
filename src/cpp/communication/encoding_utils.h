@@ -33,7 +33,6 @@ inline constexpr int kNumCompressionTypeBits = 8 - kNumFramingVersionBits;
 inline constexpr int kFramingVersionAndCompressionTypeSizeBytes = 1;
 inline constexpr int kCompressedDataSizeBytes = 4;
 
-// Remove once tg/1784417 is merged.
 enum class CompressionType { kUncompressed = 0, kBrotli, kGzip = 2 };
 
 struct DecodedRequest {
