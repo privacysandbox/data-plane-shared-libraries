@@ -45,7 +45,7 @@ class KeyFetcherManagerTest : public ::testing::Test {
     grpc_init();
     event_engine_ = grpc_event_engine::experimental::CreateEventEngine();
     grpc_shutdown();
-    executor_ = std::make_shared<EventEngineExecutor>(event_engine_.get());
+    executor_ = std::make_shared<EventEngineExecutor>(std::move(event_engine_));
   }
 
   std::unique_ptr<grpc_event_engine::experimental::EventEngine> event_engine_;
@@ -72,7 +72,10 @@ TEST_F(KeyFetcherManagerTest, SuccessfulRefresh) {
   EXPECT_CALL(*private_key_fetcher, Refresh)
       .WillRepeatedly(
           [&](const std::vector<google::scp::cpio::PublicPrivateKeyPairId>& ids)
-              -> void { EXPECT_EQ(key_ids, ids); });
+              -> absl::Status {
+            EXPECT_EQ(key_ids, ids);
+            return absl::OkStatus();
+          });
 
   KeyFetcherManager manager(absl::Minutes(1), std::move(public_key_fetcher),
                             std::move(private_key_fetcher),
@@ -108,7 +111,10 @@ TEST_F(KeyFetcherManagerTest, SuccessfulPublicKeyRefreshNoPrivateKeysToFetch) {
   EXPECT_CALL(*private_key_fetcher, Refresh)
       .WillRepeatedly(
           [&](const std::vector<google::scp::cpio::PublicPrivateKeyPairId>& ids)
-              -> void { EXPECT_EQ(key_ids, ids); });
+              -> absl::Status {
+            EXPECT_EQ(key_ids, ids);
+            return absl::OkStatus();
+          });
 
   KeyFetcherManager manager(absl::Minutes(1), std::move(public_key_fetcher),
                             std::move(private_key_fetcher),

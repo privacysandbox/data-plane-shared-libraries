@@ -42,7 +42,7 @@ class KeyFetcherManagerInterface {
 
   // Fetches the corresponding private key for a public key ID.
   virtual std::optional<PrivateKey> GetPrivateKey(
-      google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept = 0;
+      const google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept = 0;
 
   // Queues key refresh jobs on the class' executor as often as defined by
   // 'key_refresh_period'.

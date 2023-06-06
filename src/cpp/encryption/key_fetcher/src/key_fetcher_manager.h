@@ -58,7 +58,8 @@ class KeyFetcherManager : public KeyFetcherManagerInterface {
 
   // Fetches the corresponding private key for a given key ID.
   std::optional<privacy_sandbox::server_common::PrivateKey> GetPrivateKey(
-      google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept override;
+      const google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept
+      override;
 
  private:
   void RunPeriodicKeyRefresh();

@@ -28,8 +28,8 @@
 
 namespace privacy_sandbox::server_common {
 
-// Implementation of KeyFetcherManagerInterface to be used for unit testing any
-// classes that have an instance of KeyFetcherManager as a dependency.
+// Implementation of KeyFetcherManagerInterface to be used for unit testing
+// any classes that have an instance of KeyFetcherManager as a dependency.
 class MockKeyFetcherManager : public KeyFetcherManagerInterface {
  public:
   virtual ~MockKeyFetcherManager() = default;
@@ -39,7 +39,8 @@ class MockKeyFetcherManager : public KeyFetcherManagerInterface {
       GetPublicKey, (), (noexcept));
 
   MOCK_METHOD(std::optional<PrivateKey>, GetPrivateKey,
-              (google::scp::cpio::PublicPrivateKeyPairId & key_id), (noexcept));
+              (const google::scp::cpio::PublicPrivateKeyPairId& key_id),
+              (noexcept));
 
   MOCK_METHOD(void, Start, (), (noexcept));
 };

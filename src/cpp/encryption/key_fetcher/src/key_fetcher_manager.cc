@@ -103,7 +103,7 @@ absl::StatusOr<PublicKey> KeyFetcherManager::GetPublicKey() noexcept {
 }
 
 std::optional<PrivateKey> KeyFetcherManager::GetPrivateKey(
-    google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept {
+    const google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept {
   return private_key_fetcher_->GetKey(key_id);
 }
 
