@@ -38,6 +38,15 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "telemetry_test",
+    srcs = ["telemetry_test.cc"],
+    deps = [
+        ":telemetry",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "metrics_recorder",
     srcs = [
@@ -69,15 +78,6 @@ cc_library(
         "@io_opentelemetry_cpp//sdk/src/metrics",
         "@io_opentelemetry_cpp//sdk/src/resource",
         "@io_opentelemetry_cpp//sdk/src/trace",
-    ],
-)
-
-cc_test(
-    name = "telemetry_provider_test",
-    srcs = ["telemetry_provider_test.cc"],
-    deps = [
-        ":telemetry_provider",
-        "@com_google_googletest//:gtest_main",
     ],
 )
 

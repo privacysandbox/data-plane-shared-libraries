@@ -12,19 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "telemetry_provider.h"
+#include "telemetry.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "opentelemetry/metrics/provider.h"
+
+#include "telemetry_provider.h"
 
 namespace privacy_sandbox::server_common {
 
 namespace {
 
-TEST(Init, WithoutTrace) {
-  TelemetryProvider::Init("service_name", "build_version", false);
-  EXPECT_TRUE(dynamic_cast<opentelemetry::trace::NoopTracer*>(
-      TelemetryProvider::GetInstance().GetTracer().get()));
+TEST(Init, WithoutTraceOrMetric) {
+  InitTelemetry("service_name", "build_version",
+                /*trace_enabled=*/false,
+                /*metric_enabled=*/false);
+  opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions options;
+  auto resource = opentelemetry::sdk::resource::Resource::GetDefault();
+  ConfigureMetrics(resource, options);
+  ConfigureTracer(resource);
+
+  EXPECT_TRUE(
+      dynamic_cast<opentelemetry::trace::NoopTracer*>(GetTracer().get()));
+  EXPECT_TRUE(dynamic_cast<opentelemetry::metrics::NoopMeterProvider*>(
+      opentelemetry::metrics::Provider::GetMeterProvider().get()));
 }
 
 }  // namespace

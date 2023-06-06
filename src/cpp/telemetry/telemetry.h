@@ -34,7 +34,7 @@ namespace privacy_sandbox::server_common {
 
 // Must be called to initialize telemetry functionality.
 void InitTelemetry(std::string service_name, std::string build_version,
-                   bool trace_enabled = true);
+                   bool trace_enabled = true, bool metric_enabled = true);
 
 // Must be called to initialize metrics functionality.
 // If `ConfigureMetrics` is not called, all metrics recording will be NoOp.

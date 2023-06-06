@@ -52,13 +52,17 @@ using opentelemetry::trace::TracerProvider;
 namespace privacy_sandbox::server_common {
 
 void InitTelemetry(std::string service_name, std::string build_version,
-                   bool trace_enabled) {
-  TelemetryProvider::Init(service_name, build_version, trace_enabled);
+                   bool trace_enabled, bool metric_enabled) {
+  TelemetryProvider::Init(service_name, build_version, trace_enabled,
+                          metric_enabled);
 }
 
 void ConfigureMetrics(
     Resource resource,
     const metric_sdk::PeriodicExportingMetricReaderOptions& options) {
+  if (!TelemetryProvider::GetInstance().metric_enabled()) {
+    return;
+  }
   auto reader = CreatePeriodicExportingMetricReader(options);
   std::shared_ptr<metrics_api::MeterProvider> provider =
       std::make_shared<metric_sdk::MeterProvider>(

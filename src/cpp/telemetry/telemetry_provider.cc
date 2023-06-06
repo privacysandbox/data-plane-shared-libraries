@@ -28,11 +28,13 @@ using opentelemetry::trace::Tracer;
 namespace privacy_sandbox::server_common {
 
 void TelemetryProvider::Init(std::string service_name,
-                             std::string build_version, bool trace_enabled) {
+                             std::string build_version, bool trace_enabled,
+                             bool metric_enabled) {
   auto& instance = TelemetryProvider::GetInstance();
   instance.service_name_ = std::move(service_name);
   instance.build_version_ = std::move(build_version);
   instance.trace_enabled_ = trace_enabled;
+  instance.metric_enabled_ = metric_enabled;
 }
 
 TelemetryProvider& TelemetryProvider::GetInstance() {
