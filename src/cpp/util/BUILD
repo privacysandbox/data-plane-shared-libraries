@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
@@ -37,34 +36,3 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
-
-selects.config_setting_group(
-    name = "local_otel_otlp",
-    match_all = [
-        "//:local_instance",
-        "//src/cpp/telemetry:local_otel_export_otlp",
-    ],
-)
-
-selects.config_setting_group(
-    name = "local_otel_ostream",
-    match_all = [
-        "//:local_instance",
-        "//src/cpp/telemetry:local_otel_export_ostream",
-    ],
-)
-
-local_defines = select({
-    "//:aws_instance": ["INSTANCE=\\\"aws\\\""],
-    "//:local_instance": ["INSTANCE=\\\"local\\\""],
-    "//conditions:default": ["INSTANCE=\\\"unknown\\\""],
-}) + select({
-    "//:aws_platform": ["PLATFORM=\\\"aws\\\""],
-    "//:local_platform": ["PLATFORM=\\\"local\\\""],
-    "//conditions:default": ["PLATFORM=\\\"unknown\\\""],
-}) + select({
-    "//:aws_instance": ["OTEL_EXPORT=\\\"xray\\\""],
-    ":local_otel_ostream": ["OTEL_EXPORT=\\\"ostream\\\""],
-    ":local_otel_otlp": ["OTEL_EXPORT=\\\"otlp\\\""],
-    "//conditions:default": ["OTEL_EXPORT=\\\"unknown\\\""],
-})
