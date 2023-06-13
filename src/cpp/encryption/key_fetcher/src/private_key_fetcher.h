@@ -48,9 +48,7 @@ class PrivateKeyFetcher : public PrivateKeyFetcherInterface {
   // Calls the Private Key Service to fetch and store the private keys for the
   // key IDs passed in the parameter. Refresh() will also clean up any keys
   // older than the ttl.
-  absl::Status Refresh(
-      const std::vector<google::scp::cpio::PublicPrivateKeyPairId>&
-          key_ids) noexcept override;
+  absl::Status Refresh() noexcept override;
 
   // Returns the corresponding PrivateKey, if present.
   std::optional<PrivateKey> GetKey(

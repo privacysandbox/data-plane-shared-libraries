@@ -74,18 +74,24 @@ TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
       .WillOnce(
           [&](ListPrivateKeysRequest request,
               Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
+            // We pass 1 hour as the TTL below when we construct the fetcher.
+            // For the first fetch, we should not be fetching all keys, not just
+            // the ones passed into the method.
+            EXPECT_EQ(request.max_age_seconds(),
+                      ToInt64Seconds(absl::Hours(1)));
+            EXPECT_EQ(0, request.key_ids().size());
             callback(SuccessExecutionResult(), response);
             return SuccessExecutionResult();
           });
 
   std::vector<PublicPrivateKeyPairId> key_ids = {"key_id"};
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client), absl::Hours(1));
-  fetcher.Refresh(key_ids);
+  fetcher.Refresh();
 
   // Verify all fields were initialized correctly.
-  EXPECT_EQ(fetcher.GetKey("key_id").value().key_id, "key_id");
-  EXPECT_EQ(fetcher.GetKey("key_id").value().private_key, "privkey");
-  EXPECT_TRUE(fetcher.GetKey("key_id").value().creation_time - absl::Now() <
+  EXPECT_EQ(fetcher.GetKey("key_id")->key_id, "key_id");
+  EXPECT_EQ(fetcher.GetKey("key_id")->private_key, "privkey");
+  EXPECT_TRUE(fetcher.GetKey("key_id")->creation_time - absl::Now() <
               absl::Minutes(1));
 }
 
@@ -124,9 +130,9 @@ TEST(PrivateKeyFetcherTest,
                             absl::Nanoseconds(1));
   // TTL is 1 nanosecond and we wait 1 millisecond to refresh, so the key is
   // booted from the cache.
-  fetcher.Refresh(key_ids);
+  fetcher.Refresh();
   absl::SleepFor(absl::Milliseconds(1));
-  fetcher.Refresh(key_ids);
+  fetcher.Refresh();
 
   EXPECT_FALSE(fetcher.GetKey("key_id").has_value());
 }
@@ -164,9 +170,9 @@ TEST(PrivateKeyFetcherTest, UnsuccessfulSyncPKSCall_CleansOldKeys) {
                             absl::Nanoseconds(1));
   // TTL is 1 nanosecond and we wait 1 millisecond to refresh, so the key is
   // booted from the cache.
-  fetcher.Refresh(key_ids);
+  fetcher.Refresh();
   absl::SleepFor(absl::Milliseconds(1));
-  fetcher.Refresh(key_ids);
+  fetcher.Refresh();
 
   EXPECT_FALSE(fetcher.GetKey("key_id").has_value());
 }

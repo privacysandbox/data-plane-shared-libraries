@@ -49,9 +49,7 @@ class PrivateKeyFetcherInterface {
   virtual ~PrivateKeyFetcherInterface() = default;
 
   // Fetches and store the private keys for the key IDs passed into the method.
-  virtual absl::Status Refresh(
-      const std::vector<google::scp::cpio::PublicPrivateKeyPairId>&
-          key_ids) noexcept = 0;
+  virtual absl::Status Refresh() noexcept = 0;
 
   // Returns the corresponding PrivateKey, if present.
   virtual std::optional<PrivateKey> GetKey(

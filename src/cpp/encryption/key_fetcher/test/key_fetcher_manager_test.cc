@@ -70,12 +70,7 @@ TEST_F(KeyFetcherManagerTest, SuccessfulRefresh) {
             return key_ids;
           });
   EXPECT_CALL(*private_key_fetcher, Refresh)
-      .WillRepeatedly(
-          [&](const std::vector<google::scp::cpio::PublicPrivateKeyPairId>& ids)
-              -> absl::Status {
-            EXPECT_EQ(key_ids, ids);
-            return absl::OkStatus();
-          });
+      .WillRepeatedly([&]() -> absl::Status { return absl::OkStatus(); });
 
   KeyFetcherManager manager(absl::Minutes(1), std::move(public_key_fetcher),
                             std::move(private_key_fetcher),
@@ -109,12 +104,7 @@ TEST_F(KeyFetcherManagerTest, SuccessfulPublicKeyRefreshNoPrivateKeysToFetch) {
             return std::optional<PrivateKey>();
           });
   EXPECT_CALL(*private_key_fetcher, Refresh)
-      .WillRepeatedly(
-          [&](const std::vector<google::scp::cpio::PublicPrivateKeyPairId>& ids)
-              -> absl::Status {
-            EXPECT_EQ(key_ids, ids);
-            return absl::OkStatus();
-          });
+      .WillRepeatedly([&]() -> absl::Status { return absl::OkStatus(); });
 
   KeyFetcherManager manager(absl::Minutes(1), std::move(public_key_fetcher),
                             std::move(private_key_fetcher),

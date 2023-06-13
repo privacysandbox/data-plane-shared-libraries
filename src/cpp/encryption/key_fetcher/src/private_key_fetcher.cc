@@ -79,11 +79,10 @@ PrivateKeyFetcher::~PrivateKeyFetcher() {
   VLOG_IF(-1, !result.Successful()) << GetErrorMessage(result.status_code);
 }
 
-absl::Status PrivateKeyFetcher::Refresh(
-    const std::vector<PublicPrivateKeyPairId>& key_ids) noexcept
-    ABSL_LOCKS_EXCLUDED(mutex_) {
+absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   ListPrivateKeysRequest request;
-  request.mutable_key_ids()->Add(key_ids.begin(), key_ids.end());
+  request.set_max_age_seconds(ToInt64Seconds(ttl_));
+
   std::shared_ptr<absl::Notification> private_key_fetch_notification =
       std::make_shared<absl::Notification>();
   ExecutionResult result = private_key_client_.get()->ListPrivateKeys(

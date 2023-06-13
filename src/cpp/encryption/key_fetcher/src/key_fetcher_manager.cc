@@ -81,9 +81,7 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
       }
     }
 
-    if (!public_key_ids.empty()) {
-      private_key_fetcher_->Refresh(public_key_ids);
-    }
+    private_key_fetcher_->Refresh();
   };
 
   if (!shutdown_requested_.HasBeenNotified()) {
