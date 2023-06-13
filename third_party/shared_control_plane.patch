@@ -1,8 +1,8 @@
 diff --git a/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD b/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
-index 4848df8..d139a98 100644
+index 9a257ad86..d576bcd9d 100644
 --- a/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
 +++ b/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
-@@ -274,3 +274,57 @@ genrule(
+@@ -288,3 +288,57 @@ genrule(
      ],
      cmd_bash = "touch '$@'",
  )
@@ -61,7 +61,7 @@ index 4848df8..d139a98 100644
 +)
 +
 diff --git a/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl b/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
-index 1bdbf81..9b1644e 100644
+index 1bdbf8172..9b1644eab 100644
 --- a/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
 +++ b/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
 @@ -15,14 +15,14 @@
@@ -91,7 +91,7 @@ index 1bdbf81..9b1644e 100644
              """sed -i.bak 's/UUID::RandomUUID/Aws::Utils::UUID::RandomUUID/g' aws-cpp-sdk-core/source/client/AWSClient.cpp""",
              # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
 diff --git a/build_defs/cc/sdk_common.bzl b/build_defs/cc/sdk_common.bzl
-index 4abcb8c..ed9a748 100644
+index 4abcb8c05..ed9a748fa 100644
 --- a/build_defs/cc/sdk_common.bzl
 +++ b/build_defs/cc/sdk_common.bzl
 @@ -12,7 +12,6 @@
@@ -119,7 +119,7 @@ index 4abcb8c..ed9a748 100644
      import_google_cloud_cpp()
      import_tink_git()
 diff --git a/build_defs/cc/sdk_source_code.bzl b/build_defs/cc/sdk_source_code.bzl
-index 7065a52..baa2cd2 100644
+index 7065a52fb..baa2cd2cc 100644
 --- a/build_defs/cc/sdk_source_code.bzl
 +++ b/build_defs/cc/sdk_source_code.bzl
 @@ -17,8 +17,10 @@ load("//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp
@@ -137,8 +137,21 @@ index 7065a52..baa2cd2 100644
 -    import_aws_nitro_enclaves_sdk()
 +    import_aws_nitro_enclaves_sdk()
 \ No newline at end of file
+diff --git a/build_defs/cc/sdk_static_lib.bzl b/build_defs/cc/sdk_static_lib.bzl
+index eec3909eb..aeef1866a 100644
+--- a/build_defs/cc/sdk_static_lib.bzl
++++ b/build_defs/cc/sdk_static_lib.bzl
+@@ -18,7 +18,7 @@ load("//build_defs/cc/aws:aws_nitro_enclaves_sdk_static_lib_deps.bzl", "import_a
+ load("//build_defs/cc:sdk_common.bzl", "sdk_common")
+ 
+ def sdk_dependencies(protobuf_version, protobuf_repo_hash):
+-    sdk_common(protobuf_version, protobuf_repo_hash)
++    sdk_common()
+     aws_c_common()
+     import_aws_sdk_cpp()
+     import_aws_nitro_enclaves_sdk()
 diff --git a/build_defs/cc/shared/bazel_rules_cpp.bzl b/build_defs/cc/shared/bazel_rules_cpp.bzl
-index 53fb88f..698516d 100644
+index 53fb88fef..698516d16 100644
 --- a/build_defs/cc/shared/bazel_rules_cpp.bzl
 +++ b/build_defs/cc/shared/bazel_rules_cpp.bzl
 @@ -20,16 +20,18 @@ def bazel_rules_cpp():
@@ -170,7 +183,7 @@ index 53fb88f..698516d 100644
 +        ],
      )
 diff --git a/build_defs/cc/shared/boringssl.bzl b/build_defs/cc/shared/boringssl.bzl
-index d811337..05a5eb9 100644
+index d811337f2..05a5eb903 100644
 --- a/build_defs/cc/shared/boringssl.bzl
 +++ b/build_defs/cc/shared/boringssl.bzl
 @@ -12,15 +12,15 @@
@@ -196,7 +209,7 @@ index d811337..05a5eb9 100644
 +        sha256 = "863fc670c456f30923740c1639305132fdfb9d1b25ba385a67ae3862ef12a8af",
      )
 diff --git a/build_defs/cc/shared/cc_utils.bzl b/build_defs/cc/shared/cc_utils.bzl
-index b4967de..d1b9a43 100644
+index b4967de6a..d1b9a4304 100644
 --- a/build_defs/cc/shared/cc_utils.bzl
 +++ b/build_defs/cc/shared/cc_utils.bzl
 @@ -24,6 +24,7 @@ def cc_utils():
@@ -208,7 +221,7 @@ index b4967de..d1b9a43 100644
  
      maybe(
 diff --git a/build_defs/cc/shared/nghttp2.bzl b/build_defs/cc/shared/nghttp2.bzl
-index 02e3b9e..f10171b 100644
+index 02e3b9e96..f10171bda 100644
 --- a/build_defs/cc/shared/nghttp2.bzl
 +++ b/build_defs/cc/shared/nghttp2.bzl
 @@ -15,6 +15,29 @@
@@ -242,7 +255,7 @@ index 02e3b9e..f10171b 100644
      maybe(
          http_archive,
 diff --git a/build_defs/cc/shared/rules_boost.patch b/build_defs/cc/shared/rules_boost.patch
-index a74e34e..7614b1f 100644
+index a74e34efb..7614b1f09 100644
 --- a/build_defs/cc/shared/rules_boost.patch
 +++ b/build_defs/cc/shared/rules_boost.patch
 @@ -15,7 +15,7 @@ diff --git a/boost/boost.bzl b/boost/boost.bzl
@@ -266,7 +279,7 @@ index a74e34e..7614b1f 100644
 -+#         url = "https://github.com/google/boringssl/archive/fc44652a42b396e1645d5e72aba053349992136a.tar.gz",
 -+#     )
 diff --git a/build_defs/cc/v8.bzl b/build_defs/cc/v8.bzl
-index d9e150e..35f6807 100644
+index d9e150e50..35f680731 100644
 --- a/build_defs/cc/v8.bzl
 +++ b/build_defs/cc/v8.bzl
 @@ -13,7 +13,7 @@
@@ -292,7 +305,7 @@ index d9e150e..35f6807 100644
  
      new_git_repository(
 diff --git a/build_defs/shared/absl.bzl b/build_defs/shared/absl.bzl
-index 08d29e6..c4ac383 100644
+index 08d29e682..c4ac383bd 100644
 --- a/build_defs/shared/absl.bzl
 +++ b/build_defs/shared/absl.bzl
 @@ -24,17 +24,19 @@ def absl():
@@ -323,7 +336,7 @@ index 08d29e6..c4ac383 100644
          ],
      )
 diff --git a/build_defs/shared/bazel_docker_rules.bzl b/build_defs/shared/bazel_docker_rules.bzl
-index 659ce26..96281a5 100644
+index 659ce26b1..96281a5d6 100644
 --- a/build_defs/shared/bazel_docker_rules.bzl
 +++ b/build_defs/shared/bazel_docker_rules.bzl
 @@ -12,7 +12,7 @@
@@ -346,7 +359,7 @@ index 659ce26..96281a5 100644
 +        urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz"],
      )
 diff --git a/build_defs/shared/bazel_rules_pkg.bzl b/build_defs/shared/bazel_rules_pkg.bzl
-index 7353b6f..40ee3aa 100644
+index 7353b6f54..40ee3aa51 100644
 --- a/build_defs/shared/bazel_rules_pkg.bzl
 +++ b/build_defs/shared/bazel_rules_pkg.bzl
 @@ -19,9 +19,9 @@ def bazel_rules_pkg():
@@ -363,7 +376,7 @@ index 7353b6f..40ee3aa 100644
          ],
      )
 diff --git a/build_defs/shared/golang.bzl b/build_defs/shared/golang.bzl
-index 05bae65..401f328 100644
+index 05bae654d..401f328a3 100644
 --- a/build_defs/shared/golang.bzl
 +++ b/build_defs/shared/golang.bzl
 @@ -23,13 +23,12 @@ def go_deps():
@@ -384,7 +397,7 @@ index 05bae65..401f328 100644
          http_archive,
          name = "bazel_gazelle",
 diff --git a/build_defs/shared/grpc.bzl b/build_defs/shared/grpc.bzl
-index 781666d..025e3dd 100644
+index 781666d1d..025e3dd40 100644
 --- a/build_defs/shared/grpc.bzl
 +++ b/build_defs/shared/grpc.bzl
 @@ -23,9 +23,9 @@ def grpc():
@@ -401,7 +414,7 @@ index 781666d..025e3dd 100644
          ],
      )
 diff --git a/cc/aws/proxy/src/proxify.cc b/cc/aws/proxy/src/proxify.cc
-index 70c9334..cf986a9 100644
+index 70c9334d0..cf986a9de 100644
 --- a/cc/aws/proxy/src/proxify.cc
 +++ b/cc/aws/proxy/src/proxify.cc
 @@ -29,11 +29,15 @@ static constexpr char socket_vendor[] = "socket_vendor";
@@ -435,7 +448,7 @@ index 70c9334..cf986a9 100644
      exit(1);
    }
 diff --git a/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc b/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc
-index 3b5b92c..1bc862e 100644
+index 7545f644f..75ab3b388 100644
 --- a/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc
 +++ b/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc
 @@ -21,7 +21,6 @@
@@ -545,7 +558,7 @@ index 3b5b92c..1bc862e 100644
                 _1),
            request, response);
  
-@@ -203,7 +186,7 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
+@@ -204,7 +187,7 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
      return execution_result;
    }
  
@@ -554,7 +567,7 @@ index 3b5b92c..1bc862e 100644
  
    return SuccessExecutionResult();
  }
-@@ -214,8 +197,8 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceName(
+@@ -215,8 +198,8 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceName(
          get_resource_name_context) noexcept {
    AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
        get_token_context(
@@ -565,7 +578,7 @@ index 3b5b92c..1bc862e 100644
                 get_resource_name_context, _1));
    auto execution_result =
        auth_token_provider_->GetSessionToken(get_token_context);
-@@ -246,18 +229,18 @@ void AwsInstanceClientProvider::OnGetSessionTokenCallback(
+@@ -248,18 +231,18 @@ void AwsInstanceClientProvider::OnGetSessionTokenCallback(
      return;
    }
  
@@ -590,7 +603,7 @@ index 3b5b92c..1bc862e 100644
             get_resource_name_context, _1));
  
    auto execution_result = http1_client_->PerformRequest(http_context);
-@@ -318,26 +301,26 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
+@@ -321,26 +304,26 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
    }
  
    auto resource_name = absl::StrFormat(
@@ -623,7 +636,7 @@ index 3b5b92c..1bc862e 100644
                 this, _1),
            request, response);
  
-@@ -349,7 +332,7 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
+@@ -353,7 +336,7 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
      return execution_result;
    }
  
@@ -632,7 +645,7 @@ index 3b5b92c..1bc862e 100644
  
    return SuccessExecutionResult();
  }
-@@ -390,7 +373,7 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceName(
+@@ -394,7 +377,7 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceName(
    (*ec2_client_or)
        ->DescribeInstancesAsync(
            request,
@@ -641,7 +654,7 @@ index 3b5b92c..1bc862e 100644
                 this, get_details_context, _1, _2, _3, _4));
  
    return SuccessExecutionResult();
-@@ -401,7 +384,7 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
+@@ -405,7 +388,7 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
                   GetInstanceDetailsByResourceNameResponse>& get_details_context,
      const EC2Client*, const DescribeInstancesRequest&,
      const DescribeInstancesOutcome& outcome,
@@ -650,7 +663,7 @@ index 3b5b92c..1bc862e 100644
    if (!outcome.IsSuccess()) {
      const auto& error_type = outcome.GetError().GetErrorType();
      auto result = EC2ErrorConverter::ConvertEC2Error(
-@@ -432,7 +415,7 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
+@@ -436,7 +419,7 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
        outcome.GetResult().GetReservations()[0].GetInstances()[0];
  
    get_details_context.response =
@@ -659,7 +672,7 @@ index 3b5b92c..1bc862e 100644
    auto* instance_details =
        get_details_context.response->mutable_instance_details();
  
-@@ -445,9 +428,9 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
+@@ -449,9 +432,9 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
        target_instance.GetPublicIpAddress().c_str());
  
    // Extract instance labels.
@@ -671,7 +684,7 @@ index 3b5b92c..1bc862e 100644
    }
  
    FinishContext(SuccessExecutionResult(), get_details_context,
-@@ -490,7 +473,7 @@ ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
+@@ -494,7 +477,7 @@ ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
  
    (*ec2_client_or)
        ->DescribeTagsAsync(
@@ -680,7 +693,7 @@ index 3b5b92c..1bc862e 100644
                          this, get_tags_context, _1, _2, _3, _4));
    return SuccessExecutionResult();
  }
-@@ -500,7 +483,7 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
+@@ -504,7 +487,7 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
          get_tags_context,
      const EC2Client*, const DescribeTagsRequest&,
      const DescribeTagsOutcome& outcome,
@@ -689,7 +702,7 @@ index 3b5b92c..1bc862e 100644
    if (!outcome.IsSuccess()) {
      const auto& error_type = outcome.GetError().GetErrorType();
      auto result = EC2ErrorConverter::ConvertEC2Error(
-@@ -512,35 +495,35 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
+@@ -516,35 +499,35 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
      return;
    }
  
@@ -742,7 +755,7 @@ index 3b5b92c..1bc862e 100644
  }
  }  // namespace google::scp::cpio::client_providers
 diff --git a/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc b/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc
-index d9b2e71..537973b 100644
+index 1ef6085ca..3f853214e 100644
 --- a/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc
 +++ b/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc
 @@ -49,7 +49,6 @@ using google::cmrt::sdk::instance_service::v1::
@@ -753,7 +766,7 @@ index d9b2e71..537973b 100644
  using google::scp::core::AsyncContext;
  using google::scp::core::AsyncExecutorInterface;
  using google::scp::core::ExecutionResult;
-@@ -475,13 +474,10 @@ void GcpInstanceClientProvider::OnGetTagsByResourceNameCallback(
+@@ -476,13 +475,10 @@ void GcpInstanceClientProvider::OnGetTagsByResourceNameCallback(
    }
  
    get_tags_context.response = make_shared<GetTagsByResourceNameResponse>();
@@ -769,7 +782,7 @@ index d9b2e71..537973b 100644
    get_tags_context.result = SuccessExecutionResult();
    get_tags_context.Finish();
  }
-@@ -683,11 +679,11 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
+@@ -686,11 +682,11 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
    // Extract instance labels.
    auto labels = json_response.find(kInstanceLabelsKey);
    if (labels != json_response.end()) {
@@ -785,7 +798,7 @@ index d9b2e71..537973b 100644
    }
  
 diff --git a/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc b/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc
-index ad225e7..56ba6d6 100644
+index ad225e7cc..56ba6d6d9 100644
 --- a/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc
 +++ b/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc
 @@ -65,7 +65,6 @@ using google::cmrt::sdk::instance_service::v1::
@@ -797,7 +810,7 @@ index ad225e7..56ba6d6 100644
  using google::scp::core::BytesBuffer;
  using google::scp::core::ExecutionResult;
 diff --git a/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc b/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc
-index 66c76a6..0acfa1d 100644
+index 66c76a618..0acfa1d01 100644
 --- a/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc
 +++ b/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc
 @@ -38,7 +38,6 @@ using google::cloud::StatusCode;
@@ -823,31 +836,8 @@ index 66c76a6..0acfa1d 100644
  
    for (auto& time_series : time_series_list) {
      time_series.mutable_resource()->CopyFrom(resource);
-diff --git a/cc/cpio/client_providers/metric_client_provider/src/utils/metric_utils.h b/cc/cpio/client_providers/metric_client_provider/src/utils/metric_utils.h
-index 6e75b57..8eab52a 100644
---- a/cc/cpio/client_providers/metric_client_provider/src/utils/metric_utils.h
-+++ b/cc/cpio/client_providers/metric_client_provider/src/utils/metric_utils.h
-@@ -51,15 +51,15 @@ class MetricUtils {
-     metric->set_unit(MetricClientUtils::ConvertToMetricUnitProto(final_unit));
- 
-     // Adds the labels from metric_info and additional_labels.
--    auto labels = metric->mutable_labels();
-+    auto& labels = *metric->mutable_labels();
-     if (metric_info->labels) {
-       for (const auto& label : *metric_info->labels) {
--        labels->insert(protobuf::MapPair(label.first, label.second));
-+        labels[label.first] = label.second;
-       }
-     }
-     if (metric_tag && metric_tag->additional_labels) {
-       for (const auto& label : *metric_tag->additional_labels) {
--        labels->insert(protobuf::MapPair(label.first, label.second));
-+        labels[label.first] = label.second;
-       }
-     }
-     *metric->mutable_timestamp() = protobuf::util::TimeUtil::GetCurrentTime();
 diff --git a/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc b/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc
-index 445cf52..dc47efd 100644
+index 445cf52ec..dc47efd03 100644
 --- a/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc
 +++ b/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc
 @@ -41,7 +41,6 @@ using Aws::CloudWatch::Model::StandardUnitMapper::GetStandardUnitForName;
@@ -873,7 +863,7 @@ index 445cf52..dc47efd 100644
  
    bool parse_request_to_datum_is_called = false;
 diff --git a/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc b/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc
-index d294c93..683f286 100644
+index d294c935c..683f28659 100644
 --- a/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc
 +++ b/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc
 @@ -37,7 +37,6 @@ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
@@ -897,7 +887,7 @@ index d294c93..683f286 100644
    vector<TimeSeries> time_series_list;
    auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
 diff --git a/cc/public/cpio/adapters/metric_client/src/metric_client.cc b/cc/public/cpio/adapters/metric_client/src/metric_client.cc
-index 7c96759..85763cf 100644
+index 9371319dd..9a2a0cb16 100644
 --- a/cc/public/cpio/adapters/metric_client/src/metric_client.cc
 +++ b/cc/public/cpio/adapters/metric_client/src/metric_client.cc
 @@ -38,7 +38,6 @@
@@ -909,7 +899,7 @@ index 7c96759..85763cf 100644
  using google::scp::core::AsyncContext;
  using google::scp::core::AsyncExecutorInterface;
 diff --git a/cc/public/cpio/examples/local_metric_client_test.cc b/cc/public/cpio/examples/local_metric_client_test.cc
-index bdd40dc..13f8081 100644
+index bdd40dca5..13f8081c3 100644
 --- a/cc/public/cpio/examples/local_metric_client_test.cc
 +++ b/cc/public/cpio/examples/local_metric_client_test.cc
 @@ -29,7 +29,6 @@
@@ -932,7 +922,7 @@ index bdd40dc..13f8081 100644
    atomic<bool> finished = false;
    result = metric_client->PutMetrics(
 diff --git a/cc/public/cpio/examples/metric_client_test.cc b/cc/public/cpio/examples/metric_client_test.cc
-index e201e64..037d17b 100644
+index e201e6443..037d17ba6 100644
 --- a/cc/public/cpio/examples/metric_client_test.cc
 +++ b/cc/public/cpio/examples/metric_client_test.cc
 @@ -29,7 +29,6 @@
@@ -954,8 +944,31 @@ index e201e64..037d17b 100644
  
    atomic<bool> finished = false;
    result = metric_client->PutMetrics(
+diff --git a/cc/public/cpio/utils/metric_aggregation/src/metric_utils.h b/cc/public/cpio/utils/metric_aggregation/src/metric_utils.h
+index 96e82852a..e7c73f7dc 100644
+--- a/cc/public/cpio/utils/metric_aggregation/src/metric_utils.h
++++ b/cc/public/cpio/utils/metric_aggregation/src/metric_utils.h
+@@ -53,15 +53,15 @@ class MetricUtils {
+             final_unit));
+ 
+     // Adds the labels from metric_info and additional_labels.
+-    auto labels = metric->mutable_labels();
++    auto& labels = *metric->mutable_labels();
+     if (metric_info->labels) {
+       for (const auto& label : *metric_info->labels) {
+-        labels->insert(protobuf::MapPair(label.first, label.second));
++        labels[label.first] = label.second;
+       }
+     }
+     if (metric_tag && metric_tag->additional_labels) {
+       for (const auto& label : *metric_tag->additional_labels) {
+-        labels->insert(protobuf::MapPair(label.first, label.second));
++        labels[label.first] = label.second;
+       }
+     }
+     *metric->mutable_timestamp() = protobuf::util::TimeUtil::GetCurrentTime();
 diff --git a/cc/roma/ipc/src/work_container.cc b/cc/roma/ipc/src/work_container.cc
-index 16805ef..9dca21c 100644
+index 4c7290dd5..6204f157d 100644
 --- a/cc/roma/ipc/src/work_container.cc
 +++ b/cc/roma/ipc/src/work_container.cc
 @@ -16,15 +16,13 @@
