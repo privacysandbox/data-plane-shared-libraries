@@ -43,6 +43,18 @@ cc_library(
 )
 
 cc_library(
+    name = "fake_key_fetcher_manager",
+    srcs = ["fake_key_fetcher_manager.cc"],
+    hdrs = ["fake_key_fetcher_manager.h"],
+    deps = [
+        "//src/cpp/encryption/key_fetcher/interface:key_fetcher_manager_interface",
+        "//src/cpp/encryption/key_fetcher/interface:private_key_fetcher_interface",
+        "//src/cpp/encryption/key_fetcher/interface:public_key_fetcher_interface",
+        "@com_github_google_glog//:glog",
+    ],
+)
+
+cc_library(
     name = "key_fetcher_manager",
     srcs = ["key_fetcher_manager.cc"],
     hdrs = ["key_fetcher_manager.h"],
