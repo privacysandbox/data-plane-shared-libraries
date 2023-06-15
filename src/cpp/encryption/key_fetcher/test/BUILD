@@ -54,3 +54,15 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "key_fetcher_utils_test",
+    size = "small",
+    srcs = ["key_fetcher_utils_test.cc"],
+    deps = [
+        "//src/cpp/encryption/key_fetcher/src:key_fetcher_utils",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

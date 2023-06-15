@@ -21,6 +21,7 @@
 #include "include/gtest/gtest.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/public_key_client/public_key_client_interface.h"
+#include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
 
 namespace privacy_sandbox::server_common {
 namespace {
@@ -62,7 +63,7 @@ TEST(PublicKeyFetcherTest, SuccessfulRefresh) {
       std::make_unique<MockPublicKeyClient>();
 
   PublicKey key;
-  key.set_key_id("key_id");
+  key.set_key_id("0000000");
   key.set_public_key("key_pubkey");
   ListPublicKeysResponse response;
   response.mutable_public_keys()->Add(std::move(key));
@@ -81,7 +82,7 @@ TEST(PublicKeyFetcherTest, SuccessfulRefresh) {
   EXPECT_TRUE(result_status.ok());
 
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
-  key_pair_ids.push_back(response.public_keys().at(0).key_id());
+  key_pair_ids.push_back(ToOhttpKeyId(response.public_keys().at(0).key_id()));
   EXPECT_EQ(fetcher.GetKeyIds(), key_pair_ids);
 }
 
@@ -135,7 +136,7 @@ TEST(PublicKeyFetcherTest, VerifyGetKeyReturnsRandomKey) {
   for (int i = 0; i < 100; i++) {
     std::string i_str = std::to_string(i);
     PublicKey key;
-    key.set_key_id("key_id" + i_str);
+    key.set_key_id(i_str + "00000000");
     key.set_public_key("key_pubkey");
     keys.push_back(key);
   }

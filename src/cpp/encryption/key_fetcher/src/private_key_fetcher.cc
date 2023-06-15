@@ -27,6 +27,7 @@
 #include "cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "cc/public/cpio/interface/private_key_client/type_def.h"
 #include "glog/logging.h"
+#include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
@@ -93,11 +94,12 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
         if (result.Successful()) {
           absl::MutexLock l(mu);
           for (const auto& private_key : response.private_keys()) {
-            PrivateKey key = {private_key.key_id(), private_key.private_key(),
+            PrivateKey key = {ToOhttpKeyId(private_key.key_id()),
+                              private_key.private_key(),
                               ProtoToAbslDuration(private_key.creation_time())};
             keys_map->insert_or_assign(key.key_id, key);
             VLOG(3) << absl::StrFormat("Cached private key: (ID: %s)",
-                                       private_key.key_id());
+                                       key.key_id);
           }
         } else {
           static_cast<void>(

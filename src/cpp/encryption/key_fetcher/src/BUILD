@@ -21,6 +21,7 @@ cc_library(
     srcs = ["public_key_fetcher.cc"],
     hdrs = ["public_key_fetcher.h"],
     deps = [
+        ":key_fetcher_utils",
         "//src/cpp/encryption/key_fetcher/interface:public_key_fetcher_interface",
         "@com_github_google_glog//:glog",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -35,6 +36,7 @@ cc_library(
     srcs = ["private_key_fetcher.cc"],
     hdrs = ["private_key_fetcher.h"],
     deps = [
+        ":key_fetcher_utils",
         "//src/cpp/encryption/key_fetcher/interface:private_key_fetcher_interface",
         "@com_github_google_glog//:glog",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -67,5 +69,14 @@ cc_library(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/strings:str_format",
+    ],
+)
+
+cc_library(
+    name = "key_fetcher_utils",
+    srcs = ["key_fetcher_utils.cc"],
+    hdrs = ["key_fetcher_utils.h"],
+    deps = [
+        "@com_google_absl//absl/strings",
     ],
 )

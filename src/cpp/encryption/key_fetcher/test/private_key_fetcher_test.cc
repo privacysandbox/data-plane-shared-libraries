@@ -64,7 +64,7 @@ TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
 
   ListPrivateKeysResponse response;
   google::cmrt::sdk::private_key_service::v1::PrivateKey key;
-  key.set_key_id("key_id");
+  key.set_key_id("FF0000000");
   key.set_public_key("pubkey");
   key.set_private_key("privkey");
   key.mutable_creation_time()->set_seconds(ToUnixSeconds(absl::Now()));
@@ -84,14 +84,14 @@ TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
             return SuccessExecutionResult();
           });
 
-  std::vector<PublicPrivateKeyPairId> key_ids = {"key_id"};
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client), absl::Hours(1));
   fetcher.Refresh();
 
   // Verify all fields were initialized correctly.
-  EXPECT_EQ(fetcher.GetKey("key_id")->key_id, "key_id");
-  EXPECT_EQ(fetcher.GetKey("key_id")->private_key, "privkey");
-  EXPECT_TRUE(fetcher.GetKey("key_id")->creation_time - absl::Now() <
+  EXPECT_TRUE(fetcher.GetKey("255").has_value());
+  EXPECT_EQ(fetcher.GetKey("255")->key_id, "255");
+  EXPECT_EQ(fetcher.GetKey("255")->private_key, "privkey");
+  EXPECT_TRUE(fetcher.GetKey("255")->creation_time - absl::Now() <
               absl::Minutes(1));
 }
 
@@ -108,7 +108,7 @@ TEST(PrivateKeyFetcherTest,
               Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
             ListPrivateKeysResponse response;
             google::cmrt::sdk::private_key_service::v1::PrivateKey key;
-            key.set_key_id("key_id");
+            key.set_key_id("000000");
             key.set_public_key("pubkey");
             key.set_private_key("privkey");
             key.mutable_creation_time()->set_seconds(
@@ -125,7 +125,6 @@ TEST(PrivateKeyFetcherTest,
             return SuccessExecutionResult();
           });
 
-  std::vector<PublicPrivateKeyPairId> key_ids = {"key_id"};
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client),
                             absl::Nanoseconds(1));
   // TTL is 1 nanosecond and we wait 1 millisecond to refresh, so the key is
@@ -134,7 +133,7 @@ TEST(PrivateKeyFetcherTest,
   absl::SleepFor(absl::Milliseconds(1));
   fetcher.Refresh();
 
-  EXPECT_FALSE(fetcher.GetKey("key_id").has_value());
+  EXPECT_FALSE(fetcher.GetKey("000000").has_value());
 }
 
 TEST(PrivateKeyFetcherTest, UnsuccessfulSyncPKSCall_CleansOldKeys) {
@@ -149,7 +148,7 @@ TEST(PrivateKeyFetcherTest, UnsuccessfulSyncPKSCall_CleansOldKeys) {
               Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
             ListPrivateKeysResponse response;
             google::cmrt::sdk::private_key_service::v1::PrivateKey key;
-            key.set_key_id("key_id");
+            key.set_key_id("000000");
             key.set_public_key("pubkey");
             key.set_private_key("privkey");
             key.mutable_creation_time()->set_seconds(
@@ -165,7 +164,6 @@ TEST(PrivateKeyFetcherTest, UnsuccessfulSyncPKSCall_CleansOldKeys) {
             return FailureExecutionResult(0);
           });
 
-  std::vector<PublicPrivateKeyPairId> key_ids = {"key_id"};
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client),
                             absl::Nanoseconds(1));
   // TTL is 1 nanosecond and we wait 1 millisecond to refresh, so the key is
@@ -174,7 +172,7 @@ TEST(PrivateKeyFetcherTest, UnsuccessfulSyncPKSCall_CleansOldKeys) {
   absl::SleepFor(absl::Milliseconds(1));
   fetcher.Refresh();
 
-  EXPECT_FALSE(fetcher.GetKey("key_id").has_value());
+  EXPECT_FALSE(fetcher.GetKey("000000").has_value());
 }
 
 }  // namespace

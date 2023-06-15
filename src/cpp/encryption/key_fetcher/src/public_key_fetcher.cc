@@ -31,6 +31,7 @@
 #include "cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "cc/public/cpio/interface/public_key_client/type_def.h"
 #include "glog/logging.h"
+#include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
 
 namespace privacy_sandbox::server_common {
 
@@ -76,8 +77,14 @@ absl::Status PublicKeyFetcher::Refresh(
           ExecutionResult execution_result, ListPublicKeysResponse response) {
         if (execution_result.Successful()) {
           mutex_.Lock();
-          public_keys_ = std::vector<PublicKey>(response.public_keys().begin(),
-                                                response.public_keys().end());
+          public_keys_ = std::vector<PublicKey>();
+          for (const auto& key : response.public_keys()) {
+            PublicKey copy;
+            copy.set_key_id(ToOhttpKeyId(key.key_id()));
+            copy.set_public_key(key.public_key());
+            public_keys_.push_back(copy);
+          }
+
           mutex_.Unlock();
 
           std::vector<PublicPrivateKeyPairId> key_ids = GetKeyIds();
