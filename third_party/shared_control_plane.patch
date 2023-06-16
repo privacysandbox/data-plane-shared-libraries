@@ -967,3 +967,15 @@ index 96e82852a..e7c73f7dc 100644
        }
      }
      *metric->mutable_timestamp() = protobuf::util::TimeUtil::GetCurrentTime();
+diff --git a/cc/roma/ipc/src/work_container.cc b/cc/roma/ipc/src/work_container.cc
+index 4c7290dd5..a83130702 100644
+--- a/cc/roma/ipc/src/work_container.cc
++++ b/cc/roma/ipc/src/work_container.cc
+@@ -16,6 +16,7 @@
+ 
+ #include "work_container.h"
+ 
++#include <mutex>
+ #include <utility>
+ 
+ using google::scp::core::ExecutionResult;
