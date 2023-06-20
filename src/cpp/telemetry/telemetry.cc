@@ -59,11 +59,13 @@ void InitTelemetry(std::string service_name, std::string build_version,
 
 void ConfigureMetrics(
     Resource resource,
-    const metric_sdk::PeriodicExportingMetricReaderOptions& options) {
+    const metric_sdk::PeriodicExportingMetricReaderOptions& options,
+    absl::optional<std::string> collector_endpoint) {
   if (!TelemetryProvider::GetInstance().metric_enabled()) {
     return;
   }
-  auto reader = CreatePeriodicExportingMetricReader(options);
+  auto reader =
+      CreatePeriodicExportingMetricReader(options, collector_endpoint);
   std::shared_ptr<metrics_api::MeterProvider> provider =
       std::make_shared<metric_sdk::MeterProvider>(
           std::make_unique<metric_sdk::ViewRegistry>(), std::move(resource));
@@ -73,11 +75,12 @@ void ConfigureMetrics(
   metrics_api::Provider::SetMeterProvider(provider);
 }
 
-void ConfigureTracer(Resource resource) {
+void ConfigureTracer(Resource resource,
+                     absl::optional<std::string> collector_endpoint) {
   if (!TelemetryProvider::GetInstance().trace_enabled()) {
     return;
   }
-  auto exporter = CreateSpanExporter();
+  auto exporter = CreateSpanExporter(collector_endpoint);
   auto processor = SimpleSpanProcessorFactory::Create(std::move(exporter));
   std::shared_ptr<TracerProvider> provider = TracerProviderFactory::Create(
       std::move(processor), resource, AlwaysOnSamplerFactory::Create(),

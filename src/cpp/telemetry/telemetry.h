@@ -24,6 +24,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/types/optional.h"
 #include "opentelemetry/common/attribute_value.h"
 #include "opentelemetry/nostd/string_view.h"
 #include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader.h"
@@ -41,11 +42,14 @@ void InitTelemetry(std::string service_name, std::string build_version,
 void ConfigureMetrics(
     opentelemetry::sdk::resource::Resource resource,
     const opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions&
-        options);
+        options,
+    absl::optional<std::string> collector_endpoint = absl::nullopt);
 
 // Must be called to initialize tracing functionality.
 // If `ConfigureTracer` is not called, all tracing will be NoOp.
-void ConfigureTracer(opentelemetry::sdk::resource::Resource resource);
+void ConfigureTracer(
+    opentelemetry::sdk::resource::Resource resource,
+    absl::optional<std::string> collector_endpoint = absl::nullopt);
 
 opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> GetTracer();
 

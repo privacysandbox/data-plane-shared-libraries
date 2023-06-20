@@ -21,8 +21,12 @@
 #include "trace_generator_aws.h"
 
 namespace privacy_sandbox::server_common {
-std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter() {
+std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter(
+    absl::optional<std::string> collector_endpoint) {
   opentelemetry::exporter::otlp::OtlpGrpcExporterOptions opts;
+  if (collector_endpoint != absl::nullopt) {
+    opts.endpoint = *collector_endpoint;
+  }
   return opentelemetry::exporter::otlp::OtlpGrpcExporterFactory::Create(opts);
 }
 std::unique_ptr<opentelemetry::sdk::trace::IdGenerator> CreateIdGenerator() {
@@ -32,12 +36,18 @@ std::unique_ptr<opentelemetry::sdk::trace::IdGenerator> CreateIdGenerator() {
 std::unique_ptr<opentelemetry::sdk::metrics::MetricReader>
 CreatePeriodicExportingMetricReader(
     const opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions&
-        options) {
+        reader_options,
+    absl::optional<std::string> collector_endpoint) {
+  opentelemetry::exporter::otlp::OtlpGrpcMetricExporterOptions exporter_options;
+  if (collector_endpoint != absl::nullopt) {
+    exporter_options.endpoint = *collector_endpoint;
+  }
   std::unique_ptr<opentelemetry::sdk::metrics::PushMetricExporter> exporter =
-      opentelemetry::exporter::otlp::OtlpGrpcMetricExporterFactory::Create();
+      opentelemetry::exporter::otlp::OtlpGrpcMetricExporterFactory::Create(
+          exporter_options);
   return std::make_unique<
       opentelemetry::sdk::metrics::PeriodicExportingMetricReader>(
-      std::move(exporter), options);
+      std::move(exporter), reader_options);
 }
 
 }  // namespace privacy_sandbox::server_common

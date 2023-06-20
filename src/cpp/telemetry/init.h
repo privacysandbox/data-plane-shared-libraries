@@ -18,18 +18,22 @@
 #define COMPONENTS_TELEMETRY_INITIALIZER_H_
 
 #include <memory>
+#include <string>
 
+#include "absl/types/optional.h"
 #include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader.h"
 #include "opentelemetry/sdk/trace/exporter.h"
 #include "opentelemetry/sdk/trace/id_generator.h"
 
 namespace privacy_sandbox::server_common {
-std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter();
+std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter(
+    absl::optional<std::string> collector_endpoint = absl::nullopt);
 std::unique_ptr<opentelemetry::sdk::trace::IdGenerator> CreateIdGenerator();
 std::unique_ptr<opentelemetry::sdk::metrics::MetricReader>
 CreatePeriodicExportingMetricReader(
     const opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions&
-        options);
+        options,
+    absl::optional<std::string> collector_endpoint = absl::nullopt);
 }  // namespace privacy_sandbox::server_common
 
 #endif  // COMPONENTS_TELEMETRY_INITIALIZER_H_
