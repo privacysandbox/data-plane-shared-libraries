@@ -37,7 +37,7 @@ class FakeKeyFetcherManager : public KeyFetcherManagerInterface {
   FakeKeyFetcherManager(absl::string_view public_key = kDefaultPublicKeyHex,
                         absl::string_view private_key = kDefaultPrivateKeyHex);
 
-  virtual ~FakeKeyFetcherManager();
+  ~FakeKeyFetcherManager() = default;
 
   // FakeKeyFetcherManager is neither copyable nor movable.
   FakeKeyFetcherManager(const FakeKeyFetcherManager&) = delete;
