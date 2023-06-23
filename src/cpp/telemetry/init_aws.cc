@@ -24,7 +24,7 @@ namespace privacy_sandbox::server_common {
 std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter(
     absl::optional<std::string> collector_endpoint) {
   opentelemetry::exporter::otlp::OtlpGrpcExporterOptions opts;
-  if (collector_endpoint != absl::nullopt) {
+  if (collector_endpoint.has_value()) {
     opts.endpoint = *collector_endpoint;
   }
   return opentelemetry::exporter::otlp::OtlpGrpcExporterFactory::Create(opts);
@@ -39,7 +39,7 @@ CreatePeriodicExportingMetricReader(
         reader_options,
     absl::optional<std::string> collector_endpoint) {
   opentelemetry::exporter::otlp::OtlpGrpcMetricExporterOptions exporter_options;
-  if (collector_endpoint != absl::nullopt) {
+  if (collector_endpoint.has_value()) {
     exporter_options.endpoint = *collector_endpoint;
   }
   std::unique_ptr<opentelemetry::sdk::metrics::PushMetricExporter> exporter =
