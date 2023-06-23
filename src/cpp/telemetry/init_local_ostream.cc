@@ -21,7 +21,8 @@
 
 namespace privacy_sandbox::server_common {
 
-std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter() {
+std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter(
+    absl::optional<std::string> collector_endpoint) {
   return opentelemetry::exporter::trace::OStreamSpanExporterFactory::Create();
 }
 
@@ -32,7 +33,8 @@ std::unique_ptr<opentelemetry::sdk::trace::IdGenerator> CreateIdGenerator() {
 std::unique_ptr<opentelemetry::sdk::metrics::MetricReader>
 CreatePeriodicExportingMetricReader(
     const opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions&
-        options) {
+        options,
+    absl::optional<std::string> collector_endpoint) {
   std::unique_ptr<opentelemetry::sdk::metrics::PushMetricExporter> exporter =
       std::make_unique<
           opentelemetry::exporter::metrics::OStreamMetricExporter>();
