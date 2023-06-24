@@ -56,9 +56,7 @@ KeyFetcherManager::~KeyFetcherManager() {
   executor_->Cancel(std::move(task_id_));
 }
 
-void KeyFetcherManager::Start() noexcept {
-  executor_->Run([this]() { RunPeriodicKeyRefresh(); });
-}
+void KeyFetcherManager::Start() noexcept { RunPeriodicKeyRefresh(); }
 
 // TODO(b/267505670): Add a check such that only one key refresh flow runs at a
 //  time.

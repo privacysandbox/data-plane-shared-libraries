@@ -113,6 +113,8 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
     return HandleFailure(request.key_ids(), result.status_code);
   }
 
+  private_key_fetch_notification->WaitForNotification();
+
   absl::MutexLock l(&mutex_);
   // Clean up keys that have been stored in the cache for longer than the ttl.
   absl::Time cutoff_time = absl::Now() - ttl_;
@@ -124,7 +126,6 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
     }
   }
 
-  private_key_fetch_notification->WaitForNotification();
   return absl::OkStatus();
 }
 
