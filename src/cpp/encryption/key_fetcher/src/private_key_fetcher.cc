@@ -84,20 +84,21 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(ToInt64Seconds(ttl_));
 
-  std::shared_ptr<absl::Notification> private_key_fetch_notification =
-      std::make_shared<absl::Notification>();
-  ExecutionResult result = private_key_client_.get()->ListPrivateKeys(
-      request,
-      [keys_map = &private_keys_map_, mu = &mutex_, request,
-       private_key_fetch_notification](const ExecutionResult result,
-                                       const ListPrivateKeysResponse response) {
+  absl::Notification private_key_fetch_notification = absl::Notification();
+  ExecutionResult result = private_key_client_->ListPrivateKeys(
+      request, [request, &private_key_fetch_notification, this](
+                   const ExecutionResult result,
+                   const ListPrivateKeysResponse response) {
+        VLOG(3) << "List private keys call finished.";
         if (result.Successful()) {
-          absl::MutexLock l(mu);
+          VLOG(3) << "Private key refresh fetch successful: "
+                  << response.private_keys().size() << " keys fetched.";
+          absl::MutexLock l(&mutex_);
           for (const auto& private_key : response.private_keys()) {
             PrivateKey key = {ToOhttpKeyId(private_key.key_id()),
                               private_key.private_key(),
                               ProtoToAbslDuration(private_key.creation_time())};
-            keys_map->insert_or_assign(key.key_id, key);
+            private_keys_map_.insert_or_assign(key.key_id, key);
             VLOG(3) << absl::StrFormat("Cached private key: (ID: %s)",
                                        key.key_id);
           }
@@ -105,19 +106,20 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
           static_cast<void>(
               HandleFailure(request.key_ids(), result.status_code));
         }
-        private_key_fetch_notification->Notify();
-        VLOG(3) << "Private key refresh flow completed successfully.";
+        private_key_fetch_notification.Notify();
       });
 
   if (!result.Successful()) {
     return HandleFailure(request.key_ids(), result.status_code);
   }
 
-  private_key_fetch_notification->WaitForNotification();
+  VLOG(3) << "Private key fetch pending...";
+  private_key_fetch_notification.WaitForNotification();
 
   absl::MutexLock l(&mutex_);
   // Clean up keys that have been stored in the cache for longer than the ttl.
   absl::Time cutoff_time = absl::Now() - ttl_;
+  VLOG(3) << "Cleaning up private keys with cutoff time: " << cutoff_time;
   for (auto it = private_keys_map_.cbegin(); it != private_keys_map_.cend();) {
     if (it->second.creation_time < cutoff_time) {
       private_keys_map_.erase(it++);

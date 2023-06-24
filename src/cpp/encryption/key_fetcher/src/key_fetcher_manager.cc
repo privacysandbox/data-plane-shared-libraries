@@ -78,7 +78,7 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
         ++iterator;
       }
     }
-
+    VLOG(3) << "Refreshing private keys...";
     private_key_fetcher_->Refresh();
   };
 
