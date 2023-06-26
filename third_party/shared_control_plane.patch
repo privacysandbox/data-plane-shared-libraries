@@ -886,6 +886,164 @@ index d294c93..683f286 100644
    }
    vector<TimeSeries> time_series_list;
    auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
+diff --git a/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.cc b/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.cc
+index 578df0f..1ff3f1d 100644
+--- a/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.cc
++++ b/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.cc
+@@ -90,6 +90,10 @@ ExecutionResult PrivateKeyClientProvider::Stop() noexcept {
+ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
+     AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
+         list_private_keys_context) noexcept {
++  SCP_ERROR(kPrivateKeyClientProvider, kZeroUuid, kZeroUuid,
++            SuccessExecutionResult(),
++            "Start ListPrviateKeys in PrivateKeyClientProvider");
++
+   auto list_keys_status = make_shared<ListPrivateKeysStatus>();
+   list_keys_status->listing_method =
+       list_private_keys_context.request->key_ids().empty()
+@@ -131,6 +135,22 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
+                    list_private_keys_context, _1, list_keys_status,
+                    endpoints_status, uri_index));
+ 
++      SCP_ERROR_CONTEXT(
++          kPrivateKeyClientProvider, list_private_keys_context,
++          SuccessExecutionResult(),
++          "Start FetchPrivateKey in PrivateKeyClientProvide. Request "
++          "key_id: %s. max_age_seconds: %d. private_key_vending_endpoint: %s. "
++          "gcp_private_key_vending_service_cloudfunction_url: %s. "
++          "account_identity: %s. service_region: %s. gcp_wip_provider: %s.",
++          request->key_id->c_str(), request->max_age_seconds,
++          request->key_vending_endpoint->private_key_vending_service_endpoint
++              .c_str(),
++          request->key_vending_endpoint
++              ->gcp_private_key_vending_service_cloudfunction_url.c_str(),
++          request->key_vending_endpoint->account_identity.c_str(),
++          request->key_vending_endpoint->service_region.c_str(),
++          request->key_vending_endpoint->gcp_wip_provider.c_str());
++
+       auto execution_result =
+           private_key_fetcher_->FetchPrivateKey(fetch_private_key_context);
+ 
+@@ -207,6 +227,11 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
+       return;
+     }
+ 
++    SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
++                      list_private_keys_context.result,
++                      "List private key, encryption_key: %s",
++                      encryption_key->key_id->c_str());
++
+     DecryptRequest kms_decrypt_request;
+     execution_result = PrivateKeyClientUtils::GetKmsDecryptRequest(
+         encryption_key, kms_decrypt_request);
+@@ -237,6 +262,10 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
+         bind(&PrivateKeyClientProvider::OnDecrpytCallback, this,
+              list_private_keys_context, _1, list_keys_status, endpoints_status,
+              encryption_key, uri_index));
++
++    SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
++                      list_private_keys_context.result,
++                      "Start decrpyt private key");
+     execution_result = kms_client_provider_->Decrypt(decrypt_context);
+ 
+     if (!execution_result.Successful()) {
+@@ -356,8 +385,15 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
+       int count = 0;
+       for (auto it = list_keys_status->private_key_id_map.begin();
+            it != list_keys_status->private_key_id_map.end(); ++it) {
+-        *list_private_keys_context.response->add_private_keys() =
+-            move(it->second);
++        auto key = it->second;
++        SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
++                          list_private_keys_context.result,
++                          "Private key id: %s. public key: %s, private key: "
++                          "%s. expiration_time: %s",
++                          key.key_id().c_str(), key.public_key().c_str(),
++                          key.private_key().c_str(),
++                          key.expiration_time().seconds());
++        *list_private_keys_context.response->add_private_keys() = move(key);
+         ++count;
+       }
+       list_private_keys_context.result = SuccessExecutionResult();
+diff --git a/cc/cpio/client_providers/private_key_fetcher_provider/src/gcp/gcp_private_key_fetcher_provider.cc b/cc/cpio/client_providers/private_key_fetcher_provider/src/gcp/gcp_private_key_fetcher_provider.cc
+index 4f89320..e8e5e72 100644
+--- a/cc/cpio/client_providers/private_key_fetcher_provider/src/gcp/gcp_private_key_fetcher_provider.cc
++++ b/cc/cpio/client_providers/private_key_fetcher_provider/src/gcp/gcp_private_key_fetcher_provider.cc
+@@ -79,7 +79,8 @@ ExecutionResult GcpPrivateKeyFetcherProvider::SignHttpRequest(
+           move(request),
+           bind(&GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback, this,
+                sign_request_context, _1));
+-
++  SCP_ERROR_CONTEXT(kGcpPrivateKeyFetcherProvider, sign_request_context,
++                    sign_request_context.result, "Start SignHttpRequest");
+   return auth_token_provider_->GetSessionTokenForTargetAudience(
+       get_token_context);
+ }
+@@ -101,6 +102,11 @@ void GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback(
+   }
+ 
+   const auto& access_token = *get_token_context.response->session_token;
++
++  SCP_ERROR_CONTEXT(kGcpPrivateKeyFetcherProvider, get_token_context,
++                    get_token_context.result, "Get access token: %s",
++                    access_token.c_str());
++
+   auto http_request = make_shared<HttpRequest>();
+   PrivateKeyFetchingClientUtils::CreateHttpRequest(
+       *sign_request_context.request, *http_request);
+diff --git a/cc/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.cc b/cc/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.cc
+index 85c4be7..e471bea 100644
+--- a/cc/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.cc
++++ b/cc/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.cc
+@@ -72,6 +72,9 @@ ExecutionResult PrivateKeyFetcherProvider::Stop() noexcept {
+ ExecutionResult PrivateKeyFetcherProvider::FetchPrivateKey(
+     AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
+         private_key_fetching_context) noexcept {
++  SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, private_key_fetching_context,
++                    SuccessExecutionResult(),
++                    "Start FetchPrivateKey in PrivateKeyFetcherProvider");
+   AsyncContext<PrivateKeyFetchingRequest, HttpRequest>
+       sign_http_request_context(
+           private_key_fetching_context.request,
+@@ -87,6 +90,8 @@ void PrivateKeyFetcherProvider::SignHttpRequestCallback(
+     AsyncContext<PrivateKeyFetchingRequest, HttpRequest>&
+         sign_http_request_context) noexcept {
+   auto execution_result = sign_http_request_context.result;
++  SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, sign_http_request_context,
++                    execution_result, "Signed http request");
+   if (!execution_result.Successful()) {
+     SCP_ERROR(kPrivateKeyFetcherProvider, kZeroUuid, kZeroUuid,
+               execution_result, "Failed to sign http request.");
+@@ -100,6 +105,11 @@ void PrivateKeyFetcherProvider::SignHttpRequestCallback(
+       bind(&PrivateKeyFetcherProvider::PrivateKeyFetchingCallback, this,
+            private_key_fetching_context, _1));
+   execution_result = http_client_->PerformRequest(http_client_context);
++  SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, http_client_context,
++                    execution_result,
++                    "Performed http request with endpoint: %s",
++                    private_key_fetching_context.request->key_vending_endpoint
++                        ->private_key_vending_service_endpoint.c_str());
+   if (!execution_result.Successful()) {
+     SCP_ERROR(kPrivateKeyFetcherProvider, kZeroUuid, kZeroUuid,
+               execution_result,
+@@ -116,6 +126,8 @@ void PrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
+         private_key_fetching_context,
+     AsyncContext<HttpRequest, HttpResponse>& http_client_context) noexcept {
+   private_key_fetching_context.result = http_client_context.result;
++  SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, http_client_context,
++                    http_client_context.result, "Performed http request");
+   if (!http_client_context.result.Successful()) {
+     SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, private_key_fetching_context,
+                       private_key_fetching_context.result,
+@@ -127,6 +139,8 @@ void PrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
+   PrivateKeyFetchingResponse response;
+   auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
+       http_client_context.response->body, response);
++  SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, http_client_context, result,
++                    "Parsed Private Key");
+   if (!result.Successful()) {
+     SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, private_key_fetching_context,
+                       private_key_fetching_context.result,
 diff --git a/cc/public/cpio/adapters/metric_client/src/metric_client.cc b/cc/public/cpio/adapters/metric_client/src/metric_client.cc
 index 9371319..9a2a0cb 100644
 --- a/cc/public/cpio/adapters/metric_client/src/metric_client.cc
