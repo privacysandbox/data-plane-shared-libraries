@@ -66,42 +66,40 @@ PublicKeyFetcher::~PublicKeyFetcher() { public_key_client_->Stop(); }
  * Makes a blocking call to fetch the public keys using the public key client.
  * UnavailableError status will be returned in case of failure.
  */
-absl::Status PublicKeyFetcher::Refresh(
-    const std::function<void()>& callback) noexcept
-    ABSL_LOCKS_EXCLUDED(mutex_) {
-  std::shared_ptr<absl::Notification> public_key_fetch_notification =
-      std::make_shared<absl::Notification>();
-  ExecutionResult result = public_key_client_.get()->ListPublicKeys(
+absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
+  VLOG(3) << "Refreshing public keys...";
+  absl::Notification public_key_fetch_notification;
+  ExecutionResult result = public_key_client_->ListPublicKeys(
       ListPublicKeysRequest(),
-      [this, callback = callback, public_key_fetch_notification](
-          ExecutionResult execution_result, ListPublicKeysResponse response) {
-        if (execution_result.Successful()) {
-          mutex_.Lock();
-          public_keys_ = std::vector<PublicKey>();
-          for (const auto& key : response.public_keys()) {
-            PublicKey copy;
-            copy.set_key_id(ToOhttpKeyId(key.key_id()));
-            copy.set_public_key(key.public_key());
-            public_keys_.push_back(copy);
-          }
+      [this, &public_key_fetch_notification](ExecutionResult execution_result,
+                                             ListPublicKeysResponse response) {
+        VLOG(3) << "List public keys call finished.";
 
-          mutex_.Unlock();
+        if (execution_result.Successful()) {
+          {
+            absl::MutexLock l(&mutex_);
+            public_keys_ = std::vector<PublicKey>();
+            for (const auto& key : response.public_keys()) {
+              PublicKey copy;
+              copy.set_key_id(ToOhttpKeyId(key.key_id()));
+              copy.set_public_key(key.public_key());
+              public_keys_.push_back(copy);
+            }
+          }
 
           std::vector<PublicPrivateKeyPairId> key_ids = GetKeyIds();
           std::string key_ids_str = absl::StrJoin(key_ids, ", ");
           VLOG(3) << absl::StrFormat(
               kKeyFetchSuccessMessage, key_ids_str,
               TimeUtil::ToString(response.expiration_time()));
-          VLOG(3) << "Public key refresh flow completed successfully. "
-                     "Executing callback.";
-          std::move(callback)();
+          VLOG(3) << "Public key refresh flow completed successfully. ";
+        } else {
+          VLOG(1) << absl::StrFormat(
+              kKeyFetchFailMessage,
+              GetErrorMessage(execution_result.status_code));
         }
 
-        std::string error =
-            absl::StrFormat(kKeyFetchFailMessage,
-                            GetErrorMessage(execution_result.status_code));
-        VLOG_IF(1, !execution_result.Successful()) << error;
-        public_key_fetch_notification->Notify();
+        public_key_fetch_notification.Notify();
       });
 
   if (!result.Successful()) {
@@ -110,7 +108,7 @@ absl::Status PublicKeyFetcher::Refresh(
     VLOG(1) << error;
     return absl::UnavailableError(error);
   }
-  public_key_fetch_notification->WaitForNotification();
+  public_key_fetch_notification.WaitForNotification();
   return absl::OkStatus();
 }
 

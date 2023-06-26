@@ -33,8 +33,7 @@ class PublicKeyFetcherInterface {
 
   // Refreshes the fetcher's list of the latest public keys and, upon a
   // successful key fetch, invokes the callback passed into the method.
-  virtual absl::Status Refresh(
-      const std::function<void()>& callback) noexcept = 0;
+  virtual absl::Status Refresh() noexcept = 0;
 
   // Returns a public key for encrypting outgoing requests.
   virtual absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>

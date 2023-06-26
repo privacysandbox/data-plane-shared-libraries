@@ -45,9 +45,9 @@ class PrivateKeyFetcher : public PrivateKeyFetcherInterface {
   // Stops and terminates any resources used by the fetcher.
   ~PrivateKeyFetcher();
 
-  // Calls the Private Key Service to fetch and store the private keys for the
-  // key IDs passed in the parameter. Refresh() will also clean up any keys
-  // older than the ttl.
+  // Blocking.
+  // Calls the Private Key Service to fetch and store the private keys.
+  // Refresh() will also clean up any keys older than the ttl.
   absl::Status Refresh() noexcept override;
 
   // Returns the corresponding PrivateKey, if present.

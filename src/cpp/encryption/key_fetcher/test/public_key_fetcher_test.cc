@@ -78,7 +78,7 @@ TEST(PublicKeyFetcherTest, SuccessfulRefresh) {
           });
 
   PublicKeyFetcher fetcher(std::move(mock_public_key_client));
-  absl::Status result_status = fetcher.Refresh([]() -> void {});
+  absl::Status result_status = fetcher.Refresh();
   EXPECT_TRUE(result_status.ok());
 
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
@@ -97,7 +97,7 @@ TEST(PublicKeyFetcherTest, FailedSyncListPublicKeysCall) {
               -> ExecutionResult { return FailureExecutionResult(0); });
 
   PublicKeyFetcher fetcher(std::move(mock_public_key_client));
-  absl::Status result_status = fetcher.Refresh([]() -> void {});
+  absl::Status result_status = fetcher.Refresh();
   EXPECT_TRUE(IsUnavailable(result_status));
 }
 
@@ -121,7 +121,7 @@ TEST(PublicKeyFetcherTest, FailedAsyncListPublicKeysCall) {
           });
 
   PublicKeyFetcher fetcher(std::move(mock_public_key_client));
-  absl::Status result_status = fetcher.Refresh([]() -> void {});
+  absl::Status result_status = fetcher.Refresh();
   // GetKeyIds() should return an empty list since the public_keys_ field
   // shouldn't be set in the callback in Refresh().
   EXPECT_EQ(fetcher.GetKeyIds(), std::vector<std::string>());
@@ -153,7 +153,7 @@ TEST(PublicKeyFetcherTest, VerifyGetKeyReturnsRandomKey) {
           });
 
   PublicKeyFetcher fetcher(std::move(mock_public_key_client));
-  absl::Status result_status = fetcher.Refresh([]() -> void {});
+  absl::Status result_status = fetcher.Refresh();
 
   // Call GetKey() and validate the result isn't equal to another GetKey() call.
   PublicKey key = fetcher.GetKey().value();

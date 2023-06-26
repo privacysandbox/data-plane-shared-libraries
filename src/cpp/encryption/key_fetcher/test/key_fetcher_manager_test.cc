@@ -60,10 +60,7 @@ TEST_F(KeyFetcherManagerTest, SuccessfulRefresh) {
 
   std::vector<std::string> key_ids = {"key_id"};
   EXPECT_CALL(*public_key_fetcher, Refresh)
-      .WillRepeatedly([&](absl::AnyInvocable<void()> callback) -> absl::Status {
-        callback();
-        return absl::OkStatus();
-      });
+      .WillRepeatedly([&]() -> absl::Status { return absl::OkStatus(); });
   EXPECT_CALL(*public_key_fetcher, GetKeyIds)
       .WillRepeatedly(
           [&]() -> std::vector<google::scp::cpio::PublicPrivateKeyPairId> {
@@ -88,10 +85,7 @@ TEST_F(KeyFetcherManagerTest, SuccessfulPublicKeyRefreshNoPrivateKeysToFetch) {
 
   std::vector<std::string> key_ids = {"key_id"};
   EXPECT_CALL(*public_key_fetcher, Refresh)
-      .WillRepeatedly([&](absl::AnyInvocable<void()> callback) -> absl::Status {
-        callback();
-        return absl::OkStatus();
-      });
+      .WillRepeatedly([&]() -> absl::Status { return absl::OkStatus(); });
   EXPECT_CALL(*public_key_fetcher, GetKeyIds)
       .WillRepeatedly(
           [&]() -> std::vector<google::scp::cpio::PublicPrivateKeyPairId> {

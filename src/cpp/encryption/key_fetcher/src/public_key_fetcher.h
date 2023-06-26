@@ -42,10 +42,11 @@ class PublicKeyFetcher : public PublicKeyFetcherInterface {
   // Stops and terminates any resources used by the fetcher.
   ~PublicKeyFetcher();
 
+  // Blocking.
   // Calls the Public Key Service to refresh the fetcher's list of the latest
   // list of public keys. Five keys (which are to be used for at most 7 days)
   // are returned and locally cached.
-  absl::Status Refresh(const std::function<void()>& callback) noexcept override;
+  absl::Status Refresh() noexcept override;
 
   // Fetches a random public key (from the list of five) for encrypting outgoing
   // requests.

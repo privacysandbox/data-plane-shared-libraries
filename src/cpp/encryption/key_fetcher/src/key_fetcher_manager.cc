@@ -58,35 +58,20 @@ KeyFetcherManager::~KeyFetcherManager() {
 
 void KeyFetcherManager::Start() noexcept { RunPeriodicKeyRefresh(); }
 
-// TODO(b/267505670): Add a check such that only one key refresh flow runs at a
-//  time.
 void KeyFetcherManager::RunPeriodicKeyRefresh() {
   // Queue up another key refresh task.
   task_id_ = executor_->RunAfter(key_refresh_period_,
                                  [this]() { RunPeriodicKeyRefresh(); });
-
-  std::function<void()> pub_key_refresh_callback = [this]() -> void {
-    std::vector<PublicPrivateKeyPairId> public_key_ids =
-        public_key_fetcher_->GetKeyIds();
-
-    // Filter out any key IDs whose private keys are already cached.
-    for (auto iterator = public_key_ids.begin();
-         iterator != public_key_ids.end();) {
-      if (private_key_fetcher_->GetKey(*iterator).has_value()) {
-        iterator = public_key_ids.erase(iterator);
-      } else {
-        ++iterator;
-      }
-    }
-    VLOG(3) << "Refreshing private keys...";
-    private_key_fetcher_->Refresh();
-  };
-
   if (!shutdown_requested_.HasBeenNotified()) {
-    absl::Status refresh_status =
-        public_key_fetcher_->Refresh(pub_key_refresh_callback);
-    if (!refresh_status.ok()) {
-      VLOG(1) << "Public key refresh failed: " << refresh_status.message();
+    absl::Status public_key_refresh_status = public_key_fetcher_->Refresh();
+    if (!public_key_refresh_status.ok()) {
+      VLOG(1) << "Public key refresh failed: "
+              << public_key_refresh_status.message();
+    } else {
+      absl::Status private_key_refresh_status = private_key_fetcher_->Refresh();
+      VLOG_IF(1, !private_key_refresh_status.ok())
+          << "Private key refresh failed: "
+          << private_key_refresh_status.message();
     }
   } else {
     VLOG(3) << "Shutdown requested; skipping run of KeyFetcherManager's key "

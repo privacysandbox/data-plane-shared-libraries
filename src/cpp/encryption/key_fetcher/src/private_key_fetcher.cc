@@ -81,6 +81,8 @@ PrivateKeyFetcher::~PrivateKeyFetcher() {
 }
 
 absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
+  VLOG(3) << "Refreshing private keys...";
+
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(ToInt64Seconds(ttl_));
 
