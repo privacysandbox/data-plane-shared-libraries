@@ -887,7 +887,7 @@ index d294c93..683f286 100644
    vector<TimeSeries> time_series_list;
    auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
 diff --git a/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.cc b/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.cc
-index 578df0f..3de011f 100644
+index 578df0f..c863721 100644
 --- a/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.cc
 +++ b/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.cc
 @@ -90,6 +90,10 @@ ExecutionResult PrivateKeyClientProvider::Stop() noexcept {
@@ -901,21 +901,7 @@ index 578df0f..3de011f 100644
    auto list_keys_status = make_shared<ListPrivateKeysStatus>();
    list_keys_status->listing_method =
        list_private_keys_context.request->key_ids().empty()
-@@ -131,6 +135,13 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
-                    list_private_keys_context, _1, list_keys_status,
-                    endpoints_status, uri_index));
- 
-+      SCP_ERROR_CONTEXT(
-+          kPrivateKeyClientProvider, list_private_keys_context,
-+          SuccessExecutionResult(),
-+          "Start FetchPrivateKey in PrivateKeyClientProvider. Request "
-+          "key_id: %s. max_age_seconds: %d",
-+          request->key_id->c_str(), request->max_age_seconds);
-+
-       auto execution_result =
-           private_key_fetcher_->FetchPrivateKey(fetch_private_key_context);
- 
-@@ -207,6 +218,11 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
+@@ -207,6 +211,11 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
        return;
      }
  
@@ -927,7 +913,7 @@ index 578df0f..3de011f 100644
      DecryptRequest kms_decrypt_request;
      execution_result = PrivateKeyClientUtils::GetKmsDecryptRequest(
          encryption_key, kms_decrypt_request);
-@@ -237,6 +253,10 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
+@@ -237,6 +246,10 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
          bind(&PrivateKeyClientProvider::OnDecrpytCallback, this,
               list_private_keys_context, _1, list_keys_status, endpoints_status,
               encryption_key, uri_index));
@@ -938,7 +924,7 @@ index 578df0f..3de011f 100644
      execution_result = kms_client_provider_->Decrypt(decrypt_context);
  
      if (!execution_result.Successful()) {
-@@ -356,8 +376,15 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
+@@ -356,8 +369,15 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
        int count = 0;
        for (auto it = list_keys_status->private_key_id_map.begin();
             it != list_keys_status->private_key_id_map.end(); ++it) {
