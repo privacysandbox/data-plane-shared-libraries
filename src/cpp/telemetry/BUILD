@@ -162,10 +162,26 @@ cc_library(
 )
 
 cc_library(
+    name = "init_gcp",
+    srcs = ["init_gcp.cc"],
+    hdrs = [
+        "init.h",
+    ],
+    deps = [
+        "@com_google_absl//absl/types:optional",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_exporter",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_metric_exporter",
+    ],
+)
+
+cc_library(
     name = "init",
     deps = select({
         "//:aws_instance": [
             ":init_aws",
+        ],
+        "//:gcp_instance": [
+            ":init_gcp",
         ],
         "//:local_instance": [
             ":init_local",

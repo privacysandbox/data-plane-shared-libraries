@@ -19,6 +19,7 @@ string_flag(
     build_setting_default = "aws",
     values = [
         "aws",
+        "gcp",
         "local",
     ],
 )
@@ -27,6 +28,14 @@ config_setting(
     name = "aws_platform",
     flag_values = {
         ":platform": "aws",
+    },
+    visibility = ["//visibility:private"],
+)
+
+config_setting(
+    name = "gcp_platform",
+    flag_values = {
+        ":platform": "gcp",
     },
     visibility = ["//visibility:private"],
 )
@@ -44,6 +53,7 @@ string_flag(
     build_setting_default = "aws",
     values = [
         "aws",
+        "gcp",
         "local",
     ],
 )
@@ -52,6 +62,14 @@ config_setting(
     name = "aws_instance",
     flag_values = {
         ":instance": "aws",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "gcp_instance",
+    flag_values = {
+        ":instance": "gcp",
     },
     visibility = ["//visibility:public"],
 )
