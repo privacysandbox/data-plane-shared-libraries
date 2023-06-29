@@ -18,6 +18,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/strings/escaping.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
@@ -27,6 +28,8 @@
 #include "cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "cc/public/cpio/interface/private_key_client/type_def.h"
 #include "glog/logging.h"
+#include "proto/hpke.pb.h"
+#include "proto/tink.pb.h"
 #include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
 
 using google::scp::core::ExecutionResult;
@@ -91,18 +94,43 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
       request, [request, &private_key_fetch_notification, this](
                    const ExecutionResult result,
                    const ListPrivateKeysResponse response) {
-        VLOG(3) << "List private keys call finished.";
         if (result.Successful()) {
-          VLOG(3) << "Private key refresh fetch successful: "
-                  << response.private_keys().size() << " keys fetched.";
           absl::MutexLock l(&mutex_);
           for (const auto& private_key : response.private_keys()) {
+            std::string keyset_bytes;
+            if (!absl::Base64Unescape(private_key.private_key(),
+                                      &keyset_bytes)) {
+              LOG(ERROR) << "Could not base 64 decode the keyset. Key Id: "
+                         << private_key.key_id();
+              continue;
+            }
+            google::crypto::tink::Keyset keyset;
+            if (!keyset.ParseFromString(keyset_bytes)) {
+              LOG(ERROR) << "Could not parse a tink::Keyset from the base 64 "
+                            "decoded bytes. Key Id: "
+                         << private_key.key_id();
+              continue;
+            }
+            if (keyset.key().size() != 1) {
+              LOG(ERROR) << "Keyset should contain precisely 1 key. Key Id: "
+                         << private_key.key_id();
+              continue;
+            }
+            google::crypto::tink::Keyset_Key hpke_private_key_wrapper =
+                keyset.key()[0];
+            std::string hpke_private_key_bytes =
+                hpke_private_key_wrapper.key_data().value();
+            google::crypto::tink::HpkePrivateKey hpke_private_key;
+            if (!hpke_private_key.ParseFromString(hpke_private_key_bytes)) {
+              LOG(ERROR) << "Could not parse the tink::HpkePrivateKey from the "
+                            "raw bytes. Key Id: "
+                         << private_key.key_id();
+              continue;
+            }
             PrivateKey key = {ToOhttpKeyId(private_key.key_id()),
-                              private_key.private_key(),
+                              hpke_private_key.private_key(),
                               ProtoToAbslDuration(private_key.creation_time())};
             private_keys_map_.insert_or_assign(key.key_id, key);
-            VLOG(3) << absl::StrFormat("Cached private key: (ID: %s)",
-                                       key.key_id);
           }
         } else {
           static_cast<void>(

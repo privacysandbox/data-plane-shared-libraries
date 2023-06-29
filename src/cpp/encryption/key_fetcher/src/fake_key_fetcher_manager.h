@@ -24,10 +24,12 @@
 
 namespace privacy_sandbox::server_common {
 
+// Key id 64 public key (only used for testing):
 inline constexpr char kDefaultPublicKeyHex[] =
-    "6d21cfe09fbea5122f9ebc2eb2a69fcc4f06408cd54aac934f012e76fcdcef62";
+    "f3b7b2f1764f5c077effecad2afd86154596e63f7375ea522761b881e6c3c323";
+// Key id 64 private key (only used for testing):
 inline constexpr char kDefaultPrivateKeyHex[] =
-    "b77431ecfa8f4cfc30d6e467aafa06944dffe28cb9dd1409e33a3045f5adc8a1";
+    "e7b292f49df28b8065992cdeadbc9d032a0e09e8476cb6d8d507212e7be3b9b4";
 
 // "Fake" implementation of the key fetcher manager that returns hard coded
 // keys. Used for testing.

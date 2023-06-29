@@ -22,13 +22,12 @@ namespace privacy_sandbox::server_common {
 
 FakeKeyFetcherManager::FakeKeyFetcherManager(absl::string_view public_key,
                                              absl::string_view private_key) {
-  public_key_.set_key_id("5");
+  public_key_.set_key_id("64");
   public_key_.set_public_key(
       absl::Base64Escape(absl::HexStringToBytes(public_key)));
 
-  private_key_.key_id = "5";
-  private_key_.private_key =
-      absl::Base64Escape(absl::HexStringToBytes(private_key));
+  private_key_.key_id = "64";
+  private_key_.private_key = absl::HexStringToBytes(private_key);
 }
 
 void FakeKeyFetcherManager::Start() noexcept {}

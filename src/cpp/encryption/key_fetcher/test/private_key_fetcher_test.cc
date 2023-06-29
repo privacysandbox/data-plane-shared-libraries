@@ -16,15 +16,21 @@
 
 #include <utility>
 
+#include "absl/strings/escaping.h"
 #include "absl/time/clock.h"
 #include "cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "gmock/gmock.h"
 #include "include/gtest/gtest.h"
+#include "proto/hpke.pb.h"
+#include "proto/tink.pb.h"
 #include "public/core/interface/execution_result.h"
 
 // Note: PKS = Private Key Service.
 namespace privacy_sandbox::server_common {
 namespace {
+
+constexpr char kPublicKey[] = "pubkey";
+constexpr char kPrivateKey[] = "privkey";
 
 using ::google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;
 using ::google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse;
@@ -58,17 +64,30 @@ class MockPrivateKeyClient
       (noexcept));
 };
 
+google::cmrt::sdk::private_key_service::v1::PrivateKey CreateFakePrivateKey(
+    absl::string_view private_key, absl::string_view public_key,
+    absl::string_view key_id) {
+  google::crypto::tink::HpkePrivateKey hpke_private_key;
+  hpke_private_key.set_private_key(private_key);
+
+  google::crypto::tink::Keyset keyset;
+  keyset.add_key()->mutable_key_data()->set_value(
+      hpke_private_key.SerializeAsString());
+  google::cmrt::sdk::private_key_service::v1::PrivateKey output;
+  output.set_key_id(key_id);
+  output.set_public_key(public_key);
+  output.set_private_key(absl::Base64Escape(keyset.SerializeAsString()));
+  output.mutable_creation_time()->set_seconds(ToUnixSeconds(absl::Now()));
+  return output;
+}
+
 TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
   std::unique_ptr<MockPrivateKeyClient> mock_private_key_client =
       std::make_unique<MockPrivateKeyClient>();
 
   ListPrivateKeysResponse response;
-  google::cmrt::sdk::private_key_service::v1::PrivateKey key;
-  key.set_key_id("FF0000000");
-  key.set_public_key("pubkey");
-  key.set_private_key("privkey");
-  key.mutable_creation_time()->set_seconds(ToUnixSeconds(absl::Now()));
-  response.mutable_private_keys()->Add(std::move(key));
+  response.mutable_private_keys()->Add(
+      CreateFakePrivateKey(kPrivateKey, kPublicKey, "FF0000000"));
 
   EXPECT_CALL(*mock_private_key_client, ListPrivateKeys)
       .WillOnce(
@@ -90,7 +109,7 @@ TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
   // Verify all fields were initialized correctly.
   EXPECT_TRUE(fetcher.GetKey("255").has_value());
   EXPECT_EQ(fetcher.GetKey("255")->key_id, "255");
-  EXPECT_EQ(fetcher.GetKey("255")->private_key, "privkey");
+  EXPECT_EQ(fetcher.GetKey("255")->private_key, kPrivateKey);
   EXPECT_TRUE(fetcher.GetKey("255")->creation_time - absl::Now() <
               absl::Minutes(1));
 }
@@ -107,13 +126,8 @@ TEST(PrivateKeyFetcherTest,
           [&](ListPrivateKeysRequest request,
               Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
             ListPrivateKeysResponse response;
-            google::cmrt::sdk::private_key_service::v1::PrivateKey key;
-            key.set_key_id("000000");
-            key.set_public_key("pubkey");
-            key.set_private_key("privkey");
-            key.mutable_creation_time()->set_seconds(
-                ToUnixSeconds(absl::Now()));
-            response.mutable_private_keys()->Add(std::move(key));
+            response.mutable_private_keys()->Add(
+                CreateFakePrivateKey(kPrivateKey, kPublicKey, "000000"));
 
             callback(SuccessExecutionResult(), response);
             return SuccessExecutionResult();
@@ -147,13 +161,8 @@ TEST(PrivateKeyFetcherTest, UnsuccessfulSyncPKSCall_CleansOldKeys) {
           [&](ListPrivateKeysRequest request,
               Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
             ListPrivateKeysResponse response;
-            google::cmrt::sdk::private_key_service::v1::PrivateKey key;
-            key.set_key_id("000000");
-            key.set_public_key("pubkey");
-            key.set_private_key("privkey");
-            key.mutable_creation_time()->set_seconds(
-                ToUnixSeconds(absl::Now()));
-            response.mutable_private_keys()->Add(std::move(key));
+            response.mutable_private_keys()->Add(
+                CreateFakePrivateKey(kPrivateKey, kPublicKey, "000000"));
             callback(SuccessExecutionResult(), response);
             return SuccessExecutionResult();
           })

@@ -36,7 +36,8 @@ struct PrivateKey {
   // corresponding public key ID representing the public key that encrypted the
   // ciphertext in the request.
   google::scp::cpio::PublicPrivateKeyPairId key_id;
-  // The value of the private key.
+  // The value of the private key. This field is the raw, unencoded byte string
+  // for the private key. It will be passed directly to OHTTP.
   PrivateKeyValue private_key;
   // Creation timestamp of the key. Used by the PrivateKeyFetcher to clear
   // out keys that have been cached for longer than a certain duration.
