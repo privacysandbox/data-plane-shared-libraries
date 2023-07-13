@@ -397,15 +397,19 @@ index 05bae654..401f328a 100644
          http_archive,
          name = "bazel_gazelle",
 diff --git a/build_defs/shared/grpc.bzl b/build_defs/shared/grpc.bzl
-index 781666d1..025e3dd4 100644
+index 781666d1..ab2402c5 100644
 --- a/build_defs/shared/grpc.bzl
 +++ b/build_defs/shared/grpc.bzl
-@@ -23,9 +23,9 @@ def grpc():
+@@ -23,9 +23,13 @@ def grpc():
      maybe(
          http_archive,
          name = "com_github_grpc_grpc",
 -        sha256 = "ec125d7fdb77ecc25b01050a0d5d32616594834d3fe163b016768e2ae42a2df6",
 -        strip_prefix = "grpc-1.52.1",
++        patch_args = ["-p1"],
++        patches = [
++            Label("//build_defs/shared:grpc.patch"),
++        ],
 +        sha256 = "17c0685da231917a7b3be2671a7b13b550a85fdda5e475313264c5f51c4da3f8",
 +        strip_prefix = "grpc-1.55.1",
          urls = [
@@ -413,6 +417,44 @@ index 781666d1..025e3dd4 100644
 +            "https://github.com/grpc/grpc/archive/refs/tags/v1.55.1.zip",
          ],
      )
+diff --git a/build_defs/shared/grpc.patch b/build_defs/shared/grpc.patch
+new file mode 100644
+index 00000000..abd0496f
+--- /dev/null
++++ b/build_defs/shared/grpc.patch
+@@ -0,0 +1,32 @@
++diff --git a/bazel/grpc_deps.bzl b/bazel/grpc_deps.bzl
++index 5783189f5c..290c9a46a5 100644
++--- a/bazel/grpc_deps.bzl
+++++ b/bazel/grpc_deps.bzl
++@@ -262,6 +262,7 @@ def grpc_deps():
++             ],
++             patches = [
++                 "@com_github_grpc_grpc//third_party:protobuf.patch",
+++                "@com_github_grpc_grpc//third_party:protobuf_tensorflow.patch",
++             ],
++             patch_args = ["-p1"],
++         )
++diff --git a/third_party/protobuf_tensorflow.patch b/third_party/protobuf_tensorflow.patch
++new file mode 100644
++index 0000000000..7cdf6c74c3
++--- /dev/null
+++++ b/third_party/protobuf_tensorflow.patch
++@@ -0,0 +1,14 @@
+++diff --git a/protobuf.bzl b/protobuf.bzl
+++index d96eeb4c9..188637b0c 100644
+++--- a/protobuf.bzl
++++++ b/protobuf.bzl
+++@@ -272,6 +272,9 @@ _proto_gen = rule(
+++     implementation = _proto_gen_impl,
+++ )
+++ 
++++# tensorflow still depends directly on proto_gen this as of mid-July 2023
++++proto_gen = _proto_gen
++++
+++ def _internal_gen_well_known_protos_java_impl(ctx):
+++     args = ctx.actions.args()
+++ 
 diff --git a/cc/aws/proxy/src/proxify.cc b/cc/aws/proxy/src/proxify.cc
 index 70c9334d..cf986a9d 100644
 --- a/cc/aws/proxy/src/proxify.cc
