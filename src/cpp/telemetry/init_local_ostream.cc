@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "opentelemetry/exporters/ostream/log_record_exporter.h"
 #include "opentelemetry/exporters/ostream/metric_exporter.h"
 #include "opentelemetry/exporters/ostream/span_exporter_factory.h"
 #include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader.h"
@@ -41,6 +42,12 @@ CreatePeriodicExportingMetricReader(
   return std::make_unique<
       opentelemetry::sdk::metrics::PeriodicExportingMetricReader>(
       std::move(exporter), options);
+}
+
+std::unique_ptr<opentelemetry::sdk::logs::LogRecordExporter>
+CreateLogRecordExporter(absl::optional<std::string> collector_endpoint) {
+  return std::make_unique<
+      opentelemetry::exporter::logs::OStreamLogRecordExporter>(std::cout);
 }
 
 }  // namespace privacy_sandbox::server_common

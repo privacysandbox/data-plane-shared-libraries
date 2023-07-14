@@ -30,7 +30,8 @@ namespace privacy_sandbox::server_common {
 class TelemetryProvider {
  public:
   static void Init(std::string service_name, std::string build_version,
-                   bool trace_enabled = true, bool metric_enabled = true);
+                   bool trace_enabled = true, bool metric_enabled = true,
+                   bool log_enabled = false);
 
   static TelemetryProvider& GetInstance();
 
@@ -49,6 +50,7 @@ class TelemetryProvider {
 
   bool trace_enabled() const { return trace_enabled_; }
   bool metric_enabled() const { return metric_enabled_; }
+  bool log_enabled() const { return log_enabled_; }
 
  private:
   TelemetryProvider()
@@ -59,6 +61,7 @@ class TelemetryProvider {
   std::string build_version_;
   bool trace_enabled_;
   bool metric_enabled_;
+  bool log_enabled_;
 };
 
 }  // namespace privacy_sandbox::server_common

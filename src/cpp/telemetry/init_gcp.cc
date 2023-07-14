@@ -14,6 +14,7 @@
 
 #include "opentelemetry/exporters/otlp/otlp_grpc_exporter.h"
 #include "opentelemetry/exporters/otlp/otlp_grpc_exporter_factory.h"
+#include "opentelemetry/exporters/otlp/otlp_grpc_log_record_exporter_factory.h"
 #include "opentelemetry/exporters/otlp/otlp_grpc_metric_exporter_factory.h"
 #include "opentelemetry/sdk/trace/random_id_generator_factory.h"
 
@@ -48,6 +49,16 @@ CreatePeriodicExportingMetricReader(
 
 std::unique_ptr<opentelemetry::sdk::trace::IdGenerator> CreateIdGenerator() {
   return opentelemetry::sdk::trace::RandomIdGeneratorFactory::Create();
+}
+
+std::unique_ptr<opentelemetry::sdk::logs::LogRecordExporter>
+CreateLogRecordExporter(absl::optional<std::string> collector_endpoint) {
+  opentelemetry::exporter::otlp::OtlpGrpcExporterOptions opts;
+  if (collector_endpoint.has_value()) {
+    opts.endpoint = *collector_endpoint;
+  }
+  return opentelemetry::exporter::otlp::OtlpGrpcLogRecordExporterFactory::
+      Create(opts);
 }
 
 }  // namespace privacy_sandbox::server_common

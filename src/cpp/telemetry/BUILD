@@ -33,6 +33,9 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/types:optional",
+        "@io_opentelemetry_cpp//api",
+        "@io_opentelemetry_cpp//sdk:headers",
+        "@io_opentelemetry_cpp//sdk/src/logs",
         "@io_opentelemetry_cpp//sdk/src/metrics",
         "@io_opentelemetry_cpp//sdk/src/resource",
         "@io_opentelemetry_cpp//sdk/src/trace",
@@ -135,6 +138,7 @@ cc_library(
     deps = [
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/types:optional",
+        "@io_opentelemetry_cpp//exporters/ostream:ostream_log_record_exporter",
         "@io_opentelemetry_cpp//exporters/ostream:ostream_metric_exporter",
     ] + select({
         ":local_otel_export_ostream": [
@@ -157,6 +161,7 @@ cc_library(
         ":aws_xray",
         "@com_google_absl//absl/types:optional",
         "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_exporter",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_log_record_exporter",
         "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_metric_exporter",
     ],
 )
@@ -170,6 +175,7 @@ cc_library(
     deps = [
         "@com_google_absl//absl/types:optional",
         "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_exporter",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_log_record_exporter",
         "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_metric_exporter",
     ],
 )

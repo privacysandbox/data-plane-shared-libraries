@@ -19,8 +19,14 @@
 #include <utility>
 #include <vector>
 
+#include "opentelemetry/logs/provider.h"
 #include "opentelemetry/metrics/provider.h"
 #include "opentelemetry/nostd/shared_ptr.h"
+#include "opentelemetry/sdk/logs/logger.h"
+#include "opentelemetry/sdk/logs/logger_provider.h"
+#include "opentelemetry/sdk/logs/logger_provider_factory.h"
+#include "opentelemetry/sdk/logs/simple_log_record_processor.h"
+#include "opentelemetry/sdk/logs/simple_log_record_processor_factory.h"
 #include "opentelemetry/sdk/metrics/meter.h"
 #include "opentelemetry/sdk/metrics/meter_provider.h"
 #include "opentelemetry/sdk/metrics/view/view_registry.h"
@@ -33,10 +39,13 @@
 #include "init.h"
 #include "telemetry_provider.h"
 
+namespace logs_api = opentelemetry::logs;
+namespace logs_sdk = opentelemetry::sdk::logs;
 namespace metric_sdk = opentelemetry::sdk::metrics;
 namespace metrics_api = opentelemetry::metrics;
 namespace nostd = opentelemetry::nostd;
 namespace trace = opentelemetry::trace;
+using opentelemetry::sdk::logs::LoggerProviderFactory;
 using opentelemetry::sdk::resource::Resource;
 using opentelemetry::sdk::resource::ResourceAttributes;
 using opentelemetry::sdk::trace::AlwaysOnSamplerFactory;
@@ -52,9 +61,9 @@ using opentelemetry::trace::TracerProvider;
 namespace privacy_sandbox::server_common {
 
 void InitTelemetry(std::string service_name, std::string build_version,
-                   bool trace_enabled, bool metric_enabled) {
+                   bool trace_enabled, bool metric_enabled, bool log_enabled) {
   TelemetryProvider::Init(service_name, build_version, trace_enabled,
-                          metric_enabled);
+                          metric_enabled, log_enabled);
 }
 
 void ConfigureMetrics(
@@ -88,6 +97,21 @@ void ConfigureTracer(Resource resource,
 
   // Set the global trace provider
   Provider::SetTracerProvider(provider);
+}
+
+void ConfigureLogger(Resource resource,
+                     absl::optional<std::string> collector_endpoint) {
+  if (!TelemetryProvider::GetInstance().log_enabled()) {
+    return;
+  }
+  auto exporter = CreateLogRecordExporter(collector_endpoint);
+  auto processor =
+      logs_sdk::SimpleLogRecordProcessorFactory::Create(std::move(exporter));
+  std::shared_ptr<logs_api::LoggerProvider> provider(
+      LoggerProviderFactory::Create(std::move(processor), resource));
+
+  // Set the global logger provider
+  logs_api::Provider::SetLoggerProvider(provider);
 }
 
 nostd::shared_ptr<Tracer> GetTracer() {

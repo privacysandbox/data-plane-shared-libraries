@@ -16,6 +16,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "opentelemetry/logs/provider.h"
 #include "opentelemetry/metrics/provider.h"
 
 #include "telemetry_provider.h"
@@ -27,7 +28,8 @@ namespace {
 TEST(Init, WithoutTraceOrMetric) {
   InitTelemetry("service_name", "build_version",
                 /*trace_enabled=*/false,
-                /*metric_enabled=*/false);
+                /*metric_enabled=*/false,
+                /*logs_enabled=*/false);
   opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions options;
   auto resource = opentelemetry::sdk::resource::Resource::GetDefault();
   ConfigureMetrics(resource, options);
@@ -37,6 +39,17 @@ TEST(Init, WithoutTraceOrMetric) {
       dynamic_cast<opentelemetry::trace::NoopTracer*>(GetTracer().get()));
   EXPECT_TRUE(dynamic_cast<opentelemetry::metrics::NoopMeterProvider*>(
       opentelemetry::metrics::Provider::GetMeterProvider().get()));
+}
+
+TEST(Init, WithoutLogger) {
+  InitTelemetry("service_name", "build_version",
+                /*trace_enabled=*/false,
+                /*metric_enabled=*/false,
+                /*logs_enabled=*/false);
+  auto resource = opentelemetry::sdk::resource::Resource::GetDefault();
+  ConfigureLogger(resource);
+  EXPECT_TRUE(dynamic_cast<opentelemetry::logs::NoopLoggerProvider*>(
+      opentelemetry::logs::Provider::GetLoggerProvider().get()));
 }
 
 }  // namespace
