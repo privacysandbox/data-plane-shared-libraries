@@ -91,7 +91,7 @@ index 1bdbf817..9b1644ea 100644
              """sed -i.bak 's/UUID::RandomUUID/Aws::Utils::UUID::RandomUUID/g' aws-cpp-sdk-core/source/client/AWSClient.cpp""",
              # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
 diff --git a/build_defs/cc/sdk_common.bzl b/build_defs/cc/sdk_common.bzl
-index 4abcb8c0..ed9a748f 100644
+index 4abcb8c0..b7445f00 100644
 --- a/build_defs/cc/sdk_common.bzl
 +++ b/build_defs/cc/sdk_common.bzl
 @@ -12,7 +12,6 @@
@@ -102,7 +102,11 @@ index 4abcb8c0..ed9a748f 100644
  load("//build_defs/shared:absl.bzl", "absl")
  load("//build_defs/shared:bazel_rules_pkg.bzl", "bazel_rules_pkg")
  load("//build_defs/shared:bazel_rules_java.bzl", "bazel_rules_java")
-@@ -30,7 +29,7 @@ load("//build_defs/cc/shared:google_cloud_cpp.bzl", "import_google_cloud_cpp")
+@@ -27,10 +26,11 @@ load("//build_defs/cc/shared:cc_utils.bzl", "cc_utils")
+ load("//build_defs/cc/shared:gtest.bzl", "google_test")
+ load("//build_defs/cc/shared:nghttp2.bzl", "nghttp2")
+ load("//build_defs/cc/shared:google_cloud_cpp.bzl", "import_google_cloud_cpp")
++load("//build_defs/shared:rpm.bzl", "rpm")
  load("//build_defs/tink:tink_defs.bzl", "import_tink_git")
  load("//build_defs/shared:java_grpc.bzl", "java_grpc")
  
@@ -111,13 +115,14 @@ index 4abcb8c0..ed9a748f 100644
      absl()
      bazel_docker_rules()
      bazel_rules_cpp()
-@@ -45,6 +44,5 @@ def sdk_common(protobuf_version, protobuf_repo_hash):
+@@ -45,6 +45,6 @@ def sdk_common(protobuf_version, protobuf_repo_hash):
      grpc()
      java_grpc()
      nghttp2()
 -    protobuf(protobuf_version, protobuf_repo_hash)
      import_google_cloud_cpp()
      import_tink_git()
++    rpm()
 diff --git a/build_defs/cc/sdk_source_code.bzl b/build_defs/cc/sdk_source_code.bzl
 index 7065a52f..baa2cd2c 100644
 --- a/build_defs/cc/sdk_source_code.bzl
