@@ -46,7 +46,6 @@ repos:
   rev: 3.0.0
   hooks:
   - id: git-check
-    files: ^$
   - id: script-must-not-have-extension
   - id: script-must-have-extension
   - id: require-ascii

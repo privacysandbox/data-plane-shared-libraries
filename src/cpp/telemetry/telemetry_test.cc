@@ -17,7 +17,6 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "opentelemetry/metrics/provider.h"
-#include "opentelemetry/trace/noop.h"
 
 #include "telemetry_provider.h"
 
