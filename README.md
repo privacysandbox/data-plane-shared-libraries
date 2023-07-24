@@ -43,3 +43,7 @@ Additionally the `with_abseil` flag should be set for OpenTelemetry. In your `.b
 ```bazel
 build --@io_opentelemetry_cpp//api:with_abseil
 ```
+
+---
+
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/privacysandbox/data-plane-shared-libraries/badge)](https://securityscorecards.dev/viewer/?uri=github.com/privacysandbox/data-plane-shared-libraries)
