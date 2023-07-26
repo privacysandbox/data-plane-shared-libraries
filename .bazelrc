@@ -9,6 +9,11 @@ build --color=yes
 build --@io_bazel_rules_docker//transitions:enable=false
 build --client_env=BAZEL_CXXOPTS=-std=c++17
 
+# Required for Roma sandboxed
+build --cxxopt=-fbracket-depth=512
+build --per_file_copt=.*sandboxed_api.*@-Wno-return-type
+
+
 # Required to build OpenTelemetry with Abseil
 build --@io_opentelemetry_cpp//api:with_abseil
 # Required to build OpenTelemtry with logs API.

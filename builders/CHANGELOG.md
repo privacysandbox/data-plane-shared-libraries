@@ -2,6 +2,106 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.36.1 (2023-07-25)
+
+
+### Bug Fixes
+
+* Rename convert_docker_to_nitro to convert-docker-to-nitro
+
+## 0.36.0 (2023-07-24)
+
+
+### Features
+
+* Add convert_docker_to_nitro
+
+## 0.35.0 (2023-07-21)
+
+
+### Features
+
+* Add LICENSE file
+
+## 0.34.0 (2023-07-21)
+
+
+### Features
+
+* Add OSSF Scorecard badge to top-level README
+
+## 0.33.0 (2023-07-20)
+
+
+### Features
+
+* Install python libclang 15 in build-debian
+* Add OSSF Scorecard GitHub Action
+
+## 0.32.0 (2023-07-14)
+
+
+### Features
+
+* Set PYTHON_BIN_PATH/PYTHON_LIB_PATH in build-amazonlinux2
+
+## 0.31.0 (2023-07-12)
+
+
+### Features
+
+* Add cbuild --docker-network flag
+* Add coverage-tool image plus lcov scripts
+* Mount gcloud config dir into container
+
+
+### Bug Fixes
+
+* Add hash for coverage-tools
+* Add hash for coverage-tools
+* Improve error handling for flag values
+* Print build log path on error condition
+* Specify latest image tag explicitly
+* Upgrade pre-commit hooks
+
+## 0.30.1 (2023-06-27)
+
+
+### Bug Fixes
+
+* Use = for --env flag
+* Use = for --env flag for all tools
+
+## 0.30.0 (2023-06-26)
+
+
+### Features
+
+* Install numpy for python3.9
+* Set PYTHON_BIN_PATH/PYTHON_LIB_PATH in build-debian
+* Upgrade AmazonLinux2 to 20230530
+* Upgrade packer to v1.9.1
+
+
+### Bug Fixes
+
+* Add links for llvm-{cov,profdata}
+
+## 0.29.0 (2023-06-05)
+
+
+### Features
+
+* Update pre-commit hook versions
+
+
+### Bug Fixes
+
+* Catch error when shifting multiple args
+* Remove golang from test-tools image
+* Resolve WORKSPACE using realpath
+* Use correct exit code in --fast mode
+
 ## 0.28.0 (2023-05-24)
 
 

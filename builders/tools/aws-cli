@@ -46,7 +46,7 @@ DOCKER_RUN_ARGS+=(
 for evar in "${ENV_VARS[@]}"
 do
   DOCKER_RUN_ARGS+=(
-    "--env ${evar}"
+    "--env=${evar}"
   )
 done
 if [[ -t 0 ]] && [[ -t 1 ]]; then
@@ -67,4 +67,4 @@ docker run \
   --volume "${HOME}"/.aws/:/home/.aws/ \
   --volume "${WORKSPACE}":/src/workspace \
   --workdir /src/workspace/"${REL_PWD}" \
-  amazon/aws-cli "$@"
+  amazon/aws-cli:latest "$@"
