@@ -48,8 +48,11 @@ TEST(Init, WithoutLogger) {
                 /*logs_enabled=*/false);
   auto resource = opentelemetry::sdk::resource::Resource::GetDefault();
   ConfigureLogger(resource);
-  EXPECT_TRUE(dynamic_cast<opentelemetry::logs::NoopLoggerProvider*>(
-      opentelemetry::logs::Provider::GetLoggerProvider().get()));
+  auto provider = opentelemetry::logs::Provider::GetLoggerProvider();
+  EXPECT_TRUE(
+      dynamic_cast<opentelemetry::logs::NoopLoggerProvider*>(provider.get()));
+  provider->GetLogger("test")->EmitLogRecord(
+      opentelemetry::logs::Severity::kInfo, "test");
 }
 
 }  // namespace
