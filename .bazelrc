@@ -10,6 +10,7 @@ build --color=yes
 build --@io_bazel_rules_docker//transitions:enable=false
 build --client_env=BAZEL_CXXOPTS=-std=c++17
 build --config=roma_sandboxed
+build --config=otel
 
 build:roma_legacy --@control_plane_shared//cc/roma/roma_service/src:service=legacy
 
@@ -18,9 +19,9 @@ build:roma_sandboxed --per_file_copt=.*sandboxed_api.*@-Wno-return-type
 build:roma_sandboxed --cxxopt=-fbracket-depth=512
 
 # Required to build OpenTelemetry with Abseil
-build --@io_opentelemetry_cpp//api:with_abseil
+build:otel --@io_opentelemetry_cpp//api:with_abseil
 # Required to build OpenTelemtry with logs API.
 # TODO(b/287675870): Delete the following when the feature is no longer experimental.
-build --copt -DENABLE_LOGS_PREVIEW
+build:otel --copt=-DENABLE_LOGS_PREVIEW
 
 test --test_output=errors
