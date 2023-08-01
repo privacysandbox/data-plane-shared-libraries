@@ -4,7 +4,7 @@ build --client_env=CC=clang
 build --cxxopt=-std=c++17
 build --copt=-Werror=return-type
 build --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
-build -c opt
+build --compilation_mode=opt
 build --output_filter='^//((?!(third_party):).)*$'`
 build --color=yes
 build --@io_bazel_rules_docker//transitions:enable=false
