@@ -1,5 +1,5 @@
 diff --git a/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD b/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
-index 9a257ad..d576bcd 100644
+index 9a257ad86..d576bcd9d 100644
 --- a/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
 +++ b/build_defs/cc/aws/aws_sdk_cpp_source_code.BUILD
 @@ -288,3 +288,57 @@ genrule(
@@ -61,7 +61,7 @@ index 9a257ad..d576bcd 100644
 +)
 +
 diff --git a/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl b/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
-index 1bdbf81..9b1644e 100644
+index 1bdbf8172..9b1644eab 100644
 --- a/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
 +++ b/build_defs/cc/aws/aws_sdk_cpp_source_code_deps.bzl
 @@ -15,14 +15,14 @@
@@ -91,7 +91,7 @@ index 1bdbf81..9b1644e 100644
              """sed -i.bak 's/UUID::RandomUUID/Aws::Utils::UUID::RandomUUID/g' aws-cpp-sdk-core/source/client/AWSClient.cpp""",
              # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
 diff --git a/build_defs/cc/sdk_common.bzl b/build_defs/cc/sdk_common.bzl
-index 4abcb8c..b7445f0 100644
+index 4abcb8c05..b7445f00f 100644
 --- a/build_defs/cc/sdk_common.bzl
 +++ b/build_defs/cc/sdk_common.bzl
 @@ -12,7 +12,6 @@
@@ -124,7 +124,7 @@ index 4abcb8c..b7445f0 100644
      import_tink_git()
 +    rpm()
 diff --git a/build_defs/cc/sdk_source_code.bzl b/build_defs/cc/sdk_source_code.bzl
-index 7065a52..baa2cd2 100644
+index 7065a52fb..baa2cd2cc 100644
 --- a/build_defs/cc/sdk_source_code.bzl
 +++ b/build_defs/cc/sdk_source_code.bzl
 @@ -17,8 +17,10 @@ load("//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp
@@ -143,7 +143,7 @@ index 7065a52..baa2cd2 100644
 +    import_aws_nitro_enclaves_sdk()
 \ No newline at end of file
 diff --git a/build_defs/cc/sdk_static_lib.bzl b/build_defs/cc/sdk_static_lib.bzl
-index eec3909..aeef186 100644
+index eec3909eb..aeef1866a 100644
 --- a/build_defs/cc/sdk_static_lib.bzl
 +++ b/build_defs/cc/sdk_static_lib.bzl
 @@ -18,7 +18,7 @@ load("//build_defs/cc/aws:aws_nitro_enclaves_sdk_static_lib_deps.bzl", "import_a
@@ -156,7 +156,7 @@ index eec3909..aeef186 100644
      import_aws_sdk_cpp()
      import_aws_nitro_enclaves_sdk()
 diff --git a/build_defs/cc/shared/bazel_rules_cpp.bzl b/build_defs/cc/shared/bazel_rules_cpp.bzl
-index 53fb88f..698516d 100644
+index 53fb88fef..698516d16 100644
 --- a/build_defs/cc/shared/bazel_rules_cpp.bzl
 +++ b/build_defs/cc/shared/bazel_rules_cpp.bzl
 @@ -20,16 +20,18 @@ def bazel_rules_cpp():
@@ -188,7 +188,7 @@ index 53fb88f..698516d 100644
 +        ],
      )
 diff --git a/build_defs/cc/shared/boringssl.bzl b/build_defs/cc/shared/boringssl.bzl
-index d811337..05a5eb9 100644
+index d811337f2..05a5eb903 100644
 --- a/build_defs/cc/shared/boringssl.bzl
 +++ b/build_defs/cc/shared/boringssl.bzl
 @@ -12,15 +12,15 @@
@@ -213,8 +213,22 @@ index d811337..05a5eb9 100644
 +        url = "https://github.com/google/boringssl/archive/5c22014ca513807ed03c657e8ede076164663979.zip",
 +        sha256 = "863fc670c456f30923740c1639305132fdfb9d1b25ba385a67ae3862ef12a8af",
      )
+diff --git a/build_defs/cc/shared/build_targets/nlohmann.BUILD b/build_defs/cc/shared/build_targets/nlohmann.BUILD
+index dd229cb4b..078c84d03 100644
+--- a/build_defs/cc/shared/build_targets/nlohmann.BUILD
++++ b/build_defs/cc/shared/build_targets/nlohmann.BUILD
+@@ -29,3 +29,9 @@ cc_library(
+     ],
+     includes = ["single_include"],
+ )
++
++alias(
++    name = "nlohmann_json",
++    actual = ":lib",
++)
++
 diff --git a/build_defs/cc/shared/cc_utils.bzl b/build_defs/cc/shared/cc_utils.bzl
-index b4967de..d1b9a43 100644
+index b4967de6a..d1b9a4304 100644
 --- a/build_defs/cc/shared/cc_utils.bzl
 +++ b/build_defs/cc/shared/cc_utils.bzl
 @@ -24,6 +24,7 @@ def cc_utils():
@@ -226,7 +240,7 @@ index b4967de..d1b9a43 100644
  
      maybe(
 diff --git a/build_defs/cc/shared/nghttp2.bzl b/build_defs/cc/shared/nghttp2.bzl
-index 02e3b9e..f10171b 100644
+index 02e3b9e96..f10171bda 100644
 --- a/build_defs/cc/shared/nghttp2.bzl
 +++ b/build_defs/cc/shared/nghttp2.bzl
 @@ -15,6 +15,29 @@
@@ -260,7 +274,7 @@ index 02e3b9e..f10171b 100644
      maybe(
          http_archive,
 diff --git a/build_defs/cc/shared/rules_boost.patch b/build_defs/cc/shared/rules_boost.patch
-index a74e34e..7614b1f 100644
+index a74e34efb..7614b1f09 100644
 --- a/build_defs/cc/shared/rules_boost.patch
 +++ b/build_defs/cc/shared/rules_boost.patch
 @@ -15,7 +15,7 @@ diff --git a/boost/boost.bzl b/boost/boost.bzl
@@ -284,7 +298,7 @@ index a74e34e..7614b1f 100644
 -+#         url = "https://github.com/google/boringssl/archive/fc44652a42b396e1645d5e72aba053349992136a.tar.gz",
 -+#     )
 diff --git a/build_defs/cc/shared/sandboxed_api.bzl b/build_defs/cc/shared/sandboxed_api.bzl
-index ed96f79..1f37fbc 100644
+index ed96f79f0..1f37fbc3d 100644
 --- a/build_defs/cc/shared/sandboxed_api.bzl
 +++ b/build_defs/cc/shared/sandboxed_api.bzl
 @@ -23,6 +23,9 @@ def sandboxed_api(scp_repo_name = ""):
@@ -300,7 +314,7 @@ index ed96f79..1f37fbc 100644
      )
 diff --git a/build_defs/cc/shared/sandboxed_libunwind.patch b/build_defs/cc/shared/sandboxed_libunwind.patch
 new file mode 100644
-index 0000000..b89d453
+index 000000000..b89d45386
 --- /dev/null
 +++ b/build_defs/cc/shared/sandboxed_libunwind.patch
 @@ -0,0 +1,185 @@
@@ -490,7 +504,7 @@ index 0000000..b89d453
 + 
 + cc_library(
 diff --git a/build_defs/cc/v8.bzl b/build_defs/cc/v8.bzl
-index d9e150e..35f6807 100644
+index d9e150e50..35f680731 100644
 --- a/build_defs/cc/v8.bzl
 +++ b/build_defs/cc/v8.bzl
 @@ -13,7 +13,7 @@
@@ -516,7 +530,7 @@ index d9e150e..35f6807 100644
  
      new_git_repository(
 diff --git a/build_defs/shared/absl.bzl b/build_defs/shared/absl.bzl
-index 08d29e6..c4ac383 100644
+index 08d29e682..c4ac383bd 100644
 --- a/build_defs/shared/absl.bzl
 +++ b/build_defs/shared/absl.bzl
 @@ -24,17 +24,19 @@ def absl():
@@ -547,7 +561,7 @@ index 08d29e6..c4ac383 100644
          ],
      )
 diff --git a/build_defs/shared/bazel_docker_rules.bzl b/build_defs/shared/bazel_docker_rules.bzl
-index 659ce26..96281a5 100644
+index 659ce26b1..96281a5d6 100644
 --- a/build_defs/shared/bazel_docker_rules.bzl
 +++ b/build_defs/shared/bazel_docker_rules.bzl
 @@ -12,7 +12,7 @@
@@ -570,7 +584,7 @@ index 659ce26..96281a5 100644
 +        urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.25.0/rules_docker-v0.25.0.tar.gz"],
      )
 diff --git a/build_defs/shared/bazel_rules_pkg.bzl b/build_defs/shared/bazel_rules_pkg.bzl
-index 7353b6f..40ee3aa 100644
+index 7353b6f54..40ee3aa51 100644
 --- a/build_defs/shared/bazel_rules_pkg.bzl
 +++ b/build_defs/shared/bazel_rules_pkg.bzl
 @@ -19,9 +19,9 @@ def bazel_rules_pkg():
@@ -587,7 +601,7 @@ index 7353b6f..40ee3aa 100644
          ],
      )
 diff --git a/build_defs/shared/golang.bzl b/build_defs/shared/golang.bzl
-index 05bae65..401f328 100644
+index 05bae654d..401f328a3 100644
 --- a/build_defs/shared/golang.bzl
 +++ b/build_defs/shared/golang.bzl
 @@ -23,13 +23,12 @@ def go_deps():
@@ -608,7 +622,7 @@ index 05bae65..401f328 100644
          http_archive,
          name = "bazel_gazelle",
 diff --git a/build_defs/shared/grpc.bzl b/build_defs/shared/grpc.bzl
-index 781666d..ab2402c 100644
+index 781666d1d..ab2402c59 100644
 --- a/build_defs/shared/grpc.bzl
 +++ b/build_defs/shared/grpc.bzl
 @@ -23,9 +23,13 @@ def grpc():
@@ -630,7 +644,7 @@ index 781666d..ab2402c 100644
      )
 diff --git a/build_defs/shared/grpc.patch b/build_defs/shared/grpc.patch
 new file mode 100644
-index 0000000..abd0496
+index 000000000..abd0496ff
 --- /dev/null
 +++ b/build_defs/shared/grpc.patch
 @@ -0,0 +1,32 @@
@@ -667,7 +681,7 @@ index 0000000..abd0496
 ++     args = ctx.actions.args()
 ++ 
 diff --git a/cc/aws/proxy/src/proxify.cc b/cc/aws/proxy/src/proxify.cc
-index 70c9334..cf986a9 100644
+index 70c9334d0..cf986a9de 100644
 --- a/cc/aws/proxy/src/proxify.cc
 +++ b/cc/aws/proxy/src/proxify.cc
 @@ -29,11 +29,15 @@ static constexpr char socket_vendor[] = "socket_vendor";
@@ -701,7 +715,7 @@ index 70c9334..cf986a9 100644
      exit(1);
    }
 diff --git a/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc b/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc
-index 9aee10d..e666780 100644
+index 9aee10d6d..e666780d0 100644
 --- a/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc
 +++ b/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.cc
 @@ -21,7 +21,6 @@
@@ -1031,7 +1045,7 @@ index 9aee10d..e666780 100644
  }
  }  // namespace google::scp::cpio::client_providers
 diff --git a/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc b/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc
-index ed1ba8f..489497a 100644
+index ed1ba8f29..489497aca 100644
 --- a/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc
 +++ b/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.cc
 @@ -49,7 +49,6 @@ using google::cmrt::sdk::instance_service::v1::
@@ -1074,7 +1088,7 @@ index ed1ba8f..489497a 100644
    }
  
 diff --git a/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc b/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc
-index ad225e7..56ba6d6 100644
+index ad225e7cc..56ba6d6d9 100644
 --- a/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc
 +++ b/cc/cpio/client_providers/instance_client_provider/test/aws/aws_instance_client_provider_test.cc
 @@ -65,7 +65,6 @@ using google::cmrt::sdk::instance_service::v1::
@@ -1086,7 +1100,7 @@ index ad225e7..56ba6d6 100644
  using google::scp::core::BytesBuffer;
  using google::scp::core::ExecutionResult;
 diff --git a/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc b/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc
-index 66c76a6..0acfa1d 100644
+index 66c76a618..0acfa1d01 100644
 --- a/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc
 +++ b/cc/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.cc
 @@ -38,7 +38,6 @@ using google::cloud::StatusCode;
@@ -1113,7 +1127,7 @@ index 66c76a6..0acfa1d 100644
    for (auto& time_series : time_series_list) {
      time_series.mutable_resource()->CopyFrom(resource);
 diff --git a/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc b/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc
-index 445cf52..dc47efd 100644
+index 445cf52ec..dc47efd03 100644
 --- a/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc
 +++ b/cc/cpio/client_providers/metric_client_provider/test/aws/aws_metric_client_utils_test.cc
 @@ -41,7 +41,6 @@ using Aws::CloudWatch::Model::StandardUnitMapper::GetStandardUnitForName;
@@ -1139,7 +1153,7 @@ index 445cf52..dc47efd 100644
  
    bool parse_request_to_datum_is_called = false;
 diff --git a/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc b/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc
-index d294c93..683f286 100644
+index d294c935c..683f28659 100644
 --- a/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc
 +++ b/cc/cpio/client_providers/metric_client_provider/test/gcp/gcp_metric_client_utils_test.cc
 @@ -37,7 +37,6 @@ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
@@ -1163,7 +1177,7 @@ index d294c93..683f286 100644
    vector<TimeSeries> time_series_list;
    auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
 diff --git a/cc/public/cpio/adapters/metric_client/src/metric_client.cc b/cc/public/cpio/adapters/metric_client/src/metric_client.cc
-index b9a5114..4bc4344 100644
+index b9a51145d..4bc4344e5 100644
 --- a/cc/public/cpio/adapters/metric_client/src/metric_client.cc
 +++ b/cc/public/cpio/adapters/metric_client/src/metric_client.cc
 @@ -38,7 +38,6 @@
@@ -1175,7 +1189,7 @@ index b9a5114..4bc4344 100644
  using google::scp::core::AsyncContext;
  using google::scp::core::AsyncExecutorInterface;
 diff --git a/cc/public/cpio/examples/local_metric_client_test.cc b/cc/public/cpio/examples/local_metric_client_test.cc
-index bdd40dc..13f8081 100644
+index bdd40dca5..13f8081c3 100644
 --- a/cc/public/cpio/examples/local_metric_client_test.cc
 +++ b/cc/public/cpio/examples/local_metric_client_test.cc
 @@ -29,7 +29,6 @@
@@ -1198,7 +1212,7 @@ index bdd40dc..13f8081 100644
    atomic<bool> finished = false;
    result = metric_client->PutMetrics(
 diff --git a/cc/public/cpio/examples/metric_client_test.cc b/cc/public/cpio/examples/metric_client_test.cc
-index e201e64..037d17b 100644
+index e201e6443..037d17ba6 100644
 --- a/cc/public/cpio/examples/metric_client_test.cc
 +++ b/cc/public/cpio/examples/metric_client_test.cc
 @@ -29,7 +29,6 @@
@@ -1221,7 +1235,7 @@ index e201e64..037d17b 100644
    atomic<bool> finished = false;
    result = metric_client->PutMetrics(
 diff --git a/cc/public/cpio/utils/metric_aggregation/src/metric_utils.h b/cc/public/cpio/utils/metric_aggregation/src/metric_utils.h
-index 96e8285..e7c73f7 100644
+index 96e82852a..e7c73f7dc 100644
 --- a/cc/public/cpio/utils/metric_aggregation/src/metric_utils.h
 +++ b/cc/public/cpio/utils/metric_aggregation/src/metric_utils.h
 @@ -53,15 +53,15 @@ class MetricUtils {
@@ -1244,7 +1258,7 @@ index 96e8285..e7c73f7 100644
      }
      *metric->mutable_timestamp() = protobuf::util::TimeUtil::GetCurrentTime();
 diff --git a/cc/roma/ipc/src/work_container.cc b/cc/roma/ipc/src/work_container.cc
-index 91dae9e..ea4af8b 100644
+index 91dae9ea7..ea4af8b9e 100644
 --- a/cc/roma/ipc/src/work_container.cc
 +++ b/cc/roma/ipc/src/work_container.cc
 @@ -16,6 +16,7 @@
@@ -1256,7 +1270,7 @@ index 91dae9e..ea4af8b 100644
  
  using google::scp::core::ExecutionResult;
 diff --git a/cc/roma/roma_service/test/sandboxed_service_test.cc b/cc/roma/roma_service/test/sandboxed_service_test.cc
-index c7c6fe9..a5b51ed 100644
+index c7c6fe96f..a5b51ed62 100644
 --- a/cc/roma/roma_service/test/sandboxed_service_test.cc
 +++ b/cc/roma/roma_service/test/sandboxed_service_test.cc
 @@ -587,7 +587,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
