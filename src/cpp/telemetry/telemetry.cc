@@ -28,7 +28,6 @@
 #include "opentelemetry/sdk/logs/simple_log_record_processor.h"
 #include "opentelemetry/sdk/logs/simple_log_record_processor_factory.h"
 #include "opentelemetry/sdk/metrics/meter.h"
-#include "opentelemetry/sdk/metrics/meter_provider.h"
 #include "opentelemetry/sdk/metrics/view/view_registry.h"
 #include "opentelemetry/sdk/trace/samplers/always_on_factory.h"
 #include "opentelemetry/sdk/trace/simple_processor_factory.h"
@@ -82,6 +81,20 @@ void ConfigureMetrics(
       std::static_pointer_cast<metric_sdk::MeterProvider>(provider);
   p->AddMetricReader(std::move(reader));
   metrics_api::Provider::SetMeterProvider(provider);
+}
+
+std::unique_ptr<metrics_api::MeterProvider> ConfigurePrivateMetrics(
+    Resource resource,
+    const metric_sdk::PeriodicExportingMetricReaderOptions& options,
+    absl::optional<std::string> collector_endpoint) {
+  if (!TelemetryProvider::GetInstance().metric_enabled()) {
+    return std::make_unique<metrics_api::NoopMeterProvider>();
+  }
+  auto provider = std::make_unique<metric_sdk::MeterProvider>(
+      std::make_unique<metric_sdk::ViewRegistry>(), std::move(resource));
+  provider->AddMetricReader(
+      CreatePeriodicExportingMetricReader(options, collector_endpoint));
+  return provider;
 }
 
 void ConfigureTracer(Resource resource,

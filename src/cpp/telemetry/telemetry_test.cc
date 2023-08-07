@@ -55,6 +55,21 @@ TEST(Init, WithoutLogger) {
       opentelemetry::logs::Severity::kInfo, "test");
 }
 
+TEST(Init, PrivateMetric) {
+  InitTelemetry("service_name", "build_version",
+                /*trace_enabled=*/false,
+                /*metric_enabled=*/true,
+                /*logs_enabled=*/false);
+  auto provider = ConfigurePrivateMetrics(
+      opentelemetry::sdk::resource::Resource::GetDefault(),
+      opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions());
+
+  EXPECT_TRUE(dynamic_cast<opentelemetry::metrics::NoopMeterProvider*>(
+      opentelemetry::metrics::Provider::GetMeterProvider().get()));
+  EXPECT_FALSE(
+      dynamic_cast<opentelemetry::metrics::NoopMeterProvider*>(provider.get()));
+}
+
 }  // namespace
 
 }  // namespace privacy_sandbox::server_common

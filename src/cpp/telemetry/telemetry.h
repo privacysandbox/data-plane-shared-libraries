@@ -29,6 +29,7 @@
 #include "opentelemetry/nostd/string_view.h"
 #include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader.h"
 #include "opentelemetry/sdk/metrics/meter.h"
+#include "opentelemetry/sdk/metrics/meter_provider.h"
 #include "opentelemetry/sdk/trace/tracer.h"
 
 namespace privacy_sandbox::server_common {
@@ -38,9 +39,18 @@ void InitTelemetry(std::string service_name, std::string build_version,
                    bool trace_enabled = true, bool metric_enabled = true,
                    bool log_enabled = true);
 
-// Must be called to initialize metrics functionality.
+// Initialize metrics functionality. meter provider is shared through OTel api.
 // If `ConfigureMetrics` is not called, all metrics recording will be NoOp.
-void ConfigureMetrics(
+[[deprecated]] void ConfigureMetrics(
+    opentelemetry::sdk::resource::Resource resource,
+    const opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions&
+        options,
+    absl::optional<std::string> collector_endpoint = absl::nullopt);
+
+// Must be called to initialize metrics functionality.
+// If `ConfigurePrivateMetrics` is not called, all metrics recording will be
+// NoOp. Returned MetricReader is not shared, invoker takes ownership.
+std::unique_ptr<opentelemetry::metrics::MeterProvider> ConfigurePrivateMetrics(
     opentelemetry::sdk::resource::Resource resource,
     const opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions&
         options,
