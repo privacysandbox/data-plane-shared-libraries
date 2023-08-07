@@ -239,6 +239,20 @@ index b4967de6a..d1b9a4304 100644
      )
  
      maybe(
+diff --git a/build_defs/cc/shared/google_cloud_cpp.bzl b/build_defs/cc/shared/google_cloud_cpp.bzl
+index 78923a307..3c7f50389 100644
+--- a/build_defs/cc/shared/google_cloud_cpp.bzl
++++ b/build_defs/cc/shared/google_cloud_cpp.bzl
+@@ -39,6 +39,9 @@ def import_google_cloud_cpp():
+     maybe(
+         http_archive,
+         name = "com_github_googleapis_google_cloud_cpp",
++        repo_mapping = {
++            "@com_github_nlohmann_json": "@nlohmann_json",
++        },
+         sha256 = "21fb441b5a670a18bb16b6826be8e0530888d0b94320847c538d46f5a54dddbc",
+         strip_prefix = "google-cloud-cpp-2.8.0",
+         url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.8.0.tar.gz",
 diff --git a/build_defs/cc/shared/nghttp2.bzl b/build_defs/cc/shared/nghttp2.bzl
 index 02e3b9e96..f10171bda 100644
 --- a/build_defs/cc/shared/nghttp2.bzl
