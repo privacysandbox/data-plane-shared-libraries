@@ -16,16 +16,16 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
 
 def container_deps():
     images = {
-        # Distroless image for running Java
-        "runtime-java": {
-            "arch_hashes": {
-                # debug-nonroot 2023-02-15
-                "amd64": "dca8c4ccea3797aa8df1cec14b7401b8b3868392ac2cd06ab2ca311d52ae7b98",
-                "arm64": "5e2475b1be5b81e9dc2527d71d4eff06cb192dff61c926e6ab10333f63ad308e",
-            },
-            "registry": "gcr.io",
-            "repository": "distroless/java11-debian11",
-        },
+        ## Distroless image for running Java
+        #"runtime-java": {
+        #    "arch_hashes": {
+        #        # debug-nonroot 2023-02-15
+        #        "amd64": "dca8c4ccea3797aa8df1cec14b7401b8b3868392ac2cd06ab2ca311d52ae7b98",
+        #        "arm64": "5e2475b1be5b81e9dc2527d71d4eff06cb192dff61c926e6ab10333f63ad308e",
+        #    },
+        #    "registry": "gcr.io",
+        #    "repository": "distroless/java11-debian11",
+        #},
     }
 
     [
