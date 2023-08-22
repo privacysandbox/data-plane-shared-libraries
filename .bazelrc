@@ -29,7 +29,6 @@ build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-
 
 build:roma_legacy --@control_plane_shared//cc/roma/roma_service/src:service=legacy
 
-build:roma_sandboxed --@control_plane_shared//cc/roma/roma_service/src:service=sandboxed
 build:roma_sandboxed --per_file_copt=.*sandboxed_api.*@-Wno-return-type
 build:roma_sandboxed --cxxopt=-fbracket-depth=512
 
