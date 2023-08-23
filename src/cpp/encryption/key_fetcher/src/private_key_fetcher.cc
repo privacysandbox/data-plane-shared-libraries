@@ -131,6 +131,11 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                               hpke_private_key.private_key(),
                               ProtoToAbslDuration(private_key.creation_time())};
             private_keys_map_.insert_or_assign(key.key_id, key);
+            if (VLOG_IS_ON(2)) {
+              VLOG(2) << absl::StrFormat(
+                  "Caching private key: (KMS id: %s, OHTTP ID: %s)",
+                  private_key.key_id(), key.key_id);
+            }
           }
         } else {
           static_cast<void>(
