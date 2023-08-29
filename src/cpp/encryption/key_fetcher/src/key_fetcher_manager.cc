@@ -48,10 +48,6 @@ KeyFetcherManager::KeyFetcherManager(
 KeyFetcherManager::~KeyFetcherManager() {
   shutdown_requested_.Notify();
 
-  // Stop the key fetchers.
-  public_key_fetcher_.reset();
-  private_key_fetcher_.reset();
-
   // Cancel the next queued up key refresh task.
   executor_->Cancel(std::move(task_id_));
 }
@@ -63,16 +59,18 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
   task_id_ = executor_->RunAfter(key_refresh_period_,
                                  [this]() { RunPeriodicKeyRefresh(); });
   if (!shutdown_requested_.HasBeenNotified()) {
-    absl::Status public_key_refresh_status = public_key_fetcher_->Refresh();
-    if (!public_key_refresh_status.ok()) {
-      VLOG(1) << "Public key refresh failed: "
-              << public_key_refresh_status.message();
-    } else {
-      absl::Status private_key_refresh_status = private_key_fetcher_->Refresh();
-      VLOG_IF(1, !private_key_refresh_status.ok())
-          << "Private key refresh failed: "
-          << private_key_refresh_status.message();
+    if (public_key_fetcher_) {
+      absl::Status public_key_refresh_status = public_key_fetcher_->Refresh();
+      if (!public_key_refresh_status.ok()) {
+        VLOG(1) << "Public key refresh failed: "
+                << public_key_refresh_status.message();
+      }
     }
+
+    absl::Status private_key_refresh_status = private_key_fetcher_->Refresh();
+    VLOG_IF(1, !private_key_refresh_status.ok())
+        << "Private key refresh failed: "
+        << private_key_refresh_status.message();
   } else {
     VLOG(3) << "Shutdown requested; skipping run of KeyFetcherManager's key "
                "refresh flow.";

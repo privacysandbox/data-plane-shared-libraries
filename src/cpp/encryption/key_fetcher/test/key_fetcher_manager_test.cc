@@ -108,5 +108,17 @@ TEST_F(KeyFetcherManagerTest, SuccessfulPublicKeyRefreshNoPrivateKeysToFetch) {
   absl::SleepFor(absl::Milliseconds(5));
 }
 
+TEST_F(KeyFetcherManagerTest, NullPointerForPublicKeyFetcher) {
+  std::unique_ptr<MockPrivateKeyFetcher> private_key_fetcher =
+      std::make_unique<MockPrivateKeyFetcher>();
+  EXPECT_CALL(*private_key_fetcher, Refresh)
+      .WillRepeatedly([&]() -> absl::Status { return absl::OkStatus(); });
+
+  KeyFetcherManager manager(absl::Minutes(1), /* public_key_fetcher= */ nullptr,
+                            std::move(private_key_fetcher),
+                            std::move(executor_));
+  manager.Start();
+}
+
 }  // namespace
 }  // namespace privacy_sandbox::server_common
