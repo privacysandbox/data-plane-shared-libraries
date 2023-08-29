@@ -111,8 +111,9 @@ TEST_F(KeyFetcherManagerTest, SuccessfulPublicKeyRefreshNoPrivateKeysToFetch) {
 TEST_F(KeyFetcherManagerTest, NullPointerForPublicKeyFetcher) {
   std::unique_ptr<MockPrivateKeyFetcher> private_key_fetcher =
       std::make_unique<MockPrivateKeyFetcher>();
-  EXPECT_CALL(*private_key_fetcher, Refresh)
-      .WillRepeatedly([&]() -> absl::Status { return absl::OkStatus(); });
+  EXPECT_CALL(*private_key_fetcher, Refresh).WillRepeatedly([]() {
+    return absl::OkStatus();
+  });
 
   KeyFetcherManager manager(absl::Minutes(1), /* public_key_fetcher= */ nullptr,
                             std::move(private_key_fetcher),
