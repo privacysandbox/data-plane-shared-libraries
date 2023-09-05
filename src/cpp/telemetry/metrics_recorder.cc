@@ -30,8 +30,8 @@ using opentelemetry::sdk::metrics::MeterSelector;
 namespace privacy_sandbox::server_common {
 namespace {
 
-// Workaround for no `constexpr opentelemetry::nostd::string_view`
-constexpr char kSchema[] = "https://opentelemetry.io/schemas/1.2.0";
+// TODO(b/278899152): Get both library and schema versions updated in one place.
+constexpr char kSchema[] = "https://opentelemetry.io/schemas/1.20.0";
 constexpr size_t kSchemaLen = sizeof(kSchema) - 1;
 // The units below are nanoseconds.
 constexpr double kDefaultHistogramBuckets[] = {
