@@ -38,7 +38,7 @@ class KeyFetcherManagerInterface {
 
   // Fetches a public key to be used for encrypting outgoing requests.
   virtual absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>
-  GetPublicKey() noexcept = 0;
+  GetPublicKey(CloudPlatform cloud_platform) noexcept = 0;
 
   // Fetches the corresponding private key for a public key ID.
   virtual std::optional<PrivateKey> GetPrivateKey(

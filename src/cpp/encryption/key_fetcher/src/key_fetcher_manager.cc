@@ -58,6 +58,7 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
   // Queue up another key refresh task.
   task_id_ = executor_->RunAfter(key_refresh_period_,
                                  [this]() { RunPeriodicKeyRefresh(); });
+
   if (!shutdown_requested_.HasBeenNotified()) {
     if (public_key_fetcher_) {
       absl::Status public_key_refresh_status = public_key_fetcher_->Refresh();
@@ -77,8 +78,9 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
   }
 }
 
-absl::StatusOr<PublicKey> KeyFetcherManager::GetPublicKey() noexcept {
-  return public_key_fetcher_->GetKey();
+absl::StatusOr<PublicKey> KeyFetcherManager::GetPublicKey(
+    CloudPlatform cloud_platform) noexcept {
+  return public_key_fetcher_->GetKey(cloud_platform);
 }
 
 std::optional<PrivateKey> KeyFetcherManager::GetPrivateKey(

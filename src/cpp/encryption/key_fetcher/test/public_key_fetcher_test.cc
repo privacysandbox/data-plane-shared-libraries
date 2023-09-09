@@ -77,13 +77,19 @@ TEST(PublicKeyFetcherTest, SuccessfulRefresh) {
             return SuccessExecutionResult();
           });
 
-  PublicKeyFetcher fetcher(std::move(mock_public_key_client));
+  absl::flat_hash_map<
+      CloudPlatform,
+      std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+      public_key_clients;
+  public_key_clients[CloudPlatform::GCP] = std::move(mock_public_key_client);
+
+  PublicKeyFetcher fetcher(std::move(public_key_clients));
   absl::Status result_status = fetcher.Refresh();
   EXPECT_TRUE(result_status.ok());
 
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
   key_pair_ids.push_back(ToOhttpKeyId(response.public_keys().at(0).key_id()));
-  EXPECT_EQ(fetcher.GetKeyIds(), key_pair_ids);
+  EXPECT_EQ(fetcher.GetKeyIds(CloudPlatform::GCP), key_pair_ids);
 }
 
 TEST(PublicKeyFetcherTest, FailedSyncListPublicKeysCall) {
@@ -96,7 +102,13 @@ TEST(PublicKeyFetcherTest, FailedSyncListPublicKeysCall) {
               google::scp::cpio::Callback<ListPublicKeysResponse> callback)
               -> ExecutionResult { return FailureExecutionResult(0); });
 
-  PublicKeyFetcher fetcher(std::move(mock_public_key_client));
+  absl::flat_hash_map<
+      CloudPlatform,
+      std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+      public_key_clients;
+  public_key_clients[CloudPlatform::GCP] = std::move(mock_public_key_client);
+
+  PublicKeyFetcher fetcher(std::move(public_key_clients));
   absl::Status result_status = fetcher.Refresh();
   EXPECT_TRUE(IsUnavailable(result_status));
 }
@@ -120,11 +132,17 @@ TEST(PublicKeyFetcherTest, FailedAsyncListPublicKeysCall) {
             return SuccessExecutionResult();
           });
 
-  PublicKeyFetcher fetcher(std::move(mock_public_key_client));
+  absl::flat_hash_map<
+      CloudPlatform,
+      std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+      public_key_clients;
+  public_key_clients[CloudPlatform::GCP] = std::move(mock_public_key_client);
+
+  PublicKeyFetcher fetcher(std::move(public_key_clients));
   absl::Status result_status = fetcher.Refresh();
   // GetKeyIds() should return an empty list since the public_keys_ field
   // shouldn't be set in the callback in Refresh().
-  EXPECT_EQ(fetcher.GetKeyIds(), std::vector<std::string>());
+  EXPECT_EQ(fetcher.GetKeyIds(CloudPlatform::GCP), std::vector<std::string>());
 }
 
 TEST(PublicKeyFetcherTest, VerifyGetKeyReturnsRandomKey) {
@@ -152,13 +170,19 @@ TEST(PublicKeyFetcherTest, VerifyGetKeyReturnsRandomKey) {
             return SuccessExecutionResult();
           });
 
-  PublicKeyFetcher fetcher(std::move(mock_public_key_client));
+  absl::flat_hash_map<
+      CloudPlatform,
+      std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+      public_key_clients;
+  public_key_clients[CloudPlatform::GCP] = std::move(mock_public_key_client);
+
+  PublicKeyFetcher fetcher(std::move(public_key_clients));
   absl::Status result_status = fetcher.Refresh();
 
   // Call GetKey() and validate the result isn't equal to another GetKey() call.
-  PublicKey key = fetcher.GetKey().value();
+  PublicKey key = *fetcher.GetKey(CloudPlatform::GCP);
   for (int i = 0; i < 100; i++) {
-    if (key.key_id() != fetcher.GetKey()->key_id()) {
+    if (key.key_id() != fetcher.GetKey(CloudPlatform::GCP)->key_id()) {
       SUCCEED();
       return;
     }

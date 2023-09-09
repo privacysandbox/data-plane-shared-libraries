@@ -36,7 +36,7 @@ class MockKeyFetcherManager : public KeyFetcherManagerInterface {
 
   MOCK_METHOD(
       absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>,
-      GetPublicKey, (), (noexcept));
+      GetPublicKey, (CloudPlatform cloud_platform), (noexcept));
 
   MOCK_METHOD(std::optional<PrivateKey>, GetPrivateKey,
               (const google::scp::cpio::PublicPrivateKeyPairId& key_id),

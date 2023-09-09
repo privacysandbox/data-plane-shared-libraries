@@ -33,11 +33,11 @@ class MockPublicKeyFetcher : public PublicKeyFetcherInterface {
   MOCK_METHOD(absl::Status, Refresh, (), (noexcept));
 
   MOCK_METHOD(std::vector<google::scp::cpio::PublicPrivateKeyPairId>, GetKeyIds,
-              (), (noexcept));
+              (CloudPlatform cloud_platform), (noexcept));
 
   MOCK_METHOD(
       absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>,
-      GetKey, (), (noexcept));
+      GetKey, (CloudPlatform cloud_platform), (noexcept));
 };
 
 }  // namespace privacy_sandbox::server_common

@@ -26,6 +26,12 @@
 
 namespace privacy_sandbox::server_common {
 
+enum class CloudPlatform {
+  LOCAL,
+  GCP,
+  AWS,
+};
+
 // Interface responsible for fetching and caching public keys.
 class PublicKeyFetcherInterface {
  public:
@@ -37,11 +43,11 @@ class PublicKeyFetcherInterface {
 
   // Returns a public key for encrypting outgoing requests.
   virtual absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>
-  GetKey() noexcept = 0;
+  GetKey(CloudPlatform cloud_platform) noexcept = 0;
 
-  // Returns the IDs of the cached public keys.
-  virtual std::vector<google::scp::cpio::PublicPrivateKeyPairId>
-  GetKeyIds() noexcept = 0;
+  // Returns the IDs of the cached public keys. For testing purposes only.
+  virtual std::vector<google::scp::cpio::PublicPrivateKeyPairId> GetKeyIds(
+      CloudPlatform cloud_platform) noexcept = 0;
 };
 
 // Factory to create PublicKeyFetcher.
@@ -49,7 +55,9 @@ class PublicKeyFetcherFactory {
  public:
   // Creates a PublicKeyFetcher given a list of Public Key Service endpoints.
   static std::unique_ptr<PublicKeyFetcherInterface> Create(
-      const std::vector<google::scp::cpio::PublicKeyVendingServiceEndpoint>&
+      const absl::flat_hash_map<
+          CloudPlatform,
+          std::vector<google::scp::cpio::PublicKeyVendingServiceEndpoint>>&
           endpoints);
 };
 

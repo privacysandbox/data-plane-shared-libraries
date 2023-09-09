@@ -56,11 +56,17 @@ static constexpr absl::string_view kKeyFetchSuccessMessage =
     "%s)";
 
 PublicKeyFetcher::PublicKeyFetcher(
-    std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>
-        public_key_client)
-    : public_key_client_(std::move(public_key_client)) {}
+    absl::flat_hash_map<
+        CloudPlatform,
+        std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+        public_key_clients)
+    : public_key_clients_(std::move(public_key_clients)) {}
 
-PublicKeyFetcher::~PublicKeyFetcher() { public_key_client_->Stop(); }
+PublicKeyFetcher::~PublicKeyFetcher() {
+  for (const auto& [cloud_platform, public_key_client] : public_key_clients_) {
+    public_key_client->Stop();
+  }
+}
 
 /**
  * Makes a blocking call to fetch the public keys using the public key client.
@@ -69,92 +75,108 @@ PublicKeyFetcher::~PublicKeyFetcher() { public_key_client_->Stop(); }
 absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   VLOG(3) << "Refreshing public keys...";
   absl::Notification public_key_fetch_notification;
-  ExecutionResult result = public_key_client_->ListPublicKeys(
-      ListPublicKeysRequest(),
-      [this, &public_key_fetch_notification](ExecutionResult execution_result,
-                                             ListPublicKeysResponse response) {
-        VLOG(3) << "List public keys call finished.";
 
-        if (execution_result.Successful()) {
-          {
-            absl::MutexLock l(&mutex_);
-            public_keys_ = std::vector<PublicKey>();
-            for (const auto& key : response.public_keys()) {
-              PublicKey copy;
-              copy.set_key_id(ToOhttpKeyId(key.key_id()));
-              copy.set_public_key(key.public_key());
-              public_keys_.push_back(copy);
+  for (const auto& [cloud_platform, public_key_client] : public_key_clients_) {
+    ExecutionResult result = public_key_client->ListPublicKeys(
+        ListPublicKeysRequest(),
+        [this, &public_key_fetch_notification, platform = cloud_platform](
+            ExecutionResult execution_result, ListPublicKeysResponse response) {
+          VLOG(3) << "List public keys call finished.";
+
+          if (execution_result.Successful()) {
+            {
+              absl::MutexLock l(&mutex_);
+              public_keys_[platform] = std::vector<PublicKey>();
+              for (const auto& key : response.public_keys()) {
+                PublicKey copy;
+                copy.set_key_id(ToOhttpKeyId(key.key_id()));
+                copy.set_public_key(key.public_key());
+                public_keys_[platform].push_back(copy);
+              }
             }
+
+            std::vector<PublicPrivateKeyPairId> key_ids = GetKeyIds(platform);
+            std::string key_ids_str = absl::StrJoin(key_ids, ", ");
+            VLOG(3) << absl::StrFormat(
+                kKeyFetchSuccessMessage, key_ids_str,
+                TimeUtil::ToString(response.expiration_time()));
+            VLOG(3) << "Public key refresh flow completed successfully. ";
+          } else {
+            VLOG(1) << absl::StrFormat(
+                kKeyFetchFailMessage,
+                GetErrorMessage(execution_result.status_code));
           }
 
-          std::vector<PublicPrivateKeyPairId> key_ids = GetKeyIds();
-          std::string key_ids_str = absl::StrJoin(key_ids, ", ");
-          VLOG(3) << absl::StrFormat(
-              kKeyFetchSuccessMessage, key_ids_str,
-              TimeUtil::ToString(response.expiration_time()));
-          VLOG(3) << "Public key refresh flow completed successfully. ";
-        } else {
-          VLOG(1) << absl::StrFormat(
-              kKeyFetchFailMessage,
-              GetErrorMessage(execution_result.status_code));
-        }
+          public_key_fetch_notification.Notify();
+        });
 
-        public_key_fetch_notification.Notify();
-      });
-
-  if (!result.Successful()) {
-    std::string error = absl::StrFormat(kKeyFetchFailMessage,
-                                        GetErrorMessage(result.status_code));
-    VLOG(1) << error;
-    return absl::UnavailableError(error);
+    if (!result.Successful()) {
+      std::string error = absl::StrFormat(kKeyFetchFailMessage,
+                                          GetErrorMessage(result.status_code));
+      VLOG(1) << error;
+      return absl::UnavailableError(error);
+    }
   }
+
   public_key_fetch_notification.WaitForNotification();
   return absl::OkStatus();
 }
 
-absl::StatusOr<PublicKey> PublicKeyFetcher::GetKey() noexcept
-    ABSL_LOCKS_EXCLUDED(mutex_) {
+absl::StatusOr<PublicKey> PublicKeyFetcher::GetKey(
+    CloudPlatform cloud_platform) noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   absl::MutexLock l(&mutex_);
   if (public_keys_.empty()) {
     return absl::FailedPreconditionError("No public keys to return.");
   }
 
-  int index = absl::Uniform(absl::IntervalClosedOpen, bitgen_, 0,
-                            static_cast<int>(public_keys_.size()));
-  return public_keys_.at(index);
+  int index =
+      absl::Uniform(absl::IntervalClosedOpen, bitgen_, 0,
+                    static_cast<int>(public_keys_[cloud_platform].size()));
+  return public_keys_[cloud_platform].at(index);
 }
 
-std::vector<PublicPrivateKeyPairId> PublicKeyFetcher::GetKeyIds() noexcept
-    ABSL_LOCKS_EXCLUDED(mutex_) {
+std::vector<PublicPrivateKeyPairId> PublicKeyFetcher::GetKeyIds(
+    CloudPlatform cloud_platform) noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   absl::MutexLock l(&mutex_);
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
-  for (const auto& entry : public_keys_) {
-    key_pair_ids.push_back(std::string(entry.key_id()));
+  for (const auto& key : public_keys_[cloud_platform]) {
+    key_pair_ids.push_back(std::string(key.key_id()));
   }
 
   return key_pair_ids;
 }
 
 std::unique_ptr<PublicKeyFetcherInterface> PublicKeyFetcherFactory::Create(
-    const std::vector<google::scp::cpio::PublicKeyVendingServiceEndpoint>&
-        endpoints) {
-  PublicKeyClientOptions options;
-  options.endpoints = endpoints;
+    const absl::flat_hash_map<
+        CloudPlatform,
+        std::vector<google::scp::cpio::PublicKeyVendingServiceEndpoint>>&
+        per_platform_endpoints) {
+  absl::flat_hash_map<
+      CloudPlatform,
+      std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+      public_key_clients;
 
-  std::unique_ptr<PublicKeyClientInterface> public_key_client =
-      google::scp::cpio::PublicKeyClientFactory::Create(std::move(options));
+  for (const auto& [cloud_platform, endpoints] : per_platform_endpoints) {
+    PublicKeyClientOptions options;
+    options.endpoints = endpoints;
 
-  ExecutionResult init_result = public_key_client->Init();
-  if (!init_result.Successful()) {
-    VLOG(1) << "Failed to initialize public key client.";
+    std::unique_ptr<PublicKeyClientInterface> public_key_client =
+        google::scp::cpio::PublicKeyClientFactory::Create(std::move(options));
+
+    ExecutionResult init_result = public_key_client->Init();
+    if (!init_result.Successful()) {
+      VLOG(1) << "Failed to initialize public key client.";
+    }
+
+    ExecutionResult run_result = public_key_client->Run();
+    if (!run_result.Successful()) {
+      VLOG(1) << "Failed to run public key client.";
+    }
+
+    public_key_clients[cloud_platform] = std::move(public_key_client);
   }
 
-  ExecutionResult run_result = public_key_client->Run();
-  if (!run_result.Successful()) {
-    VLOG(1) << "Failed to run public key client.";
-  }
-
-  return std::make_unique<PublicKeyFetcher>(std::move(public_key_client));
+  return std::make_unique<PublicKeyFetcher>(std::move(public_key_clients));
 }
 
 }  // namespace privacy_sandbox::server_common

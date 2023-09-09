@@ -50,7 +50,7 @@ class FakeKeyFetcherManager : public KeyFetcherManagerInterface {
 
   // Fetches hard coded public key.
   absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>
-  GetPublicKey() noexcept override;
+  GetPublicKey(CloudPlatform cloud_platform) noexcept override;
 
   // Fetches private coded public key.
   std::optional<privacy_sandbox::server_common::PrivateKey> GetPrivateKey(
@@ -59,7 +59,7 @@ class FakeKeyFetcherManager : public KeyFetcherManagerInterface {
 
  private:
   google::cmrt::sdk::public_key_service::v1::PublicKey public_key_;
-  server_common::PrivateKey private_key_;
+  PrivateKey private_key_;
 };
 
 }  // namespace privacy_sandbox::server_common

@@ -34,7 +34,7 @@ void FakeKeyFetcherManager::Start() noexcept {}
 
 // Fetches a public key used for encrypting outgoing requests.
 absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>
-FakeKeyFetcherManager::GetPublicKey() noexcept {
+FakeKeyFetcherManager::GetPublicKey(CloudPlatform cloud_platform) noexcept {
   return public_key_;
 }
 

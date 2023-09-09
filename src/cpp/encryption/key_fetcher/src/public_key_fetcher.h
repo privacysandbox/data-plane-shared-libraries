@@ -36,8 +36,10 @@ namespace privacy_sandbox::server_common {
 class PublicKeyFetcher : public PublicKeyFetcherInterface {
  public:
   // Initializes an instance of PublicKeyFetcher.
-  PublicKeyFetcher(std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>
-                       public_key_client);
+  PublicKeyFetcher(absl::flat_hash_map<
+                   CloudPlatform,
+                   std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+                       public_key_clients);
 
   // Stops and terminates any resources used by the fetcher.
   ~PublicKeyFetcher();
@@ -50,23 +52,27 @@ class PublicKeyFetcher : public PublicKeyFetcherInterface {
 
   // Fetches a random public key (from the list of five) for encrypting outgoing
   // requests.
-  absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>
-  GetKey() noexcept override;
+  absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey> GetKey(
+      CloudPlatform cloud_platform) noexcept override;
 
   // Returns the IDs of the cached public keys. Used mainly for unit tests.
-  std::vector<google::scp::cpio::PublicPrivateKeyPairId> GetKeyIds() noexcept
-      override;
+  std::vector<google::scp::cpio::PublicPrivateKeyPairId> GetKeyIds(
+      CloudPlatform cloud_platform) noexcept override;
 
  private:
   // PublicKeyClient for fetching public keys from the Public Key Service.
-  std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>
-      public_key_client_;
+  absl::flat_hash_map<
+      CloudPlatform,
+      std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+      public_key_clients_;
 
   absl::Mutex mutex_;
 
-  // List of the latest public keys fetched  from the Public Key Service.
-  std::vector<google::cmrt::sdk::public_key_service::v1::PublicKey> public_keys_
-      ABSL_GUARDED_BY(mutex_);
+  // List of the latest public keys fetched from the Public Key Service.
+  absl::flat_hash_map<
+      CloudPlatform,
+      std::vector<google::cmrt::sdk::public_key_service::v1::PublicKey>>
+      public_keys_ ABSL_GUARDED_BY(mutex_);
 
   // BitGen for randomly choosing a public key to return in GetKey().
   absl::BitGen bitgen_;
