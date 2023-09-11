@@ -82,6 +82,23 @@ config_setting(
     visibility = ["//visibility:public"],
 )
 
+string_flag(
+    name = "build_flavor",
+    build_setting_default = "prod",
+    values = [
+        "prod",
+        "non_prod",
+    ],
+)
+
+config_setting(
+    name = "non_prod_build",
+    flag_values = {
+        ":build_flavor": "non_prod",
+    },
+    visibility = ["//visibility:public"],
+)
+
 genrule(
     name = "collect-coverage",
     outs = ["collect_coverage.bin"],

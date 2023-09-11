@@ -103,3 +103,19 @@ def cpp_dependencies():
         sha256 = "bf2861de6bf75115288468f340b0c4609cc99cc1ccc7668f0f71adfd853eedb3",
         url = "https://github.com/bazelbuild/rules_swift/releases/download/1.7.1/rules_swift.1.7.1.tar.gz",
     )
+    maybe(
+        http_archive,
+        name = "com_google_differential_privacy",
+        sha256 = "b2e9afb2ea9337bb7c6302545b72e938707e8cdb3558ef38ce5cdd12fe2f182c",
+        strip_prefix = "differential-privacy-2.1.0",
+        url = "https://github.com/google/differential-privacy/archive/refs/tags/v2.1.0.tar.gz",
+    )
+    maybe(
+        http_archive,
+        name = "com_google_cc_differential_privacy",
+        patch_args = ["-p1"],
+        patches = ["//third_party:differential_privacy.patch"],
+        sha256 = "b2e9afb2ea9337bb7c6302545b72e938707e8cdb3558ef38ce5cdd12fe2f182c",
+        strip_prefix = "differential-privacy-2.1.0/cc",
+        urls = ["https://github.com/google/differential-privacy/archive/refs/tags/v2.1.0.tar.gz"],
+    )
