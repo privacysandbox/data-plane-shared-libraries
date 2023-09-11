@@ -8,6 +8,16 @@ build --config=cpp
 build --config=roma_sandboxed
 build --config=otel
 
+test --test_output=errors
+
+build:cpp --client_env=BAZEL_CXXOPTS=-std=c++17
+build:cpp --cxxopt=-std=c++17
+build:cpp --client_env=CC=clang
+build:cpp --copt=-Werror=return-type
+build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
+
+try-import %workspace%/builders/.coverage.bazelrc
+
 # Address sanitizer, set action_env to segregate cache entries
 build:asan --action_env=PRIVACY_SANDBOX_SERVERS_ASAN=1
 build:asan --strip=never
@@ -22,12 +32,6 @@ build:asan --linkopt=-fuse-ld=lld
 # TODO(b/293876281): Re-enable ODR violation checking once it's fixed in the
 # ZLib library that we depend on.
 build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always:detect_odr_violation=0
-
-build:cpp --client_env=BAZEL_CXXOPTS=-std=c++17
-build:cpp --cxxopt=-std=c++17
-build:cpp --client_env=CC=clang
-build:cpp --copt=-Werror=return-type
-build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
 
 build:roma_legacy --@control_plane_shared//cc/roma/roma_service/src:service=legacy
 
@@ -67,5 +71,3 @@ build:otel --@io_opentelemetry_cpp//api:with_abseil
 # Required to build OpenTelemtry with logs API.
 # TODO(b/287675870): Delete the following when the feature is no longer experimental.
 build:otel --copt=-DENABLE_LOGS_PREVIEW
-
-test --test_output=errors

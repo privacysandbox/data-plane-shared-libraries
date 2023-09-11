@@ -81,3 +81,14 @@ config_setting(
     },
     visibility = ["//visibility:public"],
 )
+
+genrule(
+    name = "collect-coverage",
+    outs = ["collect_coverage.bin"],
+    cmd_bash = """cat << EOF > '$@'
+builders/tools/collect-coverage "\\$$@"
+EOF""",
+    executable = True,
+    local = True,
+    message = "generate coverage report",
+)

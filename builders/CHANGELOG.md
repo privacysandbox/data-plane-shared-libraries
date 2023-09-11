@@ -2,6 +2,104 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.44.0 (2023-09-11)
+
+
+### Features
+
+* Add coverage bazel config and collect-coverage tool
+
+## 0.43.0 (2023-08-15)
+
+
+### Features
+
+* Allow terraform version to be specified
+
+
+### Bug Fixes
+
+* Move feat(deps) earlier for precedence over feat
+
+## 0.42.1 (2023-08-14)
+
+
+### Bug Fixes
+
+* Revert override of /usr/bin/python links in build-amazonlinux2
+
+## 0.42.0 (2023-08-07)
+
+
+### Features
+
+* Add amazonlinux2 support to convert-docker-to-nitro
+* Add bsdmainutils for hexdump
+* Add build-amazonlinux2023 image
+* Add support for amazonlinux2023 in builder.sh
+* Configure python3.9 for python/python3 links
+* Remove jdk from build-amazonlinux2 image
+
+### Dependencies
+
+* **deps:** Upgrade amazonlinux2 to 20230719
+
+
+### Bug Fixes
+
+* Empty bazel-* arg list not an error condition
+
+## 0.41.1 (2023-08-04)
+
+
+### Bug Fixes
+
+* Remove debug statement
+
+## 0.41.0 (2023-08-03)
+
+
+### Features
+
+* Create links for lld and ld.lld in build-debian
+
+## 0.40.0 (2023-08-03)
+
+
+### Features
+
+* Add Dependencies section for release notes
+* **deps:** Upgrade rules_python to 0.24.0
+* Ensure bazel-* scripts handle non-bazel args too
+
+## 0.39.0 (2023-08-02)
+
+
+### Features
+
+* Run bazel containers in seccomp=unconfined mode
+
+## 0.38.1 (2023-08-02)
+
+
+### Bug Fixes
+
+* Ensure python3.9 is found first in PATH
+
+## 0.38.0 (2023-07-28)
+
+
+### Features
+
+* Add cbuild flag --seccomp-unconfined
+
+## 0.37.0 (2023-07-27)
+
+
+### Features
+
+* Add patch tool to build-debian image
+
 ## 0.36.1 (2023-07-25)
 
 
