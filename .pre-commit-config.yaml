@@ -52,13 +52,6 @@ repos:
   - id: shellcheck
     files: ^$
 
-- repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-  rev: v2.10.0
-  hooks:
-  - id: pretty-format-java
-    name: Google Java Formatter
-    args: [--autofix]
-
 - repo: https://github.com/pre-commit/mirrors-clang-format
   rev: v16.0.6
   hooks:

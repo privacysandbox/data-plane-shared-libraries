@@ -4,10 +4,6 @@ load("//builders/bazel:deps.bzl", "python_deps")
 
 python_deps("//builders/bazel")
 
-load("@google_privacysandbox_servers_common//:java_deps.bzl", "java_dependencies")
-
-java_dependencies()
-
 load("@google_privacysandbox_servers_common//third_party:cpp_deps.bzl", "cpp_dependencies")
 
 cpp_dependencies()
