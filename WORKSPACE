@@ -39,7 +39,3 @@ docker_container_deps()
 load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "container_deps")
 
 container_deps()
-
-load("@io_bazel_rules_docker//java:image.bzl", java_image_repos = "repositories")
-
-java_image_repos()
