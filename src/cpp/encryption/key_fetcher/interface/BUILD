@@ -20,6 +20,7 @@ cc_library(
     name = "public_key_fetcher_interface",
     hdrs = ["public_key_fetcher_interface.h"],
     deps = [
+        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@control_plane_shared//cc/public/cpio/interface/public_key_client",

@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
 #include "absl/synchronization/mutex.h"
 #include "src/cpp/metric/context.h"

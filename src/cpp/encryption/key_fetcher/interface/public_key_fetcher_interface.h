@@ -20,6 +20,7 @@
 #include <memory>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
