@@ -117,6 +117,7 @@ cc_library(
     hdrs = [
         "context_map.h",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         ":context",
         ":metric_router",

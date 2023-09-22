@@ -308,29 +308,29 @@ inline constexpr Definition<double, Privacy::kNonImpacting, Instrument::kGauge>
 inline constexpr Definition<double, Privacy::kNonImpacting, Instrument::kGauge>
     kMemoryKB("system.memory.usage_kb", "Memory usage");
 
-inline constexpr Definition<int, Privacy::kImpacting,
+inline constexpr Definition<int, Privacy::kNonImpacting,
                             Instrument::kUpDownCounter>
     kInitiatedRequestCount("initiated_request.count",
-                           "Total number of requests initiated by the server",
-                           3, 0);
-
-inline constexpr Definition<int, Privacy::kImpacting, Instrument::kHistogram>
+                           "Total number of requests initiated by the server");
+inline constexpr Definition<int, Privacy::kNonImpacting, Instrument::kHistogram>
     kInitiatedRequestTotalDuration(
         "initiated_request.duration_ms",
-        "Total duration of requests initiated by the server", kTimeHistogram,
-        1000, 100);
-
-inline constexpr Definition<int, Privacy::kImpacting, Instrument::kHistogram>
+        "Total duration of requests initiated by the server", kTimeHistogram);
+inline constexpr Definition<int, Privacy::kNonImpacting, Instrument::kHistogram>
     kInitiatedRequestByte("initiated_request.total_size_bytes",
                           "Size of all the initiated requests by a server",
-                          kSizeHistogram, 5000, 500);
-
-inline constexpr Definition<int, Privacy::kImpacting,
+                          kSizeHistogram);
+inline constexpr Definition<int, Privacy::kNonImpacting, Instrument::kHistogram>
+    kInitiatedResponseByte(
+        "initiated_response.total_size_bytes",
+        "Size of all the initiated responses received by a server",
+        kSizeHistogram);
+inline constexpr Definition<int, Privacy::kNonImpacting,
                             Instrument::kUpDownCounter>
     kInitiatedRequestErrorCount("initiated_request.errors_count",
                                 "Total number of errors occurred for the "
-                                "requests received by the server",
-                                3, 0);
+                                "requests received by the server");
+
 }  // namespace privacy_sandbox::server_common::metrics
 
 #endif  // SRC_CPP_METRIC_DEFINITION_H_
