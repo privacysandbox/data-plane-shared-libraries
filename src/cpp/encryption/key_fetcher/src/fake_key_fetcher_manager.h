@@ -24,6 +24,7 @@
 
 namespace privacy_sandbox::server_common {
 
+inline constexpr char kDefaultKeyId[] = "64";
 // Key id 64 public key (only used for testing):
 inline constexpr char kDefaultPublicKeyHex[] =
     "f3b7b2f1764f5c077effecad2afd86154596e63f7375ea522761b881e6c3c323";
@@ -37,7 +38,8 @@ class FakeKeyFetcherManager : public KeyFetcherManagerInterface {
  public:
   // Constructs hard coded keys from the given public/private key material.
   FakeKeyFetcherManager(absl::string_view public_key = kDefaultPublicKeyHex,
-                        absl::string_view private_key = kDefaultPrivateKeyHex);
+                        absl::string_view private_key = kDefaultPrivateKeyHex,
+                        absl::string_view key_id = kDefaultKeyId);
 
   ~FakeKeyFetcherManager() = default;
 
