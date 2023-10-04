@@ -65,9 +65,9 @@ class MetricsRecorderImpl : public MetricsRecorder {
 
   void IncrementEventStatus(std::string event, absl::Status status,
                             uint64_t count = 1) override {
-    absl::flat_hash_map<std::string, std::string> labels = {
-        {"event", std::move(event)},
-        {"status", absl::StatusCodeToString(status.code())}};
+    absl::flat_hash_map<std::string, std::string> labels = common_labels_;
+    labels.insert({"event", std::move(event)});
+    labels.insert({"status", absl::StatusCodeToString(status.code())});
     const auto labelkv =
         opentelemetry::common::KeyValueIterableView<decltype(labels)>{labels};
     event_status_count_->Add(count, labelkv);
@@ -82,16 +82,16 @@ class MetricsRecorderImpl : public MetricsRecorder {
       LOG(ERROR) << "The following histogram hasn't been initialized: "
                  << event;
     }
-    absl::flat_hash_map<std::string, std::string> labels = {
-        {"event", std::move(event)}};
+    absl::flat_hash_map<std::string, std::string> labels = common_labels_;
+    labels.insert({"event", std::move(event)});
     const auto labelkv =
         opentelemetry::common::KeyValueIterableView<decltype(labels)>{labels};
     key_iter->second->Record(value, labelkv, context);
   }
 
   void RecordLatency(std::string event, absl::Duration duration) override {
-    absl::flat_hash_map<std::string, std::string> labels = {
-        {"event", std::move(event)}};
+    absl::flat_hash_map<std::string, std::string> labels = common_labels_;
+    labels.insert({"event", std::move(event)});
     const auto labelkv =
         opentelemetry::common::KeyValueIterableView<decltype(labels)>{labels};
     auto context = opentelemetry::context::RuntimeContext::GetCurrent();
@@ -100,8 +100,8 @@ class MetricsRecorderImpl : public MetricsRecorder {
   }
 
   void IncrementEventCounter(std::string event) override {
-    absl::flat_hash_map<std::string, std::string> labels = {
-        {"event", std::move(event)}};
+    absl::flat_hash_map<std::string, std::string> labels = common_labels_;
+    labels.insert({"event", std::move(event)});
     const auto labelkv =
         opentelemetry::common::KeyValueIterableView<decltype(labels)>{labels};
     event_count_->Add(1, labelkv);
@@ -119,6 +119,10 @@ class MetricsRecorderImpl : public MetricsRecorder {
     auto meter = GetMeter();
     auto histogram = meter->CreateUInt64Histogram(event, description, unit);
     histograms_.insert_or_assign(std::move(event), std::move(histogram));
+  }
+
+  void SetCommonLabel(std::string label, std::string label_value) {
+    common_labels_.insert({std::move(label), std::move(label_value)});
   }
 
  private:
@@ -178,6 +182,7 @@ class MetricsRecorderImpl : public MetricsRecorder {
       histograms_ ABSL_GUARDED_BY(mutex_);
   std::string service_name_;
   std::string build_version_;
+  absl::flat_hash_map<std::string, std::string> common_labels_;
 };
 
 }  // namespace

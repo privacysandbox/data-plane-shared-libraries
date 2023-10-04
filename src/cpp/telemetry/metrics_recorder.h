@@ -55,6 +55,9 @@ class MetricsRecorder {
   // Records a latency for a given `event` in the standard catch all latencies
   // histogram with predefined buckets.
   virtual void RecordLatency(std::string event, absl::Duration duration) = 0;
+
+  // Sets a label that will be added to all counters and histograms.
+  virtual void SetCommonLabel(std::string label, std::string label_value) = 0;
 };
 
 // Measures and records the latency of a block of code. Latency is automatically
