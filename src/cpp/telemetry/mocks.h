@@ -40,6 +40,8 @@ class MockMetricsRecorder : public MetricsRecorder {
               (override));
   MOCK_METHOD(void, RecordHistogramEvent, (std::string event, int64_t value),
               (override));
+  MOCK_METHOD(void, SetCommonLabel,
+              (std::string label, std::string label_value), (override));
 };
 
 }  // namespace privacy_sandbox::server_common
