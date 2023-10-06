@@ -31,6 +31,8 @@ class MetricsRecorder {
   // `ConfigureMetrics` in `telemetry` must be called prior to `Create`.
   static std::unique_ptr<MetricsRecorder> Create(std::string service_name,
                                                  std::string build_version);
+  // Creates a noop recorder that does nothing.
+  static std::unique_ptr<MetricsRecorder> CreateNoop();
 
   virtual ~MetricsRecorder() = default;
 

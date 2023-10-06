@@ -25,10 +25,11 @@
 #include "opentelemetry/sdk/trace/tracer.h"
 
 namespace metric_sdk = opentelemetry::sdk::metrics;
-using opentelemetry::sdk::metrics::MeterSelector;
 
 namespace privacy_sandbox::server_common {
 namespace {
+
+using opentelemetry::sdk::metrics::MeterSelector;
 
 // TODO(b/278899152): Get both library and schema versions updated in one place.
 constexpr char kSchema[] = "https://opentelemetry.io/schemas/1.20.0";
@@ -43,6 +44,23 @@ constexpr double kDefaultHistogramBuckets[] = {
 };
 
 constexpr std::string_view kInstanceId = "instance_id";
+
+class NoopMetricsRecorder : public MetricsRecorder {
+  void IncrementEventStatus(std::string event, absl::Status status,
+                            uint64_t count = 1) {}
+
+  void IncrementEventCounter(std::string event) {}
+
+  void RegisterHistogram(std::string event, std::string description,
+                         std::string unit,
+                         std::vector<double> bucket_boundaries = {}) {}
+
+  void RecordHistogramEvent(std::string event, int64_t value) {}
+
+  void RecordLatency(std::string event, absl::Duration duration) {}
+
+  void SetCommonLabel(std::string label, std::string label_value) {}
+};
 
 class MetricsRecorderImpl : public MetricsRecorder {
  public:
@@ -203,6 +221,10 @@ std::unique_ptr<MetricsRecorder> MetricsRecorder::Create(
     std::string service_name, std::string build_version) {
   return std::make_unique<MetricsRecorderImpl>(std::move(service_name),
                                                std::move(build_version));
+}
+
+std::unique_ptr<MetricsRecorder> MetricsRecorder::CreateNoop() {
+  return std::make_unique<NoopMetricsRecorder>();
 }
 
 }  // namespace privacy_sandbox::server_common
