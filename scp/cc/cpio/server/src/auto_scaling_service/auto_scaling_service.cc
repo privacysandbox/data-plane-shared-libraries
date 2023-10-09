@@ -20,7 +20,6 @@
 #include <filesystem>
 #include <functional>
 #include <iostream>
-#include <map>
 #include <string>
 #include <thread>
 
@@ -89,7 +88,6 @@ using std::cout;
 using std::endl;
 using std::make_shared;
 using std::make_unique;
-using std::map;
 using std::move;
 using std::runtime_error;
 using std::shared_ptr;

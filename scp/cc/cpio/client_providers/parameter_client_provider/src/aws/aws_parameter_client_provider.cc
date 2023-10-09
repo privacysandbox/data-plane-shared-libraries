@@ -16,7 +16,6 @@
 
 #include "aws_parameter_client_provider.h"
 
-#include <map>
 #include <memory>
 #include <string>
 #include <utility>
@@ -60,7 +59,6 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 using std::make_shared;
-using std::map;
 using std::move;
 using std::shared_ptr;
 using std::string;

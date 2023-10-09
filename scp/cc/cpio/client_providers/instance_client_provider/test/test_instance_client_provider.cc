@@ -16,7 +16,6 @@
 
 #include "test_instance_client_provider.h"
 
-#include <map>
 #include <string>
 #include <vector>
 
@@ -38,7 +37,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using std::map;
 using std::shared_ptr;
 using std::string;
 using std::vector;

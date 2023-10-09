@@ -17,7 +17,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -95,7 +94,6 @@ using google::scp::cpio::client_providers::mock::MockEC2Client;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::map;
 using std::move;
 using std::shared_ptr;
 using std::string;

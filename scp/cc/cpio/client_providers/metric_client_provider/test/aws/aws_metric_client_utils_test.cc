@@ -65,7 +65,6 @@ using google::scp::core::errors::
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::AwsMetricClientUtils;
 using std::make_shared;
-using std::map;
 using std::string;
 using std::to_string;
 using std::vector;

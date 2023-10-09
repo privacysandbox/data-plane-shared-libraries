@@ -16,7 +16,6 @@
 
 #include <gtest/gtest.h>
 
-#include <map>
 #include <memory>
 #include <string>
 
@@ -74,7 +73,6 @@ using std::cout;
 using std::endl;
 using std::make_shared;
 using std::make_unique;
-using std::map;
 using std::shared_ptr;
 using std::string;
 using std::thread;

@@ -19,7 +19,6 @@
 
 #include <csignal>
 #include <functional>
-#include <map>
 #include <string>
 
 #include "core/async_executor/src/async_executor.h"
@@ -101,7 +100,6 @@ using std::cout;
 using std::endl;
 using std::make_shared;
 using std::make_unique;
-using std::map;
 using std::move;
 using std::runtime_error;
 using std::shared_ptr;

@@ -21,7 +21,6 @@
 #include <functional>
 #include <iostream>
 #include <list>
-#include <map>
 #include <string>
 #include <thread>
 #include <vector>
@@ -95,7 +94,6 @@ using std::endl;
 using std::list;
 using std::make_shared;
 using std::make_unique;
-using std::map;
 using std::move;
 using std::runtime_error;
 using std::shared_ptr;

@@ -19,7 +19,6 @@
 #include <gtest/gtest.h>
 
 #include <functional>
-#include <map>
 #include <string>
 #include <vector>
 
@@ -35,7 +34,6 @@ using google::scp::core::mock::MockService;
 using google::scp::core::mock::TestNode;
 using std::function;
 using std::make_shared;
-using std::map;
 using std::shared_ptr;
 using std::string;
 using std::vector;

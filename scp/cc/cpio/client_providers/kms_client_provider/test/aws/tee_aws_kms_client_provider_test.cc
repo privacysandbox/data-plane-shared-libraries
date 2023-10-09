@@ -16,7 +16,6 @@
 
 #include <gtest/gtest.h>
 
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -67,7 +66,6 @@ using google::scp::cpio::client_providers::mock::
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::map;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;

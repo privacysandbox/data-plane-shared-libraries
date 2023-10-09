@@ -19,7 +19,6 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -61,7 +60,6 @@ using google::scp::cpio::MetricUnit;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::map;
 using std::mutex;
 using std::shared_ptr;
 using std::static_pointer_cast;

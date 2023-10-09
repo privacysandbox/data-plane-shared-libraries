@@ -21,7 +21,6 @@
 #include <functional>
 #include <list>
 #include <memory>
-#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -50,7 +49,6 @@ using std::list;
 using std::make_shared;
 using std::max_element;
 using std::move;
-using std::set;
 using std::shared_ptr;
 using std::sort;
 using std::string;

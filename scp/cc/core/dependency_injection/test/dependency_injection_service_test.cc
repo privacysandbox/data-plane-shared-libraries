@@ -20,7 +20,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -33,7 +32,6 @@
 
 using std::function;
 using std::make_shared;
-using std::map;
 using std::shared_ptr;
 using std::string;
 using std::unordered_set;

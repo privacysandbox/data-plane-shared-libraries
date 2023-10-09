@@ -17,7 +17,6 @@
 #include "instance_client.h"
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <utility>
@@ -53,7 +52,6 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using std::bind;
 using std::make_shared;
 using std::make_unique;
-using std::map;
 using std::move;
 using std::string;
 using std::placeholders::_1;
