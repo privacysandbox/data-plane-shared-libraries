@@ -109,7 +109,7 @@ class SteadyClock {
   // The returned clock is thread-safe.
   static SteadyClock& RealClock();
 
-  virtual ~SteadyClock();
+  virtual ~SteadyClock() = default;
 
   virtual SteadyTime Now() = 0;
 };

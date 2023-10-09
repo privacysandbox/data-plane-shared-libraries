@@ -1,0 +1,66 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
+    name = "benchmark_suite_test",
+    timeout = "eternal",
+    srcs = ["benchmark_suite_test.cc"],
+    tags = ["manual"],
+    deps = [
+        "//scp/cc:cc_base_include_dir",
+        "//scp/cc/roma/benchmark/src:roma_benchmark_lib",
+        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_test(
+    name = "benchmark_test",
+    size = "large",
+    srcs = ["benchmark_test.cc"],
+    tags = ["manual"],
+    deps = [
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "//src/cpp/util:duration",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "fake_kv_server_test",
+    size = "small",
+    srcs = ["fake_kv_server_test.cc"],
+    deps = [
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/roma/benchmark/src:fake_kv_server",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "kv_server_udf_benchmark_test",
+    timeout = "eternal",
+    srcs = ["kv_server_udf_benchmark.cc"],
+    tags = ["manual"],
+    deps = [
+        "//scp/cc/roma/benchmark/src:fake_kv_server",
+        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "@google_benchmark//:benchmark",
+    ],
+)

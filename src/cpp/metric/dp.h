@@ -67,7 +67,7 @@ class DpAggregator : public DpAggregatorBase {
 
   // Aggregate `value` for  a metric. This is only called from
   // `DifferentiallyPrivate`, can be called multiple times before
-  // `OutputNoised()` result.  Each `partion` aggregate separately. If not
+  // `OutputNoised()` result.  Each `partition` aggregate separately. If not
   // partitioned, `partition` is empty string.
   absl::Status Aggregate(TValue value, absl::string_view partition)
       ABSL_LOCKS_EXCLUDED(mutex_) {
@@ -186,7 +186,7 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
 
   // Aggregate `value` for  a histogram. This is only called from
   // `DifferentiallyPrivate`, can be called multiple times before
-  // `OutputNoised()` result.  `partion` is not used, since partitioned
+  // `OutputNoised()` result.  `partition` is not used, since partitioned
   // histogram is not supported
   absl::Status Aggregate(TValue value, absl::string_view partition)
       ABSL_LOCKS_EXCLUDED(mutex_) {

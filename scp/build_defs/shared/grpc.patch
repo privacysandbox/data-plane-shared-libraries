@@ -1,0 +1,44 @@
+diff --git a/BUILD b/BUILD
+index ac3bfa4616..180ac8379c 100644
+--- a/BUILD
++++ b/BUILD
+@@ -1832,6 +1832,7 @@ grpc_cc_library(
+         "//src/core:tsi/transport_security_grpc.cc",
+     ],
+     hdrs = [
++        "include/grpc/slice_buffer.h",
+         "//src/core:tsi/transport_security.h",
+         "//src/core:tsi/transport_security_grpc.h",
+         "//src/core:tsi/transport_security_interface.h",
+diff --git a/bazel/grpc_deps.bzl b/bazel/grpc_deps.bzl
+index 9f02b3f8e3..fd8e5424eb 100644
+--- a/bazel/grpc_deps.bzl
++++ b/bazel/grpc_deps.bzl
+@@ -252,6 +252,7 @@ def grpc_deps():
+             ],
+             patches = [
+                 "@com_github_grpc_grpc//third_party:protobuf.patch",
++                "@com_github_grpc_grpc//third_party:protobuf_tensorflow.patch",
+             ],
+             patch_args = ["-p1"],
+         )
+diff --git a/third_party/protobuf_tensorflow.patch b/third_party/protobuf_tensorflow.patch
+new file mode 100644
+index 0000000000..7cdf6c74c3
+--- /dev/null
++++ b/third_party/protobuf_tensorflow.patch
+@@ -0,0 +1,14 @@
++diff --git a/protobuf.bzl b/protobuf.bzl
++index d96eeb4c9..188637b0c 100644
++--- a/protobuf.bzl
+++++ b/protobuf.bzl
++@@ -272,6 +272,9 @@ _proto_gen = rule(
++     implementation = _proto_gen_impl,
++ )
++ 
+++# tensorflow still depends directly on proto_gen this as of mid-July 2023
+++proto_gen = _proto_gen
+++
++ def _internal_gen_well_known_protos_java_impl(ctx):
++     args = ctx.actions.args()
++ 

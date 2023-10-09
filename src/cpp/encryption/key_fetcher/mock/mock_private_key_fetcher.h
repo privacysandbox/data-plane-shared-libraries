@@ -18,9 +18,9 @@
 
 #include <gmock/gmock.h>
 
-#include "cc/public/cpio/interface/private_key_client/type_def.h"
-#include "cc/public/cpio/interface/type_def.h"
 #include "include/gtest/gtest.h"
+#include "scp/cc/public/cpio/interface/private_key_client/type_def.h"
+#include "scp/cc/public/cpio/interface/type_def.h"
 #include "src/cpp/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
 
 namespace privacy_sandbox::server_common {

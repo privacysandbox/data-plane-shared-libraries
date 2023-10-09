@@ -66,7 +66,7 @@ class BuildDependentConfig {
     return server_config_.mode() != TelemetryConfig::OFF;
   }
 
-  // Should metric collection run as debug mode(without nosie)
+  // Should metric collection run as debug mode(without noise)
   bool IsDebug() const;
 
   int metric_export_interval_ms() const {
@@ -83,23 +83,23 @@ class BuildDependentConfig {
   absl::StatusOr<MetricConfig> GetMetricConfig(
       absl::string_view metric_name) const;
 
-  // return error if metric is not configured right
+  // return error if metric is not configured right.
   absl::Status CheckMetricConfig(
       const absl::Span<const metrics::DefinitionName* const>& server_metrics)
       const;
 
-  // Override the public parition of a metric
+  // Override the public partition of a metric.
   void SetPartition(absl::string_view name,
                     absl::Span<const absl::string_view> partitions);
 
-  // Return the public parition of a metric
+  // Return the public partition of a metric.
   template <typename MetricT>
   absl::Span<const absl::string_view> GetPartition(
       const MetricT& definition) const {
     return GetPartition(definition, definition.name_);
   }
 
-  // Return the public parition of a metric
+  // Return the public partition of a metric.
   absl::Span<const absl::string_view> GetPartition(
       const metrics::internal::Partitioned& definition,
       const absl::string_view name) const;

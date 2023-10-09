@@ -19,6 +19,7 @@
 #include <ctime>
 #include <string>
 
+#include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 
@@ -147,8 +148,6 @@ SteadyClock& SteadyClock::RealClock() {
   static RealTimeSteadyClock real_clock;
   return real_clock;
 }
-
-SteadyClock::~SteadyClock() {}
 
 SteadyTime SimulatedSteadyClock::Now() {
   absl::MutexLock l(&lock_);

@@ -18,7 +18,7 @@ exclude: (?x)^(
   bazel-(bin|out|testlogs|workspace)/.*|
   .bazel_output/.*|
   builders/.*|
-  third_party/.*\.patch|
+  (third_party|scp)/.*\.patch|
   version.txt
   )$
 
@@ -45,8 +45,8 @@ repos:
 - repo: https://github.com/jumanjihouse/pre-commit-hooks
   rev: 3.0.0
   hooks:
-  - id: git-check
   - id: script-must-not-have-extension
+    exclude: ^(scp/.*\.sh)$
   - id: script-must-have-extension
   - id: require-ascii
   - id: shellcheck
@@ -125,4 +125,6 @@ repos:
     - c
     args:
     - --filter=-build/c++11,+build/c++17,-build/header_guard,-build/include_order,+build/include_what_you_use,-build/include_subdir,-readability/casting,-readability/todo,-runtime/references
+    - --exclude=scp/cc/aws/proxy/src/preload.h
+    - --exclude=scp/cc/aws/proxy/src/socks5_state.cc
     - --quiet

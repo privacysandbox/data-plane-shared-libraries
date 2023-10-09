@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
-#include "cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "glog/logging.h"
+#include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "src/cpp/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
 #include "src/cpp/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
 

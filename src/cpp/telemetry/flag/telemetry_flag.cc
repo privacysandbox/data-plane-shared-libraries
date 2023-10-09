@@ -125,7 +125,7 @@ absl::Status BuildDependentConfig::CheckMetricConfig(
   return ret.empty() ? absl::OkStatus() : absl::InvalidArgumentError(ret);
 }
 
-// Override the public parition of a metric
+// Override the public partition of a metric.
 void BuildDependentConfig::SetPartition(
     absl::string_view name, absl::Span<const absl::string_view> partitions) {
   auto& saved = *internal_config_[name].mutable_public_partitions();

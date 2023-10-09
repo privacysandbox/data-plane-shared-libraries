@@ -18,12 +18,12 @@
 
 #include "absl/strings/escaping.h"
 #include "absl/time/clock.h"
-#include "cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "gmock/gmock.h"
 #include "include/gtest/gtest.h"
 #include "proto/hpke.pb.h"
 #include "proto/tink.pb.h"
 #include "public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 
 // Note: PKS = Private Key Service.
 namespace privacy_sandbox::server_common {

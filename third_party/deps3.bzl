@@ -25,12 +25,14 @@ load("@rules_buf//buf:repositories.bzl", "rules_buf_dependencies", "rules_buf_to
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 load("@tink_cc//:tink_cc_deps.bzl", "tink_cc_deps")
 load("@v8_python_deps//:requirements.bzl", install_v8_python_deps = "install_deps")
+load("//third_party:bazel_rules_closure.bzl", "bazel_rules_closure")
 
 def deps3():
     protobuf_deps()
     google_cloud_cpp_deps()
     llvm_disable_optional_support_deps()
     sapi_deps()
+    bazel_rules_closure()
 
     # This sets up some common toolchains for building targets. For more details, please see
     # https://bazelbuild.github.io/rules_foreign_cc/0.9.0/flatten.html#rules_foreign_cc_dependencies

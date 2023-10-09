@@ -27,7 +27,7 @@ cc_library(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/random",
         "@com_google_absl//absl/strings:str_format",
-        "@control_plane_shared//cc/public/cpio/interface/public_key_client",
+        "@google_privacysandbox_servers_common//scp/cc/public/cpio/interface/public_key_client",
     ],
 )
 
@@ -42,8 +42,8 @@ cc_library(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
-        "@control_plane_shared//cc/public/cpio/interface/crypto_client",
-        "@control_plane_shared//cc/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
+        "@google_privacysandbox_servers_common//scp/cc/public/cpio/interface/crypto_client",
+        "@google_privacysandbox_servers_common//scp/cc/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
     ],
 )
 

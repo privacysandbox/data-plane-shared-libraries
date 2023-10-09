@@ -1,0 +1,185 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
+load("@rules_python//python:defs.bzl", "py_test")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_test(
+    name = "socks5_state_test",
+    size = "small",
+    srcs = ["socks5_state_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:buffer",
+        "//scp/cc/aws/proxy/src:proxy_bridge",
+        "//scp/cc/aws/proxy/src:socks5_state",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "socks5_state_input_test",
+    size = "small",
+    srcs = ["socks5_state_input_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:socks5_state",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "protocol_test",
+    size = "small",
+    srcs = ["protocol_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:protocol",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "preload_test",
+    size = "small",
+    srcs = ["preload_test.cc"],
+    linkopts = ["-ldl"],
+    deps = [
+        "//scp/cc/aws/proxy/src:preload",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+py_test(
+    name = "socks5_test",
+    size = "small",
+    srcs = ["socks5_test.py"],
+    args = ["$(location //scp/cc/aws/proxy/src:proxy)"],
+    data = [
+        "//scp/cc/aws/proxy/src:proxy",
+    ],
+)
+
+sh_test(
+    name = "preload_curl_test",
+    size = "small",
+    srcs = ["curl_client_test.sh"],
+    args = [
+        "$(location //scp/cc/aws/proxy/src:proxy)",
+        "$(location //scp/cc/aws/proxy/src:proxy_preload)",
+        "$(location //scp/cc/aws/proxy/src:proxify)",
+    ],
+    data = [
+        "//scp/cc/aws/proxy/src:proxify",
+        "//scp/cc/aws/proxy/src:proxy",
+        "//scp/cc/aws/proxy/src:proxy_preload",
+    ],
+    tags = ["manual"],
+)
+
+sh_test(
+    name = "preload_exported_symbols_test",
+    size = "small",
+    srcs = ["preload_exported_symbols.sh"],
+    args = [
+        "$(location //scp/cc/aws/proxy/src:proxy_preload)",
+    ],
+    data = [
+        "//scp/cc/aws/proxy/src:proxy_preload",
+    ],
+)
+
+cc_test(
+    name = "buffer_test",
+    size = "small",
+    srcs = ["buffer_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:buffer",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "config_test",
+    size = "small",
+    srcs = ["config_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:config",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "freelist_test",
+    size = "small",
+    srcs = ["freelist_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:buffer",
+        "//scp/cc/aws/proxy/src:freelist",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "proxy_bridge_test",
+    size = "small",
+    srcs = ["proxy_bridge_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:proxy_bridge",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "proxy_server_test",
+    size = "small",
+    srcs = ["proxy_server_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:proxy_server",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "client_session_pool_test",
+    size = "small",
+    srcs = ["client_session_pool_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:client_session_pool",
+        "//scp/cc/aws/proxy/src:socket_vendor_protocol",
+        "@com_github_google_glog//:glog",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "socket_vendor_server_test",
+    size = "small",
+    srcs = ["socket_vendor_server_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:socket_types",
+        "//scp/cc/aws/proxy/src:socket_vendor_server",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "benchmark_test",
+    srcs = ["benchmark_test.cc"],
+    deps = [
+        "//scp/cc/aws/proxy/src:proxy_server",
+        "@boost//:asio",
+        "@google_benchmark//:benchmark",
+    ],
+)

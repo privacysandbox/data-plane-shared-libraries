@@ -23,8 +23,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
-#include "cc/public/cpio/interface/private_key_client/type_def.h"
+#include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
+#include "scp/cc/public/cpio/interface/private_key_client/type_def.h"
 
 namespace privacy_sandbox::server_common {
 

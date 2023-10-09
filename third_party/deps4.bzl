@@ -14,9 +14,16 @@
 
 """Further initialization of shared control plane dependencies."""
 
+load(
+    "@io_bazel_rules_closure//closure:repositories.bzl",
+    "rules_closure_dependencies",
+    "rules_closure_toolchains",
+)
 load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
 load("@io_bazel_rules_docker//repositories:go_repositories.bzl", "go_deps")
 
 def deps4():
     container_deps()
     go_deps()
+    rules_closure_dependencies()
+    rules_closure_toolchains()

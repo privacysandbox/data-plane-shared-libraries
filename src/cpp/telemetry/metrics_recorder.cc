@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/synchronization/mutex.h"
 #include "glog/logging.h"
 #include "opentelemetry/metrics/provider.h"
 #include "opentelemetry/sdk/metrics/meter.h"
@@ -73,8 +74,8 @@ class MetricsRecorderImpl : public MetricsRecorder {
     event_status_count_ = meter->CreateUInt64Counter(
         "EventStatus", "Count of status code associated with events.");
 
-    // Catch all histogram, with prefconfigured buckets which should work for
-    // most latencies distribution
+    // Catch all histogram, with preconfigured buckets which should work for
+    // most latencies distribution.
     RegisterHistogramView("Latency", "Latency View", {});
     latency_histogram_ = meter->CreateUInt64Histogram(
         "Latency", "Histogram of latencies associated with events.",

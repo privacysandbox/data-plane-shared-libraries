@@ -25,12 +25,13 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
-#include "cc/core/interface/errors.h"
-#include "cc/public/core/interface/execution_result.h"
-#include "cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
-#include "cc/public/cpio/interface/public_key_client/type_def.h"
 #include "glog/logging.h"
+#include "scp/cc/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
+#include "scp/cc/public/cpio/interface/public_key_client/type_def.h"
 #include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
 
 namespace privacy_sandbox::server_common {

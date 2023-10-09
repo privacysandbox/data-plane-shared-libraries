@@ -408,7 +408,7 @@ class Context {
     } else {
       // In this case, `public_partitions_` is not defined. if
       // `max_partitions_contributed_` = 1, then it is not partitioned metric,
-      // just return the value; otherwise it is private parition metric that
+      // just return the value; otherwise it is private partition metric that
       // is not implemented yet, log a warning.
       ABSL_LOG_IF_EVERY_N_SEC(WARNING,
                               partitioned.max_partitions_contributed_ > 1, 600)

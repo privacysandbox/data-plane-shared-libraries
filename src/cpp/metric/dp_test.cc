@@ -60,8 +60,8 @@ constexpr DefinitionUnSafe kIntUnSafeCounter("kIntUnSafeCounter", "", 1, 2);
 constexpr DefinitionUnSafe kUnitCounter("kUnitCounter", "", 0, 1);
 
 constexpr absl::string_view pv[] = {"buyer_1", "buyer_2", "buyer_no_data"};
-constexpr DefinitionPartition kUnitPartionCounter(
-    /*name*/ "kUnitPartionCounter", "", /*partition_type*/ "buyer_name",
+constexpr DefinitionPartition kUnitPartitionCounter(
+    /*name*/ "kUnitPartitionCounter", "", /*partition_type*/ "buyer_name",
     /*max_partitions_contributed*/ 2,
     /*public_partitions*/ pv,
     /*upper_bound*/ 1,
@@ -159,7 +159,7 @@ TEST_F(NoNoiseTest, DPCounterBound) {
 }
 
 TEST_F(NoNoiseTest, PartitionedCounter) {
-  internal::DpAggregator d(&mock_metric_router_, &kUnitPartionCounter,
+  internal::DpAggregator d(&mock_metric_router_, &kUnitPartitionCounter,
                            fraction());
   for (int i = 0; i < 10; ++i) {
     CHECK_OK(d.Aggregate(1, "buyer_1"));
@@ -169,17 +169,17 @@ TEST_F(NoNoiseTest, PartitionedCounter) {
   }
   EXPECT_CALL(
       mock_metric_router_,
-      LogSafe(Matcher<const DefinitionPartition&>(Ref(kUnitPartionCounter)),
+      LogSafe(Matcher<const DefinitionPartition&>(Ref(kUnitPartitionCounter)),
               Eq(10), Eq("buyer_1"), _))
       .WillOnce(Return(absl::OkStatus()));
   EXPECT_CALL(
       mock_metric_router_,
-      LogSafe(Matcher<const DefinitionPartition&>(Ref(kUnitPartionCounter)),
+      LogSafe(Matcher<const DefinitionPartition&>(Ref(kUnitPartitionCounter)),
               Eq(20), Eq("buyer_2"), _))
       .WillOnce(Return(absl::OkStatus()));
   EXPECT_CALL(
       mock_metric_router_,
-      LogSafe(Matcher<const DefinitionPartition&>(Ref(kUnitPartionCounter)),
+      LogSafe(Matcher<const DefinitionPartition&>(Ref(kUnitPartitionCounter)),
               Eq(0), Eq("buyer_no_data"), _))
       .WillOnce(Return(absl::OkStatus()));
   PS_ASSERT_OK_AND_ASSIGN(auto s, d.OutputNoised());
@@ -262,7 +262,7 @@ TEST_F(NoiseTest, DPCounterNoise) {
 }
 
 TEST_F(NoiseTest, DPPartitionCounterNoise) {
-  internal::DpAggregator d(&mock_metric_router_, &kUnitPartionCounter,
+  internal::DpAggregator d(&mock_metric_router_, &kUnitPartitionCounter,
                            fraction());
   for (int i = 0; i < 100; ++i) {
     CHECK_OK(d.Aggregate(1, "buyer_1"));
@@ -270,7 +270,7 @@ TEST_F(NoiseTest, DPPartitionCounterNoise) {
   }
   EXPECT_CALL(
       mock_metric_router_,
-      LogSafe(Matcher<const DefinitionPartition&>(Ref(kUnitPartionCounter)),
+      LogSafe(Matcher<const DefinitionPartition&>(Ref(kUnitPartitionCounter)),
               A<int>(), _, ElementsAre(Pair(kNoiseAttribute, "Noised"))))
       .WillRepeatedly(Return(absl::OkStatus()));
   PS_ASSERT_OK_AND_ASSIGN(std::vector<differential_privacy::Output> s,

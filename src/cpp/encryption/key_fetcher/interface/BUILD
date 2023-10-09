@@ -23,7 +23,7 @@ cc_library(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
-        "@control_plane_shared//cc/public/cpio/interface/public_key_client",
+        "@google_privacysandbox_servers_common//scp/cc/public/cpio/interface/public_key_client",
     ],
 )
 
@@ -34,7 +34,7 @@ cc_library(
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/time",
-        "@control_plane_shared//cc/public/cpio/interface/private_key_client",
+        "@google_privacysandbox_servers_common//scp/cc/public/cpio/interface/private_key_client",
     ],
 )
 

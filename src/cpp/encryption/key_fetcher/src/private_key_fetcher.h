@@ -23,8 +23,9 @@
 #include <public/cpio/interface/type_def.h>
 
 #include "absl/container/flat_hash_map.h"
-#include "cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
-#include "cc/public/cpio/interface/type_def.h"
+#include "absl/synchronization/mutex.h"
+#include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
+#include "scp/cc/public/cpio/interface/type_def.h"
 #include "src/cpp/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
 
 namespace privacy_sandbox::server_common {

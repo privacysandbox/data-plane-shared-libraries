@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "absl/functional/any_invocable.h"
+#include "absl/status/statusor.h"
 #include "gmock/gmock.h"
 #include "include/grpc/event_engine/event_engine.h"
 #include "src/cpp/concurrent/event_engine_executor.h"
@@ -68,8 +69,8 @@ class MockEventEngine : public grpc_event_engine::experimental::EventEngine {
       (grpc_event_engine::experimental::EventEngine::ConnectionHandle handle),
       (override));
   MOCK_METHOD(bool, IsWorkerThread, (), (override));
-  MOCK_METHOD(std::unique_ptr<
-                  grpc_event_engine::experimental::EventEngine::DNSResolver>,
+  MOCK_METHOD(absl::StatusOr<std::unique_ptr<
+                  grpc_event_engine::experimental::EventEngine::DNSResolver>>,
               GetDNSResolver,
               (const grpc_event_engine::experimental::EventEngine::DNSResolver::
                    ResolverOptions& options),
