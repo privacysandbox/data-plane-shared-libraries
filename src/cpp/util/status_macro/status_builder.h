@@ -412,13 +412,13 @@ StatusBuilder UnknownErrorBuilder(
 // This is most useful with adaptors such as util::TaskReturn that otherwise
 // would prevent use of operator<<.  For example:
 //
-//   AIS_PS_RETURN_IF_ERROR(foo(val))
+//   PS_RETURN_IF_ERROR(foo(val))
 //       .With(util::ExtraMessage("when calling foo()"))
 //       .With(util::TaskReturn(task));
 //
 // or
 //
-//   AIS_PS_RETURN_IF_ERROR(foo(val))
+//   PS_RETURN_IF_ERROR(foo(val))
 //       .With(util::ExtraMessage() << "val: " << val)
 //       .With(util::TaskReturn(task));
 //

@@ -23,7 +23,7 @@ class SourceLocation {
   // Avoid this constructor; it populates the object with placeholder values.
   constexpr SourceLocation() : line_(0), file_name_(nullptr) {}
   // Wrapper to invoke the private constructor below. This should only be
-  // used by the AIS_LOC macro, hence the name.
+  // used by the PS_LOC macro, hence the name.
   static constexpr SourceLocation DoNotInvokeDirectly(std::uint_least32_t line,
                                                       const char* file_name) {
     return SourceLocation(line, file_name);
@@ -41,7 +41,7 @@ class SourceLocation {
   // way to support them.
  private:
   // Do not invoke this constructor directly. Instead, use the
-  // AIS_LOC macro below.
+  // PS_LOC macro below.
   //
   // file_name must outlive all copies of the SourceLocation
   // object, so in practice it should be a std::string literal.
