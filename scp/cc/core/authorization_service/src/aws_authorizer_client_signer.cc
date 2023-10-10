@@ -19,6 +19,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <nghttp2/asio_http2_client.h>
@@ -37,14 +38,14 @@ using std::vector;
 static constexpr char kServiceName[] = "execute-api";
 
 // TODO: move this to common place
-static std::string Base64Encode(const std::string& raw_data) {
+static std::string Base64Encode(std::string_view raw_data) {
   size_t required_len = 0;
   if (EVP_EncodedLength(&required_len, raw_data.length()) == 0) {
     return std::string();
   }
   std::string out(required_len, '\0');
 
-  size_t output_len = EVP_EncodeBlock(
+  const size_t output_len = EVP_EncodeBlock(
       reinterpret_cast<uint8_t*>(out.data()),
       reinterpret_cast<const uint8_t*>(raw_data.data()), raw_data.length());
   if (output_len == 0) {
