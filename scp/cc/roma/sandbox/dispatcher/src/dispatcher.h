@@ -266,7 +266,8 @@ class Dispatcher : public core::ServiceInterface {
           response_or =
               std::make_unique<absl::StatusOr<ResponseObject>>(response_object);
           response_or->value().id = request->id;
-          response_or->value().resp = move(*run_code_response_or->response);
+          response_or->value().resp =
+              std::move(*run_code_response_or->response);
           for (auto& kv : run_code_response_or->metrics) {
             response_or->value().metrics[kv.first] = kv.second;
           }

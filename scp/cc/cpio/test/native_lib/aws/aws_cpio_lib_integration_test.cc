@@ -285,7 +285,7 @@ TEST_F(CpioIntegrationTest, BlobStorageClientPutBlobSuccessfully) {
   request->mutable_blob()->set_data(kBlobData);
 
   auto put_blob_context = AsyncContext<PutBlobRequest, PutBlobResponse>(
-      move(request), [&](auto& context) {
+      std::move(request), [&](auto& context) {
         EXPECT_SUCCESS(context.result);
         finished = true;
       });
@@ -309,7 +309,7 @@ TEST_F(CpioIntegrationTest, KmsClientDecryptSuccessfully) {
   request->set_account_identity("arn:aws:iam::123456:role/test_create_key");
 
   auto decrypt_context = AsyncContext<DecryptRequest, DecryptResponse>(
-      move(request), [&](auto& context) {
+      std::move(request), [&](auto& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->plaintext(), kPlaintext);
         finished = true;

@@ -478,7 +478,8 @@ TEST_F(Http2ServerTest, ShouldHandleRequestProperlyWhenTlsIsEnabled) {
       make_shared<std::string>("https://localhost:" + port + test_path);
   promise<void> done;
   AsyncContext<HttpRequest, HttpResponse> context(
-      move(request), [&](AsyncContext<HttpRequest, HttpResponse>& context) {
+      std::move(request),
+      [&](AsyncContext<HttpRequest, HttpResponse>& context) {
         EXPECT_SUCCESS(context.result);
         const auto& bytes = *context.response->body.bytes;
         EXPECT_EQ(std::string(bytes.begin(), bytes.end()),

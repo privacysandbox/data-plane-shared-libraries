@@ -112,8 +112,8 @@ ExecutionResult AwsMetricClientProvider::Run() noexcept {
            region_code_or->c_str());
 
   shared_ptr<ClientConfiguration> client_config;
-  CreateClientConfiguration(make_shared<std::string>(move(*region_code_or)),
-                            client_config);
+  CreateClientConfiguration(
+      make_shared<std::string>(std::move(*region_code_or)), client_config);
 
   cloud_watch_client_ = make_shared<CloudWatchClient>(*client_config);
 

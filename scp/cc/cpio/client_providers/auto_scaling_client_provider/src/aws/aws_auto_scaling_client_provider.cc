@@ -87,7 +87,8 @@ shared_ptr<ClientConfiguration>
 AwsAutoScalingClientProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   return common::CreateClientConfiguration(
-      make_shared<std::string>(move(region)));
+
+      make_shared<std::string>(std::move(region)));
 }
 
 ExecutionResult AwsAutoScalingClientProvider::Init() noexcept {

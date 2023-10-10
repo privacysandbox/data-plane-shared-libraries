@@ -80,7 +80,7 @@ ExecutionResultOr<std::string> AwsInstanceClientUtils::GetCurrentRegionCode(
         instance_resource_name.c_str());
   }
 
-  return move(*region_code_or);
+  return std::move(*region_code_or);
 }
 
 ExecutionResultOr<std::string>

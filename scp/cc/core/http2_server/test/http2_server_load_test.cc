@@ -221,7 +221,7 @@ TEST_F(HttpServerLoadTest,
       request->path = make_shared<std::string>("http://" + host_ + ":" + port_ +
                                                "/v1/test");
       AsyncContext<HttpRequest, HttpResponse> request_context(
-          move(request),
+          std::move(request),
           [&](AsyncContext<HttpRequest, HttpResponse>& result_context) {
             client_requests_completed_in_current_round++;
           });
@@ -245,7 +245,7 @@ TEST_F(HttpServerLoadTest,
       request->path = make_shared<std::string>("http://" + host_ + ":" + port_ +
                                                "/v1/test");
       AsyncContext<HttpRequest, HttpResponse> request_context(
-          move(request),
+          std::move(request),
           [&](AsyncContext<HttpRequest, HttpResponse>& result_context) {
             client_requests_completed_in_current_round++;
           });

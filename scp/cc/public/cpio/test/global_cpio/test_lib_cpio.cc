@@ -38,7 +38,8 @@ static ExecutionResult SetGlobalCpio(const TestCpioOptions& options) {
   cpio_ptr =
       make_unique<TestLibCpioProvider>(make_shared<TestCpioOptions>(options));
 
-  CpioUtils::RunAndSetGlobalCpio(move(cpio_ptr), options.cpu_async_executor,
+  CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr),
+                                 options.cpu_async_executor,
                                  options.io_async_executor);
 
   return SuccessExecutionResult();

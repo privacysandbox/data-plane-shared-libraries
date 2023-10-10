@@ -128,7 +128,7 @@ TEST_F(GcpParameterClientProviderTest, SucceedToFetchParameter) {
   auto request = make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->parameter_value(), kValueMock);
@@ -149,7 +149,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
   auto request = make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_NOT_FOUND)));
@@ -163,7 +163,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
 TEST_F(GcpParameterClientProviderTest, FailedWithInvalidParameterName) {
   auto request = make_shared<GetParameterRequest>();
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {});
   EXPECT_THAT(client_->GetParameter(context),
               ResultIs(FailureExecutionResult(
@@ -181,7 +181,7 @@ TEST_F(GcpParameterClientProviderTest,
   auto request = make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_INVALID_ARGUMENT)));
@@ -202,7 +202,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
   auto request = make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_UNKNOWN)));

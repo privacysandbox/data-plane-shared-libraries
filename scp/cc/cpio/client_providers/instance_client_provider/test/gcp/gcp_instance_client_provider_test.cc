@@ -628,7 +628,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
-          move(get_details_request_),
+          std::move(get_details_request_),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
@@ -717,7 +717,7 @@ TEST_F(GcpInstanceClientProviderTest,
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
-          move(get_details_request_),
+          std::move(get_details_request_),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
@@ -752,7 +752,7 @@ TEST_F(GcpInstanceClientProviderTest,
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
-          move(get_details_request_bad),
+          std::move(get_details_request_bad),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
           });
@@ -778,7 +778,7 @@ TEST_F(GcpInstanceClientProviderTest,
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
-          move(get_details_request_),
+          std::move(get_details_request_),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
@@ -818,7 +818,7 @@ TEST_F(GcpInstanceClientProviderTest,
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
-          move(get_details_request_),
+          std::move(get_details_request_),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
@@ -884,7 +884,7 @@ TEST_F(GcpInstanceClientProviderTest,
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
-          move(get_details_request_),
+          std::move(get_details_request_),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result, ResultIs(failure));
@@ -954,7 +954,7 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
 
   atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
-      context(move(get_tags_request_),
+      context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_SUCCESS(context.result);
@@ -984,7 +984,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
   atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
-      context(move(get_tags_request_),
+      context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_THAT(context.result,
@@ -1022,7 +1022,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
   atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
-      context(move(get_tags_request_),
+      context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_THAT(context.result,
@@ -1090,7 +1090,7 @@ TEST_F(GcpInstanceClientProviderTest,
   atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(
-          move(get_tags_request_),
+          std::move(get_tags_request_),
           [&](AsyncContext<GetTagsByResourceNameRequest,
                            GetTagsByResourceNameResponse>& context) {
             EXPECT_THAT(
@@ -1139,7 +1139,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
   atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
-      context(move(get_tags_request_),
+      context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_SUCCESS(context.result);

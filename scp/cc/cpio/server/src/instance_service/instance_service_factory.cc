@@ -86,7 +86,7 @@ ExecutionResult InstanceServiceFactory::Init() noexcept {
               "Failed to create auth token provider");
     return auth_token_provider_or.result();
   }
-  auth_token_provider_ = move(*auth_token_provider_or);
+  auth_token_provider_ = std::move(*auth_token_provider_or);
 
   auto execution_result = cpu_async_executor_->Init();
   if (!execution_result.Successful()) {

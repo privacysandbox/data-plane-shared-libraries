@@ -94,7 +94,7 @@ TEST(DispatcherTest, CanRunCode) {
   atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
@@ -112,7 +112,7 @@ TEST(DispatcherTest, CanRunCode) {
   atomic<bool> done_executing(false);
 
   result = dispatcher.Dispatch(
-      move(execute_request),
+      std::move(execute_request),
       [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
@@ -147,7 +147,7 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
   atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // That didn't work
         EXPECT_FALSE(resp->ok());
@@ -181,7 +181,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
   atomic<bool> done_executing(false);
 
   auto result = dispatcher.Dispatch(
-      move(execute_request),
+      std::move(execute_request),
       [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_FALSE(resp->ok());
         done_executing.store(true);
@@ -217,7 +217,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   atomic<bool> done_loading(false);
 
   auto result = dispatcher.Broadcast(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
@@ -239,7 +239,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
     execute_request->input.push_back(absl::StrCat(R"("Hello)", i, "\""));
 
     result = dispatcher.Dispatch(
-        move(execute_request),
+        std::move(execute_request),
         [&execution_count, i](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ(absl::StrCat(R"("Hello)", i, R"( Some string")"),
@@ -281,7 +281,7 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
   atomic<bool> done_loading(false);
 
   auto result = dispatcher.Broadcast(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // That failed
         EXPECT_FALSE(resp->ok());
@@ -317,7 +317,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   atomic<bool> done_loading(false);
 
   auto result = dispatcher.Broadcast(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
@@ -409,7 +409,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   atomic<bool> done_loading(false);
 
   auto result = dispatcher.Broadcast(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
@@ -477,7 +477,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
@@ -495,7 +495,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   atomic<bool> done_executing(false);
 
   result = dispatcher.Dispatch(
-      move(execute_request),
+      std::move(execute_request),
       [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
@@ -523,7 +523,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   execute_request->input.push_back(R"("Hello")");
 
   result = dispatcher.Dispatch(
-      move(execute_request),
+      std::move(execute_request),
       [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // This execution should fail since the worker has died
         EXPECT_FALSE(resp->ok());
@@ -544,7 +544,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   execute_request->input.push_back(R"JS("Hello after restart :)")JS");
 
   result = dispatcher.Dispatch(
-      move(execute_request),
+      std::move(execute_request),
       [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         EXPECT_EQ(R"("Hello after restart :) Some string")", (*resp)->resp);
@@ -579,7 +579,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
@@ -596,7 +596,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   done_loading.store(false);
 
   result = dispatcher.Dispatch(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
@@ -619,7 +619,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   atomic<bool> done_executing(false);
 
   result = dispatcher.Dispatch(
-      move(execute_request),
+      std::move(execute_request),
       [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // This request failed but it should have caused the restart of the
         // worker so subsequent requests should work.
@@ -643,7 +643,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
     execute_request->input.push_back(R"("Hello 1")");
 
     result = dispatcher.Dispatch(
-        move(execute_request),
+        std::move(execute_request),
         [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ(R"("Hello 1 Some string 1")", (*resp)->resp);
@@ -662,7 +662,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
     execute_request->input.push_back(R"("Hello 2")");
 
     result = dispatcher.Dispatch(
-        move(execute_request),
+        std::move(execute_request),
         [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ(R"("Hello 2 Some string 2")", (*resp)->resp);
@@ -698,7 +698,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
@@ -715,7 +715,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   done_loading.store(false);
 
   result = dispatcher.Dispatch(
-      move(load_request),
+      std::move(load_request),
       [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
@@ -739,7 +739,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
     done_loading.store(false);
 
     result = dispatcher.Dispatch(
-        move(load_request),
+        std::move(load_request),
         [&done_loading, i](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           if (i == 0) {
             // Failed
@@ -768,7 +768,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
     execute_request->input.push_back("\"Hello 1\"");
 
     result = dispatcher.Dispatch(
-        move(execute_request),
+        std::move(execute_request),
         [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ("\"Hello 1 Some string 1\"", (*resp)->resp);
@@ -787,7 +787,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
     execute_request->input.push_back("\"Hello 2\"");
 
     result = dispatcher.Dispatch(
-        move(execute_request),
+        std::move(execute_request),
         [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ("\"Hello 2 Some string 2\"", (*resp)->resp);
@@ -807,7 +807,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
     execute_request->input.push_back("\"Hello 3\"");
 
     result = dispatcher.Dispatch(
-        move(execute_request),
+        std::move(execute_request),
         [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ("\"Hello 3 Some string 3\"", (*resp)->resp);

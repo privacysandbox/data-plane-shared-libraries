@@ -115,7 +115,7 @@ TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleSuccess) {
   request->account_identity = make_shared<std::string>(kAssumeRoleArn);
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_credentials_context(
-          move(request),
+          std::move(request),
           [&](AsyncContext<GetRoleCredentialsRequest,
                            GetRoleCredentialsResponse>& context) {});
   role_credentials_provider_->GetRoleCredentials(get_credentials_context);

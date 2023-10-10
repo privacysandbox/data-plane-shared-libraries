@@ -65,7 +65,8 @@ shared_ptr<ClientConfiguration>
 AwsRoleCredentialsProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   return common::CreateClientConfiguration(
-      make_shared<std::string>(move(region)));
+
+      make_shared<std::string>(std::move(region)));
 }
 
 ExecutionResult AwsRoleCredentialsProvider::Init() noexcept {

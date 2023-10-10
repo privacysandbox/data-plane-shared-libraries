@@ -118,7 +118,7 @@ ExecutionResult AwsPrivateKeyServiceFactory::Init() noexcept {
        ComponentCreator(
            bind(&AwsPrivateKeyServiceFactory::CreateKmsClient, this),
            "KmsClient")});
-  component_factory_ = make_shared<ComponentFactory>(move(creators));
+  component_factory_ = make_shared<ComponentFactory>(std::move(creators));
 
   RETURN_AND_LOG_IF_FAILURE(PrivateKeyServiceFactory::Init(),
                             kAwsPrivateKeyServiceFactory, kZeroUuid,

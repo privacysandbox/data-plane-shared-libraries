@@ -62,8 +62,8 @@ class Http2ServerOptions {
                                        kHttpServerRetryStrategyDelayInMs,
                                        kDefaultRetryStrategyMaxRetries))
       : use_tls(use_tls),
-        private_key_file(move(private_key_file)),
-        certificate_chain_file(move(certificate_chain_file)),
+        private_key_file(std::move(private_key_file)),
+        certificate_chain_file(std::move(certificate_chain_file)),
         retry_strategy_options(retry_strategy_options) {}
 
   /// Whether to use TLS.
