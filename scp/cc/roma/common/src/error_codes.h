@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_COMMON_SRC_ERROR_CODES_H_
+#define ROMA_COMMON_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -62,3 +63,5 @@ DEFINE_ERROR_CODE(SC_ROMA_SEMAPHORE_TIMED_OUT, SC_ROMA_SEMAPHORE, 0x0003,
                   "The semaphore wait failed with time out.",
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // ROMA_COMMON_SRC_ERROR_CODES_H_
