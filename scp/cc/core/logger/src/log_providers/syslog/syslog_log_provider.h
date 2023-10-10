@@ -42,11 +42,9 @@ class SyslogLogProvider : public LogProviderInterface {
 
   void Log(const LogLevel& level, const common::Uuid& correlation_id,
            const common::Uuid& parent_activity_id,
-           const common::Uuid& activity_id,
-           const std::string_view& component_name,
-           const std::string_view& machine_name,
-           const std::string_view& cluster_name,
-           const std::string_view& location, const std::string_view& message,
+           const common::Uuid& activity_id, std::string_view component_name,
+           std::string_view machine_name, std::string_view cluster_name,
+           std::string_view location, std::string_view message,
            va_list args) noexcept override;
 
  private:

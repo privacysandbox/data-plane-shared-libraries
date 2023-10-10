@@ -50,10 +50,9 @@ ExecutionResult Logger::Stop() noexcept {
   return log_provider_->Stop();
 }
 
-void Logger::Info(const string_view& component_name, const Uuid& correlation_id,
+void Logger::Info(string_view component_name, const Uuid& correlation_id,
                   const Uuid& parent_activity_id, const Uuid& activity_id,
-                  const string_view& location, const string_view& message,
-                  ...) noexcept {
+                  string_view location, string_view message, ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kInfo, correlation_id, parent_activity_id,
@@ -62,10 +61,9 @@ void Logger::Info(const string_view& component_name, const Uuid& correlation_id,
   va_end(args);
 }
 
-void Logger::Debug(const string_view& component_name,
-                   const Uuid& correlation_id, const Uuid& parent_activity_id,
-                   const Uuid& activity_id, const string_view& location,
-                   const string_view& message, ...) noexcept {
+void Logger::Debug(string_view component_name, const Uuid& correlation_id,
+                   const Uuid& parent_activity_id, const Uuid& activity_id,
+                   string_view location, string_view message, ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kDebug, correlation_id, parent_activity_id,
@@ -74,10 +72,9 @@ void Logger::Debug(const string_view& component_name,
   va_end(args);
 }
 
-void Logger::Warning(const string_view& component_name,
-                     const Uuid& correlation_id, const Uuid& parent_activity_id,
-                     const Uuid& activity_id, const string_view& location,
-                     const string_view& message, ...) noexcept {
+void Logger::Warning(string_view component_name, const Uuid& correlation_id,
+                     const Uuid& parent_activity_id, const Uuid& activity_id,
+                     string_view location, string_view message, ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kWarning, correlation_id, parent_activity_id,
@@ -86,10 +83,9 @@ void Logger::Warning(const string_view& component_name,
   va_end(args);
 }
 
-void Logger::Error(const string_view& component_name,
-                   const Uuid& correlation_id, const Uuid& parent_activity_id,
-                   const Uuid& activity_id, const string_view& location,
-                   const string_view& message, ...) noexcept {
+void Logger::Error(string_view component_name, const Uuid& correlation_id,
+                   const Uuid& parent_activity_id, const Uuid& activity_id,
+                   string_view location, string_view message, ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kError, correlation_id, parent_activity_id,
@@ -98,10 +94,9 @@ void Logger::Error(const string_view& component_name,
   va_end(args);
 }
 
-void Logger::Alert(const string_view& component_name,
-                   const Uuid& correlation_id, const Uuid& parent_activity_id,
-                   const Uuid& activity_id, const string_view& location,
-                   const string_view& message, ...) noexcept {
+void Logger::Alert(string_view component_name, const Uuid& correlation_id,
+                   const Uuid& parent_activity_id, const Uuid& activity_id,
+                   string_view location, string_view message, ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kAlert, correlation_id, parent_activity_id,
@@ -110,11 +105,9 @@ void Logger::Alert(const string_view& component_name,
   va_end(args);
 }
 
-void Logger::Critical(const string_view& component_name,
-                      const Uuid& correlation_id,
+void Logger::Critical(string_view component_name, const Uuid& correlation_id,
                       const Uuid& parent_activity_id, const Uuid& activity_id,
-                      const string_view& location, const string_view& message,
-                      ...) noexcept {
+                      string_view location, string_view message, ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kCritical, correlation_id, parent_activity_id,
@@ -123,10 +116,9 @@ void Logger::Critical(const string_view& component_name,
   va_end(args);
 }
 
-void Logger::Emergency(const string_view& component_name,
-                       const Uuid& correlation_id,
+void Logger::Emergency(string_view component_name, const Uuid& correlation_id,
                        const Uuid& parent_activity_id, const Uuid& activity_id,
-                       const string_view& location, const string_view& message,
+                       string_view location, string_view message,
                        ...) noexcept {
   va_list args;
   va_start(args, message);

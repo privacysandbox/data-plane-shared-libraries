@@ -65,12 +65,10 @@ ExecutionResult SyslogLogProvider::Stop() noexcept {
 
 void SyslogLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
                             const Uuid& parent_activity_id,
-                            const Uuid& activity_id,
-                            const string_view& component_name,
-                            const string_view& machine_name,
-                            const string_view& cluster_name,
-                            const string_view& location,
-                            const string_view& message, va_list args) noexcept {
+                            const Uuid& activity_id, string_view component_name,
+                            string_view machine_name, string_view cluster_name,
+                            string_view location, string_view message,
+                            va_list args) noexcept {
   auto formatted_message =
       absl::StrCat(cluster_name, "|", machine_name, "|", component_name, "|",
                    ToString(correlation_id), "|", ToString(parent_activity_id),
