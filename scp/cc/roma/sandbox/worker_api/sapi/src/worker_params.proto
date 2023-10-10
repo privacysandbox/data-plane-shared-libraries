@@ -25,5 +25,6 @@ message WorkerParamsProto {
 
   // Output
   optional string response = 5;
+  // TODO(b/304588763): Migrate int64 (nanos) to Duration
   map<string, int64> metrics = 6;
 }

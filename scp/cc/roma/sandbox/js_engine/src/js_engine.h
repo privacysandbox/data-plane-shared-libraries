@@ -23,6 +23,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/string_view.h"
+#include "absl/time/time.h"
 #include "absl/types/span.h"
 #include "core/interface/service_interface.h"
 #include "public/core/interface/execution_result.h"
@@ -44,7 +45,7 @@ struct ExecutionResponse {
   std::shared_ptr<std::string> response = std::make_shared<std::string>();
 
   /// the metrics for handler function execution.
-  absl::flat_hash_map<std::string, int64_t> metrics;
+  absl::flat_hash_map<std::string, absl::Duration> metrics;
 };
 
 /**

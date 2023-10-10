@@ -33,7 +33,6 @@
 #include "core/common/time_provider/src/time_provider.h"
 
 using google::scp::core::ExecutionResult;
-using google::scp::core::common::TimeProvider;
 using google::scp::roma::BatchExecute;
 using google::scp::roma::CodeObject;
 using google::scp::roma::Config;
@@ -45,11 +44,13 @@ using google::scp::roma::RomaInit;
 using google::scp::roma::RomaStop;
 using google::scp::roma::benchmark::BenchmarkMetrics;
 using google::scp::roma::benchmark::InputsType;
-using google::scp::roma::sandbox::constants::kExecutionMetricJsEngineCallNs;
 using google::scp::roma::sandbox::constants::
-    kExecutionMetricSandboxedJsEngineCallNs;
-using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineNs;
-using google::scp::roma::sandbox::constants::kInputParsingMetricJsEngineNs;
+    kExecutionMetricJsEngineCallDuration;
+using google::scp::roma::sandbox::constants::
+    kExecutionMetricSandboxedJsEngineCallDuration;
+using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
+using google::scp::roma::sandbox::constants::
+    kInputParsingMetricJsEngineDuration;
 using std::atomic;
 using std::cout;
 using std::endl;
@@ -143,28 +144,25 @@ InvocationRequestSharedInput CreateExecutionObj(InputsType type,
 
 void GetMetricFromResponse(const ResponseObject& resp,
                            BenchmarkMetrics& metrics) {
-  if (resp.metrics.find(kExecutionMetricSandboxedJsEngineCallNs) !=
-      resp.metrics.end()) {
-    auto sandbox_elapsed_ns =
-        resp.metrics.at(kExecutionMetricSandboxedJsEngineCallNs);
-    metrics.sandbox_elapsed_ns = sandbox_elapsed_ns;
+  if (const auto& it =
+          resp.metrics.find(kExecutionMetricSandboxedJsEngineCallDuration);
+      it != resp.metrics.end()) {
+    metrics.sandbox_elapsed = it->second;
   }
 
-  if (resp.metrics.find(kExecutionMetricJsEngineCallNs) != resp.metrics.end()) {
-    auto js_engine_elapsed_ns = resp.metrics.at(kExecutionMetricJsEngineCallNs);
-    metrics.v8_elapsed_ns = js_engine_elapsed_ns;
+  if (const auto& it = resp.metrics.find(kExecutionMetricJsEngineCallDuration);
+      it != resp.metrics.end()) {
+    metrics.v8_elapsed = it->second;
   }
 
-  if (resp.metrics.find(kInputParsingMetricJsEngineNs) != resp.metrics.end()) {
-    auto inputs_parsing_elapsed_ns =
-        resp.metrics.at(kInputParsingMetricJsEngineNs);
-    metrics.input_parsing_elapsed_ns = inputs_parsing_elapsed_ns;
+  if (const auto& it = resp.metrics.find(kInputParsingMetricJsEngineDuration);
+      it != resp.metrics.end()) {
+    metrics.input_parsing_elapsed = it->second;
   }
 
-  if (resp.metrics.find(kHandlerCallMetricJsEngineNs) != resp.metrics.end()) {
-    auto handler_calling_elapse_ns =
-        resp.metrics.at(kHandlerCallMetricJsEngineNs);
-    metrics.handler_calling_elapse_ns = handler_calling_elapse_ns;
+  if (const auto& it = resp.metrics.find(kHandlerCallMetricJsEngineDuration);
+      it != resp.metrics.end()) {
+    metrics.handler_calling_elapse = it->second;
   }
 }
 }  // namespace
@@ -217,21 +215,20 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
 BenchmarkMetrics BenchmarkMetrics::GetMeanMetrics(
     const std::vector<BenchmarkMetrics>& metrics) {
   auto num_metrics = metrics.size();
-  BenchmarkMetrics mean_metric = {0, 0, 0};
+  BenchmarkMetrics mean_metric;
   for (size_t i = 0; i < num_metrics; i++) {
-    mean_metric.total_execute_time_ns += metrics[i].total_execute_time_ns;
-    mean_metric.sandbox_elapsed_ns += metrics[i].sandbox_elapsed_ns;
-    mean_metric.v8_elapsed_ns += metrics[i].v8_elapsed_ns;
-    mean_metric.input_parsing_elapsed_ns += metrics[i].input_parsing_elapsed_ns;
-    mean_metric.handler_calling_elapse_ns +=
-        metrics[i].handler_calling_elapse_ns;
+    mean_metric.total_execute_time += metrics[i].total_execute_time;
+    mean_metric.sandbox_elapsed += metrics[i].sandbox_elapsed;
+    mean_metric.v8_elapsed += metrics[i].v8_elapsed;
+    mean_metric.input_parsing_elapsed += metrics[i].input_parsing_elapsed;
+    mean_metric.handler_calling_elapse += metrics[i].handler_calling_elapse;
   }
 
-  mean_metric.total_execute_time_ns /= num_metrics;
-  mean_metric.sandbox_elapsed_ns /= num_metrics;
-  mean_metric.v8_elapsed_ns /= num_metrics;
-  mean_metric.input_parsing_elapsed_ns /= num_metrics;
-  mean_metric.handler_calling_elapse_ns /= num_metrics;
+  mean_metric.total_execute_time /= num_metrics;
+  mean_metric.sandbox_elapsed /= num_metrics;
+  mean_metric.v8_elapsed /= num_metrics;
+  mean_metric.input_parsing_elapsed /= num_metrics;
+  mean_metric.handler_calling_elapse /= num_metrics;
 
   return mean_metric;
 }
@@ -276,7 +273,7 @@ RomaBenchmark::RomaBenchmark(const InvocationRequestSharedInput& test_request,
       latency_metrics_(threads * requests_per_thread, BenchmarkMetrics()) {}
 
 void RomaBenchmark::RunTest() {
-  start_time_ = TimeProvider::GetSteadyTimestampInNanoseconds();
+  privacy_sandbox::server_common::Stopwatch stopwatch;
 
   // Number of threads to send execute request.
   auto work_threads = std::vector<std::thread>();
@@ -298,8 +295,7 @@ void RomaBenchmark::RunTest() {
   // wait until all requests got response.
   while (success_requests_ + failed_requests_ <
          threads_ * requests_per_thread_) {}
-
-  finished_time_ = TimeProvider::GetSteadyTimestampInNanoseconds();
+  elapsed_time_ = stopwatch.GetElapsedTime();
 }
 
 void RomaBenchmark::ConsoleTestMetrics() {
@@ -307,16 +303,8 @@ void RomaBenchmark::ConsoleTestMetrics() {
   for (auto i = 0; i < empty_spots; i++) {
     latency_metrics_.pop_back();
   }
-  cout << "\nStart time in epoch_since: "
-       << start_time_.count() * system_clock::period::num /
-              system_clock::period::den
-       << "\nFinished time: "
-       << finished_time_.count() * system_clock::period::num /
-              system_clock::period::den
-       << endl;
-
-  auto total_execution_time =
-      duration_cast<nanoseconds>(finished_time_ - start_time_);
+  cout << "\n Elapsed time: " << absl::ToInt64Nanoseconds(elapsed_time_)
+       << " ns" << endl;
   cout << "\nNative Roma e2e total finished Requests: "
        << FormatWithCommas(success_requests_ + failed_requests_) << endl;
   cout << "Success Requests: " << FormatWithCommas(success_requests_) << endl;
@@ -324,20 +312,25 @@ void RomaBenchmark::ConsoleTestMetrics() {
 
   cout << "RPS: "
        << FormatWithCommas((success_requests_ + failed_requests_) /
-                           (total_execution_time.count() / 1e9))
+                           absl::ToInt64Seconds(elapsed_time_))
        << endl;
 
   auto average_metric = BenchmarkMetrics::GetMeanMetrics(latency_metrics_);
   cout << "\nMean metrics:" << endl;
-  cout << "\te2e execution time: " << average_metric.total_execute_time_ns
-       << " ns" << endl;
-  cout << "\tSandbox elapsed: " << average_metric.sandbox_elapsed_ns << " ns"
+  cout << "\te2e execution time: "
+       << absl::ToInt64Nanoseconds(average_metric.total_execute_time) << " ns"
        << endl;
-  cout << "\tV8 elapsed: " << average_metric.v8_elapsed_ns << " ns" << endl;
-  cout << "\tInput parsing elapsed: " << average_metric.input_parsing_elapsed_ns
+  cout << "\tSandbox elapsed: "
+       << absl::ToInt64Nanoseconds(average_metric.sandbox_elapsed) << " ns"
+       << endl;
+  cout << "\tV8 elapsed: "
+       << absl::ToInt64Nanoseconds(average_metric.v8_elapsed) << " ns" << endl;
+  cout << "\tInput parsing elapsed: "
+       << absl::ToInt64Nanoseconds(average_metric.input_parsing_elapsed)
        << " ns" << endl;
   cout << "\tHandler function calling elapsed: "
-       << average_metric.handler_calling_elapse_ns << " ns\n"
+       << absl::ToInt64Nanoseconds(average_metric.handler_calling_elapse)
+       << " ns\n"
        << endl;
 
   {
@@ -348,7 +341,9 @@ void RomaBenchmark::ConsoleTestMetrics() {
       auto index = latency_metrics_.size() / 100 * p;
 
       cout << "\t" << p << "th percentile: "
-           << latency_metrics_.at(index).total_execute_time_ns << " ns" << endl;
+           << absl::ToInt64Nanoseconds(
+                  latency_metrics_.at(index).total_execute_time)
+           << " ns" << endl;
     }
   }
 
@@ -359,8 +354,9 @@ void RomaBenchmark::ConsoleTestMetrics() {
     for (auto& p : kPercentiles) {
       auto index = latency_metrics_.size() / 100 * p;
 
-      cout << "\t" << p
-           << "th percentile: " << latency_metrics_.at(index).sandbox_elapsed_ns
+      cout << "\t" << p << "th percentile: "
+           << absl::ToInt64Nanoseconds(
+                  latency_metrics_.at(index).sandbox_elapsed)
            << " ns" << endl;
     }
   }
@@ -372,8 +368,8 @@ void RomaBenchmark::ConsoleTestMetrics() {
     for (auto& p : kPercentiles) {
       auto index = latency_metrics_.size() / 100 * p;
 
-      cout << "\t" << p
-           << "th percentile: " << latency_metrics_.at(index).v8_elapsed_ns
+      cout << "\t" << p << "th percentile: "
+           << absl::ToInt64Nanoseconds(latency_metrics_.at(index).v8_elapsed)
            << " ns" << endl;
     }
   }
@@ -386,8 +382,9 @@ void RomaBenchmark::ConsoleTestMetrics() {
       auto index = latency_metrics_.size() / 100 * p;
 
       cout << "\t" << p << "th percentile: "
-           << latency_metrics_.at(index).input_parsing_elapsed_ns << " ns"
-           << endl;
+           << absl::ToInt64Nanoseconds(
+                  latency_metrics_.at(index).input_parsing_elapsed)
+           << " ns" << endl;
     }
   }
 
@@ -399,8 +396,9 @@ void RomaBenchmark::ConsoleTestMetrics() {
       auto index = latency_metrics_.size() / 100 * p;
 
       cout << "\t" << p << "th percentile: "
-           << latency_metrics_.at(index).handler_calling_elapse_ns << " ns"
-           << endl;
+           << absl::ToInt64Nanoseconds(
+                  latency_metrics_.at(index).handler_calling_elapse)
+           << " ns" << endl;
     }
   }
 }
@@ -412,14 +410,10 @@ void RomaBenchmark::SendRequestBatch() {
   }
   atomic<size_t> sent_request = 0;
   while (sent_request < requests_per_thread_) {
-    auto start_time = TimeProvider::GetSteadyTimestampInNanoseconds();
-    while (!BatchExecute(requests, bind(&RomaBenchmark::CallbackBatch, this, _1,
-                                        start_time))
-                .ok()) {
-      // Update start_time when request send failed.
-      start_time = TimeProvider::GetSteadyTimestampInNanoseconds();
-    }
-    // cout << sent_request << endl;
+    while (!BatchExecute(requests,
+                         bind(&RomaBenchmark::CallbackBatch, this, _1,
+                              privacy_sandbox::server_common::Stopwatch()))
+                .ok()) {}
     sent_request++;
   }
 }
@@ -427,16 +421,15 @@ void RomaBenchmark::SendRequestBatch() {
 void RomaBenchmark::SendRequest() {
   atomic<size_t> sent_request = 0;
   while (sent_request < requests_per_thread_) {
-    auto start_time = TimeProvider::GetSteadyTimestampInNanoseconds();
     auto code_object =
         std::make_unique<InvocationRequestSharedInput>(code_obj_);
     // Retry Execute to dispatch code_obj until success.
-    while (!Execute(std::move(code_object),
-                    bind(&RomaBenchmark::Callback, this, _1, start_time))
+    while (!Execute(move(code_object),
+                    bind(&RomaBenchmark::Callback, this, _1,
+                         privacy_sandbox::server_common::Stopwatch()))
                 .ok()) {
       // Recreate code_object and update start_time when request send failed.
       code_object = std::make_unique<InvocationRequestSharedInput>(code_obj_);
-      start_time = TimeProvider::GetSteadyTimestampInNanoseconds();
     }
     sent_request++;
   }
@@ -444,7 +437,7 @@ void RomaBenchmark::SendRequest() {
 
 void RomaBenchmark::CallbackBatch(
     const std::vector<absl::StatusOr<ResponseObject>> resp_batch,
-    nanoseconds start_time) {
+    privacy_sandbox::server_common::Stopwatch stopwatch) {
   for (auto resp : resp_batch) {
     if (!resp.ok()) {
       failed_requests_.fetch_add(1);
@@ -453,28 +446,26 @@ void RomaBenchmark::CallbackBatch(
   }
 
   success_requests_.fetch_add(1);
-  auto end_time = TimeProvider::GetSteadyTimestampInNanoseconds();
-  auto elapsed_ns = duration_cast<nanoseconds>(end_time - start_time).count();
   BenchmarkMetrics metric;
-  metric.total_execute_time_ns = elapsed_ns;
-  latency_metrics_.at(metric_index_++) = metric;
+  metric.total_execute_time = stopwatch.GetElapsedTime();
+  latency_metrics_.at(metric_index_) = metric;
+  metric_index_.fetch_add(1);
 }
 
 void RomaBenchmark::Callback(
     std::unique_ptr<absl::StatusOr<ResponseObject>> resp,
-    nanoseconds start_time) {
+    privacy_sandbox::server_common::Stopwatch stopwatch) {
   if (!resp->ok()) {
     failed_requests_.fetch_add(1);
     return;
   }
   success_requests_.fetch_add(1);
 
-  auto end_time = TimeProvider::GetSteadyTimestampInNanoseconds();
-  auto elapsed_ns = duration_cast<nanoseconds>(end_time - start_time).count();
   BenchmarkMetrics metric;
-  metric.total_execute_time_ns = elapsed_ns;
+  metric.total_execute_time = stopwatch.GetElapsedTime();
   GetMetricFromResponse(resp->value(), metric);
-  latency_metrics_.at(metric_index_++) = metric;
+  latency_metrics_.at(metric_index_) = metric;
+  metric_index_.fetch_add(1);
 }
 
 }  // namespace google::scp::roma::benchmark

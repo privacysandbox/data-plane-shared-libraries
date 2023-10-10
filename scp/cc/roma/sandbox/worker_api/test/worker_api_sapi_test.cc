@@ -26,7 +26,7 @@
 
 using google::scp::roma::sandbox::constants::kCodeVersion;
 using google::scp::roma::sandbox::constants::
-    kExecutionMetricSandboxedJsEngineCallNs;
+    kExecutionMetricSandboxedJsEngineCallDuration;
 using google::scp::roma::sandbox::constants::kHandlerName;
 using google::scp::roma::sandbox::constants::kRequestAction;
 using google::scp::roma::sandbox::constants::kRequestActionExecute;
@@ -123,7 +123,8 @@ TEST(WorkerApiSapiTest, ShouldGetExecutionMetrics) {
   EXPECT_SUCCESS(response_or.result());
   EXPECT_EQ(*response_or->response, R"("pos0 string pos1 string")");
 
-  EXPECT_GT(response_or->metrics.at(kExecutionMetricSandboxedJsEngineCallNs),
-            0);
+  EXPECT_GT(
+      response_or->metrics.at(kExecutionMetricSandboxedJsEngineCallDuration),
+      absl::Duration());
 }
 }  // namespace google::scp::roma::sandbox::worker_api::test

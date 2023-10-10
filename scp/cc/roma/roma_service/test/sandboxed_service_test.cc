@@ -1558,14 +1558,17 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
             result = code_resp.resp;
           }
 
-          EXPECT_GT(resp->value().metrics["roma.metric.sandboxed_code_run_ns"],
-                    0);
-          EXPECT_GT(resp->value().metrics["roma.metric.code_run_ns"], 0);
-          EXPECT_GT(resp->value().metrics["roma.metric.json_input_parsing_ns"],
-                    0);
           EXPECT_GT(
-              resp->value().metrics["roma.metric.js_engine_handler_call_ns"],
-              0);
+              resp->value().metrics["roma.metric.sandboxed_code_run_duration"],
+              absl::Duration());
+          EXPECT_GT(resp->value().metrics["roma.metric.code_run_duration"],
+                    absl::Duration());
+          EXPECT_GT(
+              resp->value().metrics["roma.metric.json_input_parsing_duration"],
+              absl::Duration());
+          EXPECT_GT(resp->value()
+                        .metrics["roma.metric.js_engine_handler_call_duration"],
+                    absl::Duration());
           std::cout << "Metrics:" << std::endl;
           for (const auto& pair : resp->value().metrics) {
             std::cout << pair.first << ": " << pair.second << std::endl;

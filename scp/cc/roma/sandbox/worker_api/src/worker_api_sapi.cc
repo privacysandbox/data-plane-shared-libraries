@@ -28,7 +28,7 @@
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::roma::sandbox::constants::
-    kExecutionMetricSandboxedJsEngineCallNs;
+    kExecutionMetricSandboxedJsEngineCallDuration;
 using std::lock_guard;
 using std::mutex;
 
@@ -59,17 +59,15 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
 
   privacy_sandbox::server_common::Stopwatch stopwatch;
   const auto result = sandbox_api_->RunCode(params_proto);
-  const auto run_code_elapsed_ns =
-      absl::ToInt64Nanoseconds(stopwatch.GetElapsedTime());
   if (!result.Successful()) {
     return result;
   }
 
   WorkerApi::RunCodeResponse code_response;
-  code_response.metrics[kExecutionMetricSandboxedJsEngineCallNs] =
-      run_code_elapsed_ns;
+  code_response.metrics[kExecutionMetricSandboxedJsEngineCallDuration] =
+      stopwatch.GetElapsedTime();
   for (auto& kv : params_proto.metrics()) {
-    code_response.metrics[kv.first] = kv.second;
+    code_response.metrics[kv.first] = absl::Nanoseconds(kv.second);
   }
   code_response.response =
 

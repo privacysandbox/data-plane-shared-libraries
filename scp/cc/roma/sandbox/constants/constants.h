@@ -46,21 +46,24 @@ static constexpr size_t kMaxNumberOfWasm32BitMemPages = 65536;
 // Metrics information constants
 
 // Label for time taken to run code in the sandbox, called from outside the
-// sandbox, meaning this includes serialization overhead. In nanoseconds.
-static constexpr char kExecutionMetricSandboxedJsEngineCallNs[] =
-    "roma.metric.sandboxed_code_run_ns";
+// sandbox, meaning this includes serialization overhead. In absl::Duration or
+// nanoseconds.
+static constexpr char kExecutionMetricSandboxedJsEngineCallDuration[] =
+    "roma.metric.sandboxed_code_run_duration";
 // Label for time taken to run code inside of the JS engine sandbox, meaning we
-// skip the overhead for serializing data. In nanoseconds.
-static constexpr char kExecutionMetricJsEngineCallNs[] =
-    "roma.metric.code_run_ns";
+// skip the overhead for serializing data. In absl::Duration or nanoseconds.
+static constexpr char kExecutionMetricJsEngineCallDuration[] =
+    "roma.metric.code_run_duration";
 
-// Label for time taken to parse the input in JS engine. In nanoseconds.
-static constexpr char kInputParsingMetricJsEngineNs[] =
-    "roma.metric.json_input_parsing_ns";
+// Label for time taken to parse the input in JS engine. In absl::Duration or
+// nanoseconds.
+static constexpr char kInputParsingMetricJsEngineDuration[] =
+    "roma.metric.json_input_parsing_duration";
 
-// Label for time taken to call handler function in JS engine. In nanoseconds.
-static constexpr char kHandlerCallMetricJsEngineNs[] =
-    "roma.metric.js_engine_handler_call_ns";
+// Label for time taken to call handler function in JS engine. In
+// absl::Duration or nanoseconds.
+static constexpr char kHandlerCallMetricJsEngineDuration[] =
+    "roma.metric.js_engine_handler_call_duration";
 
 static constexpr char kDefaultRomaRequestId[] = "roma.defaults.request.id";
 

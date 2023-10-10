@@ -56,8 +56,9 @@ using google::scp::core::errors::SC_ROMA_V8_ENGINE_ISOLATE_NOT_INITIALIZED;
 using google::scp::roma::kDefaultExecutionTimeoutMs;
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::TypeConverter;
-using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineNs;
-using google::scp::roma::sandbox::constants::kInputParsingMetricJsEngineNs;
+using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
+using google::scp::roma::sandbox::constants::
+    kInputParsingMetricJsEngineDuration;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
 using google::scp::roma::sandbox::constants::kMaxNumberOfWasm32BitMemPages;
 using google::scp::roma::sandbox::constants::kMetadataRomaRequestId;
@@ -525,10 +526,8 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     for (size_t i = 0; i < argc; ++i) {
       argv[i] = argv_array->Get(v8_context, i).ToLocalChecked();
     }
-    auto input_parse_elapsed_ns =
-        absl::ToInt64Nanoseconds(stopwatch.GetElapsedTime());
-    execution_response.metrics[kInputParsingMetricJsEngineNs] =
-        input_parse_elapsed_ns;
+    execution_response.metrics[kInputParsingMetricJsEngineDuration] =
+        stopwatch.GetElapsedTime();
 
     // Set the request ID in the global object
     auto request_id_label =
@@ -565,10 +564,8 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
         return GetError(v8_isolate, try_catch, execution_result.status_code);
       }
     }
-    auto handler_call_elapsed_ns =
-        absl::ToInt64Nanoseconds(stopwatch.GetElapsedTime());
-    execution_response.metrics[kHandlerCallMetricJsEngineNs] =
-        handler_call_elapsed_ns;
+    execution_response.metrics[kHandlerCallMetricJsEngineDuration] =
+        stopwatch.GetElapsedTime();
 
     auto result_json_maybe = JSON::Stringify(v8_context, result);
     Local<String> result_json;

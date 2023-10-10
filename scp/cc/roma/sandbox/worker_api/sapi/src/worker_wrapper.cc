@@ -48,7 +48,8 @@ using google::scp::core::errors::
     SC_ROMA_WORKER_API_VALID_SANDBOX_BUFFER_REQUIRED;
 using google::scp::roma::JsEngineResourceConstraints;
 using google::scp::roma::sandbox::constants::kBadFd;
-using google::scp::roma::sandbox::constants::kExecutionMetricJsEngineCallNs;
+using google::scp::roma::sandbox::constants::
+    kExecutionMetricJsEngineCallDuration;
 using google::scp::roma::sandbox::worker::Worker;
 using google::scp::roma::sandbox::worker::WorkerFactory;
 using sandbox2::Buffer;
@@ -142,9 +143,9 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
 
   privacy_sandbox::server_common::Stopwatch stopwatch;
   auto response_or = worker_->RunCode(code, input, metadata, wasm);
-  auto run_code_elapsed_ns =
+  const auto run_code_elapsed_ns =
       absl::ToInt64Nanoseconds(stopwatch.GetElapsedTime());
-  (*params->mutable_metrics())[kExecutionMetricJsEngineCallNs] =
+  (*params->mutable_metrics())[kExecutionMetricJsEngineCallDuration] =
       run_code_elapsed_ns;
 
   if (!response_or.result().Successful()) {
@@ -152,7 +153,8 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
   }
 
   for (const auto& pair : response_or.value().metrics) {
-    (*params->mutable_metrics())[pair.first] = pair.second;
+    (*params->mutable_metrics())[pair.first] =
+        absl::ToInt64Nanoseconds(pair.second);
   }
 
   params->set_response(*response_or.value().response);

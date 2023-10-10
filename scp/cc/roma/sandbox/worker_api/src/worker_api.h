@@ -40,7 +40,7 @@ class WorkerApi : public core::ServiceInterface {
   struct RunCodeResponse {
     std::shared_ptr<std::string> response;
     std::vector<std::shared_ptr<std::string>> errors;
-    absl::flat_hash_map<std::string, int64_t> metrics;
+    absl::flat_hash_map<std::string, absl::Duration> metrics;
   };
 
   /**

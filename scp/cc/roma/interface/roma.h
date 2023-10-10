@@ -103,7 +103,7 @@ struct ResponseObject {
   // The response of the execution.
   std::string resp;
   // Execution metrics. Any key should be checked for existence.
-  absl::flat_hash_map<std::string, int64_t> metrics;
+  absl::flat_hash_map<std::string, absl::Duration> metrics;
 };
 
 using Callback =

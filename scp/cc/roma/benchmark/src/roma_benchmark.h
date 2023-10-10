@@ -19,8 +19,10 @@
 #include <string>
 #include <vector>
 
+#include "absl/time/time.h"
 #include "roma/interface/roma.h"
 #include "roma/sandbox/constants/constants.h"
+#include "src/cpp/util/duration.h"
 
 namespace google::scp::roma::benchmark {
 
@@ -72,48 +74,48 @@ struct BenchmarkMetrics {
   /// response is received. This includes the time to send the request, the time
   /// to process the request in the Roma worker sandbox, and the time to return
   /// the response.
-  uint64_t total_execute_time_ns = 0;
+  absl::Duration total_execute_time;
 
   /// @brief The time from when the request is sent into the Roma worker sandbox
   /// to when the response is received. This includes the time to parse the
   /// request, the time to process the request in the V8 sandbox, and the time
   /// to generate the response.
-  uint64_t sandbox_elapsed_ns = 0;
+  absl::Duration sandbox_elapsed;
 
   /// @brief The time the request executes in the V8 sandbox.
-  uint64_t v8_elapsed_ns = 0;
+  absl::Duration v8_elapsed;
 
   /// @brief The latency for the JS engine parses the JSON type of the request
   /// inputs.
-  uint64_t input_parsing_elapsed_ns = 0;
+  absl::Duration input_parsing_elapsed;
 
   /// @brief The latency for the JS engine to call the handler function from
   /// the request.
-  uint64_t handler_calling_elapse_ns = 0;
+  absl::Duration handler_calling_elapse;
 
   static bool CompareByTotalExec(const BenchmarkMetrics& a,
                                  const BenchmarkMetrics& b) {
-    return a.total_execute_time_ns < b.total_execute_time_ns;
+    return a.total_execute_time < b.total_execute_time;
   }
 
   static bool CompareBySandboxElapsed(const BenchmarkMetrics& a,
                                       const BenchmarkMetrics& b) {
-    return a.sandbox_elapsed_ns < b.sandbox_elapsed_ns;
+    return a.sandbox_elapsed < b.sandbox_elapsed;
   }
 
   static bool CompareByV8Elapsed(const BenchmarkMetrics& a,
                                  const BenchmarkMetrics& b) {
-    return a.v8_elapsed_ns < b.v8_elapsed_ns;
+    return a.v8_elapsed < b.v8_elapsed;
   }
 
   static bool CompareByInputsParsingElapsed(const BenchmarkMetrics& a,
                                             const BenchmarkMetrics& b) {
-    return a.input_parsing_elapsed_ns < b.input_parsing_elapsed_ns;
+    return a.input_parsing_elapsed < b.input_parsing_elapsed;
   }
 
   static bool CompareByHandlerCallingElapsed(const BenchmarkMetrics& a,
                                              const BenchmarkMetrics& b) {
-    return a.handler_calling_elapse_ns < b.handler_calling_elapse_ns;
+    return a.handler_calling_elapse < b.handler_calling_elapse;
   }
 
   static BenchmarkMetrics GetMeanMetrics(
@@ -167,10 +169,10 @@ class RomaBenchmark {
 
   void CallbackBatch(
       const std::vector<absl::StatusOr<ResponseObject>> resp_batch,
-      std::chrono::nanoseconds start_time);
+      privacy_sandbox::server_common::Stopwatch stopwatch);
 
   void Callback(std::unique_ptr<absl::StatusOr<ResponseObject>> resp,
-                std::chrono::nanoseconds start_time);
+                privacy_sandbox::server_common::Stopwatch stopwatch);
 
   InvocationRequestSharedInput code_obj_;
 
@@ -180,8 +182,8 @@ class RomaBenchmark {
 
   std::atomic<uint64_t> success_requests_{0};
   std::atomic<uint64_t> failed_requests_{0};
-  std::chrono::nanoseconds start_time_, finished_time_;
   std::atomic<uint64_t> metric_index_{0};
   std::vector<BenchmarkMetrics> latency_metrics_;
+  absl::Duration elapsed_time_;
 };
 }  // namespace google::scp::roma::benchmark
