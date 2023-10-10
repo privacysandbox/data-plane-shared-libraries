@@ -109,3 +109,14 @@ EOF""",
     local = True,
     message = "generate coverage report",
 )
+
+genrule(
+    name = "collect-test-logs",
+    outs = ["collect_test_logs.bin"],
+    cmd_bash = """cat << EOF > '$@'
+scripts/collect-test-logs "\\$$@"
+EOF""",
+    executable = True,
+    local = True,
+    message = "copy bazel test logs",
+)
