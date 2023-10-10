@@ -19,11 +19,11 @@
 
 #include <gtest/gtest.h>
 
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "core/http2_client/src/http_connection_pool.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
@@ -45,12 +45,13 @@ class MockHttpConnectionPool : public HttpConnectionPool {
                                                     http2_read_timeout_in_sec);
   }
 
-  std::map<std::string, std::vector<std::shared_ptr<HttpConnection>>>
+  absl::flat_hash_map<std::string, std::vector<std::shared_ptr<HttpConnection>>>
   GetConnectionsMap() {
     std::vector<std::string> keys;
     EXPECT_SUCCESS(connections_.Keys(keys));
 
-    std::map<std::string, std::vector<std::shared_ptr<HttpConnection>>>
+    absl::flat_hash_map<std::string,
+                        std::vector<std::shared_ptr<HttpConnection>>>
         connections;
     for (auto& key : keys) {
       std::shared_ptr<MockHttpConnectionPool::HttpConnectionPoolEntry> value;
