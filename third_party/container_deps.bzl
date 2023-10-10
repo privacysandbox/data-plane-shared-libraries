@@ -16,16 +16,25 @@ load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
 
 def container_deps():
     images = {
-        ## Distroless image for running Java
-        #"runtime-java": {
-        #    "arch_hashes": {
-        #        # debug-nonroot 2023-02-15
-        #        "amd64": "dca8c4ccea3797aa8df1cec14b7401b8b3868392ac2cd06ab2ca311d52ae7b98",
-        #        "arm64": "5e2475b1be5b81e9dc2527d71d4eff06cb192dff61c926e6ab10333f63ad308e",
-        #    },
-        #    "registry": "gcr.io",
-        #    "repository": "distroless/java11-debian11",
-        #},
+        "runtime-debian-debug-nonroot": {
+            "arch_hashes": {
+                # cc-debian11:debug-nonroot
+                "amd64": "7caec0c1274f808d29492012a5c3f57331c7f44d5e9e83acf5819eb2e3ae14dc",
+                "arm64": "f17be941beeaa468ef03fc986cd525fe61e7550affc12fbd4160ec9e1dac9c1d",
+            },
+            "registry": "gcr.io",
+            "repository": "distroless/cc-debian11",
+        },
+        "runtime-debian-debug-root": {
+            # debug build so we can use 'sh'. Root, for gcp coordinators
+            # auth to work
+            "arch_hashes": {
+                "amd64": "6865ad48467c89c3c3524d4c426f52ad12d9ab7dec31fad31fae69da40eb6445",
+                "arm64": "3c399c24b13bfef7e38257831b1bb05cbddbbc4d0327df87a21b6fbbb2480bc9",
+            },
+            "registry": "gcr.io",
+            "repository": "distroless/cc-debian11",
+        },
     }
 
     [
