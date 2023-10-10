@@ -17,11 +17,11 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/dependency_injection_service_interface.h"
 
@@ -49,7 +49,8 @@ class DependencyInjectionService : public DependencyInjectionServiceInterface {
   ExecutionResult RegisterComponent(
       const std::string& id, const std::vector<std::string>& dependencies,
       std::function<std::shared_ptr<ServiceInterface>(
-          const std::map<std::string, std::shared_ptr<ServiceInterface>>&)>
+          const absl::flat_hash_map<std::string,
+                                    std::shared_ptr<ServiceInterface>>&)>
           factory) noexcept override;
   ExecutionResult ResolveAll() noexcept override;
   ExecutionResult Init() noexcept override;
@@ -63,6 +64,7 @@ class DependencyInjectionService : public DependencyInjectionServiceInterface {
       std::function<ExecutionResult(std::shared_ptr<ServiceInterface>)> exec);
   DependencyGraph dependency_graph_;
   std::vector<std::shared_ptr<ServiceInterface>> components_;
-  std::map<std::string, std::shared_ptr<ServiceInterface>> component_map_;
+  absl::flat_hash_map<std::string, std::shared_ptr<ServiceInterface>>
+      component_map_;
 };
 }  // namespace google::scp::core

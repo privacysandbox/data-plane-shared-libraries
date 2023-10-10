@@ -41,6 +41,7 @@ cc_test(
         "//scp/cc/core/logger/src:logger_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/algorithm:container",
         "@com_google_googletest//:gtest_main",
     ],
 )

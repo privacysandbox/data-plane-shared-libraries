@@ -17,11 +17,11 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "core/interface/service_interface.h"
 
 namespace google::scp::core {
@@ -36,7 +36,7 @@ struct ComponentDependencyNode {
 
   /// The factory delegate used to create the component.
   std::function<std::shared_ptr<ServiceInterface>(
-      std::map<std::string, std::shared_ptr<ServiceInterface>>)>
+      absl::flat_hash_map<std::string, std::shared_ptr<ServiceInterface>>)>
       factory;
 
   bool operator==(const ComponentDependencyNode& otherNode) const {

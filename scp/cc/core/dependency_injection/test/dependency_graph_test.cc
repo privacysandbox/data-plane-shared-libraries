@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/algorithm/container.h"
+#include "absl/container/flat_hash_set.h"
 #include "core/dependency_injection/mock/mock_service.h"
 #include "core/dependency_injection/src/component_dependency_node_collection.h"
 #include "core/dependency_injection/src/error_codes.h"
@@ -37,6 +39,7 @@ using std::make_shared;
 using std::shared_ptr;
 using std::string;
 using std::vector;
+using ::testing::Contains;
 
 namespace google::scp::core::test {
 
@@ -46,9 +49,22 @@ namespace google::scp::core::test {
  *
  */
 #define EXPECT_NODE_ORDER(expected_id_order, component_dependency_nodes)  \
-  EXPECT_EQ(expected_id_order.size(), component_dependency_nodes.size()); \
+  ASSERT_EQ(expected_id_order.size(), component_dependency_nodes.size()); \
   for (size_t i = 0; i < expected_id_order.size(); i++) {                 \
     EXPECT_EQ(expected_id_order[i], component_dependency_nodes[i].id);    \
+  }
+
+/**
+ * @brief Asserts that the nodes form a cycle with the expected edges.
+ *
+ */
+#define EXPECT_CYCLE(expected_edges, nodes)            \
+  EXPECT_EQ(expected_edges.size() + 1, nodes.size());  \
+  EXPECT_EQ(nodes.front(), nodes.back());              \
+  for (std::size_t i = 0; i < nodes.size() - 1; ++i) { \
+    const auto it = expected_edges.find(nodes[i].id);  \
+    ASSERT_NE(it, expected_edges.end());               \
+    EXPECT_EQ(it->second, nodes[i + 1].id);            \
   }
 
 TEST(DependencyGraphTest, AddNodeReturnsTrueForNewNode) {
@@ -105,10 +121,12 @@ TEST(DependencyGraphTest, EnumerateReturnsUndefinedDependency) {
 
 // Cycle - B -> C -> D -> B
 TEST(DependencyGraphTest, EnumerateReturnsCycleForCycleDetected) {
-  auto test_nodes = vector<TestNode>{TestNode("A", vector<string>{"B", "C"}),
-                                     TestNode("B", vector<string>{"C"}),
-                                     TestNode("C", vector<string>{"D"}),
-                                     TestNode("D", vector<string>{"B"})};
+  const auto test_nodes = vector<TestNode>{
+      TestNode("A", vector<string>{"B", "C"}),
+      TestNode("B", vector<string>{"C"}),
+      TestNode("C", vector<string>{"D"}),
+      TestNode("D", vector<string>{"B"}),
+  };
 
   DependencyGraph target;
   for (auto node : test_nodes) {
@@ -119,8 +137,9 @@ TEST(DependencyGraphTest, EnumerateReturnsCycleForCycleDetected) {
   EXPECT_THAT(result, ResultIs(FailureExecutionResult(
                           errors::SC_DEPENDENCY_INJECTION_CYCLE_DETECTED)));
 
-  vector<string> expected_order{"B", "C", "D", "B"};
-  EXPECT_NODE_ORDER(expected_order, graph_result.detected_cycle);
+  const absl::flat_hash_map<std::string, std::string> expected_edges{
+      {"B", "C"}, {"C", "D"}, {"D", "B"}};
+  EXPECT_CYCLE(expected_edges, graph_result.detected_cycle);
 }
 
 // Graph
@@ -150,8 +169,25 @@ TEST(DependencyGraphTest, EnumerateReturnsCorrectBuildOrderForBigTree) {
   auto result = target.Enumerate(graph_result);
 
   EXPECT_SUCCESS(result);
-  vector<string> expected_order{"I", "F", "H", "C", "E", "G", "D", "B", "A"};
-  EXPECT_NODE_ORDER(expected_order, graph_result.dependency_order);
+  absl::flat_hash_set<std::string> visited_nodes;
+
+  // All nodes should be visited.
+  EXPECT_EQ(test_nodes.size(), graph_result.dependency_order.size());
+  for (const auto& node : graph_result.dependency_order) {
+    const auto it = absl::c_find_if(test_nodes, [&](const TestNode& test_node) {
+      return test_node.id == node.id;
+    });
+    ASSERT_NE(it, test_nodes.end());
+
+    // All dependencies should already be visited.
+    for (const std::string& dependency : it->dependencies) {
+      EXPECT_THAT(visited_nodes, Contains(dependency));
+    }
+
+    // Node should not be visited twice.
+    const auto [_, success] = visited_nodes.insert(node.id);
+    EXPECT_TRUE(success);
+  }
 }
 
 // Graph
@@ -184,7 +220,8 @@ TEST(DependencyGraphTest, EnumerateReturnsCycleForLongCycleDetected) {
   EXPECT_THAT(result, ResultIs(FailureExecutionResult(
                           errors::SC_DEPENDENCY_INJECTION_CYCLE_DETECTED)));
 
-  vector<string> expected_order{"G", "E", "C", "F", "G"};
-  EXPECT_NODE_ORDER(expected_order, graph_result.detected_cycle);
+  const absl::flat_hash_map<std::string, std::string> expected_edges{
+      {"G", "E"}, {"E", "C"}, {"C", "F"}, {"F", "G"}};
+  EXPECT_CYCLE(expected_edges, graph_result.detected_cycle);
 }
 }  // namespace google::scp::core::test

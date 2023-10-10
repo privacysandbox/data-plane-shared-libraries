@@ -18,11 +18,11 @@
 
 #include <algorithm>
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "public/core/interface/execution_result.h"
 
 #include "dependency_graph.h"
@@ -30,7 +30,6 @@
 using std::for_each;
 using std::function;
 using std::make_shared;
-using std::map;
 using std::shared_ptr;
 using std::string;
 using std::unordered_set;
@@ -41,7 +40,7 @@ namespace google::scp::core {
 ExecutionResult DependencyInjectionService::RegisterComponent(
     const string& id, const vector<string>& dependencies,
     function<shared_ptr<ServiceInterface>(
-        const map<string, shared_ptr<ServiceInterface>>&)>
+        const absl::flat_hash_map<string, shared_ptr<ServiceInterface>>&)>
         factory) noexcept {
   if (!dependency_graph_.AddNode(id, dependencies, factory)) {
     return FailureExecutionResult(

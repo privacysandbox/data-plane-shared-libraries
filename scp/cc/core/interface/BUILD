@@ -42,6 +42,7 @@ cc_library(
         "//scp/cc/core/common/proto:core_common_proto_lib",
         "//scp/cc/core/common/streaming_context/src:streaming_context_errors_lib",
         "//scp/cc/core/common/uuid/src:uuid_lib",
+        "@com_google_absl//absl/container:flat_hash_map",
     ],
 )
 

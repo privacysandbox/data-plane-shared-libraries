@@ -17,12 +17,12 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/dependency_injection/src/dependency_graph_interface.h"
 
@@ -46,11 +46,12 @@ class DependencyGraph : public DependencyGraphInterface {
    * depends on.
    * @param factory The delegate used to create the component.
    */
-  bool AddNode(
-      const std::string& id, const std::vector<std::string>& dependencies,
-      std::function<std::shared_ptr<ServiceInterface>(
-          const std::map<std::string, std::shared_ptr<ServiceInterface>>&)>
-          factory) noexcept override;
+  bool AddNode(const std::string& id,
+               const std::vector<std::string>& dependencies,
+               std::function<std::shared_ptr<ServiceInterface>(
+                   const absl::flat_hash_map<
+                       std::string, std::shared_ptr<ServiceInterface>>&)>
+                   factory) noexcept override;
   /**
    * @brief Enumerates through the nodes in the graph returning a safe order
    * of instantiation.
@@ -67,7 +68,7 @@ class DependencyGraph : public DependencyGraphInterface {
   ExecutionResult GetUndefined(DependencyGraphEnumerationResult& result,
                                const std::string& dependency);
   ExecutionResult GetCycle(DependencyGraphEnumerationResult& result);
-  std::map<std::string, ComponentDependencyNode> nodes_;
+  absl::flat_hash_map<std::string, ComponentDependencyNode> nodes_;
   ComponentDependencyNodeCollection visited_nodes_;
 };
 };  // namespace google::scp::core

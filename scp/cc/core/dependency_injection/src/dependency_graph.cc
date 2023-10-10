@@ -17,19 +17,18 @@
 #include "dependency_graph.h"
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "public/core/interface/execution_result.h"
 
 #include "component_dependency_node.h"
 #include "component_dependency_node_collection.h"
 #include "error_codes.h"
 using std::function;
-using std::map;
 using std::shared_ptr;
 using std::string;
 using std::unordered_set;
@@ -40,7 +39,7 @@ namespace google::scp::core {
 bool DependencyGraph::AddNode(
     const string& id, const vector<string>& dependencies,
     function<shared_ptr<ServiceInterface>(
-        const map<string, shared_ptr<ServiceInterface>>&)>
+        const absl::flat_hash_map<string, shared_ptr<ServiceInterface>>&)>
         factory) noexcept {
   if (nodes_.count(id) != 0) return false;
 

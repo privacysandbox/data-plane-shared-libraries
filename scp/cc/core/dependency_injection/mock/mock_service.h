@@ -17,7 +17,6 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -160,7 +159,8 @@ struct TestNode {
   TestNode(std::string id, std::vector<std::string> deps) : id(id) {
     dependencies = deps;
     factory =
-        [id](std::map<std::string, std::shared_ptr<ServiceInterface>> compMap) {
+        [id](absl::flat_hash_map<std::string, std::shared_ptr<ServiceInterface>>
+                 compMap) {
           std::shared_ptr<IdentifiableService> mock_service =
               std::make_shared<MockService>(id);
           ServiceCollection::collection.Add(mock_service);
@@ -168,7 +168,8 @@ struct TestNode {
         };
     // Factory used to simulate an exception thrown during component creation.
     fail_factory =
-        [id](std::map<std::string, std::shared_ptr<ServiceInterface>> compMap) {
+        [id](absl::flat_hash_map<std::string, std::shared_ptr<ServiceInterface>>
+                 compMap) {
           throw std::invalid_argument("");
           std::shared_ptr<IdentifiableService> mock_service =
               std::make_shared<MockService>(id);
@@ -187,10 +188,10 @@ struct TestNode {
   std::string id;
   std::vector<std::string> dependencies;
   std::function<std::shared_ptr<ServiceInterface>(
-      std::map<std::string, std::shared_ptr<ServiceInterface>>)>
+      absl::flat_hash_map<std::string, std::shared_ptr<ServiceInterface>>)>
       factory;
   std::function<std::shared_ptr<ServiceInterface>(
-      std::map<std::string, std::shared_ptr<ServiceInterface>>)>
+      absl::flat_hash_map<std::string, std::shared_ptr<ServiceInterface>>)>
       fail_factory;
 };
 }  // namespace google::scp::core::mock

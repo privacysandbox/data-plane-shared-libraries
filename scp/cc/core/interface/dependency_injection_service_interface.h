@@ -15,11 +15,11 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/dependency_injection/src/component_dependency_node.h"
 #include "scp/cc/core/dependency_injection/src/dependency_graph.h"
@@ -50,7 +50,8 @@ class DependencyInjectionServiceInterface : public ServiceInterface {
   virtual ExecutionResult RegisterComponent(
       const std::string& id, const std::vector<std::string>& dependencies,
       std::function<std::shared_ptr<ServiceInterface>(
-          const std::map<std::string, std::shared_ptr<ServiceInterface>>&)>
+          const absl::flat_hash_map<std::string,
+                                    std::shared_ptr<ServiceInterface>>&)>
           factory) noexcept = 0;
   /**
    * @brief Creates all of the registered components.
