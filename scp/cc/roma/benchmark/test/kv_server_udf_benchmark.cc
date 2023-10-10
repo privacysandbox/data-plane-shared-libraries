@@ -41,6 +41,40 @@ using google::scp::roma::proto::FunctionBindingIoProto;
 constexpr char kCodeHelloWorld[] = "hello = () => 'Hello world!';";
 constexpr char kHandlerNameHelloWorld[] = "hello";
 
+// This JS function is deliberately something that's expensive to run.  The
+// code is based on:
+// https://www.tutorialspoint.com/using-sieve-of-eratosthenes-to-find-primes-javascript
+constexpr char kCodePrimeSieve[] = R"(
+      function sieve() {
+         // Find all prime numbers less than this:
+         const n = 100000;
+         // Create a boolean array of size n+1
+         const primes = new Array(n + 1).fill(true);
+         // Set first two values to false
+         primes[0] = false;
+         primes[1] = false;
+         // Loop through the elements
+         for (let i = 2; i <= Math.sqrt(n); i++) {
+            if (primes[i]) {
+               for (let j = i * i; j <= n; j += i) {
+                  primes[j] = false;
+               }
+            }
+         }
+
+         const result = [];
+         // Loop through the array from 2 to n
+         for (let i = 2; i <= n; i++) {
+            if (primes[i]) {
+               result.push(i);
+            }
+         }
+
+         return result;
+      }
+    )";
+constexpr char kHandlerNamePrimeSieve[] = "sieve";
+
 void LoadCodeBenchmark(std::string_view code, std::string_view handler_name,
                        benchmark::State& state) {
   const Config config;
@@ -132,6 +166,10 @@ void BM_ExecuteHelloWorld(benchmark::State& state) {
   ExecuteCodeBenchmark(kCodeHelloWorld, kHandlerNameHelloWorld, state);
 }
 
+void BM_ExecutePrimeSieve(benchmark::State& state) {
+  ExecuteCodeBenchmark(kCodePrimeSieve, kHandlerNamePrimeSieve, state);
+}
+
 }  // namespace
 
 // Register the function as a benchmark
@@ -142,6 +180,7 @@ BENCHMARK(BM_LoadHelloWorld)
     });
 BENCHMARK(BM_ExecuteHelloWorld)->RangeMultiplier(10)->Range(1, 100);
 BENCHMARK(BM_ExecuteHelloWorldCallback)->RangeMultiplier(10)->Range(1, 100);
+BENCHMARK(BM_ExecutePrimeSieve)->RangeMultiplier(10)->Range(1, 100);
 
 // Run the benchmark
 BENCHMARK_MAIN();
