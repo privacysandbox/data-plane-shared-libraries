@@ -103,7 +103,6 @@ using std::make_shared;
 using std::set;
 using std::shared_ptr;
 using std::static_pointer_cast;
-using std::string;
 using std::thread;
 using std::vector;
 using std::chrono::milliseconds;
@@ -203,8 +202,8 @@ TransactionEngineTest::GetSampleTransactionPhaseLogBytes(
 }
 
 TEST_F(TransactionEngineTest, InitShouldSubscribe) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   auto mock_metric_client = make_shared<MockMetricClient>();
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<MockAsyncExecutorWithInternals>(2, 100);
@@ -234,8 +233,8 @@ TEST_F(TransactionEngineTest, InitShouldSubscribe) {
 }
 
 TEST_F(TransactionEngineTest, RunShouldReplayAllPendingTransactions) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
 
   auto mock_async_executor = make_shared<MockAsyncExecutor>();
   auto async_executor =
@@ -2349,9 +2348,10 @@ TEST_F(TransactionEngineTest, LogTransactionAndProceedToNextPhase) {
   transaction_context.request = make_shared<TransactionRequest>();
   transaction_context.request->transaction_id = Uuid::GenerateUuid();
   transaction_context.request->is_coordinated_remotely = true;
-  transaction_context.request->transaction_secret = make_shared<string>("1234");
+  transaction_context.request->transaction_secret =
+      make_shared<std::string>("1234");
   transaction_context.request->transaction_origin =
-      make_shared<string>("origin.com");
+      make_shared<std::string>("origin.com");
   transaction->context = transaction_context;
   transaction->current_phase = TransactionPhase::AbortNotify;
 
@@ -2446,8 +2446,8 @@ TEST_F(TransactionEngineTest, SerializeTransaction) {
   AsyncContext<TransactionRequest, TransactionResponse> transaction_context;
   transaction_context.request = make_shared<TransactionRequest>();
   transaction_context.request->transaction_id = Uuid::GenerateUuid();
-  transaction_context.request->transaction_secret = make_shared<string>();
-  transaction_context.request->transaction_origin = make_shared<string>();
+  transaction_context.request->transaction_secret = make_shared<std::string>();
+  transaction_context.request->transaction_origin = make_shared<std::string>();
 
   transaction->context = transaction_context;
   transaction->current_phase = TransactionPhase::AbortNotify;
@@ -2619,12 +2619,13 @@ TEST_F(TransactionEngineTest, Checkpoint) {
   transaction_1->context.request->timeout_time = 1234567;
   transaction_1->context.request->is_coordinated_remotely = true;
   transaction_1->context.request->transaction_secret =
-      make_shared<string>("This is the secret");
+      make_shared<std::string>("This is the secret");
   transaction_1->context.request->transaction_origin =
-      make_shared<string>("origin.com");
+      make_shared<std::string>("origin.com");
   transaction_1->is_coordinated_remotely = true;
-  transaction_1->transaction_secret = make_shared<string>("This is the secret");
-  transaction_1->transaction_origin = make_shared<string>("origin.com");
+  transaction_1->transaction_secret =
+      make_shared<std::string>("This is the secret");
+  transaction_1->transaction_origin = make_shared<std::string>("origin.com");
   auto pair_1 = make_pair(transaction_id_1, transaction_1);
   EXPECT_EQ(mock_transaction_engine.GetActiveTransactionsMap().Insert(
                 pair_1, transaction_1),
@@ -2974,8 +2975,9 @@ TEST_F(TransactionEngineTest,
   transaction->id = Uuid::GenerateUuid();
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = true;
-  transaction->transaction_secret = make_shared<string>("this is the secret");
-  transaction->transaction_origin = make_shared<string>("origin.com");
+  transaction->transaction_secret =
+      make_shared<std::string>("this is the secret");
+  transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->expiration_time = 0;
 
   auto mock_remote_transaction_manager =
@@ -3355,8 +3357,8 @@ TEST_F(TransactionEngineTest, OnRemoteTransactionNotFound) {
   transaction->id = Uuid::GenerateUuid();
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
-  transaction->transaction_secret = make_shared<string>("This is secret");
-  transaction->transaction_origin = make_shared<string>("origin.com");
+  transaction->transaction_secret = make_shared<std::string>("This is secret");
+  transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 123456;
 
   vector<TransactionPhase> phases = {
@@ -3465,8 +3467,8 @@ TEST_F(TransactionEngineTest, OnRemoteTransactionNotFoundUnlockTransaction) {
   transaction->id = Uuid::GenerateUuid();
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
-  transaction->transaction_secret = make_shared<string>("This is secret");
-  transaction->transaction_origin = make_shared<string>("origin.com");
+  transaction->transaction_secret = make_shared<std::string>("This is secret");
+  transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 123456;
 
   transaction->current_phase = TransactionPhase::End;
@@ -3515,8 +3517,8 @@ TEST_F(TransactionEngineTest, RollForwardLocalTransaction) {
   transaction->id = Uuid::GenerateUuid();
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
-  transaction->transaction_secret = make_shared<string>("This is secret");
-  transaction->transaction_origin = make_shared<string>("origin.com");
+  transaction->transaction_secret = make_shared<std::string>("This is secret");
+  transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 123456;
 
   vector<TransactionPhase> phases = {
@@ -3627,8 +3629,8 @@ TEST_F(TransactionEngineTest, RollForwardLocalAndRemoteTransactions) {
   transaction->id = Uuid::GenerateUuid();
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
-  transaction->transaction_secret = make_shared<string>("This is secret");
-  transaction->transaction_origin = make_shared<string>("origin.com");
+  transaction->transaction_secret = make_shared<std::string>("This is secret");
+  transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 123456;
 
   vector<TransactionPhase> phases = {
@@ -3701,8 +3703,8 @@ TEST_F(TransactionEngineTest, OnRollForwardRemoteTransactionCallbackFailed) {
   transaction->id = Uuid::GenerateUuid();
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
-  transaction->transaction_secret = make_shared<string>("This is secret");
-  transaction->transaction_origin = make_shared<string>("origin.com");
+  transaction->transaction_secret = make_shared<std::string>("This is secret");
+  transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 123456;
 
   shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
@@ -3744,8 +3746,8 @@ TEST_F(TransactionEngineTest,
   transaction->id = Uuid::GenerateUuid();
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
-  transaction->transaction_secret = make_shared<string>("This is secret");
-  transaction->transaction_origin = make_shared<string>("origin.com");
+  transaction->transaction_secret = make_shared<std::string>("This is secret");
+  transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 12343356;
 
   shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
@@ -4044,8 +4046,8 @@ TEST_F(TransactionEngineTest, ExecutePhaseExpiredTransaction) {
   transaction->expiration_time = 0;
   transaction->is_coordinated_remotely = false;
   transaction->id = transaction_id;
-  transaction->transaction_secret = make_shared<string>("hidden secret");
-  transaction->transaction_origin = make_shared<string>("hidden origin");
+  transaction->transaction_secret = make_shared<std::string>("hidden secret");
+  transaction->transaction_origin = make_shared<std::string>("hidden origin");
 
   auto pair = make_pair(transaction_id, transaction);
   EXPECT_EQ(mock_transaction_engine.GetActiveTransactionsMap().Insert(
@@ -4054,9 +4056,9 @@ TEST_F(TransactionEngineTest, ExecutePhaseExpiredTransaction) {
 
   transaction_phase_context.request->transaction_id = transaction_id;
   transaction_phase_context.request->transaction_secret =
-      make_shared<string>("not matching");
+      make_shared<std::string>("not matching");
   transaction_phase_context.request->transaction_origin =
-      make_shared<string>("not matching");
+      make_shared<std::string>("not matching");
 
   EXPECT_THAT(
       mock_transaction_engine.ExecutePhase(transaction_phase_context),
@@ -4102,8 +4104,8 @@ TEST_F(TransactionEngineTest, ExecutePhase) {
   transaction->expiration_time = 0;
   transaction->is_coordinated_remotely = false;
   transaction->id = transaction_id;
-  transaction->transaction_secret = make_shared<string>("hidden secret");
-  transaction->transaction_origin = make_shared<string>("hidden origin");
+  transaction->transaction_secret = make_shared<std::string>("hidden secret");
+  transaction->transaction_origin = make_shared<std::string>("hidden origin");
   auto pair = make_pair(transaction_id, transaction);
   EXPECT_EQ(mock_transaction_engine.GetActiveTransactionsMap().Insert(
                 pair, transaction),
@@ -4111,9 +4113,9 @@ TEST_F(TransactionEngineTest, ExecutePhase) {
 
   transaction_phase_context.request->transaction_id = transaction_id;
   transaction_phase_context.request->transaction_secret =
-      make_shared<string>("not matching");
+      make_shared<std::string>("not matching");
   transaction_phase_context.request->transaction_origin =
-      make_shared<string>("not matching");
+      make_shared<std::string>("not matching");
 
   EXPECT_THAT(
       mock_transaction_engine.ExecutePhase(transaction_phase_context),
@@ -4207,8 +4209,8 @@ TEST_F(TransactionEngineTest, ExecutePhaseInternal) {
   transaction->expiration_time = 0;
   transaction->is_coordinated_remotely = false;
   transaction->id = transaction_id;
-  transaction->transaction_secret = make_shared<string>("hidden secret");
-  transaction->transaction_origin = make_shared<string>("origin.com");
+  transaction->transaction_secret = make_shared<std::string>("hidden secret");
+  transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 99;
 
   EXPECT_EQ(mock_transaction_engine.ExecutePhaseInternal(
@@ -4236,9 +4238,9 @@ TEST_F(TransactionEngineTest, ExecutePhaseInternal) {
 
   transaction_phase_context.request->transaction_id = transaction_id;
   transaction_phase_context.request->transaction_secret =
-      make_shared<string>("not matching");
+      make_shared<std::string>("not matching");
   transaction_phase_context.request->transaction_origin =
-      make_shared<string>("not matching origin");
+      make_shared<std::string>("not matching origin");
   transaction_phase_context.request->last_execution_timestamp = 1234;
 
   EXPECT_EQ(
@@ -4481,7 +4483,7 @@ TEST_F(TransactionEngineTest, GetTransactionStatus) {
   transaction->is_waiting_for_remote = false;
   transaction->id = transaction_id;
   transaction->last_execution_timestamp = 99;
-  transaction->transaction_secret = make_shared<string>("txn-secret");
+  transaction->transaction_secret = make_shared<std::string>("txn-secret");
 
   AsyncContext<GetTransactionStatusRequest, GetTransactionStatusResponse>
       get_transaction_status_context;
@@ -4489,7 +4491,7 @@ TEST_F(TransactionEngineTest, GetTransactionStatus) {
       make_shared<GetTransactionStatusRequest>();
   get_transaction_status_context.request->transaction_id = transaction_id;
   get_transaction_status_context.request->transaction_secret =
-      make_shared<string>("txn-secret");
+      make_shared<std::string>("txn-secret");
 
   EXPECT_EQ(mock_transaction_engine.GetTransactionStatus(
                 get_transaction_status_context),
@@ -4587,7 +4589,8 @@ TEST_F(TransactionEngineTest,
   transaction->is_waiting_for_remote = false;
   transaction->id = transaction_id;
   transaction->last_execution_timestamp = 99;
-  transaction->transaction_secret = make_shared<string>("correct-txn-secret");
+  transaction->transaction_secret =
+      make_shared<std::string>("correct-txn-secret");
   transaction->is_coordinated_remotely = true;
 
   AsyncContext<GetTransactionStatusRequest, GetTransactionStatusResponse>
@@ -4610,7 +4613,7 @@ TEST_F(TransactionEngineTest,
 
   // Incorrect transaction secret supplied
   get_transaction_status_context.request->transaction_secret =
-      make_shared<string>("another-txn-secret");
+      make_shared<std::string>("another-txn-secret");
   EXPECT_EQ(
       mock_transaction_engine.GetTransactionStatus(
           get_transaction_status_context),
@@ -4619,7 +4622,7 @@ TEST_F(TransactionEngineTest,
 
   // Correct transaction secret supplied
   get_transaction_status_context.request->transaction_secret =
-      make_shared<string>("correct-txn-secret");
+      make_shared<std::string>("correct-txn-secret");
 
   atomic<bool> called = false;
   get_transaction_status_context
@@ -4991,8 +4994,9 @@ TEST_F(TransactionEngineTest,
   transaction->id = Uuid::GenerateUuid();
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = true;
-  transaction->transaction_secret = make_shared<string>("this is the secret");
-  transaction->transaction_origin = make_shared<string>("origin.com");
+  transaction->transaction_secret =
+      make_shared<std::string>("this is the secret");
+  transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->expiration_time = 0;
 
   EXPECT_SUCCESS(transaction_engine.ResolveTransaction(transaction));

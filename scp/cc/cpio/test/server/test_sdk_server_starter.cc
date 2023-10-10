@@ -35,12 +35,11 @@ using google::scp::core::test::StartContainer;
 using google::scp::core::test::StopContainer;
 using std::runtime_error;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace google::scp::cpio::test {
 void TestSdkServerStarter::RunSdkServer(
-    const string& image_location, const string& image_name,
+    const std::string& image_location, const std::string& image_name,
     const absl::flat_hash_map<std::string, std::string>& env_overrides) {
   std::cout << "Loading SDK image" << std::endl;
   if (LoadImage(image_location) != 0) {

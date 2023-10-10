@@ -42,9 +42,7 @@ using std::make_shared;
 using std::regex;
 using std::regex_match;
 using std::shared_ptr;
-using std::string;
 using std::strlen;
-using std::to_string;
 using std::vector;
 
 namespace {
@@ -72,10 +70,10 @@ constexpr char kRegionsTag[] = "regions";
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResultOr<string> GcpInstanceClientUtils::GetCurrentProjectId(
+ExecutionResultOr<std::string> GcpInstanceClientUtils::GetCurrentProjectId(
     const shared_ptr<InstanceClientProviderInterface>&
         instance_client) noexcept {
-  string instance_resource_name;
+  std::string instance_resource_name;
   if (auto result = instance_client->GetCurrentInstanceResourceNameSync(
           instance_resource_name);
       !result.Successful()) {
@@ -95,27 +93,27 @@ ExecutionResultOr<string> GcpInstanceClientUtils::GetCurrentProjectId(
   return std::move(*project_id_or);
 }
 
-ExecutionResultOr<string>
+ExecutionResultOr<std::string>
 GcpInstanceClientUtils::ParseProjectIdFromInstanceResourceName(
-    const string& resource_name) noexcept {
+    const std::string& resource_name) noexcept {
   GcpInstanceResourceNameDetails details;
   auto result = GetInstanceResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
   return std::move(details.project_id);
 }
 
-ExecutionResultOr<string>
+ExecutionResultOr<std::string>
 GcpInstanceClientUtils::ParseZoneIdFromInstanceResourceName(
-    const string& resource_name) noexcept {
+    const std::string& resource_name) noexcept {
   GcpInstanceResourceNameDetails details;
   auto result = GetInstanceResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
   return std::move(details.zone_id);
 }
 
-ExecutionResultOr<string>
+ExecutionResultOr<std::string>
 GcpInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
-    const string& resource_name) noexcept {
+    const std::string& resource_name) noexcept {
   GcpInstanceResourceNameDetails details;
   auto result = GetInstanceResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
@@ -123,7 +121,7 @@ GcpInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
 }
 
 ExecutionResult GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(
-    const string& resource_name) noexcept {
+    const std::string& resource_name) noexcept {
   std::regex re(kInstanceResourceNameRegex);
   if (!std::regex_match(resource_name, re)) {
     return FailureExecutionResult(
@@ -134,16 +132,16 @@ ExecutionResult GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(
 }
 
 ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
-    const string& resource_name,
+    const std::string& resource_name,
     GcpInstanceResourceNameDetails& detail) noexcept {
   auto result = ValidateInstanceResourceNameFormat(resource_name);
   RETURN_IF_FAILURE(result);
 
-  string resource_id =
+  std::string resource_id =
       resource_name.substr(strlen(kInstanceResourceNamePrefix));
   // Splits `projects/project_abc1/zones/us-west1/instances/12345678987654321`
   // to { projects,project_abc1,zones,us-west1,instances,12345678987654321 }
-  vector<string> splits = absl::StrSplit(resource_id, "/");
+  vector<std::string> splits = absl::StrSplit(resource_id, "/");
   detail.project_id = splits[1];
   detail.zone_id = splits[3];
   detail.instance_id = splits[5];
@@ -153,9 +151,9 @@ ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
 
 // TODO: Add a Resource name validation function
 
-string GcpInstanceClientUtils::CreateRMListTagsUrl(
-    const string& resource_name) noexcept {
-  vector<string> splits = absl::StrSplit(resource_name, "/");
+std::string GcpInstanceClientUtils::CreateRMListTagsUrl(
+    const std::string& resource_name) noexcept {
+  vector<std::string> splits = absl::StrSplit(resource_name, "/");
   auto i = 0;
   while (i < splits.size()) {
     const auto& part = splits.at(i);

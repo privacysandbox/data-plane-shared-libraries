@@ -74,7 +74,6 @@ using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
 using std::static_pointer_cast;
-using std::string;
 using std::thread;
 using std::vector;
 using std::weak_ptr;
@@ -203,9 +202,9 @@ TEST(TransactionEngineLocalAndRemoteTest,
   transaction_context.request = make_shared<TransactionRequest>();
   transaction_context.request->is_coordinated_remotely = true;
   transaction_context.request->transaction_secret =
-      make_shared<string>("this_is_a_transaction_secret");
+      make_shared<std::string>("this_is_a_transaction_secret");
   transaction_context.request->transaction_origin =
-      make_shared<string>("origin.com");
+      make_shared<std::string>("origin.com");
 
   auto transaction_id = Uuid::GenerateUuid();
   shared_ptr<Transaction> transaction_local;
@@ -282,9 +281,9 @@ void RunTransactionsWithDifferentSyncPhases(TransactionPhase local_phase,
   transaction_context.request = make_shared<TransactionRequest>();
   transaction_context.request->is_coordinated_remotely = true;
   transaction_context.request->transaction_secret =
-      make_shared<string>("this_is_a_transaction_secret");
+      make_shared<std::string>("this_is_a_transaction_secret");
   transaction_context.request->transaction_origin =
-      make_shared<string>("origin.com");
+      make_shared<std::string>("origin.com");
 
   TransactionAction action = [](TransactionCommandCallback& callback) {
     auto result = SuccessExecutionResult();
@@ -420,9 +419,9 @@ void RunTransactionsWithDifferentOutOfSyncPhases(
   transaction_context.request = make_shared<TransactionRequest>();
   transaction_context.request->is_coordinated_remotely = true;
   transaction_context.request->transaction_secret =
-      make_shared<string>("this_is_a_transaction_secret");
+      make_shared<std::string>("this_is_a_transaction_secret");
   transaction_context.request->transaction_origin =
-      make_shared<string>("origin.com");
+      make_shared<std::string>("origin.com");
 
   TransactionAction action = [](TransactionCommandCallback& callback) {
     auto result = SuccessExecutionResult();

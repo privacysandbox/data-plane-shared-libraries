@@ -52,7 +52,6 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using std::bind;
 using std::make_shared;
 using std::make_unique;
-using std::string;
 using std::placeholders::_1;
 
 static constexpr char kInstanceClient[] = "InstanceClient";

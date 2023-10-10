@@ -32,8 +32,6 @@ using google::scp::core::common::kZeroUuid;
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::string;
-using std::to_string;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -41,7 +39,7 @@ static constexpr char kTCPTrafficForwarderSocat[] = "TCPTrafficForwarderSocat";
 
 namespace google::scp::core {
 TCPTrafficForwarderSocat::TCPTrafficForwarderSocat(
-    const string& local_port, const string& forwarding_address)
+    const std::string& local_port, const std::string& forwarding_address)
     : local_port_(local_port), forwarding_address_(forwarding_address) {}
 
 static void SigChildHandler(int sig) {
@@ -65,12 +63,13 @@ ExecutionResult TCPTrafficForwarderSocat::Run() noexcept {
   }
 
   char socat_command_name[] = "socat";
-  string arg1 = "-d";
-  string arg2 = "-d";
-  string arg3 = "-ly";
-  string arg4 = "-lh";
-  string arg5 = string("TCP-LISTEN:") + local_port_ + string(",fork,reuseaddr");
-  string arg6 = "TCP:" + forwarding_address_;
+  std::string arg1 = "-d";
+  std::string arg2 = "-d";
+  std::string arg3 = "-ly";
+  std::string arg4 = "-lh";
+  std::string arg5 =
+      std::string("TCP-LISTEN:") + local_port_ + std::string(",fork,reuseaddr");
+  std::string arg6 = "TCP:" + forwarding_address_;
   char* const command_arguments[8] = {
       socat_command_name,
       const_cast<char*>(arg1.c_str()),
@@ -247,7 +246,7 @@ ExecutionResult TCPTrafficForwarderSocat::Stop() noexcept {
 }
 
 ExecutionResult TCPTrafficForwarderSocat::ResetForwardingAddress(
-    const string& forwarding_address) noexcept {
+    const std::string& forwarding_address) noexcept {
   if (forwarding_address == forwarding_address_) {
     SCP_INFO(kTCPTrafficForwarderSocat, kZeroUuid,
              "Forwarding address is same as before: %s. Not resetting.",

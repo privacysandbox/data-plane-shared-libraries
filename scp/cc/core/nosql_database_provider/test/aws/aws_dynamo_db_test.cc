@@ -74,7 +74,6 @@ using std::make_shared;
 using std::mt19937;
 using std::random_device;
 using std::shared_ptr;
-using std::string;
 using std::uniform_int_distribution;
 using std::vector;
 
@@ -100,7 +99,7 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithoutAttributes) {
       .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
   get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
@@ -110,10 +109,11 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithoutAttributes) {
       [&](const QueryRequest& query_request,
           const QueryResponseReceivedHandler&,
           const shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(string(query_request.GetTableName().c_str()),
+        EXPECT_EQ(std::string(query_request.GetTableName().c_str()),
                   *get_database_item_context.request->table_name);
-        EXPECT_EQ(string(query_request.GetKeyConditionExpression().c_str()),
-                  "Col1= :partition_key and Col2= :sort_key");
+        EXPECT_EQ(
+            std::string(query_request.GetKeyConditionExpression().c_str()),
+            "Col1= :partition_key and Col2= :sort_key");
         auto attributes = query_request.GetExpressionAttributeValues();
         EXPECT_EQ(attributes[String(":partition_key")].GetN(), "3");
         EXPECT_EQ(attributes[String(":sort_key")].GetN(), "2");
@@ -145,7 +145,7 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithAttributes) {
       .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
   get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
@@ -175,10 +175,11 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithAttributes) {
       [&](const QueryRequest& query_request,
           const QueryResponseReceivedHandler&,
           const shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(string(query_request.GetTableName().c_str()),
+        EXPECT_EQ(std::string(query_request.GetTableName().c_str()),
                   *get_database_item_context.request->table_name);
-        EXPECT_EQ(string(query_request.GetKeyConditionExpression().c_str()),
-                  "Col1= :partition_key and Col2= :sort_key");
+        EXPECT_EQ(
+            std::string(query_request.GetKeyConditionExpression().c_str()),
+            "Col1= :partition_key and Col2= :sort_key");
         EXPECT_EQ(query_request.GetFilterExpression(),
                   "Attr1= :attribute_0 and Attr2= :attribute_1 and Attr3= "
                   ":attribute_2");
@@ -216,7 +217,7 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackFailure) {
       .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
   get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
@@ -282,7 +283,7 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackZeroOrMoreThanOneResult) {
       .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
   get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
@@ -345,7 +346,7 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackOneResult) {
       .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
   get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
@@ -371,9 +372,10 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackOneResult) {
     EXPECT_EQ(
         *get_database_item_context.response->attributes->at(0).attribute_name,
         "attr1");
-    EXPECT_EQ(get<string>(*get_database_item_context.response->attributes->at(0)
-                               .attribute_value),
-              "hello world");
+    EXPECT_EQ(
+        get<std::string>(*get_database_item_context.response->attributes->at(0)
+                              .attribute_value),
+        "hello world");
     EXPECT_EQ(
         *get_database_item_context.response->attributes->at(1).attribute_name,
         "attr2");
@@ -441,7 +443,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithoutAttributes) {
   upsert_database_item_context.request =
       make_shared<UpsertDatabaseItemRequest>();
   upsert_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =
@@ -451,7 +453,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithoutAttributes) {
       [&](const UpdateItemRequest& upsert_request,
           const UpdateItemResponseReceivedHandler&,
           const shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(string(upsert_request.GetTableName().c_str()),
+        EXPECT_EQ(std::string(upsert_request.GetTableName().c_str()),
                   *upsert_database_item_context.request->table_name);
         auto keys = upsert_request.GetKey();
         EXPECT_EQ(keys.size(), 2);
@@ -491,7 +493,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithNewAttributes) {
   upsert_database_item_context.request =
       make_shared<UpsertDatabaseItemRequest>();
   upsert_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =
@@ -520,7 +522,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithNewAttributes) {
       [&](const UpdateItemRequest& upsert_request,
           const UpdateItemResponseReceivedHandler&,
           const shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(string(upsert_request.GetTableName().c_str()),
+        EXPECT_EQ(std::string(upsert_request.GetTableName().c_str()),
                   *upsert_database_item_context.request->table_name);
         auto keys = upsert_request.GetKey();
         EXPECT_EQ(keys.size(), 2);
@@ -531,7 +533,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithNewAttributes) {
         sort_value.SetN(2);
         EXPECT_EQ(keys[String("Col2")], sort_value);
         EXPECT_NE(upsert_request.GetUpdateExpression().length(), 0);
-        EXPECT_EQ(string(upsert_request.GetUpdateExpression().c_str()),
+        EXPECT_EQ(std::string(upsert_request.GetUpdateExpression().c_str()),
                   "SET Attr1= :new_attribute_0 , Attr2= :new_attribute_1 , "
                   "Attr3= :new_attribute_2");
         EXPECT_EQ(upsert_request.GetConditionExpression().length(), 0);
@@ -563,7 +565,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithOldAttributes) {
   upsert_database_item_context.request =
       make_shared<UpsertDatabaseItemRequest>();
   upsert_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =
@@ -592,7 +594,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithOldAttributes) {
       [&](const UpdateItemRequest& upsert_request,
           const UpdateItemResponseReceivedHandler&,
           const shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(string(upsert_request.GetTableName().c_str()),
+        EXPECT_EQ(std::string(upsert_request.GetTableName().c_str()),
                   *upsert_database_item_context.request->table_name);
         auto keys = upsert_request.GetKey();
         EXPECT_EQ(keys.size(), 2);
@@ -604,7 +606,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithOldAttributes) {
         EXPECT_EQ(keys[String("Col2")], sort_value);
         EXPECT_EQ(upsert_request.GetUpdateExpression().length(), 0);
         EXPECT_NE(upsert_request.GetConditionExpression().length(), 0);
-        EXPECT_EQ(string(upsert_request.GetConditionExpression().c_str()),
+        EXPECT_EQ(std::string(upsert_request.GetConditionExpression().c_str()),
                   "Attr1= :attribute_0 and Attr2= :attribute_1 and "
                   "Attr3= :attribute_2");
       };
@@ -635,7 +637,7 @@ TEST(AwsDynamoDBTests, UpsertDatabaseItemCallbackFailure) {
   upsert_database_item_context.request =
       make_shared<UpsertDatabaseItemRequest>();
   upsert_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =
@@ -682,7 +684,7 @@ TEST(AwsDynamoDBTests, UpsertDatabaseItemCallback) {
   upsert_database_item_context.request =
       make_shared<UpsertDatabaseItemRequest>();
   upsert_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =

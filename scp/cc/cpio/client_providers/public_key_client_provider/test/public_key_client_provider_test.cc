@@ -53,7 +53,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 
 static constexpr char kPublicKeyHeaderDate[] = "date";
@@ -114,7 +113,7 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
     headers.insert({kPublicKeyHeaderCacheControl, kCacheControlExample});
     response.headers = make_shared<HttpHeaders>(headers);
 
-    string bytes_str = R"({
+    std::string bytes_str = R"({
       "keys": [
         {"id": "1234", "key": "abcdefg"},
         {"id": "5678", "key": "hijklmn"}

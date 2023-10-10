@@ -56,8 +56,6 @@ using std::make_shared;
 using std::mutex;
 using std::pair;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::vector;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -84,7 +82,7 @@ AggregateMetric::AggregateMetric(
     const shared_ptr<AsyncExecutorInterface>& async_executor,
     const shared_ptr<MetricClientInterface>& metric_client,
     MetricDefinition metric_info, TimeDuration push_interval_duration_in_ms,
-    const vector<string>& event_code_labels_list,
+    const vector<std::string>& event_code_labels_list,
     const std::string& event_code_label_key)
     : async_executor_(async_executor),
       metric_client_(metric_client),
@@ -103,8 +101,8 @@ AggregateMetric::AggregateMetric(
     event_metric.AddMetricLabels(std::move(labels));
 
     event_counters_[event_code] = 0;
-    event_metric_infos_.insert(
-        pair<string, MetricDefinition>(event_code, std::move(event_metric)));
+    event_metric_infos_.insert(pair<std::string, MetricDefinition>(
+        event_code, std::move(event_metric)));
   }
 }
 
@@ -162,7 +160,8 @@ ExecutionResult AggregateMetric::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-ExecutionResult AggregateMetric::Increment(const string& event_code) noexcept {
+ExecutionResult AggregateMetric::Increment(
+    const std::string& event_code) noexcept {
   return IncrementBy(1, event_code);
 }
 
@@ -188,7 +187,7 @@ core::ExecutionResult AggregateMetric::IncrementBy(
 
 void AggregateMetric::MetricPushHandler(
     int64_t value, const MetricDefinition& metric_info) noexcept {
-  auto metric_value = MetricValue(to_string(value));
+  auto metric_value = MetricValue(std::to_string(value));
   auto record_metric_request = make_shared<PutMetricsRequest>();
   MetricUtils::GetPutMetricsRequest(record_metric_request, metric_info,
                                     metric_value);
@@ -197,7 +196,7 @@ void AggregateMetric::MetricPushHandler(
       std::move(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         if (!context.result.Successful()) {
-          std::vector<string> metric_names;
+          std::vector<std::string> metric_names;
           for (auto& metric : context.request->metrics()) {
             metric_names.push_back(metric.name());
           }

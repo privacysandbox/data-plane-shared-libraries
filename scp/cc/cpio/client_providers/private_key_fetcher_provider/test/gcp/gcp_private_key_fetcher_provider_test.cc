@@ -55,7 +55,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 using testing::Pair;
@@ -88,7 +87,7 @@ class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
     EXPECT_SUCCESS(gcp_private_key_fetcher_provider_->Run());
 
     request_ = make_shared<PrivateKeyFetchingRequest>();
-    request_->key_id = make_shared<string>(kKeyId);
+    request_->key_id = make_shared<std::string>(kKeyId);
     auto endpoint = make_shared<PrivateKeyVendingEndpoint>();
     endpoint->gcp_private_key_vending_service_cloudfunction_url =
         kPrivateKeyCloudfunctionUri;
@@ -104,12 +103,12 @@ class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
     }
   }
 
-  void MockRequest(const string& uri) {
+  void MockRequest(const std::string& uri) {
     http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = make_shared<string>(uri);
+    http_client_->request_mock.path = make_shared<std::string>(uri);
   }
 
-  void MockResponse(const string& str) {
+  void MockResponse(const std::string& str) {
     http_client_->response_mock = HttpResponse();
     http_client_->response_mock.body = BytesBuffer(str);
   }
@@ -154,7 +153,7 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, SignHttpRequest) {
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();

@@ -32,25 +32,23 @@ using boost::system::error_code;
 using nghttp2::asio_http2::host_service_from_uri;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
-using std::stringstream;
 using std::vector;
 
 static constexpr char kServiceName[] = "execute-api";
 
 // TODO: move this to common place
-static string Base64Encode(const string& raw_data) {
+static std::string Base64Encode(const std::string& raw_data) {
   size_t required_len = 0;
   if (EVP_EncodedLength(&required_len, raw_data.length()) == 0) {
-    return string();
+    return std::string();
   }
-  string out(required_len, '\0');
+  std::string out(required_len, '\0');
 
   size_t output_len = EVP_EncodeBlock(
       reinterpret_cast<uint8_t*>(out.data()),
       reinterpret_cast<const uint8_t*>(raw_data.data()), raw_data.length());
   if (output_len == 0) {
-    return string();
+    return std::string();
   }
   out.pop_back();  // EVP_EncodeBlock writes trailing \0. pop it.
   return out;
@@ -58,14 +56,14 @@ static string Base64Encode(const string& raw_data) {
 
 namespace google::scp::core {
 AwsAuthorizerClientSigner::AwsAuthorizerClientSigner(
-    const string& aws_access_key, const string& aws_secret_key,
-    const string& aws_security_token, const string& aws_region)
+    const std::string& aws_access_key, const std::string& aws_secret_key,
+    const std::string& aws_security_token, const std::string& aws_region)
     : aws_v4_signer_(aws_access_key, aws_secret_key, aws_security_token,
                      kServiceName, aws_region) {}
 
-ExecutionResult AwsAuthorizerClientSigner::GetAuthToken(const string& endpoint,
-                                                        string& token) {
-  vector<string> headers_to_sign{"Host", "X-Amz-Date"};
+ExecutionResult AwsAuthorizerClientSigner::GetAuthToken(
+    const std::string& endpoint, std::string& token) {
+  vector<std::string> headers_to_sign{"Host", "X-Amz-Date"};
   // Since the signature is destined for a different HOST in our authorization
   // scheme, we create a temporary request just for generating the signature.
   HttpRequest tmp_request;
@@ -75,24 +73,24 @@ ExecutionResult AwsAuthorizerClientSigner::GetAuthToken(const string& endpoint,
   tmp_request.headers = make_shared<HttpHeaders>();
 
   error_code http2_error_code;
-  string scheme;
-  string host;
-  string service;
+  std::string scheme;
+  std::string host;
+  std::string service;
   if (host_service_from_uri(http2_error_code, scheme, host, service,
                             *tmp_request.path)) {
     return FailureExecutionResult(
         errors::SC_AUTHORIZATION_SERVICE_INVALID_CONFIG);
   }
 
-  tmp_request.headers->insert({string("Host"), host});
-  string signature;
-  string x_amz_date;
+  tmp_request.headers->insert({std::string("Host"), host});
+  std::string signature;
+  std::string x_amz_date;
   auto ret = aws_v4_signer_.GetSignatureParts(tmp_request, headers_to_sign,
                                               signature, x_amz_date);
   if (!ret) {
     return ret;
   }
-  stringstream json_token_builder;
+  std::stringstream json_token_builder;
   json_token_builder << "{\"access_key\":\"" << aws_v4_signer_.GetAwsAccessKey()
                      << "\", \"signature\":\"" << signature
                      << "\", \"amz_date\":\"" << x_amz_date << "\"";
@@ -101,19 +99,19 @@ ExecutionResult AwsAuthorizerClientSigner::GetAuthToken(const string& endpoint,
                        << aws_v4_signer_.GetAwsSecurityToken() << "\"";
   }
   json_token_builder << '}';
-  string json_token = json_token_builder.str();
+  std::string json_token = json_token_builder.str();
   token = Base64Encode(json_token);
   return SuccessExecutionResult();
 }
 
 ExecutionResult AwsAuthorizerClientSigner::SignRequest(
-    HttpRequest& http_request, const string& endpoint) {
-  string token;
+    HttpRequest& http_request, const std::string& endpoint) {
+  std::string token;
   auto ret = GetAuthToken(endpoint, token);
   if (!ret) {
     return ret;
   }
-  http_request.headers->insert({string(kAuthHeader), token});
+  http_request.headers->insert({std::string(kAuthHeader), token});
   return SuccessExecutionResult();
 }
 

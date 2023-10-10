@@ -56,7 +56,6 @@ using std::endl;
 using std::list;
 using std::make_shared;
 using std::make_unique;
-using std::string;
 using std::thread;
 using std::unique_ptr;
 using std::vector;
@@ -70,7 +69,7 @@ namespace {
 
 const list<float> kPercentiles = {50, 90, 99, 99.99};
 
-CodeObject CreateCodeObj(const string& code_string) {
+CodeObject CreateCodeObj(const std::string& code_string) {
   CodeObject code_obj;
   code_obj.id = "foo";
   code_obj.version_num = 1;
@@ -83,7 +82,7 @@ CodeObject CreateCodeObj(const string& code_string) {
   return code_obj;
 }
 
-string FormatWithCommas(int value) {
+std::string FormatWithCommas(int value) {
   std::stringstream ss;
   ss.imbue(std::locale(""));
   ss << std::fixed << value;
@@ -130,14 +129,15 @@ InvocationRequestSharedInput CreateExecutionObj(InputsType type,
   code_obj.handler_name = "Handler";
 
   if (type == InputsType::kNestedJsonString) {
-    string inputs_string =
+    std::string inputs_string =
         GenerateRandomJsonString(json_depth, 1 /*elements in each layer*/);
-    code_obj.input.push_back(make_shared<string>(inputs_string));
+    code_obj.input.push_back(make_shared<std::string>(inputs_string));
     std::cout << "\tinputs size in Byte: " << inputs_string.length()
               << "\n\tinputs JSON depth: " << json_depth << std::endl;
   } else {
-    string inputs_string(payload_size, 'A');
-    code_obj.input.push_back(make_shared<string>("\"" + inputs_string + "\""));
+    std::string inputs_string(payload_size, 'A');
+    code_obj.input.push_back(
+        make_shared<std::string>("\"" + inputs_string + "\""));
     std::cout << "\tinputs size in Byte: " << inputs_string.length()
               << std::endl;
   }
@@ -240,7 +240,7 @@ BenchmarkMetrics BenchmarkMetrics::GetMeanMetrics(
   return mean_metric;
 }
 
-absl::Status LoadCodeObject(const string& code_string) {
+absl::Status LoadCodeObject(const std::string& code_string) {
   // Loads code object to Roma workers.
   auto code_obj = CreateCodeObj(code_string);
   std::promise<void> done;

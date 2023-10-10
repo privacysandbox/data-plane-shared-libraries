@@ -53,7 +53,6 @@ using std::bind;
 using std::make_shared;
 using std::scoped_lock;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::chrono::milliseconds;
 using std::chrono::nanoseconds;

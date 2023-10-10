@@ -100,7 +100,6 @@ using grpc::ServerWriteReactor;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using SyncServerOption = grpc::ServerBuilder::SyncServerOption;
 using std::placeholders::_1;
 

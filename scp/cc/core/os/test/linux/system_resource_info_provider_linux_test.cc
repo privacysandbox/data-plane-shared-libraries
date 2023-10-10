@@ -21,7 +21,6 @@
 
 #include <string>
 
-using std::string;
 using ::testing::AllOf;
 using ::testing::Gt;
 
@@ -29,13 +28,16 @@ namespace google::scp::core::os::linux::test {
 class SystemResourceInfoProviderLinuxForTests
     : public SystemResourceInfoProviderLinux {
  public:
-  explicit SystemResourceInfoProviderLinuxForTests(string mem_info_file_path)
+  explicit SystemResourceInfoProviderLinuxForTests(
+      std::string mem_info_file_path)
       : mem_info_file_path_(mem_info_file_path) {}
 
-  string GetMemInfoFilePath() noexcept override { return mem_info_file_path_; }
+  std::string GetMemInfoFilePath() noexcept override {
+    return mem_info_file_path_;
+  }
 
  private:
-  string mem_info_file_path_;
+  std::string mem_info_file_path_;
 };
 
 TEST(SystemResourceInfoProviderLinux, ShouldFailIfMemInfoFileIsInvalid) {

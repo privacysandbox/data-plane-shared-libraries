@@ -37,8 +37,6 @@ using google::scp::core::async_executor::aws::AwsAsyncExecutor;
 using google::scp::core::common::TimeProvider;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -69,9 +67,9 @@ ExecutionResult AwsAssumeRoleCredentialsProvider::Init() noexcept {
   client_config_->region = *region_;
   sts_client_ = make_shared<STSClient>(*client_config_);
 
-  auto timestamp =
-      to_string(TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());
-  session_name_ = make_shared<string>(timestamp);
+  auto timestamp = std::to_string(
+      TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());
+  session_name_ = make_shared<std::string>(timestamp);
   return SuccessExecutionResult();
 };
 
@@ -129,20 +127,20 @@ void AwsAssumeRoleCredentialsProvider::OnGetCredentialsCallback(
   get_credentials_context.result = SuccessExecutionResult();
   get_credentials_context.response = make_shared<GetCredentialsResponse>();
   get_credentials_context.response->access_key_id =
-      make_shared<string>(get_credentials_outcome.GetResult()
-                              .GetCredentials()
-                              .GetAccessKeyId()
-                              .c_str());
+      make_shared<std::string>(get_credentials_outcome.GetResult()
+                                   .GetCredentials()
+                                   .GetAccessKeyId()
+                                   .c_str());
   get_credentials_context.response->access_key_secret =
-      make_shared<string>(get_credentials_outcome.GetResult()
-                              .GetCredentials()
-                              .GetSecretAccessKey()
-                              .c_str());
+      make_shared<std::string>(get_credentials_outcome.GetResult()
+                                   .GetCredentials()
+                                   .GetSecretAccessKey()
+                                   .c_str());
   get_credentials_context.response->security_token =
-      make_shared<string>(get_credentials_outcome.GetResult()
-                              .GetCredentials()
-                              .GetSessionToken()
-                              .c_str());
+      make_shared<std::string>(get_credentials_outcome.GetResult()
+                                   .GetCredentials()
+                                   .GetSessionToken()
+                                   .c_str());
   get_credentials_context.Finish();
 }
 

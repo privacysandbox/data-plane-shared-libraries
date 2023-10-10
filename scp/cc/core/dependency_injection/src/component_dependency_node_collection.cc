@@ -24,7 +24,6 @@
 
 #include "component_dependency_node.h"
 
-using std::string;
 using std::vector;
 
 namespace google::scp::core {
@@ -42,7 +41,7 @@ bool ComponentDependencyNodeCollection::AddNodeToPath(
 vector<ComponentDependencyNode>
 ComponentDependencyNodeCollection::GetCyclePath() noexcept {
   int startCycle = -1;
-  string lastId = dependency_path_.back().id;
+  std::string lastId = dependency_path_.back().id;
   while (dependency_path_[++startCycle].id != lastId) {}
 
   return vector<ComponentDependencyNode>(dependency_path_.begin() + startCycle,

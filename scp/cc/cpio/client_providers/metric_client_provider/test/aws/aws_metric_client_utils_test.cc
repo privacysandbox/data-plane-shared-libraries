@@ -65,8 +65,6 @@ using google::scp::core::errors::
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::AwsMetricClientUtils;
 using std::make_shared;
-using std::string;
-using std::to_string;
 using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::hours;
@@ -82,8 +80,8 @@ const MetricUnit kUnit = MetricUnit::METRIC_UNIT_COUNT;
 class AwsMetricClientUtilsTest : public ::testing::Test {
  protected:
   void SetPutMetricsRequest(
-      PutMetricsRequest& record_metric_request, const string& value = kValue,
-      int metrics_num = 1,
+      PutMetricsRequest& record_metric_request,
+      const std::string& value = kValue, int metrics_num = 1,
       int64_t timestamp_in_ms =
           duration_cast<milliseconds>(system_clock::now().time_since_epoch())
               .count()) {
@@ -200,7 +198,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumOversizeDimensions) {
   constexpr std::string_view label_value = "test";
   auto& metric_labels_ = *metric->mutable_labels();
   for (auto i = 0; i < 31; i++) {
-    metric_labels_[to_string(i)] = label_value;
+    metric_labels_[std::to_string(i)] = label_value;
   }
 
   bool parse_request_to_datum_is_called = false;

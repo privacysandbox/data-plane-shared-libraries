@@ -73,9 +73,6 @@ using std::make_unique;
 using std::min;
 using std::shared_ptr;
 using std::static_pointer_cast;
-using std::string;
-using std::stringstream;
-using std::to_string;
 using std::uint8_t;
 using std::vector;
 using v8::Array;
@@ -97,12 +94,12 @@ using v8::Value;
 using v8::WasmModuleObject;
 
 namespace {
-shared_ptr<string> GetCodeFromContext(
+shared_ptr<std::string> GetCodeFromContext(
     const RomaJsEngineCompilationContext& context) {
-  shared_ptr<string> code;
+  shared_ptr<std::string> code;
 
   if (context.has_context) {
-    code = static_pointer_cast<string>(context.context);
+    code = static_pointer_cast<std::string>(context.context);
   }
 
   return code;
@@ -133,20 +130,20 @@ ExecutionResult CreateV8Context(
 
 ExecutionResult GetError(Isolate* isolate, TryCatch& try_catch,
                          uint64_t error_code) noexcept {
-  vector<string> errors;
+  vector<std::string> errors;
 
   errors.push_back(GetErrorMessage(error_code));
 
   if (try_catch.HasCaught()) {
-    string error_msg;
+    std::string error_msg;
     if (!try_catch.Message().IsEmpty() &&
-        TypeConverter<string>::FromV8(isolate, try_catch.Message()->Get(),
-                                      &error_msg)) {
+        TypeConverter<std::string>::FromV8(isolate, try_catch.Message()->Get(),
+                                           &error_msg)) {
       errors.push_back(error_msg);
     }
   }
 
-  string error_string;
+  std::string error_string;
   for (auto& e : errors) {
     error_string += "\n" + e;
   }
@@ -176,17 +173,18 @@ ExecutionResult V8JsEngine::Stop() noexcept {
 }
 
 ExecutionResult V8JsEngine::OneTimeSetup(
-    const absl::flat_hash_map<string, string>& config) noexcept {
+    const absl::flat_hash_map<std::string, std::string>& config) noexcept {
   size_t max_wasm_memory_number_of_pages = 0;
   if (config.find(kJsEngineOneTimeSetupWasmPagesKey) != config.end()) {
     auto page_count = config.at(kJsEngineOneTimeSetupWasmPagesKey);
-    stringstream page_count_converter;
+    std::stringstream page_count_converter;
     page_count_converter << page_count;
     page_count_converter >> max_wasm_memory_number_of_pages;
   }
 
   pid_t my_pid = getpid();
-  string proc_exe_path = string("/proc/") + to_string(my_pid) + "/exe";
+  std::string proc_exe_path =
+      std::string("/proc/") + std::to_string(my_pid) + "/exe";
   auto my_path = make_unique<char[]>(PATH_MAX);
   readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
   v8::V8::InitializeICUDefaultLocation(my_path.get());
@@ -197,7 +195,7 @@ ExecutionResult V8JsEngine::OneTimeSetup(
     auto page_count =
         min(max_wasm_memory_number_of_pages, kMaxNumberOfWasm32BitMemPages);
     auto flag_value =
-        string(kWasmMemPagesV8PlatformFlag) + to_string(page_count);
+        std::string(kWasmMemPagesV8PlatformFlag) + std::to_string(page_count);
 
     v8::V8::SetFlagsFromString(flag_value.c_str());
   }
@@ -213,9 +211,9 @@ ExecutionResult V8JsEngine::OneTimeSetup(
   return SuccessExecutionResult();
 }
 
-core::ExecutionResult V8JsEngine::CreateSnapshot(v8::StartupData& startup_data,
-                                                 const string& js_code,
-                                                 string& err_msg) noexcept {
+core::ExecutionResult V8JsEngine::CreateSnapshot(
+    v8::StartupData& startup_data, const std::string& js_code,
+    std::string& err_msg) noexcept {
   v8::SnapshotCreator creator(external_references_.data());
   v8::Isolate* isolate = creator.GetIsolate();
 
@@ -243,8 +241,9 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(v8::StartupData& startup_data,
 
 core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     v8::StartupData& startup_data, const absl::Span<const uint8_t>& wasm,
-    const absl::flat_hash_map<string, string>& metadata,
-    string& err_msg) noexcept {
+    const absl::flat_hash_map<std::string, std::string>& metadata,
+
+    std::string& err_msg) noexcept {
   v8::SnapshotCreator creator(external_references_.data());
   v8::Isolate* isolate = creator.GetIsolate();
 
@@ -260,14 +259,15 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     auto wasm_code_array_name_or =
         WorkerUtils::GetValueFromMetadata(metadata, kWasmCodeArrayName);
     if (!wasm_code_array_name_or.result().Successful()) {
-      LOG(ERROR) << string("Get wasm code array name from metadata with error ")
-                 << GetErrorMessage(
-                        wasm_code_array_name_or.result().status_code);
+      LOG(ERROR)
+          << std::string("Get wasm code array name from metadata with error ")
+          << GetErrorMessage(wasm_code_array_name_or.result().status_code);
       return wasm_code_array_name_or.result();
     }
 
     v8::Local<v8::String> name;
-    name = TypeConverter<string>::ToV8(isolate, wasm_code_array_name_or.value())
+    name = TypeConverter<std::string>::ToV8(isolate,
+                                            wasm_code_array_name_or.value())
                .As<String>();
 
     context->Global()->Set(
@@ -330,7 +330,7 @@ void V8JsEngine::DisposeIsolate() noexcept {
 
 void V8JsEngine::StartWatchdogTimer(
     v8::Isolate* isolate,
-    const absl::flat_hash_map<string, string>& metadata) noexcept {
+    const absl::flat_hash_map<std::string, std::string>& metadata) noexcept {
   // Get the timeout value from metadata. If no timeout tag is set, the
   // default value kDefaultExecutionTimeoutMs will be used.
   int timeout_ms = kDefaultExecutionTimeoutMs;
@@ -355,9 +355,10 @@ void V8JsEngine::StopWatchdogTimer() noexcept {
 
 ExecutionResultOr<RomaJsEngineCompilationContext>
 V8JsEngine::CreateCompilationContext(
-    const string& code, const absl::Span<const uint8_t>& wasm,
-    const absl::flat_hash_map<string, string>& metadata,
-    string& err_msg) noexcept {
+    const std::string& code, const absl::Span<const uint8_t>& wasm,
+    const absl::flat_hash_map<std::string, std::string>& metadata,
+
+    std::string& err_msg) noexcept {
   if (code.empty()) {
     return FailureExecutionResult(
         SC_ROMA_V8_ENGINE_CREATE_COMPILATION_CONTEXT_FAILED_WITH_EMPTY_CODE);
@@ -448,7 +449,7 @@ V8JsEngine::CreateCompilationContext(
 
 core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
     Isolate* isolate, const absl::Span<const uint8_t>& wasm,
-    string& err_msg) noexcept {
+    std::string& err_msg) noexcept {
   Isolate::Scope isolate_scope(isolate);
   // Create a handle scope to keep the temporary object references.
   HandleScope handle_scope(isolate);
@@ -472,8 +473,8 @@ core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
 
 core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     const shared_ptr<SnapshotCompilationContext>& current_compilation_context,
-    const string& function_name, const vector<absl::string_view>& input,
-    const absl::flat_hash_map<string, string>& metadata) noexcept {
+    const std::string& function_name, const vector<absl::string_view>& input,
+    const absl::flat_hash_map<std::string, std::string>& metadata) noexcept {
   ExecutionResponse execution_response;
 
   auto v8_isolate = current_compilation_context->v8_isolate;
@@ -486,7 +487,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   Local<Context> v8_context = Context::New(v8_isolate);
   Context::Scope context_scope(v8_context);
 
-  string err_msg;
+  std::string err_msg;
   // Binding UnboundScript to current context when the compilation context is
   // kUnboundScript.
   if (current_compilation_context->cache_type == CacheType::kUnboundScript) {
@@ -533,13 +534,14 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
 
     // Set the request ID in the global object
     auto request_id_label =
-        TypeConverter<string>::ToV8(v8_isolate, kMetadataRomaRequestId)
+        TypeConverter<std::string>::ToV8(v8_isolate, kMetadataRomaRequestId)
             .As<String>();
     auto request_id_or =
         WorkerUtils::GetValueFromMetadata(metadata, kRequestId);
     if (request_id_or.Successful()) {
       auto request_id =
-          TypeConverter<string>::ToV8(v8_isolate, *request_id_or).As<String>();
+          TypeConverter<std::string>::ToV8(v8_isolate, *request_id_or)
+              .As<String>();
       v8_context->Global()
           ->Set(v8_context, request_id_label, request_id)
           .Check();
@@ -557,7 +559,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     }
 
     if (result->IsPromise()) {
-      string error_msg;
+      std::string error_msg;
       auto execution_result =
           ExecutionUtils::V8PromiseHandler(v8_isolate, result, error_msg);
       if (!execution_result.Successful()) {
@@ -578,7 +580,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
                       SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_JSON);
     }
 
-    auto conversion_worked = TypeConverter<string>::FromV8(
+    auto conversion_worked = TypeConverter<std::string>::FromV8(
         v8_isolate, result_json, execution_response.response.get());
     if (!conversion_worked) {
       LOG(ERROR) << "Failed to convert the V8 Local string to std::string";
@@ -591,18 +593,18 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
 }
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
-    const string& code, const string& function_name,
+    const std::string& code, const std::string& function_name,
     const vector<absl::string_view>& input,
-    const absl::flat_hash_map<string, string>& metadata,
+    const absl::flat_hash_map<std::string, std::string>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   return CompileAndRunJsWithWasm(code, absl::Span<const uint8_t>(),
                                  function_name, input, metadata, context);
 }
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
-    const string& code, const string& function_name,
+    const std::string& code, const std::string& function_name,
     const vector<absl::string_view>& input,
-    const absl::flat_hash_map<string, string>& metadata,
+    const absl::flat_hash_map<std::string, std::string>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   JsEngineExecutionResponse execution_response;
 
@@ -618,7 +620,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
   // Start execution watchdog to timeout the execution if it runs too long.
   StartWatchdogTimer(v8_isolate_, metadata);
 
-  string input_code;
+  std::string input_code;
   RomaJsEngineCompilationContext out_context;
   // For now we just store and reuse the actual code as context.
   auto context_code = GetCodeFromContext(context);
@@ -628,12 +630,12 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
   } else {
     input_code = code;
     out_context.has_context = true;
-    out_context.context = make_shared<string>(code);
+    out_context.context = make_shared<std::string>(code);
   }
   execution_response.compilation_context = out_context;
 
   auto isolate = v8_isolate_;
-  vector<string> errors;
+  vector<std::string> errors;
   Isolate::Scope isolate_scope(isolate);
   HandleScope handle_scope(isolate);
   Local<Context> v8_context;
@@ -698,7 +700,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
                         SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);
       }
 
-      auto conversion_worked = TypeConverter<string>::FromV8(
+      auto conversion_worked = TypeConverter<std::string>::FromV8(
           isolate, result_json,
           execution_response.execution_response.response.get());
       if (!conversion_worked) {
@@ -716,17 +718,18 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
 ExecutionResultOr<JsEngineExecutionResponse>
 V8JsEngine::CompileAndRunJsWithWasm(
-    const string& code, const absl::Span<const uint8_t>& wasm,
-    const string& function_name, const vector<absl::string_view>& input,
-    const absl::flat_hash_map<string, string>& metadata,
+    const std::string& code, const absl::Span<const uint8_t>& wasm,
+    const std::string& function_name, const vector<absl::string_view>& input,
+    const absl::flat_hash_map<std::string, std::string>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
-  string err_msg;
+  std::string err_msg;
   JsEngineExecutionResponse execution_response;
   shared_ptr<SnapshotCompilationContext> current_compilation_context;
   if (!context.has_context) {
     auto context_or = CreateCompilationContext(code, wasm, metadata, err_msg);
     if (!context_or.result().Successful()) {
-      LOG(ERROR) << string("CreateCompilationContext failed with ") << err_msg;
+      LOG(ERROR) << std::string("CreateCompilationContext failed with ")
+                 << err_msg;
       return context_or.result();
     }
 

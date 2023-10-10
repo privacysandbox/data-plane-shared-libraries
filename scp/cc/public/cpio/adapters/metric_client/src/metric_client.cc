@@ -55,7 +55,6 @@ using std::bind;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::placeholders::_1;
 
 static constexpr char kMetricClient[] = "MetricClient";

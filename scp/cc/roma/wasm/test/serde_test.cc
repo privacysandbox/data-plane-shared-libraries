@@ -25,7 +25,6 @@
 #include "roma/wasm/src/deserializer.h"
 #include "roma/wasm/src/serializer.h"
 
-using std::string;
 using std::vector;
 
 namespace google::scp::roma::wasm::test {
@@ -33,11 +32,11 @@ TEST(WasmSerDeTest, ShouldWriteAndReadCustomString) {
   uint8_t mem_blob[100];
   memset(mem_blob, 0, sizeof(mem_blob));
 
-  string data = "Hello, I'm a string :)";
+  std::string data = "Hello, I'm a string :)";
   auto ptr =
       WasmSerializer::WriteCustomString(mem_blob, sizeof(mem_blob), 0, data);
 
-  string str;
+  std::string str;
   WasmDeserializer::ReadCustomString(mem_blob, sizeof(mem_blob), ptr, str);
   EXPECT_STREQ(data.c_str(), str.c_str());
   EXPECT_EQ(data.length(), str.length());
@@ -47,11 +46,11 @@ TEST(WasmSerDeTest, ShouldWriteAndReadCustomStringAndAllowEmptyString) {
   uint8_t mem_blob[10];
   memset(mem_blob, 0, sizeof(mem_blob));
 
-  string data = "";
+  std::string data = "";
   auto ptr =
       WasmSerializer::WriteCustomString(mem_blob, sizeof(mem_blob), 0, data);
 
-  string str;
+  std::string str;
   WasmDeserializer::ReadCustomString(mem_blob, sizeof(mem_blob), ptr, str);
   EXPECT_STREQ(data.c_str(), str.c_str());
   EXPECT_EQ(data.length(), str.length());
@@ -67,7 +66,7 @@ TEST(WasmSerDeTest, StringShouldManipulateTheRightOffsets) {
   // Take four bytes at the end of the memory segment
   WasmSerializer::WriteUint32(mem_blob, sizeof(mem_blob), 15, 0xF234567F);
 
-  string data = "ABC";
+  std::string data = "ABC";
   // This should take 11 bytes of linear memory in this order:
   // 3 bytes for the string "ABC"
   // 4 bytes for the str data pointer
@@ -82,7 +81,7 @@ TEST(WasmSerDeTest, StringShouldManipulateTheRightOffsets) {
   EXPECT_EQ(0xF234567F,
             WasmDeserializer::ReadUint32(mem_blob, sizeof(mem_blob), 15));
 
-  string str;
+  std::string str;
   WasmDeserializer::ReadCustomString(mem_blob, sizeof(mem_blob), ptr, str);
   EXPECT_STREQ(data.c_str(), str.c_str());
   EXPECT_EQ(data.length(), str.length());
@@ -92,12 +91,12 @@ TEST(WasmSerDeTest, ShouldWriteAndReadCustomListOfString) {
   uint8_t mem_blob[255];
   memset(mem_blob, 0, sizeof(mem_blob));
 
-  vector<string> list = {"hello", "we", "are", "strings"};
+  vector<std::string> list = {"hello", "we", "are", "strings"};
 
   auto ptr = WasmSerializer::WriteCustomListOfString(mem_blob, sizeof(mem_blob),
                                                      0, list);
 
-  vector<string> read_list;
+  vector<std::string> read_list;
   WasmDeserializer::ReadCustomListOfString(mem_blob, sizeof(mem_blob), ptr,
                                            read_list);
 
@@ -109,12 +108,12 @@ TEST(WasmSerDeTest, ShouldWriteAndReadCustomListOfStringAndAllowEmptyStrings) {
   uint8_t mem_blob[255];
   memset(mem_blob, 0, sizeof(mem_blob));
 
-  vector<string> list = {"hello", "", "", "strings"};
+  vector<std::string> list = {"hello", "", "", "strings"};
 
   auto ptr = WasmSerializer::WriteCustomListOfString(mem_blob, sizeof(mem_blob),
                                                      0, list);
 
-  vector<string> read_list;
+  vector<std::string> read_list;
   WasmDeserializer::ReadCustomListOfString(mem_blob, sizeof(mem_blob), ptr,
                                            read_list);
 
@@ -132,7 +131,7 @@ TEST(WasmSerDeTest, ListOfStringShouldManipulateTheRightOffsets) {
   // Take four bytes at the end of the memory segment
   WasmSerializer::WriteUint32(mem_blob, sizeof(mem_blob), 42, 0xF234567F);
 
-  vector<string> data = {"ABC", "DEF"};
+  vector<std::string> data = {"ABC", "DEF"};
   // This should take 38 bytes of memory in this order:
   // 3 bytes for the string "ABC"
   // 4 bytes for the str data pointer
@@ -157,7 +156,7 @@ TEST(WasmSerDeTest, ListOfStringShouldManipulateTheRightOffsets) {
   EXPECT_EQ(0xF234567F,
             WasmDeserializer::ReadUint32(mem_blob, sizeof(mem_blob), 42));
 
-  vector<string> read_list;
+  vector<std::string> read_list;
   WasmDeserializer::ReadCustomListOfString(mem_blob, sizeof(mem_blob), ptr,
                                            read_list);
 

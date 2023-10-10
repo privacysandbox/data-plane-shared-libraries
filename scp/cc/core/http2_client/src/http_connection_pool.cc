@@ -46,7 +46,6 @@ using nghttp2::asio_http2::host_service_from_uri;
 using std::lock_guard;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 static constexpr char kHttpsTag[] = "https";
@@ -65,7 +64,7 @@ ExecutionResult HttpConnectionPool::Run() noexcept {
 
 ExecutionResult HttpConnectionPool::Stop() noexcept {
   is_running_ = false;
-  vector<string> keys;
+  vector<std::string> keys;
   auto execution_result = connections_.Keys(keys);
   if (!execution_result.Successful()) {
     return execution_result;
@@ -90,7 +89,7 @@ ExecutionResult HttpConnectionPool::Stop() noexcept {
 }
 
 shared_ptr<HttpConnection> HttpConnectionPool::CreateHttpConnection(
-    string host, string service, bool is_https,
+    std::string host, std::string service, bool is_https,
     TimeDuration http2_read_timeout_in_sec) {
   return make_shared<HttpConnection>(async_executor_, host, service, is_https,
                                      http2_read_timeout_in_sec_);
@@ -105,9 +104,9 @@ ExecutionResult HttpConnectionPool::GetConnection(
   }
 
   error_code ec;
-  string scheme;
-  string host;
-  string service;
+  std::string scheme;
+  std::string host;
+  std::string service;
   if (host_service_from_uri(ec, scheme, host, service, *uri)) {
     return FailureExecutionResult(errors::SC_HTTP2_CLIENT_INVALID_URI);
   }

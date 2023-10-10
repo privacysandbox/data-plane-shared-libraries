@@ -98,7 +98,6 @@ using std::mt19937;
 using std::random_device;
 using std::runtime_error;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -138,15 +137,15 @@ void CreatePutMetricsRequest(PutMetricsRequest& put_metrics_request) {
   *custom_metric->mutable_timestamp() = TimeUtil::GetCurrentTime();
 
   auto& metric_labels = *custom_metric->mutable_labels();
-  metric_labels[string(kLabelKey1)] = kLabelValue1;
-  metric_labels[string(kLabelKey2)] = kLabelValue2;
+  metric_labels[std::string(kLabelKey1)] = kLabelValue1;
+  metric_labels[std::string(kLabelKey2)] = kLabelValue2;
 }
 }  // namespace
 
 namespace google::scp::cpio::test {
-static string GetRandomString(const string& prefix) {
+static std::string GetRandomString(const std::string& prefix) {
   // Bucket name can only be lower case.
-  string str("abcdefghijklmnopqrstuvwxyz");
+  std::string str("abcdefghijklmnopqrstuvwxyz");
   static random_device random_device_local;
   static mt19937 generator(random_device_local());
   shuffle(str.begin(), str.end(), generator);
@@ -183,7 +182,8 @@ class AwsSdkServerIntegrationTest : public ::testing::Test {
                                   {});
 
     std::this_thread::sleep_for(std::chrono::seconds(10));
-    string s = string("docker container logs ") + config_.sdk_container_name;
+    std::string s =
+        std::string("docker container logs ") + config_.sdk_container_name;
     std::system(s.c_str());
     GrantPermissionToFolder(config_.sdk_container_name,
                             "tmp/metric_service.socket");
@@ -201,8 +201,8 @@ class AwsSdkServerIntegrationTest : public ::testing::Test {
     ShutdownAPI(options);
   }
 
-  string localstack_endpoint =
-      string(kLocalHost) + ":" + string(kLocalstackPort);
+  std::string localstack_endpoint =
+      std::string(kLocalHost) + ":" + std::string(kLocalstackPort);
   static TestSdkServerConfig config_;
   static unique_ptr<TestAwsSdkServerStarter> server_starter_;
 };

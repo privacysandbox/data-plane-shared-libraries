@@ -108,7 +108,6 @@ using helloworld::HelloWorld;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using testing::Eq;
 using testing::Ne;
@@ -149,19 +148,19 @@ const google::protobuf::Timestamp kStaleUpdatedTime =
 const google::protobuf::Timestamp kDefaultTimestampValue =
     TimeUtil::SecondsToTimestamp(0);
 
-string CreateHelloWorldProtoAsJsonString() {
+std::string CreateHelloWorldProtoAsJsonString() {
   HelloWorld hello_world_input;
   hello_world_input.set_name(kHelloWorldName);
   hello_world_input.set_id(kHelloWorldId);
   *hello_world_input.mutable_created_time() = kHelloWorldProtoCreatedTime;
 
-  string json_string;
+  std::string json_string;
   MessageToJsonString(hello_world_input, &json_string);
   return json_string;
 }
 
 Item CreateJobAsDatabaseItem(
-    const string& job_body, const JobStatus& job_status,
+    const std::string& job_body, const JobStatus& job_status,
     const google::protobuf::Timestamp& current_time,
     const google::protobuf::Timestamp& updated_time, const int retry_count,
     const google::protobuf::Timestamp& processing_started_time) {
@@ -173,7 +172,7 @@ Item CreateJobAsDatabaseItem(
       google::scp::cpio::client_providers::JobClientUtils::MakeStringAttribute(
           kServerJobIdColumnName, kServerJobId);
 
-  string encoded_job_body;
+  std::string encoded_job_body;
   Base64Encode(job_body, encoded_job_body);
   *item.add_attributes() =
       google::scp::cpio::client_providers::JobClientUtils::MakeStringAttribute(
@@ -318,7 +317,7 @@ TEST_F(JobClientProviderTest, PutJobSuccess) {
   EXPECT_SUCCESS(job_client_provider_->Init());
   EXPECT_SUCCESS(job_client_provider_->Run());
 
-  string server_job_id;
+  std::string server_job_id;
   EXPECT_CALL(*queue_client_provider_, EnqueueMessage)
       .WillOnce([&server_job_id](auto& enqueue_message_context) {
         enqueue_message_context.response =
@@ -332,8 +331,8 @@ TEST_F(JobClientProviderTest, PutJobSuccess) {
         return SuccessExecutionResult();
       });
 
-  string job_body = CreateHelloWorldProtoAsJsonString();
-  string encoded_job_body;
+  std::string job_body = CreateHelloWorldProtoAsJsonString();
+  std::string encoded_job_body;
   Base64Encode(job_body, encoded_job_body);
 
   google::protobuf::Timestamp job_created_time_in_request;
@@ -457,7 +456,7 @@ TEST_F(JobClientProviderTest, PutJobWithCreateDatabaseItemFailure) {
         return create_database_item_context.result;
       });
 
-  string job_body = CreateHelloWorldProtoAsJsonString();
+  std::string job_body = CreateHelloWorldProtoAsJsonString();
   put_job_context_.request->set_job_id(kJobId);
   *put_job_context_.request->mutable_job_body() = job_body;
   put_job_context_.callback =
@@ -873,7 +872,7 @@ TEST_F(JobClientProviderTest, UpdateJobBodySuccess) {
         return SuccessExecutionResult();
       });
 
-  string encoded_job_body;
+  std::string encoded_job_body;
   Base64Encode(job_body, encoded_job_body);
 
   google::protobuf::Timestamp job_updated_time_in_request;
@@ -1069,7 +1068,7 @@ TEST_F(JobClientProviderTest, UpdateJobBodyWithUpsertDatabaseItemFailure) {
         return SuccessExecutionResult();
       });
 
-  string encoded_job_body;
+  std::string encoded_job_body;
   Base64Encode(job_body, encoded_job_body);
 
   EXPECT_CALL(

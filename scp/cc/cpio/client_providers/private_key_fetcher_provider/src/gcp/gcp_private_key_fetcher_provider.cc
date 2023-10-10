@@ -40,7 +40,6 @@ using google::scp::core::errors::
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 
@@ -70,7 +69,7 @@ ExecutionResult GcpPrivateKeyFetcherProvider::SignHttpRequest(
     AsyncContext<PrivateKeyFetchingRequest, core::HttpRequest>&
         sign_request_context) noexcept {
   auto request = make_shared<GetSessionTokenForTargetAudienceRequest>();
-  request->token_target_audience_uri = make_shared<string>(
+  request->token_target_audience_uri = make_shared<std::string>(
       sign_request_context.request->key_vending_endpoint
           ->gcp_private_key_vending_service_cloudfunction_url);
   AsyncContext<GetSessionTokenForTargetAudienceRequest, GetSessionTokenResponse>
@@ -106,7 +105,7 @@ void GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback(
       *sign_request_context.request, *http_request);
   http_request->headers = make_shared<core::HttpHeaders>();
   http_request->headers->insert(
-      {string(kAuthorizationHeaderKey),
+      {std::string(kAuthorizationHeaderKey),
        absl::StrCat(kBearerTokenPrefix, access_token)});
   sign_request_context.response = std::move(http_request);
   sign_request_context.result = SuccessExecutionResult();

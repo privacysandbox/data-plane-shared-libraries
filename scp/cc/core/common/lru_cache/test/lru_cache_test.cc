@@ -20,12 +20,9 @@
 
 #include <string>
 
-using std::string;
-using std::to_string;
-
 namespace google::scp::core::common::test {
 TEST(LruCacheTest, CanAddAndGetElement) {
-  LruCache<string, string> cache(10);
+  LruCache<std::string, std::string> cache(10);
   auto key = "Some Key";
   auto value = "Some value";
 
@@ -39,7 +36,7 @@ TEST(LruCacheTest, CanAddAndGetElement) {
 }
 
 TEST(LruCacheTest, ClearShouldEmptyCache) {
-  LruCache<string, string> cache(10);
+  LruCache<std::string, std::string> cache(10);
   auto key = "Some Key";
   auto value = "Some value";
 
@@ -54,11 +51,11 @@ TEST(LruCacheTest, ClearShouldEmptyCache) {
 }
 
 TEST(LruCacheTest, CanAddAndGetMultipleElements) {
-  LruCache<string, string> cache(10);
+  LruCache<std::string, std::string> cache(10);
 
   for (int i = 0; i < 10; i++) {
-    auto key = "Some Key" + to_string(i);
-    auto value = "Some value" + to_string(i);
+    auto key = "Some Key" + std::to_string(i);
+    auto value = "Some value" + std::to_string(i);
 
     cache.Set(key, value);
 
@@ -71,12 +68,12 @@ TEST(LruCacheTest, CanAddAndGetMultipleElements) {
 }
 
 TEST(LruCacheTest, ShouldReplaceOldestItem) {
-  LruCache<string, string> cache(5);
+  LruCache<std::string, std::string> cache(5);
 
   // We add 5 items
   for (int i = 0; i < 5; i++) {
-    auto key = "Some Key" + to_string(i);
-    auto value = "Some value" + to_string(i);
+    auto key = "Some Key" + std::to_string(i);
+    auto value = "Some value" + std::to_string(i);
 
     cache.Set(key, value);
     EXPECT_TRUE(cache.Contains(key));
@@ -104,8 +101,8 @@ TEST(LruCacheTest, ShouldReplaceOldestItem) {
   EXPECT_FALSE(cache.Contains("Some Key0"));
   // The rest should exist
   for (int i = 1; i < 5; i++) {
-    auto key = "Some Key" + to_string(i);
-    auto value = "Some value" + to_string(i);
+    auto key = "Some Key" + std::to_string(i);
+    auto value = "Some value" + std::to_string(i);
 
     EXPECT_TRUE(cache.Contains(key));
     auto read_value = cache.Get(key);
@@ -114,7 +111,7 @@ TEST(LruCacheTest, ShouldReplaceOldestItem) {
 }
 
 TEST(LruCacheTest, LruPolicyShouldBeAffectedByGets) {
-  LruCache<string, string> cache(2);
+  LruCache<std::string, std::string> cache(2);
 
   auto key1 = "Key1";
   auto value1 = "Value1";
@@ -141,7 +138,7 @@ TEST(LruCacheTest, LruPolicyShouldBeAffectedByGets) {
 }
 
 TEST(LruCacheTest, LruPolicyShouldBeAffectedBySets) {
-  LruCache<string, string> cache(2);
+  LruCache<std::string, std::string> cache(2);
 
   auto key1 = "Key1";
   auto value1 = "Value1";
@@ -169,7 +166,7 @@ TEST(LruCacheTest, LruPolicyShouldBeAffectedBySets) {
 }
 
 TEST(LruCacheTest, ShouldBeAbleToReplaceValues) {
-  LruCache<string, string> cache(2);
+  LruCache<std::string, std::string> cache(2);
 
   auto key1 = "Key1";
   auto value1 = "Value1";
@@ -187,7 +184,7 @@ TEST(LruCacheTest, ShouldBeAbleToReplaceValues) {
 }
 
 TEST(LruCacheTest, ShouldBeAbleToGetAllItems) {
-  LruCache<string, string> cache(2);
+  LruCache<std::string, std::string> cache(2);
 
   auto key1 = "Key1";
   auto value1 = "Value1";

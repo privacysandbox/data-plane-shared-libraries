@@ -60,7 +60,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -86,7 +85,7 @@ class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
     EXPECT_SUCCESS(aws_private_key_fetcher_provider_->Run());
 
     request_ = make_shared<PrivateKeyFetchingRequest>();
-    request_->key_id = make_shared<string>(kKeyId);
+    request_->key_id = make_shared<std::string>(kKeyId);
     request_->key_vending_endpoint = make_shared<PrivateKeyVendingEndpoint>();
     request_->key_vending_endpoint->private_key_vending_service_endpoint =
         kPrivateKeyBaseUri;
@@ -102,12 +101,12 @@ class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
     ShutdownAPI(options);
   }
 
-  void MockRequest(const string& uri) {
+  void MockRequest(const std::string& uri) {
     http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = make_shared<string>(uri);
+    http_client_->request_mock.path = make_shared<std::string>(uri);
   }
 
-  void MockResponse(const string& str) {
+  void MockResponse(const std::string& str) {
     http_client_->response_mock = HttpResponse();
     http_client_->response_mock.body = BytesBuffer(str);
   }

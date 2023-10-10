@@ -33,19 +33,18 @@ using grpc::StubOptions;
 using std::make_shared;
 using std::runtime_error;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 
 namespace google::scp::core::test {
 unique_ptr<Publisher::StubInterface> CreatePublisherStub(
-    const string& endpoint) {
+    const std::string& endpoint) {
   auto channel =
       grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials());
   return Publisher::NewStub(channel, StubOptions());
 }
 
-void CreateTopic(Publisher::StubInterface& stub, const string& project_id,
-                 const string& topic_id) {
+void CreateTopic(Publisher::StubInterface& stub, const std::string& project_id,
+                 const std::string& topic_id) {
   auto topic_name = absl::StrCat("projects/", project_id, "/topics/", topic_id);
   Topic topic;
   topic.set_name(topic_name);

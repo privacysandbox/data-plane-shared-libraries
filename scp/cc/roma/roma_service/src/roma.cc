@@ -31,7 +31,6 @@ using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using std::make_unique;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -95,7 +94,7 @@ absl::Status BatchExecuteInternal(vector<RequestT>& batch,
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma Batch Execute failed due to dispatch error: " +
-                            string(GetErrorMessage(result.status_code)));
+                            std::string(GetErrorMessage(result.status_code)));
   }
   return absl::OkStatus();
 }
@@ -147,13 +146,13 @@ absl::Status RomaInit(const Config& config) {
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma initialization failed due to internal error: " +
-                            string(GetErrorMessage(result.status_code)));
+                            std::string(GetErrorMessage(result.status_code)));
   }
   result = roma_service->Run();
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma startup failed due to internal error: " +
-                            string(GetErrorMessage(result.status_code)));
+                            std::string(GetErrorMessage(result.status_code)));
   }
   return absl::OkStatus();
 }
@@ -164,7 +163,7 @@ absl::Status RomaStop() {
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma stop failed due to internal error: " +
-                            string(GetErrorMessage(result.status_code)));
+                            std::string(GetErrorMessage(result.status_code)));
   }
   RomaService::Delete();
   return absl::OkStatus();
@@ -219,7 +218,7 @@ absl::Status LoadCodeObj(unique_ptr<CodeObject> code_object,
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma LoadCodeObj failed with: " +
-                            string(GetErrorMessage(result.status_code)));
+                            std::string(GetErrorMessage(result.status_code)));
   }
   return absl::OkStatus();
 }

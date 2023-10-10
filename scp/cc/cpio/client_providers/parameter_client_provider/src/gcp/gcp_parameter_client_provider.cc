@@ -55,7 +55,6 @@ using google::scp::cpio::common::GcpUtils;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::placeholders::_1;
 
 static constexpr char kGcpParameterClientProvider[] =
@@ -114,7 +113,7 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
     return execution_result;
   }
 
-  string name =
+  std::string name =
       absl::StrFormat(kGcpSecretNameFormatString, project_id_, secret);
 
   AccessSecretVersionRequest access_secret_request;

@@ -38,14 +38,13 @@ using google::scp::cpio::common::test::CreateTestClientConfiguration;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::cpio::client_providers {
 shared_ptr<ClientConfiguration>
 TestAwsBlobStorageClientProvider::CreateClientConfiguration(
-    const string& region) noexcept {
+    const std::string& region) noexcept {
   return CreateTestClientConfiguration(test_options_->s3_endpoint_override,
-                                       make_shared<string>(region));
+                                       make_shared<std::string>(region));
 }
 
 ExecutionResultOr<shared_ptr<S3Client>> AwsS3Factory::CreateClient(

@@ -37,7 +37,6 @@ using google::scp::core::common::TimeProvider;
 using std::atomic;
 using std::function;
 using std::make_shared;
-using std::string;
 using std::chrono::duration_cast;
 using std::chrono::hours;
 using std::chrono::milliseconds;
@@ -214,15 +213,15 @@ TEST(SingleThreadPriorityAsyncExecutorTests, AsyncContextCallback) {
 
   // Atomic is not used here because we just reserve one thread in the
   size_t callback_count = 0;
-  auto request = make_shared<string>("request");
-  auto callback = [&](AsyncContext<string, string>& context) {
+  auto request = make_shared<std::string>("request");
+  auto callback = [&](AsyncContext<std::string, std::string>& context) {
     callback_count++;
   };
-  auto context = AsyncContext<string, string>(request, callback);
+  auto context = AsyncContext<std::string, std::string>(request, callback);
 
   EXPECT_SUCCESS(executor.ScheduleFor(
       [&]() {
-        context.response = make_shared<string>("response");
+        context.response = make_shared<std::string>("response");
         context.result = SuccessExecutionResult();
         context.Finish();
       },

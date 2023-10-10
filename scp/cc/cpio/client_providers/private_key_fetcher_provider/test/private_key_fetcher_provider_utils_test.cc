@@ -58,8 +58,6 @@ using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using ::testing::Eq;
 
 namespace {
@@ -70,7 +68,7 @@ constexpr char kPrivateKeyBaseUri[] = "http://localhost.test:8000";
 namespace google::scp::cpio::client_providers::test {
 
 TEST(PrivateKeyFetchingClientUtilsTest, ParsePrivateKeySuccess) {
-  string bytes_str = R"({
+  std::string bytes_str = R"({
         "name": "encryptionKeys/123456",
         "encryptionKeyType": "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT",
         "publicKeysetHandle": "primaryKeyId",
@@ -118,7 +116,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, ParsePrivateKeySuccess) {
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyData) {
-  string bytes_str = R"({
+  std::string bytes_str = R"({
         "name": "encryptionKeys/123456",
         "encryptionKeyType": "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT",
         "publicKeysetHandle": "primaryKeyId",
@@ -150,7 +148,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyData) {
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyDataNoKeyUri) {
-  string bytes_str = R"({
+  std::string bytes_str = R"({
         "name": "encryptionKeys/123456",
         "encryptionKeyType": "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT",
         "publicKeysetHandle": "primaryKeyId",
@@ -182,7 +180,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyDataNoKeyUri) {
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyType) {
-  string bytes_str = R"({
+  std::string bytes_str = R"({
         "name": "encryptionKeys/123456",
         "encryptionKeyType": "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT_WRONG",
         "publicKeysetHandle": "primaryKeyId",
@@ -214,7 +212,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyType) {
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, FailedWithNameNotFound) {
-  string bytes_str = R"({
+  std::string bytes_str = R"({
         "encryptionKeyType": "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT",
         "publicKeysetHandle": "primaryKeyId",
         "publicKeyMaterial": "testtest",
@@ -245,7 +243,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithNameNotFound) {
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, FailedWithExpirationTimeNotFound) {
-  string bytes_str = R"({
+  std::string bytes_str = R"({
         "name": "encryptionKeys/123456",
         "encryptionKeyType": "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT",
         "publicKeysetHandle": "primaryKeyId",
@@ -276,7 +274,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithExpirationTimeNotFound) {
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, FailedWithCreationTimeNotFound) {
-  string bytes_str = R"({
+  std::string bytes_str = R"({
         "name": "encryptionKeys/123456",
         "encryptionKeyType": "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT",
         "publicKeysetHandle": "primaryKeyId",
@@ -311,14 +309,14 @@ TEST(PrivateKeyFetchingClientUtilsTest, CreateHttpRequestForKeyId) {
   request.key_vending_endpoint = make_shared<PrivateKeyVendingEndpoint>();
   request.key_vending_endpoint->private_key_vending_service_endpoint =
       kPrivateKeyBaseUri;
-  request.key_id = make_shared<string>(kKeyId);
+  request.key_id = make_shared<std::string>(kKeyId);
   request.max_age_seconds = 1000000;
   HttpRequest http_request;
   PrivateKeyFetchingClientUtils::CreateHttpRequest(request, http_request);
 
   EXPECT_EQ(http_request.method, HttpMethod::GET);
   EXPECT_EQ(*http_request.path,
-            string(kPrivateKeyBaseUri) + "/" + string(kKeyId));
+            std::string(kPrivateKeyBaseUri) + "/" + std::string(kKeyId));
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, CreateHttpRequestForMaxAgeSeconds) {
@@ -331,12 +329,12 @@ TEST(PrivateKeyFetchingClientUtilsTest, CreateHttpRequestForMaxAgeSeconds) {
   PrivateKeyFetchingClientUtils::CreateHttpRequest(request, http_request);
 
   EXPECT_EQ(http_request.method, HttpMethod::GET);
-  EXPECT_EQ(*http_request.path, string(kPrivateKeyBaseUri) + ":recent");
+  EXPECT_EQ(*http_request.path, std::string(kPrivateKeyBaseUri) + ":recent");
   EXPECT_EQ(*http_request.query, "maxAgeSeconds=1000000");
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, ParseMultiplePrivateKeysSuccess) {
-  string one_key_without_name = R"(
+  std::string one_key_without_name = R"(
            "encryptionKeyType": "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT",
         "publicKeysetHandle": "primaryKeyId",
         "publicKeyMaterial": "testtest",
@@ -356,10 +354,10 @@ TEST(PrivateKeyFetchingClientUtilsTest, ParseMultiplePrivateKeysSuccess) {
             }
         ]
     })";
-  string key_1 = R"({"name": "encryptionKeys/111111",)";
-  string key_2 = R"({"name": "encryptionKeys/222222",)";
-  string bytes_str = R"({"keys": [)" + key_1 + one_key_without_name + "," +
-                     key_2 + one_key_without_name + "]}";
+  std::string key_1 = R"({"name": "encryptionKeys/111111",)";
+  std::string key_2 = R"({"name": "encryptionKeys/222222",)";
+  std::string bytes_str = R"({"keys": [)" + key_1 + one_key_without_name + "," +
+                          key_2 + one_key_without_name + "]}";
 
   PrivateKeyFetchingResponse response;
   auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(

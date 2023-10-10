@@ -30,14 +30,14 @@ using tcp = boost::asio::ip::tcp;
 using std::atomic_bool;
 using std::make_pair;
 using std::multimap;
-using std::string;
 using std::thread;
 using std::transform;
 using std::chrono::milliseconds;
 
 namespace google::scp::core::test {
 namespace {
-void HandleErrorIfPresent(const boost::system::error_code& ec, string stage) {
+void HandleErrorIfPresent(const boost::system::error_code& ec,
+                          std::string stage) {
   if (ec) {
     std::cerr << stage << " failed: " << ec << std::endl;
     exit(EXIT_FAILURE);
@@ -136,7 +136,7 @@ in_port_t TestHttp1Server::PortNumber() const {
   return port_number_;
 }
 
-string TestHttp1Server::GetPath() const {
+std::string TestHttp1Server::GetPath() const {
   return "http://localhost:" + std::to_string(port_number_);
 }
 
@@ -145,7 +145,7 @@ const http::request<http::dynamic_body>& TestHttp1Server::Request() const {
   return request_;
 }
 
-string TestHttp1Server::RequestBody() const {
+std::string TestHttp1Server::RequestBody() const {
   return beast::buffers_to_string(request_.body().data());
 }
 
@@ -169,11 +169,12 @@ TestHttp1Server::~TestHttp1Server() {
   thread_.join();
 }
 
-multimap<string, string> GetRequestHeadersMap(
+multimap<std::string, std::string> GetRequestHeadersMap(
     const http::request<http::dynamic_body>& request) {
-  multimap<string, string> ret;
+  multimap<std::string, std::string> ret;
   for (const auto& header : request) {
-    ret.insert({string(header.name_string()), string(header.value())});
+    ret.insert(
+        {std::string(header.name_string()), std::string(header.value())});
   }
   return ret;
 }

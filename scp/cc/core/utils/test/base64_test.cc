@@ -23,40 +23,39 @@
 
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
-using std::string;
 using testing::Eq;
 
 namespace google::scp::core::utils::test {
 TEST(Base64Test, Base64EncodeInvalidValue) {
-  string empty;
-  string encoded;
+  std::string empty;
+  std::string encoded;
   EXPECT_THAT(
       Base64Encode(empty, encoded),
       ResultIs(FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT)));
 }
 
 TEST(Base64Test, Base64EncodeValidValue) {
-  string decoded("test_test_test");
-  string encoded;
+  std::string decoded("test_test_test");
+  std::string encoded;
   EXPECT_SUCCESS(Base64Encode(decoded, encoded));
   EXPECT_EQ(encoded, "dGVzdF90ZXN0X3Rlc3Q=");
 }
 
 TEST(Base64Test, Base64DecodeInvalidValue) {
   // Not correctly padded - needs "==" appended.
-  string encoded("sdasdasdas");
-  string decoded;
+  std::string encoded("sdasdasdas");
+  std::string decoded;
   EXPECT_THAT(Base64Decode(encoded, decoded),
               ResultIs(FailureExecutionResult(
                   errors::SC_CORE_UTILS_INVALID_BASE64_ENCODING_LENGTH)));
 }
 
 TEST(Base64Test, Base64DecodeValidValues) {
-  string empty;
-  string decoded;
+  std::string empty;
+  std::string decoded;
   EXPECT_SUCCESS(Base64Decode(empty, decoded));
 
-  string encoded("dGVzdF90ZXN0X3Rlc3Q=");
+  std::string encoded("dGVzdF90ZXN0X3Rlc3Q=");
   EXPECT_SUCCESS(Base64Decode(encoded, decoded));
   EXPECT_EQ(decoded, "test_test_test");
 }

@@ -26,9 +26,6 @@
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker/src/worker_utils.h"
 
-using std::string;
-using std::vector;
-
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
@@ -47,6 +44,7 @@ using google::scp::roma::sandbox::constants::kRequestTypeJavascriptWithWasm;
 using google::scp::roma::sandbox::constants::kRequestTypeWasm;
 using google::scp::roma::sandbox::js_engine::JsEngineExecutionResponse;
 using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
+using std::vector;
 
 namespace google::scp::roma::sandbox::worker {
 ExecutionResult Worker::Init() noexcept {
@@ -62,8 +60,8 @@ ExecutionResult Worker::Stop() noexcept {
 }
 
 ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
-    const string& code, const vector<absl::string_view>& input,
-    const absl::flat_hash_map<string, string>& metadata,
+    const std::string& code, const vector<absl::string_view>& input,
+    const absl::flat_hash_map<std::string, std::string>& metadata,
     const absl::Span<const uint8_t>& wasm) {
   auto request_type_or =
       WorkerUtils::GetValueFromMetadata(metadata, kRequestType);
@@ -84,7 +82,7 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
 
   ROMA_VLOG(2) << "Worker executing request with action of " << *action_or;
 
-  string handler_name = "";
+  std::string handler_name = "";
   auto handler_name_or =
       WorkerUtils::GetValueFromMetadata(metadata, kHandlerName);
   // If we read the handler name successfully, let's store it.

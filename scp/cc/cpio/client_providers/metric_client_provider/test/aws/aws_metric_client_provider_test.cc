@@ -67,7 +67,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 using std::chrono::duration_cast;
@@ -109,8 +108,8 @@ class AwsMetricClientProviderTest : public ::testing::Test {
   }
 
   void SetPutMetricsRequest(
-      PutMetricsRequest& record_metric_request, const string& value = kValue,
-      int metrics_num = 1,
+      PutMetricsRequest& record_metric_request,
+      const std::string& value = kValue, int metrics_num = 1,
       const int64_t& timestamp_in_ms =
           duration_cast<milliseconds>(system_clock::now().time_since_epoch())
               .count()) {

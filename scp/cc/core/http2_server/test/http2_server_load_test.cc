@@ -74,9 +74,7 @@ using std::endl;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::thread;
-using std::to_string;
 using std::unique_ptr;
 using std::vector;
 using std::chrono::milliseconds;
@@ -124,13 +122,13 @@ class HttpServerLoadTest : public testing::Test {
         async_executor_for_server_, authorization_proxy,
         metric_instance_factory, config_provider_);
 
-    string path = "/v1/test";
+    std::string path = "/v1/test";
     core::HttpHandler handler =
         [this](AsyncContext<HttpRequest, HttpResponse>& context) {
           total_requests_received_on_server++;
           context.response = make_shared<HttpResponse>();
           context.response->body =
-              BytesBuffer(to_string(total_requests_received_on_server));
+              BytesBuffer(std::to_string(total_requests_received_on_server));
           context.response->code = HttpStatusCode(200);
           context.result = SuccessExecutionResult();
           context.Finish();
@@ -160,8 +158,8 @@ class HttpServerLoadTest : public testing::Test {
     EXPECT_SUCCESS(async_executor_for_server_->Stop());
   }
 
-  string host_ = "localhost";
-  string port_ = "8099";  // TODO: Pick this randomly.
+  std::string host_ = "localhost";
+  std::string port_ = "8099";  // TODO: Pick this randomly.
   shared_ptr<core::ConfigProviderInterface> config_provider_;
   shared_ptr<cpio::MetricClientInterface> metric_client_;
   shared_ptr<AsyncExecutorInterface> async_executor_for_server_;
@@ -221,8 +219,8 @@ TEST_F(HttpServerLoadTest,
     for (auto& http2_client : http2_clients) {
       auto request = make_shared<HttpRequest>();
       request->method = core::HttpMethod::POST;
-      request->path =
-          make_shared<string>("http://" + host_ + ":" + port_ + "/v1/test");
+      request->path = make_shared<std::string>("http://" + host_ + ":" + port_ +
+                                               "/v1/test");
       AsyncContext<HttpRequest, HttpResponse> request_context(
           move(request),
           [&](AsyncContext<HttpRequest, HttpResponse>& result_context) {
@@ -245,8 +243,8 @@ TEST_F(HttpServerLoadTest,
     for (auto& http2_client : http2_clients) {
       auto request = make_shared<HttpRequest>();
       request->method = core::HttpMethod::POST;
-      request->path =
-          make_shared<string>("http://" + host_ + ":" + port_ + "/v1/test");
+      request->path = make_shared<std::string>("http://" + host_ + ":" + port_ +
+                                               "/v1/test");
       AsyncContext<HttpRequest, HttpResponse> request_context(
           move(request),
           [&](AsyncContext<HttpRequest, HttpResponse>& result_context) {

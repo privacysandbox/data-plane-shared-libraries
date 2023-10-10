@@ -54,7 +54,6 @@ using google::scp::core::utils::Base64Encode;
 using helloworld::HelloWorld;
 using std::get;
 using std::make_tuple;
-using std::string;
 using std::tuple;
 
 namespace {
@@ -86,19 +85,19 @@ Any CreateHelloWorldProtoAsAny(google::protobuf::Timestamp created_time) {
   return any;
 }
 
-string CreateHelloWorldProtoAsJsonString() {
+std::string CreateHelloWorldProtoAsJsonString() {
   HelloWorld hello_world_input;
   hello_world_input.set_name(kHelloWorldName);
   hello_world_input.set_id(kHelloWorldId);
   *hello_world_input.mutable_created_time() = kHelloWorldProtoCreatedTime;
 
-  string json_string;
+  std::string json_string;
   MessageToJsonString(hello_world_input, &json_string);
   return json_string;
 }
 
 Item CreateJobAsDatabaseItem(
-    const string& job_body, const JobStatus& job_status,
+    const std::string& job_body, const JobStatus& job_status,
     const google::protobuf::Timestamp& current_time,
     const google::protobuf::Timestamp& updated_time, const int retry_count,
     const google::protobuf::Timestamp& processing_started_time) {
@@ -110,7 +109,7 @@ Item CreateJobAsDatabaseItem(
       google::scp::cpio::client_providers::JobClientUtils::MakeStringAttribute(
           kServerJobIdColumnName, kServerJobId);
 
-  string encoded_job_body;
+  std::string encoded_job_body;
   Base64Encode(job_body, encoded_job_body);
   *item.add_attributes() =
       google::scp::cpio::client_providers::JobClientUtils::MakeStringAttribute(
@@ -213,7 +212,7 @@ TEST(JobClientUtilsTest, ConvertAnyToBase64String) {
   auto string_or = JobClientUtils::ConvertAnyToBase64String(helloworld);
   EXPECT_SUCCESS(string_or);
 
-  string decoded_string;
+  std::string decoded_string;
   Base64Decode(*string_or, decoded_string);
   Any any_output;
   any_output.ParseFromString(decoded_string);
@@ -227,9 +226,9 @@ TEST(JobClientUtilsTest, ConvertAnyToBase64String) {
 TEST(JobClientUtilsTest, ConvertBase64StringToAny) {
   auto current_time = TimeUtil::GetCurrentTime();
   auto helloworld = CreateHelloWorldProtoAsAny(current_time);
-  string string_input;
+  std::string string_input;
   helloworld.SerializeToString(&string_input);
-  string encoded_string;
+  std::string encoded_string;
   Base64Encode(string_input, encoded_string);
   auto any_or = JobClientUtils::ConvertBase64StringToAny(encoded_string);
   EXPECT_SUCCESS(any_or);
@@ -283,7 +282,7 @@ TEST(JobClientUtilsTest,
       google::scp::cpio::client_providers::JobClientUtils::MakeStringAttribute(
           kCreatedTimeColumnName, TimeUtil::ToString(current_time));
   auto job_body = CreateHelloWorldProtoAsJsonString();
-  string encoded_job_body;
+  std::string encoded_job_body;
   Base64Encode(job_body, encoded_job_body);
   *item.add_attributes() =
       google::scp::cpio::client_providers::JobClientUtils::MakeStringAttribute(
@@ -360,7 +359,7 @@ TEST(JobClientUtilsTest, CreateUpsertJobRequest) {
       JobClientUtils::MakeStringAttribute(kJobsTablePartitionKeyName, kJobId);
   *expected_request.add_new_attributes() =
       JobClientUtils::MakeStringAttribute(kServerJobIdColumnName, kServerJobId);
-  string encoded_job_body;
+  std::string encoded_job_body;
   Base64Encode(job_body, encoded_job_body);
   *expected_request.add_new_attributes() =
       JobClientUtils::MakeStringAttribute(kJobBodyColumnName, encoded_job_body);
@@ -424,7 +423,7 @@ TEST(JobClientUtilsTest, CreatePutJobRequest) {
       JobClientUtils::MakeStringAttribute(kJobsTablePartitionKeyName, kJobId);
   *expected_request.add_attributes() =
       JobClientUtils::MakeStringAttribute(kServerJobIdColumnName, kServerJobId);
-  string encoded_job_body;
+  std::string encoded_job_body;
   Base64Encode(job_body, encoded_job_body);
   *expected_request.add_attributes() =
       JobClientUtils::MakeStringAttribute(kJobBodyColumnName, encoded_job_body);

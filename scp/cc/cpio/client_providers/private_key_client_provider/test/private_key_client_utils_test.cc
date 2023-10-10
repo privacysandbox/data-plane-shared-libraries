@@ -54,8 +54,6 @@ using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::vector;
 
 namespace {
@@ -90,26 +88,28 @@ constexpr char kSinglePartyKeyMaterialJson[] =
 namespace google::scp::cpio::client_providers::test {
 shared_ptr<EncryptionKey> CreateEncryptionKeyBase() {
   auto encryption_key = make_shared<EncryptionKey>();
-  encryption_key->key_id = make_shared<string>(kTestKeyId);
-  encryption_key->resource_name = make_shared<string>(kTestResourceName);
+  encryption_key->key_id = make_shared<std::string>(kTestKeyId);
+  encryption_key->resource_name = make_shared<std::string>(kTestResourceName);
   encryption_key->expiration_time_in_ms = kTestExpirationTime;
   encryption_key->creation_time_in_ms = kTestCreationTime;
   encryption_key->public_key_material =
-      make_shared<string>(kTestPublicKeyMaterial);
+      make_shared<std::string>(kTestPublicKeyMaterial);
   encryption_key->public_keyset_handle =
-      make_shared<string>(kTestPublicKeysetHandle);
+      make_shared<std::string>(kTestPublicKeysetHandle);
   return encryption_key;
 }
 
 shared_ptr<EncryptionKey> CreateEncryptionKey(
-    const string& key_resource_name = kTestKeyEncryptionKeyUriWithPrefix) {
+    const std::string& key_resource_name = kTestKeyEncryptionKeyUriWithPrefix) {
   auto encryption_key = CreateEncryptionKeyBase();
   encryption_key->encryption_key_type =
       EncryptionKeyType::kMultiPartyHybridEvenKeysplit;
   auto key_data = make_shared<KeyData>();
-  key_data->key_encryption_key_uri = make_shared<string>(key_resource_name);
-  key_data->key_material = make_shared<string>(kTestKeyMaterial);
-  key_data->public_key_signature = make_shared<string>(kTestPublicKeySignature);
+  key_data->key_encryption_key_uri =
+      make_shared<std::string>(key_resource_name);
+  key_data->key_material = make_shared<std::string>(kTestKeyMaterial);
+  key_data->public_key_signature =
+      make_shared<std::string>(kTestPublicKeySignature);
   encryption_key->key_data.emplace_back(key_data);
   return encryption_key;
 }
@@ -128,9 +128,9 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestFailed) {
   auto encryption_key = CreateEncryptionKey();
 
   auto key_data = make_shared<KeyData>();
-  key_data->key_encryption_key_uri = make_shared<string>("");
-  key_data->key_material = make_shared<string>("");
-  key_data->public_key_signature = make_shared<string>("");
+  key_data->key_encryption_key_uri = make_shared<std::string>("");
+  key_data->key_material = make_shared<std::string>("");
+  key_data->public_key_signature = make_shared<std::string>("");
   encryption_key->key_data = vector<shared_ptr<KeyData>>({key_data});
 
   DecryptRequest kms_decrypt_request;
@@ -153,17 +153,17 @@ TEST(PrivateKeyClientUtilsTest,
 
 shared_ptr<EncryptionKey> CreateSinglePartyEncryptionKey(
     int8_t key_data_count = 1,
-    const string& key_material = kSinglePartyKeyMaterialJson) {
+    const std::string& key_material = kSinglePartyKeyMaterialJson) {
   auto encryption_key = CreateEncryptionKeyBase();
   encryption_key->encryption_key_type =
       EncryptionKeyType::kSinglePartyHybridKey;
   for (int i = 0; i < key_data_count; ++i) {
     auto key_data = make_shared<KeyData>();
     key_data->key_encryption_key_uri =
-        make_shared<string>(kTestKeyEncryptionKeyUriWithPrefix);
-    key_data->key_material = make_shared<string>(key_material);
+        make_shared<std::string>(kTestKeyEncryptionKeyUriWithPrefix);
+    key_data->key_material = make_shared<std::string>(key_material);
     key_data->public_key_signature =
-        make_shared<string>(kTestPublicKeySignature);
+        make_shared<std::string>(kTestPublicKeySignature);
     encryption_key->key_data.emplace_back(key_data);
   }
   return encryption_key;
@@ -176,9 +176,9 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestForSinglePartySucceeded) {
       1, encryption_key, kms_decrypt_request);
   EXPECT_SUCCESS(result);
   // Fill the key with padding.
-  string unescaped_key;
+  std::string unescaped_key;
   absl::Base64Unescape("singlepartykey", &unescaped_key);
-  string escaped_key;
+  std::string escaped_key;
   absl::Base64Escape(unescaped_key, &escaped_key);
   EXPECT_EQ(kms_decrypt_request.ciphertext(), escaped_key);
   EXPECT_EQ(kms_decrypt_request.key_resource_name(), kTestKeyEncryptionKeyUri);
@@ -236,13 +236,13 @@ TEST(PrivateKeyClientUtilsTest, GetPrivateKeyInfo) {
 }
 
 TEST(PrivateKeyClientUtilsTest, ReconstructXorKeysetHandle) {
-  string message = "Test message";
+  std::string message = "Test message";
   std::vector<std::string> endpoint_responses = {
       "\270G\005\364$\253\273\331\353\336\216>",
       "\327\002\204 \232\377\002\330\225DB\f",
       "; \362\240\2369\334r\r\373\253W"};
 
-  string private_key;
+  std::string private_key;
   auto result = PrivateKeyClientUtils::ReconstructXorKeysetHandle(
       endpoint_responses, private_key);
   EXPECT_SUCCESS(result);
@@ -255,7 +255,7 @@ TEST(PrivateKeyClientUtilsTest,
       "\270G\005\364$\253\273\331\353\336\216>",
       "\327\002\204 \232\377\002\330", "; \362\240\2369\334r\r\373\253W"};
 
-  string private_key;
+  std::string private_key;
   auto result = PrivateKeyClientUtils::ReconstructXorKeysetHandle(
       endpoint_responses, private_key);
   EXPECT_THAT(result,

@@ -44,8 +44,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::unique_ptr;
 using std::chrono::milliseconds;
 
@@ -84,7 +82,7 @@ int main(int argc, char* argv[]) {
   metric->set_value("12");
   metric->set_unit(MetricUnit::METRIC_UNIT_COUNT);
   auto& labels = *metric->mutable_labels();
-  labels[string("label_key")] = string("label_value");
+  labels[std::string("label_key")] = std::string("label_value");
 
   atomic<bool> finished = false;
   auto context = AsyncContext<PutMetricsRequest, PutMetricsResponse>(

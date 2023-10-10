@@ -67,7 +67,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 
 namespace {
@@ -114,7 +113,7 @@ class ConfigurationFetcherTest : public ::testing::Test {
   }
 
   void ExpectGetInstanceDetails(const ExecutionResult& result,
-                                const string& tag) {
+                                const std::string& tag) {
     EXPECT_CALL(*mock_instance_client_, GetInstanceDetailsByResourceName)
         .WillOnce(
             [&tag, result](
@@ -133,8 +132,8 @@ class ConfigurationFetcherTest : public ::testing::Test {
   }
 
   void ExpectGetParameter(const ExecutionResult& result,
-                          const string& parameter_name,
-                          const string& parameter_value) {
+                          const std::string& parameter_name,
+                          const std::string& parameter_value) {
     EXPECT_CALL(*mock_parameter_client_, GetParameter)
         .WillOnce([result, parameter_name, parameter_value](
                       GetParameterRequest request,
@@ -153,7 +152,7 @@ class ConfigurationFetcherTest : public ::testing::Test {
   unique_ptr<MockInstanceClient> mock_instance_client_;
   unique_ptr<MockParameterClient> mock_parameter_client_;
   unique_ptr<ConfigurationFetcher> fetcher_;
-  string env_name_tag_ = string(kEnvNameTag);
+  std::string env_name_tag_ = std::string(kEnvNameTag);
 };
 
 TEST_F(ConfigurationFetcherTest, GetParameterByNameAsyncSucceeded) {
@@ -162,9 +161,9 @@ TEST_F(ConfigurationFetcherTest, GetParameterByNameAsyncSucceeded) {
   ExpectGetParameter(SuccessExecutionResult(), kJobClientJobTableName,
                      kTestTable);
   atomic<bool> finished = false;
-  auto get_context = AsyncContext<string, string>(
-      make_shared<string>(kJobClientJobTableName),
-      [&finished](AsyncContext<string, string> context) {
+  auto get_context = AsyncContext<std::string, std::string>(
+      make_shared<std::string>(kJobClientJobTableName),
+      [&finished](AsyncContext<std::string, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestTable);
         finished = true;
@@ -364,9 +363,9 @@ TEST_F(ConfigurationFetcherTest, GetJobClientJobQueueNameAsyncSucceeded) {
   ExpectGetParameter(SuccessExecutionResult(), kJobClientJobQueueName,
                      kTestQueue);
   atomic<bool> finished = false;
-  auto get_context = AsyncContext<GetConfigurationRequest, string>(
+  auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr,
-      [&finished](AsyncContext<GetConfigurationRequest, string> context) {
+      [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestQueue);
         finished = true;
@@ -390,9 +389,9 @@ TEST_F(ConfigurationFetcherTest, GetJobClientJobTableNameAsyncSucceeded) {
   ExpectGetParameter(SuccessExecutionResult(), kJobClientJobTableName,
                      kTestTable);
   atomic<bool> finished = false;
-  auto get_context = AsyncContext<GetConfigurationRequest, string>(
+  auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr,
-      [&finished](AsyncContext<GetConfigurationRequest, string> context) {
+      [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestTable);
         finished = true;
@@ -417,9 +416,9 @@ TEST_F(ConfigurationFetcherTest,
   ExpectGetParameter(SuccessExecutionResult(), kGcpJobClientSpannerInstanceName,
                      kTestGcpSpannerInstance);
   atomic<bool> finished = false;
-  auto get_context = AsyncContext<GetConfigurationRequest, string>(
+  auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr,
-      [&finished](AsyncContext<GetConfigurationRequest, string> context) {
+      [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestGcpSpannerInstance);
         finished = true;
@@ -446,9 +445,9 @@ TEST_F(ConfigurationFetcherTest,
   ExpectGetParameter(SuccessExecutionResult(), kGcpJobClientSpannerDatabaseName,
                      kTestGcpSpannerDatabase);
   atomic<bool> finished = false;
-  auto get_context = AsyncContext<GetConfigurationRequest, string>(
+  auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr,
-      [&finished](AsyncContext<GetConfigurationRequest, string> context) {
+      [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestGcpSpannerDatabase);
         finished = true;
@@ -484,9 +483,9 @@ TEST_F(ConfigurationFetcherTest,
                      kGcpNoSQLDatabaseClientSpannerInstanceName,
                      kTestGcpSpannerInstance);
   atomic<bool> finished = false;
-  auto get_context = AsyncContext<GetConfigurationRequest, string>(
+  auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr,
-      [&finished](AsyncContext<GetConfigurationRequest, string> context) {
+      [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestGcpSpannerInstance);
         finished = true;
@@ -516,9 +515,9 @@ TEST_F(ConfigurationFetcherTest,
                      kGcpNoSQLDatabaseClientSpannerDatabaseName,
                      kTestGcpSpannerDatabase);
   atomic<bool> finished = false;
-  auto get_context = AsyncContext<GetConfigurationRequest, string>(
+  auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr,
-      [&finished](AsyncContext<GetConfigurationRequest, string> context) {
+      [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestGcpSpannerDatabase);
         finished = true;
@@ -546,9 +545,9 @@ TEST_F(ConfigurationFetcherTest, GetQueueClientQueueNameAsyncSucceeded) {
   ExpectGetParameter(SuccessExecutionResult(), kQueueClientQueueName,
                      kTestQueue);
   atomic<bool> finished = false;
-  auto get_context = AsyncContext<GetConfigurationRequest, string>(
+  auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr,
-      [&finished](AsyncContext<GetConfigurationRequest, string> context) {
+      [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestQueue);
         finished = true;
@@ -658,11 +657,13 @@ TEST_F(ConfigurationFetcherTest, FailedToGetCurrentInstance) {
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   ExpectGetCurrentInstanceResourceName(failure);
   atomic<bool> finished = false;
-  auto get_job_table_context = AsyncContext<GetConfigurationRequest, string>(
-      nullptr, [&](AsyncContext<GetConfigurationRequest, string> context) {
-        EXPECT_THAT(context.result, ResultIs(failure));
-        finished = true;
-      });
+  auto get_job_table_context =
+      AsyncContext<GetConfigurationRequest, std::string>(
+          nullptr,
+          [&](AsyncContext<GetConfigurationRequest, std::string> context) {
+            EXPECT_THAT(context.result, ResultIs(failure));
+            finished = true;
+          });
   EXPECT_THAT(fetcher_->GetJobClientJobTableNameAsync(get_job_table_context),
               ResultIs(failure));
   WaitUntil([&]() { return finished.load(); });
@@ -673,11 +674,13 @@ TEST_F(ConfigurationFetcherTest, FailedToGetInstanceDetails) {
   ExpectGetCurrentInstanceResourceName(SuccessExecutionResult());
   ExpectGetInstanceDetails(failure, "");
   atomic<bool> finished = false;
-  auto get_job_table_context = AsyncContext<GetConfigurationRequest, string>(
-      nullptr, [&](AsyncContext<GetConfigurationRequest, string> context) {
-        EXPECT_THAT(context.result, ResultIs(failure));
-        finished = true;
-      });
+  auto get_job_table_context =
+      AsyncContext<GetConfigurationRequest, std::string>(
+          nullptr,
+          [&](AsyncContext<GetConfigurationRequest, std::string> context) {
+            EXPECT_THAT(context.result, ResultIs(failure));
+            finished = true;
+          });
   EXPECT_SUCCESS(
       fetcher_->GetJobClientJobTableNameAsync(get_job_table_context));
   WaitUntil([&]() { return finished.load(); });
@@ -689,11 +692,13 @@ TEST_F(ConfigurationFetcherTest, FailedToGetParameter) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(failure, kJobClientJobTableName, kTestTable);
   atomic<bool> finished = false;
-  auto get_job_table_context = AsyncContext<GetConfigurationRequest, string>(
-      nullptr, [&](AsyncContext<GetConfigurationRequest, string> context) {
-        EXPECT_THAT(context.result, ResultIs(failure));
-        finished = true;
-      });
+  auto get_job_table_context =
+      AsyncContext<GetConfigurationRequest, std::string>(
+          nullptr,
+          [&](AsyncContext<GetConfigurationRequest, std::string> context) {
+            EXPECT_THAT(context.result, ResultIs(failure));
+            finished = true;
+          });
   EXPECT_SUCCESS(
       fetcher_->GetJobClientJobTableNameAsync(get_job_table_context));
   WaitUntil([&]() { return finished.load(); });
@@ -703,13 +708,16 @@ TEST_F(ConfigurationFetcherTest, EnvNameNotFound) {
   ExpectGetCurrentInstanceResourceName(SuccessExecutionResult());
   ExpectGetInstanceDetails(SuccessExecutionResult(), "invalid_tag");
   atomic<bool> finished = false;
-  auto get_job_table_context = AsyncContext<GetConfigurationRequest, string>(
-      nullptr, [&](AsyncContext<GetConfigurationRequest, string> context) {
-        EXPECT_THAT(context.result,
-                    ResultIs(FailureExecutionResult(
-                        SC_CONFIGURATION_FETCHER_ENVIRONMENT_NAME_NOT_FOUND)));
-        finished = true;
-      });
+  auto get_job_table_context =
+      AsyncContext<GetConfigurationRequest, std::string>(
+          nullptr,
+          [&](AsyncContext<GetConfigurationRequest, std::string> context) {
+            EXPECT_THAT(
+                context.result,
+                ResultIs(FailureExecutionResult(
+                    SC_CONFIGURATION_FETCHER_ENVIRONMENT_NAME_NOT_FOUND)));
+            finished = true;
+          });
   EXPECT_SUCCESS(
       fetcher_->GetJobClientJobTableNameAsync(get_job_table_context));
   WaitUntil([&]() { return finished.load(); });

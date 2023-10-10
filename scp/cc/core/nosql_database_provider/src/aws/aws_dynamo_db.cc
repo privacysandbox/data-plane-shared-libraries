@@ -52,7 +52,6 @@ using google::scp::core::nosql_database_provider::NoSQLDatabaseProviderUtils;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -70,7 +69,7 @@ ExecutionResult AwsDynamoDB::CreateClientConfig() noexcept {
   client_config_->executor = make_shared<AwsAsyncExecutor>(
       io_async_executor_, io_async_execution_priority_);
 
-  string region;
+  std::string region;
   auto execution_result = config_provider_->Get(kCloudServiceRegion, region);
   if (!execution_result.Successful()) {
     return execution_result;
@@ -283,7 +282,7 @@ void AwsDynamoDB::OnGetDatabaseItemCallback(
 
     NoSqlDatabaseKeyValuePair key_value_pair;
     key_value_pair.attribute_name =
-        make_shared<string>(attribute_key_value_pair.first.c_str());
+        make_shared<std::string>(attribute_key_value_pair.first.c_str());
     key_value_pair.attribute_value =
         make_shared<NoSQLDatabaseValidAttributeValueTypes>(
             std::move(attribute_value));

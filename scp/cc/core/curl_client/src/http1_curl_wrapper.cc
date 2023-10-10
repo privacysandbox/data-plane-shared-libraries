@@ -41,7 +41,6 @@ using std::regex;
 using std::regex_search;
 using std::shared_ptr;
 using std::smatch;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -53,7 +52,7 @@ constexpr int64_t kTrueAsLong = 1L;
 constexpr int64_t kCurlOptTimeout = 60L;
 constexpr char kHttp1CurlWrapper[] = "Http1CurlWrapper";
 
-ExecutionResult GetExecutionResultFromCurlError(const string& err_buffer) {
+ExecutionResult GetExecutionResultFromCurlError(const std::string& err_buffer) {
   regex error_code_regex("([0-9]{3})");
   smatch http_code_match;
   int http_code;
@@ -151,7 +150,7 @@ size_t ResponseHeaderHandler(char* contents, size_t byte_size, size_t num_bytes,
     // Empty field line (i.e. "\r\n") - skip.
     return contents_size;
   }
-  string contents_str(contents, contents_size);
+  std::string contents_str(contents, contents_size);
   if (regex r("HTTP.*[0-9]{3}"); regex_search(contents_str, r)) {
     // The header is just the HTTP response code.
     return contents_size;
@@ -170,7 +169,7 @@ size_t ResponseHeaderHandler(char* contents, size_t byte_size, size_t num_bytes,
         contents_str.c_str());
     return contents_size;
   }
-  if (colon_index == string::npos) {
+  if (colon_index == std::string::npos) {
     SCP_ERROR(
         kHttp1CurlWrapper, kZeroUuid,
         FailureExecutionResult(errors::SC_CURL_CLIENT_BAD_HEADER_RECEIVED),
@@ -236,7 +235,7 @@ Http1CurlWrapper::AddHeadersToRequest(
   }
   curl_slist* header_list = nullptr;
   for (const auto& [key, value] : *headers) {
-    string header = absl::StrCat(key, ": ", value);
+    std::string header = absl::StrCat(key, ": ", value);
     auto* result = curl_slist_append(header_list, header.c_str());
     if (result == nullptr) {
       curl_slist_free_all(header_list);
@@ -320,7 +319,7 @@ ExecutionResultOr<HttpResponse> Http1CurlWrapper::PerformRequest(
   curl_easy_setopt(curl_.get(), CURLOPT_TIMEOUT, kCurlOptTimeout);
   curl_easy_setopt(curl_.get(), CURLOPT_FAILONERROR, kTrueAsLong);
   // Create a buffer to place any error messages in.
-  string err_str(CURL_ERROR_SIZE, '\0');
+  std::string err_str(CURL_ERROR_SIZE, '\0');
   curl_easy_setopt(curl_.get(), CURLOPT_ERRORBUFFER, err_str.data());
 
   // Execute the request.

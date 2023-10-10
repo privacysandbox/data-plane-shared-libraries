@@ -41,13 +41,12 @@ using std::atomic;
 using std::function;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace google::scp::core::test {
 TEST(JournalOutputStreamTests, AppendLog) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   async_executor_mock.schedule_for_mock =
       [&](const AsyncOperation& work, Timestamp,
@@ -90,8 +89,8 @@ TEST(JournalOutputStreamTests, AppendLog) {
 }
 
 TEST(JournalOutputStreamTests, FlushLogsFailure) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   async_executor_mock.schedule_for_mock =
       [&](const AsyncOperation& work, Timestamp,
@@ -142,8 +141,8 @@ TEST(JournalOutputStreamTests, FlushLogsFailure) {
 }
 
 TEST(JournalOutputStreamTests, FlushLogsSchedulingFailure) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
 
   async_executor_mock.schedule_mock = [](auto work) {
@@ -194,8 +193,8 @@ TEST(JournalOutputStreamTests, FlushLogsSchedulingFailure) {
 }
 
 TEST(JournalOutputStreamTests, WriteBatch) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
 
   async_executor_mock.schedule_mock = [](auto work) {
@@ -247,8 +246,8 @@ TEST(JournalOutputStreamTests, WriteBatch) {
 }
 
 TEST(JournalOutputStreamTests, WriteBatchWriteBlobFailure) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
 
   shared_ptr<AsyncExecutorInterface> async_executor =
@@ -299,8 +298,8 @@ TEST(JournalOutputStreamTests, WriteBatchWriteBlobFailure) {
 }
 
 TEST(JournalOutputStreamTests, GetSerializedLogByteSize) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
@@ -327,8 +326,8 @@ TEST(JournalOutputStreamTests, GetSerializedLogByteSize) {
 }
 
 TEST(JournalOutputStreamTests, SerializeLog) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
@@ -427,8 +426,8 @@ TEST(JournalOutputStreamTests, SerializeLog) {
 }
 
 TEST(JournalOutputStreamTests, WriteJournalBlob) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
@@ -466,8 +465,8 @@ TEST(JournalOutputStreamTests, WriteJournalBlob) {
 }
 
 TEST(JournalOutputStreamTests, WriteEmptyJournalBlob) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
@@ -497,8 +496,8 @@ TEST(JournalOutputStreamTests, WriteEmptyJournalBlob) {
 }
 
 TEST(JournalOutputStreamTests, OnWriteJournalBlobCallback) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   shared_ptr<AsyncExecutorInterface> async_executor;
   shared_ptr<BlobStorageClientInterface> storage_client;
 
@@ -523,8 +522,8 @@ TEST(JournalOutputStreamTests, OnWriteJournalBlobCallback) {
 }
 
 TEST(JournalOutputStreamTests, GetLastPersistedJournalId) {
-  auto bucket_name = make_shared<string>("bucket_name");
-  auto partition_name = make_shared<string>("partition_name");
+  auto bucket_name = make_shared<std::string>("bucket_name");
+  auto partition_name = make_shared<std::string>("partition_name");
   shared_ptr<AsyncExecutorInterface> async_executor;
   shared_ptr<BlobStorageClientInterface> storage_client;
 

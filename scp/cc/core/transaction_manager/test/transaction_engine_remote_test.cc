@@ -67,7 +67,6 @@ using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
 using std::static_pointer_cast;
-using std::string;
 using std::thread;
 using std::vector;
 using std::chrono::milliseconds;
@@ -105,9 +104,9 @@ TEST(TransactionEngineRemoteTest, VerifyExecuteRemoteOperation) {
   transaction_context.request->transaction_id = Uuid::GenerateUuid();
   transaction_context.request->is_coordinated_remotely = true;
   transaction_context.request->transaction_secret =
-      make_shared<string>("transaction_secret");
+      make_shared<std::string>("transaction_secret");
   transaction_context.request->transaction_origin =
-      make_shared<string>("transaction_origin");
+      make_shared<std::string>("transaction_origin");
 
   mock_transaction_engine.Execute(transaction_context);
   WaitUntil([&condition]() { return condition.load(); });
@@ -172,8 +171,8 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseRemoteAndWaitingCombinations) {
   auto transaction = make_shared<Transaction>();
   transaction->is_coordinated_remotely = false;
   transaction->is_waiting_for_remote = true;
-  transaction->transaction_secret = make_shared<string>("123");
-  transaction->transaction_origin = make_shared<string>("123");
+  transaction->transaction_secret = make_shared<std::string>("123");
+  transaction->transaction_origin = make_shared<std::string>("123");
 
   auto pair = make_pair(transaction_id, transaction);
   mock_transaction_engine.GetActiveTransactionsMap().Insert(pair, transaction);
@@ -235,8 +234,8 @@ void ExecuteNonPossiblePhases(vector<TransactionPhase> all_non_possible_phases,
     transaction->current_phase = non_possible_phase;
     transaction->is_coordinated_remotely = true;
     transaction->is_waiting_for_remote = true;
-    transaction->transaction_secret = make_shared<string>("123");
-    transaction->transaction_origin = make_shared<string>("1234");
+    transaction->transaction_secret = make_shared<std::string>("123");
+    transaction->transaction_origin = make_shared<std::string>("1234");
     transaction->id = transaction_id;
 
     auto pair = make_pair(transaction_id, transaction);
@@ -361,8 +360,8 @@ void ExecutePhaseProperCallbacksCalled(
   transaction->is_waiting_for_remote = true;
   transaction->last_execution_timestamp = 123456789;
   transaction->id = transaction_id;
-  transaction->transaction_secret = make_shared<string>("secret");
-  transaction->transaction_origin = make_shared<string>("origin");
+  transaction->transaction_secret = make_shared<std::string>("secret");
+  transaction->transaction_origin = make_shared<std::string>("origin");
 
   auto pair = make_pair(transaction_id, transaction);
   mock_transaction_engine.GetActiveTransactionsMap().Insert(pair, transaction);

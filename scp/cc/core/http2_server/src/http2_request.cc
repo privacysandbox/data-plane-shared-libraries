@@ -31,7 +31,6 @@ using std::bind;
 using std::copy;
 using std::make_pair;
 using std::make_shared;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;

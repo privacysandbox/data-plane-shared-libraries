@@ -31,7 +31,6 @@ using std::atomic;
 using std::isxdigit;
 using std::mt19937;
 using std::random_device;
-using std::string;
 using std::uniform_int_distribution;
 
 static constexpr char kHexMap[] = {"0123456789ABCDEF"};
@@ -60,7 +59,7 @@ void AppendHex(int byte, std::string& string_to_append) {
 }
 
 uint64_t ReadHex(const std::string& string_to_read, int offset) {
-  string digits = string_to_read.substr(offset, 2);
+  std::string digits = string_to_read.substr(offset, 2);
   std::istringstream istrstream(digits);
 
   int byte = 0;
@@ -71,7 +70,7 @@ uint64_t ReadHex(const std::string& string_to_read, int offset) {
 std::string ToString(const Uuid& uuid) noexcept {
   // Uuid has two 8 bytes variable, high and low. Printing each byte to a
   // hexadecimal value a guid can be generated.
-  string uuid_string;
+  std::string uuid_string;
   uuid_string.reserve(36);
 
   auto high = uuid.high;

@@ -72,8 +72,6 @@ using std::function;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
-using std::string_view;
 using std::unique_ptr;
 using std::vector;
 
@@ -108,7 +106,7 @@ class CryptoClientProviderTest : public ScpTestBase {
   AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>
   CreateHpkeEncryptContext(bool is_bidirectional,
                            const ExecutionResult& decrypt_private_key_result,
-                           const string& exporter_context = "",
+                           const std::string& exporter_context = "",
                            HpkeParams hpke_params_from_request = HpkeParams(),
                            HpkeParams hpke_params_config = HpkeParams()) {
     auto request = make_shared<HpkeEncryptRequest>();
@@ -123,8 +121,8 @@ class CryptoClientProviderTest : public ScpTestBase {
       public_key->set_public_key(
           absl::Base64Escape(absl::HexStringToBytes(kPublicKeyForChacha20)));
     }
-    request->set_shared_info(string(kSharedInfo));
-    request->set_payload(string(kPayload));
+    request->set_shared_info(std::string(kSharedInfo));
+    request->set_payload(std::string(kPayload));
     request->set_is_bidirectional(is_bidirectional);
     request->set_exporter_context(exporter_context);
     return AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>(
@@ -149,10 +147,10 @@ class CryptoClientProviderTest : public ScpTestBase {
   }
 
   AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>
-  CreateHpkeDecryptContext(string_view ciphertext, bool is_bidirectional,
-                           const string& secret,
+  CreateHpkeDecryptContext(std::string_view ciphertext, bool is_bidirectional,
+                           const std::string& secret,
                            const ExecutionResult& decrypt_private_key_result,
-                           const string& exporter_context,
+                           const std::string& exporter_context,
                            HpkeParams hpke_params_from_request,
                            HpkeParams hpke_params_from_config) {
     auto request = make_shared<HpkeDecryptRequest>();
@@ -174,7 +172,7 @@ class CryptoClientProviderTest : public ScpTestBase {
 
     auto private_key = request->mutable_private_key();
     private_key->set_key_id(kKeyId);
-    string encoded_private_key;
+    std::string encoded_private_key;
     if (decrypt_private_key_result.Successful()) {
       Base64Encode(key.SerializeAsString(), encoded_private_key);
       private_key->set_private_key(encoded_private_key);
@@ -185,10 +183,10 @@ class CryptoClientProviderTest : public ScpTestBase {
       Base64Encode("invalid", encoded_private_key);
       private_key->set_private_key(encoded_private_key);
     }
-    request->set_shared_info(string(kSharedInfo));
+    request->set_shared_info(std::string(kSharedInfo));
     request->set_is_bidirectional(is_bidirectional);
-    request->mutable_encrypted_data()->set_ciphertext(string(ciphertext));
-    request->mutable_encrypted_data()->set_key_id(string(kKeyId));
+    request->mutable_encrypted_data()->set_ciphertext(std::string(ciphertext));
+    request->mutable_encrypted_data()->set_key_id(std::string(kKeyId));
     request->set_exporter_context(exporter_context);
     return AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>(
         std::move(request),
@@ -204,10 +202,10 @@ class CryptoClientProviderTest : public ScpTestBase {
   }
 
   AsyncContext<AeadEncryptRequest, AeadEncryptResponse>
-  CreateAeadEncryptContext(string_view secret) {
+  CreateAeadEncryptContext(std::string_view secret) {
     auto request = make_shared<AeadEncryptRequest>();
-    request->set_shared_info(string(kSharedInfo));
-    request->set_payload(string(kPayload));
+    request->set_shared_info(std::string(kSharedInfo));
+    request->set_payload(std::string(kPayload));
     request->set_secret(absl::HexStringToBytes(secret));
     return AsyncContext<AeadEncryptRequest, AeadEncryptResponse>(
         std::move(request),
@@ -215,11 +213,12 @@ class CryptoClientProviderTest : public ScpTestBase {
   }
 
   AsyncContext<AeadDecryptRequest, AeadDecryptResponse>
-  CreateAeadDecryptContext(string_view secret, string_view ciphertext) {
+  CreateAeadDecryptContext(std::string_view secret,
+                           std::string_view ciphertext) {
     auto request = make_shared<AeadDecryptRequest>();
-    request->set_shared_info(string(kSharedInfo));
+    request->set_shared_info(std::string(kSharedInfo));
     request->set_secret(absl::HexStringToBytes(secret));
-    request->mutable_encrypted_data()->set_ciphertext(string(ciphertext));
+    request->mutable_encrypted_data()->set_ciphertext(std::string(ciphertext));
     return AsyncContext<AeadDecryptRequest, AeadDecryptResponse>(
         std::move(request),
         [&](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {});
@@ -265,7 +264,7 @@ TEST_F(CryptoClientProviderTest, HpkeEncryptAndDecryptSuccessForTwoDirection) {
 }
 
 TEST_F(CryptoClientProviderTest, HpkeEncryptAndDecryptWithInputExportContext) {
-  string exporter_context = "custom exporter";
+  std::string exporter_context = "custom exporter";
   auto encrypt_context = CreateHpkeEncryptContext(
       true /*is_bidirectional*/, SuccessExecutionResult(), exporter_context);
   EXPECT_SUCCESS(client_->HpkeEncrypt(encrypt_context));
@@ -312,7 +311,7 @@ TEST_F(CryptoClientProviderTest, AeadEncryptAndDecryptSuccessFor256Secret) {
 
 TEST_F(CryptoClientProviderTest, CannotCreateAeadDueToInvalidSecret) {
   SecretData invalid_secret(4, 'x');
-  string secret_str(invalid_secret.begin(), invalid_secret.end());
+  std::string secret_str(invalid_secret.begin(), invalid_secret.end());
   auto encrypt_context = CreateAeadEncryptContext(secret_str);
   EXPECT_THAT(client_->AeadEncrypt(encrypt_context),
               ResultIs(FailureExecutionResult(

@@ -86,7 +86,6 @@ using std::make_shared;
 using std::make_tuple;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::tuple;
 using std::unique_ptr;
 using std::vector;
@@ -116,14 +115,16 @@ namespace google::scp::cpio::client_providers::test {
 class MockGcpCloudStorageFactory : public GcpCloudStorageFactory {
  public:
   MOCK_METHOD(core::ExecutionResultOr<shared_ptr<Client>>, CreateClient,
-              (shared_ptr<BlobStorageClientOptions>, const string&),
+              (shared_ptr<BlobStorageClientOptions>, const std::string&),
               (noexcept, override));
 };
 
 // Params:
-// <begin_index, end_index, actual string to return, expected string to observe>
+// <begin_index, end_index, actual std::string to return, expected std::string
+// to observe>
 class GcpBlobStorageClientProviderTest
-    : public testing::TestWithParam<tuple<uint64_t, uint64_t, string, string>> {
+    : public testing::TestWithParam<
+          tuple<uint64_t, uint64_t, std::string, std::string>> {
  protected:
   GcpBlobStorageClientProviderTest()
       : instance_client_(make_shared<MockInstanceClientProvider>()),
@@ -194,7 +195,7 @@ MATCHER_P(BlobEquals, expected_blob, "") {
 
 // Builds an ObjectReadSource that contains the bytes (copied) from bytes_str.
 StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
-    const string& bytes_str) {
+    const std::string& bytes_str) {
   // We want the following methods to be called in order, so make an InSequence.
   InSequence seq;
   auto mock_source = make_unique<MockObjectReadSource>();
@@ -251,7 +252,7 @@ TEST_F(GcpBlobStorageClientProviderTest, GetBlob) {
       kBucketName);
   get_blob_context_.request->mutable_blob_metadata()->set_blob_name(kBlobName1);
 
-  string bytes_str = "response_string";
+  std::string bytes_str = "response_string";
 
   EXPECT_CALL(*mock_client_,
               ReadObject(ReadObjectRequestEqual(kBucketName, kBlobName1)))
@@ -703,7 +704,7 @@ TEST_F(GcpBlobStorageClientProviderTest,
   list_blobs_context_.request->set_max_page_size(page_size);
 
   // Make a JSON object with items named 1 to page_size + 5.
-  string items_str;
+  std::string items_str;
   for (int64_t i = 1; i <= page_size + 5; i++) {
     if (!items_str.empty()) {
       absl::StrAppend(&items_str, ",");
@@ -801,11 +802,12 @@ TEST_F(GcpBlobStorageClientProviderTest, PutBlob) {
   put_blob_context_.request->mutable_blob()->mutable_metadata()->set_blob_name(
       kBlobName1);
 
-  string bytes_str = "put_string";
+  std::string bytes_str = "put_string";
   put_blob_context_.request->mutable_blob()->set_data(bytes_str);
 
   // Use Google Cloud's MD5 method.
-  string expected_md5_hash = google::cloud::storage::ComputeMD5Hash(bytes_str);
+  std::string expected_md5_hash =
+      google::cloud::storage::ComputeMD5Hash(bytes_str);
 
   InsertObjectMediaRequest expected_request(kBucketName, kBlobName1, bytes_str);
   expected_request.set_option(MD5HashValue(expected_md5_hash));
@@ -833,11 +835,12 @@ TEST_F(GcpBlobStorageClientProviderTest, PutBlobPropagatesFailure) {
   put_blob_context_.request->mutable_blob()->mutable_metadata()->set_blob_name(
       kBlobName1);
 
-  string bytes_str = "put_string";
+  std::string bytes_str = "put_string";
   put_blob_context_.request->mutable_blob()->set_data(bytes_str);
 
   // Use Google Cloud's MD5 method.
-  string expected_md5_hash = google::cloud::storage::ComputeMD5Hash(bytes_str);
+  std::string expected_md5_hash =
+      google::cloud::storage::ComputeMD5Hash(bytes_str);
 
   InsertObjectMediaRequest expected_request(kBucketName, kBlobName1, bytes_str);
   expected_request.set_option(MD5HashValue(expected_md5_hash));

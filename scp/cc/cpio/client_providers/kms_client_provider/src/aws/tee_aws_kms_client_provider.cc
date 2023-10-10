@@ -61,7 +61,6 @@ using std::array;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::placeholders::_1;
 
@@ -70,29 +69,30 @@ static constexpr char kTeeAwsKmsClientProvider[] = "TeeAwsKmsClientProvider";
 
 static constexpr int kBufferSize = 1024;
 
-static void BuildDecryptCmd(const string& region, const string& ciphertext,
-                            const string& access_key_id,
-                            const string& access_key_secret,
-                            const string& security_token,
-                            string& command) noexcept {
+static void BuildDecryptCmd(const std::string& region,
+                            const std::string& ciphertext,
+                            const std::string& access_key_id,
+                            const std::string& access_key_secret,
+                            const std::string& security_token,
+                            std::string& command) noexcept {
   if (!region.empty()) {
-    command += string(" --region ") + region;
+    command += std::string(" --region ") + region;
   }
 
   if (!access_key_id.empty()) {
-    command += string(" --aws-access-key-id ") + access_key_id;
+    command += std::string(" --aws-access-key-id ") + access_key_id;
   }
 
   if (!access_key_secret.empty()) {
-    command += string(" --aws-secret-access-key ") + access_key_secret;
+    command += std::string(" --aws-secret-access-key ") + access_key_secret;
   }
 
   if (!security_token.empty()) {
-    command += string(" --aws-session-token ") + security_token;
+    command += std::string(" --aws-session-token ") + security_token;
   }
 
   if (!ciphertext.empty()) {
-    command += string(" --ciphertext ") + ciphertext;
+    command += std::string(" --ciphertext ") + ciphertext;
   }
 
   command = "/kmstool_enclave_cli decrypt" + command;
@@ -186,7 +186,7 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   const auto& get_session_credentials_response =
       *get_session_credentials_context.response;
 
-  string command;
+  std::string command;
   BuildDecryptCmd(decrypt_context.request->kms_region(),
                   decrypt_context.request->ciphertext(),
                   get_session_credentials_response.access_key_id->c_str(),
@@ -194,7 +194,7 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
                   get_session_credentials_response.security_token->c_str(),
                   command);
 
-  string plaintext;
+  std::string plaintext;
   auto execute_result = DecryptUsingEnclavesKmstoolCli(command, plaintext);
 
   if (!execute_result.Successful()) {
@@ -204,7 +204,7 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   }
 
   // Decode the plaintext.
-  string decoded_plaintext;
+  std::string decoded_plaintext;
   execute_result = Base64Decode(plaintext, decoded_plaintext);
   if (!execute_result.Successful()) {
     SCP_ERROR_CONTEXT(kTeeAwsKmsClientProvider, decrypt_context, execute_result,
@@ -222,9 +222,9 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 }
 
 ExecutionResult TeeAwsKmsClientProvider::DecryptUsingEnclavesKmstoolCli(
-    const string& command, string& plaintext) noexcept {
+    const std::string& command, std::string& plaintext) noexcept {
   array<char, kBufferSize> buffer;
-  string result;
+  std::string result;
   auto pipe = popen(command.c_str(), "r");
   if (!pipe) {
     auto execution_result = FailureExecutionResult(

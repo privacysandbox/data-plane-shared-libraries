@@ -29,8 +29,6 @@
 
 #include "error_codes.h"
 
-using std::string;
-
 namespace google::scp::core::utils {
 ExecutionResultOr<std::string> GetEscapedUriWithQuery(
     const HttpRequest& request) {
@@ -43,12 +41,12 @@ ExecutionResultOr<std::string> GetEscapedUriWithQuery(
     return FailureExecutionResult(core::errors::SC_CORE_UTILS_CURL_INIT_ERROR);
   }
 
-  string escaped_query;
+  std::string escaped_query;
   // The "value" portion of each parameter needs to be escaped.
   for (const auto& query_part : absl::StrSplit(*request.query, "&")) {
     if (!escaped_query.empty()) absl::StrAppend(&escaped_query, "&");
 
-    std::pair<string, string> name_and_value =
+    std::pair<std::string, std::string> name_and_value =
         (absl::StrSplit(query_part, "="));
     char* escaped_value =
         curl_easy_escape(curl_handle, name_and_value.second.c_str(),

@@ -43,7 +43,6 @@ using google::cloud::kms::KeyManagementServiceClient;
 using google::cloud::kms::v1::DecryptRequest;
 using google::cloud::kms::v1::DecryptResponse;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 
 namespace google::scp::cpio::client_providers {
@@ -66,18 +65,18 @@ StatusOr<std::unique_ptr<Aead>> GcpKmsAead::New(
   return unique_ptr<Aead>(new GcpKmsAead(key_name, kms_client));
 }
 
-StatusOr<string> GcpKmsAead::Encrypt(absl::string_view plaintext,
-                                     absl::string_view associated_data) const {
+StatusOr<std::string> GcpKmsAead::Encrypt(
+    absl::string_view plaintext, absl::string_view associated_data) const {
   return Status(absl::StatusCode::kUnimplemented,
                 "GCP KMS encryption unimplemented");
 }
 
-StatusOr<string> GcpKmsAead::Decrypt(absl::string_view ciphertext,
-                                     absl::string_view associated_data) const {
+StatusOr<std::string> GcpKmsAead::Decrypt(
+    absl::string_view ciphertext, absl::string_view associated_data) const {
   DecryptRequest req;
   req.set_name(key_name_);
-  req.set_ciphertext(string(ciphertext));
-  req.set_additional_authenticated_data(string(associated_data));
+  req.set_ciphertext(std::string(ciphertext));
+  req.set_additional_authenticated_data(std::string(associated_data));
   auto response = kms_client_->Decrypt(req);
 
   if (!response) {

@@ -39,7 +39,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::roma::kDefaultExecutionTimeoutMs;
 using google::scp::roma::kTimeoutMsTag;
 using google::scp::roma::kWasmCodeArrayName;
-using std::string;
 using std::vector;
 
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
@@ -290,7 +289,7 @@ TEST_F(V8JsEngineTest, CanRunWasmCode) {
       "string_in_string_out.wasm");
 
   auto wasm_code =
-      string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
+      std::string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
   vector<absl::string_view> input = {R"("Some input string")"};
 
   auto response_or =
@@ -310,7 +309,7 @@ TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
       "string_in_string_out.wasm");
 
   auto wasm_code =
-      string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
+      std::string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
   vector<absl::string_view> input = {R"("Some input string")"};
 
   // Empty handler
@@ -331,7 +330,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfInputCannotBeParsed) {
       "string_in_string_out.wasm");
 
   auto wasm_code =
-      string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
+      std::string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
   // Bad input
   vector<absl::string_view> input = {R"("Some input string)"};
 
@@ -351,7 +350,8 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfBadWasm) {
                      0x64, 0x64, 0x00, 0x00, 0x0a, 0x01, 0x07, 0x00,
                      0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b};
 
-  auto wasm_code = string(reinterpret_cast<char*>(wasm_bin), sizeof(wasm_bin));
+  auto wasm_code =
+      std::string(reinterpret_cast<char*>(wasm_bin), sizeof(wasm_bin));
   // Bad input
   vector<absl::string_view> input = {R"("Some input string")"};
 
@@ -372,7 +372,7 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithDefaultTimeoutValue) {
       }
   )""";
   vector<absl::string_view> input;
-  absl::flat_hash_map<string, string> metadata;
+  absl::flat_hash_map<std::string, std::string> metadata;
 
   auto response_or =
       engine.CompileAndRunJs(js_code, "hello_js", input, metadata);
@@ -403,7 +403,7 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithCustomTimeoutTag) {
   vector<absl::string_view> input;
 
   {
-    absl::flat_hash_map<string, string> metadata;
+    absl::flat_hash_map<std::string, std::string> metadata;
     // Set the timeout flag to 100 milliseconds. When it runs for more than 100
     // milliseconds, it times out.
     metadata[kTimeoutMsTag] = "100";

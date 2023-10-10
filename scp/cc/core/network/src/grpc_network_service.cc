@@ -42,7 +42,6 @@ using std::make_shared;
 using std::mutex;
 using std::ref;
 using std::scoped_lock;
-using std::string;
 using std::thread;
 using std::unique_lock;
 
@@ -84,7 +83,8 @@ ExecutionResult GrpcNetworkService::Init() noexcept {
 }
 
 ExecutionResult GrpcNetworkService::RegisterHandler(
-    const string& uri, const RPCServiceContextInterface::RpcHandler& handler) {
+    const std::string& uri,
+    const RPCServiceContextInterface::RpcHandler& handler) {
   handlers_[uri] = handler;
   return SuccessExecutionResult();
 }

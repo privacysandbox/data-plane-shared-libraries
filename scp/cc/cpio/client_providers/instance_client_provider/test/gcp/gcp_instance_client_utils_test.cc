@@ -39,7 +39,6 @@ using std::get;
 using std::make_shared;
 using std::make_tuple;
 using std::shared_ptr;
-using std::string;
 using std::tuple;
 using testing::_;
 using testing::DoAll;
@@ -121,7 +120,7 @@ TEST(GcpInstanceClientUtilsTest, GetInstanceResourceNameDetails) {
 
 class GcpInstanceClientUtilsTestII : public TestWithParam<std::string> {
  protected:
-  string GetInstanceResourceName() { return GetParam(); }
+  std::string GetInstanceResourceName() { return GetParam(); }
 };
 
 TEST_P(GcpInstanceClientUtilsTestII, FailedWithBadInstanceResourceName) {
@@ -148,11 +147,11 @@ INSTANTIATE_TEST_SUITE_P(
         R"("//compute.googleapis.com/projects/123456/zones/us-west1/12345")"));
 
 class GcpInstanceClientUtilsTestIII
-    : public TestWithParam<tuple<string, string>> {
+    : public TestWithParam<tuple<std::string, std::string>> {
  protected:
-  string GetResourceName() { return get<0>(GetParam()); }
+  std::string GetResourceName() { return get<0>(GetParam()); }
 
-  string GetResourceLocation() { return get<1>(GetParam()); }
+  std::string GetResourceLocation() { return get<1>(GetParam()); }
 };
 
 TEST_P(GcpInstanceClientUtilsTestIII, CreateRMListTagsUrl) {

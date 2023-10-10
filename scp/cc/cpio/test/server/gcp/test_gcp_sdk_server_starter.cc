@@ -33,7 +33,6 @@ using google::scp::core::test::GetIpAddress;
 using google::scp::core::test::StartGcpContainer;
 using std::runtime_error;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace google::scp::cpio::test {
@@ -50,10 +49,10 @@ void TestGcpSdkServerStarter::RunCloud() {
   }
 }
 
-absl::flat_hash_map<string, string>
+absl::flat_hash_map<std::string, std::string>
 TestGcpSdkServerStarter::CreateSdkEnvVariables() {
-  absl::flat_hash_map<string, string> env_variables;
-  string gcp_endpoint_in_container =
+  absl::flat_hash_map<std::string, std::string> env_variables;
+  std::string gcp_endpoint_in_container =
       GetIpAddress(config_.network_name, config_.cloud_container_name) + ":" +
       config_.cloud_port;
   env_variables[kSdkClientLogOption] = "ConsoleLog";
@@ -67,7 +66,7 @@ TestGcpSdkServerStarter::CreateSdkEnvVariables() {
 }
 
 int TestGcpSdkServerStarter::StartPubSubEmulator() {
-  string command =
+  std::string command =
       absl::StrCat("docker exec -itd ", config_.cloud_container_name,
                    " gcloud beta emulators pubsub start --host-port 0.0.0.0:",
                    config_.cloud_port);

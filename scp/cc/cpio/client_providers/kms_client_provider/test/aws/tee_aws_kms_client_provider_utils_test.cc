@@ -18,24 +18,22 @@
 
 #include <string>
 
-using std::string;
-
 namespace google::scp::cpio::client_providers::test {
 TEST(TeeAwsKmsClientProviderUtilsTest, ExtractPlaintext) {
-  string plaintext;
-  string decrypt_result = "answdetset";
+  std::string plaintext;
+  std::string decrypt_result = "answdetset";
   TeeAwsKmsClientProviderUtils::ExtractPlaintext(decrypt_result, plaintext);
   EXPECT_EQ(plaintext, decrypt_result);
 
-  string decrypt_result_1 = "PLAINTEXT: " + decrypt_result;
+  std::string decrypt_result_1 = "PLAINTEXT: " + decrypt_result;
   TeeAwsKmsClientProviderUtils::ExtractPlaintext(decrypt_result_1, plaintext);
   EXPECT_EQ(plaintext, decrypt_result);
 
-  string decrypt_result_2 = "PLAINTEXT: " + decrypt_result + "\n";
+  std::string decrypt_result_2 = "PLAINTEXT: " + decrypt_result + "\n";
   TeeAwsKmsClientProviderUtils::ExtractPlaintext(decrypt_result_2, plaintext);
   EXPECT_EQ(plaintext, decrypt_result);
 
-  string decrypt_result_3 = decrypt_result + "\n";
+  std::string decrypt_result_3 = decrypt_result + "\n";
   TeeAwsKmsClientProviderUtils::ExtractPlaintext(decrypt_result_3, plaintext);
   EXPECT_EQ(plaintext, decrypt_result);
 }

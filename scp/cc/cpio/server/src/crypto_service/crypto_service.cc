@@ -99,7 +99,6 @@ using std::make_shared;
 using std::make_unique;
 using std::runtime_error;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 using std::placeholders::_1;
@@ -194,7 +193,7 @@ int main(int argc, char* argv[]) {
 
 void RunClients() {
   auto options = make_shared<CryptoClientOptions>();
-  string hpke_kem;
+  std::string hpke_kem;
   if (TryReadConfigString(config_provider, kCryptoClientHpkeKem, hpke_kem)
           .Successful()) {
     auto it = kHpkeKemConfigMap.find(hpke_kem);
@@ -203,7 +202,7 @@ void RunClients() {
     }
     options->hpke_params.set_kem(it->second);
   }
-  string hpke_kdf;
+  std::string hpke_kdf;
   if (TryReadConfigString(config_provider, kCryptoClientHpkeKdf, hpke_kdf)
           .Successful()) {
     auto it = kHpkeKdfConfigMap.find(hpke_kdf);
@@ -212,7 +211,7 @@ void RunClients() {
     }
     options->hpke_params.set_kdf(it->second);
   }
-  string hpke_aead;
+  std::string hpke_aead;
   if (TryReadConfigString(config_provider, kCryptoClientHpkeAead, hpke_aead)
           .Successful()) {
     auto it = kHpkeAeadConfigMap.find(hpke_aead);

@@ -36,7 +36,6 @@ using google::scp::roma::sandbox::constants::
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
 using std::make_shared;
-using std::string;
 using std::thread;
 using std::vector;
 

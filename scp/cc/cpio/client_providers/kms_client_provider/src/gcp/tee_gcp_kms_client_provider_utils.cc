@@ -20,8 +20,6 @@
 
 #include "absl/strings/str_format.h"
 
-using std::string;
-
 namespace {
 
 constexpr char kAudience[] = "//iam.googleapis.com/%s";
@@ -32,8 +30,9 @@ constexpr char kImpersonationUrl[] =
 
 namespace google::scp::cpio::client_providers {
 void TeeGcpKmsClientProviderUtils::CreateAttestedCredentials(
-    const string& wip_provider, const string& service_account_to_impersonate,
-    string& credential_json) noexcept {
+    const std::string& wip_provider,
+    const std::string& service_account_to_impersonate,
+    std::string& credential_json) noexcept {
   const nlohmann::json configuration{
       {"type", "external_account"},
       {"audience", absl::StrFormat(kAudience, wip_provider)},

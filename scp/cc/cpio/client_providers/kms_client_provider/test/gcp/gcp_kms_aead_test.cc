@@ -35,7 +35,6 @@ using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using testing::Eq;
 using testing::ExplainMatchResult;
@@ -89,8 +88,9 @@ MATCHER_P(RequestMatches, req, "") {
 TEST_F(GcpKmsAeadTest, SuccessToDecrypt) {
   DecryptRequest decrypt_request;
   decrypt_request.set_name(kKeyName);
-  decrypt_request.set_ciphertext(string(kCiphertext));
-  decrypt_request.set_additional_authenticated_data(string(kAssociatedData));
+  decrypt_request.set_ciphertext(std::string(kCiphertext));
+  decrypt_request.set_additional_authenticated_data(
+      std::string(kAssociatedData));
   DecryptResponse decrypt_response;
   decrypt_response.set_plaintext(kPlaintext);
   EXPECT_CALL(*mock_gcp_kms_client_, Decrypt(RequestMatches(decrypt_request)))
@@ -99,7 +99,7 @@ TEST_F(GcpKmsAeadTest, SuccessToDecrypt) {
   StatusOr<unique_ptr<Aead>> kms_aead = GcpKmsAead::New(
       kKeyName, dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
                     mock_gcp_kms_client_));
-  StatusOr<string> actual_plain_text =
+  StatusOr<std::string> actual_plain_text =
       (*kms_aead)->Decrypt(kCiphertext, kAssociatedData);
 
   ASSERT_TRUE(actual_plain_text.ok());
@@ -109,15 +109,15 @@ TEST_F(GcpKmsAeadTest, SuccessToDecrypt) {
 TEST_F(GcpKmsAeadTest, FailedToDecrypt) {
   DecryptRequest req;
   req.set_name(kKeyName);
-  req.set_ciphertext(string(kCiphertext));
-  req.set_additional_authenticated_data(string(kAssociatedData));
+  req.set_ciphertext(std::string(kCiphertext));
+  req.set_additional_authenticated_data(std::string(kAssociatedData));
   EXPECT_CALL(*mock_gcp_kms_client_, Decrypt(RequestMatches(req)))
       .WillOnce(Return(Status(StatusCode::kInvalidArgument, "Invalid input")));
 
   StatusOr<unique_ptr<Aead>> kms_aead = GcpKmsAead::New(
       kKeyName, dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
                     mock_gcp_kms_client_));
-  StatusOr<string> actual_plain_text =
+  StatusOr<std::string> actual_plain_text =
       (*kms_aead)->Decrypt(kCiphertext, kAssociatedData);
 
   ASSERT_FALSE(actual_plain_text.ok());

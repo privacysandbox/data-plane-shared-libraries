@@ -36,7 +36,6 @@ using Aws::String;
 using google::scp::core::test::StartLocalStackContainer;
 using std::runtime_error;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace google::scp::cpio::test {
@@ -49,9 +48,9 @@ void TestAwsSdkServerStarter::RunCloud() {
   }
 }
 
-absl::flat_hash_map<string, string>
+absl::flat_hash_map<std::string, std::string>
 TestAwsSdkServerStarter::CreateSdkEnvVariables() {
-  string cloud_endpoint_in_container = absl::StrCat(
+  std::string cloud_endpoint_in_container = absl::StrCat(
       "http://", config_.cloud_container_name, ":", config_.cloud_port);
   return {
       {kSdkClientLogOption, "ConsoleLog"},

@@ -53,8 +53,6 @@ using google::scp::core::errors::SC_GCP_METRIC_CLIENT_INVALID_METRIC_VALUE;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::GcpMetricClientUtils;
 using std::make_shared;
-using std::string;
-using std::to_string;
 using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -78,7 +76,8 @@ static constexpr char kInstanceZoneKey[] = "zone";
 class GcpMetricClientUtilsTest : public ::testing::Test {
  protected:
   void SetPutMetricsRequest(
-      PutMetricsRequest& record_metric_request, const string& value = kValue,
+      PutMetricsRequest& record_metric_request,
+      const std::string& value = kValue,
       const int64_t& timestamp_in_ms =
           duration_cast<milliseconds>(system_clock::now().time_since_epoch())
               .count()) {
@@ -88,7 +87,7 @@ class GcpMetricClientUtilsTest : public ::testing::Test {
     metric->set_unit(kUnit);
     *metric->mutable_timestamp() =
         TimeUtil::MillisecondsToTimestamp(timestamp_in_ms);
-    const absl::flat_hash_map<string, string> labels{
+    const absl::flat_hash_map<std::string, std::string> labels{
         {"CPU", "10"},
         {"GPU", "15"},
         {"RAM", "20"},
@@ -108,8 +107,8 @@ TEST_F(GcpMetricClientUtilsTest, ParseRequestToTimeSeries) {
 
   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
       context, kNamespace, time_series_list);
-  auto expected_type =
-      string(kMetricTypePrefix) + "/" + string(kNamespace) + "/test_name";
+  auto expected_type = std::string(kMetricTypePrefix) + "/" +
+                       std::string(kNamespace) + "/test_name";
   auto expected_timestamp = context.request->metrics()[0].timestamp();
 
   auto time_series = time_series_list[0];
@@ -134,8 +133,8 @@ TEST_F(GcpMetricClientUtilsTest, FailedWithBadMetricValue) {
 
   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
       context, kNamespace, time_series_list);
-  auto expected_type =
-      string(kMetricTypePrefix) + "/" + string(kNamespace) + "/test_name";
+  auto expected_type = std::string(kMetricTypePrefix) + "/" +
+                       std::string(kNamespace) + "/test_name";
   auto expected_timestamp = context.request->metrics()[0].timestamp();
 
   auto time_series = time_series_list[0];
@@ -183,7 +182,7 @@ TEST_F(GcpMetricClientUtilsTest, OverSizeLabels) {
   // Adds oversize labels.
   auto& labels = *context.request->add_metrics()->mutable_labels();
   for (int i = 0; i < 33; ++i) {
-    labels[string("key") + to_string(i)] = string("value");
+    labels[std::string("key") + std::to_string(i)] = std::string("value");
   }
   vector<TimeSeries> time_series_list;
   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(

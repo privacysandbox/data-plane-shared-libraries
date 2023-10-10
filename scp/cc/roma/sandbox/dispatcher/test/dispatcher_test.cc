@@ -52,7 +52,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -63,7 +62,7 @@ WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
   config.js_engine_require_code_preload = true;
   config.compilation_context_cache_size = 5;
   config.native_js_function_comms_fd = -1;
-  config.native_js_function_names = vector<string>();
+  config.native_js_function_names = vector<std::string>();
   config.max_worker_virtual_memory_mb = 0;
   config.sandbox_request_response_shared_buffer_size_mb = 0;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
@@ -333,7 +332,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   int requests_sent = number_of_workers * 3;
 
   vector<InvocationRequestStrInput> batch;
-  absl::flat_hash_set<string> request_ids;
+  absl::flat_hash_set<std::string> request_ids;
 
   for (int i = 0; i < requests_sent; i++) {
     auto execute_request = InvocationRequestStrInput();

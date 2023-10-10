@@ -35,8 +35,6 @@
 
 #include <libplatform/libplatform.h>
 
-using std::string;
-using std::to_string;
 using std::unique_ptr;
 using v8::Context;
 using v8::HandleScope;
@@ -51,7 +49,8 @@ class V8Test : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     const int my_pid = getpid();
-    const string proc_exe_path = string("/proc/") + to_string(my_pid) + "/exe";
+    const std::string proc_exe_path =
+        std::string("/proc/") + std::to_string(my_pid) + "/exe";
     auto my_path = std::make_unique<char[]>(PATH_MAX);
     ssize_t sz = readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
     ASSERT_GT(sz, 0);
@@ -103,7 +102,7 @@ TEST_F(V8Test, BasicJs) {
 
   // Convert the result to an UTF8 string.
   String::Utf8Value utf8(isolate_, result);
-  string val(*utf8, utf8.length());
+  std::string val(*utf8, utf8.length());
   EXPECT_EQ(val, "Hello, World!");
 }
 

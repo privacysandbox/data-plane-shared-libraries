@@ -57,8 +57,6 @@ using google::scp::roma::worker::ExecutionUtils;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::unique_ptr;
 using v8::Array;
 using v8::Context;
@@ -79,7 +77,8 @@ class ExecutionUtilsTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     const int my_pid = getpid();
-    const string proc_exe_path = string("/proc/") + to_string(my_pid) + "/exe";
+    const std::string proc_exe_path =
+        std::string("/proc/") + std::to_string(my_pid) + "/exe";
     auto my_path = std::make_unique<char[]>(PATH_MAX);
     ssize_t sz = readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
     ASSERT_GT(sz, 0);
@@ -210,7 +209,7 @@ class ExecutionUtilsTest : public ::testing::Test {
 v8::Platform* ExecutionUtilsTest::platform_{nullptr};
 
 TEST_F(ExecutionUtilsTest, InputToLocalArgv) {
-  std::vector<string> list = {"1", "2", "3"};
+  std::vector<std::string> list = {"1", "2", "3"};
   {
     Isolate::Scope isolate_scope(isolate_);
     HandleScope handle_scope(isolate_);
@@ -229,7 +228,7 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgv) {
 }
 
 TEST_F(ExecutionUtilsTest, InputToLocalArgvJsonInput) {
-  std::vector<string> list = {
+  std::vector<std::string> list = {
       R"({"value":1})",
       R"({"value":2})",
   };
@@ -253,7 +252,7 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvJsonInput) {
 }
 
 TEST_F(ExecutionUtilsTest, InputToLocalArgvInvalidJsonInput) {
-  std::vector<string> list = {
+  std::vector<std::string> list = {
       R"({favoriteFruit: "apple"})",
       R"({"value":2})",
   };
@@ -270,12 +269,12 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvInvalidJsonInput) {
 }
 
 TEST_F(ExecutionUtilsTest, InputToLocalArgvInputWithEmptyString) {
-  std::vector<string> list = {
+  std::vector<std::string> list = {
       "",
       R"({"value":2})",
       "{}",
   };
-  std::vector<string> expected_list = {
+  std::vector<std::string> expected_list = {
       "undefined",
       R"({"value":2})",
       "{}",
@@ -561,7 +560,7 @@ TEST_F(ExecutionUtilsTest, RustWasmWithStringInputAndStringOutput) {
 
 TEST_F(ExecutionUtilsTest, JsEmbeddedGlobalWasmCompileRunExecute) {
   RunCodeArguments code_obj;
-  string js = R"(
+  std::string js = R"(
           let bytes = new Uint8Array([
             0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
             0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07,
@@ -582,6 +581,6 @@ TEST_F(ExecutionUtilsTest, JsEmbeddedGlobalWasmCompileRunExecute) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, to_string(3).c_str());
+  EXPECT_EQ(output, std::to_string(3).c_str());
 }
 }  // namespace google::scp::roma::worker::test

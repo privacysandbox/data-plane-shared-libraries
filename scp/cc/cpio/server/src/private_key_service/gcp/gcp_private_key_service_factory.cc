@@ -57,7 +57,6 @@ using std::dynamic_pointer_cast;
 using std::list;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace {
@@ -115,7 +114,7 @@ ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
 
   // Read GCP specific configurations.
   // Read cloudfunction Urls.
-  list<string> secondary_private_key_vending_service_cloudfunction_urls;
+  list<std::string> secondary_private_key_vending_service_cloudfunction_urls;
   RETURN_AND_LOG_IF_FAILURE(
       TryReadConfigStringList(
           config_provider_,
@@ -134,7 +133,7 @@ ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
     return execution_result;
   }
 
-  string primary_private_key_vending_service_cloudfunction_url;
+  std::string primary_private_key_vending_service_cloudfunction_url;
   RETURN_AND_LOG_IF_FAILURE(
       TryReadConfigString(
           config_provider_, kGcpPrimaryPrivateKeyVendingServiceCloudfunctionUrl,
@@ -143,7 +142,7 @@ ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
       "Missing primary private key vending cloudfunction Url.");
 
   // Read WIP providers.
-  list<string> secondary_private_key_vending_service_wip_providers;
+  list<std::string> secondary_private_key_vending_service_wip_providers;
   RETURN_AND_LOG_IF_FAILURE(
       TryReadConfigStringList(
           config_provider_, kGcpSecondaryPrivateKeyVendingServiceWipProviders,
@@ -160,7 +159,7 @@ ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
     return execution_result;
   }
 
-  string primary_private_key_vending_service_wip_provider;
+  std::string primary_private_key_vending_service_wip_provider;
   RETURN_AND_LOG_IF_FAILURE(
       TryReadConfigString(config_provider_,
                           kGcpPrimaryPrivateKeyVendingServiceWipProvider,

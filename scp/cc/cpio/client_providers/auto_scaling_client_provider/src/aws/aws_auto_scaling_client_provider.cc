@@ -70,7 +70,6 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -86,8 +85,9 @@ static constexpr char kLifecycleActionResultContinue[] = "CONTINUE";
 namespace google::scp::cpio::client_providers {
 shared_ptr<ClientConfiguration>
 AwsAutoScalingClientProvider::CreateClientConfiguration(
-    const string& region) noexcept {
-  return common::CreateClientConfiguration(make_shared<string>(move(region)));
+    const std::string& region) noexcept {
+  return common::CreateClientConfiguration(
+      make_shared<std::string>(move(region)));
 }
 
 ExecutionResult AwsAutoScalingClientProvider::Init() noexcept {

@@ -52,7 +52,6 @@ using std::make_shared;
 using std::make_unique;
 using std::mutex;
 using std::shared_ptr;
-using std::string;
 using std::thread;
 using std::unique_lock;
 using std::unique_ptr;
@@ -67,7 +66,7 @@ static constexpr char kTransactionManager[] = "TransactionManager";
 namespace google::scp::core {
 ExecutionResult TransactionManager::RegisterAggregateMetric(
     shared_ptr<AggregateMetricInterface>& metrics_instance,
-    const string& name) noexcept {
+    const std::string& name) noexcept {
   auto metric_labels = MetricUtils::CreateMetricLabelsWithComponentSignature(
       kMetricComponentNameAndPartitionNamePrefixForTransactionManager +
           ToString(partition_id_),

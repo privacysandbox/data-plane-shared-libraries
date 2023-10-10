@@ -41,8 +41,6 @@ using google::scp::core::errors::
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::sandbox::constants::kMetadataRomaRequestId;
 using std::make_unique;
-using std::string;
-using std::to_string;
 using std::vector;
 using v8::Array;
 using v8::Context;
@@ -85,19 +83,19 @@ static bool V8TypesToProto(const FunctionCallbackInfo<Value>& info,
   auto function_parameter = info[0];
 
   // Try to convert to one of the supported types
-  string string_native;
-  vector<string> vector_of_string_native;
-  absl::flat_hash_map<string, string> map_of_string_native;
+  std::string string_native;
+  vector<std::string> vector_of_string_native;
+  absl::flat_hash_map<std::string, std::string> map_of_string_native;
 
-  if (TypeConverter<string>::FromV8(isolate, function_parameter,
-                                    &string_native)) {
+  if (TypeConverter<std::string>::FromV8(isolate, function_parameter,
+                                         &string_native)) {
     proto.set_input_string(string_native);
-  } else if (TypeConverter<vector<string>>::FromV8(isolate, function_parameter,
-                                                   &vector_of_string_native)) {
+  } else if (TypeConverter<vector<std::string>>::FromV8(
+                 isolate, function_parameter, &vector_of_string_native)) {
     proto.mutable_input_list_of_string()->mutable_data()->Add(
         vector_of_string_native.begin(), vector_of_string_native.end());
-  } else if (TypeConverter<absl::flat_hash_map<string, string>>::FromV8(
-                 isolate, function_parameter, &map_of_string_native)) {
+  } else if (TypeConverter<absl::flat_hash_map<std::string, std::string>>::
+                 FromV8(isolate, function_parameter, &map_of_string_native)) {
     for (auto&& kvp : map_of_string_native) {
       (*proto.mutable_input_map_of_string()->mutable_data())[kvp.first] =
           kvp.second;
@@ -123,12 +121,12 @@ static bool V8TypesToProto(const FunctionCallbackInfo<Value>& info,
 static Local<Value> ProtoToV8Type(Isolate* isolate,
                                   const FunctionBindingIoProto& proto) {
   if (proto.has_output_string()) {
-    return TypeConverter<string>::ToV8(isolate, proto.output_string());
+    return TypeConverter<std::string>::ToV8(isolate, proto.output_string());
   } else if (proto.has_output_list_of_string()) {
-    return TypeConverter<vector<string>>::ToV8(
+    return TypeConverter<vector<std::string>>::ToV8(
         isolate, proto.output_list_of_string().data());
   } else if (proto.has_output_map_of_string()) {
-    return TypeConverter<absl::flat_hash_map<string, string>>::ToV8(
+    return TypeConverter<absl::flat_hash_map<std::string, std::string>>::ToV8(
         isolate, proto.output_map_of_string().data());
   } else if (proto.has_output_bytes()) {
     const auto& bytes = proto.output_bytes();
@@ -168,14 +166,15 @@ void V8IsolateVisitorFunctionBinding::GlobalV8FunctionCallback(
 
   // Read the request ID from the global object in the context
   auto request_id_label =
-      TypeConverter<string>::ToV8(isolate, kMetadataRomaRequestId).As<String>();
+      TypeConverter<std::string>::ToV8(isolate, kMetadataRomaRequestId)
+          .As<String>();
   auto roma_request_id_maybe =
       context->Global()->Get(context, request_id_label);
   Local<Value> roma_request_id;
-  string roma_request_id_native;
+  std::string roma_request_id_native;
   if (roma_request_id_maybe.ToLocal(&roma_request_id) &&
-      TypeConverter<string>::FromV8(isolate, roma_request_id,
-                                    &roma_request_id_native)) {
+      TypeConverter<std::string>::FromV8(isolate, roma_request_id,
+                                         &roma_request_id_native)) {
     // Set the request ID in the function call metadata so that it is accessible
     // when the function is invoked in the user-provided binding.
     (*function_invocation_proto.mutable_metadata())[kMetadataRomaRequestId] =
@@ -184,7 +183,7 @@ void V8IsolateVisitorFunctionBinding::GlobalV8FunctionCallback(
     LOG(ERROR) << "Could not read request ID from metadata in hook.";
   }
 
-  string native_function_name = binding_info_pair->first;
+  std::string native_function_name = binding_info_pair->first;
   if (native_function_name.empty()) {
     isolate->ThrowError(kCouldNotRunFunctionBinding);
     return;
@@ -223,7 +222,8 @@ ExecutionResult V8IsolateVisitorFunctionBinding::Visit(
 
     // Convert the function binding name to a v8 type
     auto binding_name =
-        TypeConverter<string>::ToV8(isolate, binding_refer->first).As<String>();
+        TypeConverter<std::string>::ToV8(isolate, binding_refer->first)
+            .As<String>();
 
     global_object_template->Set(binding_name, function_template);
   }

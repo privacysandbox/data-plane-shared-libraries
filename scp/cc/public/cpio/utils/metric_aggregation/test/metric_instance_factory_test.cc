@@ -55,7 +55,6 @@ using google::scp::cpio::MockMetricClient;
 using std::atomic;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace {
@@ -81,7 +80,7 @@ class MetricInstanceFactoryTest : public testing::Test {
 
     auto mock_config_provider = make_shared<MockConfigProvider>();
 
-    mock_config_provider->SetInt(string(kAggregatedMetricIntervalMs),
+    mock_config_provider->SetInt(std::string(kAggregatedMetricIntervalMs),
                                  kAggregatedIntervalMs);
     EXPECT_SUCCESS(real_async_executor_->Init());
     EXPECT_SUCCESS(real_async_executor_->Run());

@@ -57,7 +57,6 @@ using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::thread;
 using std::unique_ptr;
 using std::chrono::seconds;
@@ -105,17 +104,17 @@ constexpr char kBase64EncodedResponse[] =
 
 namespace google::scp::cpio::client_providers::test {
 
-class GcpAuthTokenProviderTest : public testing::TestWithParam<string> {
+class GcpAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
   GcpAuthTokenProviderTest() : http_client_(make_shared<MockCurlClient>()) {
     authorizer_provider_ = make_unique<GcpAuthTokenProvider>(http_client_);
     fetch_token_for_target_audience_context_.request =
         make_shared<GetSessionTokenForTargetAudienceRequest>();
     fetch_token_for_target_audience_context_.request
-        ->token_target_audience_uri = make_shared<string>(kAudience);
+        ->token_target_audience_uri = make_shared<std::string>(kAudience);
   }
 
-  string GetResponseBody() { return GetParam(); }
+  std::string GetResponseBody() { return GetParam(); }
 
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       fetch_token_context_;

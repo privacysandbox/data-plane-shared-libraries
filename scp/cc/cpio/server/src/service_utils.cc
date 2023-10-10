@@ -60,12 +60,11 @@ using std::make_shared;
 using std::make_unique;
 using std::runtime_error;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 
 namespace google::scp::cpio {
 void Init(const shared_ptr<ServiceInterface>& service,
-          const string& service_name) {
+          const std::string& service_name) {
   if (service) {
     auto execution_result = service->Init();
     if (!execution_result.Successful()) {
@@ -80,7 +79,7 @@ void Init(const shared_ptr<ServiceInterface>& service,
 }
 
 void Run(const shared_ptr<ServiceInterface>& service,
-         const string& service_name) {
+         const std::string& service_name) {
   if (service) {
     auto execution_result = service->Run();
     if (!execution_result.Successful()) {
@@ -95,7 +94,7 @@ void Run(const shared_ptr<ServiceInterface>& service,
 }
 
 void Stop(const shared_ptr<ServiceInterface>& service,
-          const string& service_name) {
+          const std::string& service_name) {
   if (service) {
     auto execution_result = service->Stop();
     if (!execution_result.Successful()) {
@@ -111,7 +110,7 @@ void Stop(const shared_ptr<ServiceInterface>& service,
 
 void RunLogger(const shared_ptr<ConfigProviderInterface>& config_provider) {
   LogOption log_option = LogOption::kSysLog;
-  string log_option_config;
+  std::string log_option_config;
   if (TryReadConfigString(config_provider, kSdkClientLogOption,
                           log_option_config)
           .Successful()) {
@@ -156,7 +155,7 @@ void StopLogger() {
 }
 
 void InitializeCloud(shared_ptr<CloudInitializerInterface>& cloud_initializer,
-                     const string& service_name) {
+                     const std::string& service_name) {
   cloud_initializer = CloudInitializerFactory::Create();
   Init(cloud_initializer, service_name);
   Run(cloud_initializer, service_name);
@@ -164,13 +163,13 @@ void InitializeCloud(shared_ptr<CloudInitializerInterface>& cloud_initializer,
 }
 
 void ShutdownCloud(shared_ptr<CloudInitializerInterface>& cloud_initializer,
-                   const string& service_name) {
+                   const std::string& service_name) {
   cloud_initializer->ShutdownCloud();
   Stop(cloud_initializer, service_name);
 }
 
 void RunConfigProvider(shared_ptr<ConfigProviderInterface>& config_provider,
-                       const string& service_name) {
+                       const std::string& service_name) {
   config_provider = make_shared<EnvConfigProvider>();
   Init(config_provider, service_name);
   Run(config_provider, service_name);
@@ -179,7 +178,7 @@ void RunConfigProvider(shared_ptr<ConfigProviderInterface>& config_provider,
 void RunNetworkServer(
     std::shared_ptr<core::NetworkServiceInterface>& network_service,
     int32_t network_concurrency, const std::string& service_name,
-    const string& server_uri) {
+    const std::string& server_uri) {
   network_service = make_shared<GrpcNetworkService>(
       GrpcNetworkService::AddressType::kUNIX, server_uri, network_concurrency);
   Init(network_service, service_name);
@@ -197,10 +196,10 @@ void SignalSegmentationHandler(int signum) {
   exit(signum);
 }
 
-string ReadConfigString(
+std::string ReadConfigString(
     const shared_ptr<ConfigProviderInterface> config_provider,
-    const string& config_key) {
-  string config_value;
+    const std::string& config_key) {
+  std::string config_value;
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
     throw runtime_error(config_key + " is not provided. " +
@@ -211,7 +210,7 @@ string ReadConfigString(
 
 void ReadConfigStringList(
     const shared_ptr<ConfigProviderInterface> config_provider,
-    const string& config_key, list<string>& config_values) {
+    const std::string& config_key, list<std::string>& config_values) {
   auto execution_result = config_provider->Get(config_key, config_values);
   if (!execution_result.Successful()) {
     throw runtime_error(config_key + " is not provided. " +
@@ -221,7 +220,7 @@ void ReadConfigStringList(
 
 ExecutionResult TryReadConfigStringList(
     const shared_ptr<ConfigProviderInterface> config_provider,
-    const string& config_key, list<string>& config_values) {
+    const std::string& config_key, list<std::string>& config_values) {
   auto execution_result = config_provider->Get(config_key, config_values);
   if (!execution_result.Successful()) {
     cout << "Optional " << config_key << " is not provided. "
@@ -232,7 +231,7 @@ ExecutionResult TryReadConfigStringList(
 
 ExecutionResult TryReadConfigString(
     const shared_ptr<ConfigProviderInterface> config_provider,
-    const string& config_key, string& config_value) {
+    const std::string& config_key, std::string& config_value) {
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
     cout << "Optional " << config_key << " is not provided. "
@@ -243,7 +242,7 @@ ExecutionResult TryReadConfigString(
 
 ExecutionResult TryReadConfigBool(
     const shared_ptr<ConfigProviderInterface> config_provider,
-    const string& config_key, bool& config_value) {
+    const std::string& config_key, bool& config_value) {
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
     cout << "Optional " << config_key << " is not provided. "
@@ -253,7 +252,7 @@ ExecutionResult TryReadConfigBool(
 }
 
 int32_t ReadConfigInt(const shared_ptr<ConfigProviderInterface> config_provider,
-                      const string& config_key) {
+                      const std::string& config_key) {
   int32_t config_value;
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
@@ -265,7 +264,7 @@ int32_t ReadConfigInt(const shared_ptr<ConfigProviderInterface> config_provider,
 
 ExecutionResult TryReadConfigInt(
     const shared_ptr<ConfigProviderInterface> config_provider,
-    const string& config_key, int32_t& config_value) {
+    const std::string& config_key, int32_t& config_value) {
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
     cout << "Optional " << config_key << " is not provided. "

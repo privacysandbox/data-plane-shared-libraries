@@ -63,7 +63,6 @@ using nghttp2::asio_http2::host_service_from_uri;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 
@@ -93,7 +92,7 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequest(
     AsyncContext<PrivateKeyFetchingRequest, HttpRequest>&
         sign_request_context) noexcept {
   auto request = make_shared<GetRoleCredentialsRequest>();
-  request->account_identity = make_shared<string>(
+  request->account_identity = make_shared<std::string>(
       sign_request_context.request->key_vending_endpoint->account_identity);
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_session_credentials_context(
@@ -139,9 +138,9 @@ void AwsPrivateKeyFetcherProvider::
 }
 
 ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
-    shared_ptr<HttpRequest>& http_request, const string& access_key,
-    const string& secret_key, const string& security_token,
-    const string& region) noexcept {
+    shared_ptr<HttpRequest>& http_request, const std::string& access_key,
+    const std::string& secret_key, const std::string& security_token,
+    const std::string& region) noexcept {
   auto credentials = AWSCredentials(access_key.c_str(), secret_key.c_str(),
                                     security_token.c_str());
   auto credentials_provider =

@@ -41,16 +41,14 @@ using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::vector;
 
 namespace google::scp::roma::sandbox::worker {
-static absl::flat_hash_map<string, string> GetEngineOneTimeSetup(
+static absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
     const WorkerFactory::FactoryParams& params) {
-  absl::flat_hash_map<string, string> one_time_setup;
-  one_time_setup[kJsEngineOneTimeSetupWasmPagesKey] =
-      to_string(params.v8_worker_engine_params.max_wasm_memory_number_of_pages);
+  absl::flat_hash_map<std::string, std::string> one_time_setup;
+  one_time_setup[kJsEngineOneTimeSetupWasmPagesKey] = std::to_string(
+      params.v8_worker_engine_params.max_wasm_memory_number_of_pages);
   return one_time_setup;
 }
 

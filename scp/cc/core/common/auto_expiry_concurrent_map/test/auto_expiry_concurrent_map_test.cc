@@ -53,7 +53,6 @@ using std::shared_lock;
 using std::shared_ptr;
 using std::shared_timed_mutex;
 using std::static_pointer_cast;
-using std::string;
 using std::unique_lock;
 using std::vector;
 using std::chrono::milliseconds;
@@ -691,13 +690,13 @@ TEST(AutoExpiryConcurrentMapEntryTest, StopShouldWaitForScheduledWork) {
   // later.
   auto on_before_gc_lambda = [&gc_completion_lambdas,
                               &gc_completion_lambdas_mutex](
-                                 string&, shared_ptr<string>&,
+                                 std::string&, shared_ptr<std::string>&,
                                  std::function<void(bool)> completion_lambda) {
     unique_lock lock(gc_completion_lambdas_mutex);
     gc_completion_lambdas.push_back(std::move(completion_lambda));
   };
 
-  AutoExpiryConcurrentMap<string, shared_ptr<string>> map(
+  AutoExpiryConcurrentMap<std::string, shared_ptr<std::string>> map(
       /*evict_timeout=*/1, /*extend_entry_lifetime_on_access=*/false,
       /*block_entry_while_eviction=*/false, on_before_gc_lambda,
       async_executor);
@@ -705,19 +704,19 @@ TEST(AutoExpiryConcurrentMapEntryTest, StopShouldWaitForScheduledWork) {
   // Insert 3 entries. 3 callback lambdas will be invoked once the garbage
   // collection work is started.
   {
-    shared_ptr<string> out_value;
-    EXPECT_SUCCESS(map.Insert(make_pair("key1", make_shared<string>("value1")),
-                              out_value));
+    shared_ptr<std::string> out_value;
+    EXPECT_SUCCESS(map.Insert(
+        make_pair("key1", make_shared<std::string>("value1")), out_value));
   }
   {
-    shared_ptr<string> out_value;
-    EXPECT_SUCCESS(map.Insert(make_pair("key2", make_shared<string>("value2")),
-                              out_value));
+    shared_ptr<std::string> out_value;
+    EXPECT_SUCCESS(map.Insert(
+        make_pair("key2", make_shared<std::string>("value2")), out_value));
   }
   {
-    shared_ptr<string> out_value;
-    EXPECT_SUCCESS(map.Insert(make_pair("key3", make_shared<string>("value3")),
-                              out_value));
+    shared_ptr<std::string> out_value;
+    EXPECT_SUCCESS(map.Insert(
+        make_pair("key3", make_shared<std::string>("value3")), out_value));
   }
 
   EXPECT_SUCCESS(async_executor->Init());

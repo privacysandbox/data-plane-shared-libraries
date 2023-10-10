@@ -67,7 +67,6 @@ using google::scp::cpio::client_providers::PrivateKeyClientProviderInterface;
 using std::list;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace {
 constexpr char kPrivateKeyServiceFactory[] = "PrivateKeyServiceFactory";
@@ -80,7 +79,7 @@ constexpr int kDefaultIoThreadPoolQueueCap = 100000;
 namespace google::scp::cpio {
 ExecutionResult PrivateKeyServiceFactory::ReadConfigurations() noexcept {
   client_options_ = CreatePrivateKeyClientOptions();
-  list<string> secondary_private_key_vending_service_endpoints;
+  list<std::string> secondary_private_key_vending_service_endpoints;
   auto execution_result = TryReadConfigStringList(
       config_provider_, kSecondaryPrivateKeyVendingServiceEndpoints,
       secondary_private_key_vending_service_endpoints);
@@ -90,7 +89,7 @@ ExecutionResult PrivateKeyServiceFactory::ReadConfigurations() noexcept {
     return execution_result;
   }
 
-  list<string> secondary_private_key_vending_service_regions;
+  list<std::string> secondary_private_key_vending_service_regions;
   execution_result = TryReadConfigStringList(
       config_provider_, kSecondaryPrivateKeyVendingServiceRegions,
       secondary_private_key_vending_service_regions);
@@ -100,7 +99,7 @@ ExecutionResult PrivateKeyServiceFactory::ReadConfigurations() noexcept {
     return execution_result;
   }
 
-  list<string> secondary_private_key_vending_service_account_identities;
+  list<std::string> secondary_private_key_vending_service_account_identities;
   execution_result = TryReadConfigStringList(
       config_provider_, kSecondaryPrivateKeyVendingServiceAccountIdentities,
       secondary_private_key_vending_service_account_identities);

@@ -55,24 +55,22 @@ using std::function;
 using std::make_shared;
 using std::promise;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::vector;
 
 namespace google::scp::core {
 
-static string Base64Encode(const string& raw_data) {
+static std::string Base64Encode(const std::string& raw_data) {
   size_t required_len = 0;
   if (EVP_EncodedLength(&required_len, raw_data.length()) == 0) {
-    return string();
+    return std::string();
   }
-  string out(required_len, '\0');
+  std::string out(required_len, '\0');
 
   size_t output_len = EVP_EncodeBlock(
       reinterpret_cast<uint8_t*>(out.data()),
       reinterpret_cast<const uint8_t*>(raw_data.data()), raw_data.length());
   if (output_len == 0) {
-    return string();
+    return std::string();
   }
   out.pop_back();  // EVP_EncodeBlock writes trailing \0. pop it.
   return out;
@@ -80,7 +78,7 @@ static string Base64Encode(const string& raw_data) {
 
 class MockAuthServer {
  public:
-  MockAuthServer(string address, string port)
+  MockAuthServer(std::string address, std::string port)
       : address_(address), port_(port), running_(false) {}
 
   ~MockAuthServer() {
@@ -110,12 +108,12 @@ class MockAuthServer {
     running_ = true;
   }
 
-  string Port() { return to_string(server_.ports()[0]); }
+  std::string Port() { return std::to_string(server_.ports()[0]); }
 
  private:
   http2 server_;
-  string address_;
-  string port_;
+  std::string address_;
+  std::string port_;
   bool running_;
 };
 
@@ -139,7 +137,7 @@ TEST(AwsAuthorizerTest, BasicHappyPath) {
   auto request = make_shared<AuthorizationRequest>();
   request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef", "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(std::move(request), [&](Context& context) {
@@ -170,7 +168,7 @@ TEST(AwsAuthorizerTest, BasicUnauthorized) {
   request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(std::move(request), [&](Context& context) {
@@ -203,7 +201,7 @@ TEST(AwsAuthorizerTest, MalformedServerResponse) {
   request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(std::move(request), [&](Context& context) {
@@ -240,16 +238,16 @@ TEST(AwsAuthorizerTest, CannotConnectServer) {
   ret = getsockname(sock, reinterpret_cast<sockaddr*>(&addr), &len);
   EXPECT_EQ(ret, 0);
   EXPECT_GT(addr.sin_port, 0);
-  string port = to_string(ntohs(addr.sin_port));
+  std::string port = std::to_string(ntohs(addr.sin_port));
 
   auto authorizer = make_shared<AwsAuthorizer>(
-      string("http://localhost:") + port + "/success", "us-east-1",
+      std::string("http://localhost:") + port + "/success", "us-east-1",
       async_executor, http_client);
   auto request = make_shared<AuthorizationRequest>();
   request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(std::move(request), [&](Context& context) {
@@ -288,7 +286,7 @@ TEST(AwsAuthorizerTest, MalformedToken) {
               ResultIs(FailureExecutionResult(
                   errors::SC_AUTHORIZATION_SERVICE_BAD_TOKEN)));
 
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
   EXPECT_THAT(authorizer->Authorize(context),
               ResultIs(FailureExecutionResult(
                   errors::SC_AUTHORIZATION_SERVICE_BAD_TOKEN)));
@@ -334,7 +332,7 @@ TEST(AwsAuthorizerTest, BadConfig) {
   request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
 
   Context context(std::move(request), [&](Context& context) {});
   EXPECT_THAT(authorizer->Authorize(context),
@@ -356,7 +354,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
   request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
 
@@ -371,7 +369,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
               authorizer->Authorize(context),
               ResultIs(RetryExecutionResult(
                   errors::SC_AUTHORIZATION_SERVICE_AUTH_TOKEN_IS_REFRESHING)));
-          vector<string> keys;
+          vector<std::string> keys;
           authorizer->GetAuthorizationTokensMap()->Keys(keys);
           EXPECT_EQ(keys.size(), 1);
           EXPECT_EQ(
@@ -394,7 +392,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
   }
 
   http_context.response = make_shared<HttpResponse>();
-  string body(R"({ "authorized_domain": "blahblah" })");
+  std::string body(R"({ "authorized_domain": "blahblah" })");
   http_context.response->body.bytes =
       make_shared<vector<Byte>>(body.begin(), body.end());
   http_context.response->body.length = body.length();
@@ -411,7 +409,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
   EXPECT_EQ(counter.load(), 1);
   WaitUntil([&]() { return called.load(); });
 
-  vector<string> keys;
+  vector<std::string> keys;
   authorizer->GetAuthorizationTokensMap()->Keys(keys);
   EXPECT_EQ(keys.size(), 1);
   EXPECT_EQ(authorizer->GetAuthorizationTokensMap()->IsEvictable(keys[0]),
@@ -430,7 +428,7 @@ TEST(AwsAuthorizerTest, HttpClientFailureWillInvalidateCache) {
   request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
 
@@ -476,7 +474,7 @@ TEST(AwsAuthorizerTest, HttpClientFailureOnResponse) {
   request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
 
   Context context(std::move(request), [&](Context& context) {});
 
@@ -503,7 +501,7 @@ TEST(AwsAuthorizerTest, OnBeforeGarbageCollection) {
       "http://localhost:441/success", "us-east-1", async_executor, http_client);
 
   bool called = false;
-  string cache_entry_key;
+  std::string cache_entry_key;
   function<void(bool)> should_delete_entry = [&](bool should_delete) {
     EXPECT_EQ(should_delete, true);
     called = true;
@@ -530,7 +528,7 @@ TEST(AwsAuthorizerTest, InsertionWhileDeletionShouldReturnRefreshStatusCode) {
   auto request = make_shared<AuthorizationRequest>();
   request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef", "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<string>("claimed_identity");
+  request->claimed_identity = make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(request, [&](Context& context) {
@@ -540,7 +538,7 @@ TEST(AwsAuthorizerTest, InsertionWhileDeletionShouldReturnRefreshStatusCode) {
   ASSERT_EQ(authorizer->Authorize(context), SuccessExecutionResult());
   done.get_future().get();
 
-  vector<string> keys;
+  vector<std::string> keys;
   authorizer->GetAuthorizationTokensMap()->Keys(keys);
 
   EXPECT_EQ(keys.size(), 1);

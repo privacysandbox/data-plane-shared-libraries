@@ -78,7 +78,6 @@ using std::make_unique;
 using std::optional;
 using std::pair;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::unordered_map;
 using std::vector;
@@ -104,7 +103,8 @@ class TestGcpSpanner : public GcpSpanner {
   explicit TestGcpSpanner(
       std::shared_ptr<Client> spanner_client,
       std::shared_ptr<AsyncExecutorInterface> async_executor,
-      std::unique_ptr<unordered_map<string, pair<string, optional<string>>>>
+      std::unique_ptr<
+          unordered_map<std::string, pair<std::string, optional<std::string>>>>
           table_name_to_keys)
       : GcpSpanner(spanner_client, async_executor,
                    std::move(table_name_to_keys), AsyncPriority::Normal,
@@ -112,9 +112,9 @@ class TestGcpSpanner : public GcpSpanner {
 };
 
 MATCHER_P(SqlEqual, expected_sql, "") {
-  string no_whitespace_arg_sql = arg.statement.sql();
+  std::string no_whitespace_arg_sql = arg.statement.sql();
   absl::RemoveExtraAsciiWhitespace(&no_whitespace_arg_sql);
-  string no_whitespace_expected_sql = expected_sql.sql();
+  std::string no_whitespace_expected_sql = expected_sql.sql();
   absl::RemoveExtraAsciiWhitespace(&no_whitespace_expected_sql);
 
   SqlStatement modified_arg(no_whitespace_arg_sql, arg.statement.params());
@@ -123,7 +123,7 @@ MATCHER_P(SqlEqual, expected_sql, "") {
 
   if (!ExplainMatchResult(Eq(modified_expected), modified_arg,
                           result_listener)) {
-    string actual =
+    std::string actual =
         absl::StrFormat(R"(Actual - SQL: "%s")", no_whitespace_arg_sql);
     for (const auto& [name, val] : modified_arg.params()) {
       absl::StrAppend(&actual, absl::StrFormat("\n[param]: {%s=%s}", name,
@@ -142,10 +142,11 @@ constexpr char kBudgetKeySortKeyName[] = "Timeframe";
 constexpr char kPartitionLockTableName[] = "PartitionLock";
 constexpr char kPartitionLockPartitionKeyName[] = "LockId";
 
-std::unique_ptr<unordered_map<string, pair<string, optional<string>>>>
+std::unique_ptr<
+    unordered_map<std::string, pair<std::string, optional<std::string>>>>
 GetTableNameToKeysMap() {
-  auto map =
-      make_unique<unordered_map<string, pair<string, optional<string>>>>();
+  auto map = make_unique<
+      unordered_map<std::string, pair<std::string, optional<std::string>>>>();
   map->emplace(kBudgetKeyTableName,
                make_pair(kBudgetKeyPartitionKeyName, kBudgetKeySortKeyName));
   map->emplace(kPartitionLockTableName,
@@ -167,7 +168,7 @@ class GcpSpannerTests : public testing::Test {
         make_shared<NoSQLDatabaseValidAttributeValueTypes>()};
 
     GetDatabaseItemRequest get_request;
-    get_request.table_name = make_shared<string>(kBudgetKeyTableName);
+    get_request.table_name = make_shared<std::string>(kBudgetKeyTableName);
     get_request.partition_key =
         make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
 
@@ -179,7 +180,7 @@ class GcpSpannerTests : public testing::Test {
     };
 
     UpsertDatabaseItemRequest upsert_request;
-    upsert_request.table_name = make_shared<string>(kBudgetKeyTableName);
+    upsert_request.table_name = make_shared<std::string>(kBudgetKeyTableName);
     upsert_request.partition_key =
         make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
 
@@ -255,11 +256,12 @@ TEST_F(GcpSpannerTests, GetItemWithPartitionKeyOnly) {
     EXPECT_THAT(
         response->partition_key,
         Pointee(FieldsAre(Pointee(StrEq(kPartitionLockPartitionKeyName)),
-                          Pointee(VariantWith<string>("3")))));
+                          Pointee(VariantWith<std::string>("3")))));
     EXPECT_THAT(response->sort_key, IsNull());
-    EXPECT_THAT(response->attributes, Pointee(UnorderedElementsAre(FieldsAre(
-                                          Pointee(StrEq("token_count")),
-                                          Pointee(VariantWith<string>("1"))))));
+    EXPECT_THAT(response->attributes,
+                Pointee(UnorderedElementsAre(
+                    FieldsAre(Pointee(StrEq("token_count")),
+                              Pointee(VariantWith<std::string>("1"))))));
 
     finish_called_ = true;
   };
@@ -307,13 +309,14 @@ TEST_F(GcpSpannerTests, GetItemWithPartitionAndSortKey) {
     ASSERT_THAT(response, NotNull());
     EXPECT_THAT(response->partition_key,
                 Pointee(FieldsAre(Pointee(StrEq(kBudgetKeyPartitionKeyName)),
-                                  Pointee(VariantWith<string>("3")))));
+                                  Pointee(VariantWith<std::string>("3")))));
     EXPECT_THAT(response->sort_key,
                 Pointee(FieldsAre(Pointee(StrEq(kBudgetKeySortKeyName)),
-                                  Pointee(VariantWith<string>("2")))));
-    EXPECT_THAT(response->attributes, Pointee(UnorderedElementsAre(FieldsAre(
-                                          Pointee(StrEq("token_count")),
-                                          Pointee(VariantWith<string>("1"))))));
+                                  Pointee(VariantWith<std::string>("2")))));
+    EXPECT_THAT(response->attributes,
+                Pointee(UnorderedElementsAre(
+                    FieldsAre(Pointee(StrEq("token_count")),
+                              Pointee(VariantWith<std::string>("1"))))));
 
     finish_called_ = true;
   };
@@ -369,11 +372,12 @@ TEST_F(GcpSpannerTests, GetItemWithPartitionAndSortKeyWithAttributes) {
     ASSERT_THAT(response, NotNull());
     EXPECT_THAT(response->partition_key,
                 Pointee(FieldsAre(Pointee(StrEq(kBudgetKeyPartitionKeyName)),
-                                  Pointee(VariantWith<string>("3")))));
+                                  Pointee(VariantWith<std::string>("3")))));
     EXPECT_THAT(response->sort_key, Pointee(_));
-    EXPECT_THAT(response->attributes, Pointee(UnorderedElementsAre(FieldsAre(
-                                          Pointee(StrEq("token_count")),
-                                          Pointee(VariantWith<string>("1"))))));
+    EXPECT_THAT(response->attributes,
+                Pointee(UnorderedElementsAre(
+                    FieldsAre(Pointee(StrEq("token_count")),
+                              Pointee(VariantWith<std::string>("1"))))));
 
     finish_called_ = true;
   };
@@ -485,7 +489,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithPartitionKeyOnly) {
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
@@ -529,7 +533,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithSortKey) {
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
@@ -572,7 +576,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithExistingValue) {
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
@@ -621,7 +625,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesFailsIfCommitFails) {
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
@@ -661,7 +665,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesFailsIfJsonParseFails) {
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
@@ -699,13 +703,13 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithPartitionKeyOnly) {
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
@@ -760,13 +764,13 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithSortKey) {
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
@@ -824,13 +828,13 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfNoRowsFound) {
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
@@ -880,13 +884,13 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfCommitFails) {
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 

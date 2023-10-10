@@ -63,7 +63,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::chrono::seconds;
 using testing::_;
@@ -138,16 +137,16 @@ class GcpInstanceClientProviderTest : public testing::Test {
   shared_ptr<MockAuthTokenProvider> authorizer_provider_;
   unique_ptr<GcpInstanceClientProvider> instance_provider_;
 
-  string get_details_path_mock_;
+  std::string get_details_path_mock_;
   shared_ptr<GetInstanceDetailsByResourceNameRequest> get_details_request_;
-  string get_tag_path_mock_;
+  std::string get_tag_path_mock_;
   shared_ptr<GetTagsByResourceNameRequest> get_tags_request_;
 };
 
 TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
-  string project_id_result = kProjectIdResult;
-  string zone_result = kZoneResult;
-  string id_result = kInstanceIdResult;
+  std::string project_id_result = kProjectIdResult;
+  std::string zone_result = kZoneResult;
+  std::string id_result = kInstanceIdResult;
 
   EXPECT_CALL(*http1_client_, PerformRequest)
       .Times(3)
@@ -176,7 +175,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
         return SuccessExecutionResult();
       });
 
-  string resource_name;
+  std::string resource_name;
 
   EXPECT_THAT(
       instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
@@ -202,7 +201,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  string resource_name;
+  std::string resource_name;
   EXPECT_THAT(
       instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
@@ -211,9 +210,9 @@ TEST_F(GcpInstanceClientProviderTest,
 }
 
 TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
-  string project_id_result = kProjectIdResult;
-  string zone_result = kZoneResult;
-  string id_result = kInstanceIdResult;
+  std::string project_id_result = kProjectIdResult;
+  std::string zone_result = kZoneResult;
+  std::string id_result = kInstanceIdResult;
 
   EXPECT_CALL(*http1_client_, PerformRequest)
       .Times(3)
@@ -262,7 +261,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
 
 TEST_F(GcpInstanceClientProviderTest,
        FailedToGetCurrentInstanceResourceNameOnlyGotOneResult) {
-  string id_result = kInstanceIdResult;
+  std::string id_result = kInstanceIdResult;
 
   EXPECT_CALL(*http1_client_, PerformRequest)
       .Times(3)
@@ -343,7 +342,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSyncSuccess) {
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -448,7 +447,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsAccessConfigLoop) {
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -532,7 +531,7 @@ TEST_F(GcpInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -564,7 +563,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -654,7 +653,7 @@ TEST_F(GcpInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -799,7 +798,7 @@ TEST_F(GcpInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -839,7 +838,7 @@ TEST_F(GcpInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -903,7 +902,7 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -1005,7 +1004,7 @@ TEST_F(GcpInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -1043,7 +1042,7 @@ TEST_F(GcpInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -1113,7 +1112,7 @@ TEST_F(GcpInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();

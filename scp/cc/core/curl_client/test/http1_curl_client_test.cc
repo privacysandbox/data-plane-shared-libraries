@@ -28,7 +28,6 @@
 using std::atomic_bool;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using testing::AtLeast;
 using testing::ExplainMatchResult;

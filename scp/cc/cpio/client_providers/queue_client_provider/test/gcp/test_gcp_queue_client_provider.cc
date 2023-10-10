@@ -33,7 +33,6 @@ using grpc::CreateCustomChannel;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::cpio::client_providers {
 shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(

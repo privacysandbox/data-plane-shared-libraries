@@ -65,7 +65,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 using std::chrono::duration_cast;
@@ -135,7 +134,7 @@ class GcpMetricClientProviderTest : public ::testing::Test {
 };
 
 static void SetPutMetricsRequest(
-    PutMetricsRequest& record_metric_request, const string& value = kValue,
+    PutMetricsRequest& record_metric_request, const std::string& value = kValue,
     const int64_t& timestamp_in_ms =
         duration_cast<milliseconds>(system_clock::now().time_since_epoch())
             .count()) {
@@ -151,9 +150,9 @@ MATCHER_P2(RequestEquals, metric_name, metric_namespace, "") {
   if (arg.name() != metric_name) {
     equal = false;
   }
-  if (arg.time_series()[0].metric().type() != "custom.googleapis.com/" +
-                                                  string(metric_namespace) +
-                                                  "/" + string(kName)) {
+  if (arg.time_series()[0].metric().type() !=
+      "custom.googleapis.com/" + std::string(metric_namespace) + "/" +
+          std::string(kName)) {
     equal = false;
   }
   double value = 0.0;

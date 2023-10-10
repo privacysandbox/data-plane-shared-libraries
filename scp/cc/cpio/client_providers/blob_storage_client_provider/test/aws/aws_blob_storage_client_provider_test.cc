@@ -77,7 +77,6 @@ using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using testing::_;
 using testing::ElementsAre;
@@ -203,7 +202,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {
 TEST_F(AwsBlobStorageClientProviderTest, GetBlobSuccess) {
   auto bucket_name = "bucket_name";
   auto blob_name = "blob_name";
-  string blob_data("Hello world!");
+  std::string blob_data("Hello world!");
   get_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
       bucket_name);
   get_blob_context_.request->mutable_blob_metadata()->set_blob_name(blob_name);
@@ -249,7 +248,7 @@ MATCHER_P3(HasBucketKeyAndRange, bucket, key, range, "") {
 TEST_F(AwsBlobStorageClientProviderTest, GetBlobWithByteRange) {
   auto bucket_name = "bucket_name";
   auto blob_name = "blob_name";
-  string blob_data("Hello world!");
+  std::string blob_data("Hello world!");
   get_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
       bucket_name);
   get_blob_context_.request->mutable_blob_metadata()->set_blob_name(blob_name);
@@ -426,7 +425,7 @@ TEST_F(AwsBlobStorageClientProviderTest, ListBlobsSuccess) {
 }
 
 MATCHER_P3(HasBucketKeyAndBody, bucket_name, key, body, "") {
-  string body_string(body.length(), 0);
+  std::string body_string(body.length(), 0);
   arg.GetBody()->read(body_string.data(), body_string.length());
   return ExplainMatchResult(HasBucketAndKey(bucket_name, key), arg,
                             result_listener) &&
@@ -443,7 +442,7 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobFailure) {
   put_blob_context_.request->mutable_blob()->mutable_metadata()->set_blob_name(
       blob_name);
 
-  string body_str("1234567890");
+  std::string body_str("1234567890");
   put_blob_context_.request->mutable_blob()->set_data(body_str);
   put_blob_context_.callback =
       [this](AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context) {
@@ -479,7 +478,7 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobSuccess) {
   put_blob_context_.request->mutable_blob()->mutable_metadata()->set_blob_name(
       blob_name);
 
-  string body_str("1234567890");
+  std::string body_str("1234567890");
   put_blob_context_.request->mutable_blob()->set_data(body_str);
   put_blob_context_.callback =
       [this](AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context) {

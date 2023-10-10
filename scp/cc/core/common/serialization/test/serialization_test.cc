@@ -31,7 +31,6 @@ using google::protobuf::Message;
 using google::scp::core::common::Uuid;
 using google::scp::core::common::test::serialization::TestStringRequest;
 using std::make_shared;
-using std::string;
 using std::vector;
 
 namespace google::scp::core::common::test {

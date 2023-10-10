@@ -40,7 +40,6 @@ using std::end;
 using std::make_pair;
 using std::make_shared;
 using std::make_unique;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -65,18 +64,18 @@ static constexpr int kAuthorizationTokenCacheLifetimeSeconds = 150;
 namespace google::scp::core {
 
 AwsAuthorizer::AwsAuthorizer(
-    const string& server_endpoint, const string& aws_region,
+    const std::string& server_endpoint, const std::string& aws_region,
     const shared_ptr<AsyncExecutorInterface>& async_executor,
     const shared_ptr<HttpClientInterface>& http_client)
     : authorization_tokens_(
           make_unique<AutoExpiryConcurrentMap<
-              string, shared_ptr<AwsAuthorizationTokenCacheEntry>>>(
+              std::string, shared_ptr<AwsAuthorizationTokenCacheEntry>>>(
               kAuthorizationTokenCacheLifetimeSeconds,
               false /* extend_entry_lifetime_on_access */,
               false /* block_entry_while_eviction */,
               bind(&AwsAuthorizer::OnBeforeGarbageCollection, this, _1, _2, _3),
               async_executor)),
-      server_endpoint_(make_shared<string>(server_endpoint)),
+      server_endpoint_(make_shared<std::string>(server_endpoint)),
       aws_region_(aws_region),
       http_client_(http_client) {}
 
@@ -93,7 +92,8 @@ ExecutionResult AwsAuthorizer::Stop() noexcept {
 }
 
 void AwsAuthorizer::OnBeforeGarbageCollection(
-    string& token, shared_ptr<AwsAuthorizationTokenCacheEntry>& transaction,
+    std::string& token,
+    shared_ptr<AwsAuthorizationTokenCacheEntry>& transaction,
     function<void(bool)> should_delete_entry) noexcept {
   // TODO: Enable pre-expiration refresh.
   should_delete_entry(true);
@@ -115,7 +115,7 @@ ExecutionResult AwsAuthorizer::Authorize(
     return FailureExecutionResult(errors::SC_AUTHORIZATION_SERVICE_BAD_TOKEN);
   }
 
-  string token;
+  std::string token;
   auto execution_result = Base64Decode(*request.authorization_token, token);
   if (!execution_result) {
     return FailureExecutionResult(errors::SC_AUTHORIZATION_SERVICE_BAD_TOKEN);
@@ -133,12 +133,12 @@ ExecutionResult AwsAuthorizer::Authorize(
     return FailureExecutionResult(errors::SC_AUTHORIZATION_SERVICE_BAD_TOKEN);
   }
 
-  string access_key = json_token[kAccessKey].get<string>();
-  string signature = json_token[kSignature].get<string>();
-  string amz_date = json_token[kAmzDate].get<string>();
-  string security_token;
+  std::string access_key = json_token[kAccessKey].get<std::string>();
+  std::string signature = json_token[kSignature].get<std::string>();
+  std::string amz_date = json_token[kAmzDate].get<std::string>();
+  std::string security_token;
   if (json_token.contains(kSecurityToken)) {
-    security_token = json_token[kSecurityToken].get<string>();
+    security_token = json_token[kSecurityToken].get<std::string>();
   }
   auto http_request = make_shared<HttpRequest>();
   http_request->method = HttpMethod::POST;
@@ -146,9 +146,9 @@ ExecutionResult AwsAuthorizer::Authorize(
   http_request->headers = make_shared<HttpHeaders>();
 
   error_code http2_error_code;
-  string scheme;
-  string host;
-  string service;
+  std::string scheme;
+  std::string host;
+  std::string service;
   if (host_service_from_uri(http2_error_code, scheme, host, service,
                             *server_endpoint_)) {
     return FailureExecutionResult(
@@ -193,14 +193,15 @@ ExecutionResult AwsAuthorizer::Authorize(
         errors::SC_AUTHORIZATION_SERVICE_AUTH_TOKEN_IS_REFRESHING);
   }
 
-  http_request->headers->insert({string(kHostHeader), host});
+  http_request->headers->insert({std::string(kHostHeader), host});
   http_request->headers->insert(
-      {string(kClaimedIdentityHeader),
+      {std::string(kClaimedIdentityHeader),
        *authorization_context.request->claimed_identity});
 
   AwsV4Signer signer(access_key, "", security_token, "execute-api",
                      aws_region_);
-  vector<string> headers_to_sign{begin(kSignedHeaders), end(kSignedHeaders)};
+  vector<std::string> headers_to_sign{begin(kSignedHeaders),
+                                      end(kSignedHeaders)};
   execution_result = signer.SignRequestWithSignature(
       *http_request, headers_to_sign, amz_date, signature);
   if (!execution_result.Successful()) {
@@ -236,7 +237,7 @@ void AwsAuthorizer::HandleHttpResponse(
   }
 
   const auto& http_body_bytes = http_context.response->body.bytes;
-  string body_str(http_body_bytes->data(), http_body_bytes->size());
+  std::string body_str(http_body_bytes->data(), http_body_bytes->size());
   json body_json;
   bool parse_fail = true;
   try {
@@ -252,7 +253,8 @@ void AwsAuthorizer::HandleHttpResponse(
 
   authorization_context.response = make_shared<AuthorizationResponse>();
   authorization_context.response->authorized_domain =
-      make_shared<AuthorizedDomain>(body_json[kAuthorizedDomain].get<string>());
+      make_shared<AuthorizedDomain>(
+          body_json[kAuthorizedDomain].get<std::string>());
 
   shared_ptr<AwsAuthorizationTokenCacheEntry> auth_token_cache_entry;
   auto execution_result =

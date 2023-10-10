@@ -43,7 +43,6 @@ using google::scp::roma::sandbox::constants::kRequestTypeWasm;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using std::make_shared;
-using std::string;
 using std::uint8_t;
 
 using std::vector;
@@ -68,9 +67,9 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
   Worker worker(engine, false /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
-  string js_code = R"(function hello_js() { return "Hello World!"; })";
+  std::string js_code = R"(function hello_js() { return "Hello World!"; })";
   vector<absl::string_view> input;
-  absl::flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
@@ -93,9 +92,9 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
   AutoInitRunStop to_handle_worker(worker);
 
   // Load v1
-  string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
+  std::string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
   vector<absl::string_view> input;
-  absl::flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad}};
@@ -149,7 +148,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
   AutoInitRunStop to_handle_worker(worker);
 
   // Load v1
-  string js_code = R"""(
+  std::string js_code = R"""(
           let bytes = new Uint8Array([
             0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
             0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07,
@@ -163,7 +162,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
           }
         )""";
   vector<absl::string_view> input;
-  absl::flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad}};
@@ -234,11 +233,11 @@ TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
                 1 /*compilation_context_cache_size*/);
   AutoInitRunStop to_handle_worker(worker);
 
-  string js_code = R"(function hello_js() { return "Hello World!"; })";
+  std::string js_code = R"(function hello_js() { return "Hello World!"; })";
   vector<absl::string_view> input;
 
   // Load
-  absl::flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
@@ -291,9 +290,9 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   AutoInitRunStop to_handle_worker(worker);
 
   // Load v1
-  string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
+  std::string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
   vector<absl::string_view> input;
-  absl::flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad}};
@@ -397,7 +396,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
           }
         )""";
   vector<absl::string_view> input{"1", "2"};
-  absl::flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascriptWithWasm},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
@@ -428,7 +427,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
             return instance.exports.add(a, b);
           }
         )""";
-  absl::flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascriptWithWasm},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad},
@@ -516,7 +515,7 @@ TEST_F(V8EngineWorkerTest,
   vector<absl::string_view> input;
 
   // Load
-  absl::flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascriptWithWasm},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},

@@ -28,7 +28,6 @@ using google::scp::core::BytesBuffer;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
 using std::make_shared;
-using std::string;
 using std::vector;
 
 namespace google::scp::core::utils::test {
@@ -43,7 +42,7 @@ TEST(HashingTest, InvalidMD5Hash) {
 
 TEST(HashingTest, ValidMD5Hash) {
   BytesBuffer bytes_buffer;
-  string value("this_is_a_test_string");
+  std::string value("this_is_a_test_string");
   bytes_buffer.bytes = make_shared<vector<Byte>>(value.begin(), value.end());
   bytes_buffer.length = value.length();
 
@@ -54,17 +53,17 @@ TEST(HashingTest, ValidMD5Hash) {
 
 TEST(HashingTest, ValidMD5HashOLD) {
   BytesBuffer bytes_buffer;
-  string value("this_is_a_test_string");
+  std::string value("this_is_a_test_string");
   bytes_buffer.bytes = make_shared<vector<Byte>>(value.begin(), value.end());
   bytes_buffer.length = value.length();
 
-  string md5_hash;
+  std::string md5_hash;
   EXPECT_SUCCESS(CalculateMd5Hash(bytes_buffer, md5_hash));
   EXPECT_EQ(md5_hash, "!\x87\x9D\x8C\x7Fy\x93j\xCD\xB6\xE2\x86&\xEA\x1B\xD8");
 }
 
 TEST(HashingTest, InvalidMD5HashString) {
-  string empty;
+  std::string empty;
 
   EXPECT_THAT(
       CalculateMd5Hash(empty),
@@ -72,7 +71,7 @@ TEST(HashingTest, InvalidMD5HashString) {
 }
 
 TEST(HashingTest, ValidMD5HashString) {
-  string value("this_is_a_test_string");
+  std::string value("this_is_a_test_string");
 
   EXPECT_THAT(CalculateMd5Hash(value),
               IsSuccessfulAndHolds(
@@ -80,9 +79,9 @@ TEST(HashingTest, ValidMD5HashString) {
 }
 
 TEST(HashingTest, ValidMD5HashStringOLD) {
-  string value("this_is_a_test_string");
+  std::string value("this_is_a_test_string");
 
-  string md5_hash;
+  std::string md5_hash;
   EXPECT_SUCCESS(CalculateMd5Hash(value, md5_hash));
   EXPECT_EQ(md5_hash, "!\x87\x9D\x8C\x7Fy\x93j\xCD\xB6\xE2\x86&\xEA\x1B\xD8");
 }

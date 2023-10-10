@@ -88,7 +88,6 @@ using std::make_shared;
 using std::make_unique;
 using std::runtime_error;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 using std::placeholders::_1;
@@ -182,7 +181,7 @@ void RunClients() {
   Run(async_executor, kAsyncExecutorName);
 
   http_client = make_shared<HttpClient>(async_executor);
-  list<string> public_key_vending_service_endpoints;
+  list<std::string> public_key_vending_service_endpoints;
   ReadConfigStringList(config_provider, kPublicKeyVendingServiceEndpoints,
                        public_key_vending_service_endpoints);
   Init(http_client, kHttpClientName);
@@ -190,8 +189,8 @@ void RunClients() {
 
   auto options = make_shared<PublicKeyClientOptions>();
   options->endpoints =
-      vector<string>(public_key_vending_service_endpoints.begin(),
-                     public_key_vending_service_endpoints.end());
+      vector<std::string>(public_key_vending_service_endpoints.begin(),
+                          public_key_vending_service_endpoints.end());
   public_key_client =
       PublicKeyClientProviderFactory::Create(options, http_client);
   Init(public_key_client, kPublicKeyClientName);

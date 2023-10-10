@@ -26,15 +26,14 @@ using Aws::Client::ClientConfiguration;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::cpio::client_providers {
 shared_ptr<ClientConfiguration>
 TestAwsAutoScalingClientProvider::CreateClientConfiguration(
-    const string& region) noexcept {
+    const std::string& region) noexcept {
   return CreateTestClientConfiguration(
       test_options_->auto_scaling_client_endpoint_override,
-      make_shared<string>(region));
+      make_shared<std::string>(region));
 }
 
 shared_ptr<AutoScalingClientProviderInterface>

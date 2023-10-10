@@ -35,7 +35,6 @@ using std::atomic;
 using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace google::scp::core::test {
@@ -44,7 +43,7 @@ void InitializeInMemoryDatabase(
     MockNoSQLDatabaseProvider& nosql_database_provider) {
   auto table = make_shared<MockNoSQLDatabaseProvider::Table>();
   nosql_database_provider.in_memory_db->tables.Insert(
-      make_pair(string("TestTable"), table), table);
+      make_pair(std::string("TestTable"), table), table);
 
   // Insert partition
   auto partition = make_shared<MockNoSQLDatabaseProvider::Partition>();
@@ -97,7 +96,7 @@ TEST(MockNoSQLDatabaseProviderTests, GetItemWithPartitionAndSortKey) {
       .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(4)};
 
   get_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
@@ -153,7 +152,7 @@ TEST(MockNoSQLDatabaseProviderTests, GetItemWithPartitionKey) {
       .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(1)};
 
   get_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
 
@@ -189,7 +188,7 @@ TEST(MockNoSQLDatabaseProviderTests, PartitionNotFound) {
       .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(4)};
 
   get_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
@@ -228,7 +227,7 @@ TEST(MockNoSQLDatabaseProviderTests, AttributeNotFound) {
           make_shared<NoSQLDatabaseValidAttributeValueTypes>(56)};
 
   get_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
@@ -272,7 +271,7 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertNonExistingItem) {
           make_shared<NoSQLDatabaseValidAttributeValueTypes>(45)};
 
   upsert_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =
@@ -365,7 +364,7 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertExistingItem) {
 
   // Insert attributes attr1, attr2
   upsert_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
   upsert_database_item_context.request->sort_key =
@@ -414,7 +413,7 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertExistingItem) {
             conditional_upsert_done = true;
           });
   conditional_upsert_database_item_context.request->table_name =
-      make_shared<string>("TestTable");
+      make_shared<std::string>("TestTable");
   conditional_upsert_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
   conditional_upsert_database_item_context.request->sort_key =
@@ -483,7 +482,7 @@ TEST(MockNoSQLDatabaseProviderTests, TestInitializeTable) {
                                      condition = true;
                                    });
   upsert_database_item_context.request->table_name =
-      make_shared<string>("testing_table");
+      make_shared<std::string>("testing_table");
   upsert_database_item_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
   upsert_database_item_context.request->sort_key =

@@ -31,7 +31,6 @@ using google::scp::core::nosql_database_provider::GcpSpannerUtils;
 using json = nlohmann::json;
 using std::get;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace google::scp::core::test {
@@ -66,14 +65,14 @@ TEST(GcpSpannerUtilsTest,
           json_val, out_value),
       SuccessExecutionResult());
 
-  EXPECT_EQ(get<string>(out_value), "hello world!");
+  EXPECT_EQ(get<std::string>(out_value), "hello world!");
 }
 
 TEST(GcpSpannerUtilsTest,
      ConvertJsonTypeToNoSQLDatabaseValidAttributeValueTypeInvalidType) {
   vector<json> invalid_value_types(
       {/*struct*/ json::object_t{{"struct_field", 1}},
-       /*array*/ vector<string>{"item_1", "item_2"}, /*bool*/ true});
+       /*array*/ vector<std::string>{"item_1", "item_2"}, /*bool*/ true});
 
   for (const auto& value_type : invalid_value_types) {
     NoSQLDatabaseValidAttributeValueTypes out_value;
@@ -130,7 +129,7 @@ TEST(GcpSpannerUtilsTest,
 
   ASSERT_TRUE(json_val.is_string());
 
-  EXPECT_EQ(json_val.get<string>(), "hello world!");
+  EXPECT_EQ(json_val.get<std::string>(), "hello world!");
 }
 
 TEST(GcpSpannerUtilsTest,
@@ -179,7 +178,7 @@ TEST(GcpSpannerUtilsTest,
           value_type, spanner_val),
       SuccessExecutionResult());
 
-  auto string_val_or = spanner_val.get<string>();
+  auto string_val_or = spanner_val.get<std::string>();
   ASSERT_TRUE(string_val_or.ok()) << string_val_or.status().message();
   EXPECT_EQ(*string_val_or, "hello world!");
 }

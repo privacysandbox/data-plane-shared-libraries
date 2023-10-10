@@ -24,10 +24,9 @@
 #include "error_codes.h"
 
 using std::make_unique;
-using std::string;
 
 namespace google::scp::core::utils {
-ExecutionResult Base64Decode(const string& encoded, string& decoded) {
+ExecutionResult Base64Decode(const std::string& encoded, std::string& decoded) {
   if ((encoded.length() % 4) != 0) {
     return FailureExecutionResult(
         errors::SC_CORE_UTILS_INVALID_BASE64_ENCODING_LENGTH);
@@ -45,11 +44,11 @@ ExecutionResult Base64Decode(const string& encoded, string& decoded) {
   if (ret == 0) {
     return FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT);
   }
-  decoded = string(reinterpret_cast<char*>(buffer.get()), output_len);
+  decoded = std::string(reinterpret_cast<char*>(buffer.get()), output_len);
   return SuccessExecutionResult();
 }
 
-ExecutionResult Base64Encode(const string& decoded, string& encoded) {
+ExecutionResult Base64Encode(const std::string& decoded, std::string& encoded) {
   size_t required_len = 0;
   if (EVP_EncodedLength(&required_len, decoded.length()) == 0) {
     return FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT);
@@ -62,21 +61,21 @@ ExecutionResult Base64Encode(const string& decoded, string& encoded) {
   if (ret == 0) {
     return FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT);
   }
-  encoded = string(reinterpret_cast<char*>(buffer.get()), ret);
+  encoded = std::string(reinterpret_cast<char*>(buffer.get()), ret);
   return SuccessExecutionResult();
 }
 
-ExecutionResultOr<string> PadBase64Encoding(const string& encoded) {
-  ExecutionResultOr<string> ret_val;
+ExecutionResultOr<std::string> PadBase64Encoding(const std::string& encoded) {
+  ExecutionResultOr<std::string> ret_val;
   switch (encoded.length() % 4) {
     case 0:
-      ret_val.emplace<string>(encoded);
+      ret_val.emplace<std::string>(encoded);
       break;
     case 2:
-      ret_val.emplace<string>(encoded + "==");
+      ret_val.emplace<std::string>(encoded + "==");
       break;
     case 3:
-      ret_val.emplace<string>(encoded + "=");
+      ret_val.emplace<std::string>(encoded + "=");
       break;
     case 1:
     default:

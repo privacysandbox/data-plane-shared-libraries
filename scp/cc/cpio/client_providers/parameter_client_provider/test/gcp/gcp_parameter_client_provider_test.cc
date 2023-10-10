@@ -60,8 +60,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::unique_ptr;
 using testing::Eq;
 using testing::ExplainMatchResult;
@@ -99,7 +97,8 @@ class GcpParameterClientProviderTest : public ::testing::Test {
 
   void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
 
-  string GetSecretName(const string& parameter_name = kParameterNameMock) {
+  std::string GetSecretName(
+      const std::string& parameter_name = kParameterNameMock) {
     auto secret_name =
         absl::StrCat("projects/", kProjectIdValueMock, "/secrets/",
                      parameter_name, "/versions/latest");

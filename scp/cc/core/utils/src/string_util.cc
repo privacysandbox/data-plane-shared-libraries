@@ -20,15 +20,15 @@
 #include <string>
 
 using std::list;
-using std::string;
 
 namespace google::scp::core::utils {
-void SplitStringByDelimiter(const string& str, const string& delimiter,
-                            list<string>& out) {
+void SplitStringByDelimiter(const std::string& str,
+                            const std::string& delimiter,
+                            list<std::string>& out) {
   auto start = 0U;
   auto end = str.find(delimiter);
 
-  while (end != string::npos) {
+  while (end != std::string::npos) {
     auto part = str.substr(start, end - start);
     out.push_back(part);
     start = end + delimiter.length();

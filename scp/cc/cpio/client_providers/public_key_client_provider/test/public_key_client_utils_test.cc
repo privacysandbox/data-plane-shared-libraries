@@ -44,7 +44,6 @@ using std::istringstream;
 using std::mktime;
 using std::regex;
 using std::regex_replace;
-using std::string;
 using std::tm;
 using std::vector;
 
@@ -120,7 +119,7 @@ TEST(PublicKeyClientUtilsTest, HeadersWithBadCacheControlStr) {
 }
 
 TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodySuccess) {
-  string bytes_str =
+  std::string bytes_str =
       R"({
         "keys": [
           {"id": "1234", "key": "abcdefg"},
@@ -141,7 +140,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodySuccess) {
 }
 
 TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoKeys) {
-  string bytes_str =
+  std::string bytes_str =
       R"({
         "key": [
           {"id": "1234", "key": "abcdefg"},
@@ -159,7 +158,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoKeys) {
 }
 
 TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoId) {
-  string bytes_str =
+  std::string bytes_str =
       R"({
         "keys": [
           {"id_error": "1234", "key": "abcdefg"},
@@ -177,7 +176,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoId) {
 }
 
 TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoKey) {
-  string bytes_str =
+  std::string bytes_str =
       R"({
         "keys": [
           {"id": "1234", "key_error": "abcdefg"},

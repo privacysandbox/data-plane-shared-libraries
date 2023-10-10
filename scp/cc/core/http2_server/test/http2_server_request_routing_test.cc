@@ -66,8 +66,6 @@ using google::scp::cpio::MockMetricClient;
 using std::make_shared;
 using std::promise;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using testing::_;
@@ -111,7 +109,7 @@ class Http2RequestRouterTest : public testing::Test {
         mock_request_router_;
 
     host_address_ = "localhost";
-    port_ = to_string(GenerateRandomIntInRange(8000, 60000));
+    port_ = std::to_string(GenerateRandomIntInRange(8000, 60000));
 
     http_server_ = std::make_shared<MockHttp2ServerWithOverrides>(
         host_address_, port_, thread_pool_size, async_executor_,

@@ -51,7 +51,6 @@ using google::scp::core::errors::
     SC_GCP_METRIC_CLIENT_FAILED_WITH_INVALID_TIMESTAMP;
 using google::scp::core::errors::SC_GCP_METRIC_CLIENT_INVALID_METRIC_VALUE;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::hours;
@@ -78,7 +77,8 @@ namespace google::scp::cpio::client_providers {
 
 ExecutionResult GcpMetricClientUtils::ParseRequestToTimeSeries(
     AsyncContext<PutMetricsRequest, PutMetricsResponse>& record_metric_context,
-    const string& name_space, vector<TimeSeries>& time_series_list) noexcept {
+    const std::string& name_space,
+    vector<TimeSeries>& time_series_list) noexcept {
   for (auto i = 0; i < record_metric_context.request->metrics().size(); ++i) {
     auto& time_series = time_series_list.emplace_back();
 
@@ -114,9 +114,9 @@ ExecutionResult GcpMetricClientUtils::ParseRequestToTimeSeries(
 
     time_series.mutable_metric()->mutable_labels()->insert(
         metric.labels().begin(), metric.labels().end());
-    time_series.mutable_metric()->set_type(string(kCustomMetricTypePrefix) +
-                                           "/" + name_space + "/" +
-                                           metric.name());
+    time_series.mutable_metric()->set_type(
+        std::string(kCustomMetricTypePrefix) + "/" + name_space + "/" +
+        metric.name());
 
     auto* point = time_series.add_points();
 
@@ -132,20 +132,21 @@ ExecutionResult GcpMetricClientUtils::ParseRequestToTimeSeries(
   return SuccessExecutionResult();
 }
 
-string GcpMetricClientUtils::ConstructProjectName(const string& project_id) {
-  return string(kProjectNamePrefix) + project_id;
+std::string GcpMetricClientUtils::ConstructProjectName(
+    const std::string& project_id) {
+  return std::string(kProjectNamePrefix) + project_id;
 }
 
 void GcpMetricClientUtils::AddResourceToTimeSeries(
-    const string& project_id, const string& instance_id,
-    const string& instance_zone,
+    const std::string& project_id, const std::string& instance_id,
+    const std::string& instance_zone,
     vector<TimeSeries>& time_series_list) noexcept {
   MonitoredResource resource;
   resource.set_type(kResourceType);
   auto& labels = *resource.mutable_labels();
-  labels[string(kProjectIdKey)] = project_id;
-  labels[string(kInstanceIdKey)] = instance_id;
-  labels[string(kInstanceZoneKey)] = instance_zone;
+  labels[std::string(kProjectIdKey)] = project_id;
+  labels[std::string(kInstanceIdKey)] = instance_id;
+  labels[std::string(kInstanceZoneKey)] = instance_zone;
 
   for (auto& time_series : time_series_list) {
     time_series.mutable_resource()->CopyFrom(resource);

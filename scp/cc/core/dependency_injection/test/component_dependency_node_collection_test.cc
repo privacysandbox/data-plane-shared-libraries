@@ -22,13 +22,11 @@
 
 #include "public/core/interface/execution_result.h"
 
-using std::string;
-
 namespace google::scp::core::test {
 
 TEST(ComponentDependencyNodeCollectionTests,
      AddNodeToPathReturnsTrueForNewNode) {
-  string id = "node1";
+  std::string id = "node1";
   ComponentDependencyNodeCollection target;
   ComponentDependencyNode node{id};
   bool result = target.AddNodeToPath(node);
@@ -37,8 +35,8 @@ TEST(ComponentDependencyNodeCollectionTests,
 
 TEST(ComponentDependencyNodeCollectionTests,
      AddNodeToPathReturnsFalseForExistingNode) {
-  string id1 = "node1";
-  string id2 = "node2";
+  std::string id1 = "node1";
+  std::string id2 = "node2";
   ComponentDependencyNodeCollection target;
   ComponentDependencyNode node1{id1};
   ComponentDependencyNode node2{id2};
@@ -55,11 +53,11 @@ TEST(ComponentDependencyNodeCollectionTests,
 
 TEST(ComponentDependencyNodeCollectionTests,
      GetCyclePathReturnsTheCyclePathInOrder) {
-  string id1 = "node1";
-  string id2 = "node2";
-  string id3 = "node3";
-  string id4 = "node4";
-  string id5 = "node5";
+  std::string id1 = "node1";
+  std::string id2 = "node2";
+  std::string id3 = "node3";
+  std::string id4 = "node4";
+  std::string id5 = "node5";
   ComponentDependencyNodeCollection target;
   ComponentDependencyNode node1{id1};
   ComponentDependencyNode node2{id2};
@@ -82,7 +80,7 @@ TEST(ComponentDependencyNodeCollectionTests,
 
 TEST(ComponentDependencyNodeCollectionTests,
      WasVisitedReturnsTrueIfMarkedVisited) {
-  string id1 = "node1";
+  std::string id1 = "node1";
 
   ComponentDependencyNodeCollection target;
   ComponentDependencyNode node1{id1};
@@ -96,8 +94,8 @@ TEST(ComponentDependencyNodeCollectionTests,
 
 TEST(ComponentDependencyNodeCollectionTests,
      WasVisitedReturnsFalseIfNotMarkedVisited) {
-  string id1 = "node1";
-  string id2 = "node2";
+  std::string id1 = "node1";
+  std::string id2 = "node2";
 
   ComponentDependencyNodeCollection target;
   ComponentDependencyNode node1{id1};
@@ -113,9 +111,9 @@ TEST(ComponentDependencyNodeCollectionTests,
 
 TEST(ComponentDependencyNodeCollectionTests,
      GetVisitedOrderReturnsOrderOfNodesMarkedVisited) {
-  string id1 = "node1";
-  string id2 = "node2";
-  string id3 = "node3";
+  std::string id1 = "node1";
+  std::string id2 = "node2";
+  std::string id3 = "node3";
 
   ComponentDependencyNodeCollection target;
   ComponentDependencyNode node1{id1};

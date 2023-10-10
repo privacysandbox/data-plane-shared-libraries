@@ -75,7 +75,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -105,8 +104,8 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
     // Mocks DecryptRequest.
     AwsDecryptRequest decrypt_request;
     decrypt_request.SetKeyId(kKeyArn);
-    string ciphertext = string(kCiphertext);
-    string decoded_ciphertext;
+    std::string ciphertext = std::string(kCiphertext);
+    std::string decoded_ciphertext;
     Base64Decode(ciphertext, decoded_ciphertext);
     ByteBuffer ciphertext_buffer(
         reinterpret_cast<const unsigned char*>(decoded_ciphertext.data()),
@@ -117,7 +116,7 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
     // Mocks success DecryptRequestOutcome.
     DecryptResult decrypt_result;
     decrypt_result.SetKeyId(kKeyArn);
-    string plaintext = string(kPlaintext);
+    std::string plaintext = std::string(kPlaintext);
     ByteBuffer plaintext_buffer(
         reinterpret_cast<const unsigned char*>(plaintext.data()),
         plaintext.length());

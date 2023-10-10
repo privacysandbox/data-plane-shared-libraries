@@ -44,7 +44,6 @@ using std::optional;
 using std::shared_lock;
 using std::shared_mutex;
 using std::shared_ptr;
-using std::string;
 using std::unique_lock;
 using std::vector;
 using std::chrono::duration_cast;
@@ -60,8 +59,8 @@ constexpr char kLeasableLock[] = "LeasableLock";
 // arguments.
 LeasableLockOnNoSQLDatabase::LeasableLockOnNoSQLDatabase(
     shared_ptr<NoSQLDatabaseProviderInterface> database,
-    LeaseInfo lease_acquirer_info, string table_name, string lock_row_key,
-    milliseconds lease_duration_in_milliseconds,
+    LeaseInfo lease_acquirer_info, std::string table_name,
+    std::string lock_row_key, milliseconds lease_duration_in_milliseconds,
     uint64_t lease_renewal_threshold_percent_time_left_in_lease) noexcept
     : database_(database),
       lease_acquirer_info_(lease_acquirer_info),
@@ -218,7 +217,7 @@ bool LeasableLockOnNoSQLDatabase::LeaseInfoInternal::IsExpired() const {
 }
 
 bool LeasableLockOnNoSQLDatabase::LeaseInfoInternal::IsLeaseOwner(
-    string lock_acquirer_id) const {
+    std::string lock_acquirer_id) const {
   return lease_owner_info.lease_acquirer_id == lock_acquirer_id;
 }
 

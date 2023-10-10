@@ -117,8 +117,6 @@ using std::bind;
 using std::make_shared;
 using std::optional;
 using std::shared_ptr;
-using std::string;
-using std::stringstream;
 using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::minutes;
@@ -143,12 +141,12 @@ constexpr seconds kPutBlobRescanTime = seconds(5);
 
 template <typename Context, typename Request>
 ExecutionResult SetContentMd5(Context& context, Request& request,
-                              const string& body) {
-  ASSIGN_OR_LOG_AND_RETURN_CONTEXT(string md5_checksum, CalculateMd5Hash(body),
-                                   kAwsS3Provider, context,
-                                   "MD5 Hash generation failed");
+                              const std::string& body) {
+  ASSIGN_OR_LOG_AND_RETURN_CONTEXT(std::string md5_checksum,
+                                   CalculateMd5Hash(body), kAwsS3Provider,
+                                   context, "MD5 Hash generation failed");
 
-  string base64_md5_checksum;
+  std::string base64_md5_checksum;
   auto execution_result = Base64Encode(md5_checksum, base64_md5_checksum);
   if (!execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kAwsS3Provider, context, execution_result,
@@ -190,7 +188,7 @@ ExecutionResult ValidateGetBlobRequest(Context& context) {
 // Builds an AWS GetObjectRequest, for GetBlob or GetBlobStream.
 template <typename ProtoRequest>
 GetObjectRequest MakeGetObjectRequest(const ProtoRequest& proto_request,
-                                      optional<string> range) {
+                                      optional<std::string> range) {
   String bucket_name(proto_request.blob_metadata().bucket_name());
   String blob_name(proto_request.blob_metadata().blob_name());
   GetObjectRequest get_object_request;
@@ -207,9 +205,10 @@ GetObjectRequest MakeGetObjectRequest(const ProtoRequest& proto_request,
 namespace google::scp::cpio::client_providers {
 shared_ptr<ClientConfiguration>
 AwsBlobStorageClientProvider::CreateClientConfiguration(
-    const string& region) noexcept {
+    const std::string& region) noexcept {
   return common::CreateClientConfiguration(
-      make_shared<string>(std::move(region)));
+
+      make_shared<std::string>(std::move(region)));
 }
 
 ExecutionResult AwsBlobStorageClientProvider::Init() noexcept {
@@ -245,7 +244,7 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlob(
   const auto& request = *get_blob_context.request;
   RETURN_IF_FAILURE(ValidateGetBlobRequest(get_blob_context));
 
-  optional<string> range;
+  optional<std::string> range;
   if (request.has_byte_range()) {
     // SetRange is inclusive on both ends.
     range = absl::StrCat("bytes=", request.byte_range().begin_byte_index(), "-",
@@ -318,7 +317,7 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlobStream(
   // If the end index is out of bounds of the object, that's fine - S3 will
   // truncate the response to the end of the object. If the begin index is out
   // of bounds, S3 will fail but this is OK to propagate to the client.
-  optional<string> range;
+  optional<std::string> range;
   if (request.has_byte_range()) {
     // The initial value should be
     // <begin_index, min(begin_index + read_size - 1, end_index)>
@@ -445,7 +444,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
   // 0 - the begin index of the response
   // 83886079 - the end index of the response
   // 1258291200 - the total size of the object in storage.
-  vector<string> total_length_str =
+  vector<std::string> total_length_str =
       absl::StrSplit(result.GetContentRange(), "/");
   int64_t total_length = strtol(total_length_str[1].c_str(), nullptr, 10);
   // Now we know the total size of the object.
@@ -471,7 +470,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
   // We can safely start at last_end_index + 1 because it is in bounds.
   // We can safely end at the computed new_end_index because even if it is out
   // of bounds, S3 will still succeed but truncate the response.
-  optional<string> range = absl::StrCat(
+  optional<std::string> range = absl::StrCat(
       "bytes=", tracker->last_end_byte_index + 1, "-", new_end_index);
 
   tracker->last_begin_byte_index = tracker->last_end_byte_index + 1;
@@ -608,8 +607,8 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlob(
   }
 
   auto input_data = Aws::MakeShared<Aws::StringStream>(
-      "PutObjectInputStream",
-      stringstream::in | stringstream::out | stringstream::binary);
+      "PutObjectInputStream", std::stringstream::in | std::stringstream::out |
+                                  std::stringstream::binary);
   input_data->write(request.blob().data().c_str(),
                     request.blob().data().size());
 

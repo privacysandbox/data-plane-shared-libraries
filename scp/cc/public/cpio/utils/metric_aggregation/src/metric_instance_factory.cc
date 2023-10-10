@@ -37,7 +37,6 @@ using std::make_unique;
 using std::optional;
 using std::reference_wrapper;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -78,7 +77,8 @@ MetricInstanceFactory::ConstructAggregateMetricInstance(
 
 unique_ptr<AggregateMetricInterface>
 MetricInstanceFactory::ConstructAggregateMetricInstance(
-    MetricDefinition metric_info, const vector<string>& event_code_labels_list,
+    MetricDefinition metric_info,
+    const vector<std::string>& event_code_labels_list,
     const std::string& event_code_name) noexcept {
   if (event_code_name.empty()) {
     return make_unique<AggregateMetric>(

@@ -39,7 +39,6 @@ using google::scp::roma::wasm::RomaWasmStringRepresentation;
 using google::scp::roma::wasm::WasmDeserializer;
 using google::scp::roma::wasm::WasmSerializer;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 using v8::Array;
@@ -348,10 +347,10 @@ Local<Array> ExecutionUtils::InputToLocalArgv(
   return ExecutionUtils::ParseAsJsInput(input);
 }
 
-string ExecutionUtils::ExtractMessage(Isolate* isolate,
-                                      Local<v8::Message> message) noexcept {
-  string exception_msg;
-  TypeConverter<string>::FromV8(isolate, message->Get(), &exception_msg);
+std::string ExecutionUtils::ExtractMessage(
+    Isolate* isolate, Local<v8::Message> message) noexcept {
+  std::string exception_msg;
+  TypeConverter<std::string>::FromV8(isolate, message->Get(), &exception_msg);
   // We want to return a message of the form:
   //
   //     line 7: Uncaught ReferenceError: blah is not defined.
@@ -492,8 +491,8 @@ Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
   return argv;
 }
 
-string ExecutionUtils::DescribeError(Isolate* isolate,
-                                     TryCatch* try_catch) noexcept {
+std::string ExecutionUtils::DescribeError(Isolate* isolate,
+                                          TryCatch* try_catch) noexcept {
   const Local<Message> message = try_catch->Message();
   if (message.IsEmpty()) {
     return std::string();
@@ -528,7 +527,7 @@ static void RegisterWasiFunction(Isolate* isolate,
                                  FunctionCallback wasi_function) {
   auto context = isolate->GetCurrentContext();
 
-  auto func_name = TypeConverter<string>::ToV8(isolate, name);
+  auto func_name = TypeConverter<std::string>::ToV8(isolate, name);
   wasi_snapshot_preview_object
       ->Set(context, func_name,
             v8::FunctionTemplate::New(isolate, wasi_function)
@@ -568,7 +567,7 @@ static void RegisterObjectInWasmImports(Isolate* isolate,
                                         Local<Object>& new_object) {
   auto context = isolate->GetCurrentContext();
 
-  auto obj_name = TypeConverter<string>::ToV8(isolate, name);
+  auto obj_name = TypeConverter<std::string>::ToV8(isolate, name);
   imports_object->Set(context, obj_name, new_object).Check();
 }
 
@@ -613,14 +612,14 @@ Local<Value> ExecutionUtils::ReadFromWasmMemory(Isolate* isolate,
 
   Local<Value> ret_val = Undefined(isolate);
 
-  string read_str;
+  std::string read_str;
   WasmDeserializer::ReadCustomString(wasm_memory_blob, wasm_memory_size, offset,
                                      read_str);
   if (read_str.empty()) {
     return Undefined(isolate);
   }
 
-  ret_val = TypeConverter<string>::ToV8(isolate, read_str);
+  ret_val = TypeConverter<std::string>::ToV8(isolate, read_str);
 
   return ret_val;
 }

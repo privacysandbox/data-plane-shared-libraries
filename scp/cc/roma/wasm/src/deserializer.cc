@@ -43,7 +43,6 @@ SOFTWARE.
 
 #include "deserializer.h"
 
-using std::string;
 using std::vector;
 
 namespace google::scp::roma::wasm {
@@ -93,7 +92,7 @@ void WasmDeserializer::ReadRawString(void* mem_ptr, size_t mem_size,
 }
 
 void WasmDeserializer::ReadCustomString(void* mem_ptr, size_t mem_size,
-                                        size_t offset, string& output) {
+                                        size_t offset, std::string& output) {
   // This means we can't even read the string pointer and length
   if (offset + 7 >= mem_size) {
     output.clear();
@@ -107,7 +106,7 @@ void WasmDeserializer::ReadCustomString(void* mem_ptr, size_t mem_size,
     return;
   }
 
-  string temp_buffer;
+  std::string temp_buffer;
   // Add space for the null terminator
   temp_buffer.reserve(str_data_len + 1);
 
@@ -124,7 +123,7 @@ void WasmDeserializer::ReadCustomString(void* mem_ptr, size_t mem_size,
 
 void WasmDeserializer::ReadCustomListOfString(void* mem_ptr, size_t mem_size,
                                               size_t offset,
-                                              vector<string>& output) {
+                                              vector<std::string>& output) {
   // This means we can't even read the list pointer and length
   if (offset + 7 >= mem_size) {
     output.clear();
@@ -150,7 +149,7 @@ void WasmDeserializer::ReadCustomListOfString(void* mem_ptr, size_t mem_size,
     }
 
     auto str_ptr = ReadUint32(mem_ptr, mem_size, offset);
-    string str;
+    std::string str;
     ReadCustomString(mem_ptr, mem_size, str_ptr, str);
     output.push_back(str);
     // Add the size of the str_ptr to the offset

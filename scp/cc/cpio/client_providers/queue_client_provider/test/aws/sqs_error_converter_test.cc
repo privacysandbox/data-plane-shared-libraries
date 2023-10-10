@@ -43,7 +43,6 @@ using google::scp::core::errors::SC_AWS_SERVICE_UNAVAILABLE;
 using google::scp::core::errors::SC_AWS_VALIDATION_FAILED;
 using std::get;
 using std::make_tuple;
-using std::string;
 using std::tuple;
 using testing::TestWithParam;
 using testing::Values;

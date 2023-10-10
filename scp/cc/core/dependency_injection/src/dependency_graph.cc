@@ -30,16 +30,15 @@
 #include "error_codes.h"
 using std::function;
 using std::shared_ptr;
-using std::string;
 using std::unordered_set;
 using std::vector;
 
 namespace google::scp::core {
 
 bool DependencyGraph::AddNode(
-    const string& id, const vector<string>& dependencies,
+    const std::string& id, const vector<std::string>& dependencies,
     function<shared_ptr<ServiceInterface>(
-        const absl::flat_hash_map<string, shared_ptr<ServiceInterface>>&)>
+        const absl::flat_hash_map<std::string, shared_ptr<ServiceInterface>>&)>
         factory) noexcept {
   if (nodes_.count(id) != 0) return false;
 
@@ -112,7 +111,7 @@ ExecutionResult DependencyGraph::GetSuccess(
 }
 
 ExecutionResult DependencyGraph::GetUndefined(
-    DependencyGraphEnumerationResult& result, const string& dependency) {
+    DependencyGraphEnumerationResult& result, const std::string& dependency) {
   result.undefined_component = dependency;
   return FailureExecutionResult(
       errors::SC_DEPENDENCY_INJECTION_UNDEFINED_DEPENDENCY);

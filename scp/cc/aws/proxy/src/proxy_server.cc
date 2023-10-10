@@ -41,9 +41,7 @@
 using std::make_shared;
 using std::shared_lock;
 using std::shared_ptr;
-using std::string;
 using std::thread;
-using std::to_string;
 using std::unique_lock;
 using std::vector;
 
@@ -121,7 +119,7 @@ void ProxyServer::Run(size_t concurrency) {
   for (auto i = 0u; i <= concurrency; ++i) {
     threads.emplace_back([this]() { io_context_.run(); });
     auto& t = threads[i];
-    string name = string("worker_") + to_string(i);
+    std::string name = std::string("worker_") + std::to_string(i);
     pthread_setname_np(t.native_handle(), name.c_str());
   }
   for (auto i = 0u; i <= concurrency; ++i) {

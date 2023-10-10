@@ -68,7 +68,6 @@ using std::optional;
 using std::pair;
 using std::ref;
 using std::shared_ptr;
-using std::string;
 using std::unordered_map;
 using std::vector;
 using std::placeholders::_1;
@@ -95,7 +94,7 @@ constexpr double kTransactionRetryBackoffMultiplier = 2.0;
 // not present.
 template <typename Request>
 ExecutionResult ValidatePartitionAndSortKey(
-    const unordered_map<string, pair<string, optional<string>>>*
+    const unordered_map<std::string, pair<std::string, optional<std::string>>>*
         table_name_to_keys,
     const Request& req) {
   if (!table_name_to_keys) return SuccessExecutionResult();
@@ -135,7 +134,7 @@ ExecutionResult ValidatePartitionAndSortKey(
 // "JSON_VALUE(Value, '$.token_count') = @attribute_0"
 ExecutionResult AppendJsonWhereClauses(
     shared_ptr<const vector<NoSqlDatabaseKeyValuePair>> attributes,
-    SqlStatement::ParamType& params, string& out) {
+    SqlStatement::ParamType& params, std::string& out) {
   if (attributes && attributes->size() > 0) {
     for (size_t attribute_index = 0; attribute_index < attributes->size();
          ++attribute_index) {
@@ -158,19 +157,19 @@ ExecutionResult AppendJsonWhereClauses(
 }  // namespace
 
 ExecutionResult GcpSpanner::Init() noexcept {
-  string project;
+  std::string project;
   auto execution_result = config_provider_->Get(kGcpProjectId, project);
   if (execution_result != SuccessExecutionResult()) {
     return execution_result;
   }
 
-  string instance;
+  std::string instance;
   execution_result = config_provider_->Get(kSpannerInstance, instance);
   if (execution_result != SuccessExecutionResult()) {
     return execution_result;
   }
 
-  string database;
+  std::string database;
   execution_result = config_provider_->Get(kSpannerDatabase, database);
   if (execution_result != SuccessExecutionResult()) {
     return execution_result;
@@ -199,7 +198,7 @@ ExecutionResult GcpSpanner::Stop() noexcept {
 void GcpSpanner::GetDatabaseItemAsync(
     AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
         get_database_item_context,
-    string query, SqlStatement::ParamType params) noexcept {
+    std::string query, SqlStatement::ParamType params) noexcept {
   Client spanner_client(*spanner_client_shared_);
   auto row_stream = spanner_client.ExecuteQuery(
       SqlStatement(std::move(query), std::move(params)));
@@ -250,7 +249,7 @@ void GcpSpanner::GetDatabaseItemAsync(
 
   json value_json;
   try {
-    value_json = json::parse(string(*spanner_json_or));
+    value_json = json::parse(std::string(*spanner_json_or));
   } catch (...) {
     FinishContext(
         FailureExecutionResult(errors::SC_NO_SQL_DATABASE_JSON_FAILED_TO_PARSE),
@@ -272,7 +271,7 @@ void GcpSpanner::GetDatabaseItemAsync(
     }
     NoSqlDatabaseKeyValuePair& key_value_pair =
         get_database_item_context.response->attributes->emplace_back();
-    key_value_pair.attribute_name = make_shared<string>(json_attr_name);
+    key_value_pair.attribute_name = make_shared<std::string>(json_attr_name);
     key_value_pair.attribute_value = attr_value;
   }
 
@@ -299,8 +298,9 @@ ExecutionResult GcpSpanner::GetDatabaseItem(
 
   // Set the table name
   const auto& table_name = *get_database_item_context.request->table_name;
-  string query = absl::StrFormat("SELECT IFNULL(%s, JSON '{}') FROM %s WHERE ",
-                                 kValueColumnName, table_name);
+  std::string query =
+      absl::StrFormat("SELECT IFNULL(%s, JSON '{}') FROM %s WHERE ",
+                      kValueColumnName, table_name);
 
   // Set the partition key
   auto& provided_partition_key =
@@ -360,7 +360,7 @@ GcpSpanner::UpsertSelectOptions::BuildUpsertSelectOptions(
   UpsertSelectOptions upsert_select_options;
   const auto& table_name = *request.table_name;
 
-  string select_query =
+  std::string select_query =
       absl::StrFormat("SELECT %s FROM %s WHERE ", kValueColumnName, table_name);
   SqlStatement::ParamType params;
 
@@ -451,7 +451,7 @@ ExecutionResult GcpSpanner::GetMergedJson(RowStream& row_stream,
   }
 
   try {
-    existing_json = json::parse(string(*spanner_json_or));
+    existing_json = json::parse(std::string(*spanner_json_or));
   } catch (...) {
     return FailureExecutionResult(
         errors::SC_NO_SQL_DATABASE_JSON_FAILED_TO_PARSE);
@@ -475,7 +475,7 @@ ExecutionResult GcpSpanner::GetMergedJson(RowStream& row_stream,
 Mutations GcpSpanner::UpsertFunctor(
     Client& client, const UpsertSelectOptions& upsert_select_options,
     bool enforce_row_existence, const nlohmann::json& new_attributes,
-    ExecutionResult& prepare_result, const string& table_name,
+    ExecutionResult& prepare_result, const std::string& table_name,
     Transaction txn) {
   auto row_stream =
       client.ExecuteQuery(txn, upsert_select_options.select_statement);
@@ -487,7 +487,7 @@ Mutations GcpSpanner::UpsertFunctor(
     return Mutations{};
   }
 
-  if (upsert_select_options.sort_key_val.get<string>().ok()) {
+  if (upsert_select_options.sort_key_val.get<std::string>().ok()) {
     // Include the sort_key column value.
     return Mutations{MakeInsertOrUpdateMutation(
         table_name, upsert_select_options.column_names,

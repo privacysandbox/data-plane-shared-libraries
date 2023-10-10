@@ -78,7 +78,6 @@ using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
 using std::static_pointer_cast;
-using std::string;
 using std::unordered_set;
 using std::vector;
 
@@ -100,9 +99,10 @@ class JournalServiceTests : public ::testing::Test {
 
   ~JournalServiceTests() { EXPECT_SUCCESS(async_executor_->Stop()); }
 
-  shared_ptr<string> bucket_name_ = make_shared<string>("bucket_name");
-  shared_ptr<string> partition_name_ =
-      make_shared<string>("00000000-0000-0000-0000-000000000000");
+  shared_ptr<std::string> bucket_name_ =
+      make_shared<std::string>("bucket_name");
+  shared_ptr<std::string> partition_name_ =
+      make_shared<std::string>("00000000-0000-0000-0000-000000000000");
   shared_ptr<AsyncExecutorInterface> async_executor_;
   shared_ptr<ConfigProviderInterface> mock_config_provider_;
   shared_ptr<BlobStorageProviderInterface> mock_blob_storage_provider_;
@@ -294,7 +294,7 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackStreamFailure) {
   read_log_context.result = FailureExecutionResult(123);
 
   auto time_event = make_shared<TimeEvent>();
-  auto replayed_logs = make_shared<unordered_set<string>>();
+  auto replayed_logs = make_shared<unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 
@@ -347,7 +347,7 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackNoCallbackFound) {
   read_log_context.response->read_logs->push_back(log_object);
   read_log_context.result = SuccessExecutionResult();
   auto time_event = make_shared<TimeEvent>();
-  auto replayed_logs = make_shared<unordered_set<string>>();
+  auto replayed_logs = make_shared<unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 }
@@ -394,7 +394,7 @@ TEST_F(JournalServiceTests,
   journal_service.GetSubscribersMap().Insert(pair, callback);
 
   auto time_event = make_shared<TimeEvent>();
-  auto replayed_logs = make_shared<unordered_set<string>>();
+  auto replayed_logs = make_shared<unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 
@@ -465,7 +465,7 @@ TEST_F(JournalServiceTests,
   journal_service.GetSubscribersMap().Insert(pair, callback);
 
   auto time_event = make_shared<TimeEvent>();
-  auto replayed_logs = make_shared<unordered_set<string>>();
+  auto replayed_logs = make_shared<unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 

@@ -24,7 +24,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::test::ResultIs;
-using std::string;
 
 namespace google::scp::core::common::test {
 TEST(UuidTests, UuidGeneration) {
@@ -44,7 +43,7 @@ TEST(UuidTests, UuidToString) {
 }
 
 TEST(UuidTests, InvalidUuidString) {
-  string uuid_string = "123";
+  std::string uuid_string = "123";
   Uuid parsed_uuid;
   EXPECT_THAT(
       FromString(uuid_string, parsed_uuid),

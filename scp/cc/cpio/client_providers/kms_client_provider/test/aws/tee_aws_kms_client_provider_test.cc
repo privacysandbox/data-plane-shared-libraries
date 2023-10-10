@@ -67,7 +67,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -119,7 +118,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrpyt_request->set_ciphertext(kCiphertext);
   atomic<bool> condition = false;
 
-  string expect_command =
+  std::string expect_command =
       "/kmstool_enclave_cli --region us-east-1"
       " --aws-access-key-id access_key_id"
       " --aws-secret-access-key access_key_secret"

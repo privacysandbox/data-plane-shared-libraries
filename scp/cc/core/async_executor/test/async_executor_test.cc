@@ -40,7 +40,6 @@ using std::hash;
 using std::make_shared;
 using std::mutex;
 using std::shared_ptr;
-using std::string;
 using std::thread;
 using std::unique_lock;
 using std::vector;
@@ -339,15 +338,15 @@ TEST(AsyncExecutorTests, AsyncContextCallback) {
   {
     // Atomic is not used here because we just reserve one thread in the
     size_t callback_count = 0;
-    auto request = make_shared<string>("request");
-    auto callback = [&](AsyncContext<string, string>& context) {
+    auto request = make_shared<std::string>("request");
+    auto callback = [&](AsyncContext<std::string, std::string>& context) {
       callback_count++;
     };
-    auto context = AsyncContext<string, string>(request, callback);
+    auto context = AsyncContext<std::string, std::string>(request, callback);
 
     executor.Schedule(
         [&]() {
-          context.response = make_shared<string>("response");
+          context.response = make_shared<std::string>("response");
           context.result = SuccessExecutionResult();
           context.Finish();
         },
@@ -366,15 +365,15 @@ TEST(AsyncExecutorTests, AsyncContextCallback) {
   {
     // Atomic is not used here because we just reserve one thread in the
     size_t callback_count = 0;
-    auto request = make_shared<string>("request");
-    auto callback = [&](AsyncContext<string, string>& context) {
+    auto request = make_shared<std::string>("request");
+    auto callback = [&](AsyncContext<std::string, std::string>& context) {
       callback_count++;
     };
-    auto context = AsyncContext<string, string>(request, callback);
+    auto context = AsyncContext<std::string, std::string>(request, callback);
 
     executor.ScheduleFor(
         [&]() {
-          context.response = make_shared<string>("response");
+          context.response = make_shared<std::string>("response");
           context.result = SuccessExecutionResult();
           context.Finish();
         },

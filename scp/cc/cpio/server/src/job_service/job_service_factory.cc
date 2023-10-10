@@ -32,7 +32,6 @@ using google::scp::cpio::client_providers::NoSQLDatabaseClientOptions;
 using google::scp::cpio::client_providers::QueueClientOptions;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace {
 constexpr char kJobServiceFactory[] = "JobServiceFactory";

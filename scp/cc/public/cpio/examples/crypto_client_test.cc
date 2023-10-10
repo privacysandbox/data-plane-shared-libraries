@@ -49,7 +49,6 @@ using google::scp::cpio::LogOption;
 using std::atomic;
 using std::bind;
 using std::make_unique;
-using std::string;
 using std::unique_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -74,13 +73,13 @@ void AeadDecryptCallback(atomic<bool>& finished, ExecutionResult result,
   }
 }
 
-void AeadEncryptCallback(atomic<bool>& finished, string& secret,
+void AeadEncryptCallback(atomic<bool>& finished, std::string& secret,
                          ExecutionResult result,
                          AeadEncryptResponse aead_encrypt_response) {
   if (result.Successful()) {
     std::cout << "Aead encrypt success!" << std::endl;
     AeadDecryptRequest aead_decrypt_request;
-    aead_decrypt_request.set_shared_info(string(kSharedInfo));
+    aead_decrypt_request.set_shared_info(std::string(kSharedInfo));
     aead_decrypt_request.set_secret(secret);
     aead_decrypt_request.mutable_encrypted_data()->set_ciphertext(
         aead_encrypt_response.encrypted_data().ciphertext());
@@ -104,8 +103,8 @@ void HpkeDecryptCallback(bool is_bidirectional, atomic<bool>& finished,
       std::cout << "Response payload to be encrypted using Aead: "
                 << kResponsePayload << std::endl;
       AeadEncryptRequest aead_encrypt_request;
-      aead_encrypt_request.set_shared_info(string(kSharedInfo));
-      aead_encrypt_request.set_payload(string(kResponsePayload));
+      aead_encrypt_request.set_shared_info(std::string(kSharedInfo));
+      aead_encrypt_request.set_payload(std::string(kResponsePayload));
       auto secret = hpke_decrypt_response.secret();
       aead_encrypt_request.set_secret(secret);
       crypto_client->AeadEncrypt(
@@ -128,7 +127,7 @@ void HpkeEncryptCallback(bool is_bidirectional, atomic<bool>& finished,
     std::cout << "Hpke encrypt success!" << std::endl;
     HpkeDecryptRequest hpke_decrypt_request;
     hpke_decrypt_request.mutable_private_key()->set_private_key(kPrivateKey);
-    hpke_decrypt_request.set_shared_info(string(kSharedInfo));
+    hpke_decrypt_request.set_shared_info(std::string(kSharedInfo));
     hpke_decrypt_request.set_is_bidirectional(is_bidirectional);
     hpke_decrypt_request.mutable_encrypted_data()->set_ciphertext(
         hpke_encrypt_response.encrypted_data().ciphertext());
@@ -146,7 +145,7 @@ void HpkeEncryptCallback(bool is_bidirectional, atomic<bool>& finished,
 int main(int argc, char* argv[]) {
   bool is_bidirectional = false;
   if (argc > 1) {
-    is_bidirectional = string(argv[1]) == "true";
+    is_bidirectional = std::string(argv[1]) == "true";
   }
 
   CpioOptions cpio_options;
@@ -177,9 +176,10 @@ int main(int argc, char* argv[]) {
 
   atomic<bool> finished = false;
   HpkeEncryptRequest hpke_encrypt_request;
-  hpke_encrypt_request.mutable_public_key()->set_public_key(string(kPublicKey));
-  hpke_encrypt_request.set_shared_info(string(kSharedInfo));
-  hpke_encrypt_request.set_payload(string(kRequestPayload));
+  hpke_encrypt_request.mutable_public_key()->set_public_key(
+      std::string(kPublicKey));
+  hpke_encrypt_request.set_shared_info(std::string(kSharedInfo));
+  hpke_encrypt_request.set_payload(std::string(kRequestPayload));
   hpke_encrypt_request.set_is_bidirectional(is_bidirectional);
   crypto_client->HpkeEncrypt(
       std::move(hpke_encrypt_request),

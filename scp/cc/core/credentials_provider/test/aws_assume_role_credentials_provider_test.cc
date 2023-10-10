@@ -49,7 +49,6 @@ using google::scp::core::credentials_provider::mock::MockSTSClient;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::core::test {
 TEST(AwsAssumeRoleCredentialsProviderTest, AssumeRole) {
@@ -58,9 +57,10 @@ TEST(AwsAssumeRoleCredentialsProviderTest, AssumeRole) {
 
   auto mock_sts_client = make_shared<MockSTSClient>();
   auto sts_client = dynamic_pointer_cast<STSClient>(mock_sts_client);
-  auto assume_role_arn = make_shared<string>("assume_role_arn");
-  auto assume_role_external_id = make_shared<string>("assume_role_external_id");
-  auto region = make_shared<string>("region");
+  auto assume_role_arn = make_shared<std::string>("assume_role_arn");
+  auto assume_role_external_id =
+      make_shared<std::string>("assume_role_external_id");
+  auto region = make_shared<std::string>("region");
   shared_ptr<AsyncExecutorInterface> async_executor;
   shared_ptr<AsyncExecutorInterface> io_async_executor;
 
@@ -98,9 +98,10 @@ TEST(AwsAssumeRoleCredentialsProviderTest, OnGetCredentialsCallback) {
 
   auto mock_sts_client = make_shared<MockSTSClient>();
   auto sts_client = dynamic_pointer_cast<STSClient>(mock_sts_client);
-  auto assume_role_arn = make_shared<string>("assume_role_arn");
-  auto assume_role_external_id = make_shared<string>("assume_role_external_id");
-  auto region = make_shared<string>("region");
+  auto assume_role_arn = make_shared<std::string>("assume_role_arn");
+  auto assume_role_external_id =
+      make_shared<std::string>("assume_role_external_id");
+  auto region = make_shared<std::string>("region");
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<MockAsyncExecutor>();
   shared_ptr<AsyncExecutorInterface> io_async_executor;
@@ -143,9 +144,10 @@ TEST(AwsAssumeRoleCredentialsProviderTest, OnGetCredentialsCallbackSuccess) {
 
   auto mock_sts_client = make_shared<MockSTSClient>();
   auto sts_client = dynamic_pointer_cast<STSClient>(mock_sts_client);
-  auto assume_role_arn = make_shared<string>("assume_role_arn");
-  auto assume_role_external_id = make_shared<string>("assume_role_external_id");
-  auto region = make_shared<string>("region");
+  auto assume_role_arn = make_shared<std::string>("assume_role_arn");
+  auto assume_role_external_id =
+      make_shared<std::string>("assume_role_external_id");
+  auto region = make_shared<std::string>("region");
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<MockAsyncExecutor>();
   shared_ptr<AsyncExecutorInterface> io_async_executor;

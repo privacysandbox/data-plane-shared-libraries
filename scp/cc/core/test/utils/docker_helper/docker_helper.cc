@@ -28,7 +28,6 @@
 
 using std::array;
 using std::runtime_error;
-using std::string;
 
 // localstack version is pinned so that tests are repeatable
 static constexpr char kLocalstackImage[] = "localstack/localstack:1.0.3";
@@ -41,9 +40,9 @@ std::string PortMapToSelf(std::string_view port) {
   return absl::StrCat(port, ":", port);
 }
 
-int StartLocalStackContainer(const string& network,
-                             const string& container_name,
-                             const string& exposed_port) {
+int StartLocalStackContainer(const std::string& network,
+                             const std::string& container_name,
+                             const std::string& exposed_port) {
   const absl::flat_hash_map<std::string, std::string> env_variables{
       {"EDGE_PORT", exposed_port},
   };
@@ -52,8 +51,9 @@ int StartLocalStackContainer(const string& network,
                         env_variables);
 }
 
-int StartGcpContainer(const string& network, const string& container_name,
-                      const string& exposed_port) {
+int StartGcpContainer(const std::string& network,
+                      const std::string& container_name,
+                      const std::string& exposed_port) {
   absl::flat_hash_map<std::string, std::string> env_variables;
   return StartContainer(network, container_name, kGcpImage,
                         PortMapToSelf(exposed_port), "9000-9050",
@@ -61,34 +61,34 @@ int StartGcpContainer(const string& network, const string& container_name,
 }
 
 int StartContainer(
-    const string& network, const string& container_name,
-    const string& image_name, const string& port_mapping1,
-    const string& port_mapping2,
-    const absl::flat_hash_map<string, string>& environment_variables,
-    const string& addition_args) {
+    const std::string& network, const std::string& container_name,
+    const std::string& image_name, const std::string& port_mapping1,
+    const std::string& port_mapping2,
+    const absl::flat_hash_map<std::string, std::string>& environment_variables,
+    const std::string& addition_args) {
   return std::system(BuildStartContainerCmd(
                          network, container_name, image_name, port_mapping1,
                          port_mapping2, environment_variables, addition_args)
                          .c_str());
 }
 
-string BuildStartContainerCmd(
-    const string& network, const string& container_name,
-    const string& image_name, const string& port_mapping1,
-    const string& port_mapping2,
-    const absl::flat_hash_map<string, string>& environment_variables,
-    const string& addition_args) {
+std::string BuildStartContainerCmd(
+    const std::string& network, const std::string& container_name,
+    const std::string& image_name, const std::string& port_mapping1,
+    const std::string& port_mapping2,
+    const absl::flat_hash_map<std::string, std::string>& environment_variables,
+    const std::string& addition_args) {
   auto ports_mapping = absl::StrFormat("-p %s ", port_mapping1);
   if (!port_mapping2.empty()) {
     ports_mapping += absl::StrFormat("-p %s ", port_mapping2);
   }
 
-  string name_network;
+  std::string name_network;
   if (!network.empty()) {
     name_network = absl::StrFormat("--network=%s ", network);
   }
 
-  string envs;
+  std::string envs;
   for (auto it = environment_variables.begin();
        it != environment_variables.end(); ++it) {
     envs += absl::StrFormat("--env %s=%s ", it->first, it->second);
@@ -106,11 +106,12 @@ string BuildStartContainerCmd(
       addition_args.empty() ? addition_args : addition_args + " ", image_name);
 }
 
-int CreateImage(const string& image_target, const string& args) {
+int CreateImage(const std::string& image_target, const std::string& args) {
   return std::system(BuildCreateImageCmd(image_target, args).c_str());
 }
 
-string BuildCreateImageCmd(const string& image_target, const string& args) {
+std::string BuildCreateImageCmd(const std::string& image_target,
+                                const std::string& args) {
   auto cmd = absl::StrFormat(
       "bazel build --action_env=BAZEL_CXXOPTS='-std=c++17' %s", image_target);
   if (!args.empty()) {
@@ -123,7 +124,7 @@ int LoadImage(const std::string& image_name) {
   return std::system(BuildLoadImageCmd(image_name).c_str());
 }
 
-string BuildLoadImageCmd(const std::string& image_name) {
+std::string BuildLoadImageCmd(const std::string& image_name) {
   return absl::StrFormat("docker load < %s", image_name);
 }
 
@@ -154,8 +155,8 @@ std::string BuildStopContainerCmd(const std::string& container_name) {
 std::string GetIpAddress(const std::string& network_name,
                          const std::string& container_name) {
   char buffer[20];
-  string result;
-  string command =
+  std::string result;
+  std::string command =
       absl::StrCat("docker inspect -f '{{ .NetworkSettings.Networks.",
                    network_name, ".IPAddress }}' ", container_name);
   auto pipe = popen(command.c_str(), "r");
@@ -182,9 +183,9 @@ std::string GetIpAddress(const std::string& network_name,
   return result.substr(0, length);
 }
 
-void GrantPermissionToFolder(const string& container_name,
-                             const string& folder) {
-  string s =
+void GrantPermissionToFolder(const std::string& container_name,
+                             const std::string& folder) {
+  std::string s =
       absl::StrCat("docker exec -itd ", container_name, " chmod 666 ", folder);
   auto result = std::system(s.c_str());
   if (result != 0) {

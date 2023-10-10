@@ -72,7 +72,6 @@ using std::make_unique;
 using std::map;
 using std::pair;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 using testing::Between;
@@ -89,12 +88,12 @@ constexpr char kTestGcpWipProvider3[] = "Wip3";
 constexpr char kTestEndpoint1[] = "endpoint1";
 constexpr char kTestEndpoint2[] = "endpoint2";
 constexpr char kTestEndpoint3[] = "endpoint3";
-const vector<string> kTestEndpoints = {kTestEndpoint1, kTestEndpoint2,
-                                       kTestEndpoint3};
+const vector<std::string> kTestEndpoints = {kTestEndpoint1, kTestEndpoint2,
+                                            kTestEndpoint3};
 constexpr char kTestRegion1[] = "region1";
 constexpr char kTestRegion2[] = "region2";
 constexpr char kTestRegion3[] = "region3";
-const vector<string> kTestKeyIds = {"key_id_1", "key_id_2", "key_id_3"};
+const vector<std::string> kTestKeyIds = {"key_id_1", "key_id_2", "key_id_3"};
 constexpr char kTestKeyIdBad[] = "bad_key_id";
 constexpr char kTestResourceName[] = "encryptionKeys/key_id";
 constexpr char kTestPublicKeysetHandle[] = "publicKeysetHandle";
@@ -103,11 +102,11 @@ constexpr int kTestExpirationTime = 123456;
 constexpr int kTestCreationTime = 111111;
 constexpr char kTestPublicKeySignature[] = "publicKeySignature";
 constexpr char kTestKeyEncryptionKeyUri[] = "keyEncryptionKeyUri";
-const vector<string> kTestKeyMaterials = {"key-material-1", "key-material-2",
-                                          "key-material-3"};
+const vector<std::string> kTestKeyMaterials = {
+    "key-material-1", "key-material-2", "key-material-3"};
 constexpr char kTestKeyMaterialBad[] = "bad-key-material";
 constexpr char kTestPrivateKey[] = "Test message";
-const map<string, string> kPlaintextMap = {
+const map<std::string, std::string> kPlaintextMap = {
     {kTestKeyMaterials[0], "\270G\005\364$\253\273\331\353\336\216>"},
     {kTestKeyMaterials[1], "\327\002\204 \232\377\002\330\225DB\f"},
     {kTestKeyMaterials[2], "; \362\240\2369\334r\r\373\253W"}};
@@ -131,13 +130,13 @@ constexpr char kDecryptedSinglePartyKey[] = "singlepartytestkey";
 
 namespace google::scp::cpio::client_providers::test {
 // Put them inside the namespace to use the type inside namespace easier.
-static const map<string, ExecutionResult>
+static const map<std::string, ExecutionResult>
     kMockSuccessKeyFetchingResultsForListByAge = {
         {kTestEndpoint1, SuccessExecutionResult()},
         {kTestEndpoint2, SuccessExecutionResult()},
         {kTestEndpoint3, SuccessExecutionResult()}};
 
-static const map<string, map<string, ExecutionResult>>
+static const map<std::string, map<std::string, ExecutionResult>>
     kMockSuccessKeyFetchingResults = {
         {kTestKeyIds[0],
          {{kTestEndpoint1, SuccessExecutionResult()},
@@ -157,38 +156,38 @@ static void GetPrivateKeyFetchingResponse(PrivateKeyFetchingResponse& response,
                                           size_t splits_in_key_data = 3,
                                           bool bad_key_material = false) {
   auto encryption_key = make_shared<EncryptionKey>();
-  encryption_key->resource_name = make_shared<string>(kTestResourceName);
+  encryption_key->resource_name = make_shared<std::string>(kTestResourceName);
   encryption_key->expiration_time_in_ms = kTestExpirationTime;
   encryption_key->creation_time_in_ms = kTestCreationTime;
   encryption_key->encryption_key_type =
       EncryptionKeyType::kMultiPartyHybridEvenKeysplit;
   encryption_key->public_key_material =
-      make_shared<string>(kTestPublicKeyMaterial);
+      make_shared<std::string>(kTestPublicKeyMaterial);
   encryption_key->public_keyset_handle =
-      make_shared<string>(kTestPublicKeysetHandle);
+      make_shared<std::string>(kTestPublicKeysetHandle);
 
   for (auto i = 0; i < splits_in_key_data; ++i) {
     auto key_data = make_shared<KeyData>();
     key_data->key_encryption_key_uri =
-        make_shared<string>(kTestKeyEncryptionKeyUri);
+        make_shared<std::string>(kTestKeyEncryptionKeyUri);
     if (i == uri_index) {
-      key_data->key_material = make_shared<string>(
+      key_data->key_material = make_shared<std::string>(
           bad_key_material ? kTestKeyMaterialBad : kTestKeyMaterials[i]);
     }
 
     key_data->public_key_signature =
-        make_shared<string>(kTestPublicKeySignature);
+        make_shared<std::string>(kTestPublicKeySignature);
     encryption_key->key_data.emplace_back(key_data);
   }
-  encryption_key->key_id = make_shared<string>(
+  encryption_key->key_id = make_shared<std::string>(
       bad_key_material ? kTestKeyIdBad : kTestKeyIds[key_id_index]);
   response.encryption_keys.emplace_back(encryption_key);
 }
 
-static map<string, map<string, PrivateKeyFetchingResponse>>
+static map<std::string, map<std::string, PrivateKeyFetchingResponse>>
 CreateSuccessKeyFetchingResponseMap(size_t splits_in_key_data = 3,
                                     size_t call_num = 3) {
-  map<string, map<string, PrivateKeyFetchingResponse>> responses;
+  map<std::string, map<std::string, PrivateKeyFetchingResponse>> responses;
   for (int i = 0; i < call_num; ++i) {
     for (int j = 0; j < 3; ++j) {
       PrivateKeyFetchingResponse mock_fetching_response;
@@ -201,9 +200,9 @@ CreateSuccessKeyFetchingResponseMap(size_t splits_in_key_data = 3,
   return responses;
 }
 
-static map<string, PrivateKeyFetchingResponse>
+static map<std::string, PrivateKeyFetchingResponse>
 CreateSuccessKeyFetchingResponseMapForListByAge() {
-  map<string, PrivateKeyFetchingResponse> responses;
+  map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 0; i < 3; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -215,7 +214,7 @@ CreateSuccessKeyFetchingResponseMapForListByAge() {
   return responses;
 }
 
-static const map<string, map<string, PrivateKeyFetchingResponse>>
+static const map<std::string, map<std::string, PrivateKeyFetchingResponse>>
     kMockSuccessKeyFetchingResponses = CreateSuccessKeyFetchingResponseMap();
 
 class PrivateKeyClientProviderTest : public ::testing::Test {
@@ -278,8 +277,8 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
   }
 
   void SetMockPrivateKeyFetchingClient(
-      const map<string, map<string, ExecutionResult>>& mock_results,
-      const map<string, map<string, PrivateKeyFetchingResponse>>&
+      const map<std::string, map<std::string, ExecutionResult>>& mock_results,
+      const map<std::string, map<std::string, PrivateKeyFetchingResponse>>&
           mock_responses) {
     EXPECT_CALL(*mock_private_key_fetcher, FetchPrivateKey)
         .Times(Between(1, 9))
@@ -303,8 +302,8 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
   }
 
   void SetMockPrivateKeyFetchingClientForListByAge(
-      const map<string, ExecutionResult>& mock_results,
-      const map<string, PrivateKeyFetchingResponse>& mock_responses) {
+      const map<std::string, ExecutionResult>& mock_results,
+      const map<std::string, PrivateKeyFetchingResponse>& mock_responses) {
     EXPECT_CALL(*mock_private_key_fetcher, FetchPrivateKey)
         .Times(Between(1, 9))
         .WillRepeatedly([=](AsyncContext<PrivateKeyFetchingRequest,
@@ -323,9 +322,9 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
         });
   }
 
-  vector<PrivateKey> BuildExpectedPrivateKeys(const string& encoded_private_key,
-                                              uint16_t start_index = 0,
-                                              uint16_t end_index = 2) {
+  vector<PrivateKey> BuildExpectedPrivateKeys(
+      const std::string& encoded_private_key, uint16_t start_index = 0,
+      uint16_t end_index = 2) {
     vector<PrivateKey> expected_keys(end_index - start_index + 1);
     for (auto i = start_index; i <= end_index; ++i) {
       uint16_t key_index = i - start_index;
@@ -357,7 +356,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
   request.add_key_ids(kTestKeyIds[1]);
   request.add_key_ids(kTestKeyIds[2]);
 
-  string encoded_private_key;
+  std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
@@ -386,7 +385,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByAgeSuccess) {
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
 
-  string encoded_private_key;
+  std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
@@ -437,7 +436,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointReturnEmptyList) {
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 6);
 
-  map<string, PrivateKeyFetchingResponse> responses;
+  map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 0; i < 2; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -473,7 +472,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 8);
 
-  map<string, PrivateKeyFetchingResponse> responses;
+  map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 0; i < 2; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -493,7 +492,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
 
-  string encoded_private_key;
+  std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
@@ -518,7 +517,7 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 7);
 
-  map<string, PrivateKeyFetchingResponse> responses;
+  map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 1; i < 3; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -538,7 +537,7 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
 
-  string encoded_private_key;
+  std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
@@ -564,7 +563,7 @@ TEST_F(PrivateKeyClientProviderTest,
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 7);
 
-  map<string, PrivateKeyFetchingResponse> responses;
+  map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 1; i < 3; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 2; ++j) {
@@ -585,7 +584,7 @@ TEST_F(PrivateKeyClientProviderTest,
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
 
-  string encoded_private_key;
+  std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
@@ -794,29 +793,29 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
 
           auto encryption_key = make_shared<EncryptionKey>();
           encryption_key->resource_name =
-              make_shared<string>(kTestResourceName);
+              make_shared<std::string>(kTestResourceName);
           encryption_key->expiration_time_in_ms = kTestExpirationTime;
           encryption_key->creation_time_in_ms = kTestCreationTime;
           encryption_key->encryption_key_type =
               EncryptionKeyType::kSinglePartyHybridKey;
           encryption_key->public_key_material =
-              make_shared<string>(kTestPublicKeyMaterial);
+              make_shared<std::string>(kTestPublicKeyMaterial);
           encryption_key->public_keyset_handle =
-              make_shared<string>(kTestPublicKeysetHandle);
+              make_shared<std::string>(kTestPublicKeysetHandle);
 
           for (auto i = 0; i < splits_in_key_data; ++i) {
             auto key_data = make_shared<KeyData>();
             key_data->key_encryption_key_uri =
-                make_shared<string>(kTestKeyEncryptionKeyUri);
+                make_shared<std::string>(kTestKeyEncryptionKeyUri);
             key_data->key_material =
-                make_shared<string>(kSinglePartyPrivateKeyJson);
+                make_shared<std::string>(kSinglePartyPrivateKeyJson);
 
             key_data->public_key_signature =
-                make_shared<string>(kTestPublicKeySignature);
+                make_shared<std::string>(kTestPublicKeySignature);
             encryption_key->key_data.emplace_back(key_data);
           }
 
-          encryption_key->key_id = make_shared<string>(kTestKeyIds[0]);
+          encryption_key->key_id = make_shared<std::string>(kTestKeyIds[0]);
           context.response = make_shared<PrivateKeyFetchingResponse>();
           context.response->encryption_keys.emplace_back(encryption_key);
           context.Finish();
@@ -825,7 +824,7 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
   }
 
   vector<PrivateKey> BuildExpectedPrivateKeys(
-      const string& encoded_private_key) {
+      const std::string& encoded_private_key) {
     vector<PrivateKey> expected_keys(1);
     expected_keys[0].set_key_id(kTestKeyIds[0]);
     expected_keys[0].set_public_key(kTestPublicKeyMaterial);
@@ -852,7 +851,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
   ListPrivateKeysRequest request;
   request.add_key_ids(kTestKeyIds[0]);
 
-  string encoded_private_key;
+  std::string encoded_private_key;
   Base64Encode(kDecryptedSinglePartyKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(

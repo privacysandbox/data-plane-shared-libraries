@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-using std::string;
 using std::vector;
 
 namespace google::scp::roma::wasm::test {
@@ -115,7 +114,7 @@ TEST(WasmDeserializerTest, ShouldReadCustomString) {
                         0x00, 0x00,
                         0x00, 0xFF};
 
-  string read_value;
+  std::string read_value;
   WasmDeserializer::ReadCustomString(mem_blob, sizeof(mem_blob), 5, read_value);
 
   EXPECT_EQ(read_value, "roma");
@@ -125,7 +124,7 @@ TEST(WasmDeserializerTest, ShouldReadCustomString) {
 TEST(WasmDeserializerTest, ShouldNotReadCustomStringIfOffsetIsOutOfBounds) {
   uint8_t mem_blob[] = {0};
 
-  string read_value;
+  std::string read_value;
   WasmDeserializer::ReadCustomString(mem_blob, sizeof(mem_blob), 1, read_value);
 
   EXPECT_EQ(read_value, "");
@@ -142,7 +141,7 @@ TEST(WasmDeserializerTest,
                         0x00, 0x00,
                         0x00};
 
-  string read_value;
+  std::string read_value;
   WasmDeserializer::ReadCustomString(mem_blob, sizeof(mem_blob), 5, read_value);
 
   EXPECT_EQ(read_value, "");
@@ -181,7 +180,7 @@ TEST(WasmDeserializerTest, ShouldReadCustomListOfStrings) {
                         0x00,
                         0x00};
 
-  vector<string> read_value;
+  vector<std::string> read_value;
   WasmDeserializer::ReadCustomListOfString(mem_blob, sizeof(mem_blob), 17,
                                            read_value);
 
@@ -191,7 +190,7 @@ TEST(WasmDeserializerTest, ShouldReadCustomListOfStrings) {
 TEST(WasmDeserializerTest, ShouldNoteReadCustomListOfStringsIfOutOfBounds) {
   uint8_t mem_blob[10] = {};
 
-  vector<string> read_value;
+  vector<std::string> read_value;
   // We can't even read the struct metadata starting at this index
   WasmDeserializer::ReadCustomListOfString(mem_blob, sizeof(mem_blob), 5,
                                            read_value);

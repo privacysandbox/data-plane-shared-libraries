@@ -34,7 +34,6 @@ using std::ios;
 using std::make_shared;
 using std::ofstream;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::filesystem::create_directory;
 using std::filesystem::current_path;
@@ -48,7 +47,7 @@ TEST(MockBlobStorageProviderTest, GetBlob) {
   atomic<bool> condition = false;
   create_directory("bucket_get");
 
-  string file_content = "1234";
+  std::string file_content = "1234";
   vector<char> bytes(file_content.begin(), file_content.end());
 
   ofstream output_stream("bucket_get/1.txt", ios::trunc | ios::binary);
@@ -72,8 +71,9 @@ TEST(MockBlobStorageProviderTest, GetBlob) {
         condition = true;
       });
 
-  get_blob_context.request->bucket_name = make_shared<string>("bucket_get");
-  get_blob_context.request->blob_name = make_shared<string>("1.txt");
+  get_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_get");
+  get_blob_context.request->blob_name = make_shared<std::string>("1.txt");
   EXPECT_SUCCESS(blob_storage_client->GetBlob(get_blob_context));
 }
 
@@ -84,7 +84,7 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
   atomic<bool> condition = false;
   create_directory("bucket_put");
 
-  string file_content = "1234";
+  std::string file_content = "1234";
   vector<Byte> bytes(file_content.begin(), file_content.end());
 
   shared_ptr<BlobStorageClientInterface> blob_storage_client;
@@ -111,8 +111,10 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
         condition = true;
       });
 
-  put_blob_context.request->bucket_name = make_shared<string>("bucket_put");
-  put_blob_context.request->blob_name = make_shared<string>("test_hash/1.txt");
+  put_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_put");
+  put_blob_context.request->blob_name =
+      make_shared<std::string>("test_hash/1.txt");
   put_blob_context.request->buffer = make_shared<BytesBuffer>();
   put_blob_context.request->buffer->bytes = make_shared<vector<Byte>>(bytes);
   put_blob_context.request->buffer->length = bytes.size();
@@ -126,7 +128,7 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
   atomic<bool> condition = false;
   create_directory("bucket_delete");
 
-  string file_content = "1234";
+  std::string file_content = "1234";
   vector<char> bytes(file_content.begin(), file_content.end());
 
   ofstream output_stream("bucket_delete/2.txt", ios::trunc | ios::binary);
@@ -149,8 +151,8 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
       });
 
   delete_blob_context.request->bucket_name =
-      make_shared<string>("bucket_delete");
-  delete_blob_context.request->blob_name = make_shared<string>("2.txt");
+      make_shared<std::string>("bucket_delete");
+  delete_blob_context.request->blob_name = make_shared<std::string>("2.txt");
   EXPECT_SUCCESS(blob_storage_client->DeleteBlob(delete_blob_context));
 }
 
@@ -197,8 +199,9 @@ TEST(MockBlobStorageProviderTest, ListBlobs) {
         condition = true;
       });
 
-  list_blobs_context.request->bucket_name = make_shared<string>("bucket_list");
-  list_blobs_context.request->blob_name = make_shared<string>("");
+  list_blobs_context.request->bucket_name =
+      make_shared<std::string>("bucket_list");
+  list_blobs_context.request->blob_name = make_shared<std::string>("");
   EXPECT_SUCCESS(blob_storage_client->ListBlobs(list_blobs_context));
 }
 

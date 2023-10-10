@@ -46,7 +46,6 @@ using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
 using std::function;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::thread;
 using std::vector;
 
@@ -174,7 +173,7 @@ RomaService::SetupNativeFunctionHandler(size_t concurrency) {
   vector<shared_ptr<FunctionBindingObjectV2>> function_bindings;
   config_.GetFunctionBindings(function_bindings);
 
-  vector<string> function_names;
+  vector<std::string> function_names;
 
   for (auto& binding : function_bindings) {
     auto result = native_function_binding_table_->Register(

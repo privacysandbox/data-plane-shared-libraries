@@ -59,7 +59,6 @@ using google::scp::core::utils::Base64Encode;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -76,7 +75,7 @@ ExecutionResult AwsS3Provider::CreateClientConfig() noexcept {
   client_config_->executor = make_shared<AwsAsyncExecutor>(
       io_async_executor_, io_async_execution_priority_);
 
-  string region;
+  std::string region;
   auto execution_result = config_provider_->Get(kCloudServiceRegion, region);
   if (!execution_result.Successful()) {
     return execution_result;
@@ -240,14 +239,14 @@ void AwsS3Client::OnListObjectsCallback(
   list_blobs_context.response->blobs = make_shared<vector<Blob>>();
   for (auto& object : list_objects_outcome.GetResult().GetContents()) {
     Blob blob;
-    blob.blob_name = make_shared<string>(object.GetKey());
+    blob.blob_name = make_shared<std::string>(object.GetKey());
     blob.bucket_name = list_blobs_context.request->bucket_name;
 
     list_blobs_context.response->blobs->push_back(blob);
   }
 
   Blob next_marker;
-  next_marker.blob_name = make_shared<string>(
+  next_marker.blob_name = make_shared<std::string>(
       list_objects_outcome.GetResult().GetNextMarker().c_str());
   next_marker.bucket_name = list_blobs_context.request->bucket_name;
   list_blobs_context.response->next_marker =
@@ -282,11 +281,11 @@ ExecutionResult AwsS3Client::PutBlob(
   put_object_request.SetKey(blob_name);
 
   ASSIGN_OR_LOG_AND_RETURN_CONTEXT(
-      string md5_checksum,
+      std::string md5_checksum,
       utils::CalculateMd5Hash(*put_blob_context.request->buffer),
       kAwsS3Provider, put_blob_context, "MD5 Hash generation failed");
 
-  string base64_md5_checksum;
+  std::string base64_md5_checksum;
   auto execution_result = Base64Encode(md5_checksum, base64_md5_checksum);
   if (!execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kAwsS3Provider, put_blob_context, execution_result,

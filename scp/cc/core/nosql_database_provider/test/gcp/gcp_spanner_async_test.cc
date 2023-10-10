@@ -82,7 +82,6 @@ using std::make_shared;
 using std::make_tuple;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::thread;
 using std::tuple;
 using std::unique_ptr;
@@ -222,7 +221,7 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
         make_shared<NoSQLDatabaseValidAttributeValueTypes>()};
 
     GetDatabaseItemRequest get_request;
-    get_request.table_name = make_shared<string>(kTableName);
+    get_request.table_name = make_shared<std::string>(kTableName);
     get_request.partition_key =
         make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
     get_request.sort_key = make_shared<NoSqlDatabaseKeyValuePair>(sort_key);
@@ -231,7 +230,7 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
         make_shared<GetDatabaseItemRequest>(std::move(get_request));
 
     UpsertDatabaseItemRequest upsert_request;
-    upsert_request.table_name = make_shared<string>(kTableName);
+    upsert_request.table_name = make_shared<std::string>(kTableName);
     upsert_request.partition_key =
         make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
     upsert_request.sort_key = make_shared<NoSqlDatabaseKeyValuePair>(sort_key);
@@ -239,9 +238,9 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
     upsert_database_item_context_.request =
         make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
 
-    config_provider_->Set(kGcpProjectId, string(kProject));
-    config_provider_->Set(kSpannerInstance, string(kInstance));
-    config_provider_->Set(kSpannerDatabase, string(kDatabase));
+    config_provider_->Set(kGcpProjectId, std::string(kProject));
+    config_provider_->Set(kSpannerInstance, std::string(kInstance));
+    config_provider_->Set(kSpannerDatabase, std::string(kDatabase));
 
     async_executor_->Init();
     async_executor_->Run();
@@ -319,14 +318,14 @@ TEST_F(GcpSpannerAsyncTests, SimpleGetTest) {
     ASSERT_THAT(response, NotNull());
     EXPECT_THAT(response->partition_key,
                 Pointee(FieldsAre(Pointee(StrEq(kDefaultPartitionKeyName)),
-                                  Pointee(VariantWith<string>("1")))));
+                                  Pointee(VariantWith<std::string>("1")))));
     EXPECT_THAT(response->sort_key,
                 Pointee(FieldsAre(Pointee(StrEq(kDefaultSortKeyName)),
-                                  Pointee(VariantWith<string>("2")))));
+                                  Pointee(VariantWith<std::string>("2")))));
     EXPECT_THAT(response->attributes,
                 Pointee(UnorderedElementsAre(
                     FieldsAre(Pointee(StrEq("token_count")),
-                              Pointee(VariantWith<string>("10"))))));
+                              Pointee(VariantWith<std::string>("10"))))));
     finished = true;
   };
 
@@ -350,8 +349,8 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetTest) {
     threads.push_back(thread([this, &start, i = i, &finished] {
       WaitUntil([&start]() -> bool { return start; });
 
-      string partition_key_val = std::to_string((i % 3) + 1);
-      string token_count_val = std::to_string(((i % 3) + 1) * 10);
+      std::string partition_key_val = std::to_string((i % 3) + 1);
+      std::string token_count_val = std::to_string(((i % 3) + 1) * 10);
 
       NoSqlDatabaseKeyValuePair partition_key{
           make_shared<NoSQLDatabaseAttributeName>(),
@@ -366,7 +365,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetTest) {
       *sort_key.attribute_value = "2";
 
       GetDatabaseItemRequest request;
-      request.table_name = make_shared<string>(kTableName);
+      request.table_name = make_shared<std::string>(kTableName);
       request.partition_key =
           make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
       request.sort_key =
@@ -393,11 +392,11 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetTest) {
         EXPECT_THAT(response->partition_key,
                     Pointee(FieldsAre(
                         Pointee(StrEq(kDefaultPartitionKeyName)),
-                        Pointee(VariantWith<string>(partition_key_val)))));
+                        Pointee(VariantWith<std::string>(partition_key_val)))));
         EXPECT_THAT(response->attributes,
                     Pointee(UnorderedElementsAre(FieldsAre(
                         Pointee(StrEq("token_count")),
-                        Pointee(VariantWith<string>(token_count_val))))));
+                        Pointee(VariantWith<std::string>(token_count_val))))));
         finished[i] = true;
       };
 
@@ -433,7 +432,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestNoAttributes) {
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1000")});
 
@@ -473,7 +472,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyNoAttributes) {
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1000")});
 
@@ -514,7 +513,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyAndAttributes) {
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("10")});
 
@@ -522,7 +521,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyAndAttributes) {
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<string>("token_count"),
+          .attribute_name = make_shared<std::string>("token_count"),
           .attribute_value =
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("1000")});
 
@@ -561,21 +560,21 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadUpsertTest) {
     threads.push_back(thread([this, &start, i = i, &finished]() {
       WaitUntil([&start]() -> bool { return start; });
 
-      string partition_key_str = absl::StrCat(i + 1);
-      string sort_key_str = "2";
-      string token_count = absl::StrCat(1000 * (i + 1));
+      std::string partition_key_str = absl::StrCat(i + 1);
+      std::string sort_key_str = "2";
+      std::string token_count = absl::StrCat(1000 * (i + 1));
 
       NoSqlDatabaseKeyValuePair partition_key{
-          make_shared<string>(kDefaultPartitionKeyName),
+          make_shared<std::string>(kDefaultPartitionKeyName),
           make_shared<NoSQLDatabaseValidAttributeValueTypes>(
               partition_key_str)};
 
       NoSqlDatabaseKeyValuePair sort_key{
-          make_shared<string>(kDefaultSortKeyName),
+          make_shared<std::string>(kDefaultSortKeyName),
           make_shared<NoSQLDatabaseValidAttributeValueTypes>(sort_key_str)};
 
       UpsertDatabaseItemRequest upsert_request;
-      upsert_request.table_name = make_shared<string>(kTableName);
+      upsert_request.table_name = make_shared<std::string>(kTableName);
       upsert_request.partition_key =
           make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
       upsert_request.sort_key =
@@ -591,7 +590,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadUpsertTest) {
           make_shared<vector<NoSqlDatabaseKeyValuePair>>();
       upsert_database_item_context.request->new_attributes->push_back(
           NoSqlDatabaseKeyValuePair{
-              .attribute_name = make_shared<string>("token_count"),
+              .attribute_name = make_shared<std::string>("token_count"),
               .attribute_value =
                   make_shared<NoSQLDatabaseValidAttributeValueTypes>(
                       token_count)});
@@ -640,11 +639,11 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
       std::atomic_bool finished(false);
 
       NoSqlDatabaseKeyValuePair partition_key{
-          make_shared<string>(kDefaultPartitionKeyName),
+          make_shared<std::string>(kDefaultPartitionKeyName),
           make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")};
 
       NoSqlDatabaseKeyValuePair sort_key{
-          make_shared<string>(kDefaultSortKeyName),
+          make_shared<std::string>(kDefaultSortKeyName),
           make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")};
 
       for (int budget_consumption_count = 10; budget_consumption_count > 0;) {
@@ -652,7 +651,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
         finished = false;
         // Get the current token_count.
         GetDatabaseItemRequest get_request;
-        get_request.table_name = make_shared<string>(kTableName);
+        get_request.table_name = make_shared<std::string>(kTableName);
         get_request.partition_key =
             make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
         get_request.sort_key = make_shared<NoSqlDatabaseKeyValuePair>(sort_key);
@@ -681,15 +680,15 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
 
         // Decrement the received count by 1.
         auto& existing_count = response->attributes->at(0).attribute_value;
-        // Convert the variant to a string then to an int and subtract 1, then
-        // stringify again.
+        // Convert the variant to a std::string then to an int and subtract 1,
+        // then std::stringify again.
         int count = 0;
         EXPECT_TRUE(
             absl::SimpleAtoi(std::get<std::string>(*existing_count), &count));
-        string new_count = absl::StrCat(count - 1);
+        std::string new_count = absl::StrCat(count - 1);
 
         UpsertDatabaseItemRequest upsert_request;
-        upsert_request.table_name = make_shared<string>(kTableName);
+        upsert_request.table_name = make_shared<std::string>(kTableName);
         upsert_request.partition_key =
             make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
         upsert_request.sort_key =
@@ -698,13 +697,13 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
         upsert_request.attributes =
             make_shared<vector<NoSqlDatabaseKeyValuePair>>();
         upsert_request.attributes->push_back(NoSqlDatabaseKeyValuePair{
-            .attribute_name = make_shared<string>("token_count"),
+            .attribute_name = make_shared<std::string>("token_count"),
             .attribute_value = std::move(existing_count)});
 
         upsert_request.new_attributes =
             make_shared<vector<NoSqlDatabaseKeyValuePair>>();
         upsert_request.new_attributes->push_back(NoSqlDatabaseKeyValuePair{
-            .attribute_name = make_shared<string>("token_count"),
+            .attribute_name = make_shared<std::string>("token_count"),
             .attribute_value =
                 make_shared<NoSQLDatabaseValidAttributeValueTypes>(new_count)});
 

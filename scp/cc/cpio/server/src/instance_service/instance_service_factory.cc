@@ -43,7 +43,6 @@ using google::scp::cpio::TryReadConfigStringList;
 using google::scp::cpio::client_providers::AuthTokenProviderInterface;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace {
 constexpr char kInstanceServiceFactory[] = "InstanceServiceFactory";

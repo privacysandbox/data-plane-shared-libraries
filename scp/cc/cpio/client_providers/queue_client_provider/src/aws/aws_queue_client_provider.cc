@@ -83,8 +83,6 @@ using google::scp::cpio::common::CreateClientConfiguration;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -152,13 +150,13 @@ AwsQueueClientProvider::CreateClientConfiguration() noexcept {
   }
 
   auto client_config = common::CreateClientConfiguration(
-      make_shared<string>(std::move(*region_code_or)));
+      make_shared<std::string>(std::move(*region_code_or)));
   client_config->executor = make_shared<AwsAsyncExecutor>(io_async_executor_);
 
   return client_config;
 }
 
-ExecutionResultOr<string> AwsQueueClientProvider::GetQueueUrl() noexcept {
+ExecutionResultOr<std::string> AwsQueueClientProvider::GetQueueUrl() noexcept {
   GetQueueUrlRequest get_queue_url_request;
   get_queue_url_request.SetQueueName(queue_client_options_->queue_name.c_str());
 
@@ -184,7 +182,8 @@ ExecutionResult AwsQueueClientProvider::Stop() noexcept {
 ExecutionResult AwsQueueClientProvider::EnqueueMessage(
     AsyncContext<EnqueueMessageRequest, EnqueueMessageResponse>&
         enqueue_message_context) noexcept {
-  const string& message_body = enqueue_message_context.request->message_body();
+  const std::string& message_body =
+      enqueue_message_context.request->message_body();
   if (message_body.empty()) {
     auto execution_result =
         FailureExecutionResult(SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE);
@@ -311,7 +310,7 @@ ExecutionResult AwsQueueClientProvider::UpdateMessageVisibilityTimeout(
     AsyncContext<UpdateMessageVisibilityTimeoutRequest,
                  UpdateMessageVisibilityTimeoutResponse>&
         update_message_visibility_timeout_context) noexcept {
-  const string& receipt_info =
+  const std::string& receipt_info =
       update_message_visibility_timeout_context.request->receipt_info();
   if (receipt_info.empty()) {
     auto execution_result = FailureExecutionResult(
@@ -386,7 +385,8 @@ void AwsQueueClientProvider::OnChangeMessageVisibilityCallback(
 ExecutionResult AwsQueueClientProvider::DeleteMessage(
     AsyncContext<DeleteMessageRequest, DeleteMessageResponse>&
         delete_message_context) noexcept {
-  const string& receipt_info = delete_message_context.request->receipt_info();
+  const std::string& receipt_info =
+      delete_message_context.request->receipt_info();
   if (receipt_info.empty()) {
     auto execution_result = FailureExecutionResult(
         SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_RECEIPT_INFO);

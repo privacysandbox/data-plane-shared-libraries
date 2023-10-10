@@ -63,15 +63,13 @@ using std::make_unique;
 using std::mutex;
 using std::shared_ptr;
 using std::static_pointer_cast;
-using std::string;
 using std::thread;
-using std::to_string;
 using std::vector;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
 constexpr char kNamespace[] = "PBS";
-const vector<string> kEventList = {"QPS", "Errors"};
+const vector<std::string> kEventList = {"QPS", "Errors"};
 
 MetricDefinition CreateMetricDefinition() {
   return MetricDefinition(kMetricName, MetricUnit::kCount, kNamespace);
@@ -195,13 +193,13 @@ TEST_F(AggregateMetricTest, RunMetricPushHandler) {
     aggregate_metric.MetricPushHandler(counter_value, info.value());
     EXPECT_EQ(metric_received.name(), kMetricName);
     EXPECT_EQ(metric_received.labels().find("EventCode")->second, code);
-    EXPECT_EQ(metric_received.value(), to_string(counter_value));
+    EXPECT_EQ(metric_received.value(), std::to_string(counter_value));
   }
 
   aggregate_metric.MetricPushHandler(counter_value, metric_info);
   EXPECT_EQ(metric_received.name(), kMetricName);
   EXPECT_EQ(metric_received.labels().size(), 0);
-  EXPECT_EQ(metric_received.value(), to_string(counter_value));
+  EXPECT_EQ(metric_received.value(), std::to_string(counter_value));
   WaitUntil([&]() { return metric_push_is_called == 3; });
 }
 

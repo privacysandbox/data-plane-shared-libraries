@@ -35,7 +35,6 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::nosql_database_provider::AwsDynamoDBUtils;
 using std::get;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace google::scp::core::test {
@@ -72,7 +71,7 @@ TEST(AwsDynamoDBUtilsTests,
                     attribute_value, out_value),
             SuccessExecutionResult());
 
-  EXPECT_EQ(get<string>(out_value), "hello world!");
+  EXPECT_EQ(get<std::string>(out_value), "hello world!");
 }
 
 void SetValueType(AttributeValue& attribute_value, ValueType type) {
@@ -153,13 +152,14 @@ TEST(AwsDynamoDBUtilsTests,
 TEST(AwsDynamoDBUtilsTests,
      ConvertNoSQLDatabaseValidAttributeValueTypeToDynamoDBTypeString) {
   AttributeValue attribute_value;
-  NoSQLDatabaseValidAttributeValueTypes value = string("hello world!");
+  NoSQLDatabaseValidAttributeValueTypes value = std::string("hello world!");
   EXPECT_EQ(AwsDynamoDBUtils::
                 ConvertNoSQLDatabaseValidAttributeValueTypeToDynamoDBType(
                     value, attribute_value),
             SuccessExecutionResult());
 
-  EXPECT_EQ(string(attribute_value.GetS().c_str()), get<string>(value));
+  EXPECT_EQ(std::string(attribute_value.GetS().c_str()),
+            get<std::string>(value));
 }
 
 TEST(DynamoDBUtilsTests, ConvertDynamoErrorToExecutionResult) {

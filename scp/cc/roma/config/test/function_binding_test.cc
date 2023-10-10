@@ -38,8 +38,6 @@ using std::bind;
 using std::get;
 using std::make_unique;
 using std::runtime_error;
-using std::string;
-using std::to_string;
 using std::tuple;
 using std::unique_ptr;
 using std::vector;
@@ -63,7 +61,8 @@ class FunctionBindingTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     const int my_pid = getpid();
-    const string proc_exe_path = string("/proc/") + to_string(my_pid) + "/exe";
+    const std::string proc_exe_path =
+        std::string("/proc/") + std::to_string(my_pid) + "/exe";
     auto my_path = std::make_unique<char[]>(PATH_MAX);
     ssize_t sz = readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
     ASSERT_GT(sz, 0);
@@ -106,8 +105,8 @@ static void GlobalV8FunctionCallback(const FunctionCallbackInfo<Value>& info) {
   user_function->InvokeInternalHandler(info);
 }
 
-static string RunV8Function(Isolate* isolate, string source_js,
-                            FunctionBindingObjectBase& function_binding) {
+static std::string RunV8Function(Isolate* isolate, std::string source_js,
+                                 FunctionBindingObjectBase& function_binding) {
   Isolate::Scope isolate_scope(isolate);
   HandleScope handle_scope(isolate);
 
@@ -115,9 +114,9 @@ static string RunV8Function(Isolate* isolate, string source_js,
 
   global_object_template->SetInternalFieldCount(1);
 
-  auto function_name =
-      TypeConverter<string>::ToV8(isolate, function_binding.GetFunctionName())
-          .As<String>();
+  auto function_name = TypeConverter<std::string>::ToV8(
+                           isolate, function_binding.GetFunctionName())
+                           .As<String>();
 
   // Allow retrieving the user-provided function from the FunctionCallbackInfo
   // when the C++ callback is invoked so that it can be called.
@@ -147,29 +146,29 @@ static string RunV8Function(Isolate* isolate, string source_js,
 
   // See if execution generated any errors
   if (try_catch.HasCaught()) {
-    string error_message;
+    std::string error_message;
     if (try_catch.Message().IsEmpty() ||
-        !TypeConverter<string>::FromV8(isolate, try_catch.Message()->Get(),
-                                       &error_message)) {
+        !TypeConverter<std::string>::FromV8(isolate, try_catch.Message()->Get(),
+                                            &error_message)) {
       error_message = "FAILED_EXECUTION";
     }
     return error_message;
   }
 
   String::Utf8Value result_as_string(isolate, result.ToLocalChecked());
-  auto result_str = string(*result_as_string);
+  auto result_str = std::string(*result_as_string);
 
   return result_str;
 }
 
 // User provided JS function
-static string StringInputStringOutput(tuple<string>& input) {
+static std::string StringInputStringOutput(tuple<std::string>& input) {
   return get<0>(input) + " " + "Value added within user-provided function call";
 }
 
 TEST_F(FunctionBindingTest, FunctionBindingByNameStringInputAndStringOutput) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
@@ -185,7 +184,7 @@ TEST_F(FunctionBindingTest, FunctionBindingByNameStringInputAndStringOutput) {
 TEST_F(FunctionBindingTest,
        FunctionBindingByNameStringInputAndStringOutputInvalidTypeInputInt) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
@@ -202,7 +201,7 @@ TEST_F(
     FunctionBindingTest,
     FunctionBindingByNameStringInputAndStringOutputInvalidTypeInputListOfInt) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
@@ -218,7 +217,7 @@ TEST_F(
 TEST_F(FunctionBindingTest,
        StringInputAndStringOutputInvalidTypeInputListOfString) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
@@ -234,7 +233,7 @@ TEST_F(FunctionBindingTest,
 TEST_F(FunctionBindingTest,
        FunctionBindingByNameStringInputAndStringOutputInvalidTypeInputObject) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
@@ -249,7 +248,7 @@ TEST_F(FunctionBindingTest,
 
 TEST_F(FunctionBindingTest, PassingLessArgumentsThanExpected) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
@@ -263,7 +262,7 @@ TEST_F(FunctionBindingTest, PassingLessArgumentsThanExpected) {
 
 TEST_F(FunctionBindingTest, PassingMoreArgumentsThanExpected) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
@@ -278,7 +277,7 @@ TEST_F(FunctionBindingTest, PassingMoreArgumentsThanExpected) {
 
 TEST_F(FunctionBindingTest, PassingUndefinedValueToFunction) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
@@ -294,7 +293,7 @@ TEST_F(FunctionBindingTest, PassingUndefinedValueToFunction) {
 
 TEST_F(FunctionBindingTest, PassingNullValueToFunction) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
@@ -308,8 +307,9 @@ TEST_F(FunctionBindingTest, PassingNullValueToFunction) {
 }
 
 // User provided JS function
-static vector<string> StringInputVectorOfStringOutput(tuple<string>& input) {
-  vector<string> output;
+static vector<std::string> StringInputVectorOfStringOutput(
+    tuple<std::string>& input) {
+  vector<std::string> output;
   output.push_back(get<0>(input));
   output.push_back("And some added stuff");
   return output;
@@ -318,7 +318,7 @@ static vector<string> StringInputVectorOfStringOutput(tuple<string>& input) {
 TEST_F(FunctionBindingTest,
        FunctionBindingByNameStringInputAndVectorOfStringOutput) {
   // Function that returns a vector of string and takes in a string as input
-  FunctionBindingObject<vector<string>, string> func;
+  FunctionBindingObject<vector<std::string>, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_vec_str_out";
   // Set the C++ callback for the JS function
@@ -331,11 +331,11 @@ TEST_F(FunctionBindingTest,
 }
 
 // User provided JS function
-static vector<string> VectorOfStringInputVectorOfStringOutput(
-    tuple<vector<string>>& input) {
+static vector<std::string> VectorOfStringInputVectorOfStringOutput(
+    tuple<vector<std::string>>& input) {
   auto input_vec = get<0>(input);
 
-  vector<string> output;
+  vector<std::string> output;
   // Reverse the input
   for (int i = input_vec.size() - 1; i >= 0; i--) {
     output.push_back(input_vec.at(i));
@@ -347,7 +347,7 @@ TEST_F(FunctionBindingTest,
        FunctionBindingByNameVectorOfStringInputAndVectorOfStringOutput) {
   // Function that returns a vector of string string and takes in a vector of
   // string as input
-  FunctionBindingObject<vector<string>, vector<string>> func;
+  FunctionBindingObject<vector<std::string>, vector<std::string>> func;
   // Set the name by which the function will be called in JS
   func.function_name = "vec_str_in_vec_str_out";
   // Set the C++ callback for the JS function
@@ -359,8 +359,8 @@ TEST_F(FunctionBindingTest,
   EXPECT_EQ(result, "O,L,L,E,H");
 }
 
-static string ConcatenateVector(vector<string>& vec) {
-  string ret;
+static std::string ConcatenateVector(vector<std::string>& vec) {
+  std::string ret;
   for (const auto& str : vec) {
     ret += str;
   }
@@ -368,14 +368,15 @@ static string ConcatenateVector(vector<string>& vec) {
 }
 
 // User provided JS function
-static vector<string> MixedInputAndVectorOfStringOutput(
-    tuple<vector<string>, string, vector<string>, string>& input) {
+static vector<std::string> MixedInputAndVectorOfStringOutput(
+    tuple<vector<std::string>, std::string, vector<std::string>, std::string>&
+        input) {
   auto input_one = get<0>(input);
   auto input_two = get<1>(input);
   auto input_three = get<2>(input);
   auto input_four = get<3>(input);
 
-  vector<string> output;
+  vector<std::string> output;
   output.push_back(ConcatenateVector(input_one));
   output.push_back(input_two);
   output.push_back(ConcatenateVector(input_three));
@@ -385,8 +386,8 @@ static vector<string> MixedInputAndVectorOfStringOutput(
 
 TEST_F(FunctionBindingTest, VectorOfStringOutputAndMixedInput) {
   // Function that returns a vector of string and takes mixed types as input
-  FunctionBindingObject<vector<string>, vector<string>, string, vector<string>,
-                        string>
+  FunctionBindingObject<vector<std::string>, vector<std::string>, std::string,
+                        vector<std::string>, std::string>
       func;
   // Set the name by which the function will be called in JS
   func.function_name = "mixed_in_vec_str_out";
@@ -406,15 +407,15 @@ TEST_F(FunctionBindingTest, VectorOfStringOutputAndMixedInput) {
 }
 
 // User provided JS function
-static common::Map<string, string> VectorsOfStringInputAndMapOutput(
-    tuple<vector<string>, vector<string>, vector<string>, vector<string>>&
-        input) {
+static common::Map<std::string, std::string> VectorsOfStringInputAndMapOutput(
+    tuple<vector<std::string>, vector<std::string>, vector<std::string>,
+          vector<std::string>>& input) {
   auto input_one = get<0>(input);
   auto input_two = get<1>(input);
   auto input_three = get<2>(input);
   auto input_four = get<3>(input);
 
-  common::Map<string, string> output;
+  common::Map<std::string, std::string> output;
   output.Set("vec1", ConcatenateVector(input_one));
   output.Set("vec2", ConcatenateVector(input_two));
   output.Set("vec3", ConcatenateVector(input_three));
@@ -425,8 +426,9 @@ static common::Map<string, string> VectorsOfStringInputAndMapOutput(
 TEST_F(FunctionBindingTest, MapOutputAndVectorsOfStringInput) {
   // Function that returns a map<string, string >and takes vectors of string as
   // input
-  FunctionBindingObject<common::Map<string, string>, vector<string>,
-                        vector<string>, vector<string>, vector<string>>
+  FunctionBindingObject<common::Map<std::string, std::string>,
+                        vector<std::string>, vector<std::string>,
+                        vector<std::string>, vector<std::string>>
       func;
   // Set the name by which the function will be called in JS
   func.function_name = "vecs_str_in_map_out";
@@ -453,11 +455,11 @@ TEST_F(FunctionBindingTest, MapOutputAndVectorsOfStringInput) {
 
 TEST_F(FunctionBindingTest, ShouldAllowInlineHandler) {
   // Function that returns a string and takes a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "func_that_calls_lambda";
   // Set the C++ callback for the JS function
-  func.function = [](std::tuple<string>& input) -> string {
+  func.function = [](std::tuple<std::string>& input) -> std::string {
     return get<0>(input) + "-From lambda";
   };
 
@@ -472,7 +474,7 @@ TEST_F(FunctionBindingTest, ShouldAllowInlineHandler) {
 
 class MyHandler {
  public:
-  string HookHandler(std::tuple<string>& input) {
+  std::string HookHandler(std::tuple<std::string>& input) {
     return get<0>(input) + "-From member function";
   }
 };
@@ -482,7 +484,7 @@ TEST_F(FunctionBindingTest, ShouldAllowMemberFunctionAsHandler) {
   MyHandler my_handler;
 
   // Function that returns a string and takes a string as input
-  FunctionBindingObject<string, string> func;
+  FunctionBindingObject<std::string, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "func_that_calls_member_func";
   // Set the C++ callback for the JS function

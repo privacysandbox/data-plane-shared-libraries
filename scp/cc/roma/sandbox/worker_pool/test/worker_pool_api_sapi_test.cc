@@ -28,7 +28,6 @@
 using google::scp::roma::sandbox::worker::WorkerFactory;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
-using std::string;
 using std::vector;
 
 namespace {
@@ -38,7 +37,7 @@ WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
   config.js_engine_require_code_preload = true;
   config.compilation_context_cache_size = 5;
   config.native_js_function_comms_fd = -1;
-  config.native_js_function_names = vector<string>();
+  config.native_js_function_names = vector<std::string>();
   config.max_worker_virtual_memory_mb = 0;
   config.sandbox_request_response_shared_buffer_size_mb = 0;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;

@@ -63,7 +63,6 @@ using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
 using std::static_pointer_cast;
-using std::string;
 using std::thread;
 using std::unique_ptr;
 using std::vector;
@@ -87,7 +86,8 @@ class MetricClientProviderTest : public ::testing::Test {
   }
 
   shared_ptr<MetricBatchingOptions> CreateMetricBatchingOptions(
-      bool enable_batch_recording, string metric_namespace = kMetricNamespace) {
+      bool enable_batch_recording,
+      std::string metric_namespace = kMetricNamespace) {
     auto options = make_shared<MetricBatchingOptions>();
     options->metric_namespace = metric_namespace;
     options->enable_batch_recording = enable_batch_recording;
@@ -95,7 +95,7 @@ class MetricClientProviderTest : public ::testing::Test {
   }
 
   shared_ptr<PutMetricsRequest> CreatePutMetricsRequest(
-      const string& metric_namespace = "") {
+      const std::string& metric_namespace = "") {
     auto request = make_shared<PutMetricsRequest>();
     request->set_metric_namespace(metric_namespace);
     auto metric = request->add_metrics();

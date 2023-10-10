@@ -31,7 +31,6 @@ using google::scp::core::logger::mock::MockLogger;
 using std::function;
 using std::make_unique;
 using std::pair;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 using testing::_;
@@ -186,7 +185,7 @@ class MacroLogTest : public testing::Test {
 
 TEST_F(MacroLogTest, RETURN_IF_FAILURELogTest) {
   auto helper1 = [](ExecutionResult result) -> ExecutionResult {
-    string some_str = "s";
+    std::string some_str = "s";
     AsyncContext<int, int> ctx;
     RETURN_AND_LOG_IF_FAILURE_CONTEXT(result, "component", ctx, "msg %s",
                                       some_str.c_str());
@@ -201,7 +200,7 @@ TEST_F(MacroLogTest, RETURN_IF_FAILURELogTest) {
   EXPECT_THAT(logger_->GetMessages(), ElementsAre(HasSubstr("msg s")));
 
   auto helper2 = [](ExecutionResult result) -> ExecutionResult {
-    string some_str = "s";
+    std::string some_str = "s";
     RETURN_AND_LOG_IF_FAILURE(result, "component", common::kZeroUuid, "msg %s",
                               some_str.c_str());
     return SuccessExecutionResult();
@@ -342,7 +341,7 @@ TEST(MacroTest, ASSIGN_OR_RETURNDeclareWorksInline) {
 
 TEST(MacroTest, ASSIGN_OR_RETURNWorksWithInnerMembers) {
   auto helper = [](ExecutionResultOr<int> result_or) -> ExecutionResultOr<int> {
-    pair<int, string> pair;
+    pair<int, std::string> pair;
     ASSIGN_OR_RETURN(pair.first, result_or);
     return pair.first;
   };
@@ -457,7 +456,7 @@ TEST(ExecutionResultOrTest, ValueMethods) {
   *subject = 3;
   EXPECT_EQ(subject.value(), 3);
 
-  ExecutionResultOr<string> subject_2("start");
+  ExecutionResultOr<std::string> subject_2("start");
   subject_2->clear();
   EXPECT_THAT(subject_2, IsSuccessfulAndHolds(Eq("")));
 
@@ -468,27 +467,28 @@ TEST(ExecutionResultOrTest, ValueMethods) {
 
 TEST(ExecutionResultOrTest, DeathTests) {
   EXPECT_ANY_THROW({
-    ExecutionResultOr<string> subject(
+    ExecutionResultOr<std::string> subject(
         ExecutionResult(ExecutionStatus::Failure, 2));
     subject.value();
   });
   EXPECT_ANY_THROW({
-    ExecutionResultOr<string> subject(
+    ExecutionResultOr<std::string> subject(
         ExecutionResult(ExecutionStatus::Failure, 2));
     *subject;
   });
   EXPECT_DEATH(
       {
-        ExecutionResultOr<string> subject(
+        ExecutionResultOr<std::string> subject(
             ExecutionResult(ExecutionStatus::Failure, 2));
         bool e = subject->empty();
-        subject = string(e ? "t" : "f");
+        subject = std::string(e ? "t" : "f");
       },
       _);
 }
 
 TEST(ExecutionResultOrTest, FunctionalTest) {
-  auto string_or_result = [](bool return_string) -> ExecutionResultOr<string> {
+  auto string_or_result =
+      [](bool return_string) -> ExecutionResultOr<std::string> {
     if (return_string)
       return "returning a string";
     else

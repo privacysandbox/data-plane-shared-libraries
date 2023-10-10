@@ -53,7 +53,6 @@ using google::scp::roma::sandbox::worker::Worker;
 using google::scp::roma::sandbox::worker::WorkerFactory;
 using sandbox2::Buffer;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -81,7 +80,7 @@ StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       init_params->compilation_context_cache_size();
 
   if (worker_engine == WorkerFactory::WorkerEngine::v8) {
-    vector<string> native_js_function_names(
+    vector<std::string> native_js_function_names(
         init_params->native_js_function_names().begin(),
         init_params->native_js_function_names().end());
 
@@ -136,7 +135,7 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
   for (int i = 0; i < params->input_size(); i++) {
     input.push_back(params->input().at(i));
   }
-  absl::flat_hash_map<string, string> metadata;
+  absl::flat_hash_map<std::string, std::string> metadata;
   for (auto&& element : params->metadata()) {
     metadata[element.first] = element.second;
   }

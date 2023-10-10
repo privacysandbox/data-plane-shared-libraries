@@ -38,7 +38,6 @@ using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;
 using google::scp::roma::sandbox::native_function_binding::NativeFunctionTable;
 using std::make_shared;
-using std::string;
 using std::vector;
 
 namespace google::scp::roma::sandbox::native_function_binding::test {

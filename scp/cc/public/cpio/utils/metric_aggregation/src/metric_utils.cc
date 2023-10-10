@@ -20,7 +20,6 @@
 
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace {
@@ -68,8 +67,9 @@ void MetricUtils::GetPutMetricsRequest(
 shared_ptr<SimpleMetricInterface> MetricUtils::RegisterSimpleMetric(
     const shared_ptr<core::AsyncExecutorInterface>& async_executor,
     const shared_ptr<MetricClientInterface>& metric_client,
-    const string& metric_name, const string& metric_label_component,
-    const string& metric_label_method, MetricUnit metric_unit_type) noexcept {
+    const std::string& metric_name, const std::string& metric_label_component,
+    const std::string& metric_label_method,
+    MetricUnit metric_unit_type) noexcept {
   auto metric_labels = MetricUtils::CreateMetricLabelsWithComponentSignature(
       metric_label_component, metric_label_method);
   auto metric_info =
@@ -95,9 +95,9 @@ shared_ptr<SimpleMetricInterface> MetricUtils::RegisterSimpleMetric(
 shared_ptr<AggregateMetricInterface> MetricUtils::RegisterAggregateMetric(
     const shared_ptr<core::AsyncExecutorInterface>& async_executor,
     const shared_ptr<MetricClientInterface>& metric_client,
-    const string& metric_name, const string& metric_label_component,
-    const string& metric_label_method, MetricUnit metric_unit_type,
-    vector<string> metric_event_labels,
+    const std::string& metric_name, const std::string& metric_label_component,
+    const std::string& metric_label_method, MetricUnit metric_unit_type,
+    vector<std::string> metric_event_labels,
     size_t aggregated_metric_interval_ms) noexcept {
   auto metric_labels = MetricUtils::CreateMetricLabelsWithComponentSignature(
       metric_label_component, metric_label_method);
@@ -110,7 +110,7 @@ shared_ptr<AggregateMetricInterface> MetricUtils::RegisterAggregateMetric(
 }
 
 MetricLabels MetricUtils::CreateMetricLabelsWithComponentSignature(
-    string component_name, string method_name) noexcept {
+    std::string component_name, std::string method_name) noexcept {
   MetricLabels labels;
   labels[kComponentName] = std::move(component_name);
   if (!method_name.empty()) {

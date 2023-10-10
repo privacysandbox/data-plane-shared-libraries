@@ -69,7 +69,6 @@ using google::scp::core::blob_storage_provider::mock::MockAwsS3Client;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace google::scp::core::test {
@@ -99,8 +98,9 @@ TEST_F(AwsS3Tests, GetBlob) {
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
   get_blob_context.request = make_shared<GetBlobRequest>();
-  get_blob_context.request->blob_name = make_shared<string>("blob_name");
-  get_blob_context.request->bucket_name = make_shared<string>("bucket_name");
+  get_blob_context.request->blob_name = make_shared<std::string>("blob_name");
+  get_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
 
   EXPECT_SUCCESS(aws_s3_client.GetBlob(get_blob_context));
 }
@@ -114,8 +114,9 @@ TEST_F(AwsS3Tests, OnGetObjectCallbackWithError) {
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
   get_blob_context.request = make_shared<GetBlobRequest>();
-  get_blob_context.request->blob_name = make_shared<string>("blob_name");
-  get_blob_context.request->bucket_name = make_shared<string>("bucket_name");
+  get_blob_context.request->blob_name = make_shared<std::string>("blob_name");
+  get_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
   get_blob_context.callback =
       [](AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) {
         EXPECT_THAT(get_blob_context.result,
@@ -150,15 +151,16 @@ TEST_F(AwsS3Tests, OnGetObjectCallback) {
 
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
     get_blob_context.request = make_shared<GetBlobRequest>();
-    get_blob_context.request->blob_name = make_shared<string>("blob_name");
-    get_blob_context.request->bucket_name = make_shared<string>("bucket_name");
+    get_blob_context.request->blob_name = make_shared<std::string>("blob_name");
+    get_blob_context.request->bucket_name =
+        make_shared<std::string>("bucket_name");
     get_blob_context.callback =
         [](AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) {
           EXPECT_SUCCESS(get_blob_context.result);
           EXPECT_EQ(get_blob_context.response->buffer->length, 12);
           EXPECT_EQ(get_blob_context.response->buffer->capacity, 12);
           EXPECT_EQ(get_blob_context.response->buffer->bytes->size(), 12);
-          string str("Hello world!");
+          std::string str("Hello world!");
           for (int i = 0; i < 12; ++i) {
             EXPECT_EQ(get_blob_context.response->buffer->bytes->at(i), str[i]);
           }
@@ -190,7 +192,8 @@ TEST_F(AwsS3Tests, ListBlobs) {
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.request = make_shared<ListBlobsRequest>();
-  list_blobs_context.request->bucket_name = make_shared<string>("bucket_name");
+  list_blobs_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
 
   EXPECT_SUCCESS(aws_s3_client.ListBlobs(list_blobs_context));
 }
@@ -212,8 +215,9 @@ TEST_F(AwsS3Tests, ListBlobsWithPrefix) {
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.request = make_shared<ListBlobsRequest>();
-  list_blobs_context.request->blob_name = make_shared<string>("blob_name");
-  list_blobs_context.request->bucket_name = make_shared<string>("bucket_name");
+  list_blobs_context.request->blob_name = make_shared<std::string>("blob_name");
+  list_blobs_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
 
   EXPECT_SUCCESS(aws_s3_client.ListBlobs(list_blobs_context));
 }
@@ -235,9 +239,10 @@ TEST_F(AwsS3Tests, ListBlobsMarker) {
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.request = make_shared<ListBlobsRequest>();
-  list_blobs_context.request->blob_name = make_shared<string>("blob_name");
-  list_blobs_context.request->bucket_name = make_shared<string>("bucket_name");
-  list_blobs_context.request->marker = make_shared<string>("marker");
+  list_blobs_context.request->blob_name = make_shared<std::string>("blob_name");
+  list_blobs_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
+  list_blobs_context.request->marker = make_shared<std::string>("marker");
 
   EXPECT_SUCCESS(aws_s3_client.ListBlobs(list_blobs_context));
 }
@@ -251,8 +256,9 @@ TEST_F(AwsS3Tests, OnListObjectsCallbackWithError) {
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.request = make_shared<ListBlobsRequest>();
-  list_blobs_context.request->blob_name = make_shared<string>("blob_name");
-  list_blobs_context.request->bucket_name = make_shared<string>("bucket_name");
+  list_blobs_context.request->blob_name = make_shared<std::string>("blob_name");
+  list_blobs_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
   list_blobs_context.callback =
       [](AsyncContext<ListBlobsRequest, ListBlobsResponse>&
              list_blobs_context) {
@@ -279,8 +285,9 @@ TEST_F(AwsS3Tests, OnListObjectsCallback) {
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.request = make_shared<ListBlobsRequest>();
-  list_blobs_context.request->blob_name = make_shared<string>("blob_name");
-  list_blobs_context.request->bucket_name = make_shared<string>("bucket_name");
+  list_blobs_context.request->blob_name = make_shared<std::string>("blob_name");
+  list_blobs_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
   list_blobs_context.callback =
       [](AsyncContext<ListBlobsRequest, ListBlobsResponse>&
              list_blobs_context) { EXPECT_SUCCESS(list_blobs_context.result); };
@@ -318,8 +325,9 @@ TEST_F(AwsS3Tests, PutBlob) {
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
   put_blob_context.request = make_shared<PutBlobRequest>();
-  put_blob_context.request->blob_name = make_shared<string>("blob_name");
-  put_blob_context.request->bucket_name = make_shared<string>("bucket_name");
+  put_blob_context.request->blob_name = make_shared<std::string>("blob_name");
+  put_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
   put_blob_context.request->buffer = make_shared<BytesBuffer>();
 
   put_blob_context.request->buffer->bytes = make_shared<vector<Byte>>(bytes);
@@ -338,8 +346,9 @@ TEST_F(AwsS3Tests, OnPutObjectCallbackWithError) {
 
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
   put_blob_context.request = make_shared<PutBlobRequest>();
-  put_blob_context.request->blob_name = make_shared<string>("blob_name");
-  put_blob_context.request->bucket_name = make_shared<string>("bucket_name");
+  put_blob_context.request->blob_name = make_shared<std::string>("blob_name");
+  put_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
   put_blob_context.callback =
       [](AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context) {
         EXPECT_THAT(put_blob_context.result,
@@ -365,8 +374,9 @@ TEST_F(AwsS3Tests, OnPutObjectCallback) {
 
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
   put_blob_context.request = make_shared<PutBlobRequest>();
-  put_blob_context.request->blob_name = make_shared<string>("blob_name");
-  put_blob_context.request->bucket_name = make_shared<string>("bucket_name");
+  put_blob_context.request->blob_name = make_shared<std::string>("blob_name");
+  put_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
   put_blob_context.callback =
       [](AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context) {
         EXPECT_SUCCESS(put_blob_context.result);
@@ -396,8 +406,10 @@ TEST_F(AwsS3Tests, DeleteBlob) {
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context;
   delete_blob_context.request = make_shared<DeleteBlobRequest>();
-  delete_blob_context.request->blob_name = make_shared<string>("blob_name");
-  delete_blob_context.request->bucket_name = make_shared<string>("bucket_name");
+  delete_blob_context.request->blob_name =
+      make_shared<std::string>("blob_name");
+  delete_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
 
   EXPECT_SUCCESS(aws_s3_client.DeleteBlob(delete_blob_context));
 }
@@ -411,8 +423,10 @@ TEST_F(AwsS3Tests, OnDeleteObjectCallbackWithError) {
 
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context;
   delete_blob_context.request = make_shared<DeleteBlobRequest>();
-  delete_blob_context.request->blob_name = make_shared<string>("blob_name");
-  delete_blob_context.request->bucket_name = make_shared<string>("bucket_name");
+  delete_blob_context.request->blob_name =
+      make_shared<std::string>("blob_name");
+  delete_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
   delete_blob_context.callback =
       [](AsyncContext<DeleteBlobRequest, DeleteBlobResponse>&
              delete_blob_context) {
@@ -439,8 +453,10 @@ TEST_F(AwsS3Tests, OnDeleteObjectCallback) {
 
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context;
   delete_blob_context.request = make_shared<DeleteBlobRequest>();
-  delete_blob_context.request->blob_name = make_shared<string>("blob_name");
-  delete_blob_context.request->bucket_name = make_shared<string>("bucket_name");
+  delete_blob_context.request->blob_name =
+      make_shared<std::string>("blob_name");
+  delete_blob_context.request->bucket_name =
+      make_shared<std::string>("bucket_name");
   delete_blob_context.callback =
       [](AsyncContext<DeleteBlobRequest, DeleteBlobResponse>&
              delete_blob_context) {

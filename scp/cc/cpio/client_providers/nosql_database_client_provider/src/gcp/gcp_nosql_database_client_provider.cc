@@ -105,7 +105,6 @@ using std::optional;
 using std::pair;
 using std::ref;
 using std::shared_ptr;
-using std::string;
 using std::unordered_map;
 using std::vector;
 using std::placeholders::_1;
@@ -185,8 +184,8 @@ ExecutionResult ValidateCreateTableRequest(
 }
 
 // Builds a CREATE TABLE string to imitate a NoSQL table given request.
-string BuildCreateTableStatement(const CreateTableRequest& request) {
-  string str;
+std::string BuildCreateTableStatement(const CreateTableRequest& request) {
+  std::string str;
   if (request.key().has_sort_key()) {
     str = absl::Substitute(
         R"(
@@ -222,7 +221,7 @@ string BuildCreateTableStatement(const CreateTableRequest& request) {
 // values in table_name_to_keys. Returns success if table_name_to_keys is
 // not present.
 ExecutionResult ValidatePartitionAndSortKey(
-    const unordered_map<string, PartitionAndSortKey>* table_name_to_keys,
+    const unordered_map<std::string, PartitionAndSortKey>* table_name_to_keys,
     const ItemKey& key) {
   if (!table_name_to_keys || table_name_to_keys->empty()) {
     return SuccessExecutionResult();
@@ -259,7 +258,7 @@ ExecutionResult ValidatePartitionAndSortKey(
 // "JSON_VALUE(Value, '$.token_count') = @attribute_0"
 ExecutionResult AppendJsonWhereClauses(const AttributesList& attributes,
                                        SqlStatement::ParamType& params,
-                                       string& out) {
+                                       std::string& out) {
   if (attributes.size() > 0) {
     for (size_t attribute_index = 0; attribute_index < attributes.size();
          ++attribute_index) {
@@ -425,7 +424,7 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::DeleteTable(
 void GcpNoSQLDatabaseClientProvider::GetDatabaseItemInternal(
     AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
         get_database_item_context,
-    string query, SqlStatement::ParamType params) noexcept {
+    std::string query, SqlStatement::ParamType params) noexcept {
   Client spanner_client(*spanner_client_shared_);
   auto row_stream = spanner_client.ExecuteQuery(
       SqlStatement(std::move(query), std::move(params)));
@@ -464,7 +463,7 @@ void GcpNoSQLDatabaseClientProvider::GetDatabaseItemInternal(
 
   json value_json;
   try {
-    value_json = json::parse(string(*spanner_json_or));
+    value_json = json::parse(std::string(*spanner_json_or));
   } catch (...) {
     auto result = FailureExecutionResult(
         SC_NO_SQL_DATABASE_PROVIDER_JSON_FAILED_TO_PARSE);
@@ -525,7 +524,7 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::GetDatabaseItem(
 
   // Set the table name
   const auto& table_name = request.key().table_name();
-  string query =
+  std::string query =
       absl::StrFormat("SELECT IFNULL(%s, JSON '{}') FROM `%s` WHERE ",
                       kValueColumnName, table_name);
 
@@ -710,8 +709,8 @@ GcpNoSQLDatabaseClientProvider::UpsertSelectOptions::BuildUpsertSelectOptions(
   UpsertSelectOptions upsert_select_options;
   const auto& table_name = request.key().table_name();
 
-  string select_query = absl::StrFormat("SELECT %s FROM `%s` WHERE ",
-                                        kValueColumnName, table_name);
+  std::string select_query = absl::StrFormat("SELECT %s FROM `%s` WHERE ",
+                                             kValueColumnName, table_name);
   SqlStatement::ParamType params;
 
   // Set the partition key
@@ -802,7 +801,7 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::GetMergedJson(
   }
 
   try {
-    existing_json = json::parse(string(*spanner_json_or));
+    existing_json = json::parse(std::string(*spanner_json_or));
   } catch (...) {
     auto result = FailureExecutionResult(
         SC_NO_SQL_DATABASE_PROVIDER_JSON_FAILED_TO_PARSE);
@@ -831,7 +830,7 @@ Mutations GcpNoSQLDatabaseClientProvider::UpsertFunctor(
         upsert_database_item_context,
     Client& client, const UpsertSelectOptions& upsert_select_options,
     bool enforce_row_existence, const nlohmann::json& new_attributes,
-    ExecutionResult& prepare_result, const string& table_name,
+    ExecutionResult& prepare_result, const std::string& table_name,
     Transaction txn) {
   auto row_stream =
       client.ExecuteQuery(txn, upsert_select_options.select_statement);
@@ -844,7 +843,7 @@ Mutations GcpNoSQLDatabaseClientProvider::UpsertFunctor(
     return Mutations{};
   }
 
-  if (upsert_select_options.sort_key_val.get<string>().ok()) {
+  if (upsert_select_options.sort_key_val.get<std::string>().ok()) {
     // Include the sort_key column value.
     return Mutations{MakeInsertOrUpdateMutation(
         table_name, upsert_select_options.column_names,
@@ -972,7 +971,7 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::UpsertDatabaseItem(
 ExecutionResultOr<pair<shared_ptr<Client>, shared_ptr<DatabaseAdminClient>>>
 SpannerFactory::CreateClients(
     shared_ptr<NoSQLDatabaseClientOptions> client_options,
-    const string& project) noexcept {
+    const std::string& project) noexcept {
   auto options = CreateClientOptions(client_options);
   return make_pair(
       make_shared<Client>(

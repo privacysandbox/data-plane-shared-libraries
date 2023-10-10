@@ -31,16 +31,15 @@ using std::for_each;
 using std::function;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::unordered_set;
 using std::vector;
 
 namespace google::scp::core {
 
 ExecutionResult DependencyInjectionService::RegisterComponent(
-    const string& id, const vector<string>& dependencies,
+    const std::string& id, const vector<std::string>& dependencies,
     function<shared_ptr<ServiceInterface>(
-        const absl::flat_hash_map<string, shared_ptr<ServiceInterface>>&)>
+        const absl::flat_hash_map<std::string, shared_ptr<ServiceInterface>>&)>
         factory) noexcept {
   if (!dependency_graph_.AddNode(id, dependencies, factory)) {
     return FailureExecutionResult(

@@ -62,8 +62,6 @@ using std::make_pair;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -76,7 +74,7 @@ static constexpr char kHttpMethodPostTag[] = "POST";
 namespace google::scp::core {
 HttpConnection::HttpConnection(
     const shared_ptr<AsyncExecutorInterface>& async_executor,
-    const string& host, const string& service, bool is_https,
+    const std::string& host, const std::string& service, bool is_https,
     TimeDuration http2_read_timeout_in_sec)
     : async_executor_(async_executor),
       host_(host),
@@ -279,7 +277,7 @@ ExecutionResult HttpConnection::Execute(
 void HttpConnection::SendHttpRequest(
     Uuid& request_id,
     AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept {
-  string method;
+  std::string method;
   if (http_context.request->method == HttpMethod::GET) {
     method = kHttpMethodGetTag;
   } else if (http_context.request->method == HttpMethod::POST) {
@@ -306,7 +304,7 @@ void HttpConnection::SendHttpRequest(
   }
 
   // TODO: handle large data, avoid copy
-  string body;
+  std::string body;
   if (http_context.request->body.length > 0) {
     body = {http_context.request->body.bytes->begin(),
             http_context.request->body.bytes->end()};
@@ -314,12 +312,12 @@ void HttpConnection::SendHttpRequest(
 
   // Erase the header if it is already present.
   headers.erase(kContentLengthHeader);
-  headers.insert(
-      {string(kContentLengthHeader), {std::to_string(body.length()), false}});
+  headers.insert({std::string(kContentLengthHeader),
+                  {std::to_string(body.length()), false}});
 
   // Erase the header if it is already present.
   headers.erase(kClientActivityIdHeader);
-  headers.insert({string(kClientActivityIdHeader),
+  headers.insert({std::string(kClientActivityIdHeader),
                   {ToString(http_context.activity_id), false}});
 
   auto uri = GetEscapedUriWithQuery(*http_context.request);
@@ -389,7 +387,7 @@ void HttpConnection::OnRequestResponseClosed(
         kHttp2Client, http_context,
         "Http request failed request on_close with error code %s, "
         "and the context response has status code: %d",
-        to_string(error_code).c_str(),
+        std::to_string(error_code).c_str(),
         static_cast<int>(http_context.response->code));
   }
 

@@ -52,7 +52,6 @@ using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 /// Filename for logging errors
 static constexpr char kGcpKmsClientProvider[] = "GcpKmsClientProvider";
@@ -108,7 +107,7 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
     return decrypt_context.result;
   }
 
-  string decoded_ciphertext;
+  std::string decoded_ciphertext;
   auto execution_result = Base64Decode(ciphertext, decoded_ciphertext);
   if (!execution_result.Successful()) {
     auto execution_result = FailureExecutionResult(
@@ -140,8 +139,9 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
 }
 
 ExecutionResultOr<shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
-    const string& wip_provider, const string& service_account_to_impersonate,
-    const string& key_arn) noexcept {
+    const std::string& wip_provider,
+    const std::string& service_account_to_impersonate,
+    const std::string& key_arn) noexcept {
   auto key_management_service_client = CreateKeyManagementServiceClient(
       wip_provider, service_account_to_impersonate);
   auto gcp_key_management_service_client =

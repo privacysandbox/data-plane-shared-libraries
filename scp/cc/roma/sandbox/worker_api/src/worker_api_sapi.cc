@@ -32,7 +32,6 @@ using google::scp::roma::sandbox::constants::
 using std::lock_guard;
 using std::make_shared;
 using std::mutex;
-using std::string;
 
 namespace google::scp::roma::sandbox::worker_api {
 ExecutionResult WorkerApiSapi::Init() noexcept {
@@ -52,9 +51,9 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
   lock_guard<mutex> lock(run_code_mutex_);
 
   ::worker_api::WorkerParamsProto params_proto;
-  params_proto.set_code(string(request.code));
+  params_proto.set_code(std::string(request.code));
   params_proto.mutable_input()->Add(request.input.begin(), request.input.end());
-  params_proto.set_wasm(string(request.wasm.begin(), request.wasm.end()));
+  params_proto.set_wasm(std::string(request.wasm.begin(), request.wasm.end()));
   for (auto&& kv : request.metadata) {
     (*params_proto.mutable_metadata())[kv.first] = kv.second;
   }
@@ -74,7 +73,8 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
     code_response.metrics[kv.first] = kv.second;
   }
   code_response.response =
-      make_shared<string>(std::move(params_proto.response()));
+
+      make_shared<std::string>(std::move(params_proto.response()));
   return code_response;
 }
 

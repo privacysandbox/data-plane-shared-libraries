@@ -55,7 +55,6 @@ using google::scp::cpio::common::GcpUtils;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 
@@ -74,7 +73,7 @@ ExecutionResult GcpMetricClientProvider::Run() noexcept {
     return execution_result;
   }
 
-  string instance_resource_name;
+  std::string instance_resource_name;
   execution_result =
       instance_client_provider_->GetCurrentInstanceResourceNameSync(
           instance_resource_name);

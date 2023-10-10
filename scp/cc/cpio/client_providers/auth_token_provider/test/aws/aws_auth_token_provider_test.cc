@@ -50,9 +50,7 @@ using std::bind;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::thread;
-using std::to_string;
 using std::unique_ptr;
 using std::chrono::seconds;
 using testing::Eq;
@@ -74,13 +72,13 @@ constexpr char kHttpResponseMock[] =
 
 namespace google::scp::cpio::client_providers::test {
 
-class AwsAuthTokenProviderTest : public testing::TestWithParam<string> {
+class AwsAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
   AwsAuthTokenProviderTest()
       : http_client_(make_shared<MockCurlClient>()),
         authorizer_provider_(make_unique<AwsAuthTokenProvider>(http_client_)) {}
 
-  string GetResponseBody() { return GetParam(); }
+  std::string GetResponseBody() { return GetParam(); }
 
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       fetch_token_context_;
@@ -98,7 +96,7 @@ TEST_F(AwsAuthTokenProviderTest,
     EXPECT_THAT(http_context.request->headers,
                 Pointee(UnorderedElementsAre(
                     Pair(kTokenTtlInSecondHeader,
-                         to_string(kTokenTtlInSecondHeaderValue)))));
+                         std::to_string(kTokenTtlInSecondHeaderValue)))));
 
     http_context.response = make_shared<HttpResponse>();
     http_context.response->body = BytesBuffer(kHttpResponseMock);

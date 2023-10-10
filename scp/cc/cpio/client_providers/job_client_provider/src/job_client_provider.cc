@@ -87,7 +87,6 @@ using google::scp::core::errors::SC_NO_SQL_DATABASE_PROVIDER_RECORD_NOT_FOUND;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::placeholders::_1;
 
 namespace {
@@ -125,7 +124,7 @@ ExecutionResult JobClientProvider::Stop() noexcept {
 
 ExecutionResult JobClientProvider::PutJob(
     AsyncContext<PutJobRequest, PutJobResponse>& put_job_context) noexcept {
-  const string& job_id = put_job_context.request->job_id();
+  const std::string& job_id = put_job_context.request->job_id();
   if (job_id.empty()) {
     auto execution_result =
         FailureExecutionResult(SC_JOB_CLIENT_PROVIDER_MISSING_JOB_ID);
@@ -136,7 +135,7 @@ ExecutionResult JobClientProvider::PutJob(
     return execution_result;
   }
 
-  auto server_job_id = make_shared<string>(ToString(Uuid::GenerateUuid()));
+  auto server_job_id = make_shared<std::string>(ToString(Uuid::GenerateUuid()));
   JobMessageBody job_message_body = JobMessageBody(job_id, *server_job_id);
 
   auto enqueue_message_request = make_shared<EnqueueMessageRequest>();
@@ -145,7 +144,7 @@ ExecutionResult JobClientProvider::PutJob(
       enqueue_message_context(
           std::move(enqueue_message_request),
           bind(&JobClientProvider::OnEnqueueMessageCallback, this,
-               put_job_context, make_shared<string>(job_id),
+               put_job_context, make_shared<std::string>(job_id),
                std::move(server_job_id), _1),
           put_job_context);
 
@@ -154,7 +153,7 @@ ExecutionResult JobClientProvider::PutJob(
 
 void JobClientProvider::OnEnqueueMessageCallback(
     AsyncContext<PutJobRequest, PutJobResponse>& put_job_context,
-    shared_ptr<string> job_id, shared_ptr<string> server_job_id,
+    shared_ptr<std::string> job_id, shared_ptr<std::string> server_job_id,
     AsyncContext<EnqueueMessageRequest, EnqueueMessageResponse>&
         enqueue_message_context) noexcept {
   if (!enqueue_message_context.result.Successful()) {
@@ -168,7 +167,7 @@ void JobClientProvider::OnEnqueueMessageCallback(
     return;
   }
 
-  const string& job_body = put_job_context.request->job_body();
+  const std::string& job_body = put_job_context.request->job_body();
   auto current_time = TimeUtil::GetCurrentTime();
   auto job = make_shared<Job>(JobClientUtils::CreateJob(
       *job_id, *server_job_id, job_body, JobStatus::JOB_STATUS_CREATED,
@@ -258,7 +257,7 @@ void JobClientProvider::OnGetTopMessageCallback(
     return;
   }
 
-  const string& message_body_in_response =
+  const std::string& message_body_in_response =
       get_top_message_context.response->message_body();
   if (message_body_in_response.empty()) {
     get_next_job_context.response = make_shared<GetNextJobResponse>();
@@ -271,13 +270,14 @@ void JobClientProvider::OnGetTopMessageCallback(
 
   auto job_message_body = JobMessageBody(message_body_in_response);
   const auto job_id_as_char = job_message_body.job_id.c_str();
-  shared_ptr<string> job_id = make_shared<string>(job_message_body.job_id);
-  shared_ptr<string> server_job_id =
-      make_shared<string>(job_message_body.server_job_id);
+  shared_ptr<std::string> job_id =
+      make_shared<std::string>(job_message_body.job_id);
+  shared_ptr<std::string> server_job_id =
+      make_shared<std::string>(job_message_body.server_job_id);
   auto get_database_item_request = JobClientUtils::CreateGetNextJobRequest(
       job_table_name_, *job_id, *server_job_id);
 
-  shared_ptr<string> receipt_info(
+  shared_ptr<std::string> receipt_info(
       get_top_message_context.response->release_receipt_info());
 
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
@@ -302,8 +302,8 @@ void JobClientProvider::OnGetTopMessageCallback(
 
 void JobClientProvider::OnGetNextJobItemCallback(
     AsyncContext<GetNextJobRequest, GetNextJobResponse>& get_next_job_context,
-    shared_ptr<string> job_id, shared_ptr<string> server_job_id,
-    shared_ptr<string> receipt_info,
+    shared_ptr<std::string> job_id, shared_ptr<std::string> server_job_id,
+    shared_ptr<std::string> receipt_info,
     AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>&
         get_database_item_context) noexcept {
   if (!get_database_item_context.result.Successful()) {
@@ -352,7 +352,7 @@ void JobClientProvider::OnGetNextJobItemCallback(
 ExecutionResult JobClientProvider::GetJobById(
     AsyncContext<GetJobByIdRequest, GetJobByIdResponse>&
         get_job_by_id_context) noexcept {
-  const string& job_id = get_job_by_id_context.request->job_id();
+  const std::string& job_id = get_job_by_id_context.request->job_id();
   if (job_id.empty()) {
     auto execution_result =
         FailureExecutionResult(SC_JOB_CLIENT_PROVIDER_MISSING_JOB_ID);
@@ -381,7 +381,7 @@ void JobClientProvider::OnGetJobItemByJobIdCallback(
     AsyncContext<GetJobByIdRequest, GetJobByIdResponse>& get_job_by_id_context,
     AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>&
         get_database_item_context) noexcept {
-  const string& job_id = get_job_by_id_context.request->job_id();
+  const std::string& job_id = get_job_by_id_context.request->job_id();
   if (!get_database_item_context.result.Successful()) {
     auto execution_result = get_database_item_context.result;
     if (execution_result.status_code ==
@@ -423,7 +423,7 @@ void JobClientProvider::OnGetJobItemByJobIdCallback(
 ExecutionResult JobClientProvider::UpdateJobBody(
     AsyncContext<UpdateJobBodyRequest, UpdateJobBodyResponse>&
         update_job_body_context) noexcept {
-  const string& job_id = update_job_body_context.request->job_id();
+  const std::string& job_id = update_job_body_context.request->job_id();
   if (job_id.empty()) {
     auto execution_result =
         FailureExecutionResult(SC_JOB_CLIENT_PROVIDER_MISSING_JOB_ID);
@@ -454,7 +454,7 @@ void JobClientProvider::OnGetJobItemForUpdateJobBodyCallback(
         update_job_body_context,
     AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>&
         get_database_item_context) noexcept {
-  const string& job_id = update_job_body_context.request->job_id();
+  const std::string& job_id = update_job_body_context.request->job_id();
   if (!get_database_item_context.result.Successful()) {
     auto execution_result = get_database_item_context.result;
     SCP_ERROR_CONTEXT(kJobClientProvider, update_job_body_context,
@@ -563,7 +563,7 @@ void JobClientProvider::OnUpsertUpdatedJobBodyJobItemCallback(
 ExecutionResult JobClientProvider::UpdateJobStatus(
     AsyncContext<UpdateJobStatusRequest, UpdateJobStatusResponse>&
         update_job_status_context) noexcept {
-  const string& job_id = update_job_status_context.request->job_id();
+  const std::string& job_id = update_job_status_context.request->job_id();
   if (job_id.empty()) {
     auto execution_result =
         FailureExecutionResult(SC_JOB_CLIENT_PROVIDER_MISSING_JOB_ID);
@@ -575,7 +575,7 @@ ExecutionResult JobClientProvider::UpdateJobStatus(
     return execution_result;
   }
 
-  const string& receipt_info =
+  const std::string& receipt_info =
       update_job_status_context.request->receipt_info();
   const auto& job_status = update_job_status_context.request->job_status();
   if (receipt_info.empty() && (job_status == JobStatus::JOB_STATUS_SUCCESS ||
@@ -611,7 +611,7 @@ void JobClientProvider::OnGetJobItemForUpdateJobStatusCallback(
         update_job_status_context,
     AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>&
         get_database_item_context) noexcept {
-  const string& job_id = update_job_status_context.request->job_id();
+  const std::string& job_id = update_job_status_context.request->job_id();
   if (!get_database_item_context.result.Successful()) {
     auto execution_result = get_database_item_context.result;
     SCP_ERROR_CONTEXT(kJobClientProvider, update_job_status_context,
@@ -695,7 +695,7 @@ void JobClientProvider::UpsertUpdatedJobStatusJobItem(
     AsyncContext<UpdateJobStatusRequest, UpdateJobStatusResponse>&
         update_job_status_context,
     const int retry_count) noexcept {
-  const string& job_id = update_job_status_context.request->job_id();
+  const std::string& job_id = update_job_status_context.request->job_id();
   auto update_time =
       make_shared<google::protobuf::Timestamp>(TimeUtil::GetCurrentTime());
 
@@ -787,7 +787,7 @@ void JobClientProvider::DeleteJobMessageForUpdatingJobStatus(
         update_job_status_context,
     shared_ptr<google::protobuf::Timestamp> update_time,
     const int retry_count) noexcept {
-  const string& job_id = update_job_status_context.request->job_id();
+  const std::string& job_id = update_job_status_context.request->job_id();
 
   auto delete_message_request = make_shared<DeleteMessageRequest>();
   delete_message_request->set_allocated_receipt_info(
@@ -819,7 +819,7 @@ void JobClientProvider::OnDeleteJobMessageForUpdatingJobStatusCallback(
     shared_ptr<google::protobuf::Timestamp> update_time, const int retry_count,
     AsyncContext<DeleteMessageRequest, DeleteMessageResponse>&
         delete_message_context) noexcept {
-  const string& job_id = update_job_status_context.request->job_id();
+  const std::string& job_id = update_job_status_context.request->job_id();
   if (!delete_message_context.result.Successful()) {
     auto execution_result = delete_message_context.result;
     SCP_ERROR_CONTEXT(kJobClientProvider, update_job_status_context,
@@ -845,7 +845,7 @@ ExecutionResult JobClientProvider::UpdateJobVisibilityTimeout(
     AsyncContext<UpdateJobVisibilityTimeoutRequest,
                  UpdateJobVisibilityTimeoutResponse>&
         update_job_visibility_timeout_context) noexcept {
-  const string& job_id =
+  const std::string& job_id =
       update_job_visibility_timeout_context.request->job_id();
   if (job_id.empty()) {
     auto execution_result =
@@ -877,7 +877,7 @@ ExecutionResult JobClientProvider::UpdateJobVisibilityTimeout(
     return execution_result;
   }
 
-  const string& receipt_info =
+  const std::string& receipt_info =
       update_job_visibility_timeout_context.request->receipt_info();
   if (receipt_info.empty()) {
     auto execution_result =
@@ -920,7 +920,7 @@ void JobClientProvider::OnUpdateMessageVisibilityTimeoutCallback(
     AsyncContext<UpdateMessageVisibilityTimeoutRequest,
                  UpdateMessageVisibilityTimeoutResponse>&
         update_message_visibility_timeout_context) noexcept {
-  string* job_id =
+  std::string* job_id =
       update_job_visibility_timeout_context.request->release_job_id();
   if (!update_message_visibility_timeout_context.result.Successful()) {
     auto execution_result = update_message_visibility_timeout_context.result;
@@ -945,7 +945,7 @@ ExecutionResult JobClientProvider::DeleteOrphanedJobMessage(
     AsyncContext<DeleteOrphanedJobMessageRequest,
                  DeleteOrphanedJobMessageResponse>&
         delete_orphaned_job_context) noexcept {
-  const string& job_id = delete_orphaned_job_context.request->job_id();
+  const std::string& job_id = delete_orphaned_job_context.request->job_id();
   if (job_id.empty()) {
     auto execution_result =
         FailureExecutionResult(SC_JOB_CLIENT_PROVIDER_MISSING_JOB_ID);
@@ -957,7 +957,7 @@ ExecutionResult JobClientProvider::DeleteOrphanedJobMessage(
     return execution_result;
   }
 
-  const string& receipt_info =
+  const std::string& receipt_info =
       delete_orphaned_job_context.request->receipt_info();
   if (receipt_info.empty()) {
     auto execution_result =
@@ -991,7 +991,7 @@ void JobClientProvider::OnGetJobItemForDeleteOrphanedJobMessageCallback(
                  DeleteOrphanedJobMessageResponse>& delete_orphaned_job_context,
     AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>&
         get_database_item_context) noexcept {
-  const string& job_id = delete_orphaned_job_context.request->job_id();
+  const std::string& job_id = delete_orphaned_job_context.request->job_id();
   if (!get_database_item_context.result.Successful()) {
     if (get_database_item_context.result.status_code ==
         SC_NO_SQL_DATABASE_PROVIDER_RECORD_NOT_FOUND) {
@@ -1070,7 +1070,7 @@ void JobClientProvider::OnDeleteJobMessageForDeleteOrphanedJobMessageCallback(
                  DeleteOrphanedJobMessageResponse>& delete_orphaned_job_context,
     AsyncContext<DeleteMessageRequest, DeleteMessageResponse>&
         delete_message_context) noexcept {
-  const string& job_id = delete_orphaned_job_context.request->job_id();
+  const std::string& job_id = delete_orphaned_job_context.request->job_id();
   if (!delete_message_context.result.Successful()) {
     auto execution_result = delete_message_context.result;
     SCP_ERROR_CONTEXT(kJobClientProvider, delete_orphaned_job_context,

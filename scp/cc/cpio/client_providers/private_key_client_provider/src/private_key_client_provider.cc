@@ -52,7 +52,6 @@ using std::atomic;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 
@@ -105,7 +104,7 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
       auto request = make_shared<PrivateKeyFetchingRequest>();
 
       if (list_keys_status->listing_method == ListingMethod::kByKeyId) {
-        request->key_id = make_shared<string>(
+        request->key_id = make_shared<std::string>(
             list_private_keys_context.request->key_ids(call_index));
       } else {
         request->max_age_seconds =
@@ -310,7 +309,7 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
   auto it = endpoints_status->plaintext_key_id_map.find(key_id);
   if (it == endpoints_status->plaintext_key_id_map.end()) {
     endpoints_status->plaintext_key_id_map[key_id] =
-        std::vector<string>(endpoint_count_);
+        std::vector<std::string>(endpoint_count_);
     endpoints_status->finished_counter_key_id_map[key_id] = 0;
   }
 
@@ -354,7 +353,7 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
       return;
     }
 
-    string encoded_key;
+    std::string encoded_key;
     execution_result = Base64Encode(private_key.private_key(), encoded_key);
     if (!execution_result.Successful()) {
       auto got_failure = false;

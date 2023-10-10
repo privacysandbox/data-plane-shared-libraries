@@ -56,7 +56,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -73,11 +72,12 @@ class PrivateKeyFetcherProviderTest : public ::testing::Test {
             make_unique<MockPrivateKeyFetcherProviderWithOverrides>(
                 http_client_)) {
     private_key_fetcher_provider_->signed_http_request_mock->path =
-        make_shared<string>(string(kPrivateKeyBaseUri) + "/" + string(kKeyId));
+        make_shared<std::string>(std::string(kPrivateKeyBaseUri) + "/" +
+                                 std::string(kKeyId));
     EXPECT_SUCCESS(private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(private_key_fetcher_provider_->Run());
     request_ = make_shared<PrivateKeyFetchingRequest>();
-    request_->key_id = make_shared<string>(kKeyId);
+    request_->key_id = make_shared<std::string>(kKeyId);
     request_->key_vending_endpoint = make_shared<PrivateKeyVendingEndpoint>();
     request_->key_vending_endpoint->private_key_vending_service_endpoint =
         kPrivateKeyBaseUri;
@@ -90,12 +90,12 @@ class PrivateKeyFetcherProviderTest : public ::testing::Test {
     }
   }
 
-  void MockRequest(const string& uri) {
+  void MockRequest(const std::string& uri) {
     http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = make_shared<string>(uri);
+    http_client_->request_mock.path = make_shared<std::string>(uri);
   }
 
-  void MockResponse(const string& str) {
+  void MockResponse(const std::string& str) {
     BytesBuffer bytes_buffer(sizeof(str));
     bytes_buffer.bytes = make_shared<vector<Byte>>(str.begin(), str.end());
     bytes_buffer.capacity = sizeof(str);
@@ -120,7 +120,7 @@ TEST_F(PrivateKeyFetcherProviderTest, MissingHttpClient) {
 }
 
 TEST_F(PrivateKeyFetcherProviderTest, FetchPrivateKey) {
-  MockRequest(string(kPrivateKeyBaseUri) + "/" + kKeyId);
+  MockRequest(std::string(kPrivateKeyBaseUri) + "/" + kKeyId);
   MockResponse(
       R"({
     "name": "encryptionKeys/123456",
@@ -197,7 +197,7 @@ TEST_F(PrivateKeyFetcherProviderTest, FailedToSignHttpRequest) {
 }
 
 TEST_F(PrivateKeyFetcherProviderTest, PrivateKeyNotFound) {
-  MockRequest(string(kPrivateKeyBaseUri) + "/" + kKeyId);
+  MockRequest(std::string(kPrivateKeyBaseUri) + "/" + kKeyId);
   MockResponse(
       R"({
         "name": "encryptionKeys/123456",

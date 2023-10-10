@@ -32,8 +32,6 @@ using google::scp::roma::sandbox::js_engine::v8_js_engine::
     SnapshotCompilationContext;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::unique_ptr;
 using std::vector;
 using testing::IsNull;
@@ -45,7 +43,8 @@ class SnapshotCompilationContextTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     const int my_pid = getpid();
-    const string proc_exe_path = string("/proc/") + to_string(my_pid) + "/exe";
+    const std::string proc_exe_path =
+        std::string("/proc/") + std::to_string(my_pid) + "/exe";
     auto my_path = std::make_unique<char[]>(PATH_MAX);
     ssize_t sz = readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
     ASSERT_GT(sz, 0);

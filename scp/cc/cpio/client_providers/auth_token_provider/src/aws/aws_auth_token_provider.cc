@@ -40,8 +40,6 @@ using std::bind;
 using std::make_shared;
 using std::pair;
 using std::shared_ptr;
-using std::string;
-using std::to_string;
 using std::chrono::seconds;
 using std::placeholders::_1;
 
@@ -91,8 +89,8 @@ ExecutionResult AwsAuthTokenProvider::GetSessionToken(
   http_context.request->method = HttpMethod::PUT;
   http_context.request->headers = make_shared<HttpHeaders>();
   http_context.request->headers->insert(
-      {string(kTokenTtlInSecondHeader),
-       to_string(kTokenTtlInSecondHeaderValue)});
+      {std::string(kTokenTtlInSecondHeader),
+       std::to_string(kTokenTtlInSecondHeaderValue)});
 
   http_context.request->path = make_shared<Uri>(kTokenServerPath);
 
@@ -128,7 +126,7 @@ void AwsAuthTokenProvider::OnGetSessionTokenCallback(
 
   get_token_context.response = make_shared<GetSessionTokenResponse>();
   get_token_context.response->session_token =
-      make_shared<string>(http_client_context.response->body.ToString());
+      make_shared<std::string>(http_client_context.response->body.ToString());
   get_token_context.response->token_lifetime_in_seconds =
       seconds(kTokenTtlInSecondHeaderValue);
   get_token_context.result = SuccessExecutionResult();

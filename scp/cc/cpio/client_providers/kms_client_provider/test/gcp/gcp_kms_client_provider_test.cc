@@ -56,7 +56,6 @@ using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using testing::Eq;
 using testing::ExplainMatchResult;
@@ -72,7 +71,7 @@ namespace google::scp::cpio::client_providers::test {
 class MockGcpKmsAeadProvider : public GcpKmsAeadProvider {
  public:
   MOCK_METHOD(ExecutionResultOr<shared_ptr<Aead>>, CreateAead,
-              (const string&, const string&, const string&),
+              (const std::string&, const std::string&, const std::string&),
               (noexcept, override));
 };
 
@@ -199,7 +198,7 @@ TEST_F(GcpKmsClientProviderTest, SuccessToDecrypt) {
               CreateAead(kWipProvider, kServiceAccount, kKeyArn))
       .WillOnce(Return(ExecutionResultOr<shared_ptr<Aead>>(aead_)));
 
-  string encoded_ciphertext;
+  std::string encoded_ciphertext;
   ASSERT_THAT(Base64Encode(kCiphertext, encoded_ciphertext), IsSuccessful());
 
   auto kms_decrpyt_request = make_shared<DecryptRequest>();
@@ -209,8 +208,8 @@ TEST_F(GcpKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
 
   GcsDecryptRequest decrypt_request;
-  decrypt_request.set_name(string(kKeyArn));
-  decrypt_request.set_ciphertext(string(kCiphertext));
+  decrypt_request.set_name(std::string(kKeyArn));
+  decrypt_request.set_ciphertext(std::string(kCiphertext));
   GcsDecryptResponse decrypt_response;
   decrypt_response.set_plaintext(kPlaintext);
   EXPECT_CALL(*mock_gcp_key_management_service_client_,
@@ -236,7 +235,7 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecrypt) {
               CreateAead(kWipProvider, kServiceAccount, kKeyArn))
       .WillOnce(Return(ExecutionResultOr<shared_ptr<Aead>>(aead_)));
 
-  string encoded_ciphertext;
+  std::string encoded_ciphertext;
   Base64Encode(kCiphertext, encoded_ciphertext);
   auto kms_decrpyt_request = make_shared<DecryptRequest>();
   kms_decrpyt_request->set_key_resource_name(kKeyArn);
@@ -245,8 +244,8 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecrypt) {
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
 
   GcsDecryptRequest decrypt_request;
-  decrypt_request.set_name(string(kKeyArn));
-  decrypt_request.set_ciphertext(string(kCiphertext));
+  decrypt_request.set_name(std::string(kKeyArn));
+  decrypt_request.set_ciphertext(std::string(kCiphertext));
   GcsDecryptResponse decrypt_response;
   decrypt_response.set_plaintext(kPlaintext);
   EXPECT_CALL(*mock_gcp_key_management_service_client_,

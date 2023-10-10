@@ -40,9 +40,7 @@ using std::bind;
 using std::get;
 using std::make_shared;
 using std::make_unique;
-using std::string;
 using std::thread;
-using std::to_string;
 using std::tuple;
 using std::unique_ptr;
 using std::vector;
@@ -89,7 +87,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -142,7 +140,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
   atomic<bool> failed_finished = false;
@@ -216,7 +214,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -267,7 +265,7 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -318,7 +316,7 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -406,7 +404,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -639,7 +637,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
       execution_obj.id = "foo";
       execution_obj.version_num = 1;
       execution_obj.handler_name = "Handler";
-      auto input = "Foobar" + to_string(i);
+      auto input = "Foobar" + std::to_string(i);
       execution_obj.input.push_back(R"(")" + input + R"(")");
 
       vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
@@ -653,7 +651,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
               for (auto resp : batch_resp) {
                 EXPECT_TRUE(resp.ok());
                 auto result =
-                    "\"Hello world! \\\"Foobar" + to_string(i) + "\\\"\"";
+                    "\"Hello world! \\\"Foobar" + std::to_string(i) + "\\\"\"";
                 EXPECT_EQ(resp->resp, result);
               }
               res_count += batch_resp.size();
@@ -689,7 +687,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
 
   atomic<bool> load_finished = false;
   size_t total_runs = 10;
-  vector<string> results(total_runs);
+  vector<std::string> results(total_runs);
   vector<atomic<bool>> finished(total_runs);
   {
     auto code_obj = make_unique<CodeObject>();
@@ -715,7 +713,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
       code_obj->version_num = 1;
       code_obj->handler_name = "Handler";
       code_obj->input.push_back(
-          make_shared<string>(R"("Foobar)" + to_string(i) + R"(")"));
+          make_shared<std::string>(R"("Foobar)" + std::to_string(i) + R"(")"));
 
       status = Execute(std::move(code_obj),
                        [&, i](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
@@ -734,9 +732,9 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
 
   for (auto i = 0u; i < total_runs; ++i) {
     WaitUntil([&, i]() { return finished[i].load(); }, 30s);
-    string expected_result = string(R"("Hello world! )") +
-                             string("\\\"Foobar") + to_string(i) +
-                             string("\\\"\"");
+    std::string expected_result = std::string(R"("Hello world! )") +
+                                  std::string("\\\"Foobar") +
+                                  std::to_string(i) + std::string("\\\"\"");
     EXPECT_EQ(results[i], expected_result);
   }
 
@@ -760,7 +758,7 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -828,7 +826,7 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -880,7 +878,7 @@ void ListOfStringInListOfStringOutFunction(proto::FunctionBindingIoProto& io) {
 
   for (auto& str : io.input_list_of_string().data()) {
     io.mutable_output_list_of_string()->mutable_data()->Add(
-        str + " Some other stuff " + to_string(i++));
+        str + " Some other stuff " + std::to_string(i++));
   }
 }
 
@@ -897,7 +895,7 @@ TEST(
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -946,14 +944,14 @@ TEST(
 
 void MapOfStringInMapOfStringOutFunction(proto::FunctionBindingIoProto& io) {
   for (auto& [key, value] : io.input_map_of_string().data()) {
-    string new_key;
-    string new_val;
+    std::string new_key;
+    std::string new_val;
     if (key == "key-a") {
-      new_key = key + to_string(1);
-      new_val = value + to_string(1);
+      new_key = key + std::to_string(1);
+      new_val = value + std::to_string(1);
     } else {
-      new_key = key + to_string(2);
-      new_val = value + to_string(2);
+      new_key = key + std::to_string(2);
+      new_val = value + std::to_string(2);
     }
     (*io.mutable_output_map_of_string()->mutable_data())[new_key] = new_val;
   }
@@ -971,7 +969,7 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -1046,7 +1044,7 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -1098,7 +1096,7 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -1107,7 +1105,7 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
       "cpp_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
   auto wasm_code =
-      string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
+      std::string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
   {
     auto code_obj = make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -1154,7 +1152,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_timeout = false;
   atomic<bool> execute_failed = false;
@@ -1354,7 +1352,7 @@ TEST(SandboxedServiceTest,
   execute_finished.store(false);
 
   {
-    string result;
+    std::string result;
 
     auto execution_obj = make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
@@ -1382,7 +1380,7 @@ TEST(SandboxedServiceTest,
   execute_finished.store(false);
 
   {
-    string result;
+    std::string result;
 
     auto execution_obj = make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
@@ -1506,7 +1504,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -1576,7 +1574,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -1700,7 +1698,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -1781,7 +1779,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -2068,7 +2066,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -2123,7 +2121,7 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -2177,7 +2175,7 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -2280,7 +2278,7 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -2337,7 +2335,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -2443,7 +2441,7 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -2502,13 +2500,13 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
   {
     auto code_obj = make_unique<CodeObject>();
-    absl::flat_hash_map<string, string> tags;
+    absl::flat_hash_map<std::string, std::string> tags;
 
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -2568,9 +2566,9 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   atomic<bool> load_finished1 = false;
   atomic<bool> load_finished2 = false;
 
-  absl::flat_hash_map<string, string> tags;
+  absl::flat_hash_map<std::string, std::string> tags;
   tags[kWasmCodeArrayName] = "addModule";
-  string js_code = R"JS_CODE(
+  std::string js_code = R"JS_CODE(
           const module = new WebAssembly.Module(addModule);
           const instance = new WebAssembly.Instance(module);
           function hello_js(a, b) {
@@ -2703,7 +2701,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
 
@@ -2718,7 +2716,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
   )JS_CODE";
 
     code_obj->wasm_bin = kWasmBin;
-    absl::flat_hash_map<string, string> tags;
+    absl::flat_hash_map<std::string, std::string> tags;
     tags[kWasmCodeArrayName] = "addModule";
     code_obj->tags = tags;
 
@@ -2774,7 +2772,7 @@ TEST(SandboxedServiceTest,
 
   // dummy code that gets killed by the JS engine if it allocates too much
   // memory
-  string js_code = R"JS_CODE(
+  std::string js_code = R"JS_CODE(
           const module = new WebAssembly.Module(addModule);
           const instance = new WebAssembly.Instance(module);
           function Handler(a, b, c) {
@@ -2789,7 +2787,7 @@ TEST(SandboxedServiceTest,
             return instance.exports.add(a, b);
           }
   )JS_CODE";
-  absl::flat_hash_map<string, string> tags;
+  absl::flat_hash_map<std::string, std::string> tags;
   tags[kWasmCodeArrayName] = "addModule";
 
   {
@@ -2834,7 +2832,7 @@ TEST(SandboxedServiceTest,
   execute_finished.store(false);
 
   {
-    string result;
+    std::string result;
 
     auto execution_obj = make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
@@ -2875,7 +2873,7 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> success_execute_finished = false;
 
@@ -2885,7 +2883,7 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
     code_obj->version_num = 1;
     // The js payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
-    string dummy_js_string(payload_size, 'a');
+    std::string dummy_js_string(payload_size, 'a');
     code_obj->js = "function Handler(input) { let x = \"" + dummy_js_string +
                    "\"; return \"Hello world! \"}";
     EXPECT_GE(code_obj->js.length(), payload_size);
@@ -2934,7 +2932,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> oversize_execute_finished = false;
 
@@ -2962,7 +2960,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
     execution_obj->handler_name = "Handler";
     // The input payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
-    string dummy_string(payload_size, 'A');
+    std::string dummy_string(payload_size, 'A');
     execution_obj->input.push_back("\"" + dummy_string + "\"");
 
     status = Execute(std::move(execution_obj),
@@ -3024,7 +3022,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
     execution_obj->handler_name = "Handler";
     // The response payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
-    execution_obj->input.push_back("\"" + to_string(payload_size) + "\"");
+    execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
     status = Execute(std::move(execution_obj),
                      [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
@@ -3054,7 +3052,7 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
 
   {
@@ -3063,7 +3061,7 @@ TEST(SandboxedServiceTest,
     code_obj->version_num = 1;
     // The js payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
-    string dummy_js_string(payload_size, 'A');
+    std::string dummy_js_string(payload_size, 'A');
     code_obj->js = "\"" + dummy_js_string + "\"";
 
     status = LoadCodeObj(std::move(code_obj),
@@ -3094,11 +3092,11 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  string result;
+  std::string result;
   atomic<bool> load_finished = false;
   atomic<bool> success_execute_finished = false;
   atomic<bool> failed_execute_finished = false;
-  string retry_result;
+  std::string retry_result;
   atomic<bool> retry_success_execute_finished = false;
 
   {
@@ -3144,7 +3142,7 @@ TEST(SandboxedServiceTest,
     execution_obj->handler_name = "Handler";
     // The input payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
-    string dummy_string(payload_size, 'A');
+    std::string dummy_string(payload_size, 'A');
     execution_obj->input.push_back("\"" + dummy_string + "\"");
 
     status = Execute(std::move(execution_obj),
@@ -3247,7 +3245,7 @@ TEST(SandboxedServiceTest,
     execution_obj->handler_name = "Handler";
     // The response payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
-    execution_obj->input.push_back("\"" + to_string(payload_size) + "\"");
+    execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
     status = Execute(std::move(execution_obj),
                      [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
@@ -3268,7 +3266,7 @@ TEST(SandboxedServiceTest,
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     auto payload_size = 1024 * 800;
-    execution_obj->input.push_back("\"" + to_string(payload_size) + "\"");
+    execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
     status = Execute(std::move(execution_obj),
                      [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {

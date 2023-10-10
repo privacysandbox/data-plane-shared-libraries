@@ -41,7 +41,6 @@ using std::get;
 using std::make_shared;
 using std::make_tuple;
 using std::shared_ptr;
-using std::string;
 using std::tuple;
 using testing::Pair;
 using testing::Pointee;
@@ -134,7 +133,7 @@ TEST(AwsInstanceClientUtilsTest, GetInstanceResourceNameDetails) {
 class AwsInstanceClientUtilsTestII
     : public TestWithParam<tuple<std::string, ExecutionResult>> {
  protected:
-  string GetResourceName() { return get<0>(GetParam()); }
+  std::string GetResourceName() { return get<0>(GetParam()); }
 
   ExecutionResult GetExecutionResult() { return get<1>(GetParam()); }
 };

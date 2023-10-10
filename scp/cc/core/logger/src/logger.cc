@@ -28,9 +28,6 @@
 #include "scp/cc/core/interface/logger_interface.h"
 
 using google::scp::core::common::Uuid;
-using std::string;
-using std::string_view;
-using std::stringstream;
 
 // Default values are empty to save characters on each log on the wire.
 static constexpr char kDefaultMachineName[] = "";
@@ -50,9 +47,10 @@ ExecutionResult Logger::Stop() noexcept {
   return log_provider_->Stop();
 }
 
-void Logger::Info(string_view component_name, const Uuid& correlation_id,
+void Logger::Info(std::string_view component_name, const Uuid& correlation_id,
                   const Uuid& parent_activity_id, const Uuid& activity_id,
-                  string_view location, string_view message, ...) noexcept {
+                  std::string_view location, std::string_view message,
+                  ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kInfo, correlation_id, parent_activity_id,
@@ -61,9 +59,10 @@ void Logger::Info(string_view component_name, const Uuid& correlation_id,
   va_end(args);
 }
 
-void Logger::Debug(string_view component_name, const Uuid& correlation_id,
+void Logger::Debug(std::string_view component_name, const Uuid& correlation_id,
                    const Uuid& parent_activity_id, const Uuid& activity_id,
-                   string_view location, string_view message, ...) noexcept {
+                   std::string_view location, std::string_view message,
+                   ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kDebug, correlation_id, parent_activity_id,
@@ -72,9 +71,10 @@ void Logger::Debug(string_view component_name, const Uuid& correlation_id,
   va_end(args);
 }
 
-void Logger::Warning(string_view component_name, const Uuid& correlation_id,
-                     const Uuid& parent_activity_id, const Uuid& activity_id,
-                     string_view location, string_view message, ...) noexcept {
+void Logger::Warning(std::string_view component_name,
+                     const Uuid& correlation_id, const Uuid& parent_activity_id,
+                     const Uuid& activity_id, std::string_view location,
+                     std::string_view message, ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kWarning, correlation_id, parent_activity_id,
@@ -83,9 +83,10 @@ void Logger::Warning(string_view component_name, const Uuid& correlation_id,
   va_end(args);
 }
 
-void Logger::Error(string_view component_name, const Uuid& correlation_id,
+void Logger::Error(std::string_view component_name, const Uuid& correlation_id,
                    const Uuid& parent_activity_id, const Uuid& activity_id,
-                   string_view location, string_view message, ...) noexcept {
+                   std::string_view location, std::string_view message,
+                   ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kError, correlation_id, parent_activity_id,
@@ -94,9 +95,10 @@ void Logger::Error(string_view component_name, const Uuid& correlation_id,
   va_end(args);
 }
 
-void Logger::Alert(string_view component_name, const Uuid& correlation_id,
+void Logger::Alert(std::string_view component_name, const Uuid& correlation_id,
                    const Uuid& parent_activity_id, const Uuid& activity_id,
-                   string_view location, string_view message, ...) noexcept {
+                   std::string_view location, std::string_view message,
+                   ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kAlert, correlation_id, parent_activity_id,
@@ -105,9 +107,11 @@ void Logger::Alert(string_view component_name, const Uuid& correlation_id,
   va_end(args);
 }
 
-void Logger::Critical(string_view component_name, const Uuid& correlation_id,
+void Logger::Critical(std::string_view component_name,
+                      const Uuid& correlation_id,
                       const Uuid& parent_activity_id, const Uuid& activity_id,
-                      string_view location, string_view message, ...) noexcept {
+                      std::string_view location, std::string_view message,
+                      ...) noexcept {
   va_list args;
   va_start(args, message);
   log_provider_->Log(LogLevel::kCritical, correlation_id, parent_activity_id,
@@ -116,9 +120,10 @@ void Logger::Critical(string_view component_name, const Uuid& correlation_id,
   va_end(args);
 }
 
-void Logger::Emergency(string_view component_name, const Uuid& correlation_id,
+void Logger::Emergency(std::string_view component_name,
+                       const Uuid& correlation_id,
                        const Uuid& parent_activity_id, const Uuid& activity_id,
-                       string_view location, string_view message,
+                       std::string_view location, std::string_view message,
                        ...) noexcept {
   va_list args;
   va_start(args, message);

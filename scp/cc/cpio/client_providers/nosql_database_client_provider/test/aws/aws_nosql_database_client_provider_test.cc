@@ -89,7 +89,6 @@ using std::make_shared;
 using std::mt19937;
 using std::random_device;
 using std::shared_ptr;
-using std::string;
 using std::uniform_int_distribution;
 using std::vector;
 using testing::Eq;
@@ -103,21 +102,22 @@ namespace {
 
 constexpr char kTableName[] = "TestTable";
 
-ItemAttribute MakeStringAttribute(const string& name, const string& value) {
+ItemAttribute MakeStringAttribute(const std::string& name,
+                                  const std::string& value) {
   ItemAttribute attribute;
   attribute.set_name(name);
   attribute.set_value_string(value);
   return attribute;
 }
 
-ItemAttribute MakeIntAttribute(const string& name, int value) {
+ItemAttribute MakeIntAttribute(const std::string& name, int value) {
   ItemAttribute attribute;
   attribute.set_name(name);
   attribute.set_value_int(value);
   return attribute;
 }
 
-ItemAttribute MakeDoubleAttribute(const string& name, double value) {
+ItemAttribute MakeDoubleAttribute(const std::string& name, double value) {
   ItemAttribute attribute;
   attribute.set_name(name);
   attribute.set_value_double(value);

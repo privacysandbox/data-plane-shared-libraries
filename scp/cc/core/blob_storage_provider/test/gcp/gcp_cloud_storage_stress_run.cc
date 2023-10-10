@@ -34,7 +34,6 @@ using google::scp::core::GetBlobResponse;
 using google::scp::core::blob_storage_provider::GcpCloudStorageClient;
 using google::scp::core::errors::GetErrorMessage;
 using std::make_shared;
-using std::string;
 
 constexpr char kProject[] = "admcloud-coordinator1";
 
@@ -85,8 +84,8 @@ void WriteObjectOfByteCount(GcpCloudStorageClient& client, int64_t byte_count) {
   std::atomic_bool finished(false);
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
   put_blob_context.request = make_shared<PutBlobRequest>(
-      PutBlobRequest{{make_shared<string>(kBucketName),
-                      make_shared<string>(kDefaultBlobName)}});
+      PutBlobRequest{{make_shared<std::string>(kBucketName),
+                      make_shared<std::string>(kDefaultBlobName)}});
 
   ExecutionResult result;
   put_blob_context.callback = [&result, &finished](auto& context) {
@@ -131,8 +130,9 @@ int WriteAndGetBlob(int64_t byte_count) {
   WriteObjectOfByteCount(my_client, byte_count);
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
-  get_blob_context.request = make_shared<GetBlobRequest>(GetBlobRequest{
-      make_shared<string>(kBucketName), make_shared<string>(kDefaultBlobName)});
+  get_blob_context.request = make_shared<GetBlobRequest>(
+      GetBlobRequest{make_shared<std::string>(kBucketName),
+                     make_shared<std::string>(kDefaultBlobName)});
 
   int return_status;
   std::atomic_bool finished(false);

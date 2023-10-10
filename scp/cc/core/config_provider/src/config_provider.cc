@@ -21,7 +21,6 @@
 #include <list>
 
 using std::ifstream;
-using std::string;
 using json = nlohmann::json;
 using std::list;
 
@@ -57,8 +56,8 @@ ExecutionResult ConfigProvider::Get(const ConfigKey& key,
 };
 
 ExecutionResult ConfigProvider::Get(const ConfigKey& key,
-                                    string& out) noexcept {
-  return Get<string>(key, out);
+                                    std::string& out) noexcept {
+  return Get<std::string>(key, out);
 };
 
 ExecutionResult ConfigProvider::Get(const ConfigKey& key, bool& out) noexcept {
@@ -66,8 +65,8 @@ ExecutionResult ConfigProvider::Get(const ConfigKey& key, bool& out) noexcept {
 };
 
 ExecutionResult ConfigProvider::Get(const ConfigKey& key,
-                                    list<string>& out) noexcept {
-  return Get<string>(key, out);
+                                    list<std::string>& out) noexcept {
+  return Get<std::string>(key, out);
 };
 
 ExecutionResult ConfigProvider::Get(const ConfigKey& key,

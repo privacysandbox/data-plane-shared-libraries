@@ -57,9 +57,7 @@ using std::make_pair;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::thread;
-using std::to_string;
 using std::unordered_set;
 using std::vector;
 using std::chrono::milliseconds;
@@ -211,7 +209,7 @@ ExecutionResult JournalService::Recover(
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>&
         journal_recover_context) noexcept {
   shared_ptr<TimeEvent> time_event = make_shared<TimeEvent>();
-  auto replayed_log_ids = make_shared<unordered_set<string>>();
+  auto replayed_log_ids = make_shared<unordered_set<std::string>>();
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context(
           make_shared<JournalStreamReadLogRequest>(),
@@ -243,7 +241,7 @@ ExecutionResult JournalService::Recover(
 
 void JournalService::OnJournalStreamReadLogCallback(
     shared_ptr<TimeEvent>& time_event,
-    shared_ptr<unordered_set<string>>& replayed_log_ids,
+    shared_ptr<unordered_set<std::string>>& replayed_log_ids,
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>&
         journal_recover_context,
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>&
@@ -256,7 +254,7 @@ void JournalService::OnJournalStreamReadLogCallback(
       journal_recover_context.result = journal_stream_read_log_context.result;
     } else {
       time_event->Stop();
-      recover_time_metric_->Push(to_string(time_event->diff_time));
+      recover_time_metric_->Push(std::to_string(time_event->diff_time));
       journal_recover_context.response = make_shared<JournalRecoverResponse>();
       journal_recover_context.response->last_processed_journal_id =
           journal_input_stream_->GetLastProcessedJournalId();

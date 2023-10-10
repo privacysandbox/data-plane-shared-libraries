@@ -63,7 +63,6 @@ using std::make_shared;
 using std::set;
 using std::shared_ptr;
 using std::static_pointer_cast;
-using std::string;
 using std::thread;
 using std::vector;
 using std::placeholders::_1;
@@ -181,7 +180,7 @@ ExecutionResult Http2Server::Run() noexcept {
 
   RETURN_IF_FAILURE(MetricRun());
 
-  vector<string> paths;
+  vector<std::string> paths;
   RETURN_IF_FAILURE(resource_handlers_.Keys(paths));
 
   for (const auto& path : paths) {
@@ -375,7 +374,7 @@ void Http2Server::OnHttp2RequestDataObtainedRoutedRequest(
                 _1),
       http2_context);
   // The target path should reflect the forwarding endpoint.
-  routing_context.request->path = make_shared<string>(
+  routing_context.request->path = make_shared<std::string>(
       absl::StrCat(*endpoint_info.uri, http2_context.request->handler_path));
 
   auto execution_result = request_router_->RouteRequest(routing_context);

@@ -28,9 +28,7 @@ using google::scp::core::TCPTrafficForwarderSocat;
 using std::cout;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::thread;
-using std::to_string;
 using std::vector;
 using ::testing::HasSubstr;
 
@@ -59,7 +57,7 @@ static int GenerateRandomIntInRange(int min, int max) {
   return uniform_distribution(random_number_engine);
 }
 
-static std::string RunCommandAndGetOutput(const string& cmd) {
+static std::string RunCommandAndGetOutput(const std::string& cmd) {
   char line_buffer[256];
   std::string result = "";
   FILE* pipe = popen(cmd.c_str(), "r");
@@ -87,7 +85,7 @@ static bool SocatProcessExists() {
 }
 
 TEST_F(TcpTrafficForwarderSoCatTest, InitRunStop) {
-  auto local_port = to_string(GenerateRandomIntInRange(8000, 60000));
+  auto local_port = std::to_string(GenerateRandomIntInRange(8000, 60000));
   TCPTrafficForwarderSocat tcp_traffic_forwarder(local_port);
   EXPECT_SUCCESS(tcp_traffic_forwarder.Init());
   EXPECT_SUCCESS(tcp_traffic_forwarder.Run());
@@ -95,7 +93,7 @@ TEST_F(TcpTrafficForwarderSoCatTest, InitRunStop) {
 }
 
 // TEST_F(TcpTrafficForwarderSoCatTest, ShouldStartAndStopSocat) {
-//   auto local_port = to_string(GenerateRandomIntInRange(8000, 60000));
+//   auto local_port = std::to_string(GenerateRandomIntInRange(8000, 60000));
 //   TCPTrafficForwarderSocat tcp_traffic_forwarder(local_port);
 //   EXPECT_SUCCESS(tcp_traffic_forwarder.Init());
 //   // This calls Run()
@@ -109,7 +107,7 @@ TEST_F(TcpTrafficForwarderSoCatTest, InitRunStop) {
 // }
 
 TEST_F(TcpTrafficForwarderSoCatTest, ShouldForwardBasicTraffic) {
-  auto local_port = to_string(GenerateRandomIntInRange(8000, 60000));
+  auto local_port = std::to_string(GenerateRandomIntInRange(8000, 60000));
   auto command = "curl localhost:" + local_port + "> /dev/null";
 
   TCPTrafficForwarderSocat tcp_traffic_forwarder(local_port);
@@ -127,7 +125,7 @@ TEST_F(TcpTrafficForwarderSoCatTest, ShouldForwardBasicTraffic) {
 }
 
 TEST_F(TcpTrafficForwarderSoCatTest, ShouldBeAbleToResetAddress) {
-  auto local_port = to_string(GenerateRandomIntInRange(8000, 60000));
+  auto local_port = std::to_string(GenerateRandomIntInRange(8000, 60000));
 
   TCPTrafficForwarderSocat tcp_traffic_forwarder(local_port);
   EXPECT_SUCCESS(tcp_traffic_forwarder.Init());
@@ -147,7 +145,7 @@ TEST_F(TcpTrafficForwarderSoCatTest, ShouldBeAbleToResetAddress) {
 }
 
 TEST_F(TcpTrafficForwarderSoCatTest, ShouldForwardTraffic) {
-  auto local_port = to_string(GenerateRandomIntInRange(8000, 60000));
+  auto local_port = std::to_string(GenerateRandomIntInRange(8000, 60000));
 
   TCPTrafficForwarderSocat tcp_traffic_forwarder(local_port);
   EXPECT_SUCCESS(tcp_traffic_forwarder.Init());

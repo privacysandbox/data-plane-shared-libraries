@@ -29,15 +29,14 @@ using google::cloud::kms::KeyManagementServiceClient;
 using google::cloud::kms::MakeKeyManagementServiceConnection;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::cpio::client_providers {
 
 shared_ptr<KeyManagementServiceClient>
 GcpKmsAeadProvider::CreateKeyManagementServiceClient(
-    const string& wip_provider,
-    const string& service_account_to_impersonate) noexcept {
-  string credentials_json;
+    const std::string& wip_provider,
+    const std::string& service_account_to_impersonate) noexcept {
+  std::string credentials_json;
   TeeGcpKmsClientProviderUtils::CreateAttestedCredentials(
       wip_provider, service_account_to_impersonate, credentials_json);
   auto options = google::cloud::Options{}.set<UnifiedCredentialsOption>(

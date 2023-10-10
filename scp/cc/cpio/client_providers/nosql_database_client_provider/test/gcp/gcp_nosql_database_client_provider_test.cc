@@ -107,7 +107,6 @@ using std::make_unique;
 using std::optional;
 using std::pair;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::unordered_map;
 using testing::_;
@@ -133,9 +132,9 @@ constexpr char kBudgetKeySortKeyName[] = "Timeframe";
 constexpr char kPartitionLockTableName[] = "PartitionLock";
 constexpr char kPartitionLockPartitionKeyName[] = "LockId";
 
-std::unique_ptr<unordered_map<string, PartitionAndSortKey>>
+std::unique_ptr<unordered_map<std::string, PartitionAndSortKey>>
 GetTableNameToKeysMap() {
-  auto map = make_unique<unordered_map<string, PartitionAndSortKey>>();
+  auto map = make_unique<unordered_map<std::string, PartitionAndSortKey>>();
   PartitionAndSortKey budget_key_pair;
   budget_key_pair.SetPartitionKey(kBudgetKeyPartitionKeyName);
   budget_key_pair.SetSortKey(kBudgetKeySortKeyName);
@@ -147,14 +146,15 @@ GetTableNameToKeysMap() {
   return map;
 }
 
-ItemAttribute MakeStringAttribute(const string& name, const string& value) {
+ItemAttribute MakeStringAttribute(const std::string& name,
+                                  const std::string& value) {
   ItemAttribute attribute;
   attribute.set_name(name);
   attribute.set_value_string(value);
   return attribute;
 }
 
-ItemAttribute MakeIntegerAttribute(const string& name, int32_t value) {
+ItemAttribute MakeIntegerAttribute(const std::string& name, int32_t value) {
   ItemAttribute attribute;
   attribute.set_name(name);
   attribute.set_value_int(value);
@@ -174,7 +174,7 @@ class MockSpannerFactory : public SpannerFactory {
   MOCK_METHOD((ExecutionResultOr<
                   pair<shared_ptr<Client>, shared_ptr<DatabaseAdminClient>>>),
               CreateClients,
-              (shared_ptr<NoSQLDatabaseClientOptions>, const string&),
+              (shared_ptr<NoSQLDatabaseClientOptions>, const std::string&),
               (noexcept, override));
   MOCK_METHOD((Options), CreateClientOptions,
               (shared_ptr<NoSQLDatabaseClientOptions>), (noexcept, override));
@@ -491,9 +491,9 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests, DeleteTablePropagatesFailure) {
 }
 
 MATCHER_P(SqlEqual, expected_sql, "") {
-  string no_whitespace_arg_sql = arg.statement.sql();
+  std::string no_whitespace_arg_sql = arg.statement.sql();
   absl::RemoveExtraAsciiWhitespace(&no_whitespace_arg_sql);
-  string no_whitespace_expected_sql = expected_sql.sql();
+  std::string no_whitespace_expected_sql = expected_sql.sql();
   absl::RemoveExtraAsciiWhitespace(&no_whitespace_expected_sql);
 
   SqlStatement modified_arg(no_whitespace_arg_sql, arg.statement.params());
@@ -502,7 +502,7 @@ MATCHER_P(SqlEqual, expected_sql, "") {
 
   if (!ExplainMatchResult(Eq(modified_expected), modified_arg,
                           result_listener)) {
-    string actual =
+    std::string actual =
         absl::StrFormat(R"(Actual - SQL: "%s")", no_whitespace_arg_sql);
     for (const auto& [name, val] : modified_arg.params()) {
       absl::StrAppend(&actual, absl::StrFormat("\n[param]: {%s=%s}", name,

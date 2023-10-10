@@ -25,7 +25,6 @@
 using Aws::Client::ClientConfiguration;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 /// Fixed connect timeout to create an AWS client.
 static constexpr int kConnectTimeoutMs = 3000;
@@ -34,8 +33,8 @@ static constexpr int kRequestTimeoutMs = 6000;
 
 namespace google::scp::cpio::common::test {
 shared_ptr<ClientConfiguration> CreateTestClientConfiguration(
-    const shared_ptr<string>& endpoint_override,
-    const shared_ptr<string>& region) noexcept {
+    const shared_ptr<std::string>& endpoint_override,
+    const shared_ptr<std::string>& region) noexcept {
   auto config = make_shared<ClientConfiguration>();
   if (endpoint_override && !endpoint_override->empty()) {
     config->endpointOverride = *endpoint_override;

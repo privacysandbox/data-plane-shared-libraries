@@ -26,7 +26,6 @@ using std::get;
 using std::make_shared;
 using std::make_tuple;
 using std::shared_ptr;
-using std::string;
 using std::tuple;
 using testing::IsSupersetOf;
 using testing::Pair;
@@ -57,8 +56,8 @@ class Http1CurlWrapperTest
 
   ExecutionResult GetExpectedResult() { return get<1>(GetParam()); }
 
-  const string response_body_;
-  const string post_request_body_;
+  const std::string response_body_;
+  const std::string post_request_body_;
 
   shared_ptr<Http1CurlWrapper> subject_;
 
@@ -174,7 +173,7 @@ TEST_F(Http1CurlWrapperTest, SingleQueryIsEscaped) {
   HttpRequest request;
   request.method = HttpMethod::GET;
   request.path = make_shared<Uri>(server_.GetPath());
-  request.query = make_shared<string>("foo=!@#$");
+  request.query = make_shared<std::string>("foo=!@#$");
 
   auto response_or = subject_->PerformRequest(request);
   ASSERT_THAT(response_or, IsSuccessful());
@@ -189,7 +188,7 @@ TEST_F(Http1CurlWrapperTest, MultiQueryIsEscaped) {
   HttpRequest request;
   request.method = HttpMethod::GET;
   request.path = make_shared<Uri>(server_.GetPath());
-  request.query = make_shared<string>("foo=!@#$&bar=%^()");
+  request.query = make_shared<std::string>("foo=!@#$&bar=%^()");
 
   auto response_or = subject_->PerformRequest(request);
   ASSERT_THAT(response_or, IsSuccessful());

@@ -28,14 +28,13 @@ using google::scp::core::HttpRequest;
 using google::scp::core::SuccessExecutionResult;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::cpio::client_providers {
 // In integration test, localstack API_GATEWAY doesn't support signed request.
 ExecutionResult TestAwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
-    shared_ptr<HttpRequest>& http_request, const string& access_key,
-    const string& secret_key, const string& security_token,
-    const string& region) noexcept {
+    shared_ptr<HttpRequest>& http_request, const std::string& access_key,
+    const std::string& secret_key, const std::string& security_token,
+    const std::string& region) noexcept {
   return SuccessExecutionResult();
 }
 

@@ -29,7 +29,6 @@ using google::cloud::Options;
 using google::scp::core::AsyncExecutorInterface;
 using std::dynamic_pointer_cast;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::cpio::client_providers {
 Options TestGcpSpannerFactory::CreateClientOptions(

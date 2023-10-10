@@ -69,7 +69,6 @@ using google::scp::cpio::common::CreateClientConfiguration;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -86,7 +85,7 @@ static constexpr char kAwsMetricClientProvider[] = "AwsMetricClientProvider";
 
 namespace google::scp::cpio::client_providers {
 void AwsMetricClientProvider::CreateClientConfiguration(
-    const shared_ptr<string>& region,
+    const shared_ptr<std::string>& region,
     shared_ptr<ClientConfiguration>& client_config) noexcept {
   client_config = common::CreateClientConfiguration(region);
   client_config->executor = make_shared<AwsAsyncExecutor>(io_async_executor_);
@@ -114,7 +113,7 @@ ExecutionResult AwsMetricClientProvider::Run() noexcept {
            region_code_or->c_str());
 
   shared_ptr<ClientConfiguration> client_config;
-  CreateClientConfiguration(make_shared<string>(move(*region_code_or)),
+  CreateClientConfiguration(make_shared<std::string>(move(*region_code_or)),
                             client_config);
 
   cloud_watch_client_ = make_shared<CloudWatchClient>(*client_config);
@@ -146,7 +145,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
   // Already confirmed if metric_namespace in metric_batching_options is empty,
   // batch recording is not enabled and metric_requests_vector should only have
   // one entry.
-  string name_space =
+  std::string name_space =
       !metric_batching_options_->metric_namespace.empty()
           ? metric_batching_options_->metric_namespace
           : (*metric_requests_vector)[0].request->metric_namespace();

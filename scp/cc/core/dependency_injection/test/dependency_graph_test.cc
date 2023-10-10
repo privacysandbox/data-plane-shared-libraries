@@ -37,7 +37,6 @@ using google::scp::core::mock::TestNode;
 using std::function;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using ::testing::Contains;
 
@@ -68,14 +67,14 @@ namespace google::scp::core::test {
   }
 
 TEST(DependencyGraphTest, AddNodeReturnsTrueForNewNode) {
-  TestNode node("A", vector<string>{"B", "C"});
+  TestNode node("A", vector<std::string>{"B", "C"});
   DependencyGraph target;
   bool result = target.AddNode(node.id, node.dependencies, node.factory);
   EXPECT_TRUE(result);
 }
 
 TEST(DependencyGraphTest, AddNodeReturnsFalseForExistingNode) {
-  TestNode node("A", vector<string>{"B", "C"});
+  TestNode node("A", vector<std::string>{"B", "C"});
   DependencyGraph target;
   target.AddNode(node.id, node.dependencies, node.factory);
   bool result = target.AddNode(node.id, node.dependencies, node.factory);
@@ -83,9 +82,10 @@ TEST(DependencyGraphTest, AddNodeReturnsFalseForExistingNode) {
 }
 
 TEST(DependencyGraphTest, EnumerateReturnsCorrectBuildOrder) {
-  auto test_nodes = vector<TestNode>{TestNode("A", vector<string>{"B", "C"}),
-                                     TestNode("B", vector<string>{"C"}),
-                                     TestNode("C", vector<string>())};
+  auto test_nodes =
+      vector<TestNode>{TestNode("A", vector<std::string>{"B", "C"}),
+                       TestNode("B", vector<std::string>{"C"}),
+                       TestNode("C", vector<std::string>())};
 
   DependencyGraph target;
   for (auto node : test_nodes) {
@@ -96,15 +96,16 @@ TEST(DependencyGraphTest, EnumerateReturnsCorrectBuildOrder) {
   auto result = target.Enumerate(graph_result);
   EXPECT_SUCCESS(result);
 
-  vector<string> expected_order{"C", "B", "A"};
+  vector<std::string> expected_order{"C", "B", "A"};
   EXPECT_NODE_ORDER(expected_order, graph_result.dependency_order);
 }
 
 TEST(DependencyGraphTest, EnumerateReturnsUndefinedDependency) {
-  auto test_nodes = vector<TestNode>{TestNode("A", vector<string>{"B", "C"}),
-                                     TestNode("B", vector<string>{"C"}),
-                                     TestNode("C", vector<string>{"D"}),
-                                     TestNode("D", vector<string>{"E"})};
+  auto test_nodes =
+      vector<TestNode>{TestNode("A", vector<std::string>{"B", "C"}),
+                       TestNode("B", vector<std::string>{"C"}),
+                       TestNode("C", vector<std::string>{"D"}),
+                       TestNode("D", vector<std::string>{"E"})};
 
   DependencyGraph target;
   for (auto node : test_nodes) {
@@ -122,10 +123,10 @@ TEST(DependencyGraphTest, EnumerateReturnsUndefinedDependency) {
 // Cycle - B -> C -> D -> B
 TEST(DependencyGraphTest, EnumerateReturnsCycleForCycleDetected) {
   const auto test_nodes = vector<TestNode>{
-      TestNode("A", vector<string>{"B", "C"}),
-      TestNode("B", vector<string>{"C"}),
-      TestNode("C", vector<string>{"D"}),
-      TestNode("D", vector<string>{"B"}),
+      TestNode("A", vector<std::string>{"B", "C"}),
+      TestNode("B", vector<std::string>{"C"}),
+      TestNode("C", vector<std::string>{"D"}),
+      TestNode("D", vector<std::string>{"B"}),
   };
 
   DependencyGraph target;
@@ -151,15 +152,15 @@ TEST(DependencyGraphTest, EnumerateReturnsCycleForCycleDetected) {
 
 TEST(DependencyGraphTest, EnumerateReturnsCorrectBuildOrderForBigTree) {
   auto test_nodes =
-      vector<TestNode>{TestNode("A", vector<string>{"B", "C"}),
-                       TestNode("B", vector<string>{"D", "E"}),
-                       TestNode("C", vector<string>{"F", "H"}),
-                       TestNode("D", vector<string>{"G"}),
-                       TestNode("E", vector<string>{"C"}),
-                       TestNode("F", vector<string>{"I"}),
-                       TestNode("G", vector<string>{"E", "H", "I"}),
-                       TestNode("H", vector<string>()),
-                       TestNode("I", vector<string>())};
+      vector<TestNode>{TestNode("A", vector<std::string>{"B", "C"}),
+                       TestNode("B", vector<std::string>{"D", "E"}),
+                       TestNode("C", vector<std::string>{"F", "H"}),
+                       TestNode("D", vector<std::string>{"G"}),
+                       TestNode("E", vector<std::string>{"C"}),
+                       TestNode("F", vector<std::string>{"I"}),
+                       TestNode("G", vector<std::string>{"E", "H", "I"}),
+                       TestNode("H", vector<std::string>()),
+                       TestNode("I", vector<std::string>())};
 
   DependencyGraph target;
   for (auto node : test_nodes) {
@@ -199,15 +200,15 @@ TEST(DependencyGraphTest, EnumerateReturnsCorrectBuildOrderForBigTree) {
 // Cycle - G -> E -> C -> F -> G
 TEST(DependencyGraphTest, EnumerateReturnsCycleForLongCycleDetected) {
   auto test_nodes =
-      vector<TestNode>{TestNode("A", vector<string>{"B", "C"}),
-                       TestNode("B", vector<string>{"D", "E"}),
-                       TestNode("C", vector<string>{"F", "H"}),
-                       TestNode("D", vector<string>{"G"}),
-                       TestNode("E", vector<string>{"C"}),
-                       TestNode("F", vector<string>{"G"}),
-                       TestNode("G", vector<string>{"E", "H", "I"}),
-                       TestNode("H", vector<string>()),
-                       TestNode("I", vector<string>())};
+      vector<TestNode>{TestNode("A", vector<std::string>{"B", "C"}),
+                       TestNode("B", vector<std::string>{"D", "E"}),
+                       TestNode("C", vector<std::string>{"F", "H"}),
+                       TestNode("D", vector<std::string>{"G"}),
+                       TestNode("E", vector<std::string>{"C"}),
+                       TestNode("F", vector<std::string>{"G"}),
+                       TestNode("G", vector<std::string>{"E", "H", "I"}),
+                       TestNode("H", vector<std::string>()),
+                       TestNode("I", vector<std::string>())};
 
   DependencyGraph target;
   for (auto node : test_nodes) {

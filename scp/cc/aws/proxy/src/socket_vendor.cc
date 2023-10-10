@@ -26,12 +26,11 @@
 
 using google::scp::proxy::Endpoint;
 using google::scp::proxy::SocketVendorServer;
-using std::string;
 
 int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
   LOG(INFO) << "Nitro Enclave Proxy Socket Vendor (c) Google 2022.";
-  string lockfile(kSocketVendorUdsPath);
+  std::string lockfile(kSocketVendorUdsPath);
   lockfile += ".lock";
   int lock_fd =
       open(lockfile.c_str(), O_CLOEXEC | O_CREAT | O_RDWR, S_IRWXU | S_IRGRP);

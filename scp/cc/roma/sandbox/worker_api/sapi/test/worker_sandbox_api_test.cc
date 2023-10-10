@@ -37,7 +37,6 @@ using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
 using google::scp::roma::sandbox::worker::WorkerFactory;
-using std::string;
 using std::thread;
 using std::vector;
 
@@ -46,7 +45,7 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
   WorkerSandboxApi sandbox_api(
       WorkerFactory::WorkerEngine::v8, false /*require_preload*/,
       5 /*compilation_context_cache_size*/, -1 /*native_js_function_comms_fd*/,
-      vector<string>() /*native_js_function_names*/, 0, 0, 0, 0, 0, false);
+      vector<std::string>() /*native_js_function_names*/, 0, 0, 0, 0, 0, false);
 
   auto result = sandbox_api.Init();
   EXPECT_SUCCESS(result);
@@ -78,7 +77,7 @@ TEST(WorkerSandboxApiTest,
   WorkerSandboxApi sandbox_api(
       WorkerFactory::WorkerEngine::v8, false /*require_preload*/,
       5 /*compilation_context_cache_size*/, -1 /*native_js_function_comms_fd*/,
-      vector<string>() /*native_js_function_names*/,
+      vector<std::string>() /*native_js_function_names*/,
       100 /*max_worker_virtual_memory_mb*/, 0, 0, 0, 0, false);
 
   // Initializing the sandbox fail as we're giving a max of 100MB of virtual
@@ -156,7 +155,7 @@ TEST(WorkerSandboxApiTest, SandboxShouldComeBackUpIfItDies) {
   WorkerSandboxApiForTests sandbox_api(
       WorkerFactory::WorkerEngine::v8, false /*require_preload*/,
       -1 /*native_js_function_comms_fd*/,
-      vector<string>() /*native_js_function_names*/);
+      vector<std::string>() /*native_js_function_names*/);
 
   auto result = sandbox_api.Init();
   EXPECT_SUCCESS(result);

@@ -31,7 +31,6 @@ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
 using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
 using google::scp::cpio::MetricUnit;
 using std::make_shared;
-using std::string;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -62,8 +61,8 @@ TEST(MetricUtilsTest, GetPutMetricsRequest) {
   EXPECT_EQ(record_metric_request->metrics()[0].labels().size(), 3);
   EXPECT_TRUE(record_metric_request->metrics()[0]
                   .labels()
-                  .find(string("Key1"))
-                  ->second == string("Value1"));
+                  .find(std::string("Key1"))
+                  ->second == std::string("Value1"));
 }
 
 TEST(MetricUtilsTest, CreateMetricLabelsWithComponentSignature) {

@@ -34,7 +34,6 @@ using google::scp::core::common::Uuid;
 using google::scp::core::logger::FromString;
 using google::scp::core::logger::ToString;
 using google::scp::core::logger::mock::MockLogger;
-using std::string;
 using std::vector;
 
 namespace google::scp::core::test {
@@ -55,13 +54,13 @@ class LoggerTests : public ScpTestBase {
   }
 
   Uuid uuid;
-  string uuid_str;
+  std::string uuid_str;
   Uuid parent_uuid;
-  string parent_uuid_str;
+  std::string parent_uuid_str;
   Uuid correlation_id;
-  string correlation_id_str;
-  string location;
-  const string component_name = "LoggerTest";
+  std::string correlation_id_str;
+  std::string location;
+  const std::string component_name = "LoggerTest";
 };
 
 TEST_F(LoggerTests, LogDebug) {

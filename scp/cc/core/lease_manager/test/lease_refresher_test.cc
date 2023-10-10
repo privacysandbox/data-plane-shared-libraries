@@ -39,7 +39,6 @@ using std::make_unique;
 using std::mutex;
 using std::optional;
 using std::shared_ptr;
-using std::string;
 using std::unique_lock;
 using std::chrono::milliseconds;
 using ::testing::_;

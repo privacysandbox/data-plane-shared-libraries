@@ -30,8 +30,6 @@ using google::scp::core::common::ToString;
 using google::scp::core::common::Uuid;
 using std::cout;
 using std::endl;
-using std::string;
-using std::string_view;
 using std::vector;
 using std::vsnprintf;
 
@@ -54,10 +52,11 @@ ExecutionResult ConsoleLogProvider::Stop() noexcept {
 void ConsoleLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
                              const Uuid& parent_activity_id,
                              const Uuid& activity_id,
-                             string_view component_name,
-                             string_view machine_name, string_view cluster_name,
-                             string_view location, string_view message,
-                             va_list args) noexcept {
+                             std::string_view component_name,
+                             std::string_view machine_name,
+                             std::string_view cluster_name,
+                             std::string_view location,
+                             std::string_view message, va_list args) noexcept {
   auto current_timestamp =
       TimeProvider::GetWallTimestampInNanosecondsAsClockTicks();
   auto current_timestamp_seconds = current_timestamp / nano_seconds_multiplier;
@@ -77,12 +76,12 @@ void ConsoleLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
   // here.
   vsnprintf(&output_message[0], size + 1, message.data(), args);
 
-  output << string(output_message.data(), size);
+  output << std::string(output_message.data(), size);
 
   Print(output.str());
 }
 
-void ConsoleLogProvider::Print(const string& output) noexcept {
+void ConsoleLogProvider::Print(const std::string& output) noexcept {
   cout << output << endl;
 }
 }  // namespace google::scp::core::logger

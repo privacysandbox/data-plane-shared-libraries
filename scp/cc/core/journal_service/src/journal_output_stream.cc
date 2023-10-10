@@ -50,7 +50,6 @@ using std::list;
 using std::make_shared;
 using std::shared_ptr;
 using std::sort;
-using std::string;
 using std::vector;
 using std::chrono::milliseconds;
 using std::placeholders::_1;
@@ -61,8 +60,8 @@ static constexpr char kJournalOutputStream[] = "JournalOutputStream";
 
 namespace google::scp::core {
 JournalOutputStream::JournalOutputStream(
-    const shared_ptr<string>& bucket_name,
-    const shared_ptr<string>& partition_name,
+    const shared_ptr<std::string>& bucket_name,
+    const shared_ptr<std::string>& partition_name,
     const shared_ptr<AsyncExecutorInterface>& async_executor,
     const shared_ptr<BlobStorageClientInterface>& blob_storage_provider_client,
     const shared_ptr<AggregateMetricInterface>& journal_output_count_metric)

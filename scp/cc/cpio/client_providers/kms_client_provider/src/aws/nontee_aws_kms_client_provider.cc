@@ -58,7 +58,6 @@ using google::scp::cpio::common::CreateClientConfiguration;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::placeholders::_1;
 
 /// Filename for logging errors
@@ -158,7 +157,7 @@ ExecutionResult NonteeAwsKmsClientProvider::GetAeadCallbackToDecrypt(
     return decrypt_context.result;
   }
 
-  string decoded_ciphertext;
+  std::string decoded_ciphertext;
   Base64Decode(decrypt_context.request->ciphertext(), decoded_ciphertext);
 
   auto decrypt_result =
@@ -257,7 +256,7 @@ void NonteeAwsKmsClientProvider::GetSessionCredentialsCallbackToCreateKms(
 
   auto kms_client = GetKmsClient(
       std::move(aws_credentials),
-      make_shared<string>(create_kms_context.request->kms_region()));
+      make_shared<std::string>(create_kms_context.request->kms_region()));
   create_kms_context.response = kms_client;
   create_kms_context.result = SuccessExecutionResult();
   create_kms_context.Finish();
@@ -265,16 +264,16 @@ void NonteeAwsKmsClientProvider::GetSessionCredentialsCallbackToCreateKms(
 
 shared_ptr<ClientConfiguration>
 NonteeAwsKmsClientProvider::CreateClientConfiguration(
-    const string& region) noexcept {
+    const std::string& region) noexcept {
   auto client_config =
-      common::CreateClientConfiguration(make_shared<string>(region));
+      common::CreateClientConfiguration(make_shared<std::string>(region));
   client_config->executor = make_shared<AwsAsyncExecutor>(io_async_executor_);
   return client_config;
 }
 
 shared_ptr<KMSClient> NonteeAwsKmsClientProvider::GetKmsClient(
     const shared_ptr<AWSCredentials>& aws_credentials,
-    const shared_ptr<string>& kms_region) noexcept {
+    const shared_ptr<std::string>& kms_region) noexcept {
   return make_shared<KMSClient>(*aws_credentials,
                                 *CreateClientConfiguration(*kms_region));
 }

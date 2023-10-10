@@ -50,7 +50,6 @@ using std::make_shared;
 using std::max_element;
 using std::shared_ptr;
 using std::sort;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 
@@ -168,7 +167,7 @@ ExecutionResult JournalInputStream::ReadLastCheckpointBlob(
   GetBlobRequest get_blob_request;
   get_blob_request.bucket_name = bucket_name_;
   auto execution_result = JournalUtils::GetBlobFullPath(
-      partition_name_, make_shared<string>(kLastCheckpointBlobName),
+      partition_name_, make_shared<std::string>(kLastCheckpointBlobName),
       get_blob_request.blob_name);
   if (!execution_result.Successful()) {
     return execution_result;
@@ -336,7 +335,7 @@ ExecutionResult JournalInputStream::ListCheckpoints(
   list_blobs_request.bucket_name = bucket_name_;
 
   auto execution_result = JournalUtils::GetBlobFullPath(
-      partition_name_, make_shared<string>(kCheckpointBlobNamePrefix),
+      partition_name_, make_shared<std::string>(kCheckpointBlobNamePrefix),
       list_blobs_request.blob_name);
   if (!execution_result.Successful()) {
     return execution_result;
@@ -441,7 +440,7 @@ ExecutionResult JournalInputStream::ListJournals(
   ListBlobsRequest list_blobs_request;
   list_blobs_request.bucket_name = bucket_name_;
   auto execution_result = JournalUtils::GetBlobFullPath(
-      partition_name_, make_shared<string>(kJournalBlobNamePrefix),
+      partition_name_, make_shared<std::string>(kJournalBlobNamePrefix),
       list_blobs_request.blob_name);
   if (!execution_result.Successful()) {
     return execution_result;
@@ -619,7 +618,7 @@ ExecutionResult JournalInputStream::ReadJournalBlobs(
   }
   total_journals_to_read_ = total_journals_to_read;
 
-  string journal_ids_string = absl::StrJoin(journal_ids, " ");
+  std::string journal_ids_string = absl::StrJoin(journal_ids, " ");
 
   SCP_DEBUG_CONTEXT(kJournalInputStream, journal_stream_read_log_context,
                     "All the journals to be read: %s",

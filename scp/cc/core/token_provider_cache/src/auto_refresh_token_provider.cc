@@ -29,7 +29,6 @@ using google::scp::core::common::TimeProvider;
 using std::make_shared;
 using std::shared_lock;
 using std::shared_ptr;
-using std::string;
 using std::unique_lock;
 using std::unique_ptr;
 using std::chrono::seconds;
@@ -123,7 +122,7 @@ void AutoRefreshTokenProviderService::OnRefreshTokenCallback(
   // Cache the fetched token
   {
     unique_lock lock(mutex_);
-    cached_token_ = make_shared<string>(get_token_context.response->token);
+    cached_token_ = make_shared<std::string>(get_token_context.response->token);
   }
 
   SCP_INFO_CONTEXT(kAutoRefreshTokenProvider, get_token_context,

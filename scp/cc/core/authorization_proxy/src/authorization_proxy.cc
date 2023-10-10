@@ -31,7 +31,6 @@ using std::function;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -50,8 +49,8 @@ void OnBeforeGarbageCollection(std::string&,
 
 ExecutionResult AuthorizationProxy::Init() noexcept {
   error_code http2_error_code;
-  string scheme;
-  string service;
+  std::string scheme;
+  std::string service;
   if (host_service_from_uri(http2_error_code, scheme, host_, service,
                             *server_endpoint_uri_)) {
     auto execution_result =
@@ -73,7 +72,7 @@ ExecutionResult AuthorizationProxy::Stop() noexcept {
 }
 
 AuthorizationProxy::AuthorizationProxy(
-    const string& server_endpoint_url,
+    const std::string& server_endpoint_url,
     const shared_ptr<AsyncExecutorInterface>& async_executor,
     const shared_ptr<HttpClientInterface>& http_client,
     std::unique_ptr<HttpRequestResponseAuthInterceptorInterface> http_helper)
@@ -81,7 +80,7 @@ AuthorizationProxy::AuthorizationProxy(
              false /* extend_entry_lifetime_on_access */,
              false /* block_entry_while_eviction */,
              bind(&OnBeforeGarbageCollection, _1, _2, _3), async_executor),
-      server_endpoint_uri_(make_shared<string>(server_endpoint_url)),
+      server_endpoint_uri_(make_shared<std::string>(server_endpoint_url)),
       http_client_(http_client),
       http_helper_(std::move(http_helper)) {}
 

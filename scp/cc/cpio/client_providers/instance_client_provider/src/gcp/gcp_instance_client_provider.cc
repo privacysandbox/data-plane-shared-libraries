@@ -85,7 +85,6 @@ using std::optional;
 using std::pair;
 using std::promise;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 
@@ -184,7 +183,7 @@ ExecutionResult GcpInstanceClientProvider::Stop() noexcept {
 }
 
 ExecutionResult GcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
-    string& resource_name) noexcept {
+    std::string& resource_name) noexcept {
   GetCurrentInstanceResourceNameRequest request;
   GetCurrentInstanceResourceNameResponse response;
   auto execution_result =
@@ -236,7 +235,7 @@ GcpInstanceClientProvider::MakeHttpRequestsForInstanceResourceName(
     AsyncContext<GetCurrentInstanceResourceNameRequest,
                  GetCurrentInstanceResourceNameResponse>&
         get_resource_name_context,
-    shared_ptr<string>& uri,
+    shared_ptr<std::string>& uri,
     shared_ptr<InstanceResourceNameTracker> instance_resource_name_tracker,
     ResourceType type) noexcept {
   auto http_request = make_shared<HttpRequest>();
@@ -244,8 +243,8 @@ GcpInstanceClientProvider::MakeHttpRequestsForInstanceResourceName(
   http_request->path = uri;
   http_request->body.length = 0;
   http_request->headers = make_shared<core::HttpHeaders>();
-  http_request->headers->insert(
-      {string(kMetadataFlavorHeaderKey), string(kMetadataFlavorHeaderValue)});
+  http_request->headers->insert({std::string(kMetadataFlavorHeaderKey),
+                                 std::string(kMetadataFlavorHeaderValue)});
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
       std::move(http_request),
@@ -321,7 +320,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
       // different from project ID. In some cases, the project number doesn't
       // work. (e.g, in the spanner, using project number will have permission
       // issue)
-      vector<string> splits =
+      vector<std::string> splits =
           absl::StrSplit(http_client_context.response->body.ToString(), "/");
       instance_resource_name_tracker->instance_zone = std::move(splits.back());
       break;
@@ -398,16 +397,16 @@ void GcpInstanceClientProvider::OnGetSessionTokenForTagsCallback(
   auto uri = GcpInstanceClientUtils::CreateRMListTagsUrl(
       get_tags_context.request->resource_name());
   auto signed_request = make_shared<HttpRequest>();
-  signed_request->path = make_shared<string>(std::move(uri));
+  signed_request->path = make_shared<std::string>(std::move(uri));
   signed_request->method = HttpMethod::GET;
-  signed_request->query = make_shared<string>(absl::StrCat(
+  signed_request->query = make_shared<std::string>(absl::StrCat(
       kParentParameter, get_tags_context.request->resource_name().c_str(), "&",
       kPageSizeSetting));
 
   const auto& access_token = *get_token_context.response->session_token;
   signed_request->headers = make_shared<core::HttpHeaders>();
   signed_request->headers->insert(
-      {string(kAuthorizationHeaderKey),
+      {std::string(kAuthorizationHeaderKey),
        absl::StrCat(kBearerTokenPrefix, access_token)});
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
@@ -503,8 +502,8 @@ void GcpInstanceClientProvider::OnGetTagsByResourceNameCallback(
   get_tags_context.response = make_shared<GetTagsByResourceNameResponse>();
   auto& tags = *get_tags_context.response->mutable_tags();
   for (const auto& tag : json_response[kTagBindingsListKey]) {
-    tags[tag[kTagBindingNameKey].get<string>()] =
-        tag[kTagBindingTagValueKey].get<string>();
+    tags[tag[kTagBindingNameKey].get<std::string>()] =
+        tag[kTagBindingTagValueKey].get<std::string>();
   }
   get_tags_context.result = SuccessExecutionResult();
   get_tags_context.Finish();
@@ -601,13 +600,13 @@ void GcpInstanceClientProvider::OnGetSessionTokenForInstanceDetailsCallback(
 
   auto uri = absl::StrCat(kGcpInstanceGetUrlPrefix, resource_id);
   auto signed_request = make_shared<HttpRequest>();
-  signed_request->path = make_shared<string>(std::move(uri));
+  signed_request->path = make_shared<std::string>(std::move(uri));
   signed_request->method = HttpMethod::GET;
 
   const auto& access_token = *get_token_context.response->session_token;
   signed_request->headers = make_shared<core::HttpHeaders>();
   signed_request->headers->insert(
-      {string(kAuthorizationHeaderKey),
+      {std::string(kAuthorizationHeaderKey),
        absl::StrCat(kBearerTokenPrefix, access_token)});
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
@@ -683,21 +682,22 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
   auto* instance_details =
       get_instance_details_context.response->mutable_instance_details();
 
-  auto instance_id = json_response[kInstanceDetailsJsonIdKey].get<string>();
+  auto instance_id =
+      json_response[kInstanceDetailsJsonIdKey].get<std::string>();
   instance_details->set_instance_id(std::move(instance_id));
 
   // Get instance networks info from networkInterfaces.
   for (const auto& network_interface : json_response[kNetworkInterfacesKey]) {
-    string private_ip, public_ip;
+    std::string private_ip, public_ip;
     if (network_interface.contains(kPrivateIpKey)) {
-      private_ip = network_interface[kPrivateIpKey].get<string>();
+      private_ip = network_interface[kPrivateIpKey].get<std::string>();
     }
 
     // Current GCP only supports one accessConfig.
     if (network_interface.contains(kAccessConfigs)) {
       for (const auto& access_config : network_interface[kAccessConfigs]) {
         if (access_config.contains(kPublicIpKey)) {
-          public_ip = access_config[kPublicIpKey].get<string>();
+          public_ip = access_config[kPublicIpKey].get<std::string>();
           break;
         }
       }
@@ -715,7 +715,7 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
         *get_instance_details_context.response->mutable_instance_details()
              ->mutable_labels();
     for (json::iterator it = labels->begin(); it != labels->end(); ++it) {
-      labels_proto[it.key()] = it.value().get<string>();
+      labels_proto[it.key()] = it.value().get<std::string>();
     }
   }
 

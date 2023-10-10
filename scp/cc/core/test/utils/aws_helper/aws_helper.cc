@@ -55,7 +55,6 @@ using Aws::SSM::Model::PutParameterRequest;
 using Aws::Utils::CryptoBuffer;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -69,7 +68,7 @@ constexpr int kReadWriteCapacity = 10;
 
 namespace google::scp::core::test {
 shared_ptr<ClientConfiguration> CreateClientConfiguration(
-    const string& endpoint, const string& region) {
+    const std::string& endpoint, const std::string& region) {
   auto config = make_shared<ClientConfiguration>();
   config->region = region;
   config->scheme = Aws::Http::Scheme::HTTP;
@@ -79,14 +78,14 @@ shared_ptr<ClientConfiguration> CreateClientConfiguration(
   return config;
 }
 
-shared_ptr<DynamoDBClient> CreateDynamoDbClient(const string& endpoint,
-                                                const string& region) {
+shared_ptr<DynamoDBClient> CreateDynamoDbClient(const std::string& endpoint,
+                                                const std::string& region) {
   return make_shared<DynamoDBClient>(
       *CreateClientConfiguration(endpoint, region));
 }
 
 void CreateTable(const shared_ptr<DynamoDBClient>& dynamo_db_client,
-                 const string& table_name,
+                 const std::string& table_name,
                  const vector<AttributeDefinition>& attributes,
                  const vector<KeySchemaElement>& schemas) {
   CreateTableRequest request;
@@ -114,8 +113,8 @@ void CreateTable(const shared_ptr<DynamoDBClient>& dynamo_db_client,
   }
 }
 
-shared_ptr<S3Client> CreateS3Client(const string& endpoint,
-                                    const string& region) {
+shared_ptr<S3Client> CreateS3Client(const std::string& endpoint,
+                                    const std::string& region) {
   // Should disable virtual host, otherwise, our path-style url will not work.
   return make_shared<S3Client>(
       *CreateClientConfiguration(endpoint, region),
@@ -124,7 +123,7 @@ shared_ptr<S3Client> CreateS3Client(const string& endpoint,
 }
 
 void CreateBucket(const shared_ptr<S3Client>& s3_client,
-                  const string& bucket_name) {
+                  const std::string& bucket_name) {
   CreateBucketRequest request;
   request.SetBucket(bucket_name.c_str());
   request.SetACL(BucketCannedACL::public_read_write);
@@ -180,13 +179,13 @@ std::string GetParameter(const std::shared_ptr<SSMClient>& ssm_client,
   }
 }
 
-shared_ptr<KMSClient> CreateKMSClient(const string& endpoint,
-                                      const string& region) {
+shared_ptr<KMSClient> CreateKMSClient(const std::string& endpoint,
+                                      const std::string& region) {
   return make_shared<KMSClient>(*CreateClientConfiguration(endpoint, region));
 }
 
-void CreateKey(const shared_ptr<KMSClient>& kms_client, string& key_id,
-               string& key_resource_name) {
+void CreateKey(const shared_ptr<KMSClient>& kms_client, std::string& key_id,
+               std::string& key_resource_name) {
   CreateKeyRequest request;
 
   // Needs to retry until succeeded.
@@ -207,8 +206,8 @@ void CreateKey(const shared_ptr<KMSClient>& kms_client, string& key_id,
   }
 }
 
-string Encrypt(const std::shared_ptr<KMSClient>& kms_client,
-               const string& key_id, const string& plaintext) {
+std::string Encrypt(const std::shared_ptr<KMSClient>& kms_client,
+                    const std::string& key_id, const std::string& plaintext) {
   EncryptRequest request;
   request.SetKeyId(key_id);
   Aws::Utils::ByteBuffer plaintext_buffer(
@@ -223,8 +222,8 @@ string Encrypt(const std::shared_ptr<KMSClient>& kms_client,
   } else {
     std::cout << "Succeeded to encrypt: " << plaintext << std::endl;
     auto& blob = outcome.GetResult().GetCiphertextBlob();
-    return string(reinterpret_cast<const char*>(blob.GetUnderlyingData()),
-                  blob.GetLength());
+    return std::string(reinterpret_cast<const char*>(blob.GetUnderlyingData()),
+                       blob.GetLength());
   }
 }
 }  // namespace google::scp::core::test

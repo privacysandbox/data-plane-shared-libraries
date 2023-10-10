@@ -72,7 +72,6 @@ using google::scp::core::errors::SC_ROMA_WORKER_API_WORKER_CRASHED;
 using google::scp::roma::sandbox::constants::kBadFd;
 using std::make_unique;
 using std::numeric_limits;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 using std::this_thread::yield;

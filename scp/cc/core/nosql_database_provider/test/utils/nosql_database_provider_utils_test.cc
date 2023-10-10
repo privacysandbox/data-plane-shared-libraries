@@ -21,12 +21,11 @@
 using google::scp::core::nosql_database_provider::NoSQLDatabaseProviderUtils;
 using google::scp::core::test::ResultIs;
 using std::get;
-using std::string;
 
 namespace google::scp::core::test {
 
 TEST(NoSQLDatabaseProviderUtilsTest, FromStringInt) {
-  string int_str("1");
+  std::string int_str("1");
   NoSQLDatabaseValidAttributeValueTypes value;
   EXPECT_EQ(NoSQLDatabaseProviderUtils::FromString<int>(
                 int_str.c_str(), int_str.length(), value),
@@ -36,7 +35,7 @@ TEST(NoSQLDatabaseProviderUtilsTest, FromStringInt) {
 }
 
 TEST(NoSQLDatabaseProviderUtilsTest, FromStringDouble) {
-  string double_str("1.0");
+  std::string double_str("1.0");
   NoSQLDatabaseValidAttributeValueTypes value;
   EXPECT_EQ(NoSQLDatabaseProviderUtils::FromString<double>(
                 double_str.c_str(), double_str.length(), value),
@@ -46,7 +45,7 @@ TEST(NoSQLDatabaseProviderUtilsTest, FromStringDouble) {
 }
 
 TEST(NoSQLDatabaseProviderUtilsTest, FromStringFloat) {
-  string float_str("1.0");
+  std::string float_str("1.0");
   NoSQLDatabaseValidAttributeValueTypes value;
   EXPECT_EQ(NoSQLDatabaseProviderUtils::FromString<float>(
                 float_str.c_str(), float_str.length(), value),
@@ -56,20 +55,20 @@ TEST(NoSQLDatabaseProviderUtilsTest, FromStringFloat) {
 }
 
 TEST(NoSQLDatabaseProviderUtilsTest, FromStringString) {
-  string str("1.0");
+  std::string str("1.0");
   NoSQLDatabaseValidAttributeValueTypes value;
-  EXPECT_EQ(NoSQLDatabaseProviderUtils::FromString<string>(str.c_str(),
-                                                           str.length(), value),
+  EXPECT_EQ(NoSQLDatabaseProviderUtils::FromString<std::string>(
+                str.c_str(), str.length(), value),
             SuccessExecutionResult());
 
-  EXPECT_EQ(get<string>(value), "1.0");
+  EXPECT_EQ(get<std::string>(value), "1.0");
 }
 
 TEST(NoSQLDatabaseProviderUtilsTest, FromStringInvalid) {
-  string str("s");
+  std::string str("s");
   NoSQLDatabaseValidAttributeValueTypes value;
   EXPECT_THAT(
-      NoSQLDatabaseProviderUtils::FromString<string>(nullptr, 123, value),
+      NoSQLDatabaseProviderUtils::FromString<std::string>(nullptr, 123, value),
       ResultIs(FailureExecutionResult(
           errors::SC_NO_SQL_DATABASE_INVALID_PARAMETER_TYPE)));
 

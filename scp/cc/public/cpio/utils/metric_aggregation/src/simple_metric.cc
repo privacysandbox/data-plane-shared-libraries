@@ -44,7 +44,6 @@ using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricValue;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 static constexpr char kSimpleMetric[] = "SimpleMetric";
 
@@ -71,7 +70,7 @@ void SimpleMetric::RunMetricPush(
       std::move(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         if (!context.result.Successful()) {
-          std::vector<string> metric_names;
+          std::vector<std::string> metric_names;
           for (auto& metric : context.request->metrics()) {
             metric_names.push_back(metric.name());
           }

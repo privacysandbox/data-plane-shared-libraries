@@ -18,16 +18,14 @@
 
 #include <string>
 
-using std::string;
-
 namespace {
 constexpr char kDecryptResultPrefix[] = "PLAINTEXT: ";
 }
 
 namespace google::scp::cpio::client_providers {
 void TeeAwsKmsClientProviderUtils::ExtractPlaintext(
-    const string& decrypt_result, string& plaintext) noexcept {
-  int8_t prefix_size = string(kDecryptResultPrefix).length();
+    const std::string& decrypt_result, std::string& plaintext) noexcept {
+  int8_t prefix_size = std::string(kDecryptResultPrefix).length();
   auto length = decrypt_result.length();
   auto start = decrypt_result.find(kDecryptResultPrefix);
   if (start == std::string::npos) {

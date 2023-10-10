@@ -60,7 +60,6 @@ using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -74,9 +73,10 @@ static constexpr char kAwsParameterClientProvider[] =
 namespace google::scp::cpio::client_providers {
 shared_ptr<ClientConfiguration>
 AwsParameterClientProvider::CreateClientConfiguration(
-    const string& region) noexcept {
+    const std::string& region) noexcept {
   return common::CreateClientConfiguration(
-      make_shared<string>(std::move(region)));
+
+      make_shared<std::string>(std::move(region)));
 }
 
 ExecutionResult AwsParameterClientProvider::Init() noexcept {

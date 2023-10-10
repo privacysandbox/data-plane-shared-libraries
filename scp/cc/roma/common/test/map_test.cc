@@ -20,28 +20,25 @@
 
 #include "roma/common/src/containers.h"
 
-using std::string;
-using std::to_string;
-
 namespace google::scp::roma::common::test {
 TEST(MapTest, KeyShouldBeInOrderOfInsertion) {
-  Map<string, string> map;
+  Map<std::string, std::string> map;
   for (int i = 0; i < 30; i++) {
-    map.Set(to_string(i), to_string(i));
+    map.Set(std::to_string(i), std::to_string(i));
   }
 
   auto keys = map.Keys();
   EXPECT_EQ(30, keys.size());
 
   for (int i = 0; i < 30; i++) {
-    EXPECT_EQ(keys.at(i), to_string(i));
+    EXPECT_EQ(keys.at(i), std::to_string(i));
   }
 }
 
 TEST(MapTest, RemovingKeysShouldRespectOrder) {
-  Map<string, string> map;
+  Map<std::string, std::string> map;
   for (int i = 0; i < 30; i++) {
-    map.Set(to_string(i), to_string(i));
+    map.Set(std::to_string(i), std::to_string(i));
   }
 
   map.Delete("5");
@@ -60,13 +57,13 @@ TEST(MapTest, RemovingKeysShouldRespectOrder) {
     if (i == 5 || i == 10) {
       continue;
     }
-    EXPECT_EQ(*keys_it, to_string(i));
+    EXPECT_EQ(*keys_it, std::to_string(i));
     keys_it++;
   }
 }
 
 TEST(MapTest, InlineKeysAndValues) {
-  Map<string, string> map;
+  Map<std::string, std::string> map;
   map.Set("key", "val");
   EXPECT_EQ(map.Get("key"), "val");
   EXPECT_TRUE(map.Contains("key"));
@@ -76,9 +73,9 @@ TEST(MapTest, InlineKeysAndValues) {
 }
 
 TEST(MapTest, ReferenceKeysAndValues) {
-  string key = "key";
-  string val = "val";
-  Map<string, string> map;
+  std::string key = "key";
+  std::string val = "val";
+  Map<std::string, std::string> map;
   map.Set(key, val);
   EXPECT_EQ(map.Get(key), val);
   EXPECT_TRUE(map.Contains(key));
@@ -88,7 +85,7 @@ TEST(MapTest, ReferenceKeysAndValues) {
 }
 
 TEST(MapTest, SameKeyShouldReplace) {
-  Map<string, string> map;
+  Map<std::string, std::string> map;
   map.Set("key", "val");
   EXPECT_EQ(map.Get("key"), "val");
 
@@ -97,7 +94,7 @@ TEST(MapTest, SameKeyShouldReplace) {
 }
 
 TEST(MapTest, SameKeyShouldReplaceUsingRef) {
-  Map<string, string> map;
+  Map<std::string, std::string> map;
   auto key = "key";
   auto val = "val";
   auto new_val = "new_val";
@@ -110,7 +107,7 @@ TEST(MapTest, SameKeyShouldReplaceUsingRef) {
 }
 
 TEST(MapTest, ReplacingValueShouldNotChangeInsertionOrder) {
-  Map<string, string> map;
+  Map<std::string, std::string> map;
   map.Set("key1", "val1");
   map.Set("key2", "val2");
   map.Set("key3", "val3");
@@ -127,7 +124,7 @@ TEST(MapTest, ReplacingValueShouldNotChangeInsertionOrder) {
 }
 
 TEST(MapTest, ReplacingValueUsingRefShouldNotChangeInsertionOrder) {
-  Map<string, string> map;
+  Map<std::string, std::string> map;
   auto key1 = "key1";
   auto val1 = "val1";
   auto key2 = "key2";
@@ -154,7 +151,7 @@ TEST(MapTest, ReplacingValueUsingRefShouldNotChangeInsertionOrder) {
 }
 
 TEST(MapTest, ClearShouldCleanData) {
-  Map<string, string> map;
+  Map<std::string, std::string> map;
   map.Set("key", "val");
   map.Set("key2", "val2");
 

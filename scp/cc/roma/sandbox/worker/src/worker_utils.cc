@@ -26,21 +26,20 @@
 
 #include "error_codes.h"
 
-using std::string;
-using std::vector;
-
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::SC_ROMA_WORKER_MISSING_METADATA_ITEM;
 using google::scp::core::errors::SC_ROMA_WORKER_STR_CONVERT_INT_FAIL;
+using std::vector;
 
 namespace google::scp::roma::sandbox::worker {
 
-ExecutionResultOr<string> WorkerUtils::GetValueFromMetadata(
-    const absl::flat_hash_map<string, string>& metadata,
-    const string& key) noexcept {
+ExecutionResultOr<std::string> WorkerUtils::GetValueFromMetadata(
+    const absl::flat_hash_map<std::string, std::string>& metadata,
+
+    const std::string& key) noexcept {
   if (metadata.find(key) == metadata.end()) {
     return FailureExecutionResult(SC_ROMA_WORKER_MISSING_METADATA_ITEM);
   }
@@ -49,7 +48,7 @@ ExecutionResultOr<string> WorkerUtils::GetValueFromMetadata(
 }
 
 ExecutionResultOr<int> WorkerUtils::ConvertStrToInt(
-    const string& value) noexcept {
+    const std::string& value) noexcept {
   int converted_int;
   if (!absl::SimpleAtoi(value, &converted_int)) {
     return FailureExecutionResult(SC_ROMA_WORKER_STR_CONVERT_INT_FAIL);

@@ -56,7 +56,6 @@ using std::list;
 using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
@@ -369,7 +368,7 @@ ExecutionResult TransactionEngine::ResolveTransaction(
 
   auto transaction_secret = transaction->transaction_secret
                                 ? *transaction->transaction_secret
-                                : string();
+                                : std::string();
 
   INFO_CONTEXT_WITH_TRANSACTION_SCP_INFO(
       transaction->context, transaction,
@@ -797,9 +796,9 @@ ExecutionResult TransactionEngine::OnJournalServiceRecoverCallback(
     bool is_coordinated_remotely =
         transaction_log_1_0.is_coordinated_remotely();
     auto transaction_secret =
-        make_shared<string>(transaction_log_1_0.transaction_secret());
+        make_shared<std::string>(transaction_log_1_0.transaction_secret());
     auto transaction_origin =
-        make_shared<string>(transaction_log_1_0.transaction_origin());
+        make_shared<std::string>(transaction_log_1_0.transaction_origin());
     AsyncContext<TransactionRequest, TransactionResponse> transaction_context(
         make_shared<TransactionRequest>(),
         [](AsyncContext<TransactionRequest, TransactionResponse>&) {},

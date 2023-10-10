@@ -54,7 +54,6 @@ using google::scp::cpio::client_providers::TestInstanceClientOptions;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace {
 constexpr char kDefaultRegion[] = "us-east-1";
@@ -85,7 +84,7 @@ TestAwsPrivateKeyServiceFactory::CreatePrivateKeyClientOptions() noexcept {
 
 ExecutionResultOr<shared_ptr<ServiceInterface>>
 TestAwsPrivateKeyServiceFactory::CreateInstanceClient() noexcept {
-  string region = kDefaultRegion;
+  std::string region = kDefaultRegion;
   TryReadConfigString(config_provider_, kTestAwsPrivateKeyClientRegion, region);
   auto test_instance_client_options = make_shared<TestInstanceClientOptions>();
   test_instance_client_options->region = region;

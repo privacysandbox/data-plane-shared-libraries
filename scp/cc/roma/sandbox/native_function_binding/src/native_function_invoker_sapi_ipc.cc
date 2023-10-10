@@ -33,7 +33,6 @@ using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::sandbox::constants::
     kFuctionBindingMetadataFunctionName;
 using std::make_unique;
-using std::string;
 
 static constexpr int kBadFd = -1;
 
@@ -45,7 +44,7 @@ NativeFunctionInvokerSapiIpc::NativeFunctionInvokerSapiIpc(int comms_fd) {
 }
 
 ExecutionResult NativeFunctionInvokerSapiIpc::Invoke(
-    const string& function_name,
+    const std::string& function_name,
     FunctionBindingIoProto& function_binding_proto) noexcept {
   if (!ipc_comms_) {
     return FailureExecutionResult(

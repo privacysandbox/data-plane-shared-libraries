@@ -103,7 +103,6 @@ using std::map;
 using std::mt19937;
 using std::random_device;
 using std::shared_ptr;
-using std::string;
 using std::uniform_int_distribution;
 using std::unique_ptr;
 using std::placeholders::_1;
@@ -231,7 +230,7 @@ ExecutionResult CryptoClientProvider::Stop() noexcept {
 ExecutionResult CryptoClientProvider::HpkeEncrypt(
     AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>&
         encrypt_context) noexcept {
-  string decoded_key;
+  std::string decoded_key;
   Base64Decode(encrypt_context.request->public_key().public_key(), decoded_key);
   auto cipher = HpkeContext::SetupSender(
       ToHpkeParams(encrypt_context.request->hpke_params(),
@@ -281,7 +280,7 @@ ExecutionResult CryptoClientProvider::HpkeEncrypt(
       return encrypt_context.result;
     }
     encrypt_context.response->set_secret(
-        string(SecretDataAsStringView((*secret))));
+        std::string(SecretDataAsStringView((*secret))));
   }
 
   encrypt_context.response->mutable_encrypted_data()->set_key_id(
@@ -298,7 +297,7 @@ ExecutionResult CryptoClientProvider::HpkeEncrypt(
 ExecutionResult CryptoClientProvider::HpkeDecrypt(
     AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>&
         decrypt_context) noexcept {
-  string decoded_key;
+  std::string decoded_key;
   auto execution_result = Base64Decode(
       decrypt_context.request->private_key().private_key(), decoded_key);
   if (!execution_result.Successful()) {
@@ -416,7 +415,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
       return decrypt_context.result;
     }
     decrypt_context.response->set_secret(
-        string(SecretDataAsStringView(*secret)));
+        std::string(SecretDataAsStringView(*secret)));
   }
 
   decrypt_context.response->set_payload(*payload);

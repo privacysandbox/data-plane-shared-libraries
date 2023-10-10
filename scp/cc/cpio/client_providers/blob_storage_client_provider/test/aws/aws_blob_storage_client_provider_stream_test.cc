@@ -92,7 +92,6 @@ using google::scp::cpio::client_providers::mock::MockS3Client;
 using std::atomic_bool;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
@@ -185,7 +184,7 @@ MATCHER_P2(HasBucketAndKey, bucket, key, "") {
 
 MATCHER_P5(UploadPartRequestEquals, bucket_name, key, upload_id, part_number,
            body, "") {
-  string body_string(body.length(), 0);
+  std::string body_string(body.length(), 0);
   arg.GetBody()->read(body_string.data(), body_string.length());
   return ExplainMatchResult(HasBucketAndKey(bucket_name, key), arg,
                             result_listener) &&
@@ -196,7 +195,7 @@ MATCHER_P5(UploadPartRequestEquals, bucket_name, key, upload_id, part_number,
          ExplainMatchResult(Eq(body), body_string, result_listener);
 }
 
-CompletedPart MakeCompletedPart(const string& etag, int64_t part_number) {
+CompletedPart MakeCompletedPart(const std::string& etag, int64_t part_number) {
   return CompletedPart().WithETag(etag.c_str()).WithPartNumber(part_number);
 }
 
@@ -224,7 +223,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStream) {
       ->mutable_metadata()
       ->set_blob_name(kBlobName);
 
-  string bytes_str = "initial";
+  std::string bytes_str = "initial";
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
   // No additional request objects.
   put_blob_stream_context_.MarkDone();
@@ -238,7 +237,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStream) {
 
   InSequence in_sequence;
 
-  string upload_id = "upload id";
+  std::string upload_id = "upload id";
 
   EXPECT_CALL(*s3_client_, CreateMultipartUploadAsync(
                                HasBucketAndKey(kBucketName, kBlobName), _, _))
@@ -249,7 +248,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStream) {
         callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
-  string etag = "tag 1";
+  std::string etag = "tag 1";
 
   EXPECT_CALL(*s3_client_,
               UploadPartAsync(UploadPartRequestEquals(kBucketName, kBlobName,
@@ -287,11 +286,11 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
       ->mutable_metadata()
       ->set_blob_name(kBlobName);
 
-  string bytes_str(kMinimumPartSize, 'a');
+  std::string bytes_str(kMinimumPartSize, 'a');
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
 
-  vector<string> strings{string(kMinimumPartSize, 'b'),
-                         string(kMinimumPartSize, 'c')};
+  vector<std::string> strings{std::string(kMinimumPartSize, 'b'),
+                              std::string(kMinimumPartSize, 'c')};
   auto request2 = *put_blob_stream_context_.request;
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
@@ -308,7 +307,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
 
   InSequence in_sequence;
 
-  string upload_id = "upload id";
+  std::string upload_id = "upload id";
 
   EXPECT_CALL(*s3_client_, CreateMultipartUploadAsync(
                                HasBucketAndKey(kBucketName, kBlobName), _, _))
@@ -319,7 +318,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
         callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
-  string etag1 = "tag 1", etag2 = "tag 2", etag3 = "tag 3";
+  std::string etag1 = "tag 1", etag2 = "tag 2", etag3 = "tag 3";
 
   EXPECT_CALL(*s3_client_,
               UploadPartAsync(UploadPartRequestEquals(kBucketName, kBlobName,
@@ -381,13 +380,13 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
       ->mutable_metadata()
       ->set_blob_name(kBlobName);
 
-  string bytes_str = "initial";
+  std::string bytes_str = "initial";
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
 
   // With this setup, we would expect "initialnext oneaaaaa..." to be one
   // UploadPart and "final one" be another.
-  vector<string> strings{"next one", string(kMinimumPartSize, 'a'),
-                         "final one"};
+  vector<std::string> strings{"next one", std::string(kMinimumPartSize, 'a'),
+                              "final one"};
   auto request2 = *put_blob_stream_context_.request;
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
@@ -407,7 +406,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
 
   InSequence in_sequence;
 
-  string upload_id = "upload id";
+  std::string upload_id = "upload id";
 
   EXPECT_CALL(*s3_client_, CreateMultipartUploadAsync(
                                HasBucketAndKey(kBucketName, kBlobName), _, _))
@@ -418,9 +417,9 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
         callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
-  string etag1 = "tag 1", etag2 = "tag 2";
+  std::string etag1 = "tag 1", etag2 = "tag 2";
 
-  string expected_accumulated_string = bytes_str + strings[0] + strings[1];
+  std::string expected_accumulated_string = bytes_str + strings[0] + strings[1];
   EXPECT_CALL(
       *s3_client_,
       UploadPartAsync(UploadPartRequestEquals(kBucketName, kBlobName, upload_id,
@@ -483,11 +482,11 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       ->mutable_metadata()
       ->set_blob_name(kBlobName);
 
-  string bytes_str(kMinimumPartSize, 'a');
+  std::string bytes_str(kMinimumPartSize, 'a');
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
 
-  vector<string> strings{string(kMinimumPartSize, 'b'),
-                         string(kMinimumPartSize, 'c')};
+  vector<std::string> strings{std::string(kMinimumPartSize, 'b'),
+                              std::string(kMinimumPartSize, 'c')};
   auto request2 = *put_blob_stream_context_.request;
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
@@ -504,7 +503,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
 
   InSequence in_sequence;
 
-  string upload_id = "upload id";
+  std::string upload_id = "upload id";
 
   EXPECT_CALL(*s3_client_, CreateMultipartUploadAsync(
                                HasBucketAndKey(kBucketName, kBlobName), _, _))
@@ -515,7 +514,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
         callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
-  string etag1 = "tag 1", etag2 = "tag 2", etag3 = "tag 3";
+  std::string etag1 = "tag 1", etag2 = "tag 2", etag3 = "tag 3";
 
   EXPECT_CALL(*s3_client_,
               UploadPartAsync(UploadPartRequestEquals(kBucketName, kBlobName,
@@ -593,7 +592,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       ->mutable_metadata()
       ->set_blob_name(kBlobName);
 
-  string bytes_str = "initial";
+  std::string bytes_str = "initial";
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
   // No additional request objects.
   put_blob_stream_context_.MarkDone();
@@ -640,7 +639,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       ->mutable_metadata()
       ->set_blob_name(kBlobName);
 
-  string bytes_str = "initial";
+  std::string bytes_str = "initial";
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
   // No additional request objects.
   put_blob_stream_context_.MarkDone();
@@ -655,7 +654,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
 
   InSequence in_sequence;
 
-  string upload_id = "upload id";
+  std::string upload_id = "upload id";
 
   EXPECT_CALL(*s3_client_, CreateMultipartUploadAsync(
                                HasBucketAndKey(kBucketName, kBlobName), _, _))
@@ -699,7 +698,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       ->mutable_metadata()
       ->set_blob_name(kBlobName);
 
-  string bytes_str = "initial";
+  std::string bytes_str = "initial";
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
   // No additional request objects.
   put_blob_stream_context_.MarkDone();
@@ -714,7 +713,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
 
   InSequence in_sequence;
 
-  string upload_id = "upload id";
+  std::string upload_id = "upload id";
 
   EXPECT_CALL(*s3_client_, CreateMultipartUploadAsync(
                                HasBucketAndKey(kBucketName, kBlobName), _, _))
@@ -725,7 +724,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
         callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
-  string etag = "tag 1";
+  std::string etag = "tag 1";
 
   EXPECT_CALL(*s3_client_,
               UploadPartAsync(UploadPartRequestEquals(kBucketName, kBlobName,
@@ -766,7 +765,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
   *put_blob_stream_context_.request->mutable_stream_keepalive_duration() =
       TimeUtil::MicrosecondsToDuration(kStreamKeepAliveMicrosCount);
 
-  string bytes_str = "initial";
+  std::string bytes_str = "initial";
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
   // Don't mark the context as done and don't enqueue any messages.
 
@@ -780,7 +779,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
 
   InSequence in_sequence;
 
-  string upload_id = "upload id";
+  std::string upload_id = "upload id";
 
   EXPECT_CALL(*s3_client_, CreateMultipartUploadAsync(
                                HasBucketAndKey(kBucketName, kBlobName), _, _))
@@ -814,7 +813,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       ->mutable_metadata()
       ->set_blob_name(kBlobName);
 
-  string bytes_str = "initial";
+  std::string bytes_str = "initial";
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
   // No additional request objects.
   put_blob_stream_context_.TryCancel();
@@ -829,7 +828,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
 
   InSequence in_sequence;
 
-  string upload_id = "upload id";
+  std::string upload_id = "upload id";
 
   EXPECT_CALL(*s3_client_, CreateMultipartUploadAsync(
                                HasBucketAndKey(kBucketName, kBlobName), _, _))
@@ -898,7 +897,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStream) {
       kBlobName);
 
   // 15 chars.
-  string bytes_str = "response_string";
+  std::string bytes_str = "response_string";
   GetBlobStreamResponse expected_response;
   expected_response.mutable_blob_portion()->mutable_metadata()->CopyFrom(
       get_blob_stream_context_.request->blob_metadata());
@@ -950,7 +949,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
   get_blob_stream_context_.request->set_max_bytes_per_response(2);
 
   // 15 chars.
-  string bytes_str = "response_string";
+  std::string bytes_str = "response_string";
   // Expect to get responses with data: ["re", "sp", ... "g"]
   vector<GetBlobStreamResponse> expected_responses;
   for (size_t i = 0; i < bytes_str.length(); i += 2) {
@@ -1023,7 +1022,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
   get_blob_stream_context_.request->mutable_byte_range()->set_end_byte_index(6);
 
   // We slice "response_string" to indices 3-6.
-  string bytes_str = "pons";
+  std::string bytes_str = "pons";
   // Expect to get responses with data: ["pon", "s"]
   vector<GetBlobStreamResponse> expected_responses;
   GetBlobStreamResponse resp1, resp2;
@@ -1106,7 +1105,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamIndexBeyondEnd) {
       1000);
 
   // 15 chars.
-  string bytes_str = "response_string";
+  std::string bytes_str = "response_string";
   GetBlobStreamResponse expected_response;
   expected_response.mutable_blob_portion()->mutable_metadata()->CopyFrom(
       get_blob_stream_context_.request->blob_metadata());
@@ -1185,7 +1184,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamFailsIfQueueDone) {
   get_blob_stream_context_.MarkDone();
 
   // 15 chars.
-  string bytes_str = "response_string";
+  std::string bytes_str = "response_string";
 
   EXPECT_CALL(
       *s3_client_,
@@ -1221,7 +1220,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
   get_blob_stream_context_.TryCancel();
 
   // 15 chars.
-  string bytes_str = "response_string";
+  std::string bytes_str = "response_string";
 
   EXPECT_CALL(
       *s3_client_,

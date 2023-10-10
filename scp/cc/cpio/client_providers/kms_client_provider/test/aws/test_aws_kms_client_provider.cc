@@ -35,14 +35,13 @@ using google::scp::cpio::common::test::CreateTestClientConfiguration;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::cpio::client_providers {
 shared_ptr<ClientConfiguration>
 TestAwsKmsClientProvider::CreateClientConfiguration(
-    const string& region) noexcept {
+    const std::string& region) noexcept {
   return CreateTestClientConfiguration(test_options_->kms_endpoint_override,
-                                       make_shared<string>(region));
+                                       make_shared<std::string>(region));
 }
 
 shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(

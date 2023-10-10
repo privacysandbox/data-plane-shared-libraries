@@ -22,7 +22,6 @@
 #include "error_codes.h"
 
 using std::make_shared;
-using std::string;
 
 namespace google::scp::core {
 
@@ -38,11 +37,11 @@ ExecutionResult AwsCredentialsProvider::GetCredentials(
     auto aws_credentials = credentials_provider_->GetAWSCredentials();
     get_credentials_context.response = make_shared<GetCredentialsResponse>();
     get_credentials_context.response->access_key_id =
-        make_shared<string>(aws_credentials.GetAWSAccessKeyId().c_str());
+        make_shared<std::string>(aws_credentials.GetAWSAccessKeyId().c_str());
     get_credentials_context.response->access_key_secret =
-        make_shared<string>(aws_credentials.GetAWSSecretKey().c_str());
+        make_shared<std::string>(aws_credentials.GetAWSSecretKey().c_str());
     get_credentials_context.response->security_token =
-        make_shared<string>(aws_credentials.GetSessionToken().c_str());
+        make_shared<std::string>(aws_credentials.GetSessionToken().c_str());
     execution_result = SuccessExecutionResult();
   } catch (...) {
     execution_result = FailureExecutionResult(

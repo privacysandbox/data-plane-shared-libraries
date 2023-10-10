@@ -50,9 +50,6 @@ using std::optional;
 using std::shared_lock;
 using std::shared_mutex;
 using std::shared_ptr;
-using std::string;
-using std::string_view;
-using std::to_string;
 using std::unique_lock;
 using std::vector;
 using std::chrono::duration_cast;
@@ -65,13 +62,13 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ConstructAttributesFromLeaseInfo(
     shared_ptr<vector<NoSqlDatabaseKeyValuePair>>& attributes) {
   NoSqlDatabaseKeyValuePair key_value1;
   key_value1.attribute_name =
-      make_shared<string>(kPartitionLockTableLeaseOwnerIdAttributeName);
+      make_shared<std::string>(kPartitionLockTableLeaseOwnerIdAttributeName);
   key_value1.attribute_value =
       make_shared<NoSQLDatabaseValidAttributeValueTypes>(
           lease.lease_owner_info.lease_acquirer_id);
 
   NoSqlDatabaseKeyValuePair key_value2;
-  key_value2.attribute_name = make_shared<string>(
+  key_value2.attribute_name = make_shared<std::string>(
       kLockTableLeaseOwnerServiceEndpointAddressAttributeName);
   key_value2.attribute_value =
       make_shared<NoSQLDatabaseValidAttributeValueTypes>(
@@ -79,9 +76,9 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ConstructAttributesFromLeaseInfo(
 
   NoSqlDatabaseKeyValuePair key_value3;
   try {
-    string lease_expiration_timestamp_string =
-        to_string(lease.lease_expiration_timestamp_in_milliseconds.count());
-    key_value3.attribute_name = make_shared<string>(
+    std::string lease_expiration_timestamp_string = std::to_string(
+        lease.lease_expiration_timestamp_in_milliseconds.count());
+    key_value3.attribute_name = make_shared<std::string>(
         kPartitionLockTableLeaseExpirationTimestampAttributeName);
     key_value3.attribute_value =
         make_shared<NoSQLDatabaseValidAttributeValueTypes>(
@@ -103,18 +100,18 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ObtainLeaseInfoFromAttributes(
     LeaseInfoInternal& lease) {
   for (const auto& attribute : *attributes) {
     if (*attribute.attribute_name ==
-        string_view(kPartitionLockTableLeaseOwnerIdAttributeName)) {
+        std::string_view(kPartitionLockTableLeaseOwnerIdAttributeName)) {
       lease.lease_owner_info.lease_acquirer_id =
-          get<string>(*attribute.attribute_value);
+          get<std::string>(*attribute.attribute_value);
     } else if (*attribute.attribute_name ==
-               string_view(
+               std::string_view(
                    kLockTableLeaseOwnerServiceEndpointAddressAttributeName)) {
       lease.lease_owner_info.service_endpoint_address =
-          get<string>(*attribute.attribute_value);
+          get<std::string>(*attribute.attribute_value);
     } else if (*attribute.attribute_name ==
-               string_view(
+               std::string_view(
                    kPartitionLockTableLeaseExpirationTimestampAttributeName)) {
-      auto timestamp_string = get<string>(*attribute.attribute_value);
+      auto timestamp_string = get<std::string>(*attribute.attribute_value);
       int64_t timestamp_value = 0;
       if (!absl::SimpleAtoi(std::string_view(timestamp_string.c_str()),
                             &timestamp_value)) {
@@ -125,8 +122,9 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ObtainLeaseInfoFromAttributes(
       lease.lease_expiration_timestamp_in_milliseconds =
           milliseconds(timestamp_value);
     } else if (*attribute.attribute_name ==
-               string_view(kLockTableLeaseAcquisitionDisallowedAttributeName)) {
-      auto value = get<string>(*attribute.attribute_value);
+               std::string_view(
+                   kLockTableLeaseAcquisitionDisallowedAttributeName)) {
+      auto value = get<std::string>(*attribute.attribute_value);
       if (value == "true" || value == "True") {
         lease.lease_acquisition_disallowed = true;
       }
@@ -149,11 +147,11 @@ ExecutionResult LeasableLockOnNoSQLDatabase::WriteLeaseSynchronouslyToDatabase(
                         request_executed = true;
                       });
 
-  request_context.request->table_name = make_shared<string>(table_name_);
+  request_context.request->table_name = make_shared<std::string>(table_name_);
   request_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>();
   request_context.request->partition_key->attribute_name =
-      make_shared<string>(kPartitionLockTableLockIdKeyName);
+      make_shared<std::string>(kPartitionLockTableLockIdKeyName);
   request_context.request->partition_key->attribute_value =
       make_shared<NoSQLDatabaseValidAttributeValueTypes>(lock_row_key_);
 
@@ -203,11 +201,11 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ReadLeaseSynchronouslyFromDatabase(
         request_executed = true;
       });
 
-  request_context.request->table_name = make_shared<string>(table_name_);
+  request_context.request->table_name = make_shared<std::string>(table_name_);
   request_context.request->partition_key =
       make_shared<NoSqlDatabaseKeyValuePair>();
   request_context.request->partition_key->attribute_name =
-      make_shared<string>(kPartitionLockTableLockIdKeyName);
+      make_shared<std::string>(kPartitionLockTableLockIdKeyName);
   request_context.request->partition_key->attribute_value =
       make_shared<NoSQLDatabaseValidAttributeValueTypes>(lock_row_key_);
 

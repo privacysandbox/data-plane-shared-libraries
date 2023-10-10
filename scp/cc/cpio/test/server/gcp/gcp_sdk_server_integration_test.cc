@@ -64,7 +64,6 @@ using std::mt19937;
 using std::random_device;
 using std::runtime_error;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 
@@ -83,9 +82,9 @@ constexpr char kSdkServerImageName[] =
 }  // namespace
 
 namespace google::scp::cpio::test {
-static string GetRandomString(const string& prefix) {
+static std::string GetRandomString(const std::string& prefix) {
   // Bucket name can only be lower case.
-  string str("abcdefghijklmnopqrstuvwxyz");
+  std::string str("abcdefghijklmnopqrstuvwxyz");
   static random_device random_device_local;
   static mt19937 generator(random_device_local());
   shuffle(str.begin(), str.end(), generator);
@@ -107,7 +106,7 @@ static TestSdkServerConfig BuildTestSdkServerConfig() {
   return config;
 }
 
-static string CreateUrl(string host, string port) {
+static std::string CreateUrl(std::string host, std::string port) {
   return host + ":" + port;
 }
 
@@ -123,8 +122,8 @@ class GcpSdkServerIntegrationTest : public ::testing::Test {
     // Wait for the server is up.
     std::this_thread::sleep_for(std::chrono::seconds(10));
     // Grant permission to talk to the CPIO server outside the container.
-    string log_command =
-        string("docker container logs ") + config_.sdk_container_name;
+    std::string log_command =
+        std::string("docker container logs ") + config_.sdk_container_name;
     auto result = std::system(log_command.c_str());
     if (result != 0) {
       throw runtime_error("Failed to show log!");
@@ -133,9 +132,9 @@ class GcpSdkServerIntegrationTest : public ::testing::Test {
     }
 
     // Grant permission to talk to the CPIO server outside the container.
-    string grant_permission_command =
-        string("docker exec -itd ") + config_.sdk_container_name +
-        string(" chmod 666 tmp/queue_service.socket");
+    std::string grant_permission_command =
+        std::string("docker exec -itd ") + config_.sdk_container_name +
+        std::string(" chmod 666 tmp/queue_service.socket");
     result = std::system(grant_permission_command.c_str());
     if (result != 0) {
       throw runtime_error("Failed to grant permission!");

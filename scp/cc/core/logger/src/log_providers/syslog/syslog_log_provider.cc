@@ -31,8 +31,6 @@
 #include "error_codes.h"
 
 using std::cerr;
-using std::string;
-using std::string_view;
 
 using google::scp::core::common::ToString;
 using google::scp::core::common::Uuid;
@@ -65,9 +63,11 @@ ExecutionResult SyslogLogProvider::Stop() noexcept {
 
 void SyslogLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
                             const Uuid& parent_activity_id,
-                            const Uuid& activity_id, string_view component_name,
-                            string_view machine_name, string_view cluster_name,
-                            string_view location, string_view message,
+                            const Uuid& activity_id,
+                            std::string_view component_name,
+                            std::string_view machine_name,
+                            std::string_view cluster_name,
+                            std::string_view location, std::string_view message,
                             va_list args) noexcept {
   auto formatted_message =
       absl::StrCat(cluster_name, "|", machine_name, "|", component_name, "|",

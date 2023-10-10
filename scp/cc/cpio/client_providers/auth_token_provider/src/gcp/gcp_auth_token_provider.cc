@@ -58,7 +58,6 @@ using std::make_pair;
 using std::make_shared;
 using std::pair;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::chrono::seconds;
 using std::placeholders::_1;
@@ -158,7 +157,8 @@ ExecutionResult GcpAuthTokenProvider::GetSessionToken(
 
   http_context.request->headers = make_shared<HttpHeaders>();
   http_context.request->headers->insert(
-      {string(kMetadataFlavorHeader), string(kMetadataFlavorHeaderValue)});
+      {std::string(kMetadataFlavorHeader),
+       std::string(kMetadataFlavorHeaderValue)});
 
   http_context.request->path = make_shared<Uri>(kTokenServerPath);
 
@@ -230,9 +230,9 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
   uint64_t expiry_seconds = json_response[kJsonTokenExpiryKey].get<uint64_t>();
   get_token_context.response->token_lifetime_in_seconds =
       seconds(expiry_seconds);
-  auto access_token = json_response[kJsonAccessTokenKey].get<string>();
+  auto access_token = json_response[kJsonAccessTokenKey].get<std::string>();
   get_token_context.response->session_token =
-      make_shared<string>(std::move(access_token));
+      make_shared<std::string>(std::move(access_token));
 
   get_token_context.result = SuccessExecutionResult();
   get_token_context.Finish();
@@ -252,10 +252,11 @@ ExecutionResult GcpAuthTokenProvider::GetSessionTokenForTargetAudience(
 
   http_context.request->headers = make_shared<HttpHeaders>();
   http_context.request->headers->insert(
-      {string(kMetadataFlavorHeader), string(kMetadataFlavorHeaderValue)});
+      {std::string(kMetadataFlavorHeader),
+       std::string(kMetadataFlavorHeaderValue)});
 
   http_context.request->path = make_shared<Uri>(kIdentityServerPath);
-  http_context.request->query = make_shared<string>(absl::StrCat(
+  http_context.request->query = make_shared<std::string>(absl::StrCat(
       kAudienceParameter, *get_token_context.request->token_target_audience_uri,
       "&", kFormatFullParameter));
 
@@ -276,7 +277,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
     return;
   }
   const auto& response_body = http_context.response->body.ToString();
-  vector<string> token_parts = absl::StrSplit(response_body, '.');
+  vector<std::string> token_parts = absl::StrSplit(response_body, '.');
   if (token_parts.size() != kExpectedTokenPartsSize) {
     auto result = RetryExecutionResult(
         SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN);
@@ -299,7 +300,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
     get_token_context.Finish();
     return;
   }
-  string decoded_json_str;
+  std::string decoded_json_str;
   if (auto decode_result = Base64Decode(*padded_jwt_or, decoded_json_str);
       !decode_result.Successful()) {
     SCP_ERROR_CONTEXT(kGcpAuthTokenProvider, get_token_context, decode_result,
@@ -339,7 +340,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
 
   get_token_context.response = make_shared<GetSessionTokenResponse>();
   get_token_context.response->session_token =
-      make_shared<string>(response_body);
+      make_shared<std::string>(response_body);
 
   // We make an assumption that the obtaining token is instantaneous since the
   // token is fetched from the GCP platform close to the VM where this code will

@@ -30,12 +30,11 @@ using google::cloud::Options;
 using google::scp::core::AsyncExecutorInterface;
 using std::dynamic_pointer_cast;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::cpio::client_providers {
 Options TestGcpCloudStorageFactory::CreateClientOptions(
     shared_ptr<BlobStorageClientOptions> options,
-    const string& project_id) noexcept {
+    const std::string& project_id) noexcept {
   Options client_options =
       GcpCloudStorageFactory::CreateClientOptions(options, project_id);
   auto test_options =

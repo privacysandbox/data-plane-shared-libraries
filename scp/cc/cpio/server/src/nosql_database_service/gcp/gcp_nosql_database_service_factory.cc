@@ -36,7 +36,6 @@ using google::scp::cpio::client_providers::GcpNoSQLDatabaseClientProvider;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientProviderInterface;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace {
 constexpr char kGcpNoSQLDatabaseServiceFactory[] =

@@ -95,7 +95,6 @@ using std::atomic;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using std::vector;
 using testing::_;
@@ -147,7 +146,7 @@ class MockAwsEC2ClientFactory : public AwsEC2ClientFactory {
               (noexcept, override));
 };
 
-class AwsInstanceClientProviderTest : public TestWithParam<string> {
+class AwsInstanceClientProviderTest : public TestWithParam<std::string> {
  protected:
   AwsInstanceClientProviderTest()
       : http_client_(make_shared<MockCurlClient>()),
@@ -172,7 +171,7 @@ class AwsInstanceClientProviderTest : public TestWithParam<string> {
     ShutdownAPI(options_);
   }
 
-  string GetResponseBody() { return GetParam(); }
+  std::string GetResponseBody() { return GetParam(); }
 
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       fetch_token_context_;
@@ -192,7 +191,7 @@ TEST_F(AwsInstanceClientProviderTest, GetCurrentInstanceResourceNameSuccess) {
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -260,7 +259,7 @@ TEST_F(AwsInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -301,7 +300,7 @@ TEST_F(AwsInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  string resource_name;
+  std::string resource_name;
   EXPECT_THAT(
       instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
       IsSuccessful());
@@ -317,7 +316,7 @@ TEST_F(AwsInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -336,7 +335,7 @@ TEST_F(AwsInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  string resource_name;
+  std::string resource_name;
   EXPECT_THAT(
       instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
@@ -350,7 +349,7 @@ TEST_F(AwsInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -445,7 +444,7 @@ TEST_F(AwsInstanceClientProviderTest,
                                  GetSessionTokenResponse>& context) {
         context.response = make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<string>(kSessionTokenMock);
+            make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -679,10 +678,11 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameSucceed) {
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_SUCCESS(context.result);
-                EXPECT_THAT(context.response->tags(),
-                            UnorderedElementsAre(
-                                Pair(string(kTagName1), string(kTagValue1)),
-                                Pair(string(kTagName2), string(kTagValue2))));
+                EXPECT_THAT(
+                    context.response->tags(),
+                    UnorderedElementsAre(
+                        Pair(std::string(kTagName1), std::string(kTagValue1)),
+                        Pair(std::string(kTagName2), std::string(kTagValue2))));
                 condition.store(true);
               });
 

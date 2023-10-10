@@ -20,7 +20,6 @@
 #include <string>
 
 using std::list;
-using std::string;
 
 namespace google::scp::core {
 
@@ -47,8 +46,8 @@ ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
 }
 
 ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
-                                       string& out) noexcept {
-  return Get<string>(key, out);
+                                       std::string& out) noexcept {
+  return Get<std::string>(key, out);
 }
 
 ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
@@ -57,8 +56,8 @@ ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
 }
 
 ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
-                                       list<string>& out) noexcept {
-  return Get<string>(key, out);
+                                       list<std::string>& out) noexcept {
+  return Get<std::string>(key, out);
 }
 
 ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,

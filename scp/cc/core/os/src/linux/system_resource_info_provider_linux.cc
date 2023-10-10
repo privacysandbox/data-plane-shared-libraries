@@ -29,8 +29,6 @@
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using std::ifstream;
-using std::string;
-using std::stringstream;
 using std::vector;
 
 using google::scp::core::errors::
@@ -88,8 +86,8 @@ std::string SystemResourceInfoProviderLinux::GetMemInfoFilePath() noexcept {
 
 ExecutionResultOr<uint64_t>
 SystemResourceInfoProviderLinux::GetMemInfoLineEntryKb(
-    string meminfo_line) noexcept {
-  vector<string> line_parts =
+    std::string meminfo_line) noexcept {
+  vector<std::string> line_parts =
       absl::StrSplit(meminfo_line, kMemInfoLineSeparator, absl::SkipEmpty());
 
   if (line_parts.size() != kExpectedMemInfoLinePartsCount) {
@@ -98,7 +96,7 @@ SystemResourceInfoProviderLinux::GetMemInfoLineEntryKb(
   }
 
   uint64_t read_memory_kb;
-  stringstream int_parsing_stream;
+  std::stringstream int_parsing_stream;
   int_parsing_stream << line_parts.at(kExpectedMemInfoLineNumericValueIndex);
   int_parsing_stream >> read_memory_kb;
 

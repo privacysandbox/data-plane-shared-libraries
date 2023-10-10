@@ -31,7 +31,6 @@ using google::scp::cpio::client_providers::TestInstanceClientOptions;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace {
 constexpr char kDefaultRegion[] = "us-east-1";

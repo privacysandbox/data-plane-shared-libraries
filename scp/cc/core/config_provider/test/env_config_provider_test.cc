@@ -33,8 +33,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
 using std::list;
-using std::string;
-using std::to_string;
 
 namespace google::scp::core::test {
 
@@ -43,8 +41,8 @@ TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
 
   config.Init();
 
-  string out_string;
-  string expect_string = "10.10.10.20";
+  std::string out_string;
+  std::string expect_string = "10.10.10.20";
   char string_val[] = "key-for-string-value=10.10.10.20";
   putenv(string_val);
 
@@ -63,8 +61,8 @@ TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
   char int32_t_val[] = "key-for-int32t-value=6000";
   putenv(int32_t_val);
 
-  list<string> out_string_list;
-  list<string> expect_string_list({"1", "2"});
+  list<std::string> out_string_list;
+  list<std::string> expect_string_list({"1", "2"});
   char string_list_val[] = "key-for-string-list=1,2";
   putenv(string_list_val);
 
@@ -196,7 +194,7 @@ TEST(EnvConfigProviderTest, GetStringListFailsWhenDoesNotExist) {
   EnvConfigProvider config;
   config.Init();
 
-  list<string> out_val;
+  list<std::string> out_val;
   EXPECT_THAT(config.Get("non-existing-val", out_val),
               ResultIs(FailureExecutionResult(
                   errors::SC_CONFIG_PROVIDER_KEY_NOT_FOUND)));
@@ -209,11 +207,11 @@ TEST(EnvConfigProviderTest, GetStringListShouldHandleSingleItem) {
   char env_var[] = "single-item-list=1";
   putenv(env_var);
 
-  list<string> out_val;
+  list<std::string> out_val;
   auto ret = config.Get("single-item-list", out_val);
 
   EXPECT_SUCCESS(ret);
-  list<string> expected_list({"1"});
+  list<std::string> expected_list({"1"});
   EXPECT_EQ(out_val, expected_list);
 }
 

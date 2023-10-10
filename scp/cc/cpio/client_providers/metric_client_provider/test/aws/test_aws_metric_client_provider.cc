@@ -34,11 +34,10 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace google::scp::cpio::client_providers {
 void TestAwsMetricClientProvider::CreateClientConfiguration(
-    const shared_ptr<string>& region,
+    const shared_ptr<std::string>& region,
     shared_ptr<ClientConfiguration>& client_config) noexcept {
   client_config =
       CreateTestClientConfiguration(cloud_watch_endpoint_override_, region);

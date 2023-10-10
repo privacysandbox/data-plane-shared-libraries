@@ -28,7 +28,6 @@ using google::scp::roma::sandbox::constants::
     kFuctionBindingMetadataFunctionName;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 static constexpr char kFailedNativeHandlerExecution[] =
@@ -74,7 +73,7 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Run() noexcept {
         }
 
         // Get function name
-        string function_name;
+        std::string function_name;
         if (io_proto.metadata().find(kFuctionBindingMetadataFunctionName) ==
             io_proto.metadata().end()) {
           // If we can't find the function, add errors to the proto to return

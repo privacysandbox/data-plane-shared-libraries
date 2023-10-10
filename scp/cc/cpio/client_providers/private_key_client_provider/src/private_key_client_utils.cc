@@ -63,7 +63,6 @@ using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using std::byte;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 namespace {
@@ -116,7 +115,7 @@ ExecutionResult PrivateKeyClientUtils::GetKmsDecryptRequest(
       return execution_result;
     }
     // JsonKeysetReader unescapes the key material, so we escape it back.
-    string escaped_ciphertext;
+    std::string escaped_ciphertext;
     absl::Base64Escape((*keyset_or)->encrypted_keyset(), &escaped_ciphertext);
     kms_decrypt_request.set_ciphertext(std::move(escaped_ciphertext));
     kms_decrypt_request.set_key_resource_name(
@@ -161,7 +160,7 @@ ExecutionResult PrivateKeyClientUtils::GetPrivateKeyInfo(
  * @param string
  * @return vector<byte> vector of byte.
  */
-static vector<byte> StrToBytes(const string& string) noexcept {
+static vector<byte> StrToBytes(const std::string& string) noexcept {
   vector<byte> bytes;
   for (char c : string) {
     bytes.push_back(byte(c));
@@ -187,7 +186,8 @@ static vector<byte> XOR(const vector<byte>& arr1,
 }
 
 ExecutionResult PrivateKeyClientUtils::ReconstructXorKeysetHandle(
-    const vector<string>& endpoint_responses, string& private_key) noexcept {
+    const vector<std::string>& endpoint_responses,
+    std::string& private_key) noexcept {
   vector<byte> xor_secret = StrToBytes(endpoint_responses.at(0));
 
   for (auto i = 1; i < endpoint_responses.size(); ++i) {
@@ -200,8 +200,8 @@ ExecutionResult PrivateKeyClientUtils::ReconstructXorKeysetHandle(
 
     xor_secret = XOR(xor_secret, next_piece);
   }
-  string key_string(reinterpret_cast<const char*>(&xor_secret[0]),
-                    xor_secret.size());
+  std::string key_string(reinterpret_cast<const char*>(&xor_secret[0]),
+                         xor_secret.size());
   private_key = key_string;
   return SuccessExecutionResult();
 }

@@ -113,7 +113,6 @@ using std::make_shared;
 using std::min;
 using std::ref;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 using std::chrono::duration;
 using std::chrono::duration_cast;
@@ -609,7 +608,7 @@ void GcpBlobStorageClientProvider::PutBlobInternal(
   Client cloud_storage_client(*cloud_storage_client_shared_);
 
   const auto& request = *put_blob_context.request;
-  string md5_hash = ComputeMD5Hash(request.blob().data());
+  std::string md5_hash = ComputeMD5Hash(request.blob().data());
   auto object_metadata = cloud_storage_client.InsertObject(
       request.blob().metadata().bucket_name(),
       request.blob().metadata().blob_name(), request.blob().data(),
@@ -882,7 +881,7 @@ void GcpBlobStorageClientProvider::DeleteBlobInternal(
 
 Options GcpCloudStorageFactory::CreateClientOptions(
     shared_ptr<BlobStorageClientOptions> options,
-    const string& project_id) noexcept {
+    const std::string& project_id) noexcept {
   Options client_options;
   client_options.set<ProjectIdOption>(project_id);
   client_options.set<ConnectionPoolSizeOption>(kMaxConcurrentConnections);
@@ -898,7 +897,7 @@ Options GcpCloudStorageFactory::CreateClientOptions(
 core::ExecutionResultOr<shared_ptr<Client>>
 GcpCloudStorageFactory::CreateClient(
     shared_ptr<BlobStorageClientOptions> options,
-    const string& project_id) noexcept {
+    const std::string& project_id) noexcept {
   return make_shared<Client>(CreateClientOptions(options, project_id));
 }
 

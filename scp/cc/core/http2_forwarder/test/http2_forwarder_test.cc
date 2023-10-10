@@ -40,7 +40,6 @@ using google::scp::core::test::WaitUntil;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::string;
 using std::unique_ptr;
 using testing::Contains;
 using testing::Pair;
@@ -50,7 +49,7 @@ namespace google::scp::core::test {
 namespace {
 class TestHttp2Server {
  public:
-  TestHttp2Server(string address, string port, size_t num_threads)
+  TestHttp2Server(std::string address, std::string port, size_t num_threads)
       : address_(address), port_(port), num_threads_(num_threads) {}
 
   ~TestHttp2Server() { server.join(); }
@@ -83,8 +82,8 @@ class TestHttp2Server {
   int PortInUse() { return server.ports()[0]; }
 
   http2 server;
-  string address_;
-  string port_;
+  std::string address_;
+  std::string port_;
   std::atomic<bool> is_running_{false};
   size_t num_threads_;
   std::function<void(const request&)> validate_request_hook_;
@@ -133,7 +132,7 @@ TEST_F(Http2ForwarderTest,
     if (length == 0) {
       return;
     }
-    EXPECT_EQ(string((const char*)data, length), "This is data!!!!!");
+    EXPECT_EQ(std::string((const char*)data, length), "This is data!!!!!");
   };
   http2_server_->write_response_hook_ = [](const response& res) {
     res.write_head(200, {{"response-header-key", {"response-header-value"}}});
@@ -155,7 +154,7 @@ TEST_F(Http2ForwarderTest,
         completed = true;
       });
   http_context.request->method = HttpMethod::GET;
-  http_context.request->path = make_shared<string>(
+  http_context.request->path = make_shared<std::string>(
       absl::StrCat("http://localhost:", http2_server_->PortInUse(), "/ping"));
   http_context.request->body = BytesBuffer("This is data!!!!!");
   http_context.request->headers = make_shared<HttpHeaders>();
@@ -192,7 +191,7 @@ TEST_F(Http2ForwarderTest,
         completed = true;
       });
   http_context.request->method = HttpMethod::GET;
-  http_context.request->path = make_shared<string>(
+  http_context.request->path = make_shared<std::string>(
       absl::StrCat("http://localhost:", http2_server_->PortInUse(), "/ping"));
   http_context.request->body = BytesBuffer("This is data!!!!!");
   http_context.request->headers = make_shared<HttpHeaders>();

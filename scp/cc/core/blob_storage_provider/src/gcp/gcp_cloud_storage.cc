@@ -77,7 +77,6 @@ using std::bind;
 using std::make_shared;
 using std::ref;
 using std::shared_ptr;
-using std::string;
 using std::vector;
 
 constexpr char kGcpCloudStorageProvider[] = "GcpCloudStorageProvider";
@@ -86,7 +85,7 @@ constexpr size_t kMaxConcurrentConnections = 1000;
 constexpr size_t kRetryLimit = 3;
 constexpr size_t kListBlobsMaxResults = 1000;
 
-bool IsMarkerObject(const shared_ptr<string>& marker,
+bool IsMarkerObject(const shared_ptr<std::string>& marker,
                     const ObjectMetadata& obj_metadata) {
   return marker && *marker == obj_metadata.name();
 }
@@ -101,7 +100,7 @@ ExecutionResult GcpCloudStorageProvider::CreateClientConfig() noexcept {
   // like retry policies for specific executions.
   // https://googleapis.dev/cpp/google-cloud-common/2.2.1/classgoogle_1_1cloud_1_1Options.html
   client_config_ = make_shared<Options>();
-  string project;
+  std::string project;
   auto execution_result = config_provider_->Get(kGcpProjectId, project);
   if (!execution_result.Successful()) {
     return execution_result;
@@ -290,7 +289,7 @@ void GcpCloudStorageClient::ListBlobAsync(
       continue;
     }
     Blob blob;
-    blob.blob_name = make_shared<string>(object_metadata->name());
+    blob.blob_name = make_shared<std::string>(object_metadata->name());
     blob.bucket_name = list_blobs_context.request->bucket_name;
     list_blobs_context.response->blobs->push_back(blob);
     if (list_blobs_context.response->blobs->size() == kListBlobsMaxResults) {
@@ -333,7 +332,7 @@ void GcpCloudStorageClient::PutBlobAsync(
   Client cloud_storage_client(*cloud_storage_client_shared_);
 
   auto upload_obj = put_blob_context.request->buffer->ToString();
-  string md5_hash = ComputeMD5Hash(upload_obj);
+  std::string md5_hash = ComputeMD5Hash(upload_obj);
   auto object_metadata = cloud_storage_client.InsertObject(
       *put_blob_context.request->bucket_name,
       *put_blob_context.request->blob_name, std::move(upload_obj),

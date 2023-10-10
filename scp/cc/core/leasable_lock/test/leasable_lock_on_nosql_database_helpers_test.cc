@@ -18,8 +18,6 @@
 
 using std::get;
 using std::make_shared;
-using std::string;
-using std::to_string;
 using std::vector;
 using std::chrono::milliseconds;
 
@@ -73,19 +71,19 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
     EXPECT_EQ(attributes->at(0).attribute_name->compare(
                   kPartitionLockTableLeaseOwnerIdAttributeName),
               0);
-    EXPECT_EQ(get<string>(*attributes->at(0).attribute_value),
+    EXPECT_EQ(get<std::string>(*attributes->at(0).attribute_value),
               lease.lease_owner_info.lease_acquirer_id);
     EXPECT_EQ(attributes->at(1).attribute_name->compare(
                   kLockTableLeaseOwnerServiceEndpointAddressAttributeName),
               0);
-    EXPECT_EQ(get<string>(*attributes->at(1).attribute_value),
+    EXPECT_EQ(get<std::string>(*attributes->at(1).attribute_value),
               lease.lease_owner_info.service_endpoint_address);
     EXPECT_EQ(attributes->at(2).attribute_name->compare(
                   kPartitionLockTableLeaseExpirationTimestampAttributeName),
               0);
-    EXPECT_EQ(
-        get<string>(*attributes->at(2).attribute_value),
-        to_string(lease.lease_expiration_timestamp_in_milliseconds.count()));
+    EXPECT_EQ(get<std::string>(*attributes->at(2).attribute_value),
+              std::to_string(
+                  lease.lease_expiration_timestamp_in_milliseconds.count()));
   }
 
   void TestObtainLeaseInfoFromAttributes() {
@@ -128,8 +126,8 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
                                 kPartitionLockTableLockIdKeyName),
                         0);
               EXPECT_EQ(
-                  get<string>(*get_database_item_context.request->partition_key
-                                   ->attribute_value)
+                  get<std::string>(*get_database_item_context.request
+                                        ->partition_key->attribute_value)
                       .compare(kPartitionLockTableRowKeyForGlobalPartition),
                   0);
               // Sort key is not present
@@ -212,8 +210,8 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
               upsert_database_item_context.request->partition_key
                   ->attribute_name->compare(kPartitionLockTableLockIdKeyName),
               0);
-          EXPECT_EQ(get<string>(*upsert_database_item_context.request
-                                     ->partition_key->attribute_value)
+          EXPECT_EQ(get<std::string>(*upsert_database_item_context.request
+                                          ->partition_key->attribute_value)
                         .compare(kPartitionLockTableRowKeyForGlobalPartition),
                     0);
           // Sort key is not present
@@ -223,23 +221,23 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
           auto& new_attributes =
               upsert_database_item_context.request->new_attributes;
           EXPECT_EQ(attributes->size(), 3);
-          EXPECT_EQ(get<string>(*attributes->at(0).attribute_value),
+          EXPECT_EQ(get<std::string>(*attributes->at(0).attribute_value),
                     prev_lease.lease_owner_info.lease_acquirer_id);
-          EXPECT_EQ(get<string>(*attributes->at(1).attribute_value),
+          EXPECT_EQ(get<std::string>(*attributes->at(1).attribute_value),
                     prev_lease.lease_owner_info.service_endpoint_address);
-          EXPECT_EQ(
-              get<string>(*attributes->at(2).attribute_value),
-              to_string(prev_lease.lease_expiration_timestamp_in_milliseconds
+          EXPECT_EQ(get<std::string>(*attributes->at(2).attribute_value),
+                    std::to_string(
+                        prev_lease.lease_expiration_timestamp_in_milliseconds
                             .count()));
 
           EXPECT_EQ(new_attributes->size(), 3);
-          EXPECT_EQ(get<string>(*new_attributes->at(0).attribute_value),
+          EXPECT_EQ(get<std::string>(*new_attributes->at(0).attribute_value),
                     new_lease.lease_owner_info.lease_acquirer_id);
-          EXPECT_EQ(get<string>(*new_attributes->at(1).attribute_value),
+          EXPECT_EQ(get<std::string>(*new_attributes->at(1).attribute_value),
                     new_lease.lease_owner_info.service_endpoint_address);
-          EXPECT_EQ(
-              get<string>(*new_attributes->at(2).attribute_value),
-              to_string(new_lease.lease_expiration_timestamp_in_milliseconds
+          EXPECT_EQ(get<std::string>(*new_attributes->at(2).attribute_value),
+                    std::to_string(
+                        new_lease.lease_expiration_timestamp_in_milliseconds
                             .count()));
 
           upsert_database_item_context.result = SuccessExecutionResult();

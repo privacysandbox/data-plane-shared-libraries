@@ -66,7 +66,6 @@ using google::scp::core::errors::
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -76,10 +75,10 @@ constexpr char kEnvNameTag[] = "environment-name";
 }  // namespace
 
 namespace google::scp::cpio {
-ExecutionResultOr<string> ConfigurationFetcher::GetParameterByName(
-    string parameter_name) noexcept {
-  string parameter;
-  auto execution_result = SyncUtils::AsyncToSync<string, string>(
+ExecutionResultOr<std::string> ConfigurationFetcher::GetParameterByName(
+    std::string parameter_name) noexcept {
+  std::string parameter;
+  auto execution_result = SyncUtils::AsyncToSync<std::string, std::string>(
       bind(&ConfigurationFetcher::GetParameterByNameAsync, this, _1),
       parameter_name, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
@@ -89,7 +88,7 @@ ExecutionResultOr<string> ConfigurationFetcher::GetParameterByName(
 }
 
 ExecutionResult ConfigurationFetcher::GetParameterByNameAsync(
-    AsyncContext<string, string> context) noexcept {
+    AsyncContext<std::string, std::string> context) noexcept {
   return GetConfiguration(context);
 }
 
@@ -206,11 +205,11 @@ ExecutionResult ConfigurationFetcher::GetSharedIoThreadPoolQueueCapAsync(
   return GetConfiguration(context_with_parameter_name);
 }
 
-ExecutionResultOr<string> ConfigurationFetcher::GetJobClientJobQueueName(
+ExecutionResultOr<std::string> ConfigurationFetcher::GetJobClientJobQueueName(
     GetConfigurationRequest request) noexcept {
-  string parameter;
+  std::string parameter;
   auto execution_result =
-      SyncUtils::AsyncToSync<GetConfigurationRequest, string>(
+      SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
           bind(&ConfigurationFetcher::GetJobClientJobQueueNameAsync, this, _1),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
@@ -220,17 +219,17 @@ ExecutionResultOr<string> ConfigurationFetcher::GetJobClientJobQueueName(
 }
 
 core::ExecutionResult ConfigurationFetcher::GetJobClientJobQueueNameAsync(
-    AsyncContext<GetConfigurationRequest, string> context) noexcept {
+    AsyncContext<GetConfigurationRequest, std::string> context) noexcept {
   auto context_with_parameter_name =
       ContextConvertCallback(kJobClientJobQueueName, context);
   return GetConfiguration(context_with_parameter_name);
 }
 
-ExecutionResultOr<string> ConfigurationFetcher::GetJobClientJobTableName(
+ExecutionResultOr<std::string> ConfigurationFetcher::GetJobClientJobTableName(
     GetConfigurationRequest request) noexcept {
-  string parameter;
+  std::string parameter;
   auto execution_result =
-      SyncUtils::AsyncToSync<GetConfigurationRequest, string>(
+      SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
           bind(&ConfigurationFetcher::GetJobClientJobTableNameAsync, this, _1),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
@@ -240,18 +239,18 @@ ExecutionResultOr<string> ConfigurationFetcher::GetJobClientJobTableName(
 }
 
 core::ExecutionResult ConfigurationFetcher::GetJobClientJobTableNameAsync(
-    AsyncContext<GetConfigurationRequest, string> context) noexcept {
+    AsyncContext<GetConfigurationRequest, std::string> context) noexcept {
   auto context_with_parameter_name =
       ContextConvertCallback(kJobClientJobTableName, context);
   return GetConfiguration(context_with_parameter_name);
 }
 
-ExecutionResultOr<string>
+ExecutionResultOr<std::string>
 ConfigurationFetcher::GetGcpJobClientSpannerInstanceName(
     GetConfigurationRequest request) noexcept {
-  string parameter;
+  std::string parameter;
   auto execution_result =
-      SyncUtils::AsyncToSync<GetConfigurationRequest, string>(
+      SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
           bind(&ConfigurationFetcher::GetGcpJobClientSpannerInstanceNameAsync,
                this, _1),
           request, parameter);
@@ -264,18 +263,18 @@ ConfigurationFetcher::GetGcpJobClientSpannerInstanceName(
 
 core::ExecutionResult
 ConfigurationFetcher::GetGcpJobClientSpannerInstanceNameAsync(
-    AsyncContext<GetConfigurationRequest, string> context) noexcept {
+    AsyncContext<GetConfigurationRequest, std::string> context) noexcept {
   auto context_with_parameter_name =
       ContextConvertCallback(kGcpJobClientSpannerInstanceName, context);
   return GetConfiguration(context_with_parameter_name);
 }
 
-ExecutionResultOr<string>
+ExecutionResultOr<std::string>
 ConfigurationFetcher::GetGcpJobClientSpannerDatabaseName(
     GetConfigurationRequest request) noexcept {
-  string parameter;
+  std::string parameter;
   auto execution_result =
-      SyncUtils::AsyncToSync<GetConfigurationRequest, string>(
+      SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
           bind(&ConfigurationFetcher::GetGcpJobClientSpannerDatabaseNameAsync,
                this, _1),
           request, parameter);
@@ -288,18 +287,18 @@ ConfigurationFetcher::GetGcpJobClientSpannerDatabaseName(
 
 core::ExecutionResult
 ConfigurationFetcher::GetGcpJobClientSpannerDatabaseNameAsync(
-    AsyncContext<GetConfigurationRequest, string> context) noexcept {
+    AsyncContext<GetConfigurationRequest, std::string> context) noexcept {
   auto context_with_parameter_name =
       ContextConvertCallback(kGcpJobClientSpannerDatabaseName, context);
   return GetConfiguration(context_with_parameter_name);
 }
 
-ExecutionResultOr<string>
+ExecutionResultOr<std::string>
 ConfigurationFetcher::GetGcpNoSQLDatabaseClientSpannerInstanceName(
     GetConfigurationRequest request) noexcept {
-  string parameter;
+  std::string parameter;
   auto execution_result =
-      SyncUtils::AsyncToSync<GetConfigurationRequest, string>(
+      SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
           bind(&ConfigurationFetcher::
                    GetGcpNoSQLDatabaseClientSpannerInstanceNameAsync,
                this, _1),
@@ -313,18 +312,18 @@ ConfigurationFetcher::GetGcpNoSQLDatabaseClientSpannerInstanceName(
 
 core::ExecutionResult
 ConfigurationFetcher::GetGcpNoSQLDatabaseClientSpannerInstanceNameAsync(
-    AsyncContext<GetConfigurationRequest, string> context) noexcept {
+    AsyncContext<GetConfigurationRequest, std::string> context) noexcept {
   auto context_with_parameter_name = ContextConvertCallback(
       kGcpNoSQLDatabaseClientSpannerInstanceName, context);
   return GetConfiguration(context_with_parameter_name);
 }
 
-ExecutionResultOr<string>
+ExecutionResultOr<std::string>
 ConfigurationFetcher::GetGcpNoSQLDatabaseClientSpannerDatabaseName(
     GetConfigurationRequest request) noexcept {
-  string parameter;
+  std::string parameter;
   auto execution_result =
-      SyncUtils::AsyncToSync<GetConfigurationRequest, string>(
+      SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
           bind(&ConfigurationFetcher::
                    GetGcpNoSQLDatabaseClientSpannerDatabaseNameAsync,
                this, _1),
@@ -338,17 +337,17 @@ ConfigurationFetcher::GetGcpNoSQLDatabaseClientSpannerDatabaseName(
 
 core::ExecutionResult
 ConfigurationFetcher::GetGcpNoSQLDatabaseClientSpannerDatabaseNameAsync(
-    AsyncContext<GetConfigurationRequest, string> context) noexcept {
+    AsyncContext<GetConfigurationRequest, std::string> context) noexcept {
   auto context_with_parameter_name = ContextConvertCallback(
       kGcpNoSQLDatabaseClientSpannerDatabaseName, context);
   return GetConfiguration(context_with_parameter_name);
 }
 
-ExecutionResultOr<string> ConfigurationFetcher::GetQueueClientQueueName(
+ExecutionResultOr<std::string> ConfigurationFetcher::GetQueueClientQueueName(
     GetConfigurationRequest request) noexcept {
-  string parameter;
+  std::string parameter;
   auto execution_result =
-      SyncUtils::AsyncToSync<GetConfigurationRequest, string>(
+      SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
           bind(&ConfigurationFetcher::GetQueueClientQueueNameAsync, this, _1),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
@@ -358,7 +357,7 @@ ExecutionResultOr<string> ConfigurationFetcher::GetQueueClientQueueName(
 }
 
 core::ExecutionResult ConfigurationFetcher::GetQueueClientQueueNameAsync(
-    AsyncContext<GetConfigurationRequest, string> context) noexcept {
+    AsyncContext<GetConfigurationRequest, std::string> context) noexcept {
   auto context_with_parameter_name =
       ContextConvertCallback(kQueueClientQueueName, context);
   return GetConfiguration(context_with_parameter_name);
@@ -433,16 +432,19 @@ core::ExecutionResult ConfigurationFetcher::GetCryptoClientHpkeAeadAsync(
   return GetConfiguration(context_with_parameter_name);
 }
 
-AsyncContext<string, string> ConfigurationFetcher::ContextConvertCallback(
-    const string& parameter_name, AsyncContext<GetConfigurationRequest, string>&
-                                      context_without_parameter_name) noexcept {
-  return ConfigurationFetcherUtils::ContextConvertCallback<string>(
+AsyncContext<std::string, std::string>
+ConfigurationFetcher::ContextConvertCallback(
+    const std::string& parameter_name,
+    AsyncContext<GetConfigurationRequest, std::string>&
+        context_without_parameter_name) noexcept {
+  return ConfigurationFetcherUtils::ContextConvertCallback<std::string>(
       parameter_name, context_without_parameter_name,
-      [](const string& value) { return value; });
+      [](const std::string& value) { return value; });
 }
 
 core::ExecutionResult ConfigurationFetcher::GetConfiguration(
-    AsyncContext<string, string>& get_configuration_context) noexcept {
+    AsyncContext<std::string, std::string>&
+        get_configuration_context) noexcept {
   return instance_client_->GetCurrentInstanceResourceName(
       GetCurrentInstanceResourceNameRequest(),
       bind(&ConfigurationFetcher::GetCurrentInstanceResourceNameCallback, this,
@@ -452,7 +454,8 @@ core::ExecutionResult ConfigurationFetcher::GetConfiguration(
 void ConfigurationFetcher::GetCurrentInstanceResourceNameCallback(
     const ExecutionResult& result,
     GetCurrentInstanceResourceNameResponse response,
-    AsyncContext<string, string>& get_configuration_context) noexcept {
+    AsyncContext<std::string, std::string>&
+        get_configuration_context) noexcept {
   if (!result.Successful()) {
     get_configuration_context.result = result;
     SCP_ERROR_CONTEXT(kConfigurationFetcher, get_configuration_context, result,
@@ -481,7 +484,8 @@ void ConfigurationFetcher::GetInstanceDetailsByResourceNameCallback(
     const ExecutionResult& result,
     GetInstanceDetailsByResourceNameResponse get_instance_details_response,
     const GetCurrentInstanceResourceNameResponse& get_current_instance_response,
-    AsyncContext<string, string>& get_configuration_context) noexcept {
+    AsyncContext<std::string, std::string>&
+        get_configuration_context) noexcept {
   if (!result.Successful()) {
     get_configuration_context.result = result;
     SCP_ERROR_CONTEXT(
@@ -493,7 +497,7 @@ void ConfigurationFetcher::GetInstanceDetailsByResourceNameCallback(
   }
 
   auto it = get_instance_details_response.instance_details().labels().find(
-      string(kEnvNameTag));
+      std::string(kEnvNameTag));
   if (it == get_instance_details_response.instance_details().labels().end()) {
     get_configuration_context.result = FailureExecutionResult(
         SC_CONFIGURATION_FETCHER_ENVIRONMENT_NAME_NOT_FOUND);
@@ -524,7 +528,8 @@ void ConfigurationFetcher::GetInstanceDetailsByResourceNameCallback(
 
 void ConfigurationFetcher::GetParameterCallback(
     const ExecutionResult& result, GetParameterResponse response,
-    AsyncContext<string, string>& get_configuration_context) noexcept {
+    AsyncContext<std::string, std::string>&
+        get_configuration_context) noexcept {
   if (!result.Successful()) {
     get_configuration_context.result = result;
     SCP_ERROR_CONTEXT(kConfigurationFetcher, get_configuration_context,
@@ -537,7 +542,7 @@ void ConfigurationFetcher::GetParameterCallback(
 
   get_configuration_context.result = SuccessExecutionResult();
   get_configuration_context.response =
-      make_shared<string>(std::move(response.parameter_value()));
+      make_shared<std::string>(std::move(response.parameter_value()));
   get_configuration_context.Finish();
 }
 }  // namespace google::scp::cpio

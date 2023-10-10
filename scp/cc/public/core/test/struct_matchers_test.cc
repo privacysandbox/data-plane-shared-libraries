@@ -17,7 +17,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-using std::string;
 using std::vector;
 using testing::ElementsAre;
 using testing::Eq;
@@ -30,7 +29,7 @@ namespace google::scp::core::test {
 
 struct S {
   int x, y, z;
-  string a;
+  std::string a;
   S* o;
   vector<int> v;
 };

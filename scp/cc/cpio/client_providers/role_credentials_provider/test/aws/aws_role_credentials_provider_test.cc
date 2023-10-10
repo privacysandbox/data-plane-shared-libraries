@@ -60,7 +60,6 @@ using std::atomic;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -113,7 +112,7 @@ TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleSuccess) {
       };
 
   auto request = make_shared<GetRoleCredentialsRequest>();
-  request->account_identity = make_shared<string>(kAssumeRoleArn);
+  request->account_identity = make_shared<std::string>(kAssumeRoleArn);
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_credentials_context(
           move(request),

@@ -19,11 +19,10 @@
 #include "public/cpio/interface/error_codes.h"
 
 using google::scp::core::errors::SC_CPIO_INTERNAL_ERROR;
-using std::string;
 
 namespace google::scp::core::test {
 TEST(ErrorsTest, GetErrorMessageSuccessfully) {
-  EXPECT_EQ(string(GetErrorMessage(SC_CPIO_INTERNAL_ERROR)),
+  EXPECT_EQ(std::string(GetErrorMessage(SC_CPIO_INTERNAL_ERROR)),
             "Internal Error in CPIO");
 }
 }  // namespace google::scp::core::test

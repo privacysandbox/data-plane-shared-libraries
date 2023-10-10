@@ -42,9 +42,7 @@ using std::make_shared;
 using std::regex;
 using std::regex_match;
 using std::shared_ptr;
-using std::string;
 using std::strlen;
-using std::to_string;
 using std::vector;
 
 namespace {
@@ -63,10 +61,10 @@ constexpr char kResourceNameRegex[] =
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-ExecutionResultOr<string> AwsInstanceClientUtils::GetCurrentRegionCode(
+ExecutionResultOr<std::string> AwsInstanceClientUtils::GetCurrentRegionCode(
     const shared_ptr<InstanceClientProviderInterface>&
         instance_client) noexcept {
-  string instance_resource_name;
+  std::string instance_resource_name;
   if (auto result = instance_client->GetCurrentInstanceResourceNameSync(
           instance_resource_name);
       !result.Successful()) {
@@ -86,26 +84,27 @@ ExecutionResultOr<string> AwsInstanceClientUtils::GetCurrentRegionCode(
   return move(*region_code_or);
 }
 
-ExecutionResultOr<string> AwsInstanceClientUtils::ParseRegionFromResourceName(
-    const string& resource_name) noexcept {
+ExecutionResultOr<std::string>
+AwsInstanceClientUtils::ParseRegionFromResourceName(
+    const std::string& resource_name) noexcept {
   AwsResourceNameDetails details;
   auto result = GetResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
   return details.region;
 }
 
-ExecutionResultOr<string>
+ExecutionResultOr<std::string>
 AwsInstanceClientUtils::ParseAccountIdFromResourceName(
-    const string& resource_name) noexcept {
+    const std::string& resource_name) noexcept {
   AwsResourceNameDetails details;
   auto result = GetResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
   return details.account_id;
 }
 
-ExecutionResultOr<string>
+ExecutionResultOr<std::string>
 AwsInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
-    const string& resource_name) noexcept {
+    const std::string& resource_name) noexcept {
   AwsResourceNameDetails details;
   auto result = GetResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
@@ -113,7 +112,7 @@ AwsInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
 }
 
 ExecutionResult AwsInstanceClientUtils::ValidateResourceNameFormat(
-    const string& resource_name) noexcept {
+    const std::string& resource_name) noexcept {
   static std::regex re(kResourceNameRegex);
   if (!std::regex_match(resource_name, re)) {
     return FailureExecutionResult(
@@ -124,16 +123,16 @@ ExecutionResult AwsInstanceClientUtils::ValidateResourceNameFormat(
 }
 
 ExecutionResult AwsInstanceClientUtils::GetResourceNameDetails(
-    const string& resource_name, AwsResourceNameDetails& detail) noexcept {
+    const std::string& resource_name, AwsResourceNameDetails& detail) noexcept {
   auto result = ValidateResourceNameFormat(resource_name);
   RETURN_IF_FAILURE(result);
 
-  vector<string> splits = absl::StrSplit(resource_name, ":");
+  vector<std::string> splits = absl::StrSplit(resource_name, ":");
   detail.account_id = splits[4];
   detail.region = splits[3];
 
   // remove prefix path from resource id.
-  vector<string> id_splits = absl::StrSplit(splits.back(), "/");
+  vector<std::string> id_splits = absl::StrSplit(splits.back(), "/");
   detail.resource_id = id_splits.back();
 
   return SuccessExecutionResult();

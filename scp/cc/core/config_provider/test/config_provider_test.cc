@@ -32,7 +32,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
 using std::list;
-using std::string;
 using std::filesystem::path;
 
 namespace google::scp::core::test {
@@ -53,14 +52,14 @@ TEST(ConfigProviderTest, GetConfigs) {
 
   config.Init();
 
-  string out_string;
-  string expect_string = "10.10.10.20";
+  std::string out_string;
+  std::string expect_string = "10.10.10.20";
   size_t out_int;
   size_t expect_int = 5000;
   bool out_bool;
   bool expect_bool = true;
-  list<string> out_string_list;
-  list<string> expect_string_list({"1", "2"});
+  list<std::string> out_string_list;
+  list<std::string> expect_string_list({"1", "2"});
   list<int32_t> out_int_list;
   list<int32_t> expect_int_list({1, 2});
   list<size_t> out_size_list;
@@ -94,7 +93,7 @@ TEST(ConfigProviderTest, GetConfigsFailed) {
 
   config.Init();
 
-  string out_string;
+  std::string out_string;
 
   EXPECT_SUCCESS(config.Init());
 
@@ -128,7 +127,7 @@ TEST(ConfigProviderTest, ShowErrorInfo) {
 
   auto status_code = config.Init().status_code;
 
-  string status_description = errors::GetErrorMessage(status_code);
+  std::string status_description = errors::GetErrorMessage(status_code);
 
   EXPECT_EQ(status_description, "Config provider cannot load config file");
 }

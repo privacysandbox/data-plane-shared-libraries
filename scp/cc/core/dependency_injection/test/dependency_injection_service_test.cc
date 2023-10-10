@@ -33,7 +33,6 @@
 using std::function;
 using std::make_shared;
 using std::shared_ptr;
-using std::string;
 using std::unordered_set;
 using std::vector;
 
@@ -61,14 +60,14 @@ class DependencyInjectionServiceTest : public testing::Test {
  * @param id The id of the service.
  * @return MockService The service
  */
-shared_ptr<MockService> GetMockService(string id) {
+shared_ptr<MockService> GetMockService(std::string id) {
   return reinterpret_pointer_cast<MockService>(
       (ServiceCollection::collection.GetService(id)));
 }
 
 TEST_F(DependencyInjectionServiceTest, RegisterComponentOnceReturnsSuccess) {
   DependencyInjectionService service;
-  TestNode node("A", vector<string>{"B", "C"});
+  TestNode node("A", vector<std::string>{"B", "C"});
 
   auto result1 =
       service.RegisterComponent(node.id, node.dependencies, node.factory);
@@ -78,7 +77,7 @@ TEST_F(DependencyInjectionServiceTest, RegisterComponentOnceReturnsSuccess) {
 
 TEST_F(DependencyInjectionServiceTest, RegisterComponentTwiceReturnsError) {
   DependencyInjectionService service;
-  TestNode node("A", vector<string>{"B", "C"});
+  TestNode node("A", vector<std::string>{"B", "C"});
 
   auto result1 =
       service.RegisterComponent(node.id, node.dependencies, node.factory);
@@ -95,10 +94,10 @@ TEST_F(DependencyInjectionServiceTest, RegisterComponentTwiceReturnsError) {
 TEST_F(DependencyInjectionServiceTest,
        ResolveAllCreatesComponentsInCorrectOrder) {
   DependencyInjectionService service;
-  TestNode node_a("A", vector<string>{"B", "C"});
-  TestNode node_b("B", vector<string>{"D", "C"});
-  TestNode node_c("C", vector<string>{"D"});
-  TestNode node_d("D", vector<string>{});
+  TestNode node_a("A", vector<std::string>{"B", "C"});
+  TestNode node_b("B", vector<std::string>{"D", "C"});
+  TestNode node_c("C", vector<std::string>{"D"});
+  TestNode node_d("D", vector<std::string>{});
 
   service.RegisterComponent(node_a.id, node_a.dependencies, node_a.factory);
   service.RegisterComponent(node_c.id, node_c.dependencies, node_c.factory);
@@ -123,10 +122,10 @@ TEST_F(DependencyInjectionServiceTest,
 TEST_F(DependencyInjectionServiceTest,
        ResolveAllReturnsFailureWhenFactoryThrowsException) {
   DependencyInjectionService service;
-  TestNode node_a("A", vector<string>{"B", "C"});
-  TestNode node_b("B", vector<string>{"D", "C"});
-  TestNode node_c("C", vector<string>{"D"});
-  TestNode node_d("D", vector<string>{});
+  TestNode node_a("A", vector<std::string>{"B", "C"});
+  TestNode node_b("B", vector<std::string>{"D", "C"});
+  TestNode node_c("C", vector<std::string>{"D"});
+  TestNode node_d("D", vector<std::string>{});
 
   service.RegisterComponent(node_a.id, node_a.dependencies, node_a.factory);
   service.RegisterComponent(node_b.id, node_b.dependencies, node_b.factory);
@@ -142,10 +141,10 @@ TEST_F(DependencyInjectionServiceTest,
 
 TEST_F(DependencyInjectionServiceTest, InitInitializesComponents) {
   DependencyInjectionService service;
-  TestNode node_a("A", vector<string>{"B", "C"});
-  TestNode node_b("B", vector<string>{"D", "C"});
-  TestNode node_c("C", vector<string>{"D"});
-  TestNode node_d("D", vector<string>{});
+  TestNode node_a("A", vector<std::string>{"B", "C"});
+  TestNode node_b("B", vector<std::string>{"D", "C"});
+  TestNode node_c("C", vector<std::string>{"D"});
+  TestNode node_d("D", vector<std::string>{});
 
   service.RegisterComponent(node_a.id, node_a.dependencies, node_a.factory);
   service.RegisterComponent(node_c.id, node_c.dependencies, node_c.factory);
@@ -170,10 +169,10 @@ TEST_F(DependencyInjectionServiceTest, InitInitializesComponents) {
 
 TEST_F(DependencyInjectionServiceTest, RunRunsComponents) {
   DependencyInjectionService service;
-  TestNode node_a("A", vector<string>{"B", "C"});
-  TestNode node_b("B", vector<string>{"D", "C"});
-  TestNode node_c("C", vector<string>{"D"});
-  TestNode node_d("D", vector<string>{});
+  TestNode node_a("A", vector<std::string>{"B", "C"});
+  TestNode node_b("B", vector<std::string>{"D", "C"});
+  TestNode node_c("C", vector<std::string>{"D"});
+  TestNode node_d("D", vector<std::string>{});
 
   service.RegisterComponent(node_a.id, node_a.dependencies, node_a.factory);
   service.RegisterComponent(node_c.id, node_c.dependencies, node_c.factory);
@@ -198,10 +197,10 @@ TEST_F(DependencyInjectionServiceTest, RunRunsComponents) {
 
 TEST_F(DependencyInjectionServiceTest, StopStopsComponents) {
   DependencyInjectionService service;
-  TestNode node_a("A", vector<string>{"B", "C"});
-  TestNode node_b("B", vector<string>{"D", "C"});
-  TestNode node_c("C", vector<string>{"D"});
-  TestNode node_d("D", vector<string>{});
+  TestNode node_a("A", vector<std::string>{"B", "C"});
+  TestNode node_b("B", vector<std::string>{"D", "C"});
+  TestNode node_c("C", vector<std::string>{"D"});
+  TestNode node_d("D", vector<std::string>{});
 
   service.RegisterComponent(node_a.id, node_a.dependencies, node_a.factory);
   service.RegisterComponent(node_c.id, node_c.dependencies, node_c.factory);
@@ -227,10 +226,10 @@ TEST_F(DependencyInjectionServiceTest, StopStopsComponents) {
 TEST_F(DependencyInjectionServiceTest,
        StopReturnsErrorWhenServiceReturnsError) {
   DependencyInjectionService service;
-  TestNode node_a("A", vector<string>{"B", "C"});
-  TestNode node_b("B", vector<string>{"D", "C"});
-  TestNode node_c("C", vector<string>{"D"});
-  TestNode node_d("D", vector<string>{});
+  TestNode node_a("A", vector<std::string>{"B", "C"});
+  TestNode node_b("B", vector<std::string>{"D", "C"});
+  TestNode node_c("C", vector<std::string>{"D"});
+  TestNode node_d("D", vector<std::string>{});
 
   service.RegisterComponent(node_a.id, node_a.dependencies, node_a.factory);
   service.RegisterComponent(node_c.id, node_c.dependencies, node_c.factory);
@@ -262,10 +261,10 @@ TEST_F(DependencyInjectionServiceTest,
 TEST_F(DependencyInjectionServiceTest,
        InitReturnsErrorWhenServiceReturnsError) {
   DependencyInjectionService service;
-  TestNode node_a("A", vector<string>{"B", "C"});
-  TestNode node_b("B", vector<string>{"D", "C"});
-  TestNode node_c("C", vector<string>{"D"});
-  TestNode node_d("D", vector<string>{});
+  TestNode node_a("A", vector<std::string>{"B", "C"});
+  TestNode node_b("B", vector<std::string>{"D", "C"});
+  TestNode node_c("C", vector<std::string>{"D"});
+  TestNode node_d("D", vector<std::string>{});
 
   service.RegisterComponent(node_a.id, node_a.dependencies, node_a.factory);
   service.RegisterComponent(node_c.id, node_c.dependencies, node_c.factory);
@@ -296,10 +295,10 @@ TEST_F(DependencyInjectionServiceTest,
 
 TEST_F(DependencyInjectionServiceTest, RunReturnsErrorWhenServiceReturnsError) {
   DependencyInjectionService service;
-  TestNode node_a("A", vector<string>{"B", "C"});
-  TestNode node_b("B", vector<string>{"D", "C"});
-  TestNode node_c("C", vector<string>{"D"});
-  TestNode node_d("D", vector<string>{});
+  TestNode node_a("A", vector<std::string>{"B", "C"});
+  TestNode node_b("B", vector<std::string>{"D", "C"});
+  TestNode node_c("C", vector<std::string>{"D"});
+  TestNode node_d("D", vector<std::string>{});
 
   service.RegisterComponent(node_a.id, node_a.dependencies, node_a.factory);
   service.RegisterComponent(node_c.id, node_c.dependencies, node_c.factory);
