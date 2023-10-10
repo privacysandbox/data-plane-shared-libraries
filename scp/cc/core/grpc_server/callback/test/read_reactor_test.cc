@@ -33,7 +33,6 @@ using std::atomic_bool;
 using std::atomic_int;
 using std::function;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::thread;
 using std::unique_ptr;
@@ -147,7 +146,7 @@ TEST_F(ReadReactorTest, BasicSequenceWorks) {
       .WillRepeatedly([this, &val](auto* request) {
         SomeRequest req;
         req.set_field(val++);
-        *request = move(req);
+        *request = std::move(req);
         reactor_->OnReadDone(true /*read_performed*/);
       });
   // Tell the reactor this is the final call.
@@ -178,7 +177,7 @@ TEST_F(ReadReactorTest, FailureOnInitiationWorks) {
   EXPECT_CALL(reader_, Read).WillOnce([this](auto* request) {
     SomeRequest req;
     req.set_field(10);
-    *request = move(req);
+    *request = std::move(req);
     reactor_->OnReadDone(true /*read_performed*/);
   });
   EXPECT_CALL(reader_, Finish(StatusCodeIs(grpc::StatusCode::OK)));
@@ -228,7 +227,7 @@ TEST_F(ReadReactorTest, MakesNewResponseOnFailure) {
   auto normal_read = [this, &read_count](auto* request) {
     SomeRequest req;
     req.set_field(10);
-    *request = move(req);
+    *request = std::move(req);
     read_count++;
     reactor_->OnReadDone(true /*read_performed*/);
   };

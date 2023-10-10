@@ -40,7 +40,6 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::function;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -60,7 +59,7 @@ TEST(JournalOutputStreamTests, AppendLog) {
   };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(async_executor_mock));
+      make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
   // When the result of buffer creation is success but buffer does not have
   // enough space.
   MockBlobStorageClient mock_storage_client;
@@ -69,7 +68,7 @@ TEST(JournalOutputStreamTests, AppendLog) {
         return SuccessExecutionResult();
       };
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalOutputStream mock_journal_output_stream(
       bucket_name, partition_name, async_executor, storage_client);
@@ -104,7 +103,7 @@ TEST(JournalOutputStreamTests, FlushLogsFailure) {
   };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(async_executor_mock));
+      make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
   // When the result of buffer creation is success but buffer does not have
   // enough space.
   MockBlobStorageClient mock_storage_client;
@@ -113,7 +112,7 @@ TEST(JournalOutputStreamTests, FlushLogsFailure) {
         return SuccessExecutionResult();
       };
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalOutputStream mock_journal_output_stream(
       bucket_name, partition_name, async_executor, storage_client);
@@ -152,7 +151,7 @@ TEST(JournalOutputStreamTests, FlushLogsSchedulingFailure) {
   };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(async_executor_mock));
+      make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
   // When the result of buffer creation is success but buffer does not have
   // enough space.
   MockBlobStorageClient mock_storage_client;
@@ -161,7 +160,7 @@ TEST(JournalOutputStreamTests, FlushLogsSchedulingFailure) {
         return SuccessExecutionResult();
       };
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalOutputStream mock_journal_output_stream(
       bucket_name, partition_name, async_executor, storage_client);
@@ -205,7 +204,7 @@ TEST(JournalOutputStreamTests, WriteBatch) {
   };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(async_executor_mock));
+      make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
   // When the result of buffer creation is success but buffer does not have
   // enough space.
   MockBlobStorageClient mock_storage_client;
@@ -214,7 +213,7 @@ TEST(JournalOutputStreamTests, WriteBatch) {
         return SuccessExecutionResult();
       };
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalOutputStream mock_journal_output_stream(
       bucket_name, partition_name, async_executor, storage_client);
@@ -253,7 +252,7 @@ TEST(JournalOutputStreamTests, WriteBatchWriteBlobFailure) {
   MockAsyncExecutor async_executor_mock;
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(async_executor_mock));
+      make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
   // When the result of buffer creation is success but buffer does not have
   // enough space.
   MockBlobStorageClient mock_storage_client;
@@ -262,7 +261,7 @@ TEST(JournalOutputStreamTests, WriteBatchWriteBlobFailure) {
         return SuccessExecutionResult();
       };
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalOutputStream mock_journal_output_stream(
       bucket_name, partition_name, async_executor, storage_client);
@@ -304,11 +303,11 @@ TEST(JournalOutputStreamTests, GetSerializedLogByteSize) {
   auto partition_name = make_shared<string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(async_executor_mock));
+      make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalOutputStream mock_journal_output_stream(
       bucket_name, partition_name, async_executor, storage_client);
@@ -332,11 +331,11 @@ TEST(JournalOutputStreamTests, SerializeLog) {
   auto partition_name = make_shared<string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(async_executor_mock));
+      make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalOutputStream mock_journal_output_stream(
       bucket_name, partition_name, async_executor, storage_client);
@@ -432,7 +431,7 @@ TEST(JournalOutputStreamTests, WriteJournalBlob) {
   auto partition_name = make_shared<string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(async_executor_mock));
+      make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
 
   vector<ExecutionResult> results = {SuccessExecutionResult(),
                                      FailureExecutionResult(123),
@@ -454,7 +453,7 @@ TEST(JournalOutputStreamTests, WriteJournalBlob) {
           return result;
         };
     shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(move(mock_storage_client));
+        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
     MockJournalOutputStream mock_journal_output_stream(
         bucket_name, partition_name, async_executor, storage_client);
@@ -471,7 +470,7 @@ TEST(JournalOutputStreamTests, WriteEmptyJournalBlob) {
   auto partition_name = make_shared<string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(async_executor_mock));
+      make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
 
   vector<ExecutionResult> results = {SuccessExecutionResult(),
                                      FailureExecutionResult(123),
@@ -487,7 +486,7 @@ TEST(JournalOutputStreamTests, WriteEmptyJournalBlob) {
         return SuccessExecutionResult();
       };
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalOutputStream mock_journal_output_stream(
       bucket_name, partition_name, async_executor, storage_client);

@@ -29,7 +29,6 @@ using std::abort;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::mutex;
 using std::shared_ptr;
 using std::thread;
@@ -81,7 +80,7 @@ ExecutionResult LeaseManager::ManageLeaseOnLock(
   }
 
   leasable_lock_ = leasable_lock;
-  lease_transition_callback_ = move(lease_transition_callback);
+  lease_transition_callback_ = std::move(lease_transition_callback);
   return SuccessExecutionResult();
 }
 

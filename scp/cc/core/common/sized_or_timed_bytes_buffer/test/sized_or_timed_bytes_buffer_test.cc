@@ -35,7 +35,6 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::function;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::vector;
 
@@ -72,7 +71,7 @@ TEST(SizedOrTimedBytesBufferTest, InitFunction) {
         };
 
     shared_ptr<AsyncExecutorInterface> async_executor =
-        make_shared<MockAsyncExecutor>(move(mock_async_executor));
+        make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
 
     auto sized_or_timed_bytes_buffer =
         make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
@@ -117,7 +116,7 @@ TEST(SizedOrTimedBytesBufferTest, AppendDataWithMaxSize) {
       };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(mock_async_executor));
+      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
 
   // When there is no more capacity available
   auto sized_or_timed_bytes_buffer =
@@ -172,7 +171,7 @@ TEST(SizedOrTimedBytesBufferTest, AppendDataWithMaxSizeNoCapacityAvailable) {
       };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(mock_async_executor));
+      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   schedule_for_condition = false;
   schedule_condition = true;
 
@@ -231,7 +230,7 @@ TEST(SizedOrTimedBytesBufferTest, FlushData) {
       };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(mock_async_executor));
+      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   // When flush then append happens
   auto sized_or_timed_bytes_buffer =
       make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
@@ -291,7 +290,7 @@ TEST(SizedOrTimedBytesBufferTest, AppendBeforeFlushData) {
       };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(mock_async_executor));
+      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   // flush callback should be not called if any of the serialization functions
   // fail.
   auto failed_serialize_function = [](AsyncContext<Request, Response>&,
@@ -358,7 +357,7 @@ TEST(SizedOrTimedBytesBufferTest, FlushFailure) {
       };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(mock_async_executor));
+      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   // flush fails, all the waiters should know.
   auto failed_flush_function =
       [](BytesBuffer&,
@@ -426,7 +425,7 @@ TEST(SizedOrTimedBytesBufferTest, ProperFlushData) {
       };
 
   shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(move(mock_async_executor));
+      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   // flush callback, all the waiters should know.
   auto failed_flush_function =
       [](BytesBuffer&,

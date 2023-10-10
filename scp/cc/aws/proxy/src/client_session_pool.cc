@@ -32,7 +32,6 @@ using boost::asio::bind_executor;
 using boost::asio::const_buffer;
 using boost::asio::mutable_buffer;
 using boost::system::error_code;
-using std::move;
 using std::vector;
 
 namespace placeholders = boost::asio::placeholders;
@@ -125,7 +124,7 @@ bool ClientSessionPool::Start() {
   }
 
   // Here we are done with bind() call. Preserve the first socket.
-  pool_.push_back(move(first_socket));
+  pool_.push_back(std::move(first_socket));
 
   // Handle the listen call.
   socket_vendor::ListenRequest listen_req;

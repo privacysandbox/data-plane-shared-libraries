@@ -51,7 +51,6 @@ using google::scp::core::nosql_database_provider::AwsDynamoDBUtils;
 using google::scp::core::nosql_database_provider::NoSQLDatabaseProviderUtils;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -287,7 +286,7 @@ void AwsDynamoDB::OnGetDatabaseItemCallback(
         make_shared<string>(attribute_key_value_pair.first.c_str());
     key_value_pair.attribute_value =
         make_shared<NoSQLDatabaseValidAttributeValueTypes>(
-            move(attribute_value));
+            std::move(attribute_value));
     get_database_item_context.response->attributes->push_back(key_value_pair);
   }
 

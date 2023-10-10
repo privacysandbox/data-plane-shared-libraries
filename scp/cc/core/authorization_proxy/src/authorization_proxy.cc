@@ -30,7 +30,6 @@ using nghttp2::asio_http2::host_service_from_uri;
 using std::function;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::placeholders::_1;
@@ -84,7 +83,7 @@ AuthorizationProxy::AuthorizationProxy(
              bind(&OnBeforeGarbageCollection, _1, _2, _3), async_executor),
       server_endpoint_uri_(make_shared<string>(server_endpoint_url)),
       http_client_(http_client),
-      http_helper_(move(http_helper)) {}
+      http_helper_(std::move(http_helper)) {}
 
 ExecutionResult AuthorizationProxy::Authorize(
     AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>&
@@ -154,7 +153,7 @@ ExecutionResult AuthorizationProxy::Authorize(
   }
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
-      move(http_request),
+      std::move(http_request),
       bind(&AuthorizationProxy::HandleAuthorizeResponse, this,
            authorization_context, key_value_pair.first, _1),
       authorization_context);

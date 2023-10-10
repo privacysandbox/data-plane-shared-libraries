@@ -60,7 +60,6 @@ using google::scp::cpio::common::CreateClientConfiguration;
 using std::array;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -163,7 +162,7 @@ ExecutionResult TeeAwsKmsClientProvider::Decrypt(
       make_shared<AccountIdentity>(assume_role_arn);
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_session_credentials_context(
-          move(get_credentials_request),
+          std::move(get_credentials_request),
           bind(&TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt,
                this, decrypt_context, _1),
           decrypt_context);
@@ -216,7 +215,7 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   }
 
   auto kms_decrypt_response = make_shared<DecryptResponse>();
-  kms_decrypt_response->set_plaintext(move(decoded_plaintext));
+  kms_decrypt_response->set_plaintext(std::move(decoded_plaintext));
   decrypt_context.response = kms_decrypt_response;
   decrypt_context.result = SuccessExecutionResult();
   decrypt_context.Finish();

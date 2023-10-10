@@ -41,7 +41,6 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::PrivateKeyFetchingRequest;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::placeholders::_1;
@@ -97,7 +96,7 @@ void PrivateKeyFetcherProvider::SignHttpRequestCallback(
   }
 
   AsyncContext<HttpRequest, HttpResponse> http_client_context(
-      move(sign_http_request_context.response),
+      std::move(sign_http_request_context.response),
       bind(&PrivateKeyFetcherProvider::PrivateKeyFetchingCallback, this,
            private_key_fetching_context, _1),
       private_key_fetching_context);

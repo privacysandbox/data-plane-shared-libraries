@@ -92,7 +92,6 @@ using google::scp::cpio::client_providers::GcpCloudStorageFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -255,7 +254,7 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
         return result;
       });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(move(mock_source));
+  return unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStream) {
@@ -282,7 +281,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStream) {
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
     if (resp != nullptr) {
-      actual_responses.push_back(move(*resp));
+      actual_responses.push_back(std::move(*resp));
     } else {
       if (!context.IsMarkedDone()) {
         ADD_FAILURE();
@@ -338,7 +337,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
     if (resp != nullptr) {
-      actual_responses.push_back(move(*resp));
+      actual_responses.push_back(std::move(*resp));
     } else {
       if (!context.IsMarkedDone()) {
         ADD_FAILURE();
@@ -395,7 +394,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
     if (resp != nullptr) {
-      actual_responses.push_back(move(*resp));
+      actual_responses.push_back(std::move(*resp));
     } else {
       if (!context.IsMarkedDone()) {
         ADD_FAILURE();
@@ -605,8 +604,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
   request3.mutable_blob_portion()->set_data(strings[1]);
-  put_blob_stream_context_.TryPushRequest(move(request2));
-  put_blob_stream_context_.TryPushRequest(move(request3));
+  put_blob_stream_context_.TryPushRequest(std::move(request2));
+  put_blob_stream_context_.TryPushRequest(std::move(request3));
   put_blob_stream_context_.MarkDone();
 
   ExpectResumableUpload(*mock_client_, kBucketName, kBlobName, initial_str,
@@ -672,13 +671,13 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
   sleep_for(milliseconds(50));
   auto request2 = *put_blob_stream_context_.request;
   request2.mutable_blob_portion()->set_data(strings[0]);
-  put_blob_stream_context_.TryPushRequest(move(request2));
+  put_blob_stream_context_.TryPushRequest(std::move(request2));
 
   // Wait until the stream has been suspended
   sleep_for(milliseconds(50));
   auto request3 = *put_blob_stream_context_.request;
   request3.mutable_blob_portion()->set_data(strings[1]);
-  put_blob_stream_context_.TryPushRequest(move(request3));
+  put_blob_stream_context_.TryPushRequest(std::move(request3));
 
   put_blob_stream_context_.MarkDone();
 

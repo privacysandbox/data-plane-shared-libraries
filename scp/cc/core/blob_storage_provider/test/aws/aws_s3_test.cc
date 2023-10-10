@@ -68,7 +68,6 @@ using google::scp::core::blob_storage_provider::aws::mock::MockS3Client;
 using google::scp::core::blob_storage_provider::mock::MockAwsS3Client;
 using std::dynamic_pointer_cast;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -167,7 +166,7 @@ TEST_F(AwsS3Tests, OnGetObjectCallback) {
 
     get_object_result.ReplaceBody(input_data);
     get_object_result.SetContentLength(12);
-    GetObjectOutcome get_object_outcome(move(get_object_result));
+    GetObjectOutcome get_object_outcome(std::move(get_object_result));
     aws_s3_client.OnGetObjectCallback(get_blob_context, nullptr,
                                       get_object_request, get_object_outcome,
                                       nullptr);
@@ -375,7 +374,7 @@ TEST_F(AwsS3Tests, OnPutObjectCallback) {
 
   PutObjectRequest put_object_request;
   PutObjectResult put_object_result;
-  PutObjectOutcome put_object_outcome(move(put_object_result));
+  PutObjectOutcome put_object_outcome(std::move(put_object_result));
   aws_s3_client.OnPutObjectCallback(put_blob_context, nullptr,
                                     put_object_request, put_object_outcome,
                                     nullptr);
@@ -450,7 +449,7 @@ TEST_F(AwsS3Tests, OnDeleteObjectCallback) {
 
   DeleteObjectRequest delete_object_request;
   DeleteObjectResult delete_object_result;
-  DeleteObjectOutcome delete_object_outcome(move(delete_object_result));
+  DeleteObjectOutcome delete_object_outcome(std::move(delete_object_result));
   aws_s3_client.OnDeleteObjectCallback(delete_blob_context, nullptr,
                                        delete_object_request,
                                        delete_object_outcome, nullptr);

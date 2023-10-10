@@ -32,7 +32,6 @@
 namespace asio = boost::asio;
 using boost::system::error_code;
 using std::make_shared;
-using std::move;
 using std::thread;
 
 namespace google::scp::proxy {
@@ -89,7 +88,8 @@ void SocketVendorServer::StartAsyncAccept() {
   acceptor_.async_accept([this](boost::system::error_code ec, Socket socket) {
     StartAsyncAccept();
     if (!ec) {
-      auto pool = make_shared<ClientSessionPool>(move(socket), proxy_endpoint_);
+      auto pool =
+          make_shared<ClientSessionPool>(std::move(socket), proxy_endpoint_);
       if (!pool->Start()) {
         pool->Stop();
       }

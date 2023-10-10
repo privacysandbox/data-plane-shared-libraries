@@ -27,7 +27,6 @@
 using google::scp::core::TCPTrafficForwarderSocat;
 using std::cout;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::thread;

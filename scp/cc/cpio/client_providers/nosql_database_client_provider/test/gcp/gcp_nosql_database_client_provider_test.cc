@@ -104,7 +104,6 @@ using google::spanner::admin::database::v1::UpdateDatabaseDdlRequest;
 using std::make_pair;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::optional;
 using std::pair;
 using std::shared_ptr;
@@ -143,8 +142,8 @@ GetTableNameToKeysMap() {
   PartitionAndSortKey partition_lock_pair;
   partition_lock_pair.SetPartitionKey(kPartitionLockPartitionKeyName);
   partition_lock_pair.SetNoSortKey();
-  map->emplace(kBudgetKeyTableName, move(budget_key_pair));
-  map->emplace(kPartitionLockTableName, move(partition_lock_pair));
+  map->emplace(kBudgetKeyTableName, std::move(budget_key_pair));
+  map->emplace(kPartitionLockTableName, std::move(partition_lock_pair));
   return map;
 }
 
@@ -198,7 +197,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
     create_table_request.mutable_key()->set_table_name(kBudgetKeyTableName);
 
     create_table_context_.request =
-        make_shared<CreateTableRequest>(move(create_table_request));
+        make_shared<CreateTableRequest>(std::move(create_table_request));
 
     create_table_context_.callback = [this](auto) { finish_called_ = true; };
 
@@ -206,7 +205,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
     delete_table_request.set_table_name(kBudgetKeyTableName);
 
     delete_table_context_.request =
-        make_shared<DeleteTableRequest>(move(delete_table_request));
+        make_shared<DeleteTableRequest>(std::move(delete_table_request));
 
     delete_table_context_.callback = [this](auto) { finish_called_ = true; };
 
@@ -214,7 +213,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
     get_request.mutable_key()->set_table_name(kBudgetKeyTableName);
 
     get_database_item_context_.request =
-        make_shared<GetDatabaseItemRequest>(move(get_request));
+        make_shared<GetDatabaseItemRequest>(std::move(get_request));
 
     get_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -224,7 +223,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
     create_request.mutable_key()->set_table_name(kBudgetKeyTableName);
 
     create_database_item_context_.request =
-        make_shared<CreateDatabaseItemRequest>(move(create_request));
+        make_shared<CreateDatabaseItemRequest>(std::move(create_request));
 
     create_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -234,7 +233,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
     upsert_request.mutable_key()->set_table_name(kBudgetKeyTableName);
 
     upsert_database_item_context_.request =
-        make_shared<UpsertDatabaseItemRequest>(move(upsert_request));
+        make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
 
     upsert_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -311,7 +310,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests, CreateTableNoSortKeySuccess) {
       )",
       kPartitionLockTableName, kPartitionLockPartitionKeyName);
   absl::RemoveExtraAsciiWhitespace(&create_table_statement);
-  expected_request.add_statements(move(create_table_statement));
+  expected_request.add_statements(std::move(create_table_statement));
   EXPECT_CALL(*database_connection_,
               UpdateDatabaseDdl(EqualsProto(expected_request)))
       .WillOnce(ReturnEmptyUpdateMetadata);
@@ -346,7 +345,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests, CreateTableWithSortKeySuccess) {
       )",
       kBudgetKeyTableName, kBudgetKeyPartitionKeyName, kBudgetKeySortKeyName);
   absl::RemoveExtraAsciiWhitespace(&create_table_statement);
-  expected_request.add_statements(move(create_table_statement));
+  expected_request.add_statements(std::move(create_table_statement));
   EXPECT_CALL(*database_connection_,
               UpdateDatabaseDdl(EqualsProto(expected_request)))
       .WillOnce(ReturnEmptyUpdateMetadata);
@@ -902,11 +901,11 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
   params.emplace("partition_key", "3");
   SqlStatement expected_sql(
       "SELECT Value FROM `PartitionLock` WHERE LockId = @partition_key",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kPartitionLockTableName, {kPartitionLockPartitionKeyName, "Value"},
@@ -943,11 +942,11 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests, UpsertItemNoAttributesWithSortKey) {
   SqlStatement expected_sql(
       "SELECT Value FROM `BudgetKeys` WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kBudgetKeyTableName,
@@ -983,7 +982,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
   params.emplace("partition_key", "3");
   SqlStatement expected_sql(
       "SELECT Value FROM `PartitionLock` WHERE LockId = @partition_key",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   // We return a JSON with "other_val" and "token_count" existing,
   // token_count should be overridden.
@@ -996,7 +995,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
   )"""))))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kPartitionLockTableName, {kPartitionLockPartitionKeyName, "Value"},
@@ -1036,7 +1035,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
   )"""))))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery)
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   EXPECT_CALL(*connection_, Commit)
       .WillOnce(Return(Status(google::cloud::StatusCode::kInternal, "Error")));
@@ -1072,7 +1071,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       .WillOnce(Return(MakeRow(1)))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery)
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   EXPECT_CALL(*connection_, Commit);
 
@@ -1110,7 +1109,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
   SqlStatement expected_sql(
       "SELECT Value FROM `PartitionLock` WHERE LockId = @partition_key AND "
       "JSON_VALUE(Value, '$.token_count') = @attribute_0",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
@@ -1121,7 +1120,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kPartitionLockTableName, {kPartitionLockPartitionKeyName, "Value"},
@@ -1164,7 +1163,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       "SELECT Value FROM `BudgetKeys` WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
@@ -1175,7 +1174,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kBudgetKeyTableName,
@@ -1219,12 +1218,12 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       "SELECT Value FROM `BudgetKeys` WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   // Return(Row()) means no rows are found.
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   EXPECT_CALL(*connection_, Commit(FieldsAre(_, IsEmpty(), _)))
       .WillOnce(Return(CommitResult{}));
@@ -1266,7 +1265,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       "SELECT Value FROM `BudgetKeys` WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
@@ -1277,7 +1276,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   EXPECT_CALL(*connection_, Commit)
       .WillOnce(Return(Status(google::cloud::StatusCode::kInternal, "error")));

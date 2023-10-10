@@ -34,7 +34,6 @@ using std::atomic_bool;
 using std::atomic_int;
 using std::function;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::thread;
 using testing::_;
@@ -136,7 +135,7 @@ TEST_F(WriteReactorTest, BasicSequenceWorks) {
       for (int i = 0; i < 3; i++) {
         SomeResponse resp;
         resp.set_field(i);
-        context.TryPushResponse(move(resp));
+        context.TryPushResponse(std::move(resp));
         context.ProcessNextMessage();
       }
       context.MarkDone();
@@ -191,7 +190,7 @@ TEST_F(WriteReactorTest, FailureOnAsyncOperationWorks) {
     async_thread = thread([context]() mutable {
       SomeResponse resp;
       resp.set_field(0);
-      context.TryPushResponse(move(resp));
+      context.TryPushResponse(std::move(resp));
       context.ProcessNextMessage();
       context.MarkDone();
       context.result = FailureExecutionResult(SC_UNKNOWN);
@@ -229,7 +228,7 @@ TEST_F(WriteReactorTest, CapturesExecutionResultWhenCalledOutOfOrder) {
       context.result = FailureExecutionResult(SC_UNKNOWN);
       SomeResponse resp;
       resp.set_field(0);
-      context.TryPushResponse(move(resp));
+      context.TryPushResponse(std::move(resp));
       // We call finish before ProcessNextMessage to simulate the async
       // operations executing in an unexpected order.
       context.Finish();
@@ -237,8 +236,8 @@ TEST_F(WriteReactorTest, CapturesExecutionResultWhenCalledOutOfOrder) {
       // Reset result to ensure the correct one is captured.
       context.result = ExecutionResult();
       // Enqueue more messages to ensure they aren't written.
-      context.TryPushResponse(move(resp));
-      context.TryPushResponse(move(resp));
+      context.TryPushResponse(std::move(resp));
+      context.TryPushResponse(std::move(resp));
       context.MarkDone();
       context.ProcessNextMessage();
       context.ProcessNextMessage();
@@ -268,7 +267,7 @@ TEST_F(WriteReactorTest, FailureOnWriteWorks) {
     async_thread = thread([context]() mutable {
       SomeResponse resp;
       resp.set_field(1);
-      context.TryPushResponse(move(resp));
+      context.TryPushResponse(std::move(resp));
       context.ProcessNextMessage();
       context.MarkDone();
       context.result = SuccessExecutionResult();
@@ -301,7 +300,7 @@ TEST_F(WriteReactorTest, CancellationWorks) {
       resp.set_field(0);
       context.TryPushResponse(resp);
       context.ProcessNextMessage();
-      context.TryPushResponse(move(resp));
+      context.TryPushResponse(std::move(resp));
       context.ProcessNextMessage();
       WaitUntil([&context]() { return context.IsCancelled(); });
       context.MarkDone();

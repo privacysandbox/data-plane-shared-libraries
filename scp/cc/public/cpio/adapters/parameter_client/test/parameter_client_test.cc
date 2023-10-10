@@ -46,7 +46,6 @@ using google::scp::cpio::mock::MockParameterClientWithOverrides;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;

@@ -64,7 +64,6 @@ using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -295,7 +294,7 @@ TEST_F(GcpMetricClientProviderTest, AsyncCreateTimeSeriesCallback) {
   auto outcome = make_ready_future(Status(StatusCode::kOk, ""));
 
   metric_client_provider_->OnAsyncCreateTimeSeriesCallback(requests_vector,
-                                                           move(outcome));
+                                                           std::move(outcome));
   EXPECT_EQ(received_responses, 5);
 }
 

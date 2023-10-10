@@ -62,7 +62,6 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::to_string;
@@ -276,7 +275,7 @@ void PrivateKeyFetchingClientUtils::CreateHttpRequest(
     const auto& key_uri = *request.key_id;
     auto uri =
         make_shared<Uri>(absl::StrCat(absl::StrCat(base_uri, "/"), key_uri));
-    http_request.path = move(uri);
+    http_request.path = std::move(uri);
     return;
   }
 

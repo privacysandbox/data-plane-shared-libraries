@@ -58,7 +58,6 @@ using google::scp::core::blob_storage_provider::AwsS3Utils;
 using google::scp::core::utils::Base64Encode;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -252,7 +251,7 @@ void AwsS3Client::OnListObjectsCallback(
       list_objects_outcome.GetResult().GetNextMarker().c_str());
   next_marker.bucket_name = list_blobs_context.request->bucket_name;
   list_blobs_context.response->next_marker =
-      make_shared<Blob>(move(next_marker));
+      make_shared<Blob>(std::move(next_marker));
 
   list_blobs_context.result = SuccessExecutionResult();
   if (!async_executor_

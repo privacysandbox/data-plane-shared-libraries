@@ -71,7 +71,6 @@ using std::atomic;
 using std::function;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::string_view;
@@ -129,7 +128,7 @@ class CryptoClientProviderTest : public ScpTestBase {
     request->set_is_bidirectional(is_bidirectional);
     request->set_exporter_context(exporter_context);
     return AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>(
-        move(request),
+        std::move(request),
         [exporter_context, hpke_params_from_request, hpke_params_config,
          decrypt_private_key_result,
          this](AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>& context) {
@@ -192,7 +191,7 @@ class CryptoClientProviderTest : public ScpTestBase {
     request->mutable_encrypted_data()->set_key_id(string(kKeyId));
     request->set_exporter_context(exporter_context);
     return AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>(
-        move(request),
+        std::move(request),
         [decrypt_private_key_result, secret](
             AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>& context) {
           if (!decrypt_private_key_result.Successful()) {
@@ -211,7 +210,7 @@ class CryptoClientProviderTest : public ScpTestBase {
     request->set_payload(string(kPayload));
     request->set_secret(absl::HexStringToBytes(secret));
     return AsyncContext<AeadEncryptRequest, AeadEncryptResponse>(
-        move(request),
+        std::move(request),
         [&](AsyncContext<AeadEncryptRequest, AeadEncryptResponse>& context) {});
   }
 
@@ -222,7 +221,7 @@ class CryptoClientProviderTest : public ScpTestBase {
     request->set_secret(absl::HexStringToBytes(secret));
     request->mutable_encrypted_data()->set_ciphertext(string(ciphertext));
     return AsyncContext<AeadDecryptRequest, AeadDecryptResponse>(
-        move(request),
+        std::move(request),
         [&](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {});
   }
 

@@ -78,7 +78,6 @@ using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::client_providers::AwsNoSQLDatabaseClientUtils;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::optional;
 using std::pair;
 using std::shared_ptr;
@@ -135,7 +134,7 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::Run() noexcept {
     return client_or.result();
   }
 
-  dynamo_db_client_ = move(*client_or);
+  dynamo_db_client_ = std::move(*client_or);
 
   return SuccessExecutionResult();
 }
@@ -185,7 +184,7 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::GetDatabaseItem(
   condition_expression =
       absl::StrCat(key_container_or->partition_key_name, "= :partition_key");
   attribute_values.emplace(":partition_key",
-                           move(key_container_or->partition_key_val));
+                           std::move(key_container_or->partition_key_val));
 
   // Sort key is optional
   if (key_container_or->sort_key_name.has_value()) {
@@ -193,7 +192,7 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::GetDatabaseItem(
         absl::StrCat(condition_expression, " and ",
                      *key_container_or->sort_key_name, "= :sort_key");
     attribute_values.emplace(":sort_key",
-                             move(*key_container_or->sort_key_val));
+                             std::move(*key_container_or->sort_key_val));
   }
   get_item_request.SetKeyConditionExpression(condition_expression);
 
@@ -207,9 +206,9 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::GetDatabaseItem(
       get_database_item_context.Finish();
       return filter_expression_or.result();
     }
-    get_item_request.SetFilterExpression(move(*filter_expression_or));
+    get_item_request.SetFilterExpression(std::move(*filter_expression_or));
   }
-  get_item_request.SetExpressionAttributeValues(move(attribute_values));
+  get_item_request.SetExpressionAttributeValues(std::move(attribute_values));
 
   dynamo_db_client_->QueryAsync(
       get_item_request,
@@ -287,7 +286,7 @@ void AwsNoSQLDatabaseClientProvider::OnGetDatabaseItemCallback(
 
     attribute_or->set_name(attribute_key_value_pair.first.c_str());
     *get_database_item_context.response->mutable_item()->add_attributes() =
-        move(*attribute_or);
+        std::move(*attribute_or);
   }
 
   FinishContext(SuccessExecutionResult(), get_database_item_context,
@@ -316,8 +315,8 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::CreateDatabaseItem(
   String condition_expression = absl::StrFormat(
       "attribute_not_exists(%s)", key_container_or->partition_key_name);
   // Set the partition key
-  put_item_request.AddItem(move(key_container_or->partition_key_name),
-                           move(key_container_or->partition_key_val));
+  put_item_request.AddItem(std::move(key_container_or->partition_key_name),
+                           std::move(key_container_or->partition_key_val));
 
   // Sort key is optional
   if (key_container_or->sort_key_name.has_value()) {
@@ -325,8 +324,8 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::CreateDatabaseItem(
                                            condition_expression.c_str(),
                                            *key_container_or->sort_key_name);
     // Set the sort key
-    put_item_request.AddItem(move(*key_container_or->sort_key_name),
-                             move(*key_container_or->sort_key_val));
+    put_item_request.AddItem(std::move(*key_container_or->sort_key_name),
+                             std::move(*key_container_or->sort_key_val));
   }
 
   if (!request.attributes().empty()) {
@@ -350,7 +349,7 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::CreateDatabaseItem(
   }
 
   // Set the condition expression so we fail if the entry exists already.
-  put_item_request.SetConditionExpression(move(condition_expression));
+  put_item_request.SetConditionExpression(std::move(condition_expression));
 
   dynamo_db_client_->PutItemAsync(
       put_item_request,
@@ -402,14 +401,14 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::UpsertDatabaseItem(
   }
 
   // Set the partition key
-  update_item_request.AddKey(move(key_container_or->partition_key_name),
-                             move(key_container_or->partition_key_val));
+  update_item_request.AddKey(std::move(key_container_or->partition_key_name),
+                             std::move(key_container_or->partition_key_val));
 
   // Sort key is optional
   if (key_container_or->sort_key_name.has_value()) {
     // Set the sort key
-    update_item_request.AddKey(move(*key_container_or->sort_key_name),
-                               move(*key_container_or->sort_key_val));
+    update_item_request.AddKey(std::move(*key_container_or->sort_key_name),
+                               std::move(*key_container_or->sort_key_val));
   }
 
   // Set the update expression
@@ -440,7 +439,7 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::UpsertDatabaseItem(
       }
 
       attribute_values.emplace(absl::StrCat(":new_attribute_", attribute_index),
-                               move(*attribute_value_or));
+                               std::move(*attribute_value_or));
 
       if (attribute_index + 1 < request.new_attributes_size()) {
         update_expression += " , ";
@@ -459,7 +458,8 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::UpsertDatabaseItem(
       upsert_database_item_context.Finish();
       return condition_expression_or.result();
     }
-    update_item_request.SetConditionExpression(move(*condition_expression_or));
+    update_item_request.SetConditionExpression(
+        std::move(*condition_expression_or));
   }
 
   update_item_request.SetExpressionAttributeValues(attribute_values);

@@ -40,7 +40,6 @@ using std::atomic;
 using std::get;
 using std::make_shared;
 using std::make_tuple;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::tuple;

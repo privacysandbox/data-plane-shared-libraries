@@ -86,7 +86,6 @@ using std::get;
 using std::isxdigit;
 using std::make_pair;
 using std::make_shared;
-using std::move;
 using std::mt19937;
 using std::random_device;
 using std::shared_ptr;

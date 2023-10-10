@@ -51,7 +51,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::string;
@@ -75,7 +74,7 @@ class SimpleMetricTest : public testing::Test {
     auto metric_info =
         MetricDefinition(kMetricName, MetricUnit::kCount, kNamespace);
     simple_metric_ = make_shared<SimpleMetric>(
-        mock_async_executor_, mock_metric_client_, move(metric_info));
+        mock_async_executor_, mock_metric_client_, std::move(metric_info));
 
     AutoInitRunStop to_handle_simple_metric(*simple_metric_);
   }

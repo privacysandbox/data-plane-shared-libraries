@@ -76,7 +76,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -193,7 +192,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
         GetObjectOutcome get_object_outcome(s3_error);
         callback(nullptr /*s3_client*/, get_object_request,
-                 move(get_object_outcome), nullptr /*async_context*/);
+                 std::move(get_object_outcome), nullptr /*async_context*/);
       });
 
   EXPECT_SUCCESS(provider_.GetBlob(get_blob_context_));
@@ -231,9 +230,9 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobSuccess) {
 
         get_object_result.ReplaceBody(input_data);
         get_object_result.SetContentLength(12);
-        GetObjectOutcome get_object_outcome(move(get_object_result));
+        GetObjectOutcome get_object_outcome(std::move(get_object_result));
         callback(nullptr /*s3_client*/, get_object_request,
-                 move(get_object_outcome), nullptr /*async_context*/);
+                 std::move(get_object_outcome), nullptr /*async_context*/);
       });
 
   EXPECT_SUCCESS(provider_.GetBlob(get_blob_context_));
@@ -281,9 +280,9 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobWithByteRange) {
 
         get_object_result.ReplaceBody(input_data);
         get_object_result.SetContentLength(12);
-        GetObjectOutcome get_object_outcome(move(get_object_result));
+        GetObjectOutcome get_object_outcome(std::move(get_object_result));
         callback(nullptr /*s3_client*/, get_object_request,
-                 move(get_object_outcome), nullptr /*async_context*/);
+                 std::move(get_object_outcome), nullptr /*async_context*/);
       });
 
   EXPECT_SUCCESS(provider_.GetBlob(get_blob_context_));
@@ -375,7 +374,7 @@ TEST_F(AwsBlobStorageClientProviderTest, ListBlobsFailure) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
         ListObjectsOutcome list_objects_outcome(s3_error);
         callback(nullptr /*s3_client*/, list_objects_request,
-                 move(list_objects_outcome), nullptr /*async_context*/);
+                 std::move(list_objects_outcome), nullptr /*async_context*/);
       });
 
   EXPECT_THAT(provider_.ListBlobsMetadata(list_blobs_metadata_context_),
@@ -414,10 +413,10 @@ TEST_F(AwsBlobStorageClientProviderTest, ListBlobsSuccess) {
         Object object1, object2;
         object1.SetKey("object_1");
         object2.SetKey("object_2");
-        result.AddContents(move(object1)).AddContents(move(object2));
-        ListObjectsOutcome list_objects_outcome(move(result));
+        result.AddContents(std::move(object1)).AddContents(std::move(object2));
+        ListObjectsOutcome list_objects_outcome(std::move(result));
         callback(nullptr /*s3_client*/, list_objects_request,
-                 move(list_objects_outcome), nullptr /*async_context*/);
+                 std::move(list_objects_outcome), nullptr /*async_context*/);
       });
 
   EXPECT_THAT(provider_.ListBlobsMetadata(list_blobs_metadata_context_),
@@ -462,7 +461,7 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobFailure) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
         PutObjectOutcome put_object_outcome(s3_error);
         callback(nullptr /*s3_client*/, put_object_request,
-                 move(put_object_outcome), nullptr /*async_context*/);
+                 std::move(put_object_outcome), nullptr /*async_context*/);
       });
 
   EXPECT_SUCCESS(provider_.PutBlob(put_blob_context_));
@@ -494,9 +493,9 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobSuccess) {
       .WillOnce([](auto, auto& callback, auto) {
         PutObjectRequest put_object_request;
         PutObjectResult result;
-        PutObjectOutcome put_object_outcome(move(result));
+        PutObjectOutcome put_object_outcome(std::move(result));
         callback(nullptr /*s3_client*/, put_object_request,
-                 move(put_object_outcome), nullptr /*async_context*/);
+                 std::move(put_object_outcome), nullptr /*async_context*/);
       });
 
   EXPECT_SUCCESS(provider_.PutBlob(put_blob_context_));
@@ -528,7 +527,7 @@ TEST_F(AwsBlobStorageClientProviderTest, DeleteBlobFailure) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
         DeleteObjectOutcome delete_object_outcome(s3_error);
         callback(nullptr /*s3_client*/, delete_object_request,
-                 move(delete_object_outcome), nullptr /*async_context*/);
+                 std::move(delete_object_outcome), nullptr /*async_context*/);
       });
 
   EXPECT_SUCCESS(provider_.DeleteBlob(delete_blob_context_));
@@ -556,9 +555,9 @@ TEST_F(AwsBlobStorageClientProviderTest, DeleteBlobSuccess) {
       .WillOnce([](auto, auto callback, auto) {
         DeleteObjectRequest delete_object_request;
         DeleteObjectResult result;
-        DeleteObjectOutcome delete_object_outcome(move(result));
+        DeleteObjectOutcome delete_object_outcome(std::move(result));
         callback(nullptr /*s3_client*/, delete_object_request,
-                 move(delete_object_outcome), nullptr /*async_context*/);
+                 std::move(delete_object_outcome), nullptr /*async_context*/);
       });
 
   EXPECT_SUCCESS(provider_.DeleteBlob(delete_blob_context_));

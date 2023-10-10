@@ -48,7 +48,6 @@ using std::bind;
 using std::list;
 using std::make_shared;
 using std::max_element;
-using std::move;
 using std::shared_ptr;
 using std::sort;
 using std::string;
@@ -179,7 +178,7 @@ ExecutionResult JournalInputStream::ReadLastCheckpointBlob(
                     "Reading the last checkpoint blob");
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
-      make_shared<GetBlobRequest>(move(get_blob_request)),
+      make_shared<GetBlobRequest>(std::move(get_blob_request)),
       bind(&JournalInputStream::OnReadLastCheckpointBlobCallback, this,
            journal_stream_read_log_context, _1),
       journal_stream_read_log_context);
@@ -270,7 +269,7 @@ ExecutionResult JournalInputStream::ReadCheckpointBlob(
                     get_blob_request.blob_name->c_str());
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
-      make_shared<GetBlobRequest>(move(get_blob_request)),
+      make_shared<GetBlobRequest>(std::move(get_blob_request)),
       bind(&JournalInputStream::OnReadCheckpointBlobCallback, this,
            journal_stream_read_log_context, _1),
       journal_stream_read_log_context);
@@ -354,7 +353,7 @@ ExecutionResult JournalInputStream::ListCheckpoints(
   }
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context(
-      make_shared<ListBlobsRequest>(move(list_blobs_request)),
+      make_shared<ListBlobsRequest>(std::move(list_blobs_request)),
       bind(&JournalInputStream::OnListCheckpointsCallback, this,
            journal_stream_read_log_context, _1),
       journal_stream_read_log_context);
@@ -459,7 +458,7 @@ ExecutionResult JournalInputStream::ListJournals(
   }
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context(
-      make_shared<ListBlobsRequest>(move(list_blobs_request)),
+      make_shared<ListBlobsRequest>(std::move(list_blobs_request)),
       bind(&JournalInputStream::OnListJournalsCallback, this,
            journal_stream_read_log_context, _1),
       journal_stream_read_log_context);
@@ -684,7 +683,7 @@ ExecutionResult JournalInputStream::ReadJournalBlob(
   get_blob_request.blob_name = journal_blob.blob_name;
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
-      make_shared<GetBlobRequest>(move(get_blob_request)),
+      make_shared<GetBlobRequest>(std::move(get_blob_request)),
       bind(&JournalInputStream::OnReadJournalBlobCallback, this,
            journal_stream_read_log_context, _1, buffer_index),
       journal_stream_read_log_context);
@@ -745,7 +744,7 @@ ExecutionResult JournalInputStream::ProcessLoadedJournals(
   if (!execution_result.Successful()) {
     return execution_result;
   }
-  FinishContextWithResponse(journal_stream_read_log_context, move(logs));
+  FinishContextWithResponse(journal_stream_read_log_context, std::move(logs));
   return SuccessExecutionResult();
 }
 
@@ -854,7 +853,7 @@ ExecutionResult JournalInputStream::ReadJournalLogBatch(
       return execution_result;
     }
 
-    journal_batch->push_back(move(journal_stream_read_log_object));
+    journal_batch->push_back(std::move(journal_stream_read_log_object));
   }
 
   if (enable_batch_read_journals_) {

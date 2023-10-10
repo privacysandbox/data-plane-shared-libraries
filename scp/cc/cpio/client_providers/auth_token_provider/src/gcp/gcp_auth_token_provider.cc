@@ -56,7 +56,6 @@ using std::cbegin;
 using std::cend;
 using std::make_pair;
 using std::make_shared;
-using std::move;
 using std::pair;
 using std::shared_ptr;
 using std::string;
@@ -233,7 +232,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
       seconds(expiry_seconds);
   auto access_token = json_response[kJsonAccessTokenKey].get<string>();
   get_token_context.response->session_token =
-      make_shared<string>(move(access_token));
+      make_shared<string>(std::move(access_token));
 
   get_token_context.result = SuccessExecutionResult();
   get_token_context.Finish();

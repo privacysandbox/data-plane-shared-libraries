@@ -82,7 +82,6 @@ using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::to_string;
@@ -127,7 +126,8 @@ ExecutionResult AwsQueueClientProvider::Run() noexcept {
     return execution_result;
   }
 
-  sqs_client_ = sqs_client_factory_->CreateSqsClient(move(*client_config_or));
+  sqs_client_ =
+      sqs_client_factory_->CreateSqsClient(std::move(*client_config_or));
 
   auto queue_url_or = GetQueueUrl();
   if (!queue_url_or.Successful() || queue_url_or->empty()) {
@@ -136,7 +136,7 @@ ExecutionResult AwsQueueClientProvider::Run() noexcept {
               "Failed to get queue url.");
     return execution_result;
   }
-  queue_url_ = move(*queue_url_or);
+  queue_url_ = std::move(*queue_url_or);
 
   return execution_result;
 }
@@ -152,7 +152,7 @@ AwsQueueClientProvider::CreateClientConfiguration() noexcept {
   }
 
   auto client_config = common::CreateClientConfiguration(
-      make_shared<string>(move(*region_code_or)));
+      make_shared<string>(std::move(*region_code_or)));
   client_config->executor = make_shared<AwsAsyncExecutor>(io_async_executor_);
 
   return client_config;
@@ -279,7 +279,7 @@ void AwsQueueClientProvider::OnReceiveMessageCallback(
   if (messages.size() == 0) {
     SCP_INFO_CONTEXT(kAwsQueueClientProvider, get_top_message_context,
                      "No messages received from the queue.");
-    get_top_message_context.response = move(response);
+    get_top_message_context.response = std::move(response);
     FinishContext(execution_result, get_top_message_context,
                   cpu_async_executor_);
     return;
@@ -303,7 +303,7 @@ void AwsQueueClientProvider::OnReceiveMessageCallback(
   response->set_message_id(message.GetMessageId().c_str());
   response->set_message_body(message.GetBody().c_str());
   response->set_receipt_info(message.GetReceiptHandle().c_str());
-  get_top_message_context.response = move(response);
+  get_top_message_context.response = std::move(response);
   FinishContext(execution_result, get_top_message_context, cpu_async_executor_);
 }
 

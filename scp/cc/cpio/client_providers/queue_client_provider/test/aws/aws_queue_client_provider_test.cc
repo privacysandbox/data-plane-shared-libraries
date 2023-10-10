@@ -96,7 +96,6 @@ using google::scp::cpio::client_providers::mock::MockSqsClient;
 using std::atomic_bool;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::unique_ptr;
 using testing::_;
@@ -150,7 +149,7 @@ class AwsQueueClientProviderTest : public ::testing::Test {
 
     GetQueueUrlResult get_queue_url_result;
     get_queue_url_result.SetQueueUrl(kQueueUrl);
-    GetQueueUrlOutcome get_queue_url_outcome(move(get_queue_url_result));
+    GetQueueUrlOutcome get_queue_url_outcome(std::move(get_queue_url_result));
     ON_CALL(*mock_sqs_client_, GetQueueUrl)
         .WillByDefault(Return(get_queue_url_outcome));
 
@@ -258,7 +257,7 @@ MATCHER_P(HasGetQueueUrlRequestParams, queue_name, "") {
 TEST_F(AwsQueueClientProviderTest, RunSuccessWithExistingQueue) {
   GetQueueUrlResult get_queue_url_result;
   get_queue_url_result.SetQueueUrl(kQueueUrl);
-  GetQueueUrlOutcome get_queue_url_outcome(move(get_queue_url_result));
+  GetQueueUrlOutcome get_queue_url_outcome(std::move(get_queue_url_result));
   EXPECT_CALL(*mock_sqs_client_,
               GetQueueUrl(HasGetQueueUrlRequestParams(kQueueName)))
       .WillOnce(Return(get_queue_url_outcome));
@@ -295,8 +294,8 @@ TEST_F(AwsQueueClientProviderTest, EnqueueMessageSuccess) {
         SendMessageRequest send_message_request;
         SendMessageResult send_message_result;
         send_message_result.SetMessageId(kMessageId);
-        SendMessageOutcome send_message_outcome(move(send_message_result));
-        callback(nullptr, send_message_request, move(send_message_outcome),
+        SendMessageOutcome send_message_outcome(std::move(send_message_result));
+        callback(nullptr, send_message_request, std::move(send_message_outcome),
                  nullptr);
       });
 
@@ -327,7 +326,7 @@ TEST_F(AwsQueueClientProviderTest, EnqueueMessageCallbackFailed) {
         AWSError<SQSErrors> sqs_error(SQSErrors::INVALID_CLIENT_TOKEN_ID,
                                       false);
         SendMessageOutcome send_message_outcome(sqs_error);
-        callback(nullptr, send_message_request, move(send_message_outcome),
+        callback(nullptr, send_message_request, std::move(send_message_outcome),
                  nullptr);
       });
 
@@ -380,9 +379,9 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageSuccess) {
         ReceiveMessageResult receive_message_result;
         receive_message_result.SetMessages(messages);
         ReceiveMessageOutcome receive_message_outcome(
-            move(receive_message_result));
+            std::move(receive_message_result));
         callback(nullptr, receive_message_request,
-                 move(receive_message_outcome), nullptr);
+                 std::move(receive_message_outcome), nullptr);
       });
 
   EXPECT_SUCCESS(
@@ -413,7 +412,7 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageCallbackFailed) {
         AWSError<SQSErrors> sqs_error(SQSErrors::VALIDATION, false);
         ReceiveMessageOutcome receive_message_outcome(sqs_error);
         callback(nullptr, receive_message_request,
-                 move(receive_message_outcome), nullptr);
+                 std::move(receive_message_outcome), nullptr);
       });
 
   EXPECT_SUCCESS(
@@ -441,9 +440,9 @@ TEST_F(AwsQueueClientProviderTest, GotTopMessageCallbackWithNoMessage) {
         ReceiveMessageResult receive_message_result;
         receive_message_result.SetMessages(messages);
         ReceiveMessageOutcome receive_message_outcome(
-            move(receive_message_result));
+            std::move(receive_message_result));
         callback(nullptr, receive_message_request,
-                 move(receive_message_outcome), nullptr);
+                 std::move(receive_message_outcome), nullptr);
       });
 
   EXPECT_SUCCESS(
@@ -482,9 +481,9 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageCallbackWithMultipleMessages) {
         ReceiveMessageResult receive_message_result;
         receive_message_result.SetMessages(messages);
         ReceiveMessageOutcome receive_message_outcome(
-            move(receive_message_result));
+            std::move(receive_message_result));
         callback(nullptr, receive_message_request,
-                 move(receive_message_outcome), nullptr);
+                 std::move(receive_message_outcome), nullptr);
       });
 
   EXPECT_SUCCESS(
@@ -530,7 +529,7 @@ TEST_F(AwsQueueClientProviderTest, UpdateMessageVisibilityTimeoutSuccess) {
         ChangeMessageVisibilityOutcome change_message_visibility_outcome(
             result);
         callback(nullptr, change_message_visibility_request,
-                 move(change_message_visibility_outcome), nullptr);
+                 std::move(change_message_visibility_outcome), nullptr);
       });
 
   EXPECT_SUCCESS(queue_client_provider_->UpdateMessageVisibilityTimeout(
@@ -604,7 +603,7 @@ TEST_F(AwsQueueClientProviderTest,
         ChangeMessageVisibilityOutcome change_message_visibility_outcome(
             sqs_error);
         callback(nullptr, change_message_visibility_request,
-                 move(change_message_visibility_outcome), nullptr);
+                 std::move(change_message_visibility_outcome), nullptr);
       });
 
   EXPECT_SUCCESS(queue_client_provider_->UpdateMessageVisibilityTimeout(
@@ -638,8 +637,8 @@ TEST_F(AwsQueueClientProviderTest, DeleteMessageSuccess) {
         Aws::SQS::Model::DeleteMessageRequest delete_message_request;
         NoResult result;
         DeleteMessageOutcome delete_message_outcome(result);
-        callback(nullptr, delete_message_request, move(delete_message_outcome),
-                 nullptr);
+        callback(nullptr, delete_message_request,
+                 std::move(delete_message_outcome), nullptr);
       });
 
   EXPECT_SUCCESS(
@@ -668,8 +667,8 @@ TEST_F(AwsQueueClientProviderTest, DeleteMessageCallbackFailed) {
         Aws::SQS::Model::DeleteMessageRequest delete_message_request;
         AWSError<SQSErrors> sqs_error(SQSErrors::MESSAGE_NOT_INFLIGHT, false);
         DeleteMessageOutcome delete_message_outcome(sqs_error);
-        callback(nullptr, delete_message_request, move(delete_message_outcome),
-                 nullptr);
+        callback(nullptr, delete_message_request,
+                 std::move(delete_message_outcome), nullptr);
       });
 
   EXPECT_SUCCESS(

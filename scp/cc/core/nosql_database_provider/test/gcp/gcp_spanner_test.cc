@@ -75,7 +75,6 @@ using google::spanner::v1::ResultSetStats;
 using std::make_pair;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::optional;
 using std::pair;
 using std::shared_ptr;
@@ -107,8 +106,9 @@ class TestGcpSpanner : public GcpSpanner {
       std::shared_ptr<AsyncExecutorInterface> async_executor,
       std::unique_ptr<unordered_map<string, pair<string, optional<string>>>>
           table_name_to_keys)
-      : GcpSpanner(spanner_client, async_executor, move(table_name_to_keys),
-                   AsyncPriority::Normal, AsyncPriority::Normal) {}
+      : GcpSpanner(spanner_client, async_executor,
+                   std::move(table_name_to_keys), AsyncPriority::Normal,
+                   AsyncPriority::Normal) {}
 };
 
 MATCHER_P(SqlEqual, expected_sql, "") {
@@ -172,7 +172,7 @@ class GcpSpannerTests : public testing::Test {
         make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
 
     get_database_item_context_.request =
-        make_shared<GetDatabaseItemRequest>(move(get_request));
+        make_shared<GetDatabaseItemRequest>(std::move(get_request));
 
     get_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -187,7 +187,7 @@ class GcpSpannerTests : public testing::Test {
         make_shared<vector<NoSqlDatabaseKeyValuePair>>();
 
     upsert_database_item_context_.request =
-        make_shared<UpsertDatabaseItemRequest>(move(upsert_request));
+        make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
 
     upsert_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -493,11 +493,11 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithPartitionKeyOnly) {
   params.emplace("partition_key", "3");
   SqlStatement expected_sql(
       "SELECT Value FROM PartitionLock WHERE LockId = @partition_key",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kPartitionLockTableName, {kPartitionLockPartitionKeyName, "Value"},
@@ -539,11 +539,11 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithSortKey) {
   SqlStatement expected_sql(
       "SELECT Value FROM BudgetKeys WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kBudgetKeyTableName,
@@ -580,7 +580,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithExistingValue) {
   params.emplace("partition_key", "3");
   SqlStatement expected_sql(
       "SELECT Value FROM PartitionLock WHERE LockId = @partition_key",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   // We return a JSON with "other_val" and "token_count" existing, token_count
   // should be overridden.
@@ -593,7 +593,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithExistingValue) {
   )"""))))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kPartitionLockTableName, {kPartitionLockPartitionKeyName, "Value"},
@@ -634,7 +634,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesFailsIfCommitFails) {
   )"""))))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery)
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   EXPECT_CALL(*connection_, Commit)
       .WillOnce(Return(Status(google::cloud::StatusCode::kInternal, "Error")));
@@ -671,7 +671,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesFailsIfJsonParseFails) {
       .WillOnce(Return(MakeRow(1)))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery)
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   EXPECT_CALL(*connection_, Commit);
 
@@ -715,7 +715,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithPartitionKeyOnly) {
   SqlStatement expected_sql(
       "SELECT Value FROM PartitionLock WHERE LockId = @partition_key AND "
       "JSON_VALUE(Value, '$.token_count') = @attribute_0",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
@@ -726,7 +726,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithPartitionKeyOnly) {
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kPartitionLockTableName, {kPartitionLockPartitionKeyName, "Value"},
@@ -778,7 +778,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithSortKey) {
       "SELECT Value FROM BudgetKeys WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
@@ -789,7 +789,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithSortKey) {
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   Mutation m = MakeInsertOrUpdateMutation(
       kBudgetKeyTableName,
@@ -842,12 +842,12 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfNoRowsFound) {
       "SELECT Value FROM BudgetKeys WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   // Return(Row()) means no rows are found.
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   EXPECT_CALL(*connection_, Commit(FieldsAre(_, IsEmpty(), _)))
       .WillOnce(Return(CommitResult{}));
@@ -898,7 +898,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfCommitFails) {
       "SELECT Value FROM BudgetKeys WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
-      move(params));
+      std::move(params));
   auto returned_results = make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
@@ -909,7 +909,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfCommitFails) {
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
-      .WillOnce(Return(ByMove(RowStream(move(returned_results)))));
+      .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
 
   EXPECT_CALL(*connection_, Commit)
       .WillOnce(Return(Status(google::cloud::StatusCode::kInternal, "error")));

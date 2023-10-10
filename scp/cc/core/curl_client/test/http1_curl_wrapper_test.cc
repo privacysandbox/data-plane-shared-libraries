@@ -25,7 +25,6 @@ using boost::beast::http::status;
 using std::get;
 using std::make_shared;
 using std::make_tuple;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::tuple;
@@ -51,7 +50,7 @@ class Http1CurlWrapperTest
         subject_([]() {
           auto wrapper_or = Http1CurlWrapper::MakeWrapper();
           assert(wrapper_or.Successful());
-          return move(*wrapper_or);
+          return std::move(*wrapper_or);
         }()) {}
 
   status GetResponseStatusToReturn() { return get<0>(GetParam()); }

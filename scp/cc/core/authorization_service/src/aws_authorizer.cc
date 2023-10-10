@@ -40,7 +40,6 @@ using std::end;
 using std::make_pair;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::string;
 using std::vector;
 using std::placeholders::_1;
@@ -209,7 +208,7 @@ ExecutionResult AwsAuthorizer::Authorize(
   }
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
-      move(http_request),
+      std::move(http_request),
       bind(&AwsAuthorizer::HandleHttpResponse, this, authorization_context,
            cache_entry_key, _1),
       authorization_context);

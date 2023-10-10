@@ -61,7 +61,6 @@ using google::scp::core::errors::
 using std::atomic;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::vector;
 using std::placeholders::_1;
@@ -97,7 +96,7 @@ void PublicKeyClientProvider::OnListPublicKeys(
   auto request = make_shared<ListPublicKeysRequest>();
   any_context.request->UnpackTo(request.get());
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
-      move(request),
+      std::move(request),
       bind(CallbackToPackAnyResponse<ListPublicKeysRequest,
                                      ListPublicKeysResponse>,
            any_context, _1),
@@ -130,10 +129,10 @@ ExecutionResult PublicKeyClientProvider::ListPublicKeys(
 
     auto http_request = make_shared<HttpRequest>();
     http_request->method = HttpMethod::GET;
-    http_request->path = move(shared_uri);
+    http_request->path = std::move(shared_uri);
 
     AsyncContext<HttpRequest, HttpResponse> http_client_context(
-        move(http_request),
+        std::move(http_request),
         bind(&PublicKeyClientProvider::OnPerformRequestCallback, this,
              public_key_fetching_context, _1, got_success_result,
              unfinished_counter),

@@ -43,7 +43,6 @@ using google::scp::core::common::TimeProvider;
 using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricValue;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 
@@ -69,7 +68,7 @@ void SimpleMetric::RunMetricPush(
     const shared_ptr<PutMetricsRequest> record_metric_request) noexcept {
   auto activity_id = core::common::Uuid::GenerateUuid();
   AsyncContext<PutMetricsRequest, PutMetricsResponse> record_metric_context(
-      move(record_metric_request),
+      std::move(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         if (!context.result.Successful()) {
           std::vector<string> metric_names;
@@ -85,7 +84,7 @@ void SimpleMetric::RunMetricPush(
       activity_id, activity_id);
   auto metrics_count = record_metric_context.request->metrics().size();
   auto execution_result =
-      metric_client_->PutMetrics(move(record_metric_context));
+      metric_client_->PutMetrics(std::move(record_metric_context));
   if (!execution_result.Successful()) {
     SCP_CRITICAL(kSimpleMetric, object_activity_id_, execution_result,
                  "PutMetrics returned a failure for '%llu' metrics",

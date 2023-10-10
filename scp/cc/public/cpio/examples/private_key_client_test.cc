@@ -42,7 +42,6 @@ using google::scp::cpio::PrivateKeyVendingEndpoint;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::to_string;
@@ -82,7 +81,7 @@ int main(int argc, char* argv[]) {
       .emplace_back(secondary_endpoint);
 
   auto private_key_client =
-      PrivateKeyClientFactory::Create(move(private_key_client_options));
+      PrivateKeyClientFactory::Create(std::move(private_key_client_options));
   result = private_key_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init private key client!"
@@ -102,7 +101,7 @@ int main(int argc, char* argv[]) {
   request.add_key_ids(kKeyId1);
   atomic<bool> finished = false;
   result = private_key_client->ListPrivateKeys(
-      move(request),
+      std::move(request),
       [&](const ExecutionResult result, ListPrivateKeysResponse response) {
         if (!result.Successful()) {
           std::cout << "ListPrivateKeys failed: "

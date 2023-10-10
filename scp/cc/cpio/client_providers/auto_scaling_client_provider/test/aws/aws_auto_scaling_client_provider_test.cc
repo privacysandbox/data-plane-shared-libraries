@@ -82,7 +82,6 @@ using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::atomic_bool;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -258,8 +257,8 @@ TEST_F(AwsAutoScalingClientProviderTest, DescribeAutoScalingInstancesFailed) {
         DescribeAutoScalingInstancesRequest request;
         AWSError<AutoScalingErrors> error(AutoScalingErrors::INTERNAL_FAILURE,
                                           false);
-        DescribeAutoScalingInstancesOutcome outcome(move(error));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeAutoScalingInstancesOutcome outcome(std::move(error));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(
@@ -289,8 +288,8 @@ TEST_F(AwsAutoScalingClientProviderTest, InstanceAlreadyTerminated) {
         AutoScalingInstanceDetails instance_details;
         instance_details.SetLifecycleState(kLifecycleStateTerminatingProceed);
         result.AddAutoScalingInstances(instance_details);
-        DescribeAutoScalingInstancesOutcome outcome(move(result));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeAutoScalingInstancesOutcome outcome(std::move(result));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(
@@ -320,8 +319,8 @@ TEST_F(AwsAutoScalingClientProviderTest, NotInTerminatingWaitState) {
         AutoScalingInstanceDetails instance_details;
         instance_details.SetLifecycleState(kLifecycleStatePending);
         result.AddAutoScalingInstances(instance_details);
-        DescribeAutoScalingInstancesOutcome outcome(move(result));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeAutoScalingInstancesOutcome outcome(std::move(result));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(
@@ -365,8 +364,8 @@ TEST_F(AwsAutoScalingClientProviderTest, CompleteLifecycleActionFailed) {
         instance_details.SetLifecycleState(kLifecycleStateTerminatingWait);
         instance_details.SetAutoScalingGroupName(kAutoScalingGroupName);
         result.AddAutoScalingInstances(instance_details);
-        DescribeAutoScalingInstancesOutcome outcome(move(result));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeAutoScalingInstancesOutcome outcome(std::move(result));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*mock_auto_scaling_client_,
@@ -379,8 +378,8 @@ TEST_F(AwsAutoScalingClientProviderTest, CompleteLifecycleActionFailed) {
         CompleteLifecycleActionRequest request;
         AWSError<AutoScalingErrors> error(AutoScalingErrors::INTERNAL_FAILURE,
                                           false);
-        CompleteLifecycleActionOutcome outcome(move(error));
-        callback(nullptr, request, move(outcome), nullptr);
+        CompleteLifecycleActionOutcome outcome(std::move(error));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(
@@ -411,8 +410,8 @@ TEST_F(AwsAutoScalingClientProviderTest, ScheduleTerminationSuccessfully) {
         instance_details.SetLifecycleState(kLifecycleStateTerminatingWait);
         instance_details.SetAutoScalingGroupName(kAutoScalingGroupName);
         result.AddAutoScalingInstances(instance_details);
-        DescribeAutoScalingInstancesOutcome outcome(move(result));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeAutoScalingInstancesOutcome outcome(std::move(result));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*mock_auto_scaling_client_,
@@ -426,8 +425,8 @@ TEST_F(AwsAutoScalingClientProviderTest, ScheduleTerminationSuccessfully) {
         AWSError<AutoScalingErrors> error(AutoScalingErrors::INTERNAL_FAILURE,
                                           false);
         CompleteLifecycleActionResult result;
-        CompleteLifecycleActionOutcome outcome(move(result));
-        callback(nullptr, request, move(outcome), nullptr);
+        CompleteLifecycleActionOutcome outcome(std::move(result));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(

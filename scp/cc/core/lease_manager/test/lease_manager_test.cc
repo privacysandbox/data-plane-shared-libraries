@@ -33,7 +33,6 @@ using std::abort;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::mutex;
 using std::optional;
 using std::shared_ptr;

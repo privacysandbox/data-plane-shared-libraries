@@ -61,7 +61,6 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::dynamic_pointer_cast;
 using std::make_shared;
-using std::move;
 using std::set;
 using std::shared_ptr;
 using std::string;
@@ -963,7 +962,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadLastCheckpointBlob) {
           return result;
         };
     shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(move(mock_storage_client));
+        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
         std::make_shared<EnvConfigProvider>());
@@ -983,7 +982,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1016,7 +1015,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadLastCheckpointListFails) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1056,7 +1055,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadLastCheckpointBlobCorrupted) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1111,7 +1110,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1185,7 +1184,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadCheckpointBlob) {
           return result;
         };
     shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(move(mock_storage_client));
+        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
@@ -1205,7 +1204,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobCallback) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1237,7 +1236,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobCorruptedBlob) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1289,7 +1288,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobListBlobsFail) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   // When the result is blob found and the content looks good but list
   // the journal blobs immediately fails
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
@@ -1370,7 +1369,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ListCheckpoints) {
           return result;
         };
     shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(move(mock_storage_client));
+        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
@@ -1396,7 +1395,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListCheckpointsCallback) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1430,7 +1429,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1479,7 +1478,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1531,7 +1530,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
       };
 
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1580,7 +1579,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1655,7 +1654,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ListJournals) {
           return result;
         };
     shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(move(mock_storage_client));
+        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
@@ -1681,7 +1680,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallback) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1714,7 +1713,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1751,7 +1750,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1803,7 +1802,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
       };
 
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1866,7 +1865,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
       };
 
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1928,7 +1927,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
       };
 
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1984,7 +1983,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallbackWithMarker) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2042,7 +2041,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2064,7 +2063,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlobsProperly) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   // When the result is journal_logthing but success
   vector<ExecutionResult> results = {SuccessExecutionResult(),
                                      FailureExecutionResult(1234),
@@ -2153,7 +2152,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlob) {
           return result;
         };
     shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(move(mock_storage_client));
+        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
@@ -2174,7 +2173,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadJournalBlobCallback) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   // When the result is journal_logthing but success
   vector<ExecutionResult> results = {FailureExecutionResult(1234),
                                      RetryExecutionResult(1234)};
@@ -2209,7 +2208,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2292,7 +2291,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ProcessLoadedJournals) {
   auto partition_name = make_shared<string>("partition_name");
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2313,7 +2312,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ProcessLoadedJournalsProperly) {
   auto partition_name = make_shared<string>("partition_name");
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2346,7 +2345,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2371,7 +2370,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2393,7 +2392,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ProcessNextJournalLog) {
   auto partition_name = make_shared<string>("partition_name");
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2417,7 +2416,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ProcessNextJournalLogProperly) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2448,7 +2447,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2529,7 +2528,7 @@ TEST_F(MockJournalInputStreamTest, ReadJournalLogBatch) {
 
   MockBlobStorageClient mock_storage_client;
   shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(move(mock_storage_client));
+      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());

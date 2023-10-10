@@ -51,7 +51,6 @@ using google::scp::core::utils::Base64Encode;
 using std::atomic;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -119,7 +118,7 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
 
       AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>
           fetch_private_key_context(
-              move(request),
+              std::move(request),
               bind(&PrivateKeyClientProvider::OnFetchPrivateKeyCallback, this,
                    list_private_keys_context, _1, list_keys_status,
                    endpoints_status, uri_index),
@@ -317,7 +316,7 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
 
   auto& plaintexts = endpoints_status->plaintext_key_id_map.at(key_id);
   plaintexts.at(uri_index) =
-      move(*decrypt_context.response->mutable_plaintext());
+      std::move(*decrypt_context.response->mutable_plaintext());
   auto endpoint_finished_prev =
       endpoints_status->finished_counter_key_id_map[key_id].fetch_add(1);
   endpoints_status->map_mutex.unlock();
@@ -370,8 +369,8 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
       return;
     }
 
-    private_key.set_private_key(move(encoded_key));
-    list_keys_status->private_key_id_map[key_id] = move(private_key);
+    private_key.set_private_key(std::move(encoded_key));
+    list_keys_status->private_key_id_map[key_id] = std::move(private_key);
   }
 
   // Finished all remote calls.
@@ -386,7 +385,7 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
     for (auto it = list_keys_status->private_key_id_map.begin();
          it != list_keys_status->private_key_id_map.end(); ++it) {
       *list_private_keys_context.response->add_private_keys() =
-          move(it->second);
+          std::move(it->second);
       ++count;
     }
     list_private_keys_context.result = SuccessExecutionResult();

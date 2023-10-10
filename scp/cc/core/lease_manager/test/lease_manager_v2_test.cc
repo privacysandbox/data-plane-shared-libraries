@@ -45,7 +45,6 @@ using google::scp::core::lease_manager::mock::MockLeaseRefreshLivenessCheck;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::mutex;
 using std::nullopt;
 using std::optional;
@@ -194,14 +193,14 @@ class LeaseManagerV2Test : public ::testing::Test {
 };
 
 TEST_F(LeaseManagerV2Test, InitRunStopWithOutAnyLocksAdded) {
-  LeaseManagerV2 lease_manager(move(lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.Init());
   EXPECT_SUCCESS(lease_manager.Run());
   EXPECT_SUCCESS(lease_manager.Stop());
 }
 
 TEST_F(LeaseManagerV2Test, InitRunStopWithThreeLocksAdded) {
-  LeaseManagerV2 lease_manager(move(lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -214,7 +213,7 @@ TEST_F(LeaseManagerV2Test, InitRunStopWithThreeLocksAdded) {
 }
 
 TEST_F(LeaseManagerV2Test, ThreeLocksRefreshLeasesAndInvokeSink) {
-  LeaseManagerV2 lease_manager(move(lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -253,7 +252,7 @@ TEST_F(LeaseManagerV2Test, ThreeLocksRefreshLeasesAndInvokeSink) {
 
 TEST_F(LeaseManagerV2Test, RefreshModeDoesNotChangeToBeginWith) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -273,7 +272,7 @@ TEST_F(LeaseManagerV2Test, RefreshModeDoesNotChangeToBeginWith) {
 TEST_F(LeaseManagerV2Test,
        RefreshModeTryToTakeOneLeaseAsSpecifiedInPreference) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -294,7 +293,7 @@ TEST_F(LeaseManagerV2Test,
 TEST_F(LeaseManagerV2Test,
        RefreshModeTryToTakeTwoLeasesAsSpecifiedInPreference) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -315,7 +314,7 @@ TEST_F(LeaseManagerV2Test,
 TEST_F(LeaseManagerV2Test,
        RefreshModeTryToTakeOneMoreLeaseWhenTwoLeasesAreBeingTried) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -345,7 +344,7 @@ TEST_F(LeaseManagerV2Test,
 TEST_F(LeaseManagerV2Test,
        RefreshModeTryToTakeOneMoreLeaseWhenTwoLeasesAreBeingHeld) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -382,7 +381,7 @@ TEST_F(LeaseManagerV2Test,
 TEST_F(LeaseManagerV2Test,
        RefreshModeDoesNotAcquireNewIfOneLeaseIsBeingHeldAndOneInProgress) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -415,7 +414,7 @@ TEST_F(LeaseManagerV2Test,
 TEST_F(LeaseManagerV2Test,
        RefreshModeCannotTryTakingLeaseIfAllLeasesHeldByThem) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -443,7 +442,7 @@ TEST_F(LeaseManagerV2Test,
 TEST_F(LeaseManagerV2Test,
        RefreshModeTryTakingAvailableLeaseIfSomeLeasesAreHeldByThem) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -469,7 +468,7 @@ TEST_F(LeaseManagerV2Test,
 TEST_F(LeaseManagerV2Test,
        RefreshModeTrySwitchingBackIfSomeLeasesAreAlreadyHeldByThem) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -506,7 +505,7 @@ TEST_F(LeaseManagerV2Test,
 
 TEST_F(LeaseManagerV2Test, RefreshModeDoesNotChangeIfLeaseHeldByUs) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -536,7 +535,7 @@ TEST_F(LeaseManagerV2Test, RefreshModeDoesNotChangeIfLeaseHeldByUs) {
 
 TEST_F(LeaseManagerV2Test, RefreshModeTryReleaseOneLeaseAsPerPreference) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -592,7 +591,7 @@ TEST_F(LeaseManagerV2Test, RefreshModeTryReleaseOneLeaseAsPerPreference) {
 
 TEST_F(LeaseManagerV2Test, RefreshModeTryReleaseTwoLeasesAsPerPreference) {
   // Construct mock lease refreshers.
-  LeaseManagerV2 lease_manager(move(mock_lease_refresher_factory_));
+  LeaseManagerV2 lease_manager(std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,
@@ -662,7 +661,7 @@ TEST_F(LeaseManagerV2Test,
 
   // Construct mock lease refreshers.
   LeaseManagerV2PrivateAccessor lease_manager(
-      move(mock_lease_refresher_factory_));
+      std::move(mock_lease_refresher_factory_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_1_, leasable_lock_1_,
                                                  event_sink_1_));
   EXPECT_SUCCESS(lease_manager.ManageLeaseOnLock(lock_id_2_, leasable_lock_2_,

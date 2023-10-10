@@ -48,7 +48,6 @@ using std::atomic;
 using std::bind;
 using std::list;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::sort;
 using std::string;
@@ -216,7 +215,7 @@ ExecutionResult JournalOutputStream::WriteJournalBlob(
 
   PutBlobRequest put_blob_request;
   put_blob_request.bucket_name = bucket_name_;
-  put_blob_request.buffer = make_shared<BytesBuffer>(move(bytes_buffer));
+  put_blob_request.buffer = make_shared<BytesBuffer>(std::move(bytes_buffer));
   auto execution_result = JournalUtils::CreateJournalBlobName(
       partition_name_, journal_id, put_blob_request.blob_name);
   if (!execution_result.Successful()) {

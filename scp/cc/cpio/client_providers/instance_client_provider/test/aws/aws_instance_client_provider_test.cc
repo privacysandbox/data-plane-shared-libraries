@@ -94,7 +94,6 @@ using google::scp::cpio::client_providers::mock::MockEC2Client;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -509,8 +508,8 @@ TEST_F(AwsInstanceClientProviderTest,
         reservation.AddInstances(instance);
         DescribeInstancesResponse response;
         response.AddReservations(reservation);
-        DescribeInstancesOutcome outcome(move(response));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeInstancesOutcome outcome(std::move(response));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   InstanceDetails details;
@@ -532,8 +531,8 @@ TEST_F(AwsInstanceClientProviderTest,
       .WillOnce([&](auto, auto callback, auto) {
         DescribeInstancesRequest request;
         AWSError<EC2Errors> error(EC2Errors::INTERNAL_FAILURE, false);
-        DescribeInstancesOutcome outcome(move(error));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeInstancesOutcome outcome(std::move(error));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   InstanceDetails details;
@@ -555,8 +554,8 @@ TEST_F(AwsInstanceClientProviderTest, GetInstanceDetailsByResourceName) {
         reservation.AddInstances(instance);
         DescribeInstancesResponse response;
         response.AddReservations(reservation);
-        DescribeInstancesOutcome outcome(move(response));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeInstancesOutcome outcome(std::move(response));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   auto request = make_shared<GetInstanceDetailsByResourceNameRequest>();
@@ -566,7 +565,7 @@ TEST_F(AwsInstanceClientProviderTest, GetInstanceDetailsByResourceName) {
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
-          move(request),
+          std::move(request),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
@@ -590,8 +589,8 @@ TEST_F(AwsInstanceClientProviderTest,
       .WillOnce([&](auto, auto callback, auto) {
         DescribeInstancesRequest request;
         AWSError<EC2Errors> error(EC2Errors::INTERNAL_FAILURE, false);
-        DescribeInstancesOutcome outcome(move(error));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeInstancesOutcome outcome(std::move(error));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   auto request = make_shared<GetInstanceDetailsByResourceNameRequest>();
@@ -601,7 +600,7 @@ TEST_F(AwsInstanceClientProviderTest,
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
-          move(request),
+          std::move(request),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(
@@ -623,8 +622,8 @@ TEST_F(AwsInstanceClientProviderTest,
         Reservation reservation;
         DescribeInstancesResponse response;
         response.AddReservations(reservation);
-        DescribeInstancesOutcome outcome(move(response));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeInstancesOutcome outcome(std::move(response));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   auto request = make_shared<GetInstanceDetailsByResourceNameRequest>();
@@ -636,7 +635,7 @@ TEST_F(AwsInstanceClientProviderTest,
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
-          move(request),
+          std::move(request),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result, ResultIs(failure));
@@ -667,8 +666,8 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameSucceed) {
         tag_2.SetKey(kTagName2);
         tag_2.SetValue(kTagValue2);
         response.AddTags(tag_2);
-        DescribeTagsOutcome outcome(move(response));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeTagsOutcome outcome(std::move(response));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   auto request = make_shared<GetTagsByResourceNameRequest>();
@@ -676,7 +675,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameSucceed) {
 
   atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
-      context(move(request),
+      context(std::move(request),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_SUCCESS(context.result);
@@ -699,8 +698,8 @@ TEST_F(AwsInstanceClientProviderTest,
       .WillOnce([&](auto, auto callback, auto) {
         DescribeTagsRequest request;
         AWSError<EC2Errors> error(EC2Errors::INTERNAL_FAILURE, false);
-        DescribeTagsOutcome outcome(move(error));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeTagsOutcome outcome(std::move(error));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   auto request = make_shared<GetTagsByResourceNameRequest>();
@@ -708,7 +707,7 @@ TEST_F(AwsInstanceClientProviderTest,
 
   atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
-      context(move(request),
+      context(std::move(request),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_THAT(context.result,
@@ -730,7 +729,7 @@ TEST_F(AwsInstanceClientProviderTest,
   request->set_resource_name(kBadAwsInstanceResourceNameMock);
 
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
-      context(move(request),
+      context(std::move(request),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {});
 
@@ -749,7 +748,7 @@ TEST_F(AwsInstanceClientProviderTest,
   request->set_resource_name(kBadAwsRegionCodeMock);
 
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
-      context(move(request),
+      context(std::move(request),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {});
 
@@ -769,8 +768,8 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
       .WillRepeatedly([&](auto, auto callback, auto) {
         DescribeTagsRequest request;
         DescribeTagsResponse response;
-        DescribeTagsOutcome outcome(move(response));
-        callback(nullptr, request, move(outcome), nullptr);
+        DescribeTagsOutcome outcome(std::move(response));
+        callback(nullptr, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*ec2_factory_, CreateClient(RegionMatched(kRegionUsEast1), _))
@@ -783,7 +782,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
   request_empty_region->set_resource_name(kAwsInstanceResourceNameMock);
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context_empty_region(
-          move(request_empty_region),
+          std::move(request_empty_region),
           [&](AsyncContext<GetTagsByResourceNameRequest,
                            GetTagsByResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
@@ -794,7 +793,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
   request_us_west->set_resource_name(kAwsInstanceResourceNameUsWestMock);
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context_us_west(
-          move(request_us_west),
+          std::move(request_us_west),
           [&](AsyncContext<GetTagsByResourceNameRequest,
                            GetTagsByResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);

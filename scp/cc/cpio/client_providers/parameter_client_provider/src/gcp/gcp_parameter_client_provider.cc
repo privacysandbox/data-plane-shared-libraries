@@ -54,7 +54,6 @@ using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::common::GcpUtils;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::placeholders::_1;
@@ -73,7 +72,7 @@ ExecutionResult GcpParameterClientProvider::Init() noexcept {
               "Failed to get project ID for current instance");
     return project_id_or.result();
   }
-  project_id_ = move(*project_id_or);
+  project_id_ = std::move(*project_id_or);
 
   sm_client_shared_ = GetSecretManagerClient();
   if (!sm_client_shared_) {
@@ -123,7 +122,7 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
 
   auto schedule_result = io_async_executor_->Schedule(
       bind(&GcpParameterClientProvider::AsyncGetParameterCallback, this,
-           get_parameter_context, move(access_secret_request)),
+           get_parameter_context, std::move(access_secret_request)),
       AsyncPriority::Normal);
 
   if (!schedule_result.Successful()) {
@@ -158,7 +157,7 @@ void GcpParameterClientProvider::AsyncGetParameterCallback(
     return;
   }
 
-  auto version = move(secret_result).value();
+  auto version = std::move(secret_result).value();
   get_parameter_context.response = make_shared<GetParameterResponse>();
   get_parameter_context.response->set_parameter_value(version.payload().data());
   get_parameter_context.result = SuccessExecutionResult();

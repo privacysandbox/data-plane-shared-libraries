@@ -71,7 +71,6 @@ using google::scp::core::errors::SC_ROMA_WORKER_API_UNINITIALIZED_SANDBOX;
 using google::scp::core::errors::SC_ROMA_WORKER_API_WORKER_CRASHED;
 using google::scp::roma::sandbox::constants::kBadFd;
 using std::make_unique;
-using std::move;
 using std::numeric_limits;
 using std::string;
 using std::unique_ptr;
@@ -315,7 +314,7 @@ ExecutionResult WorkerSandboxApi::InternalRunCode(
         SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA);
   }
 
-  params = move(out_params);
+  params = std::move(out_params);
 
   return SuccessExecutionResult();
 }
@@ -360,7 +359,7 @@ core::ExecutionResult WorkerSandboxApi::InternalRunCodeBufferShareOnly(
         SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA);
   }
 
-  params = move(out_params);
+  params = std::move(out_params);
 
   return SuccessExecutionResult();
 }

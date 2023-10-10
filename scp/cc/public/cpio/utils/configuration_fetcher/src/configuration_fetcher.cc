@@ -65,7 +65,6 @@ using google::scp::core::errors::
     SC_CONFIGURATION_FETCHER_ENVIRONMENT_NAME_NOT_FOUND;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::placeholders::_1;
@@ -465,7 +464,7 @@ void ConfigurationFetcher::GetCurrentInstanceResourceNameCallback(
   GetInstanceDetailsByResourceNameRequest request;
   request.set_instance_resource_name(response.instance_resource_name());
   if (auto result = instance_client_->GetInstanceDetailsByResourceName(
-          move(request),
+          std::move(request),
           bind(&ConfigurationFetcher::GetInstanceDetailsByResourceNameCallback,
                this, _1, _2, response, get_configuration_context));
       !result.Successful()) {
@@ -511,8 +510,8 @@ void ConfigurationFetcher::GetInstanceDetailsByResourceNameCallback(
   request.set_parameter_name(absl::StrCat("scp-", it->second, "-",
                                           *get_configuration_context.request));
   if (auto result = parameter_client_->GetParameter(
-          move(request), bind(&ConfigurationFetcher::GetParameterCallback, this,
-                              _1, _2, get_configuration_context));
+          std::move(request), bind(&ConfigurationFetcher::GetParameterCallback,
+                                   this, _1, _2, get_configuration_context));
       !result.Successful()) {
     get_configuration_context.result = result;
     SCP_ERROR_CONTEXT(kConfigurationFetcher, get_configuration_context,
@@ -538,7 +537,7 @@ void ConfigurationFetcher::GetParameterCallback(
 
   get_configuration_context.result = SuccessExecutionResult();
   get_configuration_context.response =
-      make_shared<string>(move(response.parameter_value()));
+      make_shared<string>(std::move(response.parameter_value()));
   get_configuration_context.Finish();
 }
 }  // namespace google::scp::cpio

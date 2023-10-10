@@ -39,7 +39,6 @@ using google::scp::core::errors::
     SC_GCP_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -76,7 +75,7 @@ ExecutionResult GcpPrivateKeyFetcherProvider::SignHttpRequest(
           ->gcp_private_key_vending_service_cloudfunction_url);
   AsyncContext<GetSessionTokenForTargetAudienceRequest, GetSessionTokenResponse>
       get_token_context(
-          move(request),
+          std::move(request),
           bind(&GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback, this,
                sign_request_context, _1),
           sign_request_context);
@@ -109,7 +108,7 @@ void GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback(
   http_request->headers->insert(
       {string(kAuthorizationHeaderKey),
        absl::StrCat(kBearerTokenPrefix, access_token)});
-  sign_request_context.response = move(http_request);
+  sign_request_context.response = std::move(http_request);
   sign_request_context.result = SuccessExecutionResult();
   sign_request_context.Finish();
 }

@@ -51,7 +51,6 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::scoped_lock;
 using std::shared_ptr;
 using std::string;
@@ -221,7 +220,7 @@ void MetricClientProvider::OnPutMetrics(
   auto request = make_shared<PutMetricsRequest>();
   any_context.request->UnpackTo(request.get());
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      move(request),
+      std::move(request),
       bind(CallbackToPackAnyResponse<PutMetricsRequest, PutMetricsResponse>,
            any_context, _1),
       any_context);

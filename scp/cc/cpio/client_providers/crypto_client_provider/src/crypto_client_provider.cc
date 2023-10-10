@@ -100,7 +100,6 @@ using std::isxdigit;
 using std::make_shared;
 using std::make_unique;
 using std::map;
-using std::move;
 using std::mt19937;
 using std::random_device;
 using std::shared_ptr;
@@ -322,7 +321,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
     return decrypt_context.result;
   }
 
-  auto keyset_handle = CleartextKeysetHandle::Read(move(*keyset_reader));
+  auto keyset_handle = CleartextKeysetHandle::Read(std::move(*keyset_reader));
   if (!keyset_handle.ok()) {
     auto execution_result = FailureExecutionResult(
         SC_CRYPTO_CLIENT_PROVIDER_CANNOT_CREATE_KEYSET_HANDLE);

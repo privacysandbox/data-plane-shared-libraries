@@ -51,7 +51,6 @@ using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED;
 using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 
@@ -134,7 +133,7 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
     return decrypt_context.result;
   }
   decrypt_context.response = make_shared<DecryptResponse>();
-  decrypt_context.response->set_plaintext(move(*decrypt_or));
+  decrypt_context.response->set_plaintext(std::move(*decrypt_or));
   decrypt_context.result = SuccessExecutionResult();
   decrypt_context.Finish();
   return SuccessExecutionResult();
@@ -157,7 +156,7 @@ ExecutionResultOr<shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
               "Failed to get Key Arn.");
     return execution_result;
   }
-  return move(*aead_result);
+  return std::move(*aead_result);
 }
 
 #ifndef TEST_CPIO

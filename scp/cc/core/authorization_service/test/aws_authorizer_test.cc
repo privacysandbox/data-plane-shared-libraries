@@ -53,7 +53,6 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::function;
 using std::make_shared;
-using std::move;
 using std::promise;
 using std::shared_ptr;
 using std::string;
@@ -143,7 +142,7 @@ TEST(AwsAuthorizerTest, BasicHappyPath) {
   request->claimed_identity = make_shared<string>("claimed_identity");
 
   promise<void> done;
-  Context context(move(request), [&](Context& context) {
+  Context context(std::move(request), [&](Context& context) {
     EXPECT_SUCCESS(context.result);
     done.set_value();
   });
@@ -174,7 +173,7 @@ TEST(AwsAuthorizerTest, BasicUnauthorized) {
   request->claimed_identity = make_shared<string>("claimed_identity");
 
   promise<void> done;
-  Context context(move(request), [&](Context& context) {
+  Context context(std::move(request), [&](Context& context) {
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(
                     errors::SC_HTTP2_CLIENT_HTTP_STATUS_FORBIDDEN)));
@@ -207,7 +206,7 @@ TEST(AwsAuthorizerTest, MalformedServerResponse) {
   request->claimed_identity = make_shared<string>("claimed_identity");
 
   promise<void> done;
-  Context context(move(request), [&](Context& context) {
+  Context context(std::move(request), [&](Context& context) {
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(
                     errors::SC_AUTHORIZATION_SERVICE_INTERNAL_ERROR)));
@@ -253,7 +252,7 @@ TEST(AwsAuthorizerTest, CannotConnectServer) {
   request->claimed_identity = make_shared<string>("claimed_identity");
 
   promise<void> done;
-  Context context(move(request), [&](Context& context) {
+  Context context(std::move(request), [&](Context& context) {
     EXPECT_THAT(
         context.result,
         ResultIs(FailureExecutionResult(
@@ -284,7 +283,7 @@ TEST(AwsAuthorizerTest, MalformedToken) {
       R"({"bad_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
 
-  Context context(move(request), [&](Context& context) {});
+  Context context(std::move(request), [&](Context& context) {});
   EXPECT_THAT(authorizer->Authorize(context),
               ResultIs(FailureExecutionResult(
                   errors::SC_AUTHORIZATION_SERVICE_BAD_TOKEN)));
@@ -313,7 +312,7 @@ TEST(AwsAuthorizerTest, MalformedTokenBadEncoding) {
   request->authorization_token =
       make_shared<AuthorizationToken>("123321qwerfdaxcvdfasdf");
 
-  Context context(move(request), [&](Context& context) {});
+  Context context(std::move(request), [&](Context& context) {});
   EXPECT_THAT(authorizer->Authorize(context),
               ResultIs(FailureExecutionResult(
                   errors::SC_AUTHORIZATION_SERVICE_BAD_TOKEN)));
@@ -337,7 +336,7 @@ TEST(AwsAuthorizerTest, BadConfig) {
       "amz_date":"19891107T123456Z"})"));
   request->claimed_identity = make_shared<string>("claimed_identity");
 
-  Context context(move(request), [&](Context& context) {});
+  Context context(std::move(request), [&](Context& context) {});
   EXPECT_THAT(authorizer->Authorize(context),
               ResultIs(FailureExecutionResult(
                   errors::SC_AUTHORIZATION_SERVICE_INVALID_CONFIG)));
@@ -361,7 +360,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
 
-  Context context(move(request), [&](Context& context) {});
+  Context context(std::move(request), [&](Context& context) {});
 
   atomic<size_t> counter = 0;
   http_client->perform_request_mock =
@@ -435,7 +434,7 @@ TEST(AwsAuthorizerTest, HttpClientFailureWillInvalidateCache) {
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
 
-  Context context(move(request), [&](Context& context) {});
+  Context context(std::move(request), [&](Context& context) {});
 
   atomic<size_t> counter = 0;
   http_client->perform_request_mock =
@@ -479,7 +478,7 @@ TEST(AwsAuthorizerTest, HttpClientFailureOnResponse) {
       "amz_date":"19891107T123456Z"})"));
   request->claimed_identity = make_shared<string>("claimed_identity");
 
-  Context context(move(request), [&](Context& context) {});
+  Context context(std::move(request), [&](Context& context) {});
 
   atomic<size_t> counter = 0;
   http_client->perform_request_mock =

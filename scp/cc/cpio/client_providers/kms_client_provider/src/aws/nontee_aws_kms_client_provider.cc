@@ -57,7 +57,6 @@ using google::scp::core::utils::Base64Decode;
 using google::scp::cpio::common::CreateClientConfiguration;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::placeholders::_1;
@@ -175,7 +174,7 @@ ExecutionResult NonteeAwsKmsClientProvider::GetAeadCallbackToDecrypt(
     return decrypt_context.result;
   }
   decrypt_context.response = make_shared<DecryptResponse>();
-  decrypt_context.response->set_plaintext(move(*decrypt_result));
+  decrypt_context.response->set_plaintext(std::move(*decrypt_result));
   decrypt_context.result = SuccessExecutionResult();
   decrypt_context.Finish();
   return SuccessExecutionResult();
@@ -205,7 +204,7 @@ void NonteeAwsKmsClientProvider::CreateKmsCallbackToCreateAead(
 
   auto aead_result =
       AwsKmsAead::New(get_aead_context.request->key_resource_name(),
-                      move(create_kms_context.response));
+                      std::move(create_kms_context.response));
   if (!aead_result.ok()) {
     auto execution_result =
         FailureExecutionResult(SC_AWS_KMS_CLIENT_PROVIDER_CREATE_AEAD_FAILED);
@@ -215,7 +214,7 @@ void NonteeAwsKmsClientProvider::CreateKmsCallbackToCreateAead(
     get_aead_context.Finish();
     return;
   }
-  get_aead_context.response = move(*aead_result);
+  get_aead_context.response = std::move(*aead_result);
   get_aead_context.result = SuccessExecutionResult();
   get_aead_context.Finish();
 }
@@ -227,7 +226,7 @@ ExecutionResult NonteeAwsKmsClientProvider::CreateKmsClient(
       create_kms_context.request->account_identity());
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_role_credentials_context(
-          move(request),
+          std::move(request),
           bind(&NonteeAwsKmsClientProvider::
                    GetSessionCredentialsCallbackToCreateKms,
                this, create_kms_context, _1),
@@ -257,7 +256,7 @@ void NonteeAwsKmsClientProvider::GetSessionCredentialsCallbackToCreateKms(
       response.security_token->c_str());
 
   auto kms_client = GetKmsClient(
-      move(aws_credentials),
+      std::move(aws_credentials),
       make_shared<string>(create_kms_context.request->kms_region()));
   create_kms_context.response = kms_client;
   create_kms_context.result = SuccessExecutionResult();

@@ -81,7 +81,6 @@ using std::get;
 using std::make_shared;
 using std::make_tuple;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::thread;
@@ -163,9 +162,9 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
       auto clear = client_->ExecuteDml(
           txn, SqlStatement(
                    absl::StrFormat("DELETE FROM %s WHERE TRUE", kTableName)));
-      if (!clear) return move(clear).status();
+      if (!clear) return std::move(clear).status();
       auto insert = client_->ExecuteDml(
-          move(txn),
+          std::move(txn),
           SqlStatement(absl::Substitute(R"""(
                 INSERT INTO $0 ($1, $2, $3)
                 VALUES
@@ -175,31 +174,31 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
               )""",
                                         kTableName, kDefaultPartitionKeyName,
                                         kDefaultSortKeyName, kValueName)));
-      if (!insert) return move(insert).status();
+      if (!insert) return std::move(insert).status();
       return Mutations{};
     });
     ASSERT_TRUE(commit_result.ok()) << commit_result.status().message();
   }
 
   static void ClearTableAndInsertRowWithCount(int token_count) {
-    auto commit_result =
-        client_->Commit([token_count](auto txn) -> StatusOr<Mutations> {
-          auto clear = client_->ExecuteDml(
-              txn, SqlStatement(absl::StrFormat("DELETE FROM %s WHERE TRUE",
-                                                kTableName)));
-          if (!clear) return move(clear).status();
-          auto insert = client_->ExecuteDml(
-              move(txn), SqlStatement(absl::Substitute(
-                             R"""(
+    auto commit_result = client_->Commit([token_count](
+                                             auto txn) -> StatusOr<Mutations> {
+      auto clear = client_->ExecuteDml(
+          txn, SqlStatement(
+                   absl::StrFormat("DELETE FROM %s WHERE TRUE", kTableName)));
+      if (!clear) return std::move(clear).status();
+      auto insert = client_->ExecuteDml(
+          std::move(txn), SqlStatement(absl::Substitute(
+                              R"""(
                 INSERT INTO $0 ($1, $2, $3)
                 VALUES
                   ('1', '2', JSON '{"token_count": "$4"}')
               )""",
-                             kTableName, kDefaultPartitionKeyName,
-                             kDefaultSortKeyName, kValueName, token_count)));
-          if (!insert) return move(insert).status();
-          return Mutations{};
-        });
+                              kTableName, kDefaultPartitionKeyName,
+                              kDefaultSortKeyName, kValueName, token_count)));
+      if (!insert) return std::move(insert).status();
+      return Mutations{};
+    });
     ASSERT_TRUE(commit_result.ok()) << commit_result.status().message();
   }
 
@@ -229,7 +228,7 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
     get_request.sort_key = make_shared<NoSqlDatabaseKeyValuePair>(sort_key);
 
     get_database_item_context_.request =
-        make_shared<GetDatabaseItemRequest>(move(get_request));
+        make_shared<GetDatabaseItemRequest>(std::move(get_request));
 
     UpsertDatabaseItemRequest upsert_request;
     upsert_request.table_name = make_shared<string>(kTableName);
@@ -238,7 +237,7 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
     upsert_request.sort_key = make_shared<NoSqlDatabaseKeyValuePair>(sort_key);
 
     upsert_database_item_context_.request =
-        make_shared<UpsertDatabaseItemRequest>(move(upsert_request));
+        make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
 
     config_provider_->Set(kGcpProjectId, string(kProject));
     config_provider_->Set(kSpannerInstance, string(kInstance));
@@ -276,16 +275,16 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
       if (!row.ok()) break;
       Value budget_key_id, timeframe, value;
       if (auto status_or = row->get(kDefaultPartitionKeyName); status_or.ok()) {
-        budget_key_id = move(*status_or);
+        budget_key_id = std::move(*status_or);
       }
       if (auto status_or = row->get(kDefaultSortKeyName); status_or.ok()) {
-        timeframe = move(*status_or);
+        timeframe = std::move(*status_or);
       }
       if (auto status_or = row->get(kValueName); status_or.ok()) {
-        value = move(*status_or);
+        value = std::move(*status_or);
       }
-      actual_rows.push_back(
-          make_tuple(move(budget_key_id), move(timeframe), move(value)));
+      actual_rows.push_back(make_tuple(std::move(budget_key_id),
+                                       std::move(timeframe), std::move(value)));
     }
     EXPECT_THAT(actual_rows, UnorderedElementsAreArray(expected_rows));
   }
@@ -369,13 +368,14 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetTest) {
       GetDatabaseItemRequest request;
       request.table_name = make_shared<string>(kTableName);
       request.partition_key =
-          make_shared<NoSqlDatabaseKeyValuePair>(move(partition_key));
-      request.sort_key = make_shared<NoSqlDatabaseKeyValuePair>(move(sort_key));
+          make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+      request.sort_key =
+          make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
 
       AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
           get_database_item_context;
       get_database_item_context.request =
-          make_shared<GetDatabaseItemRequest>(move(request));
+          make_shared<GetDatabaseItemRequest>(std::move(request));
 
       ExecutionResult result;
       get_database_item_context.callback = [&result, &partition_key_val,
@@ -577,15 +577,15 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadUpsertTest) {
       UpsertDatabaseItemRequest upsert_request;
       upsert_request.table_name = make_shared<string>(kTableName);
       upsert_request.partition_key =
-          make_shared<NoSqlDatabaseKeyValuePair>(move(partition_key));
+          make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
       upsert_request.sort_key =
-          make_shared<NoSqlDatabaseKeyValuePair>(move(sort_key));
+          make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
 
       AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>
           upsert_database_item_context;
 
       upsert_database_item_context.request =
-          make_shared<UpsertDatabaseItemRequest>(move(upsert_request));
+          make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
 
       upsert_database_item_context.request->new_attributes =
           make_shared<vector<NoSqlDatabaseKeyValuePair>>();
@@ -661,7 +661,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
             get_database_item_context;
 
         get_database_item_context.request =
-            make_shared<GetDatabaseItemRequest>(move(get_request));
+            make_shared<GetDatabaseItemRequest>(std::move(get_request));
 
         shared_ptr<GetDatabaseItemResponse> response;
         get_database_item_context.callback = [&response,
@@ -699,7 +699,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
             make_shared<vector<NoSqlDatabaseKeyValuePair>>();
         upsert_request.attributes->push_back(NoSqlDatabaseKeyValuePair{
             .attribute_name = make_shared<string>("token_count"),
-            .attribute_value = move(existing_count)});
+            .attribute_value = std::move(existing_count)});
 
         upsert_request.new_attributes =
             make_shared<vector<NoSqlDatabaseKeyValuePair>>();
@@ -712,7 +712,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
             upsert_database_item_context;
 
         upsert_database_item_context.request =
-            make_shared<UpsertDatabaseItemRequest>(move(upsert_request));
+            make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
 
         upsert_database_item_context.callback = [&budget_consumption_count,
                                                  &total_rpc_count,

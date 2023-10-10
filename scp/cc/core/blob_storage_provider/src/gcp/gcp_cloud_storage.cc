@@ -75,7 +75,6 @@ using google::scp::core::utils::Base64Encode;
 
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::ref;
 using std::shared_ptr;
 using std::string;
@@ -202,7 +201,7 @@ void GcpCloudStorageClient::GetBlobAsync(
   byte_buffer->length = content_length;
   byte_buffer->capacity = content_length;
   get_blob_context.response = make_shared<GetBlobResponse>();
-  get_blob_context.response->buffer = move(byte_buffer);
+  get_blob_context.response->buffer = std::move(byte_buffer);
 
   blob_stream.read(get_blob_context.response->buffer->bytes->data(),
                    content_length);

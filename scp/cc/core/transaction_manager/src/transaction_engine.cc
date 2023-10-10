@@ -55,7 +55,6 @@ using std::function;
 using std::list;
 using std::make_pair;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -1584,8 +1583,8 @@ ExecutionResult TransactionEngine::Checkpoint(
     state_metadata.log_id = Uuid::GenerateUuid();
     state_metadata.log_status = JournalLogStatus::Log;
 
-    checkpoint_logs->push_back(move(transaction_checkpoint_log));
-    checkpoint_logs->push_back(move(state_metadata));
+    checkpoint_logs->push_back(std::move(transaction_checkpoint_log));
+    checkpoint_logs->push_back(std::move(state_metadata));
   }
 
   return SuccessExecutionResult();
@@ -1730,8 +1729,9 @@ void TransactionEngine::ProceedToNextPhase(
       transaction->context.response->last_execution_timestamp =
           transaction->last_execution_timestamp;
       transaction->context.response->failed_commands_indices =
-          move(failed_indices);
-      transaction->context.response->failed_commands = move(failed_commands);
+          std::move(failed_indices);
+      transaction->context.response->failed_commands =
+          std::move(failed_commands);
       transaction->context.result = current_phase_execution_result;
       UnlockRemotelyCoordinatedTransaction(transaction);
       transaction->context.Finish();
@@ -1742,9 +1742,9 @@ void TransactionEngine::ProceedToNextPhase(
       transaction->remote_phase_context.response->last_execution_timestamp =
           transaction->last_execution_timestamp;
       transaction->remote_phase_context.response->failed_commands_indices =
-          move(failed_indices);
+          std::move(failed_indices);
       transaction->remote_phase_context.response->failed_commands =
-          move(failed_commands);
+          std::move(failed_commands);
       transaction->remote_phase_context.Finish();
       UnlockRemotelyCoordinatedTransaction(transaction);
     }

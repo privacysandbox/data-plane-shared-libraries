@@ -62,7 +62,6 @@ using google::scp::core::utils::GetEscapedUriWithQuery;
 using nghttp2::asio_http2::host_service_from_uri;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -98,7 +97,7 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequest(
       sign_request_context.request->key_vending_endpoint->account_identity);
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_session_credentials_context(
-          move(request),
+          std::move(request),
           bind(&AwsPrivateKeyFetcherProvider::
                    CreateSessionCredentialsCallbackToSignHttpRequest,
                this, sign_request_context, _1),
@@ -146,9 +145,9 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
   auto credentials = AWSCredentials(access_key.c_str(), secret_key.c_str(),
                                     security_token.c_str());
   auto credentials_provider =
-      make_shared<SimpleAWSCredentialsProvider>(move(credentials));
-  auto signer =
-      AWSAuthV4Signer(move(credentials_provider), kServiceName, region.c_str());
+      make_shared<SimpleAWSCredentialsProvider>(std::move(credentials));
+  auto signer = AWSAuthV4Signer(std::move(credentials_provider), kServiceName,
+                                region.c_str());
 
   auto path_with_query = GetEscapedUriWithQuery(*http_request);
   if (!path_with_query.Successful()) {
@@ -158,9 +157,9 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
               "Failed to get URI.");
     return execution_result;
   }
-  auto uri = Aws::Http::URI(move(*path_with_query));
+  auto uri = Aws::Http::URI(std::move(*path_with_query));
   auto aws_request = Aws::Http::Standard::StandardHttpRequest(
-      move(uri), Aws::Http::HttpMethod::HTTP_GET);
+      std::move(uri), Aws::Http::HttpMethod::HTTP_GET);
   if (!signer.SignRequest(aws_request)) {
     auto execution_result = FailureExecutionResult(
         SC_AWS_PRIVATE_KEY_FETCHER_PROVIDER_FAILED_TO_SIGN);

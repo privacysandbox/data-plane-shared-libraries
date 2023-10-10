@@ -50,7 +50,6 @@ using std::function;
 using std::list;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::mutex;
 using std::shared_ptr;
 using std::string;
@@ -77,7 +76,7 @@ ExecutionResult TransactionManager::RegisterAggregateMetric(
       MetricDefinition(name, MetricUnit::kCountPerSecond,
                        kDefaultMetricNamespace, std::move(metric_labels));
   metrics_instance = metric_instance_factory_->ConstructAggregateMetricInstance(
-      move(metric_info),
+      std::move(metric_info),
       {kMetricEventReceivedTransaction, kMetricEventFinishedTransaction});
   return SuccessExecutionResult();
 }

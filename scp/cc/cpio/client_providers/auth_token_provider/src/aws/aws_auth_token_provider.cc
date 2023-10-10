@@ -38,7 +38,6 @@ using google::scp::core::errors::
     SC_AWS_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::pair;
 using std::shared_ptr;
 using std::string;

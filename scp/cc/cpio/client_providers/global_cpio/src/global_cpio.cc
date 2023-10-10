@@ -22,7 +22,6 @@
 #include "absl/log/check.h"
 #include "cpio/client_providers/interface/cpio_provider_interface.h"
 
-using std::move;
 using std::unique_ptr;
 
 namespace google::scp::cpio::client_providers {
@@ -36,7 +35,7 @@ const unique_ptr<CpioProviderInterface>& GlobalCpio::GetGlobalCpio() {
 }
 
 void GlobalCpio::SetGlobalCpio(unique_ptr<CpioProviderInterface>& cpio) {
-  cpio_instance_ = move(cpio);
+  cpio_instance_ = std::move(cpio);
 }
 
 void GlobalCpio::ShutdownGlobalCpio() {

@@ -34,7 +34,6 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::make_pair;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -100,9 +99,9 @@ TEST(MockNoSQLDatabaseProviderTests, GetItemWithPartitionAndSortKey) {
   get_database_item_context.request->table_name =
       make_shared<string>("TestTable");
   get_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(move(partition_key));
+      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(move(sort_key));
+      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   get_database_item_context.request->attributes->push_back(attribute);
@@ -156,7 +155,7 @@ TEST(MockNoSQLDatabaseProviderTests, GetItemWithPartitionKey) {
   get_database_item_context.request->table_name =
       make_shared<string>("TestTable");
   get_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(move(partition_key));
+      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
 
   nosql_database_provider.GetDatabaseItem(get_database_item_context);
   WaitUntil([&]() { return condition.load(); });
@@ -192,9 +191,9 @@ TEST(MockNoSQLDatabaseProviderTests, PartitionNotFound) {
   get_database_item_context.request->table_name =
       make_shared<string>("TestTable");
   get_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(move(partition_key));
+      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(move(sort_key));
+      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   get_database_item_context.request->attributes->push_back(attribute);
@@ -231,9 +230,9 @@ TEST(MockNoSQLDatabaseProviderTests, AttributeNotFound) {
   get_database_item_context.request->table_name =
       make_shared<string>("TestTable");
   get_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(move(partition_key));
+      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(move(sort_key));
+      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   get_database_item_context.request->attributes->push_back(attribute);
@@ -275,9 +274,9 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertNonExistingItem) {
   upsert_database_item_context.request->table_name =
       make_shared<string>("TestTable");
   upsert_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(move(partition_key));
+      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(move(sort_key));
+      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   upsert_database_item_context.request->attributes =
       make_shared<vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context.request->new_attributes =

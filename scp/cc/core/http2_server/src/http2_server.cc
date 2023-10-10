@@ -60,7 +60,6 @@ using nghttp2::asio_http2::server::response;
 using std::bind;
 using std::make_pair;
 using std::make_shared;
-using std::move;
 using std::set;
 using std::shared_ptr;
 using std::static_pointer_cast;
@@ -112,7 +111,7 @@ ExecutionResult Http2Server::MetricInit() noexcept {
                        kDefaultMetricNamespace, std::move(metric_labels));
   http_request_metrics_ =
       metric_instance_factory_->ConstructAggregateMetricInstance(
-          move(metric_info),
+          std::move(metric_info),
           {kMetricEventHttpUnableToResolveRoute, kMetricEventHttp2xxLocal,
            kMetricEventHttp4xxLocal, kMetricEventHttp5xxLocal,
            kMetricEventHttp2xxForwarded, kMetricEventHttp4xxForwarded,

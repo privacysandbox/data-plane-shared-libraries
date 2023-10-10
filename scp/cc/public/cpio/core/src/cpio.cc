@@ -45,7 +45,6 @@ using google::scp::cpio::client_providers::CpioProviderInterface;
 using google::scp::cpio::client_providers::GlobalCpio;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::unique_ptr;
 
 namespace google::scp::cpio {
@@ -77,7 +76,8 @@ static ExecutionResult SetLogger(const CpioOptions& options) {
 
 static ExecutionResult SetGlobalCpio(const CpioOptions& options) {
   cpio_ptr = CpioProviderFactory::Create(make_shared<CpioOptions>(options));
-  CpioUtils::RunAndSetGlobalCpio(move(cpio_ptr), options.cpu_async_executor,
+  CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr),
+                                 options.cpu_async_executor,
                                  options.io_async_executor);
 
   return SuccessExecutionResult();

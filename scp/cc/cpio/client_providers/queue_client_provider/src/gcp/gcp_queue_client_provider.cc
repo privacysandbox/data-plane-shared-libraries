@@ -86,7 +86,6 @@ using grpc::StatusCode;
 using grpc::StubOptions;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -130,7 +129,7 @@ ExecutionResult GcpQueueClientProvider::Run() noexcept {
               "Failed to get project ID for current instance");
     return project_id_or.result();
   }
-  project_id_ = move(*project_id_or);
+  project_id_ = std::move(*project_id_or);
 
   publisher_stub_ =
       pubsub_stub_factory_->CreatePublisherStub(queue_client_options_);
@@ -238,7 +237,7 @@ void GcpQueueClientProvider::EnqueueMessageAsync(
 
   auto response = make_shared<EnqueueMessageResponse>();
   response->set_message_id(publish_response.message_ids(0));
-  enqueue_message_context.response = move(response);
+  enqueue_message_context.response = std::move(response);
   FinishContext(SuccessExecutionResult(), enqueue_message_context,
                 cpu_async_executor_);
 }
@@ -314,7 +313,7 @@ void GcpQueueClientProvider::GetTopMessageAsync(
   response->set_message_body(received_message.mutable_message()->data());
   response->set_message_id(received_message.mutable_message()->message_id());
   response->set_receipt_info(received_message.ack_id());
-  get_top_message_context.response = move(response);
+  get_top_message_context.response = std::move(response);
 
   FinishContext(SuccessExecutionResult(), get_top_message_context,
                 cpu_async_executor_);

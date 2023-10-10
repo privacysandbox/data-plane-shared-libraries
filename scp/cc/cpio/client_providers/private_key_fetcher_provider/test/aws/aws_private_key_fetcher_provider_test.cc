@@ -59,7 +59,6 @@ using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;

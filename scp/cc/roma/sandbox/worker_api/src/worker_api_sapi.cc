@@ -31,7 +31,6 @@ using google::scp::roma::sandbox::constants::
     kExecutionMetricSandboxedJsEngineCallNs;
 using std::lock_guard;
 using std::make_shared;
-using std::move;
 using std::mutex;
 using std::string;
 
@@ -74,7 +73,8 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
   for (auto& kv : params_proto.metrics()) {
     code_response.metrics[kv.first] = kv.second;
   }
-  code_response.response = make_shared<string>(move(params_proto.response()));
+  code_response.response =
+      make_shared<string>(std::move(params_proto.response()));
   return code_response;
 }
 

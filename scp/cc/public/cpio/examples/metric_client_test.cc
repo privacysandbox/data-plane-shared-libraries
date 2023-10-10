@@ -43,7 +43,6 @@ using google::scp::cpio::MetricClientOptions;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::to_string;
@@ -60,7 +59,8 @@ int main(int argc, char* argv[]) {
   }
 
   MetricClientOptions metric_client_options;
-  auto metric_client = MetricClientFactory::Create(move(metric_client_options));
+  auto metric_client =
+      MetricClientFactory::Create(std::move(metric_client_options));
   result = metric_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init metric client!"
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
 
   atomic<bool> finished = false;
   auto context = AsyncContext<PutMetricsRequest, PutMetricsResponse>(
-      move(request),
+      std::move(request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse> context) {
         if (!context.result.Successful()) {
           std::cout << "PutMetrics failed: "

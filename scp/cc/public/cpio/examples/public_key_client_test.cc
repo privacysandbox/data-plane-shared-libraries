@@ -43,7 +43,6 @@ using google::scp::cpio::PublicKeyClientOptions;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::to_string;
@@ -65,7 +64,7 @@ int main(int argc, char* argv[]) {
   public_key_client_options.endpoints.emplace_back(kPublicKeyEndpoint);
 
   auto public_key_client =
-      PublicKeyClientFactory::Create(move(public_key_client_options));
+      PublicKeyClientFactory::Create(std::move(public_key_client_options));
   result = public_key_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init public key client!"
@@ -84,7 +83,7 @@ int main(int argc, char* argv[]) {
   ListPublicKeysRequest request;
   atomic<bool> finished = false;
   result = public_key_client->ListPublicKeys(
-      move(request),
+      std::move(request),
       [&](const ExecutionResult result, ListPublicKeysResponse response) {
         if (!result.Successful()) {
           std::cout << "ListPublicKeys failed: "

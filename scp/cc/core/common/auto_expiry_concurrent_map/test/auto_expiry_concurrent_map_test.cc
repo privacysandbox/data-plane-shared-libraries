@@ -49,7 +49,6 @@ using std::defer_lock;
 using std::find;
 using std::function;
 using std::make_shared;
-using std::move;
 using std::shared_lock;
 using std::shared_ptr;
 using std::shared_timed_mutex;
@@ -695,7 +694,7 @@ TEST(AutoExpiryConcurrentMapEntryTest, StopShouldWaitForScheduledWork) {
                                  string&, shared_ptr<string>&,
                                  std::function<void(bool)> completion_lambda) {
     unique_lock lock(gc_completion_lambdas_mutex);
-    gc_completion_lambdas.push_back(move(completion_lambda));
+    gc_completion_lambdas.push_back(std::move(completion_lambda));
   };
 
   AutoExpiryConcurrentMap<string, shared_ptr<string>> map(

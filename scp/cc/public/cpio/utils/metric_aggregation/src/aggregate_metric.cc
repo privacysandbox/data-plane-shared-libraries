@@ -53,7 +53,6 @@ using google::scp::cpio::MetricLabels;
 using google::scp::cpio::MetricName;
 using google::scp::cpio::MetricValue;
 using std::make_shared;
-using std::move;
 using std::mutex;
 using std::pair;
 using std::shared_ptr;
@@ -74,7 +73,7 @@ AggregateMetric::AggregateMetric(
     MetricDefinition metric_info, TimeDuration push_interval_duration_in_ms)
     : async_executor_(async_executor),
       metric_client_(metric_client),
-      metric_info_(move(metric_info)),
+      metric_info_(std::move(metric_info)),
       push_interval_duration_in_ms_(push_interval_duration_in_ms),
       counter_(0),
       is_running_(false),
@@ -89,7 +88,7 @@ AggregateMetric::AggregateMetric(
     const std::string& event_code_label_key)
     : async_executor_(async_executor),
       metric_client_(metric_client),
-      metric_info_(move(metric_info)),
+      metric_info_(std::move(metric_info)),
       push_interval_duration_in_ms_(push_interval_duration_in_ms),
       counter_(0),
       is_running_(false),
@@ -195,7 +194,7 @@ void AggregateMetric::MetricPushHandler(
                                     metric_value);
 
   AsyncContext<PutMetricsRequest, PutMetricsResponse> record_metric_context(
-      move(record_metric_request),
+      std::move(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         if (!context.result.Successful()) {
           std::vector<string> metric_names;
@@ -214,7 +213,7 @@ void AggregateMetric::MetricPushHandler(
 
   auto metrics_count = record_metric_context.request->metrics().size();
   auto execution_result =
-      metric_client_->PutMetrics(move(record_metric_context));
+      metric_client_->PutMetrics(std::move(record_metric_context));
   if (!execution_result.Successful()) {
     // TODO: Create an alert or reschedule
     SCP_CRITICAL(

@@ -53,7 +53,6 @@ using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 using std::bind;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::placeholders::_1;

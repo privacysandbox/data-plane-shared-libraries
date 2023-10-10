@@ -29,7 +29,6 @@ using tcp = boost::asio::ip::tcp;
 
 using std::atomic_bool;
 using std::make_pair;
-using std::move;
 using std::multimap;
 using std::string;
 using std::thread;

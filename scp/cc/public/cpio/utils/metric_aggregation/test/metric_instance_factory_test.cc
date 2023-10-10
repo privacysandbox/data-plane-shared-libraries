@@ -54,7 +54,6 @@ using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
 using std::atomic;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -102,7 +101,7 @@ TEST_F(MetricInstanceFactoryTest, ConstructSimpleMetricInstance) {
       MetricDefinition(kMetricName, MetricUnit::kCount, kNamespace);
 
   auto simple_metric =
-      metric_factory_->ConstructSimpleMetricInstance(move(metric_info));
+      metric_factory_->ConstructSimpleMetricInstance(std::move(metric_info));
 
   AutoInitRunStop to_handle_simple_metric(*simple_metric);
   {
@@ -154,7 +153,7 @@ TEST_F(MetricInstanceFactoryTest, ConstructAggregateMetricInstance) {
       MetricDefinition(kMetricName, MetricUnit::kCount, kNamespace);
 
   auto aggregate_metric =
-      metric_factory_->ConstructAggregateMetricInstance(move(metric_info));
+      metric_factory_->ConstructAggregateMetricInstance(std::move(metric_info));
 
   AutoInitRunStop to_handle_aggregate_metric(*aggregate_metric);
 
@@ -206,7 +205,7 @@ TEST_F(MetricInstanceFactoryTest,
   std::vector<std::string> event_code_list = {"value1", "value2", "value3"};
 
   auto aggregate_metric = metric_factory_->ConstructAggregateMetricInstance(
-      move(metric_info), event_code_list, kEventCodeKey);
+      std::move(metric_info), event_code_list, kEventCodeKey);
 
   AutoInitRunStop to_handle_aggregate_metric(*aggregate_metric);
 

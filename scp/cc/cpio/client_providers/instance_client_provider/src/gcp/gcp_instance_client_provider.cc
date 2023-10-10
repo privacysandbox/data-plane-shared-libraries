@@ -80,7 +80,6 @@ using std::find;
 using std::make_pair;
 using std::make_shared;
 using std::map;
-using std::move;
 using std::nullopt;
 using std::optional;
 using std::pair;
@@ -202,7 +201,7 @@ ExecutionResult GcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     return execution_result;
   }
 
-  resource_name = move(*response.mutable_instance_resource_name());
+  resource_name = std::move(*response.mutable_instance_resource_name());
 
   return SuccessExecutionResult();
 }
@@ -249,7 +248,7 @@ GcpInstanceClientProvider::MakeHttpRequestsForInstanceResourceName(
       {string(kMetadataFlavorHeaderKey), string(kMetadataFlavorHeaderValue)});
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
-      move(http_request),
+      std::move(http_request),
       bind(&GcpInstanceClientProvider::OnGetInstanceResourceName, this,
            get_resource_name_context, _1, instance_resource_name_tracker, type),
       get_resource_name_context);
@@ -324,7 +323,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
       // issue)
       vector<string> splits =
           absl::StrSplit(http_client_context.response->body.ToString(), "/");
-      instance_resource_name_tracker->instance_zone = move(splits.back());
+      instance_resource_name_tracker->instance_zone = std::move(splits.back());
       break;
     }
     default: {
@@ -399,7 +398,7 @@ void GcpInstanceClientProvider::OnGetSessionTokenForTagsCallback(
   auto uri = GcpInstanceClientUtils::CreateRMListTagsUrl(
       get_tags_context.request->resource_name());
   auto signed_request = make_shared<HttpRequest>();
-  signed_request->path = make_shared<string>(move(uri));
+  signed_request->path = make_shared<string>(std::move(uri));
   signed_request->method = HttpMethod::GET;
   signed_request->query = make_shared<string>(absl::StrCat(
       kParentParameter, get_tags_context.request->resource_name().c_str(), "&",
@@ -412,7 +411,7 @@ void GcpInstanceClientProvider::OnGetSessionTokenForTagsCallback(
        absl::StrCat(kBearerTokenPrefix, access_token)});
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
-      move(signed_request),
+      std::move(signed_request),
       bind(&GcpInstanceClientProvider::OnGetTagsByResourceNameCallback, this,
            get_tags_context, _1),
       get_tags_context);
@@ -534,7 +533,7 @@ ExecutionResult GcpInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
     return execution_result;
   }
 
-  instance_details = move(*response.mutable_instance_details());
+  instance_details = std::move(*response.mutable_instance_details());
 
   return SuccessExecutionResult();
 }
@@ -602,7 +601,7 @@ void GcpInstanceClientProvider::OnGetSessionTokenForInstanceDetailsCallback(
 
   auto uri = absl::StrCat(kGcpInstanceGetUrlPrefix, resource_id);
   auto signed_request = make_shared<HttpRequest>();
-  signed_request->path = make_shared<string>(move(uri));
+  signed_request->path = make_shared<string>(std::move(uri));
   signed_request->method = HttpMethod::GET;
 
   const auto& access_token = *get_token_context.response->session_token;
@@ -612,7 +611,7 @@ void GcpInstanceClientProvider::OnGetSessionTokenForInstanceDetailsCallback(
        absl::StrCat(kBearerTokenPrefix, access_token)});
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
-      move(signed_request),
+      std::move(signed_request),
       bind(&GcpInstanceClientProvider::OnGetInstanceDetailsCallback, this,
            get_instance_details_context, _1),
       get_instance_details_context);
@@ -685,7 +684,7 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
       get_instance_details_context.response->mutable_instance_details();
 
   auto instance_id = json_response[kInstanceDetailsJsonIdKey].get<string>();
-  instance_details->set_instance_id(move(instance_id));
+  instance_details->set_instance_id(std::move(instance_id));
 
   // Get instance networks info from networkInterfaces.
   for (const auto& network_interface : json_response[kNetworkInterfacesKey]) {
@@ -705,8 +704,8 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
     }
 
     auto* network = instance_details->add_networks();
-    network->set_private_ipv4_address(move(private_ip));
-    network->set_public_ipv4_address(move(public_ip));
+    network->set_private_ipv4_address(std::move(private_ip));
+    network->set_public_ipv4_address(std::move(public_ip));
   }
 
   // Extract instance labels.

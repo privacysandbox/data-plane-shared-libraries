@@ -44,7 +44,6 @@ using google::scp::cpio::LogOption;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::to_string;
@@ -65,7 +64,7 @@ int main(int argc, char* argv[]) {
 
   KmsClientOptions kms_client_options;
 
-  auto kms_client = KmsClientFactory::Create(move(kms_client_options));
+  auto kms_client = KmsClientFactory::Create(std::move(kms_client_options));
   result = kms_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init kms client!"
@@ -87,7 +86,7 @@ int main(int argc, char* argv[]) {
 
   atomic<bool> finished = false;
   AsyncContext<DecryptRequest, DecryptResponse> decrypt_context(
-      move(request), [&finished](auto& context) {
+      std::move(request), [&finished](auto& context) {
         if (!context.result.Successful()) {
           std::cout << "Decrypt failed: "
                     << GetErrorMessage(context.result.status_code) << std::endl;

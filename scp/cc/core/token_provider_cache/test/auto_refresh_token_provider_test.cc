@@ -31,7 +31,6 @@ using google::scp::core::test::ResultIs;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::chrono::milliseconds;
@@ -67,7 +66,7 @@ class AutoRefreshTokenProviderTest : public testing::Test {
     // since token fetcher is going to be owned & used by a single component.
     token_fetcher_ = token_fetcher_mock.get();
     token_provider_ = make_unique<AutoRefreshTokenProviderService>(
-        move(token_fetcher_mock), async_executor_);
+        std::move(token_fetcher_mock), async_executor_);
   }
 
   void TearDown() override { EXPECT_SUCCESS(async_executor_->Stop()); }

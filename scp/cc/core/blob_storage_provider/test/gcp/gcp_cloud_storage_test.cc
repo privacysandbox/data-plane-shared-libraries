@@ -76,7 +76,6 @@ using google::scp::core::utils::Base64Encode;
 using google::scp::core::utils::CalculateMd5Hash;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -157,7 +156,7 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromBuffer(
     return result;
   });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(move(mock_source));
+  return unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 // Matches arg.bucket_name and arg.object_name with bucket_name and
@@ -251,7 +250,7 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildBadHashReadResponse() {
     return result;
   });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(move(mock_source));
+  return unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 TEST_F(GcpCloudStorageClientTest, GetBlobHashMismatchFails) {

@@ -115,7 +115,6 @@ using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using std::bind;
 using std::make_shared;
-using std::move;
 using std::optional;
 using std::shared_ptr;
 using std::string;
@@ -198,7 +197,7 @@ GetObjectRequest MakeGetObjectRequest(const ProtoRequest& proto_request,
   get_object_request.SetBucket(bucket_name);
   get_object_request.SetKey(blob_name);
   if (range.has_value()) {
-    get_object_request.SetRange(move(*range));
+    get_object_request.SetRange(std::move(*range));
   }
   return get_object_request;
 }
@@ -209,7 +208,8 @@ namespace google::scp::cpio::client_providers {
 shared_ptr<ClientConfiguration>
 AwsBlobStorageClientProvider::CreateClientConfiguration(
     const string& region) noexcept {
-  return common::CreateClientConfiguration(make_shared<string>(move(region)));
+  return common::CreateClientConfiguration(
+      make_shared<string>(std::move(region)));
 }
 
 ExecutionResult AwsBlobStorageClientProvider::Init() noexcept {
@@ -232,7 +232,7 @@ ExecutionResult AwsBlobStorageClientProvider::Run() noexcept {
               "Failed creating AWS S3 client.");
     return client_or.result();
   }
-  s3_client_ = move(*client_or);
+  s3_client_ = std::move(*client_or);
   return SuccessExecutionResult();
 }
 
@@ -251,7 +251,7 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlob(
     range = absl::StrCat("bytes=", request.byte_range().begin_byte_index(), "-",
                          request.byte_range().end_byte_index());
   }
-  auto get_object_request = MakeGetObjectRequest(request, move(range));
+  auto get_object_request = MakeGetObjectRequest(request, std::move(range));
 
   s3_client_->GetObjectAsync(
       get_object_request,
@@ -339,7 +339,7 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlobStream(
   }
 
   s3_client_->GetObjectAsync(
-      MakeGetObjectRequest(request, move(range)),
+      MakeGetObjectRequest(request, std::move(range)),
       bind(&AwsBlobStorageClientProvider::OnGetObjectStreamCallback, this,
            get_blob_stream_context, tracker, _1, _2, _3, _4),
       nullptr);
@@ -414,7 +414,8 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
     return;
   }
 
-  auto push_result = get_blob_stream_context.TryPushResponse(move(response));
+  auto push_result =
+      get_blob_stream_context.TryPushResponse(std::move(response));
   if (!push_result.Successful()) {
     get_blob_stream_context.result = push_result;
     SCP_ERROR_CONTEXT(kAwsS3Provider, get_blob_stream_context, push_result,
@@ -477,7 +478,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
   tracker->last_end_byte_index = new_end_index;
 
   s3_client_->GetObjectAsync(
-      MakeGetObjectRequest(request, move(range)),
+      MakeGetObjectRequest(request, std::move(range)),
       bind(&AwsBlobStorageClientProvider::OnGetObjectStreamCallback, this,
            get_blob_stream_context, tracker, _1, _2, _3, _4),
       nullptr);
@@ -565,7 +566,7 @@ void AwsBlobStorageClientProvider::OnListObjectsMetadataCallback(
     metadata.set_bucket_name(
         list_blobs_metadata_context.request->blob_metadata().bucket_name());
 
-    blob_metadatas->Add(move(metadata));
+    blob_metadatas->Add(std::move(metadata));
   }
 
   list_blobs_metadata_context.response->set_next_page_token(
@@ -725,7 +726,7 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
     // Not enough data to upload in a part yet.
     // Copy data into a staging variable.
     tracker->accumulated_contents =
-        move(*request.mutable_blob_portion()->mutable_data());
+        std::move(*request.mutable_blob_portion()->mutable_data());
     UploadPartRequest part_request;
     // Set part number to 0. OnUploadPartCallback expects the part number to be
     // the last successfully uploaded part - we haven't uploaded any yet.
@@ -832,7 +833,7 @@ void AwsBlobStorageClientProvider::OnUploadPartCallback(
       return;
     }
     completed_part.SetETag(etag);
-    tracker->completed_multipart_upload.AddParts(move(completed_part));
+    tracker->completed_multipart_upload.AddParts(std::move(completed_part));
     tracker->next_part_number++;
   }
 
@@ -892,7 +893,7 @@ void AwsBlobStorageClientProvider::OnUploadPartCallback(
     } else {
       // Copy data into a staging variable.
       tracker->accumulated_contents =
-          move(*request->mutable_blob_portion()->mutable_data());
+          std::move(*request->mutable_blob_portion()->mutable_data());
       // Forward the old arguments to this callback so it knows that an upload
       // was not done.
       ScheduleAnotherPutBlobStreamPoll(

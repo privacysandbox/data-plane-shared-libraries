@@ -49,7 +49,6 @@ using google::scp::cpio::LogOption;
 using std::atomic;
 using std::bind;
 using std::make_unique;
-using std::move;
 using std::string;
 using std::unique_ptr;
 using std::placeholders::_1;
@@ -86,7 +85,7 @@ void AeadEncryptCallback(atomic<bool>& finished, string& secret,
     aead_decrypt_request.mutable_encrypted_data()->set_ciphertext(
         aead_encrypt_response.encrypted_data().ciphertext());
     crypto_client->AeadDecrypt(
-        move(aead_decrypt_request),
+        std::move(aead_decrypt_request),
         bind(AeadDecryptCallback, std::ref(finished), _1, _2));
   } else {
     finished = true;
@@ -110,7 +109,7 @@ void HpkeDecryptCallback(bool is_bidirectional, atomic<bool>& finished,
       auto secret = hpke_decrypt_response.secret();
       aead_encrypt_request.set_secret(secret);
       crypto_client->AeadEncrypt(
-          move(aead_encrypt_request),
+          std::move(aead_encrypt_request),
           bind(AeadEncryptCallback, std::ref(finished), secret, _1, _2));
     } else {
       finished = true;
@@ -135,7 +134,7 @@ void HpkeEncryptCallback(bool is_bidirectional, atomic<bool>& finished,
         hpke_encrypt_response.encrypted_data().ciphertext());
     hpke_decrypt_request.mutable_encrypted_data()->set_key_id(
         hpke_encrypt_response.encrypted_data().key_id());
-    crypto_client->HpkeDecrypt(move(hpke_decrypt_request),
+    crypto_client->HpkeDecrypt(std::move(hpke_decrypt_request),
                                bind(HpkeDecryptCallback, is_bidirectional,
                                     std::ref(finished), _1, _2));
   } else {
@@ -160,7 +159,7 @@ int main(int argc, char* argv[]) {
 
   CryptoClientOptions crypto_client_options;
 
-  crypto_client = CryptoClientFactory::Create(move(crypto_client_options));
+  crypto_client = CryptoClientFactory::Create(std::move(crypto_client_options));
   result = crypto_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init crypto client!"
@@ -183,7 +182,7 @@ int main(int argc, char* argv[]) {
   hpke_encrypt_request.set_payload(string(kRequestPayload));
   hpke_encrypt_request.set_is_bidirectional(is_bidirectional);
   crypto_client->HpkeEncrypt(
-      move(hpke_encrypt_request),
+      std::move(hpke_encrypt_request),
       bind(HpkeEncryptCallback, is_bidirectional, std::ref(finished), _1, _2));
   WaitUntil([&finished]() { return finished.load(); },
             std::chrono::milliseconds(3000));

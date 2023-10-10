@@ -31,7 +31,6 @@ using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using std::make_unique;
-using std::move;
 using std::string;
 using std::unique_ptr;
 using std::vector;
@@ -72,7 +71,7 @@ absl::Status ExecuteInternal(unique_ptr<RequestT> invocation_req,
 
   auto* roma_service = RomaService::Instance();
   auto result =
-      roma_service->Dispatcher().Dispatch(move(invocation_req), callback);
+      roma_service->Dispatcher().Dispatch(std::move(invocation_req), callback);
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma Execute failed due to: " +
@@ -173,12 +172,12 @@ absl::Status RomaStop() {
 
 absl::Status Execute(unique_ptr<InvocationRequestStrInput> invocation_req,
                      Callback callback) {
-  return ExecuteInternal(move(invocation_req), callback);
+  return ExecuteInternal(std::move(invocation_req), callback);
 }
 
 absl::Status Execute(unique_ptr<InvocationRequestSharedInput> invocation_req,
                      Callback callback) {
-  return ExecuteInternal(move(invocation_req), callback);
+  return ExecuteInternal(std::move(invocation_req), callback);
 }
 
 absl::Status BatchExecute(vector<InvocationRequestStrInput>& batch,
@@ -216,7 +215,7 @@ absl::Status LoadCodeObj(unique_ptr<CodeObject> code_object,
 
   auto* roma_service = RomaService::Instance();
   auto result =
-      roma_service->Dispatcher().Broadcast(move(code_object), callback);
+      roma_service->Dispatcher().Broadcast(std::move(code_object), callback);
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma LoadCodeObj failed with: " +

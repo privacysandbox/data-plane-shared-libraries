@@ -72,7 +72,6 @@ using std::atomic;
 using std::function;
 using std::make_pair;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::string;
@@ -302,7 +301,7 @@ void RunTransactionsWithDifferentSyncPhases(TransactionPhase local_phase,
   command.end = action;
 
   transaction_context.request->commands.push_back(
-      make_shared<TransactionCommand>(move(command)));
+      make_shared<TransactionCommand>(std::move(command)));
 
   auto transaction_id = Uuid::GenerateUuid();
   shared_ptr<Transaction> transaction_local;
@@ -439,7 +438,7 @@ void RunTransactionsWithDifferentOutOfSyncPhases(
   command.end = action;
 
   transaction_context.request->commands.push_back(
-      make_shared<TransactionCommand>(move(command)));
+      make_shared<TransactionCommand>(std::move(command)));
 
   auto transaction_id = Uuid::GenerateUuid();
   shared_ptr<Transaction> transaction_local;

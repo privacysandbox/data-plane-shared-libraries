@@ -64,7 +64,6 @@ using google::cloud::spanner::MakeInsertOrUpdateMutation;
 using std::bind;
 using std::make_pair;
 using std::make_shared;
-using std::move;
 using std::optional;
 using std::pair;
 using std::ref;
@@ -202,8 +201,8 @@ void GcpSpanner::GetDatabaseItemAsync(
         get_database_item_context,
     string query, SqlStatement::ParamType params) noexcept {
   Client spanner_client(*spanner_client_shared_);
-  auto row_stream =
-      spanner_client.ExecuteQuery(SqlStatement(move(query), move(params)));
+  auto row_stream = spanner_client.ExecuteQuery(
+      SqlStatement(std::move(query), std::move(params)));
 
   auto row_it = row_stream.begin();
   if (row_it == row_stream.end() || !row_it->ok()) {
@@ -344,7 +343,7 @@ ExecutionResult GcpSpanner::GetDatabaseItem(
 
   if (auto schedule_result = io_async_executor_->Schedule(
           bind(&GcpSpanner::GetDatabaseItemAsync, this,
-               get_database_item_context, move(query), move(params)),
+               get_database_item_context, std::move(query), std::move(params)),
           io_async_execution_priority_);
       !schedule_result.Successful()) {
     get_database_item_context.result = schedule_result;
@@ -401,7 +400,7 @@ GcpSpanner::UpsertSelectOptions::BuildUpsertSelectOptions(
       AppendJsonWhereClauses(request.attributes, params, select_query));
 
   upsert_select_options.select_statement =
-      SqlStatement(move(select_query), move(params));
+      SqlStatement(std::move(select_query), std::move(params));
 
   return upsert_select_options;
 }
@@ -458,7 +457,7 @@ ExecutionResult GcpSpanner::GetMergedJson(RowStream& row_stream,
         errors::SC_NO_SQL_DATABASE_JSON_FAILED_TO_PARSE);
   }
 
-  json final_json = move(new_attributes);
+  json final_json = std::move(new_attributes);
   // Emplace all members from the existing value only if they do not already
   // exist.
   for (const auto& [key, val] : existing_json.items()) {
@@ -483,7 +482,7 @@ Mutations GcpSpanner::UpsertFunctor(
 
   optional<SpannerJson> spanner_json;
   prepare_result = GetMergedJson(row_stream, enforce_row_existence,
-                                 move(new_attributes), spanner_json);
+                                 std::move(new_attributes), spanner_json);
   if (!prepare_result.Successful()) {
     return Mutations{};
   }
@@ -584,8 +583,8 @@ ExecutionResult GcpSpanner::UpsertDatabaseItem(
 
   if (auto schedule_result = io_async_executor_->Schedule(
           bind(&GcpSpanner::UpsertDatabaseItemAsync, this,
-               upsert_database_item_context, move(*select_options_or),
-               enforce_row_existence, move(new_attributes)),
+               upsert_database_item_context, std::move(*select_options_or),
+               enforce_row_existence, std::move(new_attributes)),
           io_async_execution_priority_);
       !schedule_result.Successful()) {
     upsert_database_item_context.result = schedule_result;

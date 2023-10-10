@@ -62,7 +62,6 @@ using std::cout;
 using std::endl;
 using std::function;
 using std::make_shared;
-using std::move;
 using std::mutex;
 using std::scoped_lock;
 using std::shared_ptr;
@@ -106,7 +105,7 @@ int main(int argc, char* argv[]) {
         kBlobName);
     put_blob_request->mutable_blob()->set_data(data);
     AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context(
-        move(put_blob_request), [&result, &finished](auto& context) {
+        std::move(put_blob_request), [&result, &finished](auto& context) {
           result = context.result;
           // No other contents in PutBlobResponse.
           finished = true;
@@ -132,7 +131,7 @@ int main(int argc, char* argv[]) {
     get_blob_request->mutable_blob_metadata()->set_bucket_name(kBucketName);
     get_blob_request->mutable_blob_metadata()->set_blob_name(kBlobName);
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
-        move(get_blob_request), [&result, &finished](auto& context) {
+        std::move(get_blob_request), [&result, &finished](auto& context) {
           result = context.result;
           if (result.Successful()) {
             cout << "Got blob: " << context.response->DebugString();
@@ -160,7 +159,7 @@ int main(int argc, char* argv[]) {
     list_blobs_metadata_request->mutable_blob_metadata()->set_bucket_name(
         kBucketName);
     AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>
-        list_blobs_metadata_context(move(list_blobs_metadata_request),
+        list_blobs_metadata_context(std::move(list_blobs_metadata_request),
                                     [&result, &finished](auto& context) {
                                       result = context.result;
                                       if (result.Successful()) {
@@ -191,7 +190,7 @@ int main(int argc, char* argv[]) {
     delete_blob_request->mutable_blob_metadata()->set_bucket_name(kBucketName);
     delete_blob_request->mutable_blob_metadata()->set_blob_name(kBlobName);
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context(
-        move(delete_blob_request), [&result, &finished](auto& context) {
+        std::move(delete_blob_request), [&result, &finished](auto& context) {
           result = context.result;
           // No other contents in DeleteBlobResponse.
           finished = true;
@@ -228,7 +227,7 @@ int main(int argc, char* argv[]) {
 
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>
         put_blob_stream_context;
-    put_blob_stream_context.request = move(put_blob_stream_request);
+    put_blob_stream_context.request = std::move(put_blob_stream_request);
     put_blob_stream_context.callback = [&result, &finished](auto& context) {
       result = context.result;
       // No other contents in PutBlobStreamResponse.
@@ -288,7 +287,7 @@ int main(int argc, char* argv[]) {
     get_blob_stream_request->set_max_bytes_per_response(5);
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>
         get_blob_stream_context;
-    get_blob_stream_context.request = move(get_blob_stream_request);
+    get_blob_stream_context.request = std::move(get_blob_stream_request);
 
     get_blob_stream_context.process_callback =
         [&result, &finished, &log_mutex](auto& context, bool is_finish) {
@@ -328,7 +327,7 @@ int main(int argc, char* argv[]) {
     get_blob_stream_request->set_max_bytes_per_response(5);
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>
         get_blob_stream_context;
-    get_blob_stream_context.request = move(get_blob_stream_request);
+    get_blob_stream_context.request = std::move(get_blob_stream_request);
 
     get_blob_stream_context.process_callback =
         [&result, &finished](auto& context, bool is_finish) {

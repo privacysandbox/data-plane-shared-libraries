@@ -56,7 +56,6 @@ using std::endl;
 using std::list;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::string;
 using std::thread;
 using std::unique_ptr;
@@ -435,7 +434,7 @@ void RomaBenchmark::SendRequest() {
     auto start_time = TimeProvider::GetSteadyTimestampInNanoseconds();
     auto code_object = make_unique<InvocationRequestSharedInput>(code_obj_);
     // Retry Execute to dispatch code_obj until success.
-    while (!Execute(move(code_object),
+    while (!Execute(std::move(code_object),
                     bind(&RomaBenchmark::Callback, this, _1, start_time))
                 .ok()) {
       // Recreate code_object and update start_time when request send failed.

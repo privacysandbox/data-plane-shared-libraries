@@ -78,7 +78,6 @@ using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::utils::Base64Encode;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;

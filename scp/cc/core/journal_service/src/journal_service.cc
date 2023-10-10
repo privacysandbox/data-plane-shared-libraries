@@ -56,7 +56,6 @@ using std::function;
 using std::make_pair;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::thread;
@@ -107,7 +106,7 @@ ExecutionResult JournalService::Init() noexcept {
       kDefaultMetricNamespace, recover_metric_labels);
   recover_time_metric_ =
       metric_instance_factory_->ConstructSimpleMetricInstance(
-          move(recover_time_metric_info));
+          std::move(recover_time_metric_info));
   RETURN_IF_FAILURE(recover_time_metric_->Init());
 
   auto recover_count_metric_info = MetricDefinition(
@@ -115,7 +114,7 @@ ExecutionResult JournalService::Init() noexcept {
       std::move(recover_metric_labels));
   recover_log_count_metric_ =
       metric_instance_factory_->ConstructAggregateMetricInstance(
-          move(recover_count_metric_info));
+          std::move(recover_count_metric_info));
   RETURN_IF_FAILURE(recover_log_count_metric_->Init());
 
   auto output_metric_labels =
@@ -128,7 +127,7 @@ ExecutionResult JournalService::Init() noexcept {
       kDefaultMetricNamespace, std::move(output_metric_labels));
   journal_output_count_metric_ =
       metric_instance_factory_->ConstructAggregateMetricInstance(
-          move(output_metric_info),
+          std::move(output_metric_info),
           {kMetricEventJournalOutputCountWriteJournalScheduledCount,
            kMetricEventJournalOutputCountWriteJournalSuccessCount,
            kMetricEventJournalOutputCountWriteJournalFailureCount});

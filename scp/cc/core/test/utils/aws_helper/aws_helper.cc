@@ -54,7 +54,6 @@ using Aws::SSM::Model::GetParametersRequest;
 using Aws::SSM::Model::PutParameterRequest;
 using Aws::Utils::CryptoBuffer;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -215,7 +214,7 @@ string Encrypt(const std::shared_ptr<KMSClient>& kms_client,
   Aws::Utils::ByteBuffer plaintext_buffer(
       reinterpret_cast<const unsigned char*>(plaintext.data()),
       plaintext.length());
-  request.SetPlaintext(move(plaintext_buffer));
+  request.SetPlaintext(std::move(plaintext_buffer));
   auto outcome = kms_client->Encrypt(request);
   if (!outcome.IsSuccess()) {
     std::cout << "Failed to encrypt: " << outcome.GetError().GetMessage()

@@ -39,7 +39,6 @@ using google::scp::cpio::client_providers::KmsClientProviderFactory;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 
 namespace {
@@ -104,6 +103,7 @@ ExecutionResult KmsClient::Decrypt(
 
 std::unique_ptr<KmsClientInterface> KmsClientFactory::Create(
     KmsClientOptions options) {
-  return make_unique<KmsClient>(make_shared<KmsClientOptions>(move(options)));
+  return make_unique<KmsClient>(
+      make_shared<KmsClientOptions>(std::move(options)));
 }
 }  // namespace google::scp::cpio

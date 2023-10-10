@@ -68,7 +68,6 @@ using google::scp::cpio::client_providers::mock::MockSSMClient;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -116,7 +115,7 @@ class AwsParameterClientProviderTest : public ::testing::Test {
 
     MockAsyncExecutor mock_io_async_executor;
     shared_ptr<AsyncExecutorInterface> io_async_executor =
-        make_shared<MockAsyncExecutor>(move(mock_io_async_executor));
+        make_shared<MockAsyncExecutor>(std::move(mock_io_async_executor));
 
     client_ = make_unique<AwsParameterClientProvider>(
         make_shared<ParameterClientOptions>(), mock_instance_client_,
@@ -169,7 +168,7 @@ TEST_F(AwsParameterClientProviderTest, FailedToFetchParameters) {
   auto request = make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(
             context.result,
@@ -188,7 +187,7 @@ TEST_F(AwsParameterClientProviderTest, InvalidParameterName) {
   atomic<bool> condition = false;
   auto request = make_shared<GetParameterRequest>();
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(
             context.result,
@@ -211,7 +210,7 @@ TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
   auto request = make_shared<GetParameterRequest>();
   request->set_parameter_name("invalid_parameter");
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
@@ -241,7 +240,7 @@ TEST_F(AwsParameterClientProviderTest, MultipleParametersFound) {
   auto request = make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(
             context.result,
@@ -263,7 +262,7 @@ TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
   auto request = make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context1(
-      move(request),
+      std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->parameter_value(), kParameterValue);

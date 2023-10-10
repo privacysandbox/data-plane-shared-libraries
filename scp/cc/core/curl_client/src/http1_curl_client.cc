@@ -22,7 +22,6 @@
 using google::scp::core::common::RetryStrategy;
 using google::scp::core::common::RetryStrategyType;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 
 namespace {
@@ -68,7 +67,8 @@ ExecutionResult Http1CurlClient::PerformRequest(
           return response_or.result();
         }
 
-        http_context.response = make_shared<HttpResponse>(move(*response_or));
+        http_context.response =
+            make_shared<HttpResponse>(std::move(*response_or));
 
         FinishContext(SuccessExecutionResult(), http_context,
                       cpu_async_executor_);

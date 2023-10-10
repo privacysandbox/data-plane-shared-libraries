@@ -39,7 +39,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_GCP_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME;
 using std::make_shared;
-using std::move;
 using std::regex;
 using std::regex_match;
 using std::shared_ptr;
@@ -93,7 +92,7 @@ ExecutionResultOr<string> GcpInstanceClientUtils::GetCurrentProjectId(
               instance_resource_name.c_str());
   }
 
-  return move(*project_id_or);
+  return std::move(*project_id_or);
 }
 
 ExecutionResultOr<string>
@@ -102,7 +101,7 @@ GcpInstanceClientUtils::ParseProjectIdFromInstanceResourceName(
   GcpInstanceResourceNameDetails details;
   auto result = GetInstanceResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
-  return move(details.project_id);
+  return std::move(details.project_id);
 }
 
 ExecutionResultOr<string>
@@ -111,7 +110,7 @@ GcpInstanceClientUtils::ParseZoneIdFromInstanceResourceName(
   GcpInstanceResourceNameDetails details;
   auto result = GetInstanceResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
-  return move(details.zone_id);
+  return std::move(details.zone_id);
 }
 
 ExecutionResultOr<string>
@@ -120,7 +119,7 @@ GcpInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
   GcpInstanceResourceNameDetails details;
   auto result = GetInstanceResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
-  return move(details.instance_id);
+  return std::move(details.instance_id);
 }
 
 ExecutionResult GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(

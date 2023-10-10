@@ -41,7 +41,6 @@ using google::scp::cpio::TestLibCpio;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::to_string;
@@ -62,7 +61,7 @@ int main(int argc, char* argv[]) {
 
   ParameterClientOptions parameter_client_options;
   auto parameter_client =
-      ParameterClientFactory::Create(move(parameter_client_options));
+      ParameterClientFactory::Create(std::move(parameter_client_options));
   result = parameter_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init parameter client!"
@@ -80,7 +79,7 @@ int main(int argc, char* argv[]) {
   GetParameterRequest get_parameter_request;
   get_parameter_request.set_parameter_name(kTestParameterName);
   result = parameter_client->GetParameter(
-      move(get_parameter_request),
+      std::move(get_parameter_request),
       [&](const ExecutionResult result, GetParameterResponse response) {
         if (!result.Successful()) {
           std::cout << "GetParameter failed: "

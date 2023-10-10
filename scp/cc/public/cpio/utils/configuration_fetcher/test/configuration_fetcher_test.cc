@@ -66,7 +66,6 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -109,7 +108,7 @@ class ConfigurationFetcherTest : public ::testing::Test {
               if (result.Successful()) {
                 response.set_instance_resource_name(kInstanceResourceName);
               }
-              callback(result, move(response));
+              callback(result, std::move(response));
               return result;
             });
   }
@@ -128,7 +127,7 @@ class ConfigurationFetcherTest : public ::testing::Test {
                     *response.mutable_instance_details()->mutable_labels();
                 labels[tag] = kEnvName;
               }
-              callback(result, move(response));
+              callback(result, std::move(response));
               return result;
             });
   }
@@ -146,7 +145,7 @@ class ConfigurationFetcherTest : public ::testing::Test {
                   absl::StrCat("scp-", kEnvName, "-", parameter_name)) {
             response.set_parameter_value(parameter_value);
           }
-          callback(result, move(response));
+          callback(result, std::move(response));
           return result;
         });
   }

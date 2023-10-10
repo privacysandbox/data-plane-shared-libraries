@@ -54,7 +54,6 @@ using google::scp::cpio::client_providers::MetricClientUtils;
 using std::bind;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::placeholders::_1;
@@ -115,7 +114,7 @@ ExecutionResult MetricClient::Stop() noexcept {
 
 core::ExecutionResult MetricClient::PutMetrics(
     AsyncContext<PutMetricsRequest, PutMetricsResponse> context) noexcept {
-  return metric_client_provider_->PutMetrics(move(context));
+  return metric_client_provider_->PutMetrics(std::move(context));
 }
 
 std::unique_ptr<MetricClientInterface> MetricClientFactory::Create(

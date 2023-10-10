@@ -56,7 +56,6 @@ using std::bind;
 using std::dynamic_pointer_cast;
 using std::list;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -108,7 +107,7 @@ ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
        ComponentCreator(
            bind(&GcpPrivateKeyServiceFactory::CreateKmsClient, this),
            "KmsClient")});
-  component_factory_ = make_shared<ComponentFactory>(move(creators));
+  component_factory_ = make_shared<ComponentFactory>(std::move(creators));
 
   RETURN_AND_LOG_IF_FAILURE(PrivateKeyServiceFactory::Init(),
                             kGcpPrivateKeyServiceFactory, kZeroUuid,

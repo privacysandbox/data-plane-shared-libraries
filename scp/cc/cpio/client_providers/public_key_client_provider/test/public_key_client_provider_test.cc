@@ -52,7 +52,6 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -154,8 +153,8 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
 
   atomic<int> success_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
-      move(request), [&](AsyncContext<ListPublicKeysRequest,
-                                      ListPublicKeysResponse>& context) {
+      std::move(request), [&](AsyncContext<ListPublicKeysRequest,
+                                           ListPublicKeysResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->public_keys()[0].key_id(), "1234");
         EXPECT_EQ(context.response->public_keys()[0].public_key(), "abcdefg");
@@ -193,8 +192,8 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
 
   atomic<int> failure_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
-      move(request), [&](AsyncContext<ListPublicKeysRequest,
-                                      ListPublicKeysResponse>& context) {
+      std::move(request), [&](AsyncContext<ListPublicKeysRequest,
+                                           ListPublicKeysResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_UNKNOWN)));
         failure_callback++;
@@ -224,8 +223,8 @@ TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
 
   atomic<int> failure_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
-      move(request), [&](AsyncContext<ListPublicKeysRequest,
-                                      ListPublicKeysResponse>& context) {
+      std::move(request), [&](AsyncContext<ListPublicKeysRequest,
+                                           ListPublicKeysResponse>& context) {
         EXPECT_THAT(context.result, ResultIs(cpio_failure));
         failure_callback++;
       });
@@ -262,8 +261,8 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
   auto request = make_shared<ListPublicKeysRequest>();
   atomic<int> success_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
-      move(request), [&](AsyncContext<ListPublicKeysRequest,
-                                      ListPublicKeysResponse>& context) {
+      std::move(request), [&](AsyncContext<ListPublicKeysRequest,
+                                           ListPublicKeysResponse>& context) {
         EXPECT_SUCCESS(context.result);
         success_callback++;
       });

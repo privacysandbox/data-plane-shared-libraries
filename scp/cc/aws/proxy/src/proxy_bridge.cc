@@ -36,7 +36,6 @@ using boost::asio::mutable_buffer;
 using boost::system::error_code;
 namespace errc = boost::system::errc;
 using boost::asio::error::eof;
-using std::move;
 
 namespace placeholders = boost::asio::placeholders;
 
@@ -284,7 +283,7 @@ void ProxyBridge::SetSocks5StateCallbacks() {
                 self->StopWaitingInbound(false /* client error */);
                 return;
               }
-              self->AcceptInboundConnection(move(sock));
+              self->AcceptInboundConnection(std::move(sock));
             })));
     // Wait for client error happens. looks like asio cannot wait_error on a
     // proper EOF. So we use wait_read instead. This is probably because the
@@ -307,7 +306,7 @@ void ProxyBridge::AcceptInboundConnection(Socket sock) {
   // Cancel the async_wait on errors
   error_code ec;
   client_sock_.cancel(ec);
-  dest_sock_ = move(sock);
+  dest_sock_ = std::move(sock);
   if (!socks5_state_.ConnectionSucceed()) {
     return;
   }

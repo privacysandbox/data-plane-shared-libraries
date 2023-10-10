@@ -85,7 +85,6 @@ using std::cout;
 using std::endl;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::runtime_error;
 using std::shared_ptr;
 using std::string;

@@ -85,7 +85,6 @@ using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::make_shared;
 using std::make_tuple;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::tuple;
@@ -217,7 +216,7 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
         return result;
       });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(move(mock_source));
+  return unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 // Matches arg.bucket_name and arg.object_name with bucket_name and
@@ -361,7 +360,7 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildBadHashReadResponse() {
     return result;
   });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(move(mock_source));
+  return unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 TEST_F(GcpBlobStorageClientProviderTest, GetBlobHashMismatchFails) {
@@ -730,7 +729,7 @@ TEST_F(GcpBlobStorageClientProviderTest,
       BlobMetadata metadata;
       metadata.set_bucket_name(kBucketName);
       metadata.set_blob_name(absl::StrCat("blob_", i));
-      expected_blobs.push_back(move(metadata));
+      expected_blobs.push_back(std::move(metadata));
     }
     EXPECT_THAT(context.response->blob_metadatas(),
                 Pointwise(BlobMetadatasEqual(), expected_blobs));

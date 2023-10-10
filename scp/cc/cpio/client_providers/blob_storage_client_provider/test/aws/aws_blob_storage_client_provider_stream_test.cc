@@ -91,7 +91,6 @@ using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
 using std::atomic_bool;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::vector;
@@ -246,8 +245,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStream) {
       .WillOnce([this, &upload_id](auto request, auto& callback, auto) {
         CreateMultipartUploadResult result;
         result.SetUploadId(upload_id);
-        CreateMultipartUploadOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   string etag = "tag 1";
@@ -259,8 +258,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStream) {
       .WillOnce([this, &etag](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   CompletedMultipartUpload upload;
@@ -271,7 +270,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStream) {
                   HasBucketKeyAndUpload(kBucketName, kBlobName, upload), _, _))
       .WillOnce([this](auto request, auto& callback, auto) {
         CompleteMultipartUploadResult result;
-        CompleteMultipartUploadOutcome outcome(move(result));
+        CompleteMultipartUploadOutcome outcome(std::move(result));
         callback(abstract_client_, request, outcome, nullptr);
       });
 
@@ -297,8 +296,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
   request3.mutable_blob_portion()->set_data(strings[1]);
-  put_blob_stream_context_.TryPushRequest(move(request2));
-  put_blob_stream_context_.TryPushRequest(move(request3));
+  put_blob_stream_context_.TryPushRequest(std::move(request2));
+  put_blob_stream_context_.TryPushRequest(std::move(request3));
   put_blob_stream_context_.MarkDone();
 
   put_blob_stream_context_.callback = [this](auto& context) {
@@ -316,8 +315,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
       .WillOnce([this, &upload_id](auto request, auto& callback, auto) {
         CreateMultipartUploadResult result;
         result.SetUploadId(upload_id);
-        CreateMultipartUploadOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   string etag1 = "tag 1", etag2 = "tag 2", etag3 = "tag 3";
@@ -329,8 +328,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
       .WillOnce([this, &etag1](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag1);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_,
@@ -340,8 +339,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
       .WillOnce([this, &etag2](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag2);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_,
@@ -351,8 +350,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
       .WillOnce([this, &etag3](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag3);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   CompletedMultipartUpload upload;
@@ -365,7 +364,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
                   HasBucketKeyAndUpload(kBucketName, kBlobName, upload), _, _))
       .WillOnce([this](auto request, auto& callback, auto) {
         CompleteMultipartUploadResult result;
-        CompleteMultipartUploadOutcome outcome(move(result));
+        CompleteMultipartUploadOutcome outcome(std::move(result));
         callback(abstract_client_, request, outcome, nullptr);
       });
 
@@ -395,9 +394,9 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
   request3.mutable_blob_portion()->set_data(strings[1]);
   auto request4 = *put_blob_stream_context_.request;
   request4.mutable_blob_portion()->set_data(strings[2]);
-  put_blob_stream_context_.TryPushRequest(move(request2));
-  put_blob_stream_context_.TryPushRequest(move(request3));
-  put_blob_stream_context_.TryPushRequest(move(request4));
+  put_blob_stream_context_.TryPushRequest(std::move(request2));
+  put_blob_stream_context_.TryPushRequest(std::move(request3));
+  put_blob_stream_context_.TryPushRequest(std::move(request4));
   put_blob_stream_context_.MarkDone();
 
   put_blob_stream_context_.callback = [this](auto& context) {
@@ -415,8 +414,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
       .WillOnce([this, &upload_id](auto request, auto& callback, auto) {
         CreateMultipartUploadResult result;
         result.SetUploadId(upload_id);
-        CreateMultipartUploadOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   string etag1 = "tag 1", etag2 = "tag 2";
@@ -430,8 +429,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
       .WillOnce([this, &etag1](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag1);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_,
@@ -441,8 +440,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
       .WillOnce([this, &etag2](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag2);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   CompletedMultipartUpload upload;
@@ -454,7 +453,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
                   HasBucketKeyAndUpload(kBucketName, kBlobName, upload), _, _))
       .WillOnce([this](auto request, auto& callback, auto) {
         CompleteMultipartUploadResult result;
-        CompleteMultipartUploadOutcome outcome(move(result));
+        CompleteMultipartUploadOutcome outcome(std::move(result));
         callback(abstract_client_, request, outcome, nullptr);
       });
 
@@ -493,8 +492,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
   request3.mutable_blob_portion()->set_data(strings[1]);
-  put_blob_stream_context_.TryPushRequest(move(request2));
-  put_blob_stream_context_.TryPushRequest(move(request3));
+  put_blob_stream_context_.TryPushRequest(std::move(request2));
+  put_blob_stream_context_.TryPushRequest(std::move(request3));
   put_blob_stream_context_.MarkDone();
 
   put_blob_stream_context_.callback = [this](auto& context) {
@@ -512,8 +511,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       .WillOnce([this, &upload_id](auto request, auto& callback, auto) {
         CreateMultipartUploadResult result;
         result.SetUploadId(upload_id);
-        CreateMultipartUploadOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   string etag1 = "tag 1", etag2 = "tag 2", etag3 = "tag 3";
@@ -525,8 +524,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       .WillOnce([this, &etag1](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag1);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_,
@@ -536,8 +535,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       .WillOnce([this, &etag2](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag2);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_,
@@ -547,8 +546,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       .WillOnce([this, &etag3](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag3);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   CompletedMultipartUpload upload;
@@ -561,7 +560,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
                   HasBucketKeyAndUpload(kBucketName, kBlobName, upload), _, _))
       .WillOnce([this](auto request, auto& callback, auto) {
         CompleteMultipartUploadResult result;
-        CompleteMultipartUploadOutcome outcome(move(result));
+        CompleteMultipartUploadOutcome outcome(std::move(result));
         callback(abstract_client_, request, outcome, nullptr);
       });
 
@@ -571,11 +570,11 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
 
   // Wait until it enters the code path we want.
   sleep_for(milliseconds(50));
-  put_blob_stream_context_.TryPushRequest(move(request2));
+  put_blob_stream_context_.TryPushRequest(std::move(request2));
 
   // Wait until it enters the code path we want.
   sleep_for(milliseconds(50));
-  put_blob_stream_context_.TryPushRequest(move(request3));
+  put_blob_stream_context_.TryPushRequest(std::move(request3));
 
   put_blob_stream_context_.MarkDone();
 
@@ -613,8 +612,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
                                HasBucketAndKey(kBucketName, kBlobName), _, _))
       .WillOnce([this](auto request, auto& callback, auto) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
-        CreateMultipartUploadOutcome outcome(move(s3_error));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(s3_error));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_, UploadPartAsync).Times(0);
@@ -663,15 +662,15 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       .WillOnce([this, &upload_id](auto request, auto& callback, auto) {
         CreateMultipartUploadResult result;
         result.SetUploadId(upload_id.c_str());
-        CreateMultipartUploadOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_, UploadPartAsync)
       .WillOnce([this](auto request, auto& callback, auto) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
-        CreateMultipartUploadOutcome outcome(move(s3_error));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(s3_error));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(
@@ -680,8 +679,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
           HasBucketKeyAndUploadId(kBucketName, kBlobName, upload_id), _, _))
       .WillOnce([this](auto request, auto& callback, auto) {
         AbortMultipartUploadResult result;
-        AbortMultipartUploadOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        AbortMultipartUploadOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_, CompleteMultipartUploadAsync).Times(0);
@@ -722,8 +721,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       .WillOnce([this, &upload_id](auto request, auto& callback, auto) {
         CreateMultipartUploadResult result;
         result.SetUploadId(upload_id);
-        CreateMultipartUploadOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   string etag = "tag 1";
@@ -735,8 +734,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       .WillOnce([this, &etag](auto request, auto& callback, auto) {
         UploadPartResult result;
         result.SetETag(etag);
-        UploadPartOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        UploadPartOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   CompletedMultipartUpload upload;
@@ -747,7 +746,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
                   HasBucketKeyAndUpload(kBucketName, kBlobName, upload), _, _))
       .WillOnce([this](auto request, auto& callback, auto) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
-        CompleteMultipartUploadOutcome outcome(move(s3_error));
+        CompleteMultipartUploadOutcome outcome(std::move(s3_error));
         callback(abstract_client_, request, outcome, nullptr);
       });
 
@@ -788,14 +787,14 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       .WillOnce([this, &upload_id](auto request, auto& callback, auto) {
         CreateMultipartUploadResult result;
         result.SetUploadId(upload_id);
-        CreateMultipartUploadOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_, AbortMultipartUploadAsync)
       .WillOnce([this](auto request, auto& callback, auto) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
-        AbortMultipartUploadOutcome outcome(move(s3_error));
+        AbortMultipartUploadOutcome outcome(std::move(s3_error));
         callback(abstract_client_, request, outcome, nullptr);
       });
 
@@ -837,14 +836,14 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
       .WillOnce([this, &upload_id](auto request, auto& callback, auto) {
         CreateMultipartUploadResult result;
         result.SetUploadId(upload_id);
-        CreateMultipartUploadOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        CreateMultipartUploadOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   EXPECT_CALL(*s3_client_, AbortMultipartUploadAsync)
       .WillOnce([this](auto request, auto& callback, auto) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
-        AbortMultipartUploadOutcome outcome(move(s3_error));
+        AbortMultipartUploadOutcome outcome(std::move(s3_error));
         callback(abstract_client_, request, outcome, nullptr);
       });
 
@@ -916,8 +915,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStream) {
         result.ReplaceBody(new StringStream(bytes_str));
         result.SetContentRange("bytes 0-14/15");
         result.SetContentLength(bytes_str.length());
-        GetObjectOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        GetObjectOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   vector<GetBlobStreamResponse> actual_responses;
@@ -925,7 +924,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStream) {
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
     if (resp != nullptr) {
-      actual_responses.push_back(move(*resp));
+      actual_responses.push_back(std::move(*resp));
     } else {
       if (!context.IsMarkedDone()) {
         ADD_FAILURE();
@@ -985,8 +984,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
           result.SetContentRange(
               absl::StrCat("bytes ", i, "-", end_index, "/15"));
           result.SetContentLength(end_index - i + 1);
-          GetObjectOutcome outcome(move(result));
-          callback(abstract_client_, request, move(outcome), nullptr);
+          GetObjectOutcome outcome(std::move(result));
+          callback(abstract_client_, request, std::move(outcome), nullptr);
         });
   }
 
@@ -995,7 +994,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
     if (resp != nullptr) {
-      actual_responses.push_back(move(*resp));
+      actual_responses.push_back(std::move(*resp));
     } else {
       if (!context.IsMarkedDone()) {
         ADD_FAILURE();
@@ -1054,8 +1053,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
         // than we're getting.
         result.SetContentRange(absl::StrCat("bytes ", 3, "-", 5, "/15"));
         result.SetContentLength(3);
-        GetObjectOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        GetObjectOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
   EXPECT_CALL(
       *s3_client_,
@@ -1069,8 +1068,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
         // than we're getting.
         result.SetContentRange(absl::StrCat("bytes ", 6, "-", 6, "/15"));
         result.SetContentLength(1);
-        GetObjectOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        GetObjectOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   vector<GetBlobStreamResponse> actual_responses;
@@ -1078,7 +1077,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
     if (resp != nullptr) {
-      actual_responses.push_back(move(*resp));
+      actual_responses.push_back(std::move(*resp));
     } else {
       if (!context.IsMarkedDone()) {
         ADD_FAILURE();
@@ -1124,8 +1123,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamIndexBeyondEnd) {
         result.ReplaceBody(new StringStream(bytes_str));
         result.SetContentRange("bytes 0-14/15");
         result.SetContentLength(bytes_str.length());
-        GetObjectOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        GetObjectOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   vector<GetBlobStreamResponse> actual_responses;
@@ -1133,7 +1132,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamIndexBeyondEnd) {
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
     if (resp != nullptr) {
-      actual_responses.push_back(move(*resp));
+      actual_responses.push_back(std::move(*resp));
     } else {
       if (!context.IsMarkedDone()) {
         ADD_FAILURE();
@@ -1161,8 +1160,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
   EXPECT_CALL(*s3_client_, GetObjectAsync)
       .WillOnce([this](auto request, auto& callback, auto) {
         AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
-        GetObjectOutcome outcome(move(s3_error));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        GetObjectOutcome outcome(std::move(s3_error));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   get_blob_stream_context_.process_callback = [this](auto& context, bool) {
@@ -1197,8 +1196,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamFailsIfQueueDone) {
         result.ReplaceBody(new StringStream(bytes_str));
         result.SetContentRange("bytes 0-14/15");
         result.SetContentLength(bytes_str.length());
-        GetObjectOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        GetObjectOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   get_blob_stream_context_.process_callback = [this](auto& context, bool) {
@@ -1233,8 +1232,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
         result.ReplaceBody(new StringStream(bytes_str));
         result.SetContentRange("bytes 0-14/15");
         result.SetContentLength(bytes_str.length());
-        GetObjectOutcome outcome(move(result));
-        callback(abstract_client_, request, move(outcome), nullptr);
+        GetObjectOutcome outcome(std::move(result));
+        callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
   get_blob_stream_context_.process_callback = [this](auto& context, bool) {

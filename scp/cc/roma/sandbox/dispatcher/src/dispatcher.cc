@@ -34,7 +34,6 @@ using google::scp::core::errors::GetErrorMessage;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::vector;
@@ -86,7 +85,7 @@ ExecutionResult Dispatcher::Broadcast(unique_ptr<CodeObject> code_object,
     auto code_object_copy = make_unique<CodeObject>(*code_object);
 
     auto dispatch_result =
-        InternalDispatch(move(code_object_copy), callback, worker_index);
+        InternalDispatch(std::move(code_object_copy), callback, worker_index);
 
     if (!dispatch_result.Successful()) {
       LOG(ERROR) << "Broadcast failed at the " << worker_index

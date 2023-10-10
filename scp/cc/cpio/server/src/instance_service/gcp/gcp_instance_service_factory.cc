@@ -45,7 +45,6 @@ using google::scp::cpio::client_providers::GcpAuthTokenProvider;
 using google::scp::cpio::client_providers::GcpInstanceClientProvider;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using std::make_shared;
-using std::move;
 using std::shared_ptr;
 
 namespace {

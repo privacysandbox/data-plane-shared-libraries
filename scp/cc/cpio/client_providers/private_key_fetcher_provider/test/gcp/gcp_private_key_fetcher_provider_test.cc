@@ -54,7 +54,6 @@ using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using std::atomic;
 using std::make_shared;
 using std::make_unique;
-using std::move;
 using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
@@ -96,7 +95,7 @@ class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
     endpoint->private_key_vending_service_endpoint = kPrivateKeyBaseUri;
     endpoint->service_region = kRegion;
     endpoint->account_identity = kAccountIdentity;
-    request_->key_vending_endpoint = move(endpoint);
+    request_->key_vending_endpoint = std::move(endpoint);
   }
 
   ~GcpPrivateKeyFetcherProviderTest() {
