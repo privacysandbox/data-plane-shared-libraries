@@ -37,8 +37,6 @@
 #include "public/cpio/interface/crypto_client/type_def.h"
 #include "public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 
-using absl::Base64Escape;
-using absl::HexStringToBytes;
 using crypto::tink::util::SecretData;
 using google::cmrt::sdk::crypto_service::v1::AeadDecryptRequest;
 using google::cmrt::sdk::crypto_service::v1::AeadDecryptResponse;
@@ -121,10 +119,10 @@ class CryptoClientProviderTest : public ScpTestBase {
     if (hpke_params_from_request.aead() == HpkeAead::AES_128_GCM ||
         hpke_params_config.aead() == HpkeAead::AES_128_GCM) {
       public_key->set_public_key(
-          Base64Escape(HexStringToBytes(kPublicKeyForAes128Gcm)));
+          absl::Base64Escape(absl::HexStringToBytes(kPublicKeyForAes128Gcm)));
     } else {
       public_key->set_public_key(
-          Base64Escape(HexStringToBytes(kPublicKeyForChacha20)));
+          absl::Base64Escape(absl::HexStringToBytes(kPublicKeyForChacha20)));
     }
     request->set_shared_info(string(kSharedInfo));
     request->set_payload(string(kPayload));
@@ -163,10 +161,10 @@ class CryptoClientProviderTest : public ScpTestBase {
     if (hpke_params_from_request.aead() == HpkeAead::AES_128_GCM ||
         hpke_params_from_config.aead() == HpkeAead::AES_128_GCM) {
       hpke_private_key.set_private_key(
-          HexStringToBytes(kDecryptedPrivateKeyForAes128Gcm));
+          absl::HexStringToBytes(kDecryptedPrivateKeyForAes128Gcm));
     } else {
       hpke_private_key.set_private_key(
-          HexStringToBytes(kDecryptedPrivateKeyForChacha20));
+          absl::HexStringToBytes(kDecryptedPrivateKeyForChacha20));
     }
     Keyset key;
     key.set_primary_key_id(123);
@@ -211,7 +209,7 @@ class CryptoClientProviderTest : public ScpTestBase {
     auto request = make_shared<AeadEncryptRequest>();
     request->set_shared_info(string(kSharedInfo));
     request->set_payload(string(kPayload));
-    request->set_secret(HexStringToBytes(secret));
+    request->set_secret(absl::HexStringToBytes(secret));
     return AsyncContext<AeadEncryptRequest, AeadEncryptResponse>(
         move(request),
         [&](AsyncContext<AeadEncryptRequest, AeadEncryptResponse>& context) {});
@@ -221,7 +219,7 @@ class CryptoClientProviderTest : public ScpTestBase {
   CreateAeadDecryptContext(string_view secret, string_view ciphertext) {
     auto request = make_shared<AeadDecryptRequest>();
     request->set_shared_info(string(kSharedInfo));
-    request->set_secret(HexStringToBytes(secret));
+    request->set_secret(absl::HexStringToBytes(secret));
     request->mutable_encrypted_data()->set_ciphertext(string(ciphertext));
     return AsyncContext<AeadDecryptRequest, AeadDecryptResponse>(
         move(request),

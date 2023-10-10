@@ -22,7 +22,6 @@
 #include "absl/strings/str_format.h"
 #include "public/core/interface/execution_result.h"
 
-using absl::StrFormat;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
@@ -40,8 +39,9 @@ namespace google::scp::cpio::client_providers {
 ExecutionResult
 TestGcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
-  resource_name = StrFormat(kGcpResourceNameFormat, test_options_->owner_id,
-                            test_options_->zone, test_options_->instance_id);
+  resource_name =
+      absl::StrFormat(kGcpResourceNameFormat, test_options_->owner_id,
+                      test_options_->zone, test_options_->instance_id);
   return SuccessExecutionResult();
 }
 

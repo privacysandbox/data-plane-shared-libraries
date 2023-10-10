@@ -33,7 +33,6 @@
 #include "roma/wasm/test/testing_utils.h"
 #include "src/cpp/util/duration.h"
 
-using absl::StatusOr;
 using google::scp::core::test::WaitUntil;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using std::atomic;

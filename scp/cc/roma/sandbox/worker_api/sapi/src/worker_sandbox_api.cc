@@ -41,7 +41,6 @@
 
 #define ROMA_CONVERT_MB_TO_BYTES(mb) mb * 1024 * 1024
 
-using absl::SimpleAtoi;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::RetryExecutionResult;

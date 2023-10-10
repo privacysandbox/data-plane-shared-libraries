@@ -27,7 +27,6 @@
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
 
-using absl::StatusOr;
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::SuccessExecutionResult;
@@ -60,12 +59,13 @@ ExecutionResult Dispatcher::Broadcast(unique_ptr<CodeObject> code_object,
   auto worker_count = worker_pool_->GetPoolSize();
   auto finished_counter = make_shared<atomic<size_t>>(0);
   auto responses_storage =
-      make_shared<vector<unique_ptr<StatusOr<ResponseObject>>>>(worker_count);
+      make_shared<vector<unique_ptr<absl::StatusOr<ResponseObject>>>>(
+          worker_count);
 
   for (size_t worker_index = 0; worker_index < worker_count; worker_index++) {
     auto callback =
         [worker_count, responses_storage, finished_counter, broadcast_callback,
-         worker_index](unique_ptr<StatusOr<ResponseObject>> response) {
+         worker_index](unique_ptr<absl::StatusOr<ResponseObject>> response) {
           auto& all_resp = *responses_storage;
           // Store responses in the vector
           all_resp[worker_index].swap(response);

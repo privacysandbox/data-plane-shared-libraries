@@ -37,8 +37,6 @@
 #include "roma/sandbox/worker_pool/src/worker_pool.h"
 #include "roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
 
-using absl::flat_hash_set;
-using absl::StatusOr;
 using google::scp::core::AsyncExecutor;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
@@ -99,7 +97,7 @@ TEST(DispatcherTest, CanRunCode) {
 
   auto result = dispatcher.Dispatch(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -117,7 +115,7 @@ TEST(DispatcherTest, CanRunCode) {
 
   result = dispatcher.Dispatch(
       move(execute_request),
-      [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
         done_executing.store(true);
@@ -152,7 +150,7 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
 
   auto result = dispatcher.Dispatch(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // That didn't work
         EXPECT_FALSE(resp->ok());
         done_loading.store(true);
@@ -186,7 +184,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
 
   auto result = dispatcher.Dispatch(
       move(execute_request),
-      [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_FALSE(resp->ok());
         done_executing.store(true);
       });
@@ -222,7 +220,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
   auto result = dispatcher.Broadcast(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -244,7 +242,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
     result = dispatcher.Dispatch(
         move(execute_request),
-        [&execution_count, i](unique_ptr<StatusOr<ResponseObject>> resp) {
+        [&execution_count, i](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ(absl::StrCat(R"("Hello)", i, R"( Some string")"),
                     (*resp)->resp);
@@ -286,7 +284,7 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
 
   auto result = dispatcher.Broadcast(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // That failed
         EXPECT_FALSE(resp->ok());
         done_loading.store(true);
@@ -322,7 +320,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
 
   auto result = dispatcher.Broadcast(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -335,7 +333,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   int requests_sent = number_of_workers * 3;
 
   vector<InvocationRequestStrInput> batch;
-  flat_hash_set<string> request_ids;
+  absl::flat_hash_set<string> request_ids;
 
   for (int i = 0; i < requests_sent; i++) {
     auto execute_request = InvocationRequestStrInput();
@@ -350,11 +348,11 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   }
 
   atomic<bool> finished_batch(false);
-  vector<StatusOr<ResponseObject>> test_batch_response;
+  vector<absl::StatusOr<ResponseObject>> test_batch_response;
 
   dispatcher.DispatchBatch(
       batch, [&finished_batch, &test_batch_response](
-                 const vector<StatusOr<ResponseObject>>& batch_response) {
+                 const vector<absl::StatusOr<ResponseObject>>& batch_response) {
         for (auto& r : batch_response) {
           test_batch_response.push_back(r);
         }
@@ -413,7 +411,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
 
   auto result = dispatcher.Broadcast(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -434,7 +432,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
 
   result = dispatcher.DispatchBatch(
       batch, [&finished_batch](
-                 const vector<StatusOr<ResponseObject>>& batch_response) {
+                 const vector<absl::StatusOr<ResponseObject>>& batch_response) {
         for (auto& r : batch_response) {
           EXPECT_TRUE(r.ok());
         }
@@ -445,8 +443,9 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   EXPECT_SUCCESS(result);
 
   result = dispatcher.DispatchBatch(
-      batch,
-      [](const vector<StatusOr<ResponseObject>>& batch_response) { return; });
+      batch, [](const vector<absl::StatusOr<ResponseObject>>& batch_response) {
+        return;
+      });
 
   // This dispatch batch should not work as queues are not empty
   EXPECT_FALSE(result.Successful());
@@ -478,7 +477,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   auto result = dispatcher.Dispatch(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -496,7 +495,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   result = dispatcher.Dispatch(
       move(execute_request),
-      [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
         done_executing.store(true);
@@ -524,7 +523,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   result = dispatcher.Dispatch(
       move(execute_request),
-      [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // This execution should fail since the worker has died
         EXPECT_FALSE(resp->ok());
         done_executing.store(true);
@@ -545,7 +544,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   result = dispatcher.Dispatch(
       move(execute_request),
-      [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         EXPECT_EQ(R"("Hello after restart :) Some string")", (*resp)->resp);
         done_executing.store(true);
@@ -580,7 +579,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   auto result = dispatcher.Dispatch(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -597,7 +596,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   result = dispatcher.Dispatch(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -620,7 +619,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   result = dispatcher.Dispatch(
       move(execute_request),
-      [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // This request failed but it should have caused the restart of the
         // worker so subsequent requests should work.
         EXPECT_FALSE(resp->ok());
@@ -644,7 +643,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
     result = dispatcher.Dispatch(
         move(execute_request),
-        [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ(R"("Hello 1 Some string 1")", (*resp)->resp);
           done_executing.store(true);
@@ -663,7 +662,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
     result = dispatcher.Dispatch(
         move(execute_request),
-        [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ(R"("Hello 2 Some string 2")", (*resp)->resp);
           done_executing.store(true);
@@ -699,7 +698,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
   auto result = dispatcher.Dispatch(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -716,7 +715,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
   result = dispatcher.Dispatch(
       move(load_request),
-      [&done_loading](unique_ptr<StatusOr<ResponseObject>> resp) {
+      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -740,7 +739,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     result = dispatcher.Dispatch(
         move(load_request),
-        [&done_loading, i](unique_ptr<StatusOr<ResponseObject>> resp) {
+        [&done_loading, i](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           if (i == 0) {
             // Failed
             EXPECT_FALSE(resp->ok());
@@ -769,7 +768,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     result = dispatcher.Dispatch(
         move(execute_request),
-        [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ("\"Hello 1 Some string 1\"", (*resp)->resp);
           done_executing.store(true);
@@ -788,7 +787,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     result = dispatcher.Dispatch(
         move(execute_request),
-        [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ("\"Hello 2 Some string 2\"", (*resp)->resp);
           done_executing.store(true);
@@ -808,7 +807,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     result = dispatcher.Dispatch(
         move(execute_request),
-        [&done_executing](unique_ptr<StatusOr<ResponseObject>> resp) {
+        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ("\"Hello 3 Some string 3\"", (*resp)->resp);
           done_executing.store(true);

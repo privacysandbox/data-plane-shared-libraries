@@ -26,10 +26,6 @@
 
 #include "error_codes.h"
 
-using absl::SimpleAtoi;
-using absl::SkipEmpty;
-using absl::StrContains;
-using absl::StrSplit;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using std::ifstream;
@@ -68,7 +64,7 @@ SystemResourceInfoProviderLinux::GetAvailableMemoryKb() noexcept {
   uint64_t total_available_mem_kb = 0;
 
   while (std::getline(meminfo_file, line)) {
-    if (StrContains(line, kTotalAvailableMemory)) {
+    if (absl::StrContains(line, kTotalAvailableMemory)) {
       auto mem_value = GetMemInfoLineEntryKb(line);
       if (mem_value.Successful()) {
         total_available_mem_kb = *mem_value;
@@ -94,7 +90,7 @@ ExecutionResultOr<uint64_t>
 SystemResourceInfoProviderLinux::GetMemInfoLineEntryKb(
     string meminfo_line) noexcept {
   vector<string> line_parts =
-      StrSplit(meminfo_line, kMemInfoLineSeparator, SkipEmpty());
+      absl::StrSplit(meminfo_line, kMemInfoLineSeparator, absl::SkipEmpty());
 
   if (line_parts.size() != kExpectedMemInfoLinePartsCount) {
     return FailureExecutionResult(
@@ -106,8 +102,8 @@ SystemResourceInfoProviderLinux::GetMemInfoLineEntryKb(
   int_parsing_stream << line_parts.at(kExpectedMemInfoLineNumericValueIndex);
   int_parsing_stream >> read_memory_kb;
 
-  if (!SimpleAtoi(line_parts.at(kExpectedMemInfoLineNumericValueIndex),
-                  &read_memory_kb)) {
+  if (!absl::SimpleAtoi(line_parts.at(kExpectedMemInfoLineNumericValueIndex),
+                        &read_memory_kb)) {
     return FailureExecutionResult(
         SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_COULD_NOT_PARSE_MEMINFO_LINE);
   }

@@ -32,9 +32,6 @@
 
 #include "core/common/time_provider/src/time_provider.h"
 
-using absl::OkStatus;
-using absl::Status;
-using absl::StatusCode;
 using google::scp::core::ExecutionResult;
 using google::scp::core::common::TimeProvider;
 using google::scp::roma::BatchExecute;
@@ -244,7 +241,7 @@ BenchmarkMetrics BenchmarkMetrics::GetMeanMetrics(
   return mean_metric;
 }
 
-Status LoadCodeObject(const string& code_string) {
+absl::Status LoadCodeObject(const string& code_string) {
   // Loads code object to Roma workers.
   auto code_obj = CreateCodeObj(code_string);
   std::promise<void> done;
@@ -267,9 +264,10 @@ Status LoadCodeObject(const string& code_string) {
 
   done.get_future().get();
   if (load_success) {
-    return OkStatus();
+    return absl::OkStatus();
   } else {
-    return Status(StatusCode::kInternal, "Roma failed to load code object ");
+    return absl::Status(absl::StatusCode::kInternal,
+                        "Roma failed to load code object ");
   }
 }
 

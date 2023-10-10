@@ -24,7 +24,6 @@
 #include "cpio/client_providers/instance_client_provider/src/aws/error_codes.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using absl::StrFormat;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;

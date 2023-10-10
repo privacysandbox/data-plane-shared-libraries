@@ -24,7 +24,6 @@
 #include "cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using absl::StrFormat;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::errors::
@@ -160,7 +159,7 @@ class GcpInstanceClientUtilsTestIII
 TEST_P(GcpInstanceClientUtilsTestIII, CreateRMListTagsUrl) {
   auto resource_name = GetResourceName();
 
-  auto path = StrFormat(kResourceManagerUriFormat, GetResourceLocation());
+  auto path = absl::StrFormat(kResourceManagerUriFormat, GetResourceLocation());
   EXPECT_EQ(GcpInstanceClientUtils::CreateRMListTagsUrl(resource_name), path);
 }
 

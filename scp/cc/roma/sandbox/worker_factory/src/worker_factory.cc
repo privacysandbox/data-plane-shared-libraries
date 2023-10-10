@@ -29,7 +29,6 @@
 
 #include "error_codes.h"
 
-using absl::flat_hash_map;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::errors::SC_ROMA_WORKER_FACTORY_UNKNOWN_ENGINE_TYPE;
@@ -47,9 +46,9 @@ using std::to_string;
 using std::vector;
 
 namespace google::scp::roma::sandbox::worker {
-static flat_hash_map<string, string> GetEngineOneTimeSetup(
+static absl::flat_hash_map<string, string> GetEngineOneTimeSetup(
     const WorkerFactory::FactoryParams& params) {
-  flat_hash_map<string, string> one_time_setup;
+  absl::flat_hash_map<string, string> one_time_setup;
   one_time_setup[kJsEngineOneTimeSetupWasmPagesKey] =
       to_string(params.v8_worker_engine_params.max_wasm_memory_number_of_pages);
   return one_time_setup;

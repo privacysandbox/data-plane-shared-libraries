@@ -27,9 +27,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/wasm/test/testing_utils.h"
 
-using absl::flat_hash_map;
-using absl::Span;
-using absl::string_view;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::errors::SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT;
 using google::scp::core::errors::SC_ROMA_V8_ENGINE_ERROR_INVOKING_HANDLER;
@@ -67,7 +64,7 @@ TEST_F(V8JsEngineTest, CanRunJsCode) {
           return "Hello World!" + " " + input1 + " " + input2
         }
       )";
-  vector<string_view> input = {R"("vec input 1")", R"("vec input 2")"};
+  vector<absl::string_view> input = {R"("vec input 1")", R"("vec input 2")"};
   auto response_or =
       engine.CompileAndRunJs(js_code, "hello_js", input, {} /*metadata*/);
 
@@ -177,7 +174,7 @@ TEST_F(V8JsEngineTest, CanHandleCompilationFailures) {
   AutoInitRunStop to_handle_engine(engine);
 
   auto js_code = "function hello_js(input1, input2) {";
-  vector<string_view> input = {R"("vec input 1")", R"("vec input 2")"};
+  vector<absl::string_view> input = {R"("vec input 1")", R"("vec input 2")"};
   auto response_or =
       engine.CompileAndRunJs(js_code, "hello_js", input, {} /*metadata*/);
 
@@ -196,7 +193,7 @@ TEST_F(V8JsEngineTest, CanRunCodeRequestWithJsonInput) {
           return (a["value"] + b["value"]);
         }
       )";
-  vector<string_view> input = {R"({"value":1})", R"({"value":2})"};
+  vector<absl::string_view> input = {R"({"value":1})", R"({"value":2})"};
   auto response_or =
       engine.CompileAndRunJs(js_code, "Handler", input, {} /*metadata*/);
 
@@ -215,7 +212,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputIsBadJsonInput) {
           return (a["value"] + b["value"]);
         }
       )";
-  vector<string_view> input = {R"(value":1})", R"({"value":2})"};
+  vector<absl::string_view> input = {R"(value":1})", R"({"value":2})"};
   auto response_or =
       engine.CompileAndRunJs(js_code, "Handler", input, {} /*metadata*/);
 
@@ -234,7 +231,7 @@ TEST_F(V8JsEngineTest, ShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
           return "Hello World!" + " " + input1 + " " + input2
         }
       )";
-  vector<string_view> input = {R"("vec input 1")", R"("vec input 2")"};
+  vector<absl::string_view> input = {R"("vec input 1")", R"("vec input 2")"};
 
   // Empty handler
   auto response_or =
@@ -256,7 +253,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputCannotBeParsed) {
         }
       )";
   // Bad input
-  vector<string_view> input = {R"(vec input 1")", R"("vec input 2")"};
+  vector<absl::string_view> input = {R"(vec input 1")", R"("vec input 2")"};
 
   auto response_or =
       engine.CompileAndRunJs(js_code, "hello_js", input, {} /*metadata*/);
@@ -276,7 +273,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfHandlerIsNotFound) {
           return "Hello World!" + " " + input1 + " " + input2
         }
       )";
-  vector<string_view> input = {R"("vec input 1")", R"("vec input 2")"};
+  vector<absl::string_view> input = {R"("vec input 1")", R"("vec input 2")"};
 
   auto response_or =
       engine.CompileAndRunJs(js_code, "not_found", input, {} /*metadata*/);
@@ -294,7 +291,7 @@ TEST_F(V8JsEngineTest, CanRunWasmCode) {
 
   auto wasm_code =
       string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
-  vector<string_view> input = {R"("Some input string")"};
+  vector<absl::string_view> input = {R"("Some input string")"};
 
   auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
@@ -314,7 +311,7 @@ TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
 
   auto wasm_code =
       string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
-  vector<string_view> input = {R"("Some input string")"};
+  vector<absl::string_view> input = {R"("Some input string")"};
 
   // Empty handler
   auto response_or =
@@ -336,7 +333,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfInputCannotBeParsed) {
   auto wasm_code =
       string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
   // Bad input
-  vector<string_view> input = {R"("Some input string)"};
+  vector<absl::string_view> input = {R"("Some input string)"};
 
   auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
@@ -356,7 +353,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfBadWasm) {
 
   auto wasm_code = string(reinterpret_cast<char*>(wasm_bin), sizeof(wasm_bin));
   // Bad input
-  vector<string_view> input = {R"("Some input string")"};
+  vector<absl::string_view> input = {R"("Some input string")"};
 
   auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
@@ -374,8 +371,8 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithDefaultTimeoutValue) {
       return 0;
       }
   )""";
-  vector<string_view> input;
-  flat_hash_map<string, string> metadata;
+  vector<absl::string_view> input;
+  absl::flat_hash_map<string, string> metadata;
 
   auto response_or =
       engine.CompileAndRunJs(js_code, "hello_js", input, metadata);
@@ -403,10 +400,10 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithCustomTimeoutTag) {
         return 0;
       }
   )""";
-  vector<string_view> input;
+  vector<absl::string_view> input;
 
   {
-    flat_hash_map<string, string> metadata;
+    absl::flat_hash_map<string, string> metadata;
     // Set the timeout flag to 100 milliseconds. When it runs for more than 100
     // milliseconds, it times out.
     metadata[kTimeoutMsTag] = "100";
@@ -452,7 +449,7 @@ TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
   }
 
   {
-    vector<string_view> input = {"1", "2"};
+    vector<absl::string_view> input = {"1", "2"};
     auto response_or = engine.CompileAndRunJs(js_code, "hello_js", input, {});
     EXPECT_SUCCESS(response_or.result());
     auto response_string = *response_or->execution_response.response;
@@ -460,7 +457,7 @@ TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
   }
 
   {
-    vector<string_view> input = {"1", "6"};
+    vector<absl::string_view> input = {"1", "6"};
     auto response_or = engine.CompileAndRunJs(js_code, "hello_js", input, {});
     EXPECT_SUCCESS(response_or.result());
     auto response_string = *response_or->execution_response.response;
@@ -493,7 +490,7 @@ TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
   }
 
   {
-    vector<string_view> input = {"1", "2"};
+    vector<absl::string_view> input = {"1", "2"};
     auto response_or = engine.CompileAndRunJs(js_code, "hello_js", input, {});
     EXPECT_SUCCESS(response_or.result());
     auto response_string = *response_or->execution_response.response;
@@ -501,7 +498,7 @@ TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
   }
 
   {
-    vector<string_view> input = {"1", "6"};
+    vector<absl::string_view> input = {"1", "6"};
     auto response_or = engine.CompileAndRunJs(js_code, "hello_js", input, {});
     EXPECT_SUCCESS(response_or.result());
     auto response_string = *response_or->execution_response.response;
@@ -526,14 +523,14 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
                            0x02, 0x01, 0x00, 0x07, 0x07, 0x01, 0x03, 0x61, 0x64,
                            0x64, 0x00, 0x00, 0x0a, 0x09, 0x01, 0x07, 0x00, 0x20,
                            0x00, 0x20, 0x01, 0x6a, 0x0b};
-  auto wasm = Span<const uint8_t>(wasm_bin);
+  auto wasm = absl::Span<const uint8_t>(wasm_bin);
   {
     auto response_or = engine.CompileAndRunJsWithWasm(
         js_code, wasm, "", {}, {{kWasmCodeArrayName, "addModule"}});
     EXPECT_SUCCESS(response_or.result());
   }
   {
-    vector<string_view> input = {"1", "2"};
+    vector<absl::string_view> input = {"1", "2"};
     auto response_or = engine.CompileAndRunJsWithWasm(
         js_code, wasm, "hello_js", input, {{kWasmCodeArrayName, "addModule"}});
     EXPECT_SUCCESS(response_or.result());
@@ -541,7 +538,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
     EXPECT_EQ(response_string, "3");
   }
   {
-    vector<string_view> input = {"1", "6"};
+    vector<absl::string_view> input = {"1", "6"};
     auto response_or = engine.CompileAndRunJsWithWasm(
         js_code, wasm, "hello_js", input, {{kWasmCodeArrayName, "addModule"}});
     EXPECT_SUCCESS(response_or.result());
@@ -566,7 +563,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteFailWithInvalidWasm) {
                            0x01, 0x02, 0x01, 0x00, 0x07, 0x07, 0x01, 0x03,
                            0x61, 0x64, 0x64, 0x00, 0x00, 0x0a, 0x09, 0x01,
                            0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b};
-  auto wasm = Span<const uint8_t>(wasm_bin);
+  auto wasm = absl::Span<const uint8_t>(wasm_bin);
   {
     auto response_or = engine.CompileAndRunJsWithWasm(
         js_code, wasm, "", {}, {{kWasmCodeArrayName, "addModule"}});
@@ -576,7 +573,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteFailWithInvalidWasm) {
   }
 
   {
-    vector<string_view> input = {"1", "2"};
+    vector<absl::string_view> input = {"1", "2"};
     auto response_or = engine.CompileAndRunJsWithWasm(
         js_code, wasm, "hello_js", input, {{kWasmCodeArrayName, "addModule"}});
     EXPECT_THAT(response_or.result(),
@@ -607,7 +604,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
   auto wasm_bin = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/cpp_wasi_dependency_example/wasi_dependency.wasm");
   vector<uint8_t> wasm_code(wasm_bin.begin(), wasm_bin.end());
-  auto wasm = Span<const uint8_t>(wasm_code);
+  auto wasm = absl::Span<const uint8_t>(wasm_code);
   {
     auto response_or = engine.CompileAndRunJsWithWasm(
         js_code, wasm, "", {}, {{kWasmCodeArrayName, "testModule"}});
@@ -615,7 +612,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
   }
 
   {
-    vector<string_view> input = {"1"};
+    vector<absl::string_view> input = {"1"};
     auto response_or =
         engine.CompileAndRunJsWithWasm(js_code, wasm, "test_wasi", input,
                                        {{kWasmCodeArrayName, "testModule"}});
@@ -626,7 +623,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
     EXPECT_EQ(response_string, "0");
   }
   {
-    vector<string_view> input = {"6"};
+    vector<absl::string_view> input = {"6"};
     auto response_or =
         engine.CompileAndRunJsWithWasm(js_code, wasm, "test_wasi", input,
                                        {{kWasmCodeArrayName, "testModule"}});

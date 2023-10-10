@@ -35,9 +35,6 @@
 #include "error_codes.h"
 #include "gcp_instance_client_utils.h"
 
-using absl::StrCat;
-using absl::StrFormat;
-using absl::StrSplit;
 using google::cmrt::sdk::instance_service::v1::
     GetCurrentInstanceResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::
@@ -347,7 +344,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
         make_shared<GetCurrentInstanceResourceNameResponse>();
     // The instance resource name is
     // `projects/PROJECT_ID/zones/ZONE_ID/instances/INSTANCE_ID`.
-    auto resource_name = StrFormat(
+    auto resource_name = absl::StrFormat(
         kGcpInstanceRNFormatString, instance_resource_name_tracker->project_id,
         instance_resource_name_tracker->instance_zone,
         instance_resource_name_tracker->instance_id);

@@ -46,7 +46,6 @@
 
 #include "error_codes.h"
 
-using absl::HexStringToBytes;
 using crypto::tink::Aead;
 using crypto::tink::BinaryKeysetReader;
 using crypto::tink::CleartextKeysetHandle;

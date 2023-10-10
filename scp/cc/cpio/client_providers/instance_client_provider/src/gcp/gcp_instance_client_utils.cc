@@ -31,9 +31,6 @@
 
 #include "error_codes.h"
 
-using absl::StrCat;
-using absl::StrFormat;
-using absl::StrSplit;
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
@@ -147,7 +144,7 @@ ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
       resource_name.substr(strlen(kInstanceResourceNamePrefix));
   // Splits `projects/project_abc1/zones/us-west1/instances/12345678987654321`
   // to { projects,project_abc1,zones,us-west1,instances,12345678987654321 }
-  vector<string> splits = StrSplit(resource_id, "/");
+  vector<string> splits = absl::StrSplit(resource_id, "/");
   detail.project_id = splits[1];
   detail.zone_id = splits[3];
   detail.instance_id = splits[5];
@@ -159,17 +156,18 @@ ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
 
 string GcpInstanceClientUtils::CreateRMListTagsUrl(
     const string& resource_name) noexcept {
-  vector<string> splits = StrSplit(resource_name, "/");
+  vector<string> splits = absl::StrSplit(resource_name, "/");
   auto i = 0;
   while (i < splits.size()) {
     const auto& part = splits.at(i);
     if (part == kZonesTag || part == kLocationsTag || part == kRegionsTag) {
       const auto& location = splits.at(i + 1);
 
-      return StrFormat(kResourceManagerUriFormat, absl::StrCat(location, "-"));
+      return absl::StrFormat(kResourceManagerUriFormat,
+                             absl::StrCat(location, "-"));
     }
     i++;
   }
-  return StrFormat(kResourceManagerUriFormat, "");
+  return absl::StrFormat(kResourceManagerUriFormat, "");
 }
 }  // namespace google::scp::cpio::client_providers

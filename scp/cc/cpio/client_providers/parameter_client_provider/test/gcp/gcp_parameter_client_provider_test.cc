@@ -29,7 +29,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 
-using absl::StrCat;
 using google::cloud::Status;
 using google::cloud::StatusCode;
 using google::cloud::StatusOr;
@@ -101,8 +100,9 @@ class GcpParameterClientProviderTest : public ::testing::Test {
   void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
 
   string GetSecretName(const string& parameter_name = kParameterNameMock) {
-    auto secret_name = StrCat("projects/", kProjectIdValueMock, "/secrets/",
-                              parameter_name, "/versions/latest");
+    auto secret_name =
+        absl::StrCat("projects/", kProjectIdValueMock, "/secrets/",
+                     parameter_name, "/versions/latest");
 
     return secret_name;
   }

@@ -26,8 +26,6 @@
 #include "cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using absl::StrCat;
-using absl::StrFormat;
 using google::cmrt::sdk::instance_service::v1::
     GetCurrentInstanceResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::
@@ -119,13 +117,14 @@ class GcpInstanceClientProviderTest : public testing::Test {
     EXPECT_SUCCESS(instance_provider_->Init());
     EXPECT_SUCCESS(instance_provider_->Run());
 
-    get_details_path_mock_ = StrCat(kGcpInstanceGetUrlPrefix, kResourceId);
+    get_details_path_mock_ =
+        absl::StrCat(kGcpInstanceGetUrlPrefix, kResourceId);
     get_details_request_ =
         make_shared<GetInstanceDetailsByResourceNameRequest>();
     get_details_request_->set_instance_resource_name(kInstanceResourceName);
 
-    get_tag_path_mock_ =
-        StrFormat(kResourceManagerUriFormat, absl::StrCat(kZoneMock, "-"));
+    get_tag_path_mock_ = absl::StrFormat(kResourceManagerUriFormat,
+                                         absl::StrCat(kZoneMock, "-"));
     get_tags_request_ = make_shared<GetTagsByResourceNameRequest>();
     get_tags_request_->set_resource_name(kInstanceResourceName);
   }
@@ -183,7 +182,8 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
       instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
       IsSuccessful());
 
-  EXPECT_EQ(resource_name, StrCat("//compute.googleapis.com/", kResourceId));
+  EXPECT_EQ(resource_name,
+            absl::StrCat("//compute.googleapis.com/", kResourceId));
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -251,7 +251,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
             EXPECT_EQ(context.response->instance_resource_name(),
-                      StrCat("//compute.googleapis.com/", kResourceId));
+                      absl::StrCat("//compute.googleapis.com/", kResourceId));
             condition++;
           });
 

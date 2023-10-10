@@ -26,9 +26,6 @@
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker/src/worker_utils.h"
 
-using absl::flat_hash_map;
-using absl::Span;
-using absl::string_view;
 using std::string;
 using std::vector;
 
@@ -65,9 +62,9 @@ ExecutionResult Worker::Stop() noexcept {
 }
 
 ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
-    const string& code, const vector<string_view>& input,
-    const flat_hash_map<string, string>& metadata,
-    const Span<const uint8_t>& wasm) {
+    const string& code, const vector<absl::string_view>& input,
+    const absl::flat_hash_map<string, string>& metadata,
+    const absl::Span<const uint8_t>& wasm) {
   auto request_type_or =
       WorkerUtils::GetValueFromMetadata(metadata, kRequestType);
   RETURN_IF_FAILURE(request_type_or.result());

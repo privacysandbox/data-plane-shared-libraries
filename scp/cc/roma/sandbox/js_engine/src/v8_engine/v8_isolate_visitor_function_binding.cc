@@ -29,7 +29,6 @@
 
 #include "error_codes.h"
 
-using absl::flat_hash_map;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
@@ -88,7 +87,7 @@ static bool V8TypesToProto(const FunctionCallbackInfo<Value>& info,
   // Try to convert to one of the supported types
   string string_native;
   vector<string> vector_of_string_native;
-  flat_hash_map<string, string> map_of_string_native;
+  absl::flat_hash_map<string, string> map_of_string_native;
 
   if (TypeConverter<string>::FromV8(isolate, function_parameter,
                                     &string_native)) {
@@ -97,7 +96,7 @@ static bool V8TypesToProto(const FunctionCallbackInfo<Value>& info,
                                                    &vector_of_string_native)) {
     proto.mutable_input_list_of_string()->mutable_data()->Add(
         vector_of_string_native.begin(), vector_of_string_native.end());
-  } else if (TypeConverter<flat_hash_map<string, string>>::FromV8(
+  } else if (TypeConverter<absl::flat_hash_map<string, string>>::FromV8(
                  isolate, function_parameter, &map_of_string_native)) {
     for (auto&& kvp : map_of_string_native) {
       (*proto.mutable_input_map_of_string()->mutable_data())[kvp.first] =
@@ -129,7 +128,7 @@ static Local<Value> ProtoToV8Type(Isolate* isolate,
     return TypeConverter<vector<string>>::ToV8(
         isolate, proto.output_list_of_string().data());
   } else if (proto.has_output_map_of_string()) {
-    return TypeConverter<flat_hash_map<string, string>>::ToV8(
+    return TypeConverter<absl::flat_hash_map<string, string>>::ToV8(
         isolate, proto.output_map_of_string().data());
   } else if (proto.has_output_bytes()) {
     const auto& bytes = proto.output_bytes();

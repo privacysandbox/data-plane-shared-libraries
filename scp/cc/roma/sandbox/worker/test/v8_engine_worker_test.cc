@@ -29,9 +29,6 @@
 #include "roma/sandbox/worker/src/worker.h"
 #include "roma/wasm/test/testing_utils.h"
 
-using absl::flat_hash_map;
-using absl::Span;
-using absl::string_view;
 using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::sandbox::constants::kCodeVersion;
@@ -72,14 +69,14 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
   AutoInitRunStop to_handle_worker(worker);
 
   string js_code = R"(function hello_js() { return "Hello World!"; })";
-  vector<string_view> input;
-  flat_hash_map<string, string> metadata = {
+  vector<absl::string_view> input;
+  absl::flat_hash_map<string, string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionExecute}};
 
-  Span<const uint8_t> empty_wasm;
+  absl::Span<const uint8_t> empty_wasm;
 
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
 
@@ -97,13 +94,13 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   // Load v1
   string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
-  vector<string_view> input;
-  flat_hash_map<string, string> metadata = {
+  vector<absl::string_view> input;
+  absl::flat_hash_map<string, string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad}};
 
-  Span<const uint8_t> empty_wasm;
+  absl::Span<const uint8_t> empty_wasm;
 
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -165,13 +162,13 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
             return instance.exports.add(a, b);
           }
         )""";
-  vector<string_view> input;
-  flat_hash_map<string, string> metadata = {
+  vector<absl::string_view> input;
+  absl::flat_hash_map<string, string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad}};
 
-  Span<const uint8_t> empty_wasm;
+  absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
   auto response_string = *response_or->response;
@@ -238,16 +235,16 @@ TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
   AutoInitRunStop to_handle_worker(worker);
 
   string js_code = R"(function hello_js() { return "Hello World!"; })";
-  vector<string_view> input;
+  vector<absl::string_view> input;
 
   // Load
-  flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<string, string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad}};
 
-  Span<const uint8_t> empty_wasm;
+  absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
 
@@ -295,12 +292,12 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   // Load v1
   string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
-  vector<string_view> input;
-  flat_hash_map<string, string> metadata = {
+  vector<absl::string_view> input;
+  absl::flat_hash_map<string, string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad}};
-  Span<const uint8_t> empty_wasm;
+  absl::Span<const uint8_t> empty_wasm;
 
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -399,15 +396,15 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
             return instance.exports.add(a, b);
           }
         )""";
-  vector<string_view> input{"1", "2"};
-  flat_hash_map<string, string> metadata = {
+  vector<absl::string_view> input{"1", "2"};
+  absl::flat_hash_map<string, string> metadata = {
       {kRequestType, kRequestTypeJavascriptWithWasm},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionExecute},
       {kWasmCodeArrayName, "addModule"}};
 
-  auto wasm = Span<const uint8_t>(kWasmBin);
+  auto wasm = absl::Span<const uint8_t>(kWasmBin);
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
 
   EXPECT_SUCCESS(response_or.result());
@@ -421,7 +418,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   auto engine = make_shared<V8JsEngine>();
   Worker worker(engine, true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
-  vector<string_view> input;
+  vector<absl::string_view> input;
 
   // Load v1
   auto js_code = R"""(
@@ -431,13 +428,13 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
             return instance.exports.add(a, b);
           }
         )""";
-  flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<string, string> metadata = {
       {kRequestType, kRequestTypeJavascriptWithWasm},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad},
       {kWasmCodeArrayName, "addModule"}};
 
-  auto wasm = Span<const uint8_t>(kWasmBin);
+  auto wasm = absl::Span<const uint8_t>(kWasmBin);
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
   auto response_string = *response_or->response;
@@ -461,7 +458,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   auto wasm_str = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/cpp_wasi_dependency_example/wasi_dependency.wasm");
   vector<uint8_t> wasm_code(wasm_str.begin(), wasm_str.end());
-  wasm = Span<const uint8_t>(wasm_code);
+  wasm = absl::Span<const uint8_t>(wasm_code);
   metadata = {{kRequestType, kRequestTypeJavascriptWithWasm},
               {kCodeVersion, "2"},
               {kRequestAction, kRequestActionLoad},
@@ -507,7 +504,7 @@ TEST_F(V8EngineWorkerTest,
                 1 /*compilation_context_cache_size*/);
   AutoInitRunStop to_handle_worker(worker);
 
-  auto wasm = Span<const uint8_t>(kWasmBin);
+  auto wasm = absl::Span<const uint8_t>(kWasmBin);
   auto js_code = R"""(
           const module = new WebAssembly.Module(addModule);
           const instance = new WebAssembly.Instance(module);
@@ -516,10 +513,10 @@ TEST_F(V8EngineWorkerTest,
           }
         )""";
 
-  vector<string_view> input;
+  vector<absl::string_view> input;
 
   // Load
-  flat_hash_map<string, string> metadata = {
+  absl::flat_hash_map<string, string> metadata = {
       {kRequestType, kRequestTypeJavascriptWithWasm},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},

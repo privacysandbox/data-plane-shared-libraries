@@ -32,7 +32,6 @@
 
 #include "error_codes.h"
 
-using absl::StrFormat;
 using google::cloud::StatusCode;
 using google::cloud::StatusOr;
 using google::cloud::secretmanager::MakeSecretManagerServiceConnection;
@@ -116,7 +115,8 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
     return execution_result;
   }
 
-  string name = StrFormat(kGcpSecretNameFormatString, project_id_, secret);
+  string name =
+      absl::StrFormat(kGcpSecretNameFormatString, project_id_, secret);
 
   AccessSecretVersionRequest access_secret_request;
   access_secret_request.set_name(name);

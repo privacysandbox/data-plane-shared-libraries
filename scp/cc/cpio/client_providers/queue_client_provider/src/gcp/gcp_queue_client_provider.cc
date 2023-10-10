@@ -30,7 +30,6 @@
 
 #include "error_codes.h"
 
-using absl::StrFormat;
 using google::cmrt::sdk::queue_service::v1::DeleteMessageRequest;
 using google::cmrt::sdk::queue_service::v1::DeleteMessageResponse;
 using google::cmrt::sdk::queue_service::v1::EnqueueMessageRequest;
@@ -153,10 +152,11 @@ ExecutionResult GcpQueueClientProvider::Run() noexcept {
     return execution_result;
   }
 
-  topic_name_ = StrFormat(kGcpTopicFormatString, project_id_,
-                          queue_client_options_->queue_name);
-  subscription_name_ = StrFormat(kGcpSubscriptionFormatString, project_id_,
-                                 queue_client_options_->queue_name);
+  topic_name_ = absl::StrFormat(kGcpTopicFormatString, project_id_,
+                                queue_client_options_->queue_name);
+  subscription_name_ =
+      absl::StrFormat(kGcpSubscriptionFormatString, project_id_,
+                      queue_client_options_->queue_name);
 
   return SuccessExecutionResult();
 }

@@ -35,9 +35,6 @@
 
 #include "gcp_key_management_service_client.h"
 
-using absl::StatusCode;
-using absl::StrCat;
-using absl::string_view;
 using crypto::tink::Aead;
 using crypto::tink::util::Status;
 using crypto::tink::util::StatusOr;
@@ -51,29 +48,32 @@ using std::unique_ptr;
 
 namespace google::scp::cpio::client_providers {
 GcpKmsAead::GcpKmsAead(
-    string_view key_name,
+    absl::string_view key_name,
     shared_ptr<GcpKeyManagementServiceClientInterface> kms_client)
     : key_name_(key_name), kms_client_(kms_client) {}
 
 StatusOr<std::unique_ptr<Aead>> GcpKmsAead::New(
-    string_view key_name,
+    absl::string_view key_name,
     shared_ptr<GcpKeyManagementServiceClientInterface> kms_client) {
   if (key_name.empty()) {
-    return Status(StatusCode::kInvalidArgument, "Key name cannot be empty.");
+    return Status(absl::StatusCode::kInvalidArgument,
+                  "Key name cannot be empty.");
   }
   if (!kms_client) {
-    return Status(StatusCode::kInvalidArgument, "KMS client cannot be null.");
+    return Status(absl::StatusCode::kInvalidArgument,
+                  "KMS client cannot be null.");
   }
   return unique_ptr<Aead>(new GcpKmsAead(key_name, kms_client));
 }
 
-StatusOr<string> GcpKmsAead::Encrypt(string_view plaintext,
-                                     string_view associated_data) const {
-  return Status(StatusCode::kUnimplemented, "GCP KMS encryption unimplemented");
+StatusOr<string> GcpKmsAead::Encrypt(absl::string_view plaintext,
+                                     absl::string_view associated_data) const {
+  return Status(absl::StatusCode::kUnimplemented,
+                "GCP KMS encryption unimplemented");
 }
 
-StatusOr<string> GcpKmsAead::Decrypt(string_view ciphertext,
-                                     string_view associated_data) const {
+StatusOr<string> GcpKmsAead::Decrypt(absl::string_view ciphertext,
+                                     absl::string_view associated_data) const {
   DecryptRequest req;
   req.set_name(key_name_);
   req.set_ciphertext(string(ciphertext));
@@ -81,9 +81,9 @@ StatusOr<string> GcpKmsAead::Decrypt(string_view ciphertext,
   auto response = kms_client_->Decrypt(req);
 
   if (!response) {
-    return Status(
-        StatusCode::kInvalidArgument,
-        StrCat("GCP KMS decryption failed: ", response.status().message()));
+    return Status(absl::StatusCode::kInvalidArgument,
+                  absl::StrCat("GCP KMS decryption failed: ",
+                               response.status().message()));
   }
 
   return response->plaintext();

@@ -31,9 +31,6 @@
 
 #include "error_codes.h"
 
-using absl::StrCat;
-using absl::StrFormat;
-using absl::StrSplit;
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
@@ -131,12 +128,12 @@ ExecutionResult AwsInstanceClientUtils::GetResourceNameDetails(
   auto result = ValidateResourceNameFormat(resource_name);
   RETURN_IF_FAILURE(result);
 
-  vector<string> splits = StrSplit(resource_name, ":");
+  vector<string> splits = absl::StrSplit(resource_name, ":");
   detail.account_id = splits[4];
   detail.region = splits[3];
 
   // remove prefix path from resource id.
-  vector<string> id_splits = StrSplit(splits.back(), "/");
+  vector<string> id_splits = absl::StrSplit(splits.back(), "/");
   detail.resource_id = id_splits.back();
 
   return SuccessExecutionResult();

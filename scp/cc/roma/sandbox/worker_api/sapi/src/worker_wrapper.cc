@@ -32,11 +32,6 @@
 #include "roma/sandbox/worker_factory/src/worker_factory.h"
 #include "src/cpp/util/duration.h"
 
-using absl::flat_hash_map;
-using absl::MakeConstSpan;
-using absl::Span;
-using absl::StatusOr;
-using absl::string_view;
 using google::scp::core::StatusCode;
 using google::scp::core::errors::
     SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_INIT_DATA;
@@ -137,16 +132,17 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
   }
 
   const auto& code = params->code();
-  vector<string_view> input;
+  vector<absl::string_view> input;
   for (int i = 0; i < params->input_size(); i++) {
     input.push_back(params->input().at(i));
   }
-  flat_hash_map<string, string> metadata;
+  absl::flat_hash_map<string, string> metadata;
   for (auto&& element : params->metadata()) {
     metadata[element.first] = element.second;
   }
   auto wasm_bin = reinterpret_cast<const uint8_t*>(params->wasm().c_str());
-  Span<const uint8_t> wasm = MakeConstSpan(wasm_bin, params->wasm().length());
+  absl::Span<const uint8_t> wasm =
+      absl::MakeConstSpan(wasm_bin, params->wasm().length());
 
   privacy_sandbox::server_common::Stopwatch stopwatch;
   auto response_or = worker_->RunCode(code, input, metadata, wasm);

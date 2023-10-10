@@ -22,7 +22,6 @@
 #include "absl/strings/str_format.h"
 #include "public/core/interface/execution_result.h"
 
-using absl::StrFormat;
 using google::cmrt::sdk::instance_service::v1::
     GetCurrentInstanceResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::
@@ -93,8 +92,8 @@ ExecutionResult TestInstanceClientProvider::GetInstanceDetailsByResourceName(
 ExecutionResult TestInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   resource_name =
-      StrFormat(kAwsResourceNameFormat, test_options_->region,
-                test_options_->owner_id, test_options_->instance_id);
+      absl::StrFormat(kAwsResourceNameFormat, test_options_->region,
+                      test_options_->owner_id, test_options_->instance_id);
   return SuccessExecutionResult();
 }
 

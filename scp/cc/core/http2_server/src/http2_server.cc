@@ -38,7 +38,6 @@
 
 #include "http2_utils.h"
 
-using absl::StrCat;
 using boost::asio::ssl::context;
 using boost::system::error_code;
 using boost::system::errc::success;
@@ -378,7 +377,7 @@ void Http2Server::OnHttp2RequestDataObtainedRoutedRequest(
       http2_context);
   // The target path should reflect the forwarding endpoint.
   routing_context.request->path = make_shared<string>(
-      StrCat(*endpoint_info.uri, http2_context.request->handler_path));
+      absl::StrCat(*endpoint_info.uri, http2_context.request->handler_path));
 
   auto execution_result = request_router_->RouteRequest(routing_context);
   if (!execution_result.Successful()) {

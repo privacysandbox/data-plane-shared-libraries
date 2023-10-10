@@ -35,9 +35,6 @@
 
 #include "error_codes.h"
 
-using absl::flat_hash_map;
-using absl::Span;
-using absl::string_view;
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
@@ -179,7 +176,7 @@ ExecutionResult V8JsEngine::Stop() noexcept {
 }
 
 ExecutionResult V8JsEngine::OneTimeSetup(
-    const flat_hash_map<string, string>& config) noexcept {
+    const absl::flat_hash_map<string, string>& config) noexcept {
   size_t max_wasm_memory_number_of_pages = 0;
   if (config.find(kJsEngineOneTimeSetupWasmPagesKey) != config.end()) {
     auto page_count = config.at(kJsEngineOneTimeSetupWasmPagesKey);
@@ -245,8 +242,9 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(v8::StartupData& startup_data,
 }
 
 core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
-    v8::StartupData& startup_data, const Span<const uint8_t>& wasm,
-    const flat_hash_map<string, string>& metadata, string& err_msg) noexcept {
+    v8::StartupData& startup_data, const absl::Span<const uint8_t>& wasm,
+    const absl::flat_hash_map<string, string>& metadata,
+    string& err_msg) noexcept {
   v8::SnapshotCreator creator(external_references_.data());
   v8::Isolate* isolate = creator.GetIsolate();
 
@@ -332,7 +330,7 @@ void V8JsEngine::DisposeIsolate() noexcept {
 
 void V8JsEngine::StartWatchdogTimer(
     v8::Isolate* isolate,
-    const flat_hash_map<string, string>& metadata) noexcept {
+    const absl::flat_hash_map<string, string>& metadata) noexcept {
   // Get the timeout value from metadata. If no timeout tag is set, the
   // default value kDefaultExecutionTimeoutMs will be used.
   int timeout_ms = kDefaultExecutionTimeoutMs;
@@ -357,8 +355,9 @@ void V8JsEngine::StopWatchdogTimer() noexcept {
 
 ExecutionResultOr<RomaJsEngineCompilationContext>
 V8JsEngine::CreateCompilationContext(
-    const string& code, const Span<const uint8_t>& wasm,
-    const flat_hash_map<string, string>& metadata, string& err_msg) noexcept {
+    const string& code, const absl::Span<const uint8_t>& wasm,
+    const absl::flat_hash_map<string, string>& metadata,
+    string& err_msg) noexcept {
   if (code.empty()) {
     return FailureExecutionResult(
         SC_ROMA_V8_ENGINE_CREATE_COMPILATION_CONTEXT_FAILED_WITH_EMPTY_CODE);
@@ -448,7 +447,7 @@ V8JsEngine::CreateCompilationContext(
 }
 
 core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
-    Isolate* isolate, const Span<const uint8_t>& wasm,
+    Isolate* isolate, const absl::Span<const uint8_t>& wasm,
     string& err_msg) noexcept {
   Isolate::Scope isolate_scope(isolate);
   // Create a handle scope to keep the temporary object references.
@@ -473,8 +472,8 @@ core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
 
 core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     const shared_ptr<SnapshotCompilationContext>& current_compilation_context,
-    const string& function_name, const vector<string_view>& input,
-    const flat_hash_map<string, string>& metadata) noexcept {
+    const string& function_name, const vector<absl::string_view>& input,
+    const absl::flat_hash_map<string, string>& metadata) noexcept {
   ExecutionResponse execution_response;
 
   auto v8_isolate = current_compilation_context->v8_isolate;
@@ -593,17 +592,17 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
     const string& code, const string& function_name,
-    const vector<string_view>& input,
-    const flat_hash_map<string, string>& metadata,
+    const vector<absl::string_view>& input,
+    const absl::flat_hash_map<string, string>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
-  return CompileAndRunJsWithWasm(code, Span<const uint8_t>(), function_name,
-                                 input, metadata, context);
+  return CompileAndRunJsWithWasm(code, absl::Span<const uint8_t>(),
+                                 function_name, input, metadata, context);
 }
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
     const string& code, const string& function_name,
-    const vector<string_view>& input,
-    const flat_hash_map<string, string>& metadata,
+    const vector<absl::string_view>& input,
+    const absl::flat_hash_map<string, string>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   JsEngineExecutionResponse execution_response;
 
@@ -717,9 +716,9 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
 ExecutionResultOr<JsEngineExecutionResponse>
 V8JsEngine::CompileAndRunJsWithWasm(
-    const string& code, const Span<const uint8_t>& wasm,
-    const string& function_name, const vector<string_view>& input,
-    const flat_hash_map<string, string>& metadata,
+    const string& code, const absl::Span<const uint8_t>& wasm,
+    const string& function_name, const vector<absl::string_view>& input,
+    const absl::flat_hash_map<string, string>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   string err_msg;
   JsEngineExecutionResponse execution_response;
