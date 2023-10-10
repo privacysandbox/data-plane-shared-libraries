@@ -15,13 +15,14 @@
 #include "test_aws_sdk_server_starter.h"
 
 #include <chrono>
-#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "core/test/utils/aws_helper/aws_helper.h"
 #include "core/test/utils/docker_helper/docker_helper.h"
@@ -33,7 +34,6 @@
 using Aws::Map;
 using Aws::String;
 using google::scp::core::test::StartLocalStackContainer;
-using std::map;
 using std::runtime_error;
 using std::shared_ptr;
 using std::string;
@@ -49,19 +49,16 @@ void TestAwsSdkServerStarter::RunCloud() {
   }
 }
 
-map<string, string> TestAwsSdkServerStarter::CreateSdkEnvVariables() {
-  map<string, string> env_variables;
-  string cloud_endpoint_in_container =
-      "http://" + config_.cloud_container_name + ":" + config_.cloud_port;
-
-  env_variables[kSdkClientLogOption] = "ConsoleLog";
-  env_variables[kTestMetricClientCloudEndpointOverride] =
-      cloud_endpoint_in_container;
-  env_variables[kTestBlobStorageClientCloudEndpointOverride] =
-      cloud_endpoint_in_container;
-  env_variables[kTestParameterClientCloudEndpointOverride] =
-      cloud_endpoint_in_container;
-
-  return env_variables;
+absl::flat_hash_map<string, string>
+TestAwsSdkServerStarter::CreateSdkEnvVariables() {
+  string cloud_endpoint_in_container = absl::StrCat(
+      "http://", config_.cloud_container_name, ":", config_.cloud_port);
+  return {
+      {kSdkClientLogOption, "ConsoleLog"},
+      {kTestMetricClientCloudEndpointOverride, cloud_endpoint_in_container},
+      {kTestBlobStorageClientCloudEndpointOverride,
+       cloud_endpoint_in_container},
+      {kTestParameterClientCloudEndpointOverride, cloud_endpoint_in_container},
+  };
 }
 }  // namespace google::scp::cpio::test

@@ -49,6 +49,7 @@ cc_library(
         "//scp/cc/cpio/server/interface/queue_service:queue_service_interface_lib",
         "//scp/cc/cpio/server/src/queue_service/test_gcp:test_gcp_queue_service_factory_lib",
         "//scp/cc/cpio/test/server:test_sdk_server_starter_lib",
+        "@com_google_absl//absl/container:flat_hash_map",
     ],
 )
 

@@ -14,8 +14,9 @@
 
 #pragma once
 
-#include <map>
 #include <string>
+
+#include "absl/container/flat_hash_map.h"
 
 namespace google::scp::cpio::test {
 
@@ -45,7 +46,7 @@ class TestSdkServerStarter {
 
   void RunSdkServer(
       const std::string& image_location, const std::string& image_name,
-      const std::map<std::string, std::string>& env_overrides = {});
+      const absl::flat_hash_map<std::string, std::string>& env_overrides = {});
 
   void StopSdkServer();
 
@@ -55,6 +56,7 @@ class TestSdkServerStarter {
   TestSdkServerConfig config_;
 
  private:
-  virtual std::map<std::string, std::string> CreateSdkEnvVariables() = 0;
+  virtual absl::flat_hash_map<std::string, std::string>
+  CreateSdkEnvVariables() = 0;
 };
 }  // namespace google::scp::cpio::test

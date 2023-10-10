@@ -17,16 +17,16 @@
 #include <chrono>
 #include <cstdio>
 #include <iostream>
-#include <map>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <thread>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 
 using std::array;
-using std::map;
 using std::runtime_error;
 using std::string;
 
@@ -37,15 +37,16 @@ static constexpr char kGcpImage[] =
     "gcr.io/google.com/cloudsdktool/google-cloud-cli:380.0.0-emulators";
 
 namespace google::scp::core::test {
-string PortMapToSelf(string port) {
-  return port + ":" + port;
+std::string PortMapToSelf(std::string_view port) {
+  return absl::StrCat(port, ":", port);
 }
 
 int StartLocalStackContainer(const string& network,
                              const string& container_name,
                              const string& exposed_port) {
-  map<string, string> env_variables;
-  env_variables["EDGE_PORT"] = exposed_port;
+  const absl::flat_hash_map<std::string, std::string> env_variables{
+      {"EDGE_PORT", exposed_port},
+  };
   return StartContainer(network, container_name, kLocalstackImage,
                         PortMapToSelf(exposed_port), "4510-4559",
                         env_variables);
@@ -53,7 +54,7 @@ int StartLocalStackContainer(const string& network,
 
 int StartGcpContainer(const string& network, const string& container_name,
                       const string& exposed_port) {
-  map<string, string> env_variables;
+  absl::flat_hash_map<std::string, std::string> env_variables;
   return StartContainer(network, container_name, kGcpImage,
                         PortMapToSelf(exposed_port), "9000-9050",
                         env_variables);
@@ -63,7 +64,7 @@ int StartContainer(
     const string& network, const string& container_name,
     const string& image_name, const string& port_mapping1,
     const string& port_mapping2,
-    const std::map<std::string, std::string>& environment_variables,
+    const absl::flat_hash_map<string, string>& environment_variables,
     const string& addition_args) {
   return std::system(BuildStartContainerCmd(
                          network, container_name, image_name, port_mapping1,
@@ -75,7 +76,7 @@ string BuildStartContainerCmd(
     const string& network, const string& container_name,
     const string& image_name, const string& port_mapping1,
     const string& port_mapping2,
-    const std::map<std::string, std::string>& environment_variables,
+    const absl::flat_hash_map<string, string>& environment_variables,
     const string& addition_args) {
   auto ports_mapping = absl::StrFormat("-p %s ", port_mapping1);
   if (!port_mapping2.empty()) {
@@ -183,8 +184,8 @@ std::string GetIpAddress(const std::string& network_name,
 
 void GrantPermissionToFolder(const string& container_name,
                              const string& folder) {
-  string s = absl::StrCat("docker exec -itd " + container_name + " chmod 666 " +
-                          folder);
+  string s =
+      absl::StrCat("docker exec -itd ", container_name, " chmod 666 ", folder);
   auto result = std::system(s.c_str());
   if (result != 0) {
     throw runtime_error("Failed to grant permission!");

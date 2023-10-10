@@ -15,13 +15,13 @@
 #include "test_gcp_sdk_server_starter.h"
 
 #include <chrono>
-#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "core/test/utils/docker_helper/docker_helper.h"
@@ -31,7 +31,6 @@
 
 using google::scp::core::test::GetIpAddress;
 using google::scp::core::test::StartGcpContainer;
-using std::map;
 using std::runtime_error;
 using std::shared_ptr;
 using std::string;
@@ -51,8 +50,9 @@ void TestGcpSdkServerStarter::RunCloud() {
   }
 }
 
-map<string, string> TestGcpSdkServerStarter::CreateSdkEnvVariables() {
-  map<string, string> env_variables;
+absl::flat_hash_map<string, string>
+TestGcpSdkServerStarter::CreateSdkEnvVariables() {
+  absl::flat_hash_map<string, string> env_variables;
   string gcp_endpoint_in_container =
       GetIpAddress(config_.network_name, config_.cloud_container_name) + ":" +
       config_.cloud_port;

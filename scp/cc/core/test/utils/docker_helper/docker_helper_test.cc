@@ -16,9 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include <map>
-
-using std::map;
+#include "absl/container/flat_hash_map.h"
 using std::string;
 
 namespace google::scp::core::test {
@@ -39,7 +37,7 @@ TEST(DockerHelper, BuildStartContainerCmd) {
             "--name=container_name -p "
             "9000:8000 image_name");
 
-  map<string, string> envs({});
+  absl::flat_hash_map<string, string> envs({});
   envs["host_address"] = "0.0.0.0";
   envs["host_port"] = "8080";
   EXPECT_EQ(BuildStartContainerCmd("network", "container_name", "image_name",

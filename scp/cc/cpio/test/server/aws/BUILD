@@ -55,6 +55,8 @@ cc_library(
         "//scp/cc/cpio/server/src/metric_service/test_aws:test_aws_metric_service_factory_lib",
         "//scp/cc/cpio/server/src/parameter_service/test_aws:test_aws_parameter_service_factory_lib",
         "//scp/cc/cpio/test/server:test_sdk_server_starter_lib",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/strings:str_format",
     ],
 )
 

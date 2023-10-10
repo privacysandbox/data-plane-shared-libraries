@@ -32,5 +32,6 @@ cc_library(
         "//scp/cc/core/test/utils/docker_helper:docker_helper_lib",
         "//scp/cc/cpio/server/interface/job_service:job_service_interface_lib",
         "//scp/cc/cpio/server/interface/queue_service:queue_service_interface_lib",
+        "@com_google_absl//absl/container:flat_hash_map",
     ],
 )

@@ -29,6 +29,7 @@ cc_library(
     ),
     deps = [
         "//scp/cc:cc_base_include_dir",
+        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings:str_format",
     ],
 )
@@ -40,6 +41,7 @@ cc_test(
     deps = [
         ":docker_helper_lib",
         "//scp/cc:cc_base_include_dir",
+        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
     ],
 )

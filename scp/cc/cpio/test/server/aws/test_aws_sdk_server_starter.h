@@ -13,10 +13,9 @@
 // limitations under the License.
 
 #pragma once
-
-#include <map>
 #include <string>
 
+#include "absl/container/flat_hash_map.h"
 #include "cpio/test/server/test_sdk_server_starter.h"
 
 namespace google::scp::cpio::test {
@@ -31,6 +30,7 @@ class TestAwsSdkServerStarter : public TestSdkServerStarter {
   void RunCloud() override;
 
  private:
-  std::map<std::string, std::string> CreateSdkEnvVariables() override;
+  absl::flat_hash_map<std::string, std::string> CreateSdkEnvVariables()
+      override;
 };
 }  // namespace google::scp::cpio::test

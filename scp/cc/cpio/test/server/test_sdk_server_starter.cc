@@ -16,13 +16,13 @@
 
 #include <chrono>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <thread>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "core/test/utils/docker_helper/docker_helper.h"
@@ -33,7 +33,6 @@ using google::scp::core::test::PortMapToSelf;
 using google::scp::core::test::RemoveNetwork;
 using google::scp::core::test::StartContainer;
 using google::scp::core::test::StopContainer;
-using std::map;
 using std::runtime_error;
 using std::shared_ptr;
 using std::string;
@@ -42,7 +41,7 @@ using std::vector;
 namespace google::scp::cpio::test {
 void TestSdkServerStarter::RunSdkServer(
     const string& image_location, const string& image_name,
-    const std::map<std::string, std::string>& env_overrides) {
+    const absl::flat_hash_map<std::string, std::string>& env_overrides) {
   std::cout << "Loading SDK image" << std::endl;
   if (LoadImage(image_location) != 0) {
     throw runtime_error("Failed to load SDK image!");
