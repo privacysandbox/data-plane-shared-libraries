@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_BLOB_STORAGE_SERVICE_TEST_GCP_TEST_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_SRC_BLOB_STORAGE_SERVICE_TEST_GCP_TEST_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 
@@ -27,3 +28,5 @@ static constexpr char kTestGcpBlobStorageClientImpersonateServiceAccount[] =
     "cmrt_sdk_test_gcp_blob_storage_client_impersonate_service_account";
 
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_BLOB_STORAGE_SERVICE_TEST_GCP_TEST_CONFIGURATION_KEYS_H_

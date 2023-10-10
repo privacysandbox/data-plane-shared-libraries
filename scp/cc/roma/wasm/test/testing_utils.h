@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_WASM_TEST_TESTING_UTILS_H_
+#define ROMA_WASM_TEST_TESTING_UTILS_H_
 
 #include <string>
 #include <vector>
@@ -26,3 +27,5 @@ class WasmTestingUtils {
   static std::vector<char> LoadWasmFile(const std::string& file_path);
 };
 }  // namespace google::scp::roma::wasm::testing
+
+#endif  // ROMA_WASM_TEST_TESTING_UTILS_H_

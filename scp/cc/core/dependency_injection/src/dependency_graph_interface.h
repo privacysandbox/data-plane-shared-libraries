@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_DEPENDENCY_INJECTION_SRC_DEPENDENCY_GRAPH_INTERFACE_H_
+#define CORE_DEPENDENCY_INJECTION_SRC_DEPENDENCY_GRAPH_INTERFACE_H_
 
 #include <functional>
 #include <memory>
@@ -82,3 +83,5 @@ class DependencyGraphInterface {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_DEPENDENCY_INJECTION_SRC_DEPENDENCY_GRAPH_INTERFACE_H_

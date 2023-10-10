@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_METRIC_INSTANCE_FACTORY_H_
+#define PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_METRIC_INSTANCE_FACTORY_H_
 
 #include <functional>
 #include <memory>
@@ -58,3 +59,5 @@ class MetricInstanceFactory : public MetricInstanceFactoryInterface {
   core::TimeDuration aggregated_metric_interval_ms_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_METRIC_INSTANCE_FACTORY_H_

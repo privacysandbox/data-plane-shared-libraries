@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_HTTP_REQUEST_ROUTE_RESOLVER_INTERFACE_H_
+#define CORE_INTERFACE_HTTP_REQUEST_ROUTE_RESOLVER_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -65,3 +66,5 @@ class HttpRequestRouteResolverInterface : public InitializableInterface {
       const HttpRequest& request) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_HTTP_REQUEST_ROUTE_RESOLVER_INTERFACE_H_

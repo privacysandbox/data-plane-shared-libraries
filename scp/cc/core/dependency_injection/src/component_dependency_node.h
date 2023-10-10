@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_DEPENDENCY_INJECTION_SRC_COMPONENT_DEPENDENCY_NODE_H_
+#define CORE_DEPENDENCY_INJECTION_SRC_COMPONENT_DEPENDENCY_NODE_H_
 
 #include <functional>
 #include <memory>
@@ -58,3 +59,5 @@ struct NodeHash {
   }
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_DEPENDENCY_INJECTION_SRC_COMPONENT_DEPENDENCY_NODE_H_

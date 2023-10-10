@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_SRC_V2_LEASE_MANAGER_V2_H_
+#define CORE_LEASE_MANAGER_SRC_V2_LEASE_MANAGER_V2_H_
 
 #include <memory>
 #include <mutex>
@@ -150,3 +151,5 @@ class LeaseManagerV2 : public LeaseManagerV2Interface,
   core::common::Uuid activity_id_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_LEASE_MANAGER_SRC_V2_LEASE_MANAGER_V2_H_

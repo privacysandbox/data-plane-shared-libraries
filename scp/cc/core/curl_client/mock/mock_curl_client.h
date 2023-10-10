@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CURL_CLIENT_MOCK_MOCK_CURL_CLIENT_H_
+#define CORE_CURL_CLIENT_MOCK_MOCK_CURL_CLIENT_H_
 
 #include <gmock/gmock.h>
 
@@ -36,3 +37,5 @@ class MockCurlClient : public HttpClientInterface {
 };
 
 }  // namespace google::scp::core::test
+
+#endif  // CORE_CURL_CLIENT_MOCK_MOCK_CURL_CLIENT_H_

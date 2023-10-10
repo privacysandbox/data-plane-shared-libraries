@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_TRANSACTION_PROTOCOL_INTERFACE_H_
+#define CORE_INTERFACE_TRANSACTION_PROTOCOL_INTERFACE_H_
 
 #include <functional>
 #include <vector>
@@ -91,3 +92,5 @@ class TransactionProtocolInterface {
           abort_context) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_TRANSACTION_PROTOCOL_INTERFACE_H_

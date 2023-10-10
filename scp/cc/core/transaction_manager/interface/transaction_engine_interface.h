@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TRANSACTION_MANAGER_INTERFACE_TRANSACTION_ENGINE_INTERFACE_H_
+#define CORE_TRANSACTION_MANAGER_INTERFACE_TRANSACTION_ENGINE_INTERFACE_H_
 
 #include <list>
 #include <memory>
@@ -83,3 +84,5 @@ class TransactionEngineInterface : public ServiceInterface {
   virtual size_t GetPendingTransactionCount() noexcept = 0;
 };
 }  // namespace google::scp::core::transaction_manager
+
+#endif  // CORE_TRANSACTION_MANAGER_INTERFACE_TRANSACTION_ENGINE_INTERFACE_H_

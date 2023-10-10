@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_JOB_SERVICE_JOB_SERVICE_FACTORY_INTERFACE_H_
+#define CPIO_SERVER_INTERFACE_JOB_SERVICE_JOB_SERVICE_FACTORY_INTERFACE_H_
 
 #include <memory>
 
@@ -42,3 +43,5 @@ class JobServiceFactoryInterface : public core::ServiceInterface {
   CreateJobClient() noexcept = 0;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_JOB_SERVICE_JOB_SERVICE_FACTORY_INTERFACE_H_

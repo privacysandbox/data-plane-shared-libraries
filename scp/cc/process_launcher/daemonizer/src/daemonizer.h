@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PROCESS_LAUNCHER_DAEMONIZER_SRC_DAEMONIZER_H_
+#define PROCESS_LAUNCHER_DAEMONIZER_SRC_DAEMONIZER_H_
 
 #include <sys/types.h>
 
@@ -74,3 +75,5 @@ class Daemonizer {
   virtual bool ShouldStopRestartingProcesses() noexcept;
 };
 }  // namespace google::scp::process_launcher
+
+#endif  // PROCESS_LAUNCHER_DAEMONIZER_SRC_DAEMONIZER_H_

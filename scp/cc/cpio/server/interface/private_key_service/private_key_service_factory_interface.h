@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_PRIVATE_KEY_SERVICE_PRIVATE_KEY_SERVICE_FACTORY_INTERFACE_H_
+#define CPIO_SERVER_INTERFACE_PRIVATE_KEY_SERVICE_PRIVATE_KEY_SERVICE_FACTORY_INTERFACE_H_
 
 #include <memory>
 
@@ -43,3 +44,5 @@ class PrivateKeyServiceFactoryInterface : public core::ServiceInterface {
   CreatePrivateKeyClient() noexcept = 0;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_PRIVATE_KEY_SERVICE_PRIVATE_KEY_SERVICE_FACTORY_INTERFACE_H_

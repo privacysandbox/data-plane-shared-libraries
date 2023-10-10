@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_SRC_JOURNAL_OUTPUT_STREAM_H_
+#define CORE_JOURNAL_SERVICE_SRC_JOURNAL_OUTPUT_STREAM_H_
 
 #include <atomic>
 #include <list>
@@ -188,3 +189,5 @@ class JournalOutputStream
   core::common::Uuid activity_id_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_JOURNAL_SERVICE_SRC_JOURNAL_OUTPUT_STREAM_H_

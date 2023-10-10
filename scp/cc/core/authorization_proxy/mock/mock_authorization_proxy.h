@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_AUTHORIZATION_PROXY_MOCK_MOCK_AUTHORIZATION_PROXY_H_
+#define CORE_AUTHORIZATION_PROXY_MOCK_MOCK_AUTHORIZATION_PROXY_H_
 
 #include <gmock/gmock.h>
 
@@ -40,3 +41,5 @@ class MockAuthorizationProxy : public AuthorizationProxyInterface {
       (noexcept, override));
 };
 }  // namespace google::scp::core::authorization_proxy::mock
+
+#endif  // CORE_AUTHORIZATION_PROXY_MOCK_MOCK_AUTHORIZATION_PROXY_H_

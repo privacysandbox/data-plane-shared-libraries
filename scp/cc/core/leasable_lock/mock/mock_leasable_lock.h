@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASABLE_LOCK_MOCK_MOCK_LEASABLE_LOCK_H_
+#define CORE_LEASABLE_LOCK_MOCK_MOCK_LEASABLE_LOCK_H_
 
 #include <memory>
 #include <mutex>
@@ -63,3 +64,5 @@ class MockLeasableLock : public core::LeasableLockInterface {
   std::atomic<bool> should_refresh_lease_ = true;
 };
 }  // namespace google::scp::core::leasable_lock::mock
+
+#endif  // CORE_LEASABLE_LOCK_MOCK_MOCK_LEASABLE_LOCK_H_

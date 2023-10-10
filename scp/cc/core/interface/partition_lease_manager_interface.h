@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_PARTITION_LEASE_MANAGER_INTERFACE_H_
+#define CORE_INTERFACE_PARTITION_LEASE_MANAGER_INTERFACE_H_
 
 #include <vector>
 
@@ -56,3 +57,5 @@ class PartitionLeaseManagerInterface : public ServiceInterface {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_PARTITION_LEASE_MANAGER_INTERFACE_H_

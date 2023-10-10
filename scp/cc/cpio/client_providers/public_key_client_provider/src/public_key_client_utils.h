@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_PUBLIC_KEY_CLIENT_PROVIDER_SRC_PUBLIC_KEY_CLIENT_UTILS_H_
+#define CPIO_CLIENT_PROVIDERS_PUBLIC_KEY_CLIENT_PROVIDER_SRC_PUBLIC_KEY_CLIENT_UTILS_H_
 
 #include <vector>
 
@@ -52,3 +53,5 @@ class PublicKeyClientUtils {
           public_keys) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_PUBLIC_KEY_CLIENT_PROVIDER_SRC_PUBLIC_KEY_CLIENT_UTILS_H_

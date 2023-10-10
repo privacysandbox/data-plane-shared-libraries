@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_MOCK_MOCK_JOURNAL_SERVICE_H_
+#define CORE_JOURNAL_SERVICE_MOCK_MOCK_JOURNAL_SERVICE_H_
 
 #include <functional>
 #include <memory>
@@ -86,3 +87,5 @@ class MockJournalService : public JournalServiceInterface {
       recover_mock;
 };
 }  // namespace google::scp::core::journal_service::mock
+
+#endif  // CORE_JOURNAL_SERVICE_MOCK_MOCK_JOURNAL_SERVICE_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_UTILS_SRC_BASE64_H_
+#define CORE_UTILS_SRC_BASE64_H_
 
 #include <string>
 
@@ -52,3 +53,5 @@ ExecutionResult Base64Encode(const std::string& decoded, std::string& encoded);
 ExecutionResultOr<std::string> PadBase64Encoding(const std::string& encoded);
 
 }  // namespace google::scp::core::utils
+
+#endif  // CORE_UTILS_SRC_BASE64_H_

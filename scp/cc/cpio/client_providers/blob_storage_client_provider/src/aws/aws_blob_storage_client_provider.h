@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_AWS_AWS_BLOB_STORAGE_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_AWS_AWS_BLOB_STORAGE_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <sstream>
@@ -396,3 +397,5 @@ class AwsS3Factory {
 };
 
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_AWS_AWS_BLOB_STORAGE_CLIENT_PROVIDER_H_

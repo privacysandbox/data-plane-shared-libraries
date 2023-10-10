@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_SRC_V2_LEASE_REFRESH_LIVENESS_ENFORCER_H_
+#define CORE_LEASE_MANAGER_SRC_V2_LEASE_REFRESH_LIVENESS_ENFORCER_H_
 
 #include <memory>
 #include <mutex>
@@ -82,3 +83,5 @@ class LeaseRefreshLivenessEnforcer
   core::common::Uuid object_activity_id_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_LEASE_MANAGER_SRC_V2_LEASE_REFRESH_LIVENESS_ENFORCER_H_

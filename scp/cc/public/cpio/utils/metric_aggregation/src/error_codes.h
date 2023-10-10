@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_ERROR_CODES_H_
+#define PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -41,3 +42,5 @@ DEFINE_ERROR_CODE(SC_CUSTOMIZED_METRIC_CANNOT_INCREMENT_WHEN_NOT_RUNNING,
                   HttpStatusCode::CONFLICT)
 
 }  // namespace google::scp::core::errors
+
+#endif  // PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_ERROR_CODES_H_

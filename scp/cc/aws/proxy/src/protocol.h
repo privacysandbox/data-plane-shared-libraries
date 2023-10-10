@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef PROXY_SRC_PROTOCOL_H_
+#define PROXY_SRC_PROTOCOL_H_
 
 #include <netinet/ip.h>
 
@@ -37,3 +39,5 @@ sockaddr_vm GetProxyVsockAddr();
 // Get value from environment and convert to unsigned int. val is overwritten if
 // everything succeeds, otherwise untouched.
 void EnvGetVal(const char* env_name, unsigned int& val);
+
+#endif  // PROXY_SRC_PROTOCOL_H_

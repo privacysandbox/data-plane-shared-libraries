@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_INTERFACE_AGGREGATE_METRIC_INTERFACE_H_
+#define PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_INTERFACE_AGGREGATE_METRIC_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -55,3 +56,5 @@ class AggregateMetricInterface : public core::ServiceInterface {
       const std::string& event_code = std::string()) noexcept = 0;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_INTERFACE_AGGREGATE_METRIC_INTERFACE_H_

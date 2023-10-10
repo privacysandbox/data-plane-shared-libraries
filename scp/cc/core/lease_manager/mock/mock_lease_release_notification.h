@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_RELEASE_NOTIFICATION_H_
+#define CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_RELEASE_NOTIFICATION_H_
 
 #include <gmock/gmock.h>
 
@@ -31,3 +32,5 @@ class MockLeaseReleaseNotificationInterface
   MOCK_METHOD(void, SafeToReleaseLease, (const LeasableLockId&), (noexcept));
 };
 }  // namespace google::scp::core::lease_manager::mock
+
+#endif  // CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_RELEASE_NOTIFICATION_H_

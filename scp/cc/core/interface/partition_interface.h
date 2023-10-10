@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_PARTITION_INTERFACE_H_
+#define CORE_INTERFACE_PARTITION_INTERFACE_H_
 
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/initializable_interface.h"
@@ -94,3 +95,5 @@ class PartitionInterface : public InitializableInterface {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_PARTITION_INTERFACE_H_

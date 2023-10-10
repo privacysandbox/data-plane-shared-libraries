@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_AUTO_EXPIRY_CONCURRENT_MAP_MOCK_MOCK_AUTO_EXPIRY_CONCURRENT_MAP_H_
+#define CORE_COMMON_AUTO_EXPIRY_CONCURRENT_MAP_MOCK_MOCK_AUTO_EXPIRY_CONCURRENT_MAP_H_
 
 #include <memory>
 #include <utility>
@@ -95,3 +96,5 @@ class MockAutoExpiryConcurrentMap
   std::function<ExecutionResult()> insert_mock;
 };
 }  // namespace google::scp::core::common::auto_expiry_concurrent_map::mock
+
+#endif  // CORE_COMMON_AUTO_EXPIRY_CONCURRENT_MAP_MOCK_MOCK_AUTO_EXPIRY_CONCURRENT_MAP_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_SERVICE_UTILS_H_
+#define CPIO_SERVER_SRC_SERVICE_UTILS_H_
 
 #include <functional>
 #include <list>
@@ -171,3 +172,5 @@ core::ExecutionResult TryReadConfigInt(
     const std::string& config_key, int32_t& config_value);
 
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_SERVICE_UTILS_H_

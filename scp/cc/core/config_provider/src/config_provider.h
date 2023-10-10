@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CONFIG_PROVIDER_SRC_CONFIG_PROVIDER_H_
+#define CORE_CONFIG_PROVIDER_SRC_CONFIG_PROVIDER_H_
 
 #include <list>
 #include <string>
@@ -105,3 +106,5 @@ class ConfigProvider : public ConfigProviderInterface {
   nlohmann::json config_json_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_CONFIG_PROVIDER_SRC_CONFIG_PROVIDER_H_

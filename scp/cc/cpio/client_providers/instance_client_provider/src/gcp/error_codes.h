@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_GCP_ERROR_CODES_H_
+#define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_GCP_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -67,3 +68,5 @@ MAP_TO_PUBLIC_ERROR_CODE(
 MAP_TO_PUBLIC_ERROR_CODE(SC_GCP_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_TYPE,
                          SC_CPIO_CLOUD_INTERNAL_SERVICE_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_GCP_ERROR_CODES_H_

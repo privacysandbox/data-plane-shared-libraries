@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_METRIC_SERVICE_TEST_GCP_TEST_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_SRC_METRIC_SERVICE_TEST_GCP_TEST_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 // Required. Only needed for GCP. It should be a real project for your service
@@ -29,3 +30,5 @@ static constexpr char kTestGcpMetricClientZoneId[] =
 static constexpr char kTestGcpMetricClientInstanceId[] =
     "cmrt_sdk_test_gcp_metric_client_instance_id";
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_METRIC_SERVICE_TEST_GCP_TEST_CONFIGURATION_KEYS_H_

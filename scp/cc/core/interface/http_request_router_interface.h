@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_HTTP_REQUEST_ROUTER_INTERFACE_H_
+#define CORE_INTERFACE_HTTP_REQUEST_ROUTER_INTERFACE_H_
 
 #include "core/interface/http_request_route_resolver_interface.h"
 #include "core/interface/http_types.h"
@@ -44,3 +45,5 @@ class HttpRequestRouterInterface : public ServiceInterface {
       AsyncContext<HttpRequest, HttpResponse>& context) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_HTTP_REQUEST_ROUTER_INTERFACE_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_UTILS_H_
+#define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_UTILS_H_
 
 #include <memory>
 #include <string>
@@ -96,3 +97,5 @@ class AwsInstanceClientUtils {
       AwsResourceNameDetails& details) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_UTILS_H_

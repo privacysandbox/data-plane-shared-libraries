@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TRANSACTION_MANAGER_SRC_ERROR_CODES_H_
+#define CORE_TRANSACTION_MANAGER_SRC_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -198,3 +199,5 @@ DEFINE_ERROR_CODE(SC_TRANSACTION_MANAGER_TRANSACTION_ALREADY_EXISTS,
                   HttpStatusCode::PRECONDITION_FAILED)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_TRANSACTION_MANAGER_SRC_ERROR_CODES_H_

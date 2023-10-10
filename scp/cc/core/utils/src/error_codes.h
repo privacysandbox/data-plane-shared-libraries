@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_UTILS_SRC_ERROR_CODES_H_
+#define CORE_UTILS_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 
@@ -34,3 +35,5 @@ DEFINE_ERROR_CODE(SC_CORE_UTILS_CURL_INIT_ERROR, SC_CORE_UTILS, 0x0003,
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_UTILS_SRC_ERROR_CODES_H_

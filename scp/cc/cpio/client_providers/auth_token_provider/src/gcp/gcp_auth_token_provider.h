@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_GCP_GCP_AUTH_TOKEN_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_GCP_GCP_AUTH_TOKEN_PROVIDER_H_
 
 #include <memory>
 #include <utility>
@@ -81,3 +82,5 @@ class GcpAuthTokenProvider : public AuthTokenProviderInterface {
   std::shared_ptr<core::HttpClientInterface> http_client_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_GCP_GCP_AUTH_TOKEN_PROVIDER_H_

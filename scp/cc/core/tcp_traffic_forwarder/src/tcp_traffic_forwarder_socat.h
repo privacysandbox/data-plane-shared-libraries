@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TCP_TRAFFIC_FORWARDER_SRC_TCP_TRAFFIC_FORWARDER_SOCAT_H_
+#define CORE_TCP_TRAFFIC_FORWARDER_SRC_TCP_TRAFFIC_FORWARDER_SOCAT_H_
 
 #include <atomic>
 #include <string>
@@ -42,3 +43,5 @@ class TCPTrafficForwarderSocat : public core::TrafficForwarderInterface {
   std::atomic<int> child_pid_ = -1;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_TCP_TRAFFIC_FORWARDER_SRC_TCP_TRAFFIC_FORWARDER_SOCAT_H_

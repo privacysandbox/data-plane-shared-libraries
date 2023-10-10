@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PROXY_SRC_PROXY_BRIDGE_H_
+#define PROXY_SRC_PROXY_BRIDGE_H_
 
 #include <stdint.h>
 
@@ -155,3 +156,5 @@ class ProxyBridge : public std::enable_shared_from_this<ProxyBridge> {
 };
 
 }  // namespace google::scp::proxy
+
+#endif  // PROXY_SRC_PROXY_BRIDGE_H_

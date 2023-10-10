@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_VISITOR_H_
+#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_VISITOR_H_
 
 #include <vector>
 
@@ -32,3 +33,5 @@ class V8IsolateVisitor {
       std::vector<intptr_t>& external_references) noexcept = 0;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
+
+#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_VISITOR_H_

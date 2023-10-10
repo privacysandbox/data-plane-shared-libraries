@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NOSQL_DATABASE_PROVIDER_SRC_AWS_AWS_DYNAMO_DB_H_
+#define CORE_NOSQL_DATABASE_PROVIDER_SRC_AWS_AWS_DYNAMO_DB_H_
 
 #include <memory>
 #include <sstream>
@@ -139,3 +140,5 @@ class AwsDynamoDB : public NoSQLDatabaseProviderInterface {
   const AsyncPriority io_async_execution_priority_;
 };
 }  // namespace google::scp::core::nosql_database_provider
+
+#endif  // CORE_NOSQL_DATABASE_PROVIDER_SRC_AWS_AWS_DYNAMO_DB_H_

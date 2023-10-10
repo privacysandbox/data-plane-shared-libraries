@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_WORKER_SRC_EXECUTION_UTILS_H_
+#define ROMA_WORKER_SRC_EXECUTION_UTILS_H_
 
 #include <algorithm>
 #include <memory>
@@ -217,3 +218,5 @@ class ExecutionUtils {
       "ReferenceError: WebAssembly is not defined";
 };
 }  // namespace google::scp::roma::worker
+
+#endif  // ROMA_WORKER_SRC_EXECUTION_UTILS_H_

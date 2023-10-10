@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_METRIC_UTILS_H_
+#define PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_METRIC_UTILS_H_
 
 #include <chrono>
 #include <functional>
@@ -107,3 +108,5 @@ class MetricUtils {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_METRIC_UTILS_H_

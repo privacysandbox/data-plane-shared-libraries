@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_SIMPLE_METRIC_H_
+#define PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_SIMPLE_METRIC_H_
 
 #include <memory>
 #include <utility>
@@ -74,3 +75,5 @@ class SimpleMetric : public SimpleMetricInterface {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_SIMPLE_METRIC_H_

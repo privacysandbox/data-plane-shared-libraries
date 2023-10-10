@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_TEST_UTILS_DOCKER_HELPER_DOCKER_HELPER_H_
+#define CORE_TEST_UTILS_DOCKER_HELPER_DOCKER_HELPER_H_
 
 #include <string>
 #include <string_view>
@@ -88,3 +89,5 @@ std::string GetIpAddress(const std::string& network_name,
 void GrantPermissionToFolder(const std::string& container_name,
                              const std::string& folder);
 }  // namespace google::scp::core::test
+
+#endif  // CORE_TEST_UTILS_DOCKER_HELPER_DOCKER_HELPER_H_

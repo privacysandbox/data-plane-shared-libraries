@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_MOCK_METRIC_CLIENT_MOCK_METRIC_CLIENT_H_
+#define PUBLIC_CPIO_MOCK_METRIC_CLIENT_MOCK_METRIC_CLIENT_H_
 
 #include <gmock/gmock.h>
 
@@ -47,3 +48,5 @@ class MockMetricClient : public testing::NiceMock<MetricClientInterface> {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_MOCK_METRIC_CLIENT_MOCK_METRIC_CLIENT_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_AWS_AWS_BLOB_STORAGE_CLIENT_UTILS_H_
+#define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_AWS_AWS_BLOB_STORAGE_CLIENT_UTILS_H_
 
 #include <aws/s3/S3Client.h>
 
@@ -53,3 +54,5 @@ class AwsBlobStorageClientUtils {
   }
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_AWS_AWS_BLOB_STORAGE_CLIENT_UTILS_H_

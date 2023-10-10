@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_SERVER_SRC_HTTP2_REQUEST_H_
+#define CORE_HTTP2_SERVER_SRC_HTTP2_REQUEST_H_
 
 #include <atomic>
 #include <functional>
@@ -105,3 +106,5 @@ class NgHttp2Request : public HttpRequest {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_HTTP2_SERVER_SRC_HTTP2_REQUEST_H_

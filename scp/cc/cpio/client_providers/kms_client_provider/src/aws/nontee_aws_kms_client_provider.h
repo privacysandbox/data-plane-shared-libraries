@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AWS_NONTEE_AWS_KMS_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AWS_NONTEE_AWS_KMS_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -163,3 +164,5 @@ class NonteeAwsKmsClientProvider : public KmsClientProviderInterface {
   const std::shared_ptr<core::AsyncExecutorInterface> io_async_executor_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AWS_NONTEE_AWS_KMS_CLIENT_PROVIDER_H_

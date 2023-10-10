@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_INVOKER_H_
+#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_INVOKER_H_
 
 #include <string>
 
@@ -47,3 +48,5 @@ class NativeFunctionInvoker {
           function_binding_proto) noexcept = 0;
 };
 }  // namespace google::scp::roma::sandbox::native_function_binding
+
+#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_INVOKER_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_CRYPTO_CLIENT_SRC_CRYPTO_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_CRYPTO_CLIENT_SRC_CRYPTO_CLIENT_H_
 
 #include <memory>
 
@@ -62,3 +63,5 @@ class CryptoClient : public CryptoClientInterface {
   std::shared_ptr<CryptoClientOptions> options_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_ADAPTERS_CRYPTO_CLIENT_SRC_CRYPTO_CLIENT_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_UTILS_H_
+#define CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_UTILS_H_
 
 #include <aws/s3/S3Client.h>
 
@@ -54,3 +55,5 @@ class AwsS3Utils {
   }
 };
 }  // namespace google::scp::core::blob_storage_provider
+
+#endif  // CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_UTILS_H_

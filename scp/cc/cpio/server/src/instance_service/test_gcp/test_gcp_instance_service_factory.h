@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_INSTANCE_SERVICE_TEST_GCP_TEST_GCP_INSTANCE_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_INSTANCE_SERVICE_TEST_GCP_TEST_GCP_INSTANCE_SERVICE_FACTORY_H_
 
 #include <memory>
 #include <string>
@@ -59,3 +60,5 @@ class TestGcpInstanceServiceFactory : public GcpInstanceServiceFactory {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_INSTANCE_SERVICE_TEST_GCP_TEST_GCP_INSTANCE_SERVICE_FACTORY_H_

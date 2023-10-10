@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_MOCK_MOCK_METRIC_CLIENT_PROVIDER_WITH_OVERRIDES_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_MOCK_MOCK_METRIC_CLIENT_PROVIDER_WITH_OVERRIDES_H_
 
 #include <memory>
 #include <vector>
@@ -101,3 +103,5 @@ class MockMetricClientWithOverrides : public MetricClientProvider {
   }
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_MOCK_MOCK_METRIC_CLIENT_PROVIDER_WITH_OVERRIDES_H_

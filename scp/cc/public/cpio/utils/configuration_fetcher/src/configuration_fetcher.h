@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_SRC_CONFIGURATION_FETCHER_H_
+#define PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_SRC_CONFIGURATION_FETCHER_H_
 
 #include <atomic>
 #include <map>
@@ -192,3 +193,5 @@ class ConfigurationFetcher : public ConfigurationFetcherInterface {
   ParameterClientInterface* parameter_client_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_SRC_CONFIGURATION_FETCHER_H_

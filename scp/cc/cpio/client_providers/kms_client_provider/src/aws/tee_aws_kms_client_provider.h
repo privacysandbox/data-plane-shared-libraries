@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AWS_TEE_AWS_KMS_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AWS_TEE_AWS_KMS_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -76,3 +77,5 @@ class TeeAwsKmsClientProvider : public KmsClientProviderInterface {
   const std::shared_ptr<RoleCredentialsProviderInterface> credential_provider_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AWS_TEE_AWS_KMS_CLIENT_PROVIDER_H_

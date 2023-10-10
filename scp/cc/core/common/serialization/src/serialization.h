@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_SERIALIZATION_SRC_SERIALIZATION_H_
+#define CORE_COMMON_SERIALIZATION_SRC_SERIALIZATION_H_
 
 #include <cstring>
 #include <memory>
@@ -464,3 +465,5 @@ inline ExecutionResult Serialization::Deserialize<google::protobuf::Message>(
 }
 
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_SERIALIZATION_SRC_SERIALIZATION_H_

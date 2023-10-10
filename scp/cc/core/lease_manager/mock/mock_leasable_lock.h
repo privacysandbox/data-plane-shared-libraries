@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_MOCK_MOCK_LEASABLE_LOCK_H_
+#define CORE_LEASE_MANAGER_MOCK_MOCK_LEASABLE_LOCK_H_
 
 #include <memory>
 #include <optional>
@@ -78,3 +79,5 @@ class MockLeasableLock : public LeasableLockInterface {
   std::function<void()> on_before_lease_acquire_ = []() {};
 };
 }  // namespace google::scp::core::lease_manager::mock
+
+#endif  // CORE_LEASE_MANAGER_MOCK_MOCK_LEASABLE_LOCK_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_MOCK_MOCK_LEASABLE_LOCK_GMOCK_H_
+#define CORE_LEASE_MANAGER_MOCK_MOCK_LEASABLE_LOCK_GMOCK_H_
 
 #include <gmock/gmock.h>
 
@@ -40,3 +41,5 @@ class MockLeasableLock : public testing::NiceMock<LeasableLockInterface> {
   MOCK_METHOD(bool, IsCurrentLeaseOwner, (), (const, noexcept));
 };
 }  // namespace google::scp::core::lease_manager::mock
+
+#endif  // CORE_LEASE_MANAGER_MOCK_MOCK_LEASABLE_LOCK_GMOCK_H_

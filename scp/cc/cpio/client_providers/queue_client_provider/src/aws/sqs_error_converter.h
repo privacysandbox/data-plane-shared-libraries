@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_AWS_SQS_ERROR_CONVERTER_H_
+#define CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_AWS_SQS_ERROR_CONVERTER_H_
 
 #include <aws/sqs/SQSErrors.h>
 
@@ -35,3 +37,5 @@ class SqsErrorConverter {
       const Aws::SQS::SQSErrors& error);
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_AWS_SQS_ERROR_CONVERTER_H_

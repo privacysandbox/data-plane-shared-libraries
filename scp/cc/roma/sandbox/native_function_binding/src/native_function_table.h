@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_TABLE_H_
+#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_TABLE_H_
 
 #include <functional>
 #include <mutex>
@@ -59,3 +60,5 @@ class NativeFunctionTable {
   std::mutex native_functions_map_mutex_;
 };
 }  // namespace google::scp::roma::sandbox::native_function_binding
+
+#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_TABLE_H_

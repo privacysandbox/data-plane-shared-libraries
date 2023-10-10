@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_WORKER_SRC_EXECUTION_WATCHDOG_H_
+#define ROMA_WORKER_SRC_EXECUTION_WATCHDOG_H_
 
 #include <cstdlib>
 #include <thread>
@@ -95,3 +96,5 @@ class ExecutionWatchDog : public core::ServiceInterface {
 };
 
 }  // namespace google::scp::roma::worker
+
+#endif  // ROMA_WORKER_SRC_EXECUTION_WATCHDOG_H_

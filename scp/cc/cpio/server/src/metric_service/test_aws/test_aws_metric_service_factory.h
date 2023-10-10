@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_METRIC_SERVICE_TEST_AWS_TEST_AWS_METRIC_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_METRIC_SERVICE_TEST_AWS_TEST_AWS_METRIC_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -43,3 +44,5 @@ class TestAwsMetricServiceFactory : public AwsMetricServiceFactory {
   std::shared_ptr<TestAwsMetricClientOptions> test_options_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_METRIC_SERVICE_TEST_AWS_TEST_AWS_METRIC_SERVICE_FACTORY_H_

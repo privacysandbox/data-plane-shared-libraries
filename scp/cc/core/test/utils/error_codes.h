@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_TEST_UTILS_ERROR_CODES_H_
+#define CORE_TEST_UTILS_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -28,3 +29,5 @@ DEFINE_ERROR_CODE(
     ::google::scp::core::errors::HttpStatusCode::SERVICE_UNAVAILABLE)
 
 }  // namespace google::scp::core::test::errors
+
+#endif  // CORE_TEST_UTILS_ERROR_CODES_H_

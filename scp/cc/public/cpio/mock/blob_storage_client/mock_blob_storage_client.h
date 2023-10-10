@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_MOCK_BLOB_STORAGE_CLIENT_MOCK_BLOB_STORAGE_CLIENT_H_
+#define PUBLIC_CPIO_MOCK_BLOB_STORAGE_CLIENT_MOCK_BLOB_STORAGE_CLIENT_H_
 
 #include <gmock/gmock.h>
 
@@ -86,3 +87,5 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_MOCK_BLOB_STORAGE_CLIENT_MOCK_BLOB_STORAGE_CLIENT_H_

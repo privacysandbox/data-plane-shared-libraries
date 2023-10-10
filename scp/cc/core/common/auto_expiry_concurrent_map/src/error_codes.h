@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_COMMON_AUTO_EXPIRY_CONCURRENT_MAP_SRC_ERROR_CODES_H_
+#define CORE_COMMON_AUTO_EXPIRY_CONCURRENT_MAP_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -42,3 +43,5 @@ DEFINE_ERROR_CODE(SC_AUTO_EXPIRY_CONCURRENT_MAP_STOP_INCOMPLETE,
                   HttpStatusCode::CONFLICT)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_COMMON_AUTO_EXPIRY_CONCURRENT_MAP_SRC_ERROR_CODES_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NETWORK_SRC_GRPC_HANDLER_H_
+#define CORE_NETWORK_SRC_GRPC_HANDLER_H_
 
 #include <memory>
 
@@ -103,3 +104,5 @@ class GrpcHandler {
   bool use_grpc_error_space_ = true;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_NETWORK_SRC_GRPC_HANDLER_H_

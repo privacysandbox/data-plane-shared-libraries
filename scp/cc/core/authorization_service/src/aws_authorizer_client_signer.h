@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CORE_AUTHORIZATION_SERVICE_SRC_AWS_AUTHORIZER_CLIENT_SIGNER_H_
+#define CORE_AUTHORIZATION_SERVICE_SRC_AWS_AUTHORIZER_CLIENT_SIGNER_H_
 // This file defines a signer of the client for aws authorizer. Note that this
 // not the AWS SigV4 or Signature Version 4 implementation, but a utility to
 // utilize the SigV4 standard to do pre-signing in our customized token format.
@@ -59,3 +61,5 @@ class AwsAuthorizerClientSigner {
   AwsV4Signer aws_v4_signer_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_AUTHORIZATION_SERVICE_SRC_AWS_AUTHORIZER_CLIENT_SIGNER_H_

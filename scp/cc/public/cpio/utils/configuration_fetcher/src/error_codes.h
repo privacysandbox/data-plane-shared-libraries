@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_SRC_ERROR_CODES_H_
+#define PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -29,3 +30,5 @@ DEFINE_ERROR_CODE(SC_CONFIGURATION_FETCHER_CONVERSION_FAILED,
                   "Failed to convert the parameter value to required type",
                   HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_SRC_ERROR_CODES_H_

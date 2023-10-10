@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_POOL_H_
+#define CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_POOL_H_
 
 #include <memory>
 #include <mutex>
@@ -131,3 +132,5 @@ class HttpConnectionPool : public ServiceInterface {
   std::mutex connection_lock_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_POOL_H_

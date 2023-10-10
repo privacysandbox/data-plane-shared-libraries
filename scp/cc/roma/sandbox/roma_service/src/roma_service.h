@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_ROMA_SERVICE_SRC_ROMA_SERVICE_H_
+#define ROMA_SANDBOX_ROMA_SERVICE_SRC_ROMA_SERVICE_H_
 
 #include <memory>
 #include <string>
@@ -94,3 +95,5 @@ class RomaService : public core::ServiceInterface {
       native_function_binding_handler_;
 };
 }  // namespace google::scp::roma::sandbox::roma_service
+
+#endif  // ROMA_SANDBOX_ROMA_SERVICE_SRC_ROMA_SERVICE_H_

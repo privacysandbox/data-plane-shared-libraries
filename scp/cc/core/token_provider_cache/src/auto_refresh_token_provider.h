@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TOKEN_PROVIDER_CACHE_SRC_AUTO_REFRESH_TOKEN_PROVIDER_H_
+#define CORE_TOKEN_PROVIDER_CACHE_SRC_AUTO_REFRESH_TOKEN_PROVIDER_H_
 
 #include <memory>
 #include <shared_mutex>
@@ -72,3 +73,5 @@ class AutoRefreshTokenProviderService : public TokenProviderCacheInterface {
   std::shared_mutex mutex_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_TOKEN_PROVIDER_CACHE_SRC_AUTO_REFRESH_TOKEN_PROVIDER_H_

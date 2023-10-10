@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_MOCK_MOCK_JOB_CLIENT_PROVIDER_WITH_OVERRIDES_H_
+#define CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_MOCK_MOCK_JOB_CLIENT_PROVIDER_WITH_OVERRIDES_H_
 
 #include <memory>
 
@@ -40,3 +42,5 @@ class MockJobClientProviderWithOverrides : public JobClientProvider {
   };
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_MOCK_MOCK_JOB_CLIENT_PROVIDER_WITH_OVERRIDES_H_

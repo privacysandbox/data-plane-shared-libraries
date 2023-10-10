@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NOSQL_DATABASE_PROVIDER_MOCK_MOCK_NOSQL_DATABASE_PROVIDER_NO_OVERRIDES_H_
+#define CORE_NOSQL_DATABASE_PROVIDER_MOCK_MOCK_NOSQL_DATABASE_PROVIDER_NO_OVERRIDES_H_
 
 #include <gmock/gmock.h>
 
@@ -50,3 +51,5 @@ class MockNoSQLDatabaseProviderNoOverrides
       (noexcept, override));
 };
 }  // namespace google::scp::core::nosql_database_provider::mock
+
+#endif  // CORE_NOSQL_DATABASE_PROVIDER_MOCK_MOCK_NOSQL_DATABASE_PROVIDER_NO_OVERRIDES_H_

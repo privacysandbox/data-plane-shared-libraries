@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PROXY_SRC_SOCKET_TYPES_H_
+#define PROXY_SRC_SOCKET_TYPES_H_
 
 #include <boost/asio/basic_socket_acceptor.hpp>
 #include <boost/asio/generic/basic_endpoint.hpp>
@@ -27,3 +28,5 @@ using Acceptor = boost::asio::basic_socket_acceptor<Protocol>;
 using Endpoint = boost::asio::generic::basic_endpoint<Protocol>;
 using Executor = Socket::executor_type;
 }  // namespace google::scp::proxy
+
+#endif  // PROXY_SRC_SOCKET_TYPES_H_

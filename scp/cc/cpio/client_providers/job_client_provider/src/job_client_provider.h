@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_SRC_JOB_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_SRC_JOB_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -388,3 +389,5 @@ class JobClientProvider : public JobClientProviderInterface {
 };
 
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_SRC_JOB_CLIENT_PROVIDER_H_

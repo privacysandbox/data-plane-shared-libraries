@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_QUEUE_SERVICE_GCP_GCP_QUEUE_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_QUEUE_SERVICE_GCP_GCP_QUEUE_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -44,3 +45,5 @@ class GcpQueueServiceFactory : public QueueServiceFactory {
   CreateInstanceServiceFactory() noexcept override;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_QUEUE_SERVICE_GCP_GCP_QUEUE_SERVICE_FACTORY_H_

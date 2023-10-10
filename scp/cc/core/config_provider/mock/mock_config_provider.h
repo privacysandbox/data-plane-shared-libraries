@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CONFIG_PROVIDER_MOCK_MOCK_CONFIG_PROVIDER_H_
+#define CORE_CONFIG_PROVIDER_MOCK_MOCK_CONFIG_PROVIDER_H_
 
 #include <list>
 #include <string>
@@ -111,3 +112,5 @@ class MockConfigProvider : public ConfigProviderInterface {
   absl::flat_hash_map<ConfigKey, bool> bool_config_map_;
 };
 }  // namespace google::scp::core::config_provider::mock
+
+#endif  // CORE_CONFIG_PROVIDER_MOCK_MOCK_CONFIG_PROVIDER_H_

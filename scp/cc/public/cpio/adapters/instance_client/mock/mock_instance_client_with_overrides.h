@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_MOCK_MOCK_INSTANCE_CLIENT_WITH_OVERRIDES_H_
+#define PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_MOCK_MOCK_INSTANCE_CLIENT_WITH_OVERRIDES_H_
 
 #include <memory>
 
@@ -48,3 +49,5 @@ class MockInstanceClientWithOverrides : public InstanceClient {
   }
 };
 }  // namespace google::scp::cpio::mock
+
+#endif  // PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_MOCK_MOCK_INSTANCE_CLIENT_WITH_OVERRIDES_H_

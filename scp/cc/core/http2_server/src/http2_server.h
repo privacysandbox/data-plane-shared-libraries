@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_SERVER_SRC_HTTP2_SERVER_H_
+#define CORE_HTTP2_SERVER_SRC_HTTP2_SERVER_H_
 
 #include <atomic>
 #include <memory>
@@ -409,3 +410,5 @@ class Http2Server : public HttpServerInterface {
   bool request_routing_enabled_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_HTTP2_SERVER_SRC_HTTP2_SERVER_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_INTERFACE_METRIC_INSTANCE_FACTORY_INTERFACE_H_
+#define PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_INTERFACE_METRIC_INSTANCE_FACTORY_INTERFACE_H_
 
 #include <functional>
 #include <memory>
@@ -79,3 +80,5 @@ class MetricInstanceFactoryInterface {
       const std::string& event_code_name = std::string()) noexcept = 0;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_INTERFACE_METRIC_INSTANCE_FACTORY_INTERFACE_H_

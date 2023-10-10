@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_WASM_SRC_DESERIALIZER_H_
+#define ROMA_WASM_SRC_DESERIALIZER_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -101,3 +102,5 @@ class WasmDeserializer {
                                      std::vector<std::string>& output);
 };
 }  // namespace google::scp::roma::wasm
+
+#endif  // ROMA_WASM_SRC_DESERIALIZER_H_

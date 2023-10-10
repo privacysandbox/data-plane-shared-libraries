@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_GLOBAL_CPIO_H_
+#define CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_GLOBAL_CPIO_H_
 
 #include <memory>
 
@@ -47,3 +49,5 @@ class GlobalCpio {
   static void ShutdownGlobalCpio();
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_GLOBAL_CPIO_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_PARAMETER_SERVICE_TEST_AWS_TEST_AWS_PARAMETER_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_PARAMETER_SERVICE_TEST_AWS_TEST_AWS_PARAMETER_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -45,3 +46,5 @@ class TestAwsParameterServiceFactory : public AwsParameterServiceFactory {
   std::shared_ptr<TestAwsParameterClientOptions> test_options_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_PARAMETER_SERVICE_TEST_AWS_TEST_AWS_PARAMETER_SERVICE_FACTORY_H_

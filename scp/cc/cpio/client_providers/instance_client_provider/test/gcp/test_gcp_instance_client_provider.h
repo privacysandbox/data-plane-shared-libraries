@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_TEST_GCP_TEST_GCP_INSTANCE_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_TEST_GCP_TEST_GCP_INSTANCE_CLIENT_PROVIDER_H_
 
 #include <map>
 #include <memory>
@@ -40,3 +41,5 @@ class TestGcpInstanceClientProvider : public TestInstanceClientProvider {
       std::string& resource_name) noexcept override;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_TEST_GCP_TEST_GCP_INSTANCE_CLIENT_PROVIDER_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_BLOB_STORAGE_PROVIDER_MOCK_AWS_MOCK_AWS_S3_CLIENT_H_
+#define CORE_BLOB_STORAGE_PROVIDER_MOCK_AWS_MOCK_AWS_S3_CLIENT_H_
 
 #include <functional>
 #include <memory>
@@ -140,3 +141,5 @@ class MockAwsS3Client : public AwsS3Client {
   }
 };
 }  // namespace google::scp::core::blob_storage_provider::mock
+
+#endif  // CORE_BLOB_STORAGE_PROVIDER_MOCK_AWS_MOCK_AWS_S3_CLIENT_H_

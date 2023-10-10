@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CPIO_CLIENT_PROVIDERS_AUTO_SCALING_CLIENT_PROVIDER_SRC_AWS_AUTO_SCALING_ERROR_CONVERTER_H_
+#define CPIO_CLIENT_PROVIDERS_AUTO_SCALING_CLIENT_PROVIDER_SRC_AWS_AUTO_SCALING_ERROR_CONVERTER_H_
 
 #include <string>
 
@@ -38,3 +40,5 @@ class AutoScalingErrorConverter {
       const Aws::Client::AWSError<Aws::AutoScaling::AutoScalingErrors>& error);
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_AUTO_SCALING_CLIENT_PROVIDER_SRC_AWS_AUTO_SCALING_ERROR_CONVERTER_H_

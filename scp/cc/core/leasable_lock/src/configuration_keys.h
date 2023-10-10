@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASABLE_LOCK_SRC_CONFIGURATION_KEYS_H_
+#define CORE_LEASABLE_LOCK_SRC_CONFIGURATION_KEYS_H_
 
 #include <cstdint>
 #include <string>
@@ -145,3 +146,5 @@ static constexpr char kWorkloadGeneratorMaxHttpRetryCount[] =
     "core_ll_workload_generator_max_http_retry_count";
 
 }  // namespace google::scp::core
+
+#endif  // CORE_LEASABLE_LOCK_SRC_CONFIGURATION_KEYS_H_

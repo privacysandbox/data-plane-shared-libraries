@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_BLOB_STORAGE_PROVIDER_INTERFACE_H_
+#define CORE_INTERFACE_BLOB_STORAGE_PROVIDER_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -148,3 +149,5 @@ class BlobStorageProviderInterface : public ServiceInterface {
           blob_storage_client) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_BLOB_STORAGE_PROVIDER_INTERFACE_H_

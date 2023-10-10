@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_OPERATION_DISPATCHER_SRC_OPERATION_DISPATCHER_H_
+#define CORE_COMMON_OPERATION_DISPATCHER_SRC_OPERATION_DISPATCHER_H_
 
 #include <chrono>
 #include <functional>
@@ -231,3 +232,5 @@ class OperationDispatcher {
   RetryStrategy retry_strategy_;
 };
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_OPERATION_DISPATCHER_SRC_OPERATION_DISPATCHER_H_

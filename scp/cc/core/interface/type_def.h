@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_TYPE_DEF_H_
+#define CORE_INTERFACE_TYPE_DEF_H_
 
 #include <atomic>
 #include <cstdint>
@@ -140,3 +141,5 @@ static constexpr size_t kDefaultMaxConnectionsPerHost = 2;
 static constexpr TimeDuration kDefaultHttp2ReadTimeoutInSeconds = 60;
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_TYPE_DEF_H_

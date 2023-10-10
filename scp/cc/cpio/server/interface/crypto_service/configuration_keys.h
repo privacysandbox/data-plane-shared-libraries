@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_CRYPTO_SERVICE_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_INTERFACE_CRYPTO_SERVICE_CONFIGURATION_KEYS_H_
 
 #include <map>
 #include <string>
@@ -64,3 +65,5 @@ static const std::map<std::string, cmrt::sdk::crypto_service::v1::HpkeAead>
         {"CHACHA20_POLY1305",
          cmrt::sdk::crypto_service::v1::HpkeAead::CHACHA20_POLY1305}};
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_CRYPTO_SERVICE_CONFIGURATION_KEYS_H_

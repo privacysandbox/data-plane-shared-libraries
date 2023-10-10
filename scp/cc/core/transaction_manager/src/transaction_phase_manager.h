@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TRANSACTION_MANAGER_SRC_TRANSACTION_PHASE_MANAGER_H_
+#define CORE_TRANSACTION_MANAGER_SRC_TRANSACTION_PHASE_MANAGER_H_
 
 #include <memory>
 
@@ -58,3 +59,5 @@ class TransactionPhaseManager
       bool current_phase_succeeded) noexcept;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_TRANSACTION_MANAGER_SRC_TRANSACTION_PHASE_MANAGER_H_

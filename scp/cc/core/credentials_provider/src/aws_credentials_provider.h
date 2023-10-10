@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CREDENTIALS_PROVIDER_SRC_AWS_CREDENTIALS_PROVIDER_H_
+#define CORE_CREDENTIALS_PROVIDER_SRC_AWS_CREDENTIALS_PROVIDER_H_
 
 #include <memory>
 
@@ -43,3 +44,5 @@ class AwsCredentialsProvider : public CredentialsProviderInterface {
       credentials_provider_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_CREDENTIALS_PROVIDER_SRC_AWS_CREDENTIALS_PROVIDER_H_

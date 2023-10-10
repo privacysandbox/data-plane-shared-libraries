@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_CONCURRENT_MAP_SRC_CONCURRENT_MAP_H_
+#define CORE_COMMON_CONCURRENT_MAP_SRC_CONCURRENT_MAP_H_
 
 #include <mutex>
 #include <shared_mutex>
@@ -150,3 +151,5 @@ class ConcurrentMap {
   mutable std::shared_timed_mutex concurrent_map_mutex_;
 };
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_CONCURRENT_MAP_SRC_CONCURRENT_MAP_H_

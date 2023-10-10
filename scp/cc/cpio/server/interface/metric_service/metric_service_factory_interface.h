@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_METRIC_SERVICE_METRIC_SERVICE_FACTORY_INTERFACE_H_
+#define CPIO_SERVER_INTERFACE_METRIC_SERVICE_METRIC_SERVICE_FACTORY_INTERFACE_H_
 
 #include <memory>
 
@@ -43,3 +44,5 @@ class MetricServiceFactoryInterface : public core::ServiceInterface {
   CreateMetricClient() noexcept = 0;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_METRIC_SERVICE_METRIC_SERVICE_FACTORY_INTERFACE_H_

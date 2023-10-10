@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_HTTP_REQUEST_RESPONSE_AUTH_INTERCEPTOR_INTERFACE_H_
+#define CORE_INTERFACE_HTTP_REQUEST_RESPONSE_AUTH_INTERCEPTOR_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -51,3 +52,5 @@ class HttpRequestResponseAuthInterceptorInterface {
                                        const HttpResponse&) = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_HTTP_REQUEST_RESPONSE_AUTH_INTERCEPTOR_INTERFACE_H_

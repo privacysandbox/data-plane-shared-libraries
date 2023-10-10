@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_ASYNC_EXECUTOR_MOCK_MOCK_ASYNC_EXECUTOR_H_
+#define CORE_ASYNC_EXECUTOR_MOCK_MOCK_ASYNC_EXECUTOR_H_
 
 #include <functional>
 #include <memory>
@@ -86,3 +87,5 @@ class MockAsyncExecutor : public core::AsyncExecutorInterface {
       schedule_for_mock;
 };
 }  // namespace google::scp::core::async_executor::mock
+
+#endif  // CORE_ASYNC_EXECUTOR_MOCK_MOCK_ASYNC_EXECUTOR_H_

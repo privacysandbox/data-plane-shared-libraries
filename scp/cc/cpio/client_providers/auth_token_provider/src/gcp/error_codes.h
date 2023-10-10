@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_GCP_ERROR_CODES_H_
+#define CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_GCP_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/error_codes.h"
@@ -40,3 +41,5 @@ MAP_TO_PUBLIC_ERROR_CODE(
 MAP_TO_PUBLIC_ERROR_CODE(SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN,
                          SC_CPIO_INVALID_RESOURCE)
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_GCP_ERROR_CODES_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_MANAGER_WITH_OVERRIDES_H_
+#define CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_MANAGER_WITH_OVERRIDES_H_
 
 #include <memory>
 #include <string>
@@ -44,3 +45,5 @@ class MockLeaseManagerWithOverrides : public LeaseManager {
   }
 };
 }  // namespace google::scp::core::lease_manager::mock
+
+#endif  // CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_MANAGER_WITH_OVERRIDES_H_

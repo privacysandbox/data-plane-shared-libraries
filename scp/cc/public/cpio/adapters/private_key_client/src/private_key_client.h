@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_PRIVATE_KEY_CLIENT_SRC_PRIVATE_KEY_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_PRIVATE_KEY_CLIENT_SRC_PRIVATE_KEY_CLIENT_H_
 
 #include <memory>
 
@@ -53,3 +54,5 @@ class PrivateKeyClient : public PrivateKeyClientInterface {
   std::shared_ptr<PrivateKeyClientOptions> options_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_ADAPTERS_PRIVATE_KEY_CLIENT_SRC_PRIVATE_KEY_CLIENT_H_

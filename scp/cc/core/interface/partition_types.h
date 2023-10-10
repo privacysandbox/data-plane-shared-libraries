@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_PARTITION_TYPES_H_
+#define CORE_INTERFACE_PARTITION_TYPES_H_
 
 #include <string>
 
@@ -32,3 +33,5 @@ static constexpr char kLocalPartitionAddressUri[] = "";
 static constexpr PartitionId kGlobalPartitionId = {0, 0};
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_PARTITION_TYPES_H_

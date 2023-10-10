@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_SRC_WORKER_H_
+#define ROMA_SANDBOX_WORKER_SRC_WORKER_H_
 
 #include <memory>
 #include <stdexcept>
@@ -78,3 +79,5 @@ class Worker : public core::ServiceInterface {
       compilation_contexts_;
 };
 }  // namespace google::scp::roma::sandbox::worker
+
+#endif  // ROMA_SANDBOX_WORKER_SRC_WORKER_H_

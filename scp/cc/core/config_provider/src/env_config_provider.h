@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CONFIG_PROVIDER_SRC_ENV_CONFIG_PROVIDER_H_
+#define CORE_CONFIG_PROVIDER_SRC_ENV_CONFIG_PROVIDER_H_
 
 #include <cstdlib>
 #include <list>
@@ -156,3 +157,5 @@ class EnvConfigProvider : public ConfigProviderInterface {
   }
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_CONFIG_PROVIDER_SRC_ENV_CONFIG_PROVIDER_H_

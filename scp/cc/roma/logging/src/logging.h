@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_LOGGING_SRC_LOGGING_H_
+#define ROMA_LOGGING_SRC_LOGGING_H_
 
 #include "absl/log/log.h"
 
@@ -39,3 +40,5 @@ int GetVlogVerboseLevel();
 }  // namespace google::scp::roma::logging
 
 #endif
+
+#endif  // ROMA_LOGGING_SRC_LOGGING_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_OS_SRC_LINUX_SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_H_
+#define CORE_OS_SRC_LINUX_SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_H_
 
 #include <cstdint>
 #include <string>
@@ -51,3 +52,5 @@ class SystemResourceInfoProviderLinux : public SystemResourceInfoProvider {
       std::string meminfo_line) noexcept;
 };
 }  // namespace google::scp::core::os::linux
+
+#endif  // CORE_OS_SRC_LINUX_SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_H_

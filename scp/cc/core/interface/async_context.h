@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_ASYNC_CONTEXT_H_
+#define CORE_INTERFACE_ASYNC_CONTEXT_H_
 
 #include <chrono>
 #include <functional>
@@ -212,3 +213,5 @@ void FinishContext(const ExecutionResult& result,
 }
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_ASYNC_CONTEXT_H_

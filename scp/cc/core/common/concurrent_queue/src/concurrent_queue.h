@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_
+#define CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_
 
 #include <atomic>
 #include <memory>
@@ -79,3 +80,5 @@ class ConcurrentQueue {
   std::unique_ptr<tbb::concurrent_bounded_queue<T>> queue_;
 };
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_

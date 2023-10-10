@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_JOB_CLIENT_SRC_JOB_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_JOB_CLIENT_SRC_JOB_CLIENT_H_
 
 #include <memory>
 #include <string>
@@ -84,3 +85,5 @@ class JobClient : public JobClientInterface {
   std::shared_ptr<JobClientOptions> options_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_ADAPTERS_JOB_CLIENT_SRC_JOB_CLIENT_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_MOCK_AWS_MOCK_KMS_CLIENT_H_
+#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_MOCK_AWS_MOCK_KMS_CLIENT_H_
 
 #include <memory>
 #include <vector>
@@ -58,3 +59,5 @@ class MockKMSClient : public Aws::KMS::KMSClient {
   Aws::KMS::Model::DecryptOutcome decrypt_outcome_mock;
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_MOCK_AWS_MOCK_KMS_CLIENT_H_

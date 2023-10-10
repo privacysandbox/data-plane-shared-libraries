@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_SAPI_H_
+#define ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_SAPI_H_
 
 #include <memory>
 #include <mutex>
@@ -73,3 +74,5 @@ class WorkerApiSapi : public WorkerApi {
   std::mutex run_code_mutex_;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
+
+#endif  // ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_SAPI_H_

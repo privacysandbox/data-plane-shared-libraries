@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_FORWARDER_MOCK_MOCK_HTTP2_FORWARDER_H_
+#define CORE_HTTP2_FORWARDER_MOCK_MOCK_HTTP2_FORWARDER_H_
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -35,3 +36,5 @@ class MockHttp2Forwarder : public HttpRequestRouterInterface {
               (noexcept, override));
 };
 }  // namespace google::scp::core::http2_forwarder::mock
+
+#endif  // CORE_HTTP2_FORWARDER_MOCK_MOCK_HTTP2_FORWARDER_H_

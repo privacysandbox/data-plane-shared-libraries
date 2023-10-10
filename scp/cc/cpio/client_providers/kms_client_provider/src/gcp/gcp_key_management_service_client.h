@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_GCP_GCP_KEY_MANAGEMENT_SERVICE_CLIENT_H_
+#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_GCP_GCP_KEY_MANAGEMENT_SERVICE_CLIENT_H_
 
 #include <memory>
 #include <string>
@@ -43,3 +44,5 @@ class GcpKeyManagementServiceClient
       kms_client_shared_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_GCP_GCP_KEY_MANAGEMENT_SERVICE_CLIENT_H_

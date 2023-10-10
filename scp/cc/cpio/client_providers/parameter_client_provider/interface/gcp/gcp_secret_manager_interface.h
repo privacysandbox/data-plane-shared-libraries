@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_INTERFACE_GCP_GCP_SECRET_MANAGER_INTERFACE_H_
+#define CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_INTERFACE_GCP_GCP_SECRET_MANAGER_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -44,3 +45,5 @@ class GcpSecretManagerInterface : public core::ServiceInterface {
       google::cloud::Options opts = {}) noexcept = 0;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_INTERFACE_GCP_GCP_SECRET_MANAGER_INTERFACE_H_

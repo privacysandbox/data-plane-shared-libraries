@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_DEPENDENCY_INJECTION_SRC_DEPENDENCY_GRAPH_H_
+#define CORE_DEPENDENCY_INJECTION_SRC_DEPENDENCY_GRAPH_H_
 
 #include <functional>
 #include <memory>
@@ -72,3 +73,5 @@ class DependencyGraph : public DependencyGraphInterface {
   ComponentDependencyNodeCollection visited_nodes_;
 };
 };  // namespace google::scp::core
+
+#endif  // CORE_DEPENDENCY_INJECTION_SRC_DEPENDENCY_GRAPH_H_

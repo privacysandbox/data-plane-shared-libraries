@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_DISPATCHER_SRC_DISPATCHER_H_
+#define ROMA_SANDBOX_DISPATCHER_SRC_DISPATCHER_H_
 
 #include <atomic>
 #include <memory>
@@ -294,3 +295,5 @@ class Dispatcher : public core::ServiceInterface {
   core::common::LruCache<uint64_t, CodeObject> code_object_cache_;
 };
 }  // namespace google::scp::roma::sandbox::dispatcher
+
+#endif  // ROMA_SANDBOX_DISPATCHER_SRC_DISPATCHER_H_

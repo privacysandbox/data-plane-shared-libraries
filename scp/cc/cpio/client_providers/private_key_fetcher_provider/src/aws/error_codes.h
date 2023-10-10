@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#pragma once
+
+#ifndef CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_SRC_AWS_ERROR_CODES_H_
+#define CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_SRC_AWS_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -51,3 +53,5 @@ MAP_TO_PUBLIC_ERROR_CODE(SC_AWS_PRIVATE_KEY_FETCHER_PROVIDER_FAILED_TO_GET_URI,
 MAP_TO_PUBLIC_ERROR_CODE(SC_AWS_PRIVATE_KEY_FETCHER_PROVIDER_FAILED_TO_SIGN,
                          SC_CPIO_INTERNAL_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_SRC_AWS_ERROR_CODES_H_

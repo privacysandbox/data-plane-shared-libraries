@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CORE_COMMON_CANCELLABLE_THREAD_TASK_SRC_CANCELLABLE_THREAD_TASK_H_
+#define CORE_COMMON_CANCELLABLE_THREAD_TASK_SRC_CANCELLABLE_THREAD_TASK_H_
 
 #include <memory>
 #include <string>
@@ -112,3 +114,5 @@ class CancellableThreadTask {
   std::thread thread_;
 };
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_CANCELLABLE_THREAD_TASK_SRC_CANCELLABLE_THREAD_TASK_H_

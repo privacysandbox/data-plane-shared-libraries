@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_INSTANCE_SERVICE_AWS_ERROR_CODES_H_
+#define CPIO_SERVER_SRC_INSTANCE_SERVICE_AWS_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -26,3 +27,5 @@ DEFINE_ERROR_CODE(SC_AWS_INSTANCE_SERVICE_FACTORY_HTTP2_CLIENT_NOT_FOUND,
                   "Cannot find Http2Client",
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_SERVER_SRC_INSTANCE_SERVICE_AWS_ERROR_CODES_H_

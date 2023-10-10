@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_TEST_UTILS_AWS_HELPER_AWS_HELPER_H_
+#define CORE_TEST_UTILS_AWS_HELPER_AWS_HELPER_H_
 
 #include <memory>
 #include <string>
@@ -62,3 +63,5 @@ void CreateKey(const std::shared_ptr<Aws::KMS::KMSClient>& kms_client,
 std::string Encrypt(const std::shared_ptr<Aws::KMS::KMSClient>& kms_client,
                     const std::string& key_id, const std::string& plaintext);
 }  // namespace google::scp::core::test
+
+#endif  // CORE_TEST_UTILS_AWS_HELPER_AWS_HELPER_H_

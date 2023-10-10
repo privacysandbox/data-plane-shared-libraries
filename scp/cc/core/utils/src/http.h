@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_UTILS_SRC_HTTP_H_
+#define CORE_UTILS_SRC_HTTP_H_
 
 #include <string>
 
@@ -32,3 +33,5 @@ namespace google::scp::core::utils {
 ExecutionResultOr<std::string> GetEscapedUriWithQuery(
     const HttpRequest& request);
 }  // namespace google::scp::core::utils
+
+#endif  // CORE_UTILS_SRC_HTTP_H_

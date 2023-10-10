@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_CONSTANTS_CONSTANTS_H_
+#define ROMA_SANDBOX_CONSTANTS_CONSTANTS_H_
 
 namespace google::scp::roma::sandbox::constants {
 static constexpr char kRequestType[] = "RequestType";
@@ -66,3 +67,5 @@ static constexpr char kDefaultRomaRequestId[] = "roma.defaults.request.id";
 // Invalid file descriptor value.
 static constexpr int kBadFd = -1;
 }  // namespace google::scp::roma::sandbox::constants
+
+#endif  // ROMA_SANDBOX_CONSTANTS_CONSTANTS_H_

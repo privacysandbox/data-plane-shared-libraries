@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INTERFACE_CPIO_PROVIDER_INTERFACE_H_
+#define CPIO_CLIENT_PROVIDERS_INTERFACE_CPIO_PROVIDER_INTERFACE_H_
 
 #include <memory>
 
@@ -137,3 +138,5 @@ class CpioProviderFactory {
       const std::shared_ptr<CpioOptions>& options);
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INTERFACE_CPIO_PROVIDER_INTERFACE_H_

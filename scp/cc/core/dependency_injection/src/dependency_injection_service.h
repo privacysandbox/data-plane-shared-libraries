@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_DEPENDENCY_INJECTION_SRC_DEPENDENCY_INJECTION_SERVICE_H_
+#define CORE_DEPENDENCY_INJECTION_SRC_DEPENDENCY_INJECTION_SERVICE_H_
 
 #include <functional>
 #include <memory>
@@ -68,3 +69,5 @@ class DependencyInjectionService : public DependencyInjectionServiceInterface {
       component_map_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_DEPENDENCY_INJECTION_SRC_DEPENDENCY_INJECTION_SERVICE_H_

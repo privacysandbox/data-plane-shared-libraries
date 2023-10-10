@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_ERROR_CODES_H_
+#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -95,3 +96,5 @@ DEFINE_ERROR_CODE(SC_ROMA_V8_ISOLATE_VISITOR_FUNCTION_BINDING_EMPTY_CONTEXT,
                   "The v8 context in the isolate is empty.",
                   HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_ERROR_CODES_H_

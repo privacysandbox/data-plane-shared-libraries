@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_TEST_UTILS_CONDITIONAL_WAIT_H_
+#define CORE_TEST_UTILS_CONDITIONAL_WAIT_H_
 
 #include <chrono>
 #include <functional>
@@ -53,3 +54,5 @@ ExecutionResult WaitUntilOrReturn(
     std::function<bool()> condition,
     DurationMs timeout = UNIT_TEST_TIME_OUT_MS) noexcept;
 }  // namespace google::scp::core::test
+
+#endif  // CORE_TEST_UTILS_CONDITIONAL_WAIT_H_

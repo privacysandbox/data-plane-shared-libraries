@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PROXY_SRC_PROXY_SERVER_H_
+#define PROXY_SRC_PROXY_SERVER_H_
 
 #include <stdint.h>
 
@@ -54,3 +55,5 @@ class ProxyServer {
   const bool vsock_;
 };
 }  // namespace google::scp::proxy
+
+#endif  // PROXY_SRC_PROXY_SERVER_H_

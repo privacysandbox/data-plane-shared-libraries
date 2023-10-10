@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_LRU_CACHE_SRC_LRU_CACHE_H_
+#define CORE_COMMON_LRU_CACHE_SRC_LRU_CACHE_H_
 
 #include <list>
 #include <mutex>
@@ -120,3 +121,5 @@ class LruCache {
   }
 };
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_LRU_CACHE_SRC_LRU_CACHE_H_

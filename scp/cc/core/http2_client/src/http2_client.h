@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_CLIENT_SRC_HTTP2_CLIENT_H_
+#define CORE_HTTP2_CLIENT_SRC_HTTP2_CLIENT_H_
 
 #include <memory>
 
@@ -84,3 +85,5 @@ class HttpClient : public HttpClientInterface {
   common::OperationDispatcher operation_dispatcher_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_HTTP2_CLIENT_SRC_HTTP2_CLIENT_H_

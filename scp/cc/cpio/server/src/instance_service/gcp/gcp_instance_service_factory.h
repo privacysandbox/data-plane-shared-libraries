@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_INSTANCE_SERVICE_GCP_GCP_INSTANCE_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_INSTANCE_SERVICE_GCP_GCP_INSTANCE_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -53,3 +54,5 @@ class GcpInstanceServiceFactory : public InstanceServiceFactory {
   CreateAuthTokenProvider() noexcept override;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_INSTANCE_SERVICE_GCP_GCP_INSTANCE_SERVICE_FACTORY_H_

@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#pragma once
+
+#ifndef CORE_TCP_TRAFFIC_FORWARDER_SRC_ERROR_CODES_H_
+#define CORE_TCP_TRAFFIC_FORWARDER_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -37,3 +39,5 @@ DEFINE_ERROR_CODE(SC_TCP_TRAFFIC_FORWARDER_CANNOT_KILL_SOCAT_PROCESS,
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_TCP_TRAFFIC_FORWARDER_SRC_ERROR_CODES_H_

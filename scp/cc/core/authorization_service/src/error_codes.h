@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_AUTHORIZATION_SERVICE_SRC_ERROR_CODES_H_
+#define CORE_AUTHORIZATION_SERVICE_SRC_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -50,3 +51,5 @@ DEFINE_ERROR_CODE(SC_AUTHORIZATION_SERVICE_AUTH_TOKEN_IS_REFRESHING,
                   "The authentication token is being refreshed.",
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_AUTHORIZATION_SERVICE_SRC_ERROR_CODES_H_

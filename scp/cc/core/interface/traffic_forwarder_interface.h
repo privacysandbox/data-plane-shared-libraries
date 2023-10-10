@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_TRAFFIC_FORWARDER_INTERFACE_H_
+#define CORE_INTERFACE_TRAFFIC_FORWARDER_INTERFACE_H_
 
 #include <string>
 
@@ -34,3 +35,5 @@ class TrafficForwarderInterface : public ServiceInterface {
       const std::string& forwarding_address) noexcept = 0;
 };
 };  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_TRAFFIC_FORWARDER_INTERFACE_H_

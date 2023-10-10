@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_SRC_PRIVATE_KEY_FETCHER_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_SRC_PRIVATE_KEY_FETCHER_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -88,3 +89,5 @@ class PrivateKeyFetcherProvider : public PrivateKeyFetcherProviderInterface {
   std::shared_ptr<core::HttpClientInterface> http_client_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_SRC_PRIVATE_KEY_FETCHER_PROVIDER_H_

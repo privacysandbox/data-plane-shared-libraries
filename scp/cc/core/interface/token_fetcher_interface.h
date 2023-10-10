@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CORE_INTERFACE_TOKEN_FETCHER_INTERFACE_H_
+#define CORE_INTERFACE_TOKEN_FETCHER_INTERFACE_H_
 
 #include "core/interface/async_context.h"
 #include "core/interface/initializable_interface.h"
@@ -53,3 +55,5 @@ class TokenFetcherInterface : public InitializableInterface {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_TOKEN_FETCHER_INTERFACE_H_

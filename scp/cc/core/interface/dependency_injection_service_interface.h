@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_INTERFACE_DEPENDENCY_INJECTION_SERVICE_INTERFACE_H_
+#define CORE_INTERFACE_DEPENDENCY_INJECTION_SERVICE_INTERFACE_H_
 
 #include <functional>
 #include <memory>
@@ -61,3 +62,5 @@ class DependencyInjectionServiceInterface : public ServiceInterface {
   virtual ExecutionResult ResolveAll() noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_DEPENDENCY_INJECTION_SERVICE_INTERFACE_H_

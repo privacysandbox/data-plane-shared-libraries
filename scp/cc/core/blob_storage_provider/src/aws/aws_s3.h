@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_H_
+#define CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_H_
 
 #include <memory>
 #include <sstream>
@@ -193,3 +194,5 @@ class AwsS3Provider : public BlobStorageProviderInterface {
   const AsyncPriority io_async_execution_priority_;
 };
 }  // namespace google::scp::core::blob_storage_provider
+
+#endif  // CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_H_

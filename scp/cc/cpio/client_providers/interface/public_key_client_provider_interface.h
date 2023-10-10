@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INTERFACE_PUBLIC_KEY_CLIENT_PROVIDER_INTERFACE_H_
+#define CPIO_CLIENT_PROVIDERS_INTERFACE_PUBLIC_KEY_CLIENT_PROVIDER_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -59,3 +60,5 @@ class PublicKeyClientProviderFactory {
       const std::shared_ptr<core::HttpClientInterface>& http_client);
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INTERFACE_PUBLIC_KEY_CLIENT_PROVIDER_INTERFACE_H_

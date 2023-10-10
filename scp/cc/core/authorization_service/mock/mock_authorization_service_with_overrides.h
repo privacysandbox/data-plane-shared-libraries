@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_AUTHORIZATION_SERVICE_MOCK_MOCK_AUTHORIZATION_SERVICE_WITH_OVERRIDES_H_
+#define CORE_AUTHORIZATION_SERVICE_MOCK_MOCK_AUTHORIZATION_SERVICE_WITH_OVERRIDES_H_
 
 #include <functional>
 #include <memory>
@@ -69,3 +70,5 @@ class MockAuthorizationServiceWithOverrides : public AwsAuthorizer {
   }
 };
 }  // namespace google::scp::core::authorization_service::mock
+
+#endif  // CORE_AUTHORIZATION_SERVICE_MOCK_MOCK_AUTHORIZATION_SERVICE_WITH_OVERRIDES_H_

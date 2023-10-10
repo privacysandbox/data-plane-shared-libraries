@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_NOSQL_DATABASE_PROVIDER_INTERFACE_H_
+#define CORE_INTERFACE_NOSQL_DATABASE_PROVIDER_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -116,3 +117,5 @@ class NoSQLDatabaseProviderInterface : public ServiceInterface {
           upsert_database_item_context) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_NOSQL_DATABASE_PROVIDER_INTERFACE_H_

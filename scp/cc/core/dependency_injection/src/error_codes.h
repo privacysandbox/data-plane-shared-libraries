@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_DEPENDENCY_INJECTION_SRC_ERROR_CODES_H_
+#define CORE_DEPENDENCY_INJECTION_SRC_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -50,3 +51,5 @@ DEFINE_ERROR_CODE(SC_DEPENDENCY_INJECTION_ERROR_CREATING_COMPONENTS,
                   "An error occurred while creating the components",
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_DEPENDENCY_INJECTION_SRC_ERROR_CODES_H_

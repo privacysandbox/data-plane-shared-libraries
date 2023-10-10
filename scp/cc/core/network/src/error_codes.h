@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NETWORK_SRC_ERROR_CODES_H_
+#define CORE_NETWORK_SRC_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -42,3 +43,5 @@ DEFINE_ERROR_CODE(SC_NETWORK_SERVICE_CANNOT_SERIALIZE, SC_NETWORK_SERVICE,
                   0x0006, "Network service cannot start.",
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_NETWORK_SRC_ERROR_CODES_H_

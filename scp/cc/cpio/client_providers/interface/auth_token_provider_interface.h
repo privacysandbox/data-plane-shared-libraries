@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INTERFACE_AUTH_TOKEN_PROVIDER_INTERFACE_H_
+#define CPIO_CLIENT_PROVIDERS_INTERFACE_AUTH_TOKEN_PROVIDER_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -90,3 +91,5 @@ class AuthTokenProviderFactory {
       const std::shared_ptr<core::HttpClientInterface>& http1_client);
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INTERFACE_AUTH_TOKEN_PROVIDER_INTERFACE_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_SRC_ERROR_CODES_H_
+#define ROMA_SANDBOX_WORKER_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -38,3 +39,5 @@ DEFINE_ERROR_CODE(SC_ROMA_WORKER_STR_CONVERT_INT_FAIL, SC_ROMA_WORKER, 0x0004,
                   "Cannot convert string to integer.",
                   HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // ROMA_SANDBOX_WORKER_SRC_ERROR_CODES_H_

@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_TEST_UTILS_LOGGING_UTILS_H_
+#define CORE_TEST_UTILS_LOGGING_UTILS_H_
 
 namespace google::scp::core::test {
 
@@ -32,3 +33,5 @@ class TestLoggingUtils {
 };
 
 };  // namespace google::scp::core::test
+
+#endif  // CORE_TEST_UTILS_LOGGING_UTILS_H_

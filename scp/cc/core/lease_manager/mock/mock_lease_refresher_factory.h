@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_REFRESHER_FACTORY_H_
+#define CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_REFRESHER_FACTORY_H_
 
 #include <gmock/gmock.h>
 
@@ -36,3 +37,5 @@ class MockLeaseRefresherFactory
       (noexcept));
 };
 }  // namespace google::scp::core::lease_manager::mock
+
+#endif  // CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_REFRESHER_FACTORY_H_

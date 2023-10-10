@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_DEPENDENCY_INJECTION_SRC_COMPONENT_DEPENDENCY_NODE_COLLECTION_H_
+#define CORE_DEPENDENCY_INJECTION_SRC_COMPONENT_DEPENDENCY_NODE_COLLECTION_H_
 #include <functional>
 #include <map>
 #include <memory>
@@ -77,3 +78,5 @@ class ComponentDependencyNodeCollection {
   std::vector<ComponentDependencyNode> visited_path_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_DEPENDENCY_INJECTION_SRC_COMPONENT_DEPENDENCY_NODE_COLLECTION_H_

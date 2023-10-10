@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_CLIENT_MOCK_MOCK_HTTP_CONNECTION_POOL_WITH_OVERRIDES_H_
+#define CORE_HTTP2_CLIENT_MOCK_MOCK_HTTP_CONNECTION_POOL_WITH_OVERRIDES_H_
 
 #include <gtest/gtest.h>
 
@@ -75,3 +76,5 @@ class MockHttpConnectionPool : public HttpConnectionPool {
       recycle_connection_override_;
 };
 }  // namespace google::scp::core::http2_client::mock
+
+#endif  // CORE_HTTP2_CLIENT_MOCK_MOCK_HTTP_CONNECTION_POOL_WITH_OVERRIDES_H_

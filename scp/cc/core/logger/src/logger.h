@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LOGGER_SRC_LOGGER_H_
+#define CORE_LOGGER_SRC_LOGGER_H_
 
 #include <memory>
 #include <sstream>
@@ -93,3 +94,5 @@ class Logger : public LoggerInterface {
   std::unique_ptr<logger::LogProviderInterface> log_provider_;
 };
 }  // namespace google::scp::core::logger
+
+#endif  // CORE_LOGGER_SRC_LOGGER_H_

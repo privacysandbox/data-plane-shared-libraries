@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_CRYPTO_CLIENT_PROVIDER_MOCK_MOCK_CRYPTO_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_CRYPTO_CLIENT_PROVIDER_MOCK_MOCK_CRYPTO_CLIENT_PROVIDER_H_
 
 #include <gmock/gmock.h>
 
@@ -51,3 +52,5 @@ class MockCryptoClientProvider : public CryptoClientProviderInterface {
               (override, noexcept));
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_CRYPTO_CLIENT_PROVIDER_MOCK_MOCK_CRYPTO_CLIENT_PROVIDER_H_

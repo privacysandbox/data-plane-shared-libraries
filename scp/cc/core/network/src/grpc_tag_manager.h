@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NETWORK_SRC_GRPC_TAG_MANAGER_H_
+#define CORE_NETWORK_SRC_GRPC_TAG_MANAGER_H_
 
 #ifdef DEBUG_GRPC_TAG_MANAGER
 #include <chrono>
@@ -85,3 +86,5 @@ class GrpcTagManager {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_NETWORK_SRC_GRPC_TAG_MANAGER_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_SRC_WORKER_UTILS_H_
+#define ROMA_SANDBOX_WORKER_SRC_WORKER_UTILS_H_
 
 #include <memory>
 #include <string>
@@ -37,3 +38,5 @@ class WorkerUtils {
       const std::string& value) noexcept;
 };
 }  // namespace google::scp::roma::sandbox::worker
+
+#endif  // ROMA_SANDBOX_WORKER_SRC_WORKER_UTILS_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LOGGER_MOCK_MOCK_LOGGER_H_
+#define CORE_LOGGER_MOCK_MOCK_LOGGER_H_
 
 #include <memory>
 #include <string>
@@ -35,3 +36,5 @@ class MockLogger : public Logger {
   }
 };
 }  // namespace google::scp::core::logger::mock
+
+#endif  // CORE_LOGGER_MOCK_MOCK_LOGGER_H_

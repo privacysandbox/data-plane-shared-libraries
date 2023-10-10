@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_NOSQL_DATABASE_SERVICE_AWS_AWS_NOSQL_DATABASE_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_NOSQL_DATABASE_SERVICE_AWS_AWS_NOSQL_DATABASE_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -44,3 +45,5 @@ class AwsNoSQLDatabaseServiceFactory : public NoSQLDatabaseServiceFactory {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_NOSQL_DATABASE_SERVICE_AWS_AWS_NOSQL_DATABASE_SERVICE_FACTORY_H_

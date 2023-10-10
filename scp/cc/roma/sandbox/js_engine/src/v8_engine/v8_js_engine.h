@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_JS_ENGINE_H_
+#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_JS_ENGINE_H_
 
 #include <memory>
 #include <string>
@@ -210,3 +211,5 @@ class V8JsEngine : public JsEngine {
   std::unique_ptr<roma::worker::ExecutionWatchDog> execution_watchdog_{nullptr};
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
+
+#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_JS_ENGINE_H_

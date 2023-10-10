@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_CLIENT_PROVIDER_MOCK_MOCK_PRIVATE_KEY_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_CLIENT_PROVIDER_MOCK_MOCK_PRIVATE_KEY_CLIENT_PROVIDER_H_
 
 #include <gmock/gmock.h>
 
@@ -46,3 +47,5 @@ class MockPrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
       (override, noexcept));
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_CLIENT_PROVIDER_MOCK_MOCK_PRIVATE_KEY_CLIENT_PROVIDER_H_

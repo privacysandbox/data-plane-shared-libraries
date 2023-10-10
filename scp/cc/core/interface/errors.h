@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_ERRORS_H_
+#define CORE_INTERFACE_ERRORS_H_
 
 #include <functional>
 #include <map>
@@ -224,3 +225,5 @@ inline uint64_t GetPublicErrorCode(uint64_t error_code) {
 }
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_INTERFACE_ERRORS_H_

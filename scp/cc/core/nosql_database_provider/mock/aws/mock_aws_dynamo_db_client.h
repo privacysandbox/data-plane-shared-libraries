@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NOSQL_DATABASE_PROVIDER_MOCK_AWS_MOCK_AWS_DYNAMO_DB_CLIENT_H_
+#define CORE_NOSQL_DATABASE_PROVIDER_MOCK_AWS_MOCK_AWS_DYNAMO_DB_CLIENT_H_
 
 #include <memory>
 
@@ -69,3 +70,5 @@ class MockAwsDynamoDBClient : public Aws::DynamoDB::DynamoDBClient {
   }
 };
 }  // namespace google::scp::core::nosql_database_provider::aws::mock
+
+#endif  // CORE_NOSQL_DATABASE_PROVIDER_MOCK_AWS_MOCK_AWS_DYNAMO_DB_CLIENT_H_

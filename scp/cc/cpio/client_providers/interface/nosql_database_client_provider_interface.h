@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INTERFACE_NOSQL_DATABASE_CLIENT_PROVIDER_INTERFACE_H_
+#define CPIO_CLIENT_PROVIDERS_INTERFACE_NOSQL_DATABASE_CLIENT_PROVIDER_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -170,3 +171,5 @@ class NoSQLDatabaseClientProviderFactory {
 };
 
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INTERFACE_NOSQL_DATABASE_CLIENT_PROVIDER_INTERFACE_H_

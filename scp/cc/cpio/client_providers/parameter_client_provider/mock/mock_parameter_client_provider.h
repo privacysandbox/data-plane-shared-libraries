@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_MOCK_MOCK_PARAMETER_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_MOCK_MOCK_PARAMETER_CLIENT_PROVIDER_H_
 
 #include <gmock/gmock.h>
 
@@ -45,3 +46,5 @@ class MockParameterClientProvider : public ParameterClientProviderInterface {
               (override, noexcept));
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_MOCK_MOCK_PARAMETER_CLIENT_PROVIDER_H_

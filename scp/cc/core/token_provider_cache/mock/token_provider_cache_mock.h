@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CORE_TOKEN_PROVIDER_CACHE_MOCK_TOKEN_PROVIDER_CACHE_MOCK_H_
+#define CORE_TOKEN_PROVIDER_CACHE_MOCK_TOKEN_PROVIDER_CACHE_MOCK_H_
 #include <gmock/gmock.h>
 
 #include <functional>
@@ -33,3 +35,5 @@ class MockTokenProviderCache : public TokenProviderCacheInterface {
               (noexcept, override));
 };
 }  // namespace google::scp::core::token_provider_cache::mock
+
+#endif  // CORE_TOKEN_PROVIDER_CACHE_MOCK_TOKEN_PROVIDER_CACHE_MOCK_H_

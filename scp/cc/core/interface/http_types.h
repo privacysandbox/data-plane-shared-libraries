@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_HTTP_TYPES_H_
+#define CORE_INTERFACE_HTTP_TYPES_H_
 
 #include <map>
 #include <memory>
@@ -79,3 +80,5 @@ struct HttpResponse {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_HTTP_TYPES_H_

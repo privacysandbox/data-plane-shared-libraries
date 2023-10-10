@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_CLIENT_MOCK_MOCK_HTTP_CLIENT_H_
+#define CORE_HTTP2_CLIENT_MOCK_MOCK_HTTP_CLIENT_H_
 
 #include <memory>
 
@@ -57,3 +58,5 @@ class MockHttpClient : public HttpClientInterface {
       perform_request_mock;
 };
 }  // namespace google::scp::core::http2_client::mock
+
+#endif  // CORE_HTTP2_CLIENT_MOCK_MOCK_HTTP_CLIENT_H_

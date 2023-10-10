@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CPIO_TEST_SERVER_AWS_TEST_AWS_SDK_SERVER_STARTER_H_
+#define CPIO_TEST_SERVER_AWS_TEST_AWS_SDK_SERVER_STARTER_H_
+
 #include <string>
 
 #include "absl/container/flat_hash_map.h"
@@ -34,3 +36,5 @@ class TestAwsSdkServerStarter : public TestSdkServerStarter {
       override;
 };
 }  // namespace google::scp::cpio::test
+
+#endif  // CPIO_TEST_SERVER_AWS_TEST_AWS_SDK_SERVER_STARTER_H_

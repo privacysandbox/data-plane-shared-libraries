@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TRANSACTION_MANAGER_SRC_TRANSACTION_MANAGER_H_
+#define CORE_TRANSACTION_MANAGER_SRC_TRANSACTION_MANAGER_H_
 
 #include <atomic>
 #include <condition_variable>
@@ -152,3 +153,5 @@ class TransactionManager : public TransactionManagerInterface {
   TimeDuration aggregated_metric_interval_ms_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_TRANSACTION_MANAGER_SRC_TRANSACTION_MANAGER_H_

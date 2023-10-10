@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_SRC_BLOB_STORAGE_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_SRC_BLOB_STORAGE_CLIENT_H_
 
 #include <memory>
 #include <string>
@@ -89,3 +90,5 @@ class BlobStorageClient : public BlobStorageClientInterface {
   std::shared_ptr<BlobStorageClientOptions> options_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_SRC_BLOB_STORAGE_CLIENT_H_

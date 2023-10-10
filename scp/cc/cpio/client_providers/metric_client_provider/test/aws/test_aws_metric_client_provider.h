@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_TEST_AWS_TEST_AWS_METRIC_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_TEST_AWS_TEST_AWS_METRIC_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -53,3 +54,5 @@ class TestAwsMetricClientProvider : public AwsMetricClientProvider {
   std::shared_ptr<std::string> cloud_watch_endpoint_override_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_TEST_AWS_TEST_AWS_METRIC_CLIENT_PROVIDER_H_

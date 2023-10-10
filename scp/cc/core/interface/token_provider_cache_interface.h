@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_TOKEN_PROVIDER_CACHE_INTERFACE_H_
+#define CORE_INTERFACE_TOKEN_PROVIDER_CACHE_INTERFACE_H_
 
 #include <memory>
 
@@ -38,3 +39,5 @@ class TokenProviderCacheInterface : public ServiceInterface {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_TOKEN_PROVIDER_CACHE_INTERFACE_H_

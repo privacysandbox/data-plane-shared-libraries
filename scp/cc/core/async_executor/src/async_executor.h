@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_H_
+#define CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_H_
 
 #include <atomic>
 #include <condition_variable>
@@ -157,3 +158,5 @@ class AsyncExecutor : public AsyncExecutorInterface {
   TaskLoadBalancingScheme task_load_balancing_scheme_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_H_

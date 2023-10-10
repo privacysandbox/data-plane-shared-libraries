@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_HANDLER_SAPI_IPC_H_
+#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_HANDLER_SAPI_IPC_H_
 
 #include <atomic>
 #include <memory>
@@ -59,3 +60,5 @@ class NativeFunctionHandlerSapiIpc : public core::ServiceInterface {
   std::vector<int> remote_fds_;
 };
 }  // namespace google::scp::roma::sandbox::native_function_binding
+
+#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_HANDLER_SAPI_IPC_H_

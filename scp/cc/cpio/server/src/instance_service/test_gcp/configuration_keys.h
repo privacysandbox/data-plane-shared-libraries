@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_INSTANCE_SERVICE_TEST_GCP_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_SRC_INSTANCE_SERVICE_TEST_GCP_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 
@@ -34,3 +35,5 @@ static constexpr char kTestGcpInstanceClientInstanceId[] =
     "cmrt_sdk_test_gcp_instance_client_instance_id";
 
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_INSTANCE_SERVICE_TEST_GCP_CONFIGURATION_KEYS_H_

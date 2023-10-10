@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_ASYNC_EXECUTOR_SRC_ASYNC_TASK_H_
+#define CORE_ASYNC_EXECUTOR_SRC_ASYNC_TASK_H_
 
 #include <chrono>
 #include <memory>
@@ -109,3 +110,5 @@ class AsyncTaskCompareGreater {
   }
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_ASYNC_EXECUTOR_SRC_ASYNC_TASK_H_

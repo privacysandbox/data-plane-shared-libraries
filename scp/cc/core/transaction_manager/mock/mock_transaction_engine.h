@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TRANSACTION_MANAGER_MOCK_MOCK_TRANSACTION_ENGINE_H_
+#define CORE_TRANSACTION_MANAGER_MOCK_MOCK_TRANSACTION_ENGINE_H_
 
 #include <functional>
 #include <memory>
@@ -545,3 +546,5 @@ class MockTransactionEngine : public core::TransactionEngine {
       remote_transaction_manager = nullptr;
 };
 }  // namespace google::scp::core::transaction_manager::mock
+
+#endif  // CORE_TRANSACTION_MANAGER_MOCK_MOCK_TRANSACTION_ENGINE_H_

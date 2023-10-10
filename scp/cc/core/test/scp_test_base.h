@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_TEST_SCP_TEST_BASE_H_
+#define CORE_TEST_SCP_TEST_BASE_H_
 
 #include <gtest/gtest.h>
 
@@ -33,3 +34,5 @@ class ScpTestBase : public ::testing::Test {
   }
 };
 }  // namespace google::scp::core::test
+
+#endif  // CORE_TEST_SCP_TEST_BASE_H_

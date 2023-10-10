@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_SRC_PARAMETER_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_SRC_PARAMETER_CLIENT_H_
 
 #include <memory>
 #include <string>
@@ -53,3 +54,5 @@ class ParameterClient : public ParameterClientInterface {
   std::shared_ptr<ParameterClientOptions> options_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_SRC_PARAMETER_CLIENT_H_

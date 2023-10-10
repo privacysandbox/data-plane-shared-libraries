@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TRANSACTION_MANAGER_SRC_TRANSACTION_ENGINE_H_
+#define CORE_TRANSACTION_MANAGER_SRC_TRANSACTION_ENGINE_H_
 
 #include <atomic>
 #include <functional>
@@ -761,3 +762,5 @@ class TransactionEngine
   core::common::Uuid activity_id_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_TRANSACTION_MANAGER_SRC_TRANSACTION_ENGINE_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_NOSQL_DATABASE_SERVICE_NOSQL_DATABASE_SERVICE_FACTORY_INTERFACE_H_
+#define CPIO_SERVER_INTERFACE_NOSQL_DATABASE_SERVICE_NOSQL_DATABASE_SERVICE_FACTORY_INTERFACE_H_
 
 #include <memory>
 
@@ -45,3 +46,5 @@ class NoSQLDatabaseServiceFactoryInterface : public core::ServiceInterface {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_NOSQL_DATABASE_SERVICE_NOSQL_DATABASE_SERVICE_FACTORY_INTERFACE_H_

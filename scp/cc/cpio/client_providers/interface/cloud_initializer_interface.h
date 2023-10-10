@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INTERFACE_CLOUD_INITIALIZER_INTERFACE_H_
+#define CPIO_CLIENT_PROVIDERS_INTERFACE_CLOUD_INITIALIZER_INTERFACE_H_
 
 #include <map>
 #include <memory>
@@ -48,3 +49,5 @@ class CloudInitializerFactory {
   static std::shared_ptr<CloudInitializerInterface> Create();
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INTERFACE_CLOUD_INITIALIZER_INTERFACE_H_

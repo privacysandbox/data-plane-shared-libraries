@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CORE_LEASABLE_LOCK_SRC_LEASABLE_LOCK_ON_NOSQL_DATABASE_H_
+#define CORE_LEASABLE_LOCK_SRC_LEASABLE_LOCK_ON_NOSQL_DATABASE_H_
 
 #include <memory>
 #include <mutex>
@@ -214,3 +216,5 @@ class LeasableLockOnNoSQLDatabase : public core::LeasableLockInterface {
   const core::common::Uuid activity_id_;
 };
 };  // namespace google::scp::core
+
+#endif  // CORE_LEASABLE_LOCK_SRC_LEASABLE_LOCK_ON_NOSQL_DATABASE_H_

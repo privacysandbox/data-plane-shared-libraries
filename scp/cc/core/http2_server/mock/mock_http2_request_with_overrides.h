@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_SERVER_MOCK_MOCK_HTTP2_REQUEST_WITH_OVERRIDES_H_
+#define CORE_HTTP2_SERVER_MOCK_MOCK_HTTP2_REQUEST_WITH_OVERRIDES_H_
 
 #include <memory>
 #include <string>
@@ -117,3 +118,5 @@ class MockNgHttp2RequestWithOverrides : public NgHttp2Request {
   size_t expected_request_body_length_to_receive_;
 };
 }  // namespace google::scp::core::http2_server::mock
+
+#endif  // CORE_HTTP2_SERVER_MOCK_MOCK_HTTP2_REQUEST_WITH_OVERRIDES_H_

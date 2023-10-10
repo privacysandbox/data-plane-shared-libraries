@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_CONVERTER_H_
+#define ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_CONVERTER_H_
 
 #include <memory>
 #include <string>
@@ -142,3 +143,5 @@ struct RequestConverter<CodeObject> {
   }
 };
 }  // namespace google::scp::roma::sandbox::dispatcher::request_converter
+
+#endif  // ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_CONVERTER_H_

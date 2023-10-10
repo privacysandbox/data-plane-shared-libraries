@@ -19,7 +19,8 @@
 // but these are the actual functions that the sandbox infra calls.
 // The extern "C" is to avoid name mangling to enable sapi code generation.
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_WRAPPER_H_
+#define ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_WRAPPER_H_
 
 #include "public/core/interface/execution_result.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
@@ -63,3 +64,5 @@ extern "C" google::scp::core::StatusCode RunCodeFromSerializedData(
 /// @return
 extern "C" google::scp::core::StatusCode RunCodeFromBuffer(
     int input_serialized_size, size_t* output_serialized_size);
+
+#endif  // ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_WRAPPER_H_

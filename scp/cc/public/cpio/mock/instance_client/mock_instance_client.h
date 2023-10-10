@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_MOCK_INSTANCE_CLIENT_MOCK_INSTANCE_CLIENT_H_
+#define PUBLIC_CPIO_MOCK_INSTANCE_CLIENT_MOCK_INSTANCE_CLIENT_H_
 
 #include <gmock/gmock.h>
 
@@ -66,3 +67,5 @@ class MockInstanceClient : public InstanceClientInterface {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_MOCK_INSTANCE_CLIENT_MOCK_INSTANCE_CLIENT_H_

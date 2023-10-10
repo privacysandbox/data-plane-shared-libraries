@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_STATISTICS_H_
+#define CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_STATISTICS_H_
 
 #include <gmock/gmock.h>
 
@@ -30,3 +31,5 @@ class MockLeaseStatistics : public LeaseStatisticsInterface {
   MOCK_METHOD(size_t, GetCurrentlyLeasedLocksCount, (), (noexcept, override));
 };
 }  // namespace google::scp::core::lease_manager::mock
+
+#endif  // CORE_LEASE_MANAGER_MOCK_MOCK_LEASE_STATISTICS_H_

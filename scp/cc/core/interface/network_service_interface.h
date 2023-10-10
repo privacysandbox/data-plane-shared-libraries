@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_NETWORK_SERVICE_INTERFACE_H_
+#define CORE_INTERFACE_NETWORK_SERVICE_INTERFACE_H_
 
 #include <functional>
 #include <memory>
@@ -57,3 +58,5 @@ class NetworkServiceInterface : public ServiceInterface {
       const RPCServiceContextInterface::RpcHandler& handler) = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_NETWORK_SERVICE_INTERFACE_H_

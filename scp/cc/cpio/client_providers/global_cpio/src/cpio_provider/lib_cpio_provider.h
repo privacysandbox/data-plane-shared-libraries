@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_
 
 #include <memory>
 
@@ -117,3 +118,5 @@ class LibCpioProvider : public CpioProviderInterface {
   bool external_io_async_executor_is_set_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_

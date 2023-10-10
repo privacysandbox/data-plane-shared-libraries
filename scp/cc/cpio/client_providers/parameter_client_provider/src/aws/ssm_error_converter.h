@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_SRC_AWS_SSM_ERROR_CONVERTER_H_
+#define CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_SRC_AWS_SSM_ERROR_CONVERTER_H_
 
 #include <string>
 
@@ -37,3 +39,5 @@ class SSMErrorConverter {
       const Aws::SSM::SSMErrors& error, const std::string& error_message);
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_SRC_AWS_SSM_ERROR_CONVERTER_H_

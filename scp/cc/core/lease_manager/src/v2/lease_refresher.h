@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_SRC_V2_LEASE_REFRESHER_H_
+#define CORE_LEASE_MANAGER_SRC_V2_LEASE_REFRESHER_H_
 
 #include <memory>
 #include <mutex>
@@ -122,3 +123,5 @@ class LeaseRefresher : public LeaseRefresherInterface,
   std::optional<LeaseTransitionType> last_lease_transition_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_LEASE_MANAGER_SRC_V2_LEASE_REFRESHER_H_

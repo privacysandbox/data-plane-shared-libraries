@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_METRIC_SERVICE_TEST_GCP_TEST_GCP_METRIC_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_METRIC_SERVICE_TEST_GCP_TEST_GCP_METRIC_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -37,3 +38,5 @@ class TestGcpMetricServiceFactory : public GcpMetricServiceFactory {
   CreateInstanceServiceFactoryOptions() noexcept override;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_METRIC_SERVICE_TEST_GCP_TEST_GCP_METRIC_SERVICE_FACTORY_H_

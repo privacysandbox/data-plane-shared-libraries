@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_MOCK_AWS_MOCK_SQS_CLIENT_H_
+#define CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_MOCK_AWS_MOCK_SQS_CLIENT_H_
 
 #include <gmock/gmock.h>
 
@@ -59,3 +60,5 @@ class MockSqsClient : public Aws::SQS::SQSClient {
 };
 
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_MOCK_AWS_MOCK_SQS_CLIENT_H_

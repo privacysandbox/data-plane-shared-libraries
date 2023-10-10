@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_GCP_TEE_GCP_KMS_CLIENT_PROVIDER_UTILS_H_
+#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_GCP_TEE_GCP_KMS_CLIENT_PROVIDER_UTILS_H_
 
 #include <string>
 
@@ -34,3 +35,5 @@ class TeeGcpKmsClientProviderUtils {
       std::string& credential_json) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_GCP_TEE_GCP_KMS_CLIENT_PROVIDER_UTILS_H_

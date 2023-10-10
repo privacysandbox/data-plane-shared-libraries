@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CORE_COMMON_TIME_PROVIDER_SRC_TIME_PROVIDER_H_
+#define CORE_COMMON_TIME_PROVIDER_SRC_TIME_PROVIDER_H_
 
 #include <chrono>
 
@@ -102,3 +104,5 @@ class TimeProvider {
   }
 };
 };  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_TIME_PROVIDER_SRC_TIME_PROVIDER_H_

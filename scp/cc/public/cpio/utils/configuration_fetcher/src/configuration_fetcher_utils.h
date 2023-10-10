@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_SRC_CONFIGURATION_FETCHER_UTILS_H_
+#define PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_SRC_CONFIGURATION_FETCHER_UTILS_H_
 
 #include <sys/types.h>
 
@@ -96,3 +97,5 @@ class ConfigurationFetcherUtils {
   }
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_SRC_CONFIGURATION_FETCHER_UTILS_H_

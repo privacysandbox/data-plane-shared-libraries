@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_SERVER_SRC_HTTP2_UTILS_H_
+#define CORE_HTTP2_SERVER_SRC_HTTP2_UTILS_H_
 
 #include <algorithm>
 #include <memory>
@@ -74,3 +75,5 @@ class Http2Utils {
   }
 };
 }  // namespace google::scp::core::http2_server
+
+#endif  // CORE_HTTP2_SERVER_SRC_HTTP2_UTILS_H_

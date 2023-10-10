@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PROCESS_LAUNCHER_DAEMONIZER_SRC_ERROR_CODES_H_
+#define PROCESS_LAUNCHER_DAEMONIZER_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -37,3 +38,5 @@ DEFINE_ERROR_CODE(DAEMONIZER_UNKNOWN_ERROR, DAEMONIZER, 0x0004,
                   "The main processing loop exited with an unknown reason.",
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // PROCESS_LAUNCHER_DAEMONIZER_SRC_ERROR_CODES_H_

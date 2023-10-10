@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_AWS_METRIC_CLIENT_UTILS_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_AWS_METRIC_CLIENT_UTILS_H_
 
 #include <vector>
 
@@ -49,3 +50,5 @@ class AwsMetricClientUtils {
 };
 
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_AWS_METRIC_CLIENT_UTILS_H_

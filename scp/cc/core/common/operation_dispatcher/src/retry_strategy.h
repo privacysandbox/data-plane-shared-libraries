@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_OPERATION_DISPATCHER_SRC_RETRY_STRATEGY_H_
+#define CORE_COMMON_OPERATION_DISPATCHER_SRC_RETRY_STRATEGY_H_
 
 #include <chrono>
 #include <cmath>
@@ -118,3 +119,5 @@ class RetryStrategy {
   size_t maximum_allowed_retry_count_;
 };
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_OPERATION_DISPATCHER_SRC_RETRY_STRATEGY_H_

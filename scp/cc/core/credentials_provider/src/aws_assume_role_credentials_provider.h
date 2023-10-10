@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CREDENTIALS_PROVIDER_SRC_AWS_ASSUME_ROLE_CREDENTIALS_PROVIDER_H_
+#define CORE_CREDENTIALS_PROVIDER_SRC_AWS_ASSUME_ROLE_CREDENTIALS_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -92,3 +93,5 @@ class AwsAssumeRoleCredentialsProvider : public CredentialsProviderInterface {
   std::shared_ptr<std::string> session_name_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_CREDENTIALS_PROVIDER_SRC_AWS_ASSUME_ROLE_CREDENTIALS_PROVIDER_H_

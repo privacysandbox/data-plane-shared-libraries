@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LOGGER_INTERFACE_LOG_PROVIDER_INTERFACE_H_
+#define CORE_LOGGER_INTERFACE_LOG_PROVIDER_INTERFACE_H_
 
 #include <cstdarg>
 #include <string_view>
@@ -61,3 +62,5 @@ class LogProviderInterface : public ServiceInterface {
                    const std::string_view& message, va_list args) noexcept = 0;
 };
 }  // namespace google::scp::core::logger
+
+#endif  // CORE_LOGGER_INTERFACE_LOG_PROVIDER_INTERFACE_H_

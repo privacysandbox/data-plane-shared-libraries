@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_ASYNC_EXECUTOR_MOCK_MOCK_ASYNC_EXECUTOR_WITH_INTERNALS_H_
+#define CORE_ASYNC_EXECUTOR_MOCK_MOCK_ASYNC_EXECUTOR_WITH_INTERNALS_H_
 
 #include <atomic>
 #include <functional>
@@ -111,3 +112,5 @@ class MockAsyncExecutorWithInternals : public core::AsyncExecutor {
   std::function<bool()> schedule_for_pre_caller;
 };
 }  // namespace google::scp::core::async_executor::mock
+
+#endif  // CORE_ASYNC_EXECUTOR_MOCK_MOCK_ASYNC_EXECUTOR_WITH_INTERNALS_H_

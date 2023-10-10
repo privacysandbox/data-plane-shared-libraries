@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_QUEUE_SERVICE_TEST_GCP_TEST_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_SRC_QUEUE_SERVICE_TEST_GCP_TEST_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 // Required. Only needed for GCP. It should be a real project for your service
@@ -25,3 +26,5 @@ static constexpr char kTestGcpQueueClientProjectId[] =
 static constexpr char kTestGcpQueueClientCloudEndpointOverride[] =
     "cmrt_sdk_test_gcp_queue_client_cloud_endpoint_override";
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_QUEUE_SERVICE_TEST_GCP_TEST_CONFIGURATION_KEYS_H_

@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CORE_HTTP2_SERVER_SRC_HTTP2_RESPONSE_H_
+#define CORE_HTTP2_SERVER_SRC_HTTP2_RESPONSE_H_
 
 #include <atomic>
 #include <functional>
@@ -86,3 +88,5 @@ class NgHttp2Response : public HttpResponse {
   std::mutex on_close_mutex_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_HTTP2_SERVER_SRC_HTTP2_RESPONSE_H_

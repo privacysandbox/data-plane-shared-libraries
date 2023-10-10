@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_AUTHORIZATION_SERVICE_SRC_AWS_AUTHORIZER_H_
+#define CORE_AUTHORIZATION_SERVICE_SRC_AWS_AUTHORIZER_H_
 
 #include <memory>
 #include <string>
@@ -107,3 +108,5 @@ class AwsAuthorizer : public AuthorizationServiceInterface {
   const std::shared_ptr<HttpClientInterface> http_client_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_AUTHORIZATION_SERVICE_SRC_AWS_AUTHORIZER_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_SANDBOX_API_H_
+#define ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_SANDBOX_API_H_
 
 #include <sys/syscall.h>
 
@@ -266,3 +267,5 @@ class WorkerSandboxApi : public core::ServiceInterface {
   const bool enable_sandbox_sharing_request_response_with_buffer_only_;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
+
+#endif  // ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_SANDBOX_API_H_

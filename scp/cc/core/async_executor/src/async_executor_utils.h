@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_UTILS_H_
+#define CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_UTILS_H_
 
 #include <iostream>
 #include <optional>
@@ -48,3 +49,5 @@ class AsyncExecutorUtils {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_UTILS_H_

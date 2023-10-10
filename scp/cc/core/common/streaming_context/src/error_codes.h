@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_COMMON_STREAMING_CONTEXT_SRC_ERROR_CODES_H_
+#define CORE_COMMON_STREAMING_CONTEXT_SRC_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -31,3 +32,5 @@ DEFINE_ERROR_CODE(SC_STREAMING_CONTEXT_CANCELLED, SC_STREAMING_CONTEXT, 0x0002,
                   HttpStatusCode::SERVICE_UNAVAILABLE)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_COMMON_STREAMING_CONTEXT_SRC_ERROR_CODES_H_

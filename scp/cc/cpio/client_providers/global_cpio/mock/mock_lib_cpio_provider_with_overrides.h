@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_MOCK_MOCK_LIB_CPIO_PROVIDER_WITH_OVERRIDES_H_
+#define CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_MOCK_MOCK_LIB_CPIO_PROVIDER_WITH_OVERRIDES_H_
 
 #include <functional>
 #include <memory>
@@ -68,3 +69,5 @@ class MockLibCpioProviderWithOverrides : public LibCpioProvider {
   }
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_MOCK_MOCK_LIB_CPIO_PROVIDER_WITH_OVERRIDES_H_

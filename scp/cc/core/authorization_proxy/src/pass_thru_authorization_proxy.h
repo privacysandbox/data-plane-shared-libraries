@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_AUTHORIZATION_PROXY_SRC_PASS_THRU_AUTHORIZATION_PROXY_H_
+#define CORE_AUTHORIZATION_PROXY_SRC_PASS_THRU_AUTHORIZATION_PROXY_H_
 
 #include <memory>
 #include <string>
@@ -84,3 +85,5 @@ class PassThruAuthorizationProxyAsync : public AuthorizationProxyInterface {
   std::shared_ptr<AsyncExecutorInterface> async_executor_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_AUTHORIZATION_PROXY_SRC_PASS_THRU_AUTHORIZATION_PROXY_H_

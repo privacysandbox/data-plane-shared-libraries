@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INTERFACE_TYPE_DEF_H_
+#define CPIO_CLIENT_PROVIDERS_INTERFACE_TYPE_DEF_H_
 
 #include <memory>
 #include <utility>
@@ -45,3 +46,5 @@ core::ExecutionResult CallbackToPackAnyResponse(
   return core::SuccessExecutionResult();
 }
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INTERFACE_TYPE_DEF_H_

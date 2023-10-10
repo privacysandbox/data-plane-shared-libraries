@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NETWORK_SRC_GRPC_GENERIC_CONTEXT_H_
+#define CORE_NETWORK_SRC_GRPC_GENERIC_CONTEXT_H_
 
 #include <memory>
 #include <string>
@@ -146,3 +147,5 @@ class GrpcGenericContext : public RPCServiceContextInterface {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_NETWORK_SRC_GRPC_GENERIC_CONTEXT_H_

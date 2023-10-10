@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_HTTP_CLIENT_INTERFACE_H_
+#define CORE_INTERFACE_HTTP_CLIENT_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -41,3 +42,5 @@ class HttpClientInterface : public ServiceInterface {
       AsyncContext<HttpRequest, HttpResponse>& context) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_HTTP_CLIENT_INTERFACE_H_

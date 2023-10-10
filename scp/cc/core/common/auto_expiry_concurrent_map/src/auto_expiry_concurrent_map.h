@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_AUTO_EXPIRY_CONCURRENT_MAP_SRC_AUTO_EXPIRY_CONCURRENT_MAP_H_
+#define CORE_COMMON_AUTO_EXPIRY_CONCURRENT_MAP_SRC_AUTO_EXPIRY_CONCURRENT_MAP_H_
 
 #include <atomic>
 #include <chrono>
@@ -500,3 +501,5 @@ class AutoExpiryConcurrentMap : public ServiceInterface {
   Uuid activity_id_;
 };
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_AUTO_EXPIRY_CONCURRENT_MAP_SRC_AUTO_EXPIRY_CONCURRENT_MAP_H_

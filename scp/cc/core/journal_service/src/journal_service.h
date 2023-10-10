@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_SRC_JOURNAL_SERVICE_H_
+#define CORE_JOURNAL_SERVICE_SRC_JOURNAL_SERVICE_H_
 
 #include <memory>
 #include <mutex>
@@ -204,3 +205,5 @@ class JournalService : public JournalServiceInterface {
   size_t journal_flush_interval_in_milliseconds_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_JOURNAL_SERVICE_SRC_JOURNAL_SERVICE_H_

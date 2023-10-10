@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_INITIALIZABLE_INTERFACE_H_
+#define CORE_INTERFACE_INITIALIZABLE_INTERFACE_H_
 
 #include "public/core/interface/execution_result.h"
 
@@ -35,3 +36,5 @@ class InitializableInterface {
   virtual ExecutionResult Init() noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_INITIALIZABLE_INTERFACE_H_

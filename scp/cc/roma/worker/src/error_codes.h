@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_WORKER_SRC_ERROR_CODES_H_
+#define ROMA_WORKER_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -94,3 +95,5 @@ DEFINE_ERROR_CODE(SC_ROMA_V8_WORKER_ASYNC_EXECUTION_FAILED, SC_ROMA_V8_WORKER,
                   0x0015, "The code object async function execution failed.",
                   HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // ROMA_WORKER_SRC_ERROR_CODES_H_

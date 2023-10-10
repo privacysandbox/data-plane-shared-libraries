@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_BLOB_STORAGE_PROVIDER_MOCK_MOCK_BLOB_STORAGE_PROVIDER_H_
+#define CORE_BLOB_STORAGE_PROVIDER_MOCK_MOCK_BLOB_STORAGE_PROVIDER_H_
 
 #include <algorithm>
 #include <bitset>
@@ -217,3 +218,5 @@ class MockBlobStorageProvider : public BlobStorageProviderInterface {
   }
 };
 }  // namespace google::scp::core::blob_storage_provider::mock
+
+#endif  // CORE_BLOB_STORAGE_PROVIDER_MOCK_MOCK_BLOB_STORAGE_PROVIDER_H_

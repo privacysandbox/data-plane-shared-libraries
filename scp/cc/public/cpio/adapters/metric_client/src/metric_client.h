@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_SRC_METRIC_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_SRC_METRIC_CLIENT_H_
 
 #include <memory>
 
@@ -52,3 +53,5 @@ class MetricClient : public MetricClientInterface {
   std::shared_ptr<MetricClientOptions> options_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_SRC_METRIC_CLIENT_H_

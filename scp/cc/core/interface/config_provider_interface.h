@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_CONFIG_PROVIDER_INTERFACE_H_
+#define CORE_INTERFACE_CONFIG_PROVIDER_INTERFACE_H_
 
 #include <list>
 #include <string>
@@ -113,3 +114,5 @@ class ConfigProviderInterface : public ServiceInterface {
                               std::list<bool>& out) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_CONFIG_PROVIDER_INTERFACE_H_

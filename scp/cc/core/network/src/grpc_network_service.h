@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NETWORK_SRC_GRPC_NETWORK_SERVICE_H_
+#define CORE_NETWORK_SRC_GRPC_NETWORK_SERVICE_H_
 
 #include <atomic>
 #include <memory>
@@ -97,3 +98,5 @@ class GrpcNetworkService : public NetworkServiceInterface {
   std::vector<std::thread> pollers_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_NETWORK_SRC_GRPC_NETWORK_SERVICE_H_

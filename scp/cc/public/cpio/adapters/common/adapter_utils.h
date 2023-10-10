@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_COMMON_ADAPTER_UTILS_H_
+#define PUBLIC_CPIO_ADAPTERS_COMMON_ADAPTER_UTILS_H_
 
 #include <functional>
 #include <memory>
@@ -72,3 +73,5 @@ core::ExecutionResult Execute(std::function<core::ExecutionResult(
   return core::utils::ConvertToPublicExecutionResult(func(context));
 }
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_ADAPTERS_COMMON_ADAPTER_UTILS_H_

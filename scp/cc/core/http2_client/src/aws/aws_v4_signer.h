@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_CLIENT_SRC_AWS_AWS_V4_SIGNER_H_
+#define CORE_HTTP2_CLIENT_SRC_AWS_AWS_V4_SIGNER_H_
 #include <string>
 #include <vector>
 
@@ -165,3 +166,5 @@ class AwsV4Signer {
   std::vector<std::string> headers_to_sign_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_HTTP2_CLIENT_SRC_AWS_AWS_V4_SIGNER_H_

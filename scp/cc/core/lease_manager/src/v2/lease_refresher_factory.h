@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_SRC_V2_LEASE_REFRESHER_FACTORY_H_
+#define CORE_LEASE_MANAGER_SRC_V2_LEASE_REFRESHER_FACTORY_H_
 
 #include <memory>
 
@@ -33,3 +34,5 @@ class LeaseRefresherFactory : public LeaseRefresherFactoryInterface {
       override;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_LEASE_MANAGER_SRC_V2_LEASE_REFRESHER_FACTORY_H_

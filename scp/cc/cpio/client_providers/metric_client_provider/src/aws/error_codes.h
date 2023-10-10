@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_ERROR_CODES_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -72,3 +73,5 @@ MAP_TO_PUBLIC_ERROR_CODE(
     SC_AWS_METRIC_CLIENT_PROVIDER_SHOULD_ENABLE_BATCH_RECORDING,
     SC_CPIO_INTERNAL_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_ERROR_CODES_H_

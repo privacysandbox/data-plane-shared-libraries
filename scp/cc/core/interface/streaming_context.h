@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_STREAMING_CONTEXT_H_
+#define CORE_INTERFACE_STREAMING_CONTEXT_H_
 
 #include <chrono>
 #include <functional>
@@ -326,3 +327,5 @@ void FinishStreamingContext(
 }
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_STREAMING_CONTEXT_H_

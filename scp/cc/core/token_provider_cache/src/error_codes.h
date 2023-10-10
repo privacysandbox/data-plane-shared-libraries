@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#pragma once
+
+#ifndef CORE_TOKEN_PROVIDER_CACHE_SRC_ERROR_CODES_H_
+#define CORE_TOKEN_PROVIDER_CACHE_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -31,3 +33,5 @@ DEFINE_ERROR_CODE(SC_AUTO_REFRESH_TOKEN_PROVIDER_TOKEN_NOT_AVAILABLE,
                   "Failed to fetch token.", HttpStatusCode::SERVICE_UNAVAILABLE)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_TOKEN_PROVIDER_CACHE_SRC_ERROR_CODES_H_

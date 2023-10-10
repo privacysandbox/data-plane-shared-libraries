@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_NOSQL_DATABASE_SERVICE_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_INTERFACE_NOSQL_DATABASE_SERVICE_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 // Optional. If not set, use the default value 2. The number of
@@ -52,3 +53,5 @@ static constexpr char kGcpNoSQLDatabaseClientSpannerDatabaseName[] =
     "cmrt_sdk_gcp_nosql_database_client_spanner_database_name";
 
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_NOSQL_DATABASE_SERVICE_CONFIGURATION_KEYS_H_

@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_TEST_QUEUE_SERVICE_TEST_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_TEST_QUEUE_SERVICE_TEST_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 static constexpr char kQueueClientRegion[] = "cmrt_sdk_queue_client_region";
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_TEST_QUEUE_SERVICE_TEST_CONFIGURATION_KEYS_H_

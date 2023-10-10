@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CORE_COMMON_GLOBAL_LOGGER_SRC_GLOBAL_LOGGER_H_
+#define CORE_COMMON_GLOBAL_LOGGER_SRC_GLOBAL_LOGGER_H_
 
 #include <cstdarg>
 #include <memory>
@@ -203,3 +205,5 @@ class GlobalLogger {
         component_name, correlation_id, parent_activity_id, activity_id,       \
         SCP_LOCATION, message_with_error.c_str(), ##__VA_ARGS__);              \
   }
+
+#endif  // CORE_COMMON_GLOBAL_LOGGER_SRC_GLOBAL_LOGGER_H_

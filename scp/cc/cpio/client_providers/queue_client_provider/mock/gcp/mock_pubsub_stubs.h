@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_MOCK_GCP_MOCK_PUBSUB_STUBS_H_
+#define CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_MOCK_GCP_MOCK_PUBSUB_STUBS_H_
 
 #include <gmock/gmock.h>
 
@@ -472,3 +473,5 @@ class MockSubscriberStub
 };
 
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_MOCK_GCP_MOCK_PUBSUB_STUBS_H_

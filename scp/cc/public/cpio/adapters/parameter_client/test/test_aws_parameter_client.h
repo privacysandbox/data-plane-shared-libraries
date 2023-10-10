@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_TEST_TEST_AWS_PARAMETER_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_TEST_TEST_AWS_PARAMETER_CLIENT_H_
 
 #include <memory>
 
@@ -32,3 +33,5 @@ class TestAwsParameterClient : public ParameterClient {
       : ParameterClient(options) {}
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_TEST_TEST_AWS_PARAMETER_CLIENT_H_

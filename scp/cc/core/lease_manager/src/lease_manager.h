@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_SRC_LEASE_MANAGER_H_
+#define CORE_LEASE_MANAGER_SRC_LEASE_MANAGER_H_
 
 #include <condition_variable>
 #include <memory>
@@ -177,3 +178,5 @@ class LeaseManager : public LeaseManagerInterface {
 };
 
 };  // namespace google::scp::core
+
+#endif  // CORE_LEASE_MANAGER_SRC_LEASE_MANAGER_H_

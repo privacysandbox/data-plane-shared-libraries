@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TRANSACTION_MANAGER_MOCK_MOCK_TRANSACTION_MANAGER_GMOCK_H_
+#define CORE_TRANSACTION_MANAGER_MOCK_MOCK_TRANSACTION_MANAGER_GMOCK_H_
 
 #include <list>
 #include <memory>
@@ -52,3 +53,5 @@ class MockTransactionManagerGMock : public TransactionManagerInterface {
               (noexcept, override));
 };
 }  // namespace google::scp::core::transaction_manager::mock
+
+#endif  // CORE_TRANSACTION_MANAGER_MOCK_MOCK_TRANSACTION_MANAGER_GMOCK_H_

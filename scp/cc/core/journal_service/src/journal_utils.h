@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_SRC_JOURNAL_UTILS_H_
+#define CORE_JOURNAL_SERVICE_SRC_JOURNAL_UTILS_H_
 
 #include <algorithm>
 #include <memory>
@@ -208,3 +209,5 @@ class JournalUtils {
   }
 };
 }  // namespace google::scp::core::journal_service
+
+#endif  // CORE_JOURNAL_SERVICE_SRC_JOURNAL_UTILS_H_

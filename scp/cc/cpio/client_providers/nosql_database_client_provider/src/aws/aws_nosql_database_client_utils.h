@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_NOSQL_DATABASE_CLIENT_PROVIDER_SRC_AWS_AWS_NOSQL_DATABASE_CLIENT_UTILS_H_
+#define CPIO_CLIENT_PROVIDERS_NOSQL_DATABASE_CLIENT_PROVIDER_SRC_AWS_AWS_NOSQL_DATABASE_CLIENT_UTILS_H_
 
 #include <memory>
 #include <optional>
@@ -312,3 +313,5 @@ class AwsNoSQLDatabaseClientUtils {
   static constexpr size_t kExpressionsInitialByteSize = 1024;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_NOSQL_DATABASE_CLIENT_PROVIDER_SRC_AWS_AWS_NOSQL_DATABASE_CLIENT_UTILS_H_

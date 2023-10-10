@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INTERFACE_CRYPTO_CLIENT_PROVIDER_INTERFACE_H_
+#define CPIO_CLIENT_PROVIDERS_INTERFACE_CRYPTO_CLIENT_PROVIDER_INTERFACE_H_
 
 #include "core/interface/async_context.h"
 #include "core/interface/service_interface.h"
@@ -75,3 +76,5 @@ class CryptoClientProviderInterface : public core::ServiceInterface {
           context) noexcept = 0;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INTERFACE_CRYPTO_CLIENT_PROVIDER_INTERFACE_H_

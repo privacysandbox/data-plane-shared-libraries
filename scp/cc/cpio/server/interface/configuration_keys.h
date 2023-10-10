@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_INTERFACE_CONFIGURATION_KEYS_H_
 
 #include <map>
 #include <string>
@@ -32,3 +33,5 @@ static const std::map<std::string, LogOption> kLogOptionConfigMap = {
     {"ConsoleLog", LogOption::kConsoleLog},
     {"SysLog", LogOption::kSysLog}};
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_CONFIGURATION_KEYS_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_BLOB_STORAGE_PROVIDER_SRC_COMMON_ERROR_CODES_H_
+#define CORE_BLOB_STORAGE_PROVIDER_SRC_COMMON_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -49,3 +50,5 @@ DEFINE_ERROR_CODE(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS,
                   "Invalid arguments provided.", HttpStatusCode::NOT_FOUND)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_BLOB_STORAGE_PROVIDER_SRC_COMMON_ERROR_CODES_H_

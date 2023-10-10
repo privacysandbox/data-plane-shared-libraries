@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_FACTORY_SRC_WORKER_FACTORY_H_
+#define ROMA_SANDBOX_WORKER_FACTORY_SRC_WORKER_FACTORY_H_
 
 #include <memory>
 #include <string>
@@ -52,3 +53,5 @@ class WorkerFactory {
       const FactoryParams& params);
 };
 }  // namespace google::scp::roma::sandbox::worker
+
+#endif  // ROMA_SANDBOX_WORKER_FACTORY_SRC_WORKER_FACTORY_H_

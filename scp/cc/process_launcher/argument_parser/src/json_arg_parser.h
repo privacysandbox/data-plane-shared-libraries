@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PROCESS_LAUNCHER_ARGUMENT_PARSER_SRC_JSON_ARG_PARSER_H_
+#define PROCESS_LAUNCHER_ARGUMENT_PARSER_SRC_JSON_ARG_PARSER_H_
 
 #include <string>
 #include <vector>
@@ -86,3 +87,5 @@ class JsonArgParser<ExecutableArgument> {
   }
 };
 }  // namespace google::scp::process_launcher
+
+#endif  // PROCESS_LAUNCHER_ARGUMENT_PARSER_SRC_JSON_ARG_PARSER_H_

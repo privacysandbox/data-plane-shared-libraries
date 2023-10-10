@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CURL_CLIENT_SRC_HTTP1_CURL_CLIENT_H_
+#define CORE_CURL_CLIENT_SRC_HTTP1_CURL_CLIENT_H_
 
 #include <memory>
 
@@ -70,3 +71,5 @@ class Http1CurlClient : public HttpClientInterface {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_CURL_CLIENT_SRC_HTTP1_CURL_CLIENT_H_

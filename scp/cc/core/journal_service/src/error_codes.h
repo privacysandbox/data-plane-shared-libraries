@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_SRC_ERROR_CODES_H_
+#define CORE_JOURNAL_SERVICE_SRC_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -113,3 +114,5 @@ DEFINE_ERROR_CODE(SC_JOURNAL_SERVICE_FAILED_TO_FLUSH_BATCH_OF_LOGS,
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_JOURNAL_SERVICE_SRC_ERROR_CODES_H_

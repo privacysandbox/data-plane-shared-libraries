@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_INTERFACE_CONFIGURATION_KEYS_H_
+#define PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_INTERFACE_CONFIGURATION_KEYS_H_
 
 // Configurations not defined in the server mode.
 namespace google::scp::cpio {
@@ -31,3 +32,5 @@ static constexpr char kSharedIoThreadCount[] =
 static constexpr char kSharedIoThreadPoolQueueCap[] =
     "cmrt_sdk_shared_io_thread_pool_queue_cap";
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_INTERFACE_CONFIGURATION_KEYS_H_

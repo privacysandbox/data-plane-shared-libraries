@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_RPC_SERVICE_CONTEXT_INTERFACE_H_
+#define CORE_INTERFACE_RPC_SERVICE_CONTEXT_INTERFACE_H_
 
 #include <functional>
 
@@ -40,3 +41,5 @@ struct RPCServiceContextInterface {
   virtual ExecutionResult Finish() noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_RPC_SERVICE_CONTEXT_INTERFACE_H_

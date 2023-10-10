@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LOGGER_MOCK_MOCK_LOG_PROVIDER_H_
+#define CORE_LOGGER_MOCK_MOCK_LOG_PROVIDER_H_
 
 #include <cstdarg>
 #include <memory>
@@ -43,3 +44,5 @@ class MockLogProvider : public ConsoleLogProvider {
   std::vector<std::string> messages_;
 };
 }  // namespace google::scp::core::logger::mock
+
+#endif  // CORE_LOGGER_MOCK_MOCK_LOG_PROVIDER_H_

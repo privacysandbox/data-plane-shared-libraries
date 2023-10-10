@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_POOL_SRC_WORKER_POOL_API_SAPI_H_
+#define ROMA_SANDBOX_WORKER_POOL_SRC_WORKER_POOL_API_SAPI_H_
 
 #include <memory>
 #include <vector>
@@ -56,3 +57,5 @@ class WorkerPoolApiSapi : public WorkerPool {
   std::vector<std::shared_ptr<worker_api::WorkerApi>> workers_;
 };
 }  // namespace google::scp::roma::sandbox::worker_pool
+
+#endif  // ROMA_SANDBOX_WORKER_POOL_SRC_WORKER_POOL_API_SAPI_H_

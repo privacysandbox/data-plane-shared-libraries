@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_MOCK_MOCK_JOURNAL_INPUT_STREAM_H_
+#define CORE_JOURNAL_SERVICE_MOCK_MOCK_JOURNAL_INPUT_STREAM_H_
 
 #include <atomic>
 #include <functional>
@@ -329,3 +330,5 @@ class MockJournalInputStream : public core::JournalInputStream {
   size_t& GetCurrentBufferOffset() { return current_buffer_offset_; }
 };
 }  // namespace google::scp::core::journal_service::mock
+
+#endif  // CORE_JOURNAL_SERVICE_MOCK_MOCK_JOURNAL_INPUT_STREAM_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CONFIG_PROVIDER_SRC_ERROR_CODES_H_
+#define CORE_CONFIG_PROVIDER_SRC_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -40,3 +41,5 @@ DEFINE_ERROR_CODE(SC_CONFIG_PROVIDER_VALUE_TYPE_ERROR, SC_CONFIG_PROVIDER,
                   0x0003, "Config provider value type of the key doesn't match",
                   HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_CONFIG_PROVIDER_SRC_ERROR_CODES_H_

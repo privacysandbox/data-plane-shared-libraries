@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_MOCK_MOCK_AUTH_TOKEN_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_MOCK_MOCK_AUTH_TOKEN_PROVIDER_H_
 
 #include <gmock/gmock.h>
 
@@ -43,3 +44,5 @@ class MockAuthTokenProvider : public AuthTokenProviderInterface {
 };
 
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_MOCK_MOCK_AUTH_TOKEN_PROVIDER_H_

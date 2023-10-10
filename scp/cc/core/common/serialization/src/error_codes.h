@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_COMMON_SERIALIZATION_SRC_ERROR_CODES_H_
+#define CORE_COMMON_SERIALIZATION_SRC_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -46,3 +47,5 @@ DEFINE_ERROR_CODE(SC_SERIALIZATION_VERSION_IS_INVALID, SC_SERIALIZATION, 0x0006,
                   "The proto message is invalid.", HttpStatusCode::BAD_REQUEST)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_COMMON_SERIALIZATION_SRC_ERROR_CODES_H_

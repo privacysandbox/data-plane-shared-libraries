@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_METRIC_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_METRIC_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <mutex>
@@ -139,3 +140,5 @@ class MetricClientProvider : public MetricClientInterface {
   std::mutex sync_mutex_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_METRIC_CLIENT_PROVIDER_H_

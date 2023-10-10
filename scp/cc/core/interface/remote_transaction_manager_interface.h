@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_REMOTE_TRANSACTION_MANAGER_INTERFACE_H_
+#define CORE_INTERFACE_REMOTE_TRANSACTION_MANAGER_INTERFACE_H_
 
 #include <list>
 #include <memory>
@@ -53,3 +54,5 @@ class RemoteTransactionManagerInterface : public ServiceInterface {
           transaction_phase_context) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_REMOTE_TRANSACTION_MANAGER_INTERFACE_H_

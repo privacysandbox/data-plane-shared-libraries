@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_INTERFACE_GCP_GCP_KEY_MANAGEMENT_SERVICE_CLIENT_INTERFACE_H_
+#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_INTERFACE_GCP_GCP_KEY_MANAGEMENT_SERVICE_CLIENT_INTERFACE_H_
 
 #include "google/cloud/kms/key_management_client.h"
 
@@ -34,3 +35,5 @@ class GcpKeyManagementServiceClientInterface {
   Decrypt(const google::cloud::kms::v1::DecryptRequest& request) noexcept = 0;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_INTERFACE_GCP_GCP_KEY_MANAGEMENT_SERVICE_CLIENT_INTERFACE_H_

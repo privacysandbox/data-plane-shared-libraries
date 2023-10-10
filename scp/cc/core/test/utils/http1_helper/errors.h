@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TEST_UTILS_HTTP1_HELPER_ERRORS_H_
+#define CORE_TEST_UTILS_HTTP1_HELPER_ERRORS_H_
 
 #include "scp/cc/core/interface/errors.h"
 
@@ -37,3 +38,5 @@ DEFINE_ERROR_CODE(SC_TEST_HTTP1_SERVER_ERROR_GETTING_SOCKET_NAME,
                   HttpStatusCode::BAD_REQUEST);
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_TEST_UTILS_HTTP1_HELPER_ERRORS_H_

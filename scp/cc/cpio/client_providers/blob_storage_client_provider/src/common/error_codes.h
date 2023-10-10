@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_COMMON_ERROR_CODES_H_
+#define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_COMMON_ERROR_CODES_H_
 
 #include "public/cpio/interface/error_codes.h"
 #include "scp/cc/core/interface/errors.h"
@@ -76,3 +77,5 @@ MAP_TO_PUBLIC_ERROR_CODE(SC_BLOB_STORAGE_PROVIDER_EMPTY_ETAG,
                          SC_CPIO_CLOUD_INTERNAL_SERVICE_ERROR)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_COMMON_ERROR_CODES_H_

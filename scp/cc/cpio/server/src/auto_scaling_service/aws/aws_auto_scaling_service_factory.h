@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_AUTO_SCALING_SERVICE_AWS_AWS_AUTO_SCALING_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_AUTO_SCALING_SERVICE_AWS_AWS_AUTO_SCALING_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -67,3 +68,5 @@ class AwsAutoScalingServiceFactory : public AutoScalingServiceFactoryInterface {
   CreateInstanceServiceFactoryOptions() noexcept;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_AUTO_SCALING_SERVICE_AWS_AWS_AUTO_SCALING_SERVICE_FACTORY_H_

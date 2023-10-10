@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NOSQL_DATABASE_PROVIDER_SRC_AWS_AWS_DYNAMO_DB_UTILS_H_
+#define CORE_NOSQL_DATABASE_PROVIDER_SRC_AWS_AWS_DYNAMO_DB_UTILS_H_
 
 #include <memory>
 #include <sstream>
@@ -127,3 +128,5 @@ class AwsDynamoDBUtils {
   }
 };
 }  // namespace google::scp::core::nosql_database_provider
+
+#endif  // CORE_NOSQL_DATABASE_PROVIDER_SRC_AWS_AWS_DYNAMO_DB_UTILS_H_

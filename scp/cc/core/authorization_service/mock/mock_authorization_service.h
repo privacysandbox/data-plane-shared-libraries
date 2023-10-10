@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_AUTHORIZATION_SERVICE_MOCK_MOCK_AUTHORIZATION_SERVICE_H_
+#define CORE_AUTHORIZATION_SERVICE_MOCK_MOCK_AUTHORIZATION_SERVICE_H_
 
 #include <functional>
 #include <memory>
@@ -53,3 +54,5 @@ class MockAuthorizationService : public AuthorizationServiceInterface {
       authorize_mock;
 };
 }  // namespace google::scp::core::authorization_service::mock
+
+#endif  // CORE_AUTHORIZATION_SERVICE_MOCK_MOCK_AUTHORIZATION_SERVICE_H_

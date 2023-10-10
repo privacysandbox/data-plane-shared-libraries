@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_TEST_UTILS_GCP_HELPER_GCP_HELPER_H_
+#define CORE_TEST_UTILS_GCP_HELPER_GCP_HELPER_H_
 
 #include <memory>
 #include <string>
@@ -40,3 +41,5 @@ std::unique_ptr<pubsub::v1::Publisher::StubInterface> CreatePublisherStub(
 void CreateTopic(pubsub::v1::Publisher::StubInterface& stub,
                  const std::string& project_id, const std::string& topic_id);
 }  // namespace google::scp::core::test
+
+#endif  // CORE_TEST_UTILS_GCP_HELPER_GCP_HELPER_H_

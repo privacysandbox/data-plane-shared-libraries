@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INTERFACE_METRIC_CLIENT_PROVIDER_INTERFACE_H_
+#define CPIO_CLIENT_PROVIDERS_INTERFACE_METRIC_CLIENT_PROVIDER_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -73,3 +74,5 @@ class MetricClientProviderFactory {
       const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INTERFACE_METRIC_CLIENT_PROVIDER_INTERFACE_H_

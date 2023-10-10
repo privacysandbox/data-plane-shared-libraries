@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_GCP_GCP_METRIC_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_GCP_GCP_METRIC_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -98,3 +99,5 @@ class GcpMetricClientProvider : public MetricClientProvider {
 };
 
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_GCP_GCP_METRIC_CLIENT_PROVIDER_H_

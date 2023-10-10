@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_MOCK_MOCK_BLOB_STORAGE_CLIENT_WITH_OVERRIDES_H_
+#define PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_MOCK_MOCK_BLOB_STORAGE_CLIENT_WITH_OVERRIDES_H_
 
 #include <memory>
 
@@ -42,3 +43,5 @@ class MockBlobStorageClientWithOverrides : public BlobStorageClient {
   }
 };
 }  // namespace google::scp::cpio::mock
+
+#endif  // PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_MOCK_MOCK_BLOB_STORAGE_CLIENT_WITH_OVERRIDES_H_

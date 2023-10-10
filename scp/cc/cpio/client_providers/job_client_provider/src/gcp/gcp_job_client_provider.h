@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_SRC_GCP_GCP_JOB_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_SRC_GCP_GCP_JOB_CLIENT_PROVIDER_H_
 
 #include <memory>
 
@@ -38,3 +40,5 @@ class GcpJobClientProvider : public JobClientProvider {
       const core::StatusCode status_code_from_database) noexcept override;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_SRC_GCP_GCP_JOB_CLIENT_PROVIDER_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_SRC_GCP_GCP_ROLE_CREDENTIALS_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_SRC_GCP_GCP_ROLE_CREDENTIALS_PROVIDER_H_
 
 #include "cpio/client_providers/interface/role_credentials_provider_interface.h"
 
@@ -33,3 +34,5 @@ class GcpRoleCredentialsProvider : public RoleCredentialsProviderInterface {
           get_credentials_context) noexcept override;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_SRC_GCP_GCP_ROLE_CREDENTIALS_PROVIDER_H_

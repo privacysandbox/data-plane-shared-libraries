@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_H_
+#define ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_H_
 
 #include <memory>
 #include <string>
@@ -57,3 +58,5 @@ class WorkerApi : public core::ServiceInterface {
   virtual core::ExecutionResult Terminate() noexcept = 0;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
+
+#endif  // ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_H_

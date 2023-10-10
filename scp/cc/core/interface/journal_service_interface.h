@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_JOURNAL_SERVICE_INTERFACE_H_
+#define CORE_INTERFACE_JOURNAL_SERVICE_INTERFACE_H_
 
 #include <functional>
 #include <memory>
@@ -177,3 +178,5 @@ class JournalServiceInterface : public ServiceInterface {
   virtual ExecutionResult StopRecoveryMetrics() noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_JOURNAL_SERVICE_INTERFACE_H_

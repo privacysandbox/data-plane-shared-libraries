@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_COMMON_SRC_CONTAINERS_H_
+#define ROMA_COMMON_SRC_CONTAINERS_H_
 
 #include <functional>
 #include <list>
@@ -178,3 +179,5 @@ class Map {
   std::list<TKey> order_list_;
 };
 }  // namespace google::scp::roma::common
+
+#endif  // ROMA_COMMON_SRC_CONTAINERS_H_

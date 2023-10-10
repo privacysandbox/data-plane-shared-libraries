@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_ERROR_CODES_H_
+#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -52,3 +53,5 @@ DEFINE_ERROR_CODE(
     "A function with this name has already been registered in the table.",
     HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_ERROR_CODES_H_

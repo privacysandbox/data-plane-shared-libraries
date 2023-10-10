@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_UNIX_SOCKET_ADDRESSES_H_
+#define CPIO_SERVER_INTERFACE_UNIX_SOCKET_ADDRESSES_H_
 
 // Unix socket addresses for all SDK servers.
 namespace google::scp::cpio {
@@ -40,3 +41,5 @@ static constexpr char kPublicKeyServiceAddress[] =
 static constexpr char kQueueServiceAddress[] =
     "unix:///tmp/queue_service.socket";
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_UNIX_SOCKET_ADDRESSES_H_

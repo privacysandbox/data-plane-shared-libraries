@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CPIO_TEST_SERVER_TEST_SDK_SERVER_STARTER_H_
+#define CPIO_TEST_SERVER_TEST_SDK_SERVER_STARTER_H_
 
 #include <string>
 
@@ -60,3 +61,5 @@ class TestSdkServerStarter {
   CreateSdkEnvVariables() = 0;
 };
 }  // namespace google::scp::cpio::test
+
+#endif  // CPIO_TEST_SERVER_TEST_SDK_SERVER_STARTER_H_

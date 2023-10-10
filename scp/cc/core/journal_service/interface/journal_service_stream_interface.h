@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_INTERFACE_JOURNAL_SERVICE_STREAM_INTERFACE_H_
+#define CORE_JOURNAL_SERVICE_INTERFACE_JOURNAL_SERVICE_STREAM_INTERFACE_H_
 
 #include <atomic>
 #include <memory>
@@ -151,3 +152,5 @@ class JournalOutputStreamInterface {
   virtual ExecutionResult FlushLogs() noexcept = 0;
 };
 }  // namespace google::scp::core::journal_service
+
+#endif  // CORE_JOURNAL_SERVICE_INTERFACE_JOURNAL_SERVICE_STREAM_INTERFACE_H_

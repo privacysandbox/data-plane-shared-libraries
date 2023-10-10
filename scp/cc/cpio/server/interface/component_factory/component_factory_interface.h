@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_COMPONENT_FACTORY_COMPONENT_FACTORY_INTERFACE_H_
+#define CPIO_SERVER_INTERFACE_COMPONENT_FACTORY_COMPONENT_FACTORY_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -52,3 +53,5 @@ class ComponentFactoryInterface : public core::ServiceInterface {
   virtual ~ComponentFactoryInterface() = default;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_COMPONENT_FACTORY_COMPONENT_FACTORY_INTERFACE_H_

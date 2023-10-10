@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_JOB_CLIENT_TEST_TEST_AWS_JOB_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_JOB_CLIENT_TEST_TEST_AWS_JOB_CLIENT_H_
 
 #include <memory>
 
@@ -33,3 +34,5 @@ class TestAwsJobClient : public JobClient {
       : JobClient(options) {}
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_ADAPTERS_JOB_CLIENT_TEST_TEST_AWS_JOB_CLIENT_H_

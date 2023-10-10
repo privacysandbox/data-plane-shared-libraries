@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_PUBLIC_KEY_SERVICE_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_INTERFACE_PUBLIC_KEY_SERVICE_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 // Required. List of endpoints for the services hosting the public keys. Specify
@@ -44,3 +45,5 @@ static constexpr char kPublicKeyClientIoThreadCount[] =
 static constexpr char kPublicKeyClientIoThreadPoolQueueCap[] =
     "cmrt_sdk_public_key_client_io_thread_pool_queue_cap";
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_PUBLIC_KEY_SERVICE_CONFIGURATION_KEYS_H_

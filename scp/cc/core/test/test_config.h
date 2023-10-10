@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_TEST_TEST_CONFIG_H_
+#define CORE_TEST_TEST_CONFIG_H_
 
 #include <chrono>
 
@@ -24,3 +25,5 @@ using DurationMs = std::chrono::duration<int64_t, std::milli>;
 /// Short sleep for all the unit tests in ms.
 #define UNIT_TEST_SHORT_SLEEP_MS std::chrono::milliseconds(100)
 }  // namespace google::scp::core::test
+
+#endif  // CORE_TEST_TEST_CONFIG_H_

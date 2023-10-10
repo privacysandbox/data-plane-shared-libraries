@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_BLOB_STORAGE_SERVICE_BLOB_STORAGE_SERVICE_FACTORY_INTERFACE_H_
+#define CPIO_SERVER_INTERFACE_BLOB_STORAGE_SERVICE_BLOB_STORAGE_SERVICE_FACTORY_INTERFACE_H_
 
 #include <memory>
 
@@ -44,3 +45,5 @@ class BlobStorageServiceFactoryInterface : public core::ServiceInterface {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_BLOB_STORAGE_SERVICE_BLOB_STORAGE_SERVICE_FACTORY_INTERFACE_H_

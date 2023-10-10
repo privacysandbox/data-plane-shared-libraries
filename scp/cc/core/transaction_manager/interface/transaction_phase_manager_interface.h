@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TRANSACTION_MANAGER_INTERFACE_TRANSACTION_PHASE_MANAGER_INTERFACE_H_
+#define CORE_TRANSACTION_MANAGER_INTERFACE_TRANSACTION_PHASE_MANAGER_INTERFACE_H_
 
 #include <string_view>
 
@@ -53,3 +54,5 @@ class TransactionPhaseManagerInterface {
       ExecutionResult current_phase_result) noexcept = 0;
 };
 }  // namespace google::scp::core::transaction_manager
+
+#endif  // CORE_TRANSACTION_MANAGER_INTERFACE_TRANSACTION_PHASE_MANAGER_INTERFACE_H_

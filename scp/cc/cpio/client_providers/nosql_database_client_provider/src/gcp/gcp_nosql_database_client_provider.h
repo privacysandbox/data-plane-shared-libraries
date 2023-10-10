@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_NOSQL_DATABASE_CLIENT_PROVIDER_SRC_GCP_GCP_NOSQL_DATABASE_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_NOSQL_DATABASE_CLIENT_PROVIDER_SRC_GCP_GCP_NOSQL_DATABASE_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <sstream>
@@ -286,3 +287,5 @@ class SpannerFactory {
 };
 
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_NOSQL_DATABASE_CLIENT_PROVIDER_SRC_GCP_GCP_NOSQL_DATABASE_CLIENT_PROVIDER_H_

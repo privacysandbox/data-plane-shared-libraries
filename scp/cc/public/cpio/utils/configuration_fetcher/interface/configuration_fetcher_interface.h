@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_INTERFACE_CONFIGURATION_FETCHER_INTERFACE_H_
+#define PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_INTERFACE_CONFIGURATION_FETCHER_INTERFACE_H_
 
 #include <string>
 
@@ -371,3 +373,5 @@ class ConfigurationFetcherInterface {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_INTERFACE_CONFIGURATION_FETCHER_INTERFACE_H_

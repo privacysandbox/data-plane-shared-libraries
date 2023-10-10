@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_SIZED_OR_TIMED_BYTES_BUFFER_SRC_SIZED_OR_TIMED_BYTES_BUFFER_H_
+#define CORE_COMMON_SIZED_OR_TIMED_BYTES_BUFFER_SRC_SIZED_OR_TIMED_BYTES_BUFFER_H_
 
 #include <cstring>
 #include <memory>
@@ -192,3 +193,5 @@ class SizedOrTimedBytesBuffer
   std::shared_ptr<core::AsyncExecutorInterface> async_executor_;
 };
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_SIZED_OR_TIMED_BYTES_BUFFER_SRC_SIZED_OR_TIMED_BYTES_BUFFER_H_

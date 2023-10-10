@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CREDENTIALS_PROVIDER_MOCK_MOCK_AWS_STS_CLIENT_H_
+#define CORE_CREDENTIALS_PROVIDER_MOCK_MOCK_AWS_STS_CLIENT_H_
 
 #include <functional>
 #include <memory>
@@ -48,3 +49,5 @@ class MockSTSClient : public Aws::STS::STSClient {
       mock_assume_role_async;
 };
 }  // namespace google::scp::core::credentials_provider::mock
+
+#endif  // CORE_CREDENTIALS_PROVIDER_MOCK_MOCK_AWS_STS_CLIENT_H_

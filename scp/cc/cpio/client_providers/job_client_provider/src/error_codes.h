@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_SRC_ERROR_CODES_H_
+#define CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/cpio/interface/error_codes.h"
@@ -92,3 +93,5 @@ MAP_TO_PUBLIC_ERROR_CODE(SC_JOB_CLIENT_PROVIDER_JOB_ENTRY_CREATION_FAILED,
 MAP_TO_PUBLIC_ERROR_CODE(SC_JOB_CLIENT_PROVIDER_DUPLICATE_JOB_ENTRY_CREATION,
                          SC_CPIO_INVALID_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_CLIENT_PROVIDERS_JOB_CLIENT_PROVIDER_SRC_ERROR_CODES_H_

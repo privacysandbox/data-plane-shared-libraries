@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_TEST_UTILS_PROTO_TEST_UTILS_H_
+#define CORE_TEST_UTILS_PROTO_TEST_UTILS_H_
 
 #include <gmock/gmock.h>
 
@@ -39,3 +40,5 @@ MATCHER(EqualsProto, "") {
                                      result_listener);
 }
 }  // namespace google::scp::core::test
+
+#endif  // CORE_TEST_UTILS_PROTO_TEST_UTILS_H_

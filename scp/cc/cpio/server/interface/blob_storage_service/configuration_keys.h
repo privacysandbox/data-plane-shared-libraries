@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_BLOB_STORAGE_SERVICE_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_INTERFACE_BLOB_STORAGE_SERVICE_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 // Optional. If not set, use the default value 2. The number of
@@ -46,3 +47,5 @@ static constexpr char kBlobStorageClientIoThreadPoolQueueCap[] =
     "cmrt_sdk_blob_storage_client_io_thread_pool_queue_cap";
 
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_BLOB_STORAGE_SERVICE_CONFIGURATION_KEYS_H_

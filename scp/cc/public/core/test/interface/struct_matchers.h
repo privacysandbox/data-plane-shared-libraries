@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef PUBLIC_CORE_TEST_INTERFACE_STRUCT_MATCHERS_H_
+#define PUBLIC_CORE_TEST_INTERFACE_STRUCT_MATCHERS_H_
 
 #include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
@@ -132,3 +134,5 @@ namespace google::scp::core::test {
   __EXPECT_STRUCT1(lhs, class_name, field6, matcher6)
 
 }  // namespace google::scp::core::test
+
+#endif  // PUBLIC_CORE_TEST_INTERFACE_STRUCT_MATCHERS_H_

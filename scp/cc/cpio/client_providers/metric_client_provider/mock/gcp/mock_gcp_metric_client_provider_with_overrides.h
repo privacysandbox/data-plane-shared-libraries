@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_MOCK_GCP_MOCK_GCP_METRIC_CLIENT_PROVIDER_WITH_OVERRIDES_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_MOCK_GCP_MOCK_GCP_METRIC_CLIENT_PROVIDER_WITH_OVERRIDES_H_
 
 #include <memory>
 #include <string>
@@ -64,3 +65,5 @@ class MockGcpMetricClientProviderOverrides : public GcpMetricClientProvider {
   void CreateMetricServiceClient() noexcept override {}
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_MOCK_GCP_MOCK_GCP_METRIC_CLIENT_PROVIDER_WITH_OVERRIDES_H_

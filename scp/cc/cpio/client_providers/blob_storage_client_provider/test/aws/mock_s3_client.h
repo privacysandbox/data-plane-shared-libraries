@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_TEST_AWS_MOCK_S3_CLIENT_H_
+#define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_TEST_AWS_MOCK_S3_CLIENT_H_
 
 #include <gmock/gmock.h>
 
@@ -82,3 +83,5 @@ class MockS3Client : public Aws::S3::S3Client {
 };
 
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_TEST_AWS_MOCK_S3_CLIENT_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LOGGER_SYSLOG_READER_ERROR_CODES_H_
+#define CORE_LOGGER_SYSLOG_READER_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -37,3 +38,5 @@ DEFINE_ERROR_CODE(SC_SYSLOG_READER_ERROR_SEEKING_LOG_FILE, SC_SYSLOG_READER,
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_LOGGER_SYSLOG_READER_ERROR_CODES_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_PRIVATE_KEY_SERVICE_PRIVATE_KEY_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_PRIVATE_KEY_SERVICE_PRIVATE_KEY_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -84,3 +85,5 @@ class PrivateKeyServiceFactory : public PrivateKeyServiceFactoryInterface {
   std::shared_ptr<ComponentFactoryInterface> component_factory_;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_PRIVATE_KEY_SERVICE_PRIVATE_KEY_SERVICE_FACTORY_H_

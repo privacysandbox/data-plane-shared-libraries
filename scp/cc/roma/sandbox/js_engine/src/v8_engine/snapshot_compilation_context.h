@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_SNAPSHOT_COMPILATION_CONTEXT_H_
+#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_SNAPSHOT_COMPILATION_CONTEXT_H_
 
 #include <memory>
 #include <string>
@@ -64,3 +65,5 @@ class SnapshotCompilationContext {
   }
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
+
+#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_SNAPSHOT_COMPILATION_CONTEXT_H_

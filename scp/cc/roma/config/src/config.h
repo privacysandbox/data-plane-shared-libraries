@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_CONFIG_SRC_CONFIG_H_
+#define ROMA_CONFIG_SRC_CONFIG_H_
 
 #include <stddef.h>
 
@@ -220,3 +221,5 @@ class Config {
   JsEngineResourceConstraints js_engine_resource_constraints_;
 };
 }  // namespace google::scp::roma
+
+#endif  // ROMA_CONFIG_SRC_CONFIG_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_WASM_SRC_SERIALIZER_H_
+#define ROMA_WASM_SRC_SERIALIZER_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -113,3 +114,5 @@ class WasmSerializer {
                                           const std::vector<std::string>& list);
 };
 }  // namespace google::scp::roma::wasm
+
+#endif  // ROMA_WASM_SRC_SERIALIZER_H_

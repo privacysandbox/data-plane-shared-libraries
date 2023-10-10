@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_ASYNC_EXECUTOR_SRC_SINGLE_THREAD_ASYNC_EXECUTOR_H_
+#define CORE_ASYNC_EXECUTOR_SRC_SINGLE_THREAD_ASYNC_EXECUTOR_H_
 
 #include <atomic>
 #include <condition_variable>
@@ -106,3 +107,5 @@ class SingleThreadAsyncExecutor : ServiceInterface {
   std::condition_variable condition_variable_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_ASYNC_EXECUTOR_SRC_SINGLE_THREAD_ASYNC_EXECUTOR_H_

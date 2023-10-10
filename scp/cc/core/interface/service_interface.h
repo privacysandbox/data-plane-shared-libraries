@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_SERVICE_INTERFACE_H_
+#define CORE_INTERFACE_SERVICE_INTERFACE_H_
 
 #include "public/core/interface/execution_result.h"
 
@@ -55,3 +56,5 @@ class ServiceInterface {
   virtual ExecutionResult Stop() noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_SERVICE_INTERFACE_H_

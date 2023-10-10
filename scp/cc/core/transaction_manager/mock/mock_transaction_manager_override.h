@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TRANSACTION_MANAGER_MOCK_MOCK_TRANSACTION_MANAGER_OVERRIDE_H_
+#define CORE_TRANSACTION_MANAGER_MOCK_MOCK_TRANSACTION_MANAGER_OVERRIDE_H_
 
 #include <atomic>
 #include <functional>
@@ -112,3 +113,5 @@ class MockTransactionManager : public core::TransactionManager {
   }
 };
 }  // namespace google::scp::core::transaction_manager::mock
+
+#endif  // CORE_TRANSACTION_MANAGER_MOCK_MOCK_TRANSACTION_MANAGER_OVERRIDE_H_

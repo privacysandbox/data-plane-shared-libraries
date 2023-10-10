@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LOGGER_SRC_LOG_UTILS_H_
+#define CORE_LOGGER_SRC_LOG_UTILS_H_
 
 #include <string>
 
@@ -32,3 +33,5 @@ std::string operator+(const LogLevel& level, const std::string& text);
 std::string operator+(const std::string& text, const LogLevel& level);
 
 }  // namespace google::scp::core::logger
+
+#endif  // CORE_LOGGER_SRC_LOG_UTILS_H_

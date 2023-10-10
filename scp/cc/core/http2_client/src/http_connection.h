@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_H_
+#define CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_H_
 
 #include <memory>
 #include <string>
@@ -190,3 +191,5 @@ class HttpConnection : public ServiceInterface {
       pending_network_calls_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_H_

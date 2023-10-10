@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#pragma once
+
+#ifndef CPIO_COMMON_SRC_AWS_ERROR_CODES_H_
+#define CPIO_COMMON_SRC_AWS_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -52,3 +54,5 @@ MAP_TO_PUBLIC_ERROR_CODE(SC_AWS_SERVICE_UNAVAILABLE,
 MAP_TO_PUBLIC_ERROR_CODE(SC_AWS_VALIDATION_FAILED, SC_CPIO_INVALID_REQUEST)
 MAP_TO_PUBLIC_ERROR_CODE(SC_AWS_NOT_FOUND, SC_CPIO_CLOUD_NOT_FOUND)
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_COMMON_SRC_AWS_ERROR_CODES_H_

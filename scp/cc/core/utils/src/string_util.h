@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_UTILS_SRC_STRING_UTIL_H_
+#define CORE_UTILS_SRC_STRING_UTIL_H_
 
 #include <list>
 #include <string>
@@ -32,3 +33,5 @@ void SplitStringByDelimiter(const std::string& str,
                             const std::string& delimiter,
                             std::list<std::string>& out);
 }  // namespace google::scp::core::utils
+
+#endif  // CORE_UTILS_SRC_STRING_UTIL_H_

@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_MOCK_MOCK_AGGREGATE_METRIC_WITH_OVERRIDES_H_
+#define PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_MOCK_MOCK_AGGREGATE_METRIC_WITH_OVERRIDES_H_
 
 #include <memory>
 #include <string>
@@ -97,3 +99,5 @@ class MockAggregateMetricOverrides : public AggregateMetric {
 };
 
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_MOCK_MOCK_AGGREGATE_METRIC_WITH_OVERRIDES_H_

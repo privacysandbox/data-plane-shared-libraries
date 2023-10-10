@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#pragma once
+
+#ifndef CORE_HTTP2_CLIENT_SRC_ERROR_CODES_H_
+#define CORE_HTTP2_CLIENT_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -175,3 +177,5 @@ DEFINE_ERROR_CODE(SC_HTTP2_CLIENT_HTTP_CONNECTION_NOT_READY, SC_HTTP2_CLIENT,
                   0x0035, "Http connection is not ready",
                   HttpStatusCode::INTERNAL_SERVER_ERROR);
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_HTTP2_CLIENT_SRC_ERROR_CODES_H_

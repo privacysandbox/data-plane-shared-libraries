@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_MOCK_GCP_MOCK_GCP_KEY_MANAGEMENT_SERVICE_CLIENT_H_
+#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_MOCK_GCP_MOCK_GCP_KEY_MANAGEMENT_SERVICE_CLIENT_H_
 
 #include <gmock/gmock.h>
 
@@ -31,3 +32,5 @@ class MockGcpKeyManagementServiceClient
               (noexcept, override));
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_MOCK_GCP_MOCK_GCP_KEY_MANAGEMENT_SERVICE_CLIENT_H_

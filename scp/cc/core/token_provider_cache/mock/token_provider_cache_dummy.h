@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TOKEN_PROVIDER_CACHE_MOCK_TOKEN_PROVIDER_CACHE_DUMMY_H_
+#define CORE_TOKEN_PROVIDER_CACHE_MOCK_TOKEN_PROVIDER_CACHE_DUMMY_H_
 
 #include <functional>
 #include <memory>
@@ -37,3 +38,5 @@ class DummyTokenProviderCache : public TokenProviderCacheInterface {
   }
 };
 }  // namespace google::scp::core::token_provider_cache::mock
+
+#endif  // CORE_TOKEN_PROVIDER_CACHE_MOCK_TOKEN_PROVIDER_CACHE_DUMMY_H_

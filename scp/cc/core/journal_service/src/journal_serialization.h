@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_SRC_JOURNAL_SERIALIZATION_H_
+#define CORE_JOURNAL_SERVICE_SRC_JOURNAL_SERIALIZATION_H_
 
 #include <cstring>
 #include <memory>
@@ -535,3 +536,5 @@ inline ExecutionResult JournalSerialization::CalculateSerializationByteSize<
   return SuccessExecutionResult();
 }
 }  // namespace google::scp::core::journal_service
+
+#endif  // CORE_JOURNAL_SERVICE_SRC_JOURNAL_SERIALIZATION_H_

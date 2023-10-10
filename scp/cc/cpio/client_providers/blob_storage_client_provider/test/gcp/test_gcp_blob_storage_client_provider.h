@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_TEST_GCP_TEST_GCP_BLOB_STORAGE_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_TEST_GCP_TEST_GCP_BLOB_STORAGE_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <sstream>
@@ -34,3 +35,5 @@ class TestGcpCloudStorageFactory : public GcpCloudStorageFactory {
   virtual ~TestGcpCloudStorageFactory() = default;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_TEST_GCP_TEST_GCP_BLOB_STORAGE_CLIENT_PROVIDER_H_

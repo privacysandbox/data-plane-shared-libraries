@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_FORWARDER_SRC_HTTP2_FORWARDER_H_
+#define CORE_HTTP2_FORWARDER_SRC_HTTP2_FORWARDER_H_
 
 #include <memory>
 
@@ -46,3 +47,5 @@ class Http2Forwarder : public HttpRequestRouterInterface {
 };
 
 }  // namespace google::scp::core
+
+#endif  // CORE_HTTP2_FORWARDER_SRC_HTTP2_FORWARDER_H_

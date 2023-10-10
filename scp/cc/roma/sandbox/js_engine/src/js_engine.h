@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_JS_ENGINE_H_
+#define ROMA_SANDBOX_JS_ENGINE_SRC_JS_ENGINE_H_
 
 #include <memory>
 #include <string>
@@ -140,3 +141,5 @@ class JsEngine : public core::ServiceInterface {
       const RomaJsEngineCompilationContext& context) noexcept = 0;
 };
 }  // namespace google::scp::roma::sandbox::js_engine
+
+#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_JS_ENGINE_H_

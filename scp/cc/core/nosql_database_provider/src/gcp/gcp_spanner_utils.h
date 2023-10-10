@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NOSQL_DATABASE_PROVIDER_SRC_GCP_GCP_SPANNER_UTILS_H_
+#define CORE_NOSQL_DATABASE_PROVIDER_SRC_GCP_GCP_SPANNER_UTILS_H_
 
 #include <string>
 #include <variant>
@@ -167,3 +168,5 @@ class GcpSpannerUtils {
   }
 };
 }  // namespace google::scp::core::nosql_database_provider
+
+#endif  // CORE_NOSQL_DATABASE_PROVIDER_SRC_GCP_GCP_SPANNER_UTILS_H_

@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_TRANSACTION_REQUEST_ROUTER_INTERFACE_H_
+#define CORE_INTERFACE_TRANSACTION_REQUEST_ROUTER_INTERFACE_H_
 
 #include "core/interface/http_types.h"
 #include "core/interface/service_interface.h"
@@ -80,3 +81,5 @@ class TransactionRequestRouterInterface {
       GetTransactionManagerStatusResponse& response) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_TRANSACTION_REQUEST_ROUTER_INTERFACE_H_

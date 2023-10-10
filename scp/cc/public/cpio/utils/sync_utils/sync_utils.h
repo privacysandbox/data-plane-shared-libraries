@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_SYNC_UTILS_SYNC_UTILS_H_
+#define PUBLIC_CPIO_UTILS_SYNC_UTILS_SYNC_UTILS_H_
 
 #include <future>
 #include <memory>
@@ -54,3 +55,5 @@ class SyncUtils {
   }
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_SYNC_UTILS_SYNC_UTILS_H_

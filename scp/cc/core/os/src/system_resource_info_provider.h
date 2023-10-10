@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_OS_SRC_SYSTEM_RESOURCE_INFO_PROVIDER_H_
+#define CORE_OS_SRC_SYSTEM_RESOURCE_INFO_PROVIDER_H_
 
 #include <cstdint>
 
@@ -32,3 +33,5 @@ class SystemResourceInfoProvider {
   virtual core::ExecutionResultOr<uint64_t> GetAvailableMemoryKb() noexcept = 0;
 };
 }  // namespace google::scp::core::os::linux
+
+#endif  // CORE_OS_SRC_SYSTEM_RESOURCE_INFO_PROVIDER_H_

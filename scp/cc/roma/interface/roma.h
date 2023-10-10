@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_INTERFACE_ROMA_H_
+#define ROMA_INTERFACE_ROMA_H_
 
 #include <functional>
 #include <memory>
@@ -145,3 +146,5 @@ absl::Status RomaInit(const Config& config = Config());
 // outstanding requests at best effort.
 absl::Status RomaStop();
 }  // namespace google::scp::roma
+
+#endif  // ROMA_INTERFACE_ROMA_H_

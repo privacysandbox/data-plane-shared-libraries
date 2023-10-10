@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_MOCK_AWS_MOCK_TEE_AWS_KMS_CLIENT_PROVIDER_WITH_OVERRIDES_H_
+#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_MOCK_AWS_MOCK_TEE_AWS_KMS_CLIENT_PROVIDER_WITH_OVERRIDES_H_
 
 #include <memory>
 #include <string>
@@ -40,3 +41,5 @@ class MockTeeAwsKmsClientProviderWithOverrides
   std::string returned_plaintext;
 };
 }  // namespace google::scp::cpio::client_providers::mock
+
+#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_MOCK_AWS_MOCK_TEE_AWS_KMS_CLIENT_PROVIDER_WITH_OVERRIDES_H_

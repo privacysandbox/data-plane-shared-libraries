@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_PARAMETER_SERVICE_PARAMETER_SERVICE_FACTORY_INTERFACE_H_
+#define CPIO_SERVER_INTERFACE_PARAMETER_SERVICE_PARAMETER_SERVICE_FACTORY_INTERFACE_H_
 
 #include <memory>
 
@@ -42,3 +43,5 @@ class ParameterServiceFactoryInterface : public core::ServiceInterface {
   CreateParameterClient() noexcept = 0;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_PARAMETER_SERVICE_PARAMETER_SERVICE_FACTORY_INTERFACE_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_SERVER_MOCK_MOCK_HTTP2_RESPONSE_WITH_OVERRIDES_H_
+#define CORE_HTTP2_SERVER_MOCK_MOCK_HTTP2_RESPONSE_WITH_OVERRIDES_H_
 
 #include <memory>
 #include <string>
@@ -31,3 +32,5 @@ class MockNgHttp2ResponseWithOverrides : public NgHttp2Response {
 };
 
 }  // namespace google::scp::core::http2_server::mock
+
+#endif  // CORE_HTTP2_SERVER_MOCK_MOCK_HTTP2_RESPONSE_WITH_OVERRIDES_H_

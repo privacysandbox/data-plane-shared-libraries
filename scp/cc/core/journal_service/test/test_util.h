@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_TEST_TEST_UTIL_H_
+#define CORE_JOURNAL_SERVICE_TEST_TEST_UTIL_H_
 
 #include <string>
 #include <vector>
@@ -57,3 +58,5 @@ AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
 ReadLogs(const JournalStreamReadLogRequest& request,
          JournalInputStream& journal_input_stream);
 }  // namespace google::scp::core::journal_service::test_util
+
+#endif  // CORE_JOURNAL_SERVICE_TEST_TEST_UTIL_H_

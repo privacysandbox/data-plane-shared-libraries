@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_AWS_AWS_INITIALIZER_H_
+#define CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_AWS_AWS_INITIALIZER_H_
 
 #include <aws/core/Aws.h>
 
@@ -40,3 +41,5 @@ class AwsInitializer : public CloudInitializerInterface {
   Aws::SDKOptions options_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_AWS_AWS_INITIALIZER_H_

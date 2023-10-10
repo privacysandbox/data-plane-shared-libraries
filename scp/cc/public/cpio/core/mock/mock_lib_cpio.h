@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_CORE_MOCK_MOCK_LIB_CPIO_H_
+#define PUBLIC_CPIO_CORE_MOCK_MOCK_LIB_CPIO_H_
 
 #include <memory>
 #include <stdexcept>
@@ -58,3 +59,5 @@ core::ExecutionResult ShutdownCpio() {
   return core::SuccessExecutionResult();
 }
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_CORE_MOCK_MOCK_LIB_CPIO_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_JOB_SERVICE_TEST_AWS_TEST_AWS_JOB_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_JOB_SERVICE_TEST_AWS_TEST_AWS_JOB_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -35,3 +36,5 @@ class TestAwsJobServiceFactory : public AwsJobServiceFactory {
   CreateInstanceServiceFactoryOptions() noexcept override;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_JOB_SERVICE_TEST_AWS_TEST_AWS_JOB_SERVICE_FACTORY_H_

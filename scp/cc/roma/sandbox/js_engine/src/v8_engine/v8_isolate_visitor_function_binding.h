@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_VISITOR_FUNCTION_BINDING_H_
+#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_VISITOR_FUNCTION_BINDING_H_
 
 #include <memory>
 #include <string>
@@ -65,3 +66,5 @@ class V8IsolateVisitorFunctionBinding : public V8IsolateVisitor {
       function_invoker_;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
+
+#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_VISITOR_FUNCTION_BINDING_H_

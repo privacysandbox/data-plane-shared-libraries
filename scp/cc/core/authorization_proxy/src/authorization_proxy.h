@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_AUTHORIZATION_PROXY_SRC_AUTHORIZATION_PROXY_H_
+#define CORE_AUTHORIZATION_PROXY_SRC_AUTHORIZATION_PROXY_H_
 
 #include <memory>
 #include <string>
@@ -81,3 +82,5 @@ class AuthorizationProxy : public AuthorizationProxyInterface {
   std::unique_ptr<HttpRequestResponseAuthInterceptorInterface> http_helper_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_AUTHORIZATION_PROXY_SRC_AUTHORIZATION_PROXY_H_

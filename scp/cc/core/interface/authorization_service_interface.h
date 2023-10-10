@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_AUTHORIZATION_SERVICE_INTERFACE_H_
+#define CORE_INTERFACE_AUTHORIZATION_SERVICE_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -56,3 +57,5 @@ class AuthorizationServiceInterface : public ServiceInterface {
           authorization_context) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_AUTHORIZATION_SERVICE_INTERFACE_H_

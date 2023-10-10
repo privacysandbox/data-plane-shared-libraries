@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_METRICS_DEF_H_
+#define CORE_INTERFACE_METRICS_DEF_H_
 
 namespace google::scp::core {
 
@@ -87,3 +88,5 @@ static constexpr char kMetricEventHttp4xxForwarded[] = "Forwarded 4xx";
 static constexpr char kMetricEventHttp5xxForwarded[] = "Forwarded 5xx";
 
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_METRICS_DEF_H_

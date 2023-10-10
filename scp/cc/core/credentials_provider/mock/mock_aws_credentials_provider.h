@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_CREDENTIALS_PROVIDER_MOCK_MOCK_AWS_CREDENTIALS_PROVIDER_H_
+#define CORE_CREDENTIALS_PROVIDER_MOCK_MOCK_AWS_CREDENTIALS_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -54,3 +55,5 @@ class MockAwsCredentialsProvider : public CredentialsProviderInterface {
   bool fail_credentials = false;
 };
 }  // namespace google::scp::core::credentials_provider::mock
+
+#endif  // CORE_CREDENTIALS_PROVIDER_MOCK_MOCK_AWS_CREDENTIALS_PROVIDER_H_

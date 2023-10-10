@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_DEPENDENCY_INJECTION_MOCK_MOCK_SERVICE_H_
+#define CORE_DEPENDENCY_INJECTION_MOCK_MOCK_SERVICE_H_
 
 #include <functional>
 #include <memory>
@@ -195,3 +196,5 @@ struct TestNode {
       fail_factory;
 };
 }  // namespace google::scp::core::mock
+
+#endif  // CORE_DEPENDENCY_INJECTION_MOCK_MOCK_SERVICE_H_

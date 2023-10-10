@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_HTTP2_SERVER_SRC_ERROR_CODES_H_
+#define CORE_HTTP2_SERVER_SRC_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -66,3 +67,5 @@ DEFINE_ERROR_CODE(SC_HTTP2_SERVER_FAILED_TO_ROUTE, SC_HTTP2_SERVER, 0x000B,
                   "Http2Server failed to route the request.",
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_HTTP2_SERVER_SRC_ERROR_CODES_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_H_
+#define CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_H_
 
 #include <memory>
 #include <sstream>
@@ -167,3 +168,5 @@ class GcpCloudStorageProvider : public BlobStorageProviderInterface {
   const AsyncPriority io_async_execution_priority_;
 };
 }  // namespace google::scp::core::blob_storage_provider
+
+#endif  // CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_H_

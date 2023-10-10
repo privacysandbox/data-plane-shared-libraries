@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_PARTITION_MANAGER_INTERFACE_H_
+#define CORE_INTERFACE_PARTITION_MANAGER_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -122,3 +123,5 @@ class PartitionManagerInterface : public ServiceInterface {
       const PartitionId& partition_id) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_PARTITION_MANAGER_INTERFACE_H_

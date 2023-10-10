@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_INTERFACE_INSTANCE_SERVICE_INSTANCE_SERVICE_FACTORY_INTERFACE_H_
+#define CPIO_SERVER_INTERFACE_INSTANCE_SERVICE_INSTANCE_SERVICE_FACTORY_INTERFACE_H_
 
 #include <memory>
 #include <string>
@@ -98,3 +99,5 @@ class InstanceServiceFactoryInterface : public core::ServiceInterface {
   GetIoAsynceExecutor() noexcept = 0;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_INTERFACE_INSTANCE_SERVICE_INSTANCE_SERVICE_FACTORY_INTERFACE_H_

@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_AWS_ERROR_CODES_H_
+#define CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_AWS_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/cpio/interface/error_codes.h"
@@ -70,3 +71,5 @@ MAP_TO_PUBLIC_ERROR_CODE(
 MAP_TO_PUBLIC_ERROR_CODE(SC_AWS_QUEUE_CLIENT_PROVIDER_MESSAGE_NOT_IN_FLIGHT,
                          SC_CPIO_INVALID_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_AWS_ERROR_CODES_H_

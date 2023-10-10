@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_CONFIGURATION_KEYS_H_
+#define CORE_INTERFACE_CONFIGURATION_KEYS_H_
 
 namespace google::scp::core {
 // AWS/GCP cloud region name
@@ -44,3 +45,5 @@ static constexpr char kJournalInputStreamNumberOfJournalsPerBatch[] =
 static constexpr char kJournalInputStreamNumberOfJournalLogsToReturn[] =
     "google_scp_journal_input_stream_number_of_journal_logs_to_return";
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_CONFIGURATION_KEYS_H_

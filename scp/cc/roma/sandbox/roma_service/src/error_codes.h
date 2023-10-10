@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_ROMA_SERVICE_SRC_ERROR_CODES_H_
+#define ROMA_SANDBOX_ROMA_SERVICE_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -27,3 +28,5 @@ DEFINE_ERROR_CODE(
     "Failed to create socket for native function binding communication.",
     HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // ROMA_SANDBOX_ROMA_SERVICE_SRC_ERROR_CODES_H_

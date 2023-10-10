@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_CONFIG_SRC_TYPE_CONVERTER_H_
+#define ROMA_CONFIG_SRC_TYPE_CONVERTER_H_
 
 #include <string>
 #include <vector>
@@ -288,3 +289,5 @@ struct TypeConverter<uint8_t*> {
   }
 };
 }  // namespace google::scp::roma
+
+#endif  // ROMA_CONFIG_SRC_TYPE_CONVERTER_H_

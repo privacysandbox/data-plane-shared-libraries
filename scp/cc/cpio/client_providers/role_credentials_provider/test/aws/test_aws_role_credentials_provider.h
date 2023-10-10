@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_TEST_AWS_TEST_AWS_ROLE_CREDENTIALS_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_TEST_AWS_TEST_AWS_ROLE_CREDENTIALS_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -62,3 +63,5 @@ class TestAwsRoleCredentialsProvider : public AwsRoleCredentialsProvider {
   std::shared_ptr<TestAwsRoleCredentialsProviderOptions> test_options_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_TEST_AWS_TEST_AWS_ROLE_CREDENTIALS_PROVIDER_H_

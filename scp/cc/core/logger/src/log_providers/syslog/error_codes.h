@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LOGGER_SRC_LOG_PROVIDERS_SYSLOG_ERROR_CODES_H_
+#define CORE_LOGGER_SRC_LOG_PROVIDERS_SYSLOG_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
@@ -37,3 +38,5 @@ DEFINE_ERROR_CODE(SC_SYSLOG_CLOSE_CONNECTION_ERROR, SC_SYSLOG_PROVIDER, 0x0002,
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_LOGGER_SRC_LOG_PROVIDERS_SYSLOG_ERROR_CODES_H_

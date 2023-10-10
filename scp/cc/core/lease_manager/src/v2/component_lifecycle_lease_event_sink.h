@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LEASE_MANAGER_SRC_V2_COMPONENT_LIFECYCLE_LEASE_EVENT_SINK_H_
+#define CORE_LEASE_MANAGER_SRC_V2_COMPONENT_LIFECYCLE_LEASE_EVENT_SINK_H_
 
 #include <memory>
 
@@ -41,3 +42,5 @@ class ComponentLifecycleLeaseEventSink : public core::LeaseEventSinkInterface {
   core::common::Uuid activity_id_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_LEASE_MANAGER_SRC_V2_COMPONENT_LIFECYCLE_LEASE_EVENT_SINK_H_

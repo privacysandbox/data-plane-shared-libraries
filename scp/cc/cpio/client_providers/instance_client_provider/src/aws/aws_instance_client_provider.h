@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_
 
 #include <map>
 #include <memory>
@@ -196,3 +197,5 @@ class AwsEC2ClientFactory {
 };
 
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_

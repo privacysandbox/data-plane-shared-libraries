@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_TEST_PRIVATE_KEY_SERVICE_TEST_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_TEST_PRIVATE_KEY_SERVICE_TEST_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 static constexpr char kPrivateKeyClientRegion[] =
     "cmrt_sdk_private_key_client_region";
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_TEST_PRIVATE_KEY_SERVICE_TEST_CONFIGURATION_KEYS_H_

@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_JOB_SERVICE_TEST_AWS_TEST_CONFIGURATION_KEYS_H_
+#define CPIO_SERVER_SRC_JOB_SERVICE_TEST_AWS_TEST_CONFIGURATION_KEYS_H_
 
 namespace google::scp::cpio {
 // Optional. Only needed for AWS. If not set, use the default value us-east-1.
 static constexpr char kTestAwsJobClientRegion[] =
     "cmrt_sdk_test_aws_job_client_region";
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_JOB_SERVICE_TEST_AWS_TEST_CONFIGURATION_KEYS_H_

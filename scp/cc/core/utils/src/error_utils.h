@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_UTILS_SRC_ERROR_UTILS_H_
+#define CORE_UTILS_SRC_ERROR_UTILS_H_
 
 #include "public/core/interface/execution_result.h"
 
@@ -28,3 +29,5 @@ namespace google::scp::core::utils {
 ExecutionResult ConvertToPublicExecutionResult(
     const ExecutionResult& execution_result);
 }  // namespace google::scp::core::utils
+
+#endif  // CORE_UTILS_SRC_ERROR_UTILS_H_

@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CPIO_COMMON_SRC_GCP_ERROR_CODES_H_
+#define CPIO_COMMON_SRC_GCP_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -82,3 +83,5 @@ MAP_TO_PUBLIC_ERROR_CODE(SC_GCP_ABORTED, SC_CPIO_CLOUD_REQUEST_ABORTED)
 MAP_TO_PUBLIC_ERROR_CODE(SC_GCP_DATA_LOSS, SC_CPIO_CLOUD_INTERNAL_SERVICE_ERROR)
 
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_COMMON_SRC_GCP_ERROR_CODES_H_

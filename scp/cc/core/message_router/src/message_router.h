@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_MESSAGE_ROUTER_SRC_MESSAGE_ROUTER_H_
+#define CORE_MESSAGE_ROUTER_SRC_MESSAGE_ROUTER_H_
 
 #include <map>
 #include <memory>
@@ -61,3 +62,5 @@ class MessageRouter : public MessageRouterInterface<google::protobuf::Any,
   common::ConcurrentMap<std::string, AsyncAction> actions_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_MESSAGE_ROUTER_SRC_MESSAGE_ROUTER_H_

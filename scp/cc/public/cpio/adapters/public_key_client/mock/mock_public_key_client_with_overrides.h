@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_MOCK_MOCK_PUBLIC_KEY_CLIENT_WITH_OVERRIDES_H_
+#define PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_MOCK_MOCK_PUBLIC_KEY_CLIENT_WITH_OVERRIDES_H_
 
 #include <memory>
 
@@ -49,3 +50,5 @@ class MockPublicKeyClientWithOverrides : public PublicKeyClient {
   }
 };
 }  // namespace google::scp::cpio::mock
+
+#endif  // PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_MOCK_MOCK_PUBLIC_KEY_CLIENT_WITH_OVERRIDES_H_

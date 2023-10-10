@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_LOGGER_SRC_LOG_PROVIDERS_CONSOLE_LOG_PROVIDER_H_
+#define CORE_LOGGER_SRC_LOG_PROVIDERS_CONSOLE_LOG_PROVIDER_H_
 
 #include <string>
 #include <string_view>
@@ -48,3 +49,5 @@ class ConsoleLogProvider : public LogProviderInterface {
   virtual void Print(const std::string& output) noexcept;
 };
 }  // namespace google::scp::core::logger
+
+#endif  // CORE_LOGGER_SRC_LOG_PROVIDERS_CONSOLE_LOG_PROVIDER_H_

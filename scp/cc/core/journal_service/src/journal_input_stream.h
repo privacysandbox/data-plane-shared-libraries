@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_JOURNAL_SERVICE_SRC_JOURNAL_INPUT_STREAM_H_
+#define CORE_JOURNAL_SERVICE_SRC_JOURNAL_INPUT_STREAM_H_
 
 #include <atomic>
 #include <memory>
@@ -355,3 +356,5 @@ class JournalInputStream : public journal_service::JournalInputStreamInterface {
   size_t number_of_journal_logs_to_return_;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_JOURNAL_SERVICE_SRC_JOURNAL_INPUT_STREAM_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_NOSQL_DATABASE_PROVIDER_SRC_COMMON_NOSQL_DATABASE_PROVIDER_UTILS_H_
+#define CORE_NOSQL_DATABASE_PROVIDER_SRC_COMMON_NOSQL_DATABASE_PROVIDER_UTILS_H_
 
 #include <string>
 #include <string_view>
@@ -74,3 +75,5 @@ class NoSQLDatabaseProviderUtils {
   }
 };
 }  // namespace google::scp::core::nosql_database_provider
+
+#endif  // CORE_NOSQL_DATABASE_PROVIDER_SRC_COMMON_NOSQL_DATABASE_PROVIDER_UTILS_H_

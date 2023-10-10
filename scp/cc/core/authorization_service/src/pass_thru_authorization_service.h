@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_AUTHORIZATION_SERVICE_SRC_PASS_THRU_AUTHORIZATION_SERVICE_H_
+#define CORE_AUTHORIZATION_SERVICE_SRC_PASS_THRU_AUTHORIZATION_SERVICE_H_
 
 #include <memory>
 
@@ -39,3 +40,5 @@ class PassThruAuthorizationService : public AuthorizationServiceInterface {
   }
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_AUTHORIZATION_SERVICE_SRC_PASS_THRU_AUTHORIZATION_SERVICE_H_

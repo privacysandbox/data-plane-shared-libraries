@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_WORKER_POOL_SRC_ERROR_CODES_H_
+#define ROMA_SANDBOX_WORKER_POOL_SRC_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -26,3 +27,5 @@ DEFINE_ERROR_CODE(SC_ROMA_WORKER_POOL_WORKER_INDEX_OUT_OF_BOUNDS,
                   "The worker index was out of bounds.",
                   HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
+
+#endif  // ROMA_SANDBOX_WORKER_POOL_SRC_ERROR_CODES_H_

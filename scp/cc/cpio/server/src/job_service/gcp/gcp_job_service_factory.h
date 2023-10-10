@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_SERVER_SRC_JOB_SERVICE_GCP_GCP_JOB_SERVICE_FACTORY_H_
+#define CPIO_SERVER_SRC_JOB_SERVICE_GCP_GCP_JOB_SERVICE_FACTORY_H_
 
 #include <memory>
 
@@ -57,3 +58,5 @@ class GcpJobServiceFactory : public JobServiceFactory {
   CreateNoSQLDatabaseClient() noexcept override;
 };
 }  // namespace google::scp::cpio
+
+#endif  // CPIO_SERVER_SRC_JOB_SERVICE_GCP_GCP_JOB_SERVICE_FACTORY_H_

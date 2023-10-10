@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_INTERFACE_HTTP_SERVER_INTERFACE_H_
+#define CORE_INTERFACE_HTTP_SERVER_INTERFACE_H_
 
 #include <functional>
 #include <memory>
@@ -50,3 +51,5 @@ class HttpServerInterface : public ServiceInterface {
       HttpHandler& handler) noexcept = 0;
 };
 }  // namespace google::scp::core
+
+#endif  // CORE_INTERFACE_HTTP_SERVER_INTERFACE_H_

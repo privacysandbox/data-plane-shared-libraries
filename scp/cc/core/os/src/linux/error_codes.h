@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef CORE_OS_SRC_LINUX_ERROR_CODES_H_
+#define CORE_OS_SRC_LINUX_ERROR_CODES_H_
 
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -37,3 +38,5 @@ DEFINE_ERROR_CODE(
     "The meminfo file did not contain the expected items.",
     HttpStatusCode::PRECONDITION_FAILED)
 }  // namespace google::scp::core::errors
+
+#endif  // CORE_OS_SRC_LINUX_ERROR_CODES_H_

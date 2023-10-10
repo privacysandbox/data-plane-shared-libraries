@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_MOCK_MOCK_CONFIGURATION_FETCHER_H_
+#define PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_MOCK_MOCK_CONFIGURATION_FETCHER_H_
 
 #include <gmock/gmock.h>
 
@@ -155,3 +156,5 @@ class MockConfigurationFetcher : public ConfigurationFetcherInterface {
               (noexcept, override));
 };
 }  // namespace google::scp::cpio
+
+#endif  // PUBLIC_CPIO_UTILS_CONFIGURATION_FETCHER_MOCK_MOCK_CONFIGURATION_FETCHER_H_

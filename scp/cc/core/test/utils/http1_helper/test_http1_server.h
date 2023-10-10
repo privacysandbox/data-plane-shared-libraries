@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
+
+#ifndef CORE_TEST_UTILS_HTTP1_HELPER_TEST_HTTP1_SERVER_H_
+#define CORE_TEST_UTILS_HTTP1_HELPER_TEST_HTTP1_SERVER_H_
 
 #include <netinet/in.h>
 
@@ -96,3 +98,5 @@ std::multimap<std::string, std::string> GetRequestHeadersMap(
         request);
 
 }  // namespace google::scp::core::test
+
+#endif  // CORE_TEST_UTILS_HTTP1_HELPER_TEST_HTTP1_SERVER_H_

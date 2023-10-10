@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_TEST_TEST_LIB_CPIO_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_TEST_TEST_LIB_CPIO_PROVIDER_H_
 
 #include <memory>
 
@@ -43,3 +44,5 @@ class TestLibCpioProvider : public LibCpioProvider {
   std::shared_ptr<TestCpioOptions> test_options_;
 };
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_TEST_TEST_LIB_CPIO_PROVIDER_H_

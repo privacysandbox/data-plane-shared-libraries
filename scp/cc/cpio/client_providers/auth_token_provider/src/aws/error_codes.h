@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_AWS_ERROR_CODES_H_
+#define CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_AWS_ERROR_CODES_H_
 
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/error_codes.h"
@@ -33,3 +34,5 @@ MAP_TO_PUBLIC_ERROR_CODE(
     SC_AWS_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED,
     SC_CPIO_COMPONENT_FAILED_INITIALIZED)
 }  // namespace google::scp::core::errors
+
+#endif  // CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_AWS_ERROR_CODES_H_

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_TCP_TRAFFIC_FORWARDER_MOCK_MOCK_TRAFFIC_FORWARDER_H_
+#define CORE_TCP_TRAFFIC_FORWARDER_MOCK_MOCK_TRAFFIC_FORWARDER_H_
 
 #include <mutex>
 #include <string>
@@ -52,3 +53,5 @@ class MockTCPTrafficForwarder : public core::TrafficForwarderInterface {
   std::string forwarding_address_ = "";
 };
 }  // namespace google::scp::core::tcp_traffic_forwarder::mock
+
+#endif  // CORE_TCP_TRAFFIC_FORWARDER_MOCK_MOCK_TRAFFIC_FORWARDER_H_

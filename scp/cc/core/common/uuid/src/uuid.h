@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef CORE_COMMON_UUID_SRC_UUID_H_
+#define CORE_COMMON_UUID_SRC_UUID_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -87,3 +88,5 @@ ExecutionResult FromString(const std::string& uuid_string, Uuid& uuid) noexcept;
 
 static constexpr Uuid kZeroUuid{0ULL, 0ULL};
 }  // namespace google::scp::core::common
+
+#endif  // CORE_COMMON_UUID_SRC_UUID_H_

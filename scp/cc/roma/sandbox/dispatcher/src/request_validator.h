@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#pragma once
+#ifndef ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_VALIDATOR_H_
+#define ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_VALIDATOR_H_
 
 #include <memory>
 
@@ -104,3 +105,5 @@ struct RequestValidator<InvocationRequestSharedInput> {
   }
 };
 }  // namespace google::scp::roma::sandbox::dispatcher::request_validator
+
+#endif  // ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_VALIDATOR_H_
