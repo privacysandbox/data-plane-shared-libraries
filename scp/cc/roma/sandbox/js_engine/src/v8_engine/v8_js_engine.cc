@@ -74,7 +74,6 @@ using std::min;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::uint8_t;
-using std::vector;
 using v8::Array;
 using v8::ArrayBuffer;
 using v8::Context;
@@ -130,7 +129,7 @@ ExecutionResult CreateV8Context(
 
 ExecutionResult GetError(Isolate* isolate, TryCatch& try_catch,
                          uint64_t error_code) noexcept {
-  vector<std::string> errors;
+  std::vector<std::string> errors;
 
   errors.push_back(GetErrorMessage(error_code));
 
@@ -473,7 +472,8 @@ core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
 
 core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     const shared_ptr<SnapshotCompilationContext>& current_compilation_context,
-    const std::string& function_name, const vector<absl::string_view>& input,
+    const std::string& function_name,
+    const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string, std::string>& metadata) noexcept {
   ExecutionResponse execution_response;
 
@@ -594,7 +594,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
     const std::string& code, const std::string& function_name,
-    const vector<absl::string_view>& input,
+    const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string, std::string>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   return CompileAndRunJsWithWasm(code, absl::Span<const uint8_t>(),
@@ -603,7 +603,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
     const std::string& code, const std::string& function_name,
-    const vector<absl::string_view>& input,
+    const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string, std::string>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   JsEngineExecutionResponse execution_response;
@@ -635,7 +635,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
   execution_response.compilation_context = out_context;
 
   auto isolate = v8_isolate_;
-  vector<std::string> errors;
+  std::vector<std::string> errors;
   Isolate::Scope isolate_scope(isolate);
   HandleScope handle_scope(isolate);
   Local<Context> v8_context;
@@ -719,7 +719,8 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 ExecutionResultOr<JsEngineExecutionResponse>
 V8JsEngine::CompileAndRunJsWithWasm(
     const std::string& code, const absl::Span<const uint8_t>& wasm,
-    const std::string& function_name, const vector<absl::string_view>& input,
+    const std::string& function_name,
+    const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string, std::string>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   std::string err_msg;

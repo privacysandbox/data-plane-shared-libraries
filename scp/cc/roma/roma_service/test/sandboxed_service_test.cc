@@ -43,7 +43,6 @@ using std::make_unique;
 using std::thread;
 using std::tuple;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using ::testing::HasSubstr;
@@ -52,7 +51,7 @@ using namespace std::placeholders;     // NOLINT
 using namespace std::chrono_literals;  // NOLINT
 
 namespace google::scp::roma::test {
-static const vector<uint8_t> kWasmBin = {
+static const std::vector<uint8_t> kWasmBin = {
     0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
     0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07,
     0x07, 0x01, 0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a, 0x09, 0x01,
@@ -511,7 +510,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
     execution_obj.handler_name = "Handler";
     execution_obj.input.push_back(R"("Foobar")");
 
-    vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
+    std::vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
     status = BatchExecute(
         batch,
         [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
@@ -572,7 +571,7 @@ TEST(SandboxedServiceTest,
     execution_obj.handler_name = "Handler";
     execution_obj.input.push_back(R"("Foobar")");
 
-    vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
+    std::vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
 
     status = absl::Status(absl::StatusCode::kInternal, "fail");
     while (!status.ok()) {
@@ -629,7 +628,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   WaitUntil([&]() { return load_finished.load(); }, 10s);
 
   int num_threads = 10;
-  vector<thread> threads;
+  std::vector<thread> threads;
   for (int i = 0; i < num_threads; i++) {
     std::atomic<bool> local_execute = false;
     threads.emplace_back([&, i]() {
@@ -640,7 +639,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
       auto input = "Foobar" + std::to_string(i);
       execution_obj.input.push_back(R"(")" + input + R"(")");
 
-      vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
+      std::vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
 
       auto batch_status = absl::Status(absl::StatusCode::kInternal, "fail");
       while (!batch_status.ok()) {
@@ -687,8 +686,8 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
 
   atomic<bool> load_finished = false;
   size_t total_runs = 10;
-  vector<std::string> results(total_runs);
-  vector<atomic<bool>> finished(total_runs);
+  std::vector<std::string> results(total_runs);
+  std::vector<atomic<bool>> finished(total_runs);
   {
     auto code_obj = make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -1723,7 +1722,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
 
   // Start a batch execution
   {
-    vector<InvocationRequestStrInput> batch;
+    std::vector<InvocationRequestStrInput> batch;
     for (int i = 0; i < 50; i++) {
       InvocationRequestStrInput req;
       req.id = "foo";
@@ -2262,7 +2261,7 @@ TEST(SandboxedServiceTest,
 }
 
 void ByteOutFunction(proto::FunctionBindingIoProto& io) {
-  const vector<uint8_t> data = {1, 2, 3, 4, 4, 3, 2, 1};
+  const std::vector<uint8_t> data = {1, 2, 3, 4, 4, 3, 2, 1};
   io.set_output_bytes(data.data(), data.size());
 }
 
@@ -2669,7 +2668,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 
   // Invalid wasm code array
   {
-    vector<uint8_t> invalid_wasm_bin{
+    std::vector<uint8_t> invalid_wasm_bin{
         0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07,
         0x01, 0x07, 0x01, 0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a,
         0x09, 0x01, 0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b};

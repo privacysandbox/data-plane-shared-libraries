@@ -47,7 +47,6 @@ using std::function;
 using std::make_shared;
 using std::shared_ptr;
 using std::thread;
-using std::vector;
 
 namespace google::scp::roma::sandbox::roma_service {
 RomaService* RomaService::instance_ = nullptr;
@@ -170,10 +169,10 @@ ExecutionResultOr<RomaService::NativeFunctionBindingSetup>
 RomaService::SetupNativeFunctionHandler(size_t concurrency) {
   native_function_binding_table_ = make_shared<NativeFunctionTable>();
 
-  vector<shared_ptr<FunctionBindingObjectV2>> function_bindings;
+  std::vector<shared_ptr<FunctionBindingObjectV2>> function_bindings;
   config_.GetFunctionBindings(function_bindings);
 
-  vector<std::string> function_names;
+  std::vector<std::string> function_names;
 
   for (auto& binding : function_bindings) {
     auto result = native_function_binding_table_->Register(
@@ -183,8 +182,8 @@ RomaService::SetupNativeFunctionHandler(size_t concurrency) {
     function_names.push_back(binding->function_name);
   }
 
-  vector<int> local_fds;
-  vector<int> remote_fds;
+  std::vector<int> local_fds;
+  std::vector<int> remote_fds;
 
   for (int i = 0; i < concurrency; i++) {
     int fd_pair[2];
@@ -212,7 +211,7 @@ RomaService::SetupNativeFunctionHandler(size_t concurrency) {
 
 ExecutionResult RomaService::SetupWorkers(
     const NativeFunctionBindingSetup& native_binding_setup) {
-  vector<WorkerApiSapiConfig> worker_configs;
+  std::vector<WorkerApiSapiConfig> worker_configs;
   auto remote_fds = native_binding_setup.remote_file_descriptors;
   auto function_names = native_binding_setup.js_function_names;
 

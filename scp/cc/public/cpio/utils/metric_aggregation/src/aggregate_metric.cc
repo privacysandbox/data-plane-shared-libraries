@@ -56,7 +56,6 @@ using std::make_shared;
 using std::mutex;
 using std::pair;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -82,7 +81,7 @@ AggregateMetric::AggregateMetric(
     const shared_ptr<AsyncExecutorInterface>& async_executor,
     const shared_ptr<MetricClientInterface>& metric_client,
     MetricDefinition metric_info, TimeDuration push_interval_duration_in_ms,
-    const vector<std::string>& event_code_labels_list,
+    const std::vector<std::string>& event_code_labels_list,
     const std::string& event_code_label_key)
     : async_executor_(async_executor),
       metric_client_(metric_client),

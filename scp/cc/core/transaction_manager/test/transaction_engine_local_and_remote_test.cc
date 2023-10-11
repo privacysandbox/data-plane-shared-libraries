@@ -75,7 +75,6 @@ using std::make_shared;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
-using std::vector;
 using std::weak_ptr;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -474,7 +473,7 @@ void RunTransactionsWithDifferentOutOfSyncPhasesBackAndForth(
 }
 
 TEST(TransactionEngineLocalAndRemoteTest, BeginOutOfSync) {
-  vector<TransactionPhase> out_of_sync_phases = {
+  std::vector<TransactionPhase> out_of_sync_phases = {
       TransactionPhase::Commit, TransactionPhase::CommitNotify,
       TransactionPhase::Committed, TransactionPhase::Aborted,
       TransactionPhase::End};
@@ -486,7 +485,7 @@ TEST(TransactionEngineLocalAndRemoteTest, BeginOutOfSync) {
 }
 
 TEST(TransactionEngineLocalAndRemoteTest, PrepareOutOfSync) {
-  vector<TransactionPhase> out_of_sync_phases = {
+  std::vector<TransactionPhase> out_of_sync_phases = {
       TransactionPhase::CommitNotify, TransactionPhase::Committed,
       TransactionPhase::Aborted, TransactionPhase::End};
 
@@ -497,7 +496,7 @@ TEST(TransactionEngineLocalAndRemoteTest, PrepareOutOfSync) {
 }
 
 TEST(TransactionEngineLocalAndRemoteTest, CommitOutOfSync) {
-  vector<TransactionPhase> out_of_sync_phases = {
+  std::vector<TransactionPhase> out_of_sync_phases = {
       TransactionPhase::Begin, TransactionPhase::Committed,
       TransactionPhase::Aborted, TransactionPhase::End};
 
@@ -508,8 +507,8 @@ TEST(TransactionEngineLocalAndRemoteTest, CommitOutOfSync) {
 }
 
 TEST(TransactionEngineLocalAndRemoteTest, CommitNotifyOutOfSync) {
-  vector<TransactionPhase> out_of_sync_phases = {TransactionPhase::Begin,
-                                                 TransactionPhase::Prepare};
+  std::vector<TransactionPhase> out_of_sync_phases = {
+      TransactionPhase::Begin, TransactionPhase::Prepare};
 
   for (auto phase : out_of_sync_phases) {
     RunTransactionsWithDifferentOutOfSyncPhasesBackAndForth(
@@ -518,7 +517,7 @@ TEST(TransactionEngineLocalAndRemoteTest, CommitNotifyOutOfSync) {
 }
 
 TEST(TransactionEngineLocalAndRemoteTest, AbortedOutOfSync) {
-  vector<TransactionPhase> out_of_sync_phases = {
+  std::vector<TransactionPhase> out_of_sync_phases = {
       TransactionPhase::Begin,
       TransactionPhase::Prepare,
       TransactionPhase::Commit,
@@ -531,7 +530,7 @@ TEST(TransactionEngineLocalAndRemoteTest, AbortedOutOfSync) {
 }
 
 TEST(TransactionEngineLocalAndRemoteTest, CommittedOutOfSync) {
-  vector<TransactionPhase> out_of_sync_phases = {
+  std::vector<TransactionPhase> out_of_sync_phases = {
       TransactionPhase::Begin,
       TransactionPhase::Prepare,
       TransactionPhase::Commit,

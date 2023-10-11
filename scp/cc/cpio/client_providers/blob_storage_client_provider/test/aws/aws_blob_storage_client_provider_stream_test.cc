@@ -92,7 +92,6 @@ using google::scp::cpio::client_providers::mock::MockS3Client;
 using std::atomic_bool;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -289,8 +288,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
   std::string bytes_str(kMinimumPartSize, 'a');
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
 
-  vector<std::string> strings{std::string(kMinimumPartSize, 'b'),
-                              std::string(kMinimumPartSize, 'c')};
+  std::vector<std::string> strings{std::string(kMinimumPartSize, 'b'),
+                                   std::string(kMinimumPartSize, 'c')};
   auto request2 = *put_blob_stream_context_.request;
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
@@ -385,8 +384,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
 
   // With this setup, we would expect "initialnext oneaaaaa..." to be one
   // UploadPart and "final one" be another.
-  vector<std::string> strings{"next one", std::string(kMinimumPartSize, 'a'),
-                              "final one"};
+  std::vector<std::string> strings{
+      "next one", std::string(kMinimumPartSize, 'a'), "final one"};
   auto request2 = *put_blob_stream_context_.request;
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
@@ -485,8 +484,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
   std::string bytes_str(kMinimumPartSize, 'a');
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(bytes_str);
 
-  vector<std::string> strings{std::string(kMinimumPartSize, 'b'),
-                              std::string(kMinimumPartSize, 'c')};
+  std::vector<std::string> strings{std::string(kMinimumPartSize, 'b'),
+                                   std::string(kMinimumPartSize, 'c')};
   auto request2 = *put_blob_stream_context_.request;
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
@@ -918,7 +917,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStream) {
         callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
-  vector<GetBlobStreamResponse> actual_responses;
+  std::vector<GetBlobStreamResponse> actual_responses;
   get_blob_stream_context_.process_callback = [this, &actual_responses](
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
@@ -951,7 +950,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
   // 15 chars.
   std::string bytes_str = "response_string";
   // Expect to get responses with data: ["re", "sp", ... "g"]
-  vector<GetBlobStreamResponse> expected_responses;
+  std::vector<GetBlobStreamResponse> expected_responses;
   for (size_t i = 0; i < bytes_str.length(); i += 2) {
     GetBlobStreamResponse resp;
     resp.mutable_blob_portion()->mutable_metadata()->CopyFrom(
@@ -988,7 +987,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
         });
   }
 
-  vector<GetBlobStreamResponse> actual_responses;
+  std::vector<GetBlobStreamResponse> actual_responses;
   get_blob_stream_context_.process_callback = [this, &actual_responses](
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
@@ -1024,7 +1023,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
   // We slice "response_string" to indices 3-6.
   std::string bytes_str = "pons";
   // Expect to get responses with data: ["pon", "s"]
-  vector<GetBlobStreamResponse> expected_responses;
+  std::vector<GetBlobStreamResponse> expected_responses;
   GetBlobStreamResponse resp1, resp2;
   resp1.mutable_blob_portion()->mutable_metadata()->CopyFrom(
       get_blob_stream_context_.request->blob_metadata());
@@ -1071,7 +1070,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
         callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
-  vector<GetBlobStreamResponse> actual_responses;
+  std::vector<GetBlobStreamResponse> actual_responses;
   get_blob_stream_context_.process_callback = [this, &actual_responses](
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
@@ -1126,7 +1125,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamIndexBeyondEnd) {
         callback(abstract_client_, request, std::move(outcome), nullptr);
       });
 
-  vector<GetBlobStreamResponse> actual_responses;
+  std::vector<GetBlobStreamResponse> actual_responses;
   get_blob_stream_context_.process_callback = [this, &actual_responses](
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();

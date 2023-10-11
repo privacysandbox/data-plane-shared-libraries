@@ -40,7 +40,6 @@ using std::end;
 using std::make_pair;
 using std::make_shared;
 using std::make_unique;
-using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -200,8 +199,8 @@ ExecutionResult AwsAuthorizer::Authorize(
 
   AwsV4Signer signer(access_key, "", security_token, "execute-api",
                      aws_region_);
-  vector<std::string> headers_to_sign{begin(kSignedHeaders),
-                                      end(kSignedHeaders)};
+  std::vector<std::string> headers_to_sign{begin(kSignedHeaders),
+                                           end(kSignedHeaders)};
   execution_result = signer.SignRequestWithSignature(
       *http_request, headers_to_sign, amz_date, signature);
   if (!execution_result.Successful()) {

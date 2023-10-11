@@ -66,7 +66,6 @@ using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
@@ -185,7 +184,7 @@ TEST_F(GcpMetricClientProviderTest,
       make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
   auto requests_vector = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
 
   auto metric_name =
       GcpMetricClientUtils::ConstructProjectName(kProjectIdValue);
@@ -216,7 +215,7 @@ TEST_F(GcpMetricClientProviderTest, MetricsBatchPush) {
       make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
   auto requests_vector = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
 
   auto metric_name =
       GcpMetricClientUtils::ConstructProjectName(kProjectIdValue);
@@ -252,7 +251,7 @@ TEST_F(GcpMetricClientProviderTest, FailedMetricsBatchPush) {
                     ResultIs(FailureExecutionResult(SC_GCP_INVALID_ARGUMENT)));
       });
   auto requests_vector = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
 
   auto metric_name =
       GcpMetricClientUtils::ConstructProjectName(kProjectIdValue);
@@ -285,7 +284,8 @@ TEST_F(GcpMetricClientProviderTest, AsyncCreateTimeSeriesCallback) {
         EXPECT_SUCCESS(context.result);
       });
 
-  vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>> requests_vector;
+  std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>
+      requests_vector;
   for (auto i = 0; i < 5; i++) {
     requests_vector.emplace_back(context);
   }

@@ -43,8 +43,6 @@ SOFTWARE.
 
 #include "deserializer.h"
 
-using std::vector;
-
 namespace google::scp::roma::wasm {
 
 uint8_t WasmDeserializer::ReadUint8(void* mem_ptr, size_t mem_size,
@@ -121,9 +119,9 @@ void WasmDeserializer::ReadCustomString(void* mem_ptr, size_t mem_size,
   output.assign(temp_buffer.data(), str_data_len);
 }
 
-void WasmDeserializer::ReadCustomListOfString(void* mem_ptr, size_t mem_size,
-                                              size_t offset,
-                                              vector<std::string>& output) {
+void WasmDeserializer::ReadCustomListOfString(
+    void* mem_ptr, size_t mem_size, size_t offset,
+    std::vector<std::string>& output) {
   // This means we can't even read the list pointer and length
   if (offset + 7 >= mem_size) {
     output.clear();

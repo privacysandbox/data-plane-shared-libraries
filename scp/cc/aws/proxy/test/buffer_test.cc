@@ -26,7 +26,6 @@
 using std::make_shared;
 using std::thread;
 using std::unordered_set;
-using std::vector;
 
 namespace google::scp::proxy {
 

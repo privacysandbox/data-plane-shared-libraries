@@ -80,7 +80,6 @@ using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 using testing::ElementsAreArray;
 using testing::Eq;
 using testing::FieldsAre;
@@ -281,7 +280,7 @@ TEST_F(GcpCloudStorageClientAsyncTests, ListBlobsTest) {
 
     // We must add all blobs including the additional that won't be present so
     // we can sort them lexicographically.
-    vector<Blob> expected_blobs;
+    std::vector<Blob> expected_blobs;
     expected_blobs.reserve(kPageSize + kAdditionalBlobCount);
     for (auto i = 1; i <= (kPageSize + kAdditionalBlobCount); i++) {
       expected_blobs.push_back(
@@ -329,7 +328,7 @@ TEST_F(GcpCloudStorageClientAsyncTests, ListBlobsTest) {
 
     EXPECT_THAT(context.response, NotNull());
 
-    vector<Blob> expected_blobs;
+    std::vector<Blob> expected_blobs;
     // We expect to find blobs 995->999 if sorting lexicographically.
     for (auto i = kPageSize - kAdditionalBlobCount; i < kPageSize; i++) {
       expected_blobs.push_back(

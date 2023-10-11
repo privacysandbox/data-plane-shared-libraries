@@ -52,7 +52,6 @@ using google::scp::core::nosql_database_provider::NoSQLDatabaseProviderUtils;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -248,7 +247,7 @@ void AwsDynamoDB::OnGetDatabaseItemCallback(
   get_database_item_context.response->sort_key =
       get_database_item_context.request->sort_key;
   get_database_item_context.response->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   for (const auto& attribute_key_value_pair : item) {
     if (strcmp(attribute_key_value_pair.first.c_str(),

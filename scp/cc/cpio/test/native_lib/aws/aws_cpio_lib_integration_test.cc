@@ -80,7 +80,6 @@ using std::runtime_error;
 using std::shared_ptr;
 using std::thread;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -233,7 +232,7 @@ class CpioIntegrationTest : public ::testing::Test {
 TEST_F(CpioIntegrationTest, MetricClientPutMetricsSuccessfully) {
   CreateMetricClient();
 
-  vector<thread> threads;
+  std::vector<thread> threads;
   for (auto i = 0; i < 2; ++i) {
     threads.push_back(thread([&]() {
       for (auto j = 0; j < 5; j++) {

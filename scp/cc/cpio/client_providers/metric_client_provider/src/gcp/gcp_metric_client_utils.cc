@@ -51,7 +51,6 @@ using google::scp::core::errors::
     SC_GCP_METRIC_CLIENT_FAILED_WITH_INVALID_TIMESTAMP;
 using google::scp::core::errors::SC_GCP_METRIC_CLIENT_INVALID_METRIC_VALUE;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::hours;
 using std::chrono::minutes;
@@ -78,7 +77,7 @@ namespace google::scp::cpio::client_providers {
 ExecutionResult GcpMetricClientUtils::ParseRequestToTimeSeries(
     AsyncContext<PutMetricsRequest, PutMetricsResponse>& record_metric_context,
     const std::string& name_space,
-    vector<TimeSeries>& time_series_list) noexcept {
+    std::vector<TimeSeries>& time_series_list) noexcept {
   for (auto i = 0; i < record_metric_context.request->metrics().size(); ++i) {
     auto& time_series = time_series_list.emplace_back();
 
@@ -140,7 +139,7 @@ std::string GcpMetricClientUtils::ConstructProjectName(
 void GcpMetricClientUtils::AddResourceToTimeSeries(
     const std::string& project_id, const std::string& instance_id,
     const std::string& instance_zone,
-    vector<TimeSeries>& time_series_list) noexcept {
+    std::vector<TimeSeries>& time_series_list) noexcept {
   MonitoredResource resource;
   resource.set_type(kResourceType);
   auto& labels = *resource.mutable_labels();

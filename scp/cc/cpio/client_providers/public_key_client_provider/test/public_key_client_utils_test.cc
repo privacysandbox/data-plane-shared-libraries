@@ -45,7 +45,6 @@ using std::mktime;
 using std::regex;
 using std::regex_replace;
 using std::tm;
-using std::vector;
 
 static constexpr char kPublicKeyHeaderDate[] = "date";
 static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";
@@ -127,7 +126,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodySuccess) {
       ]})";
   BytesBuffer bytes(bytes_str.length());
   bytes.bytes->assign(bytes_str.begin(), bytes_str.end());
-  vector<PublicKey> public_keys;
+  std::vector<PublicKey> public_keys;
   auto result =
       PublicKeyClientUtils::ParsePublicKeysFromBody(bytes, public_keys);
 
@@ -148,7 +147,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoKeys) {
       ]})";
   BytesBuffer bytes(bytes_str.length());
   bytes.bytes->assign(bytes_str.begin(), bytes_str.end());
-  vector<PublicKey> public_keys;
+  std::vector<PublicKey> public_keys;
   auto result =
       PublicKeyClientUtils::ParsePublicKeysFromBody(bytes, public_keys);
 
@@ -166,7 +165,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoId) {
       ]})";
   BytesBuffer bytes(bytes_str.length());
   bytes.bytes->assign(bytes_str.begin(), bytes_str.end());
-  vector<PublicKey> public_keys;
+  std::vector<PublicKey> public_keys;
   auto result =
       PublicKeyClientUtils::ParsePublicKeysFromBody(bytes, public_keys);
 
@@ -184,7 +183,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoKey) {
       ]})";
   BytesBuffer bytes(bytes_str.length());
   bytes.bytes->assign(bytes_str.begin(), bytes_str.end());
-  vector<PublicKey> public_keys;
+  std::vector<PublicKey> public_keys;
   auto result =
       PublicKeyClientUtils::ParsePublicKeysFromBody(bytes, public_keys);
 

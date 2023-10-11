@@ -42,7 +42,6 @@ using std::regex_search;
 using std::shared_ptr;
 using std::smatch;
 using std::unique_ptr;
-using std::vector;
 
 namespace google::scp::core {
 
@@ -119,7 +118,7 @@ size_t ResponsePayloadHandler(char* contents, size_t byte_size,
                               size_t num_bytes, void* output) {
   BytesBuffer* output_buffer = static_cast<BytesBuffer*>(output);
   size_t contents_length = byte_size * num_bytes;
-  output_buffer->bytes = make_shared<vector<Byte>>(contents_length);
+  output_buffer->bytes = make_shared<std::vector<Byte>>(contents_length);
   for (size_t i = 0; i < contents_length; i++) {
     output_buffer->bytes->at(i) = contents[i];
   }

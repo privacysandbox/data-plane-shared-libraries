@@ -54,7 +54,6 @@ using google::scp::roma::sandbox::worker::WorkerFactory;
 using sandbox2::Buffer;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 
 namespace {
 // the pointer of the data shared sandbox2::Buffer which is used to share
@@ -80,7 +79,7 @@ StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       init_params->compilation_context_cache_size();
 
   if (worker_engine == WorkerFactory::WorkerEngine::v8) {
-    vector<std::string> native_js_function_names(
+    std::vector<std::string> native_js_function_names(
         init_params->native_js_function_names().begin(),
         init_params->native_js_function_names().end());
 
@@ -131,7 +130,7 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
   }
 
   const auto& code = params->code();
-  vector<absl::string_view> input;
+  std::vector<absl::string_view> input;
   for (int i = 0; i < params->input_size(); i++) {
     input.push_back(params->input().at(i));
   }

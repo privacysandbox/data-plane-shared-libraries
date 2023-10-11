@@ -79,7 +79,6 @@ using std::make_shared;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::unordered_set;
-using std::vector;
 
 namespace google::scp::core::test {
 
@@ -165,9 +164,9 @@ TEST_F(JournalServiceTests, Recover) {
   shared_ptr<BlobStorageClientInterface> blob_storage_client;
   mock_blob_storage_provider_->CreateBlobStorageClient(blob_storage_client);
 
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
   for (auto result : results) {
     auto mock_input_stream = make_shared<MockJournalInputStream>(
         bucket_name_, partition_name_, blob_storage_client,
@@ -341,7 +340,7 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackNoCallbackFound) {
       read_log_context;
   read_log_context.response = make_shared<JournalStreamReadLogResponse>();
   read_log_context.response->read_logs =
-      make_shared<vector<JournalStreamReadLogObject>>();
+      make_shared<std::vector<JournalStreamReadLogObject>>();
   JournalStreamReadLogObject log_object;
   log_object.log_id = Uuid::GenerateUuid();
   read_log_context.response->read_logs->push_back(log_object);
@@ -377,7 +376,7 @@ TEST_F(JournalServiceTests,
       read_log_context;
   read_log_context.response = make_shared<JournalStreamReadLogResponse>();
   read_log_context.response->read_logs =
-      make_shared<vector<JournalStreamReadLogObject>>();
+      make_shared<std::vector<JournalStreamReadLogObject>>();
   JournalStreamReadLogObject log_object;
   log_object.log_id = Uuid::GenerateUuid();
   log_object.component_id = Uuid::GenerateUuid();
@@ -424,7 +423,7 @@ TEST_F(JournalServiceTests,
       read_log_context;
   read_log_context.response = make_shared<JournalStreamReadLogResponse>();
   read_log_context.response->read_logs =
-      make_shared<vector<JournalStreamReadLogObject>>();
+      make_shared<std::vector<JournalStreamReadLogObject>>();
   JournalStreamReadLogObject log_object;
   log_object.log_id = Uuid::GenerateUuid();
   log_object.component_id = Uuid::GenerateUuid();
@@ -487,9 +486,9 @@ TEST_F(JournalServiceTests, OnJournalStreamAppendLogCallback) {
       mock_config_provider_);
   AutoInitRunStop to_handle_journal_service(journal_service);
 
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
   for (auto result : results) {
     AsyncContext<JournalLogRequest, JournalLogResponse> journal_log_context;
     journal_log_context.callback =

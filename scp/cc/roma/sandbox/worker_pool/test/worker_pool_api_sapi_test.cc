@@ -28,7 +28,6 @@
 using google::scp::roma::sandbox::worker::WorkerFactory;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
-using std::vector;
 
 namespace {
 WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
@@ -37,7 +36,7 @@ WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
   config.js_engine_require_code_preload = true;
   config.compilation_context_cache_size = 5;
   config.native_js_function_comms_fd = -1;
-  config.native_js_function_names = vector<std::string>();
+  config.native_js_function_names = std::vector<std::string>();
   config.max_worker_virtual_memory_mb = 0;
   config.sandbox_request_response_shared_buffer_size_mb = 0;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
@@ -48,7 +47,7 @@ WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
 namespace google::scp::roma::sandbox::worker_pool::test {
 TEST(WorkerPoolTest, CanInitRunAndStop) {
   int num_workers = 4;
-  vector<WorkerApiSapiConfig> configs;
+  std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < num_workers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
@@ -67,7 +66,7 @@ TEST(WorkerPoolTest, CanInitRunAndStop) {
 
 TEST(WorkerPoolTest, CanGetPoolCount) {
   int num_workers = 2;
-  vector<WorkerApiSapiConfig> configs;
+  std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < num_workers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
@@ -88,7 +87,7 @@ TEST(WorkerPoolTest, CanGetPoolCount) {
 
 TEST(WorkerPoolTest, CanGetWorker) {
   int num_workers = 2;
-  vector<WorkerApiSapiConfig> configs;
+  std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < num_workers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
@@ -116,7 +115,7 @@ TEST(WorkerPoolTest, ConstructorFailsIfSizeIsInvalid) {
   constexpr size_t size = 2;
 
   // Pool of size 2, but no configs
-  EXPECT_DEATH(WorkerPoolApiSapi(vector<WorkerApiSapiConfig>(), size),
+  EXPECT_DEATH(WorkerPoolApiSapi(std::vector<WorkerApiSapiConfig>(), size),
                "ROMA: The worker config vector and the pool size do not match");
 }
 }  // namespace google::scp::roma::sandbox::worker_pool::test

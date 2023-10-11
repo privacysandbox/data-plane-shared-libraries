@@ -68,7 +68,6 @@ using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
@@ -172,7 +171,7 @@ TEST_F(AwsMetricClientProviderTest, SplitsOversizeRequestsVector) {
       make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
   auto requests_vector = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   PutMetricDataRequest request_mock;
   for (auto i = 0; i < 10000; i++) {
     requests_vector->emplace_back(context);
@@ -210,7 +209,7 @@ TEST_F(AwsMetricClientProviderTest, KeepMetricsInTheSameRequest) {
       };
 
   auto requests_vector = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   for (auto metric_num : {100, 500, 600, 800}) {
     PutMetricsRequest record_metric_request;
     SetPutMetricsRequest(record_metric_request, kValue, metric_num);
@@ -251,7 +250,7 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithError) {
             ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
       });
   auto requests_vector = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   requests_vector->push_back(context);
   requests_vector->push_back(context);
   requests_vector->push_back(context);
@@ -283,7 +282,7 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithSuccess) {
         EXPECT_SUCCESS(context.result);
       });
   auto requests_vector = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   requests_vector->push_back(context);
   requests_vector->push_back(context);
   requests_vector->push_back(context);
@@ -304,7 +303,7 @@ TEST_F(AwsMetricClientProviderTest,
   EXPECT_SUCCESS(client->Run());
 
   auto requests_vector = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   for (auto metric_num : {100, 500, 600, 800}) {
     PutMetricsRequest record_metric_request;
     SetPutMetricsRequest(record_metric_request, kValue, metric_num);
@@ -335,7 +334,7 @@ TEST_F(AwsMetricClientProviderTest, OneMetricWithoutBatchRecordingSucceed) {
       PutMetricDataOutcome(result);
 
   auto requests_vector = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request, kValue, 100);
 

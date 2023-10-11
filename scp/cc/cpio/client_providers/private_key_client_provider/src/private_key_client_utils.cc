@@ -63,7 +63,6 @@ using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using std::byte;
 using std::shared_ptr;
-using std::vector;
 
 namespace {
 constexpr char kPrivateKeyClientUtils[] = "PrivateKeyClientUtils";
@@ -158,10 +157,10 @@ ExecutionResult PrivateKeyClientUtils::GetPrivateKeyInfo(
  * @brief Convert string to a vector of byte.
  *
  * @param string
- * @return vector<byte> vector of byte.
+ * @return std::vector<byte> vector of byte.
  */
-static vector<byte> StrToBytes(const std::string& string) noexcept {
-  vector<byte> bytes;
+static std::vector<byte> StrToBytes(const std::string& string) noexcept {
+  std::vector<byte> bytes;
   for (char c : string) {
     bytes.push_back(byte(c));
   }
@@ -173,11 +172,11 @@ static vector<byte> StrToBytes(const std::string& string) noexcept {
  *
  * @param arr1 vector of byte.
  * @param arr2 vector of byte.
- * @return vector<byte> Exclusive OR result of the two input vectors.
+ * @return std::vector<byte> Exclusive OR result of the two input vectors.
  */
-static vector<byte> XOR(const vector<byte>& arr1,
-                        const vector<byte>& arr2) noexcept {
-  vector<byte> result;
+static std::vector<byte> XOR(const std::vector<byte>& arr1,
+                             const std::vector<byte>& arr2) noexcept {
+  std::vector<byte> result;
   for (int i = 0; i < arr1.size(); ++i) {
     result.push_back((byte)(arr1[i] ^ arr2[i]));
   }
@@ -186,12 +185,12 @@ static vector<byte> XOR(const vector<byte>& arr1,
 }
 
 ExecutionResult PrivateKeyClientUtils::ReconstructXorKeysetHandle(
-    const vector<std::string>& endpoint_responses,
+    const std::vector<std::string>& endpoint_responses,
     std::string& private_key) noexcept {
-  vector<byte> xor_secret = StrToBytes(endpoint_responses.at(0));
+  std::vector<byte> xor_secret = StrToBytes(endpoint_responses.at(0));
 
   for (auto i = 1; i < endpoint_responses.size(); ++i) {
-    vector<byte> next_piece = StrToBytes(endpoint_responses.at(i));
+    std::vector<byte> next_piece = StrToBytes(endpoint_responses.at(i));
 
     if (xor_secret.size() != next_piece.size()) {
       return FailureExecutionResult(

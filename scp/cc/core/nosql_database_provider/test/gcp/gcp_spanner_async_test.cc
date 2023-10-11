@@ -85,7 +85,6 @@ using std::shared_ptr;
 using std::thread;
 using std::tuple;
 using std::unique_ptr;
-using std::vector;
 using testing::_;
 using testing::Eq;
 using testing::ExplainMatchResult;
@@ -264,12 +263,12 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
   int GetThreadCount() { return GetParam(); }
 
   void ExpectTableHasRows(
-      const vector<tuple<Value, Value, Value>>& expected_rows) {
+      const std::vector<tuple<Value, Value, Value>>& expected_rows) {
     auto row_stream = client_->Read(
         kTableName, KeySet::All(),
         {kDefaultPartitionKeyName, kDefaultSortKeyName, kValueName});
 
-    vector<tuple<Value, Value, Value>> actual_rows;
+    std::vector<tuple<Value, Value, Value>> actual_rows;
     for (const auto& row : row_stream) {
       if (!row.ok()) break;
       Value budget_key_id, timeframe, value;
@@ -339,11 +338,11 @@ std::atomic_int failure_count{0};
 TEST_P(GcpSpannerAsyncTests, MultiThreadGetTest) {
   // Vector of signals for when a thread has finished - index aligned with
   // threads.
-  vector<std::atomic_bool> finished(GetThreadCount());
+  std::vector<std::atomic_bool> finished(GetThreadCount());
   for (auto& b : finished) b = false;
 
   std::atomic_bool start{false};
-  vector<thread> threads;
+  std::vector<thread> threads;
   threads.reserve(GetThreadCount());
   for (int i = 0; i < GetThreadCount(); i++) {
     threads.push_back(thread([this, &start, i = i, &finished] {
@@ -429,7 +428,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestNoAttributes) {
   *upsert_database_item_context_.request->sort_key->attribute_value = "2";
 
   upsert_database_item_context_.request->new_attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name = make_shared<std::string>("token_count"),
@@ -449,7 +448,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestNoAttributes) {
 
   // Test.
 
-  vector<tuple<Value, Value, Value>> expected_rows;
+  std::vector<tuple<Value, Value, Value>> expected_rows;
   expected_rows.push_back(make_tuple(
       Value("1"), Value("2"), Value(Json("{\"token_count\":\"1000\"}"))));
   expected_rows.push_back(make_tuple(Value("2"), Value("2"),
@@ -469,7 +468,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyNoAttributes) {
   *upsert_database_item_context_.request->sort_key->attribute_value = "0";
 
   upsert_database_item_context_.request->new_attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name = make_shared<std::string>("token_count"),
@@ -488,7 +487,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyNoAttributes) {
   WaitUntil([&finished]() -> bool { return finished; });
 
   // Test.
-  vector<tuple<Value, Value, Value>> expected_rows;
+  std::vector<tuple<Value, Value, Value>> expected_rows;
   expected_rows.push_back(make_tuple(
       Value("1"), Value("0"), Value(Json("{\"token_count\":\"1000\"}"))));
   expected_rows.push_back(make_tuple(Value("1"), Value("2"),
@@ -510,7 +509,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyAndAttributes) {
   *upsert_database_item_context_.request->sort_key->attribute_value = "2";
 
   upsert_database_item_context_.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name = make_shared<std::string>("token_count"),
@@ -518,7 +517,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyAndAttributes) {
               make_shared<NoSQLDatabaseValidAttributeValueTypes>("10")});
 
   upsert_database_item_context_.request->new_attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name = make_shared<std::string>("token_count"),
@@ -537,7 +536,7 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyAndAttributes) {
   WaitUntil([&finished]() -> bool { return finished; });
 
   // Test.
-  vector<tuple<Value, Value, Value>> expected_rows;
+  std::vector<tuple<Value, Value, Value>> expected_rows;
   expected_rows.push_back(make_tuple(
       Value("1"), Value("2"), Value(Json("{\"token_count\":\"1000\"}"))));
   expected_rows.push_back(make_tuple(Value("2"), Value("2"),
@@ -551,10 +550,10 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadUpsertTest) {
   std::atomic_bool start(false);
   // Vector of signals for when a thread has finished - index aligned with
   // threads.
-  vector<std::atomic_bool> finished(GetThreadCount());
+  std::vector<std::atomic_bool> finished(GetThreadCount());
   for (auto& b : finished) b = false;
 
-  vector<thread> threads;
+  std::vector<thread> threads;
   threads.reserve(GetThreadCount());
   for (int i = 0; i < GetThreadCount(); i++) {
     threads.push_back(thread([this, &start, i = i, &finished]() {
@@ -587,7 +586,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadUpsertTest) {
           make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
 
       upsert_database_item_context.request->new_attributes =
-          make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+          make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
       upsert_database_item_context.request->new_attributes->push_back(
           NoSqlDatabaseKeyValuePair{
               .attribute_name = make_shared<std::string>("token_count"),
@@ -610,7 +609,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadUpsertTest) {
   start = true;
   for (auto& t : threads) t.join();
 
-  vector<tuple<Value, Value, Value>> expected_rows;
+  std::vector<tuple<Value, Value, Value>> expected_rows;
   for (int i = 0; i < GetThreadCount(); i++) {
     expected_rows.push_back(
         make_tuple(Value(absl::StrCat(i + 1)), Value("2"),
@@ -630,7 +629,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
   std::atomic_bool start(false);
   std::atomic_int total_rpc_count(0);
 
-  vector<thread> threads;
+  std::vector<thread> threads;
   threads.reserve(GetThreadCount());
   for (int i = 0; i < GetThreadCount(); i++) {
     threads.push_back(thread([this, &start, &total_rpc_count]() {
@@ -695,13 +694,13 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
             make_shared<NoSqlDatabaseKeyValuePair>(sort_key);
 
         upsert_request.attributes =
-            make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
         upsert_request.attributes->push_back(NoSqlDatabaseKeyValuePair{
             .attribute_name = make_shared<std::string>("token_count"),
             .attribute_value = std::move(existing_count)});
 
         upsert_request.new_attributes =
-            make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
         upsert_request.new_attributes->push_back(NoSqlDatabaseKeyValuePair{
             .attribute_name = make_shared<std::string>("token_count"),
             .attribute_value =
@@ -735,7 +734,7 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
   start = true;
   for (auto& t : threads) t.join();
 
-  vector<tuple<Value, Value, Value>> expected_rows;
+  std::vector<tuple<Value, Value, Value>> expected_rows;
   expected_rows.push_back(make_tuple(Value("1"), Value("2"),
                                      Value(Json("{\"token_count\":\"0\"}"))));
   ExpectTableHasRows(expected_rows);

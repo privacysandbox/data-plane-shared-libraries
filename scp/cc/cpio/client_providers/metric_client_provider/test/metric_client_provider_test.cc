@@ -65,7 +65,6 @@ using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
 using std::unique_ptr;
-using std::vector;
 
 namespace {
 constexpr size_t kMetricsBatchSize = 1000;
@@ -339,13 +338,13 @@ TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
   atomic<int> batch_push_called_count = 0;
   client->metrics_batch_push_mock =
       [&](const shared_ptr<
-          vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&
+          std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&
               metric_requests_vector) noexcept {
         EXPECT_EQ(metric_requests_vector->size(), 1);
         batch_push_called_count++;
         return SuccessExecutionResult();
       };
-  vector<thread> threads;
+  std::vector<thread> threads;
   for (auto i = 0; i < 100; ++i) {
     threads.push_back(
         thread([&]() { EXPECT_SUCCESS(client->PutMetrics(context)); }));

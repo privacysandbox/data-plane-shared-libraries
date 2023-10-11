@@ -27,7 +27,6 @@ using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::SC_ROMA_WORKER_POOL_WORKER_INDEX_OUT_OF_BOUNDS;
-using std::vector;
 
 static constexpr char kConfigAndPoolSizeDoNotMatch[] =
     "ROMA: The worker config vector and the pool size do not match";

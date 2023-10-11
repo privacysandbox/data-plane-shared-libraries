@@ -35,7 +35,6 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::nosql_database_provider::AwsDynamoDBUtils;
 using std::get;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::core::test {
 TEST(AwsDynamoDBUtilsTests,
@@ -104,7 +103,7 @@ void SetValueType(AttributeValue& attribute_value, ValueType type) {
 
 TEST(AwsDynamoDBUtilsTests,
      ConvertDynamoDBTypeToNoSQLDatabaseValidAttributeValueTypeInvalidType) {
-  vector<ValueType> invalid_value_types(
+  std::vector<ValueType> invalid_value_types(
       {ValueType::BYTEBUFFER, ValueType::STRING_SET, ValueType::NUMBER_SET,
        ValueType::BYTEBUFFER_SET, ValueType::ATTRIBUTE_MAP,
        ValueType::ATTRIBUTE_LIST, ValueType::BOOL, ValueType::NULLVALUE});

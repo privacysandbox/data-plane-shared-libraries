@@ -55,7 +55,6 @@ using google::scp::cpio::common::GcpUtils;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 
 static constexpr char kGcpMetricClientProvider[] = "GcpMetricClientProvider";
@@ -105,7 +104,7 @@ void GcpMetricClientProvider::CreateMetricServiceClient() noexcept {
 
 ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
     const shared_ptr<
-        vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&
+        std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&
         context_vector) noexcept {
   MetricServiceClient metric_client(*metric_service_client_);
   CreateTimeSeriesRequest time_series_request;
@@ -117,9 +116,9 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
   // Chops the input context_vector to small piece of vector, and
   // requests_vector is used in callback function to set the response for
   // requests.
-  auto requests_vector =
-      make_shared<vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>(
-          kGcpTimeSeriesSizeLimit);
+  auto requests_vector = make_shared<
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>(
+      kGcpTimeSeriesSizeLimit);
 
   // When batch recording is not enabled, expect the namespace to be set on the
   // request. context_vector won't be empty.
@@ -130,7 +129,7 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
   while (!context_vector->empty()) {
     auto context = context_vector->back();
     context_vector->pop_back();
-    vector<TimeSeries> time_series_list;
+    std::vector<TimeSeries> time_series_list;
     auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
         context, name_space, time_series_list);
     // Sets the result for the requests that failed in parsing to time series.
@@ -171,7 +170,7 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
 // Copy the metric_requests_vector in case it is cleared outside, and it is not
 // expensive to copy the AsyncContext.
 void GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback(
-    vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>
+    std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>
         metric_requests_vector,
     future<Status> outcome) noexcept {
   active_push_count_--;

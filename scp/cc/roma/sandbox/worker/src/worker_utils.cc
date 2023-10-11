@@ -32,7 +32,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::SC_ROMA_WORKER_MISSING_METADATA_ITEM;
 using google::scp::core::errors::SC_ROMA_WORKER_STR_CONVERT_INT_FAIL;
-using std::vector;
 
 namespace google::scp::roma::sandbox::worker {
 

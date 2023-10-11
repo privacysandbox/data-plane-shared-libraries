@@ -38,7 +38,6 @@ using std::optional;
 using std::reference_wrapper;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 
 static constexpr char kMetricInstanceFactory[] = "MetricInstanceFactory";
 
@@ -78,7 +77,7 @@ MetricInstanceFactory::ConstructAggregateMetricInstance(
 unique_ptr<AggregateMetricInterface>
 MetricInstanceFactory::ConstructAggregateMetricInstance(
     MetricDefinition metric_info,
-    const vector<std::string>& event_code_labels_list,
+    const std::vector<std::string>& event_code_labels_list,
     const std::string& event_code_name) noexcept {
   if (event_code_name.empty()) {
     return make_unique<AggregateMetric>(

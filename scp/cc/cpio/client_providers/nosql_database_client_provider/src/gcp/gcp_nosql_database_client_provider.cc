@@ -106,7 +106,6 @@ using std::pair;
 using std::ref;
 using std::shared_ptr;
 using std::unordered_map;
-using std::vector;
 using std::placeholders::_1;
 
 using SpannerJson = google::cloud::spanner::Json;

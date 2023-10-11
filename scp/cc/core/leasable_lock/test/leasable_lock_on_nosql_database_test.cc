@@ -51,7 +51,6 @@ using std::forward;
 using std::get;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
@@ -62,7 +61,7 @@ static constexpr char kPartitionLockTableDefaultName[] =
 
 namespace google::scp::core::test {
 
-static const vector<NoSqlDatabaseKeyValuePair> kDummyLockRowAttributes = {
+static const std::vector<NoSqlDatabaseKeyValuePair> kDummyLockRowAttributes = {
     {make_shared<NoSQLDatabaseAttributeName>(
          kPartitionLockTableLeaseOwnerIdAttributeName),
      make_shared<NoSQLDatabaseValidAttributeValueTypes>("attr1")},
@@ -73,7 +72,7 @@ static const vector<NoSqlDatabaseKeyValuePair> kDummyLockRowAttributes = {
          kPartitionLockTableLeaseExpirationTimestampAttributeName),
      make_shared<NoSQLDatabaseValidAttributeValueTypes>("0")}};
 
-static const vector<NoSqlDatabaseKeyValuePair>
+static const std::vector<NoSqlDatabaseKeyValuePair>
     kDummyLockRowAttributesWithLeaseAcquisitionDisallowed = {
         {make_shared<NoSQLDatabaseAttributeName>(
              kPartitionLockTableLeaseOwnerIdAttributeName),
@@ -97,7 +96,7 @@ void SetOverridesOnMockNoSQLDatabase(
                                       GetDatabaseItemResponse>& context) {
         context.response = make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
         context.response->attributes->push_back(
             {make_shared<NoSQLDatabaseAttributeName>(
                  kPartitionLockTableLeaseOwnerIdAttributeName),
@@ -211,7 +210,7 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
                                  GetDatabaseItemResponse>& context) {
         context.response = make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<vector<NoSqlDatabaseKeyValuePair>>(
+            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
                 kDummyLockRowAttributes);
         context.result = SuccessExecutionResult();
         context.callback(context);
@@ -285,7 +284,7 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
                                  GetDatabaseItemResponse>& context) {
         context.response = make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<vector<NoSqlDatabaseKeyValuePair>>(
+            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
                 kDummyLockRowAttributesWithLeaseAcquisitionDisallowed);
         context.result = SuccessExecutionResult();
         context.callback(context);
@@ -307,7 +306,7 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
                                  GetDatabaseItemResponse>& context) {
         context.response = make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
         context.result = SuccessExecutionResult();
         return FailureExecutionResult(SC_UNKNOWN);
       });
@@ -328,7 +327,7 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
                                  GetDatabaseItemResponse>& context) {
         context.response = make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
         context.result = FailureExecutionResult(SC_UNKNOWN);
         context.callback(context);
         return SuccessExecutionResult();
@@ -350,7 +349,7 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
                                  GetDatabaseItemResponse>& context) {
         context.response = make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<vector<NoSqlDatabaseKeyValuePair>>(
+            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
                 kDummyLockRowAttributes);
         context.result = SuccessExecutionResult();
         context.callback(context);
@@ -381,7 +380,7 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
                                  GetDatabaseItemResponse>& context) {
         context.response = make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<vector<NoSqlDatabaseKeyValuePair>>(
+            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
                 kDummyLockRowAttributes);
         context.result = SuccessExecutionResult();
         context.callback(context);

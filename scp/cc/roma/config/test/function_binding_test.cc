@@ -40,7 +40,6 @@ using std::make_unique;
 using std::runtime_error;
 using std::tuple;
 using std::unique_ptr;
-using std::vector;
 using v8::Context;
 using v8::External;
 using v8::FunctionCallbackInfo;
@@ -307,9 +306,9 @@ TEST_F(FunctionBindingTest, PassingNullValueToFunction) {
 }
 
 // User provided JS function
-static vector<std::string> StringInputVectorOfStringOutput(
+static std::vector<std::string> StringInputVectorOfStringOutput(
     tuple<std::string>& input) {
-  vector<std::string> output;
+  std::vector<std::string> output;
   output.push_back(get<0>(input));
   output.push_back("And some added stuff");
   return output;
@@ -318,7 +317,7 @@ static vector<std::string> StringInputVectorOfStringOutput(
 TEST_F(FunctionBindingTest,
        FunctionBindingByNameStringInputAndVectorOfStringOutput) {
   // Function that returns a vector of string and takes in a string as input
-  FunctionBindingObject<vector<std::string>, std::string> func;
+  FunctionBindingObject<std::vector<std::string>, std::string> func;
   // Set the name by which the function will be called in JS
   func.function_name = "str_in_vec_str_out";
   // Set the C++ callback for the JS function
@@ -331,11 +330,11 @@ TEST_F(FunctionBindingTest,
 }
 
 // User provided JS function
-static vector<std::string> VectorOfStringInputVectorOfStringOutput(
-    tuple<vector<std::string>>& input) {
+static std::vector<std::string> VectorOfStringInputVectorOfStringOutput(
+    tuple<std::vector<std::string>>& input) {
   auto input_vec = get<0>(input);
 
-  vector<std::string> output;
+  std::vector<std::string> output;
   // Reverse the input
   for (int i = input_vec.size() - 1; i >= 0; i--) {
     output.push_back(input_vec.at(i));
@@ -347,7 +346,8 @@ TEST_F(FunctionBindingTest,
        FunctionBindingByNameVectorOfStringInputAndVectorOfStringOutput) {
   // Function that returns a vector of string string and takes in a vector of
   // string as input
-  FunctionBindingObject<vector<std::string>, vector<std::string>> func;
+  FunctionBindingObject<std::vector<std::string>, std::vector<std::string>>
+      func;
   // Set the name by which the function will be called in JS
   func.function_name = "vec_str_in_vec_str_out";
   // Set the C++ callback for the JS function
@@ -359,7 +359,7 @@ TEST_F(FunctionBindingTest,
   EXPECT_EQ(result, "O,L,L,E,H");
 }
 
-static std::string ConcatenateVector(vector<std::string>& vec) {
+static std::string ConcatenateVector(std::vector<std::string>& vec) {
   std::string ret;
   for (const auto& str : vec) {
     ret += str;
@@ -368,15 +368,15 @@ static std::string ConcatenateVector(vector<std::string>& vec) {
 }
 
 // User provided JS function
-static vector<std::string> MixedInputAndVectorOfStringOutput(
-    tuple<vector<std::string>, std::string, vector<std::string>, std::string>&
-        input) {
+static std::vector<std::string> MixedInputAndVectorOfStringOutput(
+    tuple<std::vector<std::string>, std::string, std::vector<std::string>,
+          std::string>& input) {
   auto input_one = get<0>(input);
   auto input_two = get<1>(input);
   auto input_three = get<2>(input);
   auto input_four = get<3>(input);
 
-  vector<std::string> output;
+  std::vector<std::string> output;
   output.push_back(ConcatenateVector(input_one));
   output.push_back(input_two);
   output.push_back(ConcatenateVector(input_three));
@@ -386,8 +386,8 @@ static vector<std::string> MixedInputAndVectorOfStringOutput(
 
 TEST_F(FunctionBindingTest, VectorOfStringOutputAndMixedInput) {
   // Function that returns a vector of string and takes mixed types as input
-  FunctionBindingObject<vector<std::string>, vector<std::string>, std::string,
-                        vector<std::string>, std::string>
+  FunctionBindingObject<std::vector<std::string>, std::vector<std::string>,
+                        std::string, std::vector<std::string>, std::string>
       func;
   // Set the name by which the function will be called in JS
   func.function_name = "mixed_in_vec_str_out";
@@ -408,8 +408,8 @@ TEST_F(FunctionBindingTest, VectorOfStringOutputAndMixedInput) {
 
 // User provided JS function
 static common::Map<std::string, std::string> VectorsOfStringInputAndMapOutput(
-    tuple<vector<std::string>, vector<std::string>, vector<std::string>,
-          vector<std::string>>& input) {
+    tuple<std::vector<std::string>, std::vector<std::string>,
+          std::vector<std::string>, std::vector<std::string>>& input) {
   auto input_one = get<0>(input);
   auto input_two = get<1>(input);
   auto input_three = get<2>(input);
@@ -427,8 +427,8 @@ TEST_F(FunctionBindingTest, MapOutputAndVectorsOfStringInput) {
   // Function that returns a map<string, string >and takes vectors of string as
   // input
   FunctionBindingObject<common::Map<std::string, std::string>,
-                        vector<std::string>, vector<std::string>,
-                        vector<std::string>, vector<std::string>>
+                        std::vector<std::string>, std::vector<std::string>,
+                        std::vector<std::string>, std::vector<std::string>>
       func;
   // Set the name by which the function will be called in JS
   func.function_name = "vecs_str_in_map_out";

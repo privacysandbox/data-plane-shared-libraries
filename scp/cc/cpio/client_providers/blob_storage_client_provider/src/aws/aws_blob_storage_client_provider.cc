@@ -117,7 +117,6 @@ using std::bind;
 using std::make_shared;
 using std::optional;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::minutes;
 using std::chrono::nanoseconds;
@@ -444,7 +443,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
   // 0 - the begin index of the response
   // 83886079 - the end index of the response
   // 1258291200 - the total size of the object in storage.
-  vector<std::string> total_length_str =
+  std::vector<std::string> total_length_str =
       absl::StrSplit(result.GetContentRange(), "/");
   int64_t total_length = strtol(total_length_str[1].c_str(), nullptr, 10);
   // Now we know the total size of the object.

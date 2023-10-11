@@ -80,7 +80,6 @@ using std::pair;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::unordered_map;
-using std::vector;
 using testing::_;
 using testing::A;
 using testing::ByMove;
@@ -185,7 +184,7 @@ class GcpSpannerTests : public testing::Test {
         make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
 
     upsert_request.new_attributes =
-        make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+        make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
     upsert_database_item_context_.request =
         make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
@@ -336,7 +335,7 @@ TEST_F(GcpSpannerTests, GetItemWithPartitionAndSortKeyWithAttributes) {
           make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
           make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
   get_database_item_context_.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   get_database_item_context_.request->attributes->emplace_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name =
@@ -700,7 +699,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithPartitionKeyOnly) {
   *upsert_database_item_context_.request->partition_key->attribute_value = "3";
 
   upsert_database_item_context_.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name = make_shared<std::string>("token_count"),
@@ -761,7 +760,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithSortKey) {
           make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
 
   upsert_database_item_context_.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name = make_shared<std::string>("token_count"),
@@ -825,7 +824,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfNoRowsFound) {
           make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
 
   upsert_database_item_context_.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name = make_shared<std::string>("token_count"),
@@ -881,7 +880,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfCommitFails) {
           make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
 
   upsert_database_item_context_.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name = make_shared<std::string>("token_count"),

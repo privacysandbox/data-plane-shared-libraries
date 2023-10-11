@@ -40,7 +40,6 @@ using google::scp::core::errors::
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 
 namespace {

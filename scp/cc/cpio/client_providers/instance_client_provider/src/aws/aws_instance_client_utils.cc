@@ -43,7 +43,6 @@ using std::regex;
 using std::regex_match;
 using std::shared_ptr;
 using std::strlen;
-using std::vector;
 
 namespace {
 constexpr char kAwsInstanceClientUtils[] = "AwsInstanceClientUtils";
@@ -127,12 +126,12 @@ ExecutionResult AwsInstanceClientUtils::GetResourceNameDetails(
   auto result = ValidateResourceNameFormat(resource_name);
   RETURN_IF_FAILURE(result);
 
-  vector<std::string> splits = absl::StrSplit(resource_name, ":");
+  std::vector<std::string> splits = absl::StrSplit(resource_name, ":");
   detail.account_id = splits[4];
   detail.region = splits[3];
 
   // remove prefix path from resource id.
-  vector<std::string> id_splits = absl::StrSplit(splits.back(), "/");
+  std::vector<std::string> id_splits = absl::StrSplit(splits.back(), "/");
   detail.resource_id = id_splits.back();
 
   return SuccessExecutionResult();

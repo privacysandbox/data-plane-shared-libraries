@@ -45,8 +45,6 @@ SOFTWARE.
 
 #include "wasm_types.h"
 
-using std::vector;
-
 namespace google::scp::roma::wasm {
 bool WasmSerializer::WriteUint8(void* mem_ptr, size_t mem_size, size_t offset,
                                 uint8_t input) {
@@ -119,8 +117,8 @@ uint32_t WasmSerializer::WriteCustomString(void* mem_ptr, size_t mem_size,
 
 uint32_t WasmSerializer::WriteCustomListOfString(
     void* mem_ptr, size_t mem_size, size_t offset,
-    const vector<std::string>& list) {
-  vector<uint32_t> string_ptrs;
+    const std::vector<std::string>& list) {
+  std::vector<uint32_t> string_ptrs;
 
   for (size_t i = 0; i < list.size(); i++) {
     auto str = list.at(i);

@@ -42,7 +42,6 @@ using google::scp::roma::sandbox::native_function_binding::
 
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using ::testing::_;
 using ::testing::Ref;
 using testing::Return;
@@ -73,10 +72,10 @@ class NativeFunctionInvokerMock : public NativeFunctionInvoker {
 TEST_F(V8IsolateVisitorFunctionBindingTest,
        FunctionBecomesAvailableInJavascript) {
   auto function_invoker = make_shared<NativeFunctionInvokerMock>();
-  vector<std::string> function_names = {"cool_func"};
+  std::vector<std::string> function_names = {"cool_func"};
   auto visitor = make_shared<v8_js_engine::V8IsolateVisitorFunctionBinding>(
       function_names, function_invoker);
-  vector<shared_ptr<V8IsolateVisitor>> isolate_visitors;
+  std::vector<shared_ptr<V8IsolateVisitor>> isolate_visitors;
   isolate_visitors.push_back(visitor);
 
   V8JsEngine js_engine(isolate_visitors);

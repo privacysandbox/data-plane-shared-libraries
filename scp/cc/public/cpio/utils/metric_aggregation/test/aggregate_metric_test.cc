@@ -64,12 +64,11 @@ using std::mutex;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
-using std::vector;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
 constexpr char kNamespace[] = "PBS";
-const vector<std::string> kEventList = {"QPS", "Errors"};
+const std::vector<std::string> kEventList = {"QPS", "Errors"};
 
 MetricDefinition CreateMetricDefinition() {
   return MetricDefinition(kMetricName, MetricUnit::kCount, kNamespace);
@@ -94,9 +93,9 @@ class AggregateMetricTest : public testing::Test {
 };
 
 TEST_F(AggregateMetricTest, Run) {
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(123)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(123)};
 
   for (auto result : results) {
     auto aggregate_metric = MockAggregateMetricOverrides(
@@ -239,7 +238,7 @@ TEST_F(AggregateMetricTest, IncrementByMultipleThreads) {
   auto value = 10;
   auto num_threads = 2;
   auto num_calls = 10;
-  vector<thread> threads;
+  std::vector<thread> threads;
 
   for (auto i = 0; i < num_threads; ++i) {
     threads.push_back(thread([&]() {

@@ -31,12 +31,11 @@
 using std::function;
 using std::shared_ptr;
 using std::unordered_set;
-using std::vector;
 
 namespace google::scp::core {
 
 bool DependencyGraph::AddNode(
-    const std::string& id, const vector<std::string>& dependencies,
+    const std::string& id, const std::vector<std::string>& dependencies,
     function<shared_ptr<ServiceInterface>(
         const absl::flat_hash_map<std::string, shared_ptr<ServiceInterface>>&)>
         factory) noexcept {

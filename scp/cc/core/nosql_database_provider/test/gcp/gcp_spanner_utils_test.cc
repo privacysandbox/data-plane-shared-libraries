@@ -31,7 +31,6 @@ using google::scp::core::nosql_database_provider::GcpSpannerUtils;
 using json = nlohmann::json;
 using std::get;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::core::test {
 TEST(GcpSpannerUtilsTest,
@@ -70,9 +69,9 @@ TEST(GcpSpannerUtilsTest,
 
 TEST(GcpSpannerUtilsTest,
      ConvertJsonTypeToNoSQLDatabaseValidAttributeValueTypeInvalidType) {
-  vector<json> invalid_value_types(
+  std::vector<json> invalid_value_types(
       {/*struct*/ json::object_t{{"struct_field", 1}},
-       /*array*/ vector<std::string>{"item_1", "item_2"}, /*bool*/ true});
+       /*array*/ std::vector<std::string>{"item_1", "item_2"}, /*bool*/ true});
 
   for (const auto& value_type : invalid_value_types) {
     NoSQLDatabaseValidAttributeValueTypes out_value;

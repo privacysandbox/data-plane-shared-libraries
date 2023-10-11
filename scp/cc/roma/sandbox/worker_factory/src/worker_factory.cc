@@ -41,7 +41,6 @@ using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::roma::sandbox::worker {
 static absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
@@ -58,7 +57,7 @@ ExecutionResultOr<shared_ptr<Worker>> WorkerFactory::Create(
     auto native_function_invoker = make_shared<NativeFunctionInvokerSapiIpc>(
         params.v8_worker_engine_params.native_js_function_comms_fd);
 
-    vector<shared_ptr<V8IsolateVisitor>> isolate_visitors = {
+    std::vector<shared_ptr<V8IsolateVisitor>> isolate_visitors = {
         make_shared<V8IsolateVisitorFunctionBinding>(
             params.v8_worker_engine_params.native_js_function_names,
             native_function_invoker)};

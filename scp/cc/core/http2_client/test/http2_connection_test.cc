@@ -59,7 +59,6 @@ using std::make_shared;
 using std::promise;
 using std::shared_ptr;
 using std::thread;
-using std::vector;
 using std::chrono::milliseconds;
 
 namespace google::scp::core {
@@ -89,7 +88,7 @@ TEST(HttpConnectionTest, SimpleRequest) {
   EXPECT_SUCCESS(connection.Init());
   EXPECT_SUCCESS(connection.Run());
 
-  vector<Uuid> keys;
+  std::vector<Uuid> keys;
   connection.GetPendingNetworkCallbacks().Keys(keys);
   EXPECT_EQ(keys.size(), 0);
 
@@ -153,7 +152,7 @@ TEST(HttpConnectionTest, CancelCallbacks) {
   EXPECT_SUCCESS(connection.Init());
   EXPECT_SUCCESS(connection.Run());
 
-  vector<Uuid> keys;
+  std::vector<Uuid> keys;
   connection.GetPendingNetworkCallbacks().Keys(keys);
   EXPECT_EQ(keys.size(), 0);
 
@@ -220,7 +219,7 @@ TEST(HttpConnectionTest, StopRemovesCallback) {
   EXPECT_SUCCESS(connection.Init());
   EXPECT_SUCCESS(connection.Run());
 
-  vector<Uuid> keys;
+  std::vector<Uuid> keys;
   connection.GetPendingNetworkCallbacks().Keys(keys);
   EXPECT_EQ(keys.size(), 0);
 

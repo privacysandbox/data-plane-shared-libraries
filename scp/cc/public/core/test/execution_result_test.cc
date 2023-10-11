@@ -32,7 +32,6 @@ using std::function;
 using std::make_unique;
 using std::pair;
 using std::unique_ptr;
-using std::vector;
 using testing::_;
 using testing::ElementsAre;
 using testing::Eq;
@@ -395,11 +394,11 @@ TEST(ExecutionResultTest, MatcherTest) {
   EXPECT_THAT(result1, ResultIs(ExecutionResult(ExecutionStatus::Failure, 1)));
   EXPECT_THAT(result1, Not(IsSuccessful()));
 
-  vector<ExecutionResult> results;
+  std::vector<ExecutionResult> results;
   results.push_back(ExecutionResult(ExecutionStatus::Failure, 1));
   results.push_back(ExecutionResult(ExecutionStatus::Retry, 2));
 
-  vector<ExecutionResult> expected_results;
+  std::vector<ExecutionResult> expected_results;
   expected_results.push_back(ExecutionResult(ExecutionStatus::Retry, 2));
   expected_results.push_back(ExecutionResult(ExecutionStatus::Failure, 1));
   EXPECT_THAT(results, UnorderedPointwise(ResultIs(), expected_results));

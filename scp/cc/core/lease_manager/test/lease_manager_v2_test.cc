@@ -51,7 +51,6 @@ using std::optional;
 using std::shared_ptr;
 using std::unique_lock;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using ::testing::_;
@@ -106,8 +105,8 @@ class LeaseManagerV2Test : public ::testing::Test {
     return count;
   }
 
-  vector<LeasableLockId> GetLockSetForAMode(LeaseRefreshMode mode) {
-    vector<LeasableLockId> locks;
+  std::vector<LeasableLockId> GetLockSetForAMode(LeaseRefreshMode mode) {
+    std::vector<LeasableLockId> locks;
     if (mock_lease_refresher_1_->GetLeaseRefreshMode() == mode) {
       locks.push_back(lock_id_1_);
     }

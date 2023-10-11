@@ -24,8 +24,6 @@
 
 #include "component_dependency_node.h"
 
-using std::vector;
-
 namespace google::scp::core {
 
 bool ComponentDependencyNodeCollection::AddNodeToPath(
@@ -38,14 +36,14 @@ bool ComponentDependencyNodeCollection::AddNodeToPath(
   return true;
 }
 
-vector<ComponentDependencyNode>
+std::vector<ComponentDependencyNode>
 ComponentDependencyNodeCollection::GetCyclePath() noexcept {
   int startCycle = -1;
   std::string lastId = dependency_path_.back().id;
   while (dependency_path_[++startCycle].id != lastId) {}
 
-  return vector<ComponentDependencyNode>(dependency_path_.begin() + startCycle,
-                                         dependency_path_.end());
+  return std::vector<ComponentDependencyNode>(
+      dependency_path_.begin() + startCycle, dependency_path_.end());
 }
 
 bool ComponentDependencyNodeCollection::WasVisited(
@@ -60,7 +58,7 @@ void ComponentDependencyNodeCollection::MarkVisited() noexcept {
   dependency_path_.pop_back();
 }
 
-vector<ComponentDependencyNode>
+std::vector<ComponentDependencyNode>
 ComponentDependencyNodeCollection::GetVisitedOrder() noexcept {
   return visited_path_;
 }

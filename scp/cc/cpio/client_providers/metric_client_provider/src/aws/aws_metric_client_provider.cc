@@ -69,7 +69,6 @@ using google::scp::cpio::common::CreateClientConfiguration;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -123,7 +122,7 @@ ExecutionResult AwsMetricClientProvider::Run() noexcept {
 
 ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
     const shared_ptr<
-        vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&
+        std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&
         metric_requests_vector) noexcept {
   if (metric_requests_vector->empty()) {
     return SuccessExecutionResult();
@@ -139,7 +138,8 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
     return execution_result;
   }
 
-  vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>> context_chunk;
+  std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>
+      context_chunk;
 
   PutMetricDataRequest request_chunk;
   // Already confirmed if metric_namespace in metric_batching_options is empty,
@@ -156,7 +156,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
   auto context_size = metric_requests_vector->size();
   for (size_t i = 0; i < context_size; i++) {
     auto context = metric_requests_vector->at(i);
-    vector<MetricDatum> datum_list;
+    std::vector<MetricDatum> datum_list;
     auto result = AwsMetricClientUtils::ParseRequestToDatum(
         context, datum_list, kAwsMetricDatumSizeLimit);
 
@@ -220,7 +220,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
 }
 
 void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
-    vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>
+    std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>
         metric_requests_vector,
     const CloudWatchClient*, const PutMetricDataRequest&,
     const PutMetricDataOutcome& outcome,

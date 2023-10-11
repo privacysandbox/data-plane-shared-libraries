@@ -73,7 +73,6 @@ using google::scp::roma::sandbox::constants::kBadFd;
 using std::make_unique;
 using std::numeric_limits;
 using std::unique_ptr;
-using std::vector;
 using std::this_thread::yield;
 
 namespace google::scp::roma::sandbox::worker_api {
@@ -177,7 +176,7 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
       request_and_response_data_buffer_size_bytes_);
 
   const auto serialized_size = worker_init_params.ByteSizeLong();
-  vector<char> serialized_data(serialized_size);
+  std::vector<char> serialized_data(serialized_size);
   if (!worker_init_params.SerializeToArray(serialized_data.data(),
                                            serialized_size)) {
     LOG(ERROR) << "Failed to serialize init data.";
@@ -275,7 +274,7 @@ ExecutionResult WorkerSandboxApi::InternalRunCode(
 
     // Set input_serialized_size to 0 to indicate the data shared by LenVal.
     input_serialized_size = 0;
-    vector<uint8_t> serialized_data(serialized_size);
+    std::vector<uint8_t> serialized_data(serialized_size);
     if (!params.SerializeToArray(serialized_data.data(), serialized_size)) {
       LOG(ERROR) << "Failed to serialize run_code request protobuf into array.";
       return FailureExecutionResult(

@@ -33,7 +33,6 @@ using google::scp::core::test::GetIpAddress;
 using google::scp::core::test::StartGcpContainer;
 using std::runtime_error;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::cpio::test {
 void TestGcpSdkServerStarter::RunCloud() {

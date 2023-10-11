@@ -63,7 +63,6 @@ using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::set;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::core::test {
 
@@ -949,9 +948,9 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadLastCheckpointBlob) {
   auto partition_name = make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
   for (auto result : results) {
     mock_storage_client.get_blob_mock =
         [&](AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) {
@@ -987,8 +986,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
   // When the result is journal_logthing but success or blob not found
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   for (auto result : results) {
     atomic<bool> condition(false);
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
@@ -1024,8 +1023,8 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadLastCheckpointListFails) {
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
   get_blob_context.result = FailureExecutionResult(
       errors::SC_BLOB_STORAGE_PROVIDER_BLOB_PATH_NOT_FOUND);
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   for (auto result : results) {
     atomic<bool> condition(false);
     mock_journal_input_stream.list_checkpoints_mock =
@@ -1064,12 +1063,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadLastCheckpointBlobCorrupted) {
   get_blob_context.result = SuccessExecutionResult();
 
   atomic<bool> condition(false);
-  vector<BytesBuffer> buffers(2);
-  buffers[0].bytes = make_shared<vector<Byte>>(2);
+  std::vector<BytesBuffer> buffers(2);
+  buffers[0].bytes = make_shared<std::vector<Byte>>(2);
   buffers[0].capacity = 2;
   buffers[0].length = 2;
 
-  buffers[1].bytes = make_shared<vector<Byte>>(22);
+  buffers[1].bytes = make_shared<std::vector<Byte>>(22);
   buffers[1].capacity = 22;
   buffers[1].length = 22;
 
@@ -1124,7 +1123,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
   get_blob_context.response = make_shared<GetBlobResponse>();
   get_blob_context.response->buffer = make_shared<BytesBuffer>();
-  get_blob_context.response->buffer->bytes = make_shared<vector<Byte>>(1000);
+  get_blob_context.response->buffer->bytes =
+      make_shared<std::vector<Byte>>(1000);
   get_blob_context.response->buffer->capacity = 1000;
   get_blob_context.response->buffer->length = 1000;
 
@@ -1133,8 +1133,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
       *get_blob_context.response->buffer, 0, last_checkpoint_metadata,
       byte_serialized);
 
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(12345)};
 
   for (auto result : results) {
     atomic<bool> condition(false);
@@ -1169,9 +1169,9 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadCheckpointBlob) {
   auto bucket_name = make_shared<std::string>("bucket_name");
   auto partition_name = make_shared<std::string>("partition_name");
   MockBlobStorageClient mock_storage_client;
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
 
   for (auto result : results) {
     mock_storage_client.get_blob_mock =
@@ -1208,8 +1208,8 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobCallback) {
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
   // When the result is journal_logthing but success
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   for (auto result : results) {
     atomic<bool> condition(false);
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
@@ -1244,12 +1244,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobCorruptedBlob) {
   get_blob_context.result = SuccessExecutionResult();
 
   atomic<bool> condition(false);
-  vector<BytesBuffer> buffers(2);
-  buffers[0].bytes = make_shared<vector<Byte>>(2);
+  std::vector<BytesBuffer> buffers(2);
+  buffers[0].bytes = make_shared<std::vector<Byte>>(2);
   buffers[0].capacity = 2;
   buffers[0].length = 2;
 
-  buffers[1].bytes = make_shared<vector<Byte>>(22);
+  buffers[1].bytes = make_shared<std::vector<Byte>>(22);
   buffers[1].capacity = 22;
   buffers[1].length = 22;
 
@@ -1298,7 +1298,8 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobListBlobsFail) {
 
   get_blob_context.response = make_shared<GetBlobResponse>();
   get_blob_context.response->buffer = make_shared<BytesBuffer>();
-  get_blob_context.response->buffer->bytes = make_shared<vector<Byte>>(1000);
+  get_blob_context.response->buffer->bytes =
+      make_shared<std::vector<Byte>>(1000);
   get_blob_context.response->buffer->capacity = 1000;
 
   size_t byte_serialized = 0;
@@ -1307,8 +1308,8 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobListBlobsFail) {
       byte_serialized);
   get_blob_context.response->buffer->length = byte_serialized;
 
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(12345)};
 
   for (auto result : results) {
     MockJournalInputStream mock_journal_input_stream(
@@ -1349,9 +1350,9 @@ TEST_P(MockJournalInputStreamTestWithParam, ListCheckpoints) {
   auto partition_name = make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
   for (auto result : results) {
     mock_storage_client.list_blobs_mock =
         [&](AsyncContext<ListBlobsRequest, ListBlobsResponse>&
@@ -1400,8 +1401,8 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListCheckpointsCallback) {
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
   // When the result is journal_logthing but success
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   for (auto result : results) {
     atomic<bool> condition(false);
     AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
@@ -1433,14 +1434,14 @@ TEST_P(MockJournalInputStreamTestWithParam,
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
   // When the result is success but there are no checkpoint blobs
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   for (auto result : results) {
     atomic<bool> condition(false);
     AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
     list_blobs_context.result = SuccessExecutionResult();
     list_blobs_context.response = make_shared<ListBlobsResponse>();
-    list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+    list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
         journal_stream_read_log_context;
 
@@ -1483,13 +1484,13 @@ TEST_P(MockJournalInputStreamTestWithParam,
       std::make_shared<EnvConfigProvider>());
   // When the result is success but there are checkpoint blobs with
   // wrong name
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   atomic<bool> condition(false);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
   list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
   Blob blob;
   blob.blob_name = make_shared<std::string>("checkpoint_12312_ddd");
   list_blobs_context.response->blobs->push_back(blob);
@@ -1523,7 +1524,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
                   "partition_name/checkpoint_12315");
         list_context.result = SuccessExecutionResult();
         list_context.response = make_shared<ListBlobsResponse>();
-        list_context.response->blobs = make_shared<vector<Blob>>();
+        list_context.response->blobs = make_shared<std::vector<Blob>>();
         list_context.Finish();
         return SuccessExecutionResult();
       };
@@ -1537,7 +1538,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
   list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
   Blob blob;
   blob.blob_name = make_shared<std::string>("partition_name/checkpoint_12312");
   list_blobs_context.response->blobs->push_back(blob);
@@ -1582,15 +1583,15 @@ TEST_P(MockJournalInputStreamTestWithParam,
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
 
   for (auto result : results) {
     atomic<bool> condition(false);
     AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
     list_blobs_context.result = SuccessExecutionResult();
     list_blobs_context.response = make_shared<ListBlobsResponse>();
-    list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+    list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
     list_blobs_context.response->next_marker = make_shared<Blob>();
     list_blobs_context.response->next_marker->bucket_name = bucket_name;
     list_blobs_context.response->next_marker->blob_name =
@@ -1634,9 +1635,9 @@ TEST_P(MockJournalInputStreamTestWithParam, ListJournals) {
   auto partition_name = make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
   for (auto result : results) {
     mock_storage_client.list_blobs_mock =
         [&](AsyncContext<ListBlobsRequest, ListBlobsResponse>&
@@ -1684,8 +1685,8 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallback) {
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
   // When the result is journal_logthing but success
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   for (auto result : results) {
     atomic<bool> condition(false);
     AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
@@ -1721,7 +1722,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
   list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context;
 
@@ -1755,13 +1756,13 @@ TEST_P(MockJournalInputStreamTestWithParam,
       std::make_shared<EnvConfigProvider>());
   // When the result is success but there are checkpoint blobs with
   // wrong name
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   atomic<bool> condition(false);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
   list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
   Blob blob;
   blob.blob_name = make_shared<std::string>("journal_12312_ddd");
   list_blobs_context.response->blobs->push_back(blob);
@@ -1795,7 +1796,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
                   "partition_name/journal_12315");
         list_context.result = SuccessExecutionResult();
         list_context.response = make_shared<ListBlobsResponse>();
-        list_context.response->blobs = make_shared<vector<Blob>>();
+        list_context.response->blobs = make_shared<std::vector<Blob>>();
         list_context.Finish();
         return SuccessExecutionResult();
       };
@@ -1809,7 +1810,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
   list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
   Blob blob;
   blob.blob_name = make_shared<std::string>("partition_name/journal_12312");
   list_blobs_context.response->blobs->push_back(blob);
@@ -1829,7 +1830,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
   mock_journal_input_stream.read_journal_blobs_mock =
       [&](AsyncContext<journal_service::JournalStreamReadLogRequest,
                        journal_service::JournalStreamReadLogResponse>&,
-          vector<uint64_t>& journal_ids) {
+          std::vector<uint64_t>& journal_ids) {
         EXPECT_EQ(journal_ids.size(), 3);
         EXPECT_EQ(journal_ids[0], 12312);
         EXPECT_EQ(journal_ids[1], 12315);
@@ -1873,7 +1874,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
   list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
   Blob blob;
   blob.blob_name = make_shared<std::string>("partition_name/journal_12312");
   list_blobs_context.response->blobs->push_back(blob);
@@ -1893,7 +1894,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
   mock_journal_input_stream.read_journal_blobs_mock =
       [&](AsyncContext<journal_service::JournalStreamReadLogRequest,
                        journal_service::JournalStreamReadLogResponse>&,
-          vector<uint64_t>& journal_ids) {
+          std::vector<uint64_t>& journal_ids) {
         EXPECT_EQ(journal_ids.size(), 2);
         EXPECT_EQ(journal_ids[0], 12312);
         EXPECT_EQ(journal_ids[1], 12345);
@@ -1935,7 +1936,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
   list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
   Blob blob;
   blob.blob_name = make_shared<std::string>("partition_name/journal_12312");
   list_blobs_context.response->blobs->push_back(blob);
@@ -1956,7 +1957,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
   mock_journal_input_stream.read_journal_blobs_mock =
       [&](AsyncContext<journal_service::JournalStreamReadLogRequest,
                        journal_service::JournalStreamReadLogResponse>&,
-          vector<uint64_t>& journal_ids) {
+          std::vector<uint64_t>& journal_ids) {
         EXPECT_EQ(journal_ids.size(), 2);
         EXPECT_EQ(journal_ids[0], 12312);
         EXPECT_EQ(journal_ids[1], 12345);
@@ -1987,15 +1988,15 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallbackWithMarker) {
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
 
   for (auto result : results) {
     atomic<bool> condition(false);
     AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
     list_blobs_context.result = SuccessExecutionResult();
     list_blobs_context.response = make_shared<ListBlobsResponse>();
-    list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+    list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
     list_blobs_context.response->next_marker = make_shared<Blob>();
     list_blobs_context.response->next_marker->bucket_name = bucket_name;
     list_blobs_context.response->next_marker->blob_name =
@@ -2016,7 +2017,7 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallbackWithMarker) {
     mock_journal_input_stream.read_journal_blobs_mock =
         [&](AsyncContext<journal_service::JournalStreamReadLogRequest,
                          journal_service::JournalStreamReadLogResponse>&,
-            vector<uint64_t>& journal_ids) {
+            std::vector<uint64_t>& journal_ids) {
           EXPECT_EQ(true, false);
           return FailureExecutionResult(123);
         };
@@ -2050,7 +2051,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
       journal_stream_read_log_context;
   journal_stream_read_log_context.callback = [&](auto&) {};
 
-  vector<uint64_t> journal_ids;
+  std::vector<uint64_t> journal_ids;
   EXPECT_THAT(mock_journal_input_stream.ReadJournalBlobs(
                   journal_stream_read_log_context, journal_ids),
               ResultIs(FailureExecutionResult(
@@ -2065,15 +2066,15 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlobsProperly) {
   shared_ptr<BlobStorageClientInterface> storage_client =
       make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   // When the result is journal_logthing but success
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   for (auto result : results) {
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
         std::make_shared<EnvConfigProvider>());
-    vector<size_t> journal_id_dispatched;
-    vector<size_t> buffer_index_dispatched;
+    std::vector<size_t> journal_id_dispatched;
+    std::vector<size_t> buffer_index_dispatched;
 
     mock_journal_input_stream.read_journal_blob_mock =
         [&](AsyncContext<JournalStreamReadLogRequest,
@@ -2088,7 +2089,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlobsProperly) {
         journal_stream_read_log_context;
     journal_stream_read_log_context.callback = [&](auto&) {};
 
-    vector<uint64_t> journal_ids = {100, 10, 24};
+    std::vector<uint64_t> journal_ids = {100, 10, 24};
     EXPECT_EQ(mock_journal_input_stream.ReadJournalBlobs(
                   journal_stream_read_log_context, journal_ids),
               result);
@@ -2126,7 +2127,7 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlobsFailedToSchedule) {
         return result;
       };
 
-  vector<uint64_t> journal_ids = {100, 10, 24};
+  std::vector<uint64_t> journal_ids = {100, 10, 24};
   // This function call should not return a Failure as there are two
   // more callbacks to be received for the journals 10 and 24 and the
   // last one would finish the context.
@@ -2140,9 +2141,9 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlob) {
   auto partition_name = make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
   for (auto result : results) {
     mock_storage_client.get_blob_mock =
         [&](AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) {
@@ -2176,8 +2177,8 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadJournalBlobCallback) {
   shared_ptr<BlobStorageClientInterface> storage_client =
       make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   // When the result is journal_logthing but success
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   for (auto result : results) {
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
@@ -2215,14 +2216,15 @@ TEST_P(MockJournalInputStreamTestWithParam,
       std::make_shared<EnvConfigProvider>());
 
   // When the result is journal_logthing but success
-  vector<ExecutionResult> results = {FailureExecutionResult(1234),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
+                                          RetryExecutionResult(1234)};
   for (auto result : results) {
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
     get_blob_context.result = SuccessExecutionResult();
     get_blob_context.response = make_shared<GetBlobResponse>();
     get_blob_context.response->buffer = make_shared<BytesBuffer>();
-    get_blob_context.response->buffer->bytes = make_shared<vector<Byte>>(1);
+    get_blob_context.response->buffer->bytes =
+        make_shared<std::vector<Byte>>(1);
     get_blob_context.response->buffer->length = 100;
     get_blob_context.response->buffer->capacity = 200;
 
@@ -2250,11 +2252,12 @@ TEST_P(MockJournalInputStreamTestWithParam,
 }
 
 BytesBuffer GenerateLogBytes(size_t count, set<Uuid>& completed_logs,
-                             vector<Timestamp>& timestamps,
-                             vector<Uuid>& component_ids, vector<Uuid>& log_ids,
-                             vector<JournalLog>& journal_logs) {
+                             std::vector<Timestamp>& timestamps,
+                             std::vector<Uuid>& component_ids,
+                             std::vector<Uuid>& log_ids,
+                             std::vector<JournalLog>& journal_logs) {
   BytesBuffer bytes_buffer_0;
-  bytes_buffer_0.bytes = make_shared<vector<Byte>>(10240000);
+  bytes_buffer_0.bytes = make_shared<std::vector<Byte>>(10240000);
   bytes_buffer_0.capacity = 10240000;
 
   for (size_t i = 0; i < count; ++i) {
@@ -2352,7 +2355,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
       std::make_shared<EnvConfigProvider>());
 
   BytesBuffer buffer;
-  buffer.bytes = make_shared<vector<Byte>>();
+  buffer.bytes = make_shared<std::vector<Byte>>();
   buffer.capacity = 0;
   buffer.length = 1;
   mock_journal_input_stream.GetJournalBuffers().push_back(buffer);
@@ -2453,20 +2456,20 @@ TEST_P(MockJournalInputStreamTestWithParam,
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
 
-  vector<size_t> counts = {0, 100};
-  vector<JournalLog> pending_journal_logs;
-  vector<Uuid> pending_journal_log_uuids;
-  vector<Uuid> pending_journal_component_uuids;
-  vector<Timestamp> pending_journal_timestamps;
+  std::vector<size_t> counts = {0, 100};
+  std::vector<JournalLog> pending_journal_logs;
+  std::vector<Uuid> pending_journal_log_uuids;
+  std::vector<Uuid> pending_journal_component_uuids;
+  std::vector<Timestamp> pending_journal_timestamps;
 
   auto& journal_ids = mock_journal_input_stream.GetJournalIds();
   auto& journal_buffers = mock_journal_input_stream.GetJournalBuffers();
   for (size_t i = 0; i < counts.size(); ++i) {
     set<Uuid> completed_logs;
-    vector<Uuid> log_ids;
-    vector<JournalLog> journal_logs;
-    vector<Timestamp> timestamps;
-    vector<Uuid> component_ids;
+    std::vector<Uuid> log_ids;
+    std::vector<JournalLog> journal_logs;
+    std::vector<Timestamp> timestamps;
+    std::vector<Uuid> component_ids;
 
     journal_ids.push_back(12341234);
     journal_buffers.push_back(GenerateLogBytes(counts[i], completed_logs,
@@ -2534,20 +2537,20 @@ TEST_F(MockJournalInputStreamTest, ReadJournalLogBatch) {
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
 
-  vector<size_t> counts = {0, 100};
-  vector<JournalLog> pending_journal_logs;
-  vector<Uuid> pending_journal_log_uuids;
-  vector<Uuid> pending_journal_component_uuids;
-  vector<Timestamp> pending_journal_timestamps;
+  std::vector<size_t> counts = {0, 100};
+  std::vector<JournalLog> pending_journal_logs;
+  std::vector<Uuid> pending_journal_log_uuids;
+  std::vector<Uuid> pending_journal_component_uuids;
+  std::vector<Timestamp> pending_journal_timestamps;
 
   auto& journal_ids = mock_journal_input_stream.GetJournalIds();
   auto& journal_buffers = mock_journal_input_stream.GetJournalBuffers();
   for (size_t i = 0; i < counts.size(); ++i) {
     set<Uuid> completed_logs;
-    vector<Uuid> log_ids;
-    vector<JournalLog> journal_logs;
-    vector<Timestamp> timestamps;
-    vector<Uuid> component_ids;
+    std::vector<Uuid> log_ids;
+    std::vector<JournalLog> journal_logs;
+    std::vector<Timestamp> timestamps;
+    std::vector<Uuid> component_ids;
 
     journal_ids.push_back(12344321);
     journal_buffers.push_back(GenerateLogBytes(counts[i], completed_logs,
@@ -2564,7 +2567,7 @@ TEST_F(MockJournalInputStreamTest, ReadJournalLogBatch) {
 
   size_t index = 0;
   while (true) {
-    auto batch = make_shared<vector<JournalStreamReadLogObject>>();
+    auto batch = make_shared<std::vector<JournalStreamReadLogObject>>();
     auto execution_result =
         mock_journal_input_stream.ReadJournalLogBatch(batch);
     if (!execution_result.Successful()) {

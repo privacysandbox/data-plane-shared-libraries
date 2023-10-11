@@ -21,11 +21,10 @@
 
 using std::ifstream;
 using std::runtime_error;
-using std::vector;
 
 namespace google::scp::roma::wasm::testing {
 std::vector<char> WasmTestingUtils::LoadWasmFile(const std::string& file_path) {
-  vector<char> file_contents;
+  std::vector<char> file_contents;
 
   ifstream input_file(file_path);
   CHECK(input_file.good()) << "File: " + file_path + " does not exist.";

@@ -50,7 +50,6 @@ using std::list;
 using std::make_shared;
 using std::shared_ptr;
 using std::sort;
-using std::vector;
 using std::chrono::milliseconds;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -109,7 +108,7 @@ ExecutionResult JournalOutputStream::AppendLog(
 ExecutionResult JournalOutputStream::GetLastPersistedJournalId(
     JournalId& journal_id) noexcept {
   journal_id = kInvalidJournalId;
-  vector<JournalId> journal_ids;
+  std::vector<JournalId> journal_ids;
   auto execution_result = journals_to_persist_.Keys(journal_ids);
   if (!execution_result.Successful()) {
     return execution_result;

@@ -53,7 +53,6 @@ using std::bind;
 using std::make_shared;
 using std::scoped_lock;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
 using std::placeholders::_1;
@@ -171,7 +170,7 @@ ExecutionResult MetricClientProvider::PutMetrics(
 
 void MetricClientProvider::RunMetricsBatchPush() noexcept {
   auto requests_vector_copy = make_shared<
-      vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
+      std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   metric_requests_vector_.swap(*requests_vector_copy);
   number_metrics_in_vector_.exchange(0);
 

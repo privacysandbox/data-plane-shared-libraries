@@ -64,7 +64,6 @@ using std::set;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
-using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -180,7 +179,7 @@ ExecutionResult Http2Server::Run() noexcept {
 
   RETURN_IF_FAILURE(MetricRun());
 
-  vector<std::string> paths;
+  std::vector<std::string> paths;
   RETURN_IF_FAILURE(resource_handlers_.Keys(paths));
 
   for (const auto& path : paths) {

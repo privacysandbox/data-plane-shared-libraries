@@ -97,7 +97,6 @@ using std::make_unique;
 using std::runtime_error;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 using std::placeholders::_1;
 
 namespace {

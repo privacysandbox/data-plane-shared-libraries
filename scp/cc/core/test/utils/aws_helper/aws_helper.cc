@@ -55,7 +55,6 @@ using Aws::SSM::Model::PutParameterRequest;
 using Aws::Utils::CryptoBuffer;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -86,8 +85,8 @@ shared_ptr<DynamoDBClient> CreateDynamoDbClient(const std::string& endpoint,
 
 void CreateTable(const shared_ptr<DynamoDBClient>& dynamo_db_client,
                  const std::string& table_name,
-                 const vector<AttributeDefinition>& attributes,
-                 const vector<KeySchemaElement>& schemas) {
+                 const std::vector<AttributeDefinition>& attributes,
+                 const std::vector<KeySchemaElement>& schemas) {
   CreateTableRequest request;
   request.SetTableName(table_name.c_str());
 

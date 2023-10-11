@@ -17,7 +17,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-using std::vector;
 using testing::ElementsAre;
 using testing::Eq;
 using testing::Field;
@@ -31,7 +30,7 @@ struct S {
   int x, y, z;
   std::string a;
   S* o;
-  vector<int> v;
+  std::vector<int> v;
 };
 
 TEST(StructMatchersTest, OnePair) {

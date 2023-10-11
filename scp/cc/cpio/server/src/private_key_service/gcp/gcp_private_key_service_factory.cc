@@ -57,7 +57,6 @@ using std::dynamic_pointer_cast;
 using std::list;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace {
 constexpr char kGcpPrivateKeyServiceFactory[] = "GcpPrivateKeyServiceFactory";
@@ -84,7 +83,7 @@ GcpPrivateKeyServiceFactory::CreateKmsClient() noexcept {
 }
 
 ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
-  vector<ComponentCreator> creators(
+  std::vector<ComponentCreator> creators(
       {ComponentCreator(
            bind(&GcpPrivateKeyServiceFactory::CreateIoAsyncExecutor, this),
            "IoAsyncExecutor"),

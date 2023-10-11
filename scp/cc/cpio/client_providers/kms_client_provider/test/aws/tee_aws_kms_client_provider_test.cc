@@ -68,7 +68,6 @@ using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 
 static constexpr char kAssumeRoleArn[] = "assumeRoleArn";
 static constexpr char kCiphertext[] = "ciphertext";

@@ -41,7 +41,6 @@ using std::atomic;
 using std::function;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::core::test {
 TEST(JournalOutputStreamTests, AppendLog) {
@@ -354,7 +353,7 @@ TEST(JournalOutputStreamTests, SerializeLog) {
   journal_stream_append_log_context.request->log_status = JournalLogStatus::Log;
 
   BytesBuffer bytes_buffer;
-  bytes_buffer.bytes = make_shared<vector<Byte>>(1000);
+  bytes_buffer.bytes = make_shared<std::vector<Byte>>(1000);
   bytes_buffer.length = 0;
   bytes_buffer.capacity = 1000;
   size_t bytes_serialized = 0;
@@ -399,7 +398,7 @@ TEST(JournalOutputStreamTests, SerializeLog) {
   EXPECT_EQ(bytes_serialized, total_bytes_deserialized);
   EXPECT_EQ(deserialized_journal_log.type(), journal_log.type());
 
-  bytes_buffer.bytes = make_shared<vector<Byte>>(kLogHeaderByteLength - 1);
+  bytes_buffer.bytes = make_shared<std::vector<Byte>>(kLogHeaderByteLength - 1);
   bytes_buffer.length = 0;
   bytes_buffer.capacity = kLogHeaderByteLength - 1;
   size_t new_bytes_serialized = 0;
@@ -412,7 +411,7 @@ TEST(JournalOutputStreamTests, SerializeLog) {
   EXPECT_EQ(new_bytes_serialized, 0);
   bytes_buffer.length += new_bytes_serialized;
 
-  bytes_buffer.bytes = make_shared<vector<Byte>>(kLogHeaderByteLength + 1);
+  bytes_buffer.bytes = make_shared<std::vector<Byte>>(kLogHeaderByteLength + 1);
   bytes_buffer.length = 0;
   bytes_buffer.capacity = kLogHeaderByteLength + 1;
   new_bytes_serialized = 0;
@@ -432,12 +431,12 @@ TEST(JournalOutputStreamTests, WriteJournalBlob) {
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
 
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
   for (auto result : results) {
     BytesBuffer bytes_buffer;
-    bytes_buffer.bytes = make_shared<vector<Byte>>(1000);
+    bytes_buffer.bytes = make_shared<std::vector<Byte>>(1000);
     bytes_buffer.capacity = 123;
     bytes_buffer.length = 456;
     MockBlobStorageClient mock_storage_client;
@@ -471,11 +470,11 @@ TEST(JournalOutputStreamTests, WriteEmptyJournalBlob) {
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<MockAsyncExecutor>(std::move(async_executor_mock));
 
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
   BytesBuffer bytes_buffer;
-  bytes_buffer.bytes = make_shared<vector<Byte>>();
+  bytes_buffer.bytes = make_shared<std::vector<Byte>>();
   bytes_buffer.capacity = 0;
   bytes_buffer.length = 0;
   MockBlobStorageClient mock_storage_client;
@@ -504,9 +503,9 @@ TEST(JournalOutputStreamTests, OnWriteJournalBlobCallback) {
   MockJournalOutputStream mock_journal_output_stream(
       bucket_name, partition_name, async_executor, storage_client);
 
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(12345)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(12345)};
   for (auto result : results) {
     atomic<bool> condition = false;
     auto callback = [&](ExecutionResult& execution_result) {
@@ -544,7 +543,7 @@ TEST(JournalOutputStreamTests, GetLastPersistedJournalId) {
       ResultIs(FailureExecutionResult(
           core::errors::SC_JOURNAL_SERVICE_NO_NEW_JOURNAL_ID_AVAILABLE)));
 
-  vector<JournalId> keys;
+  std::vector<JournalId> keys;
   for (JournalId i = 50; i < 100; ++i) {
     shared_ptr<bool> value;
     mock_journal_output_stream.GetPersistedJournalIds().Find(i, value);

@@ -56,7 +56,6 @@ using std::list;
 using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::placeholders::_1;
@@ -195,7 +194,7 @@ ExecutionResult TransactionEngine::Init() noexcept {
 
 ExecutionResult TransactionEngine::Run() noexcept {
   // All the pending transactions must be kicked off during the run operation.
-  vector<Uuid> active_transaction_ids;
+  std::vector<Uuid> active_transaction_ids;
   auto execution_result = active_transactions_map_.Keys(active_transaction_ids);
   if (!execution_result.Successful()) {
     return execution_result;
@@ -275,7 +274,7 @@ ExecutionResult TransactionEngine::Stop() noexcept {
   }
 
   // Wait for pending activities to finish on the transactions
-  vector<Uuid> active_transaction_ids;
+  std::vector<Uuid> active_transaction_ids;
   execution_result = active_transactions_map_.Keys(active_transaction_ids);
   if (!execution_result.Successful()) {
     return execution_result;
@@ -1070,7 +1069,7 @@ ExecutionResult TransactionEngine::SerializeTransaction(
   offset = 0;
   bytes_serialized = 0;
   transaction_engine_log_bytes_buffer.bytes =
-      make_shared<vector<Byte>>(transaction_engine_log.ByteSizeLong());
+      make_shared<std::vector<Byte>>(transaction_engine_log.ByteSizeLong());
   transaction_engine_log_bytes_buffer.capacity =
       transaction_engine_log.ByteSizeLong();
   execution_result = Serialization::SerializeProtoMessage<TransactionEngineLog>(
@@ -1208,7 +1207,7 @@ ExecutionResult TransactionEngine::SerializeState(
   offset = 0;
   bytes_serialized = 0;
   transaction_engine_log_bytes_buffer.bytes =
-      make_shared<vector<Byte>>(transaction_engine_log.ByteSizeLong());
+      make_shared<std::vector<Byte>>(transaction_engine_log.ByteSizeLong());
   transaction_engine_log_bytes_buffer.capacity =
       transaction_engine_log.ByteSizeLong();
   execution_result = Serialization::SerializeProtoMessage<TransactionEngineLog>(
@@ -1544,7 +1543,7 @@ ExecutionResult TransactionEngine::GetTransactionStatus(
 
 ExecutionResult TransactionEngine::Checkpoint(
     shared_ptr<list<CheckpointLog>>& checkpoint_logs) noexcept {
-  vector<Uuid> active_transactions;
+  std::vector<Uuid> active_transactions;
   auto execution_result = active_transactions_map_.Keys(active_transactions);
   if (!execution_result.Successful()) {
     return execution_result;

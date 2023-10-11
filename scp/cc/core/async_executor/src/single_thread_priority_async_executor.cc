@@ -39,7 +39,6 @@ using std::priority_queue;
 using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
-using std::vector;
 using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
 
@@ -50,7 +49,7 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::Init() noexcept {
   }
 
   queue_ = make_shared<
-      priority_queue<shared_ptr<AsyncTask>, vector<shared_ptr<AsyncTask>>,
+      priority_queue<shared_ptr<AsyncTask>, std::vector<shared_ptr<AsyncTask>>,
                      AsyncTaskCompareGreater>>();
   return SuccessExecutionResult();
 };

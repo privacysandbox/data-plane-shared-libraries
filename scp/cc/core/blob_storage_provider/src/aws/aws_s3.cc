@@ -59,7 +59,6 @@ using google::scp::core::utils::Base64Encode;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -163,7 +162,7 @@ void AwsS3Client::OnGetObjectCallback(
   get_blob_context.response = make_shared<GetBlobResponse>();
   get_blob_context.response->buffer = make_shared<BytesBuffer>();
   get_blob_context.response->buffer->bytes =
-      make_shared<vector<Byte>>(content_length);
+      make_shared<std::vector<Byte>>(content_length);
   get_blob_context.response->buffer->length = content_length;
   get_blob_context.response->buffer->capacity = content_length;
   get_blob_context.result = SuccessExecutionResult();
@@ -236,7 +235,7 @@ void AwsS3Client::OnListObjectsCallback(
   }
 
   list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
   for (auto& object : list_objects_outcome.GetResult().GetContents()) {
     Blob blob;
     blob.blob_name = make_shared<std::string>(object.GetKey());

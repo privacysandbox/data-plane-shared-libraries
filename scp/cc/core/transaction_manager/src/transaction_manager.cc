@@ -55,7 +55,6 @@ using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 

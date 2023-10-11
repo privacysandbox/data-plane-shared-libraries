@@ -34,7 +34,6 @@ using google::scp::core::common::Uuid;
 using google::scp::core::logger::FromString;
 using google::scp::core::logger::ToString;
 using google::scp::core::logger::mock::MockLogger;
-using std::vector;
 
 namespace google::scp::core::test {
 class LoggerTests : public ScpTestBase {
@@ -163,10 +162,10 @@ TEST_F(LoggerTests, LogWithArgs) {
 }
 
 TEST_F(LoggerTests, LogLevelToAndFromString) {
-  vector<LogLevel> log_levels = {LogLevel::kAlert, LogLevel::kCritical,
-                                 LogLevel::kDebug, LogLevel::kEmergency,
-                                 LogLevel::kError, LogLevel::kInfo,
-                                 LogLevel::kNone,  LogLevel::kWarning};
+  std::vector<LogLevel> log_levels = {LogLevel::kAlert, LogLevel::kCritical,
+                                      LogLevel::kDebug, LogLevel::kEmergency,
+                                      LogLevel::kError, LogLevel::kInfo,
+                                      LogLevel::kNone,  LogLevel::kWarning};
 
   for (auto log_level : log_levels) {
     EXPECT_EQ(FromString(ToString(log_level)), log_level);

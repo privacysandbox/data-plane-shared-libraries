@@ -54,7 +54,6 @@ using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace {
 constexpr char kTestKeyId[] = "name_test";
@@ -131,7 +130,7 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestFailed) {
   key_data->key_encryption_key_uri = make_shared<std::string>("");
   key_data->key_material = make_shared<std::string>("");
   key_data->public_key_signature = make_shared<std::string>("");
-  encryption_key->key_data = vector<shared_ptr<KeyData>>({key_data});
+  encryption_key->key_data = std::vector<shared_ptr<KeyData>>({key_data});
 
   DecryptRequest kms_decrypt_request;
   auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(

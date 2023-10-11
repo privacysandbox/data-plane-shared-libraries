@@ -29,7 +29,6 @@ using std::cout;
 using std::make_shared;
 using std::shared_ptr;
 using std::thread;
-using std::vector;
 using ::testing::HasSubstr;
 
 namespace google::scp::core::tcp_traffic_forwarder::test {

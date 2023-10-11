@@ -89,7 +89,6 @@ using std::make_unique;
 using std::runtime_error;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 using std::placeholders::_1;
 
 namespace {
@@ -189,8 +188,8 @@ void RunClients() {
 
   auto options = make_shared<PublicKeyClientOptions>();
   options->endpoints =
-      vector<std::string>(public_key_vending_service_endpoints.begin(),
-                          public_key_vending_service_endpoints.end());
+      std::vector<std::string>(public_key_vending_service_endpoints.begin(),
+                               public_key_vending_service_endpoints.end());
   public_key_client =
       PublicKeyClientProviderFactory::Create(options, http_client);
   Init(public_key_client, kPublicKeyClientName);

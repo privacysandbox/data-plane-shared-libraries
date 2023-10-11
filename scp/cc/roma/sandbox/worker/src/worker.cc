@@ -44,7 +44,6 @@ using google::scp::roma::sandbox::constants::kRequestTypeJavascriptWithWasm;
 using google::scp::roma::sandbox::constants::kRequestTypeWasm;
 using google::scp::roma::sandbox::js_engine::JsEngineExecutionResponse;
 using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
-using std::vector;
 
 namespace google::scp::roma::sandbox::worker {
 ExecutionResult Worker::Init() noexcept {
@@ -60,7 +59,7 @@ ExecutionResult Worker::Stop() noexcept {
 }
 
 ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
-    const std::string& code, const vector<absl::string_view>& input,
+    const std::string& code, const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string, std::string>& metadata,
     const absl::Span<const uint8_t>& wasm) {
   auto request_type_or =

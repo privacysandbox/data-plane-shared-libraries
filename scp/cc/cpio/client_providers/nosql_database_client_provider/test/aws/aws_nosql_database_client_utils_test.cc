@@ -51,7 +51,6 @@ using std::make_pair;
 using std::make_shared;
 using std::pair;
 using std::shared_ptr;
-using std::vector;
 using testing::Eq;
 using testing::Optional;
 using testing::Pair;
@@ -147,7 +146,7 @@ void SetValueType(AttributeValue& attribute_value, ValueType type) {
 
 TEST(AwsNoSQLDatabaseClientUtilsTests,
      ConvertDynamoDBTypeToItemAttributeInvalidType) {
-  vector<ValueType> invalid_value_types(
+  std::vector<ValueType> invalid_value_types(
       {ValueType::BYTEBUFFER, ValueType::STRING_SET, ValueType::NUMBER_SET,
        ValueType::BYTEBUFFER_SET, ValueType::ATTRIBUTE_MAP,
        ValueType::ATTRIBUTE_LIST, ValueType::BOOL, ValueType::NULLVALUE});

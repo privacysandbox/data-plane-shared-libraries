@@ -85,7 +85,6 @@ using std::optional;
 using std::pair;
 using std::promise;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 
 namespace {
@@ -320,7 +319,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
       // different from project ID. In some cases, the project number doesn't
       // work. (e.g, in the spanner, using project number will have permission
       // issue)
-      vector<std::string> splits =
+      std::vector<std::string> splits =
           absl::StrSplit(http_client_context.response->body.ToString(), "/");
       instance_resource_name_tracker->instance_zone = std::move(splits.back());
       break;

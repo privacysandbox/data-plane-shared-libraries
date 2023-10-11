@@ -32,7 +32,6 @@ using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using std::make_unique;
 using std::unique_ptr;
-using std::vector;
 
 // This value does not account for runtime memory usage and is only a generic
 // estimate based on the memory needed by roma and the steady-state memory
@@ -80,7 +79,7 @@ absl::Status ExecuteInternal(unique_ptr<RequestT> invocation_req,
 }
 
 template <typename RequestT>
-absl::Status BatchExecuteInternal(vector<RequestT>& batch,
+absl::Status BatchExecuteInternal(std::vector<RequestT>& batch,
                                   BatchCallback batch_callback) {
   for (auto& request : batch) {
     auto validation = ExecutionObjectValidation("BatchExecute", &request);
@@ -179,12 +178,12 @@ absl::Status Execute(unique_ptr<InvocationRequestSharedInput> invocation_req,
   return ExecuteInternal(std::move(invocation_req), callback);
 }
 
-absl::Status BatchExecute(vector<InvocationRequestStrInput>& batch,
+absl::Status BatchExecute(std::vector<InvocationRequestStrInput>& batch,
                           BatchCallback batch_callback) {
   return BatchExecuteInternal(batch, batch_callback);
 }
 
-absl::Status BatchExecute(vector<InvocationRequestSharedInput>& batch,
+absl::Status BatchExecute(std::vector<InvocationRequestSharedInput>& batch,
                           BatchCallback batch_callback) {
   return BatchExecuteInternal(batch, batch_callback);
 }

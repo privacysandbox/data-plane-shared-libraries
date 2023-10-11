@@ -28,7 +28,6 @@ using google::scp::roma::sandbox::constants::
     kFuctionBindingMetadataFunctionName;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 static constexpr char kFailedNativeHandlerExecution[] =
     "ROMA: Failed to execute the C++ function.";
@@ -37,8 +36,8 @@ static constexpr char kCouldNotFindFunctionName[] =
 
 namespace google::scp::roma::sandbox::native_function_binding {
 NativeFunctionHandlerSapiIpc::NativeFunctionHandlerSapiIpc(
-    shared_ptr<NativeFunctionTable>& function_table, vector<int> local_fds,
-    vector<int> remote_fds) {
+    shared_ptr<NativeFunctionTable>& function_table, std::vector<int> local_fds,
+    std::vector<int> remote_fds) {
   stop_ = false;
   function_table_ = function_table;
   auto process_count = local_fds.size();

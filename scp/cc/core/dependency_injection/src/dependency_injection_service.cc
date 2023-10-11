@@ -32,12 +32,11 @@ using std::function;
 using std::make_shared;
 using std::shared_ptr;
 using std::unordered_set;
-using std::vector;
 
 namespace google::scp::core {
 
 ExecutionResult DependencyInjectionService::RegisterComponent(
-    const std::string& id, const vector<std::string>& dependencies,
+    const std::string& id, const std::vector<std::string>& dependencies,
     function<shared_ptr<ServiceInterface>(
         const absl::flat_hash_map<std::string, shared_ptr<ServiceInterface>>&)>
         factory) noexcept {
@@ -82,7 +81,7 @@ ExecutionResult DependencyInjectionService::Execute(
 }
 
 ExecutionResult DependencyInjectionService::ResolveDependencies(
-    const vector<ComponentDependencyNode>& dependency_order) {
+    const std::vector<ComponentDependencyNode>& dependency_order) {
   try {
     for_each(dependency_order.begin(), dependency_order.end(),
              [this](ComponentDependencyNode node) {

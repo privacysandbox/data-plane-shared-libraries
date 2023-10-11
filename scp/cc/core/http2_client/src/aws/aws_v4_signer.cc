@@ -40,7 +40,6 @@ using boost::algorithm::token_compress_off;
 using boost::algorithm::token_compress_on;
 using std::distance;
 using std::make_pair;
-using std::vector;
 using std::chrono::system_clock;
 
 static constexpr const char* kEmptyStringSha256 =
@@ -75,14 +74,14 @@ static std::string Sha256(const std::string& data) {
   return HexEncode(hash, sizeof(hash));
 }
 
-vector<unsigned char> HmacSha256(const vector<unsigned char>& key,
-                                 const std::string& data) {
+std::vector<unsigned char> HmacSha256(const std::vector<unsigned char>& key,
+                                      const std::string& data) {
   unsigned char hmac[EVP_MAX_MD_SIZE];
   unsigned int size = 0;
   HMAC(EVP_sha256(), key.data(), key.size(),
        reinterpret_cast<const unsigned char*>(data.data()), data.length(), hmac,
        &size);
-  return vector(hmac, hmac + size);
+  return std::vector(hmac, hmac + size);
 }
 
 AwsV4Signer::AwsV4Signer(const std::string& aws_access_key,
@@ -98,14 +97,14 @@ AwsV4Signer::AwsV4Signer(const std::string& aws_access_key,
 
 ExecutionResult AwsV4Signer::SignRequest(
     HttpRequest& http_request, const std::string& headers_to_sign) noexcept {
-  vector<std::string> headers;
+  std::vector<std::string> headers;
   // split the string, compress adjacent delimiters
   split(headers, headers_to_sign, is_any_of(";, "), token_compress_on);
   return SignRequest(http_request, headers);
 }
 
 ExecutionResult AwsV4Signer::GetSignatureParts(
-    HttpRequest& http_request, vector<std::string>& headers_to_sign,
+    HttpRequest& http_request, std::vector<std::string>& headers_to_sign,
     std::string& signature, std::string& x_amz_date) noexcept {
   if (headers_to_sign.size() == 0) {
     return FailureExecutionResult(
@@ -191,7 +190,8 @@ ExecutionResult AwsV4Signer::GetSignatureParts(
 }
 
 ExecutionResult AwsV4Signer::SignRequest(
-    HttpRequest& http_request, vector<std::string>& headers_to_sign) noexcept {
+    HttpRequest& http_request,
+    std::vector<std::string>& headers_to_sign) noexcept {
   std::string signature;
   std::string x_amz_date;
   auto ret =
@@ -210,7 +210,7 @@ ExecutionResult AwsV4Signer::SignRequest(
 std::string AwsV4Signer::CalculateSignature(const std::string& string_to_sign,
                                             const std::string& date) noexcept {
   std::string init_key_str = std::string("AWS4") + aws_secret_key_;
-  vector<unsigned char> secret(init_key_str.begin(), init_key_str.end());
+  std::vector<unsigned char> secret(init_key_str.begin(), init_key_str.end());
   auto hmac_date = HmacSha256(secret, date);
   auto hmac_region = HmacSha256(hmac_date, aws_region_);
   auto hmac_service = HmacSha256(hmac_region, service_name_);
@@ -221,7 +221,7 @@ std::string AwsV4Signer::CalculateSignature(const std::string& string_to_sign,
 
 ExecutionResult AwsV4Signer::CreateCanonicalRequest(
     std::string& canonical_request, HttpRequest& http_request,
-    const vector<std::string>& headers_to_sign) noexcept {
+    const std::vector<std::string>& headers_to_sign) noexcept {
   std::stringstream canonical_request_builder;
   if (http_request.method == HttpMethod::UNKNOWN) {
     return FailureExecutionResult(errors::SC_HTTP2_CLIENT_AUTH_BAD_REQUEST);
@@ -255,7 +255,7 @@ ExecutionResult AwsV4Signer::CreateCanonicalRequest(
   if (http_request.query && http_request.query->size() > 0) {
     // If we have any query parameters, sort them.
     // First, we split by '&';
-    vector<std::string> query_params;
+    std::vector<std::string> query_params;
     static auto predicate = [](std::string::value_type c) { return c == '&'; };
     split(query_params, *http_request.query, predicate, token_compress_off);
     // Then, sort and re-assemble
@@ -307,7 +307,7 @@ ExecutionResult AwsV4Signer::CreateCanonicalRequest(
 }
 
 ExecutionResult AwsV4Signer::SignRequestWithSignature(
-    HttpRequest& http_request, vector<std::string>& headers_to_sign,
+    HttpRequest& http_request, std::vector<std::string>& headers_to_sign,
     const std::string& x_amz_date, const std::string& signature) noexcept {
   // Sort all headers in headers_to_sign by its all lower cases order.
   std::sort(headers_to_sign.begin(), headers_to_sign.end(),
@@ -325,10 +325,9 @@ ExecutionResult AwsV4Signer::SignRequestWithSignature(
   return SuccessExecutionResult();
 }
 
-void AwsV4Signer::AddSignatureHeader(HttpRequest& http_request,
-                                     const vector<std::string>& headers_to_sign,
-                                     const std::string& date,
-                                     const std::string& signature) {
+void AwsV4Signer::AddSignatureHeader(
+    HttpRequest& http_request, const std::vector<std::string>& headers_to_sign,
+    const std::string& date, const std::string& signature) {
   auto& headers = http_request.headers;
   std::stringstream auth_header_value_builder;
   auth_header_value_builder

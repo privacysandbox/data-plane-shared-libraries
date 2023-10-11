@@ -35,7 +35,6 @@ using google::scp::core::test::StartContainer;
 using google::scp::core::test::StopContainer;
 using std::runtime_error;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::cpio::test {
 void TestSdkServerStarter::RunSdkServer(

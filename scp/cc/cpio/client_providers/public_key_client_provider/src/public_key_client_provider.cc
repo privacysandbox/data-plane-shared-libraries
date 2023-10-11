@@ -62,7 +62,6 @@ using std::atomic;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 
 static constexpr int kSToMsConversionBase = 1e3;
@@ -200,7 +199,7 @@ void PublicKeyClientProvider::OnPerformRequestCallback(
                                          unfinished_counter);
   }
 
-  vector<PublicKey> public_keys;
+  std::vector<PublicKey> public_keys;
   auto body = http_client_context.response->body;
   result = PublicKeyClientUtils::ParsePublicKeysFromBody(body, public_keys);
   if (!result.Successful()) {

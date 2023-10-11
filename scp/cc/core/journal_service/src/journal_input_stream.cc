@@ -50,7 +50,6 @@ using std::make_shared;
 using std::max_element;
 using std::shared_ptr;
 using std::sort;
-using std::vector;
 using std::placeholders::_1;
 
 // TODO: Use configuration provider to update the following.
@@ -598,7 +597,7 @@ void JournalInputStream::OnListJournalsCallback(
 ExecutionResult JournalInputStream::ReadJournalBlobs(
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>&
         journal_stream_read_log_context,
-    vector<JournalId>& journal_ids) noexcept {
+    std::vector<JournalId>& journal_ids) noexcept {
   if (journal_ids.empty()) {
     return FailureExecutionResult(
         errors::SC_JOURNAL_SERVICE_INPUT_STREAM_INVALID_LISTING);
@@ -738,7 +737,7 @@ void JournalInputStream::OnReadJournalBlobCallback(
 ExecutionResult JournalInputStream::ProcessLoadedJournals(
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>&
         journal_stream_read_log_context) noexcept {
-  auto logs = make_shared<vector<JournalStreamReadLogObject>>();
+  auto logs = make_shared<std::vector<JournalStreamReadLogObject>>();
   auto execution_result = ReadJournalLogBatch(logs);
   if (!execution_result.Successful()) {
     return execution_result;

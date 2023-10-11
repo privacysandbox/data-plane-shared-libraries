@@ -63,7 +63,6 @@ using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace {
 constexpr char kEncryptionKeyPrefix[] = "encryptionKeys/";
@@ -172,13 +171,13 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKey(
 
   encryption_key->creation_time_in_ms = creation_val;
 
-  vector<shared_ptr<KeyData>> key_data;
+  std::vector<shared_ptr<KeyData>> key_data;
   result = ParseKeyData(json_key, kKeyData, key_data);
   if (!result.Successful()) {
     return result;
   }
   encryption_key->key_data =
-      vector<shared_ptr<KeyData>>(key_data.begin(), key_data.end());
+      std::vector<shared_ptr<KeyData>>(key_data.begin(), key_data.end());
 
   auto key_id_or = ExtractKeyId(*encryption_key->resource_name);
   RETURN_IF_FAILURE(key_id_or.result());
@@ -212,7 +211,7 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKeyType(
 
 ExecutionResult PrivateKeyFetchingClientUtils::ParseKeyData(
     const nlohmann::json& json_response, const std::string& key_data_tag,
-    vector<shared_ptr<KeyData>>& key_data_list) noexcept {
+    std::vector<shared_ptr<KeyData>>& key_data_list) noexcept {
   auto key_data_json = json_response.find(key_data_tag);
   if (key_data_json == json_response.end()) {
     return FailureExecutionResult(

@@ -36,13 +36,12 @@ using std::atomic;
 using std::function;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::core::common::test {
 TEST(SizedOrTimedBytesBufferTest, InitFunction) {
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(1234)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(1234)};
 
   for (auto result : results) {
     struct Request {};

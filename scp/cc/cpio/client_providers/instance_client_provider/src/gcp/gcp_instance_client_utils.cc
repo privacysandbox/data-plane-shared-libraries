@@ -43,7 +43,6 @@ using std::regex;
 using std::regex_match;
 using std::shared_ptr;
 using std::strlen;
-using std::vector;
 
 namespace {
 constexpr char kGcpInstanceClientUtils[] = "GcpInstanceClientUtils";
@@ -141,7 +140,7 @@ ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
       resource_name.substr(strlen(kInstanceResourceNamePrefix));
   // Splits `projects/project_abc1/zones/us-west1/instances/12345678987654321`
   // to { projects,project_abc1,zones,us-west1,instances,12345678987654321 }
-  vector<std::string> splits = absl::StrSplit(resource_id, "/");
+  std::vector<std::string> splits = absl::StrSplit(resource_id, "/");
   detail.project_id = splits[1];
   detail.zone_id = splits[3];
   detail.instance_id = splits[5];
@@ -153,7 +152,7 @@ ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
 
 std::string GcpInstanceClientUtils::CreateRMListTagsUrl(
     const std::string& resource_name) noexcept {
-  vector<std::string> splits = absl::StrSplit(resource_name, "/");
+  std::vector<std::string> splits = absl::StrSplit(resource_name, "/");
   auto i = 0;
   while (i < splits.size()) {
     const auto& part = splits.at(i);

@@ -33,7 +33,6 @@ using google::scp::core::test::ScpTestBase;
 using std::atomic;
 using std::make_pair;
 using std::thread;
-using std::vector;
 using std::this_thread::yield;
 
 namespace google::scp::core::common::test {
@@ -124,7 +123,7 @@ TEST_F(ConcurrentMapTests, GetKeys) {
   result = map.Insert(make_pair(uuid_key1, uuid_value1), uuid_value1);
   EXPECT_SUCCESS(result);
 
-  vector<Uuid> keys;
+  std::vector<Uuid> keys;
   result = map.Keys(keys);
   EXPECT_SUCCESS(result);
 

@@ -54,7 +54,6 @@ using std::shared_ptr;
 using std::shared_timed_mutex;
 using std::static_pointer_cast;
 using std::unique_lock;
-using std::vector;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 
@@ -341,7 +340,7 @@ TEST_F(AutoExpiryConcurrentMapTest, GetKeys) {
   pair = make_pair(4, entry);
   EXPECT_SUCCESS(auto_expiry_map.Insert(pair, entry));
 
-  vector<int> keys;
+  std::vector<int> keys;
   EXPECT_SUCCESS(auto_expiry_map.Keys(keys));
   EXPECT_EQ(keys.size(), 2);
   EXPECT_NE(find(keys.begin(), keys.end(), 3), keys.end());
@@ -406,7 +405,7 @@ TEST_F(AutoExpiryConcurrentMapTest, EnableEviction) {
 }
 
 TEST_F(AutoExpiryConcurrentMapTest, GarbageCollection) {
-  vector<int> keys_to_be_deleted;
+  std::vector<int> keys_to_be_deleted;
   auto on_before_element_deletion_callback_ =
       [&](int& key, shared_ptr<EmptyEntry>&,
           function<void(bool can_delete)> deleter) {
@@ -453,7 +452,7 @@ TEST_F(AutoExpiryConcurrentMapTest, GarbageCollection) {
 }
 
 TEST_F(AutoExpiryConcurrentMapTest, OnRemoveEntryFromCacheLogged) {
-  vector<int> keys_to_be_deleted;
+  std::vector<int> keys_to_be_deleted;
   auto on_before_element_deletion_callback_ =
       [&](int& key, shared_ptr<EmptyEntry>&,
           function<void(bool can_delete)> deleter) {
@@ -493,9 +492,9 @@ TEST_F(AutoExpiryConcurrentMapTest, OnRemoveEntryFromCacheLogged) {
 }
 
 TEST_F(AutoExpiryConcurrentMapTest, Run) {
-  vector<ExecutionResult> results = {SuccessExecutionResult(),
-                                     FailureExecutionResult(123),
-                                     RetryExecutionResult(123)};
+  std::vector<ExecutionResult> results = {SuccessExecutionResult(),
+                                          FailureExecutionResult(123),
+                                          RetryExecutionResult(123)};
 
   for (auto result : results) {
     mock_async_executor_->schedule_for_mock =
@@ -581,7 +580,7 @@ TEST_F(AutoExpiryConcurrentMapTest, NoDeletionForUnExpired) {
 
 TEST(AutoExpiryConcurrentMapDeletionTest, DeletionForExpired) {
   size_t total_count = 0;
-  vector<function<void(bool)>> deleters;
+  std::vector<function<void(bool)>> deleters;
   auto on_before_element_deletion_callback = [&](int& key,
                                                  shared_ptr<EmptyEntry>& entry,
                                                  function<void(bool)> deleter) {

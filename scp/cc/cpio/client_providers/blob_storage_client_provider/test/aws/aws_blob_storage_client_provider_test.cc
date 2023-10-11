@@ -77,7 +77,6 @@ using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using testing::_;
 using testing::ElementsAre;
 using testing::Eq;

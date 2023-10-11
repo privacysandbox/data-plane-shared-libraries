@@ -39,7 +39,6 @@ using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
@@ -76,7 +75,7 @@ ExecutionResult LeaseManagerV2::Run() noexcept {
   // refreshers aren't available at the Init() time.
   if (!lease_refreshers_.empty()) {
     // Initialize Lease Liveness Enforcer
-    vector<shared_ptr<LeaseRefreshLivenessCheckInterface>>
+    std::vector<shared_ptr<LeaseRefreshLivenessCheckInterface>>
         lease_refresher_liveness_handles;
     lease_refresher_liveness_handles.reserve(lease_refreshers_.size());
     for (auto& [_, refresher_wrapper] : lease_refreshers_) {

@@ -53,7 +53,6 @@ using google::scp::core::errors::SC_GCP_METRIC_CLIENT_INVALID_METRIC_VALUE;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::GcpMetricClientUtils;
 using std::make_shared;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
@@ -103,7 +102,7 @@ TEST_F(GcpMetricClientUtilsTest, ParseRequestToTimeSeries) {
       make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  vector<TimeSeries> time_series_list;
+  std::vector<TimeSeries> time_series_list;
 
   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
       context, kNamespace, time_series_list);
@@ -129,7 +128,7 @@ TEST_F(GcpMetricClientUtilsTest, FailedWithBadMetricValue) {
       make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  vector<TimeSeries> time_series_list;
+  std::vector<TimeSeries> time_series_list;
 
   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
       context, kNamespace, time_series_list);
@@ -149,7 +148,7 @@ TEST_F(GcpMetricClientUtilsTest, BadTimeStamp) {
       make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  vector<TimeSeries> time_series_list;
+  std::vector<TimeSeries> time_series_list;
 
   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
       context, kNamespace, time_series_list);
@@ -164,7 +163,7 @@ TEST_F(GcpMetricClientUtilsTest, InvalidTimeStamp) {
       make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  vector<TimeSeries> time_series_list;
+  std::vector<TimeSeries> time_series_list;
 
   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
       context, kNamespace, time_series_list);
@@ -184,7 +183,7 @@ TEST_F(GcpMetricClientUtilsTest, OverSizeLabels) {
   for (int i = 0; i < 33; ++i) {
     labels[std::string("key") + std::to_string(i)] = std::string("value");
   }
-  vector<TimeSeries> time_series_list;
+  std::vector<TimeSeries> time_series_list;
   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(
       context, kNamespace, time_series_list);
   EXPECT_THAT(result, ResultIs(FailureExecutionResult(
@@ -192,7 +191,7 @@ TEST_F(GcpMetricClientUtilsTest, OverSizeLabels) {
 }
 
 TEST(GcpMetricClientUtilsTestII, AddResourceToTimeSeries) {
-  vector<TimeSeries> time_series_list(10);
+  std::vector<TimeSeries> time_series_list(10);
 
   GcpMetricClientUtils::AddResourceToTimeSeries(
       kProjectIdValue, kInstanceIdValue, kInstanceZoneValue, time_series_list);

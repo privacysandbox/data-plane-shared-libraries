@@ -23,8 +23,6 @@
 
 #include "roma/wasm/src/wasm_types.h"
 
-using std::vector;
-
 namespace google::scp::roma::wasm::test {
 
 using wasm::RomaWasmListOfStringRepresentation;
@@ -200,7 +198,7 @@ TEST(WasmSerializerTest, ShouldWriteCustomListString) {
   uint8_t mem_blob[25];
   memset(mem_blob, 0xAA, sizeof(mem_blob));
 
-  vector<std::string> list = {"ABC"};
+  std::vector<std::string> list = {"ABC"};
 
   auto offset = WasmSerializer::WriteCustomListOfString(
       mem_blob, sizeof(mem_blob), 1, list);
@@ -251,7 +249,7 @@ TEST(WasmSerializerTest, ShouldNotWriteCustomListStringIfOutOfBounds) {
   uint8_t mem_blob[23];
   memset(mem_blob, 0, sizeof(mem_blob));
 
-  vector<std::string> list = {"ABC"};
+  std::vector<std::string> list = {"ABC"};
 
   EXPECT_EQ(23, RomaWasmListOfStringRepresentation::ComputeMemorySizeFor(list));
 

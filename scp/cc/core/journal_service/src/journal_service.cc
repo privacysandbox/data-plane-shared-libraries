@@ -59,7 +59,6 @@ using std::make_unique;
 using std::shared_ptr;
 using std::thread;
 using std::unordered_set;
-using std::vector;
 using std::chrono::milliseconds;
 using std::placeholders::_1;
 using std::this_thread::sleep_for;

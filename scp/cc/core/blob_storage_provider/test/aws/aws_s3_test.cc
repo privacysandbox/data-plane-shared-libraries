@@ -69,7 +69,6 @@ using google::scp::core::blob_storage_provider::mock::MockAwsS3Client;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::core::test {
 // Tests for AwsS3.
@@ -308,7 +307,7 @@ TEST_F(AwsS3Tests, PutBlob) {
   auto mock_s3_client = make_shared<MockS3Client>();
   auto s3_client = dynamic_pointer_cast<S3Client>(mock_s3_client);
 
-  vector<Byte> bytes = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
+  std::vector<Byte> bytes = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
   mock_s3_client->put_object_async_mock =
       [&](const PutObjectRequest& put_object_request,
           const PutObjectResponseReceivedHandler&,
@@ -330,7 +329,8 @@ TEST_F(AwsS3Tests, PutBlob) {
       make_shared<std::string>("bucket_name");
   put_blob_context.request->buffer = make_shared<BytesBuffer>();
 
-  put_blob_context.request->buffer->bytes = make_shared<vector<Byte>>(bytes);
+  put_blob_context.request->buffer->bytes =
+      make_shared<std::vector<Byte>>(bytes);
   put_blob_context.request->buffer->length = 10;
   put_blob_context.request->buffer->capacity = 10;
 

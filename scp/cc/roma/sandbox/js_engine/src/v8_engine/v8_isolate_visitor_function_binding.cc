@@ -41,7 +41,6 @@ using google::scp::core::errors::
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::sandbox::constants::kMetadataRomaRequestId;
 using std::make_unique;
-using std::vector;
 using v8::Array;
 using v8::Context;
 using v8::External;
@@ -84,13 +83,13 @@ static bool V8TypesToProto(const FunctionCallbackInfo<Value>& info,
 
   // Try to convert to one of the supported types
   std::string string_native;
-  vector<std::string> vector_of_string_native;
+  std::vector<std::string> vector_of_string_native;
   absl::flat_hash_map<std::string, std::string> map_of_string_native;
 
   if (TypeConverter<std::string>::FromV8(isolate, function_parameter,
                                          &string_native)) {
     proto.set_input_string(string_native);
-  } else if (TypeConverter<vector<std::string>>::FromV8(
+  } else if (TypeConverter<std::vector<std::string>>::FromV8(
                  isolate, function_parameter, &vector_of_string_native)) {
     proto.mutable_input_list_of_string()->mutable_data()->Add(
         vector_of_string_native.begin(), vector_of_string_native.end());
@@ -123,7 +122,7 @@ static Local<Value> ProtoToV8Type(Isolate* isolate,
   if (proto.has_output_string()) {
     return TypeConverter<std::string>::ToV8(isolate, proto.output_string());
   } else if (proto.has_output_list_of_string()) {
-    return TypeConverter<vector<std::string>>::ToV8(
+    return TypeConverter<std::vector<std::string>>::ToV8(
         isolate, proto.output_list_of_string().data());
   } else if (proto.has_output_map_of_string()) {
     return TypeConverter<absl::flat_hash_map<std::string, std::string>>::ToV8(

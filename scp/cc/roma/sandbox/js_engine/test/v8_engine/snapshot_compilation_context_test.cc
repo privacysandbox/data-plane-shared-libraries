@@ -33,7 +33,6 @@ using google::scp::roma::sandbox::js_engine::v8_js_engine::
 using std::make_shared;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 using testing::IsNull;
 using testing::NotNull;
 using v8::Isolate;

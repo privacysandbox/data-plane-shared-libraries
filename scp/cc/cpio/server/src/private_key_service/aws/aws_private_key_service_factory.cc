@@ -51,7 +51,6 @@ using std::bind;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace {
 constexpr char kAwsPrivateKeyServiceFactory[] = "AwsPrivateKeyServiceFactory";
@@ -90,7 +89,7 @@ ExecutionResult AwsPrivateKeyServiceFactory::Init() noexcept {
   RETURN_AND_LOG_IF_FAILURE(ReadConfigurations(), kAwsPrivateKeyServiceFactory,
                             kZeroUuid, "Failed to read configurations");
 
-  vector<ComponentCreator> creators(
+  std::vector<ComponentCreator> creators(
       {ComponentCreator(
            bind(&AwsPrivateKeyServiceFactory::CreateIoAsyncExecutor, this),
            "IoAsyncExecutor"),

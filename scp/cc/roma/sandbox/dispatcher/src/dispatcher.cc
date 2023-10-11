@@ -36,7 +36,6 @@ using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -58,7 +57,7 @@ ExecutionResult Dispatcher::Broadcast(unique_ptr<CodeObject> code_object,
   auto worker_count = worker_pool_->GetPoolSize();
   auto finished_counter = make_shared<atomic<size_t>>(0);
   auto responses_storage =
-      make_shared<vector<unique_ptr<absl::StatusOr<ResponseObject>>>>(
+      make_shared<std::vector<unique_ptr<absl::StatusOr<ResponseObject>>>>(
           worker_count);
 
   for (size_t worker_index = 0; worker_index < worker_count; worker_index++) {

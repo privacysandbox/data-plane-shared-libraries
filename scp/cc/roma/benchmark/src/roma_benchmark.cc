@@ -58,7 +58,6 @@ using std::make_shared;
 using std::make_unique;
 using std::thread;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 using std::chrono::seconds;
@@ -410,7 +409,7 @@ void RomaBenchmark::ConsoleTestMetrics() {
 }
 
 void RomaBenchmark::SendRequestBatch() {
-  vector<InvocationRequestSharedInput> requests;
+  std::vector<InvocationRequestSharedInput> requests;
   for (auto i = 0; i < batch_size_; i++) {
     requests.push_back(code_obj_);
   }

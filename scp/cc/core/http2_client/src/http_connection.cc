@@ -62,7 +62,6 @@ using std::make_pair;
 using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -196,7 +195,7 @@ void HttpConnection::OnConnectionError() noexcept {
 }
 
 void HttpConnection::CancelPendingCallbacks() noexcept {
-  vector<Uuid> keys;
+  std::vector<Uuid> keys;
   auto execution_result = pending_network_calls_.Keys(keys);
   if (!execution_result.Successful()) {
     SCP_ERROR(kHttp2Client, kZeroUuid, execution_result,
@@ -419,7 +418,7 @@ void HttpConnection::OnResponseCallback(
   }
 
   if (http_response.content_length() >= 0) {
-    http_context.response->body.bytes = make_shared<vector<Byte>>();
+    http_context.response->body.bytes = make_shared<std::vector<Byte>>();
     http_context.response->body.bytes->reserve(http_response.content_length());
     http_context.response->body.capacity = http_response.content_length();
   }

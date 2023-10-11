@@ -37,7 +37,6 @@ using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
 using std::make_shared;
 using std::thread;
-using std::vector;
 
 namespace google::scp::roma::sandbox::native_function_binding::test {
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldReturnFailureOnInvokeIfBadFd) {

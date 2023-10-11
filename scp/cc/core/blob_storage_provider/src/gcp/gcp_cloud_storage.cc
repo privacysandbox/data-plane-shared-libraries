@@ -77,7 +77,6 @@ using std::bind;
 using std::make_shared;
 using std::ref;
 using std::shared_ptr;
-using std::vector;
 
 constexpr char kGcpCloudStorageProvider[] = "GcpCloudStorageProvider";
 // TODO: Find ideal max concurrent connections and retry limit for operations
@@ -196,7 +195,7 @@ void GcpCloudStorageClient::GetBlobAsync(
   size_t content_length = *blob_stream.size();
 
   auto byte_buffer = make_shared<BytesBuffer>();
-  byte_buffer->bytes = make_shared<vector<Byte>>(content_length);
+  byte_buffer->bytes = make_shared<std::vector<Byte>>(content_length);
   byte_buffer->length = content_length;
   byte_buffer->capacity = content_length;
   get_blob_context.response = make_shared<GetBlobResponse>();
@@ -262,7 +261,7 @@ void GcpCloudStorageClient::ListBlobAsync(
     }
   }();
   list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<vector<Blob>>();
+  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
   list_blobs_context.response->next_marker = nullptr;
 
   // GCP pagination happens through the iterator. All results are returned.

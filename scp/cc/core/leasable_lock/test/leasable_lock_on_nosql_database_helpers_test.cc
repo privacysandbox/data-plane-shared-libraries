@@ -18,7 +18,6 @@
 
 using std::get;
 using std::make_shared;
-using std::vector;
 using std::chrono::milliseconds;
 
 #include "core/interface/nosql_database_provider_interface.h"
@@ -64,7 +63,7 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
     lease.lease_owner_info.lease_acquirer_id = "214314515515";
     lease.lease_owner_info.service_endpoint_address = "12.1.1.1";
 
-    auto attributes = make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+    auto attributes = make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
     auto result = ConstructAttributesFromLeaseInfo(lease, attributes);
     EXPECT_SUCCESS(result);
     EXPECT_EQ(attributes->size(), 3);
@@ -92,7 +91,7 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
     lease.lease_owner_info.lease_acquirer_id = "214314515515";
     lease.lease_owner_info.service_endpoint_address = "12.1.1.1";
 
-    auto attributes = make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+    auto attributes = make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
     auto result = ConstructAttributesFromLeaseInfo(lease, attributes);
 
     LeaseInfoInternal obtained_lease;
@@ -143,7 +142,7 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
                   get_database_item_context.request->sort_key;
 
               get_database_item_context.response->attributes =
-                  make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+                  make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
               auto result = ConstructAttributesFromLeaseInfo(
                   lease, get_database_item_context.response->attributes);
               EXPECT_SUCCESS(result);

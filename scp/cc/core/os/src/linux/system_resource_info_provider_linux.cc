@@ -29,7 +29,6 @@
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using std::ifstream;
-using std::vector;
 
 using google::scp::core::errors::
     SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_COULD_NOT_FIND_MEMORY_INFO;
@@ -87,7 +86,7 @@ std::string SystemResourceInfoProviderLinux::GetMemInfoFilePath() noexcept {
 ExecutionResultOr<uint64_t>
 SystemResourceInfoProviderLinux::GetMemInfoLineEntryKb(
     std::string meminfo_line) noexcept {
-  vector<std::string> line_parts =
+  std::vector<std::string> line_parts =
       absl::StrSplit(meminfo_line, kMemInfoLineSeparator, absl::SkipEmpty());
 
   if (line_parts.size() != kExpectedMemInfoLinePartsCount) {

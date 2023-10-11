@@ -33,7 +33,6 @@ using boost::system::error_code;
 using nghttp2::asio_http2::host_service_from_uri;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 static constexpr char kServiceName[] = "execute-api";
 
@@ -64,7 +63,7 @@ AwsAuthorizerClientSigner::AwsAuthorizerClientSigner(
 
 ExecutionResult AwsAuthorizerClientSigner::GetAuthToken(
     const std::string& endpoint, std::string& token) {
-  vector<std::string> headers_to_sign{"Host", "X-Amz-Date"};
+  std::vector<std::string> headers_to_sign{"Host", "X-Amz-Date"};
   // Since the signature is destined for a different HOST in our authorization
   // scheme, we create a temporary request just for generating the signature.
   HttpRequest tmp_request;

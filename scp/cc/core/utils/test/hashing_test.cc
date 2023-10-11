@@ -28,7 +28,6 @@ using google::scp::core::BytesBuffer;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
 using std::make_shared;
-using std::vector;
 
 namespace google::scp::core::utils::test {
 TEST(HashingTest, InvalidMD5Hash) {
@@ -43,7 +42,8 @@ TEST(HashingTest, InvalidMD5Hash) {
 TEST(HashingTest, ValidMD5Hash) {
   BytesBuffer bytes_buffer;
   std::string value("this_is_a_test_string");
-  bytes_buffer.bytes = make_shared<vector<Byte>>(value.begin(), value.end());
+  bytes_buffer.bytes =
+      make_shared<std::vector<Byte>>(value.begin(), value.end());
   bytes_buffer.length = value.length();
 
   EXPECT_THAT(CalculateMd5Hash(bytes_buffer),
@@ -54,7 +54,8 @@ TEST(HashingTest, ValidMD5Hash) {
 TEST(HashingTest, ValidMD5HashOLD) {
   BytesBuffer bytes_buffer;
   std::string value("this_is_a_test_string");
-  bytes_buffer.bytes = make_shared<vector<Byte>>(value.begin(), value.end());
+  bytes_buffer.bytes =
+      make_shared<std::vector<Byte>>(value.begin(), value.end());
   bytes_buffer.length = value.length();
 
   std::string md5_hash;

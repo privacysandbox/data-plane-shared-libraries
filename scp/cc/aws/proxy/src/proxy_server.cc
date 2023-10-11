@@ -43,7 +43,6 @@ using std::shared_lock;
 using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
-using std::vector;
 
 using namespace boost::asio;  // NOLINT
 
@@ -114,7 +113,7 @@ void ProxyServer::Run(size_t concurrency) {
     concurrency = std::thread::hardware_concurrency();
   }
   StartAsyncAccept();
-  vector<thread> threads;
+  std::vector<thread> threads;
   threads.reserve(concurrency);
   for (auto i = 0u; i <= concurrency; ++i) {
     threads.emplace_back([this]() { io_context_.run(); });

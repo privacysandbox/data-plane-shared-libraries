@@ -32,7 +32,6 @@ using google::scp::roma::sandbox::constants::kRequestAction;
 using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
-using std::vector;
 
 namespace google::scp::roma::sandbox::worker_api::test {
 
@@ -42,7 +41,7 @@ static WorkerApiSapiConfig GetDefaultConfig() {
   config.js_engine_require_code_preload = false;
   config.compilation_context_cache_size = 5;
   config.native_js_function_comms_fd = -1;
-  config.native_js_function_names = vector<std::string>();
+  config.native_js_function_names = std::vector<std::string>();
   config.max_worker_virtual_memory_mb = 0;
   config.js_engine_resource_constraints.initial_heap_size_in_mb = 0;
   config.js_engine_resource_constraints.maximum_heap_size_in_mb = 0;

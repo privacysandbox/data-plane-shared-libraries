@@ -32,7 +32,6 @@ using boost::asio::bind_executor;
 using boost::asio::const_buffer;
 using boost::asio::mutable_buffer;
 using boost::system::error_code;
-using std::vector;
 
 namespace placeholders = boost::asio::placeholders;
 namespace asio = boost::asio;

@@ -46,7 +46,6 @@ using nghttp2::asio_http2::host_service_from_uri;
 using std::lock_guard;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 static constexpr char kHttpsTag[] = "https";
 static constexpr char kHttpTag[] = "http";
@@ -64,7 +63,7 @@ ExecutionResult HttpConnectionPool::Run() noexcept {
 
 ExecutionResult HttpConnectionPool::Stop() noexcept {
   is_running_ = false;
-  vector<std::string> keys;
+  std::vector<std::string> keys;
   auto execution_result = connections_.Keys(keys);
   if (!execution_result.Successful()) {
     return execution_result;

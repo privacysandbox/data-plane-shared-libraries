@@ -55,7 +55,6 @@ using std::function;
 using std::make_shared;
 using std::promise;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::core {
 
@@ -369,7 +368,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
               authorizer->Authorize(context),
               ResultIs(RetryExecutionResult(
                   errors::SC_AUTHORIZATION_SERVICE_AUTH_TOKEN_IS_REFRESHING)));
-          vector<std::string> keys;
+          std::vector<std::string> keys;
           authorizer->GetAuthorizationTokensMap()->Keys(keys);
           EXPECT_EQ(keys.size(), 1);
           EXPECT_EQ(
@@ -394,7 +393,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
   http_context.response = make_shared<HttpResponse>();
   std::string body(R"({ "authorized_domain": "blahblah" })");
   http_context.response->body.bytes =
-      make_shared<vector<Byte>>(body.begin(), body.end());
+      make_shared<std::vector<Byte>>(body.begin(), body.end());
   http_context.response->body.length = body.length();
   http_context.result = SuccessExecutionResult();
   http_context.Finish();
@@ -409,7 +408,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
   EXPECT_EQ(counter.load(), 1);
   WaitUntil([&]() { return called.load(); });
 
-  vector<std::string> keys;
+  std::vector<std::string> keys;
   authorizer->GetAuthorizationTokensMap()->Keys(keys);
   EXPECT_EQ(keys.size(), 1);
   EXPECT_EQ(authorizer->GetAuthorizationTokensMap()->IsEvictable(keys[0]),
@@ -538,7 +537,7 @@ TEST(AwsAuthorizerTest, InsertionWhileDeletionShouldReturnRefreshStatusCode) {
   ASSERT_EQ(authorizer->Authorize(context), SuccessExecutionResult());
   done.get_future().get();
 
-  vector<std::string> keys;
+  std::vector<std::string> keys;
   authorizer->GetAuthorizationTokensMap()->Keys(keys);
 
   EXPECT_EQ(keys.size(), 1);

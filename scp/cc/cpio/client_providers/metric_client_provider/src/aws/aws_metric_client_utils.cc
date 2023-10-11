@@ -56,7 +56,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_OVERSIZE_DATUM_DIMENSIONS;
 using std::map;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::hours;
 using std::chrono::seconds;
@@ -108,7 +107,7 @@ namespace google::scp::cpio::client_providers {
 
 ExecutionResult AwsMetricClientUtils::ParseRequestToDatum(
     AsyncContext<PutMetricsRequest, PutMetricsResponse>& record_metric_context,
-    vector<MetricDatum>& datum_list, int request_metric_limit) noexcept {
+    std::vector<MetricDatum>& datum_list, int request_metric_limit) noexcept {
   if (record_metric_context.request->metrics().size() > request_metric_limit) {
     record_metric_context.result = FailureExecutionResult(
         SC_AWS_METRIC_CLIENT_PROVIDER_METRIC_LIMIT_REACHED_PER_REQUEST);

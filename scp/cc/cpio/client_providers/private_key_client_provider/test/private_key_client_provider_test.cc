@@ -73,7 +73,6 @@ using std::map;
 using std::pair;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 using testing::Between;
 using testing::ElementsAre;
 using testing::Pointwise;
@@ -88,12 +87,13 @@ constexpr char kTestGcpWipProvider3[] = "Wip3";
 constexpr char kTestEndpoint1[] = "endpoint1";
 constexpr char kTestEndpoint2[] = "endpoint2";
 constexpr char kTestEndpoint3[] = "endpoint3";
-const vector<std::string> kTestEndpoints = {kTestEndpoint1, kTestEndpoint2,
-                                            kTestEndpoint3};
+const std::vector<std::string> kTestEndpoints = {kTestEndpoint1, kTestEndpoint2,
+                                                 kTestEndpoint3};
 constexpr char kTestRegion1[] = "region1";
 constexpr char kTestRegion2[] = "region2";
 constexpr char kTestRegion3[] = "region3";
-const vector<std::string> kTestKeyIds = {"key_id_1", "key_id_2", "key_id_3"};
+const std::vector<std::string> kTestKeyIds = {"key_id_1", "key_id_2",
+                                              "key_id_3"};
 constexpr char kTestKeyIdBad[] = "bad_key_id";
 constexpr char kTestResourceName[] = "encryptionKeys/key_id";
 constexpr char kTestPublicKeysetHandle[] = "publicKeysetHandle";
@@ -102,7 +102,7 @@ constexpr int kTestExpirationTime = 123456;
 constexpr int kTestCreationTime = 111111;
 constexpr char kTestPublicKeySignature[] = "publicKeySignature";
 constexpr char kTestKeyEncryptionKeyUri[] = "keyEncryptionKeyUri";
-const vector<std::string> kTestKeyMaterials = {
+const std::vector<std::string> kTestKeyMaterials = {
     "key-material-1", "key-material-2", "key-material-3"};
 constexpr char kTestKeyMaterialBad[] = "bad-key-material";
 constexpr char kTestPrivateKey[] = "Test message";
@@ -322,10 +322,10 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
         });
   }
 
-  vector<PrivateKey> BuildExpectedPrivateKeys(
+  std::vector<PrivateKey> BuildExpectedPrivateKeys(
       const std::string& encoded_private_key, uint16_t start_index = 0,
       uint16_t end_index = 2) {
-    vector<PrivateKey> expected_keys(end_index - start_index + 1);
+    std::vector<PrivateKey> expected_keys(end_index - start_index + 1);
     for (auto i = start_index; i <= end_index; ++i) {
       uint16_t key_index = i - start_index;
       expected_keys[key_index].set_key_id(kTestKeyIds[key_index]);
@@ -823,9 +823,9 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
         });
   }
 
-  vector<PrivateKey> BuildExpectedPrivateKeys(
+  std::vector<PrivateKey> BuildExpectedPrivateKeys(
       const std::string& encoded_private_key) {
-    vector<PrivateKey> expected_keys(1);
+    std::vector<PrivateKey> expected_keys(1);
     expected_keys[0].set_key_id(kTestKeyIds[0]);
     expected_keys[0].set_public_key(kTestPublicKeyMaterial);
     expected_keys[0].set_private_key(encoded_private_key);

@@ -27,12 +27,10 @@
 #include "glog/logging.h"
 #include "proxy/src/protocol.h"
 
-using std::vector;
-
 namespace google::scp::proxy {
 static const size_t kBufferSize = 65536;
 
-vector<uint8_t> Socks5State::CreateResp(bool is_bind) {
+std::vector<uint8_t> Socks5State::CreateResp(bool is_bind) {
   struct sockaddr_storage addr_storage;
   size_t addr_len = sizeof(addr_storage);
   // Per rfc1928 the response is in this format:
@@ -52,7 +50,7 @@ vector<uint8_t> Socks5State::CreateResp(bool is_bind) {
     // Successful. Return response.
     size_t addr_sz = FillAddrPort(&resp_storage[resp_size], addr);
     resp_size += addr_sz;
-    vector<uint8_t> resp(resp_storage, resp_storage + resp_size);
+    std::vector<uint8_t> resp(resp_storage, resp_storage + resp_size);
     return resp;
   }
   // Otherwise, we have an error.
@@ -61,8 +59,8 @@ vector<uint8_t> Socks5State::CreateResp(bool is_bind) {
   // bytes set to 0x00.
   static const uint8_t err_resp_template[] = {0x05, 0x01, 0x00, 0x01, 0x00,
                                               0x00, 0x00, 0x00, 0x00, 0x00};
-  return vector<uint8_t>(err_resp_template,
-                         err_resp_template + sizeof(err_resp_template));
+  return std::vector<uint8_t>(err_resp_template,
+                              err_resp_template + sizeof(err_resp_template));
 }
 
 Socks5State::~Socks5State() = default;
@@ -311,7 +309,7 @@ bool Socks5State::Proceed(Buffer& buffer) {
 }
 
 bool Socks5State::ConnectionSucceed() {
-  vector<uint8_t> resp;
+  std::vector<uint8_t> resp;
   if (state_ == kWaitConnect) {
     resp = CreateResp(false /* is_bind */);
   } else if (state_ == kWaitAccept) {

@@ -45,10 +45,8 @@ using google::scp::roma::wasm::testing::WasmTestingUtils;
 using std::make_shared;
 using std::uint8_t;
 
-using std::vector;
-
 namespace google::scp::roma::sandbox::worker::test {
-static const vector<uint8_t> kWasmBin = {
+static const std::vector<uint8_t> kWasmBin = {
     0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
     0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07,
     0x07, 0x01, 0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a, 0x09, 0x01,
@@ -68,7 +66,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
   AutoInitRunStop to_handle_worker(worker);
 
   std::string js_code = R"(function hello_js() { return "Hello World!"; })";
-  vector<absl::string_view> input;
+  std::vector<absl::string_view> input;
   absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kHandlerName, "hello_js"},
@@ -93,7 +91,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   // Load v1
   std::string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
-  vector<absl::string_view> input;
+  std::vector<absl::string_view> input;
   absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
@@ -161,7 +159,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
             return instance.exports.add(a, b);
           }
         )""";
-  vector<absl::string_view> input;
+  std::vector<absl::string_view> input;
   absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
@@ -234,7 +232,7 @@ TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
   AutoInitRunStop to_handle_worker(worker);
 
   std::string js_code = R"(function hello_js() { return "Hello World!"; })";
-  vector<absl::string_view> input;
+  std::vector<absl::string_view> input;
 
   // Load
   absl::flat_hash_map<std::string, std::string> metadata = {
@@ -291,7 +289,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   // Load v1
   std::string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
-  vector<absl::string_view> input;
+  std::vector<absl::string_view> input;
   absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
@@ -395,7 +393,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
             return instance.exports.add(a, b);
           }
         )""";
-  vector<absl::string_view> input{"1", "2"};
+  std::vector<absl::string_view> input{"1", "2"};
   absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascriptWithWasm},
       {kHandlerName, "hello_js"},
@@ -417,7 +415,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   auto engine = make_shared<V8JsEngine>();
   Worker worker(engine, true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
-  vector<absl::string_view> input;
+  std::vector<absl::string_view> input;
 
   // Load v1
   auto js_code = R"""(
@@ -456,7 +454,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
     )""";
   auto wasm_str = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/cpp_wasi_dependency_example/wasi_dependency.wasm");
-  vector<uint8_t> wasm_code(wasm_str.begin(), wasm_str.end());
+  std::vector<uint8_t> wasm_code(wasm_str.begin(), wasm_str.end());
   wasm = absl::Span<const uint8_t>(wasm_code);
   metadata = {{kRequestType, kRequestTypeJavascriptWithWasm},
               {kCodeVersion, "2"},
@@ -512,7 +510,7 @@ TEST_F(V8EngineWorkerTest,
           }
         )""";
 
-  vector<absl::string_view> input;
+  std::vector<absl::string_view> input;
 
   // Load
   absl::flat_hash_map<std::string, std::string> metadata = {

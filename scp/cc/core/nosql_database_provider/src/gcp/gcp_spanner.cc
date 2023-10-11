@@ -69,7 +69,6 @@ using std::pair;
 using std::ref;
 using std::shared_ptr;
 using std::unordered_map;
-using std::vector;
 using std::placeholders::_1;
 
 constexpr char kGcpSpanner[] = "GcpSpanner";
@@ -133,7 +132,7 @@ ExecutionResult ValidatePartitionAndSortKey(
 // Add filters of the form:
 // "JSON_VALUE(Value, '$.token_count') = @attribute_0"
 ExecutionResult AppendJsonWhereClauses(
-    shared_ptr<const vector<NoSqlDatabaseKeyValuePair>> attributes,
+    shared_ptr<const std::vector<NoSqlDatabaseKeyValuePair>> attributes,
     SqlStatement::ParamType& params, std::string& out) {
   if (attributes && attributes->size() > 0) {
     for (size_t attribute_index = 0; attribute_index < attributes->size();
@@ -245,7 +244,7 @@ void GcpSpanner::GetDatabaseItemAsync(
   get_database_item_context.response->sort_key =
       get_database_item_context.request->sort_key;
   get_database_item_context.response->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   json value_json;
   try {

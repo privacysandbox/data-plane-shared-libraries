@@ -33,7 +33,6 @@ using std::make_shared;
 using std::rand;
 using std::shared_ptr;
 using std::thread;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -75,7 +74,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
     }
   };
 
-  vector<thread> threads;
+  std::vector<thread> threads;
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
     threads.emplace_back(task_queueing_function, i);
   }
@@ -115,7 +114,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTaskMixedPriority) {
     }
   };
 
-  vector<thread> threads;
+  std::vector<thread> threads;
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
     threads.emplace_back(task_queueing_function, i);
   }

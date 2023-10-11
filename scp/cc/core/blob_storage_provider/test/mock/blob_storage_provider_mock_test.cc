@@ -34,7 +34,6 @@ using std::ios;
 using std::make_shared;
 using std::ofstream;
 using std::shared_ptr;
-using std::vector;
 using std::filesystem::create_directory;
 using std::filesystem::current_path;
 using std::filesystem::directory_iterator;
@@ -48,7 +47,7 @@ TEST(MockBlobStorageProviderTest, GetBlob) {
   create_directory("bucket_get");
 
   std::string file_content = "1234";
-  vector<char> bytes(file_content.begin(), file_content.end());
+  std::vector<char> bytes(file_content.begin(), file_content.end());
 
   ofstream output_stream("bucket_get/1.txt", ios::trunc | ios::binary);
   output_stream << file_content;
@@ -85,7 +84,7 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
   create_directory("bucket_put");
 
   std::string file_content = "1234";
-  vector<Byte> bytes(file_content.begin(), file_content.end());
+  std::vector<Byte> bytes(file_content.begin(), file_content.end());
 
   shared_ptr<BlobStorageClientInterface> blob_storage_client;
   EXPECT_SUCCESS(
@@ -102,7 +101,7 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
         input_stream.seekg(0);
         EXPECT_EQ(bytes.size(), content_length);
 
-        vector<char> to_read(content_length);
+        std::vector<char> to_read(content_length);
         input_stream.read(to_read.data(), content_length);
 
         for (size_t i = 0; i < to_read.size(); ++i) {
@@ -116,7 +115,8 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
   put_blob_context.request->blob_name =
       make_shared<std::string>("test_hash/1.txt");
   put_blob_context.request->buffer = make_shared<BytesBuffer>();
-  put_blob_context.request->buffer->bytes = make_shared<vector<Byte>>(bytes);
+  put_blob_context.request->buffer->bytes =
+      make_shared<std::vector<Byte>>(bytes);
   put_blob_context.request->buffer->length = bytes.size();
   EXPECT_SUCCESS(blob_storage_client->PutBlob(put_blob_context));
 }
@@ -129,7 +129,7 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
   create_directory("bucket_delete");
 
   std::string file_content = "1234";
-  vector<char> bytes(file_content.begin(), file_content.end());
+  std::vector<char> bytes(file_content.begin(), file_content.end());
 
   ofstream output_stream("bucket_delete/2.txt", ios::trunc | ios::binary);
   output_stream << file_content;

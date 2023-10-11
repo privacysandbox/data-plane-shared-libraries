@@ -49,7 +49,6 @@ using std::mktime;
 using std::regex;
 using std::regex_replace;
 using std::tm;
-using std::vector;
 
 static constexpr char kPublicKeysLabel[] = "keys";
 static constexpr char kPublicKeyIdLabel[] = "id";
@@ -91,7 +90,7 @@ ExecutionResult PublicKeyClientUtils::ParseExpiredTimeFromHeaders(
 }
 
 ExecutionResult PublicKeyClientUtils::ParsePublicKeysFromBody(
-    const BytesBuffer& body, vector<PublicKey>& public_keys) noexcept {
+    const BytesBuffer& body, std::vector<PublicKey>& public_keys) noexcept {
   auto json_response =
       nlohmann::json::parse(body.bytes->begin(), body.bytes->end());
   auto json_keys = json_response.find(kPublicKeysLabel);

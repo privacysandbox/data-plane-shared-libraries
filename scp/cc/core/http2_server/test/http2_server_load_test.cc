@@ -76,7 +76,6 @@ using std::make_unique;
 using std::shared_ptr;
 using std::thread;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
@@ -204,7 +203,7 @@ TEST_F(HttpServerLoadTest,
     atomic<size_t> client_requests_completed_in_current_round = 0;
 
     // Initialize a bunch of clients.
-    vector<shared_ptr<HttpClientInterface>> http2_clients;
+    std::vector<shared_ptr<HttpClientInterface>> http2_clients;
     for (int j = 0; j < num_clients; j++) {
       auto http2_client =
           make_shared<HttpClient>(async_executor_for_client_, client_options);

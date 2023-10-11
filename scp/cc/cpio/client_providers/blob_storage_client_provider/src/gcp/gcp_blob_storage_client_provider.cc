@@ -113,7 +113,6 @@ using std::make_shared;
 using std::min;
 using std::ref;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::minutes;

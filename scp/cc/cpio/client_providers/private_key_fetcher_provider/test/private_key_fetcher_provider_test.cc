@@ -57,7 +57,6 @@ using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 
 static constexpr char kKeyId[] = "123";
 static constexpr char kRegion[] = "region";
@@ -97,7 +96,7 @@ class PrivateKeyFetcherProviderTest : public ::testing::Test {
 
   void MockResponse(const std::string& str) {
     BytesBuffer bytes_buffer(sizeof(str));
-    bytes_buffer.bytes = make_shared<vector<Byte>>(str.begin(), str.end());
+    bytes_buffer.bytes = make_shared<std::vector<Byte>>(str.begin(), str.end());
     bytes_buffer.capacity = sizeof(str);
 
     http_client_->response_mock = HttpResponse();

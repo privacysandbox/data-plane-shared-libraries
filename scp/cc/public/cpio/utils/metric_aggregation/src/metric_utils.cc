@@ -20,7 +20,6 @@
 
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace {
 constexpr char kMethodName[] = "MethodName";
@@ -97,7 +96,7 @@ shared_ptr<AggregateMetricInterface> MetricUtils::RegisterAggregateMetric(
     const shared_ptr<MetricClientInterface>& metric_client,
     const std::string& metric_name, const std::string& metric_label_component,
     const std::string& metric_label_method, MetricUnit metric_unit_type,
-    vector<std::string> metric_event_labels,
+    std::vector<std::string> metric_event_labels,
     size_t aggregated_metric_interval_ms) noexcept {
   auto metric_labels = MetricUtils::CreateMetricLabelsWithComponentSignature(
       metric_label_component, metric_label_method);

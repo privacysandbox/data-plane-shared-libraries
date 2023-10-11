@@ -30,7 +30,6 @@ using google::scp::core::common::ToString;
 using google::scp::core::common::Uuid;
 using std::cout;
 using std::endl;
-using std::vector;
 using std::vsnprintf;
 
 constexpr size_t nano_seconds_multiplier = (1000 * 1000 * 1000);
@@ -71,7 +70,7 @@ void ConsoleLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
   va_list size_args;
   va_copy(size_args, args);
   const auto size = vsnprintf(nullptr, 0U, message.data(), size_args);
-  auto output_message = vector<char>(size + 1);
+  auto output_message = std::vector<char>(size + 1);
   // vsnprintf adds a terminator at the end, so we need to specify size + 1
   // here.
   vsnprintf(&output_message[0], size + 1, message.data(), args);

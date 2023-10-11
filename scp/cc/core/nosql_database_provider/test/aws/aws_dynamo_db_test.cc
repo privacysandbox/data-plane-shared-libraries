@@ -75,7 +75,6 @@ using std::mt19937;
 using std::random_device;
 using std::shared_ptr;
 using std::uniform_int_distribution;
-using std::vector;
 
 namespace google::scp::core::test {
 TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithoutAttributes) {
@@ -151,7 +150,7 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithAttributes) {
   get_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   NoSqlDatabaseKeyValuePair attribute_1{
       .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
@@ -223,7 +222,7 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackFailure) {
   get_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   NoSqlDatabaseKeyValuePair attribute_1{
       .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
@@ -289,7 +288,7 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackZeroOrMoreThanOneResult) {
   get_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   NoSqlDatabaseKeyValuePair attribute_1{
       .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
@@ -352,7 +351,7 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackOneResult) {
   get_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   get_database_item_context
       .callback = [&](AsyncContext<GetDatabaseItemRequest,
@@ -499,7 +498,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithNewAttributes) {
   upsert_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   upsert_database_item_context.request->new_attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   NoSqlDatabaseKeyValuePair attribute_1{
       .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
       .attribute_value =
@@ -571,7 +570,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithOldAttributes) {
   upsert_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   upsert_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   NoSqlDatabaseKeyValuePair attribute_1{
       .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
       .attribute_value =

@@ -55,7 +55,6 @@ using google::scp::cpio::MockMetricClient;
 using std::atomic;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";

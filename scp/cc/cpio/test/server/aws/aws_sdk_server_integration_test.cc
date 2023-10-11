@@ -99,7 +99,6 @@ using std::random_device;
 using std::runtime_error;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 
 namespace {
 constexpr char kLocalHost[] = "http://127.0.0.1";

@@ -22,8 +22,6 @@
 #include <string>
 #include <vector>
 
-using std::vector;
-
 namespace google::scp::roma::wasm::test {
 TEST(WasmDeserializerTest, ShouldReadUint8) {
   uint8_t mem_blob[4] = {4, 5, 6, 7};
@@ -180,7 +178,7 @@ TEST(WasmDeserializerTest, ShouldReadCustomListOfStrings) {
                         0x00,
                         0x00};
 
-  vector<std::string> read_value;
+  std::vector<std::string> read_value;
   WasmDeserializer::ReadCustomListOfString(mem_blob, sizeof(mem_blob), 17,
                                            read_value);
 
@@ -190,7 +188,7 @@ TEST(WasmDeserializerTest, ShouldReadCustomListOfStrings) {
 TEST(WasmDeserializerTest, ShouldNoteReadCustomListOfStringsIfOutOfBounds) {
   uint8_t mem_blob[10] = {};
 
-  vector<std::string> read_value;
+  std::vector<std::string> read_value;
   // We can't even read the struct metadata starting at this index
   WasmDeserializer::ReadCustomListOfString(mem_blob, sizeof(mem_blob), 5,
                                            read_value);

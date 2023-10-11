@@ -51,7 +51,6 @@ using std::shared_lock;
 using std::shared_mutex;
 using std::shared_ptr;
 using std::unique_lock;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -59,7 +58,7 @@ using std::this_thread::sleep_for;
 namespace google::scp::core {
 ExecutionResult LeasableLockOnNoSQLDatabase::ConstructAttributesFromLeaseInfo(
     const LeaseInfoInternal& lease,
-    shared_ptr<vector<NoSqlDatabaseKeyValuePair>>& attributes) {
+    shared_ptr<std::vector<NoSqlDatabaseKeyValuePair>>& attributes) {
   NoSqlDatabaseKeyValuePair key_value1;
   key_value1.attribute_name =
       make_shared<std::string>(kPartitionLockTableLeaseOwnerIdAttributeName);
@@ -96,7 +95,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ConstructAttributesFromLeaseInfo(
 }
 
 ExecutionResult LeasableLockOnNoSQLDatabase::ObtainLeaseInfoFromAttributes(
-    const shared_ptr<vector<NoSqlDatabaseKeyValuePair>>& attributes,
+    const shared_ptr<std::vector<NoSqlDatabaseKeyValuePair>>& attributes,
     LeaseInfoInternal& lease) {
   for (const auto& attribute : *attributes) {
     if (*attribute.attribute_name ==
@@ -157,7 +156,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::WriteLeaseSynchronouslyToDatabase(
 
   // Old attributes (conditional statement)
   request_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   auto result = ConstructAttributesFromLeaseInfo(
       previous_lease, request_context.request->attributes);
   if (!result.Successful()) {
@@ -166,7 +165,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::WriteLeaseSynchronouslyToDatabase(
 
   // New attributes
   request_context.request->new_attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   result = ConstructAttributesFromLeaseInfo(
       new_lease, request_context.request->new_attributes);
   if (!result.Successful()) {

@@ -58,7 +58,6 @@ using std::make_pair;
 using std::make_shared;
 using std::pair;
 using std::shared_ptr;
-using std::vector;
 using std::chrono::seconds;
 using std::placeholders::_1;
 
@@ -277,7 +276,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
     return;
   }
   const auto& response_body = http_context.response->body.ToString();
-  vector<std::string> token_parts = absl::StrSplit(response_body, '.');
+  std::vector<std::string> token_parts = absl::StrSplit(response_body, '.');
   if (token_parts.size() != kExpectedTokenPartsSize) {
     auto result = RetryExecutionResult(
         SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN);

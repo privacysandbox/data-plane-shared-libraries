@@ -64,7 +64,6 @@ using std::make_shared;
 using std::promise;
 using std::shared_ptr;
 using std::thread;
-using std::vector;
 using std::chrono::milliseconds;
 
 static constexpr TimeDuration kHttp2ReadTimeoutInSeconds = 10;
@@ -130,7 +129,7 @@ class HttpServer {
         res.end();
         return;
       }
-      vector<std::string> params;
+      std::vector<std::string> params;
       static auto predicate = [](std::string::value_type c) {
         return c == '=';
       };
@@ -346,7 +345,7 @@ TEST_F(HttpClientTestII, ConcurrentReuse) {
   shared_ptr<AsyncExecutorInterface> async_executor =
       make_shared<AsyncExecutor>(2, 1000);
 
-  vector<promise<void>> done;
+  std::vector<promise<void>> done;
   done.reserve(10);
   for (int i = 0; i < 10; ++i) {
     done.emplace_back();

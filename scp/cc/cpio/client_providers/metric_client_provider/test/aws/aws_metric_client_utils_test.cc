@@ -65,7 +65,6 @@ using google::scp::core::errors::
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::AwsMetricClientUtils;
 using std::make_shared;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::hours;
 using std::chrono::milliseconds;
@@ -107,7 +106,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumSuccess) {
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         parse_request_to_datum_is_called = true;
       });
-  vector<MetricDatum> datum_list;
+  std::vector<MetricDatum> datum_list;
   EXPECT_SUCCESS(AwsMetricClientUtils::ParseRequestToDatum(
       context, datum_list, kAwsMetricDatumSizeLimit));
   EXPECT_TRUE(!parse_request_to_datum_is_called);
@@ -129,7 +128,7 @@ TEST_F(AwsMetricClientUtilsTest, OversizeMetricsInRequest) {
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
-  vector<MetricDatum> datum_list;
+  std::vector<MetricDatum> datum_list;
   EXPECT_THAT(
       AwsMetricClientUtils::ParseRequestToDatum(context, datum_list,
                                                 kAwsMetricDatumSizeLimit),
@@ -148,7 +147,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidValue) {
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         parse_request_to_datum_is_called = true;
       });
-  vector<MetricDatum> datum_list;
+  std::vector<MetricDatum> datum_list;
   EXPECT_THAT(AwsMetricClientUtils::ParseRequestToDatum(
                   context, datum_list, kAwsMetricDatumSizeLimit),
               ResultIs(FailureExecutionResult(
@@ -167,8 +166,8 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidTimestamp) {
       current_time - duration_cast<milliseconds>(hours(24 * 15)).count();
   Timestamp ahead_time_stamp =
       current_time + duration_cast<milliseconds>(hours(24 * 15)).count();
-  vector<Timestamp> timestamp_vector = {negative_time, old_time_stamp,
-                                        ahead_time_stamp};
+  std::vector<Timestamp> timestamp_vector = {negative_time, old_time_stamp,
+                                             ahead_time_stamp};
 
   for (const auto& timestamp : timestamp_vector) {
     SetPutMetricsRequest(record_metric_request, kValue, 1, timestamp);
@@ -178,7 +177,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidTimestamp) {
         [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
           parse_request_to_datum_is_called = true;
         });
-    vector<MetricDatum> datum_list;
+    std::vector<MetricDatum> datum_list;
     EXPECT_THAT(AwsMetricClientUtils::ParseRequestToDatum(
                     context, datum_list, kAwsMetricDatumSizeLimit),
                 ResultIs(FailureExecutionResult(
@@ -207,7 +206,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumOversizeDimensions) {
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         parse_request_to_datum_is_called = true;
       });
-  vector<MetricDatum> datum_list;
+  std::vector<MetricDatum> datum_list;
   EXPECT_THAT(AwsMetricClientUtils::ParseRequestToDatum(
                   context, datum_list, kAwsMetricDatumSizeLimit),
               ResultIs(FailureExecutionResult(
@@ -229,7 +228,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidUnit) {
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         parse_request_to_datum_is_called = true;
       });
-  vector<MetricDatum> datum_list;
+  std::vector<MetricDatum> datum_list;
   auto result = AwsMetricClientUtils::ParseRequestToDatum(
       context, datum_list, kAwsMetricDatumSizeLimit);
   EXPECT_THAT(result, ResultIs(FailureExecutionResult(

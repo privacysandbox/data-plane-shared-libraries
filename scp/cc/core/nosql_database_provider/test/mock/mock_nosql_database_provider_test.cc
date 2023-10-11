@@ -35,7 +35,6 @@ using std::atomic;
 using std::make_pair;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 
 namespace google::scp::core::test {
 
@@ -102,7 +101,7 @@ TEST(MockNoSQLDatabaseProviderTests, GetItemWithPartitionAndSortKey) {
   get_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   get_database_item_context.request->attributes->push_back(attribute);
 
   nosql_database_provider.GetDatabaseItem(get_database_item_context);
@@ -194,7 +193,7 @@ TEST(MockNoSQLDatabaseProviderTests, PartitionNotFound) {
   get_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   get_database_item_context.request->attributes->push_back(attribute);
 
   nosql_database_provider.GetDatabaseItem(get_database_item_context);
@@ -233,7 +232,7 @@ TEST(MockNoSQLDatabaseProviderTests, AttributeNotFound) {
   get_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   get_database_item_context.request->attributes->push_back(attribute);
 
   nosql_database_provider.GetDatabaseItem(get_database_item_context);
@@ -277,9 +276,9 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertNonExistingItem) {
   upsert_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   upsert_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context.request->new_attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context.request->new_attributes->push_back(
       new_attribute1);
   upsert_database_item_context.request->new_attributes->push_back(
@@ -370,9 +369,9 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertExistingItem) {
   upsert_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(sort_key);
   upsert_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context.request->new_attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context.request->new_attributes->push_back(attr1);
   upsert_database_item_context.request->new_attributes->push_back(attr2);
 
@@ -419,13 +418,13 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertExistingItem) {
   conditional_upsert_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(sort_key);
   conditional_upsert_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   conditional_upsert_database_item_context.request->attributes->push_back(
       attr1);
   conditional_upsert_database_item_context.request->attributes->push_back(
       attr2);
   conditional_upsert_database_item_context.request->new_attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   conditional_upsert_database_item_context.request->new_attributes->push_back(
       attr1_modified);
   conditional_upsert_database_item_context.request->new_attributes->push_back(
@@ -488,9 +487,9 @@ TEST(MockNoSQLDatabaseProviderTests, TestInitializeTable) {
   upsert_database_item_context.request->sort_key =
       make_shared<NoSqlDatabaseKeyValuePair>(sort_key);
   upsert_database_item_context.request->attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context.request->new_attributes =
-      make_shared<vector<NoSqlDatabaseKeyValuePair>>();
+      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context.request->new_attributes->push_back(attr1);
 
   nosql_database_provider.UpsertDatabaseItem(upsert_database_item_context);

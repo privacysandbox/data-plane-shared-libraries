@@ -38,14 +38,13 @@ using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;
 using google::scp::roma::sandbox::native_function_binding::NativeFunctionTable;
 using std::make_shared;
-using std::vector;
 
 namespace google::scp::roma::sandbox::native_function_binding::test {
 TEST(NativeFunctionHandlerSapiIpcTest, IninRunStop) {
   int fd_pair[2];
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
-  vector<int> local_fds = {fd_pair[0]};
-  vector<int> remote_fds = {fd_pair[1]};
+  std::vector<int> local_fds = {fd_pair[0]};
+  std::vector<int> remote_fds = {fd_pair[1]};
   auto function_table = make_shared<NativeFunctionTable>();
   NativeFunctionHandlerSapiIpc handler(function_table, local_fds, remote_fds);
 
@@ -64,8 +63,8 @@ void FunctionToBeCalled(proto::FunctionBindingIoProto& io_proto) {
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   int fd_pair[2];
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
-  vector<int> local_fds = {fd_pair[0]};
-  vector<int> remote_fds = {fd_pair[1]};
+  std::vector<int> local_fds = {fd_pair[0]};
+  std::vector<int> remote_fds = {fd_pair[1]};
   auto function_table = make_shared<NativeFunctionTable>();
   function_table->Register("cool_function_name", FunctionToBeCalled);
   NativeFunctionHandlerSapiIpc handler(function_table, local_fds, remote_fds);
@@ -92,8 +91,8 @@ TEST(NativeFunctionHandlerSapiIpcTest,
      ShouldAddErrorsIfFunctionNameIsNotFoundInTable) {
   int fd_pair[2];
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
-  vector<int> local_fds = {fd_pair[0]};
-  vector<int> remote_fds = {fd_pair[1]};
+  std::vector<int> local_fds = {fd_pair[0]};
+  std::vector<int> remote_fds = {fd_pair[1]};
   auto function_table = make_shared<NativeFunctionTable>();
   // We don't register any functions with the function table
   NativeFunctionHandlerSapiIpc handler(function_table, local_fds, remote_fds);
@@ -124,8 +123,8 @@ TEST(NativeFunctionHandlerSapiIpcTest,
      ShouldAddErrorsIfFunctionNameIsNotInMetadata) {
   int fd_pair[2];
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
-  vector<int> local_fds = {fd_pair[0]};
-  vector<int> remote_fds = {fd_pair[1]};
+  std::vector<int> local_fds = {fd_pair[0]};
+  std::vector<int> remote_fds = {fd_pair[1]};
   auto function_table = make_shared<NativeFunctionTable>();
   // We don't register any functions with the function table
   NativeFunctionHandlerSapiIpc handler(function_table, local_fds, remote_fds);
@@ -166,8 +165,8 @@ void FunctionTwo(proto::FunctionBindingIoProto& io_proto) {
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   int fd_pair[2];
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
-  vector<int> local_fds = {fd_pair[0]};
-  vector<int> remote_fds = {fd_pair[1]};
+  std::vector<int> local_fds = {fd_pair[0]};
+  std::vector<int> remote_fds = {fd_pair[1]};
   auto function_table = make_shared<NativeFunctionTable>();
   function_table->Register("cool_function_name_one", FunctionOne);
   function_table->Register("cool_function_name_two", FunctionTwo);

@@ -60,7 +60,6 @@ using std::make_shared;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
-using std::vector;
 
 namespace google::scp::core::test {
 
@@ -303,7 +302,7 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
         };
 
     atomic<size_t> total = 0;
-    vector<thread> threads;
+    std::vector<thread> threads;
     mock_async_executor->schedule_mock = [&](const AsyncOperation& work) {
       threads.push_back(thread([work]() { work(); }));
       return SuccessExecutionResult();

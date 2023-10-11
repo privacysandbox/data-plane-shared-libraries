@@ -42,7 +42,6 @@ using std::mutex;
 using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
-using std::vector;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::nanoseconds;
@@ -434,7 +433,8 @@ class AsyncExecutorAccessor : public AsyncExecutor {
 
   void TestPickTaskExecutorRoundRobinGlobalUrgentPool() {
     int num_executors = 10;
-    vector<shared_ptr<SingleThreadPriorityAsyncExecutor>> task_executor_pool;
+    std::vector<shared_ptr<SingleThreadPriorityAsyncExecutor>>
+        task_executor_pool;
     for (int i = 0; i < num_executors; i++) {
       task_executor_pool.push_back(
           make_shared<SingleThreadPriorityAsyncExecutor>(100 /* queue cap */));
@@ -460,7 +460,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
 
   void TestPickTaskExecutorRoundRobinGlobalNonUrgentPool() {
     int num_executors = 10;
-    vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
+    std::vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
     for (int i = 0; i < num_executors; i++) {
       task_executor_pool.push_back(
           make_shared<SingleThreadAsyncExecutor>(100 /* queue cap */));
@@ -486,7 +486,8 @@ class AsyncExecutorAccessor : public AsyncExecutor {
 
   void PickTaskExecutorRoundRobinThreadLocalUrgentPool() {
     int num_executors = 10;
-    vector<shared_ptr<SingleThreadPriorityAsyncExecutor>> task_executor_pool;
+    std::vector<shared_ptr<SingleThreadPriorityAsyncExecutor>>
+        task_executor_pool;
     for (int i = 0; i < num_executors; i++) {
       task_executor_pool.push_back(
           make_shared<SingleThreadPriorityAsyncExecutor>(100 /* queue cap */));
@@ -530,7 +531,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
 
   void PickTaskExecutorRoundRobinThreadLocalNonUrgentPool() {
     int num_executors = 10;
-    vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
+    std::vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
     for (int i = 0; i < num_executors; i++) {
       task_executor_pool.push_back(
           make_shared<SingleThreadAsyncExecutor>(100 /* queue cap */));
@@ -556,7 +557,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
 
   void PickTaskExecutorRoundRobinThreadLocalConcurrent() {
     int num_executors = 40;
-    vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
+    std::vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
     for (int i = 0; i < num_executors; i++) {
       task_executor_pool.push_back(
           make_shared<SingleThreadAsyncExecutor>(100 /* queue cap */));
@@ -608,7 +609,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
 
   void PickTaskExecutorRoundRobinGlobalConcurrent() {
     int num_executors = 40;
-    vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
+    std::vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
     for (int i = 0; i < num_executors; i++) {
       task_executor_pool.push_back(
           make_shared<SingleThreadAsyncExecutor>(100 /* queue cap */));
@@ -657,7 +658,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
   void TestPickRandomTaskExecutorWithAffinity() {
     EXPECT_SUCCESS(Init());
     EXPECT_SUCCESS(Run());
-    vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
+    std::vector<shared_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
     auto executor = task_executor_pool.emplace_back(
         make_shared<SingleThreadAsyncExecutor>(100 /* queue cap */));
     EXPECT_SUCCESS(executor->Init());
@@ -684,7 +685,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // Scheduling another task with affinity should result in using the same
     // thread.
     atomic<bool> done(false);
-    vector<shared_ptr<SingleThreadAsyncExecutor>>
+    std::vector<shared_ptr<SingleThreadAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
     // ensure that picking another executor with affinity chooses this same
@@ -713,7 +714,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // Scheduling another task with affinity should result in using the same
     // thread.
     atomic<bool> done(false);
-    vector<shared_ptr<SingleThreadPriorityAsyncExecutor>>
+    std::vector<shared_ptr<SingleThreadPriorityAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
     // ensure that picking another executor with affinity chooses this same
@@ -742,7 +743,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // Scheduling another task with affinity should result in using the same
     // thread.
     atomic<bool> done(false);
-    vector<shared_ptr<SingleThreadPriorityAsyncExecutor>>
+    std::vector<shared_ptr<SingleThreadPriorityAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
     // ensure that picking another executor with affinity chooses this same
@@ -771,7 +772,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // Scheduling another task with affinity should result in using the same
     // thread.
     atomic<bool> done(false);
-    vector<shared_ptr<SingleThreadAsyncExecutor>>
+    std::vector<shared_ptr<SingleThreadAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
     // ensure that picking another executor with affinity chooses this same

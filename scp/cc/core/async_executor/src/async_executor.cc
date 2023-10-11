@@ -38,7 +38,6 @@ using std::random_device;
 using std::shared_ptr;
 using std::thread;
 using std::uniform_int_distribution;
-using std::vector;
 using std::this_thread::get_id;
 
 namespace google::scp::core {
@@ -136,7 +135,7 @@ ExecutionResult AsyncExecutor::Stop() noexcept {
 template <class TaskExecutorType>
 ExecutionResultOr<shared_ptr<TaskExecutorType>> AsyncExecutor::PickTaskExecutor(
     AsyncExecutorAffinitySetting affinity,
-    const vector<std::shared_ptr<TaskExecutorType>>& task_executor_pool,
+    const std::vector<std::shared_ptr<TaskExecutorType>>& task_executor_pool,
     TaskExecutorPoolType task_executor_pool_type,
     TaskLoadBalancingScheme task_load_balancing_scheme) {
   static random_device random_device_local;

@@ -52,7 +52,6 @@ using std::atomic;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 
 static constexpr char kPrivateKeyClientProvider[] = "PrivateKeyClientProvider";

@@ -104,7 +104,6 @@ using std::set;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
-using std::vector;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -334,8 +333,8 @@ TEST_F(TransactionEngineTest, VerifyExecuteOperationInvalidInitialization) {
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
-  vector<ExecutionResult> results = {FailureExecutionResult(123),
-                                     RetryExecutionResult(123)};
+  std::vector<ExecutionResult> results = {FailureExecutionResult(123),
+                                          RetryExecutionResult(123)};
 
   for (auto result : results) {
     shared_ptr<Transaction> current_transaction;
@@ -610,19 +609,19 @@ void VerifyDispatchedOperations(
 }
 
 TEST_F(TransactionEngineTest, VerifyDispatchedOperations) {
-  vector<TransactionPhase> current_phases = {TransactionPhase::Prepare,
-                                             TransactionPhase::Commit,
-                                             TransactionPhase::CommitNotify};
+  std::vector<TransactionPhase> current_phases = {
+      TransactionPhase::Prepare, TransactionPhase::Commit,
+      TransactionPhase::CommitNotify};
 
-  vector<TransactionPhase> previous_phases = {TransactionPhase::Begin,
-                                              TransactionPhase::Prepare,
-                                              TransactionPhase::Commit};
+  std::vector<TransactionPhase> previous_phases = {TransactionPhase::Begin,
+                                                   TransactionPhase::Prepare,
+                                                   TransactionPhase::Commit};
 
   TransactionAction action = [](TransactionCommandCallback&) {
     return SuccessExecutionResult();
   };
 
-  vector<TransactionCommand> transaction_commands;
+  std::vector<TransactionCommand> transaction_commands;
   transaction_commands.push_back(TransactionCommand());
   transaction_commands.back().prepare = action;
 
@@ -681,11 +680,11 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperations) {
 }
 
 TEST_F(TransactionEngineTest, VerifyDispatchedOperationsFailedPartially) {
-  vector<TransactionPhase> current_phases = {
+  std::vector<TransactionPhase> current_phases = {
       TransactionPhase::Prepare, TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::AbortNotify};
 
-  vector<TransactionPhase> previous_phases = {
+  std::vector<TransactionPhase> previous_phases = {
       TransactionPhase::Begin, TransactionPhase::Prepare,
       TransactionPhase::Commit, TransactionPhase::Commit};
 
@@ -693,7 +692,7 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsFailedPartially) {
     return SuccessExecutionResult();
   };
 
-  vector<TransactionCommand> transaction_commands;
+  std::vector<TransactionCommand> transaction_commands;
   transaction_commands.push_back(TransactionCommand());
   transaction_commands.back().prepare = action;
 
@@ -768,11 +767,11 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsFailedPartially) {
 }
 
 TEST_F(TransactionEngineTest, VerifyDispatchedOperationsFailedCompletely) {
-  vector<TransactionPhase> current_phases = {
+  std::vector<TransactionPhase> current_phases = {
       TransactionPhase::Prepare, TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::AbortNotify};
 
-  vector<TransactionPhase> previous_phases = {
+  std::vector<TransactionPhase> previous_phases = {
       TransactionPhase::Begin, TransactionPhase::Prepare,
       TransactionPhase::Commit, TransactionPhase::Commit};
 
@@ -780,7 +779,7 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsFailedCompletely) {
     return SuccessExecutionResult();
   };
 
-  vector<TransactionCommand> transaction_commands;
+  std::vector<TransactionCommand> transaction_commands;
   transaction_commands.push_back(TransactionCommand());
   transaction_commands.back().prepare = action;
 
@@ -853,13 +852,13 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsFailedCompletely) {
 }
 
 TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotified) {
-  vector<TransactionPhase> current_phases = {TransactionPhase::Prepare,
-                                             TransactionPhase::Commit,
-                                             TransactionPhase::CommitNotify};
+  std::vector<TransactionPhase> current_phases = {
+      TransactionPhase::Prepare, TransactionPhase::Commit,
+      TransactionPhase::CommitNotify};
 
-  vector<TransactionPhase> previous_phases = {TransactionPhase::Begin,
-                                              TransactionPhase::Prepare,
-                                              TransactionPhase::Commit};
+  std::vector<TransactionPhase> previous_phases = {TransactionPhase::Begin,
+                                                   TransactionPhase::Prepare,
+                                                   TransactionPhase::Commit};
 
   TransactionAction action = [](TransactionCommandCallback& callback) {
     auto execution_result = SuccessExecutionResult();
@@ -867,7 +866,7 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotified) {
     return execution_result;
   };
 
-  vector<TransactionCommand> transaction_commands;
+  std::vector<TransactionCommand> transaction_commands;
   transaction_commands.push_back(TransactionCommand());
   transaction_commands.back().prepare = action;
 
@@ -931,11 +930,11 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotified) {
 }
 
 TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithFailure) {
-  vector<TransactionPhase> current_phases = {
+  std::vector<TransactionPhase> current_phases = {
       TransactionPhase::Aborted, TransactionPhase::AbortNotify,
       TransactionPhase::Unknown, TransactionPhase::AbortNotify};
 
-  vector<TransactionPhase> previous_phases = {
+  std::vector<TransactionPhase> previous_phases = {
       TransactionPhase::Begin, TransactionPhase::Prepare,
       TransactionPhase::Commit, TransactionPhase::Commit};
 
@@ -951,7 +950,7 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithFailure) {
     return execution_result;
   };
 
-  vector<TransactionCommand> transaction_commands;
+  std::vector<TransactionCommand> transaction_commands;
   transaction_commands.push_back(TransactionCommand());
   transaction_commands.back().prepare = action;
 
@@ -1038,11 +1037,11 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithFailure) {
 }
 
 TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithSuccess) {
-  vector<TransactionPhase> current_phases = {
+  std::vector<TransactionPhase> current_phases = {
       TransactionPhase::Commit, TransactionPhase::CommitNotify,
       TransactionPhase::Committed, TransactionPhase::Aborted};
 
-  vector<TransactionPhase> previous_phases = {
+  std::vector<TransactionPhase> previous_phases = {
       TransactionPhase::Prepare, TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::AbortNotify};
 
@@ -1053,7 +1052,7 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithSuccess) {
     return execution_result;
   };
 
-  vector<TransactionCommand> transaction_commands;
+  std::vector<TransactionCommand> transaction_commands;
   transaction_commands.push_back(TransactionCommand());
   transaction_commands.back().prepare = action;
 
@@ -1141,16 +1140,16 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithSuccess) {
 
 TEST_F(TransactionEngineTest,
        VerifyDispatchedOperationsNotifiedWithFailureMultiThreaded) {
-  vector<TransactionPhase> current_phases = {
+  std::vector<TransactionPhase> current_phases = {
       TransactionPhase::Aborted, TransactionPhase::AbortNotify,
       TransactionPhase::Unknown, TransactionPhase::AbortNotify};
 
-  vector<TransactionPhase> previous_phases = {
+  std::vector<TransactionPhase> previous_phases = {
       TransactionPhase::Begin, TransactionPhase::Prepare,
       TransactionPhase::Commit, TransactionPhase::Commit};
 
   atomic<size_t> total_callbacks = 0;
-  vector<thread> threads;
+  std::vector<thread> threads;
   TransactionAction action = [&](TransactionCommandCallback& callback) {
     ExecutionResult execution_result = SuccessExecutionResult();
     if (total_callbacks++ == 3) {
@@ -1165,7 +1164,7 @@ TEST_F(TransactionEngineTest,
     return execution_result;
   };
 
-  vector<TransactionCommand> transaction_commands;
+  std::vector<TransactionCommand> transaction_commands;
   transaction_commands.push_back(TransactionCommand());
   transaction_commands.back().prepare = action;
 
@@ -1259,16 +1258,16 @@ TEST_F(TransactionEngineTest,
 
 TEST_F(TransactionEngineTest,
        VerifyDispatchedOperationsNotifiedWithSuccessMultiThreaded) {
-  vector<TransactionPhase> current_phases = {
+  std::vector<TransactionPhase> current_phases = {
       TransactionPhase::Commit, TransactionPhase::CommitNotify,
       TransactionPhase::Committed, TransactionPhase::Aborted};
 
-  vector<TransactionPhase> previous_phases = {
+  std::vector<TransactionPhase> previous_phases = {
       TransactionPhase::Prepare, TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::AbortNotify};
 
   atomic<size_t> total_callbacks = 0;
-  vector<thread> threads;
+  std::vector<thread> threads;
   TransactionAction action = [&](TransactionCommandCallback& callback) {
     ExecutionResult execution_result = SuccessExecutionResult();
     threads.push_back(thread([callback, execution_result]() mutable {
@@ -1278,7 +1277,7 @@ TEST_F(TransactionEngineTest,
     return execution_result;
   };
 
-  vector<TransactionCommand> transaction_commands;
+  std::vector<TransactionCommand> transaction_commands;
   transaction_commands.push_back(TransactionCommand());
   transaction_commands.back().prepare = action;
 
@@ -1370,12 +1369,12 @@ TEST_F(TransactionEngineTest,
 }
 
 TEST_F(TransactionEngineTest, VerifyNonDispatchedSuccessNextPhases) {
-  vector<TransactionPhase> current_phases = {
+  std::vector<TransactionPhase> current_phases = {
       TransactionPhase::Prepare, TransactionPhase::End, TransactionPhase::End};
 
-  vector<TransactionPhase> previous_phases = {TransactionPhase::Begin,
-                                              TransactionPhase::Committed,
-                                              TransactionPhase::Aborted};
+  std::vector<TransactionPhase> previous_phases = {TransactionPhase::Begin,
+                                                   TransactionPhase::Committed,
+                                                   TransactionPhase::Aborted};
 
   atomic<bool> condition = false;
   shared_ptr<JournalServiceInterface> mock_journal_service =
@@ -1450,13 +1449,13 @@ TEST_F(TransactionEngineTest, VerifyNonDispatchedSuccessNextPhases) {
 }
 
 TEST_F(TransactionEngineTest, VerifyNonDispatchedFailureNextPhases) {
-  vector<TransactionPhase> current_phases = {TransactionPhase::Aborted,
-                                             TransactionPhase::Unknown,
-                                             TransactionPhase::Unknown};
+  std::vector<TransactionPhase> current_phases = {TransactionPhase::Aborted,
+                                                  TransactionPhase::Unknown,
+                                                  TransactionPhase::Unknown};
 
-  vector<TransactionPhase> previous_phases = {TransactionPhase::Begin,
-                                              TransactionPhase::Committed,
-                                              TransactionPhase::Aborted};
+  std::vector<TransactionPhase> previous_phases = {TransactionPhase::Begin,
+                                                   TransactionPhase::Committed,
+                                                   TransactionPhase::Aborted};
 
   atomic<bool> condition = false;
 
@@ -2529,14 +2528,14 @@ TEST_F(TransactionEngineTest, ProceedToNextPhaseAfterRecovery) {
       async_executor, mock_transaction_command_serializer, journal_service,
       remote_transaction_manager);
 
-  vector<TransactionPhase> current_phases = {
+  std::vector<TransactionPhase> current_phases = {
       TransactionPhase::NotStarted,   TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::Committed,
       TransactionPhase::AbortNotify,  TransactionPhase::Aborted,
       TransactionPhase::End,          TransactionPhase::Unknown};
 
-  vector<TransactionPhase> next_phases = {
+  std::vector<TransactionPhase> next_phases = {
       TransactionPhase::Begin,        TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::Committed,
@@ -2729,8 +2728,8 @@ TEST_F(TransactionEngineTest, Checkpoint) {
   it++;
   EXPECT_EQ(it, checkpoint_logs->end());
 
-  vector<Uuid> transaction_ids;
-  vector<Uuid> checkpoint_transaction_ids;
+  std::vector<Uuid> transaction_ids;
+  std::vector<Uuid> checkpoint_transaction_ids;
   mock_transaction_engine.GetActiveTransactionsMap().Keys(transaction_ids);
   mock_transaction_engine_for_recovery.GetActiveTransactionsMap().Keys(
       checkpoint_transaction_ids);
@@ -2858,13 +2857,13 @@ TEST_F(TransactionEngineTest, ResolveNonRemotelyCoordinatedTransaction) {
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, journal_service,
       remote_transaction_manager);
-  vector<TransactionPhase> cancellable_phases = {
+  std::vector<TransactionPhase> cancellable_phases = {
       TransactionPhase::NotStarted,   TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify,
   };
 
-  vector<TransactionPhase> non_cancellable_phases = {
+  std::vector<TransactionPhase> non_cancellable_phases = {
       TransactionPhase::Committed,
       TransactionPhase::AbortNotify,
       TransactionPhase::Aborted,
@@ -3361,7 +3360,7 @@ TEST_F(TransactionEngineTest, OnRemoteTransactionNotFound) {
   transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 123456;
 
-  vector<TransactionPhase> phases = {
+  std::vector<TransactionPhase> phases = {
       TransactionPhase::NotStarted,   TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::Committed,
@@ -3521,7 +3520,7 @@ TEST_F(TransactionEngineTest, RollForwardLocalTransaction) {
   transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 123456;
 
-  vector<TransactionPhase> phases = {
+  std::vector<TransactionPhase> phases = {
       TransactionPhase::NotStarted,   TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::Committed,
@@ -3529,13 +3528,13 @@ TEST_F(TransactionEngineTest, RollForwardLocalTransaction) {
       TransactionPhase::End,          TransactionPhase::Unknown,
   };
 
-  vector<TransactionExecutionPhase> next_phases = {
+  std::vector<TransactionExecutionPhase> next_phases = {
       TransactionExecutionPhase::Begin,  TransactionExecutionPhase::Prepare,
       TransactionExecutionPhase::Commit, TransactionExecutionPhase::Notify,
       TransactionExecutionPhase::Abort,  TransactionExecutionPhase::End,
   };
 
-  vector<bool> next_phase_outcomes = {true, false};
+  std::vector<bool> next_phase_outcomes = {true, false};
 
   for (auto phase : phases) {
     for (auto next_phase : next_phases) {
@@ -3633,7 +3632,7 @@ TEST_F(TransactionEngineTest, RollForwardLocalAndRemoteTransactions) {
   transaction->transaction_origin = make_shared<std::string>("origin.com");
   transaction->last_execution_timestamp = 123456;
 
-  vector<TransactionPhase> phases = {
+  std::vector<TransactionPhase> phases = {
       TransactionPhase::NotStarted,   TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::Committed,
@@ -3817,13 +3816,13 @@ TEST_F(TransactionEngineTest, ToTransactionPhase) {
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, journal_service,
       remote_transaction_manager);
-  vector<TransactionExecutionPhase> phases = {
+  std::vector<TransactionExecutionPhase> phases = {
       TransactionExecutionPhase::Begin,  TransactionExecutionPhase::Prepare,
       TransactionExecutionPhase::Commit, TransactionExecutionPhase::Notify,
       TransactionExecutionPhase::Abort,  TransactionExecutionPhase::End,
       TransactionExecutionPhase::Unknown};
 
-  vector<TransactionPhase> expected_phases = {
+  std::vector<TransactionPhase> expected_phases = {
       TransactionPhase::Begin,       TransactionPhase::Prepare,
       TransactionPhase::Commit,      TransactionPhase::CommitNotify,
       TransactionPhase::AbortNotify, TransactionPhase::End,
@@ -3852,7 +3851,7 @@ TEST_F(TransactionEngineTest, LocalAndRemoteTransactionsInSync) {
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, journal_service,
       remote_transaction_manager);
-  vector<TransactionPhase> phases = {
+  std::vector<TransactionPhase> phases = {
       TransactionPhase::NotStarted,   TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::Committed,
@@ -3957,7 +3956,7 @@ TEST_F(TransactionEngineTest, ToTransactionExecutionPhase) {
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, journal_service,
       remote_transaction_manager);
-  vector<TransactionPhase> phases = {
+  std::vector<TransactionPhase> phases = {
       TransactionPhase::NotStarted,   TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::Committed,
@@ -3965,7 +3964,7 @@ TEST_F(TransactionEngineTest, ToTransactionExecutionPhase) {
       TransactionPhase::End,          TransactionPhase::Unknown,
   };
 
-  vector<TransactionExecutionPhase> expected_phases = {
+  std::vector<TransactionExecutionPhase> expected_phases = {
       TransactionExecutionPhase::Begin,   TransactionExecutionPhase::Begin,
       TransactionExecutionPhase::Prepare, TransactionExecutionPhase::Commit,
       TransactionExecutionPhase::Notify,  TransactionExecutionPhase::End,
@@ -3994,7 +3993,7 @@ TEST_F(TransactionEngineTest, CanCancel) {
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, journal_service,
       remote_transaction_manager);
-  vector<TransactionPhase> phases = {
+  std::vector<TransactionPhase> phases = {
       TransactionPhase::NotStarted,   TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::Committed,
@@ -4290,14 +4289,14 @@ TEST_F(TransactionEngineTest, ExecutePhaseInternalHandlePhases) {
   transaction_phase_context.request->last_execution_timestamp =
       transaction->last_execution_timestamp;
 
-  vector<TransactionExecutionPhase> requested_phases = {
+  std::vector<TransactionExecutionPhase> requested_phases = {
       TransactionExecutionPhase::Begin,   TransactionExecutionPhase::Prepare,
       TransactionExecutionPhase::Commit,  TransactionExecutionPhase::Notify,
       TransactionExecutionPhase::Abort,   TransactionExecutionPhase::End,
       TransactionExecutionPhase::Unknown,
   };
 
-  vector<TransactionPhase> all_phases = {
+  std::vector<TransactionPhase> all_phases = {
       TransactionPhase::NotStarted,   TransactionPhase::Begin,
       TransactionPhase::Prepare,      TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::AbortNotify,

@@ -90,7 +90,6 @@ using std::mt19937;
 using std::random_device;
 using std::shared_ptr;
 using std::uniform_int_distribution;
-using std::vector;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::NiceMock;

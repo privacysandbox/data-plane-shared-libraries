@@ -94,7 +94,6 @@ using std::make_shared;
 using std::make_unique;
 using std::shared_ptr;
 using std::unique_ptr;
-using std::vector;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -275,7 +274,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStream) {
               ReadObject(ReadObjectRequestEqual(kBucketName, kBlobName)))
       .WillOnce(Return(ByMove(BuildReadResponseFromString(bytes_str))));
 
-  vector<GetBlobStreamResponse> actual_responses;
+  std::vector<GetBlobStreamResponse> actual_responses;
   get_blob_stream_context_.process_callback = [this, &actual_responses](
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
@@ -309,7 +308,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
   // 15 chars.
   std::string bytes_str = "response_string";
   // Expect to get responses with data: ["re", "sp", ... "g"]
-  vector<GetBlobStreamResponse> expected_responses;
+  std::vector<GetBlobStreamResponse> expected_responses;
   for (int i = 0; i < bytes_str.length(); i += 2) {
     GetBlobStreamResponse resp;
     resp.mutable_blob_portion()->mutable_metadata()->CopyFrom(
@@ -331,7 +330,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
               ReadObject(ReadObjectRequestEqual(kBucketName, kBlobName)))
       .WillOnce(Return(ByMove(BuildReadResponseFromString(bytes_str))));
 
-  vector<GetBlobStreamResponse> actual_responses;
+  std::vector<GetBlobStreamResponse> actual_responses;
   get_blob_stream_context_.process_callback = [this, &actual_responses](
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
@@ -369,7 +368,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
   // "content_length" is still 15 to simulate a ranged read.
   std::string bytes_str = "ponsaaaaaaaaaaa";
   // Expect to get responses with data: ["pon", "s"]
-  vector<GetBlobStreamResponse> expected_responses;
+  std::vector<GetBlobStreamResponse> expected_responses;
   GetBlobStreamResponse resp1, resp2;
   resp1.mutable_blob_portion()->mutable_metadata()->CopyFrom(
       get_blob_stream_context_.request->blob_metadata());
@@ -388,7 +387,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
               ReadObject(ReadObjectRequestEqual(kBucketName, kBlobName)))
       .WillOnce(Return(ByMove(BuildReadResponseFromString(bytes_str))));
 
-  vector<GetBlobStreamResponse> actual_responses;
+  std::vector<GetBlobStreamResponse> actual_responses;
   get_blob_stream_context_.process_callback = [this, &actual_responses](
                                                   auto& context, bool) {
     auto resp = context.TryGetNextResponse();
@@ -519,7 +518,7 @@ MATCHER_P(HasSessionUrl, url, "") {
 void ExpectResumableUpload(MockClient& mock_client, const std::string& bucket,
                            const std::string& blob,
                            const std::string& initial_part,
-                           const vector<std::string>& other_parts,
+                           const std::vector<std::string>& other_parts,
                            bool expect_queries = false) {
   static int upload_count = 0;
   auto session_id = absl::StrFormat("session_%d", upload_count++);
@@ -598,8 +597,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(
       initial_str);
 
-  vector<std::string> strings{std::string(MockClient::kUploadSize, 'b'),
-                              std::string(MockClient::kUploadSize, 'c')};
+  std::vector<std::string> strings{std::string(MockClient::kUploadSize, 'b'),
+                                   std::string(MockClient::kUploadSize, 'c')};
   auto request2 = *put_blob_stream_context_.request;
   request2.mutable_blob_portion()->set_data(strings[0]);
   auto request3 = *put_blob_stream_context_.request;
@@ -650,8 +649,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
   put_blob_stream_context_.request->mutable_blob_portion()->set_data(
       initial_str);
 
-  vector<std::string> strings{std::string(MockClient::kUploadSize, 'b'),
-                              std::string(MockClient::kUploadSize, 'c')};
+  std::vector<std::string> strings{std::string(MockClient::kUploadSize, 'b'),
+                                   std::string(MockClient::kUploadSize, 'c')};
 
   ExpectResumableUpload(*mock_client_, kBucketName, kBlobName, initial_str,
                         strings, true /*expect_queries*/);

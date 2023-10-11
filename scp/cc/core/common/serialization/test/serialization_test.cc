@@ -31,7 +31,6 @@ using google::protobuf::Message;
 using google::scp::core::common::Uuid;
 using google::scp::core::common::test::serialization::TestStringRequest;
 using std::make_shared;
-using std::vector;
 
 namespace google::scp::core::common::test {
 
@@ -43,7 +42,7 @@ Byte GetNthByte(T& value, int n) {
 template <typename T>
 void SerializeAndVerify(T value) {
   BytesBuffer bytes_buffer;
-  bytes_buffer.bytes = make_shared<vector<Byte>>(sizeof(T));
+  bytes_buffer.bytes = make_shared<std::vector<Byte>>(sizeof(T));
   bytes_buffer.capacity = sizeof(T);
   bytes_buffer.length = 0;
   size_t buffer_offset = 0;
@@ -140,7 +139,7 @@ TEST(SerializationTests, SerializeUuid) {
 
   auto length = 2 * sizeof(uint64_t);
   BytesBuffer bytes_buffer;
-  bytes_buffer.bytes = make_shared<vector<Byte>>(length);
+  bytes_buffer.bytes = make_shared<std::vector<Byte>>(length);
   bytes_buffer.capacity = length;
   size_t buffer_offset = 0;
   size_t bytes_serialized = 0;
@@ -180,7 +179,7 @@ TEST(SerializationTests, SerializeProto) {
   auto block_header_length = sizeof(uint64_t);
   auto length = block_header_length + test_string_request.ByteSizeLong();
   BytesBuffer bytes_buffer;
-  bytes_buffer.bytes = make_shared<vector<Byte>>(length);
+  bytes_buffer.bytes = make_shared<std::vector<Byte>>(length);
   bytes_buffer.capacity = length;
   size_t buffer_offset = 0;
   size_t bytes_serialized = 0;
@@ -298,7 +297,7 @@ TEST(SerializationTests, SerializeVersion) {
 
   auto length = 2 * sizeof(uint64_t);
   BytesBuffer bytes_buffer;
-  bytes_buffer.bytes = make_shared<vector<Byte>>(length);
+  bytes_buffer.bytes = make_shared<std::vector<Byte>>(length);
   bytes_buffer.capacity = length;
   size_t buffer_offset = 0;
   size_t bytes_serialized = 0;

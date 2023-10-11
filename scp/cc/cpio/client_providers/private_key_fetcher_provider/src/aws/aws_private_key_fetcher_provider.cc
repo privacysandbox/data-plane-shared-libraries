@@ -63,7 +63,6 @@ using nghttp2::asio_http2::host_service_from_uri;
 using std::bind;
 using std::make_shared;
 using std::shared_ptr;
-using std::vector;
 using std::placeholders::_1;
 
 namespace {

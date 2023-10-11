@@ -68,7 +68,6 @@ using std::make_shared;
 using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
-using std::vector;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -212,8 +211,9 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseRemoteAndWaitingCombinations) {
               SC_TRANSACTION_MANAGER_TRANSACTION_NOT_COORDINATED_REMOTELY)));
 }
 
-void ExecuteNonPossiblePhases(vector<TransactionPhase> all_non_possible_phases,
-                              TransactionExecutionPhase requested_phase) {
+void ExecuteNonPossiblePhases(
+    std::vector<TransactionPhase> all_non_possible_phases,
+    TransactionExecutionPhase requested_phase) {
   shared_ptr<JournalServiceInterface> mock_journal_service =
       make_shared<MockJournalService>();
   shared_ptr<AsyncExecutorInterface> async_executor =
@@ -261,7 +261,7 @@ void ExecuteNonPossiblePhases(vector<TransactionPhase> all_non_possible_phases,
 
 TEST(TransactionEngineRemoteTest,
      ExecutePhaseNonmatchingTransactionBeginPhase) {
-  vector<TransactionPhase> all_non_possible_phases = {
+  std::vector<TransactionPhase> all_non_possible_phases = {
       TransactionPhase::Unknown,     TransactionPhase::Prepare,
       TransactionPhase::Commit,      TransactionPhase::CommitNotify,
       TransactionPhase::AbortNotify, TransactionPhase::Committed,
@@ -274,7 +274,7 @@ TEST(TransactionEngineRemoteTest,
 
 TEST(TransactionEngineRemoteTest,
      ExecutePhaseNonmatchingTransactionPreparePhase) {
-  vector<TransactionPhase> all_non_possible_phases = {
+  std::vector<TransactionPhase> all_non_possible_phases = {
       TransactionPhase::Unknown,     TransactionPhase::Begin,
       TransactionPhase::Commit,      TransactionPhase::CommitNotify,
       TransactionPhase::AbortNotify, TransactionPhase::Committed,
@@ -287,7 +287,7 @@ TEST(TransactionEngineRemoteTest,
 
 TEST(TransactionEngineRemoteTest,
      ExecutePhaseNonmatchingTransactionCommitPhase) {
-  vector<TransactionPhase> all_non_possible_phases = {
+  std::vector<TransactionPhase> all_non_possible_phases = {
       TransactionPhase::Unknown,     TransactionPhase::Prepare,
       TransactionPhase::Begin,       TransactionPhase::CommitNotify,
       TransactionPhase::AbortNotify, TransactionPhase::Committed,
@@ -300,7 +300,7 @@ TEST(TransactionEngineRemoteTest,
 
 TEST(TransactionEngineRemoteTest,
      ExecutePhaseNonmatchingTransactionCommitNotifyPhase) {
-  vector<TransactionPhase> all_non_possible_phases = {
+  std::vector<TransactionPhase> all_non_possible_phases = {
       TransactionPhase::Unknown,     TransactionPhase::Prepare,
       TransactionPhase::Commit,      TransactionPhase::Begin,
       TransactionPhase::AbortNotify, TransactionPhase::Committed,
@@ -313,7 +313,7 @@ TEST(TransactionEngineRemoteTest,
 
 TEST(TransactionEngineRemoteTest,
      ExecutePhaseNonmatchingTransactionAbortNotifyPhase) {
-  vector<TransactionPhase> all_non_possible_phases = {
+  std::vector<TransactionPhase> all_non_possible_phases = {
       TransactionPhase::Unknown,
       TransactionPhase::Committed,
       TransactionPhase::Aborted,
@@ -325,7 +325,7 @@ TEST(TransactionEngineRemoteTest,
 }
 
 TEST(TransactionEngineRemoteTest, ExecutePhaseNonmatchingTransactionEndPhase) {
-  vector<TransactionPhase> all_non_possible_phases = {
+  std::vector<TransactionPhase> all_non_possible_phases = {
       TransactionPhase::Unknown, TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::AbortNotify};
 
