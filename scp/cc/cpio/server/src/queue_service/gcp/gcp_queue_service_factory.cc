@@ -25,19 +25,17 @@
 using google::scp::cpio::client_providers::GcpQueueClientProvider;
 using google::scp::cpio::client_providers::QueueClientOptions;
 using google::scp::cpio::client_providers::QueueClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 GcpQueueServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<GcpInstanceServiceFactory>(
+  return std::make_shared<GcpInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<QueueClientProviderInterface>
+std::shared_ptr<QueueClientProviderInterface>
 GcpQueueServiceFactory::CreateQueueClient() noexcept {
-  return make_shared<GcpQueueClientProvider>(
+  return std::make_shared<GcpQueueClientProvider>(
       queue_client_options_, instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());

@@ -97,14 +97,10 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Decode;
 using std::bind;
 using std::isxdigit;
-using std::make_shared;
-using std::make_unique;
 using std::map;
 using std::mt19937;
 using std::random_device;
-using std::shared_ptr;
 using std::uniform_int_distribution;
-using std::unique_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -261,7 +257,7 @@ ExecutionResult CryptoClientProvider::HpkeEncrypt(
     return encrypt_context.result;
   }
 
-  encrypt_context.response = make_shared<HpkeEncryptResponse>();
+  encrypt_context.response = std::make_shared<HpkeEncryptResponse>();
   if (encrypt_context.request->is_bidirectional()) {
     auto secret = (*cipher)->Export(
         encrypt_context.request->exporter_context().empty()
@@ -396,7 +392,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
     return decrypt_context.result;
   }
 
-  decrypt_context.response = make_shared<HpkeDecryptResponse>();
+  decrypt_context.response = std::make_shared<HpkeDecryptResponse>();
   if (decrypt_context.request->is_bidirectional()) {
     auto secret = (*cipher)->Export(
         decrypt_context.request->exporter_context().empty()
@@ -451,7 +447,7 @@ ExecutionResult CryptoClientProvider::AeadEncrypt(
     context.Finish();
     return context.result;
   }
-  context.response = make_shared<AeadEncryptResponse>();
+  context.response = std::make_shared<AeadEncryptResponse>();
   context.response->mutable_encrypted_data()->set_ciphertext((*ciphertext));
   context.result = SuccessExecutionResult();
   context.Finish();
@@ -485,7 +481,7 @@ ExecutionResult CryptoClientProvider::AeadDecrypt(
     context.Finish();
     return context.result;
   }
-  context.response = make_shared<AeadDecryptResponse>();
+  context.response = std::make_shared<AeadDecryptResponse>();
   context.response->set_payload((*payload));
   context.result = SuccessExecutionResult();
   context.Finish();

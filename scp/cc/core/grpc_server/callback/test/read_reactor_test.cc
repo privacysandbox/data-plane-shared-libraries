@@ -32,10 +32,7 @@ using grpc::internal::ServerReactor;
 using std::atomic_bool;
 using std::atomic_int;
 using std::function;
-using std::make_shared;
-using std::shared_ptr;
 using std::thread;
-using std::unique_ptr;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::InSequence;
@@ -123,14 +120,14 @@ TEST_F(ReadReactorTest, BasicSequenceWorks) {
     // Spawn a thread to listen for when to finish context.
     finisher_thread = thread([context]() mutable {
       int val;
-      unique_ptr<SomeRequest> req = context.TryGetNextRequest();
+      std::unique_ptr<SomeRequest> req = context.TryGetNextRequest();
       for (val = 11; req != nullptr; val++) {
         EXPECT_EQ(req->field(), val);
         req = context.TryGetNextRequest();
       }
       EXPECT_EQ(val, 13);
       context.result = SuccessExecutionResult();
-      context.response = make_shared<SomeResponse>();
+      context.response = std::make_shared<SomeResponse>();
       context.Finish();
       finished = true;
     });
@@ -261,7 +258,7 @@ TEST_F(ReadReactorTest, CancellationWorks) {
       while (!queue_is_done()) {}
       EXPECT_TRUE(context.IsCancelled());
       context.result = SuccessExecutionResult();
-      context.response = make_shared<SomeResponse>();
+      context.response = std::make_shared<SomeResponse>();
       context.Finish();
       finished = true;
     });

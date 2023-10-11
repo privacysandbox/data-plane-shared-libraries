@@ -68,10 +68,7 @@ using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8IsolateVisitor;
 using google::scp::roma::sandbox::worker::WorkerUtils;
 using google::scp::roma::worker::ExecutionUtils;
-using std::make_shared;
-using std::make_unique;
 using std::min;
-using std::shared_ptr;
 using std::static_pointer_cast;
 using std::uint8_t;
 using v8::Array;
@@ -93,9 +90,9 @@ using v8::Value;
 using v8::WasmModuleObject;
 
 namespace {
-shared_ptr<std::string> GetCodeFromContext(
+std::shared_ptr<std::string> GetCodeFromContext(
     const RomaJsEngineCompilationContext& context) {
-  shared_ptr<std::string> code;
+  std::shared_ptr<std::string> code;
 
   if (context.has_context) {
     code = static_pointer_cast<std::string>(context.context);
@@ -184,7 +181,7 @@ ExecutionResult V8JsEngine::OneTimeSetup(
   pid_t my_pid = getpid();
   std::string proc_exe_path =
       std::string("/proc/") + std::to_string(my_pid) + "/exe";
-  auto my_path = make_unique<char[]>(PATH_MAX);
+  auto my_path = std::make_unique<char[]>(PATH_MAX);
   readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
   v8::V8::InitializeICUDefaultLocation(my_path.get());
   v8::V8::InitializeExternalStartupData(my_path.get());
@@ -364,7 +361,7 @@ V8JsEngine::CreateCompilationContext(
   }
 
   RomaJsEngineCompilationContext out_context;
-  auto snapshot_context = make_shared<SnapshotCompilationContext>();
+  auto snapshot_context = std::make_shared<SnapshotCompilationContext>();
   // If wasm code array exists, a snapshot with global wasm code array will be
   // created. Otherwise, a normal snapshot containing compiled JS code will be
   // created.
@@ -471,7 +468,8 @@ core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
 }
 
 core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
-    const shared_ptr<SnapshotCompilationContext>& current_compilation_context,
+    const std::shared_ptr<SnapshotCompilationContext>&
+        current_compilation_context,
     const std::string& function_name,
     const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string, std::string>& metadata) noexcept {
@@ -630,7 +628,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
   } else {
     input_code = code;
     out_context.has_context = true;
-    out_context.context = make_shared<std::string>(code);
+    out_context.context = std::make_shared<std::string>(code);
   }
   execution_response.compilation_context = out_context;
 
@@ -725,7 +723,7 @@ V8JsEngine::CompileAndRunJsWithWasm(
     const RomaJsEngineCompilationContext& context) noexcept {
   std::string err_msg;
   JsEngineExecutionResponse execution_response;
-  shared_ptr<SnapshotCompilationContext> current_compilation_context;
+  std::shared_ptr<SnapshotCompilationContext> current_compilation_context;
   if (!context.has_context) {
     auto context_or = CreateCompilationContext(code, wasm, metadata, err_msg);
     if (!context_or.result().Successful()) {

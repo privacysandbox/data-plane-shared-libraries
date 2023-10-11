@@ -98,11 +98,7 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using std::bind;
 using std::cout;
 using std::endl;
-using std::make_shared;
-using std::make_unique;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -117,10 +113,10 @@ constexpr char kInstanceClientName[] = "instance_client";
 constexpr char kServiceFactoryName[] = "instance_factory";
 }  // namespace
 
-shared_ptr<CloudInitializerInterface> cloud_initializer;
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<InstanceClientProviderInterface> instance_client;
-shared_ptr<InstanceServiceFactoryInterface> service_factory;
+std::shared_ptr<CloudInitializerInterface> cloud_initializer;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<InstanceClientProviderInterface> instance_client;
+std::shared_ptr<InstanceServiceFactoryInterface> service_factory;
 
 class InstanceServiceImpl : public InstanceService::CallbackService {
  public:
@@ -203,7 +199,7 @@ int main(int argc, char* argv[]) {
 
 void RunClients() {
   auto instance_service_factory_options =
-      make_shared<InstanceServiceFactoryOptions>();
+      std::make_shared<InstanceServiceFactoryOptions>();
   instance_service_factory_options
       ->cpu_async_executor_thread_count_config_label =
       kInstanceClientCpuThreadCount;
@@ -217,29 +213,31 @@ void RunClients() {
 
 #if defined(AWS_SERVER)
   SCP_INFO(kInstanceServer, kZeroUuid, "Start AWS Instance Server");
-  service_factory = make_shared<google::scp::cpio::AwsInstanceServiceFactory>(
-      config_provider, instance_service_factory_options);
+  service_factory =
+      std::make_shared<google::scp::cpio::AwsInstanceServiceFactory>(
+          config_provider, instance_service_factory_options);
 #elif defined(GCP_SERVER)
   SCP_INFO(kInstanceServer, kZeroUuid, "Start GCP Instance Server");
-  service_factory = make_shared<google::scp::cpio::GcpInstanceServiceFactory>(
-      config_provider, instance_service_factory_options);
+  service_factory =
+      std::make_shared<google::scp::cpio::GcpInstanceServiceFactory>(
+          config_provider, instance_service_factory_options);
 #elif defined(TEST_AWS_SERVER)
   SCP_INFO(kInstanceServer, kZeroUuid, "Start test AWS Instance Server");
-  auto test_options =
-      make_shared<google::scp::cpio::TestAwsInstanceServiceFactoryOptions>();
+  auto test_options = std::make_shared<
+      google::scp::cpio::TestAwsInstanceServiceFactoryOptions>();
   test_options->region_config_label =
       google::scp::cpio::kTestAwsInstanceClientRegion;
   service_factory =
-      make_shared<google::scp::cpio::TestAwsInstanceServiceFactory>(
+      std::make_shared<google::scp::cpio::TestAwsInstanceServiceFactory>(
           config_provider, test_options);
 #elif defined(TEST_GCP_SERVER)
   SCP_INFO(kInstanceServer, kZeroUuid, "Start test GCP Instance Server");
-  auto test_options =
-      make_shared<google::scp::cpio::TestGcpInstanceServiceFactoryOptions>();
+  auto test_options = std::make_shared<
+      google::scp::cpio::TestGcpInstanceServiceFactoryOptions>();
   test_options->project_id_config_label =
       google::scp::cpio::kTestGcpInstanceClientProjectId;
   service_factory =
-      make_shared<google::scp::cpio::TestGcpInstanceServiceFactory>(
+      std::make_shared<google::scp::cpio::TestGcpInstanceServiceFactory>(
           config_provider, test_options);
 #endif
 

@@ -62,10 +62,6 @@ using google::scp::cpio::client_providers::mock::
     MockGcpMetricClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
@@ -93,43 +89,44 @@ namespace google::scp::cpio::client_providers::gcp_metric_client::test {
 class GcpMetricClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    async_executor_mock_ = make_shared<MockAsyncExecutor>();
+    async_executor_mock_ = std::make_shared<MockAsyncExecutor>();
     async_executor_mock_->schedule_for_mock =
         [&](const core::AsyncOperation& work, Timestamp timestamp,
             std::function<bool()>& cancellation_callback) {
           return core::SuccessExecutionResult();
         };
 
-    instance_client_provider_mock_ = make_shared<MockInstanceClientProvider>();
+    instance_client_provider_mock_ =
+        std::make_shared<MockInstanceClientProvider>();
     instance_client_provider_mock_->instance_resource_name =
         kInstanceResourceName;
 
-    connection_ = make_shared<NiceMock<MockMetricServiceConnection>>();
-    mock_client_ = make_shared<MetricServiceClient>(connection_);
+    connection_ = std::make_shared<NiceMock<MockMetricServiceConnection>>();
+    mock_client_ = std::make_shared<MetricServiceClient>(connection_);
 
     metric_client_provider_ = CreateClient(false);
     EXPECT_SUCCESS(metric_client_provider_->Init());
     EXPECT_SUCCESS(metric_client_provider_->Run());
   }
 
-  unique_ptr<MockGcpMetricClientProviderOverrides> CreateClient(
+  std::unique_ptr<MockGcpMetricClientProviderOverrides> CreateClient(
       bool enable_batch_recording) {
-    auto metric_batching_options = make_shared<MetricBatchingOptions>();
+    auto metric_batching_options = std::make_shared<MetricBatchingOptions>();
     metric_batching_options->enable_batch_recording = enable_batch_recording;
     if (enable_batch_recording) {
       metric_batching_options->metric_namespace = kNamespace;
     }
 
-    return make_unique<MockGcpMetricClientProviderOverrides>(
+    return std::make_unique<MockGcpMetricClientProviderOverrides>(
         mock_client_, metric_batching_options, instance_client_provider_mock_,
         async_executor_mock_);
   }
 
-  shared_ptr<MockAsyncExecutor> async_executor_mock_;
-  shared_ptr<MockInstanceClientProvider> instance_client_provider_mock_;
-  shared_ptr<MetricServiceClient> mock_client_;
-  shared_ptr<MockMetricServiceConnection> connection_;
-  unique_ptr<MockGcpMetricClientProviderOverrides> metric_client_provider_;
+  std::shared_ptr<MockAsyncExecutor> async_executor_mock_;
+  std::shared_ptr<MockInstanceClientProvider> instance_client_provider_mock_;
+  std::shared_ptr<MetricServiceClient> mock_client_;
+  std::shared_ptr<MockMetricServiceConnection> connection_;
+  std::unique_ptr<MockGcpMetricClientProviderOverrides> metric_client_provider_;
 };
 
 static void SetPutMetricsRequest(
@@ -181,9 +178,9 @@ TEST_F(GcpMetricClientProviderTest,
   SetPutMetricsRequest(record_metric_request);
   record_metric_request.set_metric_namespace(kDifferentNamespace);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
 
   auto metric_name =
@@ -212,9 +209,9 @@ TEST_F(GcpMetricClientProviderTest, MetricsBatchPush) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
 
   auto metric_name =
@@ -244,13 +241,13 @@ TEST_F(GcpMetricClientProviderTest, FailedMetricsBatchPush) {
   SetPutMetricsRequest(record_metric_request);
   atomic<int> metric_responses = 0;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         metric_responses++;
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_INVALID_ARGUMENT)));
       });
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
 
   auto metric_name =
@@ -278,7 +275,7 @@ TEST_F(GcpMetricClientProviderTest, AsyncCreateTimeSeriesCallback) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         received_responses++;
         EXPECT_SUCCESS(context.result);

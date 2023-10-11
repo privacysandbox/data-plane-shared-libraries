@@ -92,13 +92,9 @@ using grpc::ServerBuilder;
 using grpc::ServerUnaryReactor;
 using grpc::Status;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
 using std::mt19937;
 using std::random_device;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace {
 constexpr char kLocalHost[] = "http://127.0.0.1";
@@ -175,7 +171,7 @@ class AwsSdkServerIntegrationTest : public ::testing::Test {
     SDKOptions options;
     InitAPI(options);
     config_ = BuildTestSdkServerConfig();
-    server_starter_ = make_unique<TestAwsSdkServerStarter>(config_);
+    server_starter_ = std::make_unique<TestAwsSdkServerStarter>(config_);
     server_starter_->Setup();
     server_starter_->RunSdkServer(kSdkServerImageLocation, kSdkServerImageName,
                                   {});
@@ -203,12 +199,12 @@ class AwsSdkServerIntegrationTest : public ::testing::Test {
   std::string localstack_endpoint =
       std::string(kLocalHost) + ":" + std::string(kLocalstackPort);
   static TestSdkServerConfig config_;
-  static unique_ptr<TestAwsSdkServerStarter> server_starter_;
+  static std::unique_ptr<TestAwsSdkServerStarter> server_starter_;
 };
 
 TestSdkServerConfig AwsSdkServerIntegrationTest::config_ =
     TestSdkServerConfig();
-unique_ptr<TestAwsSdkServerStarter>
+std::unique_ptr<TestAwsSdkServerStarter>
     AwsSdkServerIntegrationTest::server_starter_ = nullptr;
 
 TEST_F(AwsSdkServerIntegrationTest, MetricServicePutMetrics) {

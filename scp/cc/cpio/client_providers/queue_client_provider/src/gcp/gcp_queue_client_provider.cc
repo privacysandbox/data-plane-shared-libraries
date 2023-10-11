@@ -85,9 +85,6 @@ using grpc::GoogleDefaultCredentials;
 using grpc::StatusCode;
 using grpc::StubOptions;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::placeholders::_1;
 
 static constexpr char kGcpQueueClientProvider[] = "GcpQueueClientProvider";
@@ -234,7 +231,7 @@ void GcpQueueClientProvider::EnqueueMessageAsync(
     return;
   }
 
-  auto response = make_shared<EnqueueMessageResponse>();
+  auto response = std::make_shared<EnqueueMessageResponse>();
   response->set_message_id(publish_response.message_ids(0));
   enqueue_message_context.response = std::move(response);
   FinishContext(SuccessExecutionResult(), enqueue_message_context,
@@ -301,14 +298,15 @@ void GcpQueueClientProvider::GetTopMessageAsync(
   }
 
   if (received_messages.empty()) {
-    get_top_message_context.response = make_shared<GetTopMessageResponse>();
+    get_top_message_context.response =
+        std::make_shared<GetTopMessageResponse>();
     FinishContext(SuccessExecutionResult(), get_top_message_context,
                   cpu_async_executor_);
     return;
   }
 
   auto received_message = received_messages.at(0);
-  auto response = make_shared<GetTopMessageResponse>();
+  auto response = std::make_shared<GetTopMessageResponse>();
   response->set_message_body(received_message.mutable_message()->data());
   response->set_message_id(received_message.mutable_message()->message_id());
   response->set_receipt_info(received_message.ack_id());
@@ -405,7 +403,7 @@ void GcpQueueClientProvider::UpdateMessageVisibilityTimeoutAsync(
   }
 
   update_message_visibility_timeout_context.response =
-      make_shared<UpdateMessageVisibilityTimeoutResponse>();
+      std::make_shared<UpdateMessageVisibilityTimeoutResponse>();
   FinishContext(SuccessExecutionResult(),
                 update_message_visibility_timeout_context, cpu_async_executor_);
 }
@@ -467,12 +465,12 @@ void GcpQueueClientProvider::DeleteMessageAsync(
     return;
   }
 
-  delete_message_context.response = make_shared<DeleteMessageResponse>();
+  delete_message_context.response = std::make_shared<DeleteMessageResponse>();
   FinishContext(SuccessExecutionResult(), delete_message_context,
                 cpu_async_executor_);
 }
 
-shared_ptr<Channel> GcpPubSubStubFactory::GetPubSubChannel(
+std::shared_ptr<Channel> GcpPubSubStubFactory::GetPubSubChannel(
     const std::shared_ptr<QueueClientOptions>& options) noexcept {
   if (!channel_) {
     ChannelArguments args;
@@ -483,26 +481,28 @@ shared_ptr<Channel> GcpPubSubStubFactory::GetPubSubChannel(
   return channel_;
 }
 
-shared_ptr<Publisher::StubInterface> GcpPubSubStubFactory::CreatePublisherStub(
-    const shared_ptr<QueueClientOptions>& options) noexcept {
-  return unique_ptr<Publisher::Stub>(
+std::shared_ptr<Publisher::StubInterface>
+GcpPubSubStubFactory::CreatePublisherStub(
+    const std::shared_ptr<QueueClientOptions>& options) noexcept {
+  return std::unique_ptr<Publisher::Stub>(
       Publisher::NewStub(GetPubSubChannel(options), StubOptions()));
 }
 
-shared_ptr<Subscriber::StubInterface>
+std::shared_ptr<Subscriber::StubInterface>
 GcpPubSubStubFactory::CreateSubscriberStub(
-    const shared_ptr<QueueClientOptions>& options) noexcept {
-  return unique_ptr<Subscriber::Stub>(
+    const std::shared_ptr<QueueClientOptions>& options) noexcept {
+  return std::unique_ptr<Subscriber::Stub>(
       Subscriber::NewStub(GetPubSubChannel(options), StubOptions()));
 }
 
 #ifndef TEST_CPIO
-shared_ptr<QueueClientProviderInterface> QueueClientProviderFactory::Create(
-    const shared_ptr<QueueClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface> instance_client,
-    const shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  return make_shared<GcpQueueClientProvider>(
+std::shared_ptr<QueueClientProviderInterface>
+QueueClientProviderFactory::Create(
+    const std::shared_ptr<QueueClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface> instance_client,
+    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+  return std::make_shared<GcpQueueClientProvider>(
       options, instance_client, cpu_async_executor, io_async_executor);
 }
 #endif

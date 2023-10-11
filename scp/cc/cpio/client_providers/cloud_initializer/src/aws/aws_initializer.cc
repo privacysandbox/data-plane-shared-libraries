@@ -26,7 +26,6 @@ using Aws::InitAPI;
 using Aws::ShutdownAPI;
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using std::make_shared;
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult AwsInitializer::Init() noexcept {
@@ -50,6 +49,6 @@ void AwsInitializer::ShutdownCloud() noexcept {
 }
 
 std::shared_ptr<CloudInitializerInterface> CloudInitializerFactory::Create() {
-  return make_shared<AwsInitializer>();
+  return std::make_shared<AwsInitializer>();
 }
 }  // namespace google::scp::cpio::client_providers

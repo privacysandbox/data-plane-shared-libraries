@@ -57,9 +57,7 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricInstanceFactory;
 using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
-using std::make_shared;
 using std::promise;
-using std::shared_ptr;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using testing::Return;
@@ -80,23 +78,24 @@ class Http2ServerTest : public ::testing::Test {
   }
 
   Http2ServerTest() {
-    async_executor = make_shared<MockAsyncExecutor>();
-    mock_config_provider = make_shared<MockConfigProvider>();
-    mock_metric_instance_factory = make_shared<MetricInstanceFactory>(
-        async_executor, make_shared<MockMetricClient>(), mock_config_provider);
+    async_executor = std::make_shared<MockAsyncExecutor>();
+    mock_config_provider = std::make_shared<MockConfigProvider>();
+    mock_metric_instance_factory = std::make_shared<MetricInstanceFactory>(
+        async_executor, std::make_shared<MockMetricClient>(),
+        mock_config_provider);
   }
 
-  shared_ptr<AsyncExecutorInterface> async_executor;
-  shared_ptr<ConfigProviderInterface> mock_config_provider;
-  shared_ptr<MetricInstanceFactoryInterface> mock_metric_instance_factory;
+  std::shared_ptr<AsyncExecutorInterface> async_executor;
+  std::shared_ptr<ConfigProviderInterface> mock_config_provider;
+  std::shared_ptr<MetricInstanceFactoryInterface> mock_metric_instance_factory;
 };
 
 TEST_F(Http2ServerTest, Run) {
   std::string host_address("localhost");
   std::string port("0");
 
-  shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
-      make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
+      std::make_shared<MockAuthorizationProxy>();
   Http2Server http_server(host_address, port, 2 /* thread_pool_size */,
                           async_executor, mock_authorization_proxy,
                           mock_config_provider);
@@ -115,8 +114,8 @@ TEST_F(Http2ServerTest, RegisterHandlers) {
   std::string host_address("localhost");
   std::string port("0");
 
-  shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
-      make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
+      std::make_shared<MockAuthorizationProxy>();
 
   MockHttp2ServerWithOverrides http_server(
       host_address, port, async_executor, mock_authorization_proxy,
@@ -140,8 +139,8 @@ TEST_F(Http2ServerTest, HandleHttp2Request) {
   std::string host_address("localhost");
   std::string port("0");
 
-  auto mock_authorization_proxy = make_shared<MockAuthorizationProxy>();
-  shared_ptr<AuthorizationProxyInterface> authorization_proxy =
+  auto mock_authorization_proxy = std::make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> authorization_proxy =
       mock_authorization_proxy;
   EXPECT_CALL(*mock_authorization_proxy, Authorize)
       .WillOnce(Return(SuccessExecutionResult()));
@@ -157,7 +156,7 @@ TEST_F(Http2ServerTest, HandleHttp2Request) {
   nghttp2::asio_http2::server::request request;
   nghttp2::asio_http2::server::response response;
   auto mock_http2_request =
-      make_shared<MockNgHttp2RequestWithOverrides>(request);
+      std::make_shared<MockNgHttp2RequestWithOverrides>(request);
   auto mock_http2_response =
       std::make_shared<MockNgHttp2ResponseWithOverrides>(response);
   AsyncContext<NgHttp2Request, NgHttp2Response> ng_http2_context(
@@ -166,7 +165,7 @@ TEST_F(Http2ServerTest, HandleHttp2Request) {
   ng_http2_context.response = mock_http2_response;
 
   http_server.HandleHttp2Request(ng_http2_context, callback);
-  shared_ptr<MockHttp2ServerWithOverrides::Http2SynchronizationContext>
+  std::shared_ptr<MockHttp2ServerWithOverrides::Http2SynchronizationContext>
       sync_context;
   EXPECT_EQ(http_server.GetActiveRequests().Find(ng_http2_context.request->id,
                                                  sync_context),
@@ -180,8 +179,8 @@ TEST_F(Http2ServerTest, HandleHttp2RequestFailed) {
   std::string host_address("localhost");
   std::string port("0");
 
-  auto mock_authorization_proxy = make_shared<MockAuthorizationProxy>();
-  shared_ptr<AuthorizationProxyInterface> authorization_proxy =
+  auto mock_authorization_proxy = std::make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> authorization_proxy =
       mock_authorization_proxy;
   EXPECT_CALL(*mock_authorization_proxy, Authorize)
       .WillOnce(Return(FailureExecutionResult(123)));
@@ -199,7 +198,7 @@ TEST_F(Http2ServerTest, HandleHttp2RequestFailed) {
   nghttp2::asio_http2::server::request request;
   nghttp2::asio_http2::server::response response;
   AsyncContext<NgHttp2Request, NgHttp2Response> ng_http2_context(
-      make_shared<NgHttp2Request>(request),
+      std::make_shared<NgHttp2Request>(request),
       [&](AsyncContext<NgHttp2Request, NgHttp2Response>&) {
         should_continue = true;
       });
@@ -209,7 +208,7 @@ TEST_F(Http2ServerTest, HandleHttp2RequestFailed) {
   http_server.OnHttp2Cleanup(ng_http2_context.parent_activity_id,
                              ng_http2_context.request->id, 0);
 
-  shared_ptr<MockHttp2ServerWithOverrides::Http2SynchronizationContext>
+  std::shared_ptr<MockHttp2ServerWithOverrides::Http2SynchronizationContext>
       sync_context;
   EXPECT_EQ(
       http_server.GetActiveRequests().Find(ng_http2_context.request->id,
@@ -223,8 +222,8 @@ TEST_F(Http2ServerTest, OnHttp2PendingCallbackFailure) {
   std::string host_address("localhost");
   std::string port("0");
 
-  auto mock_authorization_proxy = make_shared<MockAuthorizationProxy>();
-  shared_ptr<AuthorizationProxyInterface> authorization_proxy =
+  auto mock_authorization_proxy = std::make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> authorization_proxy =
       mock_authorization_proxy;
 
   MockHttp2ServerWithOverrides http_server(
@@ -240,13 +239,13 @@ TEST_F(Http2ServerTest, OnHttp2PendingCallbackFailure) {
   nghttp2::asio_http2::server::request request;
   nghttp2::asio_http2::server::response response;
   AsyncContext<NgHttp2Request, NgHttp2Response> ng_http2_context(
-      make_shared<NgHttp2Request>(request),
+      std::make_shared<NgHttp2Request>(request),
       [&](AsyncContext<NgHttp2Request, NgHttp2Response>&) {
         should_continue = true;
       });
 
-  auto sync_context =
-      make_shared<MockHttp2ServerWithOverrides::Http2SynchronizationContext>();
+  auto sync_context = std::make_shared<
+      MockHttp2ServerWithOverrides::Http2SynchronizationContext>();
   sync_context->failed = false;
   sync_context->pending_callbacks = 2;
   sync_context->http2_context = ng_http2_context;
@@ -276,8 +275,8 @@ TEST_F(Http2ServerTest, OnHttp2PendingCallbackHttpHandlerFailure) {
   std::string host_address("localhost");
   std::string port("0");
 
-  auto mock_authorization_proxy = make_shared<MockAuthorizationProxy>();
-  shared_ptr<AuthorizationProxyInterface> authorization_proxy =
+  auto mock_authorization_proxy = std::make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> authorization_proxy =
       mock_authorization_proxy;
 
   MockHttp2ServerWithOverrides http_server(
@@ -292,15 +291,15 @@ TEST_F(Http2ServerTest, OnHttp2PendingCallbackHttpHandlerFailure) {
   nghttp2::asio_http2::server::request request;
   nghttp2::asio_http2::server::response response;
   AsyncContext<NgHttp2Request, NgHttp2Response> ng_http2_context(
-      make_shared<NgHttp2Request>(request),
+      std::make_shared<NgHttp2Request>(request),
       [&](AsyncContext<NgHttp2Request, NgHttp2Response>& http2_context) {
         EXPECT_THAT(http2_context.result,
                     ResultIs(FailureExecutionResult(12345)));
         should_continue = true;
       });
 
-  auto sync_context =
-      make_shared<MockHttp2ServerWithOverrides::Http2SynchronizationContext>();
+  auto sync_context = std::make_shared<
+      MockHttp2ServerWithOverrides::Http2SynchronizationContext>();
   sync_context->failed = false;
   sync_context->pending_callbacks = 1;
   sync_context->http2_context = ng_http2_context;
@@ -320,13 +319,13 @@ TEST_F(Http2ServerTest,
   std::string host_address("localhost");
   std::string port("0");
 
-  shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
-      make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
+      std::make_shared<MockAuthorizationProxy>();
   size_t thread_pool_size = 2;
 
   Http2ServerOptions http2_server_options(
-      true, make_shared<std::string>("/file/that/dos/not/exist.pem"),
-      make_shared<std::string>("./public.crt"));
+      true, std::make_shared<std::string>("/file/that/dos/not/exist.pem"),
+      std::make_shared<std::string>("./public.crt"));
 
   Http2Server http_server(host_address, port, thread_pool_size, async_executor,
                           mock_authorization_proxy, nullptr /* metric_client */,
@@ -342,13 +341,13 @@ TEST_F(Http2ServerTest,
   std::string host_address("localhost");
   std::string port("0");
 
-  shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
-      make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
+      std::make_shared<MockAuthorizationProxy>();
   size_t thread_pool_size = 2;
 
   Http2ServerOptions http2_server_options(
-      true, make_shared<std::string>("./privatekey.pem"),
-      make_shared<std::string>("/file/that/dos/not/exist.crt"));
+      true, std::make_shared<std::string>("./privatekey.pem"),
+      std::make_shared<std::string>("/file/that/dos/not/exist.crt"));
 
   Http2Server http_server(host_address, port, thread_pool_size, async_executor,
                           mock_authorization_proxy, nullptr /* metric_client */,
@@ -364,13 +363,13 @@ TEST_F(Http2ServerTest,
   std::string host_address("localhost");
   std::string port("0");
 
-  shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
-      make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
+      std::make_shared<MockAuthorizationProxy>();
   size_t thread_pool_size = 2;
 
   Http2ServerOptions http2_server_options(
-      true, make_shared<std::string>("./privatekey.pem"),
-      make_shared<std::string>("./public.crt"));
+      true, std::make_shared<std::string>("./privatekey.pem"),
+      std::make_shared<std::string>("./public.crt"));
 
   Http2Server http_server(host_address, port, thread_pool_size, async_executor,
                           mock_authorization_proxy, nullptr /* metric_client */,
@@ -383,13 +382,13 @@ TEST_F(Http2ServerTest, ShouldInitCorrectlyRunAndStopWhenTlsIsEnabled) {
   std::string host_address("localhost");
   std::string port("0");
 
-  shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
-      make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
+      std::make_shared<MockAuthorizationProxy>();
   size_t thread_pool_size = 2;
 
   Http2ServerOptions http2_server_options(
-      true, make_shared<std::string>("./privatekey.pem"),
-      make_shared<std::string>("./public.crt"));
+      true, std::make_shared<std::string>("./privatekey.pem"),
+      std::make_shared<std::string>("./public.crt"));
 
   Http2Server http_server(host_address, port, thread_pool_size, async_executor,
                           mock_authorization_proxy, nullptr /* metric_client */,
@@ -422,29 +421,29 @@ TEST_F(Http2ServerTest, ShouldHandleRequestProperlyWhenTlsIsEnabled) {
   std::string host_address("localhost");
   int random_port = GenerateRandomIntInRange(8000, 60000);
   std::string port = std::to_string(random_port);
-  shared_ptr<MockAuthorizationProxy> mock_authorization_proxy =
-      make_shared<MockAuthorizationProxy>();
+  std::shared_ptr<MockAuthorizationProxy> mock_authorization_proxy =
+      std::make_shared<MockAuthorizationProxy>();
   EXPECT_CALL(*mock_authorization_proxy, Authorize).WillOnce([](auto& context) {
-    context.response = make_shared<AuthorizationProxyResponse>();
+    context.response = std::make_shared<AuthorizationProxyResponse>();
     context.response->authorized_metadata.authorized_domain =
-        make_shared<std::string>(
+        std::make_shared<std::string>(
             context.request->authorization_metadata.claimed_identity);
     context.result = SuccessExecutionResult();
 
     context.Finish();
     return SuccessExecutionResult();
   });
-  shared_ptr<AuthorizationProxyInterface> authorization_proxy =
+  std::shared_ptr<AuthorizationProxyInterface> authorization_proxy =
       mock_authorization_proxy;
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<AsyncExecutor>(8, 10, true);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<AsyncExecutor>(8, 10, true);
 
   size_t thread_pool_size = 2;
   std::string test_path("/test");
 
   Http2ServerOptions http2_server_options(
-      true, make_shared<std::string>("./privatekey.pem"),
-      make_shared<std::string>("./public.crt"));
+      true, std::make_shared<std::string>("./privatekey.pem"),
+      std::make_shared<std::string>("./public.crt"));
 
   // Start the server
   Http2Server http_server(host_address, port, thread_pool_size, async_executor,
@@ -472,10 +471,10 @@ TEST_F(Http2ServerTest, ShouldHandleRequestProperlyWhenTlsIsEnabled) {
   async_executor->Run();
 
   // Send request to server
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   request->method = HttpMethod::GET;
   request->path =
-      make_shared<std::string>("https://localhost:" + port + test_path);
+      std::make_shared<std::string>("https://localhost:" + port + test_path);
   promise<void> done;
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),

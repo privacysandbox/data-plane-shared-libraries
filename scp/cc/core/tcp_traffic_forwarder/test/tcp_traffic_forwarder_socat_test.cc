@@ -26,8 +26,6 @@
 
 using google::scp::core::TCPTrafficForwarderSocat;
 using std::cout;
-using std::make_shared;
-using std::shared_ptr;
 using std::thread;
 using ::testing::HasSubstr;
 

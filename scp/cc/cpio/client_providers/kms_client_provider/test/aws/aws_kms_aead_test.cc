@@ -44,10 +44,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::client_providers::mock::MockKMSClient;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::cpio::client_providers::test {
 class AwsKmsAeadTest : public ::testing::Test {
@@ -64,7 +60,7 @@ class AwsKmsAeadTest : public ::testing::Test {
 
   void SetUp() override {
     key_arn_ = "test";
-    kms_client_ = make_shared<MockKMSClient>();
+    kms_client_ = std::make_shared<MockKMSClient>();
     plain_text_ = "text";
     associated_data_ = "data";
     cipher_text_ = "cipher text";
@@ -114,7 +110,7 @@ class AwsKmsAeadTest : public ::testing::Test {
   std::string associated_data_;
   std::string cipher_text_;
 
-  shared_ptr<MockKMSClient> kms_client_;
+  std::shared_ptr<MockKMSClient> kms_client_;
 };
 
 TEST_F(AwsKmsAeadTest, SuccessToCreateAwsKmsAead) {

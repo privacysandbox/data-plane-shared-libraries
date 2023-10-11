@@ -76,10 +76,6 @@ using google::scp::core::blob_storage_provider::GcpCloudStorageProvider;
 using google::scp::core::config_provider::mock::MockConfigProvider;
 using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::utils::Base64Encode;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::ElementsAreArray;
 using testing::Eq;
 using testing::FieldsAre;
@@ -150,10 +146,11 @@ class GcpCloudStorageClientAsyncTests : public testing::Test {
   }
 
   GcpCloudStorageClientAsyncTests()
-      : async_executor_(make_shared<AsyncExecutor>(kThreadCount, kQueueSize)),
+      : async_executor_(
+            std::make_shared<AsyncExecutor>(kThreadCount, kQueueSize)),
         io_async_executor_(
-            make_shared<AsyncExecutor>(kThreadCount, kQueueSize)),
-        config_provider_(make_shared<MockConfigProvider>()) {
+            std::make_shared<AsyncExecutor>(kThreadCount, kQueueSize)),
+        config_provider_(std::make_shared<MockConfigProvider>()) {
     config_provider_->Set(kGcpProjectId, std::string(kProject));
 
     async_executor_->Init();
@@ -178,9 +175,9 @@ class GcpCloudStorageClientAsyncTests : public testing::Test {
     io_async_executor_->Stop();
   }
 
-  shared_ptr<AsyncExecutor> async_executor_, io_async_executor_;
-  shared_ptr<MockConfigProvider> config_provider_;
-  shared_ptr<BlobStorageClientInterface> gcp_cloud_storage_client_;
+  std::shared_ptr<AsyncExecutor> async_executor_, io_async_executor_;
+  std::shared_ptr<MockConfigProvider> config_provider_;
+  std::shared_ptr<BlobStorageClientInterface> gcp_cloud_storage_client_;
 
   static Client* client_;
 };
@@ -211,9 +208,9 @@ MATCHER_P(BytesBufferEqual, expected_buffer, "") {
 TEST_F(GcpCloudStorageClientAsyncTests, SimpleGetTest) {
   std::atomic_bool finished(false);
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
-  get_blob_context.request = make_shared<GetBlobRequest>(
-      GetBlobRequest{make_shared<std::string>(kBucketName),
-                     make_shared<std::string>(kDefaultBlobName)});
+  get_blob_context.request = std::make_shared<GetBlobRequest>(
+      GetBlobRequest{std::make_shared<std::string>(kBucketName),
+                     std::make_shared<std::string>(kDefaultBlobName)});
 
   get_blob_context.callback = [&finished](auto& context) {
     const auto& response = context.response;
@@ -267,11 +264,11 @@ TEST_F(GcpCloudStorageClientAsyncTests, ListBlobsTest) {
   }
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
-  list_blobs_context.request = make_shared<ListBlobsRequest>(
-      ListBlobsRequest{{make_shared<std::string>(kBucketName)}});
+  list_blobs_context.request = std::make_shared<ListBlobsRequest>(
+      ListBlobsRequest{{std::make_shared<std::string>(kBucketName)}});
   std::atomic_bool finished(false);
 
-  shared_ptr<std::string> next_marker;
+  std::shared_ptr<std::string> next_marker;
   list_blobs_context.callback = [&finished, &next_marker,
                                  kPageSize](auto& context) {
     EXPECT_SUCCESS(context.result);
@@ -284,8 +281,8 @@ TEST_F(GcpCloudStorageClientAsyncTests, ListBlobsTest) {
     expected_blobs.reserve(kPageSize + kAdditionalBlobCount);
     for (auto i = 1; i <= (kPageSize + kAdditionalBlobCount); i++) {
       expected_blobs.push_back(
-          Blob{make_shared<std::string>(kBucketName),
-               make_shared<std::string>(absl::StrCat("blob_", i))});
+          Blob{std::make_shared<std::string>(kBucketName),
+               std::make_shared<std::string>(absl::StrCat("blob_", i))});
     }
     std::sort(expected_blobs.begin(), expected_blobs.end(),
               [](const Blob& l, const Blob& r) {
@@ -332,8 +329,8 @@ TEST_F(GcpCloudStorageClientAsyncTests, ListBlobsTest) {
     // We expect to find blobs 995->999 if sorting lexicographically.
     for (auto i = kPageSize - kAdditionalBlobCount; i < kPageSize; i++) {
       expected_blobs.push_back(
-          Blob{make_shared<std::string>(kBucketName),
-               make_shared<std::string>(absl::StrCat("blob_", i))});
+          Blob{std::make_shared<std::string>(kBucketName),
+               std::make_shared<std::string>(absl::StrCat("blob_", i))});
     }
 
     EXPECT_THAT(context.response->blobs,
@@ -352,9 +349,9 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimplePutTest) {
   std::atomic_bool finished(false);
   std::string new_blob_val("some new value");
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
-  put_blob_context.request = make_shared<PutBlobRequest>(
-      PutBlobRequest{{make_shared<std::string>(kBucketName),
-                      make_shared<std::string>(kDefaultBlobName)}});
+  put_blob_context.request = std::make_shared<PutBlobRequest>(
+      PutBlobRequest{{std::make_shared<std::string>(kBucketName),
+                      std::make_shared<std::string>(kDefaultBlobName)}});
   put_blob_context.request->buffer =
       std::make_shared<BytesBuffer>(new_blob_val);
 
@@ -380,9 +377,9 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimplePutTest) {
 TEST_F(GcpCloudStorageClientAsyncTests, SimpleDeleteTest) {
   std::atomic_bool finished(false);
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context;
-  delete_blob_context.request = make_shared<DeleteBlobRequest>(
-      DeleteBlobRequest{make_shared<std::string>(kBucketName),
-                        make_shared<std::string>(kDefaultBlobName)});
+  delete_blob_context.request = std::make_shared<DeleteBlobRequest>(
+      DeleteBlobRequest{std::make_shared<std::string>(kBucketName),
+                        std::make_shared<std::string>(kDefaultBlobName)});
 
   delete_blob_context.callback = [&finished](auto) {
     auto objects_reader = client_->ListObjects(kBucketName);

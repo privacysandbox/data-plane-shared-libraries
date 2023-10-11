@@ -32,14 +32,13 @@ using google::scp::core::errors::
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::sandbox::constants::
     kFuctionBindingMetadataFunctionName;
-using std::make_unique;
 
 static constexpr int kBadFd = -1;
 
 namespace google::scp::roma::sandbox::native_function_binding {
 NativeFunctionInvokerSapiIpc::NativeFunctionInvokerSapiIpc(int comms_fd) {
   if (comms_fd != kBadFd) {
-    ipc_comms_ = make_unique<sandbox2::Comms>(comms_fd);
+    ipc_comms_ = std::make_unique<sandbox2::Comms>(comms_fd);
   }
 }
 

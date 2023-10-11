@@ -31,14 +31,10 @@ using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
 using std::atomic;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::make_unique;
 using std::mutex;
 using std::optional;
-using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
-using std::unique_ptr;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
@@ -53,7 +49,7 @@ static constexpr char kLeaseManagerV2[] = "LeaseManagerV2";
 namespace google::scp::core {
 
 LeaseManagerV2::LeaseManagerV2(
-    shared_ptr<LeaseRefresherFactoryInterface> lease_refresher_factory,
+    std::shared_ptr<LeaseRefresherFactoryInterface> lease_refresher_factory,
     LeaseAcquisitionPreference lease_acquisition_preference)
     : is_running_(false),
       lease_refresher_factory_(lease_refresher_factory),
@@ -75,7 +71,7 @@ ExecutionResult LeaseManagerV2::Run() noexcept {
   // refreshers aren't available at the Init() time.
   if (!lease_refreshers_.empty()) {
     // Initialize Lease Liveness Enforcer
-    std::vector<shared_ptr<LeaseRefreshLivenessCheckInterface>>
+    std::vector<std::shared_ptr<LeaseRefreshLivenessCheckInterface>>
         lease_refresher_liveness_handles;
     lease_refresher_liveness_handles.reserve(lease_refreshers_.size());
     for (auto& [_, refresher_wrapper] : lease_refreshers_) {
@@ -92,7 +88,7 @@ ExecutionResult LeaseManagerV2::Run() noexcept {
         lease_refreshers_.begin()
             ->second.leasable_lock->GetConfiguredLeaseDurationInMilliseconds());
     lease_refresh_liveness_enforcer_ =
-        make_unique<LeaseRefreshLivenessEnforcer>(
+        std::make_unique<LeaseRefreshLivenessEnforcer>(
             lease_refresher_liveness_handles, lease_duration_in_milliseconds);
     RETURN_IF_FAILURE(lease_refresh_liveness_enforcer_->Init());
 
@@ -115,7 +111,7 @@ ExecutionResult LeaseManagerV2::Run() noexcept {
   // Initiate start on thread and wait until it starts.
   atomic<bool> is_thread_started(false);
   lease_preference_manager_thread_ =
-      make_unique<thread>([this, &is_thread_started]() {
+      std::make_unique<thread>([this, &is_thread_started]() {
         is_thread_started = true;
         LeaseAcquisitionPreferenceManagerThreadFunction();
       });
@@ -151,8 +147,8 @@ ExecutionResult LeaseManagerV2::Stop() noexcept {
 
 ExecutionResult LeaseManagerV2::ManageLeaseOnLock(
     const LeasableLockId& leasable_lock_id,
-    const shared_ptr<LeasableLockInterface>& leasable_lock,
-    const shared_ptr<LeaseEventSinkInterface>& lease_event_sink) noexcept {
+    const std::shared_ptr<LeasableLockInterface>& leasable_lock,
+    const std::shared_ptr<LeaseEventSinkInterface>& lease_event_sink) noexcept {
   if (is_running_) {
     // Cannot manage a new one while the component is running
     return FailureExecutionResult(errors::SC_LEASE_MANAGER_ALREADY_RUNNING);

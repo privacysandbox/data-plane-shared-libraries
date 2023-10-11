@@ -42,7 +42,6 @@ using google::scp::roma::sandbox::constants::kRequestTypeJavascriptWithWasm;
 using google::scp::roma::sandbox::constants::kRequestTypeWasm;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
-using std::make_shared;
 using std::uint8_t;
 
 namespace google::scp::roma::sandbox::worker::test {
@@ -61,7 +60,7 @@ class V8EngineWorkerTest : public ::testing::Test {
 };
 
 TEST_F(V8EngineWorkerTest, CanRunJsCode) {
-  auto engine = make_shared<V8JsEngine>();
+  auto engine = std::make_shared<V8JsEngine>();
   Worker worker(engine, false /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
@@ -85,7 +84,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
-  auto engine = make_shared<V8JsEngine>();
+  auto engine = std::make_shared<V8JsEngine>();
   Worker worker(engine, true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
@@ -141,7 +140,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
-  auto engine = make_shared<V8JsEngine>();
+  auto engine = std::make_shared<V8JsEngine>();
   Worker worker(engine, true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
@@ -226,7 +225,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
 }
 
 TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
-  auto engine = make_shared<V8JsEngine>();
+  auto engine = std::make_shared<V8JsEngine>();
   Worker worker(engine, true /*require_preload*/,
                 1 /*compilation_context_cache_size*/);
   AutoInitRunStop to_handle_worker(worker);
@@ -283,7 +282,7 @@ TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
 }
 
 TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
-  auto engine = make_shared<V8JsEngine>();
+  auto engine = std::make_shared<V8JsEngine>();
   Worker worker(engine, true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
@@ -373,7 +372,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 }
 
 TEST_F(V8EngineWorkerTest, ShouldFailIfCompilationContextCacheSizeIsZero) {
-  auto engine = make_shared<V8JsEngine>();
+  auto engine = std::make_shared<V8JsEngine>();
   constexpr bool require_preload = false;
   constexpr int compilation_context_cache_size = 0;
 
@@ -382,7 +381,7 @@ TEST_F(V8EngineWorkerTest, ShouldFailIfCompilationContextCacheSizeIsZero) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
-  auto engine = make_shared<V8JsEngine>();
+  auto engine = std::make_shared<V8JsEngine>();
   Worker worker(engine, false /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
@@ -412,7 +411,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
 }
 
 TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
-  auto engine = make_shared<V8JsEngine>();
+  auto engine = std::make_shared<V8JsEngine>();
   Worker worker(engine, true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
   std::vector<absl::string_view> input;
@@ -496,7 +495,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
 
 TEST_F(V8EngineWorkerTest,
        JSWithWasmShouldReturnFailureIfVersionIsNotInInCache) {
-  auto engine = make_shared<V8JsEngine>();
+  auto engine = std::make_shared<V8JsEngine>();
   Worker worker(engine, true /*require_preload*/,
                 1 /*compilation_context_cache_size*/);
   AutoInitRunStop to_handle_worker(worker);

@@ -57,8 +57,6 @@ using google::scp::core::async_executor::aws::AwsAsyncExecutor;
 using google::scp::core::blob_storage_provider::AwsS3Utils;
 using google::scp::core::utils::Base64Encode;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -69,9 +67,9 @@ static constexpr size_t kMaxConcurrentConnections = 1000;
 
 namespace google::scp::core::blob_storage_provider {
 ExecutionResult AwsS3Provider::CreateClientConfig() noexcept {
-  client_config_ = make_shared<ClientConfiguration>();
+  client_config_ = std::make_shared<ClientConfiguration>();
   client_config_->maxConnections = kMaxConcurrentConnections;
-  client_config_->executor = make_shared<AwsAsyncExecutor>(
+  client_config_->executor = std::make_shared<AwsAsyncExecutor>(
       io_async_executor_, io_async_execution_priority_);
 
   std::string region;
@@ -85,7 +83,7 @@ ExecutionResult AwsS3Provider::CreateClientConfig() noexcept {
 }
 
 void AwsS3Provider::CreateS3() noexcept {
-  s3_client_ = make_shared<S3Client>(*client_config_);
+  s3_client_ = std::make_shared<S3Client>(*client_config_);
 }
 
 ExecutionResult AwsS3Provider::Init() noexcept {
@@ -106,9 +104,9 @@ ExecutionResult AwsS3Provider::Stop() noexcept {
 }
 
 ExecutionResult AwsS3Provider::CreateBlobStorageClient(
-    shared_ptr<BlobStorageClientInterface>& blob_storage_client) noexcept {
-  blob_storage_client = make_shared<AwsS3Client>(s3_client_, async_executor_,
-                                                 async_execution_priority_);
+    std::shared_ptr<BlobStorageClientInterface>& blob_storage_client) noexcept {
+  blob_storage_client = std::make_shared<AwsS3Client>(
+      s3_client_, async_executor_, async_execution_priority_);
   return SuccessExecutionResult();
 }
 
@@ -133,7 +131,7 @@ void AwsS3Client::OnGetObjectCallback(
     AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context,
     const S3Client* s3_client, const GetObjectRequest& get_object_request,
     const GetObjectOutcome& get_object_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!get_object_outcome.IsSuccess()) {
     SCP_DEBUG_CONTEXT(kAwsS3Provider, get_blob_context,
                       "AwsS3Provider get blob request failed. Error code: %d, "
@@ -159,10 +157,10 @@ void AwsS3Client::OnGetObjectCallback(
   auto& body = result->GetBody();
   auto content_length = result->GetContentLength();
 
-  get_blob_context.response = make_shared<GetBlobResponse>();
-  get_blob_context.response->buffer = make_shared<BytesBuffer>();
+  get_blob_context.response = std::make_shared<GetBlobResponse>();
+  get_blob_context.response->buffer = std::make_shared<BytesBuffer>();
   get_blob_context.response->buffer->bytes =
-      make_shared<std::vector<Byte>>(content_length);
+      std::make_shared<std::vector<Byte>>(content_length);
   get_blob_context.response->buffer->length = content_length;
   get_blob_context.response->buffer->capacity = content_length;
   get_blob_context.result = SuccessExecutionResult();
@@ -212,7 +210,7 @@ void AwsS3Client::OnListObjectsCallback(
     AsyncContext<ListBlobsRequest, ListBlobsResponse>& list_blobs_context,
     const S3Client* s3_client, const ListObjectsRequest& list_objects_request,
     const ListObjectsOutcome& list_objects_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!list_objects_outcome.IsSuccess()) {
     SCP_DEBUG_CONTEXT(
         kAwsS3Provider, list_blobs_context,
@@ -234,22 +232,22 @@ void AwsS3Client::OnListObjectsCallback(
     return;
   }
 
-  list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+  list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+  list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
   for (auto& object : list_objects_outcome.GetResult().GetContents()) {
     Blob blob;
-    blob.blob_name = make_shared<std::string>(object.GetKey());
+    blob.blob_name = std::make_shared<std::string>(object.GetKey());
     blob.bucket_name = list_blobs_context.request->bucket_name;
 
     list_blobs_context.response->blobs->push_back(blob);
   }
 
   Blob next_marker;
-  next_marker.blob_name = make_shared<std::string>(
+  next_marker.blob_name = std::make_shared<std::string>(
       list_objects_outcome.GetResult().GetNextMarker().c_str());
   next_marker.bucket_name = list_blobs_context.request->bucket_name;
   list_blobs_context.response->next_marker =
-      make_shared<Blob>(std::move(next_marker));
+      std::make_shared<Blob>(std::move(next_marker));
 
   list_blobs_context.result = SuccessExecutionResult();
   if (!async_executor_
@@ -313,7 +311,7 @@ void AwsS3Client::OnPutObjectCallback(
     AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context,
     const S3Client* s3_client, const PutObjectRequest& put_object_request,
     const PutObjectOutcome& put_object_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!put_object_outcome.IsSuccess()) {
     SCP_DEBUG_CONTEXT(kAwsS3Provider, put_blob_context,
                       "AwsS3Provider put blob request failed. Error code: %d, "
@@ -364,7 +362,7 @@ void AwsS3Client::OnDeleteObjectCallback(
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse>& delete_blob_context,
     const S3Client* s3_client, const DeleteObjectRequest& delete_object_request,
     const DeleteObjectOutcome& delete_object_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!delete_object_outcome.IsSuccess()) {
     SCP_DEBUG_CONTEXT(
         kAwsS3Provider, delete_blob_context,

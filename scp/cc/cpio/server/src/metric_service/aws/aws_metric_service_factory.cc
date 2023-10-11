@@ -27,20 +27,18 @@
 
 using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::client_providers::AwsMetricClientProvider;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 AwsMetricServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<AwsInstanceServiceFactory>(
+  return std::make_shared<AwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<MetricClientInterface>
+std::shared_ptr<MetricClientInterface>
 AwsMetricServiceFactory::CreateMetricClient() noexcept {
-  return make_shared<AwsMetricClientProvider>(
-      make_shared<MetricClientOptions>(), instance_client_,
+  return std::make_shared<AwsMetricClientProvider>(
+      std::make_shared<MetricClientOptions>(), instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
 }

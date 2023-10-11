@@ -27,26 +27,24 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
 using google::scp::cpio::client_providers::QueueClientOptions;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kQueueServiceFactory[] = "QueueServiceFactory";
 }  // namespace
 
 namespace google::scp::cpio {
-shared_ptr<QueueClientOptions>
+std::shared_ptr<QueueClientOptions>
 QueueServiceFactory::CreateQueueClientOptions() noexcept {
-  auto client_options = make_shared<QueueClientOptions>();
+  auto client_options = std::make_shared<QueueClientOptions>();
   client_options->queue_name =
       ReadConfigString(config_provider_, kQueueClientQueueName);
   return client_options;
 }
 
-shared_ptr<InstanceServiceFactoryOptions>
+std::shared_ptr<InstanceServiceFactoryOptions>
 QueueServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
   auto instance_service_factory_options =
-      make_shared<InstanceServiceFactoryOptions>();
+      std::make_shared<InstanceServiceFactoryOptions>();
   instance_service_factory_options
       ->cpu_async_executor_thread_count_config_label =
       kQueueClientCpuThreadCount;

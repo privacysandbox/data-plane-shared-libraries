@@ -50,8 +50,6 @@ using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
-using std::make_shared;
-using std::shared_ptr;
 using std::static_pointer_cast;
 
 namespace {
@@ -67,18 +65,18 @@ namespace google::scp::cpio {
 class SimpleMetricTest : public testing::Test {
  protected:
   SimpleMetricTest() {
-    mock_metric_client_ = make_shared<MockMetricClient>();
-    auto mock_async_executor_ = make_shared<MockAsyncExecutor>();
+    mock_metric_client_ = std::make_shared<MockMetricClient>();
+    auto mock_async_executor_ = std::make_shared<MockAsyncExecutor>();
     auto metric_info =
         MetricDefinition(kMetricName, MetricUnit::kCount, kNamespace);
-    simple_metric_ = make_shared<SimpleMetric>(
+    simple_metric_ = std::make_shared<SimpleMetric>(
         mock_async_executor_, mock_metric_client_, std::move(metric_info));
 
     AutoInitRunStop to_handle_simple_metric(*simple_metric_);
   }
 
-  shared_ptr<MockMetricClient> mock_metric_client_;
-  shared_ptr<SimpleMetricInterface> simple_metric_;
+  std::shared_ptr<MockMetricClient> mock_metric_client_;
+  std::shared_ptr<SimpleMetricInterface> simple_metric_;
 };
 
 TEST_F(SimpleMetricTest, Push) {

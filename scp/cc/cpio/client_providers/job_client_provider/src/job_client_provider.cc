@@ -85,8 +85,6 @@ using google::scp::core::errors::
     SC_NO_SQL_DATABASE_PROVIDER_CONDITIONAL_CHECKED_FAILED;
 using google::scp::core::errors::SC_NO_SQL_DATABASE_PROVIDER_RECORD_NOT_FOUND;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -135,16 +133,17 @@ ExecutionResult JobClientProvider::PutJob(
     return execution_result;
   }
 
-  auto server_job_id = make_shared<std::string>(ToString(Uuid::GenerateUuid()));
+  auto server_job_id =
+      std::make_shared<std::string>(ToString(Uuid::GenerateUuid()));
   JobMessageBody job_message_body = JobMessageBody(job_id, *server_job_id);
 
-  auto enqueue_message_request = make_shared<EnqueueMessageRequest>();
+  auto enqueue_message_request = std::make_shared<EnqueueMessageRequest>();
   enqueue_message_request->set_message_body(job_message_body.ToJsonString());
   AsyncContext<EnqueueMessageRequest, EnqueueMessageResponse>
       enqueue_message_context(
           std::move(enqueue_message_request),
           bind(&JobClientProvider::OnEnqueueMessageCallback, this,
-               put_job_context, make_shared<std::string>(job_id),
+               put_job_context, std::make_shared<std::string>(job_id),
                std::move(server_job_id), _1),
           put_job_context);
 
@@ -153,7 +152,8 @@ ExecutionResult JobClientProvider::PutJob(
 
 void JobClientProvider::OnEnqueueMessageCallback(
     AsyncContext<PutJobRequest, PutJobResponse>& put_job_context,
-    shared_ptr<std::string> job_id, shared_ptr<std::string> server_job_id,
+    std::shared_ptr<std::string> job_id,
+    std::shared_ptr<std::string> server_job_id,
     AsyncContext<EnqueueMessageRequest, EnqueueMessageResponse>&
         enqueue_message_context) noexcept {
   if (!enqueue_message_context.result.Successful()) {
@@ -169,7 +169,7 @@ void JobClientProvider::OnEnqueueMessageCallback(
 
   const std::string& job_body = put_job_context.request->job_body();
   auto current_time = TimeUtil::GetCurrentTime();
-  auto job = make_shared<Job>(JobClientUtils::CreateJob(
+  auto job = std::make_shared<Job>(JobClientUtils::CreateJob(
       *job_id, *server_job_id, job_body, JobStatus::JOB_STATUS_CREATED,
       current_time, current_time, kDefaultTimestampValue, kDefaultRetryCount));
 
@@ -188,7 +188,7 @@ void JobClientProvider::OnEnqueueMessageCallback(
 
   AsyncContext<CreateDatabaseItemRequest, CreateDatabaseItemResponse>
       create_database_item_context(
-          make_shared<CreateDatabaseItemRequest>(
+          std::make_shared<CreateDatabaseItemRequest>(
               std::move(*create_job_request_or)),
           bind(&JobClientProvider::OnCreateNewJobItemCallback, this,
                put_job_context, std::move(job), _1),
@@ -209,7 +209,7 @@ void JobClientProvider::OnEnqueueMessageCallback(
 
 void JobClientProvider::OnCreateNewJobItemCallback(
     AsyncContext<PutJobRequest, PutJobResponse>& put_job_context,
-    shared_ptr<Job> job,
+    std::shared_ptr<Job> job,
     AsyncContext<CreateDatabaseItemRequest, CreateDatabaseItemResponse>&
         create_database_item_context) noexcept {
   auto execution_result = create_database_item_context.result;
@@ -225,7 +225,7 @@ void JobClientProvider::OnCreateNewJobItemCallback(
     return;
   }
 
-  put_job_context.response = make_shared<PutJobResponse>();
+  put_job_context.response = std::make_shared<PutJobResponse>();
   *put_job_context.response->mutable_job() = std::move(*job);
   put_job_context.result = SuccessExecutionResult();
   put_job_context.Finish();
@@ -235,10 +235,11 @@ ExecutionResult JobClientProvider::GetNextJob(
     AsyncContext<GetNextJobRequest, GetNextJobResponse>&
         get_next_job_context) noexcept {
   AsyncContext<GetTopMessageRequest, GetTopMessageResponse>
-      get_top_message_context(std::move(make_shared<GetTopMessageRequest>()),
-                              bind(&JobClientProvider::OnGetTopMessageCallback,
-                                   this, get_next_job_context, _1),
-                              get_next_job_context);
+      get_top_message_context(
+          std::move(std::make_shared<GetTopMessageRequest>()),
+          bind(&JobClientProvider::OnGetTopMessageCallback, this,
+               get_next_job_context, _1),
+          get_next_job_context);
 
   return queue_client_provider_->GetTopMessage(get_top_message_context);
 }
@@ -260,7 +261,7 @@ void JobClientProvider::OnGetTopMessageCallback(
   const std::string& message_body_in_response =
       get_top_message_context.response->message_body();
   if (message_body_in_response.empty()) {
-    get_next_job_context.response = make_shared<GetNextJobResponse>();
+    get_next_job_context.response = std::make_shared<GetNextJobResponse>();
     SCP_INFO_CONTEXT(kJobClientProvider, get_top_message_context,
                      "No job messages received from the job queue.");
     get_next_job_context.result = get_top_message_context.result;
@@ -270,14 +271,14 @@ void JobClientProvider::OnGetTopMessageCallback(
 
   auto job_message_body = JobMessageBody(message_body_in_response);
   const auto job_id_as_char = job_message_body.job_id.c_str();
-  shared_ptr<std::string> job_id =
-      make_shared<std::string>(job_message_body.job_id);
-  shared_ptr<std::string> server_job_id =
-      make_shared<std::string>(job_message_body.server_job_id);
+  std::shared_ptr<std::string> job_id =
+      std::make_shared<std::string>(job_message_body.job_id);
+  std::shared_ptr<std::string> server_job_id =
+      std::make_shared<std::string>(job_message_body.server_job_id);
   auto get_database_item_request = JobClientUtils::CreateGetNextJobRequest(
       job_table_name_, *job_id, *server_job_id);
 
-  shared_ptr<std::string> receipt_info(
+  std::shared_ptr<std::string> receipt_info(
       get_top_message_context.response->release_receipt_info());
 
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
@@ -302,8 +303,9 @@ void JobClientProvider::OnGetTopMessageCallback(
 
 void JobClientProvider::OnGetNextJobItemCallback(
     AsyncContext<GetNextJobRequest, GetNextJobResponse>& get_next_job_context,
-    shared_ptr<std::string> job_id, shared_ptr<std::string> server_job_id,
-    shared_ptr<std::string> receipt_info,
+    std::shared_ptr<std::string> job_id,
+    std::shared_ptr<std::string> server_job_id,
+    std::shared_ptr<std::string> receipt_info,
     AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>&
         get_database_item_context) noexcept {
   if (!get_database_item_context.result.Successful()) {
@@ -341,7 +343,7 @@ void JobClientProvider::OnGetNextJobItemCallback(
     return;
   }
 
-  get_next_job_context.response = make_shared<GetNextJobResponse>();
+  get_next_job_context.response = std::make_shared<GetNextJobResponse>();
   *get_next_job_context.response->mutable_job() = std::move(*job_or);
   *get_next_job_context.response->mutable_receipt_info() =
       std::move(*receipt_info);
@@ -414,7 +416,7 @@ void JobClientProvider::OnGetJobItemByJobIdCallback(
     return;
   }
 
-  get_job_by_id_context.response = make_shared<GetJobByIdResponse>();
+  get_job_by_id_context.response = std::make_shared<GetJobByIdResponse>();
   *get_job_by_id_context.response->mutable_job() = std::move(*job_or);
   get_job_by_id_context.result = SuccessExecutionResult();
   get_job_by_id_context.Finish();
@@ -498,7 +500,7 @@ void JobClientProvider::OnGetJobItemForUpdateJobBodyCallback(
   *job_for_update.mutable_job_body() =
       update_job_body_context.request->job_body();
   auto update_time =
-      make_shared<google::protobuf::Timestamp>(TimeUtil::GetCurrentTime());
+      std::make_shared<google::protobuf::Timestamp>(TimeUtil::GetCurrentTime());
   *job_for_update.mutable_updated_time() = *update_time;
 
   auto upsert_job_request_or =
@@ -514,8 +516,8 @@ void JobClientProvider::OnGetJobItemForUpdateJobBodyCallback(
   }
   AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>
       upsert_database_item_context(
-          std::move(
-              make_shared<UpsertDatabaseItemRequest>(*upsert_job_request_or)),
+          std::move(std::make_shared<UpsertDatabaseItemRequest>(
+              *upsert_job_request_or)),
           bind(&JobClientProvider::OnUpsertUpdatedJobBodyJobItemCallback, this,
                update_job_body_context, std::move(update_time), _1),
           update_job_body_context);
@@ -536,7 +538,7 @@ void JobClientProvider::OnGetJobItemForUpdateJobBodyCallback(
 void JobClientProvider::OnUpsertUpdatedJobBodyJobItemCallback(
     AsyncContext<UpdateJobBodyRequest, UpdateJobBodyResponse>&
         update_job_body_context,
-    shared_ptr<google::protobuf::Timestamp> update_time,
+    std::shared_ptr<google::protobuf::Timestamp> update_time,
     AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>&
         upsert_database_item_context) noexcept {
   if (!upsert_database_item_context.result.Successful()) {
@@ -554,7 +556,7 @@ void JobClientProvider::OnUpsertUpdatedJobBodyJobItemCallback(
     return;
   }
 
-  update_job_body_context.response = make_shared<UpdateJobBodyResponse>();
+  update_job_body_context.response = std::make_shared<UpdateJobBodyResponse>();
   *update_job_body_context.response->mutable_updated_time() = *update_time;
   update_job_body_context.result = SuccessExecutionResult();
   update_job_body_context.Finish();
@@ -697,7 +699,7 @@ void JobClientProvider::UpsertUpdatedJobStatusJobItem(
     const int retry_count) noexcept {
   const std::string& job_id = update_job_status_context.request->job_id();
   auto update_time =
-      make_shared<google::protobuf::Timestamp>(TimeUtil::GetCurrentTime());
+      std::make_shared<google::protobuf::Timestamp>(TimeUtil::GetCurrentTime());
 
   Job job_for_update;
   job_for_update.set_allocated_job_id(
@@ -724,8 +726,8 @@ void JobClientProvider::UpsertUpdatedJobStatusJobItem(
 
   AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>
       upsert_database_item_context(
-          std::move(
-              make_shared<UpsertDatabaseItemRequest>(*upsert_job_request_or)),
+          std::move(std::make_shared<UpsertDatabaseItemRequest>(
+              *upsert_job_request_or)),
           bind(&JobClientProvider::OnUpsertUpdatedJobStatusJobItemCallback,
                this, update_job_status_context, std::move(update_time),
                retry_count, _1),
@@ -747,7 +749,8 @@ void JobClientProvider::UpsertUpdatedJobStatusJobItem(
 void JobClientProvider::OnUpsertUpdatedJobStatusJobItemCallback(
     AsyncContext<UpdateJobStatusRequest, UpdateJobStatusResponse>&
         update_job_status_context,
-    shared_ptr<google::protobuf::Timestamp> update_time, const int retry_count,
+    std::shared_ptr<google::protobuf::Timestamp> update_time,
+    const int retry_count,
     AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>&
         upsert_database_item_context) noexcept {
   if (!upsert_database_item_context.result.Successful()) {
@@ -772,7 +775,7 @@ void JobClientProvider::OnUpsertUpdatedJobStatusJobItemCallback(
     case JobStatus::JOB_STATUS_PROCESSING:
     default:
       update_job_status_context.response =
-          make_shared<UpdateJobStatusResponse>();
+          std::make_shared<UpdateJobStatusResponse>();
       update_job_status_context.response->set_job_status(job_status_in_request);
       *update_job_status_context.response->mutable_updated_time() =
           *update_time;
@@ -785,11 +788,11 @@ void JobClientProvider::OnUpsertUpdatedJobStatusJobItemCallback(
 void JobClientProvider::DeleteJobMessageForUpdatingJobStatus(
     AsyncContext<UpdateJobStatusRequest, UpdateJobStatusResponse>&
         update_job_status_context,
-    shared_ptr<google::protobuf::Timestamp> update_time,
+    std::shared_ptr<google::protobuf::Timestamp> update_time,
     const int retry_count) noexcept {
   const std::string& job_id = update_job_status_context.request->job_id();
 
-  auto delete_message_request = make_shared<DeleteMessageRequest>();
+  auto delete_message_request = std::make_shared<DeleteMessageRequest>();
   delete_message_request->set_allocated_receipt_info(
       update_job_status_context.request->release_receipt_info());
   AsyncContext<DeleteMessageRequest, DeleteMessageResponse>
@@ -816,7 +819,8 @@ void JobClientProvider::DeleteJobMessageForUpdatingJobStatus(
 void JobClientProvider::OnDeleteJobMessageForUpdatingJobStatusCallback(
     AsyncContext<UpdateJobStatusRequest, UpdateJobStatusResponse>&
         update_job_status_context,
-    shared_ptr<google::protobuf::Timestamp> update_time, const int retry_count,
+    std::shared_ptr<google::protobuf::Timestamp> update_time,
+    const int retry_count,
     AsyncContext<DeleteMessageRequest, DeleteMessageResponse>&
         delete_message_context) noexcept {
   const std::string& job_id = update_job_status_context.request->job_id();
@@ -832,7 +836,8 @@ void JobClientProvider::OnDeleteJobMessageForUpdatingJobStatusCallback(
     return;
   }
 
-  update_job_status_context.response = make_shared<UpdateJobStatusResponse>();
+  update_job_status_context.response =
+      std::make_shared<UpdateJobStatusResponse>();
   update_job_status_context.response->set_job_status(
       update_job_status_context.request->job_status());
   *update_job_status_context.response->mutable_updated_time() = *update_time;
@@ -894,7 +899,7 @@ ExecutionResult JobClientProvider::UpdateJobVisibilityTimeout(
   }
 
   auto update_message_visibility_timeout_request =
-      make_shared<UpdateMessageVisibilityTimeoutRequest>();
+      std::make_shared<UpdateMessageVisibilityTimeoutRequest>();
   *update_message_visibility_timeout_request
        ->mutable_message_visibility_timeout() =
       update_job_visibility_timeout_context.request->duration_to_update();
@@ -936,7 +941,7 @@ void JobClientProvider::OnUpdateMessageVisibilityTimeoutCallback(
   }
 
   update_job_visibility_timeout_context.response =
-      make_shared<UpdateJobVisibilityTimeoutResponse>();
+      std::make_shared<UpdateJobVisibilityTimeoutResponse>();
   update_job_visibility_timeout_context.result = SuccessExecutionResult();
   update_job_visibility_timeout_context.Finish();
 }
@@ -1041,7 +1046,7 @@ void JobClientProvider::DeleteJobMessageForDeletingOrphanedJob(
     AsyncContext<DeleteOrphanedJobMessageRequest,
                  DeleteOrphanedJobMessageResponse>&
         delete_orphaned_job_context) noexcept {
-  auto delete_message_request = make_shared<DeleteMessageRequest>();
+  auto delete_message_request = std::make_shared<DeleteMessageRequest>();
   delete_message_request->set_allocated_receipt_info(
       delete_orphaned_job_context.request->release_receipt_info());
   AsyncContext<DeleteMessageRequest, DeleteMessageResponse>
@@ -1084,7 +1089,7 @@ void JobClientProvider::OnDeleteJobMessageForDeleteOrphanedJobMessageCallback(
   }
 
   delete_orphaned_job_context.response =
-      make_shared<DeleteOrphanedJobMessageResponse>();
+      std::make_shared<DeleteOrphanedJobMessageResponse>();
   delete_orphaned_job_context.result = SuccessExecutionResult();
   delete_orphaned_job_context.Finish();
 }

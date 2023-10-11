@@ -30,7 +30,6 @@ using google::scp::core::ExecutionResultOr;
 using google::scp::roma::sandbox::constants::
     kExecutionMetricSandboxedJsEngineCallNs;
 using std::lock_guard;
-using std::make_shared;
 using std::mutex;
 
 namespace google::scp::roma::sandbox::worker_api {
@@ -74,7 +73,7 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
   }
   code_response.response =
 
-      make_shared<std::string>(std::move(params_proto.response()));
+      std::make_shared<std::string>(std::move(params_proto.response()));
   return code_response;
 }
 

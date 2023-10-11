@@ -52,8 +52,6 @@ using google::scp::core::test::ExpectTimestampEquals;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kTestKeyId[] = "name_test";
@@ -85,30 +83,31 @@ constexpr char kSinglePartyKeyMaterialJson[] =
 }  // namespace
 
 namespace google::scp::cpio::client_providers::test {
-shared_ptr<EncryptionKey> CreateEncryptionKeyBase() {
-  auto encryption_key = make_shared<EncryptionKey>();
-  encryption_key->key_id = make_shared<std::string>(kTestKeyId);
-  encryption_key->resource_name = make_shared<std::string>(kTestResourceName);
+std::shared_ptr<EncryptionKey> CreateEncryptionKeyBase() {
+  auto encryption_key = std::make_shared<EncryptionKey>();
+  encryption_key->key_id = std::make_shared<std::string>(kTestKeyId);
+  encryption_key->resource_name =
+      std::make_shared<std::string>(kTestResourceName);
   encryption_key->expiration_time_in_ms = kTestExpirationTime;
   encryption_key->creation_time_in_ms = kTestCreationTime;
   encryption_key->public_key_material =
-      make_shared<std::string>(kTestPublicKeyMaterial);
+      std::make_shared<std::string>(kTestPublicKeyMaterial);
   encryption_key->public_keyset_handle =
-      make_shared<std::string>(kTestPublicKeysetHandle);
+      std::make_shared<std::string>(kTestPublicKeysetHandle);
   return encryption_key;
 }
 
-shared_ptr<EncryptionKey> CreateEncryptionKey(
+std::shared_ptr<EncryptionKey> CreateEncryptionKey(
     const std::string& key_resource_name = kTestKeyEncryptionKeyUriWithPrefix) {
   auto encryption_key = CreateEncryptionKeyBase();
   encryption_key->encryption_key_type =
       EncryptionKeyType::kMultiPartyHybridEvenKeysplit;
-  auto key_data = make_shared<KeyData>();
+  auto key_data = std::make_shared<KeyData>();
   key_data->key_encryption_key_uri =
-      make_shared<std::string>(key_resource_name);
-  key_data->key_material = make_shared<std::string>(kTestKeyMaterial);
+      std::make_shared<std::string>(key_resource_name);
+  key_data->key_material = std::make_shared<std::string>(kTestKeyMaterial);
   key_data->public_key_signature =
-      make_shared<std::string>(kTestPublicKeySignature);
+      std::make_shared<std::string>(kTestPublicKeySignature);
   encryption_key->key_data.emplace_back(key_data);
   return encryption_key;
 }
@@ -126,11 +125,11 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestSuccess) {
 TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestFailed) {
   auto encryption_key = CreateEncryptionKey();
 
-  auto key_data = make_shared<KeyData>();
-  key_data->key_encryption_key_uri = make_shared<std::string>("");
-  key_data->key_material = make_shared<std::string>("");
-  key_data->public_key_signature = make_shared<std::string>("");
-  encryption_key->key_data = std::vector<shared_ptr<KeyData>>({key_data});
+  auto key_data = std::make_shared<KeyData>();
+  key_data->key_encryption_key_uri = std::make_shared<std::string>("");
+  key_data->key_material = std::make_shared<std::string>("");
+  key_data->public_key_signature = std::make_shared<std::string>("");
+  encryption_key->key_data = std::vector<std::shared_ptr<KeyData>>({key_data});
 
   DecryptRequest kms_decrypt_request;
   auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
@@ -150,19 +149,19 @@ TEST(PrivateKeyClientUtilsTest,
                   SC_PRIVATE_KEY_CLIENT_PROVIDER_INVALID_KEY_RESOURCE_NAME)));
 }
 
-shared_ptr<EncryptionKey> CreateSinglePartyEncryptionKey(
+std::shared_ptr<EncryptionKey> CreateSinglePartyEncryptionKey(
     int8_t key_data_count = 1,
     const std::string& key_material = kSinglePartyKeyMaterialJson) {
   auto encryption_key = CreateEncryptionKeyBase();
   encryption_key->encryption_key_type =
       EncryptionKeyType::kSinglePartyHybridKey;
   for (int i = 0; i < key_data_count; ++i) {
-    auto key_data = make_shared<KeyData>();
+    auto key_data = std::make_shared<KeyData>();
     key_data->key_encryption_key_uri =
-        make_shared<std::string>(kTestKeyEncryptionKeyUriWithPrefix);
-    key_data->key_material = make_shared<std::string>(key_material);
+        std::make_shared<std::string>(kTestKeyEncryptionKeyUriWithPrefix);
+    key_data->key_material = std::make_shared<std::string>(key_material);
     key_data->public_key_signature =
-        make_shared<std::string>(kTestPublicKeySignature);
+        std::make_shared<std::string>(kTestPublicKeySignature);
     encryption_key->key_data.emplace_back(key_data);
   }
   return encryption_key;

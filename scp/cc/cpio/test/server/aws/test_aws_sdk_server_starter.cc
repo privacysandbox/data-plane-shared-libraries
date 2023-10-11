@@ -35,7 +35,6 @@ using Aws::Map;
 using Aws::String;
 using google::scp::core::test::StartLocalStackContainer;
 using std::runtime_error;
-using std::shared_ptr;
 
 namespace google::scp::cpio::test {
 void TestAwsSdkServerStarter::RunCloud() {

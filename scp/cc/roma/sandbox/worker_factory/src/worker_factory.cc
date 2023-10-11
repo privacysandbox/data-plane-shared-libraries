@@ -39,8 +39,6 @@ using google::scp::roma::sandbox::js_engine::v8_js_engine::
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::roma::sandbox::worker {
 static absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
@@ -51,25 +49,27 @@ static absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
   return one_time_setup;
 }
 
-ExecutionResultOr<shared_ptr<Worker>> WorkerFactory::Create(
+ExecutionResultOr<std::shared_ptr<Worker>> WorkerFactory::Create(
     const WorkerFactory::FactoryParams& params) {
   if (params.engine == WorkerFactory::WorkerEngine::v8) {
-    auto native_function_invoker = make_shared<NativeFunctionInvokerSapiIpc>(
-        params.v8_worker_engine_params.native_js_function_comms_fd);
+    auto native_function_invoker =
+        std::make_shared<NativeFunctionInvokerSapiIpc>(
+            params.v8_worker_engine_params.native_js_function_comms_fd);
 
-    std::vector<shared_ptr<V8IsolateVisitor>> isolate_visitors = {
-        make_shared<V8IsolateVisitorFunctionBinding>(
+    std::vector<std::shared_ptr<V8IsolateVisitor>> isolate_visitors = {
+        std::make_shared<V8IsolateVisitorFunctionBinding>(
             params.v8_worker_engine_params.native_js_function_names,
             native_function_invoker)};
 
-    auto v8_engine = make_shared<V8JsEngine>(
+    auto v8_engine = std::make_shared<V8JsEngine>(
         isolate_visitors, params.v8_worker_engine_params.resource_constraints);
 
     auto one_time_setup = GetEngineOneTimeSetup(params);
     v8_engine->OneTimeSetup(one_time_setup);
 
-    auto worker = make_shared<Worker>(v8_engine, params.require_preload,
-                                      params.compilation_context_cache_size);
+    auto worker =
+        std::make_shared<Worker>(v8_engine, params.require_preload,
+                                 params.compilation_context_cache_size);
 
     return worker;
   }

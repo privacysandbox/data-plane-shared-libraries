@@ -29,9 +29,7 @@
 using google::scp::core::common::GlobalLogger;
 using google::scp::core::logger::mock::MockLogger;
 using std::function;
-using std::make_unique;
 using std::pair;
-using std::unique_ptr;
 using testing::_;
 using testing::ElementsAre;
 using testing::Eq;
@@ -169,9 +167,9 @@ TEST(MacroTest, RETURN_IF_FAILURETest) {
 class MacroLogTest : public testing::Test {
  protected:
   MacroLogTest() {
-    auto mock_logger = make_unique<MockLogger>();
+    auto mock_logger = std::make_unique<MockLogger>();
     logger_ = mock_logger.get();
-    unique_ptr<LoggerInterface> logger = std::move(mock_logger);
+    std::unique_ptr<LoggerInterface> logger = std::move(mock_logger);
     logger->Init();
     logger->Run();
     GlobalLogger::SetGlobalLogger(std::move(logger));
@@ -356,9 +354,9 @@ class NoCopyNoDefault {
   NoCopyNoDefault(NoCopyNoDefault&&) = default;
   NoCopyNoDefault& operator=(NoCopyNoDefault&&) = default;
 
-  explicit NoCopyNoDefault(unique_ptr<int> x) : x_(std::move(x)) {}
+  explicit NoCopyNoDefault(std::unique_ptr<int> x) : x_(std::move(x)) {}
 
-  unique_ptr<int> x_;
+  std::unique_ptr<int> x_;
 };
 
 TEST(MacroTest, ASSIGN_OR_RETURNWorksWithTemporaryNonCopyableTypes) {
@@ -368,7 +366,7 @@ TEST(MacroTest, ASSIGN_OR_RETURNWorksWithTemporaryNonCopyableTypes) {
     ASSIGN_OR_RETURN(auto ret, foo());
     return ret;
   };
-  EXPECT_THAT(helper1(NoCopyNoDefault(make_unique<int>(5))),
+  EXPECT_THAT(helper1(NoCopyNoDefault(std::make_unique<int>(5))),
               IsSuccessfulAndHolds(FieldsAre(Pointee(Eq(5)))));
 
   auto helper2 = [](ExecutionResultOr<NoCopyNoDefault> result_or)
@@ -376,7 +374,7 @@ TEST(MacroTest, ASSIGN_OR_RETURNWorksWithTemporaryNonCopyableTypes) {
     ASSIGN_OR_RETURN(auto ret, std::move(result_or));
     return ret;
   };
-  EXPECT_THAT(helper2(NoCopyNoDefault(make_unique<int>(5))),
+  EXPECT_THAT(helper2(NoCopyNoDefault(std::make_unique<int>(5))),
               IsSuccessfulAndHolds(FieldsAre(Pointee(Eq(5)))));
 }
 
@@ -501,7 +499,7 @@ TEST(ExecutionResultOrTest, FunctionalTest) {
 }
 
 TEST(ExecutionResultOrTest, MoveTest_operator_star) {
-  NoCopyNoDefault ncnd(make_unique<int>(5));
+  NoCopyNoDefault ncnd(std::make_unique<int>(5));
   // ExecutionResultOr<NoCopyNoDefault> result_or(ncnd);  // Won't compile.
   ExecutionResultOr<NoCopyNoDefault> result_or(std::move(ncnd));
 
@@ -516,7 +514,7 @@ TEST(ExecutionResultOrTest, MoveTest_operator_star) {
 }
 
 TEST(ExecutionResultOrTest, MoveTest_value) {
-  NoCopyNoDefault ncnd(make_unique<int>(5));
+  NoCopyNoDefault ncnd(std::make_unique<int>(5));
   ExecutionResultOr<NoCopyNoDefault> result_or(std::move(ncnd));
 
   NoCopyNoDefault other = std::move(result_or).value();
@@ -528,7 +526,7 @@ TEST(ExecutionResultOrTest, MoveTest_value) {
 }
 
 TEST(ExecutionResultOrTest, MoveTest_release) {
-  NoCopyNoDefault ncnd(make_unique<int>(5));
+  NoCopyNoDefault ncnd(std::make_unique<int>(5));
   ExecutionResultOr<NoCopyNoDefault> result_or(std::move(ncnd));
 
   // No need of writing move!
@@ -541,7 +539,7 @@ TEST(ExecutionResultOrTest, MoveTest_release) {
 }
 
 TEST(ExecutionResultOrTest, DiscardedMoveResult) {
-  NoCopyNoDefault ncnd(make_unique<int>(5));
+  NoCopyNoDefault ncnd(std::make_unique<int>(5));
   ExecutionResultOr<NoCopyNoDefault> result_or(std::move(ncnd));
 
   // We expect that just calling operator* && does not invalidate the object.

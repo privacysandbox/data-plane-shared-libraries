@@ -30,7 +30,6 @@ using google::cmrt::sdk::metric_service::v1::Metric;
 using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
 using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
 using google::scp::cpio::MetricUnit;
-using std::make_shared;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -49,7 +48,7 @@ TEST(MetricUtilsTest, GetPutMetricsRequest) {
       MetricLabels(
           {{"Key1", "Value1"}, {"Key2", "Value2"}, {"Key3", "Value3"}}));
 
-  auto record_metric_request = make_shared<PutMetricsRequest>();
+  auto record_metric_request = std::make_shared<PutMetricsRequest>();
   MetricUtils::GetPutMetricsRequest(record_metric_request, metric_info,
                                     kMetricValue);
 

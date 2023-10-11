@@ -21,19 +21,17 @@
 #include "cpio/server/src/instance_service/test_gcp/test_gcp_instance_service_factory.h"
 #include "cpio/server/src/nosql_database_service/test_gcp/configuration_keys.h"
 
-using std::make_shared;
-using std::shared_ptr;
-
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestGcpNoSQLDatabaseServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestGcpInstanceServiceFactory>(
+  return std::make_shared<TestGcpInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions> TestGcpNoSQLDatabaseServiceFactory::
+std::shared_ptr<InstanceServiceFactoryOptions>
+TestGcpNoSQLDatabaseServiceFactory::
     CreateInstanceServiceFactoryOptions() noexcept {
-  auto options = make_shared<TestGcpInstanceServiceFactoryOptions>();
+  auto options = std::make_shared<TestGcpInstanceServiceFactoryOptions>();
   options->project_id_config_label = kTestGcpNoSQLDatabaseClientProjectId;
   return options;
 }

@@ -33,19 +33,16 @@ using google::scp::core::ConfigProviderInterface;
 using google::scp::core::kAggregatedMetricIntervalMs;
 using google::scp::core::kDefaultAggregatedMetricIntervalMs;
 using google::scp::core::common::kZeroUuid;
-using std::make_unique;
 using std::optional;
 using std::reference_wrapper;
-using std::shared_ptr;
-using std::unique_ptr;
 
 static constexpr char kMetricInstanceFactory[] = "MetricInstanceFactory";
 
 namespace google::scp::cpio {
 MetricInstanceFactory::MetricInstanceFactory(
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
-    const shared_ptr<MetricClientInterface>& metric_client,
-    const shared_ptr<ConfigProviderInterface>& config_provider)
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<MetricClientInterface>& metric_client,
+    const std::shared_ptr<ConfigProviderInterface>& config_provider)
     : async_executor_(async_executor), metric_client_(metric_client) {
   auto execution_result = config_provider->Get(kAggregatedMetricIntervalMs,
                                                aggregated_metric_interval_ms_);
@@ -59,32 +56,32 @@ MetricInstanceFactory::MetricInstanceFactory(
   }
 }
 
-unique_ptr<SimpleMetricInterface>
+std::unique_ptr<SimpleMetricInterface>
 MetricInstanceFactory::ConstructSimpleMetricInstance(
     MetricDefinition metric_info) noexcept {
-  return make_unique<SimpleMetric>(async_executor_, metric_client_,
-                                   std::move(metric_info));
+  return std::make_unique<SimpleMetric>(async_executor_, metric_client_,
+                                        std::move(metric_info));
 }
 
-unique_ptr<AggregateMetricInterface>
+std::unique_ptr<AggregateMetricInterface>
 MetricInstanceFactory::ConstructAggregateMetricInstance(
     MetricDefinition metric_info) noexcept {
-  return make_unique<AggregateMetric>(async_executor_, metric_client_,
-                                      std::move(metric_info),
-                                      aggregated_metric_interval_ms_);
+  return std::make_unique<AggregateMetric>(async_executor_, metric_client_,
+                                           std::move(metric_info),
+                                           aggregated_metric_interval_ms_);
 }
 
-unique_ptr<AggregateMetricInterface>
+std::unique_ptr<AggregateMetricInterface>
 MetricInstanceFactory::ConstructAggregateMetricInstance(
     MetricDefinition metric_info,
     const std::vector<std::string>& event_code_labels_list,
     const std::string& event_code_name) noexcept {
   if (event_code_name.empty()) {
-    return make_unique<AggregateMetric>(
+    return std::make_unique<AggregateMetric>(
         async_executor_, metric_client_, std::move(metric_info),
         aggregated_metric_interval_ms_, event_code_labels_list);
   } else {
-    return make_unique<AggregateMetric>(
+    return std::make_unique<AggregateMetric>(
         async_executor_, metric_client_, std::move(metric_info),
         aggregated_metric_interval_ms_, event_code_labels_list,
         event_code_name);

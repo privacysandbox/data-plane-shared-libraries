@@ -49,10 +49,6 @@ using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 using google::scp::roma::sandbox::worker_pool::WorkerPool;
 using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace {
 WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
@@ -72,20 +68,20 @@ WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
 namespace google::scp::roma::sandbox::dispatcher::test {
 
 TEST(DispatcherTest, CanRunCode) {
-  auto async_executor = make_shared<AsyncExecutor>(1, 10);
+  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, 1);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, 1);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
   Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto load_request = make_unique<CodeObject>();
+  auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
   load_request->version_num = 1;
   load_request->js =
@@ -95,7 +91,7 @@ TEST(DispatcherTest, CanRunCode) {
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -103,7 +99,7 @@ TEST(DispatcherTest, CanRunCode) {
 
   WaitUntil([&done_loading]() { return done_loading.load(); });
 
-  auto execute_request = make_unique<InvocationRequestStrInput>();
+  auto execute_request = std::make_unique<InvocationRequestStrInput>();
   execute_request->id = "some_id";
   execute_request->version_num = 1;
   execute_request->handler_name = "test";
@@ -113,7 +109,7 @@ TEST(DispatcherTest, CanRunCode) {
 
   result = dispatcher.Dispatch(
       std::move(execute_request),
-      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
         done_executing.store(true);
@@ -125,20 +121,20 @@ TEST(DispatcherTest, CanRunCode) {
 }
 
 TEST(DispatcherTest, CanHandleCodeFailures) {
-  auto async_executor = make_shared<AsyncExecutor>(1, 10);
+  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, 1);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, 1);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
   Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto load_request = make_unique<CodeObject>();
+  auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
   load_request->version_num = 1;
   // Bad JS
@@ -148,7 +144,7 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // That didn't work
         EXPECT_FALSE(resp->ok());
         done_loading.store(true);
@@ -159,20 +155,20 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
 }
 
 TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
-  auto async_executor = make_shared<AsyncExecutor>(1, 10);
+  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, 1);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, 1);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
   Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto execute_request = make_unique<InvocationRequestStrInput>();
+  auto execute_request = std::make_unique<InvocationRequestStrInput>();
   execute_request->id = "some_id";
   execute_request->version_num = 1;
   execute_request->handler_name = "test";
@@ -182,7 +178,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
 
   auto result = dispatcher.Dispatch(
       std::move(execute_request),
-      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_FALSE(resp->ok());
         done_executing.store(true);
       });
@@ -194,22 +190,22 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
 
 TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   const size_t number_of_workers = 5;
-  auto async_executor = make_shared<AsyncExecutor>(number_of_workers, 100);
+  auto async_executor = std::make_shared<AsyncExecutor>(number_of_workers, 100);
 
   std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < number_of_workers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, number_of_workers);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, number_of_workers);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
   Dispatcher dispatcher(async_executor, worker_pool, 100, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto load_request = make_unique<CodeObject>();
+  auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string";)";
@@ -218,7 +214,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
   auto result = dispatcher.Broadcast(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -232,7 +228,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   int requests_sent = number_of_workers * 3;
 
   for (int i = 0; i < requests_sent; i++) {
-    auto execute_request = make_unique<InvocationRequestStrInput>();
+    auto execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = absl::StrCat("some_id", i);
     execute_request->version_num = 1;
     execute_request->handler_name = "test";
@@ -240,7 +236,8 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
     result = dispatcher.Dispatch(
         std::move(execute_request),
-        [&execution_count, i](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&execution_count,
+         i](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ(absl::StrCat(R"("Hello)", i, R"( Some string")"),
                     (*resp)->resp);
@@ -257,22 +254,22 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
 TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
   const size_t number_of_workers = 5;
-  auto async_executor = make_shared<AsyncExecutor>(number_of_workers, 100);
+  auto async_executor = std::make_shared<AsyncExecutor>(number_of_workers, 100);
 
   std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < number_of_workers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, number_of_workers);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, number_of_workers);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
   Dispatcher dispatcher(async_executor, worker_pool, 100, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto load_request = make_unique<CodeObject>();
+  auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
   load_request->version_num = 1;
   // Bad syntax
@@ -282,7 +279,7 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
 
   auto result = dispatcher.Broadcast(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // That failed
         EXPECT_FALSE(resp->ok());
         done_loading.store(true);
@@ -294,22 +291,22 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
 
 TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   const size_t number_of_workers = 5;
-  auto async_executor = make_shared<AsyncExecutor>(number_of_workers, 100);
+  auto async_executor = std::make_shared<AsyncExecutor>(number_of_workers, 100);
 
   std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < number_of_workers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, number_of_workers);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, number_of_workers);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
   Dispatcher dispatcher(async_executor, worker_pool, 100, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto load_request = make_unique<CodeObject>();
+  auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string";)";
@@ -318,7 +315,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
 
   auto result = dispatcher.Broadcast(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -374,12 +371,12 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
 TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   // One worker with a one-item queue so that the queue takes long to empty out
   const size_t number_of_workers = 1;
-  auto async_executor = make_shared<AsyncExecutor>(
+  auto async_executor = std::make_shared<AsyncExecutor>(
       number_of_workers /*thread_count*/, 1 /*queue_cap*/);
 
   std::vector<WorkerApiSapiConfig> configs = {CreateWorkerApiSapiConfig()};
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, number_of_workers);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, number_of_workers);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
@@ -387,7 +384,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
                         100 /*max_pending_requests*/, 5 /*code_version_size*/);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto load_request = make_unique<CodeObject>();
+  auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
   load_request->version_num = 1;
   // Function that takes long so that queues will have items in it
@@ -410,7 +407,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
 
   auto result = dispatcher.Broadcast(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -455,21 +452,21 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
 }
 
 TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
-  auto async_executor = make_shared<AsyncExecutor>(1, 10);
+  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
   // Only one worker in the pool
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, 1);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, 1);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
   Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto load_request = make_unique<CodeObject>();
+  auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string";)";
@@ -478,7 +475,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -486,7 +483,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   WaitUntil([&done_loading]() { return done_loading.load(); });
 
-  auto execute_request = make_unique<InvocationRequestStrInput>();
+  auto execute_request = std::make_unique<InvocationRequestStrInput>();
   execute_request->id = "some_id";
   execute_request->version_num = 1;
   execute_request->handler_name = "test";
@@ -496,7 +493,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   result = dispatcher.Dispatch(
       std::move(execute_request),
-      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
         done_executing.store(true);
@@ -516,7 +513,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   done_executing.store(false);
 
-  execute_request = make_unique<InvocationRequestStrInput>();
+  execute_request = std::make_unique<InvocationRequestStrInput>();
   execute_request->id = "some_id";
   execute_request->version_num = 1;
   execute_request->handler_name = "test";
@@ -524,7 +521,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   result = dispatcher.Dispatch(
       std::move(execute_request),
-      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // This execution should fail since the worker has died
         EXPECT_FALSE(resp->ok());
         done_executing.store(true);
@@ -537,7 +534,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   done_executing.store(false);
 
-  execute_request = make_unique<InvocationRequestStrInput>();
+  execute_request = std::make_unique<InvocationRequestStrInput>();
   execute_request->id = "some_id";
   execute_request->version_num = 1;
   execute_request->handler_name = "test";
@@ -545,7 +542,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   result = dispatcher.Dispatch(
       std::move(execute_request),
-      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         EXPECT_EQ(R"("Hello after restart :) Some string")", (*resp)->resp);
         done_executing.store(true);
@@ -557,21 +554,21 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 }
 
 TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
-  auto async_executor = make_shared<AsyncExecutor>(1, 10);
+  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
   // Only one worker in the pool
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, 1);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, 1);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
   Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto load_request = make_unique<CodeObject>();
+  auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string 1";)";
@@ -580,7 +577,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -588,7 +585,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   WaitUntil([&done_loading]() { return done_loading.load(); });
 
-  load_request = make_unique<CodeObject>();
+  load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id_2";
   load_request->version_num = 2;
   load_request->js = R"(test = (s) => s + " Some string 2";)";
@@ -597,7 +594,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   result = dispatcher.Dispatch(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -610,7 +607,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   EXPECT_SUCCESS(worker.result());
   (*worker)->Terminate();
 
-  auto execute_request = make_unique<InvocationRequestStrInput>();
+  auto execute_request = std::make_unique<InvocationRequestStrInput>();
   execute_request->id = "some_id";
   execute_request->version_num = 1;
   execute_request->handler_name = "test";
@@ -620,7 +617,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   result = dispatcher.Dispatch(
       std::move(execute_request),
-      [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         // This request failed but it should have caused the restart of the
         // worker so subsequent requests should work.
         EXPECT_FALSE(resp->ok());
@@ -636,7 +633,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   for (int i = 0; i < 10; i++) {
     done_executing.store(false);
 
-    execute_request = make_unique<InvocationRequestStrInput>();
+    execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = "some_id";
     execute_request->version_num = 1;
     execute_request->handler_name = "test";
@@ -644,7 +641,8 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
     result = dispatcher.Dispatch(
         std::move(execute_request),
-        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&done_executing](
+            std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ(R"("Hello 1 Some string 1")", (*resp)->resp);
           done_executing.store(true);
@@ -655,7 +653,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
     done_executing.store(false);
 
-    execute_request = make_unique<InvocationRequestStrInput>();
+    execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = "some_id_2";
     execute_request->version_num = 2;
     execute_request->handler_name = "test";
@@ -663,7 +661,8 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
     result = dispatcher.Dispatch(
         std::move(execute_request),
-        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&done_executing](
+            std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ(R"("Hello 2 Some string 2")", (*resp)->resp);
           done_executing.store(true);
@@ -676,21 +675,21 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 }
 
 TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
-  auto async_executor = make_shared<AsyncExecutor>(1, 10);
+  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
   // Only one worker in the pool
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(configs, 1);
+  std::shared_ptr<WorkerPool> worker_pool =
+      std::make_shared<WorkerPoolApiSapi>(configs, 1);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
   Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
-  auto load_request = make_unique<CodeObject>();
+  auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string 1";)";
@@ -699,7 +698,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -707,7 +706,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
   WaitUntil([&done_loading]() { return done_loading.load(); });
 
-  load_request = make_unique<CodeObject>();
+  load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id_2";
   load_request->version_num = 2;
   load_request->js = R"(test = (s) => s + " Some string 2";)";
@@ -716,7 +715,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
   result = dispatcher.Dispatch(
       std::move(load_request),
-      [&done_loading](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
         done_loading.store(true);
       });
@@ -731,7 +730,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
   for (int i = 0; i < 2; i++) {
     // The first load should fail as the worker had died
-    load_request = make_unique<CodeObject>();
+    load_request = std::make_unique<CodeObject>();
     load_request->id = "some_id_3";
     load_request->version_num = 3;
     load_request->js = R"(test = (s) => s + " Some string 3";)";
@@ -740,7 +739,8 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     result = dispatcher.Dispatch(
         std::move(load_request),
-        [&done_loading, i](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&done_loading,
+         i](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           if (i == 0) {
             // Failed
             EXPECT_FALSE(resp->ok());
@@ -761,7 +761,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   for (int i = 0; i < 10; i++) {
     done_executing.store(false);
 
-    auto execute_request = make_unique<InvocationRequestStrInput>();
+    auto execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = "some_id";
     execute_request->version_num = 1;
     execute_request->handler_name = "test";
@@ -769,7 +769,8 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     result = dispatcher.Dispatch(
         std::move(execute_request),
-        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&done_executing](
+            std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ("\"Hello 1 Some string 1\"", (*resp)->resp);
           done_executing.store(true);
@@ -780,7 +781,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     done_executing.store(false);
 
-    execute_request = make_unique<InvocationRequestStrInput>();
+    execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = "some_id_2";
     execute_request->version_num = 2;
     execute_request->handler_name = "test";
@@ -788,7 +789,8 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     result = dispatcher.Dispatch(
         std::move(execute_request),
-        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&done_executing](
+            std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ("\"Hello 2 Some string 2\"", (*resp)->resp);
           done_executing.store(true);
@@ -800,7 +802,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     done_executing.store(false);
 
-    execute_request = make_unique<InvocationRequestStrInput>();
+    execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = "some_id_3";
     execute_request->version_num = 3;
     execute_request->handler_name = "test";
@@ -808,7 +810,8 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
     result = dispatcher.Dispatch(
         std::move(execute_request),
-        [&done_executing](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&done_executing](
+            std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_EQ("\"Hello 3 Some string 3\"", (*resp)->resp);
           done_executing.store(true);
@@ -821,10 +824,10 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 }
 
 TEST(DispatcherTest, ShouldFailIfCodeVersionCacheSizeIsZero) {
-  auto async_executor = make_shared<AsyncExecutor>(1, 10);
+  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
   constexpr size_t size = 0;
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(std::vector<WorkerApiSapiConfig>(), size);
+  std::shared_ptr<WorkerPool> worker_pool = std::make_shared<WorkerPoolApiSapi>(
+      std::vector<WorkerApiSapiConfig>(), size);
   constexpr size_t max_pending_requests = 10;
   constexpr size_t code_version_cache_size = 0;
 
@@ -834,10 +837,10 @@ TEST(DispatcherTest, ShouldFailIfCodeVersionCacheSizeIsZero) {
 }
 
 TEST(DispatcherTest, ShouldFailIfMaxPendingRequestsIsZero) {
-  auto async_executor = make_shared<AsyncExecutor>(1, 10);
+  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
   constexpr size_t size = 0;
-  shared_ptr<WorkerPool> worker_pool =
-      make_shared<WorkerPoolApiSapi>(std::vector<WorkerApiSapiConfig>(), size);
+  std::shared_ptr<WorkerPool> worker_pool = std::make_shared<WorkerPoolApiSapi>(
+      std::vector<WorkerApiSapiConfig>(), size);
   constexpr size_t max_pending_requests = 0;
   constexpr size_t code_version_cache_size = 5;
 

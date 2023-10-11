@@ -21,15 +21,13 @@
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::RetryStrategy;
 using google::scp::core::common::RetryStrategyType;
-using std::make_unique;
-using std::shared_ptr;
 
 constexpr char kHttpClient[] = "Http2Client";
 
 namespace google::scp::core {
-HttpClient::HttpClient(shared_ptr<AsyncExecutorInterface>& async_executor,
+HttpClient::HttpClient(std::shared_ptr<AsyncExecutorInterface>& async_executor,
                        HttpClientOptions options)
-    : http_connection_pool_(make_unique<HttpConnectionPool>(
+    : http_connection_pool_(std::make_unique<HttpConnectionPool>(
           async_executor, options.max_connections_per_host,
           options.http2_read_timeout_in_sec)),
       operation_dispatcher_(async_executor,
@@ -52,7 +50,7 @@ ExecutionResult HttpClient::PerformRequest(
   operation_dispatcher_.Dispatch<AsyncContext<HttpRequest, HttpResponse>>(
       http_context,
       [this](AsyncContext<HttpRequest, HttpResponse>& http_context) mutable {
-        shared_ptr<HttpConnection> http_connection;
+        std::shared_ptr<HttpConnection> http_connection;
         auto execution_result = http_connection_pool_->GetConnection(
             http_context.request->path, http_connection);
         if (!execution_result.Successful()) {

@@ -98,8 +98,6 @@ using grpc::ServerContext;
 using grpc::ServerReadReactor;
 using grpc::ServerWriteReactor;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using SyncServerOption = grpc::ServerBuilder::SyncServerOption;
 using std::placeholders::_1;
 
@@ -114,10 +112,10 @@ constexpr int32_t kDefaultNumCompletionQueues = 2;
 constexpr int32_t kDefaultMinPollers = 2;
 constexpr int32_t kDefaultMaxPollers = 5;
 
-shared_ptr<CloudInitializerInterface> cloud_initializer;
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<BlobStorageClientProviderInterface> blob_storage_client;
-shared_ptr<BlobStorageServiceFactoryInterface> service_factory;
+std::shared_ptr<CloudInitializerInterface> cloud_initializer;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<BlobStorageClientProviderInterface> blob_storage_client;
+std::shared_ptr<BlobStorageServiceFactoryInterface> service_factory;
 
 void SignalHandler(int signum) {
   Stop(blob_storage_client, kBlobStorageClientName);
@@ -250,22 +248,22 @@ void RunClients() {
 #if defined(AWS_SERVER)
   SCP_INFO(kBlobStorageServer, kZeroUuid, "Start AWS BlobStorage Server");
   service_factory =
-      make_shared<google::scp::cpio::AwsBlobStorageServiceFactory>(
+      std::make_shared<google::scp::cpio::AwsBlobStorageServiceFactory>(
           config_provider);
 #elif defined(GCP_SERVER)
   SCP_INFO(kBlobStorageServer, kZeroUuid, "Start GCP BlobStorage Server");
   service_factory =
-      make_shared<google::scp::cpio::GcpBlobStorageServiceFactory>(
+      std::make_shared<google::scp::cpio::GcpBlobStorageServiceFactory>(
           config_provider);
 #elif defined(TEST_AWS_SERVER)
   SCP_INFO(kBlobStorageServer, kZeroUuid, "Start test AWS BlobStorage Server");
   service_factory =
-      make_shared<google::scp::cpio::TestAwsBlobStorageServiceFactory>(
+      std::make_shared<google::scp::cpio::TestAwsBlobStorageServiceFactory>(
           config_provider);
 #elif defined(TEST_GCP_SERVER)
   SCP_INFO(kBlobStorageServer, kZeroUuid, "Start test GCP BlobStorage Server");
   service_factory =
-      make_shared<google::scp::cpio::TestGcpBlobStorageServiceFactory>(
+      std::make_shared<google::scp::cpio::TestGcpBlobStorageServiceFactory>(
           config_provider);
 #endif
   Init(service_factory, kServiceFactoryName);

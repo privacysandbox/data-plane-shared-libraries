@@ -74,9 +74,7 @@ using google::scp::core::errors::SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS;
 using google::scp::core::utils::Base64Encode;
 
 using std::bind;
-using std::make_shared;
 using std::ref;
-using std::shared_ptr;
 
 constexpr char kGcpCloudStorageProvider[] = "GcpCloudStorageProvider";
 // TODO: Find ideal max concurrent connections and retry limit for operations
@@ -84,7 +82,7 @@ constexpr size_t kMaxConcurrentConnections = 1000;
 constexpr size_t kRetryLimit = 3;
 constexpr size_t kListBlobsMaxResults = 1000;
 
-bool IsMarkerObject(const shared_ptr<std::string>& marker,
+bool IsMarkerObject(const std::shared_ptr<std::string>& marker,
                     const ObjectMetadata& obj_metadata) {
   return marker && *marker == obj_metadata.name();
 }
@@ -98,7 +96,7 @@ ExecutionResult GcpCloudStorageProvider::CreateClientConfig() noexcept {
   // Note: Options can also be unset which may be useful for configuring things
   // like retry policies for specific executions.
   // https://googleapis.dev/cpp/google-cloud-common/2.2.1/classgoogle_1_1cloud_1_1Options.html
-  client_config_ = make_shared<Options>();
+  client_config_ = std::make_shared<Options>();
   std::string project;
   auto execution_result = config_provider_->Get(kGcpProjectId, project);
   if (!execution_result.Successful()) {
@@ -114,7 +112,7 @@ ExecutionResult GcpCloudStorageProvider::CreateClientConfig() noexcept {
 }
 
 void GcpCloudStorageProvider::CreateCloudStorage() noexcept {
-  cloud_storage_client_shared_ = make_shared<Client>(*client_config_);
+  cloud_storage_client_shared_ = std::make_shared<Client>(*client_config_);
 }
 
 ExecutionResult GcpCloudStorageProvider::Init() noexcept {
@@ -135,8 +133,8 @@ ExecutionResult GcpCloudStorageProvider::Stop() noexcept {
 }
 
 ExecutionResult GcpCloudStorageProvider::CreateBlobStorageClient(
-    shared_ptr<BlobStorageClientInterface>& blob_storage_client) noexcept {
-  blob_storage_client = make_shared<GcpCloudStorageClient>(
+    std::shared_ptr<BlobStorageClientInterface>& blob_storage_client) noexcept {
+  blob_storage_client = std::make_shared<GcpCloudStorageClient>(
       cloud_storage_client_shared_, async_executor_, io_async_executor_,
       async_execution_priority_, io_async_execution_priority_);
   return SuccessExecutionResult();
@@ -194,11 +192,11 @@ void GcpCloudStorageClient::GetBlobAsync(
 
   size_t content_length = *blob_stream.size();
 
-  auto byte_buffer = make_shared<BytesBuffer>();
-  byte_buffer->bytes = make_shared<std::vector<Byte>>(content_length);
+  auto byte_buffer = std::make_shared<BytesBuffer>();
+  byte_buffer->bytes = std::make_shared<std::vector<Byte>>(content_length);
   byte_buffer->length = content_length;
   byte_buffer->capacity = content_length;
-  get_blob_context.response = make_shared<GetBlobResponse>();
+  get_blob_context.response = std::make_shared<GetBlobResponse>();
   get_blob_context.response->buffer = std::move(byte_buffer);
 
   blob_stream.read(get_blob_context.response->buffer->bytes->data(),
@@ -260,8 +258,8 @@ void GcpCloudStorageClient::ListBlobAsync(
           StartOffset(*list_blobs_context.request->marker), max_results);
     }
   }();
-  list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+  list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+  list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
   list_blobs_context.response->next_marker = nullptr;
 
   // GCP pagination happens through the iterator. All results are returned.
@@ -288,7 +286,7 @@ void GcpCloudStorageClient::ListBlobAsync(
       continue;
     }
     Blob blob;
-    blob.blob_name = make_shared<std::string>(object_metadata->name());
+    blob.blob_name = std::make_shared<std::string>(object_metadata->name());
     blob.bucket_name = list_blobs_context.request->bucket_name;
     list_blobs_context.response->blobs->push_back(blob);
     if (list_blobs_context.response->blobs->size() == kListBlobsMaxResults) {
@@ -299,7 +297,7 @@ void GcpCloudStorageClient::ListBlobAsync(
       // calling ListBlobs again with this next_marker will actually return 0
       // results but the caller issued 2 RPCs. As this is an unlikely edge case,
       // we implement the https://en.wikipedia.org/wiki/Ostrich_algorithm
-      list_blobs_context.response->next_marker = make_shared<Blob>(blob);
+      list_blobs_context.response->next_marker = std::make_shared<Blob>(blob);
       break;
     }
   }

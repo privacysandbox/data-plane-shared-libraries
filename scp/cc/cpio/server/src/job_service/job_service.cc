@@ -86,8 +86,6 @@ using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
 using google::scp::cpio::client_providers::JobClientProviderInterface;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -102,10 +100,10 @@ constexpr char kJobClientName[] = "job_client";
 constexpr char kServiceFactoryName[] = "service_factory";
 }  // namespace
 
-shared_ptr<CloudInitializerInterface> cloud_initializer;
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<JobServiceFactoryInterface> service_factory;
-shared_ptr<JobClientProviderInterface> job_client;
+std::shared_ptr<CloudInitializerInterface> cloud_initializer;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<JobServiceFactoryInterface> service_factory;
+std::shared_ptr<JobClientProviderInterface> job_client;
 
 class JobServiceImpl : public JobService::CallbackService {
  public:
@@ -217,20 +215,22 @@ int main(int argc, char* argv[]) {
 void RunClients() {
 #if defined(AWS_SERVER)
   SCP_INFO(kJobService, kZeroUuid, "Start AWS Job Server");
-  service_factory =
-      make_shared<google::scp::cpio::AwsJobServiceFactory>(config_provider);
+  service_factory = std::make_shared<google::scp::cpio::AwsJobServiceFactory>(
+      config_provider);
 #elif defined(GCP_SERVER)
   SCP_INFO(kJobService, kZeroUuid, "Start GCP Job Server");
-  service_factory =
-      make_shared<google::scp::cpio::GcpJobServiceFactory>(config_provider);
+  service_factory = std::make_shared<google::scp::cpio::GcpJobServiceFactory>(
+      config_provider);
 #elif defined(TEST_AWS_SERVER)
   SCP_INFO(kJobService, kZeroUuid, "Start test AWS Job Server");
   service_factory =
-      make_shared<google::scp::cpio::TestAwsJobServiceFactory>(config_provider);
+      std::make_shared<google::scp::cpio::TestAwsJobServiceFactory>(
+          config_provider);
 #elif defined(TEST_GCP_SERVER)
   SCP_INFO(kJobService, kZeroUuid, "Start test GCP Job Server");
   service_factory =
-      make_shared<google::scp::cpio::TestGcpJobServiceFactory>(config_provider);
+      std::make_shared<google::scp::cpio::TestGcpJobServiceFactory>(
+          config_provider);
 #endif
 
   Init(service_factory, kServiceFactoryName);

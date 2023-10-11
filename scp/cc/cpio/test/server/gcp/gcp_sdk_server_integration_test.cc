@@ -58,13 +58,9 @@ using grpc::ServerBuilder;
 using grpc::ServerUnaryReactor;
 using grpc::Status;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
 using std::mt19937;
 using std::random_device;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace {
 constexpr char kLocalHost[] = "http://127.0.0.1";
@@ -113,7 +109,7 @@ class GcpSdkServerIntegrationTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     config_ = BuildTestSdkServerConfig();
-    server_starter_ = make_unique<TestGcpSdkServerStarter>(config_);
+    server_starter_ = std::make_unique<TestGcpSdkServerStarter>(config_);
     server_starter_->Setup();
     server_starter_->RunSdkServer(kSdkServerImageLocation, kSdkServerImageName,
                                   {});
@@ -150,12 +146,12 @@ class GcpSdkServerIntegrationTest : public ::testing::Test {
   }
 
   static TestSdkServerConfig config_;
-  static unique_ptr<TestGcpSdkServerStarter> server_starter_;
+  static std::unique_ptr<TestGcpSdkServerStarter> server_starter_;
 };
 
 TestSdkServerConfig GcpSdkServerIntegrationTest::config_ =
     TestSdkServerConfig();
-unique_ptr<TestGcpSdkServerStarter>
+std::unique_ptr<TestGcpSdkServerStarter>
     GcpSdkServerIntegrationTest::server_starter_ = nullptr;
 
 TEST_F(GcpSdkServerIntegrationTest, QueueServiceEnqueueMessage) {

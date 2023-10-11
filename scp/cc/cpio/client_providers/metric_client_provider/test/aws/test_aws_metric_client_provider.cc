@@ -32,23 +32,22 @@ using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
 void TestAwsMetricClientProvider::CreateClientConfiguration(
-    const shared_ptr<std::string>& region,
-    shared_ptr<ClientConfiguration>& client_config) noexcept {
+    const std::shared_ptr<std::string>& region,
+    std::shared_ptr<ClientConfiguration>& client_config) noexcept {
   client_config =
       CreateTestClientConfiguration(cloud_watch_endpoint_override_, region);
 }
 
-shared_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
-    const shared_ptr<MetricClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
+std::shared_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
+    const std::shared_ptr<MetricClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
     const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<TestAwsMetricClientProvider>(
+  return std::make_shared<TestAwsMetricClientProvider>(
       std::dynamic_pointer_cast<TestAwsMetricClientOptions>(options),
       instance_client_provider, async_executor, io_async_executor);
 }

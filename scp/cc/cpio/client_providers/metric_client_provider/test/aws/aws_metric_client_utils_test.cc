@@ -64,7 +64,6 @@ using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_OVERSIZE_DATUM_DIMENSIONS;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::AwsMetricClientUtils;
-using std::make_shared;
 using std::chrono::duration_cast;
 using std::chrono::hours;
 using std::chrono::milliseconds;
@@ -102,7 +101,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumSuccess) {
 
   bool parse_request_to_datum_is_called = false;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         parse_request_to_datum_is_called = true;
       });
@@ -126,7 +125,7 @@ TEST_F(AwsMetricClientUtilsTest, OversizeMetricsInRequest) {
   SetPutMetricsRequest(record_metric_request, kValue, 1001);
 
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
   std::vector<MetricDatum> datum_list;
   EXPECT_THAT(
@@ -143,7 +142,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidValue) {
   SetPutMetricsRequest(record_metric_request, invalid_value);
   bool parse_request_to_datum_is_called = false;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         parse_request_to_datum_is_called = true;
       });
@@ -173,7 +172,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidTimestamp) {
     SetPutMetricsRequest(record_metric_request, kValue, 1, timestamp);
     bool parse_request_to_datum_is_called = false;
     AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-        make_shared<PutMetricsRequest>(record_metric_request),
+        std::make_shared<PutMetricsRequest>(record_metric_request),
         [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
           parse_request_to_datum_is_called = true;
         });
@@ -202,7 +201,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumOversizeDimensions) {
 
   bool parse_request_to_datum_is_called = false;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         parse_request_to_datum_is_called = true;
       });
@@ -224,7 +223,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidUnit) {
 
   bool parse_request_to_datum_is_called = false;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         parse_request_to_datum_is_called = true;
       });

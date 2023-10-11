@@ -59,9 +59,6 @@ using nghttp2::asio_http2::client::response;
 using nghttp2::asio_http2::client::session;
 using std::bind;
 using std::make_pair;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -72,7 +69,7 @@ static constexpr char kHttpMethodPostTag[] = "POST";
 
 namespace google::scp::core {
 HttpConnection::HttpConnection(
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
     const std::string& host, const std::string& service, bool is_https,
     TimeDuration http2_read_timeout_in_sec)
     : async_executor_(async_executor),
@@ -86,9 +83,10 @@ HttpConnection::HttpConnection(
 
 ExecutionResult HttpConnection::Init() noexcept {
   try {
-    io_service_ = make_unique<io_service>();
-    work_guard_ = make_unique<executor_work_guard<io_context::executor_type>>(
-        make_work_guard(io_service_->get_executor()));
+    io_service_ = std::make_unique<io_service>();
+    work_guard_ =
+        std::make_unique<executor_work_guard<io_context::executor_type>>(
+            make_work_guard(io_service_->get_executor()));
 
     tls_context_.set_default_verify_paths();
     error_code ec;
@@ -103,10 +101,10 @@ ExecutionResult HttpConnection::Init() noexcept {
     }
 
     if (is_https_) {
-      session_ =
-          make_shared<session>(*io_service_, tls_context_, host_, service_);
+      session_ = std::make_shared<session>(*io_service_, tls_context_, host_,
+                                           service_);
     } else {
-      session_ = make_shared<session>(*io_service_, host_, service_);
+      session_ = std::make_shared<session>(*io_service_, host_, service_);
     }
 
     session_->read_timeout(seconds(http2_read_timeout_in_sec_));
@@ -124,7 +122,7 @@ ExecutionResult HttpConnection::Init() noexcept {
 }
 
 ExecutionResult HttpConnection::Run() noexcept {
-  worker_ = make_shared<std::thread>([this]() {
+  worker_ = std::make_shared<std::thread>([this]() {
     try {
       io_service_->run();
     } catch (...) {
@@ -350,7 +348,7 @@ void HttpConnection::SendHttpRequest(
     return;
   }
 
-  http_context.response = make_shared<HttpResponse>();
+  http_context.response = std::make_shared<HttpResponse>();
   http_request->on_response(
       bind(&HttpConnection::OnResponseCallback, this, http_context, _1));
   http_request->on_close(bind(&HttpConnection::OnRequestResponseClosed, this,
@@ -396,7 +394,7 @@ void HttpConnection::OnRequestResponseClosed(
 void HttpConnection::OnResponseCallback(
     AsyncContext<HttpRequest, HttpResponse>& http_context,
     const response& http_response) noexcept {
-  http_context.response->headers = make_shared<HttpHeaders>();
+  http_context.response->headers = std::make_shared<HttpHeaders>();
   http_context.response->code =
       static_cast<errors::HttpStatusCode>(http_response.status_code());
 
@@ -418,7 +416,7 @@ void HttpConnection::OnResponseCallback(
   }
 
   if (http_response.content_length() >= 0) {
-    http_context.response->body.bytes = make_shared<std::vector<Byte>>();
+    http_context.response->body.bytes = std::make_shared<std::vector<Byte>>();
     http_context.response->body.bytes->reserve(http_response.content_length());
     http_context.response->body.capacity = http_response.content_length();
   }

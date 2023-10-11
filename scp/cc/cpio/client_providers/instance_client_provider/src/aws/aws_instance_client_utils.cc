@@ -38,10 +38,8 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME;
-using std::make_shared;
 using std::regex;
 using std::regex_match;
-using std::shared_ptr;
 using std::strlen;
 
 namespace {
@@ -61,7 +59,7 @@ constexpr char kResourceNameRegex[] =
 
 namespace google::scp::cpio::client_providers {
 ExecutionResultOr<std::string> AwsInstanceClientUtils::GetCurrentRegionCode(
-    const shared_ptr<InstanceClientProviderInterface>&
+    const std::shared_ptr<InstanceClientProviderInterface>&
         instance_client) noexcept {
   std::string instance_resource_name;
   if (auto result = instance_client->GetCurrentInstanceResourceNameSync(

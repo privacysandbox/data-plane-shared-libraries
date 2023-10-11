@@ -58,8 +58,6 @@ using google::scp::cpio::client_providers::mock::
 using google::scp::cpio::client_providers::mock::MockSTSClient;
 using std::atomic;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -83,7 +81,7 @@ class AwsRoleCredentialsProviderTest : public ::testing::Test {
 
   void SetUp() override {
     role_credentials_provider_ =
-        make_shared<MockAwsRoleCredentialsProviderWithOverrides>();
+        std::make_shared<MockAwsRoleCredentialsProviderWithOverrides>();
     EXPECT_SUCCESS(role_credentials_provider_->Init());
     role_credentials_provider_->GetInstanceClientProvider()
         ->instance_resource_name = kResourceNameMock;
@@ -95,9 +93,9 @@ class AwsRoleCredentialsProviderTest : public ::testing::Test {
     EXPECT_SUCCESS(role_credentials_provider_->Stop());
   }
 
-  shared_ptr<MockAwsRoleCredentialsProviderWithOverrides>
+  std::shared_ptr<MockAwsRoleCredentialsProviderWithOverrides>
       role_credentials_provider_;
-  shared_ptr<MockSTSClient> mock_sts_client_;
+  std::shared_ptr<MockSTSClient> mock_sts_client_;
 };
 
 TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleSuccess) {
@@ -105,14 +103,14 @@ TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleSuccess) {
   mock_sts_client_->mock_assume_role_async =
       [&](const AssumeRoleRequest& request,
           const AssumeRoleResponseReceivedHandler&,
-          const shared_ptr<const AsyncCallerContext>&) {
+          const std::shared_ptr<const AsyncCallerContext>&) {
         EXPECT_EQ(request.GetRoleArn(), kAssumeRoleArn);
         EXPECT_EQ(request.GetRoleSessionName(), kSessionName);
         finished = true;
       };
 
-  auto request = make_shared<GetRoleCredentialsRequest>();
-  request->account_identity = make_shared<std::string>(kAssumeRoleArn);
+  auto request = std::make_shared<GetRoleCredentialsRequest>();
+  request->account_identity = std::make_shared<std::string>(kAssumeRoleArn);
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_credentials_context(
           std::move(request),
@@ -127,7 +125,7 @@ TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleFailure) {
   auto is_called = false;
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_credentials_context(
-          make_shared<GetRoleCredentialsRequest>(),
+          std::make_shared<GetRoleCredentialsRequest>(),
           [&](AsyncContext<GetRoleCredentialsRequest,
                            GetRoleCredentialsResponse>& context) {
             EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(
@@ -146,9 +144,9 @@ TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleFailure) {
 }
 
 TEST_F(AwsRoleCredentialsProviderTest, NullInstanceClientProvider) {
-  auto role_credentials_provider = make_shared<AwsRoleCredentialsProvider>(
-      nullptr, make_shared<MockAsyncExecutor>(),
-      make_shared<MockAsyncExecutor>());
+  auto role_credentials_provider = std::make_shared<AwsRoleCredentialsProvider>(
+      nullptr, std::make_shared<MockAsyncExecutor>(),
+      std::make_shared<MockAsyncExecutor>());
   EXPECT_SUCCESS(role_credentials_provider->Init());
   EXPECT_THAT(role_credentials_provider->Run(),
               ResultIs(FailureExecutionResult(
@@ -156,9 +154,9 @@ TEST_F(AwsRoleCredentialsProviderTest, NullInstanceClientProvider) {
 }
 
 TEST_F(AwsRoleCredentialsProviderTest, NullCpuAsyncExecutor) {
-  auto role_credentials_provider = make_shared<AwsRoleCredentialsProvider>(
-      make_shared<mock::MockInstanceClientProvider>(), nullptr,
-      make_shared<MockAsyncExecutor>());
+  auto role_credentials_provider = std::make_shared<AwsRoleCredentialsProvider>(
+      std::make_shared<mock::MockInstanceClientProvider>(), nullptr,
+      std::make_shared<MockAsyncExecutor>());
   EXPECT_SUCCESS(role_credentials_provider->Init());
   EXPECT_THAT(role_credentials_provider->Run(),
               ResultIs(FailureExecutionResult(
@@ -166,9 +164,9 @@ TEST_F(AwsRoleCredentialsProviderTest, NullCpuAsyncExecutor) {
 }
 
 TEST_F(AwsRoleCredentialsProviderTest, NullIoAsyncExecutor) {
-  auto role_credentials_provider = make_shared<AwsRoleCredentialsProvider>(
-      make_shared<mock::MockInstanceClientProvider>(),
-      make_shared<MockAsyncExecutor>(), nullptr);
+  auto role_credentials_provider = std::make_shared<AwsRoleCredentialsProvider>(
+      std::make_shared<mock::MockInstanceClientProvider>(),
+      std::make_shared<MockAsyncExecutor>(), nullptr);
   EXPECT_SUCCESS(role_credentials_provider->Init());
   EXPECT_THAT(role_credentials_provider->Run(),
               ResultIs(FailureExecutionResult(

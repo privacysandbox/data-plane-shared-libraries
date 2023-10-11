@@ -26,9 +26,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using std::atomic_bool;
-using std::make_shared;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::AtLeast;
 using testing::ExplainMatchResult;
 using testing::InSequence;
@@ -44,8 +41,8 @@ namespace {
 
 class MockCurlWrapperProvider : public NiceMock<Http1CurlWrapperProvider> {
  public:
-  MOCK_METHOD(ExecutionResultOr<shared_ptr<Http1CurlWrapper>>, MakeWrapper, (),
-              (override));
+  MOCK_METHOD(ExecutionResultOr<std::shared_ptr<Http1CurlWrapper>>, MakeWrapper,
+              (), (override));
 };
 
 class MockCurlWrapper : public NiceMock<Http1CurlWrapper> {
@@ -57,12 +54,12 @@ class MockCurlWrapper : public NiceMock<Http1CurlWrapper> {
 class Http1CurlClientTest : public ::testing::Test {
  protected:
   Http1CurlClientTest()
-      : cpu_async_executor_(
-            make_shared<AsyncExecutor>(/*thread_count=*/4, /*queue_cap=*/10)),
-        io_async_executor_(
-            make_shared<AsyncExecutor>(/*thread_count=*/4, /*queue_cap=*/10)),
-        wrapper_(make_shared<MockCurlWrapper>()),
-        provider_(make_shared<MockCurlWrapperProvider>()),
+      : cpu_async_executor_(std::make_shared<AsyncExecutor>(/*thread_count=*/4,
+                                                            /*queue_cap=*/10)),
+        io_async_executor_(std::make_shared<AsyncExecutor>(/*thread_count=*/4,
+                                                           /*queue_cap=*/10)),
+        wrapper_(std::make_shared<MockCurlWrapper>()),
+        provider_(std::make_shared<MockCurlWrapperProvider>()),
         subject_(cpu_async_executor_, io_async_executor_, provider_,
                  common::RetryStrategyOptions(
                      common::RetryStrategyType::Exponential,
@@ -85,10 +82,11 @@ class Http1CurlClientTest : public ::testing::Test {
         << "cpu_async_executor_ stop unsuccessful";
   }
 
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor_, io_async_executor_;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor_,
+      io_async_executor_;
 
-  shared_ptr<MockCurlWrapper> wrapper_;
-  shared_ptr<MockCurlWrapperProvider> provider_;
+  std::shared_ptr<MockCurlWrapper> wrapper_;
+  std::shared_ptr<MockCurlWrapperProvider> provider_;
 
   Http1CurlClient subject_;
 };
@@ -107,7 +105,7 @@ MATCHER_P(ResponseEquals, expected, "") {
 
 TEST_F(Http1CurlClientTest, IssuesPerformRequestOnWrapper) {
   AsyncContext<HttpRequest, HttpResponse> http_context;
-  http_context.request = make_shared<HttpRequest>();
+  http_context.request = std::make_shared<HttpRequest>();
   http_context.request->body = BytesBuffer("buf");
 
   HttpRequest expected_request;
@@ -131,7 +129,7 @@ TEST_F(Http1CurlClientTest, IssuesPerformRequestOnWrapper) {
 
 TEST_F(Http1CurlClientTest, RetriesWork) {
   AsyncContext<HttpRequest, HttpResponse> http_context;
-  http_context.request = make_shared<HttpRequest>();
+  http_context.request = std::make_shared<HttpRequest>();
   http_context.request->body = BytesBuffer("buf");
 
   HttpRequest expected_request;
@@ -164,7 +162,7 @@ TEST_F(Http1CurlClientTest, RetriesWork) {
 
 TEST_F(Http1CurlClientTest, FailureEnds) {
   AsyncContext<HttpRequest, HttpResponse> http_context;
-  http_context.request = make_shared<HttpRequest>();
+  http_context.request = std::make_shared<HttpRequest>();
   http_context.request->body = BytesBuffer("buf");
 
   HttpRequest expected_request;

@@ -36,7 +36,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using std::shared_ptr;
 
 namespace {
 constexpr char kAwsResourceNameFormat[] = R"(arn:aws:ec2:%s:%s:instance/%s)";

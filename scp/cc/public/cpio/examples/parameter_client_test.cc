@@ -39,10 +39,6 @@ using google::scp::cpio::ParameterClientFactory;
 using google::scp::cpio::ParameterClientInterface;
 using google::scp::cpio::ParameterClientOptions;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 static constexpr char kTestParameterName[] = "test_parameter";
 

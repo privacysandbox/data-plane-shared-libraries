@@ -86,11 +86,7 @@ using google::scp::cpio::client_providers::CloudInitializerInterface;
 using std::bind;
 using std::cout;
 using std::endl;
-using std::make_shared;
-using std::make_unique;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -105,10 +101,10 @@ constexpr char kAutoScalingClientName[] = "auto_scaling_client";
 constexpr char kServiceFactoryName[] = "service_factory";
 }  // namespace
 
-shared_ptr<CloudInitializerInterface> cloud_initializer;
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<AutoScalingClientProviderInterface> auto_scaling_client;
-shared_ptr<AutoScalingServiceFactoryInterface> service_factory;
+std::shared_ptr<CloudInitializerInterface> cloud_initializer;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<AutoScalingClientProviderInterface> auto_scaling_client;
+std::shared_ptr<AutoScalingServiceFactoryInterface> service_factory;
 
 class AutoScalingServiceImpl : public AutoScalingService::CallbackService {
  public:
@@ -170,12 +166,12 @@ void RunClients() {
 #if defined(AWS_SERVER)
   SCP_INFO(kAutoScalingService, kZeroUuid, "Start AWS AutoScaling Server");
   service_factory =
-      make_shared<google::scp::cpio::AwsAutoScalingServiceFactory>(
+      std::make_shared<google::scp::cpio::AwsAutoScalingServiceFactory>(
           config_provider);
 #elif defined(TEST_AWS_SERVER)
   SCP_INFO(kAutoScalingService, kZeroUuid, "Start test AWS AutoScaling Server");
   service_factory =
-      make_shared<google::scp::cpio::TestAwsAutoScalingServiceFactory>(
+      std::make_shared<google::scp::cpio::TestAwsAutoScalingServiceFactory>(
           config_provider);
 #else
 #error "Must provide [TEST_]AWS_SERVER"

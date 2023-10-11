@@ -74,8 +74,6 @@ using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientProviderInterface;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -90,10 +88,10 @@ constexpr char kServiceFactoryName[] = "nosql_database_factory";
 constexpr char kNoSQLDatabaseClientName[] = "nosql_database_client";
 }  // namespace
 
-shared_ptr<CloudInitializerInterface> cloud_initializer;
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<NoSQLDatabaseClientProviderInterface> nosql_database_client;
-shared_ptr<NoSQLDatabaseServiceFactoryInterface> service_factory;
+std::shared_ptr<CloudInitializerInterface> cloud_initializer;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<NoSQLDatabaseClientProviderInterface> nosql_database_client;
+std::shared_ptr<NoSQLDatabaseServiceFactoryInterface> service_factory;
 
 class NoSqlDatabaseServiceImpl : public NoSqlDatabaseService::CallbackService {
  public:
@@ -176,24 +174,24 @@ void RunClients() {
 #if defined(AWS_SERVER)
   SCP_INFO(kNoSQLDatabaseServer, kZeroUuid, "Start AWS NoSQLDatabase Server");
   service_factory =
-      make_shared<google::scp::cpio::AwsNoSQLDatabaseServiceFactory>(
+      std::make_shared<google::scp::cpio::AwsNoSQLDatabaseServiceFactory>(
           config_provider);
 #elif defined(GCP_SERVER)
   SCP_INFO(kNoSQLDatabaseServer, kZeroUuid, "Start GCP NoSQLDatabase Server");
   service_factory =
-      make_shared<google::scp::cpio::GcpNoSQLDatabaseServiceFactory>(
+      std::make_shared<google::scp::cpio::GcpNoSQLDatabaseServiceFactory>(
           config_provider);
 #elif defined(TEST_AWS_SERVER)
   SCP_INFO(kNoSQLDatabaseServer, kZeroUuid,
            "Start test AWS NoSQLDatabase Server");
   service_factory =
-      make_shared<google::scp::cpio::TestAwsNoSQLDatabaseServiceFactory>(
+      std::make_shared<google::scp::cpio::TestAwsNoSQLDatabaseServiceFactory>(
           config_provider);
 #elif defined(TEST_GCP_SERVER)
   SCP_INFO(kNoSQLDatabaseServer, kZeroUuid,
            "Start test GCP NoSQLDatabase Server");
   service_factory =
-      make_shared<google::scp::cpio::TestGcpNoSQLDatabaseServiceFactory>(
+      std::make_shared<google::scp::cpio::TestGcpNoSQLDatabaseServiceFactory>(
           config_provider);
 #endif
   Init(service_factory, kServiceFactoryName);

@@ -75,8 +75,6 @@ using google::scp::cpio::MockSimpleMetric;
 using google::scp::cpio::TimeEvent;
 using std::atomic;
 using std::make_pair;
-using std::make_shared;
-using std::shared_ptr;
 using std::static_pointer_cast;
 using std::unordered_set;
 
@@ -85,34 +83,34 @@ namespace google::scp::core::test {
 class JournalServiceTests : public ::testing::Test {
  protected:
   JournalServiceTests() {
-    async_executor_ =
-        make_shared<AsyncExecutor>(4 /* threads*/, 1000000 /* queue size*/);
+    async_executor_ = std::make_shared<AsyncExecutor>(4 /* threads*/,
+                                                      1000000 /* queue size*/);
     EXPECT_SUCCESS(async_executor_->Init());
     EXPECT_SUCCESS(async_executor_->Run());
-    auto mock_metric_client = make_shared<MockMetricClient>();
-    mock_config_provider_ = make_shared<MockConfigProvider>();
-    mock_blob_storage_provider_ = make_shared<MockBlobStorageProvider>();
-    mock_metric_instance_factory_ = make_shared<MetricInstanceFactory>(
+    auto mock_metric_client = std::make_shared<MockMetricClient>();
+    mock_config_provider_ = std::make_shared<MockConfigProvider>();
+    mock_blob_storage_provider_ = std::make_shared<MockBlobStorageProvider>();
+    mock_metric_instance_factory_ = std::make_shared<MetricInstanceFactory>(
         async_executor_, mock_metric_client, mock_config_provider_);
   }
 
   ~JournalServiceTests() { EXPECT_SUCCESS(async_executor_->Stop()); }
 
-  shared_ptr<std::string> bucket_name_ =
-      make_shared<std::string>("bucket_name");
-  shared_ptr<std::string> partition_name_ =
-      make_shared<std::string>("00000000-0000-0000-0000-000000000000");
-  shared_ptr<AsyncExecutorInterface> async_executor_;
-  shared_ptr<ConfigProviderInterface> mock_config_provider_;
-  shared_ptr<BlobStorageProviderInterface> mock_blob_storage_provider_;
-  shared_ptr<MetricInstanceFactoryInterface> mock_metric_instance_factory_;
+  std::shared_ptr<std::string> bucket_name_ =
+      std::make_shared<std::string>("bucket_name");
+  std::shared_ptr<std::string> partition_name_ =
+      std::make_shared<std::string>("00000000-0000-0000-0000-000000000000");
+  std::shared_ptr<AsyncExecutorInterface> async_executor_;
+  std::shared_ptr<ConfigProviderInterface> mock_config_provider_;
+  std::shared_ptr<BlobStorageProviderInterface> mock_blob_storage_provider_;
+  std::shared_ptr<MetricInstanceFactoryInterface> mock_metric_instance_factory_;
 };
 
 TEST_F(JournalServiceTests, Init) {
-  shared_ptr<BlobStorageProviderInterface> blob_storage_provider =
-      make_shared<MockBlobStorageProvider>();
-  auto mock_metric_client = make_shared<MockMetricClient>();
-  auto mock_config_provider = make_shared<MockConfigProvider>();
+  std::shared_ptr<BlobStorageProviderInterface> blob_storage_provider =
+      std::make_shared<MockBlobStorageProvider>();
+  auto mock_metric_client = std::make_shared<MockMetricClient>();
+  auto mock_config_provider = std::make_shared<MockConfigProvider>();
   JournalService journal_service(bucket_name_, partition_name_, async_executor_,
                                  mock_blob_storage_provider_,
                                  mock_metric_instance_factory_,
@@ -161,14 +159,14 @@ TEST_F(JournalServiceTests, Recover) {
       bucket_name_, partition_name_, async_executor_,
       mock_blob_storage_provider_, mock_metric_instance_factory_,
       mock_config_provider_);
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   mock_blob_storage_provider_->CreateBlobStorageClient(blob_storage_client);
 
   std::vector<ExecutionResult> results = {SuccessExecutionResult(),
                                           FailureExecutionResult(123),
                                           RetryExecutionResult(12345)};
   for (auto result : results) {
-    auto mock_input_stream = make_shared<MockJournalInputStream>(
+    auto mock_input_stream = std::make_shared<MockJournalInputStream>(
         bucket_name_, partition_name_, blob_storage_client,
         std::make_shared<EnvConfigProvider>());
 
@@ -178,13 +176,13 @@ TEST_F(JournalServiceTests, Recover) {
           return result;
         };
 
-    shared_ptr<JournalInputStreamInterface> input_stream =
+    std::shared_ptr<JournalInputStreamInterface> input_stream =
         static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
     journal_service.SetInputStream(input_stream);
 
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
         journal_recover_context;
-    journal_recover_context.request = make_shared<JournalRecoverRequest>();
+    journal_recover_context.request = std::make_shared<JournalRecoverRequest>();
 
     EXPECT_THAT(journal_service.Recover(journal_recover_context),
                 ResultIs(result));
@@ -197,10 +195,10 @@ TEST_F(JournalServiceTests, ValidateParamsOfRecover) {
       mock_blob_storage_provider_, mock_metric_instance_factory_,
       mock_config_provider_);
 
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   mock_blob_storage_provider_->CreateBlobStorageClient(blob_storage_client);
 
-  auto mock_input_stream = make_shared<MockJournalInputStream>(
+  auto mock_input_stream = std::make_shared<MockJournalInputStream>(
       bucket_name_, partition_name_, blob_storage_client,
       std::make_shared<EnvConfigProvider>());
 
@@ -217,13 +215,13 @@ TEST_F(JournalServiceTests, ValidateParamsOfRecover) {
           return SuccessExecutionResult();
         };
 
-    shared_ptr<JournalInputStreamInterface> input_stream =
+    std::shared_ptr<JournalInputStreamInterface> input_stream =
         static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
     journal_service.SetInputStream(input_stream);
 
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
         journal_recover_context;
-    journal_recover_context.request = make_shared<JournalRecoverRequest>();
+    journal_recover_context.request = std::make_shared<JournalRecoverRequest>();
     journal_recover_context.request->max_journal_id_to_process = 123;
     journal_recover_context.request->max_number_of_journals_to_process = 456;
     journal_recover_context.request
@@ -246,13 +244,13 @@ TEST_F(JournalServiceTests, ValidateParamsOfRecover) {
           return SuccessExecutionResult();
         };
 
-    shared_ptr<JournalInputStreamInterface> input_stream =
+    std::shared_ptr<JournalInputStreamInterface> input_stream =
         static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
     journal_service.SetInputStream(input_stream);
 
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
         journal_recover_context;
-    journal_recover_context.request = make_shared<JournalRecoverRequest>();
+    journal_recover_context.request = std::make_shared<JournalRecoverRequest>();
     journal_recover_context.request->max_journal_id_to_process = 1024;
     journal_recover_context.request->max_number_of_journals_to_process = 34;
     journal_recover_context.request
@@ -267,11 +265,11 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackStreamFailure) {
       bucket_name_, partition_name_, async_executor_,
       mock_blob_storage_provider_, mock_metric_instance_factory_,
       mock_config_provider_);
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   mock_blob_storage_provider_->CreateBlobStorageClient(blob_storage_client);
 
   AutoInitRunStop to_handle_journal_service(journal_service);
-  auto mock_input_stream = make_shared<MockJournalInputStream>(
+  auto mock_input_stream = std::make_shared<MockJournalInputStream>(
       bucket_name_, partition_name_, blob_storage_client,
       std::make_shared<EnvConfigProvider>());
   mock_input_stream->SetLastProcessedJournalId(12345);
@@ -292,8 +290,8 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackStreamFailure) {
       read_log_context;
   read_log_context.result = FailureExecutionResult(123);
 
-  auto time_event = make_shared<TimeEvent>();
-  auto replayed_logs = make_shared<unordered_set<std::string>>();
+  auto time_event = std::make_shared<TimeEvent>();
+  auto replayed_logs = std::make_shared<unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 
@@ -323,7 +321,7 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackNoCallbackFound) {
       mock_config_provider_);
   AutoInitRunStop to_handle_journal_service(journal_service);
 
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   mock_blob_storage_provider_->CreateBlobStorageClient(blob_storage_client);
 
   AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
@@ -338,15 +336,15 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackNoCallbackFound) {
 
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       read_log_context;
-  read_log_context.response = make_shared<JournalStreamReadLogResponse>();
+  read_log_context.response = std::make_shared<JournalStreamReadLogResponse>();
   read_log_context.response->read_logs =
-      make_shared<std::vector<JournalStreamReadLogObject>>();
+      std::make_shared<std::vector<JournalStreamReadLogObject>>();
   JournalStreamReadLogObject log_object;
   log_object.log_id = Uuid::GenerateUuid();
   read_log_context.response->read_logs->push_back(log_object);
   read_log_context.result = SuccessExecutionResult();
-  auto time_event = make_shared<TimeEvent>();
-  auto replayed_logs = make_shared<unordered_set<std::string>>();
+  auto time_event = std::make_shared<TimeEvent>();
+  auto replayed_logs = std::make_shared<unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 }
@@ -358,7 +356,7 @@ TEST_F(JournalServiceTests,
       mock_blob_storage_provider_, mock_metric_instance_factory_,
       mock_config_provider_);
   AutoInitRunStop to_handle_journal_service(journal_service);
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   mock_blob_storage_provider_->CreateBlobStorageClient(blob_storage_client);
 
   atomic<bool> called = false;
@@ -374,13 +372,13 @@ TEST_F(JournalServiceTests,
 
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       read_log_context;
-  read_log_context.response = make_shared<JournalStreamReadLogResponse>();
+  read_log_context.response = std::make_shared<JournalStreamReadLogResponse>();
   read_log_context.response->read_logs =
-      make_shared<std::vector<JournalStreamReadLogObject>>();
+      std::make_shared<std::vector<JournalStreamReadLogObject>>();
   JournalStreamReadLogObject log_object;
   log_object.log_id = Uuid::GenerateUuid();
   log_object.component_id = Uuid::GenerateUuid();
-  log_object.journal_log = make_shared<JournalLog>();
+  log_object.journal_log = std::make_shared<JournalLog>();
   read_log_context.response->read_logs->push_back(log_object);
   read_log_context.result = SuccessExecutionResult();
 
@@ -392,8 +390,8 @@ TEST_F(JournalServiceTests,
       read_log_context.response->read_logs->at(0).component_id, callback);
   journal_service.GetSubscribersMap().Insert(pair, callback);
 
-  auto time_event = make_shared<TimeEvent>();
-  auto replayed_logs = make_shared<unordered_set<std::string>>();
+  auto time_event = std::make_shared<TimeEvent>();
+  auto replayed_logs = std::make_shared<unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 
@@ -407,7 +405,7 @@ TEST_F(JournalServiceTests,
       mock_blob_storage_provider_, mock_metric_instance_factory_,
       mock_config_provider_);
   AutoInitRunStop to_handle_journal_service(journal_service);
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   mock_blob_storage_provider_->CreateBlobStorageClient(blob_storage_client);
 
   atomic<bool> called = false;
@@ -421,13 +419,13 @@ TEST_F(JournalServiceTests,
 
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       read_log_context;
-  read_log_context.response = make_shared<JournalStreamReadLogResponse>();
+  read_log_context.response = std::make_shared<JournalStreamReadLogResponse>();
   read_log_context.response->read_logs =
-      make_shared<std::vector<JournalStreamReadLogObject>>();
+      std::make_shared<std::vector<JournalStreamReadLogObject>>();
   JournalStreamReadLogObject log_object;
   log_object.log_id = Uuid::GenerateUuid();
   log_object.component_id = Uuid::GenerateUuid();
-  log_object.journal_log = make_shared<JournalLog>();
+  log_object.journal_log = std::make_shared<JournalLog>();
   read_log_context.response->read_logs->push_back(log_object);
   read_log_context.result = SuccessExecutionResult();
 
@@ -444,7 +442,7 @@ TEST_F(JournalServiceTests,
     return execution_result;
   };
 
-  auto mock_input_stream = make_shared<MockJournalInputStream>(
+  auto mock_input_stream = std::make_shared<MockJournalInputStream>(
       bucket_name_, partition_name_, blob_storage_client,
       std::make_shared<EnvConfigProvider>());
 
@@ -455,7 +453,7 @@ TEST_F(JournalServiceTests,
         return SuccessExecutionResult();
       };
 
-  shared_ptr<JournalInputStreamInterface> input_stream =
+  std::shared_ptr<JournalInputStreamInterface> input_stream =
       static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
   journal_service.SetInputStream(input_stream);
 
@@ -463,8 +461,8 @@ TEST_F(JournalServiceTests,
       read_log_context.response->read_logs->at(0).component_id, callback);
   journal_service.GetSubscribersMap().Insert(pair, callback);
 
-  auto time_event = make_shared<TimeEvent>();
-  auto replayed_logs = make_shared<unordered_set<std::string>>();
+  auto time_event = std::make_shared<TimeEvent>();
+  auto replayed_logs = std::make_shared<unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 
@@ -524,7 +522,7 @@ TEST_F(JournalServiceTests, SubscribeForRecovery) {
   }
 
   {
-    auto mock_config_provider = make_shared<MockConfigProvider>();
+    auto mock_config_provider = std::make_shared<MockConfigProvider>();
     MockJournalServiceWithOverrides journal_service(
         bucket_name_, partition_name_, async_executor_,
         mock_blob_storage_provider_, mock_metric_instance_factory_,
@@ -597,7 +595,7 @@ TEST_F(JournalServiceTests, UnsubscribeForRecovery) {
   }
 
   {
-    auto mock_config_provider = make_shared<MockConfigProvider>();
+    auto mock_config_provider = std::make_shared<MockConfigProvider>();
     MockJournalServiceWithOverrides journal_service(
         bucket_name_, partition_name_, async_executor_,
         mock_blob_storage_provider_, mock_metric_instance_factory_,

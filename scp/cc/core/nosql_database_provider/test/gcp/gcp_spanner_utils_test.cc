@@ -30,7 +30,6 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::nosql_database_provider::GcpSpannerUtils;
 using json = nlohmann::json;
 using std::get;
-using std::shared_ptr;
 
 namespace google::scp::core::test {
 TEST(GcpSpannerUtilsTest,

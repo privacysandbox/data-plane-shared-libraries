@@ -68,8 +68,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_AWS_AUTO_SCALING_CLIENT_PROVIDER_MULTIPLE_INSTANCES_FOUND;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -83,12 +81,12 @@ static constexpr char kLifecycleStateTerminatingProceed[] =
 static constexpr char kLifecycleActionResultContinue[] = "CONTINUE";
 
 namespace google::scp::cpio::client_providers {
-shared_ptr<ClientConfiguration>
+std::shared_ptr<ClientConfiguration>
 AwsAutoScalingClientProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   return common::CreateClientConfiguration(
 
-      make_shared<std::string>(std::move(region)));
+      std::make_shared<std::string>(std::move(region)));
 }
 
 ExecutionResult AwsAutoScalingClientProvider::Init() noexcept {
@@ -157,7 +155,7 @@ void AwsAutoScalingClientProvider::OnDescribeAutoScalingInstancesCallback(
                  TryFinishInstanceTerminationResponse>& try_termination_context,
     const AutoScalingClient*, const DescribeAutoScalingInstancesRequest&,
     const DescribeAutoScalingInstancesOutcome& outcome,
-    const shared_ptr<const AsyncCallerContext>&) noexcept {
+    const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   if (!outcome.IsSuccess()) {
     try_termination_context.result =
         AutoScalingErrorConverter::ConvertAutoScalingError(outcome.GetError());
@@ -197,7 +195,7 @@ void AwsAutoScalingClientProvider::OnDescribeAutoScalingInstancesCallback(
   const auto& instance = outcome.GetResult().GetAutoScalingInstances()[0];
   const auto& lifecycle_state = instance.GetLifecycleState();
   try_termination_context.response =
-      make_shared<TryFinishInstanceTerminationResponse>();
+      std::make_shared<TryFinishInstanceTerminationResponse>();
   // Return directly if termination is already scheduled.
   if (lifecycle_state == kLifecycleStateTerminatingProceed) {
     try_termination_context.response->set_termination_scheduled(true);
@@ -235,7 +233,7 @@ void AwsAutoScalingClientProvider::OnCompleteLifecycleActionCallback(
                  TryFinishInstanceTerminationResponse>& try_termination_context,
     const AutoScalingClient*, const CompleteLifecycleActionRequest&,
     const CompleteLifecycleActionOutcome& outcome,
-    const shared_ptr<const AsyncCallerContext>&) noexcept {
+    const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   if (!outcome.IsSuccess()) {
     try_termination_context.result =
         AutoScalingErrorConverter::ConvertAutoScalingError(outcome.GetError());
@@ -253,20 +251,23 @@ void AwsAutoScalingClientProvider::OnCompleteLifecycleActionCallback(
   try_termination_context.Finish();
 }
 
-shared_ptr<AutoScalingClient> AutoScalingClientFactory::CreateAutoScalingClient(
+std::shared_ptr<AutoScalingClient>
+AutoScalingClientFactory::CreateAutoScalingClient(
     ClientConfiguration& client_config,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  client_config.executor = make_shared<AwsAsyncExecutor>(io_async_executor);
-  return make_shared<AutoScalingClient>(client_config);
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+  client_config.executor =
+      std::make_shared<AwsAsyncExecutor>(io_async_executor);
+  return std::make_shared<AutoScalingClient>(client_config);
 }
 
 #ifndef TEST_CPIO
-shared_ptr<AutoScalingClientProviderInterface>
+std::shared_ptr<AutoScalingClientProviderInterface>
 AutoScalingClientProviderFactory::Create(
-    const shared_ptr<AutoScalingClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<AwsAutoScalingClientProvider>(
+    const std::shared_ptr<AutoScalingClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
+  return std::make_shared<AwsAutoScalingClientProvider>(
       options, instance_client_provider, io_async_executor);
 }
 #endif

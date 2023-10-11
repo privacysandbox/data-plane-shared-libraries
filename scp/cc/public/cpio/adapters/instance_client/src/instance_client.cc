@@ -50,8 +50,6 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderFactory;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using std::bind;
-using std::make_shared;
-using std::make_unique;
 using std::placeholders::_1;
 
 static constexpr char kInstanceClient[] = "InstanceClient";
@@ -120,7 +118,7 @@ core::ExecutionResult InstanceClient::GetInstanceDetailsByResourceName(
 
 std::unique_ptr<InstanceClientInterface> InstanceClientFactory::Create(
     InstanceClientOptions options) {
-  return make_unique<InstanceClient>(
-      make_shared<InstanceClientOptions>(options));
+  return std::make_unique<InstanceClient>(
+      std::make_shared<InstanceClientOptions>(options));
 }
 }  // namespace google::scp::cpio

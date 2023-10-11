@@ -49,8 +49,6 @@ using google::scp::core::test::ResultIs;
 using std::atomic;
 using std::forward;
 using std::get;
-using std::make_shared;
-using std::shared_ptr;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
@@ -62,55 +60,55 @@ static constexpr char kPartitionLockTableDefaultName[] =
 namespace google::scp::core::test {
 
 static const std::vector<NoSqlDatabaseKeyValuePair> kDummyLockRowAttributes = {
-    {make_shared<NoSQLDatabaseAttributeName>(
+    {std::make_shared<NoSQLDatabaseAttributeName>(
          kPartitionLockTableLeaseOwnerIdAttributeName),
-     make_shared<NoSQLDatabaseValidAttributeValueTypes>("attr1")},
-    {make_shared<NoSQLDatabaseAttributeName>(
+     std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("attr1")},
+    {std::make_shared<NoSQLDatabaseAttributeName>(
          kLockTableLeaseOwnerServiceEndpointAddressAttributeName),
-     make_shared<NoSQLDatabaseValidAttributeValueTypes>("attr2")},
-    {make_shared<NoSQLDatabaseAttributeName>(
+     std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("attr2")},
+    {std::make_shared<NoSQLDatabaseAttributeName>(
          kPartitionLockTableLeaseExpirationTimestampAttributeName),
-     make_shared<NoSQLDatabaseValidAttributeValueTypes>("0")}};
+     std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("0")}};
 
 static const std::vector<NoSqlDatabaseKeyValuePair>
     kDummyLockRowAttributesWithLeaseAcquisitionDisallowed = {
-        {make_shared<NoSQLDatabaseAttributeName>(
+        {std::make_shared<NoSQLDatabaseAttributeName>(
              kPartitionLockTableLeaseOwnerIdAttributeName),
-         make_shared<NoSQLDatabaseValidAttributeValueTypes>("attr1")},
-        {make_shared<NoSQLDatabaseAttributeName>(
+         std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("attr1")},
+        {std::make_shared<NoSQLDatabaseAttributeName>(
              kLockTableLeaseOwnerServiceEndpointAddressAttributeName),
-         make_shared<NoSQLDatabaseValidAttributeValueTypes>("attr2")},
-        {make_shared<NoSQLDatabaseAttributeName>(
+         std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("attr2")},
+        {std::make_shared<NoSQLDatabaseAttributeName>(
              kPartitionLockTableLeaseExpirationTimestampAttributeName),
-         make_shared<NoSQLDatabaseValidAttributeValueTypes>("0")},
-        {make_shared<NoSQLDatabaseAttributeName>(
+         std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("0")},
+        {std::make_shared<NoSQLDatabaseAttributeName>(
              kLockTableLeaseAcquisitionDisallowedAttributeName),
-         make_shared<NoSQLDatabaseValidAttributeValueTypes>("true")}};
+         std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("true")}};
 
 void SetOverridesOnMockNoSQLDatabase(
-    const shared_ptr<MockNoSQLDatabaseProviderNoOverrides>&
+    const std::shared_ptr<MockNoSQLDatabaseProviderNoOverrides>&
         mock_nosql_database_provider_,
     const LeaseInfo& lease_info, milliseconds lease_expiration_timestamp) {
   ON_CALL(*mock_nosql_database_provider_, GetDatabaseItem)
       .WillByDefault([=](AsyncContext<GetDatabaseItemRequest,
                                       GetDatabaseItemResponse>& context) {
-        context.response = make_shared<GetDatabaseItemResponse>();
+        context.response = std::make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+            std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
         context.response->attributes->push_back(
-            {make_shared<NoSQLDatabaseAttributeName>(
+            {std::make_shared<NoSQLDatabaseAttributeName>(
                  kPartitionLockTableLeaseOwnerIdAttributeName),
-             make_shared<NoSQLDatabaseValidAttributeValueTypes>(
+             std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(
                  lease_info.lease_acquirer_id)});
         context.response->attributes->push_back(
-            {make_shared<NoSQLDatabaseAttributeName>(
+            {std::make_shared<NoSQLDatabaseAttributeName>(
                  kLockTableLeaseOwnerServiceEndpointAddressAttributeName),
-             make_shared<NoSQLDatabaseValidAttributeValueTypes>(
+             std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(
                  lease_info.service_endpoint_address)});
         context.response->attributes->push_back(
-            {make_shared<NoSQLDatabaseAttributeName>(
+            {std::make_shared<NoSQLDatabaseAttributeName>(
                  kPartitionLockTableLeaseExpirationTimestampAttributeName),
-             make_shared<NoSQLDatabaseValidAttributeValueTypes>(
+             std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(
                  std::to_string(lease_expiration_timestamp.count()))});
 
         context.result = SuccessExecutionResult();
@@ -159,7 +157,7 @@ class LeasableLockOnNoSQLDatabaseTest : public ::testing::Test {
     lease_acquirer_1_ = LeaseInfo{"123", "10.1.1.1"};
     lease_acquirer_2_ = LeaseInfo{"456", "10.1.1.2"};
     mock_nosql_database_provider_ =
-        make_shared<MockNoSQLDatabaseProviderNoOverrides>();
+        std::make_shared<MockNoSQLDatabaseProviderNoOverrides>();
     nosql_database_provider_ = mock_nosql_database_provider_;
   }
 
@@ -169,9 +167,9 @@ class LeasableLockOnNoSQLDatabaseTest : public ::testing::Test {
   milliseconds lease_duration_in_ms_ = milliseconds(1500);
   std::string leasable_lock_key_ = "0";
   std::string lease_table_name_ = kPartitionLockTableDefaultName;
-  shared_ptr<MockNoSQLDatabaseProviderNoOverrides>
+  std::shared_ptr<MockNoSQLDatabaseProviderNoOverrides>
       mock_nosql_database_provider_;
-  shared_ptr<NoSQLDatabaseProviderInterface> nosql_database_provider_;
+  std::shared_ptr<NoSQLDatabaseProviderInterface> nosql_database_provider_;
 };
 
 TEST_F(LeasableLockOnNoSQLDatabaseTest,
@@ -208,9 +206,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
   EXPECT_CALL(*mock_nosql_database_provider_, GetDatabaseItem)
       .WillOnce([&](AsyncContext<GetDatabaseItemRequest,
                                  GetDatabaseItemResponse>& context) {
-        context.response = make_shared<GetDatabaseItemResponse>();
+        context.response = std::make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
+            std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
                 kDummyLockRowAttributes);
         context.result = SuccessExecutionResult();
         context.callback(context);
@@ -282,9 +280,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
   EXPECT_CALL(*mock_nosql_database_provider_, GetDatabaseItem)
       .WillOnce([&](AsyncContext<GetDatabaseItemRequest,
                                  GetDatabaseItemResponse>& context) {
-        context.response = make_shared<GetDatabaseItemResponse>();
+        context.response = std::make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
+            std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
                 kDummyLockRowAttributesWithLeaseAcquisitionDisallowed);
         context.result = SuccessExecutionResult();
         context.callback(context);
@@ -304,9 +302,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
   EXPECT_CALL(*mock_nosql_database_provider_, GetDatabaseItem)
       .WillOnce([&](AsyncContext<GetDatabaseItemRequest,
                                  GetDatabaseItemResponse>& context) {
-        context.response = make_shared<GetDatabaseItemResponse>();
+        context.response = std::make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+            std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
         context.result = SuccessExecutionResult();
         return FailureExecutionResult(SC_UNKNOWN);
       });
@@ -325,9 +323,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
   EXPECT_CALL(*mock_nosql_database_provider_, GetDatabaseItem)
       .WillOnce([&](AsyncContext<GetDatabaseItemRequest,
                                  GetDatabaseItemResponse>& context) {
-        context.response = make_shared<GetDatabaseItemResponse>();
+        context.response = std::make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+            std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
         context.result = FailureExecutionResult(SC_UNKNOWN);
         context.callback(context);
         return SuccessExecutionResult();
@@ -347,9 +345,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
   EXPECT_CALL(*mock_nosql_database_provider_, GetDatabaseItem)
       .WillOnce([&](AsyncContext<GetDatabaseItemRequest,
                                  GetDatabaseItemResponse>& context) {
-        context.response = make_shared<GetDatabaseItemResponse>();
+        context.response = std::make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
+            std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
                 kDummyLockRowAttributes);
         context.result = SuccessExecutionResult();
         context.callback(context);
@@ -378,9 +376,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
   EXPECT_CALL(*mock_nosql_database_provider_, GetDatabaseItem)
       .WillOnce([&](AsyncContext<GetDatabaseItemRequest,
                                  GetDatabaseItemResponse>& context) {
-        context.response = make_shared<GetDatabaseItemResponse>();
+        context.response = std::make_shared<GetDatabaseItemResponse>();
         context.response->attributes =
-            make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
+            std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>(
                 kDummyLockRowAttributes);
         context.result = SuccessExecutionResult();
         context.callback(context);

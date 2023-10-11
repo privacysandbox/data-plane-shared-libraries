@@ -28,11 +28,10 @@ using google::cloud::MakeImpersonateServiceAccountCredentials;
 using google::cloud::Options;
 using google::scp::core::AsyncExecutorInterface;
 using std::dynamic_pointer_cast;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
 Options TestGcpSpannerFactory::CreateClientOptions(
-    shared_ptr<NoSQLDatabaseClientOptions> options) noexcept {
+    std::shared_ptr<NoSQLDatabaseClientOptions> options) noexcept {
   Options client_options = SpannerFactory::CreateClientOptions(options);
   auto test_options =
       dynamic_pointer_cast<TestGcpNoSQLDatabaseClientOptions>(options);
@@ -45,12 +44,12 @@ Options TestGcpSpannerFactory::CreateClientOptions(
   return client_options;
 }
 
-shared_ptr<NoSQLDatabaseClientProviderInterface>
+std::shared_ptr<NoSQLDatabaseClientProviderInterface>
 NoSQLDatabaseClientProviderFactory::Create(
-    const shared_ptr<NoSQLDatabaseClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
+    const std::shared_ptr<NoSQLDatabaseClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>& instance_client,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
   return make_shared<GcpNoSQLDatabaseClientProvider>(
       options, instance_client, cpu_async_executor, io_async_executor,
       std::make_shared<TestGcpSpannerFactory>());

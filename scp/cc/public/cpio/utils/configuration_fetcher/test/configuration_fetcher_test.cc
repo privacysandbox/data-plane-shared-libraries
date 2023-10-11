@@ -64,10 +64,6 @@ using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace {
 constexpr char kInstanceResourceName[] =
@@ -90,11 +86,11 @@ namespace google::scp::cpio {
 class ConfigurationFetcherTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    mock_instance_client_ = make_unique<MockInstanceClient>();
-    mock_parameter_client_ = make_unique<MockParameterClient>();
+    mock_instance_client_ = std::make_unique<MockInstanceClient>();
+    mock_parameter_client_ = std::make_unique<MockParameterClient>();
 
-    fetcher_ = make_unique<ConfigurationFetcher>(mock_instance_client_.get(),
-                                                 mock_parameter_client_.get());
+    fetcher_ = std::make_unique<ConfigurationFetcher>(
+        mock_instance_client_.get(), mock_parameter_client_.get());
   }
 
   void ExpectGetCurrentInstanceResourceName(const ExecutionResult& result) {
@@ -149,9 +145,9 @@ class ConfigurationFetcherTest : public ::testing::Test {
         });
   }
 
-  unique_ptr<MockInstanceClient> mock_instance_client_;
-  unique_ptr<MockParameterClient> mock_parameter_client_;
-  unique_ptr<ConfigurationFetcher> fetcher_;
+  std::unique_ptr<MockInstanceClient> mock_instance_client_;
+  std::unique_ptr<MockParameterClient> mock_parameter_client_;
+  std::unique_ptr<ConfigurationFetcher> fetcher_;
   std::string env_name_tag_ = std::string(kEnvNameTag);
 };
 
@@ -162,7 +158,7 @@ TEST_F(ConfigurationFetcherTest, GetParameterByNameAsyncSucceeded) {
                      kTestTable);
   atomic<bool> finished = false;
   auto get_context = AsyncContext<std::string, std::string>(
-      make_shared<std::string>(kJobClientJobTableName),
+      std::make_shared<std::string>(kJobClientJobTableName),
       [&finished](AsyncContext<std::string, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestTable);

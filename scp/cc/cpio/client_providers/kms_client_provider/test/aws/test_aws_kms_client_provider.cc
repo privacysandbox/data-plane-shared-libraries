@@ -33,24 +33,22 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
-shared_ptr<ClientConfiguration>
+std::shared_ptr<ClientConfiguration>
 TestAwsKmsClientProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   return CreateTestClientConfiguration(test_options_->kms_endpoint_override,
-                                       make_shared<std::string>(region));
+                                       std::make_shared<std::string>(region));
 }
 
-shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    const shared_ptr<KmsClientOptions>& options,
-    const shared_ptr<RoleCredentialsProviderInterface>&
+std::shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
+    const std::shared_ptr<KmsClientOptions>& options,
+    const std::shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider,
     const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  return make_shared<TestAwsKmsClientProvider>(
+  return std::make_shared<TestAwsKmsClientProvider>(
       dynamic_pointer_cast<TestAwsKmsClientOptions>(options),
       role_credentials_provider, io_async_executor);
 }

@@ -42,8 +42,6 @@ using google::scp::core::Timestamp;
 using google::scp::core::common::TimeProvider;
 using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricValue;
-using std::make_shared;
-using std::shared_ptr;
 
 static constexpr char kSimpleMetric[] = "SimpleMetric";
 
@@ -64,7 +62,7 @@ ExecutionResult SimpleMetric::Stop() noexcept {
 }
 
 void SimpleMetric::RunMetricPush(
-    const shared_ptr<PutMetricsRequest> record_metric_request) noexcept {
+    const std::shared_ptr<PutMetricsRequest> record_metric_request) noexcept {
   auto activity_id = core::common::Uuid::GenerateUuid();
   AsyncContext<PutMetricsRequest, PutMetricsResponse> record_metric_context(
       std::move(record_metric_request),
@@ -95,7 +93,7 @@ void SimpleMetric::Push(
     const MetricValue& metric_value,
     std::optional<std::reference_wrapper<const MetricDefinition>>
         metric_info) noexcept {
-  auto record_metric_request = make_shared<PutMetricsRequest>();
+  auto record_metric_request = std::make_shared<PutMetricsRequest>();
   // if metric_info was provided for Push(), the metric will be created using
   // the provided metric_info. Otherwise, the metric will be created using the
   // predefined metric_info_ that was set when the SimpleMetric object was

@@ -42,18 +42,16 @@ using google::cloud::Options;
 using google::cloud::kms::KeyManagementServiceClient;
 using google::cloud::kms::v1::DecryptRequest;
 using google::cloud::kms::v1::DecryptResponse;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::cpio::client_providers {
 GcpKmsAead::GcpKmsAead(
     absl::string_view key_name,
-    shared_ptr<GcpKeyManagementServiceClientInterface> kms_client)
+    std::shared_ptr<GcpKeyManagementServiceClientInterface> kms_client)
     : key_name_(key_name), kms_client_(kms_client) {}
 
 StatusOr<std::unique_ptr<Aead>> GcpKmsAead::New(
     absl::string_view key_name,
-    shared_ptr<GcpKeyManagementServiceClientInterface> kms_client) {
+    std::shared_ptr<GcpKeyManagementServiceClientInterface> kms_client) {
   if (key_name.empty()) {
     return Status(absl::StatusCode::kInvalidArgument,
                   "Key name cannot be empty.");
@@ -62,7 +60,7 @@ StatusOr<std::unique_ptr<Aead>> GcpKmsAead::New(
     return Status(absl::StatusCode::kInvalidArgument,
                   "KMS client cannot be null.");
   }
-  return unique_ptr<Aead>(new GcpKmsAead(key_name, kms_client));
+  return std::unique_ptr<Aead>(new GcpKmsAead(key_name, kms_client));
 }
 
 StatusOr<std::string> GcpKmsAead::Encrypt(

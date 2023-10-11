@@ -82,12 +82,8 @@ using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::GcpBlobStorageClientProvider;
 using google::scp::cpio::client_providers::GcpCloudStorageFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::make_shared;
 using std::make_tuple;
-using std::make_unique;
-using std::shared_ptr;
 using std::tuple;
-using std::unique_ptr;
 using testing::ByMove;
 using testing::ElementsAre;
 using testing::Eq;
@@ -113,8 +109,8 @@ namespace google::scp::cpio::client_providers::test {
 
 class MockGcpCloudStorageFactory : public GcpCloudStorageFactory {
  public:
-  MOCK_METHOD(core::ExecutionResultOr<shared_ptr<Client>>, CreateClient,
-              (shared_ptr<BlobStorageClientOptions>, const std::string&),
+  MOCK_METHOD(core::ExecutionResultOr<std::shared_ptr<Client>>, CreateClient,
+              (std::shared_ptr<BlobStorageClientOptions>, const std::string&),
               (noexcept, override));
 };
 
@@ -126,27 +122,28 @@ class GcpBlobStorageClientProviderTest
           tuple<uint64_t, uint64_t, std::string, std::string>> {
  protected:
   GcpBlobStorageClientProviderTest()
-      : instance_client_(make_shared<MockInstanceClientProvider>()),
-        storage_factory_(make_shared<NiceMock<MockGcpCloudStorageFactory>>()),
-        mock_client_(make_shared<NiceMock<MockClient>>()),
+      : instance_client_(std::make_shared<MockInstanceClientProvider>()),
+        storage_factory_(
+            std::make_shared<NiceMock<MockGcpCloudStorageFactory>>()),
+        mock_client_(std::make_shared<NiceMock<MockClient>>()),
         gcp_cloud_storage_client_(
-            make_shared<BlobStorageClientOptions>(), instance_client_,
-            make_shared<MockAsyncExecutor>(), make_shared<MockAsyncExecutor>(),
-            storage_factory_) {
+            std::make_shared<BlobStorageClientOptions>(), instance_client_,
+            std::make_shared<MockAsyncExecutor>(),
+            std::make_shared<MockAsyncExecutor>(), storage_factory_) {
     ON_CALL(*storage_factory_, CreateClient)
         .WillByDefault(
-            Return(make_shared<Client>(ClientFromMock(mock_client_))));
+            Return(std::make_shared<Client>(ClientFromMock(mock_client_))));
     instance_client_->instance_resource_name = kInstanceResourceName;
-    get_blob_context_.request = make_shared<GetBlobRequest>();
+    get_blob_context_.request = std::make_shared<GetBlobRequest>();
     get_blob_context_.callback = [this](auto) { finish_called_ = true; };
 
-    list_blobs_context_.request = make_shared<ListBlobsMetadataRequest>();
+    list_blobs_context_.request = std::make_shared<ListBlobsMetadataRequest>();
     list_blobs_context_.callback = [this](auto) { finish_called_ = true; };
 
-    put_blob_context_.request = make_shared<PutBlobRequest>();
+    put_blob_context_.request = std::make_shared<PutBlobRequest>();
     put_blob_context_.callback = [this](auto) { finish_called_ = true; };
 
-    delete_blob_context_.request = make_shared<DeleteBlobRequest>();
+    delete_blob_context_.request = std::make_shared<DeleteBlobRequest>();
     delete_blob_context_.callback = [this](auto) { finish_called_ = true; };
 
     EXPECT_SUCCESS(gcp_cloud_storage_client_.Init());
@@ -157,9 +154,9 @@ class GcpBlobStorageClientProviderTest
     EXPECT_SUCCESS(gcp_cloud_storage_client_.Stop());
   }
 
-  shared_ptr<MockInstanceClientProvider> instance_client_;
-  shared_ptr<MockGcpCloudStorageFactory> storage_factory_;
-  shared_ptr<MockClient> mock_client_;
+  std::shared_ptr<MockInstanceClientProvider> instance_client_;
+  std::shared_ptr<MockGcpCloudStorageFactory> storage_factory_;
+  std::shared_ptr<MockClient> mock_client_;
   GcpBlobStorageClientProvider gcp_cloud_storage_client_;
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context_;
@@ -193,11 +190,11 @@ MATCHER_P(BlobEquals, expected_blob, "") {
 ///////////// GetBlob /////////////////////////////////////////////////////////
 
 // Builds an ObjectReadSource that contains the bytes (copied) from bytes_str.
-StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
+StatusOr<std::unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
     const std::string& bytes_str) {
   // We want the following methods to be called in order, so make an InSequence.
   InSequence seq;
-  auto mock_source = make_unique<MockObjectReadSource>();
+  auto mock_source = std::make_unique<MockObjectReadSource>();
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(true));
   // Copy up to n bytes from input into buf.
   EXPECT_CALL(*mock_source, Read)
@@ -216,7 +213,7 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
         return result;
       });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(std::move(mock_source));
+  return std::unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 // Matches arg.bucket_name and arg.object_name with bucket_name and
@@ -349,10 +346,10 @@ INSTANTIATE_TEST_SUITE_P(
         // Range is longer than object length - "aa" should be ignored
         make_tuple(2, 15, "23456789aa", "23456789")));
 
-StatusOr<unique_ptr<ObjectReadSource>> BuildBadHashReadResponse() {
+StatusOr<std::unique_ptr<ObjectReadSource>> BuildBadHashReadResponse() {
   // We want the following methods to be called in order, so make an
   InSequence seq;
-  auto mock_source = make_unique<MockObjectReadSource>();
+  auto mock_source = std::make_unique<MockObjectReadSource>();
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(true));
   EXPECT_CALL(*mock_source, Read).WillOnce([](void* buf, std::size_t n) {
     ReadSourceResult result{0, HttpResponse{200, {}, {}}};
@@ -360,7 +357,7 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildBadHashReadResponse() {
     return result;
   });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(std::move(mock_source));
+  return std::unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 TEST_F(GcpBlobStorageClientProviderTest, GetBlobHashMismatchFails) {

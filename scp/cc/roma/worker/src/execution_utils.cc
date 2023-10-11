@@ -38,7 +38,6 @@ using google::scp::roma::wasm::RomaWasmListOfStringRepresentation;
 using google::scp::roma::wasm::RomaWasmStringRepresentation;
 using google::scp::roma::wasm::WasmDeserializer;
 using google::scp::roma::wasm::WasmSerializer;
-using std::shared_ptr;
 
 using v8::Array;
 using v8::Context;

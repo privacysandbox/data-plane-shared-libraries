@@ -35,34 +35,32 @@ using google::scp::cpio::client_providers::AwsQueueClientProvider;
 using google::scp::cpio::client_providers::JobClientProviderInterface;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientProviderInterface;
 using google::scp::cpio::client_providers::QueueClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 AwsJobServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<AwsInstanceServiceFactory>(
+  return std::make_shared<AwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<QueueClientProviderInterface>
+std::shared_ptr<QueueClientProviderInterface>
 AwsJobServiceFactory::CreateQueueClient() noexcept {
-  return make_shared<AwsQueueClientProvider>(
+  return std::make_shared<AwsQueueClientProvider>(
       CreateQueueClientOptions(), instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
 }
 
-shared_ptr<NoSQLDatabaseClientProviderInterface>
+std::shared_ptr<NoSQLDatabaseClientProviderInterface>
 AwsJobServiceFactory::CreateNoSQLDatabaseClient() noexcept {
-  return make_shared<AwsNoSQLDatabaseClientProvider>(
+  return std::make_shared<AwsNoSQLDatabaseClientProvider>(
       instance_client_, instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
 }
 
-shared_ptr<JobClientProviderInterface>
+std::shared_ptr<JobClientProviderInterface>
 AwsJobServiceFactory::CreateJobClient() noexcept {
-  return make_shared<AwsJobClientProvider>(client_options_, queue_client_,
-                                           nosql_database_client_);
+  return std::make_shared<AwsJobClientProvider>(client_options_, queue_client_,
+                                                nosql_database_client_);
 }
 }  // namespace google::scp::cpio

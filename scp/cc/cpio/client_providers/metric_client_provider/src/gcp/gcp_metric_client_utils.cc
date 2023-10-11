@@ -50,7 +50,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_GCP_METRIC_CLIENT_FAILED_WITH_INVALID_TIMESTAMP;
 using google::scp::core::errors::SC_GCP_METRIC_CLIENT_INVALID_METRIC_VALUE;
-using std::shared_ptr;
 using std::chrono::duration_cast;
 using std::chrono::hours;
 using std::chrono::minutes;

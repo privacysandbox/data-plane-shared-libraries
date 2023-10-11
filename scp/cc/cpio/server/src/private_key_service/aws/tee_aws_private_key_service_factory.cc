@@ -24,14 +24,12 @@ using google::scp::core::ExecutionResultOr;
 using google::scp::core::ServiceInterface;
 using google::scp::cpio::client_providers::KmsClientProviderInterface;
 using google::scp::cpio::client_providers::TeeAwsKmsClientProvider;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 TeeAwsPrivateKeyServiceFactory::CreateKmsClient() noexcept {
   kms_client_ =
-      make_shared<TeeAwsKmsClientProvider>(role_credentials_provider_);
+      std::make_shared<TeeAwsKmsClientProvider>(role_credentials_provider_);
   return kms_client_;
 }
 }  // namespace google::scp::cpio

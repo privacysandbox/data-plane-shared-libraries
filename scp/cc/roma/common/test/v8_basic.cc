@@ -35,7 +35,6 @@
 
 #include <libplatform/libplatform.h>
 
-using std::unique_ptr;
 using v8::Context;
 using v8::HandleScope;
 using v8::Isolate;

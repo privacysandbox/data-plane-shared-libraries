@@ -41,18 +41,15 @@ using google::scp::cpio::MetricClient;
 using google::scp::cpio::MetricClientOptions;
 using google::scp::cpio::mock::MockMetricClientWithOverrides;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::Return;
 
 namespace google::scp::cpio::test {
 class MetricClientTest : public ::testing::Test {
  protected:
   MetricClientTest() {
-    auto metric_client_options = make_shared<MetricClientOptions>();
-    client_ = make_unique<MockMetricClientWithOverrides>(metric_client_options);
+    auto metric_client_options = std::make_shared<MetricClientOptions>();
+    client_ =
+        std::make_unique<MockMetricClientWithOverrides>(metric_client_options);
 
     EXPECT_THAT(client_->Init(), IsSuccessful());
     EXPECT_THAT(client_->Run(), IsSuccessful());
@@ -60,7 +57,7 @@ class MetricClientTest : public ::testing::Test {
 
   ~MetricClientTest() { EXPECT_THAT(client_->Stop(), IsSuccessful()); }
 
-  unique_ptr<MockMetricClientWithOverrides> client_;
+  std::unique_ptr<MockMetricClientWithOverrides> client_;
 };
 
 TEST_F(MetricClientTest, PutMetricsSuccess) {

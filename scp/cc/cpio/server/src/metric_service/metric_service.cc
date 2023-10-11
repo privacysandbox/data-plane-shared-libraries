@@ -91,11 +91,7 @@ using google::scp::cpio::client_providers::MetricClientProviderFactory;
 using std::bind;
 using std::cout;
 using std::endl;
-using std::make_shared;
-using std::make_unique;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -110,10 +106,10 @@ constexpr char kMetricClientName[] = "metric_client";
 constexpr char kServiceFactoryName[] = "service_factory";
 }  // namespace
 
-shared_ptr<CloudInitializerInterface> cloud_initializer;
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<MetricClientInterface> metric_client;
-shared_ptr<MetricServiceFactoryInterface> service_factory;
+std::shared_ptr<CloudInitializerInterface> cloud_initializer;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<MetricClientInterface> metric_client;
+std::shared_ptr<MetricServiceFactoryInterface> service_factory;
 
 class MetricServiceImpl : public MetricService::CallbackService {
  public:
@@ -170,19 +166,23 @@ void RunClients() {
 #if defined(AWS_SERVER)
   SCP_INFO(kMetricService, kZeroUuid, "Start AWS Metric Server");
   service_factory =
-      make_shared<google::scp::cpio::AwsMetricServiceFactory>(config_provider);
+      std::make_shared<google::scp::cpio::AwsMetricServiceFactory>(
+          config_provider);
 #elif defined(GCP_SERVER)
   SCP_INFO(kMetricService, kZeroUuid, "Start GCP Metric Server");
   service_factory =
-      make_shared<google::scp::cpio::GcpMetricServiceFactory>(config_provider);
+      std::make_shared<google::scp::cpio::GcpMetricServiceFactory>(
+          config_provider);
 #elif defined(TEST_AWS_SERVER)
   SCP_INFO(kMetricService, kZeroUuid, "Start test AWS Metric Server");
-  service_factory = make_shared<google::scp::cpio::TestAwsMetricServiceFactory>(
-      config_provider);
+  service_factory =
+      std::make_shared<google::scp::cpio::TestAwsMetricServiceFactory>(
+          config_provider);
 #elif defined(TEST_GCP_SERVER)
   SCP_INFO(kMetricService, kZeroUuid, "Start test GCP Metric Server");
-  service_factory = make_shared<google::scp::cpio::TestGcpMetricServiceFactory>(
-      config_provider);
+  service_factory =
+      std::make_shared<google::scp::cpio::TestGcpMetricServiceFactory>(
+          config_provider);
 #endif
 
   Init(service_factory, kServiceFactoryName);

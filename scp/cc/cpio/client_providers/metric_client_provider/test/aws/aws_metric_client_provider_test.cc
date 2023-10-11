@@ -64,10 +64,6 @@ using google::scp::cpio::client_providers::mock::
     MockAwsMetricClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockCloudWatchClient;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
@@ -94,15 +90,15 @@ class AwsMetricClientProviderTest : public ::testing::Test {
     ShutdownAPI(options);
   }
 
-  unique_ptr<MockAwsMetricClientProviderOverrides> CreateClient(
+  std::unique_ptr<MockAwsMetricClientProviderOverrides> CreateClient(
       bool enable_batch_recording) {
-    auto metric_batching_options = make_shared<MetricBatchingOptions>();
+    auto metric_batching_options = std::make_shared<MetricBatchingOptions>();
     metric_batching_options->enable_batch_recording = enable_batch_recording;
     if (enable_batch_recording) {
       metric_batching_options->metric_namespace = kNamespace;
     }
 
-    return make_unique<MockAwsMetricClientProviderOverrides>(
+    return std::make_unique<MockAwsMetricClientProviderOverrides>(
         metric_batching_options);
   }
 
@@ -168,9 +164,9 @@ TEST_F(AwsMetricClientProviderTest, SplitsOversizeRequestsVector) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   PutMetricDataRequest request_mock;
   for (auto i = 0; i < 10000; i++) {
@@ -208,14 +204,14 @@ TEST_F(AwsMetricClientProviderTest, KeepMetricsInTheSameRequest) {
         return;
       };
 
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   for (auto metric_num : {100, 500, 600, 800}) {
     PutMetricsRequest record_metric_request;
     SetPutMetricsRequest(record_metric_request, kValue, metric_num);
 
     AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-        make_shared<PutMetricsRequest>(record_metric_request),
+        std::make_shared<PutMetricsRequest>(record_metric_request),
         [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
     requests_vector->push_back(context);
   }
@@ -242,14 +238,14 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithError) {
   SetPutMetricsRequest(record_metric_request);
   atomic<int64_t> context_finish_count = 0;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         context_finish_count += 1;
         EXPECT_THAT(
             context.result,
             ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
       });
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   requests_vector->push_back(context);
   requests_vector->push_back(context);
@@ -276,12 +272,12 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithSuccess) {
   SetPutMetricsRequest(record_metric_request);
   atomic<int64_t> context_finish_count = 0;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         context_finish_count += 1;
         EXPECT_SUCCESS(context.result);
       });
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   requests_vector->push_back(context);
   requests_vector->push_back(context);
@@ -302,14 +298,14 @@ TEST_F(AwsMetricClientProviderTest,
   EXPECT_SUCCESS(client->Init());
   EXPECT_SUCCESS(client->Run());
 
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   for (auto metric_num : {100, 500, 600, 800}) {
     PutMetricsRequest record_metric_request;
     SetPutMetricsRequest(record_metric_request, kValue, metric_num);
 
     AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-        make_shared<PutMetricsRequest>(record_metric_request),
+        std::make_shared<PutMetricsRequest>(record_metric_request),
         [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
     requests_vector->push_back(context);
   }
@@ -333,14 +329,14 @@ TEST_F(AwsMetricClientProviderTest, OneMetricWithoutBatchRecordingSucceed) {
   client->GetCloudWatchClient()->put_metric_data_outcome_mock =
       PutMetricDataOutcome(result);
 
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request, kValue, 100);
 
   atomic<bool> finished = false;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         EXPECT_SUCCESS(context.result);
         finished = true;

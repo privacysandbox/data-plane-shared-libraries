@@ -27,18 +27,16 @@
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kBlobStorageServiceFactory[] = "BlobStorageServiceFactory";
 }  // namespace
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryOptions>
+std::shared_ptr<InstanceServiceFactoryOptions>
 BlobStorageServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
   auto instance_service_factory_options =
-      make_shared<InstanceServiceFactoryOptions>();
+      std::make_shared<InstanceServiceFactoryOptions>();
   instance_service_factory_options
       ->cpu_async_executor_thread_count_config_label =
       kBlobStorageClientCpuThreadCount;

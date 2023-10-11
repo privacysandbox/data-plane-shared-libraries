@@ -34,7 +34,6 @@ using google::scp::core::RetryExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::nosql_database_provider::AwsDynamoDBUtils;
 using std::get;
-using std::shared_ptr;
 
 namespace google::scp::core::test {
 TEST(AwsDynamoDBUtilsTests,
@@ -87,10 +86,10 @@ void SetValueType(AttributeValue& attribute_value, ValueType type) {
     Vector<ByteBuffer> buffer_set;
     attribute_value.SetBS(buffer_set);
   } else if (type == ValueType::ATTRIBUTE_MAP) {
-    Map<String, const shared_ptr<AttributeValue>> attribute_map;
+    Map<String, const std::shared_ptr<AttributeValue>> attribute_map;
     attribute_value.SetM(attribute_map);
   } else if (type == ValueType::ATTRIBUTE_LIST) {
-    const Vector<shared_ptr<AttributeValue>> attribute_list;
+    const Vector<std::shared_ptr<AttributeValue>> attribute_list;
     attribute_value.SetL(attribute_list);
   } else if (type == ValueType::NULLVALUE) {
     attribute_value.SetNull(false);

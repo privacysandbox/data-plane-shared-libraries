@@ -59,9 +59,7 @@ using nghttp2::asio_http2::server::request;
 using nghttp2::asio_http2::server::response;
 using std::bind;
 using std::make_pair;
-using std::make_shared;
 using std::set;
-using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
 using std::placeholders::_1;
@@ -244,7 +242,7 @@ ExecutionResult Http2Server::RegisterResourceHandler(
         errors::SC_HTTP2_SERVER_CANNOT_REGISTER_HANDLER);
   }
   auto verb_to_handler_map =
-      make_shared<ConcurrentMap<HttpMethod, HttpHandler>>();
+      std::make_shared<ConcurrentMap<HttpMethod, HttpHandler>>();
   auto path_to_map_pair = make_pair(path, verb_to_handler_map);
 
   auto execution_result =
@@ -264,7 +262,7 @@ ExecutionResult Http2Server::RegisterResourceHandler(
 void Http2Server::OnHttp2Request(const request& request,
                                  const response& response) noexcept {
   auto parent_activity_id = Uuid::GenerateUuid();
-  auto http2Request = make_shared<NgHttp2Request>(request);
+  auto http2Request = std::make_shared<NgHttp2Request>(request);
   auto request_endpoint_type = RequestTargetEndpointType::Unknown;
   if (!IsRequestForwardingEnabled()) {
     request_endpoint_type = RequestTargetEndpointType::Local;
@@ -277,8 +275,8 @@ void Http2Server::OnHttp2Request(const request& request,
       http2Request,
       bind(&Http2Server::OnHttp2Response, this, _1, request_endpoint_type),
       parent_activity_id, http2Request->id);
-  http2_context.response = make_shared<NgHttp2Response>(response);
-  http2_context.response->headers = make_shared<core::HttpHeaders>();
+  http2_context.response = std::make_shared<NgHttp2Response>(response);
+  http2_context.response->headers = std::make_shared<core::HttpHeaders>();
 
   SCP_DEBUG_CONTEXT(kHttp2Server, http2_context, "Received a http2 request");
 
@@ -290,7 +288,7 @@ void Http2Server::OnHttp2Request(const request& request,
   }
 
   // Check if path is registered
-  shared_ptr<ConcurrentMap<HttpMethod, HttpHandler>> resource_handler;
+  std::shared_ptr<ConcurrentMap<HttpMethod, HttpHandler>> resource_handler;
   execution_result = resource_handlers_.Find(
       http2_context.request->handler_path, resource_handler);
   if (!execution_result.Successful()) {
@@ -373,7 +371,7 @@ void Http2Server::OnHttp2RequestDataObtainedRoutedRequest(
                 _1),
       http2_context);
   // The target path should reflect the forwarding endpoint.
-  routing_context.request->path = make_shared<std::string>(
+  routing_context.request->path = std::make_shared<std::string>(
       absl::StrCat(*endpoint_info.uri, http2_context.request->handler_path));
 
   auto execution_result = request_router_->RouteRequest(routing_context);
@@ -409,7 +407,7 @@ void Http2Server::HandleHttp2Request(
   // authorization token in parallel. If the authorization fails, the response
   // will be sent immediately, if it is successful the flow will proceed.
 
-  auto sync_context = make_shared<Http2SynchronizationContext>();
+  auto sync_context = std::make_shared<Http2SynchronizationContext>();
   sync_context->pending_callbacks = 2;  // 1 for authorization, 1 for body data.
   sync_context->http2_context = http2_context;
   sync_context->http_handler = http_handler;
@@ -423,7 +421,7 @@ void Http2Server::HandleHttp2Request(
     return;
   }
 
-  auto authorization_request = make_shared<AuthorizationProxyRequest>();
+  auto authorization_request = std::make_shared<AuthorizationProxyRequest>();
   auto& headers = http2_context.request->headers;
 
   if (headers) {
@@ -492,7 +490,7 @@ void Http2Server::OnAuthorizationCallback(
     AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>&
         authorization_context,
     Uuid& request_id,
-    const shared_ptr<Http2SynchronizationContext>& sync_context) noexcept {
+    const std::shared_ptr<Http2SynchronizationContext>& sync_context) noexcept {
   if (!authorization_context.result.Successful()) {
     SCP_DEBUG_CONTEXT(kHttp2Server, authorization_context,
                       "Authorization failed.");
@@ -523,7 +521,7 @@ void Http2Server::OnHttp2PendingCallback(
     ExecutionResult callback_execution_result,
     const Uuid& request_id) noexcept {
   // Lookup the sync context
-  shared_ptr<Http2SynchronizationContext> sync_context;
+  std::shared_ptr<Http2SynchronizationContext> sync_context;
   auto execution_result = active_requests_.Find(request_id, sync_context);
   if (!execution_result.Successful()) {
     // TODO: Log this.
@@ -582,7 +580,7 @@ void Http2Server::OnHttp2PendingCallback(
  * @param endpoint_type
  */
 static void IncrementHttpResponseMetric(
-    shared_ptr<AggregateMetricInterface> metric,
+    std::shared_ptr<AggregateMetricInterface> metric,
     errors::HttpStatusCode error_code,
     Http2Server::RequestTargetEndpointType endpoint_type) {
   // Unknown state happens when the routing is enabled and the request route
@@ -645,7 +643,7 @@ void Http2Server::OnHttp2Response(
                                 http_context.response->code, endpoint_type);
   }
 
-  // Capture the shared_ptr to keep the response object alive when the work
+  // Capture the std::shared_ptr to keep the response object alive when the work
   // actually starts executing. Do not execute response->Send() on a thread that
   // does not belong to nghttp2response as it could lead to concurrency issues
   // so always post the work to send response to the IoService.

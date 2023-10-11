@@ -65,8 +65,6 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::PrivateKeyClientProvider;
 using google::scp::cpio::client_providers::PrivateKeyClientProviderInterface;
 using std::list;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kPrivateKeyServiceFactory[] = "PrivateKeyServiceFactory";
@@ -168,7 +166,7 @@ ExecutionResult PrivateKeyServiceFactory::ReadConfigurations() noexcept {
   return SuccessExecutionResult();
 }
 
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 PrivateKeyServiceFactory::CreateCpuAsyncExecutor() noexcept {
   int32_t cpu_thread_count = kDefaultCpuThreadCount;
   TryReadConfigInt(config_provider_, kPrivateKeyClientCpuThreadCount,
@@ -178,11 +176,11 @@ PrivateKeyServiceFactory::CreateCpuAsyncExecutor() noexcept {
   TryReadConfigInt(config_provider_, kPrivateKeyClientCpuThreadPoolQueueCap,
                    cpu_queue_cap);
   cpu_async_executor_ =
-      make_shared<AsyncExecutor>(cpu_thread_count, cpu_queue_cap);
+      std::make_shared<AsyncExecutor>(cpu_thread_count, cpu_queue_cap);
   return cpu_async_executor_;
 }
 
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 PrivateKeyServiceFactory::CreateIoAsyncExecutor() noexcept {
   int32_t io_thread_count = kDefaultIoThreadCount;
   TryReadConfigInt(config_provider_, kPrivateKeyClientIoThreadCount,
@@ -192,26 +190,26 @@ PrivateKeyServiceFactory::CreateIoAsyncExecutor() noexcept {
   TryReadConfigInt(config_provider_, kPrivateKeyClientIoThreadPoolQueueCap,
                    io_queue_cap);
   io_async_executor_ =
-      make_shared<AsyncExecutor>(io_thread_count, io_queue_cap);
+      std::make_shared<AsyncExecutor>(io_thread_count, io_queue_cap);
   return io_async_executor_;
 }
 
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 PrivateKeyServiceFactory::CreateHttp1Client() noexcept {
-  http1_client_ =
-      make_shared<Http1CurlClient>(cpu_async_executor_, io_async_executor_);
+  http1_client_ = std::make_shared<Http1CurlClient>(cpu_async_executor_,
+                                                    io_async_executor_);
   return http1_client_;
 }
 
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 PrivateKeyServiceFactory::CreateHttp2Client() noexcept {
-  http2_client_ = make_shared<HttpClient>(cpu_async_executor_);
+  http2_client_ = std::make_shared<HttpClient>(cpu_async_executor_);
   return http2_client_;
 }
 
-shared_ptr<PrivateKeyClientOptions>
+std::shared_ptr<PrivateKeyClientOptions>
 PrivateKeyServiceFactory::CreatePrivateKeyClientOptions() noexcept {
-  return make_shared<PrivateKeyClientOptions>();
+  return std::make_shared<PrivateKeyClientOptions>();
 }
 
 ExecutionResult PrivateKeyServiceFactory::Init() noexcept {
@@ -239,9 +237,9 @@ ExecutionResult PrivateKeyServiceFactory::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-shared_ptr<PrivateKeyClientProviderInterface>
+std::shared_ptr<PrivateKeyClientProviderInterface>
 PrivateKeyServiceFactory::CreatePrivateKeyClient() noexcept {
-  return make_shared<PrivateKeyClientProvider>(
+  return std::make_shared<PrivateKeyClientProvider>(
       client_options_, http2_client_, private_key_fetcher_, kms_client_);
 }
 }  // namespace google::scp::cpio

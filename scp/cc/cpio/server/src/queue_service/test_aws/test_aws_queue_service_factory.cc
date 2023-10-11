@@ -22,19 +22,16 @@
 
 #include "test_configuration_keys.h"
 
-using std::make_shared;
-using std::shared_ptr;
-
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestAwsQueueServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestAwsInstanceServiceFactory>(
+  return std::make_shared<TestAwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions>
+std::shared_ptr<InstanceServiceFactoryOptions>
 TestAwsQueueServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
-  auto options = make_shared<TestAwsInstanceServiceFactoryOptions>();
+  auto options = std::make_shared<TestAwsInstanceServiceFactoryOptions>();
   options->region_config_label = kTestAwsQueueClientRegion;
   return options;
 }

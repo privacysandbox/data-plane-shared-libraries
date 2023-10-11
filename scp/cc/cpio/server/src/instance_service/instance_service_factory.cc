@@ -41,8 +41,6 @@ using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::TryReadConfigStringList;
 using google::scp::cpio::client_providers::AuthTokenProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kInstanceServiceFactory[] = "InstanceServiceFactory";
@@ -62,8 +60,8 @@ ExecutionResult InstanceServiceFactory::Init() noexcept {
   TryReadConfigInt(config_provider_,
                    options_->cpu_async_executor_queue_cap_config_label,
                    cpu_thread_pool_queue_cap);
-  cpu_async_executor_ =
-      make_shared<AsyncExecutor>(cpu_thread_count, cpu_thread_pool_queue_cap);
+  cpu_async_executor_ = std::make_shared<AsyncExecutor>(
+      cpu_thread_count, cpu_thread_pool_queue_cap);
 
   int32_t io_thread_count = kDefaultIoThreadCount;
   TryReadConfigInt(config_provider_,
@@ -73,11 +71,11 @@ ExecutionResult InstanceServiceFactory::Init() noexcept {
   TryReadConfigInt(config_provider_,
                    options_->io_async_executor_queue_cap_config_label,
                    io_thread_pool_queue_cap);
-  io_async_executor_ =
-      make_shared<AsyncExecutor>(io_thread_count, io_thread_pool_queue_cap);
+  io_async_executor_ = std::make_shared<AsyncExecutor>(
+      io_thread_count, io_thread_pool_queue_cap);
 
-  http1_client_ =
-      make_shared<Http1CurlClient>(cpu_async_executor_, io_async_executor_);
+  http1_client_ = std::make_shared<Http1CurlClient>(cpu_async_executor_,
+                                                    io_async_executor_);
 
   auto auth_token_provider_or = CreateAuthTokenProvider();
   if (!auth_token_provider_or.Successful()) {
@@ -183,17 +181,17 @@ ExecutionResult InstanceServiceFactory::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-shared_ptr<HttpClientInterface>
+std::shared_ptr<HttpClientInterface>
 InstanceServiceFactory::GetHttp1Client() noexcept {
   return http1_client_;
 }
 
-shared_ptr<AsyncExecutorInterface>
+std::shared_ptr<AsyncExecutorInterface>
 InstanceServiceFactory::GetCpuAsynceExecutor() noexcept {
   return cpu_async_executor_;
 }
 
-shared_ptr<AsyncExecutorInterface>
+std::shared_ptr<AsyncExecutorInterface>
 InstanceServiceFactory::GetIoAsynceExecutor() noexcept {
   return io_async_executor_;
 }

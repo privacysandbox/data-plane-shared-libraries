@@ -30,13 +30,11 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::TestLibCpioProvider;
-using std::make_shared;
-using std::make_unique;
 
 namespace google::scp::cpio {
 static ExecutionResult SetGlobalCpio(const TestCpioOptions& options) {
-  cpio_ptr =
-      make_unique<TestLibCpioProvider>(make_shared<TestCpioOptions>(options));
+  cpio_ptr = std::make_unique<TestLibCpioProvider>(
+      std::make_shared<TestCpioOptions>(options));
 
   CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr),
                                  options.cpu_async_executor,

@@ -60,9 +60,7 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::bind;
 using std::future;
-using std::make_shared;
 using std::promise;
-using std::shared_ptr;
 using std::thread;
 using std::chrono::milliseconds;
 
@@ -150,7 +148,7 @@ class HttpServer {
       res.write_head(
           200u, {{std::string("content-length"),
                   {std::to_string(length + SHA256_DIGEST_LENGTH), false}}});
-      auto handler = make_shared<RandomGenHandler>(length);
+      auto handler = std::make_shared<RandomGenHandler>(length);
       res.end(bind(&RandomGenHandler::handle, handler, _1, _2, _3));
     });
 
@@ -178,11 +176,11 @@ class HttpServer {
 };
 
 TEST(HttpClientTest, FailedToConnect) {
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   request->method = HttpMethod::GET;
-  request->path = make_shared<std::string>("http://localhost.failed:8000");
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
+  request->path = std::make_shared<std::string>("http://localhost.failed:8000");
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
   HttpClient http_client(async_executor);
   async_executor->Init();
   async_executor->Run();
@@ -209,9 +207,9 @@ TEST(HttpClientTest, FailedToConnect) {
 class HttpClientTestII : public ::testing::Test {
  protected:
   void SetUp() override {
-    server = make_shared<HttpServer>("localhost", "0", 1);
+    server = std::make_shared<HttpServer>("localhost", "0", 1);
     server->Run();
-    async_executor = make_shared<AsyncExecutor>(2, 1000);
+    async_executor = std::make_shared<AsyncExecutor>(2, 1000);
     async_executor->Init();
     async_executor->Run();
 
@@ -221,7 +219,7 @@ class HttpClientTestII : public ::testing::Test {
                              kDefaultRetryStrategyMaxRetries),
         kDefaultMaxConnectionsPerHost, kHttp2ReadTimeoutInSeconds);
 
-    http_client = make_shared<HttpClient>(async_executor, options);
+    http_client = std::make_shared<HttpClient>(async_executor, options);
     EXPECT_SUCCESS(http_client->Init());
     EXPECT_SUCCESS(http_client->Run());
   }
@@ -232,15 +230,15 @@ class HttpClientTestII : public ::testing::Test {
     server->Stop();
   }
 
-  shared_ptr<HttpServer> server;
-  shared_ptr<AsyncExecutorInterface> async_executor;
-  shared_ptr<HttpClient> http_client;
+  std::shared_ptr<HttpServer> server;
+  std::shared_ptr<AsyncExecutorInterface> async_executor;
+  std::shared_ptr<HttpClient> http_client;
 };
 
 TEST_F(HttpClientTestII, Success) {
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   request->method = HttpMethod::GET;
-  request->path = make_shared<std::string>(
+  request->path = std::make_shared<std::string>(
       "http://localhost:" + std::to_string(server->PortInUse()) + "/test");
   promise<void> done;
   AsyncContext<HttpRequest, HttpResponse> context(
@@ -258,12 +256,12 @@ TEST_F(HttpClientTestII, Success) {
 }
 
 TEST_F(HttpClientTestII, SingleQueryIsEscaped) {
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   request->method = HttpMethod::GET;
-  request->path = make_shared<Uri>(
+  request->path = std::make_shared<Uri>(
       "http://localhost:" + std::to_string(server->PortInUse()) +
       "/pingpong_query_param");
-  request->query = make_shared<std::string>("foo=!@#$");
+  request->query = std::make_shared<std::string>("foo=!@#$");
 
   atomic<bool> finished(false);
   AsyncContext<HttpRequest, HttpResponse> context(
@@ -281,12 +279,12 @@ TEST_F(HttpClientTestII, SingleQueryIsEscaped) {
 }
 
 TEST_F(HttpClientTestII, MultiQueryIsEscaped) {
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   request->method = HttpMethod::GET;
-  request->path = make_shared<Uri>(
+  request->path = std::make_shared<Uri>(
       "http://localhost:" + std::to_string(server->PortInUse()) +
       "/pingpong_query_param");
-  request->query = make_shared<std::string>("foo=!@#$&bar=%^()");
+  request->query = std::make_shared<std::string>("foo=!@#$&bar=%^()");
 
   atomic<bool> finished(false);
   AsyncContext<HttpRequest, HttpResponse> context(
@@ -304,9 +302,9 @@ TEST_F(HttpClientTestII, MultiQueryIsEscaped) {
 }
 
 TEST_F(HttpClientTestII, FailedToGetResponse) {
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   // Get has no corresponding handler.
-  request->path = make_shared<std::string>(
+  request->path = std::make_shared<std::string>(
       "http://localhost:" + std::to_string(server->PortInUse()) + "/wrong");
   promise<void> done;
   AsyncContext<HttpRequest, HttpResponse> context(
@@ -323,9 +321,9 @@ TEST_F(HttpClientTestII, FailedToGetResponse) {
 }
 
 TEST_F(HttpClientTestII, SequentialReuse) {
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   request->method = HttpMethod::GET;
-  request->path = make_shared<std::string>(
+  request->path = std::make_shared<std::string>(
       "http://localhost:" + std::to_string(server->PortInUse()) + "/test");
 
   for (int i = 0; i < 10; ++i) {
@@ -344,12 +342,12 @@ TEST_F(HttpClientTestII, SequentialReuse) {
 }
 
 TEST_F(HttpClientTestII, ConcurrentReuse) {
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   request->method = HttpMethod::GET;
-  request->path = make_shared<std::string>(
+  request->path = std::make_shared<std::string>(
       "http://localhost:" + std::to_string(server->PortInUse()) + "/test");
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<AsyncExecutor>(2, 1000);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<AsyncExecutor>(2, 1000);
 
   std::vector<promise<void>> done;
   done.reserve(10);
@@ -372,12 +370,12 @@ TEST_F(HttpClientTestII, ConcurrentReuse) {
 
 // Request /random?length=xxxx and verify the hash of the return.
 TEST_F(HttpClientTestII, LargeData) {
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   size_t to_generate = 1048576UL;
-  request->path = make_shared<std::string>(
+  request->path = std::make_shared<std::string>(
       "http://localhost:" + std::to_string(server->PortInUse()) + "/random");
   request->query =
-      make_shared<std::string>("length=" + std::to_string(to_generate));
+      std::make_shared<std::string>("length=" + std::to_string(to_generate));
   atomic<bool> finished(false);
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
@@ -399,12 +397,12 @@ TEST_F(HttpClientTestII, LargeData) {
 }
 
 TEST_F(HttpClientTestII, ClientFinishesContextWhenServerIsStopped) {
-  auto request = make_shared<HttpRequest>();
+  auto request = std::make_shared<HttpRequest>();
   request->method = HttpMethod::GET;
 
   // Make success http request.
   {
-    request->path = make_shared<std::string>(
+    request->path = std::make_shared<std::string>(
         "http://localhost:" + std::to_string(server->PortInUse()) + "/test");
     promise<void> done;
     AsyncContext<HttpRequest, HttpResponse> context(
@@ -422,7 +420,7 @@ TEST_F(HttpClientTestII, ClientFinishesContextWhenServerIsStopped) {
 
   // Http context will be finished correctly even the http server stopped.
   {
-    request->path = make_shared<std::string>(
+    request->path = std::make_shared<std::string>(
         "http://localhost:" + std::to_string(server->PortInUse()) + "/stop");
 
     promise<void> done;

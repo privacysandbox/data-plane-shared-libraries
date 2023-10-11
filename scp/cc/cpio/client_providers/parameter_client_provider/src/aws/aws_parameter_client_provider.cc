@@ -58,8 +58,6 @@ using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -70,12 +68,12 @@ static constexpr char kAwsParameterClientProvider[] =
     "AwsParameterClientProvider";
 
 namespace google::scp::cpio::client_providers {
-shared_ptr<ClientConfiguration>
+std::shared_ptr<ClientConfiguration>
 AwsParameterClientProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   return common::CreateClientConfiguration(
 
-      make_shared<std::string>(std::move(region)));
+      std::make_shared<std::string>(std::move(region)));
 }
 
 ExecutionResult AwsParameterClientProvider::Init() noexcept {
@@ -133,7 +131,7 @@ void AwsParameterClientProvider::OnGetParametersCallback(
         list_parameters_context,
     const Aws::SSM::SSMClient*, const GetParametersRequest&,
     const GetParametersOutcome& outcome,
-    const shared_ptr<const AsyncCallerContext>&) noexcept {
+    const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   if (!outcome.IsSuccess()) {
     auto error_type = outcome.GetError().GetErrorType();
     list_parameters_context.result = SSMErrorConverter::ConvertSSMError(
@@ -166,28 +164,30 @@ void AwsParameterClientProvider::OnGetParametersCallback(
     return;
   }
 
-  list_parameters_context.response = make_shared<GetParameterResponse>();
+  list_parameters_context.response = std::make_shared<GetParameterResponse>();
   list_parameters_context.response->set_parameter_value(
       outcome.GetResult().GetParameters()[0].GetValue().c_str());
   list_parameters_context.result = SuccessExecutionResult();
   list_parameters_context.Finish();
 }
 
-shared_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
+std::shared_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
     ClientConfiguration& client_config,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  client_config.executor = make_shared<AwsAsyncExecutor>(io_async_executor);
-  return make_shared<SSMClient>(client_config);
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+  client_config.executor =
+      std::make_shared<AwsAsyncExecutor>(io_async_executor);
+  return std::make_shared<SSMClient>(client_config);
 }
 
 #ifndef TEST_CPIO
-shared_ptr<ParameterClientProviderInterface>
+std::shared_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
-    const shared_ptr<ParameterClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<AwsParameterClientProvider>(
+    const std::shared_ptr<ParameterClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
+  return std::make_shared<AwsParameterClientProvider>(
       options, instance_client_provider, io_async_executor);
 }
 #endif

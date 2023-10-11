@@ -47,25 +47,23 @@ using google::scp::core::credentials_provider::mock::
     MockAwsAssumeRoleCredentialsProvider;
 using google::scp::core::credentials_provider::mock::MockSTSClient;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::core::test {
 TEST(AwsAssumeRoleCredentialsProviderTest, AssumeRole) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_sts_client = make_shared<MockSTSClient>();
+  auto mock_sts_client = std::make_shared<MockSTSClient>();
   auto sts_client = dynamic_pointer_cast<STSClient>(mock_sts_client);
-  auto assume_role_arn = make_shared<std::string>("assume_role_arn");
+  auto assume_role_arn = std::make_shared<std::string>("assume_role_arn");
   auto assume_role_external_id =
-      make_shared<std::string>("assume_role_external_id");
-  auto region = make_shared<std::string>("region");
-  shared_ptr<AsyncExecutorInterface> async_executor;
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+      std::make_shared<std::string>("assume_role_external_id");
+  auto region = std::make_shared<std::string>("region");
+  std::shared_ptr<AsyncExecutorInterface> async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
 
   auto mock_assume_role_credentials_provider =
-      make_shared<MockAwsAssumeRoleCredentialsProvider>(
+      std::make_shared<MockAwsAssumeRoleCredentialsProvider>(
           sts_client, assume_role_arn, assume_role_external_id, async_executor,
           io_async_executor, region);
 
@@ -73,7 +71,7 @@ TEST(AwsAssumeRoleCredentialsProviderTest, AssumeRole) {
   mock_sts_client->mock_assume_role_async =
       [&](const AssumeRoleRequest& request,
           const AssumeRoleResponseReceivedHandler&,
-          const shared_ptr<const AsyncCallerContext>&) {
+          const std::shared_ptr<const AsyncCallerContext>&) {
         EXPECT_EQ(request.GetRoleArn(), "assume_role_arn");
         EXPECT_EQ(request.GetRoleSessionName(), "session_name");
         EXPECT_EQ(request.GetExternalId(), "assume_role_external_id");
@@ -82,7 +80,7 @@ TEST(AwsAssumeRoleCredentialsProviderTest, AssumeRole) {
 
   AsyncContext<GetCredentialsRequest, GetCredentialsResponse>
       get_credentials_context(
-          make_shared<GetCredentialsRequest>(),
+          std::make_shared<GetCredentialsRequest>(),
           [&](AsyncContext<GetCredentialsRequest, GetCredentialsResponse>&
                   context) {});
 
@@ -96,25 +94,25 @@ TEST(AwsAssumeRoleCredentialsProviderTest, OnGetCredentialsCallback) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_sts_client = make_shared<MockSTSClient>();
+  auto mock_sts_client = std::make_shared<MockSTSClient>();
   auto sts_client = dynamic_pointer_cast<STSClient>(mock_sts_client);
-  auto assume_role_arn = make_shared<std::string>("assume_role_arn");
+  auto assume_role_arn = std::make_shared<std::string>("assume_role_arn");
   auto assume_role_external_id =
-      make_shared<std::string>("assume_role_external_id");
-  auto region = make_shared<std::string>("region");
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+      std::make_shared<std::string>("assume_role_external_id");
+  auto region = std::make_shared<std::string>("region");
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
 
   auto mock_assume_role_credentials_provider =
-      make_shared<MockAwsAssumeRoleCredentialsProvider>(
+      std::make_shared<MockAwsAssumeRoleCredentialsProvider>(
           sts_client, assume_role_arn, assume_role_external_id, async_executor,
           io_async_executor, region);
 
   auto is_called = false;
   AsyncContext<GetCredentialsRequest, GetCredentialsResponse>
       get_credentials_context(
-          make_shared<GetCredentialsRequest>(),
+          std::make_shared<GetCredentialsRequest>(),
           [&](AsyncContext<GetCredentialsRequest, GetCredentialsResponse>&
                   context) {
             EXPECT_THAT(
@@ -142,25 +140,25 @@ TEST(AwsAssumeRoleCredentialsProviderTest, OnGetCredentialsCallbackSuccess) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_sts_client = make_shared<MockSTSClient>();
+  auto mock_sts_client = std::make_shared<MockSTSClient>();
   auto sts_client = dynamic_pointer_cast<STSClient>(mock_sts_client);
-  auto assume_role_arn = make_shared<std::string>("assume_role_arn");
+  auto assume_role_arn = std::make_shared<std::string>("assume_role_arn");
   auto assume_role_external_id =
-      make_shared<std::string>("assume_role_external_id");
-  auto region = make_shared<std::string>("region");
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+      std::make_shared<std::string>("assume_role_external_id");
+  auto region = std::make_shared<std::string>("region");
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
 
   auto mock_assume_role_credentials_provider =
-      make_shared<MockAwsAssumeRoleCredentialsProvider>(
+      std::make_shared<MockAwsAssumeRoleCredentialsProvider>(
           sts_client, assume_role_arn, assume_role_external_id, async_executor,
           io_async_executor, region);
 
   auto is_called = false;
   AsyncContext<GetCredentialsRequest, GetCredentialsResponse>
       get_credentials_context(
-          make_shared<GetCredentialsRequest>(),
+          std::make_shared<GetCredentialsRequest>(),
           [&](AsyncContext<GetCredentialsRequest, GetCredentialsResponse>&
                   context) {
             EXPECT_SUCCESS(context.result);

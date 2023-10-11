@@ -37,10 +37,6 @@ using namespace std::chrono_literals;         // NOLINT
 using namespace std::placeholders;            // NOLINT
 
 using google::scp::core::test::WaitUntil;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::Contains;
 using testing::Pair;
 
@@ -96,14 +92,14 @@ class TestHttp2Server {
 class Http2ForwarderTest : public testing::Test {
  protected:
   Http2ForwarderTest() {
-    async_executor_ = make_shared<AsyncExecutor>(2, 100);
-    http2_client_ = make_shared<HttpClient>(async_executor_);
+    async_executor_ = std::make_shared<AsyncExecutor>(2, 100);
+    http2_client_ = std::make_shared<HttpClient>(async_executor_);
     EXPECT_SUCCESS(async_executor_->Init());
     EXPECT_SUCCESS(async_executor_->Run());
     EXPECT_SUCCESS(http2_client_->Init());
     EXPECT_SUCCESS(http2_client_->Run());
-    http2_server_ =
-        make_unique<TestHttp2Server>("localhost", "0", 1 /* num threads */);
+    http2_server_ = std::make_unique<TestHttp2Server>("localhost", "0",
+                                                      1 /* num threads */);
     http2_server_->Run();
   }
 
@@ -113,9 +109,9 @@ class Http2ForwarderTest : public testing::Test {
     http2_server_->Stop();
   }
 
-  shared_ptr<AsyncExecutorInterface> async_executor_;
-  shared_ptr<HttpClientInterface> http2_client_;
-  unique_ptr<TestHttp2Server> http2_server_;
+  std::shared_ptr<AsyncExecutorInterface> async_executor_;
+  std::shared_ptr<HttpClientInterface> http2_client_;
+  std::unique_ptr<TestHttp2Server> http2_server_;
 };
 
 TEST_F(Http2ForwarderTest,
@@ -143,7 +139,7 @@ TEST_F(Http2ForwarderTest,
 
   std::atomic<bool> completed(false);
   AsyncContext<HttpRequest, HttpResponse> http_context(
-      make_shared<HttpRequest>(),
+      std::make_shared<HttpRequest>(),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->body.ToString(),
@@ -154,10 +150,10 @@ TEST_F(Http2ForwarderTest,
         completed = true;
       });
   http_context.request->method = HttpMethod::GET;
-  http_context.request->path = make_shared<std::string>(
+  http_context.request->path = std::make_shared<std::string>(
       absl::StrCat("http://localhost:", http2_server_->PortInUse(), "/ping"));
   http_context.request->body = BytesBuffer("This is data!!!!!");
-  http_context.request->headers = make_shared<HttpHeaders>();
+  http_context.request->headers = std::make_shared<HttpHeaders>();
   http_context.request->headers->insert(
       {"request-header-key", "request-header-value"});
 
@@ -183,7 +179,7 @@ TEST_F(Http2ForwarderTest,
 
   std::atomic<bool> completed(false);
   AsyncContext<HttpRequest, HttpResponse> http_context(
-      make_shared<HttpRequest>(),
+      std::make_shared<HttpRequest>(),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
@@ -191,10 +187,10 @@ TEST_F(Http2ForwarderTest,
         completed = true;
       });
   http_context.request->method = HttpMethod::GET;
-  http_context.request->path = make_shared<std::string>(
+  http_context.request->path = std::make_shared<std::string>(
       absl::StrCat("http://localhost:", http2_server_->PortInUse(), "/ping"));
   http_context.request->body = BytesBuffer("This is data!!!!!");
-  http_context.request->headers = make_shared<HttpHeaders>();
+  http_context.request->headers = std::make_shared<HttpHeaders>();
   http_context.request->headers->insert(
       {"request-header-key", "request-header-value"});
 

@@ -43,14 +43,10 @@ using google::scp::cpio::InstanceClientInterface;
 using google::scp::cpio::InstanceClientOptions;
 using google::scp::cpio::LogOption;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-unique_ptr<InstanceClientInterface> instance_client;
+std::unique_ptr<InstanceClientInterface> instance_client;
 
 void GetTagsByResourceNameCallback(
     atomic<bool>& finished, ExecutionResult result,

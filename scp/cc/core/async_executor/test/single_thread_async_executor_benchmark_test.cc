@@ -29,9 +29,7 @@ using std::atomic;
 using std::cout;
 using std::endl;
 using std::function;
-using std::make_shared;
 using std::rand;
-using std::shared_ptr;
 using std::thread;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -43,15 +41,15 @@ class SingleThreadAsyncExecutorBenchmarkTest : public ::testing::Test {
   void SetUpExecutor() {
     size_t queue_size = 100000000;
     bool drop_tasks_on_stop = false;
-    async_executor_ =
-        make_shared<SingleThreadAsyncExecutor>(queue_size, drop_tasks_on_stop);
+    async_executor_ = std::make_shared<SingleThreadAsyncExecutor>(
+        queue_size, drop_tasks_on_stop);
     EXPECT_SUCCESS(async_executor_->Init());
     EXPECT_SUCCESS(async_executor_->Run());
   }
 
   int num_threads_scheduling_tasks_ = 10;
   int task_schedule_count_per_thread_ = 1000000;
-  shared_ptr<SingleThreadAsyncExecutor> async_executor_;
+  std::shared_ptr<SingleThreadAsyncExecutor> async_executor_;
   atomic<int64_t> execution_count_ = 0;
   function<void()> test_work_function_ = [&]() {
     execution_count_ += 1;

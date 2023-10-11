@@ -27,8 +27,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::AsyncExecutor;
-using std::make_shared;
-using std::shared_ptr;
 using ::testing::_;
 using ::testing::DoAll;
 using ::testing::Return;
@@ -59,9 +57,9 @@ class HttpClientMock : public HttpClientInterface {
 class AuthorizationProxyTest : public testing::Test {
  protected:
   AuthorizationProxyTest()
-      : mock_http_client_(make_shared<HttpClientMock>()),
-        async_executor_(
-            make_shared<AsyncExecutor>(4, 1000, true /* drop tasks on stop */)),
+      : mock_http_client_(std::make_shared<HttpClientMock>()),
+        async_executor_(std::make_shared<AsyncExecutor>(
+            4, 1000, true /* drop tasks on stop */)),
         server_endpoint_("http://auth.google.com:8080/submit") {
     EXPECT_SUCCESS(async_executor_->Init());
     EXPECT_SUCCESS(async_executor_->Run());
@@ -115,14 +113,16 @@ TEST_F(AuthorizationProxyTest, AuthorizeWithInvalidAuthorizationMetadata) {
 
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_request1;
-  authorization_request1.request = make_shared<AuthorizationProxyRequest>();
+  authorization_request1.request =
+      std::make_shared<AuthorizationProxyRequest>();
   EXPECT_THAT(proxy.Authorize(authorization_request1),
               ResultIs(FailureExecutionResult(
                   errors::SC_AUTHORIZATION_PROXY_BAD_REQUEST)));
 
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_request2;
-  authorization_request2.request = make_shared<AuthorizationProxyRequest>();
+  authorization_request2.request =
+      std::make_shared<AuthorizationProxyRequest>();
   authorization_request2.request->authorization_metadata.claimed_identity =
       "claimed_id";
   EXPECT_THAT(proxy.Authorize(authorization_request2),
@@ -131,7 +131,8 @@ TEST_F(AuthorizationProxyTest, AuthorizeWithInvalidAuthorizationMetadata) {
 
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_request3;
-  authorization_request3.request = make_shared<AuthorizationProxyRequest>();
+  authorization_request3.request =
+      std::make_shared<AuthorizationProxyRequest>();
   authorization_request3.request->authorization_metadata.authorization_token =
       "auth_token";
   EXPECT_THAT(proxy.Authorize(authorization_request3),
@@ -157,7 +158,7 @@ TEST_F(AuthorizationProxyTest,
 
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_request;
-  authorization_request.request = make_shared<AuthorizationProxyRequest>();
+  authorization_request.request = std::make_shared<AuthorizationProxyRequest>();
   authorization_request.request->authorization_metadata =
       authorization_metadata_;
 
@@ -186,7 +187,7 @@ TEST_F(AuthorizationProxyTest, AuthorizeReturnsRetryDueToRemoteError) {
 
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_request;
-  authorization_request.request = make_shared<AuthorizationProxyRequest>();
+  authorization_request.request = std::make_shared<AuthorizationProxyRequest>();
   authorization_request.request->authorization_metadata =
       authorization_metadata_;
 
@@ -222,7 +223,7 @@ TEST_F(AuthorizationProxyTest,
   std::atomic<bool> request_finished(false);
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_request;
-  authorization_request.request = make_shared<AuthorizationProxyRequest>();
+  authorization_request.request = std::make_shared<AuthorizationProxyRequest>();
   authorization_request.request->authorization_metadata =
       authorization_metadata_;
   authorization_request.callback = [&](auto context) {
@@ -254,7 +255,8 @@ TEST_F(AuthorizationProxyTest, AuthorizeReturnsRetryIfRequestInProgress) {
 
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_request1;
-  authorization_request1.request = make_shared<AuthorizationProxyRequest>();
+  authorization_request1.request =
+      std::make_shared<AuthorizationProxyRequest>();
   authorization_request1.request->authorization_metadata =
       authorization_metadata_;
 
@@ -263,7 +265,8 @@ TEST_F(AuthorizationProxyTest, AuthorizeReturnsRetryIfRequestInProgress) {
   // Request attempt 2.
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_request2;
-  authorization_request2.request = make_shared<AuthorizationProxyRequest>();
+  authorization_request2.request =
+      std::make_shared<AuthorizationProxyRequest>();
   authorization_request2.request->authorization_metadata =
       authorization_metadata_;
 
@@ -274,7 +277,8 @@ TEST_F(AuthorizationProxyTest, AuthorizeReturnsRetryIfRequestInProgress) {
   // Request attempt 3.
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_request3;
-  authorization_request3.request = make_shared<AuthorizationProxyRequest>();
+  authorization_request3.request =
+      std::make_shared<AuthorizationProxyRequest>();
   authorization_request3.request->authorization_metadata =
       authorization_metadata_;
 
@@ -325,7 +329,8 @@ TEST_F(AuthorizationProxyTest,
     std::atomic<bool> request_finished(false);
     AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
         authorization_request;
-    authorization_request.request = make_shared<AuthorizationProxyRequest>();
+    authorization_request.request =
+        std::make_shared<AuthorizationProxyRequest>();
     authorization_request.request->authorization_metadata =
         authorization_metadata_;
     authorization_request.callback = [&](auto context) {
@@ -345,7 +350,8 @@ TEST_F(AuthorizationProxyTest,
     std::atomic<bool> request_finished(false);
     AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
         authorization_request;
-    authorization_request.request = make_shared<AuthorizationProxyRequest>();
+    authorization_request.request =
+        std::make_shared<AuthorizationProxyRequest>();
     authorization_request.request->authorization_metadata =
         authorization_metadata_;
     authorization_request.callback = [&](auto context) {
@@ -405,7 +411,8 @@ TEST_F(AuthorizationProxyTest,
     std::atomic<bool> request_finished(false);
     AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
         authorization_request;
-    authorization_request.request = make_shared<AuthorizationProxyRequest>();
+    authorization_request.request =
+        std::make_shared<AuthorizationProxyRequest>();
     authorization_request.request->authorization_metadata =
         authorization_metadata_;
     authorization_request.callback = [&](auto context) {
@@ -422,7 +429,8 @@ TEST_F(AuthorizationProxyTest,
     std::atomic<bool> request_finished(false);
     AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
         authorization_request;
-    authorization_request.request = make_shared<AuthorizationProxyRequest>();
+    authorization_request.request =
+        std::make_shared<AuthorizationProxyRequest>();
     authorization_request.request->authorization_metadata =
         authorization_metadata_;
     authorization_request.callback = [&](auto context) {

@@ -26,20 +26,18 @@
 
 using google::scp::cpio::client_providers::AwsParameterClientProvider;
 using google::scp::cpio::client_providers::ParameterClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 AwsParameterServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<AwsInstanceServiceFactory>(
+  return std::make_shared<AwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
 std::shared_ptr<ParameterClientProviderInterface>
 AwsParameterServiceFactory::CreateParameterClient() noexcept {
-  return make_shared<AwsParameterClientProvider>(
-      make_shared<ParameterClientOptions>(), instance_client_,
+  return std::make_shared<AwsParameterClientProvider>(
+      std::make_shared<ParameterClientOptions>(), instance_client_,
       instance_service_factory_->GetIoAsynceExecutor());
 }
 }  // namespace google::scp::cpio

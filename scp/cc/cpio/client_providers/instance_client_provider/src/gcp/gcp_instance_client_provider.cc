@@ -78,13 +78,11 @@ using std::cend;
 using std::end;
 using std::find;
 using std::make_pair;
-using std::make_shared;
 using std::map;
 using std::nullopt;
 using std::optional;
 using std::pair;
 using std::promise;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -157,17 +155,18 @@ const auto& GetRequiredFieldsForResourceTags() {
 namespace google::scp::cpio::client_providers {
 
 GcpInstanceClientProvider::GcpInstanceClientProvider(
-    const shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-    const shared_ptr<HttpClientInterface>& http1_client,
-    const shared_ptr<HttpClientInterface>& http2_client)
+    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
+    const std::shared_ptr<HttpClientInterface>& http1_client,
+    const std::shared_ptr<HttpClientInterface>& http2_client)
     : http1_client_(http1_client),
       http2_client_(http2_client),
       auth_token_provider_(auth_token_provider),
       http_uri_instance_private_ipv4_(
-          make_shared<std::string>(kURIForInstancePrivateIpv4Address)),
-      http_uri_instance_id_(make_shared<std::string>(kURIForInstanceId)),
-      http_uri_project_id_(make_shared<std::string>(kURIForProjectId)),
-      http_uri_instance_zone_(make_shared<std::string>(kURIForInstanceZone)) {}
+          std::make_shared<std::string>(kURIForInstancePrivateIpv4Address)),
+      http_uri_instance_id_(std::make_shared<std::string>(kURIForInstanceId)),
+      http_uri_project_id_(std::make_shared<std::string>(kURIForProjectId)),
+      http_uri_instance_zone_(
+          std::make_shared<std::string>(kURIForInstanceZone)) {}
 
 ExecutionResult GcpInstanceClientProvider::Init() noexcept {
   return SuccessExecutionResult();
@@ -209,7 +208,7 @@ ExecutionResult GcpInstanceClientProvider::GetCurrentInstanceResourceName(
                  GetCurrentInstanceResourceNameResponse>&
         get_resource_name_context) noexcept {
   auto instance_resource_name_tracker =
-      make_shared<InstanceResourceNameTracker>();
+      std::make_shared<InstanceResourceNameTracker>();
 
   auto execution_result = MakeHttpRequestsForInstanceResourceName(
       get_resource_name_context, http_uri_project_id_,
@@ -234,14 +233,14 @@ GcpInstanceClientProvider::MakeHttpRequestsForInstanceResourceName(
     AsyncContext<GetCurrentInstanceResourceNameRequest,
                  GetCurrentInstanceResourceNameResponse>&
         get_resource_name_context,
-    shared_ptr<std::string>& uri,
-    shared_ptr<InstanceResourceNameTracker> instance_resource_name_tracker,
+    std::shared_ptr<std::string>& uri,
+    std::shared_ptr<InstanceResourceNameTracker> instance_resource_name_tracker,
     ResourceType type) noexcept {
-  auto http_request = make_shared<HttpRequest>();
+  auto http_request = std::make_shared<HttpRequest>();
   http_request->method = HttpMethod::GET;
   http_request->path = uri;
   http_request->body.length = 0;
-  http_request->headers = make_shared<core::HttpHeaders>();
+  http_request->headers = std::make_shared<core::HttpHeaders>();
   http_request->headers->insert({std::string(kMetadataFlavorHeaderKey),
                                  std::string(kMetadataFlavorHeaderValue)});
 
@@ -277,7 +276,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
                  GetCurrentInstanceResourceNameResponse>&
         get_resource_name_context,
     AsyncContext<HttpRequest, HttpResponse>& http_client_context,
-    shared_ptr<InstanceResourceNameTracker> instance_resource_name_tracker,
+    std::shared_ptr<InstanceResourceNameTracker> instance_resource_name_tracker,
     ResourceType type) noexcept {
   // If got_failure is true, no need to process this request.
   if (instance_resource_name_tracker->got_failure.load()) {
@@ -338,7 +337,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
       instance_resource_name_tracker->num_outstanding_calls.fetch_sub(1);
   if (prev_unfinished == 1) {
     get_resource_name_context.response =
-        make_shared<GetCurrentInstanceResourceNameResponse>();
+        std::make_shared<GetCurrentInstanceResourceNameResponse>();
     // The instance resource name is
     // `projects/PROJECT_ID/zones/ZONE_ID/instances/INSTANCE_ID`.
     auto resource_name = absl::StrFormat(
@@ -357,7 +356,7 @@ ExecutionResult GcpInstanceClientProvider::GetTagsByResourceName(
         get_tags_context) noexcept {
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       get_token_context(
-          make_shared<GetSessionTokenRequest>(),
+          std::make_shared<GetSessionTokenRequest>(),
           bind(&GcpInstanceClientProvider::OnGetSessionTokenForTagsCallback,
                this, get_tags_context, _1),
           get_tags_context);
@@ -395,15 +394,15 @@ void GcpInstanceClientProvider::OnGetSessionTokenForTagsCallback(
 
   auto uri = GcpInstanceClientUtils::CreateRMListTagsUrl(
       get_tags_context.request->resource_name());
-  auto signed_request = make_shared<HttpRequest>();
-  signed_request->path = make_shared<std::string>(std::move(uri));
+  auto signed_request = std::make_shared<HttpRequest>();
+  signed_request->path = std::make_shared<std::string>(std::move(uri));
   signed_request->method = HttpMethod::GET;
-  signed_request->query = make_shared<std::string>(absl::StrCat(
+  signed_request->query = std::make_shared<std::string>(absl::StrCat(
       kParentParameter, get_tags_context.request->resource_name().c_str(), "&",
       kPageSizeSetting));
 
   const auto& access_token = *get_token_context.response->session_token;
-  signed_request->headers = make_shared<core::HttpHeaders>();
+  signed_request->headers = std::make_shared<core::HttpHeaders>();
   signed_request->headers->insert(
       {std::string(kAuthorizationHeaderKey),
        absl::StrCat(kBearerTokenPrefix, access_token)});
@@ -464,7 +463,8 @@ void GcpInstanceClientProvider::OnGetTagsByResourceNameCallback(
   // If json_response is empty, return success with empty response to avoid
   // falling into below malformed checks.
   if (json_response.empty()) {
-    get_tags_context.response = make_shared<GetTagsByResourceNameResponse>();
+    get_tags_context.response =
+        std::make_shared<GetTagsByResourceNameResponse>();
     get_tags_context.result = SuccessExecutionResult();
     get_tags_context.Finish();
     return;
@@ -498,7 +498,7 @@ void GcpInstanceClientProvider::OnGetTagsByResourceNameCallback(
     }
   }
 
-  get_tags_context.response = make_shared<GetTagsByResourceNameResponse>();
+  get_tags_context.response = std::make_shared<GetTagsByResourceNameResponse>();
   auto& tags = *get_tags_context.response->mutable_tags();
   for (const auto& tag : json_response[kTagBindingsListKey]) {
     tags[tag[kTagBindingNameKey].get<std::string>()] =
@@ -555,7 +555,7 @@ ExecutionResult GcpInstanceClientProvider::GetInstanceDetailsByResourceName(
   }
 
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
-      get_token_context(make_shared<GetSessionTokenRequest>(),
+      get_token_context(std::make_shared<GetSessionTokenRequest>(),
                         bind(&GcpInstanceClientProvider::
                                  OnGetSessionTokenForInstanceDetailsCallback,
                              this, get_instance_details_context, _1),
@@ -598,12 +598,12 @@ void GcpInstanceClientProvider::OnGetSessionTokenForInstanceDetailsCallback(
           strlen(kInstanceResourceNamePrefix));
 
   auto uri = absl::StrCat(kGcpInstanceGetUrlPrefix, resource_id);
-  auto signed_request = make_shared<HttpRequest>();
-  signed_request->path = make_shared<std::string>(std::move(uri));
+  auto signed_request = std::make_shared<HttpRequest>();
+  signed_request->path = std::make_shared<std::string>(std::move(uri));
   signed_request->method = HttpMethod::GET;
 
   const auto& access_token = *get_token_context.response->session_token;
-  signed_request->headers = make_shared<core::HttpHeaders>();
+  signed_request->headers = std::make_shared<core::HttpHeaders>();
   signed_request->headers->insert(
       {std::string(kAuthorizationHeaderKey),
        absl::StrCat(kBearerTokenPrefix, access_token)});
@@ -677,7 +677,7 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
   }
 
   get_instance_details_context.response =
-      make_shared<GetInstanceDetailsByResourceNameResponse>();
+      std::make_shared<GetInstanceDetailsByResourceNameResponse>();
   auto* instance_details =
       get_instance_details_context.response->mutable_instance_details();
 
@@ -722,15 +722,15 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
   get_instance_details_context.Finish();
 }
 
-shared_ptr<InstanceClientProviderInterface>
+std::shared_ptr<InstanceClientProviderInterface>
 InstanceClientProviderFactory::Create(
-    const shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-    const shared_ptr<HttpClientInterface>& http1_client,
-    const shared_ptr<HttpClientInterface>& http2_client,
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<GcpInstanceClientProvider>(auth_token_provider,
-                                                http1_client, http2_client);
+    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
+    const std::shared_ptr<HttpClientInterface>& http1_client,
+    const std::shared_ptr<HttpClientInterface>& http2_client,
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
+  return std::make_shared<GcpInstanceClientProvider>(
+      auth_token_provider, http1_client, http2_client);
 }
 
 }  // namespace google::scp::cpio::client_providers

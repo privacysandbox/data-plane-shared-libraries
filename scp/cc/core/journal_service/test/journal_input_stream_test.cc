@@ -60,9 +60,7 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::dynamic_pointer_cast;
-using std::make_shared;
 using std::set;
-using std::shared_ptr;
 
 namespace google::scp::core::test {
 
@@ -907,18 +905,18 @@ TEST_P(JournalInputStreamTestWithParam, ReadLogsMaxNumberOfJournalsToProcess) {
 class MockJournalInputStreamTest : public testing::Test {
  protected:
   void SetUp() override {
-    auto bucket_name = make_shared<std::string>("bucket_name");
-    auto partition_name = make_shared<std::string>("partition_name");
-    mock_storage_client_ = make_shared<MockBlobStorageClient>();
-    shared_ptr<BlobStorageClientInterface> storage_client_ =
+    auto bucket_name = std::make_shared<std::string>("bucket_name");
+    auto partition_name = std::make_shared<std::string>("partition_name");
+    mock_storage_client_ = std::make_shared<MockBlobStorageClient>();
+    std::shared_ptr<BlobStorageClientInterface> storage_client_ =
         mock_storage_client_;
-    mock_journal_input_stream_ = make_shared<MockJournalInputStream>(
+    mock_journal_input_stream_ = std::make_shared<MockJournalInputStream>(
         bucket_name, partition_name, storage_client_,
         std::make_shared<EnvConfigProvider>());
   }
 
-  shared_ptr<MockBlobStorageClient> mock_storage_client_;
-  shared_ptr<MockJournalInputStream> mock_journal_input_stream_;
+  std::shared_ptr<MockBlobStorageClient> mock_storage_client_;
+  std::shared_ptr<MockJournalInputStream> mock_journal_input_stream_;
 };
 
 class MockJournalInputStreamTestWithParam
@@ -944,8 +942,8 @@ INSTANTIATE_TEST_SUITE_P(
     });
 
 TEST_P(MockJournalInputStreamTestWithParam, ReadLastCheckpointBlob) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
   std::vector<ExecutionResult> results = {SuccessExecutionResult(),
@@ -959,8 +957,8 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadLastCheckpointBlob) {
                     std::string(*partition_name + "/last_checkpoint"));
           return result;
         };
-    shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+    std::shared_ptr<BlobStorageClientInterface> storage_client =
+        std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
         std::make_shared<EnvConfigProvider>());
@@ -975,12 +973,12 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadLastCheckpointBlob) {
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnReadLastCheckpointBlobCallbackBlobNotFound) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1008,12 +1006,12 @@ TEST_P(MockJournalInputStreamTestWithParam,
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, OnReadLastCheckpointListFails) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1048,12 +1046,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadLastCheckpointListFails) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, OnReadLastCheckpointBlobCorrupted) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1064,17 +1062,17 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadLastCheckpointBlobCorrupted) {
 
   atomic<bool> condition(false);
   std::vector<BytesBuffer> buffers(2);
-  buffers[0].bytes = make_shared<std::vector<Byte>>(2);
+  buffers[0].bytes = std::make_shared<std::vector<Byte>>(2);
   buffers[0].capacity = 2;
   buffers[0].length = 2;
 
-  buffers[1].bytes = make_shared<std::vector<Byte>>(22);
+  buffers[1].bytes = std::make_shared<std::vector<Byte>>(22);
   buffers[1].capacity = 22;
   buffers[1].length = 22;
 
   for (auto buffer : buffers) {
-    get_blob_context.response = make_shared<GetBlobResponse>();
-    get_blob_context.response->buffer = make_shared<BytesBuffer>(buffer);
+    get_blob_context.response = std::make_shared<GetBlobResponse>();
+    get_blob_context.response->buffer = std::make_shared<BytesBuffer>(buffer);
 
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
         journal_stream_read_log_context;
@@ -1103,12 +1101,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadLastCheckpointBlobCorrupted) {
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnReadLastCheckpointBlobReadBlobFails) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1121,10 +1119,10 @@ TEST_P(MockJournalInputStreamTestWithParam,
   journal_service::LastCheckpointMetadata last_checkpoint_metadata;
   last_checkpoint_metadata.set_last_checkpoint_id(1234);
 
-  get_blob_context.response = make_shared<GetBlobResponse>();
-  get_blob_context.response->buffer = make_shared<BytesBuffer>();
+  get_blob_context.response = std::make_shared<GetBlobResponse>();
+  get_blob_context.response->buffer = std::make_shared<BytesBuffer>();
   get_blob_context.response->buffer->bytes =
-      make_shared<std::vector<Byte>>(1000);
+      std::make_shared<std::vector<Byte>>(1000);
   get_blob_context.response->buffer->capacity = 1000;
   get_blob_context.response->buffer->length = 1000;
 
@@ -1166,8 +1164,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, ReadCheckpointBlob) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
   MockBlobStorageClient mock_storage_client;
   std::vector<ExecutionResult> results = {SuccessExecutionResult(),
                                           FailureExecutionResult(123),
@@ -1182,8 +1180,8 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadCheckpointBlob) {
                                 "/checkpoint_00000000000000000100"));
           return result;
         };
-    shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+    std::shared_ptr<BlobStorageClientInterface> storage_client =
+        std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
@@ -1198,12 +1196,12 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadCheckpointBlob) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobCallback) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1230,12 +1228,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobCallback) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobCorruptedBlob) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1245,17 +1243,17 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobCorruptedBlob) {
 
   atomic<bool> condition(false);
   std::vector<BytesBuffer> buffers(2);
-  buffers[0].bytes = make_shared<std::vector<Byte>>(2);
+  buffers[0].bytes = std::make_shared<std::vector<Byte>>(2);
   buffers[0].capacity = 2;
   buffers[0].length = 2;
 
-  buffers[1].bytes = make_shared<std::vector<Byte>>(22);
+  buffers[1].bytes = std::make_shared<std::vector<Byte>>(22);
   buffers[1].capacity = 22;
   buffers[1].length = 22;
 
   for (auto buffer : buffers) {
-    get_blob_context.response = make_shared<GetBlobResponse>();
-    get_blob_context.response->buffer = make_shared<BytesBuffer>(buffer);
+    get_blob_context.response = std::make_shared<GetBlobResponse>();
+    get_blob_context.response->buffer = std::make_shared<BytesBuffer>(buffer);
 
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
         journal_stream_read_log_context;
@@ -1282,12 +1280,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobCorruptedBlob) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobListBlobsFail) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   // When the result is blob found and the content looks good but list
   // the journal blobs immediately fails
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
@@ -1296,10 +1294,10 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobListBlobsFail) {
   journal_service::CheckpointMetadata checkpoint_metadata;
   checkpoint_metadata.set_last_processed_journal_id(1234);
 
-  get_blob_context.response = make_shared<GetBlobResponse>();
-  get_blob_context.response->buffer = make_shared<BytesBuffer>();
+  get_blob_context.response = std::make_shared<GetBlobResponse>();
+  get_blob_context.response->buffer = std::make_shared<BytesBuffer>();
   get_blob_context.response->buffer->bytes =
-      make_shared<std::vector<Byte>>(1000);
+      std::make_shared<std::vector<Byte>>(1000);
   get_blob_context.response->buffer->capacity = 1000;
 
   size_t byte_serialized = 0;
@@ -1346,8 +1344,8 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadCheckpointBlobListBlobsFail) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, ListCheckpoints) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
   std::vector<ExecutionResult> results = {SuccessExecutionResult(),
@@ -1368,8 +1366,8 @@ TEST_P(MockJournalInputStreamTestWithParam, ListCheckpoints) {
           }
           return result;
         };
-    shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+    std::shared_ptr<BlobStorageClientInterface> storage_client =
+        std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
@@ -1377,10 +1375,10 @@ TEST_P(MockJournalInputStreamTestWithParam, ListCheckpoints) {
 
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
         journal_stream_read_log_context;
-    auto blob = make_shared<Blob>();
+    auto blob = std::make_shared<Blob>();
 
     if (result.status == ExecutionStatus::Failure) {
-      blob->blob_name = make_shared<std::string>("test");
+      blob->blob_name = std::make_shared<std::string>("test");
     }
 
     EXPECT_EQ(mock_journal_input_stream.ListCheckpoints(
@@ -1390,12 +1388,12 @@ TEST_P(MockJournalInputStreamTestWithParam, ListCheckpoints) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, OnListCheckpointsCallback) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
@@ -1424,12 +1422,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListCheckpointsCallback) {
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnListCheckpointsCallbackListFails) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1440,8 +1438,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
     atomic<bool> condition(false);
     AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
     list_blobs_context.result = SuccessExecutionResult();
-    list_blobs_context.response = make_shared<ListBlobsResponse>();
-    list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+    list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+    list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
         journal_stream_read_log_context;
 
@@ -1473,12 +1471,12 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnListCheckpointsCallbackWrongBlobNames) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1489,10 +1487,10 @@ TEST_P(MockJournalInputStreamTestWithParam,
   atomic<bool> condition(false);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
-  list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+  list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+  list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
   Blob blob;
-  blob.blob_name = make_shared<std::string>("checkpoint_12312_ddd");
+  blob.blob_name = std::make_shared<std::string>("checkpoint_12312_ddd");
   list_blobs_context.response->blobs->push_back(blob);
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context;
@@ -1513,8 +1511,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnListCheckpointsCallbackInvalidIndex) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
   mock_storage_client.list_blobs_mock =
@@ -1523,27 +1521,29 @@ TEST_P(MockJournalInputStreamTestWithParam,
         EXPECT_EQ(*list_context.request->marker,
                   "partition_name/checkpoint_12315");
         list_context.result = SuccessExecutionResult();
-        list_context.response = make_shared<ListBlobsResponse>();
-        list_context.response->blobs = make_shared<std::vector<Blob>>();
+        list_context.response = std::make_shared<ListBlobsResponse>();
+        list_context.response->blobs = std::make_shared<std::vector<Blob>>();
         list_context.Finish();
         return SuccessExecutionResult();
       };
 
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
   atomic<bool> condition(false);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
-  list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+  list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+  list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
   Blob blob;
-  blob.blob_name = make_shared<std::string>("partition_name/checkpoint_12312");
+  blob.blob_name =
+      std::make_shared<std::string>("partition_name/checkpoint_12312");
   list_blobs_context.response->blobs->push_back(blob);
   Blob blob1;
-  blob1.blob_name = make_shared<std::string>("partition_name/checkpoint_12315");
+  blob1.blob_name =
+      std::make_shared<std::string>("partition_name/checkpoint_12315");
   list_blobs_context.response->blobs->push_back(blob1);
 
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
@@ -1574,12 +1574,12 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnListCheckpointsCallbackWithMarker) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1590,12 +1590,12 @@ TEST_P(MockJournalInputStreamTestWithParam,
     atomic<bool> condition(false);
     AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
     list_blobs_context.result = SuccessExecutionResult();
-    list_blobs_context.response = make_shared<ListBlobsResponse>();
-    list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
-    list_blobs_context.response->next_marker = make_shared<Blob>();
+    list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+    list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
+    list_blobs_context.response->next_marker = std::make_shared<Blob>();
     list_blobs_context.response->next_marker->bucket_name = bucket_name;
     list_blobs_context.response->next_marker->blob_name =
-        make_shared<std::string>("marker");
+        std::make_shared<std::string>("marker");
 
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
         journal_stream_read_log_context;
@@ -1631,8 +1631,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, ListJournals) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
   std::vector<ExecutionResult> results = {SuccessExecutionResult(),
@@ -1653,8 +1653,8 @@ TEST_P(MockJournalInputStreamTestWithParam, ListJournals) {
           }
           return result;
         };
-    shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+    std::shared_ptr<BlobStorageClientInterface> storage_client =
+        std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
@@ -1662,10 +1662,10 @@ TEST_P(MockJournalInputStreamTestWithParam, ListJournals) {
 
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
         journal_stream_read_log_context;
-    auto blob = make_shared<Blob>();
+    auto blob = std::make_shared<Blob>();
 
     if (result.status == ExecutionStatus::Failure) {
-      blob->blob_name = make_shared<std::string>("test");
+      blob->blob_name = std::make_shared<std::string>("test");
     }
 
     EXPECT_EQ(mock_journal_input_stream.ListJournals(
@@ -1675,12 +1675,12 @@ TEST_P(MockJournalInputStreamTestWithParam, ListJournals) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallback) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1708,12 +1708,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallback) {
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnListJournalsCallbackNoJournalBlobs) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1721,8 +1721,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
   atomic<bool> condition(false);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
-  list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+  list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+  list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context;
 
@@ -1745,12 +1745,12 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnListJournalsCallbackWrongBlobNames) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1761,10 +1761,10 @@ TEST_P(MockJournalInputStreamTestWithParam,
   atomic<bool> condition(false);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
-  list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+  list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+  list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
   Blob blob;
-  blob.blob_name = make_shared<std::string>("journal_12312_ddd");
+  blob.blob_name = std::make_shared<std::string>("journal_12312_ddd");
   list_blobs_context.response->blobs->push_back(blob);
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context;
@@ -1785,8 +1785,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnListJournalsCallbackProperListing) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
   mock_storage_client.list_blobs_mock =
@@ -1795,37 +1795,39 @@ TEST_P(MockJournalInputStreamTestWithParam,
         EXPECT_EQ(*list_context.request->marker,
                   "partition_name/journal_12315");
         list_context.result = SuccessExecutionResult();
-        list_context.response = make_shared<ListBlobsResponse>();
-        list_context.response->blobs = make_shared<std::vector<Blob>>();
+        list_context.response = std::make_shared<ListBlobsResponse>();
+        list_context.response->blobs = std::make_shared<std::vector<Blob>>();
         list_context.Finish();
         return SuccessExecutionResult();
       };
 
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
   atomic<bool> condition(false);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
-  list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+  list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+  list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
   Blob blob;
-  blob.blob_name = make_shared<std::string>("partition_name/journal_12312");
+  blob.blob_name =
+      std::make_shared<std::string>("partition_name/journal_12312");
   list_blobs_context.response->blobs->push_back(blob);
   Blob blob1;
   blob1.blob_name =
-      make_shared<std::string>("partition_name/journal_12333312315");
+      std::make_shared<std::string>("partition_name/journal_12333312315");
   list_blobs_context.response->blobs->push_back(blob1);
   Blob blob2;
-  blob2.blob_name = make_shared<std::string>("partition_name/journal_12315");
+  blob2.blob_name =
+      std::make_shared<std::string>("partition_name/journal_12315");
   list_blobs_context.response->blobs->push_back(blob2);
 
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context;
   journal_stream_read_log_context.request =
-      make_shared<JournalStreamReadLogRequest>();
+      std::make_shared<JournalStreamReadLogRequest>();
 
   mock_journal_input_stream.read_journal_blobs_mock =
       [&](AsyncContext<journal_service::JournalStreamReadLogRequest,
@@ -1855,8 +1857,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnListJournalsCallbackProperListingWithMaxLoaded) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
   mock_storage_client.list_blobs_mock =
@@ -1865,30 +1867,33 @@ TEST_P(MockJournalInputStreamTestWithParam,
         return SuccessExecutionResult();
       };
 
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
   atomic<bool> condition(false);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
-  list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+  list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+  list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
   Blob blob;
-  blob.blob_name = make_shared<std::string>("partition_name/journal_12312");
+  blob.blob_name =
+      std::make_shared<std::string>("partition_name/journal_12312");
   list_blobs_context.response->blobs->push_back(blob);
   Blob blob1;
-  blob1.blob_name = make_shared<std::string>("partition_name/journal_12345");
+  blob1.blob_name =
+      std::make_shared<std::string>("partition_name/journal_12345");
   list_blobs_context.response->blobs->push_back(blob1);
   Blob blob2;
-  blob2.blob_name = make_shared<std::string>("partition_name/journal_12346");
+  blob2.blob_name =
+      std::make_shared<std::string>("partition_name/journal_12346");
   list_blobs_context.response->blobs->push_back(blob2);
 
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context;
   journal_stream_read_log_context.request =
-      make_shared<JournalStreamReadLogRequest>();
+      std::make_shared<JournalStreamReadLogRequest>();
   journal_stream_read_log_context.request->max_journal_id_to_process = 12345;
 
   mock_journal_input_stream.read_journal_blobs_mock =
@@ -1917,8 +1922,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnListJournalsCallbackProperListingWithMaxRecoverFiles) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
   mock_storage_client.list_blobs_mock =
@@ -1927,30 +1932,33 @@ TEST_P(MockJournalInputStreamTestWithParam,
         return SuccessExecutionResult();
       };
 
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
   atomic<bool> condition(false);
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.result = SuccessExecutionResult();
-  list_blobs_context.response = make_shared<ListBlobsResponse>();
-  list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
+  list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+  list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
   Blob blob;
-  blob.blob_name = make_shared<std::string>("partition_name/journal_12312");
+  blob.blob_name =
+      std::make_shared<std::string>("partition_name/journal_12312");
   list_blobs_context.response->blobs->push_back(blob);
   Blob blob1;
-  blob1.blob_name = make_shared<std::string>("partition_name/journal_12345");
+  blob1.blob_name =
+      std::make_shared<std::string>("partition_name/journal_12345");
   list_blobs_context.response->blobs->push_back(blob1);
   Blob blob2;
-  blob2.blob_name = make_shared<std::string>("partition_name/journal_12346");
+  blob2.blob_name =
+      std::make_shared<std::string>("partition_name/journal_12346");
   list_blobs_context.response->blobs->push_back(blob2);
 
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context;
   journal_stream_read_log_context.request =
-      make_shared<JournalStreamReadLogRequest>();
+      std::make_shared<JournalStreamReadLogRequest>();
   journal_stream_read_log_context.request->max_number_of_journals_to_process =
       2;
 
@@ -1979,12 +1987,12 @@ TEST_P(MockJournalInputStreamTestWithParam,
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallbackWithMarker) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -1995,12 +2003,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallbackWithMarker) {
     atomic<bool> condition(false);
     AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
     list_blobs_context.result = SuccessExecutionResult();
-    list_blobs_context.response = make_shared<ListBlobsResponse>();
-    list_blobs_context.response->blobs = make_shared<std::vector<Blob>>();
-    list_blobs_context.response->next_marker = make_shared<Blob>();
+    list_blobs_context.response = std::make_shared<ListBlobsResponse>();
+    list_blobs_context.response->blobs = std::make_shared<std::vector<Blob>>();
+    list_blobs_context.response->next_marker = std::make_shared<Blob>();
     list_blobs_context.response->next_marker->bucket_name = bucket_name;
     list_blobs_context.response->next_marker->blob_name =
-        make_shared<std::string>("marker");
+        std::make_shared<std::string>("marker");
 
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
         journal_stream_read_log_context;
@@ -2037,12 +2045,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnListJournalsCallbackWithMarker) {
 
 TEST_P(MockJournalInputStreamTestWithParam,
        ReadJournalBlobsWithEmptyBlobsList) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2059,12 +2067,12 @@ TEST_P(MockJournalInputStreamTestWithParam,
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlobsProperly) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   // When the result is journal_logthing but success
   std::vector<ExecutionResult> results = {SuccessExecutionResult(),
                                           FailureExecutionResult(1234),
@@ -2137,8 +2145,8 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlobsFailedToSchedule) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlob) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
   std::vector<ExecutionResult> results = {SuccessExecutionResult(),
@@ -2153,8 +2161,8 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlob) {
               std::string(*partition_name + "/journal_00000000000000000100"));
           return result;
         };
-    shared_ptr<BlobStorageClientInterface> storage_client =
-        make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+    std::shared_ptr<BlobStorageClientInterface> storage_client =
+        std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
 
     MockJournalInputStream mock_journal_input_stream(
         bucket_name, partition_name, storage_client,
@@ -2170,12 +2178,12 @@ TEST_P(MockJournalInputStreamTestWithParam, ReadJournalBlob) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, OnReadJournalBlobCallback) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   // When the result is journal_logthing but success
   std::vector<ExecutionResult> results = {FailureExecutionResult(1234),
                                           RetryExecutionResult(1234)};
@@ -2205,12 +2213,12 @@ TEST_P(MockJournalInputStreamTestWithParam, OnReadJournalBlobCallback) {
 
 TEST_P(MockJournalInputStreamTestWithParam,
        OnReadJournalBlobCallbackDifferentBuffers) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2221,10 +2229,10 @@ TEST_P(MockJournalInputStreamTestWithParam,
   for (auto result : results) {
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
     get_blob_context.result = SuccessExecutionResult();
-    get_blob_context.response = make_shared<GetBlobResponse>();
-    get_blob_context.response->buffer = make_shared<BytesBuffer>();
+    get_blob_context.response = std::make_shared<GetBlobResponse>();
+    get_blob_context.response->buffer = std::make_shared<BytesBuffer>();
     get_blob_context.response->buffer->bytes =
-        make_shared<std::vector<Byte>>(1);
+        std::make_shared<std::vector<Byte>>(1);
     get_blob_context.response->buffer->length = 100;
     get_blob_context.response->buffer->capacity = 200;
 
@@ -2257,7 +2265,7 @@ BytesBuffer GenerateLogBytes(size_t count, set<Uuid>& completed_logs,
                              std::vector<Uuid>& log_ids,
                              std::vector<JournalLog>& journal_logs) {
   BytesBuffer bytes_buffer_0;
-  bytes_buffer_0.bytes = make_shared<std::vector<Byte>>(10240000);
+  bytes_buffer_0.bytes = std::make_shared<std::vector<Byte>>(10240000);
   bytes_buffer_0.capacity = 10240000;
 
   for (size_t i = 0; i < count; ++i) {
@@ -2291,11 +2299,11 @@ BytesBuffer GenerateLogBytes(size_t count, set<Uuid>& completed_logs,
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, ProcessLoadedJournals) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2312,11 +2320,11 @@ TEST_P(MockJournalInputStreamTestWithParam, ProcessLoadedJournals) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, ProcessLoadedJournalsProperly) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2344,18 +2352,18 @@ TEST_P(MockJournalInputStreamTestWithParam, ProcessLoadedJournalsProperly) {
 
 TEST_P(MockJournalInputStreamTestWithParam,
        ProcessLoadedJournalsSerializationFailure) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
 
   BytesBuffer buffer;
-  buffer.bytes = make_shared<std::vector<Byte>>();
+  buffer.bytes = std::make_shared<std::vector<Byte>>();
   buffer.capacity = 0;
   buffer.length = 1;
   mock_journal_input_stream.GetJournalBuffers().push_back(buffer);
@@ -2369,12 +2377,12 @@ TEST_P(MockJournalInputStreamTestWithParam,
 
 TEST_P(MockJournalInputStreamTestWithParam,
        ProcessLoadedJournalsSerializationFailure2) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2392,11 +2400,11 @@ TEST_P(MockJournalInputStreamTestWithParam,
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, ProcessNextJournalLog) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2415,12 +2423,12 @@ TEST_P(MockJournalInputStreamTestWithParam, ProcessNextJournalLog) {
 }
 
 TEST_P(MockJournalInputStreamTestWithParam, ProcessNextJournalLogProperly) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2446,12 +2454,12 @@ TEST_P(MockJournalInputStreamTestWithParam, ProcessNextJournalLogProperly) {
 
 TEST_P(MockJournalInputStreamTestWithParam,
        ProcessNextJournalLogSerializeAndDeserialize) {
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2527,12 +2535,12 @@ TEST_F(MockJournalInputStreamTest, ReadJournalLogBatch) {
   // set to true.
   setenv(kJournalInputStreamEnableBatchReadJournals, "false",
          /*replace=*/1);
-  auto bucket_name = make_shared<std::string>("bucket_name");
-  auto partition_name = make_shared<std::string>("partition_name");
+  auto bucket_name = std::make_shared<std::string>("bucket_name");
+  auto partition_name = std::make_shared<std::string>("partition_name");
 
   MockBlobStorageClient mock_storage_client;
-  shared_ptr<BlobStorageClientInterface> storage_client =
-      make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
+  std::shared_ptr<BlobStorageClientInterface> storage_client =
+      std::make_shared<MockBlobStorageClient>(std::move(mock_storage_client));
   MockJournalInputStream mock_journal_input_stream(
       bucket_name, partition_name, storage_client,
       std::make_shared<EnvConfigProvider>());
@@ -2567,7 +2575,7 @@ TEST_F(MockJournalInputStreamTest, ReadJournalLogBatch) {
 
   size_t index = 0;
   while (true) {
-    auto batch = make_shared<std::vector<JournalStreamReadLogObject>>();
+    auto batch = std::make_shared<std::vector<JournalStreamReadLogObject>>();
     auto execution_result =
         mock_journal_input_stream.ReadJournalLogBatch(batch);
     if (!execution_result.Successful()) {

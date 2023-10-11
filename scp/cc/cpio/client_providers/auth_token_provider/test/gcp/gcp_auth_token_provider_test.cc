@@ -54,11 +54,7 @@ using std::atomic;
 using std::atomic_bool;
 using std::bind;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 using std::thread;
-using std::unique_ptr;
 using std::chrono::seconds;
 using testing::Contains;
 using testing::EndsWith;
@@ -106,12 +102,13 @@ namespace google::scp::cpio::client_providers::test {
 
 class GcpAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
-  GcpAuthTokenProviderTest() : http_client_(make_shared<MockCurlClient>()) {
-    authorizer_provider_ = make_unique<GcpAuthTokenProvider>(http_client_);
+  GcpAuthTokenProviderTest()
+      : http_client_(std::make_shared<MockCurlClient>()) {
+    authorizer_provider_ = std::make_unique<GcpAuthTokenProvider>(http_client_);
     fetch_token_for_target_audience_context_.request =
-        make_shared<GetSessionTokenForTargetAudienceRequest>();
+        std::make_shared<GetSessionTokenForTargetAudienceRequest>();
     fetch_token_for_target_audience_context_.request
-        ->token_target_audience_uri = make_shared<std::string>(kAudience);
+        ->token_target_audience_uri = std::make_shared<std::string>(kAudience);
   }
 
   std::string GetResponseBody() { return GetParam(); }
@@ -123,8 +120,8 @@ class GcpAuthTokenProviderTest : public testing::TestWithParam<std::string> {
   AsyncContext<GetSessionTokenForTargetAudienceRequest, GetSessionTokenResponse>
       fetch_token_for_target_audience_context_;
 
-  shared_ptr<MockCurlClient> http_client_;
-  unique_ptr<GcpAuthTokenProvider> authorizer_provider_;
+  std::shared_ptr<MockCurlClient> http_client_;
+  std::unique_ptr<GcpAuthTokenProvider> authorizer_provider_;
 };
 
 TEST_F(GcpAuthTokenProviderTest,
@@ -137,7 +134,7 @@ TEST_F(GcpAuthTokenProviderTest,
                 Pointee(UnorderedElementsAre(
                     Pair(kMetadataFlavorHeader, kMetadataFlavorHeaderValue))));
 
-    http_context.response = make_shared<HttpResponse>();
+    http_context.response = std::make_shared<HttpResponse>();
     http_context.response->body = BytesBuffer(kHttpResponseMock);
     http_context.Finish();
     return SuccessExecutionResult();
@@ -183,7 +180,7 @@ TEST_P(GcpAuthTokenProviderTest, GetSessionTokenFailsIfBadJson) {
   EXPECT_CALL(*http_client_, PerformRequest)
       .WillOnce([this](auto& http_context) {
         http_context.result = SuccessExecutionResult();
-        http_context.response = make_shared<HttpResponse>();
+        http_context.response = std::make_shared<HttpResponse>();
         http_context.response->body = BytesBuffer(GetResponseBody());
         http_context.Finish();
         return SuccessExecutionResult();
@@ -223,7 +220,7 @@ INSTANTIATE_TEST_SUITE_P(BadTokens, GcpAuthTokenProviderTest,
                             })""" /*missing field*/));
 
 TEST_F(GcpAuthTokenProviderTest, NullHttpClientProvider) {
-  auto auth_token_provider = make_shared<GcpAuthTokenProvider>(nullptr);
+  auto auth_token_provider = std::make_shared<GcpAuthTokenProvider>(nullptr);
 
   EXPECT_THAT(auth_token_provider->Init(),
               ResultIs(FailureExecutionResult(
@@ -241,7 +238,7 @@ TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
                 Pointee(UnorderedElementsAre(
                     Pair(kMetadataFlavorHeader, kMetadataFlavorHeaderValue))));
 
-    http_context.response = make_shared<HttpResponse>();
+    http_context.response = std::make_shared<HttpResponse>();
     http_context.response->body = BytesBuffer(kBase64EncodedResponse);
     http_context.Finish();
     return SuccessExecutionResult();
@@ -290,7 +287,7 @@ TEST_P(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceFailsIfBadJson) {
       .WillOnce([this](auto& http_context) {
         http_context.result = SuccessExecutionResult();
 
-        http_context.response = make_shared<HttpResponse>();
+        http_context.response = std::make_shared<HttpResponse>();
         http_context.response->body = BytesBuffer(GetResponseBody());
         http_context.Finish();
         return SuccessExecutionResult();

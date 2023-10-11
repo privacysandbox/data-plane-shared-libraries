@@ -26,7 +26,6 @@
 #include "error_codes.h"
 
 using google::scp::core::BytesBuffer;
-using std::make_unique;
 
 namespace google::scp::core::utils {
 ExecutionResultOr<std::string> CalculateMd5Hash(const BytesBuffer& buffer) {

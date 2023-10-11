@@ -27,10 +27,7 @@
 
 using google::scp::core::common::ConcurrentQueue;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
 using std::mutex;
-using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
 using std::chrono::milliseconds;
@@ -44,9 +41,9 @@ ExecutionResult SingleThreadAsyncExecutor::Init() noexcept {
   }
 
   normal_pri_queue_ =
-      make_shared<ConcurrentQueue<shared_ptr<AsyncTask>>>(queue_cap_);
+      std::make_shared<ConcurrentQueue<std::shared_ptr<AsyncTask>>>(queue_cap_);
   high_pri_queue_ =
-      make_shared<ConcurrentQueue<shared_ptr<AsyncTask>>>(queue_cap_);
+      std::make_shared<ConcurrentQueue<std::shared_ptr<AsyncTask>>>(queue_cap_);
   return SuccessExecutionResult();
 };
 
@@ -60,7 +57,7 @@ ExecutionResult SingleThreadAsyncExecutor::Run() noexcept {
   }
 
   is_running_ = true;
-  working_thread_ = make_unique<thread>(
+  working_thread_ = std::make_unique<thread>(
       [affinity_cpu_number =
            affinity_cpu_number_](SingleThreadAsyncExecutor* ptr) {
         if (affinity_cpu_number.has_value()) {
@@ -95,7 +92,7 @@ void SingleThreadAsyncExecutor::StartWorker() noexcept {
       continue;
     }
 
-    shared_ptr<AsyncTask> task;
+    std::shared_ptr<AsyncTask> task;
     // The priority is with the high pri tasks.
     if (!high_pri_queue_->TryDequeue(task).Successful() &&
         !normal_pri_queue_->TryDequeue(task).Successful()) {
@@ -117,7 +114,7 @@ ExecutionResult SingleThreadAsyncExecutor::Stop() noexcept {
   is_running_ = false;
 
   if (drop_tasks_on_stop_) {
-    shared_ptr<AsyncTask> task;
+    std::shared_ptr<AsyncTask> task;
     while (normal_pri_queue_->TryDequeue(task).Successful()) {}
     while (high_pri_queue_->TryDequeue(task).Successful()) {}
   }
@@ -147,7 +144,7 @@ ExecutionResult SingleThreadAsyncExecutor::Schedule(
         errors::SC_ASYNC_EXECUTOR_INVALID_PRIORITY_TYPE);
   }
 
-  auto task = make_shared<AsyncTask>(work);
+  auto task = std::make_shared<AsyncTask>(work);
   ExecutionResult execution_result;
   if (priority == AsyncPriority::Normal) {
     execution_result = normal_pri_queue_->TryEnqueue(task);

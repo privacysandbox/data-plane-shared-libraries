@@ -90,10 +90,6 @@ using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::GcpBlobStorageClientProvider;
 using google::scp::cpio::client_providers::GcpCloudStorageFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -118,31 +114,32 @@ constexpr int64_t kStreamKeepAliveMicrosCount = 100;
 
 class MockGcpCloudStorageFactory : public GcpCloudStorageFactory {
  public:
-  MOCK_METHOD(core::ExecutionResultOr<shared_ptr<Client>>, CreateClient,
-              (shared_ptr<BlobStorageClientOptions>, const std::string&),
+  MOCK_METHOD(core::ExecutionResultOr<std::shared_ptr<Client>>, CreateClient,
+              (std::shared_ptr<BlobStorageClientOptions>, const std::string&),
               (noexcept, override));
 };
 
 class GcpBlobStorageClientProviderStreamTest : public testing::Test {
  protected:
   GcpBlobStorageClientProviderStreamTest()
-      : instance_client_(make_shared<MockInstanceClientProvider>()),
-        storage_factory_(make_shared<NiceMock<MockGcpCloudStorageFactory>>()),
-        mock_client_(make_shared<NiceMock<MockClient>>()),
+      : instance_client_(std::make_shared<MockInstanceClientProvider>()),
+        storage_factory_(
+            std::make_shared<NiceMock<MockGcpCloudStorageFactory>>()),
+        mock_client_(std::make_shared<NiceMock<MockClient>>()),
         gcp_cloud_storage_client_(
-            make_shared<BlobStorageClientOptions>(), instance_client_,
-            make_shared<MockAsyncExecutor>(), make_shared<MockAsyncExecutor>(),
-            storage_factory_) {
+            std::make_shared<BlobStorageClientOptions>(), instance_client_,
+            std::make_shared<MockAsyncExecutor>(),
+            std::make_shared<MockAsyncExecutor>(), storage_factory_) {
     ON_CALL(*storage_factory_, CreateClient)
         .WillByDefault(
-            Return(make_shared<Client>(ClientFromMock(mock_client_))));
+            Return(std::make_shared<Client>(ClientFromMock(mock_client_))));
     instance_client_->instance_resource_name = kInstanceResourceName;
-    get_blob_stream_context_.request = make_shared<GetBlobStreamRequest>();
+    get_blob_stream_context_.request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_context_.process_callback = [this](auto, bool) {
       finish_called_ = true;
     };
 
-    put_blob_stream_context_.request = make_shared<PutBlobStreamRequest>();
+    put_blob_stream_context_.request = std::make_shared<PutBlobStreamRequest>();
     put_blob_stream_context_.callback = [this](auto) { finish_called_ = true; };
 
     EXPECT_SUCCESS(gcp_cloud_storage_client_.Init());
@@ -153,9 +150,9 @@ class GcpBlobStorageClientProviderStreamTest : public testing::Test {
     EXPECT_SUCCESS(gcp_cloud_storage_client_.Stop());
   }
 
-  shared_ptr<MockInstanceClientProvider> instance_client_;
-  shared_ptr<MockGcpCloudStorageFactory> storage_factory_;
-  shared_ptr<MockClient> mock_client_;
+  std::shared_ptr<MockInstanceClientProvider> instance_client_;
+  std::shared_ptr<MockGcpCloudStorageFactory> storage_factory_;
+  std::shared_ptr<MockClient> mock_client_;
   GcpBlobStorageClientProvider gcp_cloud_storage_client_;
 
   ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>
@@ -229,11 +226,11 @@ MATCHER_P2(ReadObjectRequestEqual, bucket_name, blob_name, "") {
 }
 
 // Builds an ObjectReadSource that contains the bytes (copied) from bytes_str.
-StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
+StatusOr<std::unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
     const std::string& bytes_str) {
   // We want the following methods to be called in order, so make an InSequence.
   InSequence seq;
-  auto mock_source = make_unique<MockObjectReadSource>();
+  auto mock_source = std::make_unique<MockObjectReadSource>();
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(true));
   // Copy up to n bytes from input into buf.
   EXPECT_CALL(*mock_source, Read)
@@ -252,7 +249,7 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
         return result;
       });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(std::move(mock_source));
+  return std::unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStream) {
@@ -625,14 +622,14 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
 TEST_F(GcpBlobStorageClientProviderStreamTest,
        PutBlobStreamMultiplePortionsWithNoOpCycles) {
   // In order to test the "no message" path, we must have real async executors.
-  auto cpu_async_executor = make_shared<AsyncExecutor>(2, 10),
-       io_async_executor = make_shared<AsyncExecutor>(2, 10);
+  auto cpu_async_executor = std::make_shared<AsyncExecutor>(2, 10),
+       io_async_executor = std::make_shared<AsyncExecutor>(2, 10);
   EXPECT_SUCCESS(cpu_async_executor->Init());
   EXPECT_SUCCESS(io_async_executor->Init());
   EXPECT_SUCCESS(cpu_async_executor->Run());
   EXPECT_SUCCESS(io_async_executor->Run());
   GcpBlobStorageClientProvider async_client(
-      make_shared<BlobStorageClientOptions>(), instance_client_,
+      std::make_shared<BlobStorageClientOptions>(), instance_client_,
       cpu_async_executor, io_async_executor, storage_factory_);
   EXPECT_SUCCESS(async_client.Init());
   EXPECT_SUCCESS(async_client.Run());

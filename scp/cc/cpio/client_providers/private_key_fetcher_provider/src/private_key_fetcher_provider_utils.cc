@@ -61,8 +61,6 @@ using google::scp::core::errors::
     SC_PRIVATE_KEY_FETCHER_PROVIDER_RESOURCE_NAME_NOT_FOUND;
 using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kEncryptionKeyPrefix[] = "encryptionKeys/";
@@ -116,7 +114,7 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParsePrivateKey(
 ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKey(
     const nlohmann::json& json_key,
     PrivateKeyFetchingResponse& response) noexcept {
-  auto encryption_key = make_shared<EncryptionKey>();
+  auto encryption_key = std::make_shared<EncryptionKey>();
 
   std::string name;
   auto result = ParseJsonValue(json_key, kResourceNameLabel, name);
@@ -124,7 +122,7 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKey(
     return FailureExecutionResult(
         SC_PRIVATE_KEY_FETCHER_PROVIDER_RESOURCE_NAME_NOT_FOUND);
   }
-  encryption_key->resource_name = make_shared<std::string>(name);
+  encryption_key->resource_name = std::make_shared<std::string>(name);
 
   std::string handle;
   result = ParseJsonValue(json_key, kPublicKeysetHandle, handle);
@@ -132,7 +130,7 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKey(
     return FailureExecutionResult(
         SC_PRIVATE_KEY_FETCHER_PROVIDER_PUBLIC_KEYSET_HANDLE_NOT_FOUND);
   }
-  encryption_key->public_keyset_handle = make_shared<std::string>(handle);
+  encryption_key->public_keyset_handle = std::make_shared<std::string>(handle);
 
   std::string public_key_material;
   result = ParseJsonValue(json_key, kPublicKeyMaterial, public_key_material);
@@ -141,7 +139,7 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKey(
         SC_PRIVATE_KEY_FETCHER_PROVIDER_PUBLIC_KEY_MATERIAL_NOT_FOUND);
   }
   encryption_key->public_key_material =
-      make_shared<std::string>(public_key_material);
+      std::make_shared<std::string>(public_key_material);
 
   EncryptionKeyType type;
   result = ParseEncryptionKeyType(json_key, kEncryptionKeyType, type);
@@ -171,18 +169,18 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKey(
 
   encryption_key->creation_time_in_ms = creation_val;
 
-  std::vector<shared_ptr<KeyData>> key_data;
+  std::vector<std::shared_ptr<KeyData>> key_data;
   result = ParseKeyData(json_key, kKeyData, key_data);
   if (!result.Successful()) {
     return result;
   }
   encryption_key->key_data =
-      std::vector<shared_ptr<KeyData>>(key_data.begin(), key_data.end());
+      std::vector<std::shared_ptr<KeyData>>(key_data.begin(), key_data.end());
 
   auto key_id_or = ExtractKeyId(*encryption_key->resource_name);
   RETURN_IF_FAILURE(key_id_or.result());
 
-  encryption_key->key_id = make_shared<std::string>(*key_id_or);
+  encryption_key->key_id = std::make_shared<std::string>(*key_id_or);
   response.encryption_keys.emplace_back(encryption_key);
 
   return SuccessExecutionResult();
@@ -211,7 +209,7 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKeyType(
 
 ExecutionResult PrivateKeyFetchingClientUtils::ParseKeyData(
     const nlohmann::json& json_response, const std::string& key_data_tag,
-    std::vector<shared_ptr<KeyData>>& key_data_list) noexcept {
+    std::vector<std::shared_ptr<KeyData>>& key_data_list) noexcept {
   auto key_data_json = json_response.find(key_data_tag);
   if (key_data_json == json_response.end()) {
     return FailureExecutionResult(
@@ -230,14 +228,14 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseKeyData(
     if (!result.Successful()) {
       return result;
     }
-    key_data.key_encryption_key_uri = make_shared<std::string>(kek_uri);
+    key_data.key_encryption_key_uri = std::make_shared<std::string>(kek_uri);
 
     std::string key_material;
     result = ParseJsonValue(json_chunk, kKeyMaterial, key_material);
     if (!result.Successful()) {
       return result;
     }
-    key_data.key_material = make_shared<std::string>(key_material);
+    key_data.key_material = std::make_shared<std::string>(key_material);
 
     if (!key_material.empty() && !kek_uri.empty()) {
       found_key_material = true;
@@ -250,9 +248,9 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseKeyData(
       return result;
     }
     key_data.public_key_signature =
-        make_shared<std::string>(public_key_signature);
+        std::make_shared<std::string>(public_key_signature);
 
-    key_data_list.emplace_back(make_shared<KeyData>(key_data));
+    key_data_list.emplace_back(std::make_shared<KeyData>(key_data));
   }
 
   // Must have one pair of key_encryption_key_uri and key_material.
@@ -271,15 +269,15 @@ void PrivateKeyFetchingClientUtils::CreateHttpRequest(
   http_request.method = HttpMethod::GET;
   if (request.key_id && !request.key_id->empty()) {
     const auto& key_uri = *request.key_id;
-    auto uri =
-        make_shared<Uri>(absl::StrCat(absl::StrCat(base_uri, "/"), key_uri));
+    auto uri = std::make_shared<Uri>(
+        absl::StrCat(absl::StrCat(base_uri, "/"), key_uri));
     http_request.path = std::move(uri);
     return;
   }
 
   http_request.path =
-      make_shared<Uri>(absl::StrCat(base_uri + kListKeysByTimeUri));
-  http_request.query = make_shared<std::string>(
+      std::make_shared<Uri>(absl::StrCat(base_uri + kListKeysByTimeUri));
+  http_request.query = std::make_shared<std::string>(
       absl::StrCat(kMaxAgeSecondsQueryParameter, request.max_age_seconds));
 }
 }  // namespace google::scp::cpio::client_providers

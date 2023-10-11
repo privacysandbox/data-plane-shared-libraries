@@ -37,7 +37,6 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_METRIC_NOT_SET;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_METRIC_VALUE_NOT_SET;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 using google::scp::cpio::MetricUnit;
-using std::shared_ptr;
 
 static const std::map<MetricUnit,
                       google::cmrt::sdk::metric_service::v1::MetricUnit>
@@ -117,7 +116,7 @@ MetricClientUtils::ConvertToMetricUnitProto(MetricUnit metric_unit) {
 
 ExecutionResult MetricClientUtils::ValidateRequest(
     const PutMetricsRequest& request,
-    const shared_ptr<MetricBatchingOptions>& options) {
+    const std::shared_ptr<MetricBatchingOptions>& options) {
   // If batching recording is not enabled, the namespace should be set in the
   // request.
   if (!options->enable_batch_recording && request.metric_namespace().empty()) {

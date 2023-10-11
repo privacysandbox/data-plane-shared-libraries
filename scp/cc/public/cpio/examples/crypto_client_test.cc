@@ -48,8 +48,6 @@ using google::scp::cpio::CryptoClientOptions;
 using google::scp::cpio::LogOption;
 using std::atomic;
 using std::bind;
-using std::make_unique;
-using std::unique_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -59,7 +57,7 @@ constexpr char kSharedInfo[] = "shared_info";
 constexpr char kRequestPayload[] = "abcdefg";
 constexpr char kResponsePayload[] = "hijklmn";
 
-unique_ptr<CryptoClientInterface> crypto_client;
+std::unique_ptr<CryptoClientInterface> crypto_client;
 
 void AeadDecryptCallback(atomic<bool>& finished, ExecutionResult result,
                          AeadDecryptResponse aead_decrypt_response) {

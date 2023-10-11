@@ -44,23 +44,21 @@ using google::scp::cpio::client_providers::AuthTokenProviderInterface;
 using google::scp::cpio::client_providers::AwsAuthTokenProvider;
 using google::scp::cpio::client_providers::AwsInstanceClientProvider;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-ExecutionResultOr<shared_ptr<AuthTokenProviderInterface>>
+ExecutionResultOr<std::shared_ptr<AuthTokenProviderInterface>>
 AwsInstanceServiceFactory::CreateAuthTokenProvider() noexcept {
-  return make_shared<AwsAuthTokenProvider>(http1_client_);
+  return std::make_shared<AwsAuthTokenProvider>(http1_client_);
 }
 
 std::shared_ptr<InstanceClientProviderInterface>
 AwsInstanceServiceFactory::CreateInstanceClient() noexcept {
-  return make_shared<AwsInstanceClientProvider>(
+  return std::make_shared<AwsInstanceClientProvider>(
       auth_token_provider_, http1_client_, cpu_async_executor_,
       io_async_executor_);
 }
 
-ExecutionResultOr<shared_ptr<HttpClientInterface>>
+ExecutionResultOr<std::shared_ptr<HttpClientInterface>>
 AwsInstanceServiceFactory::GetHttp2Client() noexcept {
   return FailureExecutionResult(
       SC_AWS_INSTANCE_SERVICE_FACTORY_HTTP2_CLIENT_NOT_FOUND);

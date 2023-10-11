@@ -29,19 +29,17 @@
 using google::scp::cpio::client_providers::AwsNoSQLDatabaseClientProvider;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientOptions;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 AwsNoSQLDatabaseServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<AwsInstanceServiceFactory>(
+  return std::make_shared<AwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
 std::shared_ptr<NoSQLDatabaseClientProviderInterface>
 AwsNoSQLDatabaseServiceFactory::CreateNoSQLDatabaseClient() noexcept {
-  return make_shared<AwsNoSQLDatabaseClientProvider>(
+  return std::make_shared<AwsNoSQLDatabaseClientProvider>(
       instance_client_, instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
 }

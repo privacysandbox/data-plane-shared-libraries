@@ -33,8 +33,6 @@ using grpc::internal::ServerReactor;
 using std::atomic_bool;
 using std::atomic_int;
 using std::function;
-using std::make_shared;
-using std::shared_ptr;
 using std::thread;
 using testing::_;
 using testing::Eq;

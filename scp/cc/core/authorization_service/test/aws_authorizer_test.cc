@@ -52,9 +52,7 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::function;
-using std::make_shared;
 using std::promise;
-using std::shared_ptr;
 
 namespace google::scp::core {
 
@@ -122,21 +120,22 @@ TEST(AwsAuthorizerTest, BasicHappyPath) {
   MockAuthServer server("localhost", "0");
   server.Run();
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<AsyncExecutor>(2, 100);
-  auto http_client = make_shared<HttpClient>(async_executor);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<AsyncExecutor>(2, 100);
+  auto http_client = std::make_shared<HttpClient>(async_executor);
   async_executor->Init();
   async_executor->Run();
   http_client->Init();
   http_client->Run();
-  auto authorizer = make_shared<AwsAuthorizer>(
+  auto authorizer = std::make_shared<AwsAuthorizer>(
       "http://localhost:" + server.Port() + "/success", "us-east-1",
       async_executor, http_client);
 
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
+  auto request = std::make_shared<AuthorizationRequest>();
+  request
+      ->authorization_token = std::make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef", "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(std::move(request), [&](Context& context) {
@@ -153,21 +152,22 @@ TEST(AwsAuthorizerTest, BasicUnauthorized) {
   MockAuthServer server("localhost", "0");
   server.Run();
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<AsyncExecutor>(2, 100);
-  auto http_client = make_shared<HttpClient>(async_executor);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<AsyncExecutor>(2, 100);
+  auto http_client = std::make_shared<HttpClient>(async_executor);
   async_executor->Init();
   async_executor->Run();
   http_client->Init();
   http_client->Run();
-  auto authorizer = make_shared<AwsAuthorizer>(
+  auto authorizer = std::make_shared<AwsAuthorizer>(
       "http://localhost:" + server.Port() + "/forbidden", "us-east-1",
       async_executor, http_client);
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
-      R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
+  auto request = std::make_shared<AuthorizationRequest>();
+  request->authorization_token =
+      std::make_shared<AuthorizationToken>(Base64Encode(
+          R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(std::move(request), [&](Context& context) {
@@ -186,21 +186,22 @@ TEST(AwsAuthorizerTest, MalformedServerResponse) {
   MockAuthServer server("localhost", "0");
   server.Run();
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<AsyncExecutor>(2, 100);
-  auto http_client = make_shared<HttpClient>(async_executor);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<AsyncExecutor>(2, 100);
+  auto http_client = std::make_shared<HttpClient>(async_executor);
   async_executor->Init();
   async_executor->Run();
   http_client->Init();
   http_client->Run();
-  auto authorizer = make_shared<AwsAuthorizer>(
+  auto authorizer = std::make_shared<AwsAuthorizer>(
       "http://localhost:" + server.Port() + "/malformed", "us-east-1",
       async_executor, http_client);
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
-      R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
+  auto request = std::make_shared<AuthorizationRequest>();
+  request->authorization_token =
+      std::make_shared<AuthorizationToken>(Base64Encode(
+          R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(std::move(request), [&](Context& context) {
@@ -216,9 +217,9 @@ TEST(AwsAuthorizerTest, MalformedServerResponse) {
 }
 
 TEST(AwsAuthorizerTest, CannotConnectServer) {
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  auto http_client = make_shared<HttpClient>(async_executor);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  auto http_client = std::make_shared<HttpClient>(async_executor);
   async_executor->Init();
   async_executor->Run();
   http_client->Init();
@@ -239,14 +240,15 @@ TEST(AwsAuthorizerTest, CannotConnectServer) {
   EXPECT_GT(addr.sin_port, 0);
   std::string port = std::to_string(ntohs(addr.sin_port));
 
-  auto authorizer = make_shared<AwsAuthorizer>(
+  auto authorizer = std::make_shared<AwsAuthorizer>(
       std::string("http://localhost:") + port + "/success", "us-east-1",
       async_executor, http_client);
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
-      R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
+  auto request = std::make_shared<AuthorizationRequest>();
+  request->authorization_token =
+      std::make_shared<AuthorizationToken>(Base64Encode(
+          R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(std::move(request), [&](Context& context) {
@@ -265,19 +267,20 @@ TEST(AwsAuthorizerTest, CannotConnectServer) {
 }
 
 TEST(AwsAuthorizerTest, MalformedToken) {
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  auto http_client = make_shared<HttpClient>(async_executor);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  auto http_client = std::make_shared<HttpClient>(async_executor);
   async_executor->Init();
   async_executor->Run();
   http_client->Init();
   http_client->Run();
   auto authorizer =
-      make_shared<AwsAuthorizer>("http://localhost:65534/success", "us-east-1",
-                                 async_executor, http_client);
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
-      R"({"bad_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
+      std::make_shared<AwsAuthorizer>("http://localhost:65534/success",
+                                      "us-east-1", async_executor, http_client);
+  auto request = std::make_shared<AuthorizationRequest>();
+  request->authorization_token =
+      std::make_shared<AuthorizationToken>(Base64Encode(
+          R"({"bad_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
 
   Context context(std::move(request), [&](Context& context) {});
@@ -285,7 +288,7 @@ TEST(AwsAuthorizerTest, MalformedToken) {
               ResultIs(FailureExecutionResult(
                   errors::SC_AUTHORIZATION_SERVICE_BAD_TOKEN)));
 
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
   EXPECT_THAT(authorizer->Authorize(context),
               ResultIs(FailureExecutionResult(
                   errors::SC_AUTHORIZATION_SERVICE_BAD_TOKEN)));
@@ -295,19 +298,19 @@ TEST(AwsAuthorizerTest, MalformedToken) {
 }
 
 TEST(AwsAuthorizerTest, MalformedTokenBadEncoding) {
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  auto http_client = make_shared<HttpClient>(async_executor);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  auto http_client = std::make_shared<HttpClient>(async_executor);
   async_executor->Init();
   async_executor->Run();
   http_client->Init();
   http_client->Run();
   auto authorizer =
-      make_shared<AwsAuthorizer>("http://localhost:65534/success", "us-east-1",
-                                 async_executor, http_client);
-  auto request = make_shared<AuthorizationRequest>();
+      std::make_shared<AwsAuthorizer>("http://localhost:65534/success",
+                                      "us-east-1", async_executor, http_client);
+  auto request = std::make_shared<AuthorizationRequest>();
   request->authorization_token =
-      make_shared<AuthorizationToken>("123321qwerfdaxcvdfasdf");
+      std::make_shared<AuthorizationToken>("123321qwerfdaxcvdfasdf");
 
   Context context(std::move(request), [&](Context& context) {});
   EXPECT_THAT(authorizer->Authorize(context),
@@ -318,20 +321,21 @@ TEST(AwsAuthorizerTest, MalformedTokenBadEncoding) {
 }
 
 TEST(AwsAuthorizerTest, BadConfig) {
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  auto http_client = make_shared<HttpClient>(async_executor);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  auto http_client = std::make_shared<HttpClient>(async_executor);
   async_executor->Init();
   async_executor->Run();
   http_client->Init();
   http_client->Run();
-  auto authorizer = make_shared<AwsAuthorizer>(
+  auto authorizer = std::make_shared<AwsAuthorizer>(
       "stp:/localhost:abcd/success", "us-east-1", async_executor, http_client);
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
-      R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
+  auto request = std::make_shared<AuthorizationRequest>();
+  request->authorization_token =
+      std::make_shared<AuthorizationToken>(Base64Encode(
+          R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
   Context context(std::move(request), [&](Context& context) {});
   EXPECT_THAT(authorizer->Authorize(context),
@@ -342,18 +346,19 @@ TEST(AwsAuthorizerTest, BadConfig) {
 }
 
 TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  auto http_client = make_shared<MockHttpClient>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  auto http_client = std::make_shared<MockHttpClient>();
 
-  auto authorizer = make_shared<MockAuthorizationServiceWithOverrides>(
+  auto authorizer = std::make_shared<MockAuthorizationServiceWithOverrides>(
       "http://localhost:441/success", "us-east-1", async_executor, http_client);
 
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
-      R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
+  auto request = std::make_shared<AuthorizationRequest>();
+  request->authorization_token =
+      std::make_shared<AuthorizationToken>(Base64Encode(
+          R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
 
@@ -390,10 +395,10 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
             errors::SC_AUTHORIZATION_SERVICE_AUTH_TOKEN_IS_REFRESHING)));
   }
 
-  http_context.response = make_shared<HttpResponse>();
+  http_context.response = std::make_shared<HttpResponse>();
   std::string body(R"({ "authorized_domain": "blahblah" })");
   http_context.response->body.bytes =
-      make_shared<std::vector<Byte>>(body.begin(), body.end());
+      std::make_shared<std::vector<Byte>>(body.begin(), body.end());
   http_context.response->body.length = body.length();
   http_context.result = SuccessExecutionResult();
   http_context.Finish();
@@ -416,18 +421,19 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
 }
 
 TEST(AwsAuthorizerTest, HttpClientFailureWillInvalidateCache) {
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  auto http_client = make_shared<MockHttpClient>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  auto http_client = std::make_shared<MockHttpClient>();
 
-  auto authorizer = make_shared<AwsAuthorizer>(
+  auto authorizer = std::make_shared<AwsAuthorizer>(
       "http://localhost:441/success", "us-east-1", async_executor, http_client);
 
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
-      R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
+  auto request = std::make_shared<AuthorizationRequest>();
+  request->authorization_token =
+      std::make_shared<AuthorizationToken>(Base64Encode(
+          R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
 
@@ -462,18 +468,19 @@ TEST(AwsAuthorizerTest, HttpClientFailureWillInvalidateCache) {
 }
 
 TEST(AwsAuthorizerTest, HttpClientFailureOnResponse) {
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  auto http_client = make_shared<MockHttpClient>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  auto http_client = std::make_shared<MockHttpClient>();
 
-  auto authorizer = make_shared<AwsAuthorizer>(
+  auto authorizer = std::make_shared<AwsAuthorizer>(
       "http://localhost:441/success", "us-east-1", async_executor, http_client);
 
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
-      R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
+  auto request = std::make_shared<AuthorizationRequest>();
+  request->authorization_token =
+      std::make_shared<AuthorizationToken>(Base64Encode(
+          R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef",
       "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
   Context context(std::move(request), [&](Context& context) {});
 
@@ -492,11 +499,11 @@ TEST(AwsAuthorizerTest, HttpClientFailureOnResponse) {
 }
 
 TEST(AwsAuthorizerTest, OnBeforeGarbageCollection) {
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  auto http_client = make_shared<MockHttpClient>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  auto http_client = std::make_shared<MockHttpClient>();
 
-  auto authorizer = make_shared<MockAuthorizationServiceWithOverrides>(
+  auto authorizer = std::make_shared<MockAuthorizationServiceWithOverrides>(
       "http://localhost:441/success", "us-east-1", async_executor, http_client);
 
   bool called = false;
@@ -513,21 +520,22 @@ TEST(AwsAuthorizerTest, InsertionWhileDeletionShouldReturnRefreshStatusCode) {
   MockAuthServer server("localhost", "0");
   server.Run();
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<AsyncExecutor>(2, 100);
-  auto http_client = make_shared<HttpClient>(async_executor);
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<AsyncExecutor>(2, 100);
+  auto http_client = std::make_shared<HttpClient>(async_executor);
   async_executor->Init();
   async_executor->Run();
   http_client->Init();
   http_client->Run();
-  auto authorizer = make_shared<MockAuthorizationServiceWithOverrides>(
+  auto authorizer = std::make_shared<MockAuthorizationServiceWithOverrides>(
       "http://localhost:" + server.Port() + "/success", "us-east-1",
       async_executor, http_client);
 
-  auto request = make_shared<AuthorizationRequest>();
-  request->authorization_token = make_shared<AuthorizationToken>(Base64Encode(
+  auto request = std::make_shared<AuthorizationRequest>();
+  request
+      ->authorization_token = std::make_shared<AuthorizationToken>(Base64Encode(
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef", "amz_date":"19891107T123456Z"})"));
-  request->claimed_identity = make_shared<std::string>("claimed_identity");
+  request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
   promise<void> done;
   Context context(request, [&](Context& context) {

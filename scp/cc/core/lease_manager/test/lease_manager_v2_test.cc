@@ -43,14 +43,10 @@ using google::scp::core::lease_manager::mock::MockLeaseRefresher;
 using google::scp::core::lease_manager::mock::MockLeaseRefresherFactory;
 using google::scp::core::lease_manager::mock::MockLeaseRefreshLivenessCheck;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
 using std::mutex;
 using std::nullopt;
 using std::optional;
-using std::shared_ptr;
 using std::unique_lock;
-using std::unique_ptr;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using ::testing::_;
@@ -63,7 +59,7 @@ static constexpr size_t kSecondInMillis = 1000;
 
 class LeaseManagerV2Test : public ::testing::Test {
  protected:
-  void SetUpMocksForLock(shared_ptr<MockLeasableLock> mock_lock,
+  void SetUpMocksForLock(std::shared_ptr<MockLeasableLock> mock_lock,
                          optional<LeaseInfo> current_lease_owner = nullopt) {
     // Set up mock calls for mock_lock_
     ON_CALL(*mock_lock, ShouldRefreshLease()).WillByDefault(Return(true));
@@ -79,7 +75,8 @@ class LeaseManagerV2Test : public ::testing::Test {
                    (current_lease_owner.value() == this_lease_holder_info_)));
   }
 
-  void SetUpMocksForEventSink(shared_ptr<MockLeaseEventSink> mock_event_sink) {
+  void SetUpMocksForEventSink(
+      std::shared_ptr<MockLeaseEventSink> mock_event_sink) {
     // Set up mock calls for the mock_event_sink
     ON_CALL(*mock_event_sink, OnLeaseTransition(_, _, _))
         .WillByDefault(Return());
@@ -120,38 +117,39 @@ class LeaseManagerV2Test : public ::testing::Test {
   }
 
   LeaseManagerV2Test() {
-    mock_leasable_lock_1_ = make_shared<MockLeasableLock>();
+    mock_leasable_lock_1_ = std::make_shared<MockLeasableLock>();
     leasable_lock_1_ = mock_leasable_lock_1_;
-    mock_event_sink_1_ = make_shared<MockLeaseEventSink>();
+    mock_event_sink_1_ = std::make_shared<MockLeaseEventSink>();
     event_sink_1_ = mock_event_sink_1_;
-    mock_lease_refresher_1_ = make_shared<MockLeaseRefresher>();
+    mock_lease_refresher_1_ = std::make_shared<MockLeaseRefresher>();
     SetUpMocksForLock(mock_leasable_lock_1_);
     SetUpMocksForEventSink(mock_event_sink_1_);
 
-    mock_leasable_lock_2_ = make_shared<MockLeasableLock>();
+    mock_leasable_lock_2_ = std::make_shared<MockLeasableLock>();
     leasable_lock_2_ = mock_leasable_lock_2_;
-    mock_event_sink_2_ = make_shared<MockLeaseEventSink>();
+    mock_event_sink_2_ = std::make_shared<MockLeaseEventSink>();
     event_sink_2_ = mock_event_sink_2_;
-    mock_lease_refresher_2_ = make_shared<MockLeaseRefresher>();
+    mock_lease_refresher_2_ = std::make_shared<MockLeaseRefresher>();
     SetUpMocksForLock(mock_leasable_lock_2_);
     SetUpMocksForEventSink(mock_event_sink_2_);
 
-    mock_leasable_lock_3_ = make_shared<MockLeasableLock>();
+    mock_leasable_lock_3_ = std::make_shared<MockLeasableLock>();
     leasable_lock_3_ = mock_leasable_lock_3_;
-    mock_event_sink_3_ = make_shared<MockLeaseEventSink>();
+    mock_event_sink_3_ = std::make_shared<MockLeaseEventSink>();
     event_sink_3_ = mock_event_sink_3_;
-    mock_lease_refresher_3_ = make_shared<MockLeaseRefresher>();
+    mock_lease_refresher_3_ = std::make_shared<MockLeaseRefresher>();
     SetUpMocksForLock(mock_leasable_lock_3_);
     SetUpMocksForEventSink(mock_event_sink_3_);
 
-    lease_refresher_factory_ = make_unique<LeaseRefresherFactory>();
-    mock_lease_refresher_factory_ = make_unique<MockLeaseRefresherFactory>();
+    lease_refresher_factory_ = std::make_unique<LeaseRefresherFactory>();
+    mock_lease_refresher_factory_ =
+        std::make_unique<MockLeaseRefresherFactory>();
 
     // Construct a mock lease refresher
     ON_CALL(*mock_lease_refresher_factory_, Construct)
         .WillByDefault([this](const LeasableLockId& lock_id,
-                              const shared_ptr<LeasableLockInterface>&,
-                              const shared_ptr<LeaseEventSinkInterface>&) {
+                              const std::shared_ptr<LeasableLockInterface>&,
+                              const std::shared_ptr<LeaseEventSinkInterface>&) {
           if (lock_id_1_ == lock_id) {
             return mock_lease_refresher_1_;
           } else if (lock_id_2_ == lock_id) {
@@ -166,28 +164,28 @@ class LeaseManagerV2Test : public ::testing::Test {
 
   LeasableLockId lock_id_1_ = {1, 1};
 
-  shared_ptr<MockLeasableLock> mock_leasable_lock_1_;
-  shared_ptr<LeasableLockInterface> leasable_lock_1_;
-  shared_ptr<MockLeaseEventSink> mock_event_sink_1_;
-  shared_ptr<LeaseEventSinkInterface> event_sink_1_;
-  shared_ptr<MockLeaseRefresher> mock_lease_refresher_1_;
+  std::shared_ptr<MockLeasableLock> mock_leasable_lock_1_;
+  std::shared_ptr<LeasableLockInterface> leasable_lock_1_;
+  std::shared_ptr<MockLeaseEventSink> mock_event_sink_1_;
+  std::shared_ptr<LeaseEventSinkInterface> event_sink_1_;
+  std::shared_ptr<MockLeaseRefresher> mock_lease_refresher_1_;
 
   LeasableLockId lock_id_2_ = {2, 2};
-  shared_ptr<MockLeasableLock> mock_leasable_lock_2_;
-  shared_ptr<LeasableLockInterface> leasable_lock_2_;
-  shared_ptr<MockLeaseEventSink> mock_event_sink_2_;
-  shared_ptr<LeaseEventSinkInterface> event_sink_2_;
-  shared_ptr<MockLeaseRefresher> mock_lease_refresher_2_;
+  std::shared_ptr<MockLeasableLock> mock_leasable_lock_2_;
+  std::shared_ptr<LeasableLockInterface> leasable_lock_2_;
+  std::shared_ptr<MockLeaseEventSink> mock_event_sink_2_;
+  std::shared_ptr<LeaseEventSinkInterface> event_sink_2_;
+  std::shared_ptr<MockLeaseRefresher> mock_lease_refresher_2_;
 
   LeasableLockId lock_id_3_ = {3, 3};
-  shared_ptr<MockLeasableLock> mock_leasable_lock_3_;
-  shared_ptr<LeasableLockInterface> leasable_lock_3_;
-  shared_ptr<MockLeaseEventSink> mock_event_sink_3_;
-  shared_ptr<LeaseEventSinkInterface> event_sink_3_;
-  shared_ptr<MockLeaseRefresher> mock_lease_refresher_3_;
+  std::shared_ptr<MockLeasableLock> mock_leasable_lock_3_;
+  std::shared_ptr<LeasableLockInterface> leasable_lock_3_;
+  std::shared_ptr<MockLeaseEventSink> mock_event_sink_3_;
+  std::shared_ptr<LeaseEventSinkInterface> event_sink_3_;
+  std::shared_ptr<MockLeaseRefresher> mock_lease_refresher_3_;
 
-  unique_ptr<LeaseRefresherFactoryInterface> lease_refresher_factory_;
-  unique_ptr<MockLeaseRefresherFactory> mock_lease_refresher_factory_;
+  std::unique_ptr<LeaseRefresherFactoryInterface> lease_refresher_factory_;
+  std::unique_ptr<MockLeaseRefresherFactory> mock_lease_refresher_factory_;
   LeaseInfo this_lease_holder_info_ = {"my_id", "1.1.1.1"};
 };
 

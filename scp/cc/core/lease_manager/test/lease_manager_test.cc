@@ -31,11 +31,8 @@
 
 using std::abort;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
 using std::mutex;
 using std::optional;
-using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
 using std::chrono::milliseconds;
@@ -51,7 +48,7 @@ TEST(LeaseManagerTest, InitStartRunStop) {
   MockLeaseManagerWithOverrides lease_manager(
       100 /* lease enforcer periodicity */,
       1000 /* lease obtainer max running time */);
-  auto leasable_lock = make_shared<MockLeasableLock>();
+  auto leasable_lock = std::make_shared<MockLeasableLock>();
   leasable_lock->SetLeaseDurationInMilliseconds(500);
 
   EXPECT_SUCCESS(lease_manager.Init());
@@ -77,7 +74,7 @@ TEST(LeaseManagerTest, StartsAndStopsThreads) {
   MockLeaseManagerWithOverrides lease_manager(
       100 /* lease enforcer periodicity */,
       1000 /* lease obtainer max running time */);
-  auto leasable_lock = make_shared<MockLeasableLock>();
+  auto leasable_lock = std::make_shared<MockLeasableLock>();
   leasable_lock->SetLeaseDurationInMilliseconds(500);
 
   EXPECT_SUCCESS(lease_manager.Init());
@@ -108,7 +105,7 @@ TEST(LeaseManagerTest, AcquiresAndRenewsLease) {
   lease_manager.SetTerminateProcessFunction(
       [&process_terminated]() { process_terminated = true; });
 
-  auto leasable_lock = make_shared<MockLeasableLock>();
+  auto leasable_lock = std::make_shared<MockLeasableLock>();
   leasable_lock->SetLeaseDurationInMilliseconds(500);
   leasable_lock->SetLeaseOwnerInfo(lease_acquirer_info);
   leasable_lock->AllowLeaseAcquire();
@@ -153,7 +150,7 @@ TEST(LeaseManagerTest, LosesAndReacquiresLease) {
   lease_manager.SetTerminateProcessFunction(
       [&process_terminated]() { process_terminated = true; });
 
-  auto leasable_lock = make_shared<MockLeasableLock>();
+  auto leasable_lock = std::make_shared<MockLeasableLock>();
   leasable_lock->SetLeaseDurationInMilliseconds(500);
   leasable_lock->SetLeaseOwnerInfo(lease_acquirer_info);
   leasable_lock->AllowLeaseAcquire();
@@ -210,7 +207,7 @@ TEST(LeaseManagerTest,
   lease_manager.SetTerminateProcessFunction(
       [&process_terminated]() { process_terminated = true; });
 
-  auto leasable_lock = make_shared<MockLeasableLock>();
+  auto leasable_lock = std::make_shared<MockLeasableLock>();
   leasable_lock->AllowLeaseAcquire();
   leasable_lock->SetLeaseDurationInMilliseconds(500);
   EXPECT_SUCCESS(lease_manager.Init());
@@ -242,7 +239,7 @@ TEST(LeaseManagerTest, ProcessTerminatesIfLeaseAcquireOnLockTakesLong) {
   lease_manager.SetTerminateProcessFunction(
       [&process_terminated]() { process_terminated = true; });
 
-  auto leasable_lock = make_shared<MockLeasableLock>();
+  auto leasable_lock = std::make_shared<MockLeasableLock>();
   leasable_lock->SetLeaseDurationInMilliseconds(500);
   leasable_lock->AllowLeaseAcquire();
   leasable_lock->SetOnBeforeAcquireLease([&]() {

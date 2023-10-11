@@ -38,8 +38,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_GCP_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -67,8 +65,8 @@ ExecutionResult GcpPrivateKeyFetcherProvider::Init() noexcept {
 ExecutionResult GcpPrivateKeyFetcherProvider::SignHttpRequest(
     AsyncContext<PrivateKeyFetchingRequest, core::HttpRequest>&
         sign_request_context) noexcept {
-  auto request = make_shared<GetSessionTokenForTargetAudienceRequest>();
-  request->token_target_audience_uri = make_shared<std::string>(
+  auto request = std::make_shared<GetSessionTokenForTargetAudienceRequest>();
+  request->token_target_audience_uri = std::make_shared<std::string>(
       sign_request_context.request->key_vending_endpoint
           ->gcp_private_key_vending_service_cloudfunction_url);
   AsyncContext<GetSessionTokenForTargetAudienceRequest, GetSessionTokenResponse>
@@ -99,10 +97,10 @@ void GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback(
   }
 
   const auto& access_token = *get_token_context.response->session_token;
-  auto http_request = make_shared<HttpRequest>();
+  auto http_request = std::make_shared<HttpRequest>();
   PrivateKeyFetchingClientUtils::CreateHttpRequest(
       *sign_request_context.request, *http_request);
-  http_request->headers = make_shared<core::HttpHeaders>();
+  http_request->headers = std::make_shared<core::HttpHeaders>();
   http_request->headers->insert(
       {std::string(kAuthorizationHeaderKey),
        absl::StrCat(kBearerTokenPrefix, access_token)});
@@ -114,12 +112,12 @@ void GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback(
 #ifndef TEST_CPIO
 std::shared_ptr<PrivateKeyFetcherProviderInterface>
 PrivateKeyFetcherProviderFactory::Create(
-    const shared_ptr<HttpClientInterface>& http_client,
-    const shared_ptr<RoleCredentialsProviderInterface>&
+    const std::shared_ptr<HttpClientInterface>& http_client,
+    const std::shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider,
-    const shared_ptr<AuthTokenProviderInterface>& auth_token_provider) {
-  return make_shared<GcpPrivateKeyFetcherProvider>(http_client,
-                                                   auth_token_provider);
+    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider) {
+  return std::make_shared<GcpPrivateKeyFetcherProvider>(http_client,
+                                                        auth_token_provider);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

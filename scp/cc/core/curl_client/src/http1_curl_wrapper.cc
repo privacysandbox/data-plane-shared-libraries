@@ -35,13 +35,9 @@
 
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::utils::GetEscapedUriWithQuery;
-using std::make_shared;
-using std::make_unique;
 using std::regex;
 using std::regex_search;
-using std::shared_ptr;
 using std::smatch;
-using std::unique_ptr;
 
 namespace google::scp::core {
 
@@ -118,7 +114,7 @@ size_t ResponsePayloadHandler(char* contents, size_t byte_size,
                               size_t num_bytes, void* output) {
   BytesBuffer* output_buffer = static_cast<BytesBuffer*>(output);
   size_t contents_length = byte_size * num_bytes;
-  output_buffer->bytes = make_shared<std::vector<Byte>>(contents_length);
+  output_buffer->bytes = std::make_shared<std::vector<Byte>>(contents_length);
   for (size_t i = 0; i < contents_length; i++) {
     output_buffer->bytes->at(i) = contents[i];
   }
@@ -215,7 +211,7 @@ size_t RequestReadHandler(char* contents, size_t byte_size, size_t num_bytes,
 
 }  // namespace
 
-ExecutionResultOr<shared_ptr<Http1CurlWrapper>>
+ExecutionResultOr<std::shared_ptr<Http1CurlWrapper>>
 Http1CurlWrapper::MakeWrapper() {
   CURL* curl = curl_easy_init();
   if (!curl) {
@@ -223,10 +219,10 @@ Http1CurlWrapper::MakeWrapper() {
     SCP_ERROR(kHttp1CurlWrapper, kZeroUuid, result, "failed to make wrapper");
     return result;
   }
-  return make_shared<Http1CurlWrapper>(curl);
+  return std::make_shared<Http1CurlWrapper>(curl);
 }
 
-ExecutionResultOr<unique_ptr<curl_slist, CurlListDeleter>>
+ExecutionResultOr<std::unique_ptr<curl_slist, CurlListDeleter>>
 Http1CurlWrapper::AddHeadersToRequest(
     const std::shared_ptr<HttpHeaders>& headers) {
   if (!headers || headers->empty()) {
@@ -243,8 +239,8 @@ Http1CurlWrapper::AddHeadersToRequest(
     header_list = result;
   }
   curl_easy_setopt(curl_.get(), CURLOPT_HTTPHEADER, header_list);
-  // Wrap the returned raw pointer in a unique_ptr to prevent memory leaks.
-  return unique_ptr<curl_slist, CurlListDeleter>(header_list);
+  // Wrap the returned raw pointer in a std::unique_ptr to prevent memory leaks.
+  return std::unique_ptr<curl_slist, CurlListDeleter>(header_list);
 }
 
 void Http1CurlWrapper::SetUpResponseHeaderHandler(
@@ -309,7 +305,7 @@ ExecutionResultOr<HttpResponse> Http1CurlWrapper::PerformRequest(
   curl_easy_setopt(curl_.get(), CURLOPT_URL, uri->c_str());
 
   HttpResponse response;
-  response.headers = make_shared<HttpHeaders>();
+  response.headers = std::make_shared<HttpHeaders>();
   SetUpResponseHeaderHandler(response.headers.get());
 
   // Add the handler indicating what to do with the returned HTTP response.
@@ -336,11 +332,11 @@ ExecutionResultOr<HttpResponse> Http1CurlWrapper::PerformRequest(
 }
 
 Http1CurlWrapper::Http1CurlWrapper(CURL* curl) {
-  // Wrap the returned raw pointer in a unique_ptr to prevent memory leaks.
-  curl_ = unique_ptr<CURL, CurlHandleDeleter>(curl);
+  // Wrap the returned raw pointer in a std::unique_ptr to prevent memory leaks.
+  curl_ = std::unique_ptr<CURL, CurlHandleDeleter>(curl);
 }
 
-ExecutionResultOr<shared_ptr<Http1CurlWrapper>>
+ExecutionResultOr<std::shared_ptr<Http1CurlWrapper>>
 Http1CurlWrapperProvider::MakeWrapper() {
   return Http1CurlWrapper::MakeWrapper();
 }

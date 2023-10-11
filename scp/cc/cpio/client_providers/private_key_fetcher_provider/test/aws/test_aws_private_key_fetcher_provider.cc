@@ -26,13 +26,11 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::HttpClientInterface;
 using google::scp::core::HttpRequest;
 using google::scp::core::SuccessExecutionResult;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
 // In integration test, localstack API_GATEWAY doesn't support signed request.
 ExecutionResult TestAwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
-    shared_ptr<HttpRequest>& http_request, const std::string& access_key,
+    std::shared_ptr<HttpRequest>& http_request, const std::string& access_key,
     const std::string& secret_key, const std::string& security_token,
     const std::string& region) noexcept {
   return SuccessExecutionResult();
@@ -40,11 +38,11 @@ ExecutionResult TestAwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
 
 std::shared_ptr<PrivateKeyFetcherProviderInterface>
 PrivateKeyFetcherProviderFactory::Create(
-    const shared_ptr<HttpClientInterface>& http_client,
-    const shared_ptr<RoleCredentialsProviderInterface>&
+    const std::shared_ptr<HttpClientInterface>& http_client,
+    const std::shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider,
-    const shared_ptr<AuthTokenProviderInterface>& auth_token_provider) {
-  return make_shared<TestAwsPrivateKeyFetcherProvider>(
+    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider) {
+  return std::make_shared<TestAwsPrivateKeyFetcherProvider>(
       http_client, role_credentials_provider);
 }
 }  // namespace google::scp::cpio::client_providers

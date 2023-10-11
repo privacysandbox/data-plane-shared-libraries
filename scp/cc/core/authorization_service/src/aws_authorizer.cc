@@ -38,8 +38,6 @@ using std::begin;
 using std::bind;
 using std::end;
 using std::make_pair;
-using std::make_shared;
-using std::make_unique;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -48,7 +46,6 @@ using google::scp::core::common::AutoExpiryConcurrentMap;
 using google::scp::core::utils::Base64Decode;
 using nghttp2::asio_http2::host_service_from_uri;
 using std::function;
-using std::shared_ptr;
 
 static constexpr const char kAWSAuthorizer[] = "AWSAuthorizer";
 static constexpr const char kAccessKey[] = "access_key";
@@ -64,17 +61,17 @@ namespace google::scp::core {
 
 AwsAuthorizer::AwsAuthorizer(
     const std::string& server_endpoint, const std::string& aws_region,
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
-    const shared_ptr<HttpClientInterface>& http_client)
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<HttpClientInterface>& http_client)
     : authorization_tokens_(
-          make_unique<AutoExpiryConcurrentMap<
-              std::string, shared_ptr<AwsAuthorizationTokenCacheEntry>>>(
+          std::make_unique<AutoExpiryConcurrentMap<
+              std::string, std::shared_ptr<AwsAuthorizationTokenCacheEntry>>>(
               kAuthorizationTokenCacheLifetimeSeconds,
               false /* extend_entry_lifetime_on_access */,
               false /* block_entry_while_eviction */,
               bind(&AwsAuthorizer::OnBeforeGarbageCollection, this, _1, _2, _3),
               async_executor)),
-      server_endpoint_(make_shared<std::string>(server_endpoint)),
+      server_endpoint_(std::make_shared<std::string>(server_endpoint)),
       aws_region_(aws_region),
       http_client_(http_client) {}
 
@@ -92,7 +89,7 @@ ExecutionResult AwsAuthorizer::Stop() noexcept {
 
 void AwsAuthorizer::OnBeforeGarbageCollection(
     std::string& token,
-    shared_ptr<AwsAuthorizationTokenCacheEntry>& transaction,
+    std::shared_ptr<AwsAuthorizationTokenCacheEntry>& transaction,
     function<void(bool)> should_delete_entry) noexcept {
   // TODO: Enable pre-expiration refresh.
   should_delete_entry(true);
@@ -139,10 +136,10 @@ ExecutionResult AwsAuthorizer::Authorize(
   if (json_token.contains(kSecurityToken)) {
     security_token = json_token[kSecurityToken].get<std::string>();
   }
-  auto http_request = make_shared<HttpRequest>();
+  auto http_request = std::make_shared<HttpRequest>();
   http_request->method = HttpMethod::POST;
   http_request->path = server_endpoint_;
-  http_request->headers = make_shared<HttpHeaders>();
+  http_request->headers = std::make_shared<HttpHeaders>();
 
   error_code http2_error_code;
   std::string scheme;
@@ -155,7 +152,7 @@ ExecutionResult AwsAuthorizer::Authorize(
   }
 
   auto authorization_cache_entry =
-      make_shared<AwsAuthorizationTokenCacheEntry>();
+      std::make_shared<AwsAuthorizationTokenCacheEntry>();
   auto cache_entry_key = *request.claimed_identity + ":" + token;
   auto pair = make_pair(cache_entry_key, authorization_cache_entry);
   execution_result =
@@ -174,7 +171,8 @@ ExecutionResult AwsAuthorizer::Authorize(
     }
 
     if (authorization_cache_entry->is_loaded) {
-      authorization_context.response = make_shared<AuthorizationResponse>();
+      authorization_context.response =
+          std::make_shared<AuthorizationResponse>();
       authorization_context.response->authorized_domain =
           authorization_cache_entry->authorized_domain;
       authorization_context.result = SuccessExecutionResult();
@@ -250,12 +248,12 @@ void AwsAuthorizer::HandleHttpResponse(
     return;
   }
 
-  authorization_context.response = make_shared<AuthorizationResponse>();
+  authorization_context.response = std::make_shared<AuthorizationResponse>();
   authorization_context.response->authorized_domain =
-      make_shared<AuthorizedDomain>(
+      std::make_shared<AuthorizedDomain>(
           body_json[kAuthorizedDomain].get<std::string>());
 
-  shared_ptr<AwsAuthorizationTokenCacheEntry> auth_token_cache_entry;
+  std::shared_ptr<AwsAuthorizationTokenCacheEntry> auth_token_cache_entry;
   auto execution_result =
       authorization_tokens_->Find(cache_entry_key, auth_token_cache_entry);
   if (!execution_result.Successful()) {

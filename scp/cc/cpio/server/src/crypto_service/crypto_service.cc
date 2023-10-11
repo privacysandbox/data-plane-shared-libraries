@@ -95,11 +95,7 @@ using std::bind;
 using std::cout;
 using std::endl;
 using std::list;
-using std::make_shared;
-using std::make_unique;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -111,8 +107,8 @@ constexpr char kConfigProviderName[] = "config_provider";
 constexpr char kCryptoClientName[] = "crypto_client";
 }  // namespace
 
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<CryptoClientProviderInterface> crypto_client;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<CryptoClientProviderInterface> crypto_client;
 
 class CryptoServiceImpl : public CryptoService::CallbackService {
  public:
@@ -191,7 +187,7 @@ int main(int argc, char* argv[]) {
 }
 
 void RunClients() {
-  auto options = make_shared<CryptoClientOptions>();
+  auto options = std::make_shared<CryptoClientOptions>();
   std::string hpke_kem;
   if (TryReadConfigString(config_provider, kCryptoClientHpkeKem, hpke_kem)
           .Successful()) {
@@ -220,7 +216,7 @@ void RunClients() {
     options->hpke_params.set_aead(it->second);
   }
 
-  crypto_client = make_shared<CryptoClientProvider>(options);
+  crypto_client = std::make_shared<CryptoClientProvider>(options);
   Init(crypto_client, kCryptoClientName);
   Run(crypto_client, kCryptoClientName);
 }

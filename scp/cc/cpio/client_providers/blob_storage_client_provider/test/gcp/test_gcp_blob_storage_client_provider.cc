@@ -29,11 +29,10 @@ using google::cloud::MakeImpersonateServiceAccountCredentials;
 using google::cloud::Options;
 using google::scp::core::AsyncExecutorInterface;
 using std::dynamic_pointer_cast;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
 Options TestGcpCloudStorageFactory::CreateClientOptions(
-    shared_ptr<BlobStorageClientOptions> options,
+    std::shared_ptr<BlobStorageClientOptions> options,
     const std::string& project_id) noexcept {
   Options client_options =
       GcpCloudStorageFactory::CreateClientOptions(options, project_id);
@@ -48,12 +47,12 @@ Options TestGcpCloudStorageFactory::CreateClientOptions(
   return client_options;
 }
 
-shared_ptr<BlobStorageClientProviderInterface>
+std::shared_ptr<BlobStorageClientProviderInterface>
 BlobStorageClientProviderFactory::Create(
-    shared_ptr<BlobStorageClientOptions> options,
-    shared_ptr<InstanceClientProviderInterface> instance_client_provider,
-    const shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+    std::shared_ptr<BlobStorageClientOptions> options,
+    std::shared_ptr<InstanceClientProviderInterface> instance_client_provider,
+    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
   return make_shared<GcpBlobStorageClientProvider>(
       options, instance_client_provider, cpu_async_executor, io_async_executor,
       std::make_shared<TestGcpCloudStorageFactory>());

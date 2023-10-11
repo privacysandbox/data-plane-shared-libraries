@@ -87,8 +87,6 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::QueueClientOptions;
 using google::scp::cpio::client_providers::QueueClientProviderInterface;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -103,10 +101,10 @@ constexpr char kQueueClientName[] = "queue_client";
 constexpr char kServiceFactoryName[] = "service_factory";
 }  // namespace
 
-shared_ptr<CloudInitializerInterface> cloud_initializer;
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<QueueServiceFactoryInterface> service_factory;
-shared_ptr<QueueClientProviderInterface> queue_client;
+std::shared_ptr<CloudInitializerInterface> cloud_initializer;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<QueueServiceFactoryInterface> service_factory;
+std::shared_ptr<QueueClientProviderInterface> queue_client;
 
 class QueueServiceImpl : public QueueService::CallbackService {
  public:
@@ -192,20 +190,22 @@ int main(int argc, char* argv[]) {
 void RunClients() {
 #if defined(AWS_SERVER)
   SCP_INFO(kQueueService, kZeroUuid, "Start AWS Queue Server");
-  service_factory =
-      make_shared<google::scp::cpio::AwsQueueServiceFactory>(config_provider);
+  service_factory = std::make_shared<google::scp::cpio::AwsQueueServiceFactory>(
+      config_provider);
 #elif defined(GCP_SERVER)
   SCP_INFO(kQueueService, kZeroUuid, "Start GCP Queue Server");
-  service_factory =
-      make_shared<google::scp::cpio::GcpQueueServiceFactory>(config_provider);
+  service_factory = std::make_shared<google::scp::cpio::GcpQueueServiceFactory>(
+      config_provider);
 #elif defined(TEST_AWS_SERVER)
   SCP_INFO(kQueueService, kZeroUuid, "Start test AWS Queue Server");
-  service_factory = make_shared<google::scp::cpio::TestAwsQueueServiceFactory>(
-      config_provider);
+  service_factory =
+      std::make_shared<google::scp::cpio::TestAwsQueueServiceFactory>(
+          config_provider);
 #elif defined(TEST_GCP_SERVER)
   SCP_INFO(kQueueService, kZeroUuid, "Start test GCP Queue Server");
-  service_factory = make_shared<google::scp::cpio::TestGcpQueueServiceFactory>(
-      config_provider);
+  service_factory =
+      std::make_shared<google::scp::cpio::TestGcpQueueServiceFactory>(
+          config_provider);
 #endif
   Init(service_factory, kServiceFactoryName);
   Run(service_factory, kServiceFactoryName);

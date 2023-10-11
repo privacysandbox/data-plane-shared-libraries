@@ -18,9 +18,6 @@
 
 #include <utility>
 
-using std::make_shared;
-using std::shared_ptr;
-
 namespace {
 constexpr char kMethodName[] = "MethodName";
 constexpr char kComponentName[] = "ComponentName";
@@ -29,7 +26,7 @@ constexpr char kComponentName[] = "ComponentName";
 namespace google::scp::cpio {
 
 void MetricUtils::GetPutMetricsRequest(
-    shared_ptr<cmrt::sdk::metric_service::v1::PutMetricsRequest>&
+    std::shared_ptr<cmrt::sdk::metric_service::v1::PutMetricsRequest>&
         record_metric_request,
     const MetricDefinition& metric_info,
     const MetricValue& metric_value) noexcept {
@@ -61,11 +58,11 @@ void MetricUtils::GetPutMetricsRequest(
  * @param metric_label_component Component Name where the metric is emitted
  * @param metric_label_method Method Name where the metric is emitted
  * @param metric_unit_type unit type
- * @return shared_ptr<SimpleMetricInterface>
+ * @return std::shared_ptr<SimpleMetricInterface>
  */
-shared_ptr<SimpleMetricInterface> MetricUtils::RegisterSimpleMetric(
-    const shared_ptr<core::AsyncExecutorInterface>& async_executor,
-    const shared_ptr<MetricClientInterface>& metric_client,
+std::shared_ptr<SimpleMetricInterface> MetricUtils::RegisterSimpleMetric(
+    const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<MetricClientInterface>& metric_client,
     const std::string& metric_name, const std::string& metric_label_component,
     const std::string& metric_label_method,
     MetricUnit metric_unit_type) noexcept {
@@ -74,8 +71,8 @@ shared_ptr<SimpleMetricInterface> MetricUtils::RegisterSimpleMetric(
   auto metric_info =
       MetricDefinition(metric_name, metric_unit_type, kDefaultMetricNamespace,
                        std::move(metric_labels));
-  return make_shared<SimpleMetric>(async_executor, metric_client,
-                                   std::move(metric_info));
+  return std::make_shared<SimpleMetric>(async_executor, metric_client,
+                                        std::move(metric_info));
 }
 
 /**
@@ -89,11 +86,11 @@ shared_ptr<SimpleMetricInterface> MetricUtils::RegisterSimpleMetric(
  * @param metric_unit_type unit type
  * @param metric_event_labels Dimension labels of the metric
  * @param aggregated_metric_interval_ms Aggregation interval
- * @return shared_ptr<AggregateMetricInterface>
+ * @return std::shared_ptr<AggregateMetricInterface>
  */
-shared_ptr<AggregateMetricInterface> MetricUtils::RegisterAggregateMetric(
-    const shared_ptr<core::AsyncExecutorInterface>& async_executor,
-    const shared_ptr<MetricClientInterface>& metric_client,
+std::shared_ptr<AggregateMetricInterface> MetricUtils::RegisterAggregateMetric(
+    const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<MetricClientInterface>& metric_client,
     const std::string& metric_name, const std::string& metric_label_component,
     const std::string& metric_label_method, MetricUnit metric_unit_type,
     std::vector<std::string> metric_event_labels,
@@ -103,7 +100,7 @@ shared_ptr<AggregateMetricInterface> MetricUtils::RegisterAggregateMetric(
   auto metric_info =
       MetricDefinition(metric_name, metric_unit_type, kDefaultMetricNamespace,
                        std::move(metric_labels));
-  return make_shared<AggregateMetric>(
+  return std::make_shared<AggregateMetric>(
       async_executor, metric_client, std::move(metric_info),
       aggregated_metric_interval_ms, metric_event_labels);
 }

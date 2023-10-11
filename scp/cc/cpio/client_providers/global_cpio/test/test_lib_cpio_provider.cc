@@ -34,41 +34,38 @@
 #endif
 
 using google::scp::core::AsyncExecutorInterface;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::cpio::client_providers {
 TestLibCpioProvider::TestLibCpioProvider(
-    const shared_ptr<TestCpioOptions>& test_options)
+    const std::shared_ptr<TestCpioOptions>& test_options)
     : LibCpioProvider(test_options), test_options_(test_options) {
 #if defined(AWS_TEST)
-  instance_client_provider_ = make_shared<TestAwsInstanceClientProvider>(
-      make_shared<TestInstanceClientOptions>(*test_options_));
+  instance_client_provider_ = std::make_shared<TestAwsInstanceClientProvider>(
+      std::make_shared<TestInstanceClientOptions>(*test_options_));
 #elif defined(GCP_TEST)
-  instance_client_provider_ = make_shared<TestGcpInstanceClientProvider>(
-      make_shared<TestInstanceClientOptions>(*test_options_));
+  instance_client_provider_ = std::make_shared<TestGcpInstanceClientProvider>(
+      std::make_shared<TestInstanceClientOptions>(*test_options_));
 #endif
 }
 
-shared_ptr<RoleCredentialsProviderInterface>
+std::shared_ptr<RoleCredentialsProviderInterface>
 TestLibCpioProvider::CreateRoleCredentialsProvider(
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
 #if defined(AWS_TEST)
-  return make_shared<TestAwsRoleCredentialsProvider>(
-      make_shared<TestAwsRoleCredentialsProviderOptions>(*test_options_),
+  return std::make_shared<TestAwsRoleCredentialsProvider>(
+      std::make_shared<TestAwsRoleCredentialsProviderOptions>(*test_options_),
       instance_client_provider, cpu_async_executor, io_async_executor);
 #elif defined(GCP_TEST)
-  return make_shared<GcpRoleCredentialsProvider>();
+  return std::make_shared<GcpRoleCredentialsProvider>();
 #endif
 }
 
-unique_ptr<CpioProviderInterface> CpioProviderFactory::Create(
-    const shared_ptr<CpioOptions>& options) {
-  return make_unique<TestLibCpioProvider>(
+std::unique_ptr<CpioProviderInterface> CpioProviderFactory::Create(
+    const std::shared_ptr<CpioOptions>& options) {
+  return std::make_unique<TestLibCpioProvider>(
       std::dynamic_pointer_cast<TestCpioOptions>(options));
 }
 }  // namespace google::scp::cpio::client_providers

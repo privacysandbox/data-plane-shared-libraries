@@ -31,11 +31,9 @@
 using std::atomic;
 using std::function;
 using std::is_same_v;
-using std::make_shared;
 using std::memory_order_relaxed;
 using std::mt19937;
 using std::random_device;
-using std::shared_ptr;
 using std::thread;
 using std::uniform_int_distribution;
 using std::this_thread::get_id;
@@ -56,14 +54,15 @@ ExecutionResult AsyncExecutor::Init() noexcept {
     // up. Should we instead randomly assign the CPUs?
     size_t cpu_affinity_number = i % std::thread::hardware_concurrency();
     urgent_task_executor_pool_.push_back(
-        make_shared<SingleThreadPriorityAsyncExecutor>(
+        std::make_shared<SingleThreadPriorityAsyncExecutor>(
             queue_cap_, drop_tasks_on_stop_, cpu_affinity_number));
     auto execution_result = urgent_task_executor_pool_.back()->Init();
     if (!execution_result.Successful()) {
       return execution_result;
     }
-    normal_task_executor_pool_.push_back(make_shared<SingleThreadAsyncExecutor>(
-        queue_cap_, drop_tasks_on_stop_, cpu_affinity_number));
+    normal_task_executor_pool_.push_back(
+        std::make_shared<SingleThreadAsyncExecutor>(
+            queue_cap_, drop_tasks_on_stop_, cpu_affinity_number));
     execution_result = normal_task_executor_pool_.back()->Init();
     if (!execution_result.Successful()) {
       return execution_result;
@@ -133,7 +132,8 @@ ExecutionResult AsyncExecutor::Stop() noexcept {
 }
 
 template <class TaskExecutorType>
-ExecutionResultOr<shared_ptr<TaskExecutorType>> AsyncExecutor::PickTaskExecutor(
+ExecutionResultOr<std::shared_ptr<TaskExecutorType>>
+AsyncExecutor::PickTaskExecutor(
     AsyncExecutorAffinitySetting affinity,
     const std::vector<std::shared_ptr<TaskExecutorType>>& task_executor_pool,
     TaskExecutorPoolType task_executor_pool_type,

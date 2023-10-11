@@ -20,8 +20,6 @@
 #include <utility>
 
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 namespace google::scp::core {
@@ -64,7 +62,7 @@ void Http2Forwarder::OnHttpResponse(
   }
   original_context.result = context.result;
   // Copy the response.
-  original_context.response = make_shared<HttpResponse>();
+  original_context.response = std::make_shared<HttpResponse>();
   original_context.response->headers = context.response->headers;
   original_context.response->body = context.response->body;
   original_context.response->code = context.response->code;

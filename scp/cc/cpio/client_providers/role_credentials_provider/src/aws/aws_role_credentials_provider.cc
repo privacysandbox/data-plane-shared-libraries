@@ -50,8 +50,6 @@ using google::scp::core::common::TimeProvider;
 using google::scp::core::errors::
     SC_AWS_ROLE_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -61,12 +59,12 @@ static constexpr char kAwsRoleCredentialsProvider[] =
     "AwsRoleCredentialsProvider";
 
 namespace google::scp::cpio::client_providers {
-shared_ptr<ClientConfiguration>
+std::shared_ptr<ClientConfiguration>
 AwsRoleCredentialsProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   return common::CreateClientConfiguration(
 
-      make_shared<std::string>(std::move(region)));
+      std::make_shared<std::string>(std::move(region)));
 }
 
 ExecutionResult AwsRoleCredentialsProvider::Init() noexcept {
@@ -99,12 +97,13 @@ ExecutionResult AwsRoleCredentialsProvider::Run() noexcept {
   }
 
   auto client_config = CreateClientConfiguration(*region_code_or);
-  client_config->executor = make_shared<AwsAsyncExecutor>(io_async_executor_);
-  sts_client_ = make_shared<STSClient>(*client_config);
+  client_config->executor =
+      std::make_shared<AwsAsyncExecutor>(io_async_executor_);
+  sts_client_ = std::make_shared<STSClient>(*client_config);
 
   auto timestamp = std::to_string(
       TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());
-  session_name_ = make_shared<std::string>(timestamp);
+  session_name_ = std::make_shared<std::string>(timestamp);
 
   return SuccessExecutionResult();
 }
@@ -135,7 +134,7 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
     const STSClient* sts_client,
     const AssumeRoleRequest& get_credentials_request,
     const AssumeRoleOutcome& get_credentials_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!get_credentials_outcome.IsSuccess()) {
     auto execution_result = STSErrorConverter::ConvertSTSError(
         get_credentials_outcome.GetError().GetErrorType(),
@@ -158,22 +157,23 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
   }
 
   get_credentials_context.result = SuccessExecutionResult();
-  get_credentials_context.response = make_shared<GetRoleCredentialsResponse>();
+  get_credentials_context.response =
+      std::make_shared<GetRoleCredentialsResponse>();
   get_credentials_context.response->access_key_id =
-      make_shared<std::string>(get_credentials_outcome.GetResult()
-                                   .GetCredentials()
-                                   .GetAccessKeyId()
-                                   .c_str());
+      std::make_shared<std::string>(get_credentials_outcome.GetResult()
+                                        .GetCredentials()
+                                        .GetAccessKeyId()
+                                        .c_str());
   get_credentials_context.response->access_key_secret =
-      make_shared<std::string>(get_credentials_outcome.GetResult()
-                                   .GetCredentials()
-                                   .GetSecretAccessKey()
-                                   .c_str());
+      std::make_shared<std::string>(get_credentials_outcome.GetResult()
+                                        .GetCredentials()
+                                        .GetSecretAccessKey()
+                                        .c_str());
   get_credentials_context.response->security_token =
-      make_shared<std::string>(get_credentials_outcome.GetResult()
-                                   .GetCredentials()
-                                   .GetSessionToken()
-                                   .c_str());
+      std::make_shared<std::string>(get_credentials_outcome.GetResult()
+                                        .GetCredentials()
+                                        .GetSessionToken()
+                                        .c_str());
 
   get_credentials_context.Finish();
 }
@@ -181,12 +181,13 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
 #ifndef TEST_CPIO
 std::shared_ptr<RoleCredentialsProviderInterface>
 RoleCredentialsProviderFactory::Create(
-    const shared_ptr<RoleCredentialsProviderOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>&
+    const std::shared_ptr<RoleCredentialsProviderOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  return make_shared<AwsRoleCredentialsProvider>(
+  return std::make_shared<AwsRoleCredentialsProvider>(
       instance_client_provider, cpu_async_executor, io_async_executor);
 }
 #endif

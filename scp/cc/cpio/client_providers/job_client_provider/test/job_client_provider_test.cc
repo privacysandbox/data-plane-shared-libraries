@@ -105,10 +105,6 @@ using google::scp::cpio::client_providers::mock::
     MockNoSQLDatabaseClientProvider;
 using google::scp::cpio::client_providers::mock::MockQueueClientProvider;
 using helloworld::HelloWorld;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::Eq;
 using testing::Ne;
 using testing::NiceMock;
@@ -202,41 +198,43 @@ namespace google::scp::cpio::client_providers::job_client::test {
 class JobClientProviderTest : public ::testing::TestWithParam<Duration> {
  protected:
   JobClientProviderTest() {
-    job_client_options_ = make_shared<JobClientOptions>();
+    job_client_options_ = std::make_shared<JobClientOptions>();
     job_client_options_->job_table_name = kJobsTableName;
-    queue_client_provider_ = make_shared<NiceMock<MockQueueClientProvider>>();
+    queue_client_provider_ =
+        std::make_shared<NiceMock<MockQueueClientProvider>>();
     nosql_database_client_provider_ =
-        make_shared<NiceMock<MockNoSQLDatabaseClientProvider>>();
+        std::make_shared<NiceMock<MockNoSQLDatabaseClientProvider>>();
 
-    job_client_provider_ = make_unique<MockJobClientProviderWithOverrides>(
+    job_client_provider_ = std::make_unique<MockJobClientProviderWithOverrides>(
         job_client_options_, queue_client_provider_,
         nosql_database_client_provider_);
 
-    put_job_context_.request = make_shared<PutJobRequest>();
+    put_job_context_.request = std::make_shared<PutJobRequest>();
     put_job_context_.callback = [this](auto) { finish_called_ = true; };
 
-    get_next_job_context_.request = make_shared<GetNextJobRequest>();
+    get_next_job_context_.request = std::make_shared<GetNextJobRequest>();
     get_next_job_context_.callback = [this](auto) { finish_called_ = true; };
 
-    get_job_by_id_context_.request = make_shared<GetJobByIdRequest>();
+    get_job_by_id_context_.request = std::make_shared<GetJobByIdRequest>();
     get_job_by_id_context_.callback = [this](auto) { finish_called_ = true; };
 
-    update_job_body_context_.request = make_shared<UpdateJobBodyRequest>();
+    update_job_body_context_.request = std::make_shared<UpdateJobBodyRequest>();
     update_job_body_context_.callback = [this](auto) { finish_called_ = true; };
 
-    update_job_status_context_.request = make_shared<UpdateJobStatusRequest>();
+    update_job_status_context_.request =
+        std::make_shared<UpdateJobStatusRequest>();
     update_job_status_context_.callback = [this](auto) {
       finish_called_ = true;
     };
 
     update_job_visibility_timeout_context_.request =
-        make_shared<UpdateJobVisibilityTimeoutRequest>();
+        std::make_shared<UpdateJobVisibilityTimeoutRequest>();
     update_job_visibility_timeout_context_.callback = [this](auto) {
       finish_called_ = true;
     };
 
     delete_orphaned_job_context_.request =
-        make_shared<DeleteOrphanedJobMessageRequest>();
+        std::make_shared<DeleteOrphanedJobMessageRequest>();
     delete_orphaned_job_context_.callback = [this](auto) {
       finish_called_ = true;
     };
@@ -244,10 +242,11 @@ class JobClientProviderTest : public ::testing::TestWithParam<Duration> {
 
   void TearDown() override { EXPECT_SUCCESS(job_client_provider_->Stop()); }
 
-  shared_ptr<JobClientOptions> job_client_options_;
-  shared_ptr<MockQueueClientProvider> queue_client_provider_;
-  shared_ptr<MockNoSQLDatabaseClientProvider> nosql_database_client_provider_;
-  unique_ptr<JobClientProvider> job_client_provider_;
+  std::shared_ptr<JobClientOptions> job_client_options_;
+  std::shared_ptr<MockQueueClientProvider> queue_client_provider_;
+  std::shared_ptr<MockNoSQLDatabaseClientProvider>
+      nosql_database_client_provider_;
+  std::unique_ptr<JobClientProvider> job_client_provider_;
 
   AsyncContext<PutJobRequest, PutJobResponse> put_job_context_;
 
@@ -275,7 +274,7 @@ class JobClientProviderTest : public ::testing::TestWithParam<Duration> {
 };
 
 TEST_F(JobClientProviderTest, InitWithNullJobClientOptions) {
-  auto client = make_unique<MockJobClientProviderWithOverrides>(
+  auto client = std::make_unique<MockJobClientProviderWithOverrides>(
       nullptr, queue_client_provider_, nosql_database_client_provider_);
 
   EXPECT_THAT(client->Init(),
@@ -321,7 +320,7 @@ TEST_F(JobClientProviderTest, PutJobSuccess) {
   EXPECT_CALL(*queue_client_provider_, EnqueueMessage)
       .WillOnce([&server_job_id](auto& enqueue_message_context) {
         enqueue_message_context.response =
-            make_shared<EnqueueMessageResponse>();
+            std::make_shared<EnqueueMessageResponse>();
         auto job_message_body =
             JobMessageBody(enqueue_message_context.request->message_body());
         EXPECT_EQ(job_message_body.job_id, kJobId);
@@ -348,7 +347,7 @@ TEST_F(JobClientProviderTest, PutJobSuccess) {
         TimeUtil::FromString(created_time_in_string,
                              &job_created_time_in_request);
         create_database_item_context.response =
-            make_shared<CreateDatabaseItemResponse>();
+            std::make_shared<CreateDatabaseItemResponse>();
         create_database_item_context.result = SuccessExecutionResult();
         create_database_item_context.Finish();
         return SuccessExecutionResult();
@@ -439,7 +438,7 @@ TEST_F(JobClientProviderTest, PutJobWithCreateDatabaseItemFailure) {
   EXPECT_CALL(*queue_client_provider_, EnqueueMessage)
       .WillOnce([](auto& enqueue_message_context) {
         enqueue_message_context.response =
-            make_shared<EnqueueMessageResponse>();
+            std::make_shared<EnqueueMessageResponse>();
         auto job_message_body =
             JobMessageBody(enqueue_message_context.request->message_body());
         EXPECT_EQ(job_message_body.job_id, kJobId);
@@ -492,7 +491,8 @@ TEST_F(JobClientProviderTest, GetNextJobSuccess) {
 
   EXPECT_CALL(*queue_client_provider_, GetTopMessage)
       .WillOnce([](auto& get_top_message_context) {
-        get_top_message_context.response = make_shared<GetTopMessageResponse>();
+        get_top_message_context.response =
+            std::make_shared<GetTopMessageResponse>();
         auto message_body = JobMessageBody(kJobId, kServerJobId);
         get_top_message_context.response->set_message_body(
             message_body.ToJsonString());
@@ -518,7 +518,7 @@ TEST_F(JobClientProviderTest, GetNextJobSuccess) {
                   kJobsTableName, kJobId, kServerJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -583,7 +583,8 @@ TEST_F(JobClientProviderTest, GetNextJobWithGetTopMessageFailure) {
 TEST_F(JobClientProviderTest, GetNextJobWithNoMessagesAvailable) {
   EXPECT_CALL(*queue_client_provider_, GetTopMessage)
       .WillOnce([](auto& get_top_message_context) {
-        get_top_message_context.response = make_shared<GetTopMessageResponse>();
+        get_top_message_context.response =
+            std::make_shared<GetTopMessageResponse>();
         get_top_message_context.result = SuccessExecutionResult();
         get_top_message_context.Finish();
         return SuccessExecutionResult();
@@ -608,7 +609,8 @@ TEST_F(JobClientProviderTest, GetNextJobWithGetDatabaseItemFailure) {
 
   EXPECT_CALL(*queue_client_provider_, GetTopMessage)
       .WillOnce([](auto& get_top_message_context) {
-        get_top_message_context.response = make_shared<GetTopMessageResponse>();
+        get_top_message_context.response =
+            std::make_shared<GetTopMessageResponse>();
         auto message_body = JobMessageBody(kJobId, kServerJobId);
         get_top_message_context.response->set_message_body(
             message_body.ToJsonString());
@@ -649,7 +651,8 @@ TEST_F(JobClientProviderTest, GetNextJobWithInvalidDatabaseItemFailure) {
 
   EXPECT_CALL(*queue_client_provider_, GetTopMessage)
       .WillOnce([](auto& get_top_message_context) {
-        get_top_message_context.response = make_shared<GetTopMessageResponse>();
+        get_top_message_context.response =
+            std::make_shared<GetTopMessageResponse>();
         auto message_body = JobMessageBody(kJobId, kServerJobId);
         get_top_message_context.response->set_message_body(
             message_body.ToJsonString());
@@ -665,7 +668,7 @@ TEST_F(JobClientProviderTest, GetNextJobWithInvalidDatabaseItemFailure) {
                   kJobsTableName, kJobId, kServerJobId)))
       .WillOnce([](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
         return SuccessExecutionResult();
@@ -715,7 +718,7 @@ TEST_F(JobClientProviderTest, GetJobById) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -812,7 +815,7 @@ TEST_F(JobClientProviderTest, GetJobByIdWithInvalidDatabaseItemFailure) {
                   kJobsTableName, kJobId)))
       .WillOnce([](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
         return SuccessExecutionResult();
@@ -865,7 +868,7 @@ TEST_F(JobClientProviderTest, UpdateJobBodySuccess) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -888,7 +891,7 @@ TEST_F(JobClientProviderTest, UpdateJobBodySuccess) {
             TimeUtil::FromString(updated_time_in_string,
                                  &job_updated_time_in_request);
             upsert_database_item_context.response =
-                make_shared<UpsertDatabaseItemResponse>();
+                std::make_shared<UpsertDatabaseItemResponse>();
             upsert_database_item_context.result = SuccessExecutionResult();
             upsert_database_item_context.Finish();
             return SuccessExecutionResult();
@@ -975,7 +978,7 @@ TEST_F(JobClientProviderTest, UpdateJobBodyWithInvalidDatabaseItemFailure) {
                   kJobsTableName, kJobId)))
       .WillOnce([](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
         return SuccessExecutionResult();
@@ -1017,7 +1020,7 @@ TEST_F(JobClientProviderTest, UpdateJobBodyWithRequestConflictsFailure) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -1061,7 +1064,7 @@ TEST_F(JobClientProviderTest, UpdateJobBodyWithUpsertDatabaseItemFailure) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -1077,7 +1080,7 @@ TEST_F(JobClientProviderTest, UpdateJobBodyWithUpsertDatabaseItemFailure) {
           kJobsTableName, encoded_job_body, kDefaultTimestampValueInString)))
       .WillOnce([](auto& upsert_database_item_context) {
         upsert_database_item_context.response =
-            make_shared<UpsertDatabaseItemResponse>();
+            std::make_shared<UpsertDatabaseItemResponse>();
         upsert_database_item_context.result = FailureExecutionResult(
             SC_NO_SQL_DATABASE_PROVIDER_RECORD_CORRUPTED);
         upsert_database_item_context.Finish();
@@ -1147,7 +1150,7 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithJobDeletionSuccess) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -1167,7 +1170,7 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithJobDeletionSuccess) {
             TimeUtil::FromString(updated_time_in_string,
                                  &job_updated_time_in_request);
             upsert_database_item_context.response =
-                make_shared<UpsertDatabaseItemResponse>();
+                std::make_shared<UpsertDatabaseItemResponse>();
             upsert_database_item_context.result = SuccessExecutionResult();
             upsert_database_item_context.Finish();
             return SuccessExecutionResult();
@@ -1176,7 +1179,8 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithJobDeletionSuccess) {
   EXPECT_CALL(*queue_client_provider_,
               DeleteMessage(HasReceiptInfo(kQueueMessageReceiptInfo)))
       .WillOnce([](auto& delete_message_context) {
-        delete_message_context.response = make_shared<DeleteMessageResponse>();
+        delete_message_context.response =
+            std::make_shared<DeleteMessageResponse>();
         delete_message_context.result = SuccessExecutionResult();
         delete_message_context.Finish();
         return SuccessExecutionResult();
@@ -1253,7 +1257,7 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithProcessingSuccess) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -1275,7 +1279,7 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithProcessingSuccess) {
             TimeUtil::FromString(updated_time_in_string,
                                  &job_updated_time_in_request);
             upsert_database_item_context.response =
-                make_shared<UpsertDatabaseItemResponse>();
+                std::make_shared<UpsertDatabaseItemResponse>();
             upsert_database_item_context.result = SuccessExecutionResult();
             upsert_database_item_context.Finish();
             return SuccessExecutionResult();
@@ -1373,7 +1377,7 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithDeleteMessageFailed) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -1386,7 +1390,7 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithDeleteMessageFailed) {
                   kDefaultTimestampValueInString, retry_count)))
       .WillOnce([](auto& upsert_database_item_context) {
         upsert_database_item_context.response =
-            make_shared<UpsertDatabaseItemResponse>();
+            std::make_shared<UpsertDatabaseItemResponse>();
         upsert_database_item_context.result = SuccessExecutionResult();
         upsert_database_item_context.Finish();
         return SuccessExecutionResult();
@@ -1441,7 +1445,7 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithUpsertDatabaseItemFailed) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -1497,7 +1501,7 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithInvalidJobStatusFailure) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -1545,7 +1549,7 @@ TEST_F(JobClientProviderTest, UpdateJobStatusWithRequestConflictsFailure) {
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -1592,7 +1596,7 @@ TEST_F(JobClientProviderTest, UpdateJobVisibilityTimeoutSuccess) {
                   kQueueMessageReceiptInfo, kUpdatedVisibilityTimeout)))
       .WillOnce([](auto& update_message_visibility_timeout_context) {
         update_message_visibility_timeout_context.response =
-            make_shared<UpdateMessageVisibilityTimeoutResponse>();
+            std::make_shared<UpdateMessageVisibilityTimeoutResponse>();
         update_message_visibility_timeout_context.result =
             SuccessExecutionResult();
         update_message_visibility_timeout_context.Finish();
@@ -1755,7 +1759,8 @@ TEST_F(JobClientProviderTest,
   EXPECT_CALL(*queue_client_provider_,
               DeleteMessage(HasReceiptInfo(kQueueMessageReceiptInfo)))
       .WillOnce([](auto& delete_message_context) {
-        delete_message_context.response = make_shared<DeleteMessageResponse>();
+        delete_message_context.response =
+            std::make_shared<DeleteMessageResponse>();
         delete_message_context.result = SuccessExecutionResult();
         delete_message_context.Finish();
         return SuccessExecutionResult();
@@ -1798,7 +1803,7 @@ TEST_F(JobClientProviderTest,
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -1808,7 +1813,8 @@ TEST_F(JobClientProviderTest,
   EXPECT_CALL(*queue_client_provider_,
               DeleteMessage(HasReceiptInfo(kQueueMessageReceiptInfo)))
       .WillOnce([](auto& delete_message_context) {
-        delete_message_context.response = make_shared<DeleteMessageResponse>();
+        delete_message_context.response =
+            std::make_shared<DeleteMessageResponse>();
         delete_message_context.result = SuccessExecutionResult();
         delete_message_context.Finish();
         return SuccessExecutionResult();
@@ -1924,7 +1930,7 @@ TEST_F(JobClientProviderTest,
                   kJobsTableName, kJobId)))
       .WillOnce([](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
         return SuccessExecutionResult();
@@ -1969,7 +1975,7 @@ TEST_F(JobClientProviderTest,
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();
@@ -2024,7 +2030,7 @@ TEST_F(JobClientProviderTest,
                   kJobsTableName, kJobId)))
       .WillOnce([&item](auto& get_database_item_context) {
         get_database_item_context.response =
-            make_shared<GetDatabaseItemResponse>();
+            std::make_shared<GetDatabaseItemResponse>();
         *get_database_item_context.response->mutable_item() = item;
         get_database_item_context.result = SuccessExecutionResult();
         get_database_item_context.Finish();

@@ -44,24 +44,22 @@ using google::scp::cpio::client_providers::AuthTokenProviderInterface;
 using google::scp::cpio::client_providers::GcpAuthTokenProvider;
 using google::scp::cpio::client_providers::GcpInstanceClientProvider;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kGcpInstanceServiceFactory[] = "GcpInstanceServiceFactory";
 }  // namespace
 
 namespace google::scp::cpio {
-ExecutionResultOr<shared_ptr<AuthTokenProviderInterface>>
+ExecutionResultOr<std::shared_ptr<AuthTokenProviderInterface>>
 GcpInstanceServiceFactory::CreateAuthTokenProvider() noexcept {
-  return make_shared<GcpAuthTokenProvider>(http1_client_);
+  return std::make_shared<GcpAuthTokenProvider>(http1_client_);
 }
 
 ExecutionResult GcpInstanceServiceFactory::Init() noexcept {
   auto execution_result = InstanceServiceFactory::Init();
   RETURN_IF_FAILURE(execution_result);
 
-  http2_client_ = make_shared<HttpClient>(cpu_async_executor_);
+  http2_client_ = std::make_shared<HttpClient>(cpu_async_executor_);
   execution_result = http2_client_->Init();
   if (!execution_result.Successful()) {
     SCP_ERROR(kGcpInstanceServiceFactory, kZeroUuid, execution_result,
@@ -102,11 +100,11 @@ ExecutionResult GcpInstanceServiceFactory::Stop() noexcept {
 
 std::shared_ptr<InstanceClientProviderInterface>
 GcpInstanceServiceFactory::CreateInstanceClient() noexcept {
-  return make_shared<GcpInstanceClientProvider>(auth_token_provider_,
-                                                http1_client_, http2_client_);
+  return std::make_shared<GcpInstanceClientProvider>(
+      auth_token_provider_, http1_client_, http2_client_);
 }
 
-ExecutionResultOr<shared_ptr<HttpClientInterface>>
+ExecutionResultOr<std::shared_ptr<HttpClientInterface>>
 GcpInstanceServiceFactory::GetHttp2Client() noexcept {
   return http2_client_;
 }

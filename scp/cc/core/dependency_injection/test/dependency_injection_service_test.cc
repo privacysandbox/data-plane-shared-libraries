@@ -31,8 +31,6 @@
 #include "scp/cc/core/interface/dependency_injection_service_interface.h"
 
 using std::function;
-using std::make_shared;
-using std::shared_ptr;
 using std::unordered_set;
 
 using google::scp::core::errors::
@@ -59,7 +57,7 @@ class DependencyInjectionServiceTest : public testing::Test {
  * @param id The id of the service.
  * @return MockService The service
  */
-shared_ptr<MockService> GetMockService(std::string id) {
+std::shared_ptr<MockService> GetMockService(std::string id) {
   return reinterpret_pointer_cast<MockService>(
       (ServiceCollection::collection.GetService(id)));
 }

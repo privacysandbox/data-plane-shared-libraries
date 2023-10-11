@@ -81,8 +81,6 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -139,7 +137,7 @@ ExecutionResult AwsQueueClientProvider::Run() noexcept {
   return execution_result;
 }
 
-ExecutionResultOr<shared_ptr<ClientConfiguration>>
+ExecutionResultOr<std::shared_ptr<ClientConfiguration>>
 AwsQueueClientProvider::CreateClientConfiguration() noexcept {
   auto region_code_or =
       AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_provider_);
@@ -150,8 +148,9 @@ AwsQueueClientProvider::CreateClientConfiguration() noexcept {
   }
 
   auto client_config = common::CreateClientConfiguration(
-      make_shared<std::string>(std::move(*region_code_or)));
-  client_config->executor = make_shared<AwsAsyncExecutor>(io_async_executor_);
+      std::make_shared<std::string>(std::move(*region_code_or)));
+  client_config->executor =
+      std::make_shared<AwsAsyncExecutor>(io_async_executor_);
 
   return client_config;
 }
@@ -213,7 +212,7 @@ void AwsQueueClientProvider::OnSendMessageCallback(
         enqueue_message_context,
     const SQSClient* sqs_client, const SendMessageRequest& send_message_request,
     SendMessageOutcome send_message_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   auto execution_result = SuccessExecutionResult();
   if (!send_message_outcome.IsSuccess()) {
     auto error_type = send_message_outcome.GetError().GetErrorType();
@@ -228,7 +227,7 @@ void AwsQueueClientProvider::OnSendMessageCallback(
                   cpu_async_executor_);
     return;
   }
-  enqueue_message_context.response = make_shared<EnqueueMessageResponse>();
+  enqueue_message_context.response = std::make_shared<EnqueueMessageResponse>();
   enqueue_message_context.response->set_message_id(
       send_message_outcome.GetResult().GetMessageId().c_str());
   FinishContext(execution_result, enqueue_message_context, cpu_async_executor_);
@@ -256,7 +255,7 @@ void AwsQueueClientProvider::OnReceiveMessageCallback(
     const SQSClient* sqs_client,
     const ReceiveMessageRequest& receive_message_request,
     ReceiveMessageOutcome receive_message_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   auto execution_result = SuccessExecutionResult();
   if (!receive_message_outcome.IsSuccess()) {
     auto error_type = receive_message_outcome.GetError().GetErrorType();
@@ -274,7 +273,7 @@ void AwsQueueClientProvider::OnReceiveMessageCallback(
   }
 
   const auto& messages = receive_message_outcome.GetResult().GetMessages();
-  auto response = make_shared<GetTopMessageResponse>();
+  auto response = std::make_shared<GetTopMessageResponse>();
   if (messages.size() == 0) {
     SCP_INFO_CONTEXT(kAwsQueueClientProvider, get_top_message_context,
                      "No messages received from the queue.");
@@ -362,7 +361,7 @@ void AwsQueueClientProvider::OnChangeMessageVisibilityCallback(
     const SQSClient* sqs_client,
     const ChangeMessageVisibilityRequest& change_message_visibility_request,
     ChangeMessageVisibilityOutcome change_message_visibility_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   auto execution_result = SuccessExecutionResult();
   if (!change_message_visibility_outcome.IsSuccess()) {
     auto error_type =
@@ -417,7 +416,7 @@ void AwsQueueClientProvider::OnDeleteMessageCallback(
     const SQSClient* sqs_client,
     const Aws::SQS::Model::DeleteMessageRequest& delete_message_request,
     DeleteMessageOutcome delete_message_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   auto execution_result = SuccessExecutionResult();
   if (!delete_message_outcome.IsSuccess()) {
     auto error_type = delete_message_outcome.GetError().GetErrorType();
@@ -433,17 +432,18 @@ void AwsQueueClientProvider::OnDeleteMessageCallback(
   FinishContext(execution_result, delete_message_context, cpu_async_executor_);
 }
 
-shared_ptr<SQSClient> AwsSqsClientFactory::CreateSqsClient(
-    const shared_ptr<ClientConfiguration> client_config) noexcept {
-  return make_shared<SQSClient>(*client_config);
+std::shared_ptr<SQSClient> AwsSqsClientFactory::CreateSqsClient(
+    const std::shared_ptr<ClientConfiguration> client_config) noexcept {
+  return std::make_shared<SQSClient>(*client_config);
 }
 
-shared_ptr<QueueClientProviderInterface> QueueClientProviderFactory::Create(
-    const shared_ptr<QueueClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface> instance_client,
-    const shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  return make_shared<AwsQueueClientProvider>(
+std::shared_ptr<QueueClientProviderInterface>
+QueueClientProviderFactory::Create(
+    const std::shared_ptr<QueueClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface> instance_client,
+    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+  return std::make_shared<AwsQueueClientProvider>(
       options, instance_client, cpu_async_executor, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

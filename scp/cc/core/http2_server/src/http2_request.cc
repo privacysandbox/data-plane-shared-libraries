@@ -30,7 +30,6 @@ using google::scp::core::http2_server::Http2Utils;
 using std::bind;
 using std::copy;
 using std::make_pair;
-using std::make_shared;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -59,7 +58,7 @@ ExecutionResult NgHttp2Request::ReadMethod() noexcept {
 }
 
 ExecutionResult NgHttp2Request::ReadHeaders() noexcept {
-  headers = make_shared<HttpHeaders>();
+  headers = std::make_shared<HttpHeaders>();
   for (const auto& header : ng2_request_.header()) {
     headers->insert({header.first, header.second.value});
   }
@@ -118,7 +117,7 @@ ExecutionResult NgHttp2Request::UnwrapNgHttp2Request() noexcept {
           core::errors::SC_HTTP2_SERVER_INVALID_HEADER);
     }
   }
-  body.bytes = make_shared<std::vector<Byte>>(content_length);
+  body.bytes = std::make_shared<std::vector<Byte>>(content_length);
   body.length = 0;
   body.capacity = content_length;
   return SuccessExecutionResult();

@@ -28,19 +28,17 @@
 using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::client_providers::AwsMetricClientProvider;
 using google::scp::cpio::client_providers::TestAwsMetricClientProvider;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestAwsMetricServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestAwsInstanceServiceFactory>(
+  return std::make_shared<TestAwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions>
+std::shared_ptr<InstanceServiceFactoryOptions>
 TestAwsMetricServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
-  auto options = make_shared<TestAwsInstanceServiceFactoryOptions>();
+  auto options = std::make_shared<TestAwsInstanceServiceFactoryOptions>();
   options->region_config_label = kTestAwsMetricClientRegion;
   return options;
 }
@@ -52,12 +50,12 @@ TestAwsMetricServiceFactory::CreateMetricClient() noexcept {
       *test_options_->cloud_watch_endpoint_override);
   if (execution_result.Successful() &&
       !test_options_->cloud_watch_endpoint_override->empty()) {
-    return make_shared<TestAwsMetricClientProvider>(
+    return std::make_shared<TestAwsMetricClientProvider>(
         test_options_, instance_client_,
         instance_service_factory_->GetCpuAsynceExecutor(),
         instance_service_factory_->GetIoAsynceExecutor());
   }
-  return make_shared<AwsMetricClientProvider>(
+  return std::make_shared<AwsMetricClientProvider>(
       test_options_, instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());

@@ -41,10 +41,6 @@ using google::scp::cpio::MetricClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::milliseconds;
 
 static constexpr char kRegion[] = "us-east-1";
@@ -75,7 +71,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  auto request = make_shared<PutMetricsRequest>();
+  auto request = std::make_shared<PutMetricsRequest>();
   request->set_metric_namespace("test");
   auto metric = request->add_metrics();
   metric->set_name("test_metric");

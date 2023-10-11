@@ -44,17 +44,14 @@ using google::scp::cpio::PrivateKeyClient;
 using google::scp::cpio::PrivateKeyClientOptions;
 using google::scp::cpio::mock::MockPrivateKeyClientWithOverrides;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::cpio::test {
 class PrivateKeyClientTest : public ::testing::Test {
  protected:
   PrivateKeyClientTest() {
-    auto private_key_client_options = make_shared<PrivateKeyClientOptions>();
-    client_ = make_unique<MockPrivateKeyClientWithOverrides>(
+    auto private_key_client_options =
+        std::make_shared<PrivateKeyClientOptions>();
+    client_ = std::make_unique<MockPrivateKeyClientWithOverrides>(
         private_key_client_options);
 
     EXPECT_THAT(client_->Init(), IsSuccessful());
@@ -63,14 +60,14 @@ class PrivateKeyClientTest : public ::testing::Test {
 
   ~PrivateKeyClientTest() { EXPECT_THAT(client_->Stop(), IsSuccessful()); }
 
-  unique_ptr<MockPrivateKeyClientWithOverrides> client_;
+  std::unique_ptr<MockPrivateKeyClientWithOverrides> client_;
 };
 
 TEST_F(PrivateKeyClientTest, ListPrivateKeysSuccess) {
   EXPECT_CALL(*client_->GetPrivateKeyClientProvider(), ListPrivateKeys)
       .WillOnce([=](AsyncContext<ListPrivateKeysRequest,
                                  ListPrivateKeysResponse>& context) {
-        context.response = make_shared<ListPrivateKeysResponse>();
+        context.response = std::make_shared<ListPrivateKeysResponse>();
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();

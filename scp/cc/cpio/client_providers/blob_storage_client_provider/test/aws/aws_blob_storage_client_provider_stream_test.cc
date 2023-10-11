@@ -90,8 +90,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
 using std::atomic_bool;
-using std::make_shared;
-using std::shared_ptr;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
@@ -119,32 +117,32 @@ namespace google::scp::cpio::client_providers {
 
 class MockAwsS3Factory : public AwsS3Factory {
  public:
-  MOCK_METHOD(core::ExecutionResultOr<shared_ptr<Aws::S3::S3Client>>,
+  MOCK_METHOD(core::ExecutionResultOr<std::shared_ptr<Aws::S3::S3Client>>,
               CreateClient,
               (ClientConfiguration&,
-               const shared_ptr<core::AsyncExecutorInterface>&),
+               const std::shared_ptr<core::AsyncExecutorInterface>&),
               (noexcept, override));
 };
 
 class AwsBlobStorageClientProviderStreamTest : public ::testing::Test {
  protected:
   AwsBlobStorageClientProviderStreamTest()
-      : instance_client_(make_shared<MockInstanceClientProvider>()),
-        s3_factory_(make_shared<NiceMock<MockAwsS3Factory>>()),
-        provider_(make_shared<BlobStorageClientOptions>(), instance_client_,
-                  make_shared<MockAsyncExecutor>(),
-                  make_shared<MockAsyncExecutor>(), s3_factory_) {
+      : instance_client_(std::make_shared<MockInstanceClientProvider>()),
+        s3_factory_(std::make_shared<NiceMock<MockAwsS3Factory>>()),
+        provider_(std::make_shared<BlobStorageClientOptions>(),
+                  instance_client_, std::make_shared<MockAsyncExecutor>(),
+                  std::make_shared<MockAsyncExecutor>(), s3_factory_) {
     InitAPI(options_);
     instance_client_->instance_resource_name = kResourceNameMock;
-    s3_client_ = make_shared<NiceMock<MockS3Client>>();
+    s3_client_ = std::make_shared<NiceMock<MockS3Client>>();
     abstract_client_ = static_cast<S3Client*>(s3_client_.get());
 
     ON_CALL(*s3_factory_, CreateClient).WillByDefault(Return(s3_client_));
 
-    put_blob_stream_context_.request = make_shared<PutBlobStreamRequest>();
+    put_blob_stream_context_.request = std::make_shared<PutBlobStreamRequest>();
     put_blob_stream_context_.callback = [this](auto) { finish_called_ = true; };
 
-    get_blob_stream_context_.request = make_shared<GetBlobStreamRequest>();
+    get_blob_stream_context_.request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_context_.process_callback = [this](auto, auto) {
       finish_called_ = true;
     };
@@ -155,10 +153,10 @@ class AwsBlobStorageClientProviderStreamTest : public ::testing::Test {
 
   ~AwsBlobStorageClientProviderStreamTest() { ShutdownAPI(options_); }
 
-  shared_ptr<MockInstanceClientProvider> instance_client_;
-  shared_ptr<MockS3Client> s3_client_;
+  std::shared_ptr<MockInstanceClientProvider> instance_client_;
+  std::shared_ptr<MockS3Client> s3_client_;
   S3Client* abstract_client_;
-  shared_ptr<MockAwsS3Factory> s3_factory_;
+  std::shared_ptr<MockAwsS3Factory> s3_factory_;
   AwsBlobStorageClientProvider provider_;
 
   ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>
@@ -463,14 +461,14 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStreamAccumulates) {
 TEST_F(AwsBlobStorageClientProviderStreamTest,
        PutBlobStreamMultiplePortionsWithNoOpCycles) {
   // In order to test the "no message" path, we must have real async executors.
-  auto cpu_async_executor = make_shared<AsyncExecutor>(2, 10),
-       io_async_executor = make_shared<AsyncExecutor>(2, 10);
+  auto cpu_async_executor = std::make_shared<AsyncExecutor>(2, 10),
+       io_async_executor = std::make_shared<AsyncExecutor>(2, 10);
   EXPECT_SUCCESS(cpu_async_executor->Init());
   EXPECT_SUCCESS(io_async_executor->Init());
   EXPECT_SUCCESS(cpu_async_executor->Run());
   EXPECT_SUCCESS(io_async_executor->Run());
   AwsBlobStorageClientProvider async_client(
-      make_shared<BlobStorageClientOptions>(), instance_client_,
+      std::make_shared<BlobStorageClientOptions>(), instance_client_,
       cpu_async_executor, io_async_executor, s3_factory_);
   EXPECT_SUCCESS(async_client.Init());
   EXPECT_SUCCESS(async_client.Run());

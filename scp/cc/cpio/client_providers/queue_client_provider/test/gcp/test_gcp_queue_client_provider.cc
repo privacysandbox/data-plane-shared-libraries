@@ -31,12 +31,10 @@ using grpc::Channel;
 using grpc::ChannelArguments;
 using grpc::CreateCustomChannel;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
-shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(
-    const shared_ptr<QueueClientOptions>& options) noexcept {
+std::shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(
+    const std::shared_ptr<QueueClientOptions>& options) noexcept {
   if (!channel_) {
     ChannelArguments args;
     args.SetInt(GRPC_ARG_ENABLE_RETRIES, 1);  // enable
@@ -61,12 +59,14 @@ shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(
   return channel_;
 }
 
-shared_ptr<QueueClientProviderInterface> QueueClientProviderFactory::Create(
-    const shared_ptr<QueueClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface> instance_client_provider,
-    const shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  return make_shared<TestGcpQueueClientProvider>(
+std::shared_ptr<QueueClientProviderInterface>
+QueueClientProviderFactory::Create(
+    const std::shared_ptr<QueueClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>
+        instance_client_provider,
+    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+  return std::make_shared<TestGcpQueueClientProvider>(
       std::dynamic_pointer_cast<TestGcpQueueClientOptions>(options),
       instance_client_provider, cpu_async_executor, io_async_executor);
 }

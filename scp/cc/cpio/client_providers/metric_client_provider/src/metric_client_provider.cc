@@ -50,9 +50,7 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_ALREADY_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 using std::bind;
-using std::make_shared;
 using std::scoped_lock;
-using std::shared_ptr;
 using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
 using std::placeholders::_1;
@@ -169,7 +167,7 @@ ExecutionResult MetricClientProvider::PutMetrics(
 }
 
 void MetricClientProvider::RunMetricsBatchPush() noexcept {
-  auto requests_vector_copy = make_shared<
+  auto requests_vector_copy = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   metric_requests_vector_.swap(*requests_vector_copy);
   number_metrics_in_vector_.exchange(0);
@@ -215,7 +213,7 @@ ExecutionResult MetricClientProvider::ScheduleMetricsBatchPush() noexcept {
 
 void MetricClientProvider::OnPutMetrics(
     AsyncContext<Any, Any> any_context) noexcept {
-  auto request = make_shared<PutMetricsRequest>();
+  auto request = std::make_shared<PutMetricsRequest>();
   any_context.request->UnpackTo(request.get());
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::move(request),

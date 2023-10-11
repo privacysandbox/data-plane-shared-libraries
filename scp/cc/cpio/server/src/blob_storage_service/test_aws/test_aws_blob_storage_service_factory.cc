@@ -28,19 +28,18 @@
 using google::scp::cpio::client_providers::AwsBlobStorageClientProvider;
 using google::scp::cpio::client_providers::BlobStorageClientProviderInterface;
 using google::scp::cpio::client_providers::TestAwsBlobStorageClientProvider;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestAwsBlobStorageServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestAwsInstanceServiceFactory>(
+  return std::make_shared<TestAwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions> TestAwsBlobStorageServiceFactory::
+std::shared_ptr<InstanceServiceFactoryOptions>
+TestAwsBlobStorageServiceFactory::
     CreateInstanceServiceFactoryOptions() noexcept {
-  auto options = make_shared<TestAwsInstanceServiceFactoryOptions>();
+  auto options = std::make_shared<TestAwsInstanceServiceFactoryOptions>();
   options->region_config_label = kTestAwsBlobStorageClientRegion;
   return options;
 }
@@ -52,12 +51,12 @@ TestAwsBlobStorageServiceFactory::CreateBlobStorageClient() noexcept {
       *test_options_->s3_endpoint_override);
   if (execution_result.Successful() &&
       !test_options_->s3_endpoint_override->empty()) {
-    return make_shared<TestAwsBlobStorageClientProvider>(
+    return std::make_shared<TestAwsBlobStorageClientProvider>(
         test_options_, instance_client_,
         instance_service_factory_->GetCpuAsynceExecutor(),
         instance_service_factory_->GetIoAsynceExecutor());
   }
-  return make_shared<AwsBlobStorageClientProvider>(
+  return std::make_shared<AwsBlobStorageClientProvider>(
       test_options_, instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());

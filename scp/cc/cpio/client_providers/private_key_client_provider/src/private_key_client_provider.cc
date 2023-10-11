@@ -50,8 +50,6 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Encode;
 using std::atomic;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 static constexpr char kPrivateKeyClientProvider[] = "PrivateKeyClientProvider";
@@ -80,7 +78,7 @@ ExecutionResult PrivateKeyClientProvider::Stop() noexcept {
 ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
     AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
         list_private_keys_context) noexcept {
-  auto list_keys_status = make_shared<ListPrivateKeysStatus>();
+  auto list_keys_status = std::make_shared<ListPrivateKeysStatus>();
   list_keys_status->listing_method =
       list_private_keys_context.request->key_ids().empty()
           ? ListingMethod::kByMaxAge
@@ -97,13 +95,13 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
 
   for (size_t call_index = 0;
        call_index < list_keys_status->call_count_per_endpoint; ++call_index) {
-    auto endpoints_status = make_shared<KeyEndPointsStatus>();
+    auto endpoints_status = std::make_shared<KeyEndPointsStatus>();
 
     for (size_t uri_index = 0; uri_index < endpoint_count_; ++uri_index) {
-      auto request = make_shared<PrivateKeyFetchingRequest>();
+      auto request = std::make_shared<PrivateKeyFetchingRequest>();
 
       if (list_keys_status->listing_method == ListingMethod::kByKeyId) {
-        request->key_id = make_shared<std::string>(
+        request->key_id = std::make_shared<std::string>(
             list_private_keys_context.request->key_ids(call_index));
       } else {
         request->max_age_seconds =
@@ -112,7 +110,7 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
 
       const auto& endpoint = endpoint_list_[uri_index];
       request->key_vending_endpoint =
-          make_shared<PrivateKeyVendingEndpoint>(endpoint);
+          std::make_shared<PrivateKeyVendingEndpoint>(endpoint);
 
       AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>
           fetch_private_key_context(
@@ -152,8 +150,8 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
         list_private_keys_context,
     AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
         fetch_private_key_context,
-    shared_ptr<ListPrivateKeysStatus> list_keys_status,
-    shared_ptr<KeyEndPointsStatus> endpoints_status,
+    std::shared_ptr<ListPrivateKeysStatus> list_keys_status,
+    std::shared_ptr<KeyEndPointsStatus> endpoints_status,
     size_t uri_index) noexcept {
   if (list_keys_status->got_failure.load() ||
       list_keys_status->got_empty_key_list.load()) {
@@ -190,7 +188,7 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
             got_empty_key_list, true)) {
       list_private_keys_context.result = SuccessExecutionResult();
       list_private_keys_context.response =
-          make_shared<ListPrivateKeysResponse>();
+          std::make_shared<ListPrivateKeysResponse>();
       list_private_keys_context.Finish();
       SCP_WARNING_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
                           "The private key list is empty.");
@@ -255,7 +253,7 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
         fetch_private_key_context.request->key_vending_endpoint
             ->gcp_wip_provider);
     AsyncContext<DecryptRequest, DecryptResponse> decrypt_context(
-        make_shared<DecryptRequest>(kms_decrypt_request),
+        std::make_shared<DecryptRequest>(kms_decrypt_request),
         bind(&PrivateKeyClientProvider::OnDecrpytCallback, this,
              list_private_keys_context, _1, list_keys_status, endpoints_status,
              encryption_key, uri_index),
@@ -281,9 +279,9 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
     AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
         list_private_keys_context,
     AsyncContext<DecryptRequest, DecryptResponse>& decrypt_context,
-    shared_ptr<ListPrivateKeysStatus> list_keys_status,
-    shared_ptr<KeyEndPointsStatus> endpoints_status,
-    shared_ptr<EncryptionKey> encryption_key, size_t uri_index) noexcept {
+    std::shared_ptr<ListPrivateKeysStatus> list_keys_status,
+    std::shared_ptr<KeyEndPointsStatus> endpoints_status,
+    std::shared_ptr<EncryptionKey> encryption_key, size_t uri_index) noexcept {
   if (list_keys_status->got_failure.load()) {
     return;
   }
@@ -378,7 +376,8 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
           list_keys_status->call_count_per_endpoint * endpoint_count_ &&
       finished_key_split_count_prev ==
           list_keys_status->total_key_split_count - 1) {
-    list_private_keys_context.response = make_shared<ListPrivateKeysResponse>();
+    list_private_keys_context.response =
+        std::make_shared<ListPrivateKeysResponse>();
     int count = 0;
     for (auto it = list_keys_status->private_key_id_map.begin();
          it != list_keys_status->private_key_id_map.end(); ++it) {
@@ -391,21 +390,21 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
   }
 }
 
-shared_ptr<PrivateKeyClientProviderInterface>
+std::shared_ptr<PrivateKeyClientProviderInterface>
 PrivateKeyClientProviderFactory::Create(
-    const shared_ptr<PrivateKeyClientOptions>& options,
-    const shared_ptr<core::HttpClientInterface>& http_client,
-    const shared_ptr<RoleCredentialsProviderInterface>&
+    const std::shared_ptr<PrivateKeyClientOptions>& options,
+    const std::shared_ptr<core::HttpClientInterface>& http_client,
+    const std::shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider,
-    const shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
+    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
     const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
   auto kms_client_provider = KmsClientProviderFactory::Create(
-      make_shared<KmsClientOptions>(), role_credentials_provider,
+      std::make_shared<KmsClientOptions>(), role_credentials_provider,
       io_async_executor);
   auto private_key_fetcher = PrivateKeyFetcherProviderFactory::Create(
       http_client, role_credentials_provider, auth_token_provider);
 
-  return make_shared<PrivateKeyClientProvider>(
+  return std::make_shared<PrivateKeyClientProvider>(
       options, http_client, private_key_fetcher, kms_client_provider);
 }
 

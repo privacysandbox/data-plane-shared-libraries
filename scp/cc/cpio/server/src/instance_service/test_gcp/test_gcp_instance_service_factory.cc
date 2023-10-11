@@ -34,8 +34,6 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::TestGcpInstanceClientProvider;
 using google::scp::cpio::client_providers::TestInstanceClientOptions;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kTestGcpInstanceServiceFactory[] =
@@ -74,13 +72,13 @@ ExecutionResult TestGcpInstanceServiceFactory::Init() noexcept {
   return SuccessExecutionResult();
 }
 
-shared_ptr<InstanceClientProviderInterface>
+std::shared_ptr<InstanceClientProviderInterface>
 TestGcpInstanceServiceFactory::CreateInstanceClient() noexcept {
-  auto options = make_shared<TestInstanceClientOptions>();
+  auto options = std::make_shared<TestInstanceClientOptions>();
   options->owner_id = project_id_;
   options->zone = zone_;
   options->instance_id = instance_id_;
-  return make_shared<TestGcpInstanceClientProvider>(options);
+  return std::make_shared<TestGcpInstanceClientProvider>(options);
 }
 
 }  // namespace google::scp::cpio

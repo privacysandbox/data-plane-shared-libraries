@@ -38,9 +38,7 @@
 #include "proxy_bridge.h"
 #include "socket_types.h"
 
-using std::make_shared;
 using std::shared_lock;
-using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
 
@@ -98,7 +96,7 @@ void ProxyServer::StartAsyncAccept() {
     StartAsyncAccept();
     if (!ec) {
       auto bridge =
-          make_shared<ProxyBridge>(std::move(socket), &acceptor_pool_);
+          std::make_shared<ProxyBridge>(std::move(socket), &acceptor_pool_);
       bridge->PerformSocks5Handshake();
     }
   });

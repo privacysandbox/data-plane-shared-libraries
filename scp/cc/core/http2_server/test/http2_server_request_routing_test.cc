@@ -63,9 +63,7 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricInstanceFactory;
 using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
-using std::make_shared;
 using std::promise;
-using std::shared_ptr;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using testing::_;
@@ -93,16 +91,16 @@ class Http2RequestRouterTest : public testing::Test {
   void SetUp() override {
     size_t thread_pool_size = 2;
     async_executor_ = std::make_shared<AsyncExecutor>(8, 10, true);
-    shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
+    std::shared_ptr<AuthorizationProxyInterface> mock_authorization_proxy =
         std::make_shared<MockAuthorizationProxy>();
 
     mock_config_provider_ = std::make_shared<MockConfigProvider>();
     mock_request_route_resolver_ = std::make_shared<MockRequestRouteResolver>();
     mock_request_router_ = std::make_shared<MockHttp2Forwarder>();
-    shared_ptr<MetricInstanceFactoryInterface> mock_metric_instance_factory =
-        make_shared<MetricInstanceFactory>(async_executor_,
-                                           make_shared<MockMetricClient>(),
-                                           mock_config_provider_);
+    std::shared_ptr<MetricInstanceFactoryInterface>
+        mock_metric_instance_factory = std::make_shared<MetricInstanceFactory>(
+            async_executor_, std::make_shared<MockMetricClient>(),
+            mock_config_provider_);
     std::shared_ptr<HttpRequestRouteResolverInterface> request_route_resolver =
         mock_request_route_resolver_;
     std::shared_ptr<HttpRequestRouterInterface> request_router =
@@ -138,9 +136,9 @@ class Http2RequestRouterTest : public testing::Test {
 
   nghttp2::asio_http2::server::request request_;
   nghttp2::asio_http2::server::response response_;
-  shared_ptr<MockNgHttp2RequestWithOverrides>
+  std::shared_ptr<MockNgHttp2RequestWithOverrides>
       mock_server_request_with_overrides_;
-  shared_ptr<MockNgHttp2ResponseWithOverrides>
+  std::shared_ptr<MockNgHttp2ResponseWithOverrides>
       mock_server_response_with_overrides_;
   AsyncContext<NgHttp2Request, NgHttp2Response> server_request_context_;
   HttpHandler request_handler_;

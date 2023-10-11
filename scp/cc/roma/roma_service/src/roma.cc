@@ -30,8 +30,6 @@
 using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
 using google::scp::roma::sandbox::roma_service::RomaService;
-using std::make_unique;
-using std::unique_ptr;
 
 // This value does not account for runtime memory usage and is only a generic
 // estimate based on the memory needed by roma and the steady-state memory
@@ -60,7 +58,7 @@ absl::Status ExecutionObjectValidation(const std::string& function_name,
 }
 
 template <typename RequestT>
-absl::Status ExecuteInternal(unique_ptr<RequestT> invocation_req,
+absl::Status ExecuteInternal(std::unique_ptr<RequestT> invocation_req,
                              Callback callback) {
   auto validation = ExecutionObjectValidation("Execute", invocation_req.get());
   if (!validation.ok()) {
@@ -168,13 +166,14 @@ absl::Status RomaStop() {
   return absl::OkStatus();
 }
 
-absl::Status Execute(unique_ptr<InvocationRequestStrInput> invocation_req,
+absl::Status Execute(std::unique_ptr<InvocationRequestStrInput> invocation_req,
                      Callback callback) {
   return ExecuteInternal(std::move(invocation_req), callback);
 }
 
-absl::Status Execute(unique_ptr<InvocationRequestSharedInput> invocation_req,
-                     Callback callback) {
+absl::Status Execute(
+    std::unique_ptr<InvocationRequestSharedInput> invocation_req,
+    Callback callback) {
   return ExecuteInternal(std::move(invocation_req), callback);
 }
 
@@ -188,7 +187,7 @@ absl::Status BatchExecute(std::vector<InvocationRequestSharedInput>& batch,
   return BatchExecuteInternal(batch, batch_callback);
 }
 
-absl::Status LoadCodeObj(unique_ptr<CodeObject> code_object,
+absl::Status LoadCodeObj(std::unique_ptr<CodeObject> code_object,
                          Callback callback) {
   if (code_object->version_num == 0) {
     return absl::Status(absl::StatusCode::kInternal,

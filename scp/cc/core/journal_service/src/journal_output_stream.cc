@@ -47,8 +47,6 @@ using google::scp::cpio::MetricClientInterface;
 using std::atomic;
 using std::bind;
 using std::list;
-using std::make_shared;
-using std::shared_ptr;
 using std::sort;
 using std::chrono::milliseconds;
 using std::placeholders::_1;
@@ -59,11 +57,13 @@ static constexpr char kJournalOutputStream[] = "JournalOutputStream";
 
 namespace google::scp::core {
 JournalOutputStream::JournalOutputStream(
-    const shared_ptr<std::string>& bucket_name,
-    const shared_ptr<std::string>& partition_name,
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
-    const shared_ptr<BlobStorageClientInterface>& blob_storage_provider_client,
-    const shared_ptr<AggregateMetricInterface>& journal_output_count_metric)
+    const std::shared_ptr<std::string>& bucket_name,
+    const std::shared_ptr<std::string>& partition_name,
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<BlobStorageClientInterface>&
+        blob_storage_provider_client,
+    const std::shared_ptr<AggregateMetricInterface>&
+        journal_output_count_metric)
     : current_journal_id_(kInvalidJournalId),
       bucket_name_(bucket_name),
       partition_name_(partition_name),
@@ -87,8 +87,8 @@ ExecutionResult JournalOutputStream::CreateNewBuffer() noexcept {
 
   /// This call will only happen at the creation time of the journal stream
   /// and will not fail.
-  shared_ptr<bool> processed;
-  auto pair = make_pair(current_journal_id_, make_shared<bool>(false));
+  std::shared_ptr<bool> processed;
+  auto pair = make_pair(current_journal_id_, std::make_shared<bool>(false));
   return journals_to_persist_.Insert(pair, processed);
 }
 
@@ -116,7 +116,7 @@ ExecutionResult JournalOutputStream::GetLastPersistedJournalId(
 
   sort(journal_ids.begin(), journal_ids.end());
   for (size_t i = 0; i < journal_ids.size(); ++i) {
-    shared_ptr<bool> processed;
+    std::shared_ptr<bool> processed;
     execution_result = journals_to_persist_.Find(journal_ids[i], processed);
     if (!execution_result.Successful()) {
       return execution_result;
@@ -213,7 +213,8 @@ ExecutionResult JournalOutputStream::WriteJournalBlob(
 
   PutBlobRequest put_blob_request;
   put_blob_request.bucket_name = bucket_name_;
-  put_blob_request.buffer = make_shared<BytesBuffer>(std::move(bytes_buffer));
+  put_blob_request.buffer =
+      std::make_shared<BytesBuffer>(std::move(bytes_buffer));
   auto execution_result = JournalUtils::CreateJournalBlobName(
       partition_name_, journal_id, put_blob_request.blob_name);
   if (!execution_result.Successful()) {
@@ -227,7 +228,7 @@ ExecutionResult JournalOutputStream::WriteJournalBlob(
       kMetricEventJournalOutputCountWriteJournalScheduledCount);
 
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context(
-      make_shared<PutBlobRequest>(put_blob_request),
+      std::make_shared<PutBlobRequest>(put_blob_request),
       bind(&JournalOutputStream::OnWriteJournalBlobCallback, this, journal_id,
            callback, _1),
       activity_id_, activity_id_);
@@ -245,7 +246,7 @@ void JournalOutputStream::OnWriteJournalBlobCallback(
   // callers know that there was an error in persisting, so they will retry
   // their appends (log duplication would happen). If the journal was actually
   // persisted, it will be read by checkpointing service.
-  shared_ptr<bool> processed;
+  std::shared_ptr<bool> processed;
   if (journals_to_persist_.Find(journal_id, processed) !=
       SuccessExecutionResult()) {
     SCP_CRITICAL_CONTEXT(
@@ -283,8 +284,8 @@ void JournalOutputStream::OnWriteJournalBlobCallback(
 }
 
 void JournalOutputStream::WriteBatch(
-    const shared_ptr<list<AsyncContext<JournalStreamAppendLogRequest,
-                                       JournalStreamAppendLogResponse>>>&
+    const std::shared_ptr<list<AsyncContext<JournalStreamAppendLogRequest,
+                                            JournalStreamAppendLogResponse>>>&
         flush_batch,
     JournalId journal_id) noexcept {
   SCP_DEBUG(kJournalOutputStream, activity_id_,
@@ -296,7 +297,7 @@ void JournalOutputStream::WriteBatch(
     total_size_needed += GetSerializedLogByteSize(*it);
   }
 
-  auto buffer = make_shared<BytesBuffer>(total_size_needed);
+  auto buffer = std::make_shared<BytesBuffer>(total_size_needed);
   size_t total_bytes_serialized = 0;
   for (auto it = flush_batch->begin(); it != flush_batch->end(); ++it) {
     size_t local_total_bytes_serialized = 0;
@@ -327,8 +328,8 @@ void JournalOutputStream::WriteBatch(
 }
 
 void JournalOutputStream::NotifyBatch(
-    const shared_ptr<list<AsyncContext<JournalStreamAppendLogRequest,
-                                       JournalStreamAppendLogResponse>>>&
+    const std::shared_ptr<list<AsyncContext<JournalStreamAppendLogRequest,
+                                            JournalStreamAppendLogResponse>>>&
         flush_batch,
     ExecutionResult& execution_result) noexcept {
   if (!execution_result.Successful()) {
@@ -364,8 +365,8 @@ ExecutionResult JournalOutputStream::FlushLogs() noexcept {
 
   auto current_journal_id = current_journal_id_;
   auto batch_logs =
-      make_shared<list<AsyncContext<JournalStreamAppendLogRequest,
-                                    JournalStreamAppendLogResponse>>>();
+      std::make_shared<list<AsyncContext<JournalStreamAppendLogRequest,
+                                         JournalStreamAppendLogResponse>>>();
   for (size_t i = 0; i < batch_size;) {
     AsyncContext<JournalStreamAppendLogRequest, JournalStreamAppendLogResponse>
         context;

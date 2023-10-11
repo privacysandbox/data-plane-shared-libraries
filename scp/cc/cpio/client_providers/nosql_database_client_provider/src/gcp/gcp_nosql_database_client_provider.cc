@@ -99,12 +99,9 @@ using google::scp::cpio::common::GcpUtils;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlRequest;
 using std::bind;
 using std::make_pair;
-using std::make_shared;
-using std::make_unique;
 using std::optional;
 using std::pair;
 using std::ref;
-using std::shared_ptr;
 using std::unordered_map;
 using std::placeholders::_1;
 
@@ -456,7 +453,8 @@ void GcpNoSQLDatabaseClientProvider::GetDatabaseItemInternal(
     return;
   }
 
-  get_database_item_context.response = make_shared<GetDatabaseItemResponse>();
+  get_database_item_context.response =
+      std::make_shared<GetDatabaseItemResponse>();
   get_database_item_context.response->mutable_item()->mutable_key()->CopyFrom(
       get_database_item_context.request->key());
 
@@ -967,32 +965,33 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::UpsertDatabaseItem(
   return SuccessExecutionResult();
 }
 
-ExecutionResultOr<pair<shared_ptr<Client>, shared_ptr<DatabaseAdminClient>>>
+ExecutionResultOr<
+    pair<std::shared_ptr<Client>, std::shared_ptr<DatabaseAdminClient>>>
 SpannerFactory::CreateClients(
-    shared_ptr<NoSQLDatabaseClientOptions> client_options,
+    std::shared_ptr<NoSQLDatabaseClientOptions> client_options,
     const std::string& project) noexcept {
   auto options = CreateClientOptions(client_options);
-  return make_pair(
-      make_shared<Client>(
-          MakeConnection(Database(project, client_options->instance_name,
-                                  client_options->database_name),
-                         options)),
-      make_shared<DatabaseAdminClient>(MakeDatabaseAdminConnection(options)));
+  return make_pair(std::make_shared<Client>(MakeConnection(
+                       Database(project, client_options->instance_name,
+                                client_options->database_name),
+                       options)),
+                   std::make_shared<DatabaseAdminClient>(
+                       MakeDatabaseAdminConnection(options)));
 }
 
 Options SpannerFactory::CreateClientOptions(
-    shared_ptr<NoSQLDatabaseClientOptions> options) noexcept {
+    std::shared_ptr<NoSQLDatabaseClientOptions> options) noexcept {
   return Options();
 }
 
 #ifndef TEST_CPIO
-shared_ptr<NoSQLDatabaseClientProviderInterface>
+std::shared_ptr<NoSQLDatabaseClientProviderInterface>
 NoSQLDatabaseClientProviderFactory::Create(
-    const shared_ptr<NoSQLDatabaseClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<GcpNoSQLDatabaseClientProvider>(
+    const std::shared_ptr<NoSQLDatabaseClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>& instance_client,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
+  return std::make_shared<GcpNoSQLDatabaseClientProvider>(
       options, instance_client, cpu_async_executor, io_async_executor);
 }
 #endif

@@ -22,16 +22,14 @@
 
 using google::cloud::kms::KeyManagementServiceClient;
 using google::cloud::kms::MakeKeyManagementServiceConnection;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
 
-shared_ptr<KeyManagementServiceClient>
+std::shared_ptr<KeyManagementServiceClient>
 GcpKmsAeadProvider::CreateKeyManagementServiceClient(
     const std::string& wip_provider,
     const std::string& service_account_to_impersonate) noexcept {
-  return make_shared<KeyManagementServiceClient>(
+  return std::make_shared<KeyManagementServiceClient>(
       MakeKeyManagementServiceConnection());
 }
 }  // namespace google::scp::cpio::client_providers

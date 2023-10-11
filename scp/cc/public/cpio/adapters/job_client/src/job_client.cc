@@ -48,10 +48,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::JobClientProviderFactory;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace {
 constexpr char kJobClient[] = "JobClient";
@@ -60,7 +56,7 @@ constexpr char kJobClient[] = "JobClient";
 namespace google::scp::cpio {
 
 ExecutionResult JobClient::Init() noexcept {
-  shared_ptr<InstanceClientProviderInterface> instance_client;
+  std::shared_ptr<InstanceClientProviderInterface> instance_client;
   auto execution_result =
       GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(instance_client);
   if (!execution_result.Successful()) {
@@ -69,7 +65,7 @@ ExecutionResult JobClient::Init() noexcept {
     return execution_result;
   }
 
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   execution_result =
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor);
   if (!execution_result.Successful()) {
@@ -78,7 +74,7 @@ ExecutionResult JobClient::Init() noexcept {
     return execution_result;
   }
 
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   execution_result =
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
@@ -163,8 +159,9 @@ ExecutionResult JobClient::DeleteOrphanedJobMessage(
       delete_orphaned_job_context);
 };
 
-unique_ptr<JobClientInterface> JobClientFactory::Create(
+std::unique_ptr<JobClientInterface> JobClientFactory::Create(
     JobClientOptions options) noexcept {
-  return make_unique<JobClient>(make_shared<JobClientOptions>(options));
+  return std::make_unique<JobClient>(
+      std::make_shared<JobClientOptions>(options));
 }
 }  // namespace google::scp::cpio

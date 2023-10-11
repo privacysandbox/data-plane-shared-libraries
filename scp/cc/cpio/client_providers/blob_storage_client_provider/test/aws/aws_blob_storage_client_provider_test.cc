@@ -75,8 +75,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
-using std::make_shared;
-using std::shared_ptr;
 using testing::_;
 using testing::ElementsAre;
 using testing::Eq;
@@ -103,30 +101,30 @@ class MockAwsS3Factory : public AwsS3Factory {
 class AwsBlobStorageClientProviderTest : public ::testing::Test {
  protected:
   AwsBlobStorageClientProviderTest()
-      : instance_client_(make_shared<MockInstanceClientProvider>()),
-        s3_factory_(make_shared<NiceMock<MockAwsS3Factory>>()),
-        provider_(make_shared<BlobStorageClientOptions>(), instance_client_,
-                  make_shared<MockAsyncExecutor>(),
-                  make_shared<MockAsyncExecutor>(), s3_factory_) {
+      : instance_client_(std::make_shared<MockInstanceClientProvider>()),
+        s3_factory_(std::make_shared<NiceMock<MockAwsS3Factory>>()),
+        provider_(std::make_shared<BlobStorageClientOptions>(),
+                  instance_client_, std::make_shared<MockAsyncExecutor>(),
+                  std::make_shared<MockAsyncExecutor>(), s3_factory_) {
     InitAPI(options_);
     instance_client_->instance_resource_name = kResourceNameMock;
-    s3_client_ = make_shared<NiceMock<MockS3Client>>();
+    s3_client_ = std::make_shared<NiceMock<MockS3Client>>();
 
     ON_CALL(*s3_factory_, CreateClient).WillByDefault(Return(s3_client_));
 
-    get_blob_context_.request = make_shared<GetBlobRequest>();
+    get_blob_context_.request = std::make_shared<GetBlobRequest>();
     get_blob_context_.callback = [this](auto) { finish_called_ = true; };
 
     list_blobs_metadata_context_.request =
-        make_shared<ListBlobsMetadataRequest>();
+        std::make_shared<ListBlobsMetadataRequest>();
     list_blobs_metadata_context_.callback = [this](auto) {
       finish_called_ = true;
     };
 
-    put_blob_context_.request = make_shared<PutBlobRequest>();
+    put_blob_context_.request = std::make_shared<PutBlobRequest>();
     put_blob_context_.callback = [this](auto) { finish_called_ = true; };
 
-    delete_blob_context_.request = make_shared<DeleteBlobRequest>();
+    delete_blob_context_.request = std::make_shared<DeleteBlobRequest>();
     delete_blob_context_.callback = [this](auto) { finish_called_ = true; };
 
     EXPECT_SUCCESS(provider_.Init());
@@ -135,9 +133,9 @@ class AwsBlobStorageClientProviderTest : public ::testing::Test {
 
   ~AwsBlobStorageClientProviderTest() { ShutdownAPI(options_); }
 
-  shared_ptr<MockInstanceClientProvider> instance_client_;
-  shared_ptr<MockS3Client> s3_client_;
-  shared_ptr<MockAwsS3Factory> s3_factory_;
+  std::shared_ptr<MockInstanceClientProvider> instance_client_;
+  std::shared_ptr<MockS3Client> s3_client_;
+  std::shared_ptr<MockAwsS3Factory> s3_factory_;
   AwsBlobStorageClientProvider provider_;
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context_;

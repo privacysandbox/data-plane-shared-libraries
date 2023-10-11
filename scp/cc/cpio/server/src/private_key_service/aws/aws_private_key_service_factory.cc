@@ -49,38 +49,36 @@ using google::scp::cpio::client_providers::PrivateKeyFetcherProviderInterface;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 using std::bind;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kAwsPrivateKeyServiceFactory[] = "AwsPrivateKeyServiceFactory";
 }  // namespace
 
 namespace google::scp::cpio {
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 AwsPrivateKeyServiceFactory::CreateAuthTokenProvider() noexcept {
-  auth_token_provider_ = make_shared<AwsAuthTokenProvider>(http1_client_);
+  auth_token_provider_ = std::make_shared<AwsAuthTokenProvider>(http1_client_);
   return auth_token_provider_;
 }
 
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 AwsPrivateKeyServiceFactory::CreateInstanceClient() noexcept {
-  instance_client_ = make_shared<AwsInstanceClientProvider>(
+  instance_client_ = std::make_shared<AwsInstanceClientProvider>(
       auth_token_provider_, http1_client_, cpu_async_executor_,
       io_async_executor_);
   return instance_client_;
 }
 
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 AwsPrivateKeyServiceFactory::CreatePrivateKeyFetcher() noexcept {
-  private_key_fetcher_ = make_shared<AwsPrivateKeyFetcherProvider>(
+  private_key_fetcher_ = std::make_shared<AwsPrivateKeyFetcherProvider>(
       http2_client_, role_credentials_provider_);
   return private_key_fetcher_;
 }
 
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 AwsPrivateKeyServiceFactory::CreateRoleCredentialsProvider() noexcept {
-  role_credentials_provider_ = make_shared<AwsRoleCredentialsProvider>(
+  role_credentials_provider_ = std::make_shared<AwsRoleCredentialsProvider>(
       instance_client_, cpu_async_executor_, io_async_executor_);
   return role_credentials_provider_;
 }
@@ -118,7 +116,7 @@ ExecutionResult AwsPrivateKeyServiceFactory::Init() noexcept {
        ComponentCreator(
            bind(&AwsPrivateKeyServiceFactory::CreateKmsClient, this),
            "KmsClient")});
-  component_factory_ = make_shared<ComponentFactory>(std::move(creators));
+  component_factory_ = std::make_shared<ComponentFactory>(std::move(creators));
 
   RETURN_AND_LOG_IF_FAILURE(PrivateKeyServiceFactory::Init(),
                             kAwsPrivateKeyServiceFactory, kZeroUuid,

@@ -54,10 +54,7 @@ using std::atomic;
 using std::cout;
 using std::endl;
 using std::list;
-using std::make_shared;
-using std::make_unique;
 using std::thread;
-using std::unique_ptr;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 using std::chrono::seconds;
@@ -130,13 +127,13 @@ InvocationRequestSharedInput CreateExecutionObj(InputsType type,
   if (type == InputsType::kNestedJsonString) {
     std::string inputs_string =
         GenerateRandomJsonString(json_depth, 1 /*elements in each layer*/);
-    code_obj.input.push_back(make_shared<std::string>(inputs_string));
+    code_obj.input.push_back(std::make_shared<std::string>(inputs_string));
     std::cout << "\tinputs size in Byte: " << inputs_string.length()
               << "\n\tinputs JSON depth: " << json_depth << std::endl;
   } else {
     std::string inputs_string(payload_size, 'A');
     code_obj.input.push_back(
-        make_shared<std::string>("\"" + inputs_string + "\""));
+        std::make_shared<std::string>("\"" + inputs_string + "\""));
     std::cout << "\tinputs size in Byte: " << inputs_string.length()
               << std::endl;
   }
@@ -245,8 +242,8 @@ absl::Status LoadCodeObject(const std::string& code_string) {
   std::promise<void> done;
   std::atomic_bool load_success{false};
   auto status =
-      LoadCodeObj(make_unique<CodeObject>(code_obj),
-                  [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+      LoadCodeObj(std::make_unique<CodeObject>(code_obj),
+                  [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                     if (resp->ok()) {
                       load_success = true;
                     } else {
@@ -431,13 +428,14 @@ void RomaBenchmark::SendRequest() {
   atomic<size_t> sent_request = 0;
   while (sent_request < requests_per_thread_) {
     auto start_time = TimeProvider::GetSteadyTimestampInNanoseconds();
-    auto code_object = make_unique<InvocationRequestSharedInput>(code_obj_);
+    auto code_object =
+        std::make_unique<InvocationRequestSharedInput>(code_obj_);
     // Retry Execute to dispatch code_obj until success.
     while (!Execute(std::move(code_object),
                     bind(&RomaBenchmark::Callback, this, _1, start_time))
                 .ok()) {
       // Recreate code_object and update start_time when request send failed.
-      code_object = make_unique<InvocationRequestSharedInput>(code_obj_);
+      code_object = std::make_unique<InvocationRequestSharedInput>(code_obj_);
       start_time = TimeProvider::GetSteadyTimestampInNanoseconds();
     }
     sent_request++;
@@ -462,8 +460,9 @@ void RomaBenchmark::CallbackBatch(
   latency_metrics_.at(metric_index_++) = metric;
 }
 
-void RomaBenchmark::Callback(unique_ptr<absl::StatusOr<ResponseObject>> resp,
-                             nanoseconds start_time) {
+void RomaBenchmark::Callback(
+    std::unique_ptr<absl::StatusOr<ResponseObject>> resp,
+    nanoseconds start_time) {
   if (!resp->ok()) {
     failed_requests_.fetch_add(1);
     return;

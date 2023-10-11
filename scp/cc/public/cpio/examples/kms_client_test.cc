@@ -42,10 +42,6 @@ using google::scp::cpio::KmsClientInterface;
 using google::scp::cpio::KmsClientOptions;
 using google::scp::cpio::LogOption;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::milliseconds;
 
 constexpr char kCiphertext[] = "test_ciphertext";

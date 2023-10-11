@@ -44,8 +44,6 @@ using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
 using std::function;
-using std::make_shared;
-using std::shared_ptr;
 using std::thread;
 
 namespace google::scp::roma::sandbox::roma_service {
@@ -108,12 +106,13 @@ ExecutionResult RomaService::Init() noexcept {
   auto result = SetupWorkers(*native_function_binding_info_or);
   RETURN_IF_FAILURE(result);
 
-  async_executor_ = make_shared<AsyncExecutor>(concurrency, worker_queue_cap);
+  async_executor_ =
+      std::make_shared<AsyncExecutor>(concurrency, worker_queue_cap);
   result = async_executor_->Init();
   RETURN_IF_FAILURE(result);
 
   // TODO: Make max_pending_requests configurable
-  dispatcher_ = make_shared<class Dispatcher>(
+  dispatcher_ = std::make_shared<class Dispatcher>(
       async_executor_, worker_pool_,
       concurrency * worker_queue_cap /*max_pending_requests*/,
       config_.code_version_cache_size);
@@ -167,9 +166,9 @@ ExecutionResult RomaService::Stop() noexcept {
 
 ExecutionResultOr<RomaService::NativeFunctionBindingSetup>
 RomaService::SetupNativeFunctionHandler(size_t concurrency) {
-  native_function_binding_table_ = make_shared<NativeFunctionTable>();
+  native_function_binding_table_ = std::make_shared<NativeFunctionTable>();
 
-  std::vector<shared_ptr<FunctionBindingObjectV2>> function_bindings;
+  std::vector<std::shared_ptr<FunctionBindingObjectV2>> function_bindings;
   config_.GetFunctionBindings(function_bindings);
 
   std::vector<std::string> function_names;
@@ -195,8 +194,9 @@ RomaService::SetupNativeFunctionHandler(size_t concurrency) {
     remote_fds.push_back(fd_pair[1]);
   }
 
-  native_function_binding_handler_ = make_shared<NativeFunctionHandlerSapiIpc>(
-      native_function_binding_table_, local_fds, remote_fds);
+  native_function_binding_handler_ =
+      std::make_shared<NativeFunctionHandlerSapiIpc>(
+          native_function_binding_table_, local_fds, remote_fds);
   auto result = native_function_binding_handler_->Init();
   RETURN_IF_FAILURE(result);
 
@@ -239,7 +239,8 @@ ExecutionResult RomaService::SetupWorkers(
     worker_configs.push_back(worker_api_sapi_config);
   }
 
-  worker_pool_ = make_shared<WorkerPoolApiSapi>(worker_configs, concurrency);
+  worker_pool_ =
+      std::make_shared<WorkerPoolApiSapi>(worker_configs, concurrency);
   return worker_pool_->Init();
 }
 }  // namespace google::scp::roma::sandbox::roma_service

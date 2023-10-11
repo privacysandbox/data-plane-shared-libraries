@@ -54,9 +54,6 @@ using std::atomic;
 using std::bind;
 using std::function;
 using std::make_pair;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 using std::thread;
 using std::unordered_set;
 using std::chrono::milliseconds;
@@ -89,7 +86,7 @@ ExecutionResult JournalService::Init() noexcept {
   RETURN_IF_FAILURE(blob_storage_provider_->CreateBlobStorageClient(
       blob_storage_provider_client_));
 
-  journal_input_stream_ = make_shared<JournalInputStream>(
+  journal_input_stream_ = std::make_shared<JournalInputStream>(
       bucket_name_, partition_name_, blob_storage_provider_client_,
       config_provider_);
 
@@ -162,10 +159,11 @@ ExecutionResult JournalService::Run() noexcept {
   RETURN_IF_FAILURE(journal_output_count_metric_->Run());
 
   atomic<bool> flushing_thread_started(false);
-  flushing_thread_ = make_unique<thread>([this, &flushing_thread_started]() {
-    flushing_thread_started = true;
-    FlushJournalOutputStream();
-  });
+  flushing_thread_ =
+      std::make_unique<thread>([this, &flushing_thread_started]() {
+        flushing_thread_started = true;
+        FlushJournalOutputStream();
+      });
 
   while (!flushing_thread_started) {
     sleep_for(milliseconds(kStartupWaitIntervalMilliseconds));
@@ -207,11 +205,11 @@ ExecutionResult JournalService::StopRecoveryMetrics() noexcept {
 ExecutionResult JournalService::Recover(
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>&
         journal_recover_context) noexcept {
-  shared_ptr<TimeEvent> time_event = make_shared<TimeEvent>();
-  auto replayed_log_ids = make_shared<unordered_set<std::string>>();
+  std::shared_ptr<TimeEvent> time_event = std::make_shared<TimeEvent>();
+  auto replayed_log_ids = std::make_shared<unordered_set<std::string>>();
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context(
-          make_shared<JournalStreamReadLogRequest>(),
+          std::make_shared<JournalStreamReadLogRequest>(),
           bind(&JournalService::OnJournalStreamReadLogCallback, this,
                time_event, replayed_log_ids, journal_recover_context, _1),
           journal_recover_context);
@@ -239,8 +237,8 @@ ExecutionResult JournalService::Recover(
 }
 
 void JournalService::OnJournalStreamReadLogCallback(
-    shared_ptr<TimeEvent>& time_event,
-    shared_ptr<unordered_set<std::string>>& replayed_log_ids,
+    std::shared_ptr<TimeEvent>& time_event,
+    std::shared_ptr<unordered_set<std::string>>& replayed_log_ids,
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>&
         journal_recover_context,
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>&
@@ -254,10 +252,11 @@ void JournalService::OnJournalStreamReadLogCallback(
     } else {
       time_event->Stop();
       recover_time_metric_->Push(std::to_string(time_event->diff_time));
-      journal_recover_context.response = make_shared<JournalRecoverResponse>();
+      journal_recover_context.response =
+          std::make_shared<JournalRecoverResponse>();
       journal_recover_context.response->last_processed_journal_id =
           journal_input_stream_->GetLastProcessedJournalId();
-      journal_output_stream_ = make_shared<JournalOutputStream>(
+      journal_output_stream_ = std::make_shared<JournalOutputStream>(
           bucket_name_, partition_name_, async_executor_,
           blob_storage_provider_client_, journal_output_count_metric_);
       // Set to nullptr to deallocate the stream and its data.
@@ -321,7 +320,8 @@ void JournalService::OnJournalStreamReadLogCallback(
 
     replayed_log_ids->emplace(log_index);
 
-    auto bytes_buffer = make_shared<BytesBuffer>(log.journal_log->log_body());
+    auto bytes_buffer =
+        std::make_shared<BytesBuffer>(log.journal_log->log_body());
     execution_result =
         callback(bytes_buffer, journal_recover_context.activity_id);
     if (!execution_result.Successful()) {
@@ -377,12 +377,12 @@ ExecutionResult JournalService::Log(
         journal_log_context) noexcept {
   AsyncContext<JournalStreamAppendLogRequest, JournalStreamAppendLogResponse>
       journal_stream_append_log_context(
-          make_shared<JournalStreamAppendLogRequest>(),
+          std::make_shared<JournalStreamAppendLogRequest>(),
           bind(&JournalService::OnJournalStreamAppendLogCallback, this,
                journal_log_context, _1),
           journal_log_context);
   journal_stream_append_log_context.request->journal_log =
-      make_shared<JournalLog>();
+      std::make_shared<JournalLog>();
   journal_stream_append_log_context.request->journal_log->set_log_body(
       journal_log_context.request->data->bytes->data(),
       journal_log_context.request->data->length);

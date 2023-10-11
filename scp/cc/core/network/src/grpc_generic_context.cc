@@ -20,13 +20,12 @@
 #include <string>
 #include <type_traits>
 
-using std::shared_ptr;
-
 namespace google::scp::core {
 
 GrpcGenericContext::GrpcGenericContext(
-    const shared_ptr<::grpc::ServerCompletionQueue>& server_completion_queue,
-    const shared_ptr<grpc::AsyncGenericService>& service)
+    const std::shared_ptr<::grpc::ServerCompletionQueue>&
+        server_completion_queue,
+    const std::shared_ptr<grpc::AsyncGenericService>& service)
     : completion_queue_(server_completion_queue),
       service_(service),
       server_ctx_(std::make_shared<grpc::GenericServerContext>()),

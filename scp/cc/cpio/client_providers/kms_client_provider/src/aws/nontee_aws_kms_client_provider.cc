@@ -56,8 +56,6 @@ using google::scp::core::errors::SC_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
 using google::scp::cpio::common::CreateClientConfiguration;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 /// Filename for logging errors
@@ -172,7 +170,7 @@ ExecutionResult NonteeAwsKmsClientProvider::GetAeadCallbackToDecrypt(
     decrypt_context.Finish();
     return decrypt_context.result;
   }
-  decrypt_context.response = make_shared<DecryptResponse>();
+  decrypt_context.response = std::make_shared<DecryptResponse>();
   decrypt_context.response->set_plaintext(std::move(*decrypt_result));
   decrypt_context.result = SuccessExecutionResult();
   decrypt_context.Finish();
@@ -220,8 +218,8 @@ void NonteeAwsKmsClientProvider::CreateKmsCallbackToCreateAead(
 
 ExecutionResult NonteeAwsKmsClientProvider::CreateKmsClient(
     AsyncContext<DecryptRequest, KMSClient>& create_kms_context) noexcept {
-  auto request = make_shared<GetRoleCredentialsRequest>();
-  request->account_identity = make_shared<AccountIdentity>(
+  auto request = std::make_shared<GetRoleCredentialsRequest>();
+  request->account_identity = std::make_shared<AccountIdentity>(
       create_kms_context.request->account_identity());
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_role_credentials_context(
@@ -250,43 +248,44 @@ void NonteeAwsKmsClientProvider::GetSessionCredentialsCallbackToCreateKms(
 
   const GetRoleCredentialsResponse& response =
       *get_session_credentials_context.response;
-  auto aws_credentials = make_shared<AWSCredentials>(
+  auto aws_credentials = std::make_shared<AWSCredentials>(
       response.access_key_id->c_str(), response.access_key_secret->c_str(),
       response.security_token->c_str());
 
   auto kms_client = GetKmsClient(
       std::move(aws_credentials),
-      make_shared<std::string>(create_kms_context.request->kms_region()));
+      std::make_shared<std::string>(create_kms_context.request->kms_region()));
   create_kms_context.response = kms_client;
   create_kms_context.result = SuccessExecutionResult();
   create_kms_context.Finish();
 }
 
-shared_ptr<ClientConfiguration>
+std::shared_ptr<ClientConfiguration>
 NonteeAwsKmsClientProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   auto client_config =
-      common::CreateClientConfiguration(make_shared<std::string>(region));
-  client_config->executor = make_shared<AwsAsyncExecutor>(io_async_executor_);
+      common::CreateClientConfiguration(std::make_shared<std::string>(region));
+  client_config->executor =
+      std::make_shared<AwsAsyncExecutor>(io_async_executor_);
   return client_config;
 }
 
-shared_ptr<KMSClient> NonteeAwsKmsClientProvider::GetKmsClient(
-    const shared_ptr<AWSCredentials>& aws_credentials,
-    const shared_ptr<std::string>& kms_region) noexcept {
-  return make_shared<KMSClient>(*aws_credentials,
-                                *CreateClientConfiguration(*kms_region));
+std::shared_ptr<KMSClient> NonteeAwsKmsClientProvider::GetKmsClient(
+    const std::shared_ptr<AWSCredentials>& aws_credentials,
+    const std::shared_ptr<std::string>& kms_region) noexcept {
+  return std::make_shared<KMSClient>(*aws_credentials,
+                                     *CreateClientConfiguration(*kms_region));
 }
 
 #ifndef TEST_CPIO
 std::shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    const shared_ptr<KmsClientOptions>& options,
-    const shared_ptr<RoleCredentialsProviderInterface>&
+    const std::shared_ptr<KmsClientOptions>& options,
+    const std::shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider,
-    const shared_ptr<core::AsyncExecutorInterface>&
+    const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  return make_shared<NonteeAwsKmsClientProvider>(role_credentials_provider,
-                                                 io_async_executor);
+  return std::make_shared<NonteeAwsKmsClientProvider>(role_credentials_provider,
+                                                      io_async_executor);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

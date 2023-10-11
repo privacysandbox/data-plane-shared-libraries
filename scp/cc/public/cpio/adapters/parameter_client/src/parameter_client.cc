@@ -45,27 +45,24 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::ParameterClientProviderFactory;
 using google::scp::cpio::client_providers::ParameterClientProviderInterface;
 using std::bind;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 static constexpr char kParameterClient[] = "ParameterClient";
 
 namespace google::scp::cpio {
 ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
-  shared_ptr<InstanceClientProviderInterface> instance_client_provider;
+  std::shared_ptr<InstanceClientProviderInterface> instance_client_provider;
   RETURN_AND_LOG_IF_FAILURE(
       GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(
           instance_client_provider),
       kParameterClient, kZeroUuid, "Failed to get InstanceClientProvider.");
 
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   RETURN_AND_LOG_IF_FAILURE(
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor),
       kParameterClient, kZeroUuid, "Failed to get CpuAsyncExecutor.");
 
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   RETURN_AND_LOG_IF_FAILURE(
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(io_async_executor),
       kParameterClient, kZeroUuid, "Failed to get IoAsyncExecutor.");
@@ -124,7 +121,7 @@ core::ExecutionResult ParameterClient::GetParameter(
 
 std::unique_ptr<ParameterClientInterface> ParameterClientFactory::Create(
     ParameterClientOptions options) {
-  return make_unique<ParameterClient>(
-      make_shared<ParameterClientOptions>(options));
+  return std::make_unique<ParameterClient>(
+      std::make_shared<ParameterClientOptions>(options));
 }
 }  // namespace google::scp::cpio

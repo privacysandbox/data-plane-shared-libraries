@@ -38,7 +38,6 @@ using grpc::ServerBuilder;
 
 using std::bad_alloc;
 using std::condition_variable;
-using std::make_shared;
 using std::mutex;
 using std::ref;
 using std::scoped_lock;
@@ -59,7 +58,7 @@ ExecutionResult GrpcNetworkService::Init() noexcept {
     return execution_result;
   }
   try {
-    service_ = make_shared<AsyncGenericService>();
+    service_ = std::make_shared<AsyncGenericService>();
     server_builder_.reset(new ServerBuilder);
     ResourceQuota quota;
     quota.SetMaxThreads(concurrency_);

@@ -38,8 +38,6 @@ using google::scp::cpio::client_providers::JobClientProviderInterface;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientOptions;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientProviderInterface;
 using google::scp::cpio::client_providers::QueueClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kGcpJobServiceFactory[] = "GcpJobServiceFactory";
@@ -47,7 +45,7 @@ constexpr char kGcpJobServiceFactory[] = "GcpJobServiceFactory";
 
 namespace google::scp::cpio {
 
-shared_ptr<JobClientOptions>
+std::shared_ptr<JobClientOptions>
 GcpJobServiceFactory::CreateJobClientOptions() noexcept {
   auto options = JobServiceFactory::CreateJobClientOptions();
 
@@ -60,21 +58,21 @@ GcpJobServiceFactory::CreateJobClientOptions() noexcept {
   return options;
 }
 
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 GcpJobServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<GcpInstanceServiceFactory>(
+  return std::make_shared<GcpInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<QueueClientProviderInterface>
+std::shared_ptr<QueueClientProviderInterface>
 GcpJobServiceFactory::CreateQueueClient() noexcept {
-  return make_shared<GcpQueueClientProvider>(
+  return std::make_shared<GcpQueueClientProvider>(
       CreateQueueClientOptions(), instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
 }
 
-shared_ptr<NoSQLDatabaseClientOptions>
+std::shared_ptr<NoSQLDatabaseClientOptions>
 GcpJobServiceFactory::CreateNoSQLDatabaseClientOptions() noexcept {
   auto nosql_database_options =
       JobServiceFactory::CreateNoSQLDatabaseClientOptions();
@@ -85,17 +83,17 @@ GcpJobServiceFactory::CreateNoSQLDatabaseClientOptions() noexcept {
   return nosql_database_options;
 }
 
-shared_ptr<NoSQLDatabaseClientProviderInterface>
+std::shared_ptr<NoSQLDatabaseClientProviderInterface>
 GcpJobServiceFactory::CreateNoSQLDatabaseClient() noexcept {
-  return make_shared<GcpNoSQLDatabaseClientProvider>(
+  return std::make_shared<GcpNoSQLDatabaseClientProvider>(
       CreateNoSQLDatabaseClientOptions(), instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
 }
 
-shared_ptr<JobClientProviderInterface>
+std::shared_ptr<JobClientProviderInterface>
 GcpJobServiceFactory::CreateJobClient() noexcept {
-  return make_shared<GcpJobClientProvider>(client_options_, queue_client_,
-                                           nosql_database_client_);
+  return std::make_shared<GcpJobClientProvider>(client_options_, queue_client_,
+                                                nosql_database_client_);
 }
 }  // namespace google::scp::cpio

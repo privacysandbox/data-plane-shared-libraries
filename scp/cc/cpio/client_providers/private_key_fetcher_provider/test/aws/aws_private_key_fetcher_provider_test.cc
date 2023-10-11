@@ -57,10 +57,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace {
 constexpr char kAccountIdentity[] = "accountIdentity";
@@ -73,19 +69,20 @@ namespace google::scp::cpio::client_providers::test {
 class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   AwsPrivateKeyFetcherProviderTest()
-      : http_client_(make_shared<MockHttpClient>()),
-        credentials_provider_(make_shared<MockRoleCredentialsProvider>()),
+      : http_client_(std::make_shared<MockHttpClient>()),
+        credentials_provider_(std::make_shared<MockRoleCredentialsProvider>()),
         aws_private_key_fetcher_provider_(
-            make_unique<AwsPrivateKeyFetcherProvider>(http_client_,
-                                                      credentials_provider_)) {
+            std::make_unique<AwsPrivateKeyFetcherProvider>(
+                http_client_, credentials_provider_)) {
     SDKOptions options;
     InitAPI(options);
     EXPECT_SUCCESS(aws_private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(aws_private_key_fetcher_provider_->Run());
 
-    request_ = make_shared<PrivateKeyFetchingRequest>();
-    request_->key_id = make_shared<std::string>(kKeyId);
-    request_->key_vending_endpoint = make_shared<PrivateKeyVendingEndpoint>();
+    request_ = std::make_shared<PrivateKeyFetchingRequest>();
+    request_->key_id = std::make_shared<std::string>(kKeyId);
+    request_->key_vending_endpoint =
+        std::make_shared<PrivateKeyVendingEndpoint>();
     request_->key_vending_endpoint->private_key_vending_service_endpoint =
         kPrivateKeyBaseUri;
     request_->key_vending_endpoint->service_region = kRegion;
@@ -102,7 +99,7 @@ class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
 
   void MockRequest(const std::string& uri) {
     http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = make_shared<std::string>(uri);
+    http_client_->request_mock.path = std::make_shared<std::string>(uri);
   }
 
   void MockResponse(const std::string& str) {
@@ -110,15 +107,17 @@ class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
     http_client_->response_mock.body = BytesBuffer(str);
   }
 
-  shared_ptr<MockHttpClient> http_client_;
-  shared_ptr<MockRoleCredentialsProvider> credentials_provider_;
-  unique_ptr<AwsPrivateKeyFetcherProvider> aws_private_key_fetcher_provider_;
-  shared_ptr<PrivateKeyFetchingRequest> request_;
+  std::shared_ptr<MockHttpClient> http_client_;
+  std::shared_ptr<MockRoleCredentialsProvider> credentials_provider_;
+  std::unique_ptr<AwsPrivateKeyFetcherProvider>
+      aws_private_key_fetcher_provider_;
+  std::shared_ptr<PrivateKeyFetchingRequest> request_;
 };
 
 TEST_F(AwsPrivateKeyFetcherProviderTest, MissingHttpClient) {
   aws_private_key_fetcher_provider_ =
-      make_unique<AwsPrivateKeyFetcherProvider>(nullptr, credentials_provider_);
+      std::make_unique<AwsPrivateKeyFetcherProvider>(nullptr,
+                                                     credentials_provider_);
 
   EXPECT_THAT(aws_private_key_fetcher_provider_->Init(),
               ResultIs(FailureExecutionResult(
@@ -127,7 +126,7 @@ TEST_F(AwsPrivateKeyFetcherProviderTest, MissingHttpClient) {
 
 TEST_F(AwsPrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
   aws_private_key_fetcher_provider_ =
-      make_unique<AwsPrivateKeyFetcherProvider>(http_client_, nullptr);
+      std::make_unique<AwsPrivateKeyFetcherProvider>(http_client_, nullptr);
 
   EXPECT_THAT(
       aws_private_key_fetcher_provider_->Init(),

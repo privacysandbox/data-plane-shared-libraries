@@ -51,16 +51,13 @@ using google::scp::cpio::client_providers::PrivateKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PrivateKeyClientProviderInterface;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 using std::bind;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 static constexpr char kPrivateKeyClient[] = "PrivateKeyClient";
 
 namespace google::scp::cpio {
 ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
-  shared_ptr<HttpClientInterface> http_client;
+  std::shared_ptr<HttpClientInterface> http_client;
   auto execution_result =
       GlobalCpio::GetGlobalCpio()->GetHttpClient(http_client);
   if (!execution_result.Successful()) {
@@ -68,7 +65,7 @@ ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
               "Failed to get http client.");
     return execution_result;
   }
-  shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
+  std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
   execution_result = GlobalCpio::GetGlobalCpio()->GetRoleCredentialsProvider(
       role_credentials_provider);
   if (!execution_result.Successful()) {
@@ -76,7 +73,7 @@ ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
               "Failed to get role credentials provider.");
     return execution_result;
   }
-  shared_ptr<AuthTokenProviderInterface> auth_token_provider;
+  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
   execution_result =
       GlobalCpio::GetGlobalCpio()->GetAuthTokenProvider(auth_token_provider);
   if (!execution_result.Successful()) {
@@ -84,7 +81,7 @@ ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
               "Failed to get role auth token provider.");
     return execution_result;
   }
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   execution_result =
       GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
@@ -143,7 +140,7 @@ core::ExecutionResult PrivateKeyClient::ListPrivateKeys(
 
 std::unique_ptr<PrivateKeyClientInterface> PrivateKeyClientFactory::Create(
     PrivateKeyClientOptions options) {
-  return make_unique<PrivateKeyClient>(
-      make_shared<PrivateKeyClientOptions>(options));
+  return std::make_unique<PrivateKeyClient>(
+      std::make_shared<PrivateKeyClientOptions>(options));
 }
 }  // namespace google::scp::cpio

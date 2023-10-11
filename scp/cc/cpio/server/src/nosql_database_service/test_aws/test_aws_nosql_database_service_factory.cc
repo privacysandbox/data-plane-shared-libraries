@@ -21,19 +21,17 @@
 #include "cpio/server/src/instance_service/test_aws/test_aws_instance_service_factory.h"
 #include "cpio/server/src/nosql_database_service/test_aws/configuration_keys.h"
 
-using std::make_shared;
-using std::shared_ptr;
-
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestAwsNoSQLDatabaseServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestAwsInstanceServiceFactory>(
+  return std::make_shared<TestAwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions> TestAwsNoSQLDatabaseServiceFactory::
+std::shared_ptr<InstanceServiceFactoryOptions>
+TestAwsNoSQLDatabaseServiceFactory::
     CreateInstanceServiceFactoryOptions() noexcept {
-  auto options = make_shared<TestAwsInstanceServiceFactoryOptions>();
+  auto options = std::make_shared<TestAwsInstanceServiceFactoryOptions>();
   options->region_config_label = kTestAwsNoSQLDatabaseClientRegion;
   return options;
 }

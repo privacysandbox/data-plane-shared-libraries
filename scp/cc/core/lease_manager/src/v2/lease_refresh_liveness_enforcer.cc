@@ -28,8 +28,6 @@
 
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
-using std::make_shared;
-using std::make_unique;
 using std::thread;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -143,7 +141,7 @@ ExecutionResult LeaseRefreshLivenessEnforcer::Run() noexcept {
 
   // Start Enforcer and wait until it starts.
   std::atomic<bool> is_thread_started(false);
-  enforcer_thread_ = make_unique<thread>([this, &is_thread_started]() {
+  enforcer_thread_ = std::make_unique<thread>([this, &is_thread_started]() {
     is_thread_started = true;
     LivenessEnforcerThreadFunction();
   });

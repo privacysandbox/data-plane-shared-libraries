@@ -102,12 +102,8 @@ using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlMetadata;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlRequest;
 using std::make_pair;
-using std::make_shared;
-using std::make_unique;
 using std::optional;
 using std::pair;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::unordered_map;
 using testing::_;
 using testing::ByMove;
@@ -134,7 +130,8 @@ constexpr char kPartitionLockPartitionKeyName[] = "LockId";
 
 std::unique_ptr<unordered_map<std::string, PartitionAndSortKey>>
 GetTableNameToKeysMap() {
-  auto map = make_unique<unordered_map<std::string, PartitionAndSortKey>>();
+  auto map =
+      std::make_unique<unordered_map<std::string, PartitionAndSortKey>>();
   PartitionAndSortKey budget_key_pair;
   budget_key_pair.SetPartitionKey(kBudgetKeyPartitionKeyName);
   budget_key_pair.SetSortKey(kBudgetKeySortKeyName);
@@ -171,33 +168,35 @@ namespace google::scp::cpio::client_providers::test {
 
 class MockSpannerFactory : public SpannerFactory {
  public:
-  MOCK_METHOD((ExecutionResultOr<
-                  pair<shared_ptr<Client>, shared_ptr<DatabaseAdminClient>>>),
+  MOCK_METHOD((ExecutionResultOr<pair<std::shared_ptr<Client>,
+                                      std::shared_ptr<DatabaseAdminClient>>>),
               CreateClients,
-              (shared_ptr<NoSQLDatabaseClientOptions>, const std::string&),
+              (std::shared_ptr<NoSQLDatabaseClientOptions>, const std::string&),
               (noexcept, override));
   MOCK_METHOD((Options), CreateClientOptions,
-              (shared_ptr<NoSQLDatabaseClientOptions>), (noexcept, override));
+              (std::shared_ptr<NoSQLDatabaseClientOptions>),
+              (noexcept, override));
 };
 
 class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
  protected:
   GcpNoSQLDatabaseClientProviderTests()
-      : instance_client_(make_shared<NiceMock<MockInstanceClientProvider>>()),
-        connection_(make_shared<NiceMock<MockConnection>>()),
+      : instance_client_(
+            std::make_shared<NiceMock<MockInstanceClientProvider>>()),
+        connection_(std::make_shared<NiceMock<MockConnection>>()),
         database_connection_(
-            make_shared<NiceMock<MockDatabaseAdminConnection>>()),
-        spanner_factory_(make_shared<NiceMock<MockSpannerFactory>>()),
-        gcp_spanner_(make_shared<NoSQLDatabaseClientOptions>(
+            std::make_shared<NiceMock<MockDatabaseAdminConnection>>()),
+        spanner_factory_(std::make_shared<NiceMock<MockSpannerFactory>>()),
+        gcp_spanner_(std::make_shared<NoSQLDatabaseClientOptions>(
                          "instance", "database", GetTableNameToKeysMap()),
-                     instance_client_, make_shared<MockAsyncExecutor>(),
-                     make_shared<MockAsyncExecutor>(), spanner_factory_) {
+                     instance_client_, std::make_shared<MockAsyncExecutor>(),
+                     std::make_shared<MockAsyncExecutor>(), spanner_factory_) {
     instance_client_->instance_resource_name = kInstanceResourceName;
     CreateTableRequest create_table_request;
     create_table_request.mutable_key()->set_table_name(kBudgetKeyTableName);
 
     create_table_context_.request =
-        make_shared<CreateTableRequest>(std::move(create_table_request));
+        std::make_shared<CreateTableRequest>(std::move(create_table_request));
 
     create_table_context_.callback = [this](auto) { finish_called_ = true; };
 
@@ -205,7 +204,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
     delete_table_request.set_table_name(kBudgetKeyTableName);
 
     delete_table_context_.request =
-        make_shared<DeleteTableRequest>(std::move(delete_table_request));
+        std::make_shared<DeleteTableRequest>(std::move(delete_table_request));
 
     delete_table_context_.callback = [this](auto) { finish_called_ = true; };
 
@@ -213,7 +212,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
     get_request.mutable_key()->set_table_name(kBudgetKeyTableName);
 
     get_database_item_context_.request =
-        make_shared<GetDatabaseItemRequest>(std::move(get_request));
+        std::make_shared<GetDatabaseItemRequest>(std::move(get_request));
 
     get_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -223,7 +222,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
     create_request.mutable_key()->set_table_name(kBudgetKeyTableName);
 
     create_database_item_context_.request =
-        make_shared<CreateDatabaseItemRequest>(std::move(create_request));
+        std::make_shared<CreateDatabaseItemRequest>(std::move(create_request));
 
     create_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -233,7 +232,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
     upsert_request.mutable_key()->set_table_name(kBudgetKeyTableName);
 
     upsert_database_item_context_.request =
-        make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
+        std::make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
 
     upsert_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -241,18 +240,18 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
 
     ON_CALL(*connection_, Commit).WillByDefault(Return(CommitResult{}));
     ON_CALL(*spanner_factory_, CreateClients)
-        .WillByDefault(Return(
-            make_pair(make_shared<Client>(connection_),
-                      make_shared<DatabaseAdminClient>(database_connection_))));
+        .WillByDefault(Return(make_pair(
+            std::make_shared<Client>(connection_),
+            std::make_shared<DatabaseAdminClient>(database_connection_))));
 
     EXPECT_SUCCESS(gcp_spanner_.Init());
     EXPECT_SUCCESS(gcp_spanner_.Run());
   }
 
-  shared_ptr<MockInstanceClientProvider> instance_client_;
-  shared_ptr<MockConnection> connection_;
-  shared_ptr<MockDatabaseAdminConnection> database_connection_;
-  shared_ptr<MockSpannerFactory> spanner_factory_;
+  std::shared_ptr<MockInstanceClientProvider> instance_client_;
+  std::shared_ptr<MockConnection> connection_;
+  std::shared_ptr<MockDatabaseAdminConnection> database_connection_;
+  std::shared_ptr<MockSpannerFactory> spanner_factory_;
   GcpNoSQLDatabaseClientProvider gcp_spanner_;
 
   AsyncContext<CreateTableRequest, CreateTableResponse> create_table_context_;
@@ -273,14 +272,15 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
 };
 
 TEST_F(GcpNoSQLDatabaseClientProviderTests, InitWithGetProjectIdFailure) {
-  auto instance_client = make_shared<NiceMock<MockInstanceClientProvider>>();
+  auto instance_client =
+      std::make_shared<NiceMock<MockInstanceClientProvider>>();
   instance_client->get_instance_resource_name_mock =
       FailureExecutionResult(123);
   GcpNoSQLDatabaseClientProvider gcp_spanner(
-      make_shared<NoSQLDatabaseClientOptions>("instance", "database",
-                                              GetTableNameToKeysMap()),
-      instance_client, make_shared<MockAsyncExecutor>(),
-      make_shared<MockAsyncExecutor>(), spanner_factory_);
+      std::make_shared<NoSQLDatabaseClientOptions>("instance", "database",
+                                                   GetTableNameToKeysMap()),
+      instance_client, std::make_shared<MockAsyncExecutor>(),
+      std::make_shared<MockAsyncExecutor>(), spanner_factory_);
 
   EXPECT_SUCCESS(gcp_spanner.Init());
   EXPECT_THAT(gcp_spanner.Run(), ResultIs(FailureExecutionResult(123)));
@@ -544,7 +544,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests, GetItemWithPartitionKeyOnly) {
       "token_count": "1"
     }
   )"""));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
@@ -595,7 +595,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests, GetItemWithPartitionAndSortKey) {
       "token_count": "1"
     }
   )"""));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
@@ -652,7 +652,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       "token_count": "1"
     }
   )"""));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
@@ -694,7 +694,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests, GetItemNoRowFound) {
   expected_params.emplace("partition_key", "3");
   SqlStatement sql(std::move(expected_query), expected_params);
 
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
 
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(sql)))
@@ -729,7 +729,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests, GetItemJsonParseFail) {
 
   // Put an integer where a Json is expected to cause failure.
   auto returned_row = MakeRow(1);
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
@@ -902,7 +902,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
   SqlStatement expected_sql(
       "SELECT Value FROM `PartitionLock` WHERE LockId = @partition_key",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
       .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
@@ -943,7 +943,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests, UpsertItemNoAttributesWithSortKey) {
       "SELECT Value FROM `BudgetKeys` WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
       .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
@@ -983,7 +983,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
   SqlStatement expected_sql(
       "SELECT Value FROM `PartitionLock` WHERE LockId = @partition_key",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   // We return a JSON with "other_val" and "token_count" existing,
   // token_count should be overridden.
   EXPECT_CALL(*returned_results, NextRow)
@@ -1026,7 +1026,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
   upsert_database_item_context_.request->add_new_attributes()->CopyFrom(
       MakeStringAttribute("token_count", "1"));
 
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(MakeRow(Json(R"""(
     {
@@ -1065,7 +1065,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
   upsert_database_item_context_.request->add_new_attributes()->CopyFrom(
       MakeStringAttribute("token_count", "1"));
 
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   // Place an integer where a JSON is expected to cause failure.
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(MakeRow(1)))
@@ -1110,7 +1110,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       "SELECT Value FROM `PartitionLock` WHERE LockId = @partition_key AND "
       "JSON_VALUE(Value, '$.token_count') = @attribute_0",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
       "token_count": "100"
@@ -1164,7 +1164,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
       "token_count": "100"
@@ -1219,7 +1219,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   // Return(Row()) means no rows are found.
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
@@ -1266,7 +1266,7 @@ TEST_F(GcpNoSQLDatabaseClientProviderTests,
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
       "token_count": "100"

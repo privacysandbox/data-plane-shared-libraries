@@ -27,10 +27,7 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::TimeProvider;
 using std::abort;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
 using std::mutex;
-using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
 using std::chrono::milliseconds;
@@ -63,7 +60,7 @@ LeaseManager::LeaseManager(
           lease_obtainer_maximum_runningtime_in_milliseconds) {}
 
 ExecutionResult LeaseManager::ManageLeaseOnLock(
-    shared_ptr<LeasableLockInterface> leasable_lock,
+    std::shared_ptr<LeasableLockInterface> leasable_lock,
     LeaseTransitionCallback&& lease_transition_callback) noexcept {
   if (component_running_) {
     // More than one lock is not supported yet
@@ -201,7 +198,7 @@ ExecutionResult LeaseManager::Run() noexcept {
 
   component_running_ = true;
 
-  lease_obtainer_thread_ = make_unique<thread>([this]() {
+  lease_obtainer_thread_ = std::make_unique<thread>([this]() {
     lease_obtainer_thread_started_ = true;
     LeaseObtainerThreadFunction();
   });
@@ -209,7 +206,7 @@ ExecutionResult LeaseManager::Run() noexcept {
     sleep_for(milliseconds(kSleepDurationMs));
   }
 
-  lease_enforcer_thread_ = make_unique<thread>([this]() {
+  lease_enforcer_thread_ = std::make_unique<thread>([this]() {
     lease_enforcer_thread_started_ = true;
     LeaseEnforcerThreadFunction();
   });

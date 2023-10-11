@@ -55,30 +55,28 @@ using google::scp::cpio::client_providers::PrivateKeyFetcherProviderInterface;
 using std::bind;
 using std::dynamic_pointer_cast;
 using std::list;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kGcpPrivateKeyServiceFactory[] = "GcpPrivateKeyServiceFactory";
 }  // namespace
 
 namespace google::scp::cpio {
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 GcpPrivateKeyServiceFactory::CreateAuthTokenProvider() noexcept {
-  auth_token_provider_ = make_shared<GcpAuthTokenProvider>(http1_client_);
+  auth_token_provider_ = std::make_shared<GcpAuthTokenProvider>(http1_client_);
   return auth_token_provider_;
 }
 
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 GcpPrivateKeyServiceFactory::CreatePrivateKeyFetcher() noexcept {
-  private_key_fetcher_ = make_shared<GcpPrivateKeyFetcherProvider>(
+  private_key_fetcher_ = std::make_shared<GcpPrivateKeyFetcherProvider>(
       http2_client_, auth_token_provider_);
   return private_key_fetcher_;
 }
 
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 GcpPrivateKeyServiceFactory::CreateKmsClient() noexcept {
-  kms_client_ = make_shared<GcpKmsClientProvider>();
+  kms_client_ = std::make_shared<GcpKmsClientProvider>();
   return kms_client_;
 }
 
@@ -105,7 +103,7 @@ ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
        ComponentCreator(
            bind(&GcpPrivateKeyServiceFactory::CreateKmsClient, this),
            "KmsClient")});
-  component_factory_ = make_shared<ComponentFactory>(std::move(creators));
+  component_factory_ = std::make_shared<ComponentFactory>(std::move(creators));
 
   RETURN_AND_LOG_IF_FAILURE(PrivateKeyServiceFactory::Init(),
                             kGcpPrivateKeyServiceFactory, kZeroUuid,

@@ -52,22 +52,19 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::MetricClientProviderFactory;
 using google::scp::cpio::client_providers::MetricClientUtils;
 using std::bind;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 static constexpr char kMetricClient[] = "MetricClient";
 
 namespace google::scp::cpio {
 ExecutionResult MetricClient::CreateMetricClientProvider() noexcept {
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   RETURN_IF_FAILURE(
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor));
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   RETURN_IF_FAILURE(
       GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor));
-  shared_ptr<InstanceClientProviderInterface> instance_client_provider;
+  std::shared_ptr<InstanceClientProviderInterface> instance_client_provider;
   RETURN_IF_FAILURE(GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(
       instance_client_provider));
   metric_client_provider_ = MetricClientProviderFactory::Create(
@@ -118,6 +115,7 @@ core::ExecutionResult MetricClient::PutMetrics(
 
 std::unique_ptr<MetricClientInterface> MetricClientFactory::Create(
     MetricClientOptions options) {
-  return make_unique<MetricClient>(make_shared<MetricClientOptions>(options));
+  return std::make_unique<MetricClient>(
+      std::make_shared<MetricClientOptions>(options));
 }
 }  // namespace google::scp::cpio

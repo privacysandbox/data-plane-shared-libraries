@@ -83,11 +83,7 @@ using google::scp::cpio::client_providers::ParameterClientProviderInterface;
 using std::bind;
 using std::cout;
 using std::endl;
-using std::make_shared;
-using std::make_unique;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -102,10 +98,10 @@ constexpr char kParameterClientName[] = "parameter_client";
 constexpr char kServiceFactoryName[] = "service_factory";
 }  // namespace
 
-shared_ptr<CloudInitializerInterface> cloud_initializer;
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<ParameterClientProviderInterface> parameter_client;
-shared_ptr<ParameterServiceFactoryInterface> service_factory;
+std::shared_ptr<CloudInitializerInterface> cloud_initializer;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<ParameterClientProviderInterface> parameter_client;
+std::shared_ptr<ParameterServiceFactoryInterface> service_factory;
 
 class ParameterServiceImpl : public ParameterService::CallbackService {
  public:
@@ -164,21 +160,23 @@ int main(int argc, char* argv[]) {
 void RunClients() {
 #if defined(AWS_SERVER)
   SCP_INFO(kParameterService, kZeroUuid, "Start AWS Parameter Server");
-  service_factory = make_shared<google::scp::cpio::AwsParameterServiceFactory>(
-      config_provider);
+  service_factory =
+      std::make_shared<google::scp::cpio::AwsParameterServiceFactory>(
+          config_provider);
 #elif defined(GCP_SERVER)
   SCP_INFO(kParameterService, kZeroUuid, "Start GCP Parameter Server");
-  service_factory = make_shared<google::scp::cpio::GcpParameterServiceFactory>(
-      config_provider);
+  service_factory =
+      std::make_shared<google::scp::cpio::GcpParameterServiceFactory>(
+          config_provider);
 #elif defined(TEST_AWS_SERVER)
   SCP_INFO(kParameterService, kZeroUuid, "Start test AWS Parameter Server");
   service_factory =
-      make_shared<google::scp::cpio::TestAwsParameterServiceFactory>(
+      std::make_shared<google::scp::cpio::TestAwsParameterServiceFactory>(
           config_provider);
 #elif defined(TEST_GCP_SERVER)
   SCP_INFO(kParameterService, kZeroUuid, "Start test GCP Parameter Server");
   service_factory =
-      make_shared<google::scp::cpio::TestGcpParameterServiceFactory>(
+      std::make_shared<google::scp::cpio::TestGcpParameterServiceFactory>(
           config_provider);
 #endif
 

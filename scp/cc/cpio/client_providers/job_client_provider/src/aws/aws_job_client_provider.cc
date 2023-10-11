@@ -29,8 +29,6 @@ using google::scp::core::errors::
     SC_JOB_CLIENT_PROVIDER_JOB_ENTRY_CREATION_FAILED;
 using google::scp::core::errors::
     SC_NO_SQL_DATABASE_PROVIDER_CONDITIONAL_CHECKED_FAILED;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult AwsJobClientProvider::ConvertDatabaseErrorForPutJob(
@@ -45,23 +43,23 @@ ExecutionResult AwsJobClientProvider::ConvertDatabaseErrorForPutJob(
   }
 }
 
-shared_ptr<JobClientProviderInterface> JobClientProviderFactory::Create(
-    const shared_ptr<JobClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface> instance_client,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>&
+std::shared_ptr<JobClientProviderInterface> JobClientProviderFactory::Create(
+    const std::shared_ptr<JobClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface> instance_client,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  auto queue_options = make_shared<QueueClientOptions>();
+  auto queue_options = std::make_shared<QueueClientOptions>();
   queue_options->queue_name = options->job_queue_name;
   auto queue_client = QueueClientProviderFactory::Create(
       queue_options, instance_client, cpu_async_executor, io_async_executor);
 
-  auto nosql_database_options = make_shared<NoSQLDatabaseClientOptions>();
+  auto nosql_database_options = std::make_shared<NoSQLDatabaseClientOptions>();
   auto nosql_database_client = NoSQLDatabaseClientProviderFactory::Create(
       nosql_database_options, instance_client, cpu_async_executor,
       io_async_executor);
 
-  return make_shared<AwsJobClientProvider>(options, queue_client,
-                                           nosql_database_client);
+  return std::make_shared<AwsJobClientProvider>(options, queue_client,
+                                                nosql_database_client);
 }
 }  // namespace google::scp::cpio::client_providers

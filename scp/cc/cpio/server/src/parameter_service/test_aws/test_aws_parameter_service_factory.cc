@@ -28,19 +28,17 @@
 using google::scp::cpio::client_providers::AwsParameterClientProvider;
 using google::scp::cpio::client_providers::ParameterClientProviderInterface;
 using google::scp::cpio::client_providers::TestAwsParameterClientProvider;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestAwsParameterServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestAwsInstanceServiceFactory>(
+  return std::make_shared<TestAwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions>
+std::shared_ptr<InstanceServiceFactoryOptions>
 TestAwsParameterServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
-  auto options = make_shared<TestAwsInstanceServiceFactoryOptions>();
+  auto options = std::make_shared<TestAwsInstanceServiceFactoryOptions>();
   options->region_config_label = kTestAwsParameterClientRegion;
   return options;
 }
@@ -52,11 +50,11 @@ TestAwsParameterServiceFactory::CreateParameterClient() noexcept {
       *test_options_->ssm_endpoint_override);
   if (execution_result.Successful() &&
       !test_options_->ssm_endpoint_override->empty()) {
-    return make_shared<TestAwsParameterClientProvider>(
+    return std::make_shared<TestAwsParameterClientProvider>(
         test_options_, instance_client_,
         instance_service_factory_->GetIoAsynceExecutor());
   }
-  return make_shared<AwsParameterClientProvider>(
+  return std::make_shared<AwsParameterClientProvider>(
       test_options_, instance_client_,
       instance_service_factory_->GetIoAsynceExecutor());
 }

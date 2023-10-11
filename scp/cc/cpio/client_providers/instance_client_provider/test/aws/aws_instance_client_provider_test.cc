@@ -92,10 +92,6 @@ using google::scp::cpio::client_providers::GetSessionTokenResponse;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using google::scp::cpio::client_providers::mock::MockEC2Client;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::_;
 using testing::Eq;
 using testing::IsEmpty;
@@ -148,16 +144,16 @@ class MockAwsEC2ClientFactory : public AwsEC2ClientFactory {
 class AwsInstanceClientProviderTest : public TestWithParam<std::string> {
  protected:
   AwsInstanceClientProviderTest()
-      : http_client_(make_shared<MockCurlClient>()),
-        authorizer_provider_(make_shared<MockAuthTokenProvider>()),
-        ec2_factory_(make_shared<NiceMock<MockAwsEC2ClientFactory>>()),
-        instance_provider_(make_unique<AwsInstanceClientProvider>(
+      : http_client_(std::make_shared<MockCurlClient>()),
+        authorizer_provider_(std::make_shared<MockAuthTokenProvider>()),
+        ec2_factory_(std::make_shared<NiceMock<MockAwsEC2ClientFactory>>()),
+        instance_provider_(std::make_unique<AwsInstanceClientProvider>(
             authorizer_provider_, http_client_,
-            make_shared<MockAsyncExecutor>(), make_shared<MockAsyncExecutor>(),
-            ec2_factory_)) {
+            std::make_shared<MockAsyncExecutor>(),
+            std::make_shared<MockAsyncExecutor>(), ec2_factory_)) {
     InitAPI(options_);
 
-    ec2_client_ = make_shared<NiceMock<MockEC2Client>>();
+    ec2_client_ = std::make_shared<NiceMock<MockEC2Client>>();
 
     ON_CALL(*ec2_factory_, CreateClient).WillByDefault(Return(ec2_client_));
 
@@ -175,11 +171,11 @@ class AwsInstanceClientProviderTest : public TestWithParam<std::string> {
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       fetch_token_context_;
 
-  shared_ptr<MockCurlClient> http_client_;
-  shared_ptr<MockAuthTokenProvider> authorizer_provider_;
-  shared_ptr<MockEC2Client> ec2_client_;
-  shared_ptr<MockAwsEC2ClientFactory> ec2_factory_;
-  unique_ptr<AwsInstanceClientProvider> instance_provider_;
+  std::shared_ptr<MockCurlClient> http_client_;
+  std::shared_ptr<MockAuthTokenProvider> authorizer_provider_;
+  std::shared_ptr<MockEC2Client> ec2_client_;
+  std::shared_ptr<MockAwsEC2ClientFactory> ec2_factory_;
+  std::unique_ptr<AwsInstanceClientProvider> instance_provider_;
 
   SDKOptions options_;
 };
@@ -188,9 +184,9 @@ TEST_F(AwsInstanceClientProviderTest, GetCurrentInstanceResourceNameSuccess) {
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -224,7 +220,7 @@ TEST_F(AwsInstanceClientProviderTest, GetCurrentInstanceResourceNameSuccess) {
         EXPECT_THAT(request.headers,
                     Pointee(UnorderedElementsAre(
                         Pair(kAuthorizationHeaderKey, kSessionTokenMock))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(dynamic_data_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -235,7 +231,7 @@ TEST_F(AwsInstanceClientProviderTest, GetCurrentInstanceResourceNameSuccess) {
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
-          make_shared<GetCurrentInstanceResourceNameRequest>(),
+          std::make_shared<GetCurrentInstanceResourceNameRequest>(),
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
@@ -256,9 +252,9 @@ TEST_F(AwsInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -292,7 +288,7 @@ TEST_F(AwsInstanceClientProviderTest,
         EXPECT_THAT(request.headers,
                     Pointee(UnorderedElementsAre(
                         Pair(kAuthorizationHeaderKey, kSessionTokenMock))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(dynamic_data_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -313,9 +309,9 @@ TEST_F(AwsInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -346,9 +342,9 @@ TEST_F(AwsInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -381,7 +377,7 @@ TEST_F(AwsInstanceClientProviderTest,
         EXPECT_THAT(request.headers,
                     Pointee(UnorderedElementsAre(
                         Pair(kAuthorizationHeaderKey, kSessionTokenMock))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(dynamic_data_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -394,7 +390,7 @@ TEST_F(AwsInstanceClientProviderTest,
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
-          make_shared<GetCurrentInstanceResourceNameRequest>(),
+          std::make_shared<GetCurrentInstanceResourceNameRequest>(),
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result, ResultIs(malformed_failure));
@@ -411,7 +407,7 @@ TEST_F(AwsInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.result = FailureExecutionResult(SC_UNKNOWN);
         context.Finish();
         return SuccessExecutionResult();
@@ -423,7 +419,7 @@ TEST_F(AwsInstanceClientProviderTest,
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
-          make_shared<GetCurrentInstanceResourceNameRequest>(),
+          std::make_shared<GetCurrentInstanceResourceNameRequest>(),
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
@@ -441,9 +437,9 @@ TEST_F(AwsInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -466,7 +462,7 @@ TEST_F(AwsInstanceClientProviderTest,
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
-          make_shared<GetCurrentInstanceResourceNameRequest>(),
+          std::make_shared<GetCurrentInstanceResourceNameRequest>(),
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
@@ -556,7 +552,7 @@ TEST_F(AwsInstanceClientProviderTest, GetInstanceDetailsByResourceName) {
         callback(nullptr, request, std::move(outcome), nullptr);
       });
 
-  auto request = make_shared<GetInstanceDetailsByResourceNameRequest>();
+  auto request = std::make_shared<GetInstanceDetailsByResourceNameRequest>();
   request->set_instance_resource_name(kAwsInstanceResourceNameMock);
 
   atomic<bool> condition{false};
@@ -591,7 +587,7 @@ TEST_F(AwsInstanceClientProviderTest,
         callback(nullptr, request, std::move(outcome), nullptr);
       });
 
-  auto request = make_shared<GetInstanceDetailsByResourceNameRequest>();
+  auto request = std::make_shared<GetInstanceDetailsByResourceNameRequest>();
   request->set_instance_resource_name(kAwsInstanceResourceNameMock);
 
   atomic<bool> condition{false};
@@ -624,7 +620,7 @@ TEST_F(AwsInstanceClientProviderTest,
         callback(nullptr, request, std::move(outcome), nullptr);
       });
 
-  auto request = make_shared<GetInstanceDetailsByResourceNameRequest>();
+  auto request = std::make_shared<GetInstanceDetailsByResourceNameRequest>();
   request->set_instance_resource_name(kAwsInstanceResourceNameMock);
 
   auto failure = FailureExecutionResult(
@@ -668,7 +664,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameSucceed) {
         callback(nullptr, request, std::move(outcome), nullptr);
       });
 
-  auto request = make_shared<GetTagsByResourceNameRequest>();
+  auto request = std::make_shared<GetTagsByResourceNameRequest>();
   request->set_resource_name(kAwsInstanceResourceNameMock);
 
   atomic<bool> condition{false};
@@ -701,7 +697,7 @@ TEST_F(AwsInstanceClientProviderTest,
         callback(nullptr, request, std::move(outcome), nullptr);
       });
 
-  auto request = make_shared<GetTagsByResourceNameRequest>();
+  auto request = std::make_shared<GetTagsByResourceNameRequest>();
   request->set_resource_name(kAwsInstanceResourceNameMock);
 
   atomic<bool> condition{false};
@@ -724,7 +720,7 @@ TEST_F(AwsInstanceClientProviderTest,
        GetTagsByResourceNameFailedWithInvalidResourceName) {
   EXPECT_CALL(*ec2_client_, DescribeTagsAsync).Times(0);
 
-  auto request = make_shared<GetTagsByResourceNameRequest>();
+  auto request = std::make_shared<GetTagsByResourceNameRequest>();
   request->set_resource_name(kBadAwsInstanceResourceNameMock);
 
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
@@ -743,7 +739,7 @@ TEST_F(AwsInstanceClientProviderTest,
 
   EXPECT_CALL(*ec2_factory_, CreateClient).Times(0);
 
-  auto request = make_shared<GetTagsByResourceNameRequest>();
+  auto request = std::make_shared<GetTagsByResourceNameRequest>();
   request->set_resource_name(kBadAwsRegionCodeMock);
 
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
@@ -777,7 +773,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
       .WillOnce(Return(ec2_client_));
 
   atomic<int> condition{0};
-  auto request_empty_region = make_shared<GetTagsByResourceNameRequest>();
+  auto request_empty_region = std::make_shared<GetTagsByResourceNameRequest>();
   request_empty_region->set_resource_name(kAwsInstanceResourceNameMock);
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context_empty_region(
@@ -788,7 +784,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
             condition++;
           });
 
-  auto request_us_west = make_shared<GetTagsByResourceNameRequest>();
+  auto request_us_west = std::make_shared<GetTagsByResourceNameRequest>();
   request_us_west->set_resource_name(kAwsInstanceResourceNameUsWestMock);
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context_us_west(

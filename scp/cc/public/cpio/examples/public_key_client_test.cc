@@ -41,10 +41,6 @@ using google::scp::cpio::PublicKeyClientFactory;
 using google::scp::cpio::PublicKeyClientInterface;
 using google::scp::cpio::PublicKeyClientOptions;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::milliseconds;
 
 constexpr char kPublicKeyEndpoint[] = "https://test.publickey.com";

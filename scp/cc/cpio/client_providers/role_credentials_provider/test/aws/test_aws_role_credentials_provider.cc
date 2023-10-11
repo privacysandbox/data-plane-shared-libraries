@@ -31,25 +31,24 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
-shared_ptr<ClientConfiguration>
+std::shared_ptr<ClientConfiguration>
 TestAwsRoleCredentialsProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   return CreateTestClientConfiguration(test_options_->sts_endpoint_override,
-                                       make_shared<std::string>(region));
+                                       std::make_shared<std::string>(region));
 }
 
-shared_ptr<RoleCredentialsProviderInterface>
+std::shared_ptr<RoleCredentialsProviderInterface>
 RoleCredentialsProviderFactory::Create(
-    const shared_ptr<RoleCredentialsProviderOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>&
+    const std::shared_ptr<RoleCredentialsProviderOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  return make_shared<TestAwsRoleCredentialsProvider>(
+  return std::make_shared<TestAwsRoleCredentialsProvider>(
       dynamic_pointer_cast<TestAwsRoleCredentialsProviderOptions>(options),
       instance_client_provider, cpu_async_executor, io_async_executor);
 }

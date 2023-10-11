@@ -53,8 +53,6 @@ using google::scp::cpio::client_providers::GcpInstanceResourceNameDetails;
 using google::scp::cpio::client_providers::GcpMetricClientUtils;
 using google::scp::cpio::common::GcpUtils;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 static constexpr char kGcpMetricClientProvider[] = "GcpMetricClientProvider";
@@ -99,11 +97,11 @@ void GcpMetricClientProvider::CreateMetricServiceClient() noexcept {
   auto metric_service_connection = MakeMetricServiceConnection();
 
   metric_service_client_ =
-      make_shared<MetricServiceClient>(metric_service_connection);
+      std::make_shared<MetricServiceClient>(metric_service_connection);
 }
 
 ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
-    const shared_ptr<
+    const std::shared_ptr<
         std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&
         context_vector) noexcept {
   MetricServiceClient metric_client(*metric_service_client_);
@@ -116,7 +114,7 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
   // Chops the input context_vector to small piece of vector, and
   // requests_vector is used in callback function to set the response for
   // requests.
-  auto requests_vector = make_shared<
+  auto requests_vector = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>(
       kGcpTimeSeriesSizeLimit);
 
@@ -184,7 +182,7 @@ void GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback(
   }
 
   for (auto& record_metric_context : metric_requests_vector) {
-    record_metric_context.response = make_shared<PutMetricsResponse>();
+    record_metric_context.response = std::make_shared<PutMetricsResponse>();
     record_metric_context.result = result;
     record_metric_context.Finish();
   }
@@ -192,11 +190,12 @@ void GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback(
 }
 
 std::shared_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
-    const shared_ptr<MetricClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<GcpMetricClientProvider>(options, instance_client_provider,
-                                              async_executor);
+    const std::shared_ptr<MetricClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
+  return std::make_shared<GcpMetricClientProvider>(
+      options, instance_client_provider, async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

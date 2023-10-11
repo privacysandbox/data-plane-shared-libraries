@@ -21,8 +21,6 @@
 
 using google::scp::core::common::RetryStrategy;
 using google::scp::core::common::RetryStrategyType;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kHttp1CurlClient[] = "Http1CurlClient";
@@ -31,9 +29,9 @@ constexpr char kHttp1CurlClient[] = "Http1CurlClient";
 namespace google::scp::core {
 
 Http1CurlClient::Http1CurlClient(
-    const shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor,
-    shared_ptr<Http1CurlWrapperProvider> curl_wrapper_provider,
+    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor,
+    std::shared_ptr<Http1CurlWrapperProvider> curl_wrapper_provider,
     common::RetryStrategyOptions retry_strategy_options)
     : curl_wrapper_provider_(curl_wrapper_provider),
       cpu_async_executor_(cpu_async_executor),
@@ -68,7 +66,7 @@ ExecutionResult Http1CurlClient::PerformRequest(
         }
 
         http_context.response =
-            make_shared<HttpResponse>(std::move(*response_or));
+            std::make_shared<HttpResponse>(std::move(*response_or));
 
         FinishContext(SuccessExecutionResult(), http_context,
                       cpu_async_executor_);

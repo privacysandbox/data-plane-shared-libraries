@@ -32,7 +32,6 @@ namespace asio = boost::asio;
 using asio::const_buffer;
 using asio::mutable_buffer;
 using boost::system::error_code;
-using std::make_shared;
 using std::thread;
 
 namespace google::scp::proxy::test {
@@ -57,7 +56,8 @@ TEST(ClientSessionPoolTest, TestBind) {
 
   Endpoint local_ep(acceptor.local_endpoint());
 
-  auto pool = make_shared<ClientSessionPool>(std::move(client_sock1), local_ep);
+  auto pool =
+      std::make_shared<ClientSessionPool>(std::move(client_sock1), local_ep);
   thread initiator([pool]() { EXPECT_TRUE(pool->Start()); });
 
   auto work = asio::make_work_guard(io_context);

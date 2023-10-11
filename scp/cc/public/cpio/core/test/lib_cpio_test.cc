@@ -41,8 +41,6 @@ using google::scp::cpio::MetricClientFactory;
 using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricClientOptions;
 using google::scp::cpio::client_providers::GlobalCpio;
-using std::make_shared;
-using std::shared_ptr;
 using ::testing::IsNull;
 using ::testing::NotNull;
 
@@ -84,7 +82,7 @@ TEST(LibCpioTest, StopSuccessfully) {
   options.log_option = LogOption::kSysLog;
   options.region = kRegion;
   EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   EXPECT_EQ(
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor),
       SuccessExecutionResult());
@@ -101,14 +99,14 @@ TEST(LibCpioTest, SetExternalCpuAsyncExecutor) {
   options.log_option = LogOption::kSysLog;
   options.region = kRegion;
 
-  shared_ptr<AsyncExecutorInterface> external_async_executor =
-      make_shared<AsyncExecutor>(1, 2);
+  std::shared_ptr<AsyncExecutorInterface> external_async_executor =
+      std::make_shared<AsyncExecutor>(1, 2);
   EXPECT_SUCCESS(external_async_executor->Init());
   EXPECT_SUCCESS(external_async_executor->Run());
   options.cpu_async_executor = external_async_executor;
 
   EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   EXPECT_EQ(
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor),
       SuccessExecutionResult());
@@ -123,14 +121,14 @@ TEST(LibCpioTest, SetExternalIoAsyncExecutor) {
   options.log_option = LogOption::kSysLog;
   options.region = kRegion;
 
-  shared_ptr<AsyncExecutorInterface> external_async_executor =
-      make_shared<AsyncExecutor>(1, 2);
+  std::shared_ptr<AsyncExecutorInterface> external_async_executor =
+      std::make_shared<AsyncExecutor>(1, 2);
   EXPECT_SUCCESS(external_async_executor->Init());
   EXPECT_SUCCESS(external_async_executor->Run());
   options.io_async_executor = external_async_executor;
 
   EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   EXPECT_EQ(GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor),
             SuccessExecutionResult());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));

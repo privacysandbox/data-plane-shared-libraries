@@ -56,8 +56,6 @@ using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
 using std::atomic;
 using std::list;
-using std::make_shared;
-using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
 
@@ -66,46 +64,47 @@ namespace google::scp::core::test {
 class TransactionManagerTests : public testing::Test {
  protected:
   void CreateComponents() {
-    shared_ptr<JournalServiceInterface> mock_journal_service;
-    shared_ptr<TransactionCommandSerializerInterface>
+    std::shared_ptr<JournalServiceInterface> mock_journal_service;
+    std::shared_ptr<TransactionCommandSerializerInterface>
         mock_transaction_command_serializer;
-    shared_ptr<AsyncExecutorInterface> async_executor;
-    shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+    std::shared_ptr<AsyncExecutorInterface> async_executor;
+    std::shared_ptr<RemoteTransactionManagerInterface>
+        remote_transaction_manager;
 
-    mock_journal_service = make_shared<MockJournalService>();
+    mock_journal_service = std::make_shared<MockJournalService>();
     mock_transaction_command_serializer =
-        make_shared<MockTransactionCommandSerializer>();
-    async_executor = make_shared<MockAsyncExecutor>();
-    mock_transaction_engine_ = make_shared<MockTransactionEngine>(
+        std::make_shared<MockTransactionCommandSerializer>();
+    async_executor = std::make_shared<MockAsyncExecutor>();
+    mock_transaction_engine_ = std::make_shared<MockTransactionEngine>(
         async_executor, mock_transaction_command_serializer,
         mock_journal_service, remote_transaction_manager);
 
-    mock_metric_instance_factory_ = make_shared<MetricInstanceFactory>(
-        async_executor, make_shared<MockMetricClient>(),
-        make_shared<MockConfigProvider>());
-    mock_transaction_manager_ = make_shared<MockTransactionManager>(
+    mock_metric_instance_factory_ = std::make_shared<MetricInstanceFactory>(
+        async_executor, std::make_shared<MockMetricClient>(),
+        std::make_shared<MockConfigProvider>());
+    mock_transaction_manager_ = std::make_shared<MockTransactionManager>(
         async_executor, mock_transaction_engine_, 100000,
         mock_metric_instance_factory_);
   }
 
   TransactionManagerTests() { CreateComponents(); }
 
-  shared_ptr<MetricInstanceFactoryInterface> mock_metric_instance_factory_;
-  shared_ptr<MockTransactionEngine> mock_transaction_engine_;
-  shared_ptr<MockTransactionManager> mock_transaction_manager_;
+  std::shared_ptr<MetricInstanceFactoryInterface> mock_metric_instance_factory_;
+  std::shared_ptr<MockTransactionEngine> mock_transaction_engine_;
+  std::shared_ptr<MockTransactionManager> mock_transaction_manager_;
 };
 
 TEST_F(TransactionManagerTests, InitValidation) {
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
   auto async_executor =
       static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
-  auto mock_transaction_engine = make_shared<MockTransactionEngine>(
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+  auto mock_transaction_engine = std::make_shared<MockTransactionEngine>(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
   mock_transaction_engine->init_mock = []() {
@@ -128,7 +127,7 @@ TEST_F(TransactionManagerTests, InitValidation) {
   }
 
   {
-    auto mock_async_executor = make_shared<MockAsyncExecutor>();
+    auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
     MockTransactionManager transaction_manager(mock_async_executor,
                                                transaction_engine, 1,
                                                mock_metric_instance_factory_);
@@ -145,16 +144,16 @@ TEST_F(TransactionManagerTests, InitValidation) {
 }
 
 TEST_F(TransactionManagerTests, RunValidation) {
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
   auto async_executor =
       static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
-  auto mock_transaction_engine = make_shared<MockTransactionEngine>(
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+  auto mock_transaction_engine = std::make_shared<MockTransactionEngine>(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
   mock_transaction_engine->init_mock = []() {
@@ -184,17 +183,18 @@ TEST_F(TransactionManagerTests, RunValidation) {
 
 TEST_F(TransactionManagerTests, ExecuteValidation) {
   {
-    auto mock_async_executor = make_shared<MockAsyncExecutor>();
+    auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
     auto async_executor =
         static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
-    shared_ptr<JournalServiceInterface> mock_journal_service =
-        make_shared<MockJournalService>();
-    shared_ptr<TransactionCommandSerializerInterface>
+    std::shared_ptr<JournalServiceInterface> mock_journal_service =
+        std::make_shared<MockJournalService>();
+    std::shared_ptr<TransactionCommandSerializerInterface>
         mock_transaction_command_serializer =
-            make_shared<MockTransactionCommandSerializer>();
+            std::make_shared<MockTransactionCommandSerializer>();
 
-    shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
-    auto mock_transaction_engine = make_shared<MockTransactionEngine>(
+    std::shared_ptr<RemoteTransactionManagerInterface>
+        remote_transaction_manager;
+    auto mock_transaction_engine = std::make_shared<MockTransactionEngine>(
         async_executor, mock_transaction_command_serializer,
         mock_journal_service, remote_transaction_manager);
 
@@ -213,7 +213,7 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
     MockTransactionManager transaction_manager(
         async_executor, transaction_engine, 1, mock_metric_instance_factory_);
     AsyncContext<TransactionRequest, TransactionResponse> transaction_context;
-    transaction_context.request = make_shared<TransactionRequest>();
+    transaction_context.request = std::make_shared<TransactionRequest>();
     transaction_context.request->transaction_id = Uuid::GenerateUuid();
     EXPECT_THAT(transaction_manager.Execute(transaction_context),
                 ResultIs(FailureExecutionResult(
@@ -221,20 +221,21 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
   }
 
   {
-    auto mock_async_executor = make_shared<MockAsyncExecutor>();
+    auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
     auto async_executor =
         static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
-    shared_ptr<JournalServiceInterface> mock_journal_service =
-        make_shared<MockJournalService>();
-    shared_ptr<TransactionCommandSerializerInterface>
+    std::shared_ptr<JournalServiceInterface> mock_journal_service =
+        std::make_shared<MockJournalService>();
+    std::shared_ptr<TransactionCommandSerializerInterface>
         mock_transaction_command_serializer =
-            make_shared<MockTransactionCommandSerializer>();
-    shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
-    auto mock_transaction_engine = make_shared<MockTransactionEngine>(
+            std::make_shared<MockTransactionCommandSerializer>();
+    std::shared_ptr<RemoteTransactionManagerInterface>
+        remote_transaction_manager;
+    auto mock_transaction_engine = std::make_shared<MockTransactionEngine>(
         async_executor, mock_transaction_command_serializer,
         mock_journal_service, remote_transaction_manager);
 
-    shared_ptr<TransactionEngineInterface> transaction_engine =
+    std::shared_ptr<TransactionEngineInterface> transaction_engine =
         mock_transaction_engine;
     mock_transaction_engine->init_mock = []() {
       return SuccessExecutionResult();
@@ -251,7 +252,7 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
     EXPECT_SUCCESS(transaction_manager.Init());
     EXPECT_SUCCESS(transaction_manager.Run());
     AsyncContext<TransactionRequest, TransactionResponse> transaction_context;
-    transaction_context.request = make_shared<TransactionRequest>();
+    transaction_context.request = std::make_shared<TransactionRequest>();
     transaction_context.request->transaction_id = Uuid::GenerateUuid();
     transaction_manager.GetActiveTransactionsCount()++;
     transaction_manager.GetActiveTransactionsCount()++;
@@ -266,20 +267,21 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
   }
 
   {
-    auto mock_async_executor = make_shared<MockAsyncExecutor>();
+    auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
     auto async_executor =
         static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
-    shared_ptr<JournalServiceInterface> mock_journal_service =
-        make_shared<MockJournalService>();
-    shared_ptr<TransactionCommandSerializerInterface>
+    std::shared_ptr<JournalServiceInterface> mock_journal_service =
+        std::make_shared<MockJournalService>();
+    std::shared_ptr<TransactionCommandSerializerInterface>
         mock_transaction_command_serializer =
-            make_shared<MockTransactionCommandSerializer>();
-    shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
-    auto mock_transaction_engine = make_shared<MockTransactionEngine>(
+            std::make_shared<MockTransactionCommandSerializer>();
+    std::shared_ptr<RemoteTransactionManagerInterface>
+        remote_transaction_manager;
+    auto mock_transaction_engine = std::make_shared<MockTransactionEngine>(
         async_executor, mock_transaction_command_serializer,
         mock_journal_service, remote_transaction_manager);
 
-    shared_ptr<TransactionEngineInterface> transaction_engine =
+    std::shared_ptr<TransactionEngineInterface> transaction_engine =
         mock_transaction_engine;
     mock_transaction_engine->init_mock = []() {
       return SuccessExecutionResult();
@@ -313,7 +315,7 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
 
     for (size_t i = 0; i < 5; ++i) {
       AsyncContext<TransactionRequest, TransactionResponse> transaction_context;
-      transaction_context.request = make_shared<TransactionRequest>();
+      transaction_context.request = std::make_shared<TransactionRequest>();
       transaction_context.request->transaction_id = Uuid::GenerateUuid();
       transaction_context.callback = [&](auto& context) { total++; };
       EXPECT_SUCCESS(transaction_manager.Execute(transaction_context));
@@ -330,19 +332,19 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
 }
 
 TEST_F(TransactionManagerTests, StopValidation) {
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
   auto async_executor =
       static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
-  auto mock_transaction_engine = make_shared<MockTransactionEngine>(
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+  auto mock_transaction_engine = std::make_shared<MockTransactionEngine>(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
-  shared_ptr<TransactionEngineInterface> transaction_engine =
+  std::shared_ptr<TransactionEngineInterface> transaction_engine =
       mock_transaction_engine;
   mock_transaction_engine->init_mock = []() {
     return SuccessExecutionResult();
@@ -361,7 +363,7 @@ TEST_F(TransactionManagerTests, StopValidation) {
   }
 
   {
-    auto mock_async_executor = make_shared<MockAsyncExecutor>();
+    auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
     MockTransactionManager transaction_manager(mock_async_executor,
                                                transaction_engine, 1,
                                                mock_metric_instance_factory_);
@@ -388,19 +390,19 @@ TEST_F(TransactionManagerTests, StopValidation) {
 }
 
 TEST_F(TransactionManagerTests, CannotCheckpointIfRunning) {
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
   auto async_executor =
       static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
-  auto mock_transaction_engine = make_shared<MockTransactionEngine>(
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+  auto mock_transaction_engine = std::make_shared<MockTransactionEngine>(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
-  shared_ptr<TransactionEngineInterface> transaction_engine =
+  std::shared_ptr<TransactionEngineInterface> transaction_engine =
       mock_transaction_engine;
   mock_transaction_engine->init_mock = []() {
     return SuccessExecutionResult();
@@ -413,7 +415,7 @@ TEST_F(TransactionManagerTests, CannotCheckpointIfRunning) {
   MockTransactionManager transaction_manager(async_executor, transaction_engine,
                                              1, mock_metric_instance_factory_);
   transaction_manager.Init();
-  auto checkpoint_logs = make_shared<list<CheckpointLog>>();
+  auto checkpoint_logs = std::make_shared<list<CheckpointLog>>();
   EXPECT_SUCCESS(transaction_manager.Checkpoint(checkpoint_logs));
 
   transaction_manager.Run();
@@ -470,7 +472,7 @@ TEST_F(TransactionManagerTests,
   EXPECT_SUCCESS(mock_transaction_manager_->Run());
 
   // Add 1 transaction
-  transaction_context.request = make_shared<TransactionRequest>();
+  transaction_context.request = std::make_shared<TransactionRequest>();
   transaction_context.request->transaction_id = Uuid::GenerateUuid();
   mock_transaction_engine_->Execute(transaction_context);
 

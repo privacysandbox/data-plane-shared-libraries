@@ -69,10 +69,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::core::utils::Base64Encode;
 using std::atomic;
 using std::function;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::cpio::client_providers::test {
 constexpr char kKeyId[] = "key_id";
@@ -93,8 +89,8 @@ constexpr char kDecryptedPrivateKeyForAes128Gcm[] =
 class CryptoClientProviderTest : public ScpTestBase {
  protected:
   void SetUp() override {
-    auto options = make_shared<CryptoClientOptions>();
-    client_ = make_unique<CryptoClientProvider>(options);
+    auto options = std::make_shared<CryptoClientOptions>();
+    client_ = std::make_unique<CryptoClientProvider>(options);
 
     EXPECT_SUCCESS(client_->Init());
     EXPECT_SUCCESS(client_->Run());
@@ -108,7 +104,7 @@ class CryptoClientProviderTest : public ScpTestBase {
                            const std::string& exporter_context = "",
                            HpkeParams hpke_params_from_request = HpkeParams(),
                            HpkeParams hpke_params_config = HpkeParams()) {
-    auto request = make_shared<HpkeEncryptRequest>();
+    auto request = std::make_shared<HpkeEncryptRequest>();
     *request->mutable_hpke_params() = hpke_params_from_request;
     auto public_key = request->mutable_public_key();
     public_key->set_key_id(kKeyId);
@@ -152,7 +148,7 @@ class CryptoClientProviderTest : public ScpTestBase {
                            const std::string& exporter_context,
                            HpkeParams hpke_params_from_request,
                            HpkeParams hpke_params_from_config) {
-    auto request = make_shared<HpkeDecryptRequest>();
+    auto request = std::make_shared<HpkeDecryptRequest>();
     HpkePrivateKey hpke_private_key;
     if (hpke_params_from_request.aead() == HpkeAead::AES_128_GCM ||
         hpke_params_from_config.aead() == HpkeAead::AES_128_GCM) {
@@ -202,7 +198,7 @@ class CryptoClientProviderTest : public ScpTestBase {
 
   AsyncContext<AeadEncryptRequest, AeadEncryptResponse>
   CreateAeadEncryptContext(std::string_view secret) {
-    auto request = make_shared<AeadEncryptRequest>();
+    auto request = std::make_shared<AeadEncryptRequest>();
     request->set_shared_info(std::string(kSharedInfo));
     request->set_payload(std::string(kPayload));
     request->set_secret(absl::HexStringToBytes(secret));
@@ -214,7 +210,7 @@ class CryptoClientProviderTest : public ScpTestBase {
   AsyncContext<AeadDecryptRequest, AeadDecryptResponse>
   CreateAeadDecryptContext(std::string_view secret,
                            std::string_view ciphertext) {
-    auto request = make_shared<AeadDecryptRequest>();
+    auto request = std::make_shared<AeadDecryptRequest>();
     request->set_shared_info(std::string(kSharedInfo));
     request->set_secret(absl::HexStringToBytes(secret));
     request->mutable_encrypted_data()->set_ciphertext(std::string(ciphertext));
@@ -223,7 +219,7 @@ class CryptoClientProviderTest : public ScpTestBase {
         [&](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {});
   }
 
-  unique_ptr<CryptoClientProvider> client_;
+  std::unique_ptr<CryptoClientProvider> client_;
 };
 
 TEST_F(CryptoClientProviderTest, HpkeEncryptAndDecryptSuccessForOneDirection) {
@@ -244,11 +240,11 @@ TEST_F(CryptoClientProviderTest,
 
 TEST_F(CryptoClientProviderTest,
        HpkeEncryptAndDecryptSuccessForConfigHpkeParams) {
-  auto options = make_shared<CryptoClientOptions>();
+  auto options = std::make_shared<CryptoClientOptions>();
   options->hpke_params.set_kem(HpkeKem::DHKEM_X25519_HKDF_SHA256);
   options->hpke_params.set_kdf(HpkeKdf::HKDF_SHA256);
   options->hpke_params.set_aead(HpkeAead::AES_128_GCM);
-  client_ = make_unique<CryptoClientProvider>(options);
+  client_ = std::make_unique<CryptoClientProvider>(options);
 
   auto encrypt_context = CreateHpkeEncryptContext(
       false /*is_bidirectional*/, SuccessExecutionResult(),

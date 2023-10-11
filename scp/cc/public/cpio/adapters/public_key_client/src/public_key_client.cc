@@ -44,16 +44,13 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::PublicKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PublicKeyClientProviderInterface;
 using std::bind;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 static constexpr char kPublicKeyClient[] = "PublicKeyClient";
 
 namespace google::scp::cpio {
 ExecutionResult PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
-  shared_ptr<HttpClientInterface> http_client;
+  std::shared_ptr<HttpClientInterface> http_client;
   auto execution_result =
       GlobalCpio::GetGlobalCpio()->GetHttpClient(http_client);
   if (!execution_result.Successful()) {
@@ -110,7 +107,7 @@ core::ExecutionResult PublicKeyClient::ListPublicKeys(
 
 std::unique_ptr<PublicKeyClientInterface> PublicKeyClientFactory::Create(
     PublicKeyClientOptions options) {
-  return make_unique<PublicKeyClient>(
-      make_shared<PublicKeyClientOptions>(options));
+  return std::make_unique<PublicKeyClient>(
+      std::make_shared<PublicKeyClientOptions>(options));
 }
 }  // namespace google::scp::cpio

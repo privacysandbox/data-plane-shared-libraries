@@ -40,10 +40,6 @@ using google::scp::cpio::PrivateKeyClientInterface;
 using google::scp::cpio::PrivateKeyClientOptions;
 using google::scp::cpio::PrivateKeyVendingEndpoint;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::milliseconds;
 
 constexpr char kPrivateKeyEndpoint1[] = "https://test.privatekey1.com";

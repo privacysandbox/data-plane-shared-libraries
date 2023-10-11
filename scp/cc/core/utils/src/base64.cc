@@ -23,8 +23,6 @@
 
 #include "error_codes.h"
 
-using std::make_unique;
-
 namespace google::scp::core::utils {
 ExecutionResult Base64Decode(const std::string& encoded, std::string& decoded) {
   if ((encoded.length() % 4) != 0) {
@@ -35,7 +33,7 @@ ExecutionResult Base64Decode(const std::string& encoded, std::string& decoded) {
   if (EVP_DecodedLength(&required_len, encoded.length()) == 0) {
     return FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT);
   }
-  auto buffer = make_unique<uint8_t[]>(required_len);
+  auto buffer = std::make_unique<uint8_t[]>(required_len);
 
   size_t output_len = 0;
   int ret = EVP_DecodeBase64(buffer.get(), &output_len, required_len,
@@ -53,7 +51,7 @@ ExecutionResult Base64Encode(const std::string& decoded, std::string& encoded) {
   if (EVP_EncodedLength(&required_len, decoded.length()) == 0) {
     return FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT);
   }
-  auto buffer = make_unique<uint8_t[]>(required_len);
+  auto buffer = std::make_unique<uint8_t[]>(required_len);
 
   int ret = EVP_EncodeBlock(buffer.get(),
                             reinterpret_cast<const uint8_t*>(decoded.data()),

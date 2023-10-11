@@ -26,11 +26,8 @@
 using google::scp::core::FetchTokenRequest;
 using google::scp::core::FetchTokenResponse;
 using google::scp::core::common::TimeProvider;
-using std::make_shared;
 using std::shared_lock;
-using std::shared_ptr;
 using std::unique_lock;
-using std::unique_ptr;
 using std::chrono::seconds;
 using std::placeholders::_1;
 
@@ -55,7 +52,7 @@ ExecutionResult AutoRefreshTokenProviderService::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-ExecutionResultOr<shared_ptr<Token>>
+ExecutionResultOr<std::shared_ptr<Token>>
 AutoRefreshTokenProviderService::GetToken() noexcept {
   shared_lock lock(mutex_);
   if (!cached_token_) {
@@ -67,7 +64,7 @@ AutoRefreshTokenProviderService::GetToken() noexcept {
 
 ExecutionResult AutoRefreshTokenProviderService::RefreshToken() {
   AsyncContext<FetchTokenRequest, FetchTokenResponse> get_token_context(
-      make_shared<FetchTokenRequest>(),
+      std::make_shared<FetchTokenRequest>(),
       bind(&AutoRefreshTokenProviderService::OnRefreshTokenCallback, this, _1));
   auto execution_result = token_fetcher_->FetchToken(get_token_context);
   if (!execution_result.Successful()) {
@@ -122,7 +119,8 @@ void AutoRefreshTokenProviderService::OnRefreshTokenCallback(
   // Cache the fetched token
   {
     unique_lock lock(mutex_);
-    cached_token_ = make_shared<std::string>(get_token_context.response->token);
+    cached_token_ =
+        std::make_shared<std::string>(get_token_context.response->token);
   }
 
   SCP_INFO_CONTEXT(kAutoRefreshTokenProvider, get_token_context,

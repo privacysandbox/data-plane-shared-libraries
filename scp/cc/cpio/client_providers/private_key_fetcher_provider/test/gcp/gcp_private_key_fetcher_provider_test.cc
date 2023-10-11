@@ -52,10 +52,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::GcpPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::Pair;
 using testing::Pointee;
 using testing::Return;
@@ -77,17 +73,17 @@ namespace google::scp::cpio::client_providers::test {
 class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   GcpPrivateKeyFetcherProviderTest()
-      : http_client_(make_shared<MockHttpClient>()),
-        credentials_provider_(make_shared<MockAuthTokenProvider>()),
+      : http_client_(std::make_shared<MockHttpClient>()),
+        credentials_provider_(std::make_shared<MockAuthTokenProvider>()),
         gcp_private_key_fetcher_provider_(
-            make_unique<GcpPrivateKeyFetcherProvider>(http_client_,
-                                                      credentials_provider_)) {
+            std::make_unique<GcpPrivateKeyFetcherProvider>(
+                http_client_, credentials_provider_)) {
     EXPECT_SUCCESS(gcp_private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(gcp_private_key_fetcher_provider_->Run());
 
-    request_ = make_shared<PrivateKeyFetchingRequest>();
-    request_->key_id = make_shared<std::string>(kKeyId);
-    auto endpoint = make_shared<PrivateKeyVendingEndpoint>();
+    request_ = std::make_shared<PrivateKeyFetchingRequest>();
+    request_->key_id = std::make_shared<std::string>(kKeyId);
+    auto endpoint = std::make_shared<PrivateKeyVendingEndpoint>();
     endpoint->gcp_private_key_vending_service_cloudfunction_url =
         kPrivateKeyCloudfunctionUri;
     endpoint->private_key_vending_service_endpoint = kPrivateKeyBaseUri;
@@ -104,7 +100,7 @@ class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
 
   void MockRequest(const std::string& uri) {
     http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = make_shared<std::string>(uri);
+    http_client_->request_mock.path = std::make_shared<std::string>(uri);
   }
 
   void MockResponse(const std::string& str) {
@@ -112,15 +108,17 @@ class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
     http_client_->response_mock.body = BytesBuffer(str);
   }
 
-  shared_ptr<MockHttpClient> http_client_;
-  shared_ptr<MockAuthTokenProvider> credentials_provider_;
-  unique_ptr<GcpPrivateKeyFetcherProvider> gcp_private_key_fetcher_provider_;
-  shared_ptr<PrivateKeyFetchingRequest> request_;
+  std::shared_ptr<MockHttpClient> http_client_;
+  std::shared_ptr<MockAuthTokenProvider> credentials_provider_;
+  std::unique_ptr<GcpPrivateKeyFetcherProvider>
+      gcp_private_key_fetcher_provider_;
+  std::shared_ptr<PrivateKeyFetchingRequest> request_;
 };
 
 TEST_F(GcpPrivateKeyFetcherProviderTest, MissingHttpClient) {
   gcp_private_key_fetcher_provider_ =
-      make_unique<GcpPrivateKeyFetcherProvider>(nullptr, credentials_provider_);
+      std::make_unique<GcpPrivateKeyFetcherProvider>(nullptr,
+                                                     credentials_provider_);
 
   EXPECT_THAT(gcp_private_key_fetcher_provider_->Init(),
               ResultIs(FailureExecutionResult(
@@ -129,7 +127,7 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, MissingHttpClient) {
 
 TEST_F(GcpPrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
   gcp_private_key_fetcher_provider_ =
-      make_unique<GcpPrivateKeyFetcherProvider>(http_client_, nullptr);
+      std::make_unique<GcpPrivateKeyFetcherProvider>(http_client_, nullptr);
 
   EXPECT_THAT(
       gcp_private_key_fetcher_provider_->Init(),
@@ -150,9 +148,9 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, SignHttpRequest) {
                   TargetAudienceUriEquals(kPrivateKeyCloudfunctionUri)))
       .WillOnce([=](AsyncContext<GetSessionTokenForTargetAudienceRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();

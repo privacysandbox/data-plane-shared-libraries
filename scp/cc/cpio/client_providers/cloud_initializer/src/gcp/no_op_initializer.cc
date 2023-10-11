@@ -22,7 +22,6 @@
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using std::make_shared;
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult NoOpInitializer::Init() noexcept {
@@ -42,6 +41,6 @@ void NoOpInitializer::InitCloud() noexcept {}
 void NoOpInitializer::ShutdownCloud() noexcept {}
 
 std::shared_ptr<CloudInitializerInterface> CloudInitializerFactory::Create() {
-  return make_shared<NoOpInitializer>();
+  return std::make_shared<NoOpInitializer>();
 }
 }  // namespace google::scp::cpio::client_providers

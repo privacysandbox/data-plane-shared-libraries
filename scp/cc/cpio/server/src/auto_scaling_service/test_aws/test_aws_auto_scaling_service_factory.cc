@@ -31,19 +31,18 @@ using google::scp::cpio::client_providers::AutoScalingClientProviderInterface;
 using google::scp::cpio::client_providers::AwsAutoScalingClientProvider;
 using google::scp::cpio::client_providers::TestAwsAutoScalingClientOptions;
 using google::scp::cpio::client_providers::TestAwsAutoScalingClientProvider;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestAwsAutoScalingServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestAwsInstanceServiceFactory>(
+  return std::make_shared<TestAwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions> TestAwsAutoScalingServiceFactory::
+std::shared_ptr<InstanceServiceFactoryOptions>
+TestAwsAutoScalingServiceFactory::
     CreateInstanceServiceFactoryOptions() noexcept {
-  auto options = make_shared<TestAwsInstanceServiceFactoryOptions>();
+  auto options = std::make_shared<TestAwsInstanceServiceFactoryOptions>();
   options->region_config_label = kTestAwsAutoScalingClientRegion;
   return options;
 }
@@ -55,11 +54,11 @@ TestAwsAutoScalingServiceFactory::CreateAutoScalingClient() noexcept {
       *test_options_->auto_scaling_client_endpoint_override);
   if (execution_result.Successful() &&
       !test_options_->auto_scaling_client_endpoint_override->empty()) {
-    return make_shared<TestAwsAutoScalingClientProvider>(
+    return std::make_shared<TestAwsAutoScalingClientProvider>(
         test_options_, instance_client_,
         instance_service_factory_->GetIoAsynceExecutor());
   }
-  return make_shared<AwsAutoScalingClientProvider>(
+  return std::make_shared<AwsAutoScalingClientProvider>(
       test_options_, instance_client_,
       instance_service_factory_->GetIoAsynceExecutor());
 }

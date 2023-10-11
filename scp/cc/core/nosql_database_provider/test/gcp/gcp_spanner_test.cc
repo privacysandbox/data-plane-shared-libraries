@@ -73,12 +73,8 @@ using google::scp::core::logger::Logger;
 using google::scp::core::nosql_database_provider::GcpSpanner;
 using google::spanner::v1::ResultSetStats;
 using std::make_pair;
-using std::make_shared;
-using std::make_unique;
 using std::optional;
 using std::pair;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::unordered_map;
 using testing::_;
 using testing::A;
@@ -144,7 +140,7 @@ constexpr char kPartitionLockPartitionKeyName[] = "LockId";
 std::unique_ptr<
     unordered_map<std::string, pair<std::string, optional<std::string>>>>
 GetTableNameToKeysMap() {
-  auto map = make_unique<
+  auto map = std::make_unique<
       unordered_map<std::string, pair<std::string, optional<std::string>>>>();
   map->emplace(kBudgetKeyTableName,
                make_pair(kBudgetKeyPartitionKeyName, kBudgetKeySortKeyName));
@@ -158,36 +154,37 @@ class GcpSpannerTests : public testing::Test {
   static void SetUpTestSuite() { TestLoggingUtils::EnableLogOutputToConsole(); }
 
   GcpSpannerTests()
-      : connection_(make_shared<NiceMock<MockConnection>>()),
-        gcp_spanner_(make_shared<Client>(connection_),
-                     make_shared<MockAsyncExecutor>(),
+      : connection_(std::make_shared<NiceMock<MockConnection>>()),
+        gcp_spanner_(std::make_shared<Client>(connection_),
+                     std::make_shared<MockAsyncExecutor>(),
                      GetTableNameToKeysMap()) {
     NoSqlDatabaseKeyValuePair partition_key{
-        make_shared<NoSQLDatabaseAttributeName>(),
-        make_shared<NoSQLDatabaseValidAttributeValueTypes>()};
+        std::make_shared<NoSQLDatabaseAttributeName>(),
+        std::make_shared<NoSQLDatabaseValidAttributeValueTypes>()};
 
     GetDatabaseItemRequest get_request;
-    get_request.table_name = make_shared<std::string>(kBudgetKeyTableName);
+    get_request.table_name = std::make_shared<std::string>(kBudgetKeyTableName);
     get_request.partition_key =
-        make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
+        std::make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
 
     get_database_item_context_.request =
-        make_shared<GetDatabaseItemRequest>(std::move(get_request));
+        std::make_shared<GetDatabaseItemRequest>(std::move(get_request));
 
     get_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
     };
 
     UpsertDatabaseItemRequest upsert_request;
-    upsert_request.table_name = make_shared<std::string>(kBudgetKeyTableName);
+    upsert_request.table_name =
+        std::make_shared<std::string>(kBudgetKeyTableName);
     upsert_request.partition_key =
-        make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
+        std::make_shared<NoSqlDatabaseKeyValuePair>(partition_key);
 
     upsert_request.new_attributes =
-        make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+        std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
     upsert_database_item_context_.request =
-        make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
+        std::make_shared<UpsertDatabaseItemRequest>(std::move(upsert_request));
 
     upsert_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -208,7 +205,7 @@ class GcpSpannerTests : public testing::Test {
     return stats;
   }
 
-  shared_ptr<MockConnection> connection_;
+  std::shared_ptr<MockConnection> connection_;
   TestGcpSpanner gcp_spanner_;
 
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
@@ -239,7 +236,7 @@ TEST_F(GcpSpannerTests, GetItemWithPartitionKeyOnly) {
       "token_count": "1"
     }
   )"""));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
@@ -276,9 +273,9 @@ TEST_F(GcpSpannerTests, GetItemWithPartitionAndSortKey) {
   *get_database_item_context_.request->partition_key->attribute_value = "3";
 
   get_database_item_context_.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
-          make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
+      std::make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
+          std::make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
 
   auto expected_query =
       "SELECT IFNULL(Value, JSON '{}') FROM BudgetKeys WHERE BudgetKeyId = "
@@ -293,7 +290,7 @@ TEST_F(GcpSpannerTests, GetItemWithPartitionAndSortKey) {
       "token_count": "1"
     }
   )"""));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
@@ -331,17 +328,17 @@ TEST_F(GcpSpannerTests, GetItemWithPartitionAndSortKeyWithAttributes) {
   *get_database_item_context_.request->partition_key->attribute_value = "3";
 
   get_database_item_context_.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
-          make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
+      std::make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
+          std::make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
   get_database_item_context_.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   get_database_item_context_.request->attributes->emplace_back(
       NoSqlDatabaseKeyValuePair{
           .attribute_name =
-              make_shared<NoSQLDatabaseAttributeName>("token_count"),
+              std::make_shared<NoSQLDatabaseAttributeName>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
   auto expected_query =
       "SELECT IFNULL(Value, JSON '{}') FROM BudgetKeys WHERE BudgetKeyId = "
@@ -358,7 +355,7 @@ TEST_F(GcpSpannerTests, GetItemWithPartitionAndSortKeyWithAttributes) {
       "token_count": "1"
     }
   )"""));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
@@ -399,7 +396,7 @@ TEST_F(GcpSpannerTests, GetItemNoRowFound) {
   expected_params.emplace("partition_key", "3");
   SqlStatement sql(std::move(expected_query), expected_params);
 
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
 
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(sql)))
@@ -432,7 +429,7 @@ TEST_F(GcpSpannerTests, GetItemJsonParseFail) {
 
   // Put an integer where a Json is expected to cause failure.
   auto returned_row = MakeRow(1);
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(returned_row))
       .WillRepeatedly(Return(Row()));
@@ -488,16 +485,16 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithPartitionKeyOnly) {
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
   SqlStatement::ParamType params;
   params.emplace("partition_key", "3");
   SqlStatement expected_sql(
       "SELECT Value FROM PartitionLock WHERE LockId = @partition_key",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
       .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
@@ -526,15 +523,15 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithSortKey) {
   *upsert_database_item_context_.request->partition_key->attribute_value = "3";
 
   upsert_database_item_context_.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
-          make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
+      std::make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
+          std::make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
   SqlStatement::ParamType params;
   params.emplace("partition_key", "3");
@@ -543,7 +540,7 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithSortKey) {
       "SELECT Value FROM BudgetKeys WHERE BudgetKeyId = @partition_key AND "
       "Timeframe = @sort_key",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
       .WillOnce(Return(ByMove(RowStream(std::move(returned_results)))));
@@ -575,16 +572,16 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesWithExistingValue) {
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
   SqlStatement::ParamType params;
   params.emplace("partition_key", "3");
   SqlStatement expected_sql(
       "SELECT Value FROM PartitionLock WHERE LockId = @partition_key",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   // We return a JSON with "other_val" and "token_count" existing, token_count
   // should be overridden.
   EXPECT_CALL(*returned_results, NextRow)
@@ -624,11 +621,11 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesFailsIfCommitFails) {
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(MakeRow(Json(R"""(
     {
@@ -664,11 +661,11 @@ TEST_F(GcpSpannerTests, UpsertItemNoAttributesFailsIfJsonParseFails) {
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   // Place an integer where a JSON is expected to cause failure.
   EXPECT_CALL(*returned_results, NextRow)
       .WillOnce(Return(MakeRow(1)))
@@ -699,18 +696,18 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithPartitionKeyOnly) {
   *upsert_database_item_context_.request->partition_key->attribute_value = "3";
 
   upsert_database_item_context_.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
   SqlStatement::ParamType params;
   params.emplace("partition_key", "3");
@@ -719,7 +716,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithPartitionKeyOnly) {
       "SELECT Value FROM PartitionLock WHERE LockId = @partition_key AND "
       "JSON_VALUE(Value, '$.token_count') = @attribute_0",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
       "token_count": "100"
@@ -755,23 +752,23 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithSortKey) {
   *upsert_database_item_context_.request->partition_key->attribute_value = "3";
 
   upsert_database_item_context_.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
-          make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
+      std::make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
+          std::make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
 
   upsert_database_item_context_.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
   SqlStatement::ParamType params;
   params.emplace("partition_key", "3");
@@ -782,7 +779,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesWithSortKey) {
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
       "token_count": "100"
@@ -819,23 +816,23 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfNoRowsFound) {
   *upsert_database_item_context_.request->partition_key->attribute_value = "3";
 
   upsert_database_item_context_.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
-          make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
+      std::make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
+          std::make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
 
   upsert_database_item_context_.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
   SqlStatement::ParamType params;
   params.emplace("partition_key", "3");
@@ -846,7 +843,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfNoRowsFound) {
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   // Return(Row()) means no rows are found.
   EXPECT_CALL(*returned_results, NextRow).WillRepeatedly(Return(Row()));
   EXPECT_CALL(*connection_, ExecuteQuery(SqlEqual(expected_sql)))
@@ -875,23 +872,23 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfCommitFails) {
   *upsert_database_item_context_.request->partition_key->attribute_value = "3";
 
   upsert_database_item_context_.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
-          make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
+      std::make_shared<NoSqlDatabaseKeyValuePair>(NoSqlDatabaseKeyValuePair{
+          std::make_shared<NoSQLDatabaseAttributeName>(kBudgetKeySortKeyName),
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("2")});
 
   upsert_database_item_context_.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
   upsert_database_item_context_.request->attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("100")});
 
   upsert_database_item_context_.request->new_attributes->push_back(
       NoSqlDatabaseKeyValuePair{
-          .attribute_name = make_shared<std::string>("token_count"),
+          .attribute_name = std::make_shared<std::string>("token_count"),
           .attribute_value =
-              make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
+              std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1")});
 
   SqlStatement::ParamType params;
   params.emplace("partition_key", "3");
@@ -902,7 +899,7 @@ TEST_F(GcpSpannerTests, UpsertItemWithAttributesFailsIfCommitFails) {
       "Timeframe = @sort_key AND JSON_VALUE(Value, '$.token_count') = "
       "@attribute_0",
       std::move(params));
-  auto returned_results = make_unique<MockResultSetSource>();
+  auto returned_results = std::make_unique<MockResultSetSource>();
   auto returned_row = MakeRow(Json(R"""(
     {
       "token_count": "100"

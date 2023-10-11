@@ -33,7 +33,6 @@ using google::scp::core::GetBlobRequest;
 using google::scp::core::GetBlobResponse;
 using google::scp::core::blob_storage_provider::GcpCloudStorageClient;
 using google::scp::core::errors::GetErrorMessage;
-using std::make_shared;
 
 constexpr char kProject[] = "admcloud-coordinator1";
 
@@ -83,16 +82,16 @@ void CreateBucketIfNotExists(Client& client) {
 void WriteObjectOfByteCount(GcpCloudStorageClient& client, int64_t byte_count) {
   std::atomic_bool finished(false);
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
-  put_blob_context.request = make_shared<PutBlobRequest>(
-      PutBlobRequest{{make_shared<std::string>(kBucketName),
-                      make_shared<std::string>(kDefaultBlobName)}});
+  put_blob_context.request = std::make_shared<PutBlobRequest>(
+      PutBlobRequest{{std::make_shared<std::string>(kBucketName),
+                      std::make_shared<std::string>(kDefaultBlobName)}});
 
   ExecutionResult result;
   put_blob_context.callback = [&result, &finished](auto& context) {
     result = context.result;
     finished = true;
   };
-  put_blob_context.request->buffer = make_shared<BytesBuffer>(byte_count);
+  put_blob_context.request->buffer = std::make_shared<BytesBuffer>(byte_count);
   put_blob_context.request->buffer->length =
       put_blob_context.request->buffer->capacity;
   put_blob_context.request->buffer->bytes->assign(byte_count, kBlobByte);
@@ -108,7 +107,8 @@ void WriteObjectOfByteCount(GcpCloudStorageClient& client, int64_t byte_count) {
 }
 
 int WriteAndGetBlob(int64_t byte_count) {
-  auto client = make_shared<Client>(Options{}.set<ProjectIdOption>(kProject));
+  auto client =
+      std::make_shared<Client>(Options{}.set<ProjectIdOption>(kProject));
 
   if (ClearBucketIfPresent(*client) != EXIT_SUCCESS) {
     return EXIT_FAILURE;
@@ -116,8 +116,10 @@ int WriteAndGetBlob(int64_t byte_count) {
 
   CreateBucketIfNotExists(*client);
 
-  auto async_executor = make_shared<AsyncExecutor>(kThreadCount, kQueueSize),
-       io_async_executor = make_shared<AsyncExecutor>(kThreadCount, kQueueSize);
+  auto async_executor =
+           std::make_shared<AsyncExecutor>(kThreadCount, kQueueSize),
+       io_async_executor =
+           std::make_shared<AsyncExecutor>(kThreadCount, kQueueSize);
 
   async_executor->Init();
   async_executor->Run();
@@ -130,9 +132,9 @@ int WriteAndGetBlob(int64_t byte_count) {
   WriteObjectOfByteCount(my_client, byte_count);
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
-  get_blob_context.request = make_shared<GetBlobRequest>(
-      GetBlobRequest{make_shared<std::string>(kBucketName),
-                     make_shared<std::string>(kDefaultBlobName)});
+  get_blob_context.request = std::make_shared<GetBlobRequest>(
+      GetBlobRequest{std::make_shared<std::string>(kBucketName),
+                     std::make_shared<std::string>(kDefaultBlobName)});
 
   int return_status;
   std::atomic_bool finished(false);

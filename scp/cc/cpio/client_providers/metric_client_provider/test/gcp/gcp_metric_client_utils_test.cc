@@ -52,7 +52,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_GCP_METRIC_CLIENT_INVALID_METRIC_VALUE;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::GcpMetricClientUtils;
-using std::make_shared;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
@@ -99,7 +98,7 @@ TEST_F(GcpMetricClientUtilsTest, ParseRequestToTimeSeries) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
   std::vector<TimeSeries> time_series_list;
@@ -125,7 +124,7 @@ TEST_F(GcpMetricClientUtilsTest, FailedWithBadMetricValue) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request, kBadValue);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
   std::vector<TimeSeries> time_series_list;
@@ -145,7 +144,7 @@ TEST_F(GcpMetricClientUtilsTest, BadTimeStamp) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request, kValue, -123);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
   std::vector<TimeSeries> time_series_list;
@@ -160,7 +159,7 @@ TEST_F(GcpMetricClientUtilsTest, InvalidTimeStamp) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request, kValue, 12345);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
   std::vector<TimeSeries> time_series_list;
@@ -175,7 +174,7 @@ TEST_F(GcpMetricClientUtilsTest, OverSizeLabels) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      make_shared<PutMetricsRequest>(record_metric_request),
+      std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
   // Adds oversize labels.

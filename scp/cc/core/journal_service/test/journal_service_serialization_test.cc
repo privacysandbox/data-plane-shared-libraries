@@ -29,7 +29,6 @@ using google::scp::core::journal_service::CheckpointMetadata;
 using google::scp::core::journal_service::JournalLog;
 using google::scp::core::journal_service::JournalSerialization;
 using google::scp::core::journal_service::LastCheckpointMetadata;
-using std::make_shared;
 
 namespace google::scp::core::test {
 TEST(JournalServiceSerializationTests, LogHeaderSerialization) {
@@ -56,7 +55,7 @@ TEST(JournalServiceSerializationTests, LogHeaderSerialization) {
 
   for (auto i = 0; i < 58; ++i) {
     BytesBuffer partial_buffer;
-    partial_buffer.bytes = make_shared<std::vector<Byte>>(i);
+    partial_buffer.bytes = std::make_shared<std::vector<Byte>>(i);
     partial_buffer.capacity = i;
     partial_buffer.length = i;
     size_t partial_byte_serialized = 0;
@@ -98,7 +97,7 @@ TEST(JournalServiceSerializationTests, LogHeaderSerialization) {
 
   for (auto i = 0; i < 58; ++i) {
     BytesBuffer partial_buffer;
-    partial_buffer.bytes = make_shared<std::vector<Byte>>(i);
+    partial_buffer.bytes = std::make_shared<std::vector<Byte>>(i);
     partial_buffer.capacity = i;
     partial_buffer.length = i;
     size_t partial_byte_deserialized = 0;
@@ -133,7 +132,7 @@ TEST(JournalServiceSerializationTests, LastCheckpointMetadataSerialization) {
             SuccessExecutionResult());
 
   BytesBuffer bytes_buffer;
-  bytes_buffer.bytes = make_shared<std::vector<Byte>>(byte_size_required);
+  bytes_buffer.bytes = std::make_shared<std::vector<Byte>>(byte_size_required);
   bytes_buffer.capacity = byte_size_required;
   bytes_buffer.length = byte_size_required;
   size_t buffer_offset = 0;
@@ -146,7 +145,7 @@ TEST(JournalServiceSerializationTests, LastCheckpointMetadataSerialization) {
 
   for (size_t i = 0; i < byte_size_required; ++i) {
     BytesBuffer partial_buffer;
-    partial_buffer.bytes = make_shared<std::vector<Byte>>(i);
+    partial_buffer.bytes = std::make_shared<std::vector<Byte>>(i);
     partial_buffer.capacity = i;
     partial_buffer.length = i;
     size_t partial_byte_serialized = 0;
@@ -172,7 +171,7 @@ TEST(JournalServiceSerializationTests, LastCheckpointMetadataSerialization) {
 
   for (size_t i = 0; i < byte_size_required; ++i) {
     BytesBuffer partial_buffer;
-    partial_buffer.bytes = make_shared<std::vector<Byte>>(i);
+    partial_buffer.bytes = std::make_shared<std::vector<Byte>>(i);
     partial_buffer.capacity = i;
     partial_buffer.length = i;
     size_t partial_byte_deserialized = 0;
@@ -207,7 +206,7 @@ TEST(JournalServiceSerializationTests, CheckpointMetadataSerialization) {
             SuccessExecutionResult());
 
   BytesBuffer bytes_buffer;
-  bytes_buffer.bytes = make_shared<std::vector<Byte>>(byte_size_required);
+  bytes_buffer.bytes = std::make_shared<std::vector<Byte>>(byte_size_required);
   bytes_buffer.capacity = byte_size_required;
   bytes_buffer.length = byte_size_required;
   size_t buffer_offset = 0;
@@ -220,7 +219,7 @@ TEST(JournalServiceSerializationTests, CheckpointMetadataSerialization) {
 
   for (size_t i = 0; i < byte_size_required; ++i) {
     BytesBuffer partial_buffer;
-    partial_buffer.bytes = make_shared<std::vector<Byte>>(i);
+    partial_buffer.bytes = std::make_shared<std::vector<Byte>>(i);
     partial_buffer.capacity = i;
     partial_buffer.length = i;
     size_t partial_byte_serialized = 0;
@@ -248,7 +247,7 @@ TEST(JournalServiceSerializationTests, CheckpointMetadataSerialization) {
 
   for (size_t i = 0; i < byte_size_required; ++i) {
     BytesBuffer partial_buffer;
-    partial_buffer.bytes = make_shared<std::vector<Byte>>(i);
+    partial_buffer.bytes = std::make_shared<std::vector<Byte>>(i);
     partial_buffer.capacity = i;
     partial_buffer.length = i;
     size_t partial_byte_deserialized = 0;
@@ -284,7 +283,7 @@ TEST(JournalServiceSerializationTests, JournalLogSerialization) {
             SuccessExecutionResult());
 
   BytesBuffer bytes_buffer;
-  bytes_buffer.bytes = make_shared<std::vector<Byte>>(byte_size_required);
+  bytes_buffer.bytes = std::make_shared<std::vector<Byte>>(byte_size_required);
   bytes_buffer.capacity = byte_size_required;
   bytes_buffer.length = byte_size_required;
   size_t buffer_offset = 0;

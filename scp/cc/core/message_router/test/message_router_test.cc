@@ -35,7 +35,6 @@ using core::message_router::test::TestStringResponse;
 using google::protobuf::Any;
 using google::scp::core::common::ConcurrentQueue;
 using std::atomic;
-using std::make_shared;
 
 namespace google::scp::core::test {
 class MessageRouterTest : public ::testing::Test {
@@ -70,9 +69,8 @@ class MessageRouterTest : public ::testing::Test {
   }
 
   std::shared_ptr<ConcurrentQueue<std::shared_ptr<AsyncContext<Any, Any>>>>
-      queue_ =
-          make_shared<ConcurrentQueue<std::shared_ptr<AsyncContext<Any, Any>>>>(
-              10);
+      queue_ = std::make_shared<
+          ConcurrentQueue<std::shared_ptr<AsyncContext<Any, Any>>>>(10);
   MessageRouter router_;
   Any any_request_1_;
   Any any_request_2_;
@@ -82,8 +80,8 @@ class MessageRouterTest : public ::testing::Test {
 
 TEST_F(MessageRouterTest, RequestNotSubscribed) {
   atomic<int> count(0);
-  auto request = make_shared<Any>(any_request_1_);
-  auto context = make_shared<AsyncContext<Any, Any>>(
+  auto request = std::make_shared<Any>(any_request_1_);
+  auto context = std::make_shared<AsyncContext<Any, Any>>(
       request, [&](AsyncContext<Any, Any>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
@@ -108,16 +106,16 @@ TEST_F(MessageRouterTest, SubscriptionConflict) {
 }
 
 TEST_F(MessageRouterTest, SingleMessage) {
-  auto request = make_shared<Any>(any_request_1_);
+  auto request = std::make_shared<Any>(any_request_1_);
   router_.Subscribe(any_request_1_.type_url(),
                     [&](AsyncContext<Any, Any>& context) {
                       TestStringResponse response;
                       response.set_response("test_response");
                       Any any_response;
                       any_response.PackFrom(response);
-                      context.response = make_shared<Any>(any_response);
+                      context.response = std::make_shared<Any>(any_response);
                     });
-  auto context = make_shared<AsyncContext<Any, Any>>(
+  auto context = std::make_shared<AsyncContext<Any, Any>>(
       request, [&](AsyncContext<Any, Any>& context) {});
   queue_->TryEnqueue(context);
 
@@ -134,13 +132,13 @@ TEST_F(MessageRouterTest, MultipleMessagesSingleSubscription) {
                       response.set_response("test_response");
                       Any any_response;
                       any_response.PackFrom(response);
-                      context.response = make_shared<Any>(any_response);
+                      context.response = std::make_shared<Any>(any_response);
                     });
-  auto request_1 = make_shared<Any>(any_request_1_);
-  auto context_1 = make_shared<AsyncContext<Any, Any>>(
+  auto request_1 = std::make_shared<Any>(any_request_1_);
+  auto context_1 = std::make_shared<AsyncContext<Any, Any>>(
       request_1, [&](AsyncContext<Any, Any>& context) {});
-  auto request_2 = make_shared<Any>(any_request_1_);
-  auto context_2 = make_shared<AsyncContext<Any, Any>>(
+  auto request_2 = std::make_shared<Any>(any_request_1_);
+  auto context_2 = std::make_shared<AsyncContext<Any, Any>>(
       request_2, [&](AsyncContext<Any, Any>& context) {});
   queue_->TryEnqueue(context_1);
   queue_->TryEnqueue(context_2);
@@ -160,15 +158,15 @@ TEST_F(MessageRouterTest, MultipleSubscriptions) {
   atomic<int> count_1(0);
   router_.Subscribe(any_request_1_.type_url(),
                     [&](AsyncContext<Any, Any>& context) { count_1++; });
-  auto request_1 = make_shared<Any>(any_request_1_);
-  auto context_1 = make_shared<AsyncContext<Any, Any>>(
+  auto request_1 = std::make_shared<Any>(any_request_1_);
+  auto context_1 = std::make_shared<AsyncContext<Any, Any>>(
       request_1, [&](AsyncContext<Any, Any>& context) {});
 
   atomic<int> count_2(0);
   router_.Subscribe(any_request_2_.type_url(),
                     [&](AsyncContext<Any, Any>& context) { count_2++; });
-  auto request_2 = make_shared<Any>(any_request_2_);
-  auto context_2 = make_shared<AsyncContext<Any, Any>>(
+  auto request_2 = std::make_shared<Any>(any_request_2_);
+  auto context_2 = std::make_shared<AsyncContext<Any, Any>>(
       request_2, [&](AsyncContext<Any, Any>& context) {});
 
   queue_->TryEnqueue(context_1);

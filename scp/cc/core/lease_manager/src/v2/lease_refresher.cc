@@ -28,7 +28,6 @@
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
-using std::make_unique;
 using std::optional;
 using std::thread;
 using std::chrono::duration_cast;
@@ -68,10 +67,11 @@ ExecutionResult LeaseRefresher::Run() noexcept {
   is_running_ = true;
   // Initiate start on thread and wait until it starts.
   std::atomic<bool> is_thread_started(false);
-  lease_refresher_thread_ = make_unique<thread>([this, &is_thread_started]() {
-    is_thread_started = true;
-    LeaseRefreshThreadFunction();
-  });
+  lease_refresher_thread_ =
+      std::make_unique<thread>([this, &is_thread_started]() {
+        is_thread_started = true;
+        LeaseRefreshThreadFunction();
+      });
   while (!is_thread_started) {
     sleep_for(milliseconds(100));
   }

@@ -22,19 +22,16 @@
 
 #include "test_configuration_keys.h"
 
-using std::make_shared;
-using std::shared_ptr;
-
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestGcpParameterServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestGcpInstanceServiceFactory>(
+  return std::make_shared<TestGcpInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions>
+std::shared_ptr<InstanceServiceFactoryOptions>
 TestGcpParameterServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
-  auto options = make_shared<TestGcpInstanceServiceFactoryOptions>();
+  auto options = std::make_shared<TestGcpInstanceServiceFactoryOptions>();
   options->project_id_config_label = kTestGcpParameterClientProjectId;
   return options;
 }

@@ -61,11 +61,8 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::function;
-using std::make_shared;
 using std::mutex;
 using std::scoped_lock;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace {
 constexpr char kBucketName[] = "blob-storage-service-test-bucket";
@@ -98,7 +95,7 @@ int main(int argc, char* argv[]) {
     auto data = "some data string";
     atomic_bool finished(false);
     ExecutionResult result;
-    auto put_blob_request = make_shared<PutBlobRequest>();
+    auto put_blob_request = std::make_shared<PutBlobRequest>();
     put_blob_request->mutable_blob()->mutable_metadata()->set_bucket_name(
         kBucketName);
     put_blob_request->mutable_blob()->mutable_metadata()->set_blob_name(
@@ -127,7 +124,7 @@ int main(int argc, char* argv[]) {
     // GetBlob.
     atomic_bool finished(false);
     ExecutionResult result;
-    auto get_blob_request = make_shared<GetBlobRequest>();
+    auto get_blob_request = std::make_shared<GetBlobRequest>();
     get_blob_request->mutable_blob_metadata()->set_bucket_name(kBucketName);
     get_blob_request->mutable_blob_metadata()->set_blob_name(kBlobName);
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
@@ -155,7 +152,8 @@ int main(int argc, char* argv[]) {
     // ListBlobsMetadata.
     atomic_bool finished(false);
     ExecutionResult result;
-    auto list_blobs_metadata_request = make_shared<ListBlobsMetadataRequest>();
+    auto list_blobs_metadata_request =
+        std::make_shared<ListBlobsMetadataRequest>();
     list_blobs_metadata_request->mutable_blob_metadata()->set_bucket_name(
         kBucketName);
     AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>
@@ -186,7 +184,7 @@ int main(int argc, char* argv[]) {
     // DeleteBlob.
     atomic_bool finished(false);
     ExecutionResult result;
-    auto delete_blob_request = make_shared<DeleteBlobRequest>();
+    auto delete_blob_request = std::make_shared<DeleteBlobRequest>();
     delete_blob_request->mutable_blob_metadata()->set_bucket_name(kBucketName);
     delete_blob_request->mutable_blob_metadata()->set_blob_name(kBlobName);
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context(
@@ -216,7 +214,7 @@ int main(int argc, char* argv[]) {
     // PutBlobStream.
 
     atomic_bool finished(false);
-    auto put_blob_stream_request = make_shared<PutBlobStreamRequest>();
+    auto put_blob_stream_request = std::make_shared<PutBlobStreamRequest>();
     put_blob_stream_request->mutable_blob_portion()
         ->mutable_metadata()
         ->set_bucket_name(kBucketName);
@@ -280,7 +278,7 @@ int main(int argc, char* argv[]) {
     // GetBlobStream - callback version.
     mutex log_mutex;
     atomic_bool finished(false);
-    auto get_blob_stream_request = make_shared<GetBlobStreamRequest>();
+    auto get_blob_stream_request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_request->mutable_blob_metadata()->set_bucket_name(
         kBucketName);
     get_blob_stream_request->mutable_blob_metadata()->set_blob_name(kBlobName);
@@ -320,7 +318,7 @@ int main(int argc, char* argv[]) {
   {
     // GetBlobStream - polling version.
     atomic_bool finished(false);
-    auto get_blob_stream_request = make_shared<GetBlobStreamRequest>();
+    auto get_blob_stream_request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_request->mutable_blob_metadata()->set_bucket_name(
         kBucketName);
     get_blob_stream_request->mutable_blob_metadata()->set_blob_name(kBlobName);
@@ -345,7 +343,7 @@ int main(int argc, char* argv[]) {
       exit(EXIT_FAILURE);
     }
 
-    unique_ptr<GetBlobStreamResponse> resp = nullptr;
+    std::unique_ptr<GetBlobStreamResponse> resp = nullptr;
     auto context_is_done = [&get_blob_stream_context, &resp]() -> bool {
       resp = get_blob_stream_context.TryGetNextResponse();
       if (resp == nullptr && get_blob_stream_context.IsMarkedDone()) {

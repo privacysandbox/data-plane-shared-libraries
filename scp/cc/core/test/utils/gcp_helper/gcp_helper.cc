@@ -30,13 +30,10 @@ using google::pubsub::v1::Topic;
 using grpc::ClientContext;
 using grpc::Status;
 using grpc::StubOptions;
-using std::make_shared;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::core::test {
-unique_ptr<Publisher::StubInterface> CreatePublisherStub(
+std::unique_ptr<Publisher::StubInterface> CreatePublisherStub(
     const std::string& endpoint) {
   auto channel =
       grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials());

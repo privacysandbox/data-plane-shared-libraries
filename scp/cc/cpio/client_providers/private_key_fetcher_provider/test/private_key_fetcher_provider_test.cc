@@ -53,10 +53,6 @@ using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using google::scp::cpio::client_providers::mock::
     MockPrivateKeyFetcherProviderWithOverrides;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 static constexpr char kKeyId[] = "123";
 static constexpr char kRegion[] = "region";
@@ -66,18 +62,19 @@ namespace google::scp::cpio::client_providers::test {
 class PrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   PrivateKeyFetcherProviderTest()
-      : http_client_(make_shared<MockHttpClient>()),
+      : http_client_(std::make_shared<MockHttpClient>()),
         private_key_fetcher_provider_(
-            make_unique<MockPrivateKeyFetcherProviderWithOverrides>(
+            std::make_unique<MockPrivateKeyFetcherProviderWithOverrides>(
                 http_client_)) {
     private_key_fetcher_provider_->signed_http_request_mock->path =
-        make_shared<std::string>(std::string(kPrivateKeyBaseUri) + "/" +
-                                 std::string(kKeyId));
+        std::make_shared<std::string>(std::string(kPrivateKeyBaseUri) + "/" +
+                                      std::string(kKeyId));
     EXPECT_SUCCESS(private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(private_key_fetcher_provider_->Run());
-    request_ = make_shared<PrivateKeyFetchingRequest>();
-    request_->key_id = make_shared<std::string>(kKeyId);
-    request_->key_vending_endpoint = make_shared<PrivateKeyVendingEndpoint>();
+    request_ = std::make_shared<PrivateKeyFetchingRequest>();
+    request_->key_id = std::make_shared<std::string>(kKeyId);
+    request_->key_vending_endpoint =
+        std::make_shared<PrivateKeyVendingEndpoint>();
     request_->key_vending_endpoint->private_key_vending_service_endpoint =
         kPrivateKeyBaseUri;
     request_->key_vending_endpoint->service_region = kRegion;
@@ -91,27 +88,28 @@ class PrivateKeyFetcherProviderTest : public ::testing::Test {
 
   void MockRequest(const std::string& uri) {
     http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = make_shared<std::string>(uri);
+    http_client_->request_mock.path = std::make_shared<std::string>(uri);
   }
 
   void MockResponse(const std::string& str) {
     BytesBuffer bytes_buffer(sizeof(str));
-    bytes_buffer.bytes = make_shared<std::vector<Byte>>(str.begin(), str.end());
+    bytes_buffer.bytes =
+        std::make_shared<std::vector<Byte>>(str.begin(), str.end());
     bytes_buffer.capacity = sizeof(str);
 
     http_client_->response_mock = HttpResponse();
     http_client_->response_mock.body = std::move(bytes_buffer);
   }
 
-  shared_ptr<MockHttpClient> http_client_;
-  unique_ptr<MockPrivateKeyFetcherProviderWithOverrides>
+  std::shared_ptr<MockHttpClient> http_client_;
+  std::unique_ptr<MockPrivateKeyFetcherProviderWithOverrides>
       private_key_fetcher_provider_;
-  shared_ptr<PrivateKeyFetchingRequest> request_;
+  std::shared_ptr<PrivateKeyFetchingRequest> request_;
 };
 
 TEST_F(PrivateKeyFetcherProviderTest, MissingHttpClient) {
   private_key_fetcher_provider_ =
-      make_unique<MockPrivateKeyFetcherProviderWithOverrides>(nullptr);
+      std::make_unique<MockPrivateKeyFetcherProviderWithOverrides>(nullptr);
 
   EXPECT_THAT(private_key_fetcher_provider_->Init(),
               ResultIs(FailureExecutionResult(

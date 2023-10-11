@@ -17,7 +17,6 @@
 #include <chrono>
 
 using std::get;
-using std::make_shared;
 using std::chrono::milliseconds;
 
 #include "core/interface/nosql_database_provider_interface.h"
@@ -63,7 +62,8 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
     lease.lease_owner_info.lease_acquirer_id = "214314515515";
     lease.lease_owner_info.service_endpoint_address = "12.1.1.1";
 
-    auto attributes = make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+    auto attributes =
+        std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
     auto result = ConstructAttributesFromLeaseInfo(lease, attributes);
     EXPECT_SUCCESS(result);
     EXPECT_EQ(attributes->size(), 3);
@@ -91,7 +91,8 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
     lease.lease_owner_info.lease_acquirer_id = "214314515515";
     lease.lease_owner_info.service_endpoint_address = "12.1.1.1";
 
-    auto attributes = make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+    auto attributes =
+        std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
     auto result = ConstructAttributesFromLeaseInfo(lease, attributes);
 
     LeaseInfoInternal obtained_lease;
@@ -112,7 +113,7 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
     lease.lease_owner_info.lease_acquirer_id = "389168531658715";
     lease.lease_owner_info.service_endpoint_address = "18.1.1.1";
 
-    auto database = make_shared<MockNoSQLDatabaseProviderNoOverrides>();
+    auto database = std::make_shared<MockNoSQLDatabaseProviderNoOverrides>();
     EXPECT_CALL(*database, GetDatabaseItem)
         .WillOnce(
             [=](AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>&
@@ -133,7 +134,7 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
               EXPECT_EQ(get_database_item_context.request->sort_key, nullptr);
 
               get_database_item_context.response =
-                  make_shared<GetDatabaseItemResponse>();
+                  std::make_shared<GetDatabaseItemResponse>();
               get_database_item_context.response->table_name =
                   get_database_item_context.request->table_name;
               get_database_item_context.response->partition_key =
@@ -142,7 +143,7 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
                   get_database_item_context.request->sort_key;
 
               get_database_item_context.response->attributes =
-                  make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+                  std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
               auto result = ConstructAttributesFromLeaseInfo(
                   lease, get_database_item_context.response->attributes);
               EXPECT_SUCCESS(result);
@@ -168,7 +169,7 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
   }
 
   void TestReadSynchronouslyFromDatabaseFailsIfRequestExecutionFails() {
-    auto database = make_shared<MockNoSQLDatabaseProviderNoOverrides>();
+    auto database = std::make_shared<MockNoSQLDatabaseProviderNoOverrides>();
     EXPECT_CALL(*database, GetDatabaseItem)
         .WillOnce(
             [=](AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>&
@@ -197,7 +198,7 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
     new_lease.lease_owner_info.lease_acquirer_id = "389168531658715";
     new_lease.lease_owner_info.service_endpoint_address = "18.1.1.1";
 
-    auto database = make_shared<MockNoSQLDatabaseProviderNoOverrides>();
+    auto database = std::make_shared<MockNoSQLDatabaseProviderNoOverrides>();
     EXPECT_CALL(*database, UpsertDatabaseItem)
         .WillOnce([=](AsyncContext<UpsertDatabaseItemRequest,
                                    UpsertDatabaseItemResponse>&
@@ -261,7 +262,7 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
     new_lease.lease_owner_info.lease_acquirer_id = "389168531658715";
     new_lease.lease_owner_info.service_endpoint_address = "18.1.1.1";
 
-    auto database = make_shared<MockNoSQLDatabaseProviderNoOverrides>();
+    auto database = std::make_shared<MockNoSQLDatabaseProviderNoOverrides>();
     EXPECT_CALL(*database, UpsertDatabaseItem)
         .WillOnce([=](AsyncContext<UpsertDatabaseItemRequest,
                                    UpsertDatabaseItemResponse>&

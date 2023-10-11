@@ -55,9 +55,7 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::bind;
 using std::future;
-using std::make_shared;
 using std::promise;
-using std::shared_ptr;
 using std::thread;
 using std::chrono::milliseconds;
 
@@ -81,7 +79,7 @@ TEST(HttpConnectionTest, SimpleRequest) {
   });
   server.listen_and_serve(ec, "localhost", "0", true);
 
-  auto async_executor = make_shared<AsyncExecutor>(2, 20);
+  auto async_executor = std::make_shared<AsyncExecutor>(2, 20);
   MockHttpConnection connection(async_executor, "localhost",
                                 std::to_string(server.ports()[0]), false);
 
@@ -93,9 +91,9 @@ TEST(HttpConnectionTest, SimpleRequest) {
   EXPECT_EQ(keys.size(), 0);
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
-  http_context.request = make_shared<HttpRequest>();
+  http_context.request = std::make_shared<HttpRequest>();
   http_context.request->path =
-      make_shared<std::string>("http://localhost/test");
+      std::make_shared<std::string>("http://localhost/test");
   http_context.request->method = HttpMethod::GET;
   atomic<bool> is_called(false);
   http_context.callback =
@@ -145,7 +143,7 @@ TEST(HttpConnectionTest, CancelCallbacks) {
   });
   server.listen_and_serve(ec, "localhost", "0", true);
 
-  auto async_executor = make_shared<AsyncExecutor>(2, 20);
+  auto async_executor = std::make_shared<AsyncExecutor>(2, 20);
   MockHttpConnection connection(async_executor, "localhost",
                                 std::to_string(server.ports()[0]), false);
 
@@ -157,9 +155,9 @@ TEST(HttpConnectionTest, CancelCallbacks) {
   EXPECT_EQ(keys.size(), 0);
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
-  http_context.request = make_shared<HttpRequest>();
+  http_context.request = std::make_shared<HttpRequest>();
   http_context.request->path =
-      make_shared<std::string>("http://localhost/test");
+      std::make_shared<std::string>("http://localhost/test");
   http_context.request->method = HttpMethod::GET;
   bool is_called = false;
   http_context.callback =
@@ -212,7 +210,7 @@ TEST(HttpConnectionTest, StopRemovesCallback) {
   });
   server.listen_and_serve(ec, "localhost", "0", true);
 
-  auto async_executor = make_shared<AsyncExecutor>(2, 20);
+  auto async_executor = std::make_shared<AsyncExecutor>(2, 20);
   MockHttpConnection connection(async_executor, "localhost",
                                 std::to_string(server.ports()[0]), false);
 
@@ -224,9 +222,9 @@ TEST(HttpConnectionTest, StopRemovesCallback) {
   EXPECT_EQ(keys.size(), 0);
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
-  http_context.request = make_shared<HttpRequest>();
+  http_context.request = std::make_shared<HttpRequest>();
   http_context.request->path =
-      make_shared<std::string>("http://localhost/test");
+      std::make_shared<std::string>("http://localhost/test");
   http_context.request->method = HttpMethod::GET;
   bool is_called = false;
   http_context.callback =

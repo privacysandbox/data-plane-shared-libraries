@@ -37,9 +37,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::KmsClientProviderFactory;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 
 namespace {
 constexpr char kKmsClient[] = "KmsClient";
@@ -48,7 +45,7 @@ constexpr char kKmsClient[] = "KmsClient";
 namespace google::scp::cpio {
 
 ExecutionResult KmsClient::Init() noexcept {
-  shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
+  std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
   auto execution_result =
       GlobalCpio::GetGlobalCpio()->GetRoleCredentialsProvider(
           role_credentials_provider);
@@ -57,7 +54,7 @@ ExecutionResult KmsClient::Init() noexcept {
               "Failed to get RoleCredentialsProvider.");
     return execution_result;
   }
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   execution_result =
       GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
@@ -103,7 +100,7 @@ ExecutionResult KmsClient::Decrypt(
 
 std::unique_ptr<KmsClientInterface> KmsClientFactory::Create(
     KmsClientOptions options) {
-  return make_unique<KmsClient>(
-      make_shared<KmsClientOptions>(std::move(options)));
+  return std::make_unique<KmsClient>(
+      std::make_shared<KmsClientOptions>(std::move(options)));
 }
 }  // namespace google::scp::cpio

@@ -85,10 +85,8 @@ using std::atomic_bool;
 using std::get;
 using std::isxdigit;
 using std::make_pair;
-using std::make_shared;
 using std::mt19937;
 using std::random_device;
-using std::shared_ptr;
 using std::uniform_int_distribution;
 using testing::Eq;
 using testing::ExplainMatchResult;
@@ -129,7 +127,7 @@ namespace google::scp::cpio::client_providers::test {
 
 class MockDynamoDBFactory : public DynamoDBFactory {
  public:
-  MOCK_METHOD(ExecutionResultOr<shared_ptr<DynamoDBClient>>, CreateClient,
+  MOCK_METHOD(ExecutionResultOr<std::shared_ptr<DynamoDBClient>>, CreateClient,
               (const ClientConfiguration&), (noexcept, override));
 };
 
@@ -161,29 +159,31 @@ class AwsNoSQLDatabaseClientProviderTests : public testing::Test {
   static void TearDownTestSuite() { ShutdownAPI(SDKOptions()); }
 
   AwsNoSQLDatabaseClientProviderTests()
-      : instance_client_(make_shared<MockInstanceClientProvider>()),
-        dynamo_db_(make_shared<NiceMock<MockDynamoDBClient>>()),
-        dynamo_db_factory_(make_shared<NiceMock<MockDynamoDBFactory>>()),
-        client_provider_(instance_client_, make_shared<MockAsyncExecutor>(),
-                         make_shared<MockAsyncExecutor>(), dynamo_db_factory_) {
+      : instance_client_(std::make_shared<MockInstanceClientProvider>()),
+        dynamo_db_(std::make_shared<NiceMock<MockDynamoDBClient>>()),
+        dynamo_db_factory_(std::make_shared<NiceMock<MockDynamoDBFactory>>()),
+        client_provider_(
+            instance_client_, std::make_shared<MockAsyncExecutor>(),
+            std::make_shared<MockAsyncExecutor>(), dynamo_db_factory_) {
     ON_CALL(*dynamo_db_factory_, CreateClient)
         .WillByDefault(Return(dynamo_db_));
 
-    get_database_item_context_.request = make_shared<GetDatabaseItemRequest>();
+    get_database_item_context_.request =
+        std::make_shared<GetDatabaseItemRequest>();
 
     get_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
     };
 
     create_database_item_context_.request =
-        make_shared<CreateDatabaseItemRequest>();
+        std::make_shared<CreateDatabaseItemRequest>();
 
     create_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
     };
 
     upsert_database_item_context_.request =
-        make_shared<UpsertDatabaseItemRequest>();
+        std::make_shared<UpsertDatabaseItemRequest>();
 
     upsert_database_item_context_.callback = [this](auto) {
       finish_called_ = true;
@@ -193,9 +193,9 @@ class AwsNoSQLDatabaseClientProviderTests : public testing::Test {
     EXPECT_SUCCESS(client_provider_.Run());
   }
 
-  shared_ptr<MockInstanceClientProvider> instance_client_;
-  shared_ptr<MockDynamoDBClient> dynamo_db_;
-  shared_ptr<MockDynamoDBFactory> dynamo_db_factory_;
+  std::shared_ptr<MockInstanceClientProvider> instance_client_;
+  std::shared_ptr<MockDynamoDBClient> dynamo_db_;
+  std::shared_ptr<MockDynamoDBFactory> dynamo_db_factory_;
   AwsNoSQLDatabaseClientProvider client_provider_;
 
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>

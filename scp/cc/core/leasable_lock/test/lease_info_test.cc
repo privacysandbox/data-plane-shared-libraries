@@ -35,8 +35,6 @@ using google::scp::core::test::ResultIs;
 using std::atomic;
 using std::forward;
 using std::get;
-using std::make_shared;
-using std::shared_ptr;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;

@@ -40,8 +40,6 @@ using google::scp::core::errors::
     SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND;
 using google::scp::cpio::client_providers::PrivateKeyFetchingRequest;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 static constexpr char kPrivateKeyFetcherProvider[] =
@@ -138,7 +136,7 @@ void PrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
   }
 
   private_key_fetching_context.response =
-      make_shared<PrivateKeyFetchingResponse>(response);
+      std::make_shared<PrivateKeyFetchingResponse>(response);
   private_key_fetching_context.Finish();
 }
 }  // namespace google::scp::cpio::client_providers

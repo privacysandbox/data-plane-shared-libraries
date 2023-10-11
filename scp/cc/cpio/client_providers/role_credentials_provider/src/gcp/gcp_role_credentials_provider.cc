@@ -24,8 +24,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult GcpRoleCredentialsProvider::Init() noexcept {
@@ -46,13 +44,14 @@ ExecutionResult GcpRoleCredentialsProvider::GetRoleCredentials(
   return FailureExecutionResult(SC_UNKNOWN);
 }
 
-shared_ptr<RoleCredentialsProviderInterface>
+std::shared_ptr<RoleCredentialsProviderInterface>
 RoleCredentialsProviderFactory::Create(
-    const shared_ptr<RoleCredentialsProviderOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>&
+    const std::shared_ptr<RoleCredentialsProviderOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  return make_shared<GcpRoleCredentialsProvider>();
+  return std::make_shared<GcpRoleCredentialsProvider>();
 }
 }  // namespace google::scp::cpio::client_providers

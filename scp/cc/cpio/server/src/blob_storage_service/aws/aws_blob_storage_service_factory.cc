@@ -25,21 +25,19 @@
 
 using google::scp::cpio::client_providers::AwsBlobStorageClientProvider;
 using google::scp::cpio::client_providers::BlobStorageClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
 
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 AwsBlobStorageServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<AwsInstanceServiceFactory>(
+  return std::make_shared<AwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
 std::shared_ptr<BlobStorageClientProviderInterface>
 AwsBlobStorageServiceFactory::CreateBlobStorageClient() noexcept {
-  return make_shared<AwsBlobStorageClientProvider>(
-      make_shared<BlobStorageClientOptions>(), instance_client_,
+  return std::make_shared<AwsBlobStorageClientProvider>(
+      std::make_shared<BlobStorageClientOptions>(), instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
 }

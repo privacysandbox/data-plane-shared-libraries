@@ -48,9 +48,7 @@ using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
 using std::get;
 using std::make_pair;
-using std::make_shared;
 using std::pair;
-using std::shared_ptr;
 using testing::Eq;
 using testing::Optional;
 using testing::Pair;
@@ -128,10 +126,11 @@ void SetValueType(AttributeValue& attribute_value, ValueType type) {
       attribute_value.SetBS(Vector<ByteBuffer>());
       break;
     case ValueType::ATTRIBUTE_MAP:
-      attribute_value.SetM(Map<String, const shared_ptr<AttributeValue>>());
+      attribute_value.SetM(
+          Map<String, const std::shared_ptr<AttributeValue>>());
       break;
     case ValueType::ATTRIBUTE_LIST:
-      attribute_value.SetL(Vector<shared_ptr<AttributeValue>>());
+      attribute_value.SetL(Vector<std::shared_ptr<AttributeValue>>());
       break;
     case ValueType::NULLVALUE:
       attribute_value.SetNull(false);
@@ -376,7 +375,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST(AwsNoSQLDatabaseClientUtilsTests, GetPartitionAndSortKeyValuesSuccess) {
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse> context;
-  context.request = make_shared<GetDatabaseItemRequest>();
+  context.request = std::make_shared<GetDatabaseItemRequest>();
   auto& key = *context.request->mutable_key();
   key.mutable_partition_key()->set_name("part_key");
   key.mutable_partition_key()->set_value_int(1);
@@ -406,7 +405,7 @@ TEST(AwsNoSQLDatabaseClientUtilsTests, GetPartitionAndSortKeyValuesSuccess) {
 
 TEST(AwsNoSQLDatabaseClientUtilsTests, GetPartitionAndSortKeyValuesFailure) {
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse> context;
-  context.request = make_shared<GetDatabaseItemRequest>();
+  context.request = std::make_shared<GetDatabaseItemRequest>();
   auto& key = *context.request->mutable_key();
   key.mutable_partition_key()->set_name("part_key");
   // No part key value set.
@@ -427,7 +426,7 @@ TEST(AwsNoSQLDatabaseClientUtilsTests, GetPartitionAndSortKeyValuesFailure) {
 TEST(AwsNoSQLDatabaseClientUtilsTests,
      GetConditionExpressionAndAddValuesToMapSuccess) {
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse> context;
-  context.request = make_shared<GetDatabaseItemRequest>();
+  context.request = std::make_shared<GetDatabaseItemRequest>();
   auto* attr = context.request->add_required_attributes();
   attr->set_name("attr1");
   attr->set_value_int(1);
@@ -451,7 +450,7 @@ TEST(AwsNoSQLDatabaseClientUtilsTests,
 TEST(AwsNoSQLDatabaseClientUtilsTests,
      GetConditionExpressionAndAddValuesToMapFailure) {
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse> context;
-  context.request = make_shared<GetDatabaseItemRequest>();
+  context.request = std::make_shared<GetDatabaseItemRequest>();
   auto* attr = context.request->add_required_attributes();
   attr->set_name("attr1");
   attr = context.request->add_required_attributes();

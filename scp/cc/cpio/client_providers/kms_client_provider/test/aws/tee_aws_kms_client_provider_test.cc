@@ -64,10 +64,6 @@ using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
 using google::scp::cpio::client_providers::mock::
     MockTeeAwsKmsClientProviderWithOverrides;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 static constexpr char kAssumeRoleArn[] = "assumeRoleArn";
 static constexpr char kCiphertext[] = "ciphertext";
@@ -87,19 +83,20 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    mock_credentials_provider_ = make_shared<MockRoleCredentialsProvider>();
-    client_ = make_unique<MockTeeAwsKmsClientProviderWithOverrides>(
+    mock_credentials_provider_ =
+        std::make_shared<MockRoleCredentialsProvider>();
+    client_ = std::make_unique<MockTeeAwsKmsClientProviderWithOverrides>(
         mock_credentials_provider_);
   }
 
   void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
 
-  unique_ptr<MockTeeAwsKmsClientProviderWithOverrides> client_;
-  shared_ptr<RoleCredentialsProviderInterface> mock_credentials_provider_;
+  std::unique_ptr<MockTeeAwsKmsClientProviderWithOverrides> client_;
+  std::shared_ptr<RoleCredentialsProviderInterface> mock_credentials_provider_;
 };
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingCredentialsProvider) {
-  client_ = make_unique<MockTeeAwsKmsClientProviderWithOverrides>(nullptr);
+  client_ = std::make_unique<MockTeeAwsKmsClientProviderWithOverrides>(nullptr);
 
   EXPECT_THAT(
       client_->Init(),
@@ -111,7 +108,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_kms_region(kRegion);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
@@ -145,7 +142,7 @@ TEST_F(TeeAwsKmsClientProviderTest, FailedToDecode) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_kms_region(kRegion);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
@@ -170,7 +167,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_kms_region(kRegion);
   atomic<bool> condition = false;
@@ -193,7 +190,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingAssumeRoleArn) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_kms_region(kRegion);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
   atomic<bool> condition = false;
@@ -216,7 +213,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingRegion) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
   atomic<bool> condition = false;

@@ -31,8 +31,6 @@
 
 using boost::system::error_code;
 using nghttp2::asio_http2::host_service_from_uri;
-using std::make_shared;
-using std::shared_ptr;
 
 static constexpr char kServiceName[] = "execute-api";
 
@@ -67,10 +65,10 @@ ExecutionResult AwsAuthorizerClientSigner::GetAuthToken(
   // Since the signature is destined for a different HOST in our authorization
   // scheme, we create a temporary request just for generating the signature.
   HttpRequest tmp_request;
-  tmp_request.path = make_shared<Uri>();
+  tmp_request.path = std::make_shared<Uri>();
   tmp_request.path->assign(endpoint);
   tmp_request.method = HttpMethod::POST;
-  tmp_request.headers = make_shared<HttpHeaders>();
+  tmp_request.headers = std::make_shared<HttpHeaders>();
 
   error_code http2_error_code;
   std::string scheme;

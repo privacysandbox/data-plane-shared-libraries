@@ -52,10 +52,8 @@ using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricLabels;
 using google::scp::cpio::MetricName;
 using google::scp::cpio::MetricValue;
-using std::make_shared;
 using std::mutex;
 using std::pair;
-using std::shared_ptr;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -65,8 +63,8 @@ static constexpr milliseconds kStopWaitSleepDuration = milliseconds(500);
 
 namespace google::scp::cpio {
 AggregateMetric::AggregateMetric(
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
-    const shared_ptr<MetricClientInterface>& metric_client,
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<MetricClientInterface>& metric_client,
     MetricDefinition metric_info, TimeDuration push_interval_duration_in_ms)
     : async_executor_(async_executor),
       metric_client_(metric_client),
@@ -78,8 +76,8 @@ AggregateMetric::AggregateMetric(
       object_activity_id_(Uuid::GenerateUuid()) {}
 
 AggregateMetric::AggregateMetric(
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
-    const shared_ptr<MetricClientInterface>& metric_client,
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<MetricClientInterface>& metric_client,
     MetricDefinition metric_info, TimeDuration push_interval_duration_in_ms,
     const std::vector<std::string>& event_code_labels_list,
     const std::string& event_code_label_key)
@@ -187,7 +185,7 @@ core::ExecutionResult AggregateMetric::IncrementBy(
 void AggregateMetric::MetricPushHandler(
     int64_t value, const MetricDefinition& metric_info) noexcept {
   auto metric_value = MetricValue(std::to_string(value));
-  auto record_metric_request = make_shared<PutMetricsRequest>();
+  auto record_metric_request = std::make_shared<PutMetricsRequest>();
   MetricUtils::GetPutMetricsRequest(record_metric_request, metric_info,
                                     metric_value);
 

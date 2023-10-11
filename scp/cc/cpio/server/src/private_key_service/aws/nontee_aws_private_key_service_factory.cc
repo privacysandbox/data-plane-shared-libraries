@@ -24,13 +24,11 @@ using google::scp::core::ExecutionResultOr;
 using google::scp::core::ServiceInterface;
 using google::scp::cpio::client_providers::KmsClientProviderInterface;
 using google::scp::cpio::client_providers::NonteeAwsKmsClientProvider;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-ExecutionResultOr<shared_ptr<ServiceInterface>>
+ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 NonteeAwsPrivateKeyServiceFactory::CreateKmsClient() noexcept {
-  kms_client_ = make_shared<NonteeAwsKmsClientProvider>(
+  kms_client_ = std::make_shared<NonteeAwsKmsClientProvider>(
       role_credentials_provider_, io_async_executor_);
   return kms_client_;
 }

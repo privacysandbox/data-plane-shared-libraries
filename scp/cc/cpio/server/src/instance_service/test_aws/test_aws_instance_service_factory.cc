@@ -29,8 +29,6 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::TestAwsInstanceClientProvider;
 using google::scp::cpio::client_providers::TestInstanceClientOptions;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kDefaultRegion[] = "us-east-1";
@@ -51,11 +49,11 @@ ExecutionResult TestAwsInstanceServiceFactory::Init() noexcept {
   return SuccessExecutionResult();
 }
 
-shared_ptr<InstanceClientProviderInterface>
+std::shared_ptr<InstanceClientProviderInterface>
 TestAwsInstanceServiceFactory::CreateInstanceClient() noexcept {
-  auto options = make_shared<TestInstanceClientOptions>();
+  auto options = std::make_shared<TestInstanceClientOptions>();
   options->region = region_;
-  return make_shared<TestAwsInstanceClientProvider>(options);
+  return std::make_shared<TestAwsInstanceClientProvider>(options);
 }
 
 }  // namespace google::scp::cpio

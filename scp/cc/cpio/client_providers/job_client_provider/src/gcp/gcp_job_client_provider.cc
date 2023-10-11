@@ -28,8 +28,6 @@ using google::scp::core::errors::
     SC_JOB_CLIENT_PROVIDER_DUPLICATE_JOB_ENTRY_CREATION;
 using google::scp::core::errors::
     SC_JOB_CLIENT_PROVIDER_JOB_ENTRY_CREATION_FAILED;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult GcpJobClientProvider::ConvertDatabaseErrorForPutJob(
@@ -43,25 +41,25 @@ ExecutionResult GcpJobClientProvider::ConvertDatabaseErrorForPutJob(
   }
 }
 
-shared_ptr<JobClientProviderInterface> JobClientProviderFactory::Create(
-    const shared_ptr<JobClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface> instance_client,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>&
+std::shared_ptr<JobClientProviderInterface> JobClientProviderFactory::Create(
+    const std::shared_ptr<JobClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface> instance_client,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  auto queue_options = make_shared<QueueClientOptions>();
+  auto queue_options = std::make_shared<QueueClientOptions>();
   queue_options->queue_name = options->job_queue_name;
   auto queue_client = QueueClientProviderFactory::Create(
       queue_options, instance_client, cpu_async_executor, io_async_executor);
 
-  auto nosql_database_options = make_shared<NoSQLDatabaseClientOptions>();
+  auto nosql_database_options = std::make_shared<NoSQLDatabaseClientOptions>();
   nosql_database_options->instance_name = options->gcp_spanner_instance_name;
   nosql_database_options->database_name = options->gcp_spanner_database_name;
   auto nosql_database_client = NoSQLDatabaseClientProviderFactory::Create(
       nosql_database_options, instance_client, cpu_async_executor,
       io_async_executor);
 
-  return make_shared<GcpJobClientProvider>(options, queue_client,
-                                           nosql_database_client);
+  return std::make_shared<GcpJobClientProvider>(options, queue_client,
+                                                nosql_database_client);
 }
 }  // namespace google::scp::cpio::client_providers

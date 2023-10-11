@@ -66,10 +66,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockSSMClient;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::NiceMock;
 using testing::Return;
 
@@ -103,20 +99,21 @@ class AwsParameterClientProviderTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    mock_instance_client_ = make_shared<MockInstanceClientProvider>();
+    mock_instance_client_ = std::make_shared<MockInstanceClientProvider>();
     mock_instance_client_->instance_resource_name = kResourceNameMock;
 
     mock_ssm_client_ = std::make_shared<MockSSMClient>();
-    mock_ssm_client_factory_ = make_shared<NiceMock<MockSSMClientFactory>>();
+    mock_ssm_client_factory_ =
+        std::make_shared<NiceMock<MockSSMClientFactory>>();
     ON_CALL(*mock_ssm_client_factory_, CreateSSMClient)
         .WillByDefault(Return(mock_ssm_client_));
 
     MockAsyncExecutor mock_io_async_executor;
-    shared_ptr<AsyncExecutorInterface> io_async_executor =
-        make_shared<MockAsyncExecutor>(std::move(mock_io_async_executor));
+    std::shared_ptr<AsyncExecutorInterface> io_async_executor =
+        std::make_shared<MockAsyncExecutor>(std::move(mock_io_async_executor));
 
-    client_ = make_unique<AwsParameterClientProvider>(
-        make_shared<ParameterClientOptions>(), mock_instance_client_,
+    client_ = std::make_unique<AwsParameterClientProvider>(
+        std::make_shared<ParameterClientOptions>(), mock_instance_client_,
         io_async_executor, mock_ssm_client_factory_);
   }
 
@@ -138,11 +135,11 @@ class AwsParameterClientProviderTest : public ::testing::Test {
 
   void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
 
-  shared_ptr<MockInstanceClientProvider> mock_instance_client_;
-  shared_ptr<MockSSMClient> mock_ssm_client_;
-  shared_ptr<MockSSMClientFactory> mock_ssm_client_factory_;
-  shared_ptr<MockAsyncExecutor> mock_io_async_executor_;
-  unique_ptr<AwsParameterClientProvider> client_;
+  std::shared_ptr<MockInstanceClientProvider> mock_instance_client_;
+  std::shared_ptr<MockSSMClient> mock_ssm_client_;
+  std::shared_ptr<MockSSMClientFactory> mock_ssm_client_factory_;
+  std::shared_ptr<MockAsyncExecutor> mock_io_async_executor_;
+  std::unique_ptr<AwsParameterClientProvider> client_;
 };
 
 TEST_F(AwsParameterClientProviderTest, FailedToFetchRegion) {
@@ -163,7 +160,7 @@ TEST_F(AwsParameterClientProviderTest, FailedToFetchParameters) {
   mock_ssm_client_->get_parameters_outcome_mock = outcome;
 
   atomic<bool> condition = false;
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
@@ -183,7 +180,7 @@ TEST_F(AwsParameterClientProviderTest, InvalidParameterName) {
   EXPECT_SUCCESS(client_->Run());
 
   atomic<bool> condition = false;
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
@@ -205,7 +202,7 @@ TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
   MockParameters();
 
   atomic<bool> condition = false;
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name("invalid_parameter");
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
@@ -235,7 +232,7 @@ TEST_F(AwsParameterClientProviderTest, MultipleParametersFound) {
   mock_ssm_client_->get_parameters_outcome_mock = get_parameters_outcome;
 
   atomic<bool> condition = false;
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
@@ -257,7 +254,7 @@ TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
   MockParameters();
 
   atomic<bool> condition = false;
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context1(
       std::move(request),

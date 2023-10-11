@@ -50,10 +50,6 @@ using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 static constexpr char kPublicKeyHeaderDate[] = "date";
 static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";
@@ -66,11 +62,11 @@ static constexpr uint64_t kExpectedExpiredTimeInSeconds = 1668811806;
 namespace google::scp::cpio::client_providers::test {
 
 TEST(PublicKeyClientProviderTestI, InitFailedWithInvalidConfig) {
-  auto http_client = make_shared<MockHttpClient>();
+  auto http_client = std::make_shared<MockHttpClient>();
 
-  auto public_key_client_options = make_shared<PublicKeyClientOptions>();
+  auto public_key_client_options = std::make_shared<PublicKeyClientOptions>();
 
-  auto public_key_client = make_unique<PublicKeyClientProvider>(
+  auto public_key_client = std::make_unique<PublicKeyClientProvider>(
       public_key_client_options, http_client);
 
   EXPECT_THAT(public_key_client->Init(),
@@ -79,11 +75,11 @@ TEST(PublicKeyClientProviderTestI, InitFailedWithInvalidConfig) {
 }
 
 TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
-  auto public_key_client_options = make_shared<PublicKeyClientOptions>();
+  auto public_key_client_options = std::make_shared<PublicKeyClientOptions>();
   public_key_client_options->endpoints.emplace_back(kPrivateKeyBaseUri1);
 
-  auto public_key_client =
-      make_unique<PublicKeyClientProvider>(public_key_client_options, nullptr);
+  auto public_key_client = std::make_unique<PublicKeyClientProvider>(
+      public_key_client_options, nullptr);
 
   EXPECT_THAT(public_key_client->Init(),
               ResultIs(FailureExecutionResult(
@@ -93,13 +89,13 @@ TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
 class PublicKeyClientProviderTestII : public ::testing::Test {
  protected:
   void SetUp() override {
-    http_client_ = make_shared<MockHttpClient>();
+    http_client_ = std::make_shared<MockHttpClient>();
 
-    auto public_key_client_options = make_shared<PublicKeyClientOptions>();
+    auto public_key_client_options = std::make_shared<PublicKeyClientOptions>();
     public_key_client_options->endpoints.emplace_back(kPrivateKeyBaseUri1);
     public_key_client_options->endpoints.emplace_back(kPrivateKeyBaseUri2);
 
-    public_key_client_ = make_unique<PublicKeyClientProvider>(
+    public_key_client_ = std::make_unique<PublicKeyClientProvider>(
         public_key_client_options, http_client_);
 
     EXPECT_SUCCESS(public_key_client_->Init());
@@ -111,7 +107,7 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
     HttpHeaders headers;
     headers.insert({kPublicKeyHeaderDate, kHeaderDateExample});
     headers.insert({kPublicKeyHeaderCacheControl, kCacheControlExample});
-    response.headers = make_shared<HttpHeaders>(headers);
+    response.headers = std::make_shared<HttpHeaders>(headers);
 
     std::string bytes_str = R"({
       "keys": [
@@ -132,8 +128,8 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
     }
   }
 
-  shared_ptr<MockHttpClient> http_client_;
-  unique_ptr<PublicKeyClientProvider> public_key_client_;
+  std::shared_ptr<MockHttpClient> http_client_;
+  std::unique_ptr<PublicKeyClientProvider> public_key_client_;
 };
 
 TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
@@ -142,13 +138,14 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
   http_client_->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
         perform_calls++;
-        http_context.response = make_shared<HttpResponse>(success_response);
+        http_context.response =
+            std::make_shared<HttpResponse>(success_response);
         http_context.result = SuccessExecutionResult();
         http_context.Finish();
         return SuccessExecutionResult();
       };
 
-  auto request = make_shared<ListPublicKeysRequest>();
+  auto request = std::make_shared<ListPublicKeysRequest>();
 
   atomic<int> success_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
@@ -187,7 +184,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
         return SuccessExecutionResult();
       };
 
-  auto request = make_shared<ListPublicKeysRequest>();
+  auto request = std::make_shared<ListPublicKeysRequest>();
 
   atomic<int> failure_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
@@ -215,7 +212,7 @@ TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
         return FailureExecutionResult(SC_UNKNOWN);
       };
 
-  auto request = make_shared<ListPublicKeysRequest>();
+  auto request = std::make_shared<ListPublicKeysRequest>();
 
   auto cpio_failure = FailureExecutionResult(
       SC_PUBLIC_KEY_CLIENT_PROVIDER_ALL_URIS_REQUEST_PERFORM_FAILED);
@@ -245,7 +242,8 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
         perform_calls++;
         if (*http_context.request->path == kPrivateKeyBaseUri2) {
-          http_context.response = make_shared<HttpResponse>(success_response);
+          http_context.response =
+              std::make_shared<HttpResponse>(success_response);
           http_context.result = SuccessExecutionResult();
           http_context.Finish();
           return SuccessExecutionResult();
@@ -257,7 +255,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
         return failed_result;
       };
 
-  auto request = make_shared<ListPublicKeysRequest>();
+  auto request = std::make_shared<ListPublicKeysRequest>();
   atomic<int> success_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,

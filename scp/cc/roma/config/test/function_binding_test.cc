@@ -36,10 +36,8 @@
 
 using std::bind;
 using std::get;
-using std::make_unique;
 using std::runtime_error;
 using std::tuple;
-using std::unique_ptr;
 using v8::Context;
 using v8::External;
 using v8::FunctionCallbackInfo;

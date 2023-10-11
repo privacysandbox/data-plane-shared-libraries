@@ -30,8 +30,6 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientOptions;
 using google::scp::cpio::client_providers::QueueClientOptions;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kJobServiceFactory[] = "JobServiceFactory";
@@ -39,9 +37,9 @@ constexpr char kJobServiceFactory[] = "JobServiceFactory";
 
 namespace google::scp::cpio {
 
-shared_ptr<JobClientOptions>
+std::shared_ptr<JobClientOptions>
 JobServiceFactory::CreateJobClientOptions() noexcept {
-  auto options = make_shared<JobClientOptions>();
+  auto options = std::make_shared<JobClientOptions>();
 
   options->job_table_name =
       ReadConfigString(config_provider_, kJobClientJobTableName);
@@ -51,10 +49,10 @@ JobServiceFactory::CreateJobClientOptions() noexcept {
   return options;
 }
 
-shared_ptr<InstanceServiceFactoryOptions>
+std::shared_ptr<InstanceServiceFactoryOptions>
 JobServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
   auto instance_service_factory_options =
-      make_shared<InstanceServiceFactoryOptions>();
+      std::make_shared<InstanceServiceFactoryOptions>();
   instance_service_factory_options
       ->cpu_async_executor_thread_count_config_label = kJobClientCpuThreadCount;
   instance_service_factory_options->cpu_async_executor_queue_cap_config_label =
@@ -66,16 +64,16 @@ JobServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
   return instance_service_factory_options;
 }
 
-shared_ptr<QueueClientOptions>
+std::shared_ptr<QueueClientOptions>
 JobServiceFactory::CreateQueueClientOptions() noexcept {
-  auto queue_options = make_shared<QueueClientOptions>();
+  auto queue_options = std::make_shared<QueueClientOptions>();
   queue_options->queue_name = client_options_->job_queue_name;
   return queue_options;
 }
 
-shared_ptr<NoSQLDatabaseClientOptions>
+std::shared_ptr<NoSQLDatabaseClientOptions>
 JobServiceFactory::CreateNoSQLDatabaseClientOptions() noexcept {
-  auto nosql_database_options = make_shared<NoSQLDatabaseClientOptions>();
+  auto nosql_database_options = std::make_shared<NoSQLDatabaseClientOptions>();
   return nosql_database_options;
 }
 

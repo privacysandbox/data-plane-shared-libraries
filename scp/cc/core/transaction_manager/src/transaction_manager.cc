@@ -48,13 +48,9 @@ using google::scp::cpio::MetricUtils;
 using std::atomic;
 using std::function;
 using std::list;
-using std::make_shared;
-using std::make_unique;
 using std::mutex;
-using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
-using std::unique_ptr;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -64,7 +60,7 @@ static constexpr char kTransactionManager[] = "TransactionManager";
 
 namespace google::scp::core {
 ExecutionResult TransactionManager::RegisterAggregateMetric(
-    shared_ptr<AggregateMetricInterface>& metrics_instance,
+    std::shared_ptr<AggregateMetricInterface>& metrics_instance,
     const std::string& name) noexcept {
   auto metric_labels = MetricUtils::CreateMetricLabelsWithComponentSignature(
       kMetricComponentNameAndPartitionNamePrefixForTransactionManager +
@@ -80,19 +76,20 @@ ExecutionResult TransactionManager::RegisterAggregateMetric(
 }
 
 TransactionManager::TransactionManager(
-    shared_ptr<AsyncExecutorInterface>& async_executor,
-    shared_ptr<TransactionCommandSerializerInterface>&
+    std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    std::shared_ptr<TransactionCommandSerializerInterface>&
         transaction_command_serializer,
-    shared_ptr<JournalServiceInterface>& journal_service,
-    shared_ptr<RemoteTransactionManagerInterface>& remote_transaction_manager,
+    std::shared_ptr<JournalServiceInterface>& journal_service,
+    std::shared_ptr<RemoteTransactionManagerInterface>&
+        remote_transaction_manager,
     size_t max_concurrent_transactions,
     const std::shared_ptr<cpio::MetricInstanceFactoryInterface>&
         metric_instance_factory,
-    shared_ptr<ConfigProviderInterface> config_provider,
+    std::shared_ptr<ConfigProviderInterface> config_provider,
     const PartitionId& partition_id)
     : TransactionManager(
           async_executor,
-          make_shared<TransactionEngine>(
+          std::make_shared<TransactionEngine>(
               async_executor, transaction_command_serializer, journal_service,
               remote_transaction_manager, config_provider),
           max_concurrent_transactions, metric_instance_factory, config_provider,
@@ -272,7 +269,7 @@ ExecutionResult TransactionManager::ExecutePhase(
 }
 
 ExecutionResult TransactionManager::Checkpoint(
-    shared_ptr<list<CheckpointLog>>& checkpoint_logs) noexcept {
+    std::shared_ptr<list<CheckpointLog>>& checkpoint_logs) noexcept {
   if (started_) {
     return FailureExecutionResult(
         errors::SC_TRANSACTION_MANAGER_CANNOT_CREATE_CHECKPOINT_WHEN_STARTED);

@@ -71,11 +71,7 @@ using google::scp::cpio::MockMetricClient;
 using std::atomic;
 using std::cout;
 using std::endl;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 using std::thread;
-using std::unique_ptr;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
@@ -92,31 +88,31 @@ namespace google::scp::core::test {
 class HttpServerLoadTest : public testing::Test {
  protected:
   HttpServerLoadTest() {
-    metric_client_ = make_shared<MockMetricClient>();
-    auto mock_config_provider = make_shared<MockConfigProvider>();
+    metric_client_ = std::make_shared<MockMetricClient>();
+    auto mock_config_provider = std::make_shared<MockConfigProvider>();
     config_provider_ = mock_config_provider;
-    async_executor_for_server_ = make_shared<AsyncExecutor>(
+    async_executor_for_server_ = std::make_shared<AsyncExecutor>(
         20 /* thread pool size */, 100000 /* queue size */,
         true /* drop_tasks_on_stop */);
-    async_executor_for_client_ = make_shared<AsyncExecutor>(
+    async_executor_for_client_ = std::make_shared<AsyncExecutor>(
         20 /* thread pool size */, 100000 /* queue size */,
         true /* drop_tasks_on_stop */);
     HttpClientOptions client_options(
         RetryStrategyOptions(RetryStrategyType::Linear, 100 /* delay in ms */,
                              5 /* num retries */),
         1 /* max connections per host */, 5 /* read timeout in sec */);
-    http2_client_ =
-        make_shared<HttpClient>(async_executor_for_client_, client_options);
+    http2_client_ = std::make_shared<HttpClient>(async_executor_for_client_,
+                                                 client_options);
 
     // Authorization is not tested for the purposes of this test.
-    shared_ptr<AuthorizationProxyInterface> authorization_proxy =
-        make_shared<PassThruAuthorizationProxy>();
+    std::shared_ptr<AuthorizationProxyInterface> authorization_proxy =
+        std::make_shared<PassThruAuthorizationProxy>();
 
-    shared_ptr<MetricInstanceFactoryInterface> metric_instance_factory =
-        make_shared<cpio::MetricInstanceFactory>(
+    std::shared_ptr<MetricInstanceFactoryInterface> metric_instance_factory =
+        std::make_shared<cpio::MetricInstanceFactory>(
             async_executor_for_server_, metric_client_, config_provider_);
 
-    http_server_ = make_shared<Http2Server>(
+    http_server_ = std::make_shared<Http2Server>(
         host_, port_, 10 /* http server thread pool size */,
         async_executor_for_server_, authorization_proxy,
         metric_instance_factory, config_provider_);
@@ -125,7 +121,7 @@ class HttpServerLoadTest : public testing::Test {
     core::HttpHandler handler =
         [this](AsyncContext<HttpRequest, HttpResponse>& context) {
           total_requests_received_on_server++;
-          context.response = make_shared<HttpResponse>();
+          context.response = std::make_shared<HttpResponse>();
           context.response->body =
               BytesBuffer(std::to_string(total_requests_received_on_server));
           context.response->code = HttpStatusCode(200);
@@ -159,12 +155,12 @@ class HttpServerLoadTest : public testing::Test {
 
   std::string host_ = "localhost";
   std::string port_ = "8099";  // TODO: Pick this randomly.
-  shared_ptr<core::ConfigProviderInterface> config_provider_;
-  shared_ptr<cpio::MetricClientInterface> metric_client_;
-  shared_ptr<AsyncExecutorInterface> async_executor_for_server_;
-  shared_ptr<AsyncExecutorInterface> async_executor_for_client_;
-  shared_ptr<HttpServerInterface> http_server_;
-  shared_ptr<HttpClientInterface> http2_client_;
+  std::shared_ptr<core::ConfigProviderInterface> config_provider_;
+  std::shared_ptr<cpio::MetricClientInterface> metric_client_;
+  std::shared_ptr<AsyncExecutorInterface> async_executor_for_server_;
+  std::shared_ptr<AsyncExecutorInterface> async_executor_for_client_;
+  std::shared_ptr<HttpServerInterface> http_server_;
+  std::shared_ptr<HttpClientInterface> http2_client_;
   atomic<size_t> total_requests_received_on_server = 0;
 };
 
@@ -203,10 +199,10 @@ TEST_F(HttpServerLoadTest,
     atomic<size_t> client_requests_completed_in_current_round = 0;
 
     // Initialize a bunch of clients.
-    std::vector<shared_ptr<HttpClientInterface>> http2_clients;
+    std::vector<std::shared_ptr<HttpClientInterface>> http2_clients;
     for (int j = 0; j < num_clients; j++) {
-      auto http2_client =
-          make_shared<HttpClient>(async_executor_for_client_, client_options);
+      auto http2_client = std::make_shared<HttpClient>(
+          async_executor_for_client_, client_options);
       EXPECT_SUCCESS(http2_client->Init());
       EXPECT_SUCCESS(http2_client->Run());
       http2_clients.push_back(http2_client);
@@ -216,10 +212,10 @@ TEST_F(HttpServerLoadTest,
     cout << "Round " << i + 1 << ": "
          << "Initialized clients. Sending requests..." << endl;
     for (auto& http2_client : http2_clients) {
-      auto request = make_shared<HttpRequest>();
+      auto request = std::make_shared<HttpRequest>();
       request->method = core::HttpMethod::POST;
-      request->path = make_shared<std::string>("http://" + host_ + ":" + port_ +
-                                               "/v1/test");
+      request->path = std::make_shared<std::string>("http://" + host_ + ":" +
+                                                    port_ + "/v1/test");
       AsyncContext<HttpRequest, HttpResponse> request_context(
           std::move(request),
           [&](AsyncContext<HttpRequest, HttpResponse>& result_context) {
@@ -240,10 +236,10 @@ TEST_F(HttpServerLoadTest,
 
     // Send another round of multiple requests on the same set of clients.
     for (auto& http2_client : http2_clients) {
-      auto request = make_shared<HttpRequest>();
+      auto request = std::make_shared<HttpRequest>();
       request->method = core::HttpMethod::POST;
-      request->path = make_shared<std::string>("http://" + host_ + ":" + port_ +
-                                               "/v1/test");
+      request->path = std::make_shared<std::string>("http://" + host_ + ":" +
+                                                    port_ + "/v1/test");
       AsyncContext<HttpRequest, HttpResponse> request_context(
           std::move(request),
           [&](AsyncContext<HttpRequest, HttpResponse>& result_context) {

@@ -32,10 +32,6 @@ using google::scp::core::ExecutionResultOr;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::GetErrorMessage;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -52,18 +48,19 @@ ExecutionResult Dispatcher::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-ExecutionResult Dispatcher::Broadcast(unique_ptr<CodeObject> code_object,
+ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
                                       Callback broadcast_callback) noexcept {
   auto worker_count = worker_pool_->GetPoolSize();
-  auto finished_counter = make_shared<atomic<size_t>>(0);
-  auto responses_storage =
-      make_shared<std::vector<unique_ptr<absl::StatusOr<ResponseObject>>>>(
-          worker_count);
+  auto finished_counter = std::make_shared<atomic<size_t>>(0);
+  auto responses_storage = std::make_shared<
+      std::vector<std::unique_ptr<absl::StatusOr<ResponseObject>>>>(
+      worker_count);
 
   for (size_t worker_index = 0; worker_index < worker_count; worker_index++) {
     auto callback =
         [worker_count, responses_storage, finished_counter, broadcast_callback,
-         worker_index](unique_ptr<absl::StatusOr<ResponseObject>> response) {
+         worker_index](
+            std::unique_ptr<absl::StatusOr<ResponseObject>> response) {
           auto& all_resp = *responses_storage;
           // Store responses in the vector
           all_resp[worker_index].swap(response);
@@ -81,7 +78,7 @@ ExecutionResult Dispatcher::Broadcast(unique_ptr<CodeObject> code_object,
           }
         };
 
-    auto code_object_copy = make_unique<CodeObject>(*code_object);
+    auto code_object_copy = std::make_unique<CodeObject>(*code_object);
 
     auto dispatch_result =
         InternalDispatch(std::move(code_object_copy), callback, worker_index);
@@ -98,14 +95,14 @@ ExecutionResult Dispatcher::Broadcast(unique_ptr<CodeObject> code_object,
 }
 
 ExecutionResult Dispatcher::ReloadCachedCodeObjects(
-    shared_ptr<worker_api::WorkerApi>& worker) {
+    std::shared_ptr<worker_api::WorkerApi>& worker) {
   auto all_cached_code_objects = code_object_cache_.GetAll();
 
   pending_requests_ += all_cached_code_objects.size();
 
   for (auto& kv : all_cached_code_objects) {
     auto& cached_code = kv.second;
-    unique_ptr<CodeObject> ptr_cached_code;
+    std::unique_ptr<CodeObject> ptr_cached_code;
     ptr_cached_code.reset(&cached_code);
     auto request_type = ptr_cached_code->js.empty()
                             ? constants::kRequestTypeWasm

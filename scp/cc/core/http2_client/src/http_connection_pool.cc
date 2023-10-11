@@ -44,8 +44,6 @@ using boost::system::error_code;
 using google::scp::core::common::kZeroUuid;
 using nghttp2::asio_http2::host_service_from_uri;
 using std::lock_guard;
-using std::make_shared;
-using std::shared_ptr;
 
 static constexpr char kHttpsTag[] = "https";
 static constexpr char kHttpTag[] = "http";
@@ -70,7 +68,7 @@ ExecutionResult HttpConnectionPool::Stop() noexcept {
   }
 
   for (const auto& key : keys) {
-    shared_ptr<HttpConnectionPoolEntry> entry;
+    std::shared_ptr<HttpConnectionPoolEntry> entry;
     execution_result = connections_.Find(key, entry);
     if (!execution_result.Successful()) {
       return execution_result;
@@ -87,16 +85,16 @@ ExecutionResult HttpConnectionPool::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-shared_ptr<HttpConnection> HttpConnectionPool::CreateHttpConnection(
+std::shared_ptr<HttpConnection> HttpConnectionPool::CreateHttpConnection(
     std::string host, std::string service, bool is_https,
     TimeDuration http2_read_timeout_in_sec) {
-  return make_shared<HttpConnection>(async_executor_, host, service, is_https,
-                                     http2_read_timeout_in_sec_);
+  return std::make_shared<HttpConnection>(async_executor_, host, service,
+                                          is_https, http2_read_timeout_in_sec_);
 }
 
 ExecutionResult HttpConnectionPool::GetConnection(
-    const shared_ptr<Uri>& uri,
-    shared_ptr<HttpConnection>& connection) noexcept {
+    const std::shared_ptr<Uri>& uri,
+    std::shared_ptr<HttpConnection>& connection) noexcept {
   if (!is_running_) {
     return FailureExecutionResult(
         errors::SC_HTTP2_CLIENT_CONNECTION_POOL_IS_NOT_AVAILABLE);
@@ -121,7 +119,7 @@ ExecutionResult HttpConnectionPool::GetConnection(
     return FailureExecutionResult(errors::SC_HTTP2_CLIENT_INVALID_URI);
   }
 
-  auto http_connection_entry = make_shared<HttpConnectionPoolEntry>();
+  auto http_connection_entry = std::make_shared<HttpConnectionPoolEntry>();
   auto pair = std::make_pair(host + ":" + service, http_connection_entry);
   if (connections_.Insert(pair, http_connection_entry).Successful()) {
     for (size_t i = 0; i < max_connections_per_host_; ++i) {

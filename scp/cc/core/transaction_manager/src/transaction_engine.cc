@@ -54,8 +54,6 @@ using std::bind;
 using std::function;
 using std::list;
 using std::make_pair;
-using std::make_shared;
-using std::shared_ptr;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::placeholders::_1;
@@ -142,14 +140,16 @@ static constexpr char kTransactionPhaseUnknownStr[] = "UNKNOWN";
 
 namespace google::scp::core {
 TransactionEngine::TransactionEngine(
-    shared_ptr<AsyncExecutorInterface>& async_executor,
-    shared_ptr<TransactionCommandSerializerInterface>&
+    std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    std::shared_ptr<TransactionCommandSerializerInterface>&
         transaction_command_serializer,
-    shared_ptr<JournalServiceInterface>& journal_service,
-    shared_ptr<RemoteTransactionManagerInterface>& remote_transaction_manager,
-    shared_ptr<ConfigProviderInterface> config_provider)
+    std::shared_ptr<JournalServiceInterface>& journal_service,
+    std::shared_ptr<RemoteTransactionManagerInterface>&
+        remote_transaction_manager,
+    std::shared_ptr<ConfigProviderInterface> config_provider)
     : TransactionEngine(async_executor, transaction_command_serializer,
-                        journal_service, make_shared<TransactionPhaseManager>(),
+                        journal_service,
+                        std::make_shared<TransactionPhaseManager>(),
                         remote_transaction_manager, config_provider) {}
 
 ExecutionResult TransactionEngine::Init() noexcept {
@@ -207,7 +207,7 @@ ExecutionResult TransactionEngine::Run() noexcept {
   atomic<size_t> pending_calls(0);
 
   for (auto active_transaction_id : active_transaction_ids) {
-    shared_ptr<Transaction> transaction;
+    std::shared_ptr<Transaction> transaction;
     execution_result =
         active_transactions_map_.Find(active_transaction_id, transaction);
     if (!execution_result.Successful()) {
@@ -286,7 +286,7 @@ ExecutionResult TransactionEngine::Stop() noexcept {
            active_transaction_ids.size());
 
   for (const auto& active_transaction_id : active_transaction_ids) {
-    shared_ptr<Transaction> transaction;
+    std::shared_ptr<Transaction> transaction;
     execution_result =
         active_transactions_map_.Find(active_transaction_id, transaction);
     if (!execution_result.Successful()) {
@@ -316,7 +316,7 @@ TransactionEngine::~TransactionEngine() {
 }
 
 ExecutionResult TransactionEngine::LockRemotelyCoordinatedTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   if (!transaction->is_coordinated_remotely) {
     return FailureExecutionResult(
         errors::SC_TRANSACTION_MANAGER_TRANSACTION_NOT_COORDINATED_REMOTELY);
@@ -332,7 +332,7 @@ ExecutionResult TransactionEngine::LockRemotelyCoordinatedTransaction(
 }
 
 ExecutionResult TransactionEngine::UnlockRemotelyCoordinatedTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   if (!transaction->is_coordinated_remotely) {
     return FailureExecutionResult(
         errors::SC_TRANSACTION_MANAGER_TRANSACTION_NOT_COORDINATED_REMOTELY);
@@ -349,7 +349,7 @@ ExecutionResult TransactionEngine::UnlockRemotelyCoordinatedTransaction(
 }
 
 void TransactionEngine::OnBeforeGarbageCollection(
-    Uuid& transaction_id, shared_ptr<Transaction>& transaction,
+    Uuid& transaction_id, std::shared_ptr<Transaction>& transaction,
     function<void(bool)> should_delete_entry) noexcept {
   // Transaction entry is never deleted from the cache by the garbage
   // collection function of the map. The TransactionEngine itself does the
@@ -359,7 +359,7 @@ void TransactionEngine::OnBeforeGarbageCollection(
 }
 
 ExecutionResult TransactionEngine::ResolveTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   if (!transaction->IsExpired() || transaction->blocked ||
       !transaction_resolution_with_remote_enabled_) {
     return SuccessExecutionResult();
@@ -416,7 +416,7 @@ ExecutionResult TransactionEngine::ResolveTransaction(
   // Get status of the other transaction being executed.
   AsyncContext<GetTransactionStatusRequest, GetTransactionStatusResponse>
       get_transaction_status_context(
-          make_shared<GetTransactionStatusRequest>(),
+          std::make_shared<GetTransactionStatusRequest>(),
           bind(&TransactionEngine::OnGetRemoteTransactionStatusCallback, this,
                transaction, _1),
           transaction->context);
@@ -442,7 +442,7 @@ ExecutionResult TransactionEngine::ResolveTransaction(
 }
 
 void TransactionEngine::OnGetRemoteTransactionStatusCallback(
-    shared_ptr<Transaction>& transaction,
+    std::shared_ptr<Transaction>& transaction,
     AsyncContext<GetTransactionStatusRequest, GetTransactionStatusResponse>&
         get_transaction_status_context) noexcept {
   if (!get_transaction_status_context.result.Successful()) {
@@ -535,7 +535,7 @@ void TransactionEngine::OnGetRemoteTransactionStatusCallback(
 }
 
 void TransactionEngine::OnRemoteTransactionNotFound(
-    shared_ptr<Transaction>& transaction,
+    std::shared_ptr<Transaction>& transaction,
     AsyncContext<GetTransactionStatusRequest, GetTransactionStatusResponse>&
         get_transaction_status_context) noexcept {
   // If a transaction has just started Begin or Prepare phase on this TM
@@ -568,7 +568,7 @@ void TransactionEngine::OnRemoteTransactionNotFound(
   // Explicitly move the transaction to an End phase.
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       transaction_phase_context(
-          make_shared<TransactionPhaseRequest>(),
+          std::make_shared<TransactionPhaseRequest>(),
           [](AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&) {
           },
           get_transaction_status_context);
@@ -597,7 +597,8 @@ void TransactionEngine::OnRemoteTransactionNotFound(
 }
 
 ExecutionResult TransactionEngine::RollForwardLocalTransaction(
-    shared_ptr<Transaction>& transaction, TransactionExecutionPhase next_phase,
+    std::shared_ptr<Transaction>& transaction,
+    TransactionExecutionPhase next_phase,
     bool next_phase_has_failure) noexcept {
   INFO_CONTEXT_WITH_TRANSACTION_SCP_INFO(
       transaction->context, transaction,
@@ -607,7 +608,7 @@ ExecutionResult TransactionEngine::RollForwardLocalTransaction(
   //  commit
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       transaction_phase_context(
-          make_shared<TransactionPhaseRequest>(),
+          std::make_shared<TransactionPhaseRequest>(),
           [](AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&) {
           },
           transaction->context);
@@ -641,7 +642,7 @@ ExecutionResult TransactionEngine::RollForwardLocalTransaction(
 }
 
 ExecutionResult TransactionEngine::RollForwardLocalAndRemoteTransactions(
-    shared_ptr<Transaction>& transaction,
+    std::shared_ptr<Transaction>& transaction,
     Timestamp last_execution_timestamp_remote) noexcept {
   INFO_CONTEXT_WITH_TRANSACTION_SCP_INFO(
       transaction->context, transaction,
@@ -651,7 +652,7 @@ ExecutionResult TransactionEngine::RollForwardLocalAndRemoteTransactions(
 
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       remote_phase_context(
-          make_shared<TransactionPhaseRequest>(),
+          std::make_shared<TransactionPhaseRequest>(),
           bind(&TransactionEngine::OnRollForwardRemoteTransactionCallback, this,
                transaction, _1),
           transaction->context);
@@ -693,12 +694,12 @@ ExecutionResult TransactionEngine::RollForwardLocalAndRemoteTransactions(
 }
 
 void TransactionEngine::OnRollForwardRemoteTransactionCallback(
-    shared_ptr<Transaction>& transaction,
+    std::shared_ptr<Transaction>& transaction,
     AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&
         remote_transaction_context) noexcept {
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       local_phase_context(
-          make_shared<TransactionPhaseRequest>(),
+          std::make_shared<TransactionPhaseRequest>(),
           [](AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&) {
           },
           transaction->context);
@@ -731,7 +732,7 @@ void TransactionEngine::OnRollForwardRemoteTransactionCallback(
 }
 
 ExecutionResult TransactionEngine::OnJournalServiceRecoverCallback(
-    const shared_ptr<BytesBuffer>& bytes_buffer,
+    const std::shared_ptr<BytesBuffer>& bytes_buffer,
     const Uuid& activity_id) noexcept {
   TransactionEngineLog transaction_engine_log;
   size_t offset = 0;
@@ -795,11 +796,11 @@ ExecutionResult TransactionEngine::OnJournalServiceRecoverCallback(
     bool is_coordinated_remotely =
         transaction_log_1_0.is_coordinated_remotely();
     auto transaction_secret =
-        make_shared<std::string>(transaction_log_1_0.transaction_secret());
+        std::make_shared<std::string>(transaction_log_1_0.transaction_secret());
     auto transaction_origin =
-        make_shared<std::string>(transaction_log_1_0.transaction_origin());
+        std::make_shared<std::string>(transaction_log_1_0.transaction_origin());
     AsyncContext<TransactionRequest, TransactionResponse> transaction_context(
-        make_shared<TransactionRequest>(),
+        std::make_shared<TransactionRequest>(),
         [](AsyncContext<TransactionRequest, TransactionResponse>&) {},
         activity_id, activity_id);
 
@@ -816,7 +817,7 @@ ExecutionResult TransactionEngine::OnJournalServiceRecoverCallback(
 
       BytesBuffer command_bytes_buffer(command.command_body());
 
-      shared_ptr<TransactionCommand> transaction_command = nullptr;
+      std::shared_ptr<TransactionCommand> transaction_command = nullptr;
       auto execution_result = transaction_command_serializer_->Deserialize(
           transaction_id, command_bytes_buffer, transaction_command);
       if (!execution_result.Successful()) {
@@ -833,7 +834,7 @@ ExecutionResult TransactionEngine::OnJournalServiceRecoverCallback(
 
     // The transaction might already be initialized due to a previous
     // duplicate log. InitializeTransaction is idempotent.
-    shared_ptr<Transaction> transaction;
+    std::shared_ptr<Transaction> transaction;
     return InitializeTransaction(transaction_context, transaction);
   }
 
@@ -863,7 +864,7 @@ ExecutionResult TransactionEngine::OnJournalServiceRecoverCallback(
         TransactionPhaseToString(target_transaction_phase).c_str(),
         transaction_id_string.c_str());
 
-    shared_ptr<Transaction> transaction;
+    std::shared_ptr<Transaction> transaction;
     auto execution_result =
         active_transactions_map_.Find(transaction_id, transaction);
     if (!execution_result.Successful()) {
@@ -930,8 +931,8 @@ ExecutionResult TransactionEngine::OnJournalServiceRecoverCallback(
 
 ExecutionResult TransactionEngine::InitializeTransaction(
     AsyncContext<TransactionRequest, TransactionResponse>& transaction_context,
-    shared_ptr<Transaction>& transaction) {
-  transaction = make_shared<Transaction>();
+    std::shared_ptr<Transaction>& transaction) {
+  transaction = std::make_shared<Transaction>();
   transaction->id = transaction_context.request->transaction_id;
   transaction->context = transaction_context;
   transaction->current_phase = TransactionPhase::NotStarted;
@@ -982,7 +983,7 @@ ExecutionResult TransactionEngine::InitializeTransaction(
 }
 
 ExecutionResult TransactionEngine::SerializeTransaction(
-    shared_ptr<Transaction>& transaction,
+    std::shared_ptr<Transaction>& transaction,
     BytesBuffer& transaction_engine_log_bytes_buffer) noexcept {
   TransactionEngineLog transaction_engine_log;
   transaction_engine_log.mutable_version()->set_major(kCurrentVersion.major);
@@ -1069,7 +1070,8 @@ ExecutionResult TransactionEngine::SerializeTransaction(
   offset = 0;
   bytes_serialized = 0;
   transaction_engine_log_bytes_buffer.bytes =
-      make_shared<std::vector<Byte>>(transaction_engine_log.ByteSizeLong());
+      std::make_shared<std::vector<Byte>>(
+          transaction_engine_log.ByteSizeLong());
   transaction_engine_log_bytes_buffer.capacity =
       transaction_engine_log.ByteSizeLong();
   execution_result = Serialization::SerializeProtoMessage<TransactionEngineLog>(
@@ -1087,7 +1089,7 @@ ExecutionResult TransactionEngine::SerializeTransaction(
 
 ExecutionResult TransactionEngine::LogTransactionAndProceedToNextPhase(
     TransactionPhase current_phase,
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   BytesBuffer transaction_engine_log_bytes_buffer;
   auto execution_result =
       SerializeTransaction(transaction, transaction_engine_log_bytes_buffer);
@@ -1098,12 +1100,12 @@ ExecutionResult TransactionEngine::LogTransactionAndProceedToNextPhase(
   AsyncContext<JournalLogRequest, JournalLogResponse> journal_log_context;
   journal_log_context.parent_activity_id = transaction->context.activity_id;
   journal_log_context.correlation_id = transaction->context.correlation_id;
-  journal_log_context.request = make_shared<JournalLogRequest>();
+  journal_log_context.request = std::make_shared<JournalLogRequest>();
   journal_log_context.request->component_id = kTransactionEngineId;
   journal_log_context.request->log_id = Uuid::GenerateUuid();
   journal_log_context.request->log_status = JournalLogStatus::Log;
   journal_log_context.request->data =
-      make_shared<BytesBuffer>(transaction_engine_log_bytes_buffer);
+      std::make_shared<BytesBuffer>(transaction_engine_log_bytes_buffer);
   journal_log_context.callback =
       bind(&TransactionEngine::OnLogTransactionCallback, this, _1,
            current_phase, transaction);
@@ -1123,7 +1125,7 @@ ExecutionResult TransactionEngine::LogTransactionAndProceedToNextPhase(
 void TransactionEngine::OnLogTransactionCallback(
     AsyncContext<JournalLogRequest, JournalLogResponse> journal_log_context,
     TransactionPhase current_phase,
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   if (!journal_log_context.result.Successful()) {
     SCP_ERROR_CONTEXT(kTransactionEngine, journal_log_context,
                       journal_log_context.result,
@@ -1207,7 +1209,8 @@ ExecutionResult TransactionEngine::SerializeState(
   offset = 0;
   bytes_serialized = 0;
   transaction_engine_log_bytes_buffer.bytes =
-      make_shared<std::vector<Byte>>(transaction_engine_log.ByteSizeLong());
+      std::make_shared<std::vector<Byte>>(
+          transaction_engine_log.ByteSizeLong());
   transaction_engine_log_bytes_buffer.capacity =
       transaction_engine_log.ByteSizeLong();
   execution_result = Serialization::SerializeProtoMessage<TransactionEngineLog>(
@@ -1224,7 +1227,7 @@ ExecutionResult TransactionEngine::SerializeState(
 }
 
 ExecutionResult TransactionEngine::LogState(
-    TransactionPhase current_phase, shared_ptr<Transaction>& transaction,
+    TransactionPhase current_phase, std::shared_ptr<Transaction>& transaction,
     function<void(AsyncContext<JournalLogRequest, JournalLogResponse>&)>
         callback) noexcept {
   BytesBuffer transaction_engine_log_bytes_buffer;
@@ -1237,12 +1240,12 @@ ExecutionResult TransactionEngine::LogState(
   AsyncContext<JournalLogRequest, JournalLogResponse> journal_log_context;
   journal_log_context.parent_activity_id = transaction->context.activity_id;
   journal_log_context.correlation_id = transaction->context.correlation_id;
-  journal_log_context.request = make_shared<JournalLogRequest>();
+  journal_log_context.request = std::make_shared<JournalLogRequest>();
   journal_log_context.request->component_id = kTransactionEngineId;
   journal_log_context.request->log_id = Uuid::GenerateUuid();
   journal_log_context.request->log_status = JournalLogStatus::Log;
   journal_log_context.request->data =
-      make_shared<BytesBuffer>(transaction_engine_log_bytes_buffer);
+      std::make_shared<BytesBuffer>(transaction_engine_log_bytes_buffer);
   journal_log_context.callback = callback;
 
   operation_dispatcher_
@@ -1259,7 +1262,7 @@ ExecutionResult TransactionEngine::LogState(
 
 ExecutionResult TransactionEngine::LogStateAndProceedToNextPhase(
     TransactionPhase current_phase,
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   return LogState(
       current_phase, transaction,
       bind(&TransactionEngine::OnLogStateAndProceedToNextPhaseCallback, this,
@@ -1268,7 +1271,7 @@ ExecutionResult TransactionEngine::LogStateAndProceedToNextPhase(
 
 ExecutionResult TransactionEngine::LogStateAndExecuteDistributedPhase(
     TransactionPhase current_phase,
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   return LogState(
       current_phase, transaction,
       bind(&TransactionEngine::OnLogStateAndExecuteDistributedPhaseCallback,
@@ -1278,7 +1281,7 @@ ExecutionResult TransactionEngine::LogStateAndExecuteDistributedPhase(
 void TransactionEngine::OnLogStateAndProceedToNextPhaseCallback(
     AsyncContext<JournalLogRequest, JournalLogResponse>& journal_log_context,
     TransactionPhase current_phase,
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   if (!journal_log_context.result.Successful()) {
     ERROR_CONTEXT_WITH_TRANSACTION_SCP_INFO(journal_log_context, transaction,
                                             journal_log_context.result,
@@ -1300,7 +1303,7 @@ void TransactionEngine::OnLogStateAndProceedToNextPhaseCallback(
 void TransactionEngine::OnLogStateAndExecuteDistributedPhaseCallback(
     AsyncContext<JournalLogRequest, JournalLogResponse>& journal_log_context,
     TransactionPhase current_phase,
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   if (!journal_log_context.result.Successful()) {
     ERROR_CONTEXT_WITH_TRANSACTION_SCP_INFO(journal_log_context, transaction,
                                             journal_log_context.result,
@@ -1322,7 +1325,7 @@ void TransactionEngine::OnLogStateAndExecuteDistributedPhaseCallback(
 ExecutionResult TransactionEngine::Execute(
     AsyncContext<TransactionRequest, TransactionResponse>&
         transaction_context) noexcept {
-  shared_ptr<Transaction> transaction = nullptr;
+  std::shared_ptr<Transaction> transaction = nullptr;
   auto execution_result =
       InitializeTransaction(transaction_context, transaction);
   if (!execution_result.Successful()) {
@@ -1336,7 +1339,7 @@ ExecutionResult TransactionEngine::Execute(
 ExecutionResult TransactionEngine::ExecutePhase(
     AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&
         transaction_phase_context) noexcept {
-  shared_ptr<Transaction> transaction;
+  std::shared_ptr<Transaction> transaction;
   auto execution_result = active_transactions_map_.Find(
       transaction_phase_context.request->transaction_id, transaction);
 
@@ -1381,7 +1384,7 @@ ExecutionResult TransactionEngine::ExecutePhase(
 }
 
 ExecutionResult TransactionEngine::ExecutePhaseInternal(
-    shared_ptr<Transaction>& transaction,
+    std::shared_ptr<Transaction>& transaction,
     AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&
         transaction_phase_context) noexcept {
   if (transaction->is_waiting_for_remote ||
@@ -1499,7 +1502,7 @@ ExecutionResult TransactionEngine::ExecutePhaseInternal(
 ExecutionResult TransactionEngine::GetTransactionStatus(
     AsyncContext<GetTransactionStatusRequest, GetTransactionStatusResponse>&
         get_transaction_status_context) noexcept {
-  shared_ptr<Transaction> transaction;
+  std::shared_ptr<Transaction> transaction;
   auto execution_result = active_transactions_map_.Find(
       get_transaction_status_context.request->transaction_id, transaction);
   if (!execution_result.Successful()) {
@@ -1521,7 +1524,7 @@ ExecutionResult TransactionEngine::GetTransactionStatus(
 
   get_transaction_status_context.result = SuccessExecutionResult();
   get_transaction_status_context.response =
-      make_shared<GetTransactionStatusResponse>();
+      std::make_shared<GetTransactionStatusResponse>();
   get_transaction_status_context.response->has_failure =
       transaction->transaction_failed || transaction->current_phase_failed;
   get_transaction_status_context.response->transaction_execution_phase =
@@ -1542,7 +1545,7 @@ ExecutionResult TransactionEngine::GetTransactionStatus(
 }
 
 ExecutionResult TransactionEngine::Checkpoint(
-    shared_ptr<list<CheckpointLog>>& checkpoint_logs) noexcept {
+    std::shared_ptr<list<CheckpointLog>>& checkpoint_logs) noexcept {
   std::vector<Uuid> active_transactions;
   auto execution_result = active_transactions_map_.Keys(active_transactions);
   if (!execution_result.Successful()) {
@@ -1555,7 +1558,7 @@ ExecutionResult TransactionEngine::Checkpoint(
   for (auto& active_transaction : active_transactions) {
     // 1) Serialize the transaction.
     // 2) Serialize the current state.
-    shared_ptr<Transaction> transaction;
+    std::shared_ptr<Transaction> transaction;
     execution_result =
         active_transactions_map_.Find(active_transaction, transaction);
     if (!execution_result.Successful()) {
@@ -1589,7 +1592,7 @@ ExecutionResult TransactionEngine::Checkpoint(
 }
 
 void TransactionEngine::ProceedToNextPhaseAfterRecovery(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   switch (transaction->current_phase) {
     case TransactionPhase::NotStarted:
     case TransactionPhase::Begin:
@@ -1624,7 +1627,7 @@ void TransactionEngine::ProceedToNextPhaseAfterRecovery(
 
 void TransactionEngine::ProceedToNextPhase(
     TransactionPhase current_phase,
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   if (current_phase == TransactionPhase::End) {
     transaction->last_execution_timestamp =
         TimeProvider::GetWallTimestampInNanosecondsAsClockTicks();
@@ -1634,7 +1637,7 @@ void TransactionEngine::ProceedToNextPhase(
       transaction->remote_phase_context.result =
           transaction->current_phase_execution_result;
       transaction->remote_phase_context.response =
-          make_shared<TransactionPhaseResponse>();
+          std::make_shared<TransactionPhaseResponse>();
       transaction->remote_phase_context.response->last_execution_timestamp =
           transaction->last_execution_timestamp;
       transaction->remote_phase_context.Finish();
@@ -1644,7 +1647,7 @@ void TransactionEngine::ProceedToNextPhase(
         delete_transaction = true;
       }
     } else {
-      transaction->context.response = make_shared<TransactionResponse>();
+      transaction->context.response = std::make_shared<TransactionResponse>();
       transaction->context.response->transaction_id = transaction->id;
       transaction->context.response->last_execution_timestamp =
           transaction->last_execution_timestamp;
@@ -1716,13 +1719,13 @@ void TransactionEngine::ProceedToNextPhase(
   if (transaction->is_coordinated_remotely) {
     // Filter commands corresponding to the failed indices for sending them
     // back to the caller
-    list<shared_ptr<TransactionCommand>> failed_commands;
+    list<std::shared_ptr<TransactionCommand>> failed_commands;
     for (const auto& failed_index : failed_indices) {
       failed_commands.push_back(
           transaction->context.request->commands[failed_index]);
     }
     if (transaction->current_phase == TransactionPhase::Begin) {
-      transaction->context.response = make_shared<TransactionResponse>();
+      transaction->context.response = std::make_shared<TransactionResponse>();
       transaction->context.response->transaction_id = transaction->id;
       transaction->context.response->last_execution_timestamp =
           transaction->last_execution_timestamp;
@@ -1736,7 +1739,7 @@ void TransactionEngine::ProceedToNextPhase(
     } else {
       transaction->remote_phase_context.result = current_phase_execution_result;
       transaction->remote_phase_context.response =
-          make_shared<TransactionPhaseResponse>();
+          std::make_shared<TransactionPhaseResponse>();
       transaction->remote_phase_context.response->last_execution_timestamp =
           transaction->last_execution_timestamp;
       transaction->remote_phase_context.response->failed_commands_indices =
@@ -1753,7 +1756,7 @@ void TransactionEngine::ProceedToNextPhase(
 }
 
 void TransactionEngine::ExecuteCurrentPhase(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   switch (transaction->current_phase) {
     case TransactionPhase::Begin:
       BeginTransaction(transaction);
@@ -1785,49 +1788,49 @@ void TransactionEngine::ExecuteCurrentPhase(
 }
 
 void TransactionEngine::BeginTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   ExecuteDistributedPhase(TransactionPhase::Begin, transaction);
 }
 
 void TransactionEngine::PrepareTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   LogStateAndExecuteDistributedPhase(TransactionPhase::Prepare, transaction);
 }
 
 void TransactionEngine::CommitTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   LogStateAndExecuteDistributedPhase(TransactionPhase::Commit, transaction);
 }
 
 void TransactionEngine::CommitNotifyTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   LogStateAndExecuteDistributedPhase(TransactionPhase::CommitNotify,
                                      transaction);
 }
 
 void TransactionEngine::CommittedTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   LogStateAndProceedToNextPhase(TransactionPhase::Committed, transaction);
 }
 
 void TransactionEngine::AbortNotifyTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   LogStateAndExecuteDistributedPhase(TransactionPhase::AbortNotify,
                                      transaction);
 }
 
 void TransactionEngine::AbortedTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   LogStateAndProceedToNextPhase(TransactionPhase::Aborted, transaction);
 }
 
 void TransactionEngine::EndTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   LogStateAndExecuteDistributedPhase(TransactionPhase::End, transaction);
 }
 
 void TransactionEngine::UnknownStateTransaction(
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   ALERT_CONTEXT_WITH_TRANSACTION_SCP_INFO(
       transaction->context, transaction,
       FailureExecutionResult(errors::SC_TRANSACTION_MANAGER_STATE_IS_INVALID),
@@ -1836,7 +1839,7 @@ void TransactionEngine::UnknownStateTransaction(
 
 void TransactionEngine::ExecuteDistributedPhase(
     TransactionPhase current_phase,
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<Transaction>& transaction) noexcept {
   transaction->pending_callbacks =
       transaction->context.request->commands.size();
   uint64_t failed_operations = 0;
@@ -1877,8 +1880,8 @@ void TransactionEngine::ExecuteDistributedPhase(
 
 ExecutionResult TransactionEngine::DispatchDistributedCommand(
     size_t command_index, TransactionPhase current_phase,
-    shared_ptr<TransactionCommand>& command,
-    shared_ptr<Transaction>& transaction) noexcept {
+    std::shared_ptr<TransactionCommand>& command,
+    std::shared_ptr<Transaction>& transaction) noexcept {
   TransactionCommandCallback transaction_callback =
       bind(&TransactionEngine::OnPhaseCallback, this, command_index,
            current_phase, _1, transaction);

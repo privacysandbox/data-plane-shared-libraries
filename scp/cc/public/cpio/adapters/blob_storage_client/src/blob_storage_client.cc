@@ -49,9 +49,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::cpio::client_providers::BlobStorageClientProviderFactory;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 
 namespace {
 constexpr char kBlobStorageClient[] = "BlobStorageClient";
@@ -60,7 +57,7 @@ constexpr char kBlobStorageClient[] = "BlobStorageClient";
 namespace google::scp::cpio {
 
 ExecutionResult BlobStorageClient::Init() noexcept {
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   auto execution_result =
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor);
   if (!execution_result.Successful()) {
@@ -69,7 +66,7 @@ ExecutionResult BlobStorageClient::Init() noexcept {
     return execution_result;
   }
 
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   execution_result =
       GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
@@ -78,7 +75,7 @@ ExecutionResult BlobStorageClient::Init() noexcept {
     return execution_result;
   }
 
-  shared_ptr<InstanceClientProviderInterface> instance_client;
+  std::shared_ptr<InstanceClientProviderInterface> instance_client;
   execution_result =
       GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(instance_client);
   if (!execution_result.Successful()) {
@@ -154,7 +151,7 @@ ExecutionResult BlobStorageClient::PutBlobStream(
 
 std::unique_ptr<BlobStorageClientInterface> BlobStorageClientFactory::Create(
     BlobStorageClientOptions options) {
-  return make_unique<BlobStorageClient>(
-      make_shared<BlobStorageClientOptions>(options));
+  return std::make_unique<BlobStorageClient>(
+      std::make_shared<BlobStorageClientOptions>(options));
 }
 }  // namespace google::scp::cpio

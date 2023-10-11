@@ -37,9 +37,7 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED;
 using std::bind;
-using std::make_shared;
 using std::pair;
-using std::shared_ptr;
 using std::chrono::seconds;
 using std::placeholders::_1;
 
@@ -58,7 +56,7 @@ constexpr int kTokenTtlInSecondHeaderValue = 21600;
 
 namespace google::scp::cpio::client_providers {
 AwsAuthTokenProvider::AwsAuthTokenProvider(
-    const shared_ptr<HttpClientInterface>& http_client)
+    const std::shared_ptr<HttpClientInterface>& http_client)
     : http_client_(http_client) {}
 
 ExecutionResult AwsAuthTokenProvider::Init() noexcept {
@@ -85,14 +83,14 @@ ExecutionResult AwsAuthTokenProvider::GetSessionToken(
     AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
         get_token_context) noexcept {
   AsyncContext<HttpRequest, HttpResponse> http_context;
-  http_context.request = make_shared<HttpRequest>();
+  http_context.request = std::make_shared<HttpRequest>();
   http_context.request->method = HttpMethod::PUT;
-  http_context.request->headers = make_shared<HttpHeaders>();
+  http_context.request->headers = std::make_shared<HttpHeaders>();
   http_context.request->headers->insert(
       {std::string(kTokenTtlInSecondHeader),
        std::to_string(kTokenTtlInSecondHeaderValue)});
 
-  http_context.request->path = make_shared<Uri>(kTokenServerPath);
+  http_context.request->path = std::make_shared<Uri>(kTokenServerPath);
 
   http_context.callback = bind(&AwsAuthTokenProvider::OnGetSessionTokenCallback,
                                this, get_token_context, _1);
@@ -124,9 +122,9 @@ void AwsAuthTokenProvider::OnGetSessionTokenCallback(
     return;
   }
 
-  get_token_context.response = make_shared<GetSessionTokenResponse>();
-  get_token_context.response->session_token =
-      make_shared<std::string>(http_client_context.response->body.ToString());
+  get_token_context.response = std::make_shared<GetSessionTokenResponse>();
+  get_token_context.response->session_token = std::make_shared<std::string>(
+      http_client_context.response->body.ToString());
   get_token_context.response->token_lifetime_in_seconds =
       seconds(kTokenTtlInSecondHeaderValue);
   get_token_context.result = SuccessExecutionResult();
@@ -142,6 +140,6 @@ ExecutionResult AwsAuthTokenProvider::GetSessionTokenForTargetAudience(
 
 std::shared_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
     const std::shared_ptr<core::HttpClientInterface>& http1_client) {
-  return make_shared<AwsAuthTokenProvider>(http1_client);
+  return std::make_shared<AwsAuthTokenProvider>(http1_client);
 }
 }  // namespace google::scp::cpio::client_providers

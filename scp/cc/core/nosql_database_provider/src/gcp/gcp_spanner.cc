@@ -63,11 +63,9 @@ using json = nlohmann::json;
 using google::cloud::spanner::MakeInsertOrUpdateMutation;
 using std::bind;
 using std::make_pair;
-using std::make_shared;
 using std::optional;
 using std::pair;
 using std::ref;
-using std::shared_ptr;
 using std::unordered_map;
 using std::placeholders::_1;
 
@@ -132,7 +130,7 @@ ExecutionResult ValidatePartitionAndSortKey(
 // Add filters of the form:
 // "JSON_VALUE(Value, '$.token_count') = @attribute_0"
 ExecutionResult AppendJsonWhereClauses(
-    shared_ptr<const std::vector<NoSqlDatabaseKeyValuePair>> attributes,
+    std::shared_ptr<const std::vector<NoSqlDatabaseKeyValuePair>> attributes,
     SqlStatement::ParamType& params, std::string& out) {
   if (attributes && attributes->size() > 0) {
     for (size_t attribute_index = 0; attribute_index < attributes->size();
@@ -182,7 +180,7 @@ ExecutionResult GcpSpanner::Init() noexcept {
 void GcpSpanner::CreateSpanner(const std::string& project,
                                const std::string& instance,
                                const std::string& database) noexcept {
-  spanner_client_shared_ = make_shared<Client>(
+  spanner_client_shared_ = std::make_shared<Client>(
       MakeConnection(Database(project, instance, database)));
 }
 
@@ -236,7 +234,8 @@ void GcpSpanner::GetDatabaseItemAsync(
     return;
   }
 
-  get_database_item_context.response = make_shared<GetDatabaseItemResponse>();
+  get_database_item_context.response =
+      std::make_shared<GetDatabaseItemResponse>();
   get_database_item_context.response->table_name =
       get_database_item_context.request->table_name;
   get_database_item_context.response->partition_key =
@@ -244,7 +243,7 @@ void GcpSpanner::GetDatabaseItemAsync(
   get_database_item_context.response->sort_key =
       get_database_item_context.request->sort_key;
   get_database_item_context.response->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   json value_json;
   try {
@@ -259,7 +258,7 @@ void GcpSpanner::GetDatabaseItemAsync(
   // Populate response attributes from all of the elements in the Value
   // column.
   for (auto& [json_attr_name, json_attr_value] : value_json.items()) {
-    auto attr_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>();
+    auto attr_value = std::make_shared<NoSQLDatabaseValidAttributeValueTypes>();
     if (!GcpSpannerUtils::ConvertJsonTypeToNoSQLDatabaseValidAttributeValueType(
              json_attr_value, *attr_value)
              .Successful()) {
@@ -270,7 +269,8 @@ void GcpSpanner::GetDatabaseItemAsync(
     }
     NoSqlDatabaseKeyValuePair& key_value_pair =
         get_database_item_context.response->attributes->emplace_back();
-    key_value_pair.attribute_name = make_shared<std::string>(json_attr_name);
+    key_value_pair.attribute_name =
+        std::make_shared<std::string>(json_attr_name);
     key_value_pair.attribute_value = attr_value;
   }
 

@@ -24,24 +24,23 @@
 
 using Aws::Client::ClientConfiguration;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
-shared_ptr<ClientConfiguration>
+std::shared_ptr<ClientConfiguration>
 TestAwsAutoScalingClientProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   return CreateTestClientConfiguration(
       test_options_->auto_scaling_client_endpoint_override,
-      make_shared<std::string>(region));
+      std::make_shared<std::string>(region));
 }
 
-shared_ptr<AutoScalingClientProviderInterface>
+std::shared_ptr<AutoScalingClientProviderInterface>
 AutoScalingClientProviderFactory::Create(
-    const shared_ptr<AutoScalingClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<TestAwsAutoScalingClientProvider>(
+    const std::shared_ptr<AutoScalingClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
+  return std::make_shared<TestAwsAutoScalingClientProvider>(
       std::dynamic_pointer_cast<TestAwsAutoScalingClientOptions>(options),
       instance_client_provider, io_async_executor);
 }

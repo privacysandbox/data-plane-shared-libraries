@@ -34,8 +34,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::function;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::core::common::test {
 TEST(SizedOrTimedBytesBufferTest, InitFunction) {
@@ -69,11 +67,11 @@ TEST(SizedOrTimedBytesBufferTest, InitFunction) {
           return result;
         };
 
-    shared_ptr<AsyncExecutorInterface> async_executor =
-        make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
+    std::shared_ptr<AsyncExecutorInterface> async_executor =
+        std::make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
 
     auto sized_or_timed_bytes_buffer =
-        make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
+        std::make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
             async_executor, get_data_size_function, serialize_function,
             flush_function, 1000, 1234);
 
@@ -114,12 +112,12 @@ TEST(SizedOrTimedBytesBufferTest, AppendDataWithMaxSize) {
         return SuccessExecutionResult();
       };
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
 
   // When there is no more capacity available
   auto sized_or_timed_bytes_buffer =
-      make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
+      std::make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
           async_executor, get_data_size_function, serialize_function,
           flush_function, 0, 1234);
 
@@ -169,14 +167,14 @@ TEST(SizedOrTimedBytesBufferTest, AppendDataWithMaxSizeNoCapacityAvailable) {
         return SuccessExecutionResult();
       };
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   schedule_for_condition = false;
   schedule_condition = true;
 
   // When there is capacity available
   auto sized_or_timed_bytes_buffer =
-      make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
+      std::make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
           async_executor, get_data_size_function, serialize_function,
           flush_function, 1000, 1234);
 
@@ -228,11 +226,11 @@ TEST(SizedOrTimedBytesBufferTest, FlushData) {
         return SuccessExecutionResult();
       };
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   // When flush then append happens
   auto sized_or_timed_bytes_buffer =
-      make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
+      std::make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
           async_executor, get_data_size_function, serialize_function,
           flush_function, 0, 1234);
 
@@ -288,8 +286,8 @@ TEST(SizedOrTimedBytesBufferTest, AppendBeforeFlushData) {
         return SuccessExecutionResult();
       };
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   // flush callback should be not called if any of the serialization functions
   // fail.
   auto failed_serialize_function = [](AsyncContext<Request, Response>&,
@@ -298,7 +296,7 @@ TEST(SizedOrTimedBytesBufferTest, AppendBeforeFlushData) {
   };
 
   auto sized_or_timed_bytes_buffer =
-      make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
+      std::make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
           async_executor, get_data_size_function, failed_serialize_function,
           flush_function, 1000, 1234);
 
@@ -355,8 +353,8 @@ TEST(SizedOrTimedBytesBufferTest, FlushFailure) {
         return SuccessExecutionResult();
       };
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   // flush fails, all the waiters should know.
   auto failed_flush_function =
       [](BytesBuffer&,
@@ -365,7 +363,7 @@ TEST(SizedOrTimedBytesBufferTest, FlushFailure) {
       };
 
   auto sized_or_timed_bytes_buffer =
-      make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
+      std::make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
           async_executor, get_data_size_function, serialize_function,
           failed_flush_function, 1000, 1234);
 
@@ -423,8 +421,8 @@ TEST(SizedOrTimedBytesBufferTest, ProperFlushData) {
         return SuccessExecutionResult();
       };
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>(std::move(mock_async_executor));
   // flush callback, all the waiters should know.
   auto failed_flush_function =
       [](BytesBuffer&,
@@ -435,7 +433,7 @@ TEST(SizedOrTimedBytesBufferTest, ProperFlushData) {
       };
 
   auto sized_or_timed_bytes_buffer =
-      make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
+      std::make_shared<SizedOrTimedBytesBuffer<Request, Response>>(
           async_executor, get_data_size_function, serialize_function,
           failed_flush_function, 1000, 1234);
 

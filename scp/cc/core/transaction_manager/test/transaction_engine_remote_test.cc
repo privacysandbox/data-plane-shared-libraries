@@ -64,8 +64,6 @@ using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
 using std::atomic;
 using std::function;
 using std::make_pair;
-using std::make_shared;
-using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
 using std::chrono::milliseconds;
@@ -76,22 +74,22 @@ namespace google::scp::core::test {
 TEST(TransactionEngineRemoteTest, VerifyExecuteRemoteOperation) {
   atomic<bool> condition = false;
 
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
 
-  shared_ptr<Transaction> current_transaction;
+  std::shared_ptr<Transaction> current_transaction;
   TransactionPhase current_phase;
   mock_transaction_engine.log_transaction_and_proceed_to_next_phase_mock =
-      [&](TransactionPhase phase, shared_ptr<Transaction>& transaction) {
+      [&](TransactionPhase phase, std::shared_ptr<Transaction>& transaction) {
         current_phase = phase;
         current_transaction = transaction;
         condition = true;
@@ -99,13 +97,13 @@ TEST(TransactionEngineRemoteTest, VerifyExecuteRemoteOperation) {
       };
 
   AsyncContext<TransactionRequest, TransactionResponse> transaction_context;
-  transaction_context.request = make_shared<TransactionRequest>();
+  transaction_context.request = std::make_shared<TransactionRequest>();
   transaction_context.request->transaction_id = Uuid::GenerateUuid();
   transaction_context.request->is_coordinated_remotely = true;
   transaction_context.request->transaction_secret =
-      make_shared<std::string>("transaction_secret");
+      std::make_shared<std::string>("transaction_secret");
   transaction_context.request->transaction_origin =
-      make_shared<std::string>("transaction_origin");
+      std::make_shared<std::string>("transaction_origin");
 
   mock_transaction_engine.Execute(transaction_context);
   WaitUntil([&condition]() { return condition.load(); });
@@ -121,7 +119,7 @@ TEST(TransactionEngineRemoteTest, VerifyExecuteRemoteOperation) {
   EXPECT_EQ(current_transaction->pending_callbacks, 0);
   EXPECT_EQ(current_transaction->is_coordinated_remotely, true);
 
-  shared_ptr<Transaction> stored_transaction;
+  std::shared_ptr<Transaction> stored_transaction;
   EXPECT_EQ(mock_transaction_engine.GetActiveTransactionsMap().Find(
                 current_transaction->id, stored_transaction),
             SuccessExecutionResult());
@@ -130,21 +128,22 @@ TEST(TransactionEngineRemoteTest, VerifyExecuteRemoteOperation) {
 }
 
 TEST(TransactionEngineRemoteTest, ExecutePhaseNonmatchingTransactionFound) {
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
 
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       transaction_phase_context;
-  transaction_phase_context.request = make_shared<TransactionPhaseRequest>();
+  transaction_phase_context.request =
+      std::make_shared<TransactionPhaseRequest>();
   transaction_phase_context.request->transaction_id = Uuid::GenerateUuid();
 
   EXPECT_THAT(mock_transaction_engine.ExecutePhase(transaction_phase_context),
@@ -153,32 +152,33 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseNonmatchingTransactionFound) {
 }
 
 TEST(TransactionEngineRemoteTest, ExecutePhaseRemoteAndWaitingCombinations) {
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
+          std::make_shared<MockTransactionCommandSerializer>();
 
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
 
   auto transaction_id = Uuid::GenerateUuid();
-  auto transaction = make_shared<Transaction>();
+  auto transaction = std::make_shared<Transaction>();
   transaction->is_coordinated_remotely = false;
   transaction->is_waiting_for_remote = true;
-  transaction->transaction_secret = make_shared<std::string>("123");
-  transaction->transaction_origin = make_shared<std::string>("123");
+  transaction->transaction_secret = std::make_shared<std::string>("123");
+  transaction->transaction_origin = std::make_shared<std::string>("123");
 
   auto pair = make_pair(transaction_id, transaction);
   mock_transaction_engine.GetActiveTransactionsMap().Insert(pair, transaction);
 
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       transaction_phase_context;
-  transaction_phase_context.request = make_shared<TransactionPhaseRequest>();
+  transaction_phase_context.request =
+      std::make_shared<TransactionPhaseRequest>();
   transaction_phase_context.request->transaction_id = transaction_id;
   transaction_phase_context.request->transaction_execution_phase =
       TransactionExecutionPhase::Begin;
@@ -214,15 +214,15 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseRemoteAndWaitingCombinations) {
 void ExecuteNonPossiblePhases(
     std::vector<TransactionPhase> all_non_possible_phases,
     TransactionExecutionPhase requested_phase) {
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
+          std::make_shared<MockTransactionCommandSerializer>();
 
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
 
   for (auto non_possible_phase : all_non_possible_phases) {
     MockTransactionEngine mock_transaction_engine(
@@ -230,12 +230,12 @@ void ExecuteNonPossiblePhases(
         mock_journal_service, remote_transaction_manager);
 
     auto transaction_id = Uuid::GenerateUuid();
-    auto transaction = make_shared<Transaction>();
+    auto transaction = std::make_shared<Transaction>();
     transaction->current_phase = non_possible_phase;
     transaction->is_coordinated_remotely = true;
     transaction->is_waiting_for_remote = true;
-    transaction->transaction_secret = make_shared<std::string>("123");
-    transaction->transaction_origin = make_shared<std::string>("1234");
+    transaction->transaction_secret = std::make_shared<std::string>("123");
+    transaction->transaction_origin = std::make_shared<std::string>("1234");
     transaction->id = transaction_id;
 
     auto pair = make_pair(transaction_id, transaction);
@@ -244,7 +244,8 @@ void ExecuteNonPossiblePhases(
 
     AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
         transaction_phase_context;
-    transaction_phase_context.request = make_shared<TransactionPhaseRequest>();
+    transaction_phase_context.request =
+        std::make_shared<TransactionPhaseRequest>();
     transaction_phase_context.request->transaction_id = transaction_id;
     transaction_phase_context.request->transaction_execution_phase =
         requested_phase;
@@ -337,15 +338,15 @@ void ExecutePhaseProperCallbacksCalled(
     TransactionPhase transaction_phase,
     TransactionExecutionPhase requested_phase,
     function<void(MockTransactionEngine&)> mock_function) {
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
+          std::make_shared<MockTransactionCommandSerializer>();
 
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
 
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
@@ -354,21 +355,22 @@ void ExecutePhaseProperCallbacksCalled(
   mock_function(mock_transaction_engine);
 
   auto transaction_id = Uuid::GenerateUuid();
-  auto transaction = make_shared<Transaction>();
+  auto transaction = std::make_shared<Transaction>();
   transaction->current_phase = transaction_phase;
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = true;
   transaction->last_execution_timestamp = 123456789;
   transaction->id = transaction_id;
-  transaction->transaction_secret = make_shared<std::string>("secret");
-  transaction->transaction_origin = make_shared<std::string>("origin");
+  transaction->transaction_secret = std::make_shared<std::string>("secret");
+  transaction->transaction_origin = std::make_shared<std::string>("origin");
 
   auto pair = make_pair(transaction_id, transaction);
   mock_transaction_engine.GetActiveTransactionsMap().Insert(pair, transaction);
 
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       transaction_phase_context;
-  transaction_phase_context.request = make_shared<TransactionPhaseRequest>();
+  transaction_phase_context.request =
+      std::make_shared<TransactionPhaseRequest>();
   transaction_phase_context.request->transaction_id = transaction_id;
   transaction_phase_context.request->transaction_execution_phase =
       requested_phase;
@@ -388,7 +390,9 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledBegin) {
   function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.begin_transaction_mock =
-            [&](shared_ptr<Transaction>& transaction) { condition = true; };
+            [&](std::shared_ptr<Transaction>& transaction) {
+              condition = true;
+            };
       };
 
   ExecutePhaseProperCallbacksCalled(TransactionPhase::Begin,
@@ -402,7 +406,9 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledPrepare) {
   function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.prepare_transaction_mock =
-            [&](shared_ptr<Transaction>& transaction) { condition = true; };
+            [&](std::shared_ptr<Transaction>& transaction) {
+              condition = true;
+            };
       };
 
   ExecutePhaseProperCallbacksCalled(TransactionPhase::Prepare,
@@ -416,7 +422,9 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledCommit) {
   function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.commit_transaction_mock =
-            [&](shared_ptr<Transaction>& transaction) { condition = true; };
+            [&](std::shared_ptr<Transaction>& transaction) {
+              condition = true;
+            };
       };
 
   ExecutePhaseProperCallbacksCalled(TransactionPhase::Commit,
@@ -431,7 +439,9 @@ TEST(TransactionEngineRemoteTest,
   function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.commit_notify_transaction_mock =
-            [&](shared_ptr<Transaction>& transaction) { condition = true; };
+            [&](std::shared_ptr<Transaction>& transaction) {
+              condition = true;
+            };
       };
 
   ExecutePhaseProperCallbacksCalled(TransactionPhase::CommitNotify,
@@ -446,7 +456,7 @@ TEST(TransactionEngineRemoteTest,
   function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.abort_notify_transaction_mock =
-            [&](shared_ptr<Transaction>& transaction) {
+            [&](std::shared_ptr<Transaction>& transaction) {
               EXPECT_EQ(transaction->current_phase,
                         TransactionPhase::AbortNotify);
               condition = true;
@@ -464,7 +474,7 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledEnd) {
   function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.end_transaction_mock =
-            [&](shared_ptr<Transaction>& transaction) {
+            [&](std::shared_ptr<Transaction>& transaction) {
               EXPECT_EQ(transaction->current_phase, TransactionPhase::End);
               condition = true;
             };
@@ -490,28 +500,28 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledEnd) {
 
 TEST(TransactionEngineRemoteTest, ProceedToNextPhaseRemotely) {
   atomic<bool> condition = false;
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
 
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
 
   auto transaction_id = Uuid::GenerateUuid();
-  auto transaction = make_shared<Transaction>();
+  auto transaction = std::make_shared<Transaction>();
   transaction->current_phase = TransactionPhase::Begin;
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
 
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       transaction_phase_context(
-          make_shared<TransactionPhaseRequest>(),
+          std::make_shared<TransactionPhaseRequest>(),
           [&](AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&
                   transaction_phase_context) {
             EXPECT_SUCCESS(transaction_phase_context.result);
@@ -532,21 +542,21 @@ TEST(TransactionEngineRemoteTest, ProceedToNextPhaseRemotely) {
 
 TEST(TransactionEngineRemoteTest, ProceedToNextPhaseRemotelyFailed) {
   atomic<bool> condition = false;
-  shared_ptr<JournalServiceInterface> mock_journal_service =
-      make_shared<MockJournalService>();
-  shared_ptr<AsyncExecutorInterface> async_executor =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager;
 
   MockTransactionEngine mock_transaction_engine(
       async_executor, mock_transaction_command_serializer, mock_journal_service,
       remote_transaction_manager);
 
   auto transaction_id = Uuid::GenerateUuid();
-  auto transaction = make_shared<Transaction>();
+  auto transaction = std::make_shared<Transaction>();
   transaction->current_phase = TransactionPhase::Begin;
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
@@ -555,7 +565,7 @@ TEST(TransactionEngineRemoteTest, ProceedToNextPhaseRemotelyFailed) {
 
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       transaction_phase_context(
-          make_shared<TransactionPhaseRequest>(),
+          std::make_shared<TransactionPhaseRequest>(),
           [&](AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&
                   transaction_phase_context) {
             EXPECT_THAT(transaction_phase_context.result,

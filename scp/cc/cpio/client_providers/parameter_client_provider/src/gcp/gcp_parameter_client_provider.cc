@@ -53,8 +53,6 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::common::GcpUtils;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 static constexpr char kGcpParameterClientProvider[] =
@@ -93,9 +91,9 @@ ExecutionResult GcpParameterClientProvider::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-shared_ptr<SecretManagerServiceClient>
+std::shared_ptr<SecretManagerServiceClient>
 GcpParameterClientProvider::GetSecretManagerClient() noexcept {
-  return make_shared<SecretManagerServiceClient>(
+  return std::make_shared<SecretManagerServiceClient>(
       MakeSecretManagerServiceConnection());
 }
 
@@ -157,7 +155,7 @@ void GcpParameterClientProvider::AsyncGetParameterCallback(
   }
 
   auto version = std::move(secret_result).value();
-  get_parameter_context.response = make_shared<GetParameterResponse>();
+  get_parameter_context.response = std::make_shared<GetParameterResponse>();
   get_parameter_context.response->set_parameter_value(version.payload().data());
   get_parameter_context.result = SuccessExecutionResult();
 
@@ -166,13 +164,14 @@ void GcpParameterClientProvider::AsyncGetParameterCallback(
 }
 
 #ifndef TEST_CPIO
-shared_ptr<ParameterClientProviderInterface>
+std::shared_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
-    const shared_ptr<ParameterClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<GcpParameterClientProvider>(
+    const std::shared_ptr<ParameterClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
+  return std::make_shared<GcpParameterClientProvider>(
       cpu_async_executor, io_async_executor, instance_client_provider, options);
 }
 #endif

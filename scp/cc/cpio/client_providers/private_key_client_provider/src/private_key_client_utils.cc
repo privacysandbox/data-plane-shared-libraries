@@ -62,7 +62,6 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using std::byte;
-using std::shared_ptr;
 
 namespace {
 constexpr char kPrivateKeyClientUtils[] = "PrivateKeyClientUtils";
@@ -74,7 +73,7 @@ constexpr int kKeyArnPrefixSize = 10;
 namespace google::scp::cpio::client_providers {
 ExecutionResult PrivateKeyClientUtils::GetKmsDecryptRequest(
     const size_t endpoint_count,
-    const shared_ptr<EncryptionKey>& encryption_key,
+    const std::shared_ptr<EncryptionKey>& encryption_key,
     DecryptRequest& kms_decrypt_request) noexcept {
   if (encryption_key->encryption_key_type ==
       EncryptionKeyType::kSinglePartyHybridKey) {
@@ -141,7 +140,7 @@ ExecutionResult PrivateKeyClientUtils::GetKmsDecryptRequest(
 }
 
 ExecutionResult PrivateKeyClientUtils::GetPrivateKeyInfo(
-    const shared_ptr<EncryptionKey>& encryption_key,
+    const std::shared_ptr<EncryptionKey>& encryption_key,
     PrivateKey& private_key) noexcept {
   private_key.set_key_id(*encryption_key->key_id);
   private_key.set_public_key(*encryption_key->public_key_material);

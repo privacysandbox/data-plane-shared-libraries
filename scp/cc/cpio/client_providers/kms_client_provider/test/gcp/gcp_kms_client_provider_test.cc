@@ -53,10 +53,6 @@ using google::scp::cpio::client_providers::mock::
     MockGcpKeyManagementServiceClient;
 using std::atomic;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::Return;
@@ -70,7 +66,7 @@ static constexpr char kPlaintext[] = "plaintext";
 namespace google::scp::cpio::client_providers::test {
 class MockGcpKmsAeadProvider : public GcpKmsAeadProvider {
  public:
-  MOCK_METHOD(ExecutionResultOr<shared_ptr<Aead>>, CreateAead,
+  MOCK_METHOD(ExecutionResultOr<std::shared_ptr<Aead>>, CreateAead,
               (const std::string&, const std::string&, const std::string&),
               (noexcept, override));
 };
@@ -78,8 +74,8 @@ class MockGcpKmsAeadProvider : public GcpKmsAeadProvider {
 class GcpKmsClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    mock_aead_provider_ = make_shared<MockGcpKmsAeadProvider>();
-    client_ = make_unique<GcpKmsClientProvider>(mock_aead_provider_);
+    mock_aead_provider_ = std::make_shared<MockGcpKmsAeadProvider>();
+    client_ = std::make_unique<GcpKmsClientProvider>(mock_aead_provider_);
     EXPECT_SUCCESS(client_->Init());
     EXPECT_SUCCESS(client_->Run());
 
@@ -95,15 +91,15 @@ class GcpKmsClientProviderTest : public ::testing::Test {
 
   void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
 
-  unique_ptr<GcpKmsClientProvider> client_;
-  shared_ptr<MockGcpKmsAeadProvider> mock_aead_provider_;
-  shared_ptr<MockGcpKeyManagementServiceClient>
+  std::unique_ptr<GcpKmsClientProvider> client_;
+  std::shared_ptr<MockGcpKmsAeadProvider> mock_aead_provider_;
+  std::shared_ptr<MockGcpKeyManagementServiceClient>
       mock_gcp_key_management_service_client_;
-  shared_ptr<Aead> aead_;
+  std::shared_ptr<Aead> aead_;
 };
 
 TEST_F(GcpKmsClientProviderTest, NullKeyArn) {
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_ciphertext(kCiphertext);
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
@@ -116,7 +112,7 @@ TEST_F(GcpKmsClientProviderTest, NullKeyArn) {
 }
 
 TEST_F(GcpKmsClientProviderTest, EmptyKeyArn) {
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_key_resource_name("");
   kms_decrpyt_request->set_ciphertext(kCiphertext);
 
@@ -130,7 +126,7 @@ TEST_F(GcpKmsClientProviderTest, EmptyKeyArn) {
 }
 
 TEST_F(GcpKmsClientProviderTest, NullCiphertext) {
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_key_resource_name(kKeyArn);
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
@@ -143,7 +139,7 @@ TEST_F(GcpKmsClientProviderTest, NullCiphertext) {
 }
 
 TEST_F(GcpKmsClientProviderTest, EmptyCiphertext) {
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_key_resource_name(kKeyArn);
   kms_decrpyt_request->set_ciphertext("");
 
@@ -168,9 +164,9 @@ MATCHER_P(RequestMatches, req, "") {
 TEST_F(GcpKmsClientProviderTest, FailedToDecode) {
   EXPECT_CALL(*mock_aead_provider_,
               CreateAead(kWipProvider, kServiceAccount, kKeyArn))
-      .WillOnce(Return(ExecutionResultOr<shared_ptr<Aead>>(aead_)));
+      .WillOnce(Return(ExecutionResultOr<std::shared_ptr<Aead>>(aead_)));
 
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_key_resource_name(kKeyArn);
   kms_decrpyt_request->set_ciphertext("abc");
   kms_decrpyt_request->set_account_identity(kServiceAccount);
@@ -196,12 +192,12 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecode) {
 TEST_F(GcpKmsClientProviderTest, SuccessToDecrypt) {
   EXPECT_CALL(*mock_aead_provider_,
               CreateAead(kWipProvider, kServiceAccount, kKeyArn))
-      .WillOnce(Return(ExecutionResultOr<shared_ptr<Aead>>(aead_)));
+      .WillOnce(Return(ExecutionResultOr<std::shared_ptr<Aead>>(aead_)));
 
   std::string encoded_ciphertext;
   ASSERT_THAT(Base64Encode(kCiphertext, encoded_ciphertext), IsSuccessful());
 
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_key_resource_name(kKeyArn);
   kms_decrpyt_request->set_ciphertext(encoded_ciphertext);
   kms_decrpyt_request->set_account_identity(kServiceAccount);
@@ -233,11 +229,11 @@ TEST_F(GcpKmsClientProviderTest, SuccessToDecrypt) {
 TEST_F(GcpKmsClientProviderTest, FailedToDecrypt) {
   EXPECT_CALL(*mock_aead_provider_,
               CreateAead(kWipProvider, kServiceAccount, kKeyArn))
-      .WillOnce(Return(ExecutionResultOr<shared_ptr<Aead>>(aead_)));
+      .WillOnce(Return(ExecutionResultOr<std::shared_ptr<Aead>>(aead_)));
 
   std::string encoded_ciphertext;
   Base64Encode(kCiphertext, encoded_ciphertext);
-  auto kms_decrpyt_request = make_shared<DecryptRequest>();
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_key_resource_name(kKeyArn);
   kms_decrpyt_request->set_ciphertext(encoded_ciphertext);
   kms_decrpyt_request->set_account_identity(kServiceAccount);

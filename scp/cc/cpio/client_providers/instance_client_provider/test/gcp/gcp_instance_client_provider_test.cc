@@ -60,10 +60,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::GcpInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::seconds;
 using testing::_;
 using testing::Eq;
@@ -108,10 +104,10 @@ namespace google::scp::cpio::client_providers::test {
 class GcpInstanceClientProviderTest : public testing::Test {
  protected:
   GcpInstanceClientProviderTest()
-      : http1_client_(make_shared<MockCurlClient>()),
-        http2_client_(make_shared<MockCurlClient>()),
-        authorizer_provider_(make_shared<MockAuthTokenProvider>()),
-        instance_provider_(make_unique<GcpInstanceClientProvider>(
+      : http1_client_(std::make_shared<MockCurlClient>()),
+        http2_client_(std::make_shared<MockCurlClient>()),
+        authorizer_provider_(std::make_shared<MockAuthTokenProvider>()),
+        instance_provider_(std::make_unique<GcpInstanceClientProvider>(
             authorizer_provider_, http1_client_, http2_client_)) {
     EXPECT_SUCCESS(instance_provider_->Init());
     EXPECT_SUCCESS(instance_provider_->Run());
@@ -119,12 +115,12 @@ class GcpInstanceClientProviderTest : public testing::Test {
     get_details_path_mock_ =
         absl::StrCat(kGcpInstanceGetUrlPrefix, kResourceId);
     get_details_request_ =
-        make_shared<GetInstanceDetailsByResourceNameRequest>();
+        std::make_shared<GetInstanceDetailsByResourceNameRequest>();
     get_details_request_->set_instance_resource_name(kInstanceResourceName);
 
     get_tag_path_mock_ = absl::StrFormat(kResourceManagerUriFormat,
                                          absl::StrCat(kZoneMock, "-"));
-    get_tags_request_ = make_shared<GetTagsByResourceNameRequest>();
+    get_tags_request_ = std::make_shared<GetTagsByResourceNameRequest>();
     get_tags_request_->set_resource_name(kInstanceResourceName);
   }
 
@@ -132,15 +128,15 @@ class GcpInstanceClientProviderTest : public testing::Test {
     EXPECT_SUCCESS(instance_provider_->Stop());
   }
 
-  shared_ptr<MockCurlClient> http1_client_;
-  shared_ptr<MockCurlClient> http2_client_;
-  shared_ptr<MockAuthTokenProvider> authorizer_provider_;
-  unique_ptr<GcpInstanceClientProvider> instance_provider_;
+  std::shared_ptr<MockCurlClient> http1_client_;
+  std::shared_ptr<MockCurlClient> http2_client_;
+  std::shared_ptr<MockAuthTokenProvider> authorizer_provider_;
+  std::unique_ptr<GcpInstanceClientProvider> instance_provider_;
 
   std::string get_details_path_mock_;
-  shared_ptr<GetInstanceDetailsByResourceNameRequest> get_details_request_;
+  std::shared_ptr<GetInstanceDetailsByResourceNameRequest> get_details_request_;
   std::string get_tag_path_mock_;
-  shared_ptr<GetTagsByResourceNameRequest> get_tags_request_;
+  std::shared_ptr<GetTagsByResourceNameRequest> get_tags_request_;
 };
 
 TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
@@ -159,7 +155,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
             Pointee(UnorderedElementsAre(
                 Pair(kMetadataFlavorHeaderKey, kMetadataFlavorHeaderValue))));
 
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         if (*request.path == kURIForProjectId) {
           context.response->body = BytesBuffer(project_id_result);
         }
@@ -225,7 +221,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
             Pointee(UnorderedElementsAre(
                 Pair(kMetadataFlavorHeaderKey, kMetadataFlavorHeaderValue))));
 
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         if (*request.path == kURIForProjectId) {
           context.response->body = BytesBuffer(project_id_result);
         }
@@ -245,7 +241,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
-          make_shared<GetCurrentInstanceResourceNameRequest>(),
+          std::make_shared<GetCurrentInstanceResourceNameRequest>(),
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
@@ -274,7 +270,7 @@ TEST_F(GcpInstanceClientProviderTest,
             Pointee(UnorderedElementsAre(
                 Pair(kMetadataFlavorHeaderKey, kMetadataFlavorHeaderValue))));
 
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         if (*request.path == kURIForProjectId) {
           context.result = FailureExecutionResult(SC_UNKNOWN);
         }
@@ -293,7 +289,7 @@ TEST_F(GcpInstanceClientProviderTest,
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
-          make_shared<GetCurrentInstanceResourceNameRequest>(),
+          std::make_shared<GetCurrentInstanceResourceNameRequest>(),
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
@@ -323,7 +319,7 @@ TEST_F(GcpInstanceClientProviderTest, FailedToGetCurrentInstanceResourceName) {
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
-          make_shared<GetCurrentInstanceResourceNameRequest>(),
+          std::make_shared<GetCurrentInstanceResourceNameRequest>(),
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
@@ -340,9 +336,9 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSyncSuccess) {
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -418,7 +414,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSyncSuccess) {
                     Pointee(UnorderedElementsAre(Pair(
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(details_response_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -445,9 +441,9 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsAccessConfigLoop) {
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -507,7 +503,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsAccessConfigLoop) {
                     Pointee(UnorderedElementsAre(Pair(
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(details_response_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -529,9 +525,9 @@ TEST_F(GcpInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -561,9 +557,9 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -617,7 +613,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
                     Pointee(UnorderedElementsAre(Pair(
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(details_response_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -651,9 +647,9 @@ TEST_F(GcpInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -706,7 +702,7 @@ TEST_F(GcpInstanceClientProviderTest,
                     Pointee(UnorderedElementsAre(Pair(
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(details_response_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -745,7 +741,7 @@ TEST_F(GcpInstanceClientProviderTest,
   EXPECT_CALL(*http2_client_, PerformRequest).Times(0);
 
   auto get_details_request_bad =
-      make_shared<GetInstanceDetailsByResourceNameRequest>();
+      std::make_shared<GetInstanceDetailsByResourceNameRequest>();
   // Resource ID is not a valid instance resource name without a valid prefix.
   get_details_request_bad->set_instance_resource_name(kResourceId);
 
@@ -796,9 +792,9 @@ TEST_F(GcpInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -836,9 +832,9 @@ TEST_F(GcpInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -871,7 +867,7 @@ TEST_F(GcpInstanceClientProviderTest,
                     Pointee(UnorderedElementsAre(Pair(
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(details_response_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -900,9 +896,9 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -945,7 +941,7 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
                     Pointee(UnorderedElementsAre(Pair(
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(tags_response_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -1002,9 +998,9 @@ TEST_F(GcpInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -1040,9 +1036,9 @@ TEST_F(GcpInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -1080,7 +1076,7 @@ TEST_F(GcpInstanceClientProviderTest,
                     Pointee(UnorderedElementsAre(Pair(
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(tags_response_mock);
         context.result = SuccessExecutionResult();
         context.Finish();
@@ -1110,9 +1106,9 @@ TEST_F(GcpInstanceClientProviderTest,
   EXPECT_CALL(*authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
-        context.response = make_shared<GetSessionTokenResponse>();
+        context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
-            make_shared<std::string>(kSessionTokenMock);
+            std::make_shared<std::string>(kSessionTokenMock);
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -1130,7 +1126,7 @@ TEST_F(GcpInstanceClientProviderTest,
                     Pointee(UnorderedElementsAre(Pair(
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
-        context.response = make_shared<HttpResponse>();
+        context.response = std::make_shared<HttpResponse>();
         context.response->body = BytesBuffer(tags_response_mock);
         context.result = SuccessExecutionResult();
         context.Finish();

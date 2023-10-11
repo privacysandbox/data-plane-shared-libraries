@@ -71,8 +71,6 @@ using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
 using std::atomic;
 using std::function;
 using std::make_pair;
-using std::make_shared;
-using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
 using std::weak_ptr;
@@ -82,52 +80,52 @@ using std::this_thread::sleep_for;
 namespace google::scp::core::test {
 
 void CreateLocalRemoteTransactionManagers(
-    shared_ptr<MockTransactionEngine>& mock_transaction_engine_1,
-    shared_ptr<MockTransactionEngine>& mock_transaction_engine_2,
+    std::shared_ptr<MockTransactionEngine>& mock_transaction_engine_1,
+    std::shared_ptr<MockTransactionEngine>& mock_transaction_engine_2,
     function<void()>& init_function, function<void()>& run_function,
     function<void()>& stop_function) {
-  shared_ptr<JournalServiceInterface> mock_journal_service_1 =
-      make_shared<MockJournalService>();
-  shared_ptr<AsyncExecutorInterface> async_executor_1 =
-      make_shared<AsyncExecutor>(2, 1000);
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service_1 =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor_1 =
+      std::make_shared<AsyncExecutor>(2, 1000);
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer_1 =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<TransactionPhaseManagerInterface> transaction_phase_manager_1 =
-      make_shared<TransactionPhaseManager>();
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<TransactionPhaseManagerInterface>
+      transaction_phase_manager_1 = std::make_shared<TransactionPhaseManager>();
   auto mock_remote_transaction_manager_1 =
-      make_shared<MockRemoteTransactionManager>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager_1 =
-      mock_remote_transaction_manager_1;
+      std::make_shared<MockRemoteTransactionManager>();
+  std::shared_ptr<RemoteTransactionManagerInterface>
+      remote_transaction_manager_1 = mock_remote_transaction_manager_1;
 
-  shared_ptr<JournalServiceInterface> mock_journal_service_2 =
-      make_shared<MockJournalService>();
-  shared_ptr<AsyncExecutorInterface> async_executor_2 =
-      make_shared<AsyncExecutor>(2, 1000);
-  shared_ptr<TransactionCommandSerializerInterface>
+  std::shared_ptr<JournalServiceInterface> mock_journal_service_2 =
+      std::make_shared<MockJournalService>();
+  std::shared_ptr<AsyncExecutorInterface> async_executor_2 =
+      std::make_shared<AsyncExecutor>(2, 1000);
+  std::shared_ptr<TransactionCommandSerializerInterface>
       mock_transaction_command_serializer_2 =
-          make_shared<MockTransactionCommandSerializer>();
-  shared_ptr<TransactionPhaseManagerInterface> transaction_phase_manager_2 =
-      make_shared<TransactionPhaseManager>();
+          std::make_shared<MockTransactionCommandSerializer>();
+  std::shared_ptr<TransactionPhaseManagerInterface>
+      transaction_phase_manager_2 = std::make_shared<TransactionPhaseManager>();
   auto mock_remote_transaction_manager_2 =
-      make_shared<MockRemoteTransactionManager>();
-  shared_ptr<RemoteTransactionManagerInterface> remote_transaction_manager_2 =
-      mock_remote_transaction_manager_2;
+      std::make_shared<MockRemoteTransactionManager>();
+  std::shared_ptr<RemoteTransactionManagerInterface>
+      remote_transaction_manager_2 = mock_remote_transaction_manager_2;
 
-  mock_transaction_engine_1 = make_shared<MockTransactionEngine>(
+  mock_transaction_engine_1 = std::make_shared<MockTransactionEngine>(
       async_executor_1, mock_transaction_command_serializer_1,
       mock_journal_service_1, transaction_phase_manager_1,
       remote_transaction_manager_2,
       0 /* transaction_engine_cache_lifetime_seconds */);
-  shared_ptr<TransactionEngineInterface> transaction_engine_1 =
+  std::shared_ptr<TransactionEngineInterface> transaction_engine_1 =
       mock_transaction_engine_1;
 
-  mock_transaction_engine_2 = make_shared<MockTransactionEngine>(
+  mock_transaction_engine_2 = std::make_shared<MockTransactionEngine>(
       async_executor_2, mock_transaction_command_serializer_2,
       mock_journal_service_2, transaction_phase_manager_2,
       remote_transaction_manager_1,
       0 /* transaction_engine_cache_lifetime_seconds */);
-  shared_ptr<TransactionEngineInterface> transaction_engine_2 =
+  std::shared_ptr<TransactionEngineInterface> transaction_engine_2 =
       mock_transaction_engine_2;
 
   mock_remote_transaction_manager_1->transaction_engine =
@@ -163,8 +161,8 @@ void CreateLocalRemoteTransactionManagers(
 void CreateTransaction(
     Uuid& transaction_id, Timestamp expiration_time,
     AsyncContext<TransactionRequest, TransactionResponse>& transaction_context,
-    shared_ptr<Transaction>& transaction) {
-  transaction = make_shared<Transaction>();
+    std::shared_ptr<Transaction>& transaction) {
+  transaction = std::make_shared<Transaction>();
   transaction->id = transaction_id;
   transaction->context = transaction_context;
   transaction->current_phase = TransactionPhase::NotStarted;
@@ -184,8 +182,8 @@ void CreateTransaction(
 
 TEST(TransactionEngineLocalAndRemoteTest,
      PendingCallbackShouldNotDeleteExpiredTransaction) {
-  shared_ptr<MockTransactionEngine> mock_transaction_engine_1;
-  shared_ptr<MockTransactionEngine> mock_transaction_engine_2;
+  std::shared_ptr<MockTransactionEngine> mock_transaction_engine_1;
+  std::shared_ptr<MockTransactionEngine> mock_transaction_engine_2;
   function<void()> init_function;
   function<void()> run_function;
   function<void()> stop_function;
@@ -198,18 +196,18 @@ TEST(TransactionEngineLocalAndRemoteTest,
 
   // Both transactions are remotely coordinated transactions
   AsyncContext<TransactionRequest, TransactionResponse> transaction_context;
-  transaction_context.request = make_shared<TransactionRequest>();
+  transaction_context.request = std::make_shared<TransactionRequest>();
   transaction_context.request->is_coordinated_remotely = true;
   transaction_context.request->transaction_secret =
-      make_shared<std::string>("this_is_a_transaction_secret");
+      std::make_shared<std::string>("this_is_a_transaction_secret");
   transaction_context.request->transaction_origin =
-      make_shared<std::string>("origin.com");
+      std::make_shared<std::string>("origin.com");
 
   auto transaction_id = Uuid::GenerateUuid();
-  shared_ptr<Transaction> transaction_local;
+  std::shared_ptr<Transaction> transaction_local;
   CreateTransaction(transaction_id, UINT64_MAX, transaction_context,
                     transaction_local);
-  shared_ptr<Transaction> transaction_remote;
+  std::shared_ptr<Transaction> transaction_remote;
   CreateTransaction(transaction_id, UINT64_MAX, transaction_context,
                     transaction_remote);
 
@@ -225,7 +223,7 @@ TEST(TransactionEngineLocalAndRemoteTest,
 
   atomic<bool> transaction_1_called(false);
   mock_transaction_engine_1->on_before_garbage_collection_pre_caller =
-      [&](Uuid&, shared_ptr<Transaction>&,
+      [&](Uuid&, std::shared_ptr<Transaction>&,
           function<void(bool)>& should_delete) {
         auto original_should_delete = should_delete;
         should_delete = [&, original_should_delete](bool delete_it) {
@@ -237,7 +235,7 @@ TEST(TransactionEngineLocalAndRemoteTest,
 
   atomic<bool> transaction_2_called(false);
   mock_transaction_engine_2->on_before_garbage_collection_pre_caller =
-      [&](Uuid&, shared_ptr<Transaction>&,
+      [&](Uuid&, std::shared_ptr<Transaction>&,
           function<void(bool)>& should_delete) {
         auto original_should_delete = should_delete;
         should_delete = [&, original_should_delete](bool delete_it) {
@@ -264,8 +262,8 @@ void RunTransactionsWithDifferentSyncPhases(TransactionPhase local_phase,
                                             TransactionPhase remote_phase,
                                             bool local_phase_failed,
                                             bool remote_phase_failed) {
-  shared_ptr<MockTransactionEngine> mock_transaction_engine_1;
-  shared_ptr<MockTransactionEngine> mock_transaction_engine_2;
+  std::shared_ptr<MockTransactionEngine> mock_transaction_engine_1;
+  std::shared_ptr<MockTransactionEngine> mock_transaction_engine_2;
   function<void()> init_function;
   function<void()> run_function;
   function<void()> stop_function;
@@ -277,12 +275,12 @@ void RunTransactionsWithDifferentSyncPhases(TransactionPhase local_phase,
   run_function();
 
   AsyncContext<TransactionRequest, TransactionResponse> transaction_context;
-  transaction_context.request = make_shared<TransactionRequest>();
+  transaction_context.request = std::make_shared<TransactionRequest>();
   transaction_context.request->is_coordinated_remotely = true;
   transaction_context.request->transaction_secret =
-      make_shared<std::string>("this_is_a_transaction_secret");
+      std::make_shared<std::string>("this_is_a_transaction_secret");
   transaction_context.request->transaction_origin =
-      make_shared<std::string>("origin.com");
+      std::make_shared<std::string>("origin.com");
 
   TransactionAction action = [](TransactionCommandCallback& callback) {
     auto result = SuccessExecutionResult();
@@ -299,16 +297,16 @@ void RunTransactionsWithDifferentSyncPhases(TransactionPhase local_phase,
   command.end = action;
 
   transaction_context.request->commands.push_back(
-      make_shared<TransactionCommand>(std::move(command)));
+      std::make_shared<TransactionCommand>(std::move(command)));
 
   auto transaction_id = Uuid::GenerateUuid();
-  shared_ptr<Transaction> transaction_local;
+  std::shared_ptr<Transaction> transaction_local;
   CreateTransaction(transaction_id, UINT64_MAX, transaction_context,
                     transaction_local);
   transaction_local->current_phase = local_phase;
   transaction_local->is_waiting_for_remote = true;
 
-  shared_ptr<Transaction> transaction_remote;
+  std::shared_ptr<Transaction> transaction_remote;
   CreateTransaction(transaction_id, UINT64_MAX, transaction_context,
                     transaction_remote);
   transaction_remote->current_phase = remote_phase;
@@ -328,7 +326,7 @@ void RunTransactionsWithDifferentSyncPhases(TransactionPhase local_phase,
   transaction_remote->expiration_time = 0;
 
   WaitUntil([&]() {
-    shared_ptr<Transaction> transaction;
+    std::shared_ptr<Transaction> transaction;
     return !mock_transaction_engine_1->GetActiveTransactionsMap()
                 .Find(transaction_id, transaction)
                 .Successful() &&
@@ -402,8 +400,8 @@ TEST(TransactionEngineLocalAndRemoteTest, AbortNotify) {
 
 void RunTransactionsWithDifferentOutOfSyncPhases(
     TransactionPhase local_phase, TransactionPhase remote_phase) {
-  shared_ptr<MockTransactionEngine> mock_transaction_engine_1;
-  shared_ptr<MockTransactionEngine> mock_transaction_engine_2;
+  std::shared_ptr<MockTransactionEngine> mock_transaction_engine_1;
+  std::shared_ptr<MockTransactionEngine> mock_transaction_engine_2;
   function<void()> init_function;
   function<void()> run_function;
   function<void()> stop_function;
@@ -415,12 +413,12 @@ void RunTransactionsWithDifferentOutOfSyncPhases(
   run_function();
 
   AsyncContext<TransactionRequest, TransactionResponse> transaction_context;
-  transaction_context.request = make_shared<TransactionRequest>();
+  transaction_context.request = std::make_shared<TransactionRequest>();
   transaction_context.request->is_coordinated_remotely = true;
   transaction_context.request->transaction_secret =
-      make_shared<std::string>("this_is_a_transaction_secret");
+      std::make_shared<std::string>("this_is_a_transaction_secret");
   transaction_context.request->transaction_origin =
-      make_shared<std::string>("origin.com");
+      std::make_shared<std::string>("origin.com");
 
   TransactionAction action = [](TransactionCommandCallback& callback) {
     auto result = SuccessExecutionResult();
@@ -436,16 +434,16 @@ void RunTransactionsWithDifferentOutOfSyncPhases(
   command.end = action;
 
   transaction_context.request->commands.push_back(
-      make_shared<TransactionCommand>(std::move(command)));
+      std::make_shared<TransactionCommand>(std::move(command)));
 
   auto transaction_id = Uuid::GenerateUuid();
-  shared_ptr<Transaction> transaction_local;
+  std::shared_ptr<Transaction> transaction_local;
   CreateTransaction(transaction_id, UINT64_MAX, transaction_context,
                     transaction_local);
   transaction_local->current_phase = local_phase;
   transaction_local->is_waiting_for_remote = true;
 
-  shared_ptr<Transaction> transaction_remote;
+  std::shared_ptr<Transaction> transaction_remote;
   CreateTransaction(transaction_id, UINT64_MAX, transaction_context,
                     transaction_remote);
   transaction_remote->current_phase = remote_phase;

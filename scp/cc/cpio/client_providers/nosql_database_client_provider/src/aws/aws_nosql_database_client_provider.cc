@@ -77,10 +77,8 @@ using google::scp::core::errors::SC_NO_SQL_DATABASE_PROVIDER_RECORD_NOT_FOUND;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::client_providers::AwsNoSQLDatabaseClientUtils;
 using std::bind;
-using std::make_shared;
 using std::optional;
 using std::pair;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -99,7 +97,8 @@ ExecutionResultOr<ClientConfiguration>
 AwsNoSQLDatabaseClientProvider::CreateClientConfig() noexcept {
   ClientConfiguration client_config;
   client_config.maxConnections = kMaxConcurrentConnections;
-  client_config.executor = make_shared<AwsAsyncExecutor>(io_async_executor_);
+  client_config.executor =
+      std::make_shared<AwsAsyncExecutor>(io_async_executor_);
 
   auto region_code_or =
       AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_);
@@ -222,7 +221,7 @@ void AwsNoSQLDatabaseClientProvider::OnGetDatabaseItemCallback(
         get_database_item_context,
     const DynamoDBClient* dynamo_db_client, const QueryRequest& query_request,
     const Outcome<QueryResult, DynamoDBError>& outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!outcome.IsSuccess()) {
     auto result =
         AwsNoSQLDatabaseClientUtils::ConvertDynamoErrorToExecutionResult(
@@ -253,7 +252,8 @@ void AwsNoSQLDatabaseClientProvider::OnGetDatabaseItemCallback(
   const String partition_key_name(request.key().partition_key().name().c_str(),
                                   request.key().partition_key().name().size());
 
-  get_database_item_context.response = make_shared<GetDatabaseItemResponse>();
+  get_database_item_context.response =
+      std::make_shared<GetDatabaseItemResponse>();
   get_database_item_context.response->mutable_item()->mutable_key()->CopyFrom(
       request.key());
 
@@ -364,7 +364,7 @@ void AwsNoSQLDatabaseClientProvider::OnCreateDatabaseItemCallback(
     const DynamoDBClient* dynamo_db_client,
     const PutItemRequest& put_item_request,
     const Outcome<PutItemResult, DynamoDBError>& outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   ExecutionResult result = SuccessExecutionResult();
   if (!outcome.IsSuccess()) {
     result = AwsNoSQLDatabaseClientUtils::ConvertDynamoErrorToExecutionResult(
@@ -477,7 +477,7 @@ void AwsNoSQLDatabaseClientProvider::OnUpsertDatabaseItemCallback(
     const DynamoDBClient* dynamo_db_client,
     const UpdateItemRequest& update_item_request,
     const Outcome<UpdateItemResult, DynamoDBError>& outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   ExecutionResult result = SuccessExecutionResult();
   if (!outcome.IsSuccess()) {
     result = AwsNoSQLDatabaseClientUtils::ConvertDynamoErrorToExecutionResult(
@@ -492,18 +492,19 @@ void AwsNoSQLDatabaseClientProvider::OnUpsertDatabaseItemCallback(
   FinishContext(result, upsert_database_item_context, cpu_async_executor_);
 }
 
-ExecutionResultOr<shared_ptr<DynamoDBClient>> DynamoDBFactory::CreateClient(
+ExecutionResultOr<std::shared_ptr<DynamoDBClient>>
+DynamoDBFactory::CreateClient(
     const ClientConfiguration& client_config) noexcept {
-  return make_shared<DynamoDBClient>(client_config);
+  return std::make_shared<DynamoDBClient>(client_config);
 }
 
-shared_ptr<NoSQLDatabaseClientProviderInterface>
+std::shared_ptr<NoSQLDatabaseClientProviderInterface>
 NoSQLDatabaseClientProviderFactory::Create(
-    const shared_ptr<NoSQLDatabaseClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<AwsNoSQLDatabaseClientProvider>(
+    const std::shared_ptr<NoSQLDatabaseClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>& instance_client,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
+  return std::make_shared<AwsNoSQLDatabaseClientProvider>(
       instance_client, cpu_async_executor, io_async_executor);
 }
 

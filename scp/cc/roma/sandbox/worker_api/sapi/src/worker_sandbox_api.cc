@@ -70,9 +70,7 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_ROMA_WORKER_API_UNINITIALIZED_SANDBOX;
 using google::scp::core::errors::SC_ROMA_WORKER_API_WORKER_CRASHED;
 using google::scp::roma::sandbox::constants::kBadFd;
-using std::make_unique;
 using std::numeric_limits;
-using std::unique_ptr;
 using std::this_thread::yield;
 
 namespace google::scp::roma::sandbox::worker_api {
@@ -81,7 +79,7 @@ void WorkerSandboxApi::CreateWorkerSapiSandbox() noexcept {
   // Get the environment variable ROMA_VLOG_LEVEL value.
   int external_verbose_level = logging::GetVlogVerboseLevel();
 
-  worker_sapi_sandbox_ = make_unique<WorkerSapiSandbox>(
+  worker_sapi_sandbox_ = std::make_unique<WorkerSapiSandbox>(
       ROMA_CONVERT_MB_TO_BYTES(max_worker_virtual_memory_mb_),
       external_verbose_level);
 }
@@ -123,7 +121,7 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
   }
 
   worker_wrapper_api_ =
-      make_unique<WorkerWrapperApi>(worker_sapi_sandbox_.get());
+      std::make_unique<WorkerWrapperApi>(worker_sapi_sandbox_.get());
 
   // Wait for the sandbox to become ACTIVE
   while (!worker_sapi_sandbox_->is_active()) {
@@ -134,7 +132,7 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
   int js_hook_remote_fd = kBadFd;
   if (native_js_function_comms_fd_ != kBadFd) {
     js_hook_remote_fd = TransferFdAndGetRemoteFd(
-        make_unique<::sapi::v::Fd>(native_js_function_comms_fd_));
+        std::make_unique<::sapi::v::Fd>(native_js_function_comms_fd_));
     if (js_hook_remote_fd == kBadFd) {
       return FailureExecutionResult(
           SC_ROMA_WORKER_API_COULD_NOT_TRANSFER_FUNCTION_FD_TO_SANDBOXEE);
@@ -147,7 +145,7 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
   }
 
   int buffer_remote_fd = TransferFdAndGetRemoteFd(
-      make_unique<::sapi::v::Fd>(sandbox_data_shared_buffer_ptr_->fd()));
+      std::make_unique<::sapi::v::Fd>(sandbox_data_shared_buffer_ptr_->fd()));
   if (buffer_remote_fd == kBadFd) {
     return FailureExecutionResult(
         SC_ROMA_WORKER_API_COULD_NOT_TRANSFER_BUFFER_FD_TO_SANDBOXEE);
@@ -249,7 +247,7 @@ ExecutionResult WorkerSandboxApi::InternalRunCode(
     ::worker_api::WorkerParamsProto& params) noexcept {
   int serialized_size = params.ByteSizeLong();
 
-  unique_ptr<sapi::v::LenVal> sapi_len_val;
+  std::unique_ptr<sapi::v::LenVal> sapi_len_val;
   int input_serialized_size(serialized_size);
   sapi::v::IntBase<size_t> output_serialized_size_ptr;
 
@@ -265,7 +263,7 @@ ExecutionResult WorkerSandboxApi::InternalRunCode(
           SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_DATA);
     }
 
-    sapi_len_val = make_unique<sapi::v::LenVal>("", 0);
+    sapi_len_val = std::make_unique<sapi::v::LenVal>("", 0);
   } else {
     ROMA_VLOG(1) << "Request serialized size " << serialized_size
                  << "bytes is larger than the Buffer capacity "
@@ -280,7 +278,7 @@ ExecutionResult WorkerSandboxApi::InternalRunCode(
       return FailureExecutionResult(
           SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_DATA);
     }
-    sapi_len_val = make_unique<sapi::v::LenVal>(serialized_data);
+    sapi_len_val = std::make_unique<sapi::v::LenVal>(serialized_data);
   }
 
   auto status_or = worker_wrapper_api_->RunCodeFromSerializedData(

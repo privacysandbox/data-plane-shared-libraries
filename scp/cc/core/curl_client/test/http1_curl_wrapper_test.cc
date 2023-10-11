@@ -23,9 +23,7 @@
 
 using boost::beast::http::status;
 using std::get;
-using std::make_shared;
 using std::make_tuple;
-using std::shared_ptr;
 using std::tuple;
 using testing::IsSupersetOf;
 using testing::Pair;
@@ -59,7 +57,7 @@ class Http1CurlWrapperTest
   const std::string response_body_;
   const std::string post_request_body_;
 
-  shared_ptr<Http1CurlWrapper> subject_;
+  std::shared_ptr<Http1CurlWrapper> subject_;
 
   TestHttp1Server server_;
 };
@@ -67,7 +65,7 @@ class Http1CurlWrapperTest
 TEST_F(Http1CurlWrapperTest, GetWorks) {
   HttpRequest request;
   request.method = HttpMethod::GET;
-  request.path = make_shared<Uri>(server_.GetPath());
+  request.path = std::make_shared<Uri>(server_.GetPath());
 
   server_.SetResponseBody(BytesBuffer(post_request_body_));
 
@@ -82,8 +80,8 @@ TEST_F(Http1CurlWrapperTest, GetWorks) {
 TEST_F(Http1CurlWrapperTest, GetWorksWithHeaders) {
   HttpRequest request;
   request.method = HttpMethod::GET;
-  request.path = make_shared<Uri>(server_.GetPath());
-  request.headers = make_shared<HttpHeaders>();
+  request.path = std::make_shared<Uri>(server_.GetPath());
+  request.headers = std::make_shared<HttpHeaders>();
   request.headers->insert({"key1", "val1"});
   request.headers->insert({"key2", "val2"});
 
@@ -109,7 +107,7 @@ TEST_F(Http1CurlWrapperTest, GetWorksWithHeaders) {
 TEST_F(Http1CurlWrapperTest, PostWorks) {
   HttpRequest request;
   request.method = HttpMethod::POST;
-  request.path = make_shared<Uri>(server_.GetPath());
+  request.path = std::make_shared<Uri>(server_.GetPath());
   request.body = BytesBuffer(post_request_body_);
 
   server_.SetResponseBody(BytesBuffer(response_body_));
@@ -126,7 +124,7 @@ TEST_F(Http1CurlWrapperTest, PostWorks) {
 TEST_F(Http1CurlWrapperTest, PutWorks) {
   HttpRequest request;
   request.method = HttpMethod::PUT;
-  request.path = make_shared<Uri>(server_.GetPath());
+  request.path = std::make_shared<Uri>(server_.GetPath());
   request.body = BytesBuffer(post_request_body_);
 
   server_.SetResponseBody(BytesBuffer(response_body_));
@@ -143,9 +141,9 @@ TEST_F(Http1CurlWrapperTest, PutWorks) {
 TEST_F(Http1CurlWrapperTest, PostWorksWithHeaders) {
   HttpRequest request;
   request.method = HttpMethod::POST;
-  request.path = make_shared<Uri>(server_.GetPath());
+  request.path = std::make_shared<Uri>(server_.GetPath());
   request.body = BytesBuffer(post_request_body_);
-  request.headers = make_shared<HttpHeaders>();
+  request.headers = std::make_shared<HttpHeaders>();
   request.headers->insert({"key1", "val1"});
   request.headers->insert({"key2", "val2"});
 
@@ -172,8 +170,8 @@ TEST_F(Http1CurlWrapperTest, PostWorksWithHeaders) {
 TEST_F(Http1CurlWrapperTest, SingleQueryIsEscaped) {
   HttpRequest request;
   request.method = HttpMethod::GET;
-  request.path = make_shared<Uri>(server_.GetPath());
-  request.query = make_shared<std::string>("foo=!@#$");
+  request.path = std::make_shared<Uri>(server_.GetPath());
+  request.query = std::make_shared<std::string>("foo=!@#$");
 
   auto response_or = subject_->PerformRequest(request);
   ASSERT_THAT(response_or, IsSuccessful());
@@ -187,8 +185,8 @@ TEST_F(Http1CurlWrapperTest, SingleQueryIsEscaped) {
 TEST_F(Http1CurlWrapperTest, MultiQueryIsEscaped) {
   HttpRequest request;
   request.method = HttpMethod::GET;
-  request.path = make_shared<Uri>(server_.GetPath());
-  request.query = make_shared<std::string>("foo=!@#$&bar=%^()");
+  request.path = std::make_shared<Uri>(server_.GetPath());
+  request.query = std::make_shared<std::string>("foo=!@#$&bar=%^()");
 
   auto response_or = subject_->PerformRequest(request);
   ASSERT_THAT(response_or, IsSuccessful());
@@ -204,7 +202,7 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
   {
     HttpRequest request;
     request.method = HttpMethod::GET;
-    request.path = make_shared<Uri>(server_.GetPath());
+    request.path = std::make_shared<Uri>(server_.GetPath());
 
     server_.SetResponseBody(BytesBuffer(response_body_));
 
@@ -220,7 +218,7 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
   {
     HttpRequest request;
     request.method = HttpMethod::POST;
-    request.path = make_shared<Uri>(server_.GetPath());
+    request.path = std::make_shared<Uri>(server_.GetPath());
     request.body = BytesBuffer(post_request_body_);
 
     server_.SetResponseBody(BytesBuffer(response_body_));
@@ -237,7 +235,7 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
   {
     HttpRequest request;
     request.method = HttpMethod::GET;
-    request.path = make_shared<Uri>(server_.GetPath());
+    request.path = std::make_shared<Uri>(server_.GetPath());
 
     server_.SetResponseBody(BytesBuffer(response_body_));
 
@@ -254,7 +252,7 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
 TEST_P(Http1CurlWrapperTest, PropagatesHttpError) {
   HttpRequest request;
   request.method = HttpMethod::GET;
-  request.path = make_shared<Uri>(server_.GetPath());
+  request.path = std::make_shared<Uri>(server_.GetPath());
 
   server_.SetResponseStatus(GetResponseStatusToReturn());
 

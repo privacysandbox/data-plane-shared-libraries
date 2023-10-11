@@ -29,7 +29,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::ServiceInterface;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
-using std::shared_ptr;
 
 namespace {
 constexpr char kComponentFactory[] = "ComponentFactory";

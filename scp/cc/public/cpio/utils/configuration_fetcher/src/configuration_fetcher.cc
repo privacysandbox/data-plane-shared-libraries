@@ -64,8 +64,6 @@ using google::scp::core::errors::SC_CONFIGURATION_FETCHER_CONVERSION_FAILED;
 using google::scp::core::errors::
     SC_CONFIGURATION_FETCHER_ENVIRONMENT_NAME_NOT_FOUND;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -542,7 +540,7 @@ void ConfigurationFetcher::GetParameterCallback(
 
   get_configuration_context.result = SuccessExecutionResult();
   get_configuration_context.response =
-      make_shared<std::string>(std::move(response.parameter_value()));
+      std::make_shared<std::string>(std::move(response.parameter_value()));
   get_configuration_context.Finish();
 }
 }  // namespace google::scp::cpio

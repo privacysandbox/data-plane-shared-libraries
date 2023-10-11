@@ -55,9 +55,7 @@ using std::bind;
 using std::cbegin;
 using std::cend;
 using std::make_pair;
-using std::make_shared;
 using std::pair;
-using std::shared_ptr;
 using std::chrono::seconds;
 using std::placeholders::_1;
 
@@ -118,7 +116,7 @@ const auto& GetRequiredJWTComponentsForTargetAudienceToken() {
 
 namespace google::scp::cpio::client_providers {
 GcpAuthTokenProvider::GcpAuthTokenProvider(
-    const shared_ptr<HttpClientInterface>& http_client)
+    const std::shared_ptr<HttpClientInterface>& http_client)
     : http_client_(http_client) {}
 
 ExecutionResult GcpAuthTokenProvider::Init() noexcept {
@@ -152,14 +150,14 @@ ExecutionResult GcpAuthTokenProvider::GetSessionToken(
   // NOTE: Without scope setting, the access token will being assigned with full
   // access permission of current instance.
   AsyncContext<HttpRequest, HttpResponse> http_context;
-  http_context.request = make_shared<HttpRequest>();
+  http_context.request = std::make_shared<HttpRequest>();
 
-  http_context.request->headers = make_shared<HttpHeaders>();
+  http_context.request->headers = std::make_shared<HttpHeaders>();
   http_context.request->headers->insert(
       {std::string(kMetadataFlavorHeader),
        std::string(kMetadataFlavorHeaderValue)});
 
-  http_context.request->path = make_shared<Uri>(kTokenServerPath);
+  http_context.request->path = std::make_shared<Uri>(kTokenServerPath);
 
   http_context.callback = bind(&GcpAuthTokenProvider::OnGetSessionTokenCallback,
                                this, get_token_context, _1);
@@ -223,7 +221,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
     return;
   }
 
-  get_token_context.response = make_shared<GetSessionTokenResponse>();
+  get_token_context.response = std::make_shared<GetSessionTokenResponse>();
 
   // The life time of GCP access token is about 1 hour.
   uint64_t expiry_seconds = json_response[kJsonTokenExpiryKey].get<uint64_t>();
@@ -231,7 +229,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
       seconds(expiry_seconds);
   auto access_token = json_response[kJsonAccessTokenKey].get<std::string>();
   get_token_context.response->session_token =
-      make_shared<std::string>(std::move(access_token));
+      std::make_shared<std::string>(std::move(access_token));
 
   get_token_context.result = SuccessExecutionResult();
   get_token_context.Finish();
@@ -247,15 +245,15 @@ ExecutionResult GcpAuthTokenProvider::GetSessionTokenForTargetAudience(
   // 'http://metadata/computeMetadata/v1/instance/service-accounts/default/identity?audience=AUDIENCE'
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
-  http_context.request = make_shared<HttpRequest>();
+  http_context.request = std::make_shared<HttpRequest>();
 
-  http_context.request->headers = make_shared<HttpHeaders>();
+  http_context.request->headers = std::make_shared<HttpHeaders>();
   http_context.request->headers->insert(
       {std::string(kMetadataFlavorHeader),
        std::string(kMetadataFlavorHeaderValue)});
 
-  http_context.request->path = make_shared<Uri>(kIdentityServerPath);
-  http_context.request->query = make_shared<std::string>(absl::StrCat(
+  http_context.request->path = std::make_shared<Uri>(kIdentityServerPath);
+  http_context.request->query = std::make_shared<std::string>(absl::StrCat(
       kAudienceParameter, *get_token_context.request->token_target_audience_uri,
       "&", kFormatFullParameter));
 
@@ -337,9 +335,9 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
     return;
   }
 
-  get_token_context.response = make_shared<GetSessionTokenResponse>();
+  get_token_context.response = std::make_shared<GetSessionTokenResponse>();
   get_token_context.response->session_token =
-      make_shared<std::string>(response_body);
+      std::make_shared<std::string>(response_body);
 
   // We make an assumption that the obtaining token is instantaneous since the
   // token is fetched from the GCP platform close to the VM where this code will
@@ -360,6 +358,6 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
 
 std::shared_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
     const std::shared_ptr<core::HttpClientInterface>& http1_client) {
-  return make_shared<GcpAuthTokenProvider>(http1_client);
+  return std::make_shared<GcpAuthTokenProvider>(http1_client);
 }
 }  // namespace google::scp::cpio::client_providers

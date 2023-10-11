@@ -46,18 +46,14 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::mock::MockInstanceClientWithOverrides;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::cpio::test {
 class InstanceClientTest : public ::testing::Test {
  protected:
   InstanceClientTest() {
-    auto instance_client_options = make_shared<InstanceClientOptions>();
-    client_ =
-        make_unique<MockInstanceClientWithOverrides>(instance_client_options);
+    auto instance_client_options = std::make_shared<InstanceClientOptions>();
+    client_ = std::make_unique<MockInstanceClientWithOverrides>(
+        instance_client_options);
 
     EXPECT_THAT(client_->Init(), IsSuccessful());
     EXPECT_THAT(client_->Run(), IsSuccessful());
@@ -65,7 +61,7 @@ class InstanceClientTest : public ::testing::Test {
 
   ~InstanceClientTest() { EXPECT_THAT(client_->Stop(), IsSuccessful()); }
 
-  unique_ptr<MockInstanceClientWithOverrides> client_;
+  std::unique_ptr<MockInstanceClientWithOverrides> client_;
 };
 
 TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
@@ -75,7 +71,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
           [=](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             context.response =
-                make_shared<GetCurrentInstanceResourceNameResponse>();
+                std::make_shared<GetCurrentInstanceResourceNameResponse>();
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();
@@ -121,7 +117,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
   EXPECT_CALL(*client_->GetInstanceClientProvider(), GetTagsByResourceName)
       .WillOnce([=](AsyncContext<GetTagsByResourceNameRequest,
                                  GetTagsByResourceNameResponse>& context) {
-        context.response = make_shared<GetTagsByResourceNameResponse>();
+        context.response = std::make_shared<GetTagsByResourceNameResponse>();
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();
@@ -168,7 +164,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
           [=](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             context.response =
-                make_shared<GetInstanceDetailsByResourceNameResponse>();
+                std::make_shared<GetInstanceDetailsByResourceNameResponse>();
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();

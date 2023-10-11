@@ -34,8 +34,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::client_providers::GcpNoSQLDatabaseClientProvider;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kGcpNoSQLDatabaseServiceFactory[] =
@@ -43,9 +41,9 @@ constexpr char kGcpNoSQLDatabaseServiceFactory[] =
 }  // namespace
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 GcpNoSQLDatabaseServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<GcpInstanceServiceFactory>(
+  return std::make_shared<GcpInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
@@ -73,7 +71,7 @@ ExecutionResult GcpNoSQLDatabaseServiceFactory::Init() noexcept {
 
 std::shared_ptr<NoSQLDatabaseClientProviderInterface>
 GcpNoSQLDatabaseServiceFactory::CreateNoSQLDatabaseClient() noexcept {
-  return make_shared<GcpNoSQLDatabaseClientProvider>(
+  return std::make_shared<GcpNoSQLDatabaseClientProvider>(
       client_options_, instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());

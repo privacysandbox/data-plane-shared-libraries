@@ -31,9 +31,7 @@ using std::atomic;
 using std::distance;
 using std::ifstream;
 using std::ios;
-using std::make_shared;
 using std::ofstream;
-using std::shared_ptr;
 using std::filesystem::create_directory;
 using std::filesystem::current_path;
 using std::filesystem::directory_iterator;
@@ -53,12 +51,12 @@ TEST(MockBlobStorageProviderTest, GetBlob) {
   output_stream << file_content;
   output_stream.close();
 
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   EXPECT_SUCCESS(
       mock_blob_storage_provider.CreateBlobStorageClient(blob_storage_client));
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
-      make_shared<GetBlobRequest>(),
+      std::make_shared<GetBlobRequest>(),
       [&](AsyncContext<GetBlobRequest, GetBlobResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->buffer->length, 4);
@@ -71,8 +69,8 @@ TEST(MockBlobStorageProviderTest, GetBlob) {
       });
 
   get_blob_context.request->bucket_name =
-      make_shared<std::string>("bucket_get");
-  get_blob_context.request->blob_name = make_shared<std::string>("1.txt");
+      std::make_shared<std::string>("bucket_get");
+  get_blob_context.request->blob_name = std::make_shared<std::string>("1.txt");
   EXPECT_SUCCESS(blob_storage_client->GetBlob(get_blob_context));
 }
 
@@ -86,12 +84,12 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
   std::string file_content = "1234";
   std::vector<Byte> bytes(file_content.begin(), file_content.end());
 
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   EXPECT_SUCCESS(
       mock_blob_storage_provider.CreateBlobStorageClient(blob_storage_client));
 
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context(
-      make_shared<PutBlobRequest>(),
+      std::make_shared<PutBlobRequest>(),
       [&](AsyncContext<PutBlobRequest, PutBlobResponse>& context) {
         EXPECT_SUCCESS(context.result);
 
@@ -111,12 +109,12 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
       });
 
   put_blob_context.request->bucket_name =
-      make_shared<std::string>("bucket_put");
+      std::make_shared<std::string>("bucket_put");
   put_blob_context.request->blob_name =
-      make_shared<std::string>("test_hash/1.txt");
-  put_blob_context.request->buffer = make_shared<BytesBuffer>();
+      std::make_shared<std::string>("test_hash/1.txt");
+  put_blob_context.request->buffer = std::make_shared<BytesBuffer>();
   put_blob_context.request->buffer->bytes =
-      make_shared<std::vector<Byte>>(bytes);
+      std::make_shared<std::vector<Byte>>(bytes);
   put_blob_context.request->buffer->length = bytes.size();
   EXPECT_SUCCESS(blob_storage_client->PutBlob(put_blob_context));
 }
@@ -135,12 +133,12 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
   output_stream << file_content;
   output_stream.close();
 
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   EXPECT_SUCCESS(
       mock_blob_storage_provider.CreateBlobStorageClient(blob_storage_client));
 
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context(
-      make_shared<DeleteBlobRequest>(),
+      std::make_shared<DeleteBlobRequest>(),
       [&](AsyncContext<DeleteBlobRequest, DeleteBlobResponse>& context) {
         EXPECT_SUCCESS(context.result);
 
@@ -151,8 +149,9 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
       });
 
   delete_blob_context.request->bucket_name =
-      make_shared<std::string>("bucket_delete");
-  delete_blob_context.request->blob_name = make_shared<std::string>("2.txt");
+      std::make_shared<std::string>("bucket_delete");
+  delete_blob_context.request->blob_name =
+      std::make_shared<std::string>("2.txt");
   EXPECT_SUCCESS(blob_storage_client->DeleteBlob(delete_blob_context));
 }
 
@@ -178,12 +177,12 @@ TEST(MockBlobStorageProviderTest, ListBlobs) {
   ofstream output_stream4("bucket_list/2/5.txt", ios::trunc | ios::binary);
   output_stream4.close();
 
-  shared_ptr<BlobStorageClientInterface> blob_storage_client;
+  std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   EXPECT_SUCCESS(
       mock_blob_storage_provider.CreateBlobStorageClient(blob_storage_client));
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context(
-      make_shared<ListBlobsRequest>(),
+      std::make_shared<ListBlobsRequest>(),
       [&](AsyncContext<ListBlobsRequest, ListBlobsResponse>& context) {
         EXPECT_SUCCESS(context.result);
 
@@ -200,8 +199,8 @@ TEST(MockBlobStorageProviderTest, ListBlobs) {
       });
 
   list_blobs_context.request->bucket_name =
-      make_shared<std::string>("bucket_list");
-  list_blobs_context.request->blob_name = make_shared<std::string>("");
+      std::make_shared<std::string>("bucket_list");
+  list_blobs_context.request->blob_name = std::make_shared<std::string>("");
   EXPECT_SUCCESS(blob_storage_client->ListBlobs(list_blobs_context));
 }
 

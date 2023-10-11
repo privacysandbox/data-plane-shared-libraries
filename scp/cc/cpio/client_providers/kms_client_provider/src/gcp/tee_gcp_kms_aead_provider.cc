@@ -27,12 +27,10 @@ using google::cloud::MakeExternalAccountCredentials;
 using google::cloud::UnifiedCredentialsOption;
 using google::cloud::kms::KeyManagementServiceClient;
 using google::cloud::kms::MakeKeyManagementServiceConnection;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio::client_providers {
 
-shared_ptr<KeyManagementServiceClient>
+std::shared_ptr<KeyManagementServiceClient>
 GcpKmsAeadProvider::CreateKeyManagementServiceClient(
     const std::string& wip_provider,
     const std::string& service_account_to_impersonate) noexcept {
@@ -42,6 +40,6 @@ GcpKmsAeadProvider::CreateKeyManagementServiceClient(
   auto options = google::cloud::Options{}.set<UnifiedCredentialsOption>(
       MakeExternalAccountCredentials(credentials_json));
   auto service_connection = MakeKeyManagementServiceConnection(options);
-  return make_shared<KeyManagementServiceClient>(service_connection);
+  return std::make_shared<KeyManagementServiceClient>(service_connection);
 }
 }  // namespace google::scp::cpio::client_providers

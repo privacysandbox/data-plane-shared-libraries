@@ -32,18 +32,16 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::cpio::client_providers::AutoScalingClientOptions;
 using google::scp::cpio::client_providers::AutoScalingClientProviderInterface;
 using google::scp::cpio::client_providers::AwsAutoScalingClientProvider;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kAwsAutoScalingServiceFactory[] = "AwsAutoScalingServiceFactory";
 }  // namespace
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryOptions>
+std::shared_ptr<InstanceServiceFactoryOptions>
 AwsAutoScalingServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
   auto instance_service_factory_options =
-      make_shared<InstanceServiceFactoryOptions>();
+      std::make_shared<InstanceServiceFactoryOptions>();
   instance_service_factory_options
       ->cpu_async_executor_thread_count_config_label =
       kAutoScalingClientCpuThreadCount;
@@ -57,9 +55,9 @@ AwsAutoScalingServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
   return instance_service_factory_options;
 }
 
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 AwsAutoScalingServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<AwsInstanceServiceFactory>(
+  return std::make_shared<AwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
@@ -122,8 +120,8 @@ ExecutionResult AwsAutoScalingServiceFactory::Stop() noexcept {
 
 std::shared_ptr<AutoScalingClientProviderInterface>
 AwsAutoScalingServiceFactory::CreateAutoScalingClient() noexcept {
-  return make_shared<AwsAutoScalingClientProvider>(
-      make_shared<AutoScalingClientOptions>(), instance_client_,
+  return std::make_shared<AwsAutoScalingClientProvider>(
+      std::make_shared<AutoScalingClientOptions>(), instance_client_,
       instance_service_factory_->GetIoAsynceExecutor());
 }
 }  // namespace google::scp::cpio

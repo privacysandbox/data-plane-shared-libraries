@@ -37,13 +37,12 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::function;
-using std::make_shared;
 using std::chrono::milliseconds;
 
 namespace google::scp::core::common::test {
 TEST(OperationDispatcherTests, SuccessfulOperation) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -68,7 +67,7 @@ TEST(OperationDispatcherTests, SuccessfulOperation) {
 
 TEST(OperationDispatcherTests, SuccessfulOperationProducerStreaming) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -93,7 +92,7 @@ TEST(OperationDispatcherTests, SuccessfulOperationProducerStreaming) {
 
 TEST(OperationDispatcherTests, SuccessfulOperationConsumerStreaming) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -129,7 +128,7 @@ TEST(OperationDispatcherTests, SuccessfulOperationConsumerStreaming) {
 
 TEST(OperationDispatcherTests, FailedOperation) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -154,7 +153,7 @@ TEST(OperationDispatcherTests, FailedOperation) {
 
 TEST(OperationDispatcherTests, FailedOperationProducerStreaming) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -179,7 +178,7 @@ TEST(OperationDispatcherTests, FailedOperationProducerStreaming) {
 
 TEST(OperationDispatcherTests, FailedOperationConsumerStreaming) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -215,7 +214,7 @@ TEST(OperationDispatcherTests, FailedOperationConsumerStreaming) {
 
 TEST(OperationDispatcherTests, RetryOperation) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 10, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -243,7 +242,7 @@ TEST(OperationDispatcherTests, RetryOperation) {
 
 TEST(OperationDispatcherTests, RetryOperationProducerStreaming) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 10, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -271,7 +270,7 @@ TEST(OperationDispatcherTests, RetryOperationProducerStreaming) {
 
 TEST(OperationDispatcherTests, RetryOperationConsumerStreaming) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 10, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -311,7 +310,7 @@ TEST(OperationDispatcherTests, RetryOperationConsumerStreaming) {
 
 TEST(OperationDispatcherTests, OperationExpiration) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 10, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -345,7 +344,7 @@ TEST(OperationDispatcherTests, OperationExpiration) {
 
 TEST(OperationDispatcherTests, FailedOnAcceptance) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
@@ -368,7 +367,7 @@ TEST(OperationDispatcherTests, FailedOnAcceptance) {
 
 TEST(OperationDispatcherTests, RetryOnAcceptance) {
   std::shared_ptr<AsyncExecutorInterface> mock_async_executor =
-      make_shared<MockAsyncExecutor>();
+      std::make_shared<MockAsyncExecutor>();
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 

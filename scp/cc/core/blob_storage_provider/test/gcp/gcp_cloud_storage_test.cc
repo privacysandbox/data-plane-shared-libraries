@@ -74,10 +74,6 @@ using google::scp::core::blob_storage_provider::GcpCloudStorageClient;
 using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::utils::Base64Encode;
 using google::scp::core::utils::CalculateMd5Hash;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::ByMove;
 using testing::ElementsAre;
 using testing::ElementsAreArray;
@@ -99,25 +95,26 @@ constexpr char kBlobName2[] = "blob_2";
 class GcpCloudStorageClientTest : public testing::Test {
  protected:
   GcpCloudStorageClientTest()
-      : mock_client_(make_shared<NiceMock<MockClient>>()),
+      : mock_client_(std::make_shared<NiceMock<MockClient>>()),
         gcp_cloud_storage_client_(
-            make_shared<Client>(ClientFromMock(mock_client_)),
-            make_shared<MockAsyncExecutor>(), make_shared<MockAsyncExecutor>(),
-            AsyncPriority::Normal, AsyncPriority::Normal) {
-    get_blob_context_.request = make_shared<GetBlobRequest>();
+            std::make_shared<Client>(ClientFromMock(mock_client_)),
+            std::make_shared<MockAsyncExecutor>(),
+            std::make_shared<MockAsyncExecutor>(), AsyncPriority::Normal,
+            AsyncPriority::Normal) {
+    get_blob_context_.request = std::make_shared<GetBlobRequest>();
     get_blob_context_.callback = [this](auto) { finish_called_ = true; };
 
-    list_blobs_context_.request = make_shared<ListBlobsRequest>();
+    list_blobs_context_.request = std::make_shared<ListBlobsRequest>();
     list_blobs_context_.callback = [this](auto) { finish_called_ = true; };
 
-    put_blob_context_.request = make_shared<PutBlobRequest>();
+    put_blob_context_.request = std::make_shared<PutBlobRequest>();
     put_blob_context_.callback = [this](auto) { finish_called_ = true; };
 
-    delete_blob_context_.request = make_shared<DeleteBlobRequest>();
+    delete_blob_context_.request = std::make_shared<DeleteBlobRequest>();
     delete_blob_context_.callback = [this](auto) { finish_called_ = true; };
   }
 
-  shared_ptr<MockClient> mock_client_;
+  std::shared_ptr<MockClient> mock_client_;
   GcpCloudStorageClient gcp_cloud_storage_client_;
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context_;
@@ -135,11 +132,11 @@ class GcpCloudStorageClientTest : public testing::Test {
 ///////////// GetBlob /////////////////////////////////////////////////////////
 
 // Builds an ObjectReadSource that contains the bytes (copied) from input.
-StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromBuffer(
+StatusOr<std::unique_ptr<ObjectReadSource>> BuildReadResponseFromBuffer(
     const BytesBuffer& input) {
   // We want the following methods to be called in order, so make an InSequence.
   InSequence seq;
-  auto mock_source = make_unique<MockObjectReadSource>();
+  auto mock_source = std::make_unique<MockObjectReadSource>();
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(true));
   // Copy up to n bytes from input into buf.
   EXPECT_CALL(*mock_source, Read).WillOnce([&input](void* buf, std::size_t n) {
@@ -154,7 +151,7 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildReadResponseFromBuffer(
     return result;
   });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(std::move(mock_source));
+  return std::unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 // Matches arg.bucket_name and arg.object_name with bucket_name and
@@ -209,8 +206,9 @@ MATCHER_P(BytesBufferEqual, expected_buffer, "") {
 
 TEST_F(GcpCloudStorageClientTest, GetBlob) {
   get_blob_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  get_blob_context_.request->blob_name = make_shared<std::string>(kBlobName1);
+      std::make_shared<std::string>(kBucketName);
+  get_blob_context_.request->blob_name =
+      std::make_shared<std::string>(kBlobName1);
 
   // We add additional capacity to the BytesBuffer to ensure that
   // BytesBuffer::capacity should not be used but BytesBuffer::length should.
@@ -238,10 +236,10 @@ TEST_F(GcpCloudStorageClientTest, GetBlob) {
   WaitUntil([this]() { return finish_called_.load(); });
 }
 
-StatusOr<unique_ptr<ObjectReadSource>> BuildBadHashReadResponse() {
+StatusOr<std::unique_ptr<ObjectReadSource>> BuildBadHashReadResponse() {
   // We want the following methods to be called in order, so make an InSequence.
   InSequence seq;
-  auto mock_source = make_unique<MockObjectReadSource>();
+  auto mock_source = std::make_unique<MockObjectReadSource>();
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(true));
   EXPECT_CALL(*mock_source, Read).WillOnce([](void* buf, std::size_t n) {
     ReadSourceResult result{0, HttpResponse{200, {}, {}}};
@@ -249,13 +247,14 @@ StatusOr<unique_ptr<ObjectReadSource>> BuildBadHashReadResponse() {
     return result;
   });
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(false));
-  return unique_ptr<ObjectReadSource>(std::move(mock_source));
+  return std::unique_ptr<ObjectReadSource>(std::move(mock_source));
 }
 
 TEST_F(GcpCloudStorageClientTest, GetBlobHashMismatchFails) {
   get_blob_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  get_blob_context_.request->blob_name = make_shared<std::string>(kBlobName1);
+      std::make_shared<std::string>(kBucketName);
+  get_blob_context_.request->blob_name =
+      std::make_shared<std::string>(kBlobName1);
 
   EXPECT_CALL(*mock_client_,
               ReadObject(ReadObjectRequestEqual(kBucketName, kBlobName1)))
@@ -277,8 +276,9 @@ TEST_F(GcpCloudStorageClientTest, GetBlobHashMismatchFails) {
 
 TEST_F(GcpCloudStorageClientTest, GetBlobNotFound) {
   get_blob_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  get_blob_context_.request->blob_name = make_shared<std::string>(kBlobName1);
+      std::make_shared<std::string>(kBucketName);
+  get_blob_context_.request->blob_name =
+      std::make_shared<std::string>(kBlobName1);
 
   EXPECT_CALL(*mock_client_,
               ReadObject(ReadObjectRequestEqual(kBucketName, kBlobName1)))
@@ -341,7 +341,7 @@ MATCHER_P2(BlobEquals, bucket_name, blob_name, "") {
 
 TEST_F(GcpCloudStorageClientTest, ListBlobsNoPrefix) {
   list_blobs_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
+      std::make_shared<std::string>(kBucketName);
 
   EXPECT_CALL(*mock_client_,
               ListObjects(ListObjectsRequestEqualNoOffset(kBucketName)))
@@ -410,8 +410,9 @@ MATCHER_P2(ListObjectsRequestEqualNoOffset, bucket_name, blob_name, "") {
 
 TEST_F(GcpCloudStorageClientTest, ListBlobsWithPrefix) {
   list_blobs_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  list_blobs_context_.request->blob_name = make_shared<std::string>("blob_");
+      std::make_shared<std::string>(kBucketName);
+  list_blobs_context_.request->blob_name =
+      std::make_shared<std::string>("blob_");
 
   EXPECT_CALL(*mock_client_, ListObjects(ListObjectsRequestEqualNoOffset(
                                  kBucketName, "blob_")))
@@ -478,9 +479,11 @@ MATCHER_P3(ListObjectsRequestEqualWithOffset, bucket_name, blob_name, offset,
 
 TEST_F(GcpCloudStorageClientTest, ListBlobsWithMarker) {
   list_blobs_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  list_blobs_context_.request->blob_name = make_shared<std::string>("blob_");
-  list_blobs_context_.request->marker = make_shared<std::string>(kBlobName1);
+      std::make_shared<std::string>(kBucketName);
+  list_blobs_context_.request->blob_name =
+      std::make_shared<std::string>("blob_");
+  list_blobs_context_.request->marker =
+      std::make_shared<std::string>(kBlobName1);
 
   EXPECT_CALL(*mock_client_, ListObjects(ListObjectsRequestEqualWithOffset(
                                  kBucketName, "blob_", kBlobName1)))
@@ -512,9 +515,11 @@ TEST_F(GcpCloudStorageClientTest, ListBlobsWithMarker) {
 
 TEST_F(GcpCloudStorageClientTest, ListBlobsWithMarkerSkipsFirstObject) {
   list_blobs_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  list_blobs_context_.request->blob_name = make_shared<std::string>("blob_");
-  list_blobs_context_.request->marker = make_shared<std::string>(kBlobName1);
+      std::make_shared<std::string>(kBucketName);
+  list_blobs_context_.request->blob_name =
+      std::make_shared<std::string>("blob_");
+  list_blobs_context_.request->marker =
+      std::make_shared<std::string>(kBlobName1);
 
   EXPECT_CALL(*mock_client_, ListObjects(ListObjectsRequestEqualWithOffset(
                                  kBucketName, "blob_", kBlobName1)))
@@ -558,8 +563,9 @@ MATCHER(BlobsEqual, "") {
 
 TEST_F(GcpCloudStorageClientTest, ListBlobsReturnsMarkerAndEnforcesPageSize) {
   list_blobs_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  list_blobs_context_.request->blob_name = make_shared<std::string>("blob_");
+      std::make_shared<std::string>(kBucketName);
+  list_blobs_context_.request->blob_name =
+      std::make_shared<std::string>("blob_");
 
   // Make a JSON object with items named 1 to 1005.
   std::string items_str;
@@ -586,8 +592,8 @@ TEST_F(GcpCloudStorageClientTest, ListBlobsReturnsMarkerAndEnforcesPageSize) {
     expected_blobs.reserve(1000);
     for (int64_t i = 1; i <= 1000; i++) {
       expected_blobs.push_back(
-          Blob{make_shared<std::string>(kBucketName),
-               make_shared<std::string>(absl::StrCat("blob_", i))});
+          Blob{std::make_shared<std::string>(kBucketName),
+               std::make_shared<std::string>(absl::StrCat("blob_", i))});
     }
     EXPECT_THAT(context.response->blobs,
                 Pointee(Pointwise(BlobsEqual(), expected_blobs)));
@@ -604,8 +610,9 @@ TEST_F(GcpCloudStorageClientTest, ListBlobsReturnsMarkerAndEnforcesPageSize) {
 
 TEST_F(GcpCloudStorageClientTest, ListBlobsPropagatesFailure) {
   list_blobs_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  list_blobs_context_.request->blob_name = make_shared<std::string>("blob_");
+      std::make_shared<std::string>(kBucketName);
+  list_blobs_context_.request->blob_name =
+      std::make_shared<std::string>("blob_");
 
   EXPECT_CALL(*mock_client_, ListObjects(ListObjectsRequestEqualNoOffset(
                                  kBucketName, "blob_")))
@@ -653,8 +660,9 @@ MATCHER_P(InsertObjectRequestEquals, expected_request, "") {
 
 TEST_F(GcpCloudStorageClientTest, PutBlob) {
   put_blob_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  put_blob_context_.request->blob_name = make_shared<std::string>(kBlobName1);
+      std::make_shared<std::string>(kBucketName);
+  put_blob_context_.request->blob_name =
+      std::make_shared<std::string>(kBlobName1);
 
   // We add additional capacity to the BytesBuffer to ensure that
   // BytesBuffer::capacity should not be used but BytesBuffer::length should.
@@ -690,12 +698,13 @@ TEST_F(GcpCloudStorageClientTest, PutBlob) {
 
 TEST_F(GcpCloudStorageClientTest, PutBlobPropagatesFailure) {
   put_blob_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
-  put_blob_context_.request->blob_name = make_shared<std::string>(kBlobName1);
+      std::make_shared<std::string>(kBucketName);
+  put_blob_context_.request->blob_name =
+      std::make_shared<std::string>(kBlobName1);
 
   std::string bytes_str = "put_string";
   put_blob_context_.request->buffer =
-      make_shared<BytesBuffer>(bytes_str.length());
+      std::make_shared<BytesBuffer>(bytes_str.length());
   put_blob_context_.request->buffer->bytes->assign(bytes_str.begin(),
                                                    bytes_str.end());
   put_blob_context_.request->buffer->length = bytes_str.length();
@@ -740,9 +749,9 @@ MATCHER_P2(DeleteObjectRequestEquals, bucket_name, blob_name, "") {
 
 TEST_F(GcpCloudStorageClientTest, DeleteBlob) {
   delete_blob_context_.request->bucket_name =
-      make_shared<std::string>(kBucketName);
+      std::make_shared<std::string>(kBucketName);
   delete_blob_context_.request->blob_name =
-      make_shared<std::string>(kBlobName1);
+      std::make_shared<std::string>(kBlobName1);
 
   EXPECT_CALL(*mock_client_,
               DeleteObject(DeleteObjectRequestEquals(kBucketName, kBlobName1)))

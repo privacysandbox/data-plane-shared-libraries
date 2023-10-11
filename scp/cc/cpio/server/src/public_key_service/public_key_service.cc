@@ -84,11 +84,7 @@ using std::bind;
 using std::cout;
 using std::endl;
 using std::list;
-using std::make_shared;
-using std::make_unique;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -104,10 +100,10 @@ constexpr char kHttpClientName[] = "http_client";
 constexpr char kPublicKeyClientName[] = "public_key_client";
 }  // namespace
 
-shared_ptr<ConfigProviderInterface> config_provider;
-shared_ptr<AsyncExecutorInterface> async_executor;
-shared_ptr<HttpClientInterface> http_client;
-shared_ptr<PublicKeyClientProviderInterface> public_key_client;
+std::shared_ptr<ConfigProviderInterface> config_provider;
+std::shared_ptr<AsyncExecutorInterface> async_executor;
+std::shared_ptr<HttpClientInterface> http_client;
+std::shared_ptr<PublicKeyClientProviderInterface> public_key_client;
 
 class PublicKeyServiceImpl : public PublicKeyService::CallbackService {
  public:
@@ -174,19 +170,19 @@ void RunClients() {
            .Successful()) {
     io_thread_pool_queue_cap = kDefaultIoThreadPoolQueueCap;
   }
-  async_executor =
-      make_shared<AsyncExecutor>(io_thread_count, io_thread_pool_queue_cap);
+  async_executor = std::make_shared<AsyncExecutor>(io_thread_count,
+                                                   io_thread_pool_queue_cap);
   Init(async_executor, kAsyncExecutorName);
   Run(async_executor, kAsyncExecutorName);
 
-  http_client = make_shared<HttpClient>(async_executor);
+  http_client = std::make_shared<HttpClient>(async_executor);
   list<std::string> public_key_vending_service_endpoints;
   ReadConfigStringList(config_provider, kPublicKeyVendingServiceEndpoints,
                        public_key_vending_service_endpoints);
   Init(http_client, kHttpClientName);
   Run(http_client, kHttpClientName);
 
-  auto options = make_shared<PublicKeyClientOptions>();
+  auto options = std::make_shared<PublicKeyClientOptions>();
   options->endpoints =
       std::vector<std::string>(public_key_vending_service_endpoints.begin(),
                                public_key_vending_service_endpoints.end());

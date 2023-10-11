@@ -59,9 +59,6 @@ using google::scp::core::utils::Base64Decode;
 using google::scp::cpio::common::CreateClientConfiguration;
 using std::array;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::placeholders::_1;
 
 /// Filename for logging errors
@@ -157,9 +154,9 @@ ExecutionResult TeeAwsKmsClientProvider::Decrypt(
     return execution_result;
   }
 
-  auto get_credentials_request = make_shared<GetRoleCredentialsRequest>();
+  auto get_credentials_request = std::make_shared<GetRoleCredentialsRequest>();
   get_credentials_request->account_identity =
-      make_shared<AccountIdentity>(assume_role_arn);
+      std::make_shared<AccountIdentity>(assume_role_arn);
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_session_credentials_context(
           std::move(get_credentials_request),
@@ -214,7 +211,7 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
     return;
   }
 
-  auto kms_decrypt_response = make_shared<DecryptResponse>();
+  auto kms_decrypt_response = std::make_shared<DecryptResponse>();
   kms_decrypt_response->set_plaintext(std::move(decoded_plaintext));
   decrypt_context.response = kms_decrypt_response;
   decrypt_context.result = SuccessExecutionResult();
@@ -263,12 +260,12 @@ ExecutionResult TeeAwsKmsClientProvider::DecryptUsingEnclavesKmstoolCli(
 
 #ifndef TEST_CPIO
 std::shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    const shared_ptr<KmsClientOptions>& options,
-    const shared_ptr<RoleCredentialsProviderInterface>&
+    const std::shared_ptr<KmsClientOptions>& options,
+    const std::shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider,
-    const shared_ptr<core::AsyncExecutorInterface>&
+    const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  return make_shared<TeeAwsKmsClientProvider>(role_credentials_provider);
+  return std::make_shared<TeeAwsKmsClientProvider>(role_credentials_provider);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

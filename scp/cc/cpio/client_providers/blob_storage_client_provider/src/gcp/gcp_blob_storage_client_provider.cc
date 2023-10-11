@@ -109,10 +109,8 @@ using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 
 using std::bind;
 using std::ios_base;
-using std::make_shared;
 using std::min;
 using std::ref;
-using std::shared_ptr;
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::minutes;
@@ -250,7 +248,7 @@ void GcpBlobStorageClientProvider::GetBlobInternal(
                      get_blob_context.request->byte_range().begin_byte_index();
   }
 
-  get_blob_context.response = make_shared<GetBlobResponse>();
+  get_blob_context.response = std::make_shared<GetBlobResponse>();
   get_blob_context.response->mutable_blob()->mutable_metadata()->CopyFrom(
       get_blob_context.request->blob_metadata());
 
@@ -311,7 +309,7 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlobStream(
 void GcpBlobStorageClientProvider::GetBlobStreamInternal(
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>
         get_blob_stream_context,
-    shared_ptr<GetBlobStreamTracker> tracker) noexcept {
+    std::shared_ptr<GetBlobStreamTracker> tracker) noexcept {
   if (!tracker) {
     auto tracker_or = InitGetBlobStreamTracker(get_blob_stream_context);
     if (!tracker_or.Successful()) return;
@@ -380,7 +378,7 @@ void GcpBlobStorageClientProvider::GetBlobStreamInternal(
 }
 
 ExecutionResultOr<
-    shared_ptr<GcpBlobStorageClientProvider::GetBlobStreamTracker>>
+    std::shared_ptr<GcpBlobStorageClientProvider::GetBlobStreamTracker>>
 GcpBlobStorageClientProvider::InitGetBlobStreamTracker(
     core::ConsumerStreamingContext<
         cmrt::sdk::blob_storage_service::v1::GetBlobStreamRequest,
@@ -388,7 +386,7 @@ GcpBlobStorageClientProvider::InitGetBlobStreamTracker(
         context) noexcept {
   Client cloud_storage_client(*cloud_storage_client_shared_);
   // Set up the tracker to the beginning.
-  auto tracker = make_shared<GetBlobStreamTracker>();
+  auto tracker = std::make_shared<GetBlobStreamTracker>();
   ReadRange read_range;
   if (context.request->has_byte_range()) {
     // ReadRange is right-open and ByteRange::end_byte_index is said to be
@@ -527,7 +525,7 @@ void GcpBlobStorageClientProvider::ListBlobsMetadataInternal(
           StartOffset(request.page_token()), max_results);
     }
   }();
-  list_blobs_context.response = make_shared<ListBlobsMetadataResponse>();
+  list_blobs_context.response = std::make_shared<ListBlobsMetadataResponse>();
 
   // GCP pagination happens through the iterator. All results are returned.
   for (auto&& object_metadata : objects_reader) {
@@ -624,7 +622,7 @@ void GcpBlobStorageClientProvider::PutBlobInternal(
     FinishContext(execution_result, put_blob_context, cpu_async_executor_);
     return;
   }
-  put_blob_context.response = make_shared<PutBlobResponse>();
+  put_blob_context.response = std::make_shared<PutBlobResponse>();
   FinishContext(SuccessExecutionResult(), put_blob_context,
                 cpu_async_executor_);
 }
@@ -667,7 +665,7 @@ void GcpBlobStorageClientProvider::InitPutBlobStream(
         put_blob_stream_context) noexcept {
   Client cloud_storage_client(*cloud_storage_client_shared_);
   const auto& request = *put_blob_stream_context.request;
-  auto tracker = make_shared<PutBlobStreamTracker>();
+  auto tracker = std::make_shared<PutBlobStreamTracker>();
   auto duration = request.has_stream_keepalive_duration()
                       ? nanoseconds(TimeUtil::DurationToNanoseconds(
                             request.stream_keepalive_duration()))
@@ -712,7 +710,7 @@ void GcpBlobStorageClientProvider::RestoreUploadIfSuspended(
 void GcpBlobStorageClientProvider::PutBlobStreamInternal(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>
         put_blob_stream_context,
-    shared_ptr<PutBlobStreamTracker> tracker) noexcept {
+    std::shared_ptr<PutBlobStreamTracker> tracker) noexcept {
   Client cloud_storage_client(*cloud_storage_client_shared_);
 
   if (put_blob_stream_context.IsCancelled()) {
@@ -749,7 +747,8 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
             object_metadata.status().code(),
             object_metadata.status().message().c_str());
       }
-      put_blob_stream_context.response = make_shared<PutBlobStreamResponse>();
+      put_blob_stream_context.response =
+          std::make_shared<PutBlobStreamResponse>();
       FinishStreamingContext(result, put_blob_stream_context,
                              cpu_async_executor_);
       return;
@@ -873,13 +872,13 @@ void GcpBlobStorageClientProvider::DeleteBlobInternal(
     FinishContext(execution_result, delete_blob_context, cpu_async_executor_);
     return;
   }
-  delete_blob_context.response = make_shared<DeleteBlobResponse>();
+  delete_blob_context.response = std::make_shared<DeleteBlobResponse>();
   FinishContext(SuccessExecutionResult(), delete_blob_context,
                 cpu_async_executor_);
 }
 
 Options GcpCloudStorageFactory::CreateClientOptions(
-    shared_ptr<BlobStorageClientOptions> options,
+    std::shared_ptr<BlobStorageClientOptions> options,
     const std::string& project_id) noexcept {
   Options client_options;
   client_options.set<ProjectIdOption>(project_id);
@@ -893,22 +892,22 @@ Options GcpCloudStorageFactory::CreateClientOptions(
   return client_options;
 }
 
-core::ExecutionResultOr<shared_ptr<Client>>
+core::ExecutionResultOr<std::shared_ptr<Client>>
 GcpCloudStorageFactory::CreateClient(
-    shared_ptr<BlobStorageClientOptions> options,
+    std::shared_ptr<BlobStorageClientOptions> options,
     const std::string& project_id) noexcept {
-  return make_shared<Client>(CreateClientOptions(options, project_id));
+  return std::make_shared<Client>(CreateClientOptions(options, project_id));
 }
 
 #ifndef TEST_CPIO
-shared_ptr<BlobStorageClientProviderInterface>
+std::shared_ptr<BlobStorageClientProviderInterface>
 BlobStorageClientProviderFactory::Create(
-    shared_ptr<BlobStorageClientOptions> options,
-    shared_ptr<InstanceClientProviderInterface> instance_client,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>&
+    std::shared_ptr<BlobStorageClientOptions> options,
+    std::shared_ptr<InstanceClientProviderInterface> instance_client,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  return make_shared<GcpBlobStorageClientProvider>(
+  return std::make_shared<GcpBlobStorageClientProvider>(
       options, instance_client, cpu_async_executor, io_async_executor);
 }
 #endif

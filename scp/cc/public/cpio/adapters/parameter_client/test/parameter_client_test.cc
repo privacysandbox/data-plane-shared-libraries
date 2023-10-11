@@ -44,18 +44,14 @@ using google::scp::cpio::ParameterClient;
 using google::scp::cpio::ParameterClientOptions;
 using google::scp::cpio::mock::MockParameterClientWithOverrides;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::cpio::test {
 class ParameterClientTest : public ::testing::Test {
  protected:
   ParameterClientTest() {
-    auto parameter_client_options = make_shared<ParameterClientOptions>();
-    client_ =
-        make_unique<MockParameterClientWithOverrides>(parameter_client_options);
+    auto parameter_client_options = std::make_shared<ParameterClientOptions>();
+    client_ = std::make_unique<MockParameterClientWithOverrides>(
+        parameter_client_options);
 
     EXPECT_THAT(client_->Init(), IsSuccessful());
     EXPECT_THAT(client_->Run(), IsSuccessful());
@@ -63,14 +59,14 @@ class ParameterClientTest : public ::testing::Test {
 
   ~ParameterClientTest() { EXPECT_THAT(client_->Stop(), IsSuccessful()); }
 
-  unique_ptr<MockParameterClientWithOverrides> client_;
+  std::unique_ptr<MockParameterClientWithOverrides> client_;
 };
 
 TEST_F(ParameterClientTest, GetParameterSuccess) {
   EXPECT_CALL(*client_->GetParameterClientProvider(), GetParameter)
       .WillOnce([=](AsyncContext<GetParameterRequest, GetParameterResponse>&
                         context) {
-        context.response = make_shared<GetParameterResponse>();
+        context.response = std::make_shared<GetParameterResponse>();
         context.result = SuccessExecutionResult();
         context.Finish();
         return SuccessExecutionResult();

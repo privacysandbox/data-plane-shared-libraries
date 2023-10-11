@@ -53,8 +53,6 @@ using Aws::SSM::SSMClient;
 using Aws::SSM::Model::GetParametersRequest;
 using Aws::SSM::Model::PutParameterRequest;
 using Aws::Utils::CryptoBuffer;
-using std::make_shared;
-using std::shared_ptr;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -66,9 +64,9 @@ constexpr int kRequestTimeoutMs = 12000;
 constexpr int kReadWriteCapacity = 10;
 
 namespace google::scp::core::test {
-shared_ptr<ClientConfiguration> CreateClientConfiguration(
+std::shared_ptr<ClientConfiguration> CreateClientConfiguration(
     const std::string& endpoint, const std::string& region) {
-  auto config = make_shared<ClientConfiguration>();
+  auto config = std::make_shared<ClientConfiguration>();
   config->region = region;
   config->scheme = Aws::Http::Scheme::HTTP;
   config->connectTimeoutMs = kConnectTimeoutMs;
@@ -77,13 +75,13 @@ shared_ptr<ClientConfiguration> CreateClientConfiguration(
   return config;
 }
 
-shared_ptr<DynamoDBClient> CreateDynamoDbClient(const std::string& endpoint,
-                                                const std::string& region) {
-  return make_shared<DynamoDBClient>(
+std::shared_ptr<DynamoDBClient> CreateDynamoDbClient(
+    const std::string& endpoint, const std::string& region) {
+  return std::make_shared<DynamoDBClient>(
       *CreateClientConfiguration(endpoint, region));
 }
 
-void CreateTable(const shared_ptr<DynamoDBClient>& dynamo_db_client,
+void CreateTable(const std::shared_ptr<DynamoDBClient>& dynamo_db_client,
                  const std::string& table_name,
                  const std::vector<AttributeDefinition>& attributes,
                  const std::vector<KeySchemaElement>& schemas) {
@@ -112,16 +110,16 @@ void CreateTable(const shared_ptr<DynamoDBClient>& dynamo_db_client,
   }
 }
 
-shared_ptr<S3Client> CreateS3Client(const std::string& endpoint,
-                                    const std::string& region) {
+std::shared_ptr<S3Client> CreateS3Client(const std::string& endpoint,
+                                         const std::string& region) {
   // Should disable virtual host, otherwise, our path-style url will not work.
-  return make_shared<S3Client>(
+  return std::make_shared<S3Client>(
       *CreateClientConfiguration(endpoint, region),
       Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never,
       /* use virtual host */ false);
 }
 
-void CreateBucket(const shared_ptr<S3Client>& s3_client,
+void CreateBucket(const std::shared_ptr<S3Client>& s3_client,
                   const std::string& bucket_name) {
   CreateBucketRequest request;
   request.SetBucket(bucket_name.c_str());
@@ -138,7 +136,8 @@ void CreateBucket(const shared_ptr<S3Client>& s3_client,
 
 std::shared_ptr<SSMClient> CreateSSMClient(const std::string& endpoint,
                                            const std::string& region) {
-  return make_shared<SSMClient>(*CreateClientConfiguration(endpoint, region));
+  return std::make_shared<SSMClient>(
+      *CreateClientConfiguration(endpoint, region));
 }
 
 void PutParameter(const std::shared_ptr<SSMClient>& ssm_client,
@@ -178,13 +177,14 @@ std::string GetParameter(const std::shared_ptr<SSMClient>& ssm_client,
   }
 }
 
-shared_ptr<KMSClient> CreateKMSClient(const std::string& endpoint,
-                                      const std::string& region) {
-  return make_shared<KMSClient>(*CreateClientConfiguration(endpoint, region));
+std::shared_ptr<KMSClient> CreateKMSClient(const std::string& endpoint,
+                                           const std::string& region) {
+  return std::make_shared<KMSClient>(
+      *CreateClientConfiguration(endpoint, region));
 }
 
-void CreateKey(const shared_ptr<KMSClient>& kms_client, std::string& key_id,
-               std::string& key_resource_name) {
+void CreateKey(const std::shared_ptr<KMSClient>& kms_client,
+               std::string& key_id, std::string& key_resource_name) {
   CreateKeyRequest request;
 
   // Needs to retry until succeeded.

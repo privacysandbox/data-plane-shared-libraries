@@ -50,8 +50,6 @@ using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_CREATE_AEAD_FAILED;
 using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED;
 using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
-using std::make_shared;
-using std::shared_ptr;
 
 /// Filename for logging errors
 static constexpr char kGcpKmsClientProvider[] = "GcpKmsClientProvider";
@@ -131,21 +129,22 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
     decrypt_context.Finish();
     return decrypt_context.result;
   }
-  decrypt_context.response = make_shared<DecryptResponse>();
+  decrypt_context.response = std::make_shared<DecryptResponse>();
   decrypt_context.response->set_plaintext(std::move(*decrypt_or));
   decrypt_context.result = SuccessExecutionResult();
   decrypt_context.Finish();
   return SuccessExecutionResult();
 }
 
-ExecutionResultOr<shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
+ExecutionResultOr<std::shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
     const std::string& wip_provider,
     const std::string& service_account_to_impersonate,
     const std::string& key_arn) noexcept {
   auto key_management_service_client = CreateKeyManagementServiceClient(
       wip_provider, service_account_to_impersonate);
   auto gcp_key_management_service_client =
-      make_shared<GcpKeyManagementServiceClient>(key_management_service_client);
+      std::make_shared<GcpKeyManagementServiceClient>(
+          key_management_service_client);
 
   auto aead_result =
       GcpKmsAead::New(key_arn, gcp_key_management_service_client);
@@ -160,12 +159,12 @@ ExecutionResultOr<shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
 }
 
 #ifndef TEST_CPIO
-shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    const shared_ptr<KmsClientOptions>& options,
-    const shared_ptr<RoleCredentialsProviderInterface>&
+std::shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
+    const std::shared_ptr<KmsClientOptions>& options,
+    const std::shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  return make_shared<GcpKmsClientProvider>();
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+  return std::make_shared<GcpKmsClientProvider>();
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

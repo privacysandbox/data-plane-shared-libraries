@@ -29,16 +29,12 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::client_providers::CpioProviderFactory;
 using google::scp::cpio::client_providers::CpioProviderInterface;
 using google::scp::cpio::client_providers::GlobalCpio;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::cpio {
 ExecutionResult CpioUtils::RunAndSetGlobalCpio(
-    unique_ptr<CpioProviderInterface> cpio_ptr,
-    const shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) {
+    std::unique_ptr<CpioProviderInterface> cpio_ptr,
+    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
   RETURN_IF_FAILURE(cpio_ptr->Init());
   RETURN_IF_FAILURE(cpio_ptr->Run());
   if (cpu_async_executor) {

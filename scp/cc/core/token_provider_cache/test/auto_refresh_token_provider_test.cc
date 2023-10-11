@@ -29,10 +29,6 @@
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
@@ -56,24 +52,24 @@ class AutoRefreshTokenProviderTest : public testing::Test {
  protected:
   AutoRefreshTokenProviderTest()
       : async_executor_(
-            make_shared<AsyncExecutor>(2, 1000, true /* drop tasks */)),
+            std::make_shared<AsyncExecutor>(2, 1000, true /* drop tasks */)),
         token_fetcher_(nullptr) {
     EXPECT_SUCCESS(async_executor_->Init());
     EXPECT_SUCCESS(async_executor_->Run());
 
-    auto token_fetcher_mock = make_unique<TokenFetcherMock>();
+    auto token_fetcher_mock = std::make_unique<TokenFetcherMock>();
     // Explicit fetching of raw pointer for test. In prod, this will not be done
     // since token fetcher is going to be owned & used by a single component.
     token_fetcher_ = token_fetcher_mock.get();
-    token_provider_ = make_unique<AutoRefreshTokenProviderService>(
+    token_provider_ = std::make_unique<AutoRefreshTokenProviderService>(
         std::move(token_fetcher_mock), async_executor_);
   }
 
   void TearDown() override { EXPECT_SUCCESS(async_executor_->Stop()); }
 
-  shared_ptr<AsyncExecutor> async_executor_;
+  std::shared_ptr<AsyncExecutor> async_executor_;
   TokenFetcherMock* token_fetcher_;
-  unique_ptr<AutoRefreshTokenProviderService> token_provider_;
+  std::unique_ptr<AutoRefreshTokenProviderService> token_provider_;
 };
 
 TEST_F(AutoRefreshTokenProviderTest, StartStopWithTokenFailure) {
@@ -92,7 +88,7 @@ TEST_F(AutoRefreshTokenProviderTest, StartStopWithTokenSuccess) {
   EXPECT_CALL(*token_fetcher_, FetchToken)
       .WillRepeatedly(
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
-            context.response = make_shared<FetchTokenResponse>();
+            context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds =
                 seconds(1);  // 1 second expiry
@@ -105,7 +101,7 @@ TEST_F(AutoRefreshTokenProviderTest, StartStopWithTokenSuccess) {
 }
 
 TEST_F(AutoRefreshTokenProviderTest, TokenIsInvalidToStart) {
-  shared_ptr<Token> token;
+  std::shared_ptr<Token> token;
   EXPECT_THAT(token_provider_->GetToken(),
               ResultIs(FailureExecutionResult(
                   errors::SC_AUTO_REFRESH_TOKEN_PROVIDER_TOKEN_NOT_AVAILABLE)));
@@ -116,7 +112,7 @@ TEST_F(AutoRefreshTokenProviderTest, RunStartsTokenRefresh) {
   EXPECT_CALL(*token_fetcher_, FetchToken)
       .WillOnce(
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
-            context.response = make_shared<FetchTokenResponse>();
+            context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds = seconds(1234567);
             called = true;
@@ -132,14 +128,14 @@ TEST_F(AutoRefreshTokenProviderTest, QueryFailureRetriesRefresh) {
   EXPECT_CALL(*token_fetcher_, FetchToken)
       .WillOnce(
           [](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
-            context.response = make_shared<FetchTokenResponse>();
+            context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds = seconds(1234567);
             return FailureExecutionResult(1234);
           })
       .WillOnce(
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
-            context.response = make_shared<FetchTokenResponse>();
+            context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds = seconds(1234567);
             called = true;
@@ -154,7 +150,7 @@ TEST_F(AutoRefreshTokenProviderTest, QueryCallbackFailureRetriesRefresh) {
   EXPECT_CALL(*token_fetcher_, FetchToken)
       .WillOnce(
           [](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
-            context.response = make_shared<FetchTokenResponse>();
+            context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds = seconds(1234567);
             context.result = FailureExecutionResult(1234);
@@ -163,7 +159,7 @@ TEST_F(AutoRefreshTokenProviderTest, QueryCallbackFailureRetriesRefresh) {
           })
       .WillOnce(
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
-            context.response = make_shared<FetchTokenResponse>();
+            context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds = seconds(1234567);
             called = true;
@@ -177,7 +173,7 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndRefreshed) {
   EXPECT_CALL(*token_fetcher_, FetchToken)
       .WillOnce(
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
-            context.response = make_shared<FetchTokenResponse>();
+            context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds =
                 seconds(1);  // 1 second expiry
@@ -187,7 +183,7 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndRefreshed) {
           })
       .WillOnce(
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
-            context.response = make_shared<FetchTokenResponse>();
+            context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "def";
             context.response->token_lifetime_in_seconds = seconds(360);
             context.result = SuccessExecutionResult();
@@ -197,7 +193,7 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndRefreshed) {
 
   EXPECT_THAT(token_provider_->Run(), ResultIs(SuccessExecutionResult()));
 
-  ExecutionResultOr<shared_ptr<Token>> token_or;
+  ExecutionResultOr<std::shared_ptr<Token>> token_or;
   do {
     token_or = token_provider_->GetToken();
     sleep_for(milliseconds(100));
@@ -220,7 +216,7 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndResetIfTokenFetchFails) {
   EXPECT_CALL(*token_fetcher_, FetchToken)
       .WillOnce(
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
-            context.response = make_shared<FetchTokenResponse>();
+            context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds =
                 seconds(1);  // 1 second expiry
@@ -237,7 +233,7 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndResetIfTokenFetchFails) {
 
   EXPECT_THAT(token_provider_->Run(), ResultIs(SuccessExecutionResult()));
 
-  ExecutionResultOr<shared_ptr<Token>> token_or;
+  ExecutionResultOr<std::shared_ptr<Token>> token_or;
   do {
     token_or = token_provider_->GetToken();
     sleep_for(milliseconds(100));

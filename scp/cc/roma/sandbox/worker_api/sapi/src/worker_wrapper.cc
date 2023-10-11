@@ -52,16 +52,14 @@ using google::scp::roma::sandbox::constants::kExecutionMetricJsEngineCallNs;
 using google::scp::roma::sandbox::worker::Worker;
 using google::scp::roma::sandbox::worker::WorkerFactory;
 using sandbox2::Buffer;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace {
 // the pointer of the data shared sandbox2::Buffer which is used to share
 // data between the host process and the sandboxee.
-unique_ptr<Buffer> sandbox_data_shared_buffer_ptr_{nullptr};
+std::unique_ptr<Buffer> sandbox_data_shared_buffer_ptr_{nullptr};
 size_t request_and_response_data_buffer_size_bytes_{0};
 
-shared_ptr<Worker> worker_{nullptr};
+std::shared_ptr<Worker> worker_{nullptr};
 
 StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   if (worker_) {

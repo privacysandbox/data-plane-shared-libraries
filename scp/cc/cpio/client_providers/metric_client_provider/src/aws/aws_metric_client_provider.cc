@@ -67,8 +67,6 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -84,10 +82,11 @@ static constexpr char kAwsMetricClientProvider[] = "AwsMetricClientProvider";
 
 namespace google::scp::cpio::client_providers {
 void AwsMetricClientProvider::CreateClientConfiguration(
-    const shared_ptr<std::string>& region,
-    shared_ptr<ClientConfiguration>& client_config) noexcept {
+    const std::shared_ptr<std::string>& region,
+    std::shared_ptr<ClientConfiguration>& client_config) noexcept {
   client_config = common::CreateClientConfiguration(region);
-  client_config->executor = make_shared<AwsAsyncExecutor>(io_async_executor_);
+  client_config->executor =
+      std::make_shared<AwsAsyncExecutor>(io_async_executor_);
   client_config->maxConnections = kCloudwatchMaxConcurrentConnections;
 }
 
@@ -111,17 +110,17 @@ ExecutionResult AwsMetricClientProvider::Run() noexcept {
   SCP_INFO(kAwsMetricClientProvider, kZeroUuid, "GetCurrentRegionCode: %s",
            region_code_or->c_str());
 
-  shared_ptr<ClientConfiguration> client_config;
+  std::shared_ptr<ClientConfiguration> client_config;
   CreateClientConfiguration(
-      make_shared<std::string>(std::move(*region_code_or)), client_config);
+      std::make_shared<std::string>(std::move(*region_code_or)), client_config);
 
-  cloud_watch_client_ = make_shared<CloudWatchClient>(*client_config);
+  cloud_watch_client_ = std::make_shared<CloudWatchClient>(*client_config);
 
   return SuccessExecutionResult();
 }
 
 ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
-    const shared_ptr<
+    const std::shared_ptr<
         std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&
         metric_requests_vector) noexcept {
   if (metric_requests_vector->empty()) {
@@ -224,11 +223,11 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
         metric_requests_vector,
     const CloudWatchClient*, const PutMetricDataRequest&,
     const PutMetricDataOutcome& outcome,
-    const shared_ptr<const AsyncCallerContext>&) noexcept {
+    const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   active_push_count_--;
   if (outcome.IsSuccess()) {
     for (auto& record_metric_context : metric_requests_vector) {
-      record_metric_context.response = make_shared<PutMetricsResponse>();
+      record_metric_context.response = std::make_shared<PutMetricsResponse>();
       FinishContext(SuccessExecutionResult(), record_metric_context,
                     async_executor_);
     }
@@ -250,11 +249,12 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
 
 #ifndef TEST_CPIO
 std::shared_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
-    const shared_ptr<MetricClientOptions>& options,
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<AsyncExecutorInterface>& async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) {
-  return make_shared<AwsMetricClientProvider>(
+    const std::shared_ptr<MetricClientOptions>& options,
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
+  return std::make_shared<AwsMetricClientProvider>(
       options, instance_client_provider, async_executor, io_async_executor);
 }
 #endif

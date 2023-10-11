@@ -50,18 +50,15 @@ using google::scp::cpio::CryptoClientOptions;
 using google::scp::cpio::client_providers::mock::MockCryptoClientProvider;
 using google::scp::cpio::mock::MockCryptoClientWithOverrides;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::Return;
 
 namespace google::scp::cpio::test {
 class CryptoClientTest : public ::testing::Test {
  protected:
   CryptoClientTest() {
-    auto crypto_client_options = make_shared<CryptoClientOptions>();
-    client_ = make_unique<MockCryptoClientWithOverrides>(crypto_client_options);
+    auto crypto_client_options = std::make_shared<CryptoClientOptions>();
+    client_ =
+        std::make_unique<MockCryptoClientWithOverrides>(crypto_client_options);
 
     EXPECT_CALL(*client_->GetCryptoClientProvider(), Init)
         .WillOnce(Return(SuccessExecutionResult()));
@@ -76,14 +73,14 @@ class CryptoClientTest : public ::testing::Test {
 
   ~CryptoClientTest() { EXPECT_THAT(client_->Stop(), IsSuccessful()); }
 
-  unique_ptr<MockCryptoClientWithOverrides> client_;
+  std::unique_ptr<MockCryptoClientWithOverrides> client_;
 };
 
 TEST_F(CryptoClientTest, HpkeEncryptSuccess) {
   EXPECT_CALL(*client_->GetCryptoClientProvider(), HpkeEncrypt)
       .WillOnce(
           [=](AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>& context) {
-            context.response = make_shared<HpkeEncryptResponse>();
+            context.response = std::make_shared<HpkeEncryptResponse>();
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();
@@ -125,7 +122,7 @@ TEST_F(CryptoClientTest, HpkeDecryptSuccess) {
   EXPECT_CALL(*client_->GetCryptoClientProvider(), HpkeDecrypt)
       .WillOnce(
           [=](AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>& context) {
-            context.response = make_shared<HpkeDecryptResponse>();
+            context.response = std::make_shared<HpkeDecryptResponse>();
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();
@@ -167,7 +164,7 @@ TEST_F(CryptoClientTest, AeadEncryptSuccess) {
   EXPECT_CALL(*client_->GetCryptoClientProvider(), AeadEncrypt)
       .WillOnce(
           [=](AsyncContext<AeadEncryptRequest, AeadEncryptResponse>& context) {
-            context.response = make_shared<AeadEncryptResponse>();
+            context.response = std::make_shared<AeadEncryptResponse>();
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();
@@ -209,7 +206,7 @@ TEST_F(CryptoClientTest, AeadDecryptSuccess) {
   EXPECT_CALL(*client_->GetCryptoClientProvider(), AeadDecrypt)
       .WillOnce(
           [=](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {
-            context.response = make_shared<AeadDecryptResponse>();
+            context.response = std::make_shared<AeadDecryptResponse>();
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();

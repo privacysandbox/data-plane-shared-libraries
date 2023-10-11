@@ -114,9 +114,7 @@ using google::scp::core::utils::Base64Encode;
 using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using std::bind;
-using std::make_shared;
 using std::optional;
-using std::shared_ptr;
 using std::chrono::duration_cast;
 using std::chrono::minutes;
 using std::chrono::nanoseconds;
@@ -202,12 +200,12 @@ GetObjectRequest MakeGetObjectRequest(const ProtoRequest& proto_request,
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-shared_ptr<ClientConfiguration>
+std::shared_ptr<ClientConfiguration>
 AwsBlobStorageClientProvider::CreateClientConfiguration(
     const std::string& region) noexcept {
   return common::CreateClientConfiguration(
 
-      make_shared<std::string>(std::move(region)));
+      std::make_shared<std::string>(std::move(region)));
 }
 
 ExecutionResult AwsBlobStorageClientProvider::Init() noexcept {
@@ -264,7 +262,7 @@ void AwsBlobStorageClientProvider::OnGetObjectCallback(
     AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context,
     const S3Client* s3_client, const GetObjectRequest& get_object_request,
     GetObjectOutcome get_object_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!get_object_outcome.IsSuccess()) {
     get_blob_context.result =
         AwsBlobStorageClientUtils::ConvertS3ErrorToExecutionResult(
@@ -283,7 +281,7 @@ void AwsBlobStorageClientProvider::OnGetObjectCallback(
   auto& body = result.GetBody();
   auto content_length = result.GetContentLength();
 
-  get_blob_context.response = make_shared<GetBlobResponse>();
+  get_blob_context.response = std::make_shared<GetBlobResponse>();
   get_blob_context.response->mutable_blob()->mutable_metadata()->CopyFrom(
       get_blob_context.request->blob_metadata());
   get_blob_context.response->mutable_blob()->mutable_data()->resize(
@@ -306,7 +304,7 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlobStream(
   RETURN_IF_FAILURE(ValidateGetBlobRequest(get_blob_stream_context));
   const auto& request = *get_blob_stream_context.request;
 
-  auto tracker = make_shared<GetBlobStreamTracker>();
+  auto tracker = std::make_shared<GetBlobStreamTracker>();
 
   tracker->max_bytes_per_response = request.max_bytes_per_response() == 0
                                         ? k64KbCount
@@ -348,10 +346,10 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlobStream(
 void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>&
         get_blob_stream_context,
-    shared_ptr<GetBlobStreamTracker> tracker, const S3Client* s3_client,
+    std::shared_ptr<GetBlobStreamTracker> tracker, const S3Client* s3_client,
     const GetObjectRequest& get_object_request,
     GetObjectOutcome get_object_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!get_object_outcome.IsSuccess()) {
     get_blob_stream_context.result =
         AwsBlobStorageClientUtils::ConvertS3ErrorToExecutionResult(
@@ -538,7 +536,7 @@ void AwsBlobStorageClientProvider::OnListObjectsMetadataCallback(
         list_blobs_metadata_context,
     const S3Client* s3_client, const ListObjectsRequest& list_objects_request,
     ListObjectsOutcome list_objects_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!list_objects_outcome.IsSuccess()) {
     list_blobs_metadata_context.result =
         AwsBlobStorageClientUtils::ConvertS3ErrorToExecutionResult(
@@ -555,7 +553,7 @@ void AwsBlobStorageClientProvider::OnListObjectsMetadataCallback(
   }
 
   list_blobs_metadata_context.response =
-      make_shared<ListBlobsMetadataResponse>();
+      std::make_shared<ListBlobsMetadataResponse>();
   auto* blob_metadatas =
       list_blobs_metadata_context.response->mutable_blob_metadatas();
   for (auto& object : list_objects_outcome.GetResult().GetContents()) {
@@ -626,7 +624,7 @@ void AwsBlobStorageClientProvider::OnPutObjectCallback(
     AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context,
     const S3Client* s3_client, const PutObjectRequest& put_object_request,
     PutObjectOutcome put_object_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!put_object_outcome.IsSuccess()) {
     put_blob_context.result =
         AwsBlobStorageClientUtils::ConvertS3ErrorToExecutionResult(
@@ -639,7 +637,7 @@ void AwsBlobStorageClientProvider::OnPutObjectCallback(
                   cpu_async_executor_, AsyncPriority::High);
     return;
   }
-  put_blob_context.response = make_shared<PutBlobResponse>();
+  put_blob_context.response = std::make_shared<PutBlobResponse>();
   put_blob_context.result = SuccessExecutionResult();
   FinishContext(put_blob_context.result, put_blob_context, cpu_async_executor_,
                 AsyncPriority::High);
@@ -681,7 +679,7 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
     const S3Client* s3_client,
     const CreateMultipartUploadRequest& create_multipart_upload_request,
     CreateMultipartUploadOutcome create_multipart_upload_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!create_multipart_upload_outcome.IsSuccess()) {
     put_blob_stream_context.result =
         AwsBlobStorageClientUtils::ConvertS3ErrorToExecutionResult(
@@ -698,7 +696,7 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
     return;
   }
   auto& request = *put_blob_stream_context.request;
-  auto tracker = make_shared<PutBlobStreamTracker>();
+  auto tracker = std::make_shared<PutBlobStreamTracker>();
   tracker->bucket_name = request.blob_portion().metadata().bucket_name();
   tracker->blob_name = request.blob_portion().metadata().blob_name();
   tracker->upload_id =
@@ -764,10 +762,10 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
 void AwsBlobStorageClientProvider::ScheduleAnotherPutBlobStreamPoll(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>&
         put_blob_stream_context,
-    shared_ptr<PutBlobStreamTracker> tracker, const S3Client* s3_client,
+    std::shared_ptr<PutBlobStreamTracker> tracker, const S3Client* s3_client,
     const UploadPartRequest& upload_part_request,
     UploadPartOutcome upload_part_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context,
+    const std::shared_ptr<const AsyncCallerContext> async_context,
     seconds rescan_time) {
   auto schedule_result = io_async_executor_->ScheduleFor(
       bind(&AwsBlobStorageClientProvider::OnUploadPartCallback, this,
@@ -787,10 +785,10 @@ void AwsBlobStorageClientProvider::ScheduleAnotherPutBlobStreamPoll(
 void AwsBlobStorageClientProvider::OnUploadPartCallback(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>&
         put_blob_stream_context,
-    shared_ptr<PutBlobStreamTracker> tracker, const S3Client* s3_client,
+    std::shared_ptr<PutBlobStreamTracker> tracker, const S3Client* s3_client,
     const UploadPartRequest& upload_part_request,
     UploadPartOutcome upload_part_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   // We get called in 2 ways:
   // 1. UploadPart succeeds
   // 2. The wakeup time has elapsed.
@@ -949,7 +947,7 @@ void AwsBlobStorageClientProvider::OnUploadPartCallback(
 void AwsBlobStorageClientProvider::CompleteUpload(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>&
         put_blob_stream_context,
-    shared_ptr<PutBlobStreamTracker> tracker) {
+    std::shared_ptr<PutBlobStreamTracker> tracker) {
   if (!tracker->accumulated_contents.empty()) {
     // We need to upload one final part with the accumulated contents.
     UploadPartRequest new_upload_request;
@@ -1000,7 +998,7 @@ void AwsBlobStorageClientProvider::OnCompleteMultipartUploadCallback(
     const S3Client* s3_client,
     const CompleteMultipartUploadRequest& complete_multipart_upload_request,
     CompleteMultipartUploadOutcome complete_multipart_upload_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   put_blob_stream_context.result = SuccessExecutionResult();
   if (!complete_multipart_upload_outcome.IsSuccess()) {
     put_blob_stream_context.result =
@@ -1013,7 +1011,7 @@ void AwsBlobStorageClientProvider::OnCompleteMultipartUploadCallback(
         complete_multipart_upload_outcome.GetError().GetResponseCode(),
         complete_multipart_upload_outcome.GetError().GetMessage().c_str());
   }
-  put_blob_stream_context.response = make_shared<PutBlobStreamResponse>();
+  put_blob_stream_context.response = std::make_shared<PutBlobStreamResponse>();
   FinishStreamingContext(put_blob_stream_context.result,
                          put_blob_stream_context, cpu_async_executor_,
                          AsyncPriority::High);
@@ -1022,7 +1020,7 @@ void AwsBlobStorageClientProvider::OnCompleteMultipartUploadCallback(
 void AwsBlobStorageClientProvider::AbortUpload(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>&
         put_blob_stream_context,
-    shared_ptr<PutBlobStreamTracker> tracker) {
+    std::shared_ptr<PutBlobStreamTracker> tracker) {
   AbortMultipartUploadRequest abort_request;
   abort_request.SetBucket(tracker->bucket_name.c_str());
   abort_request.SetKey(tracker->blob_name.c_str());
@@ -1041,7 +1039,7 @@ void AwsBlobStorageClientProvider::OnAbortMultipartUploadCallback(
     const S3Client* s3_client,
     const AbortMultipartUploadRequest& abort_multipart_upload_request,
     AbortMultipartUploadOutcome abort_multipart_upload_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!abort_multipart_upload_outcome.IsSuccess()) {
     auto abort_result =
         AwsBlobStorageClientUtils::ConvertS3ErrorToExecutionResult(
@@ -1092,7 +1090,7 @@ void AwsBlobStorageClientProvider::OnDeleteObjectCallback(
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse>& delete_blob_context,
     const S3Client* s3_client, const DeleteObjectRequest& delete_object_request,
     DeleteObjectOutcome delete_object_outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!delete_object_outcome.IsSuccess()) {
     delete_blob_context.result =
         AwsBlobStorageClientUtils::ConvertS3ErrorToExecutionResult(
@@ -1107,30 +1105,30 @@ void AwsBlobStorageClientProvider::OnDeleteObjectCallback(
                   cpu_async_executor_, AsyncPriority::High);
     return;
   }
-  delete_blob_context.response = make_shared<DeleteBlobResponse>();
+  delete_blob_context.response = std::make_shared<DeleteBlobResponse>();
   delete_blob_context.result = SuccessExecutionResult();
   FinishContext(delete_blob_context.result, delete_blob_context,
                 cpu_async_executor_, AsyncPriority::High);
 }
 
 #ifndef TEST_CPIO
-ExecutionResultOr<shared_ptr<S3Client>> AwsS3Factory::CreateClient(
+ExecutionResultOr<std::shared_ptr<S3Client>> AwsS3Factory::CreateClient(
     ClientConfiguration& client_config,
-    const shared_ptr<AsyncExecutorInterface>& async_executor) noexcept {
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor) noexcept {
   client_config.maxConnections = kMaxConcurrentConnections;
-  client_config.executor = make_shared<AwsAsyncExecutor>(async_executor);
+  client_config.executor = std::make_shared<AwsAsyncExecutor>(async_executor);
 
-  return make_shared<S3Client>(client_config);
+  return std::make_shared<S3Client>(client_config);
 }
 
-shared_ptr<BlobStorageClientProviderInterface>
+std::shared_ptr<BlobStorageClientProviderInterface>
 BlobStorageClientProviderFactory::Create(
-    shared_ptr<BlobStorageClientOptions> options,
-    shared_ptr<InstanceClientProviderInterface> instance_client,
-    const shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<core::AsyncExecutorInterface>&
+    std::shared_ptr<BlobStorageClientOptions> options,
+    std::shared_ptr<InstanceClientProviderInterface> instance_client,
+    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
-  return make_shared<AwsBlobStorageClientProvider>(
+  return std::make_shared<AwsBlobStorageClientProvider>(
       options, instance_client, cpu_async_executor, io_async_executor);
 }
 #endif

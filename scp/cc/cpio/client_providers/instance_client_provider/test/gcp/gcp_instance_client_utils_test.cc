@@ -36,9 +36,7 @@ using google::scp::cpio::client_providers::GcpInstanceResourceNameDetails;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::atomic;
 using std::get;
-using std::make_shared;
 using std::make_tuple;
-using std::shared_ptr;
 using std::tuple;
 using testing::_;
 using testing::DoAll;
@@ -63,7 +61,7 @@ constexpr char kResourceManagerUriFormat[] =
 
 namespace google::scp::cpio::client_providers::test {
 TEST(GcpInstanceClientUtilsTest, GetCurrentProjectIdSuccess) {
-  auto instance_client = make_shared<MockInstanceClientProvider>();
+  auto instance_client = std::make_shared<MockInstanceClientProvider>();
   instance_client->instance_resource_name = kResourceNameMock;
 
   auto project_id =
@@ -72,7 +70,7 @@ TEST(GcpInstanceClientUtilsTest, GetCurrentProjectIdSuccess) {
 }
 
 TEST(GcpInstanceClientUtilsTest, GetCurrentProjectIdFailedWithResourceName) {
-  auto instance_client = make_shared<MockInstanceClientProvider>();
+  auto instance_client = std::make_shared<MockInstanceClientProvider>();
   instance_client->get_instance_resource_name_mock =
       FailureExecutionResult(SC_UNKNOWN);
 

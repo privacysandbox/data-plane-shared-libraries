@@ -52,10 +52,6 @@ using google::scp::core::errors::
     SC_LIB_CPIO_PROVIDER_CPU_ASYNC_EXECUTOR_ALREADY_EXISTS;
 using google::scp::core::errors::
     SC_LIB_CPIO_PROVIDER_IO_ASYNC_EXECUTOR_ALREADY_EXISTS;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 static constexpr char kLibCpioProvider[] = "LibCpioProvider";
 static const size_t kThreadPoolThreadCount = 2;
@@ -165,7 +161,7 @@ ExecutionResult LibCpioProvider::GetHttpClient(
     return SuccessExecutionResult();
   }
 
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   auto execution_result =
       LibCpioProvider::GetCpuAsyncExecutor(cpu_async_executor);
   if (!execution_result.Successful()) {
@@ -174,7 +170,7 @@ ExecutionResult LibCpioProvider::GetHttpClient(
     return execution_result;
   }
 
-  http2_client_ = make_shared<HttpClient>(cpu_async_executor);
+  http2_client_ = std::make_shared<HttpClient>(cpu_async_executor);
   execution_result = http2_client_->Init();
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -199,7 +195,7 @@ ExecutionResult LibCpioProvider::GetHttp1Client(
     return SuccessExecutionResult();
   }
 
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   auto execution_result =
       LibCpioProvider::GetCpuAsyncExecutor(cpu_async_executor);
   if (!execution_result.Successful()) {
@@ -208,7 +204,7 @@ ExecutionResult LibCpioProvider::GetHttp1Client(
     return execution_result;
   }
 
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   execution_result = LibCpioProvider::GetIoAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -217,7 +213,7 @@ ExecutionResult LibCpioProvider::GetHttp1Client(
   }
 
   http1_client_ =
-      make_shared<Http1CurlClient>(cpu_async_executor, io_async_executor);
+      std::make_shared<Http1CurlClient>(cpu_async_executor, io_async_executor);
   execution_result = http1_client_->Init();
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -267,8 +263,8 @@ ExecutionResult LibCpioProvider::GetCpuAsyncExecutor(
     return SuccessExecutionResult();
   }
 
-  cpu_async_executor_ =
-      make_shared<AsyncExecutor>(kThreadPoolThreadCount, kThreadPoolQueueSize);
+  cpu_async_executor_ = std::make_shared<AsyncExecutor>(kThreadPoolThreadCount,
+                                                        kThreadPoolQueueSize);
   auto execution_result = cpu_async_executor_->Init();
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -293,8 +289,8 @@ ExecutionResult LibCpioProvider::GetIoAsyncExecutor(
     return SuccessExecutionResult();
   }
 
-  io_async_executor_ = make_shared<AsyncExecutor>(kIOThreadPoolThreadCount,
-                                                  kIOThreadPoolQueueSize);
+  io_async_executor_ = std::make_shared<AsyncExecutor>(kIOThreadPoolThreadCount,
+                                                       kIOThreadPoolQueueSize);
   auto execution_result = io_async_executor_->Init();
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -313,14 +309,14 @@ ExecutionResult LibCpioProvider::GetIoAsyncExecutor(
 }
 
 ExecutionResult LibCpioProvider::GetInstanceClientProvider(
-    shared_ptr<InstanceClientProviderInterface>&
+    std::shared_ptr<InstanceClientProviderInterface>&
         instance_client_provider) noexcept {
   if (instance_client_provider_) {
     instance_client_provider = instance_client_provider_;
     return SuccessExecutionResult();
   }
 
-  shared_ptr<AuthTokenProviderInterface> auth_token_provider;
+  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
   auto execution_result =
       LibCpioProvider::GetAuthTokenProvider(auth_token_provider);
   if (!execution_result.Successful()) {
@@ -329,7 +325,7 @@ ExecutionResult LibCpioProvider::GetInstanceClientProvider(
     return execution_result;
   }
 
-  shared_ptr<HttpClientInterface> http1_client;
+  std::shared_ptr<HttpClientInterface> http1_client;
   execution_result = LibCpioProvider::GetHttp1Client(http1_client);
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -337,7 +333,7 @@ ExecutionResult LibCpioProvider::GetInstanceClientProvider(
     return execution_result;
   }
 
-  shared_ptr<HttpClientInterface> http2_client;
+  std::shared_ptr<HttpClientInterface> http2_client;
   execution_result = LibCpioProvider::GetHttpClient(http2_client);
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -345,7 +341,7 @@ ExecutionResult LibCpioProvider::GetInstanceClientProvider(
     return execution_result;
   }
 
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   execution_result = LibCpioProvider::GetCpuAsyncExecutor(cpu_async_executor);
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -353,7 +349,7 @@ ExecutionResult LibCpioProvider::GetInstanceClientProvider(
     return execution_result;
   }
 
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   execution_result = LibCpioProvider::GetIoAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -381,25 +377,26 @@ ExecutionResult LibCpioProvider::GetInstanceClientProvider(
   return SuccessExecutionResult();
 }
 
-shared_ptr<RoleCredentialsProviderInterface>
+std::shared_ptr<RoleCredentialsProviderInterface>
 LibCpioProvider::CreateRoleCredentialsProvider(
-    const shared_ptr<InstanceClientProviderInterface>& instance_client_provider,
-    const shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+    const std::shared_ptr<InstanceClientProviderInterface>&
+        instance_client_provider,
+    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
+    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
   return RoleCredentialsProviderFactory::Create(
-      make_shared<RoleCredentialsProviderOptions>(), instance_client_provider,
-      cpu_async_executor, io_async_executor);
+      std::make_shared<RoleCredentialsProviderOptions>(),
+      instance_client_provider, cpu_async_executor, io_async_executor);
 }
 
 ExecutionResult LibCpioProvider::GetRoleCredentialsProvider(
-    shared_ptr<RoleCredentialsProviderInterface>&
+    std::shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider) noexcept {
   if (role_credentials_provider) {
     role_credentials_provider = role_credentials_provider_;
     return SuccessExecutionResult();
   }
 
-  shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   auto execution_result =
       LibCpioProvider::GetCpuAsyncExecutor(cpu_async_executor);
   if (!execution_result.Successful()) {
@@ -408,7 +405,7 @@ ExecutionResult LibCpioProvider::GetRoleCredentialsProvider(
     return execution_result;
   }
 
-  shared_ptr<AsyncExecutorInterface> io_async_executor;
+  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   execution_result = LibCpioProvider::GetIoAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -416,7 +413,7 @@ ExecutionResult LibCpioProvider::GetRoleCredentialsProvider(
     return execution_result;
   }
 
-  shared_ptr<InstanceClientProviderInterface> instance_client;
+  std::shared_ptr<InstanceClientProviderInterface> instance_client;
   execution_result = GetInstanceClientProvider(instance_client);
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -444,13 +441,13 @@ ExecutionResult LibCpioProvider::GetRoleCredentialsProvider(
 }
 
 ExecutionResult LibCpioProvider::GetAuthTokenProvider(
-    shared_ptr<AuthTokenProviderInterface>& auth_token_provider) noexcept {
+    std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider) noexcept {
   if (auth_token_provider) {
     auth_token_provider = auth_token_provider_;
     return SuccessExecutionResult();
   }
 
-  shared_ptr<HttpClientInterface> http1_client;
+  std::shared_ptr<HttpClientInterface> http1_client;
   auto execution_result = LibCpioProvider::GetHttp1Client(http1_client);
   if (!execution_result.Successful()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -477,9 +474,9 @@ ExecutionResult LibCpioProvider::GetAuthTokenProvider(
 }
 
 #ifndef TEST_CPIO
-unique_ptr<CpioProviderInterface> CpioProviderFactory::Create(
-    const shared_ptr<CpioOptions>& options) {
-  return make_unique<LibCpioProvider>(options);
+std::unique_ptr<CpioProviderInterface> CpioProviderFactory::Create(
+    const std::shared_ptr<CpioOptions>& options) {
+  return std::make_unique<LibCpioProvider>(options);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

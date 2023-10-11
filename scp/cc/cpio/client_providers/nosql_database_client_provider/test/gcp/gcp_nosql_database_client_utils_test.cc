@@ -35,7 +35,6 @@ using google::scp::core::errors::
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
 using std::get;
-using std::shared_ptr;
 using testing::Eq;
 using testing::ExplainMatchResult;
 

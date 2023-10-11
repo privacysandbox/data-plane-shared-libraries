@@ -30,13 +30,11 @@ using google::scp::cpio::client_providers::QueueClientProviderInterface;
 using google::scp::cpio::client_providers::TestGcpQueueClientOptions;
 using google::scp::cpio::client_providers::TestGcpQueueClientProvider;
 using std::dynamic_pointer_cast;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<QueueClientOptions>
+std::shared_ptr<QueueClientOptions>
 TestGcpQueueServiceFactory::CreateQueueClientOptions() noexcept {
-  auto test_options = make_shared<TestGcpQueueClientOptions>();
+  auto test_options = std::make_shared<TestGcpQueueClientOptions>();
   test_options->queue_name =
       ReadConfigString(config_provider_, kQueueClientQueueName);
 
@@ -47,23 +45,23 @@ TestGcpQueueServiceFactory::CreateQueueClientOptions() noexcept {
   return test_options;
 }
 
-shared_ptr<QueueClientProviderInterface>
+std::shared_ptr<QueueClientProviderInterface>
 TestGcpQueueServiceFactory::CreateQueueClient() noexcept {
-  return make_shared<TestGcpQueueClientProvider>(
+  return std::make_shared<TestGcpQueueClientProvider>(
       dynamic_pointer_cast<TestGcpQueueClientOptions>(queue_client_options_),
       instance_client_, instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
 }
 
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestGcpQueueServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestGcpInstanceServiceFactory>(
+  return std::make_shared<TestGcpInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions>
+std::shared_ptr<InstanceServiceFactoryOptions>
 TestGcpQueueServiceFactory::CreateInstanceServiceFactoryOptions() noexcept {
-  auto options = make_shared<TestGcpInstanceServiceFactoryOptions>();
+  auto options = std::make_shared<TestGcpInstanceServiceFactoryOptions>();
   options->project_id_config_label = kTestGcpQueueClientProjectId;
   return options;
 }

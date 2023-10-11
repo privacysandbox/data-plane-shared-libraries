@@ -25,7 +25,6 @@
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using std::shared_ptr;
 
 namespace {
 constexpr char kGcpResourceNameFormat[] =

@@ -61,8 +61,6 @@ using google::scp::core::errors::
 using google::scp::core::utils::GetEscapedUriWithQuery;
 using nghttp2::asio_http2::host_service_from_uri;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 
 namespace {
@@ -90,8 +88,8 @@ ExecutionResult AwsPrivateKeyFetcherProvider::Init() noexcept {
 ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequest(
     AsyncContext<PrivateKeyFetchingRequest, HttpRequest>&
         sign_request_context) noexcept {
-  auto request = make_shared<GetRoleCredentialsRequest>();
-  request->account_identity = make_shared<std::string>(
+  auto request = std::make_shared<GetRoleCredentialsRequest>();
+  request->account_identity = std::make_shared<std::string>(
       sign_request_context.request->key_vending_endpoint->account_identity);
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_session_credentials_context(
@@ -119,7 +117,7 @@ void AwsPrivateKeyFetcherProvider::
     return;
   }
 
-  auto http_request = make_shared<HttpRequest>();
+  auto http_request = std::make_shared<HttpRequest>();
   PrivateKeyFetchingClientUtils::CreateHttpRequest(
       *sign_request_context.request, *http_request);
 
@@ -137,13 +135,13 @@ void AwsPrivateKeyFetcherProvider::
 }
 
 ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
-    shared_ptr<HttpRequest>& http_request, const std::string& access_key,
+    std::shared_ptr<HttpRequest>& http_request, const std::string& access_key,
     const std::string& secret_key, const std::string& security_token,
     const std::string& region) noexcept {
   auto credentials = AWSCredentials(access_key.c_str(), secret_key.c_str(),
                                     security_token.c_str());
   auto credentials_provider =
-      make_shared<SimpleAWSCredentialsProvider>(std::move(credentials));
+      std::make_shared<SimpleAWSCredentialsProvider>(std::move(credentials));
   auto signer = AWSAuthV4Signer(std::move(credentials_provider), kServiceName,
                                 region.c_str());
 
@@ -166,7 +164,7 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
     return execution_result;
   }
 
-  http_request->headers = make_shared<HttpHeaders>();
+  http_request->headers = std::make_shared<HttpHeaders>();
   for (auto& header : aws_request.GetHeaders()) {
     http_request->headers->insert({header.first, header.second});
   }
@@ -176,12 +174,12 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
 #ifndef TEST_CPIO
 std::shared_ptr<PrivateKeyFetcherProviderInterface>
 PrivateKeyFetcherProviderFactory::Create(
-    const shared_ptr<HttpClientInterface>& http_client,
-    const shared_ptr<RoleCredentialsProviderInterface>&
+    const std::shared_ptr<HttpClientInterface>& http_client,
+    const std::shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider,
-    const shared_ptr<AuthTokenProviderInterface>& auth_token_provider) {
-  return make_shared<AwsPrivateKeyFetcherProvider>(http_client,
-                                                   role_credentials_provider);
+    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider) {
+  return std::make_shared<AwsPrivateKeyFetcherProvider>(
+      http_client, role_credentials_provider);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

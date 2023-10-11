@@ -23,52 +23,50 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::journal_service::JournalUtils;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::core::test {
 TEST(JournalUtilsTests, CreateCheckpointBlobName) {
-  shared_ptr<std::string> partition_name;
-  shared_ptr<std::string> blob_name;
+  std::shared_ptr<std::string> partition_name;
+  std::shared_ptr<std::string> blob_name;
   EXPECT_THAT(
       JournalUtils::CreateCheckpointBlobName(partition_name, 0, blob_name),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_CANNOT_CREATE_BLOB_NAME)));
 
-  partition_name = make_shared<std::string>("partition_name");
+  partition_name = std::make_shared<std::string>("partition_name");
   EXPECT_SUCCESS(
       JournalUtils::CreateCheckpointBlobName(partition_name, 10000, blob_name));
   EXPECT_EQ(*blob_name, "partition_name/checkpoint_00000000000000010000");
 }
 
 TEST(JournalUtilsTests, CreateJournalBlobName) {
-  shared_ptr<std::string> partition_name;
-  shared_ptr<std::string> blob_name;
+  std::shared_ptr<std::string> partition_name;
+  std::shared_ptr<std::string> blob_name;
   EXPECT_THAT(JournalUtils::CreateJournalBlobName(partition_name, 0, blob_name),
               ResultIs(FailureExecutionResult(
                   errors::SC_JOURNAL_SERVICE_CANNOT_CREATE_BLOB_NAME)));
 
-  partition_name = make_shared<std::string>("partition_name");
+  partition_name = std::make_shared<std::string>("partition_name");
   EXPECT_SUCCESS(
       JournalUtils::CreateJournalBlobName(partition_name, 123456, blob_name));
   EXPECT_EQ(*blob_name, "partition_name/journal_00000000000000123456");
 }
 
 TEST(JournalUtilsTests, CreateBlobNameWithSuffixId) {
-  shared_ptr<std::string> partition_name;
-  shared_ptr<std::string> blob_name;
+  std::shared_ptr<std::string> partition_name;
+  std::shared_ptr<std::string> blob_name;
   EXPECT_EQ(JournalUtils::CreateBlobNameWithSuffixId(partition_name, nullptr, 0,
                                                      blob_name),
             FailureExecutionResult(
                 errors::SC_JOURNAL_SERVICE_CANNOT_CREATE_BLOB_NAME));
 
-  partition_name = make_shared<std::string>("partition_name");
+  partition_name = std::make_shared<std::string>("partition_name");
   EXPECT_EQ(JournalUtils::CreateBlobNameWithSuffixId(
                 partition_name, kJournalBlobNamePrefix, 123456, blob_name),
             SuccessExecutionResult());
   EXPECT_EQ(*blob_name, "partition_name/journal_00000000000000123456");
 
-  partition_name = make_shared<std::string>("partition_name");
+  partition_name = std::make_shared<std::string>("partition_name");
   EXPECT_EQ(JournalUtils::CreateBlobNameWithSuffixId(
                 partition_name, kJournalBlobNamePrefix, 123456, blob_name),
             SuccessExecutionResult());
@@ -76,8 +74,8 @@ TEST(JournalUtilsTests, CreateBlobNameWithSuffixId) {
 }
 
 TEST(JournalUtilsTests, ExtractCheckpointId) {
-  shared_ptr<std::string> partition_name;
-  shared_ptr<std::string> blob_name;
+  std::shared_ptr<std::string> partition_name;
+  std::shared_ptr<std::string> blob_name;
   size_t checkpoint_id;
 
   EXPECT_EQ(
@@ -85,53 +83,53 @@ TEST(JournalUtilsTests, ExtractCheckpointId) {
                                         checkpoint_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  partition_name = make_shared<std::string>("partition_name");
+  partition_name = std::make_shared<std::string>("partition_name");
   EXPECT_EQ(
       JournalUtils::ExtractCheckpointId(partition_name, blob_name,
                                         checkpoint_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
   partition_name = nullptr;
-  blob_name = make_shared<std::string>("blob_name");
+  blob_name = std::make_shared<std::string>("blob_name");
   EXPECT_EQ(
       JournalUtils::ExtractCheckpointId(partition_name, blob_name,
                                         checkpoint_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  partition_name = make_shared<std::string>("partition_name");
-  blob_name = make_shared<std::string>("blob_name");
+  partition_name = std::make_shared<std::string>("partition_name");
+  blob_name = std::make_shared<std::string>("blob_name");
   EXPECT_EQ(
       JournalUtils::ExtractCheckpointId(partition_name, blob_name,
                                         checkpoint_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  blob_name = make_shared<std::string>("partition_name/");
+  blob_name = std::make_shared<std::string>("partition_name/");
   EXPECT_EQ(
       JournalUtils::ExtractCheckpointId(partition_name, blob_name,
                                         checkpoint_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  blob_name = make_shared<std::string>("partition_name/dsadas");
+  blob_name = std::make_shared<std::string>("partition_name/dsadas");
   EXPECT_EQ(
       JournalUtils::ExtractCheckpointId(partition_name, blob_name,
                                         checkpoint_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  blob_name =
-      make_shared<std::string>("partition_name/dsadas_00000000000000012345");
+  blob_name = std::make_shared<std::string>(
+      "partition_name/dsadas_00000000000000012345");
   EXPECT_EQ(
       JournalUtils::ExtractCheckpointId(partition_name, blob_name,
                                         checkpoint_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  blob_name =
-      make_shared<std::string>("partition_name/journal_00000000000000012345");
+  blob_name = std::make_shared<std::string>(
+      "partition_name/journal_00000000000000012345");
   EXPECT_EQ(
       JournalUtils::ExtractCheckpointId(partition_name, blob_name,
                                         checkpoint_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  blob_name = make_shared<std::string>(
+  blob_name = std::make_shared<std::string>(
       "partition_name/checkpoint_00000000000000012345");
   EXPECT_EQ(JournalUtils::ExtractCheckpointId(partition_name, blob_name,
                                               checkpoint_id),
@@ -141,8 +139,8 @@ TEST(JournalUtilsTests, ExtractCheckpointId) {
 }
 
 TEST(JournalUtilsTests, ExtractJournalId) {
-  shared_ptr<std::string> partition_name;
-  shared_ptr<std::string> blob_name;
+  std::shared_ptr<std::string> partition_name;
+  std::shared_ptr<std::string> blob_name;
   size_t journal_id;
 
   EXPECT_THAT(
@@ -150,47 +148,47 @@ TEST(JournalUtilsTests, ExtractJournalId) {
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME)));
 
-  partition_name = make_shared<std::string>("partition_name");
+  partition_name = std::make_shared<std::string>("partition_name");
   EXPECT_THAT(
       JournalUtils::ExtractJournalId(partition_name, blob_name, journal_id),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME)));
 
   partition_name = nullptr;
-  blob_name = make_shared<std::string>("blob_name");
+  blob_name = std::make_shared<std::string>("blob_name");
   EXPECT_THAT(
       JournalUtils::ExtractJournalId(partition_name, blob_name, journal_id),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME)));
 
-  partition_name = make_shared<std::string>("partition_name");
-  blob_name = make_shared<std::string>("blob_name");
+  partition_name = std::make_shared<std::string>("partition_name");
+  blob_name = std::make_shared<std::string>("blob_name");
   EXPECT_THAT(
       JournalUtils::ExtractJournalId(partition_name, blob_name, journal_id),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME)));
 
-  blob_name = make_shared<std::string>("partition_name/");
+  blob_name = std::make_shared<std::string>("partition_name/");
   EXPECT_THAT(
       JournalUtils::ExtractJournalId(partition_name, blob_name, journal_id),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME)));
 
-  blob_name = make_shared<std::string>("partition_name/dsadas");
+  blob_name = std::make_shared<std::string>("partition_name/dsadas");
   EXPECT_THAT(
       JournalUtils::ExtractJournalId(partition_name, blob_name, journal_id),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME)));
 
-  blob_name =
-      make_shared<std::string>("partition_name/dsadas_00000000000000012345");
+  blob_name = std::make_shared<std::string>(
+      "partition_name/dsadas_00000000000000012345");
   EXPECT_THAT(
       JournalUtils::ExtractJournalId(partition_name, blob_name, journal_id),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME)));
 
-  blob_name =
-      make_shared<std::string>("partition_name/journal_00000000000000012345");
+  blob_name = std::make_shared<std::string>(
+      "partition_name/journal_00000000000000012345");
   EXPECT_SUCCESS(
       JournalUtils::ExtractJournalId(partition_name, blob_name, journal_id));
 
@@ -198,8 +196,8 @@ TEST(JournalUtilsTests, ExtractJournalId) {
 }
 
 TEST(JournalUtilsTests, ExtractBlobNameId) {
-  shared_ptr<std::string> partition_name;
-  shared_ptr<std::string> blob_name;
+  std::shared_ptr<std::string> partition_name;
+  std::shared_ptr<std::string> blob_name;
   size_t journal_id;
 
   EXPECT_EQ(
@@ -207,7 +205,7 @@ TEST(JournalUtilsTests, ExtractBlobNameId) {
                                       kJournalBlobNamePrefixLength, journal_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  partition_name = make_shared<std::string>("partition_name");
+  partition_name = std::make_shared<std::string>("partition_name");
   EXPECT_EQ(
       JournalUtils::ExtractBlobNameId(partition_name, blob_name,
                                       kJournalBlobNamePrefix,
@@ -215,50 +213,50 @@ TEST(JournalUtilsTests, ExtractBlobNameId) {
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
   partition_name = nullptr;
-  blob_name = make_shared<std::string>("blob_name");
+  blob_name = std::make_shared<std::string>("blob_name");
   EXPECT_EQ(
       JournalUtils::ExtractBlobNameId(partition_name, blob_name,
                                       kJournalBlobNamePrefix,
                                       kJournalBlobNamePrefixLength, journal_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  partition_name = make_shared<std::string>("partition_name");
-  blob_name = make_shared<std::string>("blob_name");
+  partition_name = std::make_shared<std::string>("partition_name");
+  blob_name = std::make_shared<std::string>("blob_name");
   EXPECT_EQ(
       JournalUtils::ExtractBlobNameId(partition_name, blob_name, nullptr,
                                       kJournalBlobNamePrefixLength, journal_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  partition_name = make_shared<std::string>("partition_name");
-  blob_name = make_shared<std::string>("blob_name");
+  partition_name = std::make_shared<std::string>("partition_name");
+  blob_name = std::make_shared<std::string>("blob_name");
   EXPECT_EQ(
       JournalUtils::ExtractBlobNameId(partition_name, blob_name,
                                       kJournalBlobNamePrefix,
                                       kJournalBlobNamePrefixLength, journal_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  blob_name = make_shared<std::string>("partition_name/");
+  blob_name = std::make_shared<std::string>("partition_name/");
   EXPECT_EQ(
       JournalUtils::ExtractBlobNameId(partition_name, blob_name,
                                       kJournalBlobNamePrefix,
                                       kJournalBlobNamePrefixLength, journal_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  blob_name = make_shared<std::string>("partition_name/dsadas");
+  blob_name = std::make_shared<std::string>("partition_name/dsadas");
   EXPECT_EQ(
       JournalUtils::ExtractBlobNameId(partition_name, blob_name,
                                       kJournalBlobNamePrefix,
                                       kJournalBlobNamePrefixLength, journal_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  blob_name = make_shared<std::string>("partition_name/dsadas_12345");
+  blob_name = std::make_shared<std::string>("partition_name/dsadas_12345");
   EXPECT_EQ(
       JournalUtils::ExtractBlobNameId(partition_name, blob_name,
                                       kJournalBlobNamePrefix,
                                       kJournalBlobNamePrefixLength, journal_id),
       FailureExecutionResult(errors::SC_JOURNAL_SERVICE_INVALID_BLOB_NAME));
 
-  blob_name = make_shared<std::string>("partition_name/journal_12345");
+  blob_name = std::make_shared<std::string>("partition_name/journal_12345");
   EXPECT_EQ(JournalUtils::ExtractBlobNameId(
                 partition_name, blob_name, kJournalBlobNamePrefix,
                 kJournalBlobNamePrefixLength, journal_id),
@@ -268,29 +266,29 @@ TEST(JournalUtilsTests, ExtractBlobNameId) {
 }
 
 TEST(JournalUtilsTests, GetBlobFullPath) {
-  shared_ptr<std::string> partition_name;
-  shared_ptr<std::string> blob_name;
-  shared_ptr<std::string> full_path;
+  std::shared_ptr<std::string> partition_name;
+  std::shared_ptr<std::string> blob_name;
+  std::shared_ptr<std::string> full_path;
 
   EXPECT_THAT(
       JournalUtils::GetBlobFullPath(partition_name, blob_name, full_path),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_CANNOT_CREATE_BLOB_NAME)));
 
-  partition_name = make_shared<std::string>("partition_name");
+  partition_name = std::make_shared<std::string>("partition_name");
   EXPECT_THAT(
       JournalUtils::GetBlobFullPath(partition_name, blob_name, full_path),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_CANNOT_CREATE_BLOB_NAME)));
 
   partition_name = nullptr;
-  blob_name = make_shared<std::string>("blob_name");
+  blob_name = std::make_shared<std::string>("blob_name");
   EXPECT_THAT(
       JournalUtils::GetBlobFullPath(partition_name, blob_name, full_path),
       ResultIs(FailureExecutionResult(
           errors::SC_JOURNAL_SERVICE_CANNOT_CREATE_BLOB_NAME)));
 
-  partition_name = make_shared<std::string>("partition_name");
+  partition_name = std::make_shared<std::string>("partition_name");
   EXPECT_SUCCESS(
       JournalUtils::GetBlobFullPath(partition_name, blob_name, full_path));
 

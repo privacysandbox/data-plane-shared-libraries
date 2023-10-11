@@ -58,10 +58,7 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricDefinition;
 using google::scp::cpio::MetricUnit;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
 using std::mutex;
-using std::shared_ptr;
 using std::static_pointer_cast;
 using std::thread;
 
@@ -81,15 +78,15 @@ namespace google::scp::cpio {
 class AggregateMetricTest : public testing::Test {
  protected:
   AggregateMetricTest() {
-    mock_metric_client_ = make_shared<MockMetricClient>();
-    mock_async_executor_ = make_shared<MockAsyncExecutor>();
+    mock_metric_client_ = std::make_shared<MockMetricClient>();
+    mock_async_executor_ = std::make_shared<MockAsyncExecutor>();
     async_executor_ = mock_async_executor_;
   }
 
-  shared_ptr<MetricClientInterface> mock_metric_client_;
+  std::shared_ptr<MetricClientInterface> mock_metric_client_;
   size_t aggregation_time_duration_in_ms_ = 1000;
-  shared_ptr<AsyncExecutorInterface> async_executor_;
-  shared_ptr<MockAsyncExecutor> mock_async_executor_;
+  std::shared_ptr<AsyncExecutorInterface> async_executor_;
+  std::shared_ptr<MockAsyncExecutor> mock_async_executor_;
 };
 
 TEST_F(AggregateMetricTest, Run) {
@@ -159,13 +156,13 @@ TEST_F(AggregateMetricTest, RunMetricPush) {
 }
 
 TEST_F(AggregateMetricTest, RunMetricPushHandler) {
-  auto mock_metric_client = make_shared<MockMetricClient>();
+  auto mock_metric_client = std::make_shared<MockMetricClient>();
   auto time_duration = 1000;
   auto counter_value = 1234;
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
 
-  shared_ptr<AsyncExecutorInterface> async_executor =
+  std::shared_ptr<AsyncExecutorInterface> async_executor =
       static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
 
   Metric metric_received;
@@ -260,7 +257,7 @@ TEST_F(AggregateMetricTest, IncrementByMultipleThreads) {
 }
 
 TEST_F(AggregateMetricTest, StopShouldNotDiscardAnyCounters) {
-  auto real_async_executor = make_shared<AsyncExecutor>(
+  auto real_async_executor = std::make_shared<AsyncExecutor>(
       2 /* thread count */, 1000 /* queue capacity */,
       true /* drop tasks on stop*/);
   EXPECT_SUCCESS(real_async_executor->Init());

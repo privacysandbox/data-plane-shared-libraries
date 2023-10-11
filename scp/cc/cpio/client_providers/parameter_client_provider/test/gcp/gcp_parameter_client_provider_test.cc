@@ -57,10 +57,6 @@ using google::scp::cpio::client_providers::mock::
     MockGcpParameterClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::NiceMock;
@@ -78,18 +74,19 @@ namespace google::scp::cpio::test {
 class GcpParameterClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    auto async_executor_mock = make_shared<MockAsyncExecutor>();
-    auto io_async_executor_mock = make_shared<MockAsyncExecutor>();
+    auto async_executor_mock = std::make_shared<MockAsyncExecutor>();
+    auto io_async_executor_mock = std::make_shared<MockAsyncExecutor>();
 
-    auto instance_client_mock = make_shared<MockInstanceClientProvider>();
+    auto instance_client_mock = std::make_shared<MockInstanceClientProvider>();
     instance_client_mock->instance_resource_name = kInstanceResourceName;
 
-    client_ = make_unique<MockGcpParameterClientProviderOverrides>(
+    client_ = std::make_unique<MockGcpParameterClientProviderOverrides>(
         async_executor_mock, io_async_executor_mock, instance_client_mock);
 
-    connection_ = make_shared<NiceMock<MockSecretManagerServiceConnection>>();
+    connection_ =
+        std::make_shared<NiceMock<MockSecretManagerServiceConnection>>();
     client_->secret_manager_mock =
-        make_shared<SecretManagerServiceClient>(connection_);
+        std::make_shared<SecretManagerServiceClient>(connection_);
 
     EXPECT_SUCCESS(client_->Init());
     EXPECT_SUCCESS(client_->Run());
@@ -106,8 +103,8 @@ class GcpParameterClientProviderTest : public ::testing::Test {
     return secret_name;
   }
 
-  shared_ptr<MockSecretManagerServiceConnection> connection_;
-  unique_ptr<MockGcpParameterClientProviderOverrides> client_;
+  std::shared_ptr<MockSecretManagerServiceConnection> connection_;
+  std::unique_ptr<MockGcpParameterClientProviderOverrides> client_;
 };
 
 MATCHER_P(RequestHasName, secret_name, "") {
@@ -125,7 +122,7 @@ TEST_F(GcpParameterClientProviderTest, SucceedToFetchParameter) {
       .WillOnce(Return(response));
 
   atomic<bool> condition;
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
@@ -146,7 +143,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
       .WillOnce(Return(Status(StatusCode::kNotFound, "Not Found")));
 
   atomic<bool> condition;
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
@@ -161,7 +158,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
 }
 
 TEST_F(GcpParameterClientProviderTest, FailedWithInvalidParameterName) {
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {});
@@ -178,7 +175,7 @@ TEST_F(GcpParameterClientProviderTest,
       .WillOnce(Return(Status(StatusCode::kInvalidArgument, "")));
 
   atomic<bool> condition;
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
@@ -199,7 +196,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
       .WillOnce(Return(Status(StatusCode::kUnknown, "")));
 
   atomic<bool> condition;
-  auto request = make_shared<GetParameterRequest>();
+  auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
@@ -214,28 +211,30 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
 }
 
 TEST(GcpParameterClientProviderTestII, InitFailedToFetchProjectId) {
-  auto async_executor_mock = make_shared<MockAsyncExecutor>();
-  auto io_async_executor_mock = make_shared<MockAsyncExecutor>();
-  auto instance_client_mock = make_shared<MockInstanceClientProvider>();
+  auto async_executor_mock = std::make_shared<MockAsyncExecutor>();
+  auto io_async_executor_mock = std::make_shared<MockAsyncExecutor>();
+  auto instance_client_mock = std::make_shared<MockInstanceClientProvider>();
   instance_client_mock->get_instance_resource_name_mock =
       FailureExecutionResult(SC_UNKNOWN);
 
-  auto connection = make_shared<NiceMock<MockSecretManagerServiceConnection>>();
-  auto mock_sm_client = make_shared<SecretManagerServiceClient>(connection);
+  auto connection =
+      std::make_shared<NiceMock<MockSecretManagerServiceConnection>>();
+  auto mock_sm_client =
+      std::make_shared<SecretManagerServiceClient>(connection);
 
-  auto client = make_unique<MockGcpParameterClientProviderOverrides>(
+  auto client = std::make_unique<MockGcpParameterClientProviderOverrides>(
       async_executor_mock, io_async_executor_mock, instance_client_mock);
 
   EXPECT_THAT(client->Init(), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
 }
 
 TEST(GcpParameterClientProviderTestII, InitFailedToGetSMClient) {
-  auto async_executor_mock = make_shared<MockAsyncExecutor>();
-  auto io_async_executor_mock = make_shared<MockAsyncExecutor>();
-  auto instance_client_mock = make_shared<MockInstanceClientProvider>();
+  auto async_executor_mock = std::make_shared<MockAsyncExecutor>();
+  auto io_async_executor_mock = std::make_shared<MockAsyncExecutor>();
+  auto instance_client_mock = std::make_shared<MockInstanceClientProvider>();
   instance_client_mock->instance_resource_name = kInstanceResourceName;
 
-  auto client = make_unique<MockGcpParameterClientProviderOverrides>(
+  auto client = std::make_unique<MockGcpParameterClientProviderOverrides>(
       async_executor_mock, io_async_executor_mock, instance_client_mock);
 
   EXPECT_THAT(client->Init(),

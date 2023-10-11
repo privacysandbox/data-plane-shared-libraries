@@ -74,12 +74,8 @@ using google::scp::cpio::TestAwsParameterClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
 using std::runtime_error;
-using std::shared_ptr;
 using std::thread;
-using std::unique_ptr;
 using std::chrono::milliseconds;
 using std::this_thread::sleep_for;
 
@@ -97,8 +93,8 @@ constexpr char kPlaintext[] = "plaintext";
 }  // namespace
 
 namespace google::scp::cpio::test {
-shared_ptr<PutMetricsRequest> CreatePutMetricsRequest() {
-  auto request = make_shared<PutMetricsRequest>();
+std::shared_ptr<PutMetricsRequest> CreatePutMetricsRequest() {
+  auto request = std::make_shared<PutMetricsRequest>();
   request->set_metric_namespace("test");
   auto metric = request->add_metrics();
   metric->set_name("test_metric");
@@ -150,10 +146,11 @@ class CpioIntegrationTest : public ::testing::Test {
   }
 
   void CreateMetricClient() {
-    auto metric_client_options = make_shared<TestAwsMetricClientOptions>();
+    auto metric_client_options = std::make_shared<TestAwsMetricClientOptions>();
     metric_client_options->cloud_watch_endpoint_override =
-        make_shared<std::string>(localstack_endpoint);
-    metric_client = make_unique<TestAwsMetricClient>(metric_client_options);
+        std::make_shared<std::string>(localstack_endpoint);
+    metric_client =
+        std::make_unique<TestAwsMetricClient>(metric_client_options);
 
     EXPECT_SUCCESS(metric_client->Init());
     EXPECT_SUCCESS(metric_client->Run());
@@ -173,11 +170,11 @@ class CpioIntegrationTest : public ::testing::Test {
     }
 
     auto parameter_client_options =
-        make_shared<TestAwsParameterClientOptions>();
+        std::make_shared<TestAwsParameterClientOptions>();
     parameter_client_options->ssm_endpoint_override =
-        make_shared<std::string>(localstack_endpoint);
+        std::make_shared<std::string>(localstack_endpoint);
     parameter_client =
-        make_unique<TestAwsParameterClient>(parameter_client_options);
+        std::make_unique<TestAwsParameterClient>(parameter_client_options);
 
     EXPECT_SUCCESS(parameter_client->Init());
     EXPECT_SUCCESS(parameter_client->Run());
@@ -189,11 +186,11 @@ class CpioIntegrationTest : public ::testing::Test {
     CreateBucket(s3_client, kBucketName);
 
     auto blob_storage_client_options =
-        make_shared<TestAwsBlobStorageClientOptions>();
+        std::make_shared<TestAwsBlobStorageClientOptions>();
     blob_storage_client_options->s3_endpoint_override =
-        make_shared<std::string>(localstack_endpoint);
+        std::make_shared<std::string>(localstack_endpoint);
     blob_storage_client =
-        make_unique<TestAwsBlobStorageClient>(blob_storage_client_options);
+        std::make_unique<TestAwsBlobStorageClient>(blob_storage_client_options);
 
     EXPECT_SUCCESS(blob_storage_client->Init());
     EXPECT_SUCCESS(blob_storage_client->Run());
@@ -210,10 +207,10 @@ class CpioIntegrationTest : public ::testing::Test {
     // KmsClient takes in encoded text.
     Base64Encode(raw_ciphertext, ciphertext);
 
-    auto kms_client_options = make_shared<TestAwsKmsClientOptions>();
+    auto kms_client_options = std::make_shared<TestAwsKmsClientOptions>();
     kms_client_options->kms_endpoint_override =
-        make_shared<std::string>(localstack_endpoint);
-    kms_client = make_unique<TestAwsKmsClient>(kms_client_options);
+        std::make_shared<std::string>(localstack_endpoint);
+    kms_client = std::make_unique<TestAwsKmsClient>(kms_client_options);
 
     EXPECT_SUCCESS(kms_client->Init());
     EXPECT_SUCCESS(kms_client->Run());
@@ -221,10 +218,10 @@ class CpioIntegrationTest : public ::testing::Test {
 
   std::string localstack_endpoint =
       std::string(kLocalHost) + ":" + std::string(kLocalstackPort);
-  unique_ptr<TestAwsMetricClient> metric_client;
-  unique_ptr<TestAwsParameterClient> parameter_client;
-  unique_ptr<TestAwsBlobStorageClient> blob_storage_client;
-  unique_ptr<TestAwsKmsClient> kms_client;
+  std::unique_ptr<TestAwsMetricClient> metric_client;
+  std::unique_ptr<TestAwsParameterClient> parameter_client;
+  std::unique_ptr<TestAwsBlobStorageClient> blob_storage_client;
+  std::unique_ptr<TestAwsKmsClient> kms_client;
 
   TestCpioOptions cpio_options;
 };
@@ -279,7 +276,7 @@ TEST_F(CpioIntegrationTest, BlobStorageClientPutBlobSuccessfully) {
   CreateBlobStorageClientAndSetupData();
 
   atomic<bool> finished = false;
-  auto request = make_shared<PutBlobRequest>();
+  auto request = std::make_shared<PutBlobRequest>();
   request->mutable_blob()->mutable_metadata()->set_bucket_name(kBucketName);
   request->mutable_blob()->mutable_metadata()->set_blob_name(kBlobName);
   request->mutable_blob()->set_data(kBlobData);
@@ -301,7 +298,7 @@ TEST_F(CpioIntegrationTest, KmsClientDecryptSuccessfully) {
   CreateKmsClientAndSetupData(key_resource_name, ciphertext);
 
   atomic<bool> finished = false;
-  auto request = make_shared<DecryptRequest>();
+  auto request = std::make_shared<DecryptRequest>();
   request->set_ciphertext(ciphertext);
   request->set_kms_region("us-east-1");
   request->set_key_resource_name(key_resource_name);

@@ -50,8 +50,6 @@ using google::scp::core::async_executor::aws::AwsAsyncExecutor;
 using google::scp::core::nosql_database_provider::AwsDynamoDBUtils;
 using google::scp::core::nosql_database_provider::NoSQLDatabaseProviderUtils;
 using std::bind;
-using std::make_shared;
-using std::shared_ptr;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -63,9 +61,9 @@ static constexpr size_t kMaxConcurrentConnections = 1000;
 
 namespace google::scp::core::nosql_database_provider {
 ExecutionResult AwsDynamoDB::CreateClientConfig() noexcept {
-  client_config_ = make_shared<ClientConfiguration>();
+  client_config_ = std::make_shared<ClientConfiguration>();
   client_config_->maxConnections = kMaxConcurrentConnections;
-  client_config_->executor = make_shared<AwsAsyncExecutor>(
+  client_config_->executor = std::make_shared<AwsAsyncExecutor>(
       io_async_executor_, io_async_execution_priority_);
 
   std::string region;
@@ -85,7 +83,7 @@ ExecutionResult AwsDynamoDB::Init() noexcept {
     return execution_result;
   }
 
-  dynamo_db_client_ = make_shared<DynamoDBClient>(*client_config_);
+  dynamo_db_client_ = std::make_shared<DynamoDBClient>(*client_config_);
 
   return SuccessExecutionResult();
 }
@@ -197,7 +195,7 @@ void AwsDynamoDB::OnGetDatabaseItemCallback(
         get_database_item_context,
     const DynamoDBClient* dynamo_db_client, const QueryRequest& query_request,
     const Outcome<QueryResult, DynamoDBError>& outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!outcome.IsSuccess()) {
     SCP_DEBUG_CONTEXT(
         kDynamoDB, get_database_item_context,
@@ -239,7 +237,8 @@ void AwsDynamoDB::OnGetDatabaseItemCallback(
   const String partition_key_name(
       *get_database_item_context.request->partition_key->attribute_name);
 
-  get_database_item_context.response = make_shared<GetDatabaseItemResponse>();
+  get_database_item_context.response =
+      std::make_shared<GetDatabaseItemResponse>();
   get_database_item_context.response->table_name =
       get_database_item_context.request->table_name;
   get_database_item_context.response->partition_key =
@@ -247,7 +246,7 @@ void AwsDynamoDB::OnGetDatabaseItemCallback(
   get_database_item_context.response->sort_key =
       get_database_item_context.request->sort_key;
   get_database_item_context.response->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   for (const auto& attribute_key_value_pair : item) {
     if (strcmp(attribute_key_value_pair.first.c_str(),
@@ -281,9 +280,9 @@ void AwsDynamoDB::OnGetDatabaseItemCallback(
 
     NoSqlDatabaseKeyValuePair key_value_pair;
     key_value_pair.attribute_name =
-        make_shared<std::string>(attribute_key_value_pair.first.c_str());
+        std::make_shared<std::string>(attribute_key_value_pair.first.c_str());
     key_value_pair.attribute_value =
-        make_shared<NoSQLDatabaseValidAttributeValueTypes>(
+        std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(
             std::move(attribute_value));
     get_database_item_context.response->attributes->push_back(key_value_pair);
   }
@@ -432,7 +431,7 @@ void AwsDynamoDB::OnUpsertDatabaseItemCallback(
     const DynamoDBClient* dynamo_db_client,
     const UpdateItemRequest& update_item_request,
     const Outcome<UpdateItemResult, DynamoDBError>& outcome,
-    const shared_ptr<const AsyncCallerContext> async_context) noexcept {
+    const std::shared_ptr<const AsyncCallerContext> async_context) noexcept {
   if (!outcome.IsSuccess()) {
     SCP_DEBUG_CONTEXT(
         kDynamoDB, upsert_database_item_context,

@@ -56,14 +56,10 @@ using google::scp::cpio::client_providers::CloudInitializerInterface;
 using std::cout;
 using std::endl;
 using std::list;
-using std::make_shared;
-using std::make_unique;
 using std::runtime_error;
-using std::shared_ptr;
-using std::unique_ptr;
 
 namespace google::scp::cpio {
-void Init(const shared_ptr<ServiceInterface>& service,
+void Init(const std::shared_ptr<ServiceInterface>& service,
           const std::string& service_name) {
   if (service) {
     auto execution_result = service->Init();
@@ -78,7 +74,7 @@ void Init(const shared_ptr<ServiceInterface>& service,
   }
 }
 
-void Run(const shared_ptr<ServiceInterface>& service,
+void Run(const std::shared_ptr<ServiceInterface>& service,
          const std::string& service_name) {
   if (service) {
     auto execution_result = service->Run();
@@ -93,7 +89,7 @@ void Run(const shared_ptr<ServiceInterface>& service,
   }
 }
 
-void Stop(const shared_ptr<ServiceInterface>& service,
+void Stop(const std::shared_ptr<ServiceInterface>& service,
           const std::string& service_name) {
   if (service) {
     auto execution_result = service->Stop();
@@ -108,7 +104,8 @@ void Stop(const shared_ptr<ServiceInterface>& service,
   }
 }
 
-void RunLogger(const shared_ptr<ConfigProviderInterface>& config_provider) {
+void RunLogger(
+    const std::shared_ptr<ConfigProviderInterface>& config_provider) {
   LogOption log_option = LogOption::kSysLog;
   std::string log_option_config;
   if (TryReadConfigString(config_provider, kSdkClientLogOption,
@@ -121,15 +118,17 @@ void RunLogger(const shared_ptr<ConfigProviderInterface>& config_provider) {
     log_option = it->second;
   }
 
-  unique_ptr<LoggerInterface> logger_ptr;
+  std::unique_ptr<LoggerInterface> logger_ptr;
   switch (log_option) {
     case LogOption::kNoLog:
       break;
     case LogOption::kConsoleLog:
-      logger_ptr = make_unique<Logger>(make_unique<ConsoleLogProvider>());
+      logger_ptr =
+          std::make_unique<Logger>(std::make_unique<ConsoleLogProvider>());
       break;
     case LogOption::kSysLog:
-      logger_ptr = make_unique<Logger>(make_unique<SyslogLogProvider>());
+      logger_ptr =
+          std::make_unique<Logger>(std::make_unique<SyslogLogProvider>());
       break;
   }
   if (logger_ptr) {
@@ -154,23 +153,26 @@ void StopLogger() {
   }
 }
 
-void InitializeCloud(shared_ptr<CloudInitializerInterface>& cloud_initializer,
-                     const std::string& service_name) {
+void InitializeCloud(
+    std::shared_ptr<CloudInitializerInterface>& cloud_initializer,
+    const std::string& service_name) {
   cloud_initializer = CloudInitializerFactory::Create();
   Init(cloud_initializer, service_name);
   Run(cloud_initializer, service_name);
   cloud_initializer->InitCloud();
 }
 
-void ShutdownCloud(shared_ptr<CloudInitializerInterface>& cloud_initializer,
-                   const std::string& service_name) {
+void ShutdownCloud(
+    std::shared_ptr<CloudInitializerInterface>& cloud_initializer,
+    const std::string& service_name) {
   cloud_initializer->ShutdownCloud();
   Stop(cloud_initializer, service_name);
 }
 
-void RunConfigProvider(shared_ptr<ConfigProviderInterface>& config_provider,
-                       const std::string& service_name) {
-  config_provider = make_shared<EnvConfigProvider>();
+void RunConfigProvider(
+    std::shared_ptr<ConfigProviderInterface>& config_provider,
+    const std::string& service_name) {
+  config_provider = std::make_shared<EnvConfigProvider>();
   Init(config_provider, service_name);
   Run(config_provider, service_name);
 }
@@ -179,7 +181,7 @@ void RunNetworkServer(
     std::shared_ptr<core::NetworkServiceInterface>& network_service,
     int32_t network_concurrency, const std::string& service_name,
     const std::string& server_uri) {
-  network_service = make_shared<GrpcNetworkService>(
+  network_service = std::make_shared<GrpcNetworkService>(
       GrpcNetworkService::AddressType::kUNIX, server_uri, network_concurrency);
   Init(network_service, service_name);
   Run(network_service, service_name);
@@ -197,7 +199,7 @@ void SignalSegmentationHandler(int signum) {
 }
 
 std::string ReadConfigString(
-    const shared_ptr<ConfigProviderInterface> config_provider,
+    const std::shared_ptr<ConfigProviderInterface> config_provider,
     const std::string& config_key) {
   std::string config_value;
   auto execution_result = config_provider->Get(config_key, config_value);
@@ -209,7 +211,7 @@ std::string ReadConfigString(
 }
 
 void ReadConfigStringList(
-    const shared_ptr<ConfigProviderInterface> config_provider,
+    const std::shared_ptr<ConfigProviderInterface> config_provider,
     const std::string& config_key, list<std::string>& config_values) {
   auto execution_result = config_provider->Get(config_key, config_values);
   if (!execution_result.Successful()) {
@@ -219,7 +221,7 @@ void ReadConfigStringList(
 }
 
 ExecutionResult TryReadConfigStringList(
-    const shared_ptr<ConfigProviderInterface> config_provider,
+    const std::shared_ptr<ConfigProviderInterface> config_provider,
     const std::string& config_key, list<std::string>& config_values) {
   auto execution_result = config_provider->Get(config_key, config_values);
   if (!execution_result.Successful()) {
@@ -230,7 +232,7 @@ ExecutionResult TryReadConfigStringList(
 }
 
 ExecutionResult TryReadConfigString(
-    const shared_ptr<ConfigProviderInterface> config_provider,
+    const std::shared_ptr<ConfigProviderInterface> config_provider,
     const std::string& config_key, std::string& config_value) {
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
@@ -241,7 +243,7 @@ ExecutionResult TryReadConfigString(
 }
 
 ExecutionResult TryReadConfigBool(
-    const shared_ptr<ConfigProviderInterface> config_provider,
+    const std::shared_ptr<ConfigProviderInterface> config_provider,
     const std::string& config_key, bool& config_value) {
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
@@ -251,8 +253,9 @@ ExecutionResult TryReadConfigBool(
   return execution_result;
 }
 
-int32_t ReadConfigInt(const shared_ptr<ConfigProviderInterface> config_provider,
-                      const std::string& config_key) {
+int32_t ReadConfigInt(
+    const std::shared_ptr<ConfigProviderInterface> config_provider,
+    const std::string& config_key) {
   int32_t config_value;
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
@@ -263,7 +266,7 @@ int32_t ReadConfigInt(const shared_ptr<ConfigProviderInterface> config_provider,
 }
 
 ExecutionResult TryReadConfigInt(
-    const shared_ptr<ConfigProviderInterface> config_provider,
+    const std::shared_ptr<ConfigProviderInterface> config_provider,
     const std::string& config_key, int32_t& config_value) {
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {

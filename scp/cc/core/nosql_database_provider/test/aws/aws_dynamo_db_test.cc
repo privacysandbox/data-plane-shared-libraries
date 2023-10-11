@@ -70,10 +70,8 @@ using std::atomic;
 using std::get;
 using std::isxdigit;
 using std::make_pair;
-using std::make_shared;
 using std::mt19937;
 using std::random_device;
-using std::shared_ptr;
 using std::uniform_int_distribution;
 
 namespace google::scp::core::test {
@@ -81,8 +79,8 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithoutAttributes) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -90,24 +88,27 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithoutAttributes) {
       get_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
-  get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+  get_database_item_context.request =
+      std::make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
+      std::make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
 
   dynamo_db_client->query_async_mock =
       [&](const QueryRequest& query_request,
           const QueryResponseReceivedHandler&,
-          const shared_ptr<const AsyncCallerContext>&) {
+          const std::shared_ptr<const AsyncCallerContext>&) {
         EXPECT_EQ(std::string(query_request.GetTableName().c_str()),
                   *get_database_item_context.request->table_name);
         EXPECT_EQ(
@@ -127,8 +128,8 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithAttributes) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -136,35 +137,39 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithAttributes) {
       get_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
-  get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+  get_database_item_context.request =
+      std::make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
+      std::make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   NoSqlDatabaseKeyValuePair attribute_1{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr1"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
 
   NoSqlDatabaseKeyValuePair attribute_2{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
 
   NoSqlDatabaseKeyValuePair attribute_3{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr3"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr3"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
 
   get_database_item_context.request->attributes->push_back(attribute_1);
   get_database_item_context.request->attributes->push_back(attribute_2);
@@ -173,7 +178,7 @@ TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithAttributes) {
   dynamo_db_client->query_async_mock =
       [&](const QueryRequest& query_request,
           const QueryResponseReceivedHandler&,
-          const shared_ptr<const AsyncCallerContext>&) {
+          const std::shared_ptr<const AsyncCallerContext>&) {
         EXPECT_EQ(std::string(query_request.GetTableName().c_str()),
                   *get_database_item_context.request->table_name);
         EXPECT_EQ(
@@ -199,8 +204,8 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackFailure) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -208,35 +213,39 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackFailure) {
       get_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
-  get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+  get_database_item_context.request =
+      std::make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
+      std::make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   NoSqlDatabaseKeyValuePair attribute_1{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr1"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
 
   NoSqlDatabaseKeyValuePair attribute_2{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
 
   NoSqlDatabaseKeyValuePair attribute_3{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr3"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr3"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
 
   get_database_item_context.request->attributes->push_back(attribute_1);
   get_database_item_context.request->attributes->push_back(attribute_2);
@@ -265,8 +274,8 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackZeroOrMoreThanOneResult) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -274,35 +283,39 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackZeroOrMoreThanOneResult) {
       get_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
-  get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+  get_database_item_context.request =
+      std::make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
+      std::make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   NoSqlDatabaseKeyValuePair attribute_1{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr1"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
 
   NoSqlDatabaseKeyValuePair attribute_2{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
 
   NoSqlDatabaseKeyValuePair attribute_3{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr3"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr3"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
 
   get_database_item_context.request->attributes->push_back(attribute_1);
   get_database_item_context.request->attributes->push_back(attribute_2);
@@ -328,8 +341,8 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackOneResult) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -337,21 +350,24 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackOneResult) {
       get_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
-  get_database_item_context.request = make_shared<GetDatabaseItemRequest>();
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+  get_database_item_context.request =
+      std::make_shared<GetDatabaseItemRequest>();
   get_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
+      std::make_shared<std::string>("TestTable");
   get_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   get_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
   get_database_item_context.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
 
   get_database_item_context
       .callback = [&](AsyncContext<GetDatabaseItemRequest,
@@ -424,8 +440,8 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithoutAttributes) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -433,25 +449,27 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithoutAttributes) {
       upsert_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
   upsert_database_item_context.request =
-      make_shared<UpsertDatabaseItemRequest>();
+      std::make_shared<UpsertDatabaseItemRequest>();
   upsert_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
+      std::make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
 
   dynamo_db_client->update_item_async_mock =
       [&](const UpdateItemRequest& upsert_request,
           const UpdateItemResponseReceivedHandler&,
-          const shared_ptr<const AsyncCallerContext>&) {
+          const std::shared_ptr<const AsyncCallerContext>&) {
         EXPECT_EQ(std::string(upsert_request.GetTableName().c_str()),
                   *upsert_database_item_context.request->table_name);
         auto keys = upsert_request.GetKey();
@@ -474,8 +492,8 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithNewAttributes) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -483,35 +501,38 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithNewAttributes) {
       upsert_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
-  upsert_database_item_context.request =
-      make_shared<UpsertDatabaseItemRequest>();
-  upsert_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
-  upsert_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
-  upsert_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
-  upsert_database_item_context.request->new_attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
-  NoSqlDatabaseKeyValuePair attribute_1{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+  upsert_database_item_context.request =
+      std::make_shared<UpsertDatabaseItemRequest>();
+  upsert_database_item_context.request->table_name =
+      std::make_shared<std::string>("TestTable");
+  upsert_database_item_context.request->partition_key =
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+  upsert_database_item_context.request->sort_key =
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+  upsert_database_item_context.request->new_attributes =
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+  NoSqlDatabaseKeyValuePair attribute_1{
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
 
   NoSqlDatabaseKeyValuePair attribute_2{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
 
   NoSqlDatabaseKeyValuePair attribute_3{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr3"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr3"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
 
   upsert_database_item_context.request->new_attributes->push_back(attribute_1);
   upsert_database_item_context.request->new_attributes->push_back(attribute_2);
@@ -520,7 +541,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithNewAttributes) {
   dynamo_db_client->update_item_async_mock =
       [&](const UpdateItemRequest& upsert_request,
           const UpdateItemResponseReceivedHandler&,
-          const shared_ptr<const AsyncCallerContext>&) {
+          const std::shared_ptr<const AsyncCallerContext>&) {
         EXPECT_EQ(std::string(upsert_request.GetTableName().c_str()),
                   *upsert_database_item_context.request->table_name);
         auto keys = upsert_request.GetKey();
@@ -546,8 +567,8 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithOldAttributes) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -555,35 +576,38 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithOldAttributes) {
       upsert_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
-  upsert_database_item_context.request =
-      make_shared<UpsertDatabaseItemRequest>();
-  upsert_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
-  upsert_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
-  upsert_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
-  upsert_database_item_context.request->attributes =
-      make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
-  NoSqlDatabaseKeyValuePair attribute_1{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr1"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+  upsert_database_item_context.request =
+      std::make_shared<UpsertDatabaseItemRequest>();
+  upsert_database_item_context.request->table_name =
+      std::make_shared<std::string>("TestTable");
+  upsert_database_item_context.request->partition_key =
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+  upsert_database_item_context.request->sort_key =
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+  upsert_database_item_context.request->attributes =
+      std::make_shared<std::vector<NoSqlDatabaseKeyValuePair>>();
+  NoSqlDatabaseKeyValuePair attribute_1{
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>("1234")};
 
   NoSqlDatabaseKeyValuePair attribute_2{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
 
   NoSqlDatabaseKeyValuePair attribute_3{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Attr3"),
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Attr3"),
       .attribute_value =
-          make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(4.5)};
 
   upsert_database_item_context.request->attributes->push_back(attribute_1);
   upsert_database_item_context.request->attributes->push_back(attribute_2);
@@ -592,7 +616,7 @@ TEST(AwsDynamoDBTests, UpsertItemWithPartitionAndSortKeyWithOldAttributes) {
   dynamo_db_client->update_item_async_mock =
       [&](const UpdateItemRequest& upsert_request,
           const UpdateItemResponseReceivedHandler&,
-          const shared_ptr<const AsyncCallerContext>&) {
+          const std::shared_ptr<const AsyncCallerContext>&) {
         EXPECT_EQ(std::string(upsert_request.GetTableName().c_str()),
                   *upsert_database_item_context.request->table_name);
         auto keys = upsert_request.GetKey();
@@ -618,8 +642,8 @@ TEST(AwsDynamoDBTests, UpsertDatabaseItemCallbackFailure) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -627,20 +651,22 @@ TEST(AwsDynamoDBTests, UpsertDatabaseItemCallbackFailure) {
       upsert_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
   upsert_database_item_context.request =
-      make_shared<UpsertDatabaseItemRequest>();
+      std::make_shared<UpsertDatabaseItemRequest>();
   upsert_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
+      std::make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
 
   upsert_database_item_context.callback =
       [&](AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>&
@@ -665,8 +691,8 @@ TEST(AwsDynamoDBTests, UpsertDatabaseItemCallback) {
   SDKOptions options;
   InitAPI(options);
 
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>();
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client = std::make_shared<MockAwsDynamoDBClient>();
 
   MockAwsDynamoDB dynamo_db(dynamo_db_client, mock_async_executor);
 
@@ -674,20 +700,22 @@ TEST(AwsDynamoDBTests, UpsertDatabaseItemCallback) {
       upsert_database_item_context;
 
   NoSqlDatabaseKeyValuePair partition_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col1"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col1"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(3)};
 
   NoSqlDatabaseKeyValuePair sort_key{
-      .attribute_name = make_shared<NoSQLDatabaseAttributeName>("Col2"),
-      .attribute_value = make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
+      .attribute_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2"),
+      .attribute_value =
+          std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(2)};
   upsert_database_item_context.request =
-      make_shared<UpsertDatabaseItemRequest>();
+      std::make_shared<UpsertDatabaseItemRequest>();
   upsert_database_item_context.request->table_name =
-      make_shared<std::string>("TestTable");
+      std::make_shared<std::string>("TestTable");
   upsert_database_item_context.request->partition_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(partition_key));
   upsert_database_item_context.request->sort_key =
-      make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
+      std::make_shared<NoSqlDatabaseKeyValuePair>(std::move(sort_key));
 
   upsert_database_item_context.callback =
       [&](AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>&
@@ -709,11 +737,12 @@ TEST(AwsDynamoDBTests, DISABLED_LeaseManagerWithLeasableLockOnDynamoDB) {
   SDKOptions options;
   InitAPI(options);
 
-  auto client_config = make_shared<Aws::Client::ClientConfiguration>();
+  auto client_config = std::make_shared<Aws::Client::ClientConfiguration>();
   String aws_region("us-west-1");
   client_config->region = aws_region;
-  auto dynamo_db_client = make_shared<MockAwsDynamoDBClient>(*client_config);
-  auto mock_async_executor = make_shared<MockAsyncExecutor>();
+  auto dynamo_db_client =
+      std::make_shared<MockAwsDynamoDBClient>(*client_config);
+  auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
 
   auto dynamo_db =
       std::make_shared<MockAwsDynamoDB>(dynamo_db_client, mock_async_executor);

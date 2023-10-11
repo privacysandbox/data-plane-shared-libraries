@@ -27,20 +27,18 @@
 
 using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::client_providers::GcpMetricClientProvider;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 GcpMetricServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<GcpInstanceServiceFactory>(
+  return std::make_shared<GcpInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
 std::shared_ptr<MetricClientInterface>
 GcpMetricServiceFactory::CreateMetricClient() noexcept {
-  return make_shared<GcpMetricClientProvider>(nullptr /*MetricClientOptions>*/,
-                                              instance_client_,
-                                              nullptr /*AsyncExecutor*/);
+  return std::make_shared<GcpMetricClientProvider>(
+      nullptr /*MetricClientOptions>*/, instance_client_,
+      nullptr /*AsyncExecutor*/);
 }
 }  // namespace google::scp::cpio

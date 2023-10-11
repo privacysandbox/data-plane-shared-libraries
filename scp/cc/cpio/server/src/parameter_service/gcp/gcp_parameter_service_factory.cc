@@ -27,21 +27,19 @@
 
 using google::scp::cpio::client_providers::GcpParameterClientProvider;
 using google::scp::cpio::client_providers::ParameterClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 GcpParameterServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<GcpInstanceServiceFactory>(
+  return std::make_shared<GcpInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
 std::shared_ptr<ParameterClientProviderInterface>
 GcpParameterServiceFactory::CreateParameterClient() noexcept {
-  return make_shared<GcpParameterClientProvider>(
+  return std::make_shared<GcpParameterClientProvider>(
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor(), instance_client_,
-      make_shared<ParameterClientOptions>());
+      std::make_shared<ParameterClientOptions>());
 }
 }  // namespace google::scp::cpio

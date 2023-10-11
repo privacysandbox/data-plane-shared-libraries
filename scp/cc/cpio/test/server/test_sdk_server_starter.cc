@@ -34,7 +34,6 @@ using google::scp::core::test::RemoveNetwork;
 using google::scp::core::test::StartContainer;
 using google::scp::core::test::StopContainer;
 using std::runtime_error;
-using std::shared_ptr;
 
 namespace google::scp::cpio::test {
 void TestSdkServerStarter::RunSdkServer(

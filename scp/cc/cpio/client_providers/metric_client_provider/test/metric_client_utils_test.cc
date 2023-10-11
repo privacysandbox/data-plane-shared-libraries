@@ -34,7 +34,6 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_METRIC_NOT_SET;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_METRIC_VALUE_NOT_SET;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::MetricClientUtils;
-using std::make_shared;
 
 static constexpr char kMetricNamespace[] = "namespace";
 
@@ -53,7 +52,7 @@ TEST(MetricClientUtilsTest, NoMetric) {
   PutMetricsRequest request;
   request.set_metric_namespace(kMetricNamespace);
   EXPECT_THAT(MetricClientUtils::ValidateRequest(
-                  request, make_shared<MetricBatchingOptions>()),
+                  request, std::make_shared<MetricBatchingOptions>()),
               ResultIs(FailureExecutionResult(
                   SC_METRIC_CLIENT_PROVIDER_METRIC_NOT_SET)));
 }
@@ -64,7 +63,7 @@ TEST(MetricClientUtilsTest, NoMetricName) {
   request.add_metrics();
 
   EXPECT_THAT(MetricClientUtils::ValidateRequest(
-                  request, make_shared<MetricBatchingOptions>()),
+                  request, std::make_shared<MetricBatchingOptions>()),
               ResultIs(FailureExecutionResult(
                   SC_METRIC_CLIENT_PROVIDER_METRIC_NAME_NOT_SET)));
 }
@@ -75,7 +74,7 @@ TEST(MetricClientUtilsTest, NoMetricValue) {
   auto metric = request.add_metrics();
   metric->set_name("metric1");
   EXPECT_THAT(MetricClientUtils::ValidateRequest(
-                  request, make_shared<MetricBatchingOptions>()),
+                  request, std::make_shared<MetricBatchingOptions>()),
               ResultIs(FailureExecutionResult(
                   SC_METRIC_CLIENT_PROVIDER_METRIC_VALUE_NOT_SET)));
 }
@@ -89,7 +88,7 @@ TEST(MetricClientUtilsTest, OneMetricWithoutName) {
   request.add_metrics();
 
   EXPECT_THAT(MetricClientUtils::ValidateRequest(
-                  request, make_shared<MetricBatchingOptions>()),
+                  request, std::make_shared<MetricBatchingOptions>()),
               ResultIs(FailureExecutionResult(
                   SC_METRIC_CLIENT_PROVIDER_METRIC_NAME_NOT_SET)));
 }
@@ -99,7 +98,7 @@ TEST(MetricClientUtilsTest, NoNamespaceWhenOptionsAreSet) {
   auto metric = request.add_metrics();
   metric->set_name("metric1");
   metric->set_value("123");
-  auto options = make_shared<MetricBatchingOptions>();
+  auto options = std::make_shared<MetricBatchingOptions>();
   options->enable_batch_recording = true;
   EXPECT_SUCCESS(MetricClientUtils::ValidateRequest(request, options));
 }
@@ -111,6 +110,6 @@ TEST(MetricClientUtilsTest, ValidMetric) {
   metric->set_name("metric1");
   metric->set_value("123");
   EXPECT_SUCCESS(MetricClientUtils::ValidateRequest(
-      request, make_shared<MetricBatchingOptions>()));
+      request, std::make_shared<MetricBatchingOptions>()));
 }
 }  // namespace google::scp::cpio::client_providers::test

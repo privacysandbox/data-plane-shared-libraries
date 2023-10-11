@@ -40,7 +40,6 @@ using google::scp::core::errors::
     SC_ROMA_V8_ISOLATE_VISITOR_FUNCTION_BINDING_INVALID_ISOLATE;
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::sandbox::constants::kMetadataRomaRequestId;
-using std::make_unique;
 using v8::Array;
 using v8::Context;
 using v8::External;
@@ -102,7 +101,7 @@ static bool V8TypesToProto(const FunctionCallbackInfo<Value>& info,
   } else if (function_parameter->IsUint8Array()) {
     auto array = function_parameter.As<Uint8Array>();
     auto data_len = array->Length();
-    auto native_data = make_unique<uint8_t[]>(data_len);
+    auto native_data = std::make_unique<uint8_t[]>(data_len);
     if (!TypeConverter<uint8_t*>::FromV8(isolate, function_parameter,
                                          native_data.get(), data_len)) {
       return false;

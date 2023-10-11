@@ -27,8 +27,6 @@
 #include <boost/asio.hpp>
 
 using boost::system::error_code;
-using std::make_shared;
-using std::make_unique;
 using std::thread;
 using UdsSocket = boost::asio::local::stream_protocol::socket;
 
@@ -47,8 +45,8 @@ TEST(ProxyBridge, EmptyConnection) {
   int client_sock_fd = client_sock1.native_handle();
   int dest_sock_fd = dest_sock1.native_handle();
   {
-    auto bridge = make_shared<ProxyBridge>(std::move(client_sock1),
-                                           std::move(dest_sock1));
+    auto bridge = std::make_shared<ProxyBridge>(std::move(client_sock1),
+                                                std::move(dest_sock1));
     bridge->ForwardTraffic();
   }
 
@@ -81,8 +79,8 @@ TEST(ProxyBridge, HalfClosure) {
   int client_sock_fd = client_sock1.native_handle();
   int dest_sock_fd = dest_sock1.native_handle();
   {
-    auto bridge = make_shared<ProxyBridge>(std::move(client_sock1),
-                                           std::move(dest_sock1));
+    auto bridge = std::make_shared<ProxyBridge>(std::move(client_sock1),
+                                                std::move(dest_sock1));
     bridge->ForwardTraffic();
   }
 
@@ -124,12 +122,12 @@ TEST(ProxyBridge, ForwardTraffic) {
   int dest_sock_fd = dest_sock1.native_handle();
 
   {
-    auto bridge = make_shared<ProxyBridge>(std::move(client_sock1),
-                                           std::move(dest_sock1));
+    auto bridge = std::make_shared<ProxyBridge>(std::move(client_sock1),
+                                                std::move(dest_sock1));
     bridge->ForwardTraffic();
   }
 
-  auto send_buf = make_unique<uint8_t[]>(10 * 1024 * 1024);
+  auto send_buf = std::make_unique<uint8_t[]>(10 * 1024 * 1024);
   for (size_t i = 0; i < 10 * 1024 * 1024; ++i) {
     send_buf[i] = i & 0xff;
   }
@@ -142,7 +140,7 @@ TEST(ProxyBridge, ForwardTraffic) {
     client_sock0.close();
   });
 
-  auto recv_buf = make_unique<uint8_t[]>(1024);
+  auto recv_buf = std::make_unique<uint8_t[]>(1024);
   constexpr size_t buf_size = 1024UL;
   size_t counter = 0UL;
   while (true) {
@@ -178,7 +176,7 @@ TEST(ProxyBridge, InboundConnection) {
 
   {
     auto bridge =
-        make_shared<ProxyBridge>(std::move(client_sock1), &acceptor_pool);
+        std::make_shared<ProxyBridge>(std::move(client_sock1), &acceptor_pool);
     bridge->PerformSocks5Handshake();
   }
 
@@ -214,7 +212,7 @@ TEST(ProxyBridge, InboundConnection) {
   // Read the last response when connection establishes
   asio::read(client_sock0, asio::buffer(buff, 8));
 
-  auto send_buf = make_unique<uint8_t[]>(10 * 1024 * 1024);
+  auto send_buf = std::make_unique<uint8_t[]>(10 * 1024 * 1024);
   for (size_t i = 0; i < 10 * 1024 * 1024; ++i) {
     send_buf[i] = i & 0xff;
   }
@@ -226,7 +224,7 @@ TEST(ProxyBridge, InboundConnection) {
     client_sock0.close();
   });
 
-  auto recv_buf = make_unique<uint8_t[]>(1024);
+  auto recv_buf = std::make_unique<uint8_t[]>(1024);
   constexpr size_t buf_size = 1024UL;
   size_t counter = 0UL;
   while (true) {

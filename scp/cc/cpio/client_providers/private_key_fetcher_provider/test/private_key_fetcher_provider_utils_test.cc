@@ -56,8 +56,6 @@ using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
-using std::make_shared;
-using std::shared_ptr;
 using ::testing::Eq;
 
 namespace {
@@ -306,10 +304,10 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithCreationTimeNotFound) {
 
 TEST(PrivateKeyFetchingClientUtilsTest, CreateHttpRequestForKeyId) {
   PrivateKeyFetchingRequest request;
-  request.key_vending_endpoint = make_shared<PrivateKeyVendingEndpoint>();
+  request.key_vending_endpoint = std::make_shared<PrivateKeyVendingEndpoint>();
   request.key_vending_endpoint->private_key_vending_service_endpoint =
       kPrivateKeyBaseUri;
-  request.key_id = make_shared<std::string>(kKeyId);
+  request.key_id = std::make_shared<std::string>(kKeyId);
   request.max_age_seconds = 1000000;
   HttpRequest http_request;
   PrivateKeyFetchingClientUtils::CreateHttpRequest(request, http_request);
@@ -321,7 +319,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, CreateHttpRequestForKeyId) {
 
 TEST(PrivateKeyFetchingClientUtilsTest, CreateHttpRequestForMaxAgeSeconds) {
   PrivateKeyFetchingRequest request;
-  request.key_vending_endpoint = make_shared<PrivateKeyVendingEndpoint>();
+  request.key_vending_endpoint = std::make_shared<PrivateKeyVendingEndpoint>();
   request.key_vending_endpoint->private_key_vending_service_endpoint =
       kPrivateKeyBaseUri;
   request.max_age_seconds = 1000000;

@@ -38,12 +38,10 @@ using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
 using std::atomic;
 using std::get;
-using std::make_shared;
 using std::mutex;
 using std::optional;
 using std::shared_lock;
 using std::shared_mutex;
-using std::shared_ptr;
 using std::unique_lock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -57,7 +55,7 @@ constexpr char kLeasableLock[] = "LeasableLock";
 // the database for the specified 'lock_row_key_' in the constructor
 // arguments.
 LeasableLockOnNoSQLDatabase::LeasableLockOnNoSQLDatabase(
-    shared_ptr<NoSQLDatabaseProviderInterface> database,
+    std::shared_ptr<NoSQLDatabaseProviderInterface> database,
     LeaseInfo lease_acquirer_info, std::string table_name,
     std::string lock_row_key, milliseconds lease_duration_in_milliseconds,
     uint64_t lease_renewal_threshold_percent_time_left_in_lease) noexcept

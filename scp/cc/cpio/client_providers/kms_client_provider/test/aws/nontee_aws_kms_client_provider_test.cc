@@ -72,10 +72,6 @@ using google::scp::cpio::client_providers::mock::
     MockNonteeAwsKmsClientProviderWithOverrides;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
 using std::atomic;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 
 static constexpr char kAssumeRoleArn[] = "assumeRoleArn";
 static constexpr char kKeyArn[] = "keyArn";
@@ -98,7 +94,7 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    mock_kms_client_ = make_shared<MockKMSClient>();
+    mock_kms_client_ = std::make_shared<MockKMSClient>();
 
     // Mocks DecryptRequest.
     AwsDecryptRequest decrypt_request;
@@ -123,22 +119,23 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
     DecryptOutcome decrypt_outcome(decrypt_result);
     mock_kms_client_->decrypt_outcome_mock = decrypt_outcome;
 
-    mock_credentials_provider_ = make_shared<MockRoleCredentialsProvider>();
-    client_ = make_unique<MockNonteeAwsKmsClientProviderWithOverrides>(
+    mock_credentials_provider_ =
+        std::make_shared<MockRoleCredentialsProvider>();
+    client_ = std::make_unique<MockNonteeAwsKmsClientProviderWithOverrides>(
         mock_credentials_provider_, mock_kms_client_, mock_io_async_executor_);
   }
 
   void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
 
-  unique_ptr<MockNonteeAwsKmsClientProviderWithOverrides> client_;
-  shared_ptr<MockKMSClient> mock_kms_client_;
-  shared_ptr<MockAsyncExecutor> mock_io_async_executor_ =
-      make_shared<MockAsyncExecutor>();
-  shared_ptr<RoleCredentialsProviderInterface> mock_credentials_provider_;
+  std::unique_ptr<MockNonteeAwsKmsClientProviderWithOverrides> client_;
+  std::shared_ptr<MockKMSClient> mock_kms_client_;
+  std::shared_ptr<MockAsyncExecutor> mock_io_async_executor_ =
+      std::make_shared<MockAsyncExecutor>();
+  std::shared_ptr<RoleCredentialsProviderInterface> mock_credentials_provider_;
 };
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingCredentialsProvider) {
-  client_ = make_unique<MockNonteeAwsKmsClientProviderWithOverrides>(
+  client_ = std::make_unique<MockNonteeAwsKmsClientProviderWithOverrides>(
       nullptr, mock_kms_client_, mock_io_async_executor_);
 
   EXPECT_THAT(client_->Init(),
@@ -150,7 +147,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingAssumeRoleArn) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrypt_request = make_shared<DecryptRequest>();
+  auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_key_resource_name(kKeyArn);
   kms_decrypt_request->set_ciphertext(kCiphertext);
@@ -168,7 +165,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingRegion) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrypt_request = make_shared<DecryptRequest>();
+  auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kKeyArn);
   kms_decrypt_request->set_ciphertext(kCiphertext);
@@ -186,7 +183,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrypt_request = make_shared<DecryptRequest>();
+  auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kKeyArn);
@@ -209,7 +206,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrypt_request = make_shared<DecryptRequest>();
+  auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kKeyArn);
@@ -233,7 +230,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingKeyArn) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrypt_request = make_shared<DecryptRequest>();
+  auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_ciphertext(kCiphertext);
@@ -257,7 +254,7 @@ TEST_F(TeeAwsKmsClientProviderTest, FailedDecryption) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  auto kms_decrypt_request = make_shared<DecryptRequest>();
+  auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kWrongKeyArn);

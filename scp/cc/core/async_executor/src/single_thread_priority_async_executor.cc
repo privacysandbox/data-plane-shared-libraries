@@ -32,11 +32,8 @@
 using google::scp::core::common::TimeProvider;
 using std::atomic;
 using std::function;
-using std::make_shared;
-using std::make_unique;
 using std::mutex;
 using std::priority_queue;
-using std::shared_ptr;
 using std::thread;
 using std::unique_lock;
 using std::chrono::milliseconds;
@@ -48,9 +45,10 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::Init() noexcept {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_INVALID_QUEUE_CAP);
   }
 
-  queue_ = make_shared<
-      priority_queue<shared_ptr<AsyncTask>, std::vector<shared_ptr<AsyncTask>>,
-                     AsyncTaskCompareGreater>>();
+  queue_ =
+      std::make_shared<priority_queue<std::shared_ptr<AsyncTask>,
+                                      std::vector<std::shared_ptr<AsyncTask>>,
+                                      AsyncTaskCompareGreater>>();
   return SuccessExecutionResult();
 };
 
@@ -64,7 +62,7 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::Run() noexcept {
   }
 
   is_running_ = true;
-  working_thread_ = make_unique<thread>(
+  working_thread_ = std::make_unique<thread>(
       [affinity_cpu_number =
            affinity_cpu_number_](SingleThreadPriorityAsyncExecutor* ptr) {
         if (affinity_cpu_number.has_value()) {
@@ -179,7 +177,7 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
     return RetryExecutionResult(errors::SC_ASYNC_EXECUTOR_EXCEEDING_QUEUE_CAP);
   }
 
-  auto task = make_shared<AsyncTask>(work, timestamp);
+  auto task = std::make_shared<AsyncTask>(work, timestamp);
   cancellation_callback = [task]() mutable { return task->Cancel(); };
   queue_->push(task);
 

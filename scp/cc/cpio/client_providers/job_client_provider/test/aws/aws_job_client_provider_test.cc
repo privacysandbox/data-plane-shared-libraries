@@ -34,10 +34,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::mock::
     MockNoSQLDatabaseClientProvider;
 using google::scp::cpio::client_providers::mock::MockQueueClientProvider;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::NiceMock;
 
 namespace {
@@ -49,23 +45,25 @@ namespace google::scp::cpio::client_providers::job_client::test {
 class AwsJobClientProviderTest : public ::testing::Test {
  protected:
   AwsJobClientProviderTest() {
-    job_client_options_ = make_shared<JobClientOptions>();
+    job_client_options_ = std::make_shared<JobClientOptions>();
     job_client_options_->job_table_name = kJobsTableName;
-    queue_client_provider_ = make_shared<NiceMock<MockQueueClientProvider>>();
+    queue_client_provider_ =
+        std::make_shared<NiceMock<MockQueueClientProvider>>();
     nosql_database_client_provider_ =
-        make_shared<NiceMock<MockNoSQLDatabaseClientProvider>>();
+        std::make_shared<NiceMock<MockNoSQLDatabaseClientProvider>>();
 
-    aws_job_client_provider_ = make_unique<AwsJobClientProvider>(
+    aws_job_client_provider_ = std::make_unique<AwsJobClientProvider>(
         job_client_options_, queue_client_provider_,
         nosql_database_client_provider_);
   }
 
   void TearDown() override { EXPECT_SUCCESS(aws_job_client_provider_->Stop()); }
 
-  shared_ptr<JobClientOptions> job_client_options_;
-  shared_ptr<MockQueueClientProvider> queue_client_provider_;
-  shared_ptr<MockNoSQLDatabaseClientProvider> nosql_database_client_provider_;
-  unique_ptr<AwsJobClientProvider> aws_job_client_provider_;
+  std::shared_ptr<JobClientOptions> job_client_options_;
+  std::shared_ptr<MockQueueClientProvider> queue_client_provider_;
+  std::shared_ptr<MockNoSQLDatabaseClientProvider>
+      nosql_database_client_provider_;
+  std::unique_ptr<AwsJobClientProvider> aws_job_client_provider_;
 };
 
 TEST_F(AwsJobClientProviderTest,

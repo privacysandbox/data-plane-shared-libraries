@@ -38,9 +38,7 @@ using google::scp::cpio::client_providers::AwsResourceNameDetails;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::atomic;
 using std::get;
-using std::make_shared;
 using std::make_tuple;
-using std::shared_ptr;
 using std::tuple;
 using testing::Pair;
 using testing::Pointee;
@@ -68,7 +66,7 @@ constexpr char kAccountIdMock[] = "123456789012";
 namespace google::scp::cpio::client_providers::test {
 
 TEST(AwsInstanceClientUtilsTest, GetCurrentRegionCodeSuccess) {
-  auto instance_client = make_shared<MockInstanceClientProvider>();
+  auto instance_client = std::make_shared<MockInstanceClientProvider>();
   instance_client->instance_resource_name = kResourceNameMock;
 
   auto region_code =
@@ -77,7 +75,7 @@ TEST(AwsInstanceClientUtilsTest, GetCurrentRegionCodeSuccess) {
 }
 
 TEST(AwsInstanceClientUtilsTest, GetCurrentRegionCodeFailedWithResourceName) {
-  auto instance_client = make_shared<MockInstanceClientProvider>();
+  auto instance_client = std::make_shared<MockInstanceClientProvider>();
   instance_client->get_instance_resource_name_mock =
       FailureExecutionResult(SC_UNKNOWN);
 

@@ -38,11 +38,8 @@ using google::scp::roma::wasm::testing::WasmTestingUtils;
 using std::atomic;
 using std::bind;
 using std::get;
-using std::make_shared;
-using std::make_unique;
 using std::thread;
 using std::tuple;
-using std::unique_ptr;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using ::testing::HasSubstr;
@@ -91,7 +88,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -99,23 +96,24 @@ TEST(SandboxedServiceTest, ExecuteCode) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -145,7 +143,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   atomic<bool> failed_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -153,23 +151,24 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -181,14 +180,14 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "WrongHandler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        // Execute should fail with the expected error.
                        EXPECT_FALSE(resp->ok());
                        EXPECT_EQ("Failed to get valid function handler.",
@@ -218,29 +217,30 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -269,29 +269,30 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
     function Handler(arg1, arg2) { return arg1; }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -320,7 +321,7 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->id = "my_cool_id";
     code_obj->version_num = 1;
@@ -329,24 +330,25 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           EXPECT_EQ("my_cool_id", (*resp)->id);
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      EXPECT_EQ("my_cool_id", (*resp)->id);
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -375,14 +377,14 @@ TEST(SandboxedServiceTest,
   atomic<bool> execute_finished = false;
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        // Execute should fail with the expected error.
                        EXPECT_FALSE(resp->ok());
                        EXPECT_EQ("Could not find code version in cache.",
@@ -408,7 +410,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -443,22 +445,23 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
       }
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -487,7 +490,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -495,11 +498,12 @@ TEST(SandboxedServiceTest, BatchExecute) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
@@ -548,7 +552,7 @@ TEST(SandboxedServiceTest,
   atomic<bool> load_finished = false;
   atomic<bool> execute_finished = false;
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -556,11 +560,12 @@ TEST(SandboxedServiceTest,
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
@@ -609,7 +614,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   atomic<bool> load_finished = false;
   atomic<int> execute_finished = 0;
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -617,11 +622,12 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
@@ -689,7 +695,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   std::vector<std::string> results(total_runs);
   std::vector<atomic<bool>> finished(total_runs);
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -697,32 +703,34 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
     for (auto i = 0u; i < total_runs; ++i) {
-      auto code_obj = make_unique<InvocationRequestSharedInput>();
+      auto code_obj = std::make_unique<InvocationRequestSharedInput>();
       code_obj->id = "foo";
       code_obj->version_num = 1;
       code_obj->handler_name = "Handler";
-      code_obj->input.push_back(
-          make_shared<std::string>(R"("Foobar)" + std::to_string(i) + R"(")"));
+      code_obj->input.push_back(std::make_shared<std::string>(
+          R"("Foobar)" + std::to_string(i) + R"(")"));
 
-      status = Execute(std::move(code_obj),
-                       [&, i](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                         EXPECT_TRUE(resp->ok());
-                         if (resp->ok()) {
-                           auto& code_resp = **resp;
-                           results[i] = code_resp.resp;
-                         }
-                         finished[i].store(true);
-                       });
+      status =
+          Execute(std::move(code_obj),
+                  [&, i](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                    EXPECT_TRUE(resp->ok());
+                    if (resp->ok()) {
+                      auto& code_resp = **resp;
+                      results[i] = code_resp.resp;
+                    }
+                    finished[i].store(true);
+                  });
       EXPECT_TRUE(status.ok());
     }
   }
@@ -749,7 +757,7 @@ TEST(SandboxedServiceTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputString) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
   function_binding_object->function = StringInStringOutFunction;
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
@@ -762,30 +770,31 @@ TEST(SandboxedServiceTest,
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
     function Handler(input) { return cool_function(input);}
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -816,7 +825,7 @@ TEST(SandboxedServiceTest,
      ShouldBeAbleToGeRequestIdFromFunctionBindingMetadataInHook) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
   function_binding_object->function =
       StringInStringOutFunctionWithRequestIdCheck;
   function_binding_object->function_name = "cool_function";
@@ -830,23 +839,24 @@ TEST(SandboxedServiceTest,
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "some-cool-id-does-not-matter-because-its-a-load-request";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
     function Handler(input) { return cool_function(input);}
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     // Should be available in the hook
     execution_obj->id = "id-that-should-be-available-in-hook-metadata";
     execution_obj->version_num = 1;
@@ -854,7 +864,7 @@ TEST(SandboxedServiceTest,
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -886,7 +896,7 @@ TEST(
     CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputListOfString) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
   function_binding_object->function = ListOfStringInListOfStringOutFunction;
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
@@ -899,29 +909,30 @@ TEST(
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
     function Handler() { some_array = ["str 1", "str 2", "str 3"]; return cool_function(some_array);}
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -960,7 +971,7 @@ TEST(SandboxedServiceTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputMapOfString) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
   function_binding_object->function = MapOfStringInMapOfStringOutFunction;
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
@@ -973,7 +984,7 @@ TEST(SandboxedServiceTest,
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -985,22 +996,23 @@ TEST(SandboxedServiceTest,
     }
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -1034,7 +1046,7 @@ void StringInStringOutFunctionWithNoInputParams(
 TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
   function_binding_object->function =
       StringInStringOutFunctionWithNoInputParams;
   function_binding_object->function_name = "cool_function";
@@ -1048,29 +1060,30 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
     function Handler() { return cool_function();}
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -1106,28 +1119,29 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
   auto wasm_code =
       std::string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->wasm = wasm_code;
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -1158,7 +1172,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   atomic<bool> execute_success = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"""(
@@ -1179,24 +1193,25 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
       }
     )""";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   // The execution should timeout as the kTimeoutMsTag value is too small.
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "hello_js";
     execution_obj->tags[kTimeoutMsTag] = "100";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_FALSE(resp->ok());
                        // Timeout error.
                        EXPECT_EQ(resp->status().message(),
@@ -1209,13 +1224,13 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   // The execution should return invoking error as it try to get value from
   // undefined var.
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "hello_js";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_FALSE(resp->ok());
                        EXPECT_EQ(resp->status().message(),
                                  "Error when invoking the handler.");
@@ -1226,7 +1241,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
 
   // The execution should success.
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "hello_js";
@@ -1234,7 +1249,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
     execution_obj->tags[kTimeoutMsTag] = "300";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        EXPECT_EQ(code_resp.resp, R"("Hello world!")");
@@ -1267,7 +1282,7 @@ TEST(SandboxedServiceTest,
                                               15 /*maximum_heap_size_in_mb*/);
   // We register a hook to make sure it continues to work when the worker is
   // restarted
-  auto function_binding_object = make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
   function_binding_object->function = EchoFunction;
   function_binding_object->function_name = "echo_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
@@ -1278,7 +1293,7 @@ TEST(SandboxedServiceTest,
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     // Dummy code to allocate memory based on input
@@ -1296,11 +1311,12 @@ TEST(SandboxedServiceTest,
         }
       )";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
@@ -1308,7 +1324,7 @@ TEST(SandboxedServiceTest,
   load_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo2";
     code_obj->version_num = 2;
     // Dummy code to exercise binding
@@ -1318,17 +1334,18 @@ TEST(SandboxedServiceTest,
         }
       )";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -1337,7 +1354,7 @@ TEST(SandboxedServiceTest,
 
     status = Execute(
         std::move(execution_obj),
-        [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_FALSE(resp->ok());
           EXPECT_EQ("Sandbox worker crashed during execution of request.",
                     resp->status().message());
@@ -1353,7 +1370,7 @@ TEST(SandboxedServiceTest,
   {
     std::string result;
 
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -1361,7 +1378,7 @@ TEST(SandboxedServiceTest,
     execution_obj->input.push_back(R"("1")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -1381,7 +1398,7 @@ TEST(SandboxedServiceTest,
   {
     std::string result;
 
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 2;
     execution_obj->handler_name = "Handler";
@@ -1389,7 +1406,7 @@ TEST(SandboxedServiceTest,
     execution_obj->input.push_back(R"("Hello, World!")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -1427,22 +1444,22 @@ TEST(SandboxedServiceTest,
 
     atomic<bool> load_finished = false;
     {
-      auto code_obj = make_unique<CodeObject>();
+      auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
       code_obj->version_num = 1;
       code_obj->js = "";
       code_obj->wasm.assign(reinterpret_cast<char*>(wasm_bin.data()),
                             wasm_bin.size());
 
-      status =
-          LoadCodeObj(std::move(code_obj),
-                      [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                        // Fails
-                        EXPECT_FALSE(resp->ok());
-                        EXPECT_EQ("Failed to create wasm object.",
-                                  resp->status().message());
-                        load_finished.store(true);
-                      });
+      status = LoadCodeObj(
+          std::move(code_obj),
+          [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+            // Fails
+            EXPECT_FALSE(resp->ok());
+            EXPECT_EQ("Failed to create wasm object.",
+                      resp->status().message());
+            load_finished.store(true);
+          });
       EXPECT_TRUE(status.ok());
     }
 
@@ -1473,20 +1490,20 @@ TEST(SandboxedServiceTest,
 
     atomic<bool> load_finished = false;
     {
-      auto code_obj = make_unique<CodeObject>();
+      auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
       code_obj->version_num = 1;
       code_obj->js = "";
       code_obj->wasm.assign(reinterpret_cast<char*>(wasm_bin.data()),
                             wasm_bin.size());
 
-      status =
-          LoadCodeObj(std::move(code_obj),
-                      [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                        // Loading works
-                        EXPECT_TRUE(resp->ok());
-                        load_finished.store(true);
-                      });
+      status = LoadCodeObj(
+          std::move(code_obj),
+          [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+            // Loading works
+            EXPECT_TRUE(resp->ok());
+            load_finished.store(true);
+          });
       EXPECT_TRUE(status.ok());
     }
 
@@ -1508,7 +1525,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -1516,16 +1533,17 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -1533,7 +1551,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
 
     status = Execute(
         std::move(execution_obj),
-        [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           if (resp->ok()) {
             auto& code_resp = **resp;
@@ -1579,7 +1597,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
 
   // Load version 1
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -1587,24 +1605,25 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   // Execute version 1
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -1622,7 +1641,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
 
   // Load version 2
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 2;
     code_obj->js = R"JS_CODE(
@@ -1630,11 +1649,12 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
@@ -1644,14 +1664,14 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   // Execute version 1 - Should fail since the cache has one spot, and we loaded
   // a new version.
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        // Should fail
                        EXPECT_FALSE(resp->ok());
                        execute_finished.store(true);
@@ -1665,14 +1685,14 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
 
   // Execute version 2
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 2;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -1703,7 +1723,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
 
   // Load version 1
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -1711,11 +1731,12 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
@@ -1748,7 +1769,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   load_finished = false;
   // Load version 2 while execution is happening
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 2;
     code_obj->js = R"JS_CODE(
@@ -1756,11 +1777,12 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
@@ -1783,7 +1805,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     // Code to sleep for the number of milliseconds passed as input
@@ -1802,11 +1824,12 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
@@ -1817,7 +1840,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   {
     // Should not timeout since we only sleep for 9 sec but the timeout is 10
     // sec.
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -1825,7 +1848,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     execution_obj->tags["TimeoutMs"] = "10000";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -1851,7 +1874,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   {
     // Should time out since we sleep for 11 which is longer than the 10
     // sec timeout.
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -1859,7 +1882,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     execution_obj->tags["TimeoutMs"] = "10000";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_FALSE(resp->ok());
                        execute_finished.store(true);
                      });
@@ -1887,7 +1910,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
   atomic<bool> load_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     // Bad JS code.
@@ -1897,7 +1920,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
 
     status =
         LoadCodeObj(std::move(code_obj),
-                    [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_FALSE(resp->ok());
                       EXPECT_EQ(resp->status().message(),
                                 "Failed to compile JavaScript code object.");
@@ -1923,7 +1946,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   atomic<bool> execute_failed = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -1935,23 +1958,24 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
       }
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("9000");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        EXPECT_EQ(code_resp.resp, R"("Hello world! 9000")");
@@ -1961,14 +1985,14 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("0")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_FALSE(resp->ok());
                        EXPECT_EQ(resp->status().message(),
                                  "Error when invoking the handler.");
@@ -1996,7 +2020,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   atomic<bool> execute_failed = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -2009,23 +2033,24 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
       }
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("9000");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        EXPECT_EQ(code_resp.resp, R"("Hello world! 9000")");
@@ -2035,14 +2060,14 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("0")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_FALSE(resp->ok());
                        EXPECT_EQ(resp->status().message(),
                                  "Error when invoking the handler.");
@@ -2070,7 +2095,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -2079,16 +2104,17 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -2096,7 +2122,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
     execution_obj->input.push_back(R"(" Barfoo2")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -2125,7 +2151,7 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -2134,16 +2160,17 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -2151,7 +2178,7 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
     execution_obj->input.push_back("Foobar1");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_FALSE(resp->ok());
                        // Should return failure
                        EXPECT_EQ("Error parsing input as valid JSON.",
@@ -2179,7 +2206,7 @@ TEST(SandboxedServiceTest,
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     // Bad syntax so load should fail
@@ -2187,18 +2214,19 @@ TEST(SandboxedServiceTest,
     function Handler(input) { return "123
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           // Load should have failed
-                           EXPECT_FALSE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      // Load should have failed
+                      EXPECT_FALSE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -2206,7 +2234,7 @@ TEST(SandboxedServiceTest,
 
     status = Execute(
         std::move(execution_obj),
-        [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           // Execution should fail since load didn't work for this
           // code version
           EXPECT_FALSE(resp->ok());
@@ -2222,18 +2250,19 @@ TEST(SandboxedServiceTest,
   // Should be able to load same version
   load_finished = false;
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
     function Handler() { return "Hello there";}
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
@@ -2241,13 +2270,13 @@ TEST(SandboxedServiceTest,
   // Execution should work now
   execute_finished = false;
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        EXPECT_EQ(R"("Hello there")", (*resp)->resp);
                        execute_finished.store(true);
@@ -2269,7 +2298,7 @@ TEST(SandboxedServiceTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithOutputBytes) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
   function_binding_object->function = ByteOutFunction;
   function_binding_object->function_name = "get_some_bytes";
   config.RegisterFunctionBinding(std::move(function_binding_object));
@@ -2282,7 +2311,7 @@ TEST(SandboxedServiceTest,
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -2296,23 +2325,24 @@ TEST(SandboxedServiceTest,
     }
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        result = code_resp.resp;
@@ -2340,32 +2370,33 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
 
   // Load v1
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "version 1"; }
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
 
   // Execute version 1
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        EXPECT_EQ(R"("version 1")", (*resp)->resp);
                        execute_finished.store(true);
@@ -2377,18 +2408,19 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   // Should be able to load same version
   load_finished = false;
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
     function Handler() { return "version 1 but updated";}
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
@@ -2396,13 +2428,13 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   // Execution should run the new version of the code
   execute_finished = false;
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        EXPECT_EQ(R"("version 1 but updated")", (*resp)->resp);
                        execute_finished.store(true);
@@ -2432,7 +2464,7 @@ TEST(SandboxedServiceTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputBytes) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
   function_binding_object->function = ByteInFunction;
   function_binding_object->function_name = "set_some_bytes";
   config.RegisterFunctionBinding(std::move(function_binding_object));
@@ -2445,7 +2477,7 @@ TEST(SandboxedServiceTest,
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -2461,23 +2493,24 @@ TEST(SandboxedServiceTest,
     }
     )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        result = code_resp.resp;
@@ -2504,7 +2537,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     absl::flat_hash_map<std::string, std::string> tags;
 
     code_obj->id = "foo";
@@ -2521,16 +2554,17 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
     code_obj->wasm_bin = kWasmBin;
     code_obj->tags = tags;
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "hello_js";
@@ -2538,7 +2572,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
     execution_obj->input.push_back("2");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -2576,7 +2610,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   )JS_CODE";
   // Passing both the wasm and wasm_bin
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = js_code;
@@ -2585,9 +2619,9 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     code_obj->tags = tags;
     code_obj->wasm = "test";
 
-    status =
-        LoadCodeObj(std::move(code_obj),
-                    [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
+    status = LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
     EXPECT_EQ(status.message(),
@@ -2597,15 +2631,15 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 
   // Missing JS code
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->wasm_bin = kWasmBin;
     code_obj->tags = tags;
 
-    status =
-        LoadCodeObj(std::move(code_obj),
-                    [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
+    status = LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
     EXPECT_EQ(status.message(),
@@ -2614,15 +2648,15 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 
   // Missing wasm code array name tag
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->js = js_code;
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->wasm_bin = kWasmBin;
 
-    status =
-        LoadCodeObj(std::move(code_obj),
-                    [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
+    status = LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
     EXPECT_EQ(status.message(),
@@ -2632,15 +2666,15 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 
   // Missing wasm_bin
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->js = js_code;
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->tags = tags;
 
-    status =
-        LoadCodeObj(std::move(code_obj),
-                    [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
+    status = LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
     EXPECT_EQ(status.message(),
@@ -2650,7 +2684,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 
   // Wrong wasm array name tag
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->js = js_code;
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -2658,11 +2692,12 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     tags[kWasmCodeArrayName] = "wrongName";
     code_obj->tags = tags;
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_FALSE(resp->ok());
-                           load_finished1.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_FALSE(resp->ok());
+                      load_finished1.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
@@ -2672,7 +2707,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07,
         0x01, 0x07, 0x01, 0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a,
         0x09, 0x01, 0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b};
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->js = js_code;
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -2680,11 +2715,12 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     tags[kWasmCodeArrayName] = "addModule";
     code_obj->tags = tags;
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_FALSE(resp->ok());
-                           load_finished2.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_FALSE(resp->ok());
+                      load_finished2.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
@@ -2705,7 +2741,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
   atomic<bool> execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -2719,16 +2755,17 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
     tags[kWasmCodeArrayName] = "addModule";
     code_obj->tags = tags;
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "hello_js";
@@ -2736,7 +2773,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
     execution_obj->input.push_back("2");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -2790,24 +2827,25 @@ TEST(SandboxedServiceTest,
   tags[kWasmCodeArrayName] = "addModule";
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->version_num = 1;
     code_obj->js = js_code;
     code_obj->id = "foo";
     code_obj->wasm_bin = kWasmBin;
     code_obj->tags = tags;
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return load_finished.load(); }, 10s);
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -2818,7 +2856,7 @@ TEST(SandboxedServiceTest,
 
     status = Execute(
         std::move(execution_obj),
-        [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_FALSE(resp->ok());
           EXPECT_EQ("Sandbox worker crashed during execution of request.",
                     resp->status().message());
@@ -2833,7 +2871,7 @@ TEST(SandboxedServiceTest,
   {
     std::string result;
 
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -2843,7 +2881,7 @@ TEST(SandboxedServiceTest,
     execution_obj->input.push_back("1");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        if (resp->ok()) {
                          auto& code_resp = **resp;
@@ -2877,7 +2915,7 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   atomic<bool> success_execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     // The js payload size is larger than the Buffer capacity.
@@ -2887,24 +2925,25 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
                    "\"; return \"Hello world! \"}";
     EXPECT_GE(code_obj->js.length(), payload_size);
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     ASSERT_TRUE(status.ok());
   }
 
   // execute success
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        result = code_resp.resp;
@@ -2936,7 +2975,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   atomic<bool> oversize_execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -2944,16 +2983,17 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -2963,7 +3003,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
     execution_obj->input.push_back("\"" + dummy_string + "\"");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        EXPECT_GE(code_resp.resp.length(), payload_size);
@@ -2993,7 +3033,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   atomic<bool> oversize_execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     // Will generate a response with input size.
@@ -3004,18 +3044,19 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   // execute success when the response payload size is larger than buffer
   // capacity.
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -3024,7 +3065,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        EXPECT_GE(code_resp.resp.length(), payload_size);
@@ -3055,7 +3096,7 @@ TEST(SandboxedServiceTest,
   atomic<bool> load_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     // The js payload size is larger than the Buffer capacity.
@@ -3063,14 +3104,15 @@ TEST(SandboxedServiceTest,
     std::string dummy_js_string(payload_size, 'A');
     code_obj->js = "\"" + dummy_js_string + "\"";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_FALSE(resp->ok());
-                           EXPECT_EQ(resp->status().message(),
-                                     "The size of request serialized data is "
-                                     "larger than the Buffer capacity.");
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_FALSE(resp->ok());
+                      EXPECT_EQ(resp->status().message(),
+                                "The size of request serialized data is "
+                                "larger than the Buffer capacity.");
+                      load_finished.store(true);
+                    });
     ASSERT_TRUE(status.ok());
   }
 
@@ -3099,7 +3141,7 @@ TEST(SandboxedServiceTest,
   atomic<bool> retry_success_execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     code_obj->js = R"JS_CODE(
@@ -3107,24 +3149,25 @@ TEST(SandboxedServiceTest,
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   // execute success
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        result = code_resp.resp;
@@ -3135,7 +3178,7 @@ TEST(SandboxedServiceTest,
 
   // Failure in execution as oversize input.
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -3145,7 +3188,7 @@ TEST(SandboxedServiceTest,
     execution_obj->input.push_back("\"" + dummy_string + "\"");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_FALSE(resp->ok());
                        EXPECT_EQ(resp->status().message(),
                                  "The size of request serialized data is "
@@ -3157,14 +3200,14 @@ TEST(SandboxedServiceTest,
 
   // execute success
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        retry_result = code_resp.resp;
@@ -3201,7 +3244,7 @@ TEST(SandboxedServiceTest,
   atomic<bool> retry_success_execute_finished = false;
 
   {
-    auto code_obj = make_unique<CodeObject>();
+    auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
     // Will generate a response with input size.
@@ -3212,24 +3255,25 @@ TEST(SandboxedServiceTest,
     }
   )JS_CODE";
 
-    status = LoadCodeObj(std::move(code_obj),
-                         [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                           EXPECT_TRUE(resp->ok());
-                           load_finished.store(true);
-                         });
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
     EXPECT_TRUE(status.ok());
   }
 
   // execute success
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"1024\"");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        success_execute_finished.store(true);
                      });
@@ -3238,7 +3282,7 @@ TEST(SandboxedServiceTest,
 
   // execute failed as the response payload size is larger than buffer capacity.
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -3247,7 +3291,7 @@ TEST(SandboxedServiceTest,
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        // Failure in execution
                        EXPECT_FALSE(resp->ok());
                        EXPECT_EQ(resp->status().message(),
@@ -3260,7 +3304,7 @@ TEST(SandboxedServiceTest,
 
   // execute success
   {
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
@@ -3268,7 +3312,7 @@ TEST(SandboxedServiceTest,
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
     status = Execute(std::move(execution_obj),
-                     [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        retry_success_execute_finished.store(true);
                      });

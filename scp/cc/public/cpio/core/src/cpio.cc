@@ -43,9 +43,6 @@ using google::scp::cpio::LogOption;
 using google::scp::cpio::client_providers::CpioProviderFactory;
 using google::scp::cpio::client_providers::CpioProviderInterface;
 using google::scp::cpio::client_providers::GlobalCpio;
-using std::make_shared;
-using std::make_unique;
-using std::unique_ptr;
 
 namespace google::scp::cpio {
 static ExecutionResult SetLogger(const CpioOptions& options) {
@@ -53,10 +50,12 @@ static ExecutionResult SetLogger(const CpioOptions& options) {
     case LogOption::kNoLog:
       break;
     case LogOption::kConsoleLog:
-      logger_ptr = make_unique<Logger>(make_unique<ConsoleLogProvider>());
+      logger_ptr =
+          std::make_unique<Logger>(std::make_unique<ConsoleLogProvider>());
       break;
     case LogOption::kSysLog:
-      logger_ptr = make_unique<Logger>(make_unique<SyslogLogProvider>());
+      logger_ptr =
+          std::make_unique<Logger>(std::make_unique<SyslogLogProvider>());
       break;
   }
   if (logger_ptr) {
@@ -75,7 +74,8 @@ static ExecutionResult SetLogger(const CpioOptions& options) {
 }
 
 static ExecutionResult SetGlobalCpio(const CpioOptions& options) {
-  cpio_ptr = CpioProviderFactory::Create(make_shared<CpioOptions>(options));
+  cpio_ptr =
+      CpioProviderFactory::Create(std::make_shared<CpioOptions>(options));
   CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr),
                                  options.cpu_async_executor,
                                  options.io_async_executor);

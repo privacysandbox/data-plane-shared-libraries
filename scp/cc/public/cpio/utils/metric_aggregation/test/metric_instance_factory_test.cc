@@ -53,8 +53,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
 using std::atomic;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -72,26 +70,26 @@ namespace google::scp::cpio {
 class MetricInstanceFactoryTest : public testing::Test {
  protected:
   MetricInstanceFactoryTest() {
-    mock_metric_client_ = make_shared<MockMetricClient>();
-    real_async_executor_ = make_shared<AsyncExecutor>(
+    mock_metric_client_ = std::make_shared<MockMetricClient>();
+    real_async_executor_ = std::make_shared<AsyncExecutor>(
         2 /* thread count */, 1000 /* queue capacity */,
         true /* drop tasks on stop*/);
 
-    auto mock_config_provider = make_shared<MockConfigProvider>();
+    auto mock_config_provider = std::make_shared<MockConfigProvider>();
 
     mock_config_provider->SetInt(std::string(kAggregatedMetricIntervalMs),
                                  kAggregatedIntervalMs);
     EXPECT_SUCCESS(real_async_executor_->Init());
     EXPECT_SUCCESS(real_async_executor_->Run());
-    metric_factory_ = make_shared<MetricInstanceFactory>(
+    metric_factory_ = std::make_shared<MetricInstanceFactory>(
         real_async_executor_, mock_metric_client_, mock_config_provider);
   }
 
   ~MetricInstanceFactoryTest() { EXPECT_SUCCESS(real_async_executor_->Stop()); }
 
-  shared_ptr<AsyncExecutorInterface> real_async_executor_;
-  shared_ptr<MetricInstanceFactoryInterface> metric_factory_;
-  shared_ptr<MockMetricClient> mock_metric_client_;
+  std::shared_ptr<AsyncExecutorInterface> real_async_executor_;
+  std::shared_ptr<MetricInstanceFactoryInterface> metric_factory_;
+  std::shared_ptr<MockMetricClient> mock_metric_client_;
 };
 
 TEST_F(MetricInstanceFactoryTest, ConstructSimpleMetricInstance) {

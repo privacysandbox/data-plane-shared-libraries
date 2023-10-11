@@ -27,22 +27,21 @@
 using google::scp::cpio::client_providers::BlobStorageClientProviderInterface;
 using google::scp::cpio::client_providers::GcpBlobStorageClientProvider;
 using google::scp::cpio::client_providers::TestGcpCloudStorageFactory;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 TestGcpBlobStorageServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<TestGcpInstanceServiceFactory>(
+  return std::make_shared<TestGcpInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<InstanceServiceFactoryOptions> TestGcpBlobStorageServiceFactory::
+std::shared_ptr<InstanceServiceFactoryOptions>
+TestGcpBlobStorageServiceFactory::
     CreateInstanceServiceFactoryOptions() noexcept {
   auto options =
       GcpBlobStorageServiceFactory::CreateInstanceServiceFactoryOptions();
   auto test_options =
-      make_shared<TestGcpInstanceServiceFactoryOptions>(*options);
+      std::make_shared<TestGcpInstanceServiceFactoryOptions>(*options);
   test_options->project_id_config_label = kTestGcpBlobStorageClientProjectId;
   return test_options;
 }
@@ -53,7 +52,7 @@ TestGcpBlobStorageServiceFactory::CreateBlobStorageClient() noexcept {
                       kTestGcpBlobStorageClientImpersonateServiceAccount,
                       test_options_->impersonate_service_account);
 
-  return make_shared<GcpBlobStorageClientProvider>(
+  return std::make_shared<GcpBlobStorageClientProvider>(
       test_options_, instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor(),

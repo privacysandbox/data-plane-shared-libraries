@@ -23,7 +23,6 @@
 #include <unordered_set>
 #include <vector>
 
-using std::make_shared;
 using std::thread;
 using std::unordered_set;
 
@@ -155,7 +154,7 @@ TEST(BufferTest, ConsecutiveOps) {
 
 TEST(BufferTest, MultipleBufferObjects) {
   // Multiple buffer objects
-  auto freelist = make_shared<Freelist<TestBuffer::Block>>();
+  auto freelist = std::make_shared<Freelist<TestBuffer::Block>>();
   {
     TestBuffer buf1(freelist);
     TestBuffer buf2(freelist);

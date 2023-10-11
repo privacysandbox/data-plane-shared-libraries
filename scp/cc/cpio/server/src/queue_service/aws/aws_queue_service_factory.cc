@@ -24,19 +24,17 @@
 
 using google::scp::cpio::client_providers::AwsQueueClientProvider;
 using google::scp::cpio::client_providers::QueueClientProviderInterface;
-using std::make_shared;
-using std::shared_ptr;
 
 namespace google::scp::cpio {
-shared_ptr<InstanceServiceFactoryInterface>
+std::shared_ptr<InstanceServiceFactoryInterface>
 AwsQueueServiceFactory::CreateInstanceServiceFactory() noexcept {
-  return make_shared<AwsInstanceServiceFactory>(
+  return std::make_shared<AwsInstanceServiceFactory>(
       config_provider_, instance_service_factory_options_);
 }
 
-shared_ptr<QueueClientProviderInterface>
+std::shared_ptr<QueueClientProviderInterface>
 AwsQueueServiceFactory::CreateQueueClient() noexcept {
-  return make_shared<AwsQueueClientProvider>(
+  return std::make_shared<AwsQueueClientProvider>(
       queue_client_options_, instance_client_,
       instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());

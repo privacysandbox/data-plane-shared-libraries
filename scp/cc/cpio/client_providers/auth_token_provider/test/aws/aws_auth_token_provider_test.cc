@@ -47,11 +47,7 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::atomic_bool;
 using std::bind;
-using std::make_shared;
-using std::make_unique;
-using std::shared_ptr;
 using std::thread;
-using std::unique_ptr;
 using std::chrono::seconds;
 using testing::Eq;
 using testing::Pair;
@@ -75,16 +71,17 @@ namespace google::scp::cpio::client_providers::test {
 class AwsAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
   AwsAuthTokenProviderTest()
-      : http_client_(make_shared<MockCurlClient>()),
-        authorizer_provider_(make_unique<AwsAuthTokenProvider>(http_client_)) {}
+      : http_client_(std::make_shared<MockCurlClient>()),
+        authorizer_provider_(
+            std::make_unique<AwsAuthTokenProvider>(http_client_)) {}
 
   std::string GetResponseBody() { return GetParam(); }
 
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       fetch_token_context_;
 
-  shared_ptr<MockCurlClient> http_client_;
-  unique_ptr<AwsAuthTokenProvider> authorizer_provider_;
+  std::shared_ptr<MockCurlClient> http_client_;
+  std::unique_ptr<AwsAuthTokenProvider> authorizer_provider_;
 };
 
 TEST_F(AwsAuthTokenProviderTest,
@@ -98,7 +95,7 @@ TEST_F(AwsAuthTokenProviderTest,
                     Pair(kTokenTtlInSecondHeader,
                          std::to_string(kTokenTtlInSecondHeaderValue)))));
 
-    http_context.response = make_shared<HttpResponse>();
+    http_context.response = std::make_shared<HttpResponse>();
     http_context.response->body = BytesBuffer(kHttpResponseMock);
     http_context.Finish();
     return SuccessExecutionResult();
@@ -139,7 +136,7 @@ TEST_F(AwsAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
 }
 
 TEST_F(AwsAuthTokenProviderTest, NullHttpClientProvider) {
-  auto auth_token_provider = make_shared<AwsAuthTokenProvider>(nullptr);
+  auto auth_token_provider = std::make_shared<AwsAuthTokenProvider>(nullptr);
 
   EXPECT_THAT(auth_token_provider->Init(),
               ResultIs(FailureExecutionResult(

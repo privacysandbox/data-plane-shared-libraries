@@ -35,7 +35,6 @@ using google::scp::roma::sandbox::constants::
     kFuctionBindingMetadataFunctionName;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
-using std::make_shared;
 using std::thread;
 
 namespace google::scp::roma::sandbox::native_function_binding::test {

@@ -23,8 +23,6 @@
 #include <aws/core/client/ClientConfiguration.h>
 
 using Aws::Client::ClientConfiguration;
-using std::make_shared;
-using std::shared_ptr;
 
 /// Fixed connect timeout to create an AWS client.
 static constexpr int kConnectTimeoutMs = 3000;
@@ -32,9 +30,9 @@ static constexpr int kConnectTimeoutMs = 3000;
 static constexpr int kRequestTimeoutMs = 6000;
 
 namespace google::scp::cpio::common {
-shared_ptr<ClientConfiguration> CreateClientConfiguration(
-    const shared_ptr<std::string>& region) noexcept {
-  auto config = make_shared<ClientConfiguration>();
+std::shared_ptr<ClientConfiguration> CreateClientConfiguration(
+    const std::shared_ptr<std::string>& region) noexcept {
+  auto config = std::make_shared<ClientConfiguration>();
   // TODO: Check the region is valid AWS region.
   if (region && !region->empty()) {
     config->region = region->c_str();

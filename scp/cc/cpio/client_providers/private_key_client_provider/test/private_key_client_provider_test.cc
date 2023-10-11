@@ -67,12 +67,8 @@ using google::scp::cpio::client_providers::mock::
 using google::scp::cpio::client_providers::mock::MockPrivateKeyFetcherProvider;
 using std::atomic;
 using std::make_pair;
-using std::make_shared;
-using std::make_unique;
 using std::map;
 using std::pair;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::Between;
 using testing::ElementsAre;
 using testing::Pointwise;
@@ -155,31 +151,32 @@ static void GetPrivateKeyFetchingResponse(PrivateKeyFetchingResponse& response,
                                           int key_id_index, int uri_index,
                                           size_t splits_in_key_data = 3,
                                           bool bad_key_material = false) {
-  auto encryption_key = make_shared<EncryptionKey>();
-  encryption_key->resource_name = make_shared<std::string>(kTestResourceName);
+  auto encryption_key = std::make_shared<EncryptionKey>();
+  encryption_key->resource_name =
+      std::make_shared<std::string>(kTestResourceName);
   encryption_key->expiration_time_in_ms = kTestExpirationTime;
   encryption_key->creation_time_in_ms = kTestCreationTime;
   encryption_key->encryption_key_type =
       EncryptionKeyType::kMultiPartyHybridEvenKeysplit;
   encryption_key->public_key_material =
-      make_shared<std::string>(kTestPublicKeyMaterial);
+      std::make_shared<std::string>(kTestPublicKeyMaterial);
   encryption_key->public_keyset_handle =
-      make_shared<std::string>(kTestPublicKeysetHandle);
+      std::make_shared<std::string>(kTestPublicKeysetHandle);
 
   for (auto i = 0; i < splits_in_key_data; ++i) {
-    auto key_data = make_shared<KeyData>();
+    auto key_data = std::make_shared<KeyData>();
     key_data->key_encryption_key_uri =
-        make_shared<std::string>(kTestKeyEncryptionKeyUri);
+        std::make_shared<std::string>(kTestKeyEncryptionKeyUri);
     if (i == uri_index) {
-      key_data->key_material = make_shared<std::string>(
+      key_data->key_material = std::make_shared<std::string>(
           bad_key_material ? kTestKeyMaterialBad : kTestKeyMaterials[i]);
     }
 
     key_data->public_key_signature =
-        make_shared<std::string>(kTestPublicKeySignature);
+        std::make_shared<std::string>(kTestPublicKeySignature);
     encryption_key->key_data.emplace_back(key_data);
   }
-  encryption_key->key_id = make_shared<std::string>(
+  encryption_key->key_id = std::make_shared<std::string>(
       bad_key_material ? kTestKeyIdBad : kTestKeyIds[key_id_index]);
   response.encryption_keys.emplace_back(encryption_key);
 }
@@ -236,7 +233,8 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
     endpoint_3.service_region = kTestRegion3;
     endpoint_3.private_key_vending_service_endpoint = kTestEndpoint3;
 
-    auto private_key_client_options = make_shared<PrivateKeyClientOptions>();
+    auto private_key_client_options =
+        std::make_shared<PrivateKeyClientOptions>();
     private_key_client_options->primary_private_key_vending_endpoint =
         endpoint_1;
     private_key_client_options->secondary_private_key_vending_endpoints
@@ -245,7 +243,7 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
         .emplace_back(endpoint_3);
 
     private_key_client_provider =
-        make_shared<MockPrivateKeyClientProviderWithOverrides>(
+        std::make_shared<MockPrivateKeyClientProviderWithOverrides>(
             private_key_client_options);
     mock_private_key_fetcher =
         private_key_client_provider->GetPrivateKeyFetcherProvider();
@@ -265,7 +263,7 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
         .Times(call_time)
         .WillRepeatedly(
             [=](AsyncContext<DecryptRequest, DecryptResponse>& context) {
-              context.response = make_shared<DecryptResponse>();
+              context.response = std::make_shared<DecryptResponse>();
               auto it = kPlaintextMap.find(context.request->ciphertext());
               if (it != kPlaintextMap.end()) {
                 context.response->set_plaintext(it->second);
@@ -292,7 +290,7 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
             if (mock_responses.find(key_id) != mock_responses.end() &&
                 mock_responses.at(key_id).find(endpoint) !=
                     mock_responses.at(key_id).end()) {
-              context.response = make_shared<PrivateKeyFetchingResponse>(
+              context.response = std::make_shared<PrivateKeyFetchingResponse>(
                   mock_responses.at(key_id).at(endpoint));
             }
           }
@@ -313,7 +311,7 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
           context.result = mock_results.at(endpoint);
           if (context.result.Successful()) {
             if (mock_responses.find(endpoint) != mock_responses.end()) {
-              context.response = make_shared<PrivateKeyFetchingResponse>(
+              context.response = std::make_shared<PrivateKeyFetchingResponse>(
                   mock_responses.at(endpoint));
             }
           }
@@ -339,10 +337,10 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
     return expected_keys;
   }
 
-  shared_ptr<MockPrivateKeyClientProviderWithOverrides>
+  std::shared_ptr<MockPrivateKeyClientProviderWithOverrides>
       private_key_client_provider;
-  shared_ptr<MockPrivateKeyFetcherProvider> mock_private_key_fetcher;
-  shared_ptr<MockKmsClientProvider> mock_kms_client;
+  std::shared_ptr<MockPrivateKeyFetcherProvider> mock_private_key_fetcher;
+  std::shared_ptr<MockKmsClientProvider> mock_kms_client;
 };
 
 TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
@@ -360,7 +358,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         auto expected_keys = BuildExpectedPrivateKeys(encoded_private_key);
@@ -389,7 +387,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByAgeSuccess) {
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         auto expected_keys = BuildExpectedPrivateKeys(encoded_private_key);
@@ -410,7 +408,7 @@ TEST_F(PrivateKeyClientProviderTest, KeyListIsEmpty) {
       .WillRepeatedly([=](AsyncContext<PrivateKeyFetchingRequest,
                                        PrivateKeyFetchingResponse>& context) {
         context.result = SuccessExecutionResult();
-        context.response = make_shared<PrivateKeyFetchingResponse>();
+        context.response = std::make_shared<PrivateKeyFetchingResponse>();
         context.Finish();
         return context.result;
       });
@@ -419,7 +417,7 @@ TEST_F(PrivateKeyClientProviderTest, KeyListIsEmpty) {
   request.set_max_age_seconds(kTestCreationTime);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.response->private_keys().size(), 0);
@@ -455,7 +453,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointReturnEmptyList) {
 
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.response->private_keys().size(), 0);
@@ -496,7 +494,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.response->private_keys().size(), 2);
@@ -541,7 +539,7 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.response->private_keys().size(), 1);
@@ -588,7 +586,7 @@ TEST_F(PrivateKeyClientProviderTest,
   Base64Encode(kTestPrivateKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.response->private_keys().size(), 2);
@@ -619,8 +617,8 @@ TEST_F(PrivateKeyClientProviderTest, FetchingPrivateKeysFailed) {
           return SuccessExecutionResult();
         }
 
-        context.response =
-            make_shared<PrivateKeyFetchingResponse>(mock_fetching_response);
+        context.response = std::make_shared<PrivateKeyFetchingResponse>(
+            mock_fetching_response);
         context.result = SuccessExecutionResult();
         context.Finish();
         return context.result;
@@ -634,7 +632,7 @@ TEST_F(PrivateKeyClientProviderTest, FetchingPrivateKeysFailed) {
 
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         response_count.fetch_add(1);
@@ -663,7 +661,7 @@ TEST_F(PrivateKeyClientProviderTest,
       SC_PRIVATE_KEY_CLIENT_PROVIDER_UNMATCHED_ENDPOINTS_SPLITS);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         response_count.fetch_add(1);
@@ -689,7 +687,7 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithDecryptPrivateKey) {
 
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         response_count.fetch_add(1);
@@ -715,11 +713,11 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithOneKmsDecryptContext) {
       .WillRepeatedly([=](AsyncContext<PrivateKeyFetchingRequest,
                                        PrivateKeyFetchingResponse>& context) {
         if (*context.request->key_id == kTestKeyIdBad) {
-          context.response = make_shared<PrivateKeyFetchingResponse>(
+          context.response = std::make_shared<PrivateKeyFetchingResponse>(
               mock_fetching_response_bad);
         } else {
-          context.response =
-              make_shared<PrivateKeyFetchingResponse>(mock_fetching_response);
+          context.response = std::make_shared<PrivateKeyFetchingResponse>(
+              mock_fetching_response);
         }
 
         context.result = SuccessExecutionResult();
@@ -733,7 +731,7 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithOneKmsDecryptContext) {
 
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         response_count.fetch_add(1);
@@ -754,11 +752,12 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
     endpoint_1.service_region = kTestRegion1;
     endpoint_1.private_key_vending_service_endpoint = kTestEndpoint1;
 
-    auto private_key_client_options = make_shared<PrivateKeyClientOptions>();
+    auto private_key_client_options =
+        std::make_shared<PrivateKeyClientOptions>();
     private_key_client_options->primary_private_key_vending_endpoint =
         endpoint_1;
     private_key_client_provider_ =
-        make_shared<MockPrivateKeyClientProviderWithOverrides>(
+        std::make_shared<MockPrivateKeyClientProviderWithOverrides>(
             private_key_client_options);
     mock_private_key_fetcher_ =
         private_key_client_provider_->GetPrivateKeyFetcherProvider();
@@ -776,7 +775,7 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
         .Times(call_time)
         .WillRepeatedly(
             [=](AsyncContext<DecryptRequest, DecryptResponse>& context) {
-              context.response = make_shared<DecryptResponse>();
+              context.response = std::make_shared<DecryptResponse>();
               context.response->set_plaintext(kDecryptedSinglePartyKey);
               context.result = SuccessExecutionResult();
               context.Finish();
@@ -791,32 +790,33 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
                                          PrivateKeyFetchingResponse>& context) {
           context.result = SuccessExecutionResult();
 
-          auto encryption_key = make_shared<EncryptionKey>();
+          auto encryption_key = std::make_shared<EncryptionKey>();
           encryption_key->resource_name =
-              make_shared<std::string>(kTestResourceName);
+              std::make_shared<std::string>(kTestResourceName);
           encryption_key->expiration_time_in_ms = kTestExpirationTime;
           encryption_key->creation_time_in_ms = kTestCreationTime;
           encryption_key->encryption_key_type =
               EncryptionKeyType::kSinglePartyHybridKey;
           encryption_key->public_key_material =
-              make_shared<std::string>(kTestPublicKeyMaterial);
+              std::make_shared<std::string>(kTestPublicKeyMaterial);
           encryption_key->public_keyset_handle =
-              make_shared<std::string>(kTestPublicKeysetHandle);
+              std::make_shared<std::string>(kTestPublicKeysetHandle);
 
           for (auto i = 0; i < splits_in_key_data; ++i) {
-            auto key_data = make_shared<KeyData>();
+            auto key_data = std::make_shared<KeyData>();
             key_data->key_encryption_key_uri =
-                make_shared<std::string>(kTestKeyEncryptionKeyUri);
+                std::make_shared<std::string>(kTestKeyEncryptionKeyUri);
             key_data->key_material =
-                make_shared<std::string>(kSinglePartyPrivateKeyJson);
+                std::make_shared<std::string>(kSinglePartyPrivateKeyJson);
 
             key_data->public_key_signature =
-                make_shared<std::string>(kTestPublicKeySignature);
+                std::make_shared<std::string>(kTestPublicKeySignature);
             encryption_key->key_data.emplace_back(key_data);
           }
 
-          encryption_key->key_id = make_shared<std::string>(kTestKeyIds[0]);
-          context.response = make_shared<PrivateKeyFetchingResponse>();
+          encryption_key->key_id =
+              std::make_shared<std::string>(kTestKeyIds[0]);
+          context.response = std::make_shared<PrivateKeyFetchingResponse>();
           context.response->encryption_keys.emplace_back(encryption_key);
           context.Finish();
           return context.result;
@@ -836,10 +836,10 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
     return expected_keys;
   }
 
-  shared_ptr<MockPrivateKeyClientProviderWithOverrides>
+  std::shared_ptr<MockPrivateKeyClientProviderWithOverrides>
       private_key_client_provider_;
-  shared_ptr<MockPrivateKeyFetcherProvider> mock_private_key_fetcher_;
-  shared_ptr<MockKmsClientProvider> mock_kms_client_;
+  std::shared_ptr<MockPrivateKeyFetcherProvider> mock_private_key_fetcher_;
+  std::shared_ptr<MockKmsClientProvider> mock_kms_client_;
 };
 
 TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
@@ -855,7 +855,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
   Base64Encode(kDecryptedSinglePartyKey, encoded_private_key);
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         auto expected_keys = BuildExpectedPrivateKeys(encoded_private_key);
@@ -879,7 +879,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
 
   atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
-      make_shared<ListPrivateKeysRequest>(request),
+      std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(

@@ -30,9 +30,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::test::ResultIs;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::
     SnapshotCompilationContext;
-using std::make_shared;
-using std::shared_ptr;
-using std::unique_ptr;
 using testing::IsNull;
 using testing::NotNull;
 using v8::Isolate;
@@ -54,14 +51,14 @@ class SnapshotCompilationContextTest : public ::testing::Test {
     v8::V8::Initialize();
   }
 
-  shared_ptr<SnapshotCompilationContext> CreateCompilationContext() {
-    auto context = make_shared<SnapshotCompilationContext>();
+  std::shared_ptr<SnapshotCompilationContext> CreateCompilationContext() {
+    auto context = std::make_shared<SnapshotCompilationContext>();
     context->v8_isolate = CreateIsolate();
     return context;
   }
 
   std::vector<v8::Isolate*> created_isolates;
-  std::vector<shared_ptr<void>> create_contexts;
+  std::vector<std::shared_ptr<void>> create_contexts;
 
   Isolate* CreateIsolate() {
     Isolate::CreateParams params;

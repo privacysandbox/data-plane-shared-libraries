@@ -35,8 +35,6 @@
 using google::scp::core::mock::MockService;
 using google::scp::core::mock::TestNode;
 using std::function;
-using std::make_shared;
-using std::shared_ptr;
 using ::testing::Contains;
 
 namespace google::scp::core::test {
