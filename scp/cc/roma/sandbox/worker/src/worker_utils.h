@@ -32,10 +32,10 @@ class WorkerUtils {
  public:
   static core::ExecutionResultOr<std::string> GetValueFromMetadata(
       const absl::flat_hash_map<std::string, std::string>& metadata,
-      const std::string& key) noexcept;
+      std::string_view key) noexcept;
 
   static core::ExecutionResultOr<int> ConvertStrToInt(
-      const std::string& value) noexcept;
+      std::string_view value) noexcept;
 };
 }  // namespace google::scp::roma::sandbox::worker
 

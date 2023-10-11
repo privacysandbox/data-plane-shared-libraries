@@ -37,17 +37,15 @@ namespace google::scp::roma::sandbox::worker {
 
 ExecutionResultOr<std::string> WorkerUtils::GetValueFromMetadata(
     const absl::flat_hash_map<std::string, std::string>& metadata,
-
-    const std::string& key) noexcept {
-  if (metadata.find(key) == metadata.end()) {
-    return FailureExecutionResult(SC_ROMA_WORKER_MISSING_METADATA_ITEM);
+    std::string_view key) noexcept {
+  if (const auto& it = metadata.find(key); it != metadata.end()) {
+    return it->second;
   }
-
-  return metadata.at(key);
+  return FailureExecutionResult(SC_ROMA_WORKER_MISSING_METADATA_ITEM);
 }
 
 ExecutionResultOr<int> WorkerUtils::ConvertStrToInt(
-    const std::string& value) noexcept {
+    std::string_view value) noexcept {
   int converted_int;
   if (!absl::SimpleAtoi(value, &converted_int)) {
     return FailureExecutionResult(SC_ROMA_WORKER_STR_CONVERT_INT_FAIL);
