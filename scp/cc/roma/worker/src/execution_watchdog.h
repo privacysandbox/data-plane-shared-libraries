@@ -23,7 +23,6 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
 #include "core/interface/service_interface.h"
-#include "core/interface/type_def.h"
 #include "include/v8.h"
 #include "public/core/interface/execution_result.h"
 #include "src/cpp/util/duration.h"
@@ -61,8 +60,7 @@ class ExecutionWatchDog : public core::ServiceInterface {
    * @param isolate
    * @param ms_before_timeout
    */
-  void StartTimer(v8::Isolate* isolate,
-                  core::TimeDuration ms_before_timeout) noexcept;
+  void StartTimer(v8::Isolate* isolate, absl::Duration timeout) noexcept;
 
   /// @brief End timing execution. This function will reset the
   /// timeout_timestamp_ to UINT64_MAX to avoid terminate standby isolate.

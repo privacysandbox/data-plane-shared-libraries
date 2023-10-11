@@ -79,7 +79,7 @@ TEST_F(ExecutionWatchdogTest, TerminateOnTimeoutStartTimerAfterRun) {
   watch_dog_.Init();
   watch_dog_.Run();
   constexpr absl::Duration duration = absl::Milliseconds(10);
-  watch_dog_.StartTimer(isolate_, absl::ToInt64Milliseconds(duration));
+  watch_dog_.StartTimer(isolate_, duration);
   ASSERT_FALSE(watch_dog_.IsTerminateCalled());
   absl::SleepFor(duration / 2);
   ASSERT_FALSE(watch_dog_.IsTerminateCalled());
@@ -91,7 +91,7 @@ TEST_F(ExecutionWatchdogTest, TerminateOnTimeoutStartTimerAfterRun) {
 TEST_F(ExecutionWatchdogTest, TerminateOnTimeoutStartTimerBeforeRun) {
   watch_dog_.Init();
   constexpr absl::Duration duration = absl::Milliseconds(10);
-  watch_dog_.StartTimer(isolate_, absl::ToInt64Milliseconds(duration));
+  watch_dog_.StartTimer(isolate_, duration);
   watch_dog_.Run();
   absl::SleepFor(duration / 2);
   ASSERT_FALSE(watch_dog_.IsTerminateCalled());

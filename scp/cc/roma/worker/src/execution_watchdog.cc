@@ -19,8 +19,6 @@
 #include <thread>
 
 #include "absl/synchronization/blocking_counter.h"
-#include "core/common/time_provider/src/time_provider.h"
-#include "core/interface/type_def.h"
 #include "include/v8.h"
 #include "public/core/interface/execution_result.h"
 
@@ -63,14 +61,14 @@ bool ExecutionWatchDog::IsTerminateCalled() noexcept {
   return is_terminate_called_;
 }
 
-void ExecutionWatchDog::StartTimer(
-    v8::Isolate* isolate, core::TimeDuration ms_before_timeout) noexcept {
+void ExecutionWatchDog::StartTimer(v8::Isolate* isolate,
+                                   absl::Duration timeout) noexcept {
   absl::MutexLock lock(&mutex_);
   // Cancel TerminateExecution in case there was a previous
   // isolate->TerminateExecution() flag alive
   isolate->CancelTerminateExecution();
   v8_isolate_ = isolate;
-  expiring_flag_.Set(absl::Milliseconds(ms_before_timeout));
+  expiring_flag_.Set(timeout);
   is_terminate_called_ = false;
   cv_.Signal();
 }

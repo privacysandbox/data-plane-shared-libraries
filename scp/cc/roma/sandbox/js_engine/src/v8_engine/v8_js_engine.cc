@@ -343,7 +343,7 @@ void V8JsEngine::StartWatchdogTimer(
     }
   }
   ROMA_VLOG(1) << "StartWatchdogTimer timeout set to " << timeout_ms << " ms";
-  execution_watchdog_->StartTimer(isolate, timeout_ms);
+  execution_watchdog_->StartTimer(isolate, absl::Milliseconds(timeout_ms));
 }
 
 void V8JsEngine::StopWatchdogTimer() noexcept {
