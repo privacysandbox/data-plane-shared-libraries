@@ -60,7 +60,7 @@ TEST(SizedOrTimedBytesBufferTest, InitFunction) {
 
     MockAsyncExecutor mock_async_executor;
     mock_async_executor.schedule_for_mock =
-        [&](const AsyncOperation& work, Timestamp timestamp,
+        [&](AsyncOperation work, Timestamp timestamp,
             function<bool()>& cancellation_callback) {
           EXPECT_EQ(timestamp, 1234);
           condition = true;
@@ -98,14 +98,14 @@ TEST(SizedOrTimedBytesBufferTest, AppendDataWithMaxSize) {
 
   MockAsyncExecutor mock_async_executor;
   atomic<bool> schedule_condition = false;
-  mock_async_executor.schedule_mock = [&](const AsyncOperation& work) {
+  mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
   atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
@@ -153,14 +153,14 @@ TEST(SizedOrTimedBytesBufferTest, AppendDataWithMaxSizeNoCapacityAvailable) {
 
   MockAsyncExecutor mock_async_executor;
   atomic<bool> schedule_condition = false;
-  mock_async_executor.schedule_mock = [&](const AsyncOperation& work) {
+  mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
   atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
@@ -212,14 +212,14 @@ TEST(SizedOrTimedBytesBufferTest, FlushData) {
 
   MockAsyncExecutor mock_async_executor;
   atomic<bool> schedule_condition = false;
-  mock_async_executor.schedule_mock = [&](const AsyncOperation& work) {
+  mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
   atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
@@ -272,14 +272,14 @@ TEST(SizedOrTimedBytesBufferTest, AppendBeforeFlushData) {
 
   MockAsyncExecutor mock_async_executor;
   atomic<bool> schedule_condition = false;
-  mock_async_executor.schedule_mock = [&](const AsyncOperation& work) {
+  mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
   atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
@@ -339,14 +339,14 @@ TEST(SizedOrTimedBytesBufferTest, FlushFailure) {
 
   MockAsyncExecutor mock_async_executor;
   atomic<bool> schedule_condition = false;
-  mock_async_executor.schedule_mock = [&](const AsyncOperation& work) {
+  mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
   atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
@@ -407,14 +407,14 @@ TEST(SizedOrTimedBytesBufferTest, ProperFlushData) {
 
   MockAsyncExecutor mock_async_executor;
   atomic<bool> schedule_condition = false;
-  mock_async_executor.schedule_mock = [&](const AsyncOperation& work) {
+  mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
   atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;

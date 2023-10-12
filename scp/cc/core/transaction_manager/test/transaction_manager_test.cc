@@ -131,7 +131,7 @@ TEST_F(TransactionManagerTests, InitValidation) {
     MockTransactionManager transaction_manager(mock_async_executor,
                                                transaction_engine, 1,
                                                mock_metric_instance_factory_);
-    mock_async_executor->schedule_mock = [](const AsyncOperation&) {
+    mock_async_executor->schedule_mock = [](AsyncOperation) {
       return SuccessExecutionResult();
     };
     EXPECT_SUCCESS(transaction_manager.Init());
@@ -169,7 +169,7 @@ TEST_F(TransactionManagerTests, RunValidation) {
   {
     MockTransactionManager transaction_manager(
         async_executor, transaction_engine, 1, mock_metric_instance_factory_);
-    mock_async_executor->schedule_mock = [](const AsyncOperation&) {
+    mock_async_executor->schedule_mock = [](AsyncOperation) {
       return SuccessExecutionResult();
     };
     EXPECT_SUCCESS(transaction_manager.Init());
@@ -305,8 +305,8 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
 
     atomic<size_t> total = 0;
     std::vector<thread> threads;
-    mock_async_executor->schedule_mock = [&](const AsyncOperation& work) {
-      threads.push_back(thread([work]() { work(); }));
+    mock_async_executor->schedule_mock = [&](AsyncOperation work) {
+      threads.push_back(thread([work = std::move(work)]() mutable { work(); }));
       return SuccessExecutionResult();
     };
 

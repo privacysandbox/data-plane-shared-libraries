@@ -19,6 +19,7 @@
 
 #include <functional>
 #include <memory>
+#include <utility>
 
 #include "core/interface/async_executor_interface.h"
 
@@ -33,56 +34,57 @@ class MockAsyncExecutor : public core::AsyncExecutorInterface {
 
   ExecutionResult Stop() noexcept override { return SuccessExecutionResult(); }
 
-  ExecutionResult Schedule(const AsyncOperation& work,
+  ExecutionResult Schedule(AsyncOperation work,
                            AsyncPriority priority) noexcept override {
     if (schedule_mock) {
-      return schedule_mock(work);
+      return schedule_mock(std::move(work));
     }
 
     work();
     return SuccessExecutionResult();
   }
 
-  ExecutionResult Schedule(const AsyncOperation& work, AsyncPriority priority,
+  ExecutionResult Schedule(AsyncOperation work, AsyncPriority priority,
                            AsyncExecutorAffinitySetting) noexcept override {
-    return Schedule(work, priority);
+    return Schedule(std::move(work), priority);
   }
 
-  ExecutionResult ScheduleFor(const AsyncOperation& work,
+  ExecutionResult ScheduleFor(AsyncOperation work,
                               Timestamp timestamp) noexcept override {
     if (schedule_for_mock) {
       std::function<bool()> callback;
-      return schedule_for_mock(work, timestamp, callback);
+      return schedule_for_mock(std::move(work), timestamp, callback);
     }
 
     work();
     return SuccessExecutionResult();
   }
 
-  ExecutionResult ScheduleFor(const AsyncOperation& work, Timestamp timestamp,
+  ExecutionResult ScheduleFor(AsyncOperation work, Timestamp timestamp,
                               AsyncExecutorAffinitySetting) noexcept override {
-    return ScheduleFor(work, timestamp);
+    return ScheduleFor(std::move(work), timestamp);
   }
 
   ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       std::function<bool()>& cancellation_callback) noexcept override {
     if (schedule_for_mock) {
-      return schedule_for_mock(work, timestamp, cancellation_callback);
+      return schedule_for_mock(std::move(work), timestamp,
+                               cancellation_callback);
     }
 
     work();
     return SuccessExecutionResult();
   }
 
-  ExecutionResult ScheduleFor(const AsyncOperation& work, Timestamp timestamp,
+  ExecutionResult ScheduleFor(AsyncOperation work, Timestamp timestamp,
                               std::function<bool()>& cancellation_callback,
                               AsyncExecutorAffinitySetting) noexcept override {
-    return ScheduleFor(work, timestamp, cancellation_callback);
+    return ScheduleFor(std::move(work), timestamp, cancellation_callback);
   }
 
-  std::function<ExecutionResult(const AsyncOperation& work)> schedule_mock;
-  std::function<ExecutionResult(const AsyncOperation& work, Timestamp,
+  std::function<ExecutionResult(AsyncOperation work)> schedule_mock;
+  std::function<ExecutionResult(AsyncOperation work, Timestamp,
                                 std::function<bool()>&)>
       schedule_for_mock;
 };

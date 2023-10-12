@@ -67,7 +67,7 @@ class AutoExpiryConcurrentMapTest : public ::testing::Test {
   void SetUp() override {
     mock_async_executor_ = std::make_shared<MockAsyncExecutor>();
     mock_async_executor_->schedule_for_mock =
-        [&](const AsyncOperation& work, Timestamp, std::function<bool()>&) {
+        [&](AsyncOperation work, Timestamp, std::function<bool()>&) {
           return SuccessExecutionResult();
         };
   }
@@ -496,7 +496,7 @@ TEST_F(AutoExpiryConcurrentMapTest, Run) {
 
   for (auto result : results) {
     mock_async_executor_->schedule_for_mock =
-        [&](const AsyncOperation& work, Timestamp, std::function<bool()>&) {
+        [&](AsyncOperation work, Timestamp, std::function<bool()>&) {
           return result;
         };
 
@@ -509,14 +509,14 @@ TEST_F(AutoExpiryConcurrentMapTest, Run) {
 }
 
 TEST_F(AutoExpiryConcurrentMapTest, NoDeletionForUnloadedData) {
-  mock_async_executor_->schedule_mock = [&](const AsyncOperation& work) {
+  mock_async_executor_->schedule_mock = [&](AsyncOperation work) {
     work();
     return SuccessExecutionResult();
   };
 
   bool schedule_for_is_called = false;
   mock_async_executor_->schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         schedule_for_is_called = true;
         return SuccessExecutionResult();
@@ -544,14 +544,14 @@ TEST_F(AutoExpiryConcurrentMapTest, NoDeletionForUnloadedData) {
 }
 
 TEST_F(AutoExpiryConcurrentMapTest, NoDeletionForUnExpired) {
-  mock_async_executor_->schedule_mock = [&](const AsyncOperation& work) {
+  mock_async_executor_->schedule_mock = [&](AsyncOperation work) {
     work();
     return SuccessExecutionResult();
   };
 
   bool schedule_for_is_called = false;
   mock_async_executor_->schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         schedule_for_is_called = true;
         return SuccessExecutionResult();
@@ -620,8 +620,8 @@ TEST(AutoExpiryConcurrentMapDeletionTest, DeletionForExpired) {
   deleters[0](true);
 
   bool schedule_for_called = false;
-  mock_async_executor->schedule_for_mock = [&](const AsyncOperation& work,
-                                               Timestamp, function<bool()>&) {
+  mock_async_executor->schedule_for_mock = [&](AsyncOperation work, Timestamp,
+                                               function<bool()>&) {
     schedule_for_called = true;
     return SuccessExecutionResult();
   };

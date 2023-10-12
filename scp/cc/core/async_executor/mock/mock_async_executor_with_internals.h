@@ -20,6 +20,7 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <utility>
 
 #include "core/async_executor/src/async_executor.h"
 
@@ -29,83 +30,84 @@ class MockAsyncExecutorWithInternals : public core::AsyncExecutor {
   MockAsyncExecutorWithInternals(size_t thread_count, size_t queue_cap)
       : core::AsyncExecutor(thread_count, queue_cap) {}
 
-  ExecutionResult Schedule(const AsyncOperation& work,
+  ExecutionResult Schedule(AsyncOperation work,
                            AsyncPriority priority) noexcept override {
     if (schedule_pre_caller) {
-      auto new_work = [&, work]() {
+      auto new_work = [&, work = std::move(work)]() mutable {
         if (schedule_pre_caller()) {
           work();
         }
       };
 
-      return AsyncExecutor::Schedule(new_work, priority);
+      return AsyncExecutor::Schedule(std::move(new_work), priority);
     }
 
-    return AsyncExecutor::Schedule(work, priority);
+    return AsyncExecutor::Schedule(std::move(work), priority);
   }
 
   ExecutionResult Schedule(
-      const AsyncOperation& work, AsyncPriority priority,
+      AsyncOperation work, AsyncPriority priority,
       AsyncExecutorAffinitySetting affinity) noexcept override {
     if (schedule_pre_caller) {
-      auto new_work = [&, work]() {
+      auto new_work = [&, work = std::move(work)]() mutable {
         if (schedule_pre_caller()) {
           work();
         }
       };
 
-      return AsyncExecutor::Schedule(new_work, priority, affinity);
+      return AsyncExecutor::Schedule(std::move(new_work), priority, affinity);
     }
 
-    return AsyncExecutor::Schedule(work, priority, affinity);
+    return AsyncExecutor::Schedule(std::move(work), priority, affinity);
   }
 
-  ExecutionResult ScheduleFor(const AsyncOperation& work,
+  ExecutionResult ScheduleFor(AsyncOperation work,
                               Timestamp timestamp) noexcept override {
     std::function<bool()> callback;
-    return ScheduleFor(work, timestamp, callback);
+    return ScheduleFor(std::move(work), timestamp, callback);
   }
 
   ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       AsyncExecutorAffinitySetting affinity) noexcept override {
-    return ScheduleFor(work, timestamp, affinity);
+    return ScheduleFor(std::move(work), timestamp, affinity);
   }
 
   ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       std::function<bool()>& cancellation_callback) noexcept override {
     if (schedule_for_pre_caller) {
-      auto new_work = [&, work]() {
+      auto new_work = [&, work = std::move(work)]() mutable {
         if (schedule_for_pre_caller()) {
           work();
         }
       };
 
-      return AsyncExecutor::ScheduleFor(new_work, timestamp,
+      return AsyncExecutor::ScheduleFor(std::move(new_work), timestamp,
                                         cancellation_callback);
     }
 
-    return AsyncExecutor::ScheduleFor(work, timestamp, cancellation_callback);
+    return AsyncExecutor::ScheduleFor(std::move(work), timestamp,
+                                      cancellation_callback);
   }
 
   ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       std::function<bool()>& cancellation_callback,
       AsyncExecutorAffinitySetting affinity) noexcept override {
     if (schedule_for_pre_caller) {
-      auto new_work = [&, work]() {
+      auto new_work = [&, work = std::move(work)]() mutable {
         if (schedule_for_pre_caller()) {
           work();
         }
       };
 
-      return AsyncExecutor::ScheduleFor(new_work, timestamp,
+      return AsyncExecutor::ScheduleFor(std::move(new_work), timestamp,
                                         cancellation_callback, affinity);
     }
 
-    return AsyncExecutor::ScheduleFor(work, timestamp, cancellation_callback,
-                                      affinity);
+    return AsyncExecutor::ScheduleFor(std::move(work), timestamp,
+                                      cancellation_callback, affinity);
   }
 
   std::function<bool()> schedule_pre_caller;

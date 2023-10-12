@@ -56,7 +56,7 @@ class SingleThreadAsyncExecutor : ServiceInterface {
    * @param priority the priority of the task. Either normal or medium.
    * @return ExecutionResult result of the execution with possible error code.
    */
-  ExecutionResult Schedule(const AsyncOperation& work,
+  ExecutionResult Schedule(AsyncOperation work,
                            AsyncPriority priority) noexcept;
 
   /**

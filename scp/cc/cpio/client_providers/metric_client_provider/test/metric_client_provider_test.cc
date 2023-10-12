@@ -206,7 +206,7 @@ TEST_F(MetricClientProviderTest, LaunchScheduleMetricsBatchPushWithRun) {
 
   bool schedule_for_is_called = false;
   mock_async_executor_->schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         schedule_for_is_called = true;
         return FailureExecutionResult(SC_UNKNOWN);
@@ -251,7 +251,7 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
 
   atomic<bool> schedule_for_is_called = false;
   mock_async_executor_->schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp timestamp,
+      [&](AsyncOperation work, Timestamp timestamp,
           function<bool()>& cancellation_callback) {
         schedule_for_is_called = true;
         return SuccessExecutionResult();

@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <utility>
 
 #include "async_executor_utils.h"
 #include "error_codes.h"
@@ -134,7 +135,7 @@ ExecutionResult SingleThreadAsyncExecutor::Stop() noexcept {
 };
 
 ExecutionResult SingleThreadAsyncExecutor::Schedule(
-    const AsyncOperation& work, AsyncPriority priority) noexcept {
+    AsyncOperation work, AsyncPriority priority) noexcept {
   if (!is_running_) {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
   }
@@ -144,7 +145,7 @@ ExecutionResult SingleThreadAsyncExecutor::Schedule(
         errors::SC_ASYNC_EXECUTOR_INVALID_PRIORITY_TYPE);
   }
 
-  auto task = std::make_shared<AsyncTask>(work);
+  auto task = std::make_shared<AsyncTask>(std::move(work));
   ExecutionResult execution_result;
   if (priority == AsyncPriority::Normal) {
     execution_result = normal_pri_queue_->TryEnqueue(task);

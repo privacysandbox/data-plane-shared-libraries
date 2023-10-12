@@ -29,6 +29,7 @@ cc_library(
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/config/src:roma_config_lib",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
     ],

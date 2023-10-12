@@ -21,6 +21,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "core/common/time_provider/src/time_provider.h"
@@ -159,13 +160,13 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::Stop() noexcept {
 };
 
 ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
-    const AsyncOperation& work, Timestamp timestamp) noexcept {
+    AsyncOperation work, Timestamp timestamp) noexcept {
   function<bool()> cancellation_callback = []() { return false; };
-  return ScheduleFor(work, timestamp, cancellation_callback);
+  return ScheduleFor(std::move(work), timestamp, cancellation_callback);
 };
 
 ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
-    const AsyncOperation& work, Timestamp timestamp,
+    AsyncOperation work, Timestamp timestamp,
     function<bool()>& cancellation_callback) noexcept {
   if (!is_running_) {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
@@ -177,7 +178,7 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
     return RetryExecutionResult(errors::SC_ASYNC_EXECUTOR_EXCEEDING_QUEUE_CAP);
   }
 
-  auto task = std::make_shared<AsyncTask>(work, timestamp);
+  auto task = std::make_shared<AsyncTask>(std::move(work), timestamp);
   cancellation_callback = [task]() mutable { return task->Cancel(); };
   queue_->push(task);
 

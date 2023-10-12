@@ -293,12 +293,12 @@ TEST_F(TransactionEngineTest, RunShouldReplayAllPendingTransactions) {
   // Total calls must become 2
   // 1 for recovery
   size_t total_calls = 0;
-  mock_async_executor->schedule_mock = [&](const auto& work) {
+  mock_async_executor->schedule_mock = [&](AsyncOperation work) {
     total_calls++;
     work();
     return SuccessExecutionResult();
   };
-  mock_async_executor->schedule_for_mock = [&](const auto& a, auto timestamp,
+  mock_async_executor->schedule_for_mock = [&](AsyncOperation a, auto timestamp,
                                                auto& cancellation_callback) {
     cancellation_callback = []() { return true; };
     return SuccessExecutionResult();
@@ -4950,15 +4950,15 @@ TEST_F(TransactionEngineTest,
                    context) {});
         transaction->remote_phase_context.callback(context);
       };
-  mock_async_executor_->schedule_mock = [&](const auto& work) {
+  mock_async_executor_->schedule_mock = [&](AsyncOperation work) {
     work();
     return SuccessExecutionResult();
   };
-  mock_async_executor_->schedule_for_mock = [&](const auto& a, auto timestamp,
-                                                auto& cancellation_callback) {
-    cancellation_callback = []() { return true; };
-    return SuccessExecutionResult();
-  };
+  mock_async_executor_->schedule_for_mock =
+      [&](AsyncOperation a, auto timestamp, auto& cancellation_callback) {
+        cancellation_callback = []() { return true; };
+        return SuccessExecutionResult();
+      };
 
   EXPECT_SUCCESS(mock_async_executor_->Init());
   EXPECT_SUCCESS(mock_async_executor_->Run());

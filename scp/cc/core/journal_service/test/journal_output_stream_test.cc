@@ -46,11 +46,11 @@ TEST(JournalOutputStreamTests, AppendLog) {
   auto partition_name = std::make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   async_executor_mock.schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp,
+      [&](AsyncOperation work, Timestamp,
           function<bool()>& cancellation_callback) {
         return SuccessExecutionResult();
       };
-  async_executor_mock.schedule_mock = [&](const AsyncOperation& work) {
+  async_executor_mock.schedule_mock = [&](AsyncOperation work) {
     return SuccessExecutionResult();
   };
 
@@ -90,11 +90,11 @@ TEST(JournalOutputStreamTests, FlushLogsFailure) {
   auto partition_name = std::make_shared<std::string>("partition_name");
   MockAsyncExecutor async_executor_mock;
   async_executor_mock.schedule_for_mock =
-      [&](const AsyncOperation& work, Timestamp,
+      [&](AsyncOperation work, Timestamp,
           function<bool()>& cancellation_callback) {
         return SuccessExecutionResult();
       };
-  async_executor_mock.schedule_mock = [&](const AsyncOperation& work) {
+  async_executor_mock.schedule_mock = [&](AsyncOperation work) {
     return SuccessExecutionResult();
   };
 

@@ -20,6 +20,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "core/common/time_provider/src/time_provider.h"
@@ -44,7 +45,7 @@ class AsyncTask {
       AsyncOperation async_operation = []() {},
       Timestamp execution_timestamp =
           common::TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks())
-      : async_operation_(async_operation),
+      : async_operation_(std::move(async_operation)),
         execution_timestamp_(execution_timestamp),
         is_cancelled_(false) {}
 

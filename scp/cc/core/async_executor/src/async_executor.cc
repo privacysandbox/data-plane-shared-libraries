@@ -215,13 +215,14 @@ AsyncExecutor::PickTaskExecutor(
       errors::SC_ASYNC_EXECUTOR_INVALID_LOAD_BALANCING_TYPE);
 }
 
-ExecutionResult AsyncExecutor::Schedule(const AsyncOperation& work,
+ExecutionResult AsyncExecutor::Schedule(AsyncOperation work,
                                         AsyncPriority priority) noexcept {
-  return Schedule(work, priority, AsyncExecutorAffinitySetting::NonAffinitized);
+  return Schedule(std::move(work), priority,
+                  AsyncExecutorAffinitySetting::NonAffinitized);
 }
 
 ExecutionResult AsyncExecutor::Schedule(
-    const AsyncOperation& work, AsyncPriority priority,
+    AsyncOperation work, AsyncPriority priority,
     AsyncExecutorAffinitySetting affinity) noexcept {
   if (!running_) {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
@@ -232,8 +233,9 @@ ExecutionResult AsyncExecutor::Schedule(
                      PickTaskExecutor(affinity, urgent_task_executor_pool_,
                                       TaskExecutorPoolType::UrgentPool,
                                       task_load_balancing_scheme_));
-    AsyncTask task(work);  // Creates a task for now
-    return task_executor->ScheduleFor(work, task.GetExecutionTimestamp());
+    return task_executor->ScheduleFor(
+        std::move(work),
+        common::TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());
   }
 
   if (priority == AsyncPriority::Normal || priority == AsyncPriority::High) {
@@ -242,35 +244,36 @@ ExecutionResult AsyncExecutor::Schedule(
                                       TaskExecutorPoolType::NotUrgentPool,
                                       task_load_balancing_scheme_));
 
-    return task_executor->Schedule(work, priority);
+    return task_executor->Schedule(std::move(work), priority);
   }
 
   return FailureExecutionResult(
       errors::SC_ASYNC_EXECUTOR_INVALID_PRIORITY_TYPE);
 }
 
-ExecutionResult AsyncExecutor::ScheduleFor(const AsyncOperation& work,
+ExecutionResult AsyncExecutor::ScheduleFor(AsyncOperation work,
                                            Timestamp timestamp) noexcept {
-  return ScheduleFor(work, timestamp,
+  return ScheduleFor(std::move(work), timestamp,
                      AsyncExecutorAffinitySetting::NonAffinitized);
 }
 
 ExecutionResult AsyncExecutor::ScheduleFor(
-    const AsyncOperation& work, Timestamp timestamp,
+    AsyncOperation work, Timestamp timestamp,
     AsyncExecutorAffinitySetting affinity) noexcept {
   TaskCancellationLambda cancellation_callback = {};
-  return ScheduleFor(work, timestamp, cancellation_callback, affinity);
+  return ScheduleFor(std::move(work), timestamp, cancellation_callback,
+                     affinity);
 }
 
 ExecutionResult AsyncExecutor::ScheduleFor(
-    const AsyncOperation& work, Timestamp timestamp,
+    AsyncOperation work, Timestamp timestamp,
     TaskCancellationLambda& cancellation_callback) noexcept {
-  return ScheduleFor(work, timestamp, cancellation_callback,
+  return ScheduleFor(std::move(work), timestamp, cancellation_callback,
                      AsyncExecutorAffinitySetting::NonAffinitized);
 }
 
 ExecutionResult AsyncExecutor::ScheduleFor(
-    const AsyncOperation& work, Timestamp timestamp,
+    AsyncOperation work, Timestamp timestamp,
     TaskCancellationLambda& cancellation_callback,
     AsyncExecutorAffinitySetting affinity) noexcept {
   if (!running_) {
@@ -281,6 +284,7 @@ ExecutionResult AsyncExecutor::ScheduleFor(
                    PickTaskExecutor(affinity, urgent_task_executor_pool_,
                                     TaskExecutorPoolType::UrgentPool,
                                     task_load_balancing_scheme_));
-  return task_executor->ScheduleFor(work, timestamp, cancellation_callback);
+  return task_executor->ScheduleFor(std::move(work), timestamp,
+                                    cancellation_callback);
 }
 }  // namespace google::scp::core

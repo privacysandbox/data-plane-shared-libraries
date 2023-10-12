@@ -66,8 +66,8 @@ absl::Status ExecuteInternal(std::unique_ptr<RequestT> invocation_req,
   }
 
   auto* roma_service = RomaService::Instance();
-  auto result =
-      roma_service->Dispatcher().Dispatch(std::move(invocation_req), callback);
+  auto result = roma_service->Dispatcher().Dispatch(std::move(invocation_req),
+                                                    std::move(callback));
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma Execute failed due to: " +
@@ -168,13 +168,13 @@ absl::Status RomaStop() {
 
 absl::Status Execute(std::unique_ptr<InvocationRequestStrInput> invocation_req,
                      Callback callback) {
-  return ExecuteInternal(std::move(invocation_req), callback);
+  return ExecuteInternal(std::move(invocation_req), std::move(callback));
 }
 
 absl::Status Execute(
     std::unique_ptr<InvocationRequestSharedInput> invocation_req,
     Callback callback) {
-  return ExecuteInternal(std::move(invocation_req), callback);
+  return ExecuteInternal(std::move(invocation_req), std::move(callback));
 }
 
 absl::Status BatchExecute(std::vector<InvocationRequestStrInput>& batch,
@@ -211,8 +211,8 @@ absl::Status LoadCodeObj(std::unique_ptr<CodeObject> code_object,
   }
 
   auto* roma_service = RomaService::Instance();
-  auto result =
-      roma_service->Dispatcher().Broadcast(std::move(code_object), callback);
+  auto result = roma_service->Dispatcher().Broadcast(std::move(code_object),
+                                                     std::move(callback));
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma LoadCodeObj failed with: " +

@@ -75,7 +75,7 @@ class Dispatcher : public core::ServiceInterface {
   template <typename RequestT>
   core::ExecutionResult Dispatch(std::unique_ptr<RequestT> request,
                                  Callback callback) noexcept {
-    return InternalDispatch(std::move(request), callback);
+    return InternalDispatch(std::move(request), std::move(callback));
   }
 
   /**
@@ -187,7 +187,8 @@ class Dispatcher : public core::ServiceInterface {
         std::make_shared<std::unique_ptr<RequestT>>(std::move(request));
 
     auto schedule_result = async_executor_->Schedule(
-        [this, index, shared_request, callback] {
+        [this, index, shared_request,
+         callback = std::move(callback)]() mutable {
           auto request = std::move(*shared_request);
           std::unique_ptr<absl::StatusOr<ResponseObject>> response_or;
 
@@ -197,7 +198,7 @@ class Dispatcher : public core::ServiceInterface {
                 absl::Status(absl::StatusCode::kInternal,
                              core::errors::GetErrorMessage(
                                  worker_or.result().status_code)));
-            callback(::std::move(response_or));
+            callback(std::move(response_or));
             pending_requests_--;
             return;
           }
@@ -206,7 +207,7 @@ class Dispatcher : public core::ServiceInterface {
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
                 absl::Status(absl::StatusCode::kInternal,
                              "Could not find code version in cache."));
-            callback(::std::move(response_or));
+            callback(std::move(response_or));
             pending_requests_--;
             return;
           }
@@ -227,7 +228,7 @@ class Dispatcher : public core::ServiceInterface {
                 absl::Status(absl::StatusCode::kInternal,
                              core::errors::GetErrorMessage(
                                  run_code_request_or.result().status_code)));
-            callback(::std::move(response_or));
+            callback(std::move(response_or));
             pending_requests_--;
             return;
           }
@@ -257,7 +258,7 @@ class Dispatcher : public core::ServiceInterface {
                   << index;
             }
 
-            callback(::std::move(response_or));
+            callback(std::move(response_or));
             pending_requests_--;
             return;
           }
@@ -271,7 +272,7 @@ class Dispatcher : public core::ServiceInterface {
           for (auto& kv : run_code_response_or->metrics) {
             response_or->value().metrics[kv.first] = kv.second;
           }
-          callback(::std::move(response_or));
+          callback(std::move(response_or));
           pending_requests_--;
         },
         core::AsyncPriority::Normal);

@@ -20,12 +20,14 @@
 #include <functional>
 #include <memory>
 
+#include "absl/functional/any_invocable.h"
+
 #include "service_interface.h"
 #include "type_def.h"
 
 namespace google::scp::core {
 /// Defines operation type.
-using AsyncOperation = std::function<void()>;
+using AsyncOperation = absl::AnyInvocable<void()>;
 
 /// Async operation execution priority.
 enum class AsyncPriority {
@@ -115,7 +117,7 @@ class AsyncExecutorInterface : public ServiceInterface {
    * @param priority the priority of the task.
    * @return ExecutionResult result of the execution with possible error code.
    */
-  virtual ExecutionResult Schedule(const AsyncOperation& work,
+  virtual ExecutionResult Schedule(AsyncOperation work,
                                    AsyncPriority priority) noexcept = 0;
 
   /**
@@ -123,7 +125,7 @@ class AsyncExecutorInterface : public ServiceInterface {
    * @param affinity the affinity with which to schedule the work.
    */
   virtual ExecutionResult Schedule(
-      const AsyncOperation& work, AsyncPriority priority,
+      AsyncOperation work, AsyncPriority priority,
       AsyncExecutorAffinitySetting affinity) noexcept = 0;
 
   /**
@@ -135,7 +137,7 @@ class AsyncExecutorInterface : public ServiceInterface {
    * @param timestamp the timestamp to the task to be executed.
    * @return ExecutionResult result of the execution with possible error code.
    */
-  virtual ExecutionResult ScheduleFor(const AsyncOperation& work,
+  virtual ExecutionResult ScheduleFor(AsyncOperation work,
                                       Timestamp timestamp) noexcept = 0;
 
   /**
@@ -143,7 +145,7 @@ class AsyncExecutorInterface : public ServiceInterface {
    * @param affinity the affinity with which to schedule the work.
    */
   virtual ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       AsyncExecutorAffinitySetting affinity) noexcept = 0;
 
   /**
@@ -157,7 +159,7 @@ class AsyncExecutorInterface : public ServiceInterface {
    * @return ExecutionResult result of the execution with possible error code.
    */
   virtual ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       TaskCancellationLambda& cancellation_callback) noexcept = 0;
 
   /**
@@ -165,7 +167,7 @@ class AsyncExecutorInterface : public ServiceInterface {
    * @param affinity the affinity with which to schedule the work.
    */
   virtual ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       TaskCancellationLambda& cancellation_callback,
       AsyncExecutorAffinitySetting affinity) noexcept = 0;
 };

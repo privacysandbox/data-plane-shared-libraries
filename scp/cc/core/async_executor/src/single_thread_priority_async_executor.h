@@ -60,7 +60,7 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
    * @return ExecutionResult The result of the execution with possible error
    * code.
    */
-  ExecutionResult ScheduleFor(const AsyncOperation& work,
+  ExecutionResult ScheduleFor(AsyncOperation work,
                               Timestamp timestamp) noexcept;
 
   /**
@@ -73,7 +73,7 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
    * @return ExecutionResult result of the execution with possible error code.
    */
   ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       std::function<bool()>& cancellation_callback) noexcept;
 
   /**

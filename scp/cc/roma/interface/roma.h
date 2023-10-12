@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "roma/config/src/config.h"
@@ -107,7 +108,7 @@ struct ResponseObject {
 };
 
 using Callback =
-    std::function<void(std::unique_ptr<absl::StatusOr<ResponseObject>>)>;
+    absl::AnyInvocable<void(std::unique_ptr<absl::StatusOr<ResponseObject>>)>;
 
 // Async API.
 // Execute single invocation request. Can only be called when a valid

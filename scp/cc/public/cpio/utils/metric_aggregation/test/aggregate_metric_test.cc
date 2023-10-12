@@ -106,12 +106,11 @@ TEST_F(AggregateMetricTest, Run) {
 
 TEST_F(AggregateMetricTest, ScheduleMetricPush) {
   atomic<int> schedule_for_is_called = 0;
-  mock_async_executor_->schedule_for_mock = [&](const AsyncOperation& work,
-                                                Timestamp timestamp,
-                                                std::function<bool()>&) {
-    schedule_for_is_called++;
-    return SuccessExecutionResult();
-  };
+  mock_async_executor_->schedule_for_mock =
+      [&](AsyncOperation work, Timestamp timestamp, std::function<bool()>&) {
+        schedule_for_is_called++;
+        return SuccessExecutionResult();
+      };
 
   auto aggregate_metric = MockAggregateMetricOverrides(
       async_executor_, mock_metric_client_, CreateMetricDefinition(),

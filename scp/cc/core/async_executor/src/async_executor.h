@@ -96,26 +96,26 @@ class AsyncExecutor : public AsyncExecutorInterface {
 
   ExecutionResult Stop() noexcept override;
 
-  ExecutionResult Schedule(const AsyncOperation& work,
+  ExecutionResult Schedule(AsyncOperation work,
                            AsyncPriority priority) noexcept override;
 
   ExecutionResult Schedule(
-      const AsyncOperation& work, AsyncPriority priority,
+      AsyncOperation work, AsyncPriority priority,
       AsyncExecutorAffinitySetting affinity) noexcept override;
 
-  ExecutionResult ScheduleFor(const AsyncOperation& work,
+  ExecutionResult ScheduleFor(AsyncOperation work,
                               Timestamp timestamp) noexcept override;
 
   ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       AsyncExecutorAffinitySetting affinity) noexcept override;
 
   ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       TaskCancellationLambda& cancellation_callback) noexcept override;
 
   ExecutionResult ScheduleFor(
-      const AsyncOperation& work, Timestamp timestamp,
+      AsyncOperation work, Timestamp timestamp,
       TaskCancellationLambda& cancellation_callback,
       AsyncExecutorAffinitySetting affinity) noexcept override;
 

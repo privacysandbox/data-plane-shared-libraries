@@ -56,13 +56,15 @@ ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
       std::vector<std::unique_ptr<absl::StatusOr<ResponseObject>>>>(
       worker_count);
 
+  auto broadcast_callback_ptr =
+      std::make_shared<Callback>(std::move(broadcast_callback));
   for (size_t worker_index = 0; worker_index < worker_count; worker_index++) {
     auto callback =
-        [worker_count, responses_storage, finished_counter, broadcast_callback,
-         worker_index](
+        [worker_count, responses_storage, finished_counter,
+         broadcast_callback_ptr, worker_index](
             std::unique_ptr<absl::StatusOr<ResponseObject>> response) {
           auto& all_resp = *responses_storage;
-          // Store responses in the vector
+          // Store responses in the vector.
           all_resp[worker_index].swap(response);
           auto finished_value = finished_counter->fetch_add(1);
           // Go through the responses and call the callback on the first failed
@@ -70,18 +72,18 @@ ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
           if (finished_value + 1 == worker_count) {
             for (auto& resp : all_resp) {
               if (!resp->ok()) {
-                broadcast_callback(::std::move(resp));
+                (*broadcast_callback_ptr)(std::move(resp));
                 return;
               }
             }
-            broadcast_callback(::std::move(all_resp[0]));
+            (*broadcast_callback_ptr)(std::move(all_resp[0]));
           }
         };
 
     auto code_object_copy = std::make_unique<CodeObject>(*code_object);
 
-    auto dispatch_result =
-        InternalDispatch(std::move(code_object_copy), callback, worker_index);
+    auto dispatch_result = InternalDispatch(std::move(code_object_copy),
+                                            std::move(callback), worker_index);
 
     if (!dispatch_result.Successful()) {
       LOG(ERROR) << "Broadcast failed at the " << worker_index
