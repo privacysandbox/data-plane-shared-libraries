@@ -1,0 +1,33 @@
+diff --git a/quiche/common/platform/default/quiche_platform_impl/quiche_logging_impl.cc b/quiche/common/platform/default/quiche_platform_impl/quiche_logging_impl.cc
+index e6ea7e51..fba2651b 100644
+--- a/quiche/common/platform/default/quiche_platform_impl/quiche_logging_impl.cc
++++ b/quiche/common/platform/default/quiche_platform_impl/quiche_logging_impl.cc
+@@ -9,5 +9,5 @@
+ #include "absl/strings/string_view.h"
+ 
+ #ifndef ABSL_VLOG
+-ABSL_FLAG(int, v, 0, "Show all QUICHE_VLOG(m) messages for m <= this.");
++ABSL_FLAG(int, verbosity, 0, "Show all QUICHE_VLOG(m) messages for m <= this.");
+ #endif
+diff --git a/quiche/common/platform/default/quiche_platform_impl/quiche_logging_impl.h b/quiche/common/platform/default/quiche_platform_impl/quiche_logging_impl.h
+index 511a1da7..27b512e4 100644
+--- a/quiche/common/platform/default/quiche_platform_impl/quiche_logging_impl.h
++++ b/quiche/common/platform/default/quiche_platform_impl/quiche_logging_impl.h
+@@ -13,7 +13,7 @@
+ #include "absl/log/absl_check.h"
+ #include "absl/log/absl_log.h"
+ 
+-ABSL_DECLARE_FLAG(int, v);
++ABSL_DECLARE_FLAG(int, verbosity);
+ 
+ #define QUICHE_LOG_IMPL(severity) QUICHE_LOG_IMPL_##severity()
+ #define QUICHE_LOG_IMPL_FATAL() ABSL_LOG(FATAL)
+@@ -97,7 +97,7 @@ ABSL_DECLARE_FLAG(int, v);
+ 
+ // Implement VLOG and DVLOG in terms of LOG and DLOG.
+ #define QUICHE_VLOG_PREDICATE(verbose_level) \
+-  (verbose_level <= absl::GetFlag(FLAGS_v))
++  (verbose_level <= absl::GetFlag(FLAGS_verbosity))
+ 
+ #define QUICHE_VLOG_IMPL(verbose_level) \
+   QUICHE_LOG_IF_IMPL(INFO, QUICHE_VLOG_PREDICATE(verbose_level))

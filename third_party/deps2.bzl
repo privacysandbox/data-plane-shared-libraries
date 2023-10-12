@@ -44,9 +44,11 @@ def quiche_dependencies():
     maybe(
         http_archive,
         name = "com_github_google_quiche",
-        sha256 = "6f62d6d4bce6c81ed4493c1f53d4859b110e08efa7fdf58dc8c6bd232a6a9d84",
-        strip_prefix = "quiche-c06013fca03cc95f662cb3b09ad582b0336258aa",
-        urls = ["https://github.com/google/quiche/archive/c06013fca03cc95f662cb3b09ad582b0336258aa.tar.gz"],
+        sha256 = "563cbc483a006d4999e2e9b1114fec02cdc904fcdafa29721e4e6d816c8d648a",
+        strip_prefix = "quiche-cc0614c8ab209e297f7b17ab3d04618fee327a4f",
+        urls = ["https://github.com/google/quiche/archive/cc0614c8ab209e297f7b17ab3d04618fee327a4f.tar.gz"],
+        patch_args = ["-p1"],
+        patches = [Label("//third_party:quiche.patch")],
     )
     maybe(
         http_archive,
