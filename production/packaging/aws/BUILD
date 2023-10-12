@@ -1,0 +1,50 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
+
+# artifacts for use outside the AWS Nitro TEE
+pkg_zip(
+    name = "aws_artifacts",
+    srcs = [
+        "//scp/cc/aws/proxy/src:proxy",
+    ],
+)
+
+# copy_to_dist expects two args, both optional:
+#   * output zip filename
+#   * linux distribution
+# the linux distribution arg is used to ensure that only debian-compiled
+# binaries are used for the container image, which uses a debian base image
+genrule(
+    name = "copy_to_dist",
+    srcs = [
+        ":aws_artifacts",
+        "//scp/cc/aws/proxy/src:proxy_debian_image.tar",
+    ],
+    outs = ["copy_to_dist.bin"],
+    cmd_bash = """cat <<EOF >'$@'
+readonly target_dir=dist/aws
+mkdir -p \\$${target_dir}
+readonly file_prefix="\\$${target_dir}/proxy"
+cp $(execpath :aws_artifacts) "\\$${file_prefix}-\\$${1}-\\$${2}.zip"
+if [[ \\$${1} == debian ]]; then
+  cp $(execpath //scp/cc/aws/proxy/src:proxy_debian_image.tar) "\\$${file_prefix}-image-\\$${2}.tar"
+fi
+builders/tools/normalize-dist
+EOF""",
+    executable = True,
+    local = True,
+    message = "copying AMI artifacts to dist",
+)

@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:pkg.bzl", "pkg_tar")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -208,4 +211,91 @@ cc_binary(
         ":socket_vendor_server",
         "@com_github_google_glog//:glog",
     ],
+)
+
+pkg_files(
+    name = "proxy_bin",
+    srcs = [
+        ":proxy",
+    ],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/opt/google/proxy",
+)
+
+pkg_tar(
+    name = "proxy_tar",
+    srcs = [
+        ":proxy_bin",
+    ],
+)
+
+container_layer(
+    name = "proxy_layer",
+    directory = "/",
+    tars = [
+        ":proxy_tar",
+    ],
+    visibility = ["//scp/cc/aws:__subpackages__"],
+)
+
+container_image(
+    name = "proxy_debian_image",
+    architecture = select({
+        "@platforms//cpu:aarch64": "arm64",
+        "@platforms//cpu:x86_64": "amd64",
+    }),
+    base = select({
+        "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64//image",
+        "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64//image",
+    }),
+    entrypoint = ["/bin/bash"],
+    layers = [
+        ":proxy_layer",
+    ],
+)
+
+pkg_files(
+    name = "proxify_executables",
+    srcs = [
+        "//scp/cc/aws/proxy/src:proxify",
+        "//scp/cc/aws/proxy/src:socket_vendor",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/",
+)
+
+pkg_files(
+    name = "proxify_libs",
+    srcs = [
+        "//scp/cc/aws/proxy/src:proxy_preload",
+    ],
+    attributes = pkg_attributes(mode = "0444"),
+    prefix = "/",
+)
+
+pkg_tar(
+    name = "proxify_tar",
+    srcs = [
+        ":proxify_executables",
+        ":proxify_libs",
+    ],
+)
+
+pkg_tar(
+    name = "libnsm_tar",
+    srcs = [
+        "@libnsm//file",
+    ],
+    mode = "0644",
+    package_dir = "/lib/x86_64-linux-gnu/",
+)
+
+container_layer(
+    name = "proxify_layer",
+    directory = "/",
+    tars = [
+        ":libnsm_tar",
+        ":proxify_tar",
+    ],
+    visibility = ["//visibility:public"],
 )
