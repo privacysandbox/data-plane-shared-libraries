@@ -14,12 +14,11 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
     name = "duration",
     srcs = ["duration.cc"],
     hdrs = ["duration.h"],
+    visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
@@ -33,6 +32,30 @@ cc_test(
     deps = [
         ":duration",
         "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "protoutil",
+    srcs = ["protoutil.cc"],
+    hdrs = ["protoutil.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "protoutil_test",
+    srcs = ["protoutil_test.cc"],
+    deps = [
+        ":protoutil",
+        "//scp/cc/core/test/utils:utils_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
