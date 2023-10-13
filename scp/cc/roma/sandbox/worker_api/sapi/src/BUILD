@@ -21,6 +21,9 @@ package(default_visibility = ["//scp/cc/roma/sandbox/worker_api:__subpackages__"
 sapi_proto_library(
     name = "worker_params_proto",
     srcs = ["worker_params.proto"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+    ],
     alwayslink = 1,
 )
 
@@ -44,6 +47,7 @@ cc_library(
         "//scp/cc/roma/config/src:roma_config_lib",
         "//scp/cc/roma/logging/src:roma_logging_lib",
         "//scp/cc/roma/sandbox/worker_factory/src:roma_worker_factory_lib",
+        "//src/cpp/util:protoutil",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],

@@ -119,7 +119,9 @@ DEFINE_ERROR_CODE(SC_ROMA_WORKER_API_COULD_NOT_TRANSFER_BUFFER_FD_TO_SANDBOXEE,
                   SC_ROMA_WORKER_API, 0x0014,
                   "Could not transfer sandbox2::Buffer fd to sandboxee.",
                   HttpStatusCode::BAD_REQUEST)
-
+DEFINE_ERROR_CODE(SC_ROMA_WORKER_API_INVALID_DURATION, SC_ROMA_WORKER_API,
+                  0x0015, "Failed to convert a duration.",
+                  HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
 
 #endif  // ROMA_SANDBOX_WORKER_API_SAPI_SRC_ERROR_CODES_H_

@@ -31,6 +31,7 @@
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker_factory/src/worker_factory.h"
 #include "src/cpp/util/duration.h"
+#include "src/cpp/util/protoutil.h"
 
 using google::scp::core::StatusCode;
 using google::scp::core::errors::
@@ -41,6 +42,7 @@ using google::scp::core::errors::
     SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_RESPONSE_DATA;
 using google::scp::core::errors::
     SC_ROMA_WORKER_API_FAILED_CREATE_BUFFER_INSIDE_SANDBOXEE;
+using google::scp::core::errors::SC_ROMA_WORKER_API_INVALID_DURATION;
 using google::scp::core::errors::
     SC_ROMA_WORKER_API_RESPONSE_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY;
 using google::scp::core::errors::SC_ROMA_WORKER_API_UNINITIALIZED_WORKER;
@@ -143,18 +145,25 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
 
   privacy_sandbox::server_common::Stopwatch stopwatch;
   auto response_or = worker_->RunCode(code, input, metadata, wasm);
-  const auto run_code_elapsed_ns =
-      absl::ToInt64Nanoseconds(stopwatch.GetElapsedTime());
+  auto js_duration = privacy_sandbox::server_common::EncodeGoogleApiProto(
+      stopwatch.GetElapsedTime());
+  if (!js_duration.ok()) {
+    return SC_ROMA_WORKER_API_INVALID_DURATION;
+  }
   (*params->mutable_metrics())[kExecutionMetricJsEngineCallDuration] =
-      run_code_elapsed_ns;
+      std::move(js_duration).value();
 
   if (!response_or.result().Successful()) {
     return response_or.result().status_code;
   }
 
   for (const auto& pair : response_or.value().metrics) {
-    (*params->mutable_metrics())[pair.first] =
-        absl::ToInt64Nanoseconds(pair.second);
+    auto duration =
+        privacy_sandbox::server_common::EncodeGoogleApiProto(pair.second);
+    if (!duration.ok()) {
+      return SC_ROMA_WORKER_API_INVALID_DURATION;
+    }
+    (*params->mutable_metrics())[pair.first] = std::move(duration).value();
   }
 
   params->set_response(*response_or.value().response);

@@ -39,5 +39,6 @@ cc_library(
         "//scp/cc/roma/config/src:roma_config_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_sandbox_api_lib",
         "//scp/cc/roma/sandbox/worker_factory/src:roma_worker_factory_lib",
+        "//src/cpp/util:protoutil",
     ],
 )

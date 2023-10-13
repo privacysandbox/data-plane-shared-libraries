@@ -24,9 +24,12 @@
 #include "public/core/interface/execution_result.h"
 #include "roma/sandbox/constants/constants.h"
 #include "src/cpp/util/duration.h"
+#include "src/cpp/util/protoutil.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
+using google::scp::core::FailureExecutionResult;
+using google::scp::core::errors::SC_ROMA_WORKER_API_INVALID_DURATION;
 using google::scp::roma::sandbox::constants::
     kExecutionMetricSandboxedJsEngineCallDuration;
 using std::lock_guard;
@@ -67,10 +70,14 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
   code_response.metrics[kExecutionMetricSandboxedJsEngineCallDuration] =
       stopwatch.GetElapsedTime();
   for (auto& kv : params_proto.metrics()) {
-    code_response.metrics[kv.first] = absl::Nanoseconds(kv.second);
+    auto duration =
+        privacy_sandbox::server_common::DecodeGoogleApiProto(kv.second);
+    if (!duration.ok()) {
+      return FailureExecutionResult(SC_ROMA_WORKER_API_INVALID_DURATION);
+    }
+    code_response.metrics[kv.first] = std::move(duration).value();
   }
   code_response.response =
-
       std::make_shared<std::string>(std::move(params_proto.response()));
   return code_response;
 }
