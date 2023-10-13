@@ -52,6 +52,11 @@ repos:
   - id: shellcheck
     files: ^$
 
+- repo: https://github.com/bufbuild/buf
+  rev: v1.27.0
+  hooks:
+  - id: buf-format
+
 - repo: https://github.com/pre-commit/mirrors-clang-format
   rev: v16.0.6
   hooks:

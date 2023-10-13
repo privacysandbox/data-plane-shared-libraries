@@ -26,8 +26,7 @@ service AutoScalingService {
   // If the given instance is in TERMINATING_WAIT state, schedule the
   // termination immediately.
   // If the given instance is not in TERMINATING_WAIT state, do nothing.
-  rpc TryFinishInstanceTermination(TryFinishInstanceTerminationRequest)
-      returns (TryFinishInstanceTerminationResponse) {}
+  rpc TryFinishInstanceTermination(TryFinishInstanceTerminationRequest) returns (TryFinishInstanceTerminationResponse) {}
 }
 
 // Request to try to finish the instance's termination.

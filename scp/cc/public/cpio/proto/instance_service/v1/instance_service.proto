@@ -24,14 +24,11 @@ option cc_enable_arenas = true;
 // Services to fetch metadata from instances.
 service InstanceService {
   // Get the resource name of the current instance.
-  rpc GetCurrentInstanceResourceName(GetCurrentInstanceResourceNameRequest)
-      returns (GetCurrentInstanceResourceNameResponse) {}
+  rpc GetCurrentInstanceResourceName(GetCurrentInstanceResourceNameRequest) returns (GetCurrentInstanceResourceNameResponse) {}
   // Get the tags for a given resource name.
-  rpc GetTagsByResourceName(GetTagsByResourceNameRequest)
-      returns (GetTagsByResourceNameResponse) {}
+  rpc GetTagsByResourceName(GetTagsByResourceNameRequest) returns (GetTagsByResourceNameResponse) {}
   // Get instance details for a given instance resource name.
-  rpc GetInstanceDetailsByResourceName(GetInstanceDetailsByResourceNameRequest)
-      returns (GetInstanceDetailsByResourceNameResponse) {}
+  rpc GetInstanceDetailsByResourceName(GetInstanceDetailsByResourceNameRequest) returns (GetInstanceDetailsByResourceNameResponse) {}
 }
 
 // Request to get the current instance resource name.

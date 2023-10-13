@@ -16,9 +16,9 @@ syntax = "proto3";
 
 package google.cmrt.sdk.job_service.v1;
 
-import "scp/cc/core/common/proto/common.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+import "scp/cc/core/common/proto/common.proto";
 
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
@@ -34,17 +34,14 @@ service JobService {
   // Updates job body of a job.
   rpc UpdateJobBody(UpdateJobBodyRequest) returns (UpdateJobBodyResponse) {}
   // Updates status of a job.
-  rpc UpdateJobStatus(UpdateJobStatusRequest)
-      returns (UpdateJobStatusResponse) {}
+  rpc UpdateJobStatus(UpdateJobStatusRequest) returns (UpdateJobStatusResponse) {}
   // Updates the visibility timeout and keep the job invisible from others.
-  rpc UpdateJobVisibilityTimeout(UpdateJobVisibilityTimeoutRequest)
-      returns (UpdateJobVisibilityTimeoutResponse) {}
+  rpc UpdateJobVisibilityTimeout(UpdateJobVisibilityTimeoutRequest) returns (UpdateJobVisibilityTimeoutResponse) {}
   // Removes the orphaned job message from the job queue.
   // Orphaned job messages are the jobs that are already finished or the job
   // entries are not existed in the database, but the job messages are still
   // left in the queue.
-  rpc DeleteOrphanedJobMessage(DeleteOrphanedJobMessageRequest)
-      returns (DeleteOrphanedJobMessageResponse) {}
+  rpc DeleteOrphanedJobMessage(DeleteOrphanedJobMessageRequest) returns (DeleteOrphanedJobMessageResponse) {}
 }
 
 // The job data.
@@ -107,8 +104,7 @@ message PutJobResponse {
 }
 
 // Request to get the top available job.
-message GetNextJobRequest {
-}
+message GetNextJobRequest {}
 
 // Response of getting the top available job.
 message GetNextJobResponse {

@@ -16,8 +16,8 @@ syntax = "proto3";
 
 package google.cmrt.sdk.blob_storage_service.v1;
 
-import "scp/cc/core/common/proto/common.proto";
 import "google/protobuf/duration.proto";
+import "scp/cc/core/common/proto/common.proto";
 
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
@@ -29,17 +29,14 @@ service BlobStorageService {
   rpc GetBlob(GetBlobRequest) returns (GetBlobResponse) {}
   // Gets a blob from Blob Storage in a streaming manner.
   // The blob portions are returned sequentially.
-  rpc GetBlobStream(GetBlobStreamRequest)
-      returns (stream GetBlobStreamResponse) {}
+  rpc GetBlobStream(GetBlobStreamRequest) returns (stream GetBlobStreamResponse) {}
   // Lists blobs in Blob Storage.
-  rpc ListBlobsMetadata(ListBlobsMetadataRequest)
-      returns (ListBlobsMetadataResponse) {}
+  rpc ListBlobsMetadata(ListBlobsMetadataRequest) returns (ListBlobsMetadataResponse) {}
   // Puts a blob in Blob Storage.
   rpc PutBlob(PutBlobRequest) returns (PutBlobResponse) {}
   // Streams a blob into Blob Storage. Portions of the blob must be provided
   // in ascending order.
-  rpc PutBlobStream(stream PutBlobStreamRequest)
-      returns (PutBlobStreamResponse) {}
+  rpc PutBlobStream(stream PutBlobStreamRequest) returns (PutBlobStreamResponse) {}
   // Deletes a blob from Blob Storage.
   rpc DeleteBlob(DeleteBlobRequest) returns (DeleteBlobResponse) {}
 }

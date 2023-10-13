@@ -21,15 +21,15 @@ option cc_enable_arenas = true;
 
 // The status of detailed execution result.
 enum DetailedExecutionStatus {
-  DETAILED_EXECUTION_STATUS_UNKNOWN = 0;  // Unknown status.
-  DETAILED_EXECUTION_STATUS_SUCCESS = 1;  // The execution is successful.
-  DETAILED_EXECUTION_STATUS_FAILURE = 2;  // The execution is failed.
-  DETAILED_EXECUTION_STATUS_RETRY = 3;    // The execution is retriable.
+  DETAILED_EXECUTION_STATUS_UNKNOWN = 0; // Unknown status.
+  DETAILED_EXECUTION_STATUS_SUCCESS = 1; // The execution is successful.
+  DETAILED_EXECUTION_STATUS_FAILURE = 2; // The execution is failed.
+  DETAILED_EXECUTION_STATUS_RETRY = 3; // The execution is retriable.
 }
 
 // The detailed result of the execution.
 message DetailedExecutionResult {
-  DetailedExecutionStatus status = 1;  // The execution status.
+  DetailedExecutionStatus status = 1; // The execution status.
   // The failure status code.
   uint64 status_code = 2;
   // Returned if the execution failed.

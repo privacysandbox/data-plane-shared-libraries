@@ -29,14 +29,11 @@ service NoSqlDatabaseService {
   rpc DeleteTable(DeleteTableRequest) returns (DeleteTableResponse) {}
 
   // Gets an item from the database.
-  rpc GetDatabaseItem(GetDatabaseItemRequest)
-      returns (GetDatabaseItemResponse) {}
+  rpc GetDatabaseItem(GetDatabaseItemRequest) returns (GetDatabaseItemResponse) {}
   // Creates an item in the database.
-  rpc CreateDatabaseItem(CreateDatabaseItemRequest)
-      returns (CreateDatabaseItemResponse) {}
+  rpc CreateDatabaseItem(CreateDatabaseItemRequest) returns (CreateDatabaseItemResponse) {}
   // Upserts an item into the database.
-  rpc UpsertDatabaseItem(UpsertDatabaseItemRequest)
-      returns (UpsertDatabaseItemResponse) {}
+  rpc UpsertDatabaseItem(UpsertDatabaseItemRequest) returns (UpsertDatabaseItemResponse) {}
 }
 
 // An attribute of a database item.

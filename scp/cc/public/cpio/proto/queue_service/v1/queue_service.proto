@@ -16,8 +16,8 @@ syntax = "proto3";
 
 package google.cmrt.sdk.queue_service.v1;
 
-import "scp/cc/core/common/proto/common.proto";
 import "google/protobuf/duration.proto";
+import "scp/cc/core/common/proto/common.proto";
 
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
@@ -31,8 +31,7 @@ service QueueService {
   // Gets the top message from the queue.
   rpc GetTopMessage(GetTopMessageRequest) returns (GetTopMessageResponse) {}
   // Modifies message visibility timeout from the queue.
-  rpc UpdateMessageVisibilityTimeout(UpdateMessageVisibilityTimeoutRequest)
-      returns (UpdateMessageVisibilityTimeoutResponse) {}
+  rpc UpdateMessageVisibilityTimeout(UpdateMessageVisibilityTimeoutRequest) returns (UpdateMessageVisibilityTimeoutResponse) {}
   // Deletes message from the queue.
   rpc DeleteMessage(DeleteMessageRequest) returns (DeleteMessageResponse) {}
 }
@@ -52,8 +51,7 @@ message EnqueueMessageResponse {
 }
 
 // Request to get the top message from the queue.
-message GetTopMessageRequest {
-}
+message GetTopMessageRequest {}
 
 // Response of getting the top message from the queue.
 message GetTopMessageResponse {

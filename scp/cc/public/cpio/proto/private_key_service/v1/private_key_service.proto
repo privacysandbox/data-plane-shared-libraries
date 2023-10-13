@@ -16,8 +16,8 @@ syntax = "proto3";
 
 package google.cmrt.sdk.private_key_service.v1;
 
-import "scp/cc/core/common/proto/common.proto";
 import "google/protobuf/timestamp.proto";
+import "scp/cc/core/common/proto/common.proto";
 
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
@@ -26,8 +26,7 @@ option cc_enable_arenas = true;
 service PrivateKeyService {
   // Fetches private keys from KeyService. These keys are
   // already decrypted.
-  rpc ListPrivateKeys(ListPrivateKeysRequest)
-      returns (ListPrivateKeysResponse) {}
+  rpc ListPrivateKeys(ListPrivateKeysRequest) returns (ListPrivateKeysResponse) {}
 }
 
 // Wrap of private key.

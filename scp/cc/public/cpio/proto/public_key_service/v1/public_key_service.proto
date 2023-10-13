@@ -16,8 +16,8 @@ syntax = "proto3";
 
 package google.cmrt.sdk.public_key_service.v1;
 
-import "scp/cc/core/common/proto/common.proto";
 import "google/protobuf/timestamp.proto";
+import "scp/cc/core/common/proto/common.proto";
 
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
@@ -47,4 +47,4 @@ message PublicKey {
   string key_id = 1;
   // The value of the public key.
   string public_key = 2;
-};
+}
