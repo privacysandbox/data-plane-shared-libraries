@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:pkg.bzl", "pkg_tar")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//scp/cc/aws/proxy/test:__subpackages__"])
 
 cc_library(
     name = "acceptor_pool",
@@ -167,6 +167,10 @@ cc_binary(
     name = "proxy",
     srcs = [":proxy.cc"],
     linkopts = ["-pthread"],
+    visibility = [
+        "//production/packaging/aws:__subpackages__",
+        "//scp/cc/aws/proxy/test:__subpackages__",
+    ],
     deps = [
         ":config",
         ":proxy_server",
@@ -189,6 +193,10 @@ cc_binary(
     ],
     linkopts = ["-ldl"],
     linkshared = True,
+    visibility = [
+        "//production/packaging/aws:__subpackages__",
+        "//scp/cc/aws/proxy/test:__subpackages__",
+    ],
     deps = [
         ":preload",
         ":protocol",
@@ -200,12 +208,20 @@ cc_binary(
 cc_binary(
     name = "proxify",
     srcs = [":proxify.cc"],
+    visibility = [
+        "//production/packaging/aws:__subpackages__",
+        "//scp/cc/aws/proxy/test:__subpackages__",
+    ],
     deps = ["//scp/cc/aws:include_dir"],
 )
 
 cc_binary(
     name = "socket_vendor",
     srcs = [":socket_vendor.cc"],
+    visibility = [
+        "//production/packaging/aws:__subpackages__",
+        "//scp/cc/aws/proxy/test:__subpackages__",
+    ],
     deps = [
         ":protocol",
         ":socket_vendor_server",
@@ -235,7 +251,9 @@ container_layer(
     tars = [
         ":proxy_tar",
     ],
-    visibility = ["//scp/cc/aws:__subpackages__"],
+    visibility = [
+        "//scp/cc/aws:__subpackages__",
+    ],
 )
 
 container_image(
@@ -251,6 +269,9 @@ container_image(
     entrypoint = ["/bin/bash"],
     layers = [
         ":proxy_layer",
+    ],
+    visibility = [
+        "//production/packaging/aws:__subpackages__",
     ],
 )
 
@@ -297,5 +318,7 @@ container_layer(
         ":libnsm_tar",
         ":proxify_tar",
     ],
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//production/packaging/aws:__subpackages__",
+    ],
 )
