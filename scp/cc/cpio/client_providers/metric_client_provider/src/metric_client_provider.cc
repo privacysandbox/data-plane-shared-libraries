@@ -54,7 +54,6 @@ using std::scoped_lock;
 using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
 using std::placeholders::_1;
-using std::this_thread::sleep_for;
 
 static constexpr char kMetricClientProvider[] = "MetricClientProvider";
 static constexpr size_t kShutdownWaitIntervalMilliseconds = 100;
@@ -112,7 +111,8 @@ ExecutionResult MetricClientProvider::Stop() noexcept {
   sync_mutex_.unlock();
 
   while (active_push_count_ > 0) {
-    sleep_for(milliseconds(kShutdownWaitIntervalMilliseconds));
+    std::this_thread::sleep_for(
+        milliseconds(kShutdownWaitIntervalMilliseconds));
   }
 
   return SuccessExecutionResult();

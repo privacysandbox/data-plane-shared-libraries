@@ -32,7 +32,6 @@ using google::scp::core::nosql_database_provider::mock::
     MockNoSQLDatabaseProvider;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
-using std::make_pair;
 
 namespace google::scp::core::test {
 
@@ -40,30 +39,30 @@ void InitializeInMemoryDatabase(
     MockNoSQLDatabaseProvider& nosql_database_provider) {
   auto table = std::make_shared<MockNoSQLDatabaseProvider::Table>();
   nosql_database_provider.in_memory_db->tables.Insert(
-      make_pair(std::string("TestTable"), table), table);
+      std::make_pair(std::string("TestTable"), table), table);
 
   // Insert partition
   auto partition = std::make_shared<MockNoSQLDatabaseProvider::Partition>();
   table->partition_key_name =
       std::make_shared<NoSQLDatabaseAttributeName>("Col1");
   table->sort_key_name = std::make_shared<NoSQLDatabaseAttributeName>("Col2");
-  table->partition_key_value.Insert(make_pair(1, partition), partition);
+  table->partition_key_value.Insert(std::make_pair(1, partition), partition);
 
   // Insert sort key
   auto sort_key = std::make_shared<MockNoSQLDatabaseProvider::SortKey>();
-  partition->sort_key_value.Insert(make_pair(2, sort_key), sort_key);
+  partition->sort_key_value.Insert(std::make_pair(2, sort_key), sort_key);
 
   // Insert Record
   auto record = std::make_shared<MockNoSQLDatabaseProvider::Record>();
 
   NoSQLDatabaseAttributeName attribute_key = "attr1";
   NoSQLDatabaseValidAttributeValueTypes attribute_value = 4;
-  record->attributes.Insert(make_pair(attribute_key, attribute_value),
+  record->attributes.Insert(std::make_pair(attribute_key, attribute_value),
                             attribute_value);
 
   attribute_key = "attr2";
   attribute_value = true;
-  record->attributes.Insert(make_pair(attribute_key, attribute_value),
+  record->attributes.Insert(std::make_pair(attribute_key, attribute_value),
                             attribute_value);
 
   sort_key->record = record;

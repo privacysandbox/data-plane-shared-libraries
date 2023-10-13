@@ -101,7 +101,6 @@ using google::scp::cpio::client_providers::PartitionAndSortKey;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlMetadata;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlRequest;
-using std::make_pair;
 using std::optional;
 using std::pair;
 using std::unordered_map;
@@ -240,7 +239,7 @@ class GcpNoSQLDatabaseClientProviderTests : public testing::Test {
 
     ON_CALL(*connection_, Commit).WillByDefault(Return(CommitResult{}));
     ON_CALL(*spanner_factory_, CreateClients)
-        .WillByDefault(Return(make_pair(
+        .WillByDefault(Return(std::make_pair(
             std::make_shared<Client>(connection_),
             std::make_shared<DatabaseAdminClient>(database_connection_))));
 

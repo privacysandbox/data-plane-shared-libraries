@@ -47,12 +47,9 @@ using google::scp::core::nosql_database_provider::mock::
     MockNoSQLDatabaseProviderNoOverrides;
 using google::scp::core::test::ResultIs;
 using std::atomic;
-using std::forward;
-using std::get;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
-using std::this_thread::sleep_for;
 
 static constexpr char kPartitionLockTableDefaultName[] =
     "core_ll_partition_lock_table";
@@ -224,19 +221,22 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
                   *context.request->attributes->at(1).attribute_name);
         EXPECT_EQ(*kDummyLockRowAttributes[2].attribute_name,
                   *context.request->attributes->at(2).attribute_name);
-        EXPECT_EQ(get<std::string>(*kDummyLockRowAttributes[0].attribute_value),
-                  get<std::string>(
-                      *context.request->attributes->at(0).attribute_value));
-        EXPECT_EQ(get<std::string>(*kDummyLockRowAttributes[1].attribute_value),
-                  get<std::string>(
-                      *context.request->attributes->at(1).attribute_value));
-        EXPECT_EQ(get<std::string>(*kDummyLockRowAttributes[2].attribute_value),
-                  get<std::string>(
-                      *context.request->attributes->at(2).attribute_value));
+        EXPECT_EQ(
+            std::get<std::string>(*kDummyLockRowAttributes[0].attribute_value),
+            std::get<std::string>(
+                *context.request->attributes->at(0).attribute_value));
+        EXPECT_EQ(
+            std::get<std::string>(*kDummyLockRowAttributes[1].attribute_value),
+            std::get<std::string>(
+                *context.request->attributes->at(1).attribute_value));
+        EXPECT_EQ(
+            std::get<std::string>(*kDummyLockRowAttributes[2].attribute_value),
+            std::get<std::string>(
+                *context.request->attributes->at(2).attribute_value));
 
         int64_t timestamp = -1;
         EXPECT_TRUE(absl::SimpleAtoi(
-            get<std::string>(
+            std::get<std::string>(
                 *context.request->attributes->at(2).attribute_value),
             &timestamp));
         EXPECT_EQ(timestamp, 0);
@@ -248,14 +248,14 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
                   *context.request->new_attributes->at(1).attribute_name);
         EXPECT_EQ(*kDummyLockRowAttributes[2].attribute_name,
                   *context.request->new_attributes->at(2).attribute_name);
-        EXPECT_EQ(get<std::string>(
+        EXPECT_EQ(std::get<std::string>(
                       *context.request->new_attributes->at(0).attribute_value),
                   lease_acquirer_1_.lease_acquirer_id);
-        EXPECT_EQ(get<std::string>(
+        EXPECT_EQ(std::get<std::string>(
                       *context.request->new_attributes->at(1).attribute_value),
                   lease_acquirer_1_.service_endpoint_address);
         EXPECT_TRUE(absl::SimpleAtoi(
-            get<std::string>(
+            std::get<std::string>(
                 *context.request->new_attributes->at(2).attribute_value),
             &timestamp));
         EXPECT_GT(timestamp, 0);

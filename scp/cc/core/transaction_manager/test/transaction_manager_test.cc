@@ -56,7 +56,6 @@ using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
 using std::atomic;
 using std::list;
-using std::static_pointer_cast;
 using std::thread;
 
 namespace google::scp::core::test {
@@ -97,7 +96,7 @@ class TransactionManagerTests : public testing::Test {
 TEST_F(TransactionManagerTests, InitValidation) {
   auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
   auto async_executor =
-      static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
+      std::static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
   std::shared_ptr<TransactionCommandSerializerInterface>
@@ -115,7 +114,8 @@ TEST_F(TransactionManagerTests, InitValidation) {
     return SuccessExecutionResult();
   };
   auto transaction_engine =
-      static_pointer_cast<TransactionEngineInterface>(mock_transaction_engine);
+      std::static_pointer_cast<TransactionEngineInterface>(
+          mock_transaction_engine);
 
   {
     MockTransactionManager transaction_manager(
@@ -146,7 +146,7 @@ TEST_F(TransactionManagerTests, InitValidation) {
 TEST_F(TransactionManagerTests, RunValidation) {
   auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
   auto async_executor =
-      static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
+      std::static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
   std::shared_ptr<TransactionCommandSerializerInterface>
@@ -164,7 +164,8 @@ TEST_F(TransactionManagerTests, RunValidation) {
     return SuccessExecutionResult();
   };
   auto transaction_engine =
-      static_pointer_cast<TransactionEngineInterface>(mock_transaction_engine);
+      std::static_pointer_cast<TransactionEngineInterface>(
+          mock_transaction_engine);
 
   {
     MockTransactionManager transaction_manager(
@@ -185,7 +186,7 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
   {
     auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
     auto async_executor =
-        static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
+        std::static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
     std::shared_ptr<JournalServiceInterface> mock_journal_service =
         std::make_shared<MockJournalService>();
     std::shared_ptr<TransactionCommandSerializerInterface>
@@ -207,8 +208,9 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
     mock_transaction_engine->stop_mock = []() {
       return SuccessExecutionResult();
     };
-    auto transaction_engine = static_pointer_cast<TransactionEngineInterface>(
-        mock_transaction_engine);
+    auto transaction_engine =
+        std::static_pointer_cast<TransactionEngineInterface>(
+            mock_transaction_engine);
 
     MockTransactionManager transaction_manager(
         async_executor, transaction_engine, 1, mock_metric_instance_factory_);
@@ -223,7 +225,7 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
   {
     auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
     auto async_executor =
-        static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
+        std::static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
     std::shared_ptr<JournalServiceInterface> mock_journal_service =
         std::make_shared<MockJournalService>();
     std::shared_ptr<TransactionCommandSerializerInterface>
@@ -269,7 +271,7 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
   {
     auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
     auto async_executor =
-        static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
+        std::static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
     std::shared_ptr<JournalServiceInterface> mock_journal_service =
         std::make_shared<MockJournalService>();
     std::shared_ptr<TransactionCommandSerializerInterface>
@@ -334,7 +336,7 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
 TEST_F(TransactionManagerTests, StopValidation) {
   auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
   auto async_executor =
-      static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
+      std::static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
   std::shared_ptr<TransactionCommandSerializerInterface>
@@ -392,7 +394,7 @@ TEST_F(TransactionManagerTests, StopValidation) {
 TEST_F(TransactionManagerTests, CannotCheckpointIfRunning) {
   auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
   auto async_executor =
-      static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
+      std::static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
   std::shared_ptr<TransactionCommandSerializerInterface>

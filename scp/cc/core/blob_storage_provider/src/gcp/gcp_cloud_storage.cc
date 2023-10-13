@@ -74,7 +74,6 @@ using google::scp::core::errors::SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS;
 using google::scp::core::utils::Base64Encode;
 
 using std::bind;
-using std::ref;
 
 constexpr char kGcpCloudStorageProvider[] = "GcpCloudStorageProvider";
 // TODO: Find ideal max concurrent connections and retry limit for operations

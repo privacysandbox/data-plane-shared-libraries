@@ -32,7 +32,6 @@ using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
-using std::dynamic_pointer_cast;
 
 namespace google::scp::cpio::client_providers {
 std::shared_ptr<ClientConfiguration>
@@ -49,7 +48,7 @@ std::shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
     const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
   return std::make_shared<TestAwsKmsClientProvider>(
-      dynamic_pointer_cast<TestAwsKmsClientOptions>(options),
+      std::dynamic_pointer_cast<TestAwsKmsClientOptions>(options),
       role_credentials_provider, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

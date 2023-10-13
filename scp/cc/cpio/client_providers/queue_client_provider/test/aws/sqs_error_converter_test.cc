@@ -41,8 +41,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_AWS_REQUEST_LIMIT_REACHED;
 using google::scp::core::errors::SC_AWS_SERVICE_UNAVAILABLE;
 using google::scp::core::errors::SC_AWS_VALIDATION_FAILED;
-using std::get;
-using std::make_tuple;
 using std::tuple;
 using testing::TestWithParam;
 using testing::Values;
@@ -51,10 +49,10 @@ namespace google::scp::cpio::client_providers::test {
 class SqsErrorConverterTest
     : public TestWithParam<tuple<SQSErrors, FailureExecutionResult>> {
  protected:
-  SQSErrors GetSqsErrorsToConvert() { return get<0>(GetParam()); }
+  SQSErrors GetSqsErrorsToConvert() { return std::get<0>(GetParam()); }
 
   FailureExecutionResult GetExpectedFailureExecutionResult() {
-    return get<1>(GetParam());
+    return std::get<1>(GetParam());
   }
 };
 
@@ -66,40 +64,43 @@ TEST_P(SqsErrorConverterTest, SqsErrorConverter) {
 
 INSTANTIATE_TEST_SUITE_P(
     SqsErrorConverterTest, SqsErrorConverterTest,
-    Values(make_tuple(SQSErrors::VALIDATION,
-                      FailureExecutionResult(SC_AWS_VALIDATION_FAILED)),
-           make_tuple(SQSErrors::ACCESS_DENIED,
-                      FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS)),
-           make_tuple(SQSErrors::INVALID_CLIENT_TOKEN_ID,
-                      FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS)),
-           make_tuple(SQSErrors::INVALID_PARAMETER_COMBINATION,
-                      FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
-           make_tuple(SQSErrors::INVALID_QUERY_PARAMETER,
-                      FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
-           make_tuple(SQSErrors::INVALID_PARAMETER_VALUE,
-                      FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
-           make_tuple(SQSErrors::MALFORMED_QUERY_STRING,
-                      FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
-           make_tuple(SQSErrors::SERVICE_UNAVAILABLE,
-                      FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE)),
-           make_tuple(SQSErrors::NETWORK_CONNECTION,
-                      FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE)),
-           make_tuple(SQSErrors::THROTTLING,
-                      FailureExecutionResult(SC_AWS_REQUEST_LIMIT_REACHED)),
-           make_tuple(SQSErrors::OVER_LIMIT,
-                      FailureExecutionResult(SC_AWS_REQUEST_LIMIT_REACHED)),
-           make_tuple(SQSErrors::INVALID_MESSAGE_CONTENTS,
-                      FailureExecutionResult(
-                          SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE)),
-           make_tuple(SQSErrors::MESSAGE_NOT_INFLIGHT,
-                      FailureExecutionResult(
-                          SC_AWS_QUEUE_CLIENT_PROVIDER_MESSAGE_NOT_IN_FLIGHT)),
-           make_tuple(SQSErrors::RECEIPT_HANDLE_IS_INVALID,
-                      FailureExecutionResult(
-                          SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_RECEIPT_INFO)),
-           make_tuple(SQSErrors::INVALID_ID_FORMAT,
-                      FailureExecutionResult(
-                          SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_RECEIPT_INFO)),
-           make_tuple(SQSErrors::INTERNAL_FAILURE,
-                      FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR))));
+    Values(
+        std::make_tuple(SQSErrors::VALIDATION,
+                        FailureExecutionResult(SC_AWS_VALIDATION_FAILED)),
+        std::make_tuple(SQSErrors::ACCESS_DENIED,
+                        FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS)),
+        std::make_tuple(SQSErrors::INVALID_CLIENT_TOKEN_ID,
+                        FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS)),
+        std::make_tuple(SQSErrors::INVALID_PARAMETER_COMBINATION,
+                        FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
+        std::make_tuple(SQSErrors::INVALID_QUERY_PARAMETER,
+                        FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
+        std::make_tuple(SQSErrors::INVALID_PARAMETER_VALUE,
+                        FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
+        std::make_tuple(SQSErrors::MALFORMED_QUERY_STRING,
+                        FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
+        std::make_tuple(SQSErrors::SERVICE_UNAVAILABLE,
+                        FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE)),
+        std::make_tuple(SQSErrors::NETWORK_CONNECTION,
+                        FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE)),
+        std::make_tuple(SQSErrors::THROTTLING,
+                        FailureExecutionResult(SC_AWS_REQUEST_LIMIT_REACHED)),
+        std::make_tuple(SQSErrors::OVER_LIMIT,
+                        FailureExecutionResult(SC_AWS_REQUEST_LIMIT_REACHED)),
+        std::make_tuple(SQSErrors::INVALID_MESSAGE_CONTENTS,
+                        FailureExecutionResult(
+                            SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE)),
+        std::make_tuple(
+            SQSErrors::MESSAGE_NOT_INFLIGHT,
+            FailureExecutionResult(
+                SC_AWS_QUEUE_CLIENT_PROVIDER_MESSAGE_NOT_IN_FLIGHT)),
+        std::make_tuple(SQSErrors::RECEIPT_HANDLE_IS_INVALID,
+                        FailureExecutionResult(
+                            SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_RECEIPT_INFO)),
+        std::make_tuple(SQSErrors::INVALID_ID_FORMAT,
+                        FailureExecutionResult(
+                            SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_RECEIPT_INFO)),
+        std::make_tuple(
+            SQSErrors::INTERNAL_FAILURE,
+            FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR))));
 }  // namespace google::scp::cpio::client_providers::test

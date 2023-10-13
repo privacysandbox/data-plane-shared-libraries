@@ -34,7 +34,6 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
 using std::chrono::seconds;
-using std::this_thread::sleep_for;
 
 static constexpr char kLeaseRefresher[] = "LeaseRefresher";
 static constexpr milliseconds kLeaseRefreshInvocationIntervalInMilliseconds =
@@ -73,7 +72,7 @@ ExecutionResult LeaseRefresher::Run() noexcept {
         LeaseRefreshThreadFunction();
       });
   while (!is_thread_started) {
-    sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(milliseconds(100));
   }
   return SuccessExecutionResult();
 }
@@ -233,7 +232,7 @@ ExecutionResult LeaseRefresher::PerformLeaseRefresh() noexcept {
 void LeaseRefresher::LeaseRefreshThreadFunction() {
   while (is_running_) {
     PerformLeaseRefresh();  // Ignore error
-    sleep_for(kLeaseRefreshInvocationIntervalInMilliseconds);
+    std::this_thread::sleep_for(kLeaseRefreshInvocationIntervalInMilliseconds);
   }
 }
 

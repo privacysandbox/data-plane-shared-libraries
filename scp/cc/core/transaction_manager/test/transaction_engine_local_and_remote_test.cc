@@ -70,12 +70,9 @@ using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
 using std::atomic;
 using std::function;
-using std::make_pair;
-using std::static_pointer_cast;
 using std::thread;
 using std::weak_ptr;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 namespace google::scp::core::test {
 
@@ -212,12 +209,12 @@ TEST(TransactionEngineLocalAndRemoteTest,
                     transaction_remote);
 
   transaction_local->pending_callbacks++;
-  auto pair_local = make_pair(transaction_id, transaction_local);
+  auto pair_local = std::make_pair(transaction_id, transaction_local);
   mock_transaction_engine_1->GetActiveTransactionsMap().Insert(
       pair_local, transaction_local);
 
   transaction_remote->pending_callbacks++;
-  auto pair_remote = make_pair(transaction_id, transaction_remote);
+  auto pair_remote = std::make_pair(transaction_id, transaction_remote);
   mock_transaction_engine_2->GetActiveTransactionsMap().Insert(
       pair_remote, transaction_remote);
 
@@ -312,12 +309,12 @@ void RunTransactionsWithDifferentSyncPhases(TransactionPhase local_phase,
   transaction_remote->current_phase = remote_phase;
   transaction_remote->is_waiting_for_remote = true;
 
-  auto pair_local = make_pair(transaction_id, transaction_local);
+  auto pair_local = std::make_pair(transaction_id, transaction_local);
   EXPECT_EQ(mock_transaction_engine_1->GetActiveTransactionsMap().Insert(
                 pair_local, transaction_local),
             SuccessExecutionResult());
 
-  auto pair_remote = make_pair(transaction_id, transaction_remote);
+  auto pair_remote = std::make_pair(transaction_id, transaction_remote);
   EXPECT_EQ(mock_transaction_engine_2->GetActiveTransactionsMap().Insert(
                 pair_remote, transaction_remote),
             SuccessExecutionResult());
@@ -449,12 +446,12 @@ void RunTransactionsWithDifferentOutOfSyncPhases(
   transaction_remote->current_phase = remote_phase;
   transaction_remote->is_waiting_for_remote = true;
 
-  auto pair_local = make_pair(transaction_id, transaction_local);
+  auto pair_local = std::make_pair(transaction_id, transaction_local);
   EXPECT_EQ(mock_transaction_engine_1->GetActiveTransactionsMap().Insert(
                 pair_local, transaction_local),
             SuccessExecutionResult());
 
-  auto pair_remote = make_pair(transaction_id, transaction_remote);
+  auto pair_remote = std::make_pair(transaction_id, transaction_remote);
   EXPECT_EQ(mock_transaction_engine_2->GetActiveTransactionsMap().Insert(
                 pair_remote, transaction_remote),
             SuccessExecutionResult());

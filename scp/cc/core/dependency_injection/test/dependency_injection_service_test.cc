@@ -40,7 +40,6 @@ using google::scp::core::errors::
 using google::scp::core::mock::MockService;
 using google::scp::core::mock::ServiceCollection;
 using google::scp::core::mock::TestNode;
-using std::reinterpret_pointer_cast;
 
 namespace google::scp::core::test {
 
@@ -58,7 +57,7 @@ class DependencyInjectionServiceTest : public testing::Test {
  * @return MockService The service
  */
 std::shared_ptr<MockService> GetMockService(std::string id) {
-  return reinterpret_pointer_cast<MockService>(
+  return std::reinterpret_pointer_cast<MockService>(
       (ServiceCollection::collection.GetService(id)));
 }
 

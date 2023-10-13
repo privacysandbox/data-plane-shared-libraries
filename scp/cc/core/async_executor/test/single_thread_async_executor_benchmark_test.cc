@@ -29,11 +29,9 @@ using std::atomic;
 using std::cout;
 using std::endl;
 using std::function;
-using std::rand;
 using std::thread;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 namespace google::scp::core::test {
 class SingleThreadAsyncExecutorBenchmarkTest : public ::testing::Test {
@@ -82,7 +80,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
   start = true;
   while (execution_count_ != (num_threads_scheduling_tasks_ *
                               task_schedule_count_per_thread_ * 5)) {
-    sleep_for(milliseconds(5));
+    std::this_thread::sleep_for(milliseconds(5));
   }
   auto end_ns = TimeProvider::GetSteadyTimestampInNanoseconds();
 
@@ -122,7 +120,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTaskMixedPriority) {
   start = true;
   while (execution_count_ != (num_threads_scheduling_tasks_ *
                               task_schedule_count_per_thread_ * 5)) {
-    sleep_for(milliseconds(5));
+    std::this_thread::sleep_for(milliseconds(5));
   }
   auto end_ns = TimeProvider::GetSteadyTimestampInNanoseconds();
 

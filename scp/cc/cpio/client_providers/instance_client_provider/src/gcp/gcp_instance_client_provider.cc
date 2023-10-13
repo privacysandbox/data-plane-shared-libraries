@@ -69,15 +69,8 @@ using google::scp::core::errors::SC_GCP_INSTANCE_CLIENT_ZONE_PARSING_FAILURE;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::common::CpioUtils;
 using nlohmann::json;
-using std::all_of;
 using std::atomic;
-using std::begin;
 using std::bind;
-using std::cbegin;
-using std::cend;
-using std::end;
-using std::find;
-using std::make_pair;
 using std::map;
 using std::nullopt;
 using std::optional;
@@ -129,23 +122,23 @@ constexpr char kTagBindingsListKey[] = "tagBindings";
 // Returns a pair of iterators - one to the beginning, one to the end.
 const auto& GetRequiredFieldsForInstanceDetails() {
   static char const* components[2];
-  using iterator_type = decltype(cbegin(components));
+  using iterator_type = decltype(std::cbegin(components));
   static pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kInstanceDetailsJsonIdKey;
     components[1] = kNetworkInterfacesKey;
-    return make_pair(cbegin(components), cend(components));
+    return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
 }
 
 const auto& GetRequiredFieldsForResourceTags() {
   static char const* components[3];
-  using iterator_type = decltype(cbegin(components));
+  using iterator_type = decltype(std::cbegin(components));
   static pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kTagBindingNameKey;
     components[1] = kTagBindingParentKey;
     components[2] = kTagBindingTagValueKey;
-    return make_pair(cbegin(components), cend(components));
+    return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
 }
@@ -482,11 +475,11 @@ void GcpInstanceClientProvider::OnGetTagsByResourceNameCallback(
   }
 
   for (const auto& tag_binding : json_response[kTagBindingsListKey]) {
-    if (!all_of(GetRequiredFieldsForResourceTags().first,
-                GetRequiredFieldsForResourceTags().second,
-                [&tag_binding](const char* const component) {
-                  return tag_binding.contains(component);
-                })) {
+    if (!std::all_of(GetRequiredFieldsForResourceTags().first,
+                     GetRequiredFieldsForResourceTags().second,
+                     [&tag_binding](const char* const component) {
+                       return tag_binding.contains(component);
+                     })) {
       SCP_ERROR_CONTEXT(kGcpInstanceClientProvider, get_tags_context,
                         malformed_failure,
                         "Received http response doesn't contain the required "
@@ -661,11 +654,11 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
     return;
   }
 
-  if (!all_of(GetRequiredFieldsForInstanceDetails().first,
-              GetRequiredFieldsForInstanceDetails().second,
-              [&json_response](const char* const component) {
-                return json_response.contains(component);
-              })) {
+  if (!std::all_of(GetRequiredFieldsForInstanceDetails().first,
+                   GetRequiredFieldsForInstanceDetails().second,
+                   [&json_response](const char* const component) {
+                     return json_response.contains(component);
+                   })) {
     auto result = FailureExecutionResult(
         SC_GCP_INSTANCE_CLIENT_INSTANCE_DETAILS_RESPONSE_MALFORMED);
     SCP_ERROR_CONTEXT(

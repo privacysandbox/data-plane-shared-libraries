@@ -28,7 +28,6 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::chrono::duration_cast;
 using std::chrono::seconds;
-using std::this_thread::sleep_for;
 
 namespace google::scp::core::common {
 TEST(CancellableThreadTaskTest, CreateTaskAndWaitUntilComplete) {
@@ -72,7 +71,7 @@ TEST(CancellableThreadTaskTest, CannotCancelWhileExecuting) {
     }
   });
   // Wait for a bit for the task to start executing..
-  sleep_for(seconds(1));
+  std::this_thread::sleep_for(seconds(1));
 
   // Task cannot be cancelled
   EXPECT_FALSE(task.Cancel());

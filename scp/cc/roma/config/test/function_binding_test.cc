@@ -35,7 +35,6 @@
 #include "roma/config/src/type_converter.h"
 
 using std::bind;
-using std::get;
 using std::runtime_error;
 using std::tuple;
 using v8::Context;
@@ -160,7 +159,8 @@ static std::string RunV8Function(Isolate* isolate, std::string source_js,
 
 // User provided JS function
 static std::string StringInputStringOutput(tuple<std::string>& input) {
-  return get<0>(input) + " " + "Value added within user-provided function call";
+  return std::get<0>(input) + " " +
+         "Value added within user-provided function call";
 }
 
 TEST_F(FunctionBindingTest, FunctionBindingByNameStringInputAndStringOutput) {
@@ -307,7 +307,7 @@ TEST_F(FunctionBindingTest, PassingNullValueToFunction) {
 static std::vector<std::string> StringInputVectorOfStringOutput(
     tuple<std::string>& input) {
   std::vector<std::string> output;
-  output.push_back(get<0>(input));
+  output.push_back(std::get<0>(input));
   output.push_back("And some added stuff");
   return output;
 }
@@ -330,7 +330,7 @@ TEST_F(FunctionBindingTest,
 // User provided JS function
 static std::vector<std::string> VectorOfStringInputVectorOfStringOutput(
     tuple<std::vector<std::string>>& input) {
-  auto input_vec = get<0>(input);
+  auto input_vec = std::get<0>(input);
 
   std::vector<std::string> output;
   // Reverse the input
@@ -369,10 +369,10 @@ static std::string ConcatenateVector(std::vector<std::string>& vec) {
 static std::vector<std::string> MixedInputAndVectorOfStringOutput(
     tuple<std::vector<std::string>, std::string, std::vector<std::string>,
           std::string>& input) {
-  auto input_one = get<0>(input);
-  auto input_two = get<1>(input);
-  auto input_three = get<2>(input);
-  auto input_four = get<3>(input);
+  auto input_one = std::get<0>(input);
+  auto input_two = std::get<1>(input);
+  auto input_three = std::get<2>(input);
+  auto input_four = std::get<3>(input);
 
   std::vector<std::string> output;
   output.push_back(ConcatenateVector(input_one));
@@ -408,10 +408,10 @@ TEST_F(FunctionBindingTest, VectorOfStringOutputAndMixedInput) {
 static common::Map<std::string, std::string> VectorsOfStringInputAndMapOutput(
     tuple<std::vector<std::string>, std::vector<std::string>,
           std::vector<std::string>, std::vector<std::string>>& input) {
-  auto input_one = get<0>(input);
-  auto input_two = get<1>(input);
-  auto input_three = get<2>(input);
-  auto input_four = get<3>(input);
+  auto input_one = std::get<0>(input);
+  auto input_two = std::get<1>(input);
+  auto input_three = std::get<2>(input);
+  auto input_four = std::get<3>(input);
 
   common::Map<std::string, std::string> output;
   output.Set("vec1", ConcatenateVector(input_one));
@@ -458,7 +458,7 @@ TEST_F(FunctionBindingTest, ShouldAllowInlineHandler) {
   func.function_name = "func_that_calls_lambda";
   // Set the C++ callback for the JS function
   func.function = [](std::tuple<std::string>& input) -> std::string {
-    return get<0>(input) + "-From lambda";
+    return std::get<0>(input) + "-From lambda";
   };
 
   auto js_source =
@@ -473,7 +473,7 @@ TEST_F(FunctionBindingTest, ShouldAllowInlineHandler) {
 class MyHandler {
  public:
   std::string HookHandler(std::tuple<std::string>& input) {
-    return get<0>(input) + "-From member function";
+    return std::get<0>(input) + "-From member function";
   }
 };
 

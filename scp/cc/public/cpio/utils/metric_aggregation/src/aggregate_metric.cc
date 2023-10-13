@@ -55,7 +55,6 @@ using google::scp::cpio::MetricValue;
 using std::mutex;
 using std::pair;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 static constexpr char kAggregateMetric[] = "AggregateMetric";
 
@@ -130,14 +129,14 @@ ExecutionResult AggregateMetric::Stop() noexcept {
     SCP_DEBUG(kAggregateMetric, object_activity_id_,
               "Waiting for the counter to be flushed. Current value '%llu'",
               counter_.load());
-    sleep_for(kStopWaitSleepDuration);
+    std::this_thread::sleep_for(kStopWaitSleepDuration);
   }
   for (auto& [_, event_counter] : event_counters_) {
     while (event_counter.load() > 0) {
       SCP_DEBUG(kAggregateMetric, object_activity_id_,
                 "Waiting for the counter to be flushed. Current value '%llu'",
                 event_counter.load());
-      sleep_for(kStopWaitSleepDuration);
+      std::this_thread::sleep_for(kStopWaitSleepDuration);
     }
   }
 

@@ -57,7 +57,6 @@ using google::scp::cpio::client_providers::mock::
     MockAwsRoleCredentialsProviderWithOverrides;
 using google::scp::cpio::client_providers::mock::MockSTSClient;
 using std::atomic;
-using std::dynamic_pointer_cast;
 
 namespace {
 constexpr char kResourceNameMock[] =

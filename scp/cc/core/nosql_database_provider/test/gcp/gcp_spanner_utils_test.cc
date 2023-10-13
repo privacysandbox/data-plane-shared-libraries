@@ -29,7 +29,6 @@ using google::scp::core::NoSQLDatabaseValidAttributeValueTypes;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::nosql_database_provider::GcpSpannerUtils;
 using json = nlohmann::json;
-using std::get;
 
 namespace google::scp::core::test {
 TEST(GcpSpannerUtilsTest,
@@ -42,7 +41,7 @@ TEST(GcpSpannerUtilsTest,
           json_val, out_value),
       SuccessExecutionResult());
 
-  EXPECT_EQ(get<int>(out_value), 123);
+  EXPECT_EQ(std::get<int>(out_value), 123);
 
   json_val = 123.1f;
   EXPECT_EQ(
@@ -50,7 +49,7 @@ TEST(GcpSpannerUtilsTest,
           json_val, out_value),
       SuccessExecutionResult());
 
-  EXPECT_EQ(get<double>(out_value), 123.1f);
+  EXPECT_EQ(std::get<double>(out_value), 123.1f);
 }
 
 TEST(GcpSpannerUtilsTest,
@@ -63,7 +62,7 @@ TEST(GcpSpannerUtilsTest,
           json_val, out_value),
       SuccessExecutionResult());
 
-  EXPECT_EQ(get<std::string>(out_value), "hello world!");
+  EXPECT_EQ(std::get<std::string>(out_value), "hello world!");
 }
 
 TEST(GcpSpannerUtilsTest,

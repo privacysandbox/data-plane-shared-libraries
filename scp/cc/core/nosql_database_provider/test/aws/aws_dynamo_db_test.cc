@@ -67,11 +67,7 @@ using google::scp::core::nosql_database_provider::aws::mock::
     MockAwsDynamoDBClient;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
-using std::get;
-using std::isxdigit;
-using std::make_pair;
 using std::mt19937;
-using std::random_device;
 using std::uniform_int_distribution;
 
 namespace google::scp::core::test {
@@ -387,22 +383,24 @@ TEST(AwsDynamoDBTests, OnGetDatabaseItemCallbackOneResult) {
     EXPECT_EQ(
         *get_database_item_context.response->attributes->at(0).attribute_name,
         "attr1");
-    EXPECT_EQ(
-        get<std::string>(*get_database_item_context.response->attributes->at(0)
-                              .attribute_value),
-        "hello world");
+    EXPECT_EQ(std::get<std::string>(
+                  *get_database_item_context.response->attributes->at(0)
+                       .attribute_value),
+              "hello world");
     EXPECT_EQ(
         *get_database_item_context.response->attributes->at(1).attribute_name,
         "attr2");
-    EXPECT_EQ(get<double>(*get_database_item_context.response->attributes->at(1)
-                               .attribute_value),
-              2);
+    EXPECT_EQ(
+        std::get<double>(*get_database_item_context.response->attributes->at(1)
+                              .attribute_value),
+        2);
     EXPECT_EQ(
         *get_database_item_context.response->attributes->at(2).attribute_name,
         "attr3");
-    EXPECT_EQ(get<double>(*get_database_item_context.response->attributes->at(2)
-                               .attribute_value),
-              3);
+    EXPECT_EQ(
+        std::get<double>(*get_database_item_context.response->attributes->at(2)
+                              .attribute_value),
+        3);
     EXPECT_EQ(get_database_item_context.response->attributes->size(), 3);
   };
 

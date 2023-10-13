@@ -93,7 +93,6 @@ using grpc::ServerUnaryReactor;
 using grpc::Status;
 using std::atomic;
 using std::mt19937;
-using std::random_device;
 using std::runtime_error;
 
 namespace {

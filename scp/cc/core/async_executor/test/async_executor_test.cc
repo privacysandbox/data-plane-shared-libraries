@@ -44,7 +44,6 @@ using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::nanoseconds;
 using std::chrono::seconds;
-using std::this_thread::sleep_for;
 
 namespace google::scp::core::test {
 
@@ -138,7 +137,8 @@ TEST(AsyncExecutorTests, ExceedingQueueCapSchedule) {
 
   {
     // Blocking queue with enough work
-    executor.Schedule([&]() { sleep_for(seconds(5)); }, AsyncPriority::Normal);
+    executor.Schedule([&]() { std::this_thread::sleep_for(seconds(5)); },
+                      AsyncPriority::Normal);
 
     // try to push more than the queue can handle
     auto start_time = high_resolution_clock::now();
@@ -400,7 +400,7 @@ TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
     executor.Schedule(
         [&]() {
           normal_count++;
-          sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
+          std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
         },
         AsyncPriority::Normal);
   }
@@ -410,7 +410,7 @@ TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
     executor.Schedule(
         [&]() {
           urgent_count++;
-          sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
+          std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
         },
         AsyncPriority::Urgent);
   }

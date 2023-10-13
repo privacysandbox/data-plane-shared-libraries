@@ -53,7 +53,6 @@ using google::scp::core::test::WaitUntil;
 using std::atomic;
 using std::atomic_bool;
 using std::bind;
-using std::dynamic_pointer_cast;
 using std::thread;
 using std::chrono::seconds;
 using testing::Contains;

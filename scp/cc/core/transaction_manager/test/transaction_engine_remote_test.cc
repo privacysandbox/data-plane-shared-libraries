@@ -63,11 +63,8 @@ using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
 using std::atomic;
 using std::function;
-using std::make_pair;
-using std::static_pointer_cast;
 using std::thread;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 namespace google::scp::core::test {
 
@@ -172,7 +169,7 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseRemoteAndWaitingCombinations) {
   transaction->transaction_secret = std::make_shared<std::string>("123");
   transaction->transaction_origin = std::make_shared<std::string>("123");
 
-  auto pair = make_pair(transaction_id, transaction);
+  auto pair = std::make_pair(transaction_id, transaction);
   mock_transaction_engine.GetActiveTransactionsMap().Insert(pair, transaction);
 
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
@@ -238,7 +235,7 @@ void ExecuteNonPossiblePhases(
     transaction->transaction_origin = std::make_shared<std::string>("1234");
     transaction->id = transaction_id;
 
-    auto pair = make_pair(transaction_id, transaction);
+    auto pair = std::make_pair(transaction_id, transaction);
     mock_transaction_engine.GetActiveTransactionsMap().Insert(pair,
                                                               transaction);
 
@@ -364,7 +361,7 @@ void ExecutePhaseProperCallbacksCalled(
   transaction->transaction_secret = std::make_shared<std::string>("secret");
   transaction->transaction_origin = std::make_shared<std::string>("origin");
 
-  auto pair = make_pair(transaction_id, transaction);
+  auto pair = std::make_pair(transaction_id, transaction);
   mock_transaction_engine.GetActiveTransactionsMap().Insert(pair, transaction);
 
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
@@ -530,7 +527,7 @@ TEST(TransactionEngineRemoteTest, ProceedToNextPhaseRemotely) {
 
   transaction->remote_phase_context = transaction_phase_context;
 
-  auto pair = make_pair(transaction_id, transaction);
+  auto pair = std::make_pair(transaction_id, transaction);
   mock_transaction_engine.GetActiveTransactionsMap().Insert(pair, transaction);
 
   mock_transaction_engine.ProceedToNextPhase(TransactionPhase::Begin,
@@ -575,7 +572,7 @@ TEST(TransactionEngineRemoteTest, ProceedToNextPhaseRemotelyFailed) {
 
   transaction->remote_phase_context = transaction_phase_context;
 
-  auto pair = make_pair(transaction_id, transaction);
+  auto pair = std::make_pair(transaction_id, transaction);
   mock_transaction_engine.GetActiveTransactionsMap().Insert(pair, transaction);
 
   mock_transaction_engine.ProceedToNextPhase(TransactionPhase::Begin,

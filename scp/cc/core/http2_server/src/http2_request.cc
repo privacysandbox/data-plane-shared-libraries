@@ -28,8 +28,6 @@
 
 using google::scp::core::http2_server::Http2Utils;
 using std::bind;
-using std::copy;
-using std::make_pair;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -85,7 +83,7 @@ void NgHttp2Request::OnRequestBodyDataChunkReceived(
     return;
   }
   // Otherwise, copy in data.
-  copy(data, data + length, body.bytes->begin() + body.length);
+  std::copy(data, data + length, body.bytes->begin() + body.length);
   body.length += length;
 }
 

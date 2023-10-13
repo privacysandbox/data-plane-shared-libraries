@@ -28,7 +28,6 @@
 using google::scp::core::common::TimeProvider;
 using google::scp::core::test::errors::SC_TEST_UTILS_TEST_WAIT_TIMEOUT;
 using std::function;
-using std::this_thread::yield;
 
 namespace google::scp::core::test {
 void WaitUntil(function<bool()> condition, DurationMs timeout) {
@@ -44,7 +43,7 @@ void WaitUntil(function<bool()> condition, DurationMs timeout) {
               .count());
       throw TestTimeoutException();
     }
-    yield();
+    std::this_thread::yield();
   }
 }
 

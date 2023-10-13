@@ -38,8 +38,6 @@ using boost::algorithm::split;
 using boost::algorithm::to_lower_copy;
 using boost::algorithm::token_compress_off;
 using boost::algorithm::token_compress_on;
-using std::distance;
-using std::make_pair;
 using std::chrono::system_clock;
 
 static constexpr const char* kEmptyStringSha256 =
@@ -149,7 +147,7 @@ ExecutionResult AwsV4Signer::GetSignatureParts(
       host_value = path.substr(start_idx);
     } else {
       host_value = path.substr(
-          start_idx, distance(path.begin() + start_idx, end_itr.begin()));
+          start_idx, std::distance(path.begin() + start_idx, end_itr.begin()));
     }
     headers->insert({kHostHeader, host_value});
   }
@@ -248,7 +246,7 @@ ExecutionResult AwsV4Signer::CreateCanonicalRequest(
     if (itr.empty()) {
       canonical_path = "/";
     } else {
-      canonical_path = path.substr(distance(path.begin(), itr.begin()));
+      canonical_path = path.substr(std::distance(path.begin(), itr.begin()));
     }
   }
   canonical_request_builder << canonical_path << "\n";

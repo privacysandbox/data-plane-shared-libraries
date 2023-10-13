@@ -27,7 +27,6 @@
 
 #include "dependency_graph.h"
 #include "error_codes.h"
-using std::for_each;
 using std::function;
 using std::unordered_set;
 
@@ -82,12 +81,12 @@ ExecutionResult DependencyInjectionService::Execute(
 ExecutionResult DependencyInjectionService::ResolveDependencies(
     const std::vector<ComponentDependencyNode>& dependency_order) {
   try {
-    for_each(dependency_order.begin(), dependency_order.end(),
-             [this](ComponentDependencyNode node) {
-               auto service = node.factory(component_map_);
-               component_map_[node.id] = service;
-               components_.push_back(service);
-             });
+    std::for_each(dependency_order.begin(), dependency_order.end(),
+                  [this](ComponentDependencyNode node) {
+                    auto service = node.factory(component_map_);
+                    component_map_[node.id] = service;
+                    components_.push_back(service);
+                  });
   } catch (...) {
     return FailureExecutionResult(
         errors::SC_DEPENDENCY_INJECTION_ERROR_CREATING_COMPONENTS);

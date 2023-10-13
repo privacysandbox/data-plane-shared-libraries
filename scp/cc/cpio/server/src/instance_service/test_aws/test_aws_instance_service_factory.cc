@@ -28,7 +28,6 @@ using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::TestAwsInstanceClientProvider;
 using google::scp::cpio::client_providers::TestInstanceClientOptions;
-using std::dynamic_pointer_cast;
 
 namespace {
 constexpr char kDefaultRegion[] = "us-east-1";
@@ -40,7 +39,7 @@ ExecutionResult TestAwsInstanceServiceFactory::Init() noexcept {
   region_ = kDefaultRegion;
   TryReadConfigString(
       config_provider_,
-      dynamic_pointer_cast<TestAwsInstanceServiceFactoryOptions>(options_)
+      std::dynamic_pointer_cast<TestAwsInstanceServiceFactoryOptions>(options_)
           ->region_config_label,
       region_);
 

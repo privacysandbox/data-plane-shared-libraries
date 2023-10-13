@@ -50,11 +50,7 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Decode;
 using google::scp::core::utils::PadBase64Encoding;
 using nlohmann::json;
-using std::all_of;
 using std::bind;
-using std::cbegin;
-using std::cend;
-using std::make_pair;
 using std::pair;
 using std::chrono::seconds;
 using std::placeholders::_1;
@@ -88,12 +84,12 @@ constexpr char kJsonTokenExpiryKeyForTargetAudience[] = "exp";
 // Returns a pair of iterators - one to the beginning, one to the end.
 const auto& GetRequiredJWTComponents() {
   static char const* components[3];
-  using iterator_type = decltype(cbegin(components));
+  using iterator_type = decltype(std::cbegin(components));
   static pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kJsonAccessTokenKey;
     components[1] = kJsonTokenExpiryKey;
     components[2] = kJsonTokenTypeKey;
-    return make_pair(cbegin(components), cend(components));
+    return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
 }
@@ -101,14 +97,14 @@ const auto& GetRequiredJWTComponents() {
 // Returns a pair of iterators - one to the beginning, one to the end.
 const auto& GetRequiredJWTComponentsForTargetAudienceToken() {
   static char const* components[5];
-  using iterator_type = decltype(cbegin(components));
+  using iterator_type = decltype(std::cbegin(components));
   static pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kJsonTokenIssuerKey;
     components[1] = kJsonTokenAudienceKey;
     components[2] = kJsonTokenSubjectKey;
     components[3] = kJsonTokenIssuedAtKey;
     components[4] = kJsonTokenExpiryKeyForTargetAudience;
-    return make_pair(cbegin(components), cend(components));
+    return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
 }
@@ -206,11 +202,11 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
     return;
   }
 
-  if (!all_of(GetRequiredJWTComponents().first,
-              GetRequiredJWTComponents().second,
-              [&json_response](const char* const component) {
-                return json_response.contains(component);
-              })) {
+  if (!std::all_of(GetRequiredJWTComponents().first,
+                   GetRequiredJWTComponents().second,
+                   [&json_response](const char* const component) {
+                     return json_response.contains(component);
+                   })) {
     auto result = RetryExecutionResult(
         SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN);
     SCP_ERROR_CONTEXT(

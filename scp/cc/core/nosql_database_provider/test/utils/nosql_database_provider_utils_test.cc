@@ -20,7 +20,6 @@
 
 using google::scp::core::nosql_database_provider::NoSQLDatabaseProviderUtils;
 using google::scp::core::test::ResultIs;
-using std::get;
 
 namespace google::scp::core::test {
 
@@ -31,7 +30,7 @@ TEST(NoSQLDatabaseProviderUtilsTest, FromStringInt) {
                 int_str.c_str(), int_str.length(), value),
             SuccessExecutionResult());
 
-  EXPECT_EQ(get<int>(value), 1);
+  EXPECT_EQ(std::get<int>(value), 1);
 }
 
 TEST(NoSQLDatabaseProviderUtilsTest, FromStringDouble) {
@@ -41,7 +40,7 @@ TEST(NoSQLDatabaseProviderUtilsTest, FromStringDouble) {
                 double_str.c_str(), double_str.length(), value),
             SuccessExecutionResult());
 
-  EXPECT_EQ(get<double>(value), 1.0);
+  EXPECT_EQ(std::get<double>(value), 1.0);
 }
 
 TEST(NoSQLDatabaseProviderUtilsTest, FromStringFloat) {
@@ -51,7 +50,7 @@ TEST(NoSQLDatabaseProviderUtilsTest, FromStringFloat) {
                 float_str.c_str(), float_str.length(), value),
             SuccessExecutionResult());
 
-  EXPECT_EQ(get<float>(value), 1.0);
+  EXPECT_EQ(std::get<float>(value), 1.0);
 }
 
 TEST(NoSQLDatabaseProviderUtilsTest, FromStringString) {
@@ -61,7 +60,7 @@ TEST(NoSQLDatabaseProviderUtilsTest, FromStringString) {
                 str.c_str(), str.length(), value),
             SuccessExecutionResult());
 
-  EXPECT_EQ(get<std::string>(value), "1.0");
+  EXPECT_EQ(std::get<std::string>(value), "1.0");
 }
 
 TEST(NoSQLDatabaseProviderUtilsTest, FromStringInvalid) {

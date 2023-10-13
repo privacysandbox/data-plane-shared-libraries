@@ -39,8 +39,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_GCP_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME;
 using std::regex;
-using std::regex_match;
-using std::strlen;
 
 namespace {
 constexpr char kGcpInstanceClientUtils[] = "GcpInstanceClientUtils";
@@ -135,7 +133,7 @@ ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
   RETURN_IF_FAILURE(result);
 
   std::string resource_id =
-      resource_name.substr(strlen(kInstanceResourceNamePrefix));
+      resource_name.substr(std::strlen(kInstanceResourceNamePrefix));
   // Splits `projects/project_abc1/zones/us-west1/instances/12345678987654321`
   // to { projects,project_abc1,zones,us-west1,instances,12345678987654321 }
   std::vector<std::string> splits = absl::StrSplit(resource_id, "/");

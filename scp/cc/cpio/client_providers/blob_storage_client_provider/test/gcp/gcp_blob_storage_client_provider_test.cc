@@ -82,7 +82,6 @@ using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::GcpBlobStorageClientProvider;
 using google::scp::cpio::client_providers::GcpCloudStorageFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::make_tuple;
 using std::tuple;
 using testing::ByMove;
 using testing::ElementsAre;
@@ -336,15 +335,15 @@ INSTANTIATE_TEST_SUITE_P(
     ByteRangeTest, GcpBlobStorageClientProviderTest,
     testing::Values(
         // Range is full length of object.
-        make_tuple(0, 9, "0123456789", "0123456789"),
+        std::make_tuple(0, 9, "0123456789", "0123456789"),
         // Range starts at offset.
-        make_tuple(2, 9, "23456789aa", "23456789"),
+        std::make_tuple(2, 9, "23456789aa", "23456789"),
         // Range ends at offset.
-        make_tuple(0, 7, "01234567aa", "01234567"),
+        std::make_tuple(0, 7, "01234567aa", "01234567"),
         // Range is a shifted window - "aa" should be ignored.
-        make_tuple(2, 11, "23456789aa", "23456789"),
+        std::make_tuple(2, 11, "23456789aa", "23456789"),
         // Range is longer than object length - "aa" should be ignored
-        make_tuple(2, 15, "23456789aa", "23456789")));
+        std::make_tuple(2, 15, "23456789aa", "23456789")));
 
 StatusOr<std::unique_ptr<ObjectReadSource>> BuildBadHashReadResponse() {
   // We want the following methods to be called in order, so make an

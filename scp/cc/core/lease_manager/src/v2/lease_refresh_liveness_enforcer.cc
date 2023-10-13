@@ -31,7 +31,6 @@ using google::scp::core::common::Uuid;
 using std::thread;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 static constexpr milliseconds kDefaultEnforcerIntervalInMilliseconds =
     milliseconds(1000);
@@ -119,7 +118,7 @@ void LeaseRefreshLivenessEnforcer::LivenessEnforcerThreadFunction() {
               enforcement_elapsed_duration_in_milliseconds.count(),
               sleep_duration_in_milliseconds.count());
 
-    sleep_for(sleep_duration_in_milliseconds);
+    std::this_thread::sleep_for(sleep_duration_in_milliseconds);
   }
 }
 
@@ -146,7 +145,7 @@ ExecutionResult LeaseRefreshLivenessEnforcer::Run() noexcept {
     LivenessEnforcerThreadFunction();
   });
   while (!is_thread_started) {
-    sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(milliseconds(100));
   }
 
   // Set a min-priority under FIFO scheduling policy to increase the chances of

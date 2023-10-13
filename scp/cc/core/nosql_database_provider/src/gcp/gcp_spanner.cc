@@ -56,16 +56,13 @@ using google::scp::core::FinishContext;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common ::TimeProvider;
 using google::scp::core::nosql_database_provider::GcpSpannerUtils;
-using std::get;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using json = nlohmann::json;
 using google::cloud::spanner::MakeInsertOrUpdateMutation;
 using std::bind;
-using std::make_pair;
 using std::optional;
 using std::pair;
-using std::ref;
 using std::unordered_map;
 using std::placeholders::_1;
 
@@ -509,9 +506,10 @@ void GcpSpanner::UpsertDatabaseItemAsync(
   const auto& table_name = *upsert_database_item_context.request->table_name;
   ExecutionResult prepare_result = SuccessExecutionResult();
   auto commit_result_or = client.Commit(
-      bind(&GcpSpanner::UpsertFunctor, ref(client), ref(upsert_select_options),
-           enforce_row_existence, ref(new_attributes), ref(prepare_result),
-           ref(table_name), _1),
+      bind(&GcpSpanner::UpsertFunctor, std::ref(client),
+           std::ref(upsert_select_options), enforce_row_existence,
+           std::ref(new_attributes), std::ref(prepare_result),
+           std::ref(table_name), _1),
       LimitedTimeTransactionRerunPolicy(
           kTransactionRetryMaxTimeLimitDurationInMs)
           .clone(),

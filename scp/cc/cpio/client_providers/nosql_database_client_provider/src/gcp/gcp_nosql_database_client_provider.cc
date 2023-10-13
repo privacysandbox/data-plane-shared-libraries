@@ -98,10 +98,8 @@ using google::scp::cpio::client_providers::PartitionAndSortKey;
 using google::scp::cpio::common::GcpUtils;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlRequest;
 using std::bind;
-using std::make_pair;
 using std::optional;
 using std::pair;
-using std::ref;
 using std::unordered_map;
 using std::placeholders::_1;
 
@@ -863,11 +861,12 @@ void GcpNoSQLDatabaseClientProvider::UpsertDatabaseItemInternal(
   const auto& table_name =
       upsert_database_item_context.request->key().table_name();
   ExecutionResult prepare_result = SuccessExecutionResult();
-  auto commit_result_or = client.Commit(
-      bind(&GcpNoSQLDatabaseClientProvider::UpsertFunctor, this,
-           ref(upsert_database_item_context), ref(client),
-           ref(upsert_select_options), enforce_row_existence,
-           ref(new_attributes), ref(prepare_result), ref(table_name), _1));
+  auto commit_result_or =
+      client.Commit(bind(&GcpNoSQLDatabaseClientProvider::UpsertFunctor, this,
+                         std::ref(upsert_database_item_context),
+                         std::ref(client), std::ref(upsert_select_options),
+                         enforce_row_existence, std::ref(new_attributes),
+                         std::ref(prepare_result), std::ref(table_name), _1));
 
   if (!prepare_result.Successful()) {
     FinishContext(prepare_result, upsert_database_item_context,
@@ -971,12 +970,12 @@ SpannerFactory::CreateClients(
     std::shared_ptr<NoSQLDatabaseClientOptions> client_options,
     const std::string& project) noexcept {
   auto options = CreateClientOptions(client_options);
-  return make_pair(std::make_shared<Client>(MakeConnection(
-                       Database(project, client_options->instance_name,
-                                client_options->database_name),
-                       options)),
-                   std::make_shared<DatabaseAdminClient>(
-                       MakeDatabaseAdminConnection(options)));
+  return std::make_pair(std::make_shared<Client>(MakeConnection(
+                            Database(project, client_options->instance_name,
+                                     client_options->database_name),
+                            options)),
+                        std::make_shared<DatabaseAdminClient>(
+                            MakeDatabaseAdminConnection(options)));
 }
 
 Options SpannerFactory::CreateClientOptions(

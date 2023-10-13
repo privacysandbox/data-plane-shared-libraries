@@ -46,8 +46,6 @@ using google::scp::core::journal_service::LastCheckpointMetadata;
 using std::atomic;
 using std::bind;
 using std::list;
-using std::max_element;
-using std::sort;
 using std::placeholders::_1;
 
 // TODO: Use configuration provider to update the following.
@@ -539,7 +537,7 @@ void JournalInputStream::OnListJournalsCallback(
   if (!journal_ids_.empty()) {
     // Sort by id
     // TODO: Q) Is this necessary? This sort can be expensive.
-    sort(journal_ids_.begin(), journal_ids_.end());
+    std::sort(journal_ids_.begin(), journal_ids_.end());
 
     // TODO: Q) Is this necessary for correctness? can't we pick the last one
     // in the list? Journals are already returned in lexicographical order.

@@ -59,7 +59,6 @@ using google::scp::cpio::MetricDefinition;
 using google::scp::cpio::MetricUnit;
 using std::atomic;
 using std::mutex;
-using std::static_pointer_cast;
 using std::thread;
 
 namespace {
@@ -162,7 +161,7 @@ TEST_F(AggregateMetricTest, RunMetricPushHandler) {
   auto mock_async_executor = std::make_shared<MockAsyncExecutor>();
 
   std::shared_ptr<AsyncExecutorInterface> async_executor =
-      static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
+      std::static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
 
   Metric metric_received;
   int metric_push_is_called = 0;

@@ -35,7 +35,6 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
-using std::dynamic_pointer_cast;
 
 namespace google::scp::cpio::client_providers {
 std::shared_ptr<ClientConfiguration>
@@ -61,7 +60,7 @@ BlobStorageClientProviderFactory::Create(
     const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
     const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
   return std::make_shared<TestAwsBlobStorageClientProvider>(
-      dynamic_pointer_cast<TestAwsBlobStorageClientOptions>(options),
+      std::dynamic_pointer_cast<TestAwsBlobStorageClientOptions>(options),
       instance_client_provider, cpu_async_executor, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

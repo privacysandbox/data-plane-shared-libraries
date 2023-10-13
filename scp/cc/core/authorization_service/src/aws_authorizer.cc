@@ -34,10 +34,7 @@
 #include "error_codes.h"
 
 using boost::system::error_code;
-using std::begin;
 using std::bind;
-using std::end;
-using std::make_pair;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -154,7 +151,7 @@ ExecutionResult AwsAuthorizer::Authorize(
   auto authorization_cache_entry =
       std::make_shared<AwsAuthorizationTokenCacheEntry>();
   auto cache_entry_key = *request.claimed_identity + ":" + token;
-  auto pair = make_pair(cache_entry_key, authorization_cache_entry);
+  auto pair = std::make_pair(cache_entry_key, authorization_cache_entry);
   execution_result =
       authorization_tokens_->Insert(pair, authorization_cache_entry);
   if (!execution_result.Successful()) {
@@ -197,8 +194,8 @@ ExecutionResult AwsAuthorizer::Authorize(
 
   AwsV4Signer signer(access_key, "", security_token, "execute-api",
                      aws_region_);
-  std::vector<std::string> headers_to_sign{begin(kSignedHeaders),
-                                           end(kSignedHeaders)};
+  std::vector<std::string> headers_to_sign{std::begin(kSignedHeaders),
+                                           std::end(kSignedHeaders)};
   execution_result = signer.SignRequestWithSignature(
       *http_request, headers_to_sign, amz_date, signature);
   if (!execution_result.Successful()) {

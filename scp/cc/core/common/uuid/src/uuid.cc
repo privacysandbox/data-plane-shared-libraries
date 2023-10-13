@@ -28,9 +28,7 @@
 #include "error_codes.h"
 
 using std::atomic;
-using std::isxdigit;
 using std::mt19937;
-using std::random_device;
 using std::uniform_int_distribution;
 
 static constexpr char kHexMap[] = {"0123456789ABCDEF"};
@@ -42,7 +40,7 @@ Uuid Uuid::GenerateUuid() noexcept {
       TimeProvider::GetWallTimestampInNanosecondsAsClockTicks());
 
   uint64_t high = current_clock.fetch_add(1);
-  static random_device random_device_local;
+  static std::random_device random_device_local;
   static mt19937 random_generator(random_device_local());
   uniform_int_distribution<uint64_t> distribution;
 
@@ -130,7 +128,7 @@ ExecutionResult FromString(const std::string& uuid_string,
       continue;
     }
 
-    if (!isxdigit(uuid_string[i])) {
+    if (!std::isxdigit(uuid_string[i])) {
       return FailureExecutionResult(errors::SC_UUID_INVALID_STRING);
     }
 

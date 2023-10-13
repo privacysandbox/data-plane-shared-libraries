@@ -47,7 +47,6 @@ using google::scp::cpio::MetricClientInterface;
 using std::atomic;
 using std::bind;
 using std::list;
-using std::sort;
 using std::chrono::milliseconds;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -114,7 +113,7 @@ ExecutionResult JournalOutputStream::GetLastPersistedJournalId(
     return execution_result;
   }
 
-  sort(journal_ids.begin(), journal_ids.end());
+  std::sort(journal_ids.begin(), journal_ids.end());
   for (size_t i = 0; i < journal_ids.size(); ++i) {
     std::shared_ptr<bool> processed;
     execution_result = journals_to_persist_.Find(journal_ids[i], processed);

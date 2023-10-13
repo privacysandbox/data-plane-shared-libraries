@@ -58,7 +58,6 @@ using nghttp2::asio_http2::client::configure_tls_context;
 using nghttp2::asio_http2::client::response;
 using nghttp2::asio_http2::client::session;
 using std::bind;
-using std::make_pair;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
@@ -259,7 +258,7 @@ ExecutionResult HttpConnection::Execute(
   // This call needs to pass, otherwise there will be orphaned context when
   // connection drop happens.
   auto request_id = Uuid::GenerateUuid();
-  auto pair = make_pair(request_id, http_context);
+  auto pair = std::make_pair(request_id, http_context);
   auto execution_result = pending_network_calls_.Insert(pair, http_context);
   if (!execution_result.Successful()) {
     return execution_result;

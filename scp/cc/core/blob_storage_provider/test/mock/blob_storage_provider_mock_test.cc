@@ -28,21 +28,17 @@
 using google::scp::core::blob_storage_provider::mock::MockBlobStorageProvider;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
-using std::distance;
 using std::ifstream;
 using std::ios;
 using std::ofstream;
-using std::filesystem::create_directory;
-using std::filesystem::current_path;
-using std::filesystem::directory_iterator;
 
 namespace google::scp::core::test {
 TEST(MockBlobStorageProviderTest, GetBlob) {
   MockBlobStorageProvider mock_blob_storage_provider;
-  current_path("/tmp");
+  std::filesystem::current_path("/tmp");
 
   atomic<bool> condition = false;
-  create_directory("bucket_get");
+  std::filesystem::create_directory("bucket_get");
 
   std::string file_content = "1234";
   std::vector<char> bytes(file_content.begin(), file_content.end());
@@ -76,10 +72,10 @@ TEST(MockBlobStorageProviderTest, GetBlob) {
 
 TEST(MockBlobStorageProviderTest, PutBlob) {
   MockBlobStorageProvider mock_blob_storage_provider;
-  current_path("/tmp");
+  std::filesystem::current_path("/tmp");
 
   atomic<bool> condition = false;
-  create_directory("bucket_put");
+  std::filesystem::create_directory("bucket_put");
 
   std::string file_content = "1234";
   std::vector<Byte> bytes(file_content.begin(), file_content.end());
@@ -121,10 +117,10 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
 
 TEST(MockBlobStorageProviderTest, DeleteBlob) {
   MockBlobStorageProvider mock_blob_storage_provider;
-  current_path("/tmp");
+  std::filesystem::current_path("/tmp");
 
   atomic<bool> condition = false;
-  create_directory("bucket_delete");
+  std::filesystem::create_directory("bucket_delete");
 
   std::string file_content = "1234";
   std::vector<char> bytes(file_content.begin(), file_content.end());
@@ -143,7 +139,8 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
         EXPECT_SUCCESS(context.result);
 
         EXPECT_EQ(
-            distance(directory_iterator("bucket_delete"), directory_iterator{}),
+            std::distance(std::filesystem::directory_iterator("bucket_delete"),
+                          std::filesystem::directory_iterator{}),
             0);
         condition = true;
       });
@@ -157,13 +154,13 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
 
 TEST(MockBlobStorageProviderTest, ListBlobs) {
   MockBlobStorageProvider mock_blob_storage_provider;
-  current_path("/tmp");
+  std::filesystem::current_path("/tmp");
 
   atomic<bool> condition = false;
-  create_directory("bucket_list");
-  create_directory("bucket_list/1");
-  create_directory("bucket_list/1/3");
-  create_directory("bucket_list/2");
+  std::filesystem::create_directory("bucket_list");
+  std::filesystem::create_directory("bucket_list/1");
+  std::filesystem::create_directory("bucket_list/1/3");
+  std::filesystem::create_directory("bucket_list/2");
 
   ofstream output_stream1("bucket_list/2.txt", ios::trunc | ios::binary);
   output_stream1.close();

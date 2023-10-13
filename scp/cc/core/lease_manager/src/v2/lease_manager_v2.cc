@@ -30,7 +30,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
 using std::atomic;
-using std::dynamic_pointer_cast;
 using std::mutex;
 using std::optional;
 using std::thread;
@@ -38,7 +37,6 @@ using std::unique_lock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
-using std::this_thread::sleep_for;
 
 static constexpr milliseconds
     kLeaseAcquisitionPreferenceInvocationIntervalInMilliseconds =
@@ -77,7 +75,7 @@ ExecutionResult LeaseManagerV2::Run() noexcept {
     for (auto& [_, refresher_wrapper] : lease_refreshers_) {
       RETURN_IF_FAILURE(refresher_wrapper.lease_refresher_handle->Init());
       lease_refresher_liveness_handles.push_back(
-          dynamic_pointer_cast<LeaseRefreshLivenessCheckInterface>(
+          std::dynamic_pointer_cast<LeaseRefreshLivenessCheckInterface>(
               refresher_wrapper.lease_refresher_handle));
     }
 
@@ -116,7 +114,7 @@ ExecutionResult LeaseManagerV2::Run() noexcept {
         LeaseAcquisitionPreferenceManagerThreadFunction();
       });
   while (!is_thread_started) {
-    sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(milliseconds(100));
   }
 
   return SuccessExecutionResult();
@@ -452,7 +450,8 @@ void LeaseManagerV2::PerformLeaseAcquisitionPreferenceManagement() {
 void LeaseManagerV2::LeaseAcquisitionPreferenceManagerThreadFunction() {
   while (is_running_) {
     PerformLeaseAcquisitionPreferenceManagement();  // Ignore error
-    sleep_for(kLeaseAcquisitionPreferenceInvocationIntervalInMilliseconds);
+    std::this_thread::sleep_for(
+        kLeaseAcquisitionPreferenceInvocationIntervalInMilliseconds);
   }
 }
 

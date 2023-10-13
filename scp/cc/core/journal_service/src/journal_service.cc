@@ -53,12 +53,10 @@ using google::scp::cpio::TimeEvent;
 using std::atomic;
 using std::bind;
 using std::function;
-using std::make_pair;
 using std::thread;
 using std::unordered_set;
 using std::chrono::milliseconds;
 using std::placeholders::_1;
-using std::this_thread::sleep_for;
 
 static constexpr size_t kMaxWaitTimeForFlushMs = 20;
 
@@ -166,7 +164,7 @@ ExecutionResult JournalService::Run() noexcept {
       });
 
   while (!flushing_thread_started) {
-    sleep_for(milliseconds(kStartupWaitIntervalMilliseconds));
+    std::this_thread::sleep_for(milliseconds(kStartupWaitIntervalMilliseconds));
   }
 
   return SuccessExecutionResult();
@@ -294,7 +292,7 @@ void JournalService::OnJournalStreamReadLogCallback(
     journal_log_counter++;
 
     OnLogRecoveredCallback callback;
-    auto pair = make_pair(log.component_id, callback);
+    auto pair = std::make_pair(log.component_id, callback);
     auto execution_result = subscribers_map_.Find(log.component_id, callback);
     auto component_id_str = core::common::ToString(log.component_id);
     if (!execution_result.Successful()) {
@@ -411,7 +409,7 @@ ExecutionResult JournalService::SubscribeForRecovery(
         errors::SC_JOURNAL_SERVICE_CANNOT_SUBSCRIBE_WHEN_RUNNING);
   }
 
-  auto pair = make_pair(component_id, callback);
+  auto pair = std::make_pair(component_id, callback);
   auto execution_result = subscribers_map_.Insert(pair, callback);
   return execution_result;
 }
@@ -442,7 +440,8 @@ void JournalService::FlushJournalOutputStream() noexcept {
       while (!journal_output_stream_->FlushLogs().Successful()) {}
     }
 
-    sleep_for(milliseconds(journal_flush_interval_in_milliseconds_));
+    std::this_thread::sleep_for(
+        milliseconds(journal_flush_interval_in_milliseconds_));
   }
 }
 

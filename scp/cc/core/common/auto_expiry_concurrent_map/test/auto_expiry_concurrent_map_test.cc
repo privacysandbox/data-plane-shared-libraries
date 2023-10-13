@@ -46,11 +46,9 @@ using google::scp::core::test::TestTimeoutException;
 using google::scp::core::test::WaitUntil;
 using google::scp::core::test::WaitUntilOrReturn;
 using std::defer_lock;
-using std::find;
 using std::function;
 using std::shared_lock;
 using std::shared_timed_mutex;
-using std::static_pointer_cast;
 using std::unique_lock;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
@@ -341,8 +339,8 @@ TEST_F(AutoExpiryConcurrentMapTest, GetKeys) {
   std::vector<int> keys;
   EXPECT_SUCCESS(auto_expiry_map.Keys(keys));
   EXPECT_EQ(keys.size(), 2);
-  EXPECT_NE(find(keys.begin(), keys.end(), 3), keys.end());
-  EXPECT_NE(find(keys.begin(), keys.end(), 4), keys.end());
+  EXPECT_NE(std::find(keys.begin(), keys.end(), 3), keys.end());
+  EXPECT_NE(std::find(keys.begin(), keys.end(), 4), keys.end());
 }
 
 TEST_F(AutoExpiryConcurrentMapTest, DisableEviction) {

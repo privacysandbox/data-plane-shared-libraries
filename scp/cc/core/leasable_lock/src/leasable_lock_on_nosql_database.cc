@@ -37,7 +37,6 @@ using google::scp::core::TimeDuration;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
 using std::atomic;
-using std::get;
 using std::mutex;
 using std::optional;
 using std::shared_lock;
@@ -45,7 +44,6 @@ using std::shared_mutex;
 using std::unique_lock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 namespace google::scp::core {
 

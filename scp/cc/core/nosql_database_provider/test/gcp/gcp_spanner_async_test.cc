@@ -77,8 +77,6 @@ using google::scp::core::logger::ConsoleLogProvider;
 using google::scp::core::logger::Logger;
 using google::scp::core::nosql_database_provider::GcpSpanner;
 using google::scp::core::test::TestLoggingUtils;
-using std::get;
-using std::make_tuple;
 using std::thread;
 using std::tuple;
 using testing::_;
@@ -280,8 +278,8 @@ class GcpSpannerAsyncTests : public testing::TestWithParam<int> {
       if (auto status_or = row->get(kValueName); status_or.ok()) {
         value = std::move(*status_or);
       }
-      actual_rows.push_back(make_tuple(std::move(budget_key_id),
-                                       std::move(timeframe), std::move(value)));
+      actual_rows.push_back(std::make_tuple(
+          std::move(budget_key_id), std::move(timeframe), std::move(value)));
     }
     EXPECT_THAT(actual_rows, UnorderedElementsAreArray(expected_rows));
   }
@@ -448,12 +446,12 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestNoAttributes) {
   // Test.
 
   std::vector<tuple<Value, Value, Value>> expected_rows;
-  expected_rows.push_back(make_tuple(
+  expected_rows.push_back(std::make_tuple(
       Value("1"), Value("2"), Value(Json("{\"token_count\":\"1000\"}"))));
-  expected_rows.push_back(make_tuple(Value("2"), Value("2"),
-                                     Value(Json("{\"token_count\":\"20\"}"))));
-  expected_rows.push_back(make_tuple(Value("3"), Value("2"),
-                                     Value(Json("{\"token_count\":\"30\"}"))));
+  expected_rows.push_back(std::make_tuple(
+      Value("2"), Value("2"), Value(Json("{\"token_count\":\"20\"}"))));
+  expected_rows.push_back(std::make_tuple(
+      Value("3"), Value("2"), Value(Json("{\"token_count\":\"30\"}"))));
   ExpectTableHasRows(expected_rows);
 }
 
@@ -487,14 +485,14 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyNoAttributes) {
 
   // Test.
   std::vector<tuple<Value, Value, Value>> expected_rows;
-  expected_rows.push_back(make_tuple(
+  expected_rows.push_back(std::make_tuple(
       Value("1"), Value("0"), Value(Json("{\"token_count\":\"1000\"}"))));
-  expected_rows.push_back(make_tuple(Value("1"), Value("2"),
-                                     Value(Json("{\"token_count\":\"10\"}"))));
-  expected_rows.push_back(make_tuple(Value("2"), Value("2"),
-                                     Value(Json("{\"token_count\":\"20\"}"))));
-  expected_rows.push_back(make_tuple(Value("3"), Value("2"),
-                                     Value(Json("{\"token_count\":\"30\"}"))));
+  expected_rows.push_back(std::make_tuple(
+      Value("1"), Value("2"), Value(Json("{\"token_count\":\"10\"}"))));
+  expected_rows.push_back(std::make_tuple(
+      Value("2"), Value("2"), Value(Json("{\"token_count\":\"20\"}"))));
+  expected_rows.push_back(std::make_tuple(
+      Value("3"), Value("2"), Value(Json("{\"token_count\":\"30\"}"))));
   ExpectTableHasRows(expected_rows);
 }
 
@@ -536,12 +534,12 @@ TEST_F(GcpSpannerAsyncTests, SimpleUpsertTestWithSortKeyAndAttributes) {
 
   // Test.
   std::vector<tuple<Value, Value, Value>> expected_rows;
-  expected_rows.push_back(make_tuple(
+  expected_rows.push_back(std::make_tuple(
       Value("1"), Value("2"), Value(Json("{\"token_count\":\"1000\"}"))));
-  expected_rows.push_back(make_tuple(Value("2"), Value("2"),
-                                     Value(Json("{\"token_count\":\"20\"}"))));
-  expected_rows.push_back(make_tuple(Value("3"), Value("2"),
-                                     Value(Json("{\"token_count\":\"30\"}"))));
+  expected_rows.push_back(std::make_tuple(
+      Value("2"), Value("2"), Value(Json("{\"token_count\":\"20\"}"))));
+  expected_rows.push_back(std::make_tuple(
+      Value("3"), Value("2"), Value(Json("{\"token_count\":\"30\"}"))));
   ExpectTableHasRows(expected_rows);
 }
 
@@ -613,9 +611,9 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadUpsertTest) {
   std::vector<tuple<Value, Value, Value>> expected_rows;
   for (int i = 0; i < GetThreadCount(); i++) {
     expected_rows.push_back(
-        make_tuple(Value(absl::StrCat(i + 1)), Value("2"),
-                   Value(Json(absl::StrFormat("{\"token_count\":\"%d\"}",
-                                              1000 * (i + 1))))));
+        std::make_tuple(Value(absl::StrCat(i + 1)), Value("2"),
+                        Value(Json(absl::StrFormat("{\"token_count\":\"%d\"}",
+                                                   1000 * (i + 1))))));
   }
   ExpectTableHasRows(expected_rows);
 }
@@ -739,8 +737,8 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
   for (auto& t : threads) t.join();
 
   std::vector<tuple<Value, Value, Value>> expected_rows;
-  expected_rows.push_back(make_tuple(Value("1"), Value("2"),
-                                     Value(Json("{\"token_count\":\"0\"}"))));
+  expected_rows.push_back(std::make_tuple(
+      Value("1"), Value("2"), Value(Json("{\"token_count\":\"0\"}"))));
   ExpectTableHasRows(expected_rows);
 
   std::cerr << "Took " << total_rpc_count.load() << " RPCs to complete for "

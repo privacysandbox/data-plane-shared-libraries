@@ -50,7 +50,6 @@ using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
-using std::static_pointer_cast;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";

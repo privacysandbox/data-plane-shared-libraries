@@ -39,7 +39,6 @@ using grpc::ServerBuilder;
 using std::bad_alloc;
 using std::condition_variable;
 using std::mutex;
-using std::ref;
 using std::scoped_lock;
 using std::thread;
 using std::unique_lock;
@@ -102,8 +101,8 @@ ExecutionResult GrpcNetworkService::Run() noexcept {
     mutex mtx;
     unique_lock<mutex> lock(mtx);
     condition_variable cv;
-    pollers_.emplace_back(
-        thread(&GrpcNetworkService::Worker, this, i, ref(mtx), ref(cv)));
+    pollers_.emplace_back(thread(&GrpcNetworkService::Worker, this, i,
+                                 std::ref(mtx), std::ref(cv)));
     cv.wait(lock);
   }
   return SuccessExecutionResult();

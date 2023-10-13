@@ -33,12 +33,9 @@ using google::scp::core::UpsertDatabaseItemResponse;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::test::ResultIs;
 using std::atomic;
-using std::forward;
-using std::get;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
-using std::this_thread::sleep_for;
 
 static constexpr char kPartitionLockTableDefaultName[] =
     "core_ll_partition_lock_table";
@@ -77,7 +74,7 @@ class LeasableLockOnNoSQLDatabaseLeaseInfoInternalTester
     lease_info_internal.SetExpirationTimestampFromNow(milliseconds(500));
     EXPECT_FALSE(lease_info_internal.IsExpired());
 
-    sleep_for(seconds(1));
+    std::this_thread::sleep_for(seconds(1));
     EXPECT_TRUE(lease_info_internal.IsExpired());
   }
 

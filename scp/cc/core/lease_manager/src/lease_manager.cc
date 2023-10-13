@@ -25,13 +25,11 @@
 
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::TimeProvider;
-using std::abort;
 using std::atomic;
 using std::mutex;
 using std::thread;
 using std::unique_lock;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 namespace google::scp::core {
 static constexpr milliseconds kNoOngoingLeaseAcquisitionTimestamp(0);
@@ -52,7 +50,7 @@ LeaseManager::LeaseManager(
         SCP_EMERGENCY(kLeaseManager, kZeroUuid,
                       FailureExecutionResult(SC_UNKNOWN),
                       "Terminating process..");
-        abort();
+        std::abort();
       }),
       lease_enforcer_frequency_in_milliseconds_(
           lease_enforcer_frequency_in_milliseconds),
@@ -203,7 +201,7 @@ ExecutionResult LeaseManager::Run() noexcept {
     LeaseObtainerThreadFunction();
   });
   while (!lease_obtainer_thread_started_) {
-    sleep_for(milliseconds(kSleepDurationMs));
+    std::this_thread::sleep_for(milliseconds(kSleepDurationMs));
   }
 
   lease_enforcer_thread_ = std::make_unique<thread>([this]() {
@@ -211,7 +209,7 @@ ExecutionResult LeaseManager::Run() noexcept {
     LeaseEnforcerThreadFunction();
   });
   while (!lease_enforcer_thread_started_) {
-    sleep_for(milliseconds(kSleepDurationMs));
+    std::this_thread::sleep_for(milliseconds(kSleepDurationMs));
   }
 
   // TODO: Set high priority for threads.

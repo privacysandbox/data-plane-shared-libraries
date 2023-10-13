@@ -59,7 +59,6 @@ using google::scp::core::test::EqualsProto;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
-using std::dynamic_pointer_cast;
 using std::set;
 
 namespace google::scp::core::test {

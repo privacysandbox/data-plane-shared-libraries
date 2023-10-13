@@ -77,7 +77,6 @@ using std::atomic;
 using std::runtime_error;
 using std::thread;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 namespace {
 constexpr char kLocalHost[] = "http://127.0.0.1";
@@ -165,7 +164,7 @@ class CpioIntegrationTest : public ::testing::Test {
     int8_t retry_count = 0;
     while (!parameter_available && retry_count < 20) {
       parameter_available = !GetParameter(ssm_client, kParameterName).empty();
-      sleep_for(milliseconds(500));
+      std::this_thread::sleep_for(milliseconds(500));
       ++retry_count;
     }
 

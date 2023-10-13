@@ -46,7 +46,6 @@ using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::credentials_provider::mock::
     MockAwsAssumeRoleCredentialsProvider;
 using google::scp::core::credentials_provider::mock::MockSTSClient;
-using std::dynamic_pointer_cast;
 
 namespace google::scp::core::test {
 TEST(AwsAssumeRoleCredentialsProviderTest, AssumeRole) {
@@ -54,7 +53,7 @@ TEST(AwsAssumeRoleCredentialsProviderTest, AssumeRole) {
   InitAPI(options);
 
   auto mock_sts_client = std::make_shared<MockSTSClient>();
-  auto sts_client = dynamic_pointer_cast<STSClient>(mock_sts_client);
+  auto sts_client = std::dynamic_pointer_cast<STSClient>(mock_sts_client);
   auto assume_role_arn = std::make_shared<std::string>("assume_role_arn");
   auto assume_role_external_id =
       std::make_shared<std::string>("assume_role_external_id");
@@ -95,7 +94,7 @@ TEST(AwsAssumeRoleCredentialsProviderTest, OnGetCredentialsCallback) {
   InitAPI(options);
 
   auto mock_sts_client = std::make_shared<MockSTSClient>();
-  auto sts_client = dynamic_pointer_cast<STSClient>(mock_sts_client);
+  auto sts_client = std::dynamic_pointer_cast<STSClient>(mock_sts_client);
   auto assume_role_arn = std::make_shared<std::string>("assume_role_arn");
   auto assume_role_external_id =
       std::make_shared<std::string>("assume_role_external_id");
@@ -141,7 +140,7 @@ TEST(AwsAssumeRoleCredentialsProviderTest, OnGetCredentialsCallbackSuccess) {
   InitAPI(options);
 
   auto mock_sts_client = std::make_shared<MockSTSClient>();
-  auto sts_client = dynamic_pointer_cast<STSClient>(mock_sts_client);
+  auto sts_client = std::dynamic_pointer_cast<STSClient>(mock_sts_client);
   auto assume_role_arn = std::make_shared<std::string>("assume_role_arn");
   auto assume_role_external_id =
       std::make_shared<std::string>("assume_role_external_id");

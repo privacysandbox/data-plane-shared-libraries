@@ -38,7 +38,6 @@ using google::scp::cpio::client_providers::TestGcpNoSQLDatabaseClientOptions;
 using google::scp::cpio::client_providers::TestGcpQueueClientOptions;
 using google::scp::cpio::client_providers::TestGcpQueueClientProvider;
 using google::scp::cpio::client_providers::TestGcpSpannerFactory;
-using std::dynamic_pointer_cast;
 
 namespace google::scp::cpio {
 std::shared_ptr<InstanceServiceFactoryInterface>
@@ -73,7 +72,7 @@ TestGcpJobServiceFactory::CreateQueueClientOptions() noexcept {
   auto test_options = std::make_shared<TestGcpQueueClientOptions>(
       *JobServiceFactory::CreateQueueClientOptions());
   test_options->access_token =
-      dynamic_pointer_cast<TestGcpJobClientOptions>(client_options_)
+      std::dynamic_pointer_cast<TestGcpJobClientOptions>(client_options_)
           ->access_token;
   return test_options;
 }
@@ -81,7 +80,7 @@ TestGcpJobServiceFactory::CreateQueueClientOptions() noexcept {
 std::shared_ptr<QueueClientProviderInterface>
 TestGcpJobServiceFactory::CreateQueueClient() noexcept {
   return std::make_shared<TestGcpQueueClientProvider>(
-      dynamic_pointer_cast<TestGcpQueueClientOptions>(
+      std::dynamic_pointer_cast<TestGcpQueueClientOptions>(
           CreateQueueClientOptions()),
       instance_client_, instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
@@ -92,7 +91,7 @@ TestGcpJobServiceFactory::CreateNoSQLDatabaseClientOptions() noexcept {
   auto test_options = std::make_shared<TestGcpNoSQLDatabaseClientOptions>(
       *GcpJobServiceFactory::CreateNoSQLDatabaseClientOptions());
   test_options->impersonate_service_account =
-      dynamic_pointer_cast<TestGcpJobClientOptions>(client_options_)
+      std::dynamic_pointer_cast<TestGcpJobClientOptions>(client_options_)
           ->impersonate_service_account;
   return test_options;
 }

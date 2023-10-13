@@ -35,8 +35,6 @@ using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::client_providers::GcpInstanceResourceNameDetails;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::atomic;
-using std::get;
-using std::make_tuple;
 using std::tuple;
 using testing::_;
 using testing::DoAll;
@@ -147,9 +145,9 @@ INSTANTIATE_TEST_SUITE_P(
 class GcpInstanceClientUtilsTestIII
     : public TestWithParam<tuple<std::string, std::string>> {
  protected:
-  std::string GetResourceName() { return get<0>(GetParam()); }
+  std::string GetResourceName() { return std::get<0>(GetParam()); }
 
-  std::string GetResourceLocation() { return get<1>(GetParam()); }
+  std::string GetResourceLocation() { return std::get<1>(GetParam()); }
 };
 
 TEST_P(GcpInstanceClientUtilsTestIII, CreateRMListTagsUrl) {
@@ -162,19 +160,19 @@ TEST_P(GcpInstanceClientUtilsTestIII, CreateRMListTagsUrl) {
 INSTANTIATE_TEST_SUITE_P(
     RMListTagsUrl, GcpInstanceClientUtilsTestIII,
     testing::Values(
-        make_tuple(
+        std::make_tuple(
             R"("//run.googleapis.com/projects/PROJECT_ID/locations/LOCATION_ID/services/"
                 "SERVICE_ID")",
             "LOCATION_ID-"),
-        make_tuple(
+        std::make_tuple(
             R"("//compute.googleapis.com/projects/PROJECT_ID/zones/ZONE/instances/"
                 "INSTANCE_ID")",
             "ZONE-"),
-        make_tuple(
+        std::make_tuple(
             R"("//compute.googleapis.com/projects/PROJECT_ID/regions/REGION/subnetworks/"
                 "SUBNETWORK")",
             "REGION-"),
-        make_tuple(
+        std::make_tuple(
             R"("//iam.googleapis.com/projects/PROJECT_ID/serviceAccounts/"
                 "SERVICE_ACCOUNT_EMAIL")",
             "")));

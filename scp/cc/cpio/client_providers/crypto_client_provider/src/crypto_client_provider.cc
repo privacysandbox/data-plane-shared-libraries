@@ -96,10 +96,8 @@ using google::scp::core::errors::
     SC_CRYPTO_CLIENT_PROVIDER_SPLIT_CIPHERTEXT_FAILED;
 using google::scp::core::utils::Base64Decode;
 using std::bind;
-using std::isxdigit;
 using std::map;
 using std::mt19937;
-using std::random_device;
 using std::uniform_int_distribution;
 using std::placeholders::_1;
 
@@ -204,7 +202,7 @@ size_t GetSecretLength(const SecretLength& secret_length) {
  * @return uint64_t the random number.
  */
 uint64_t GetRandomNumber(int size) {
-  static random_device random_device_local;
+  static std::random_device random_device_local;
   static mt19937 random_generator(random_device_local());
   uniform_int_distribution<uint64_t> distribution;
 

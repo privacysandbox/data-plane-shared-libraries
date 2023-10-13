@@ -109,8 +109,6 @@ using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 
 using std::bind;
 using std::ios_base;
-using std::min;
-using std::ref;
 using std::chrono::duration;
 using std::chrono::duration_cast;
 using std::chrono::minutes;
@@ -443,7 +441,7 @@ GetBlobStreamResponse GcpBlobStorageClientProvider::ReadNextPortion(
                               ? k64KbCount
                               : request.max_bytes_per_response();
   // Read up to next_read_size or bytes_remaining.
-  next_read_size = min(next_read_size, tracker.bytes_remaining);
+  next_read_size = std::min(next_read_size, tracker.bytes_remaining);
 
   GetBlobStreamResponse response;
   response.mutable_blob_portion()->mutable_metadata()->CopyFrom(

@@ -30,13 +30,10 @@
 
 using std::atomic;
 using std::function;
-using std::is_same_v;
 using std::memory_order_relaxed;
 using std::mt19937;
-using std::random_device;
 using std::thread;
 using std::uniform_int_distribution;
-using std::this_thread::get_id;
 
 namespace google::scp::core {
 ExecutionResult AsyncExecutor::Init() noexcept {
@@ -138,7 +135,7 @@ AsyncExecutor::PickTaskExecutor(
     const std::vector<std::shared_ptr<TaskExecutorType>>& task_executor_pool,
     TaskExecutorPoolType task_executor_pool_type,
     TaskLoadBalancingScheme task_load_balancing_scheme) {
-  static random_device random_device_local;
+  static std::random_device random_device_local;
   static mt19937 random_generator(random_device_local());
   static uniform_int_distribution<uint64_t> distribution;
 
@@ -158,13 +155,14 @@ AsyncExecutor::PickTaskExecutor(
       AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor) {
     // Get the ID of the current running thread. Use it to pick an executor
     // out of the pool.
-    auto found_executors = thread_id_to_executor_map_.find(get_id());
+    auto found_executors =
+        thread_id_to_executor_map_.find(std::this_thread::get_id());
     if (found_executors != thread_id_to_executor_map_.end()) {
       const auto& [normal_executor, urgent_executor] = found_executors->second;
-      if constexpr (is_same_v<TaskExecutorType, NormalTaskExecutor>) {
+      if constexpr (std::is_same_v<TaskExecutorType, NormalTaskExecutor>) {
         return normal_executor;
       }
-      if constexpr (is_same_v<TaskExecutorType, UrgentTaskExecutor>) {
+      if constexpr (std::is_same_v<TaskExecutorType, UrgentTaskExecutor>) {
         return urgent_executor;
       }
     }

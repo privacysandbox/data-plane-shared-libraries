@@ -59,7 +59,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockMetricClientWithOverrides;
 using std::atomic;
 using std::function;
-using std::static_pointer_cast;
 using std::thread;
 
 namespace {

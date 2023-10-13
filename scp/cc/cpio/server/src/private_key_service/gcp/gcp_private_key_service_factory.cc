@@ -53,7 +53,6 @@ using google::scp::cpio::client_providers::GcpPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::KmsClientProviderInterface;
 using google::scp::cpio::client_providers::PrivateKeyFetcherProviderInterface;
 using std::bind;
-using std::dynamic_pointer_cast;
 using std::list;
 
 namespace {

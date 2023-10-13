@@ -72,7 +72,6 @@ using google::scp::core::logger::ConsoleLogProvider;
 using google::scp::core::logger::Logger;
 using google::scp::core::nosql_database_provider::GcpSpanner;
 using google::spanner::v1::ResultSetStats;
-using std::make_pair;
 using std::optional;
 using std::pair;
 using std::unordered_map;
@@ -142,10 +141,10 @@ std::unique_ptr<
 GetTableNameToKeysMap() {
   auto map = std::make_unique<
       unordered_map<std::string, pair<std::string, optional<std::string>>>>();
-  map->emplace(kBudgetKeyTableName,
-               make_pair(kBudgetKeyPartitionKeyName, kBudgetKeySortKeyName));
+  map->emplace(kBudgetKeyTableName, std::make_pair(kBudgetKeyPartitionKeyName,
+                                                   kBudgetKeySortKeyName));
   map->emplace(kPartitionLockTableName,
-               make_pair(kPartitionLockPartitionKeyName, std::nullopt));
+               std::make_pair(kPartitionLockPartitionKeyName, std::nullopt));
   return map;
 }
 

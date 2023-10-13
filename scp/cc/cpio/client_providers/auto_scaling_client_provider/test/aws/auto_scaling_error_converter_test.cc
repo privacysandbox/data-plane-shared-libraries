@@ -37,8 +37,6 @@ using google::scp::core::errors::SC_AWS_REQUEST_LIMIT_REACHED;
 using google::scp::core::errors::SC_AWS_SERVICE_UNAVAILABLE;
 using google::scp::core::errors::SC_AWS_VALIDATION_FAILED;
 using google::scp::core::test::ResultIs;
-using std::get;
-using std::make_tuple;
 using std::tuple;
 using testing::TestWithParam;
 using testing::Values;
@@ -48,11 +46,11 @@ class AutoScalingErrorConverterTest
     : public TestWithParam<tuple<AutoScalingErrors, FailureExecutionResult>> {
  protected:
   AWSError<AutoScalingErrors> GetAutoScalingErrorsToConvert() {
-    return AWSError<AutoScalingErrors>(get<0>(GetParam()), false);
+    return AWSError<AutoScalingErrors>(std::get<0>(GetParam()), false);
   }
 
   FailureExecutionResult GetExpectedFailureExecutionResult() {
-    return get<1>(GetParam());
+    return std::get<1>(GetParam());
   }
 };
 
@@ -64,26 +62,28 @@ TEST_P(AutoScalingErrorConverterTest, AutoScalingErrorConverter) {
 
 INSTANTIATE_TEST_SUITE_P(
     AutoScalingErrorConverterTest, AutoScalingErrorConverterTest,
-    Values(make_tuple(AutoScalingErrors::VALIDATION,
-                      FailureExecutionResult(SC_AWS_VALIDATION_FAILED)),
-           make_tuple(AutoScalingErrors::ACCESS_DENIED,
-                      FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS)),
-           make_tuple(AutoScalingErrors::INVALID_CLIENT_TOKEN_ID,
-                      FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS)),
-           make_tuple(AutoScalingErrors::INVALID_PARAMETER_COMBINATION,
-                      FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
-           make_tuple(AutoScalingErrors::INVALID_QUERY_PARAMETER,
-                      FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
-           make_tuple(AutoScalingErrors::INVALID_PARAMETER_VALUE,
-                      FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
-           make_tuple(AutoScalingErrors::MALFORMED_QUERY_STRING,
-                      FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
-           make_tuple(AutoScalingErrors::SERVICE_UNAVAILABLE,
-                      FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE)),
-           make_tuple(AutoScalingErrors::NETWORK_CONNECTION,
-                      FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE)),
-           make_tuple(AutoScalingErrors::THROTTLING,
-                      FailureExecutionResult(SC_AWS_REQUEST_LIMIT_REACHED)),
-           make_tuple(AutoScalingErrors::INTERNAL_FAILURE,
-                      FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR))));
+    Values(
+        std::make_tuple(AutoScalingErrors::VALIDATION,
+                        FailureExecutionResult(SC_AWS_VALIDATION_FAILED)),
+        std::make_tuple(AutoScalingErrors::ACCESS_DENIED,
+                        FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS)),
+        std::make_tuple(AutoScalingErrors::INVALID_CLIENT_TOKEN_ID,
+                        FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS)),
+        std::make_tuple(AutoScalingErrors::INVALID_PARAMETER_COMBINATION,
+                        FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
+        std::make_tuple(AutoScalingErrors::INVALID_QUERY_PARAMETER,
+                        FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
+        std::make_tuple(AutoScalingErrors::INVALID_PARAMETER_VALUE,
+                        FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
+        std::make_tuple(AutoScalingErrors::MALFORMED_QUERY_STRING,
+                        FailureExecutionResult(SC_AWS_INVALID_REQUEST)),
+        std::make_tuple(AutoScalingErrors::SERVICE_UNAVAILABLE,
+                        FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE)),
+        std::make_tuple(AutoScalingErrors::NETWORK_CONNECTION,
+                        FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE)),
+        std::make_tuple(AutoScalingErrors::THROTTLING,
+                        FailureExecutionResult(SC_AWS_REQUEST_LIMIT_REACHED)),
+        std::make_tuple(
+            AutoScalingErrors::INTERNAL_FAILURE,
+            FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR))));
 }  // namespace google::scp::cpio::client_providers::test

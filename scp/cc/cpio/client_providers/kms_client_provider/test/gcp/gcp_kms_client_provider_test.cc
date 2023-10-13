@@ -52,7 +52,6 @@ using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::mock::
     MockGcpKeyManagementServiceClient;
 using std::atomic;
-using std::dynamic_pointer_cast;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::Return;

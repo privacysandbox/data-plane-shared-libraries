@@ -32,7 +32,6 @@
 
 using google::scp::core::lease_manager::mock::MockLeasableLock;
 using google::scp::core::lease_manager::mock::MockLeaseEventSink;
-using std::abort;
 using std::atomic;
 using std::mutex;
 using std::optional;

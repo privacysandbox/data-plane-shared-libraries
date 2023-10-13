@@ -30,7 +30,6 @@ using google::scp::core::SuccessExecutionResult;
 using grpc::Channel;
 using grpc::ChannelArguments;
 using grpc::CreateCustomChannel;
-using std::dynamic_pointer_cast;
 
 namespace google::scp::cpio::client_providers {
 std::shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(
@@ -39,7 +38,7 @@ std::shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(
     ChannelArguments args;
     args.SetInt(GRPC_ARG_ENABLE_RETRIES, 1);  // enable
     auto test_options =
-        dynamic_pointer_cast<TestGcpQueueClientOptions>(options);
+        std::dynamic_pointer_cast<TestGcpQueueClientOptions>(options);
     if (test_options->access_token.empty()) {
       channel_ =
           CreateCustomChannel(*test_options->pubsub_client_endpoint_override,

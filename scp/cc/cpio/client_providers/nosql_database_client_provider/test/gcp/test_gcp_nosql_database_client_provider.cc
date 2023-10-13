@@ -27,14 +27,13 @@ using google::cloud::MakeGoogleDefaultCredentials;
 using google::cloud::MakeImpersonateServiceAccountCredentials;
 using google::cloud::Options;
 using google::scp::core::AsyncExecutorInterface;
-using std::dynamic_pointer_cast;
 
 namespace google::scp::cpio::client_providers {
 Options TestGcpSpannerFactory::CreateClientOptions(
     std::shared_ptr<NoSQLDatabaseClientOptions> options) noexcept {
   Options client_options = SpannerFactory::CreateClientOptions(options);
   auto test_options =
-      dynamic_pointer_cast<TestGcpNoSQLDatabaseClientOptions>(options);
+      std::dynamic_pointer_cast<TestGcpNoSQLDatabaseClientOptions>(options);
   if (!test_options->impersonate_service_account.empty()) {
     client_options.set<google::cloud::UnifiedCredentialsOption>(
         (MakeImpersonateServiceAccountCredentials(

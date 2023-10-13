@@ -58,9 +58,7 @@ using nghttp2::asio_http2::server::configure_tls_context_easy;
 using nghttp2::asio_http2::server::request;
 using nghttp2::asio_http2::server::response;
 using std::bind;
-using std::make_pair;
 using std::set;
-using std::static_pointer_cast;
 using std::thread;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -243,7 +241,7 @@ ExecutionResult Http2Server::RegisterResourceHandler(
   }
   auto verb_to_handler_map =
       std::make_shared<ConcurrentMap<HttpMethod, HttpHandler>>();
-  auto path_to_map_pair = make_pair(path, verb_to_handler_map);
+  auto path_to_map_pair = std::make_pair(path, verb_to_handler_map);
 
   auto execution_result =
       resource_handlers_.Insert(path_to_map_pair, verb_to_handler_map);
@@ -255,7 +253,7 @@ ExecutionResult Http2Server::RegisterResourceHandler(
     }
   }
 
-  auto verb_to_handler_pair = make_pair(http_method, handler);
+  auto verb_to_handler_pair = std::make_pair(http_method, handler);
   return verb_to_handler_map->Insert(verb_to_handler_pair, handler);
 }
 
@@ -366,7 +364,7 @@ void Http2Server::OnHttp2RequestDataObtainedRoutedRequest(
 
   // Typecast to avoid copying data when constructing a new context.
   AsyncContext<HttpRequest, HttpResponse> routing_context(
-      static_pointer_cast<HttpRequest>(http2_context.request),
+      std::static_pointer_cast<HttpRequest>(http2_context.request),
       std::bind(&Http2Server::OnRoutingResponseReceived, this, http2_context,
                 _1),
       http2_context);
@@ -413,7 +411,7 @@ void Http2Server::HandleHttp2Request(
   sync_context->http_handler = http_handler;
   sync_context->failed = false;
 
-  auto context_pair = make_pair(http2_context.request->id, sync_context);
+  auto context_pair = std::make_pair(http2_context.request->id, sync_context);
   auto execution_result = active_requests_.Insert(context_pair, sync_context);
   if (!execution_result.Successful()) {
     http2_context.result = execution_result;
@@ -552,10 +550,10 @@ void Http2Server::OnHttp2PendingCallback(
       sync_context->http2_context.parent_activity_id;
   http_context.activity_id = sync_context->http2_context.activity_id;
   http_context.correlation_id = sync_context->http2_context.correlation_id;
-  http_context.request =
-      static_pointer_cast<HttpRequest>(sync_context->http2_context.request);
-  http_context.response =
-      static_pointer_cast<HttpResponse>(sync_context->http2_context.response);
+  http_context.request = std::static_pointer_cast<HttpRequest>(
+      sync_context->http2_context.request);
+  http_context.response = std::static_pointer_cast<HttpResponse>(
+      sync_context->http2_context.response);
   http_context.callback =
       [this, http2_context = sync_context->http2_context](
           AsyncContext<HttpRequest, HttpResponse>& http_context) mutable {

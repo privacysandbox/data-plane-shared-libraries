@@ -46,8 +46,6 @@ using google::scp::core::errors::SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
-using std::get;
-using std::make_pair;
 using std::pair;
 using testing::Eq;
 using testing::Optional;
@@ -205,9 +203,9 @@ TEST(AwsNoSQLDatabaseClientUtilsTests,
 class AwsDynamoDBErrorTest
     : public testing::TestWithParam<pair<DynamoDBErrors, ExecutionResult>> {
  protected:
-  DynamoDBErrors GetErrorToConvert() { return get<0>(GetParam()); }
+  DynamoDBErrors GetErrorToConvert() { return std::get<0>(GetParam()); }
 
-  ExecutionResult GetExpectedResult() { return get<1>(GetParam()); }
+  ExecutionResult GetExpectedResult() { return std::get<1>(GetParam()); }
 };
 
 TEST_P(AwsDynamoDBErrorTest, ConvertDynamoErrorToExecutionResult) {
@@ -220,158 +218,159 @@ INSTANTIATE_TEST_SUITE_P(
     Errors, AwsDynamoDBErrorTest,
     testing::Values(
         // Retriable error codes.
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::INTERNAL_FAILURE,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::SERVICE_UNAVAILABLE,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::THROTTLING,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::SLOW_DOWN,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::REQUEST_TIMEOUT,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::PROVISIONED_THROUGHPUT_EXCEEDED,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::REQUEST_LIMIT_EXCEEDED,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::RESOURCE_IN_USE,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::TABLE_IN_USE,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(
+        std::make_pair(
             DynamoDBErrors::TRANSACTION_IN_PROGRESS,
             RetryExecutionResult(SC_NO_SQL_DATABASE_PROVIDER_RETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::CONDITIONAL_CHECK_FAILED,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_CONDITIONAL_CHECKED_FAILED)),
+        std::make_pair(
+            DynamoDBErrors::CONDITIONAL_CHECK_FAILED,
+            FailureExecutionResult(
+                SC_NO_SQL_DATABASE_PROVIDER_CONDITIONAL_CHECKED_FAILED)),
         // Unretriable error codes,
-        make_pair(DynamoDBErrors::INCOMPLETE_SIGNATURE,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::INVALID_ACTION,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::INVALID_CLIENT_TOKEN_ID,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::INVALID_PARAMETER_COMBINATION,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::INVALID_QUERY_PARAMETER,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::INVALID_PARAMETER_VALUE,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::MISSING_ACTION,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::MISSING_AUTHENTICATION_TOKEN,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::MISSING_PARAMETER,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::OPT_IN_REQUIRED,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::REQUEST_EXPIRED,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::VALIDATION,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::ACCESS_DENIED,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::RESOURCE_NOT_FOUND,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::UNRECOGNIZED_CLIENT,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::MALFORMED_QUERY_STRING,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::REQUEST_TIME_TOO_SKEWED,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::INVALID_SIGNATURE,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::SIGNATURE_DOES_NOT_MATCH,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::INVALID_ACCESS_KEY_ID,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::NETWORK_CONNECTION,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::UNKNOWN,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::BACKUP_IN_USE,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::BACKUP_NOT_FOUND,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INCOMPLETE_SIGNATURE,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INVALID_ACTION,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INVALID_CLIENT_TOKEN_ID,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INVALID_PARAMETER_COMBINATION,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INVALID_QUERY_PARAMETER,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INVALID_PARAMETER_VALUE,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::MISSING_ACTION,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::MISSING_AUTHENTICATION_TOKEN,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::MISSING_PARAMETER,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::OPT_IN_REQUIRED,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::REQUEST_EXPIRED,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::VALIDATION,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::ACCESS_DENIED,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::RESOURCE_NOT_FOUND,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::UNRECOGNIZED_CLIENT,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::MALFORMED_QUERY_STRING,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::REQUEST_TIME_TOO_SKEWED,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INVALID_SIGNATURE,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::SIGNATURE_DOES_NOT_MATCH,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INVALID_ACCESS_KEY_ID,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::NETWORK_CONNECTION,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::UNKNOWN,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::BACKUP_IN_USE,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::BACKUP_NOT_FOUND,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
 
-        make_pair(DynamoDBErrors::CONTINUOUS_BACKUPS_UNAVAILABLE,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::GLOBAL_TABLE_ALREADY_EXISTS,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::GLOBAL_TABLE_NOT_FOUND,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::IDEMPOTENT_PARAMETER_MISMATCH,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::INDEX_NOT_FOUND,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::INVALID_RESTORE_TIME,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::ITEM_COLLECTION_SIZE_LIMIT_EXCEEDED,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::LIMIT_EXCEEDED,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::POINT_IN_TIME_RECOVERY_UNAVAILABLE,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::REPLICA_ALREADY_EXISTS,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::REPLICA_NOT_FOUND,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::TABLE_ALREADY_EXISTS,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::TABLE_NOT_FOUND,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::TRANSACTION_CANCELED,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
-        make_pair(DynamoDBErrors::TRANSACTION_CONFLICT,
-                  FailureExecutionResult(
-                      SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR))));
+        std::make_pair(DynamoDBErrors::CONTINUOUS_BACKUPS_UNAVAILABLE,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::GLOBAL_TABLE_ALREADY_EXISTS,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::GLOBAL_TABLE_NOT_FOUND,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::IDEMPOTENT_PARAMETER_MISMATCH,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INDEX_NOT_FOUND,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::INVALID_RESTORE_TIME,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::ITEM_COLLECTION_SIZE_LIMIT_EXCEEDED,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::LIMIT_EXCEEDED,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::POINT_IN_TIME_RECOVERY_UNAVAILABLE,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::REPLICA_ALREADY_EXISTS,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::REPLICA_NOT_FOUND,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::TABLE_ALREADY_EXISTS,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::TABLE_NOT_FOUND,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::TRANSACTION_CANCELED,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR)),
+        std::make_pair(DynamoDBErrors::TRANSACTION_CONFLICT,
+                       FailureExecutionResult(
+                           SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR))));
 
 TEST(AwsNoSQLDatabaseClientUtilsTests, GetPartitionAndSortKeyValuesSuccess) {
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse> context;

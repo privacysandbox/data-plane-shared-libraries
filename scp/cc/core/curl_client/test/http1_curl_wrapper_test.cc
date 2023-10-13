@@ -22,8 +22,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using boost::beast::http::status;
-using std::get;
-using std::make_tuple;
 using std::tuple;
 using testing::IsSupersetOf;
 using testing::Pair;
@@ -50,9 +48,9 @@ class Http1CurlWrapperTest
           return std::move(*wrapper_or);
         }()) {}
 
-  status GetResponseStatusToReturn() { return get<0>(GetParam()); }
+  status GetResponseStatusToReturn() { return std::get<0>(GetParam()); }
 
-  ExecutionResult GetExpectedResult() { return get<1>(GetParam()); }
+  ExecutionResult GetExpectedResult() { return std::get<1>(GetParam()); }
 
   const std::string response_body_;
   const std::string post_request_body_;
@@ -265,32 +263,33 @@ TEST_P(Http1CurlWrapperTest, PropagatesHttpError) {
 INSTANTIATE_TEST_SUITE_P(
     HttpErrors, Http1CurlWrapperTest,
     testing::Values(
-        make_tuple(status::unauthorized,
-                   FailureExecutionResult(
-                       errors::SC_CURL_CLIENT_REQUEST_UNAUTHORIZED)),
-        make_tuple(
+        std::make_tuple(status::unauthorized,
+                        FailureExecutionResult(
+                            errors::SC_CURL_CLIENT_REQUEST_UNAUTHORIZED)),
+        std::make_tuple(
             status::forbidden,
             FailureExecutionResult(errors::SC_CURL_CLIENT_REQUEST_FORBIDDEN)),
-        make_tuple(
+        std::make_tuple(
             status::not_found,
             FailureExecutionResult(errors::SC_CURL_CLIENT_REQUEST_NOT_FOUND)),
-        make_tuple(
+        std::make_tuple(
             status::conflict,
             FailureExecutionResult(errors::SC_CURL_CLIENT_REQUEST_CONFLICT)),
-        make_tuple(
+        std::make_tuple(
             status::internal_server_error,
             RetryExecutionResult(errors::SC_CURL_CLIENT_REQUEST_SERVER_ERROR)),
-        make_tuple(status::not_implemented,
-                   RetryExecutionResult(
-                       errors::SC_CURL_CLIENT_REQUEST_NOT_IMPLEMENTED)),
-        make_tuple(status::service_unavailable,
-                   RetryExecutionResult(
-                       errors::SC_CURL_CLIENT_REQUEST_SERVICE_UNAVAILABLE)),
+        std::make_tuple(status::not_implemented,
+                        RetryExecutionResult(
+                            errors::SC_CURL_CLIENT_REQUEST_NOT_IMPLEMENTED)),
+        std::make_tuple(
+            status::service_unavailable,
+            RetryExecutionResult(
+                errors::SC_CURL_CLIENT_REQUEST_SERVICE_UNAVAILABLE)),
         // This one is not enumerated.
-        make_tuple(status::payment_required,
-                   RetryExecutionResult(
-                       errors::SC_CURL_CLIENT_REQUEST_OTHER_HTTP_ERROR)),
-        make_tuple(status::ok, SuccessExecutionResult())));
+        std::make_tuple(status::payment_required,
+                        RetryExecutionResult(
+                            errors::SC_CURL_CLIENT_REQUEST_OTHER_HTTP_ERROR)),
+        std::make_tuple(status::ok, SuccessExecutionResult())));
 
 }  // namespace
 }  // namespace google::scp::core::test

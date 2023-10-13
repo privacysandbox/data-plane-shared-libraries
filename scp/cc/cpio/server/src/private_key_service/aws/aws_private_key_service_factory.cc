@@ -48,7 +48,6 @@ using google::scp::cpio::client_providers::KmsClientProviderInterface;
 using google::scp::cpio::client_providers::PrivateKeyFetcherProviderInterface;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 using std::bind;
-using std::dynamic_pointer_cast;
 
 namespace {
 constexpr char kAwsPrivateKeyServiceFactory[] = "AwsPrivateKeyServiceFactory";

@@ -69,8 +69,6 @@ using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8IsolateVisitor;
 using google::scp::roma::sandbox::worker::WorkerUtils;
 using google::scp::roma::worker::ExecutionUtils;
-using std::min;
-using std::static_pointer_cast;
 using std::uint8_t;
 using v8::Array;
 using v8::ArrayBuffer;
@@ -96,7 +94,7 @@ std::shared_ptr<std::string> GetCodeFromContext(
   std::shared_ptr<std::string> code;
 
   if (context.has_context) {
-    code = static_pointer_cast<std::string>(context.context);
+    code = std::static_pointer_cast<std::string>(context.context);
   }
 
   return code;
@@ -189,8 +187,8 @@ ExecutionResult V8JsEngine::OneTimeSetup(
 
   // Set the max number of WASM memory pages
   if (max_wasm_memory_number_of_pages != 0) {
-    auto page_count =
-        min(max_wasm_memory_number_of_pages, kMaxNumberOfWasm32BitMemPages);
+    auto page_count = std::min(max_wasm_memory_number_of_pages,
+                               kMaxNumberOfWasm32BitMemPages);
     auto flag_value =
         std::string(kWasmMemPagesV8PlatformFlag) + std::to_string(page_count);
 

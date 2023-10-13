@@ -43,7 +43,6 @@ using google::scp::core::UpsertDatabaseItemRequest;
 using google::scp::core::UpsertDatabaseItemResponse;
 using google::scp::core::common::TimeProvider;
 using std::atomic;
-using std::get;
 using std::mutex;
 using std::optional;
 using std::shared_lock;
@@ -51,7 +50,6 @@ using std::shared_mutex;
 using std::unique_lock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 namespace google::scp::core {
 ExecutionResult LeasableLockOnNoSQLDatabase::ConstructAttributesFromLeaseInfo(
@@ -99,16 +97,16 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ObtainLeaseInfoFromAttributes(
     if (*attribute.attribute_name ==
         std::string_view(kPartitionLockTableLeaseOwnerIdAttributeName)) {
       lease.lease_owner_info.lease_acquirer_id =
-          get<std::string>(*attribute.attribute_value);
+          std::get<std::string>(*attribute.attribute_value);
     } else if (*attribute.attribute_name ==
                std::string_view(
                    kLockTableLeaseOwnerServiceEndpointAddressAttributeName)) {
       lease.lease_owner_info.service_endpoint_address =
-          get<std::string>(*attribute.attribute_value);
+          std::get<std::string>(*attribute.attribute_value);
     } else if (*attribute.attribute_name ==
                std::string_view(
                    kPartitionLockTableLeaseExpirationTimestampAttributeName)) {
-      auto timestamp_string = get<std::string>(*attribute.attribute_value);
+      auto timestamp_string = std::get<std::string>(*attribute.attribute_value);
       int64_t timestamp_value = 0;
       if (!absl::SimpleAtoi(std::string_view(timestamp_string.c_str()),
                             &timestamp_value)) {
@@ -121,7 +119,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ObtainLeaseInfoFromAttributes(
     } else if (*attribute.attribute_name ==
                std::string_view(
                    kLockTableLeaseAcquisitionDisallowedAttributeName)) {
-      auto value = get<std::string>(*attribute.attribute_value);
+      auto value = std::get<std::string>(*attribute.attribute_value);
       if (value == "true" || value == "True") {
         lease.lease_acquisition_disallowed = true;
       }
@@ -178,7 +176,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::WriteLeaseSynchronouslyToDatabase(
 
   // Wait for the query to be executed.
   while (!request_executed) {
-    sleep_for(milliseconds(5));
+    std::this_thread::sleep_for(milliseconds(5));
   }
 
   if (!response_context.result.Successful()) {
@@ -215,7 +213,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ReadLeaseSynchronouslyFromDatabase(
 
   // Wait for the query to be executed.
   while (!request_executed) {
-    sleep_for(milliseconds(5));
+    std::this_thread::sleep_for(milliseconds(5));
   }
 
   if (!response_context.result.Successful()) {

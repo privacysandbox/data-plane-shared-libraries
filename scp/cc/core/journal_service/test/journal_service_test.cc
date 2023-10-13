@@ -74,8 +74,6 @@ using google::scp::cpio::MockMetricClient;
 using google::scp::cpio::MockSimpleMetric;
 using google::scp::cpio::TimeEvent;
 using std::atomic;
-using std::make_pair;
-using std::static_pointer_cast;
 using std::unordered_set;
 
 namespace google::scp::core::test {
@@ -177,7 +175,8 @@ TEST_F(JournalServiceTests, Recover) {
         };
 
     std::shared_ptr<JournalInputStreamInterface> input_stream =
-        static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
+        std::static_pointer_cast<JournalInputStreamInterface>(
+            mock_input_stream);
     journal_service.SetInputStream(input_stream);
 
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
@@ -216,7 +215,8 @@ TEST_F(JournalServiceTests, ValidateParamsOfRecover) {
         };
 
     std::shared_ptr<JournalInputStreamInterface> input_stream =
-        static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
+        std::static_pointer_cast<JournalInputStreamInterface>(
+            mock_input_stream);
     journal_service.SetInputStream(input_stream);
 
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
@@ -245,7 +245,8 @@ TEST_F(JournalServiceTests, ValidateParamsOfRecover) {
         };
 
     std::shared_ptr<JournalInputStreamInterface> input_stream =
-        static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
+        std::static_pointer_cast<JournalInputStreamInterface>(
+            mock_input_stream);
     journal_service.SetInputStream(input_stream);
 
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
@@ -274,7 +275,7 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackStreamFailure) {
       std::make_shared<EnvConfigProvider>());
   mock_input_stream->SetLastProcessedJournalId(12345);
   auto input_stream =
-      static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
+      std::static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
   journal_service.SetInputStream(input_stream);
 
   AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
@@ -386,7 +387,7 @@ TEST_F(JournalServiceTests,
     return FailureExecutionResult(123);
   };
 
-  auto pair = make_pair(
+  auto pair = std::make_pair(
       read_log_context.response->read_logs->at(0).component_id, callback);
   journal_service.GetSubscribersMap().Insert(pair, callback);
 
@@ -454,10 +455,10 @@ TEST_F(JournalServiceTests,
       };
 
   std::shared_ptr<JournalInputStreamInterface> input_stream =
-      static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
+      std::static_pointer_cast<JournalInputStreamInterface>(mock_input_stream);
   journal_service.SetInputStream(input_stream);
 
-  auto pair = make_pair(
+  auto pair = std::make_pair(
       read_log_context.response->read_logs->at(0).component_id, callback);
   journal_service.GetSubscribersMap().Insert(pair, callback);
 

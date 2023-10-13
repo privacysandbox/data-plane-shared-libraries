@@ -92,7 +92,6 @@ using google::scp::cpio::client_providers::GcpCloudStorageFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 using testing::ByMove;
 using testing::ElementsAre;
 using testing::ElementsAreArray;
@@ -664,13 +663,13 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
   // it is not.
 
   // Wait until the stream has been suspended.
-  sleep_for(milliseconds(50));
+  std::this_thread::sleep_for(milliseconds(50));
   auto request2 = *put_blob_stream_context_.request;
   request2.mutable_blob_portion()->set_data(strings[0]);
   put_blob_stream_context_.TryPushRequest(std::move(request2));
 
   // Wait until the stream has been suspended
-  sleep_for(milliseconds(50));
+  std::this_thread::sleep_for(milliseconds(50));
   auto request3 = *put_blob_stream_context_.request;
   request3.mutable_blob_portion()->set_data(strings[1]);
   put_blob_stream_context_.TryPushRequest(std::move(request3));
@@ -824,7 +823,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
   EXPECT_THAT(gcp_cloud_storage_client_.PutBlobStream(put_blob_stream_context_),
               IsSuccessful());
 
-  sleep_for(microseconds(kStreamKeepAliveMicrosCount));
+  std::this_thread::sleep_for(microseconds(kStreamKeepAliveMicrosCount));
   EXPECT_TRUE(finish_called_.load());
   EXPECT_TRUE(put_blob_stream_context_.IsMarkedDone());
 }

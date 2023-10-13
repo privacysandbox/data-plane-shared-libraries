@@ -31,7 +31,6 @@ using google::scp::core::test::ResultIs;
 using std::atomic;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
-using std::this_thread::sleep_for;
 using ::testing::_;
 using ::testing::DoAll;
 using ::testing::Eq;
@@ -196,16 +195,16 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndRefreshed) {
   ExecutionResultOr<std::shared_ptr<Token>> token_or;
   do {
     token_or = token_provider_->GetToken();
-    sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(milliseconds(100));
   } while (!token_or.Successful());
 
   EXPECT_THAT(token_or, IsSuccessfulAndHolds(Pointee(Eq("abc"))));
 
-  sleep_for(milliseconds(500));
+  std::this_thread::sleep_for(milliseconds(500));
 
   do {
     token_or = token_provider_->GetToken();
-    sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(milliseconds(100));
   } while (token_or.Successful() && *token_or.value() == "abc");
 
   EXPECT_THAT(token_or, IsSuccessfulAndHolds(Pointee(Eq("def"))));
@@ -236,12 +235,12 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndResetIfTokenFetchFails) {
   ExecutionResultOr<std::shared_ptr<Token>> token_or;
   do {
     token_or = token_provider_->GetToken();
-    sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(milliseconds(100));
   } while (!token_or.Successful());
 
   EXPECT_THAT(token_or, IsSuccessfulAndHolds(Pointee(Eq("abc"))));
 
-  sleep_for(milliseconds(1000));
+  std::this_thread::sleep_for(milliseconds(1000));
 
   EXPECT_THAT(token_provider_->GetToken(),
               ResultIs(FailureExecutionResult(

@@ -52,7 +52,6 @@ using std::mutex;
 using std::thread;
 using std::unique_lock;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 static constexpr size_t kShutdownWaitIntervalMilliseconds = 100;
 
@@ -147,7 +146,8 @@ ExecutionResult TransactionManager::Stop() noexcept {
              "Waiting for '%llu' active transactions to exit...",
              active_transactions_count_.load());
     // The wait value can be any.
-    sleep_for(milliseconds(kShutdownWaitIntervalMilliseconds));
+    std::this_thread::sleep_for(
+        milliseconds(kShutdownWaitIntervalMilliseconds));
   }
 
   auto execution_result = active_transactions_metric_->Stop();

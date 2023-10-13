@@ -33,7 +33,6 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 static constexpr char kTCPTrafficForwarderSocat[] = "TCPTrafficForwarderSocat";
 
@@ -197,7 +196,7 @@ ExecutionResult TCPTrafficForwarderSocat::Stop() noexcept {
   }
 
   // Give the socat processes some time do die.
-  sleep_for(milliseconds(100));
+  std::this_thread::sleep_for(milliseconds(100));
   // Account for any potentially orphaned socat processes that should be killed.
   auto there_are_socat_processes_running = []() -> bool {
     char line_buffer[256];
@@ -238,7 +237,7 @@ ExecutionResult TCPTrafficForwarderSocat::Stop() noexcept {
   while (!kill_all_socat_processes()) {
     SCP_INFO(kTCPTrafficForwarderSocat, kZeroUuid,
              "Waiting for all socat processes to die.");
-    sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(milliseconds(100));
   }
 
   child_pid_ = -1;

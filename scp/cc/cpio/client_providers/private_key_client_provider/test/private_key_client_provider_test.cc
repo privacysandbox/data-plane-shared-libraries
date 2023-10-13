@@ -66,7 +66,6 @@ using google::scp::cpio::client_providers::mock::
     MockPrivateKeyClientProviderWithOverrides;
 using google::scp::cpio::client_providers::mock::MockPrivateKeyFetcherProvider;
 using std::atomic;
-using std::make_pair;
 using std::map;
 using std::pair;
 using testing::Between;

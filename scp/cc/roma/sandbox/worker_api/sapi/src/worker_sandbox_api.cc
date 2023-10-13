@@ -71,7 +71,6 @@ using google::scp::core::errors::SC_ROMA_WORKER_API_UNINITIALIZED_SANDBOX;
 using google::scp::core::errors::SC_ROMA_WORKER_API_WORKER_CRASHED;
 using google::scp::roma::sandbox::constants::kBadFd;
 using std::numeric_limits;
-using std::this_thread::yield;
 
 namespace google::scp::roma::sandbox::worker_api {
 
@@ -106,7 +105,7 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
     worker_sapi_sandbox_->Terminate();
     // Wait for the sandbox to become INACTIVE
     while (worker_sapi_sandbox_->is_active()) {
-      yield();
+      std::this_thread::yield();
     }
 
     ROMA_VLOG(1) << "Successfully terminated the existing sapi sandbox";
@@ -125,7 +124,7 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
 
   // Wait for the sandbox to become ACTIVE
   while (!worker_sapi_sandbox_->is_active()) {
-    yield();
+    std::this_thread::yield();
   }
   ROMA_VLOG(1) << "the sapi sandbox is active";
 

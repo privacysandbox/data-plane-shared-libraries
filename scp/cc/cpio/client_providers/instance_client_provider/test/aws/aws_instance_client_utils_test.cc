@@ -37,8 +37,6 @@ using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::client_providers::AwsResourceNameDetails;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using std::atomic;
-using std::get;
-using std::make_tuple;
 using std::tuple;
 using testing::Pair;
 using testing::Pointee;
@@ -131,9 +129,9 @@ TEST(AwsInstanceClientUtilsTest, GetInstanceResourceNameDetails) {
 class AwsInstanceClientUtilsTestII
     : public TestWithParam<tuple<std::string, ExecutionResult>> {
  protected:
-  std::string GetResourceName() { return get<0>(GetParam()); }
+  std::string GetResourceName() { return std::get<0>(GetParam()); }
 
-  ExecutionResult GetExecutionResult() { return get<1>(GetParam()); }
+  ExecutionResult GetExecutionResult() { return std::get<1>(GetParam()); }
 };
 
 TEST_P(AwsInstanceClientUtilsTestII, FailedWithBadResourceName) {
@@ -145,25 +143,27 @@ TEST_P(AwsInstanceClientUtilsTestII, FailedWithBadResourceName) {
 INSTANTIATE_TEST_SUITE_P(
     ValidateResourceNameFormat, AwsInstanceClientUtilsTestII,
     testing::Values(
-        make_tuple(
+        std::make_tuple(
             "arn:aws:ec2:us-east-1:123456789012:instance/i-0e9801d129EXAMPLE",
             SuccessExecutionResult()),
-        make_tuple("arn:aws-cn:ec2:us-east-1:123456789012:instance/"
-                   "i-0e9801d129EXAMPLE",
-                   SuccessExecutionResult()),
-        make_tuple("arn:aws:ec2::123456789012:instance/i-0e9801d129EXAMPLE",
-                   SuccessExecutionResult()),
-        make_tuple("arn:aws:ec2:us-east-1::instance/i-0e9801d129EXAMPLE",
-                   SuccessExecutionResult()),
-        make_tuple(
+        std::make_tuple("arn:aws-cn:ec2:us-east-1:123456789012:instance/"
+                        "i-0e9801d129EXAMPLE",
+                        SuccessExecutionResult()),
+        std::make_tuple(
+            "arn:aws:ec2::123456789012:instance/i-0e9801d129EXAMPLE",
+            SuccessExecutionResult()),
+        std::make_tuple("arn:aws:ec2:us-east-1::instance/i-0e9801d129EXAMPLE",
+                        SuccessExecutionResult()),
+        std::make_tuple(
             "arn:aws::us-east-1:123456789012:instance/i-0e9801d129EXAMPLE",
             FailureExecutionResult(
                 SC_AWS_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME)),
-        make_tuple("arn:aws:ec2:us-east-1:abc123456789012:instance/"
-                   "i-0e9801d129EXAMPLE",
-                   FailureExecutionResult(
-                       SC_AWS_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME)),
-        make_tuple(
+        std::make_tuple(
+            "arn:aws:ec2:us-east-1:abc123456789012:instance/"
+            "i-0e9801d129EXAMPLE",
+            FailureExecutionResult(
+                SC_AWS_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME)),
+        std::make_tuple(
             "arn:aws-mess:ec2:us-east-1:123456789012:instance/"
             "i-0e9801d129EXAMPLE",
             FailureExecutionResult(

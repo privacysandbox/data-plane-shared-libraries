@@ -30,7 +30,6 @@ using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
-using std::dynamic_pointer_cast;
 
 namespace google::scp::cpio::client_providers {
 std::shared_ptr<ClientConfiguration>
@@ -49,7 +48,7 @@ RoleCredentialsProviderFactory::Create(
     const std::shared_ptr<core::AsyncExecutorInterface>&
         io_async_executor) noexcept {
   return std::make_shared<TestAwsRoleCredentialsProvider>(
-      dynamic_pointer_cast<TestAwsRoleCredentialsProviderOptions>(options),
+      std::dynamic_pointer_cast<TestAwsRoleCredentialsProviderOptions>(options),
       instance_client_provider, cpu_async_executor, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

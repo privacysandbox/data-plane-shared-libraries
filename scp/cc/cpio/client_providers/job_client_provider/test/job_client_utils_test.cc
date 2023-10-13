@@ -52,8 +52,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::utils::Base64Decode;
 using google::scp::core::utils::Base64Encode;
 using helloworld::HelloWorld;
-using std::get;
-using std::make_tuple;
 using std::tuple;
 
 namespace {
@@ -139,12 +137,12 @@ namespace google::scp::cpio::client_providers::test {
 class JobClientUtilsTest : public ::testing::TestWithParam<
                                tuple<JobStatus, JobStatus, ExecutionResult>> {
  public:
-  JobStatus GetCurrentStatus() const { return get<0>(GetParam()); }
+  JobStatus GetCurrentStatus() const { return std::get<0>(GetParam()); }
 
-  JobStatus GetUpdateStatus() const { return get<1>(GetParam()); }
+  JobStatus GetUpdateStatus() const { return std::get<1>(GetParam()); }
 
   ExecutionResult GetExpectedExecutionResult() const {
-    return get<2>(GetParam());
+    return std::get<2>(GetParam());
   }
 };
 
@@ -470,34 +468,40 @@ TEST(JobClientUtilsTest, CreateGetJobByJobIdRequest) {
 INSTANTIATE_TEST_SUITE_P(
     CompletedJobStatus, JobClientUtilsTest,
     testing::Values(
-        make_tuple(JobStatus::JOB_STATUS_CREATED,
-                   JobStatus::JOB_STATUS_PROCESSING, SuccessExecutionResult()),
-        make_tuple(JobStatus::JOB_STATUS_CREATED, JobStatus::JOB_STATUS_SUCCESS,
-                   SuccessExecutionResult()),
-        make_tuple(JobStatus::JOB_STATUS_CREATED, JobStatus::JOB_STATUS_FAILURE,
-                   SuccessExecutionResult()),
-        make_tuple(JobStatus::JOB_STATUS_PROCESSING,
-                   JobStatus::JOB_STATUS_PROCESSING, SuccessExecutionResult()),
-        make_tuple(JobStatus::JOB_STATUS_PROCESSING,
-                   JobStatus::JOB_STATUS_SUCCESS, SuccessExecutionResult()),
-        make_tuple(JobStatus::JOB_STATUS_PROCESSING,
-                   JobStatus::JOB_STATUS_FAILURE, SuccessExecutionResult()),
-        make_tuple(
+        std::make_tuple(JobStatus::JOB_STATUS_CREATED,
+                        JobStatus::JOB_STATUS_PROCESSING,
+                        SuccessExecutionResult()),
+        std::make_tuple(JobStatus::JOB_STATUS_CREATED,
+                        JobStatus::JOB_STATUS_SUCCESS,
+                        SuccessExecutionResult()),
+        std::make_tuple(JobStatus::JOB_STATUS_CREATED,
+                        JobStatus::JOB_STATUS_FAILURE,
+                        SuccessExecutionResult()),
+        std::make_tuple(JobStatus::JOB_STATUS_PROCESSING,
+                        JobStatus::JOB_STATUS_PROCESSING,
+                        SuccessExecutionResult()),
+        std::make_tuple(JobStatus::JOB_STATUS_PROCESSING,
+                        JobStatus::JOB_STATUS_SUCCESS,
+                        SuccessExecutionResult()),
+        std::make_tuple(JobStatus::JOB_STATUS_PROCESSING,
+                        JobStatus::JOB_STATUS_FAILURE,
+                        SuccessExecutionResult()),
+        std::make_tuple(
             JobStatus::JOB_STATUS_SUCCESS, JobStatus::JOB_STATUS_PROCESSING,
             FailureExecutionResult(SC_JOB_CLIENT_PROVIDER_INVALID_JOB_STATUS)),
-        make_tuple(
+        std::make_tuple(
             JobStatus::JOB_STATUS_FAILURE, JobStatus::JOB_STATUS_PROCESSING,
             FailureExecutionResult(SC_JOB_CLIENT_PROVIDER_INVALID_JOB_STATUS)),
-        make_tuple(
+        std::make_tuple(
             JobStatus::JOB_STATUS_CREATED, JobStatus::JOB_STATUS_UNKNOWN,
             FailureExecutionResult(SC_JOB_CLIENT_PROVIDER_INVALID_JOB_STATUS)),
-        make_tuple(
+        std::make_tuple(
             JobStatus::JOB_STATUS_PROCESSING, JobStatus::JOB_STATUS_CREATED,
             FailureExecutionResult(SC_JOB_CLIENT_PROVIDER_INVALID_JOB_STATUS)),
-        make_tuple(JobStatus::JOB_STATUS_PROCESSING,
-                   JobStatus::JOB_STATUS_UNKNOWN,
-                   FailureExecutionResult(
-                       SC_JOB_CLIENT_PROVIDER_INVALID_JOB_STATUS))));
+        std::make_tuple(JobStatus::JOB_STATUS_PROCESSING,
+                        JobStatus::JOB_STATUS_UNKNOWN,
+                        FailureExecutionResult(
+                            SC_JOB_CLIENT_PROVIDER_INVALID_JOB_STATUS))));
 
 TEST_P(JobClientUtilsTest, ValidateJobStatus) {
   EXPECT_THAT(

@@ -74,7 +74,6 @@ using std::endl;
 using std::thread;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
-using std::this_thread::sleep_for;
 using ::testing::_;
 using ::testing::An;
 using ::testing::AnyOf;
@@ -182,7 +181,7 @@ TEST_F(HttpServerLoadTest,
       auto req = total_requests_received_on_server.load();
       cout << "QPS: " << req - req_prev << endl;
       req_prev = req;
-      sleep_for(seconds(1));
+      std::this_thread::sleep_for(seconds(1));
     }
   });
 
@@ -225,7 +224,7 @@ TEST_F(HttpServerLoadTest,
     }
 
     while (client_requests_completed_in_current_round < num_clients) {
-      sleep_for(milliseconds(100));
+      std::this_thread::sleep_for(milliseconds(100));
     }
 
     cout << "Round " << i + 1 << ": "
@@ -252,7 +251,7 @@ TEST_F(HttpServerLoadTest,
 
     while (client_requests_completed_in_current_round <
            (num_clients * requests_per_client)) {
-      sleep_for(milliseconds(100));
+      std::this_thread::sleep_for(milliseconds(100));
     }
 
     cout << "Round " << i + 1 << ": "

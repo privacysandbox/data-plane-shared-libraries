@@ -31,7 +31,6 @@ using google::cloud::kms::v1::DecryptRequest;
 using google::cloud::kms::v1::DecryptResponse;
 using google::scp::cpio::client_providers::mock::
     MockGcpKeyManagementServiceClient;
-using std::dynamic_pointer_cast;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::Return;
@@ -54,14 +53,15 @@ class GcpKmsAeadTest : public ::testing::Test {
 
 TEST_F(GcpKmsAeadTest, SuccessToCreateGcpKmsAead) {
   StatusOr<std::unique_ptr<Aead>> kms_aead = GcpKmsAead::New(
-      kKeyName, dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
-                    mock_gcp_kms_client_));
+      kKeyName,
+      std::dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
+          mock_gcp_kms_client_));
   ASSERT_TRUE(kms_aead.ok());
 }
 
 TEST_F(GcpKmsAeadTest, FailedToCreateGcpKmsAeadWithEmptyKeyArn) {
   StatusOr<std::unique_ptr<Aead>> kms_aead = GcpKmsAead::New(
-      "", dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
+      "", std::dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
               mock_gcp_kms_client_));
   ASSERT_FALSE(kms_aead.ok());
   EXPECT_EQ(absl::StatusCode::kInvalidArgument, kms_aead.status().code());
@@ -94,8 +94,9 @@ TEST_F(GcpKmsAeadTest, SuccessToDecrypt) {
       .WillOnce(Return(decrypt_response));
 
   StatusOr<std::unique_ptr<Aead>> kms_aead = GcpKmsAead::New(
-      kKeyName, dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
-                    mock_gcp_kms_client_));
+      kKeyName,
+      std::dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
+          mock_gcp_kms_client_));
   StatusOr<std::string> actual_plain_text =
       (*kms_aead)->Decrypt(kCiphertext, kAssociatedData);
 
@@ -112,8 +113,9 @@ TEST_F(GcpKmsAeadTest, FailedToDecrypt) {
       .WillOnce(Return(Status(StatusCode::kInvalidArgument, "Invalid input")));
 
   StatusOr<std::unique_ptr<Aead>> kms_aead = GcpKmsAead::New(
-      kKeyName, dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
-                    mock_gcp_kms_client_));
+      kKeyName,
+      std::dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
+          mock_gcp_kms_client_));
   StatusOr<std::string> actual_plain_text =
       (*kms_aead)->Decrypt(kCiphertext, kAssociatedData);
 

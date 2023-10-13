@@ -39,8 +39,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME;
 using std::regex;
-using std::regex_match;
-using std::strlen;
 
 namespace {
 constexpr char kAwsInstanceClientUtils[] = "AwsInstanceClientUtils";

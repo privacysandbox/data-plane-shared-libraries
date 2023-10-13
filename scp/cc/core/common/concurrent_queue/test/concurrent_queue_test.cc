@@ -32,7 +32,6 @@ using google::scp::core::test::ScpTestBase;
 
 using std::atomic;
 using std::thread;
-using std::this_thread::yield;
 
 namespace google::scp::core::common::test {
 
@@ -81,7 +80,7 @@ TEST_F(ConcurrentQueueTests, MultiThreadedEnqueue) {
       EXPECT_EQ(word.fetch_or(mask) & mask, 0);
       auto index = i;
       while (queue.TryEnqueue(index) != success) {
-        yield();
+        std::this_thread::yield();
       }
     }));
 
@@ -89,7 +88,7 @@ TEST_F(ConcurrentQueueTests, MultiThreadedEnqueue) {
       int index = -1;
       auto success = SuccessExecutionResult();
       while (queue.TryDequeue(index) != success) {
-        yield();
+        std::this_thread::yield();
       }
       int word_idx = index / 64;
       int bit_idx = index % 64;

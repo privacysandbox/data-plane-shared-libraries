@@ -92,7 +92,6 @@ using google::scp::cpio::client_providers::mock::MockS3Client;
 using std::atomic_bool;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 using testing::_;
 using testing::ElementsAre;
 using testing::Eq;
@@ -565,11 +564,11 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
   // it is not.
 
   // Wait until it enters the code path we want.
-  sleep_for(milliseconds(50));
+  std::this_thread::sleep_for(milliseconds(50));
   put_blob_stream_context_.TryPushRequest(std::move(request2));
 
   // Wait until it enters the code path we want.
-  sleep_for(milliseconds(50));
+  std::this_thread::sleep_for(milliseconds(50));
   put_blob_stream_context_.TryPushRequest(std::move(request3));
 
   put_blob_stream_context_.MarkDone();
@@ -796,7 +795,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
 
   EXPECT_SUCCESS(provider_.PutBlobStream(put_blob_stream_context_));
 
-  sleep_for(microseconds(kStreamKeepAliveMicrosCount));
+  std::this_thread::sleep_for(microseconds(kStreamKeepAliveMicrosCount));
   EXPECT_TRUE(finish_called_.load());
   EXPECT_TRUE(put_blob_stream_context_.IsMarkedDone());
 }

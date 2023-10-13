@@ -51,7 +51,6 @@ using google::scp::cpio::client_providers::TestAwsRoleCredentialsProvider;
 using google::scp::cpio::client_providers::
     TestAwsRoleCredentialsProviderOptions;
 using google::scp::cpio::client_providers::TestInstanceClientOptions;
-using std::dynamic_pointer_cast;
 
 namespace {
 constexpr char kDefaultRegion[] = "us-east-1";
@@ -61,8 +60,8 @@ namespace google::scp::cpio {
 ExecutionResult TestAwsPrivateKeyServiceFactory::ReadConfigurations() noexcept {
   RETURN_IF_FAILURE(PrivateKeyServiceFactory::ReadConfigurations());
 
-  auto test_options =
-      dynamic_pointer_cast<TestAwsPrivateKeyClientOptions>(client_options_);
+  auto test_options = std::dynamic_pointer_cast<TestAwsPrivateKeyClientOptions>(
+      client_options_);
   TryReadConfigString(config_provider_,
                       kTestAwsPrivateKeyClientKmsEndpointOverride,
                       *test_options->kms_endpoint_override);
@@ -97,7 +96,7 @@ ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 TestAwsPrivateKeyServiceFactory::CreateKmsClient() noexcept {
   auto test_kms_client_options = std::make_shared<TestAwsKmsClientOptions>();
   test_kms_client_options->kms_endpoint_override =
-      dynamic_pointer_cast<TestAwsPrivateKeyClientOptions>(client_options_)
+      std::dynamic_pointer_cast<TestAwsPrivateKeyClientOptions>(client_options_)
           ->kms_endpoint_override;
 
   kms_client_ = std::make_shared<TestAwsKmsClientProvider>(
@@ -110,7 +109,7 @@ TestAwsPrivateKeyServiceFactory::CreateRoleCredentialsProvider() noexcept {
   auto test_role_credentials_provider_options =
       std::make_shared<TestAwsRoleCredentialsProviderOptions>();
   test_role_credentials_provider_options->sts_endpoint_override =
-      dynamic_pointer_cast<TestAwsPrivateKeyClientOptions>(client_options_)
+      std::dynamic_pointer_cast<TestAwsPrivateKeyClientOptions>(client_options_)
           ->sts_endpoint_override;
 
   role_credentials_provider_ = std::make_shared<TestAwsRoleCredentialsProvider>(
@@ -121,7 +120,7 @@ TestAwsPrivateKeyServiceFactory::CreateRoleCredentialsProvider() noexcept {
 
 ExecutionResultOr<std::shared_ptr<ServiceInterface>>
 TestAwsPrivateKeyServiceFactory::CreatePrivateKeyFetcher() noexcept {
-  if (dynamic_pointer_cast<TestAwsPrivateKeyClientOptions>(client_options_)
+  if (std::dynamic_pointer_cast<TestAwsPrivateKeyClientOptions>(client_options_)
           ->is_integration_test) {
     private_key_fetcher_ = std::make_shared<TestAwsPrivateKeyFetcherProvider>(
         http2_client_, role_credentials_provider_);

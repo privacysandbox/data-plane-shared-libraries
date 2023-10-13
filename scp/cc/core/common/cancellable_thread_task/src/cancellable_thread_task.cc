@@ -17,7 +17,6 @@
 #include "cancellable_thread_task.h"
 
 using std::chrono::milliseconds;
-using std::this_thread::sleep_for;
 
 static constexpr milliseconds kStartupDelayWaitLoopIntervalInMilliseconds =
     milliseconds(500);
@@ -47,7 +46,7 @@ void CancellableThreadTask::ThreadFunction() {
   while (TimeProvider::GetSteadyTimestampInNanoseconds() <
              start_steady_timestamp_ &&
          task_state_ == TaskState::NotStarted) {
-    sleep_for(kStartupDelayWaitLoopIntervalInMilliseconds);
+    std::this_thread::sleep_for(kStartupDelayWaitLoopIntervalInMilliseconds);
   }
 
   TaskState current_state = TaskState::NotStarted;

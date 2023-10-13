@@ -29,7 +29,6 @@ using google::scp::cpio::client_providers::QueueClientOptions;
 using google::scp::cpio::client_providers::QueueClientProviderInterface;
 using google::scp::cpio::client_providers::TestGcpQueueClientOptions;
 using google::scp::cpio::client_providers::TestGcpQueueClientProvider;
-using std::dynamic_pointer_cast;
 
 namespace google::scp::cpio {
 std::shared_ptr<QueueClientOptions>
@@ -48,7 +47,8 @@ TestGcpQueueServiceFactory::CreateQueueClientOptions() noexcept {
 std::shared_ptr<QueueClientProviderInterface>
 TestGcpQueueServiceFactory::CreateQueueClient() noexcept {
   return std::make_shared<TestGcpQueueClientProvider>(
-      dynamic_pointer_cast<TestGcpQueueClientOptions>(queue_client_options_),
+      std::dynamic_pointer_cast<TestGcpQueueClientOptions>(
+          queue_client_options_),
       instance_client_, instance_service_factory_->GetCpuAsynceExecutor(),
       instance_service_factory_->GetIoAsynceExecutor());
 }

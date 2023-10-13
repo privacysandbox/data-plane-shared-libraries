@@ -53,12 +53,10 @@ using std::atomic;
 using std::bind;
 using std::function;
 using std::list;
-using std::make_pair;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::placeholders::_1;
 using std::placeholders::_2;
-using std::this_thread::sleep_for;
 
 static constexpr size_t kStartupWaitIntervalMilliseconds = 1000;
 static constexpr size_t kStopTransactionWaitLoopIntervalMilliseconds = 1000;
@@ -256,7 +254,7 @@ ExecutionResult TransactionEngine::Run() noexcept {
              "Transaction Engine has '%llu' pending transactions to be "
              "resolved. Waiting...",
              pending_calls.load());
-    sleep_for(milliseconds(kStartupWaitIntervalMilliseconds));
+    std::this_thread::sleep_for(milliseconds(kStartupWaitIntervalMilliseconds));
   }
 
   SCP_INFO(kTransactionEngine, activity_id_,
@@ -301,7 +299,8 @@ ExecutionResult TransactionEngine::Stop() noexcept {
                "Transaction Engine waiting on an active transaction '%s' that "
                "is busy doing some work",
                ToString(transaction->id).c_str());
-      sleep_for(milliseconds(kStopTransactionWaitLoopIntervalMilliseconds));
+      std::this_thread::sleep_for(
+          milliseconds(kStopTransactionWaitLoopIntervalMilliseconds));
     }
   }
 
@@ -965,7 +964,7 @@ ExecutionResult TransactionEngine::InitializeTransaction(
           .count();
   transaction->last_execution_timestamp =
       TimeProvider::GetWallTimestampInNanosecondsAsClockTicks();
-  auto pair = make_pair(transaction->id, transaction);
+  auto pair = std::make_pair(transaction->id, transaction);
   auto execution_result = active_transactions_map_.Insert(pair, transaction);
   if (!execution_result.Successful()) {
     auto transaction_id_string = common::ToString(transaction->id);

@@ -28,10 +28,8 @@ namespace http = beast::http;
 using tcp = boost::asio::ip::tcp;
 
 using std::atomic_bool;
-using std::make_pair;
 using std::multimap;
 using std::thread;
-using std::transform;
 using std::chrono::milliseconds;
 
 namespace google::scp::core::test {

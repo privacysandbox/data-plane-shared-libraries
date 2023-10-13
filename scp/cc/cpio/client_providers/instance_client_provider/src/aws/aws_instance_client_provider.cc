@@ -80,7 +80,6 @@ using google::scp::core::errors::
 using google::scp::cpio::common::CpioUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 using nlohmann::json;
-using std::all_of;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::placeholders::_3;
@@ -293,11 +292,11 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
     return;
   }
 
-  if (!all_of(GetRequiredFieldsForInstanceDynamicData().first,
-              GetRequiredFieldsForInstanceDynamicData().second,
-              [&json_response](const char* const component) {
-                return json_response.contains(component);
-              })) {
+  if (!std::all_of(GetRequiredFieldsForInstanceDynamicData().first,
+                   GetRequiredFieldsForInstanceDynamicData().second,
+                   [&json_response](const char* const component) {
+                     return json_response.contains(component);
+                   })) {
     SCP_ERROR_CONTEXT(
         kAwsInstanceClientProvider, get_resource_name_context,
         malformed_failure,

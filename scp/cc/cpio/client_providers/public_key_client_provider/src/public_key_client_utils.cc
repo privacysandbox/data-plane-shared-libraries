@@ -43,11 +43,8 @@ using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_EXPIRED_TIME_FETCH_FAILED;
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_PUBLIC_KEYS_FETCH_FAILED;
-using std::get_time;
 using std::istringstream;
-using std::mktime;
 using std::regex;
-using std::regex_replace;
 using std::tm;
 
 static constexpr char kPublicKeysLabel[] = "keys";
@@ -69,11 +66,11 @@ ExecutionResult PublicKeyClientUtils::ParseExpiredTimeFromHeaders(
   }
   tm time_date = {};
   istringstream stream_time(created_date->second);
-  stream_time >> get_time(&time_date, kPublicKeyDateTimeFormat);
-  auto max_age = regex_replace(cache_control->second,
-                               std::regex(kPublicKeyMaxAgePrefix), "");
+  stream_time >> std::get_time(&time_date, kPublicKeyDateTimeFormat);
+  auto max_age = std::regex_replace(cache_control->second,
+                                    std::regex(kPublicKeyMaxAgePrefix), "");
 
-  auto mt_time = mktime(&time_date);
+  auto mt_time = std::mktime(&time_date);
   if (mt_time < 0) {
     return FailureExecutionResult(
         SC_PUBLIC_KEY_CLIENT_PROVIDER_EXPIRED_TIME_FETCH_FAILED);

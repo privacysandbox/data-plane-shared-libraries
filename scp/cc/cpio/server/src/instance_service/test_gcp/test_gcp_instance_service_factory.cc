@@ -33,7 +33,6 @@ using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::TestGcpInstanceClientProvider;
 using google::scp::cpio::client_providers::TestInstanceClientOptions;
-using std::dynamic_pointer_cast;
 
 namespace {
 constexpr char kTestGcpInstanceServiceFactory[] =
@@ -45,7 +44,7 @@ constexpr char kDefaultInstanceId[] = "12345678987654321";
 namespace google::scp::cpio {
 ExecutionResult TestGcpInstanceServiceFactory::Init() noexcept {
   auto test_options =
-      dynamic_pointer_cast<TestGcpInstanceServiceFactoryOptions>(options_);
+      std::dynamic_pointer_cast<TestGcpInstanceServiceFactoryOptions>(options_);
   RETURN_AND_LOG_IF_FAILURE(
       TryReadConfigString(config_provider_,
                           test_options->project_id_config_label, project_id_),

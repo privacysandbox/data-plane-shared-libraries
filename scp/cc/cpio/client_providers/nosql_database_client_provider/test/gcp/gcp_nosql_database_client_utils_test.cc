@@ -34,7 +34,6 @@ using google::scp::core::errors::
     SC_NO_SQL_DATABASE_PROVIDER_INVALID_PARAMETER_TYPE;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
-using std::get;
 using testing::Eq;
 using testing::ExplainMatchResult;
 
