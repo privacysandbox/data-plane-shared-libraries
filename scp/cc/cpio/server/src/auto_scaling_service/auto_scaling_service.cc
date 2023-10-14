@@ -18,11 +18,11 @@
 
 #include <csignal>
 #include <filesystem>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <thread>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/time_provider/src/time_provider.h"
 #include "core/common/uuid/src/uuid.h"
@@ -83,11 +83,9 @@ using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::client_providers::AutoScalingClientProviderFactory;
 using google::scp::cpio::client_providers::AutoScalingClientProviderInterface;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
-using std::bind;
 using std::cout;
 using std::endl;
 using std::runtime_error;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -115,8 +113,9 @@ class AutoScalingServiceImpl : public AutoScalingService::CallbackService {
     return ExecuteNetworkCall<TryFinishInstanceTerminationRequest,
                               TryFinishInstanceTerminationResponse>(
         server_context, request, response,
-        bind(&AutoScalingClientProviderInterface::TryFinishInstanceTermination,
-             auto_scaling_client, _1));
+        absl::bind_front(
+            &AutoScalingClientProviderInterface::TryFinishInstanceTermination,
+            auto_scaling_client));
   }
 };
 

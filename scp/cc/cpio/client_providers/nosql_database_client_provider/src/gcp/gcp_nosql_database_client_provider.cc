@@ -16,6 +16,7 @@
 
 #include "gcp_nosql_database_client_provider.h"
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -24,6 +25,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/substitute.h"
@@ -97,11 +99,9 @@ using google::scp::cpio::client_providers::GcpNoSQLDatabaseClientUtils;
 using google::scp::cpio::client_providers::PartitionAndSortKey;
 using google::scp::cpio::common::GcpUtils;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlRequest;
-using std::bind;
 using std::optional;
 using std::pair;
 using std::unordered_map;
-using std::placeholders::_1;
 
 using SpannerJson = google::cloud::spanner::Json;
 using json = nlohmann::json;
@@ -350,8 +350,8 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::CreateTable(
   RETURN_IF_FAILURE(ValidateCreateTableRequest(create_table_context));
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          bind(&GcpNoSQLDatabaseClientProvider::CreateTableInternal, this,
-               create_table_context),
+          absl::bind_front(&GcpNoSQLDatabaseClientProvider::CreateTableInternal,
+                           this, create_table_context),
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     SCP_ERROR_CONTEXT(kGcpSpanner, create_table_context, schedule_result,
@@ -400,8 +400,8 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::DeleteTable(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          bind(&GcpNoSQLDatabaseClientProvider::DeleteTableInternal, this,
-               delete_table_context),
+          absl::bind_front(&GcpNoSQLDatabaseClientProvider::DeleteTableInternal,
+                           this, delete_table_context),
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     SCP_ERROR_CONTEXT(kGcpSpanner, delete_table_context, schedule_result,
@@ -574,8 +574,9 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::GetDatabaseItem(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          bind(&GcpNoSQLDatabaseClientProvider::GetDatabaseItemInternal, this,
-               get_database_item_context, std::move(query), std::move(params)),
+          absl::bind_front(
+              &GcpNoSQLDatabaseClientProvider::GetDatabaseItemInternal, this,
+              get_database_item_context, std::move(query), std::move(params)),
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     SCP_ERROR_CONTEXT(kGcpSpanner, get_database_item_context, schedule_result,
@@ -685,9 +686,9 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::CreateDatabaseItem(
   create_item_options.column_names.push_back(kValueColumnName);
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          bind(&GcpNoSQLDatabaseClientProvider::CreateDatabaseItemInternal,
-               this, create_database_item_context,
-               std::move(create_item_options)),
+          absl::bind_front(
+              &GcpNoSQLDatabaseClientProvider::CreateDatabaseItemInternal, this,
+              create_database_item_context, std::move(create_item_options)),
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     create_database_item_context.result = schedule_result;
@@ -861,12 +862,12 @@ void GcpNoSQLDatabaseClientProvider::UpsertDatabaseItemInternal(
   const auto& table_name =
       upsert_database_item_context.request->key().table_name();
   ExecutionResult prepare_result = SuccessExecutionResult();
-  auto commit_result_or =
-      client.Commit(bind(&GcpNoSQLDatabaseClientProvider::UpsertFunctor, this,
-                         std::ref(upsert_database_item_context),
-                         std::ref(client), std::ref(upsert_select_options),
-                         enforce_row_existence, std::ref(new_attributes),
-                         std::ref(prepare_result), std::ref(table_name), _1));
+  auto commit_result_or = client.Commit(
+      absl::bind_front(&GcpNoSQLDatabaseClientProvider::UpsertFunctor, this,
+                       std::ref(upsert_database_item_context), std::ref(client),
+                       std::ref(upsert_select_options), enforce_row_existence,
+                       std::ref(new_attributes), std::ref(prepare_result),
+                       std::ref(table_name)));
 
   if (!prepare_result.Successful()) {
     FinishContext(prepare_result, upsert_database_item_context,
@@ -950,10 +951,10 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::UpsertDatabaseItem(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          bind(&GcpNoSQLDatabaseClientProvider::UpsertDatabaseItemInternal,
-               this, upsert_database_item_context,
-               std::move(*select_options_or), enforce_row_existence,
-               std::move(new_attributes)),
+          absl::bind_front(
+              &GcpNoSQLDatabaseClientProvider::UpsertDatabaseItemInternal, this,
+              upsert_database_item_context, std::move(*select_options_or),
+              enforce_row_existence, std::move(new_attributes)),
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     upsert_database_item_context.result = schedule_result;

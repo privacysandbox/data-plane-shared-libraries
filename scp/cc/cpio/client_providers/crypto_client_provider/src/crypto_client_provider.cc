@@ -95,11 +95,9 @@ using google::scp::core::errors::SC_CRYPTO_CLIENT_PROVIDER_SECRET_EXPORT_FAILED;
 using google::scp::core::errors::
     SC_CRYPTO_CLIENT_PROVIDER_SPLIT_CIPHERTEXT_FAILED;
 using google::scp::core::utils::Base64Decode;
-using std::bind;
 using std::map;
 using std::mt19937;
 using std::uniform_int_distribution;
-using std::placeholders::_1;
 
 namespace {
 /// Filename for logging errors

@@ -24,6 +24,7 @@
 #include <aws/sqs/model/ReceiveMessageRequest.h>
 #include <aws/sqs/model/SendMessageRequest.h>
 
+#include "absl/functional/bind_front.h"
 #include "aws/sqs/SQSClient.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/common/uuid/src/uuid.h"
@@ -80,11 +81,6 @@ using google::scp::core::errors::
     SC_AWS_QUEUE_CLIENT_PROVIDER_QUEUE_NAME_REQUIRED;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
-using std::bind;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 static constexpr char kAwsQueueClientProvider[] = "AwsQueueClientProvider";
 static const uint8_t kMaxNumberOfMessagesReceived = 1;
@@ -200,8 +196,8 @@ ExecutionResult AwsQueueClientProvider::EnqueueMessage(
 
   sqs_client_->SendMessageAsync(
       send_message_request,
-      bind(&AwsQueueClientProvider::OnSendMessageCallback, this,
-           enqueue_message_context, _1, _2, _3, _4),
+      absl::bind_front(&AwsQueueClientProvider::OnSendMessageCallback, this,
+                       enqueue_message_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -242,8 +238,8 @@ ExecutionResult AwsQueueClientProvider::GetTopMessage(
   receive_message_request.SetWaitTimeSeconds(kMaxWaitTimeSeconds);
   sqs_client_->ReceiveMessageAsync(
       receive_message_request,
-      bind(&AwsQueueClientProvider::OnReceiveMessageCallback, this,
-           get_top_message_context, _1, _2, _3, _4),
+      absl::bind_front(&AwsQueueClientProvider::OnReceiveMessageCallback, this,
+                       get_top_message_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -347,8 +343,9 @@ ExecutionResult AwsQueueClientProvider::UpdateMessageVisibilityTimeout(
 
   sqs_client_->ChangeMessageVisibilityAsync(
       change_message_visibility_request,
-      bind(&AwsQueueClientProvider::OnChangeMessageVisibilityCallback, this,
-           update_message_visibility_timeout_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsQueueClientProvider::OnChangeMessageVisibilityCallback, this,
+          update_message_visibility_timeout_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -403,8 +400,8 @@ ExecutionResult AwsQueueClientProvider::DeleteMessage(
 
   sqs_client_->DeleteMessageAsync(
       delete_message_request,
-      bind(&AwsQueueClientProvider::OnDeleteMessageCallback, this,
-           delete_message_context, _1, _2, _3, _4),
+      absl::bind_front(&AwsQueueClientProvider::OnDeleteMessageCallback, this,
+                       delete_message_context),
       nullptr);
 
   return SuccessExecutionResult();

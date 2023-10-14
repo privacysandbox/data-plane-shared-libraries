@@ -18,6 +18,7 @@
 #include <mutex>
 #include <string>
 
+#include "absl/functional/bind_front.h"
 #include "core/interface/async_context.h"
 #include "core/interface/token_fetcher_interface.h"
 
@@ -29,7 +30,6 @@ using google::scp::core::common::TimeProvider;
 using std::shared_lock;
 using std::unique_lock;
 using std::chrono::seconds;
-using std::placeholders::_1;
 
 static constexpr const char kAutoRefreshTokenProvider[] =
     "AutoRefreshTokenProvider";
@@ -65,7 +65,8 @@ AutoRefreshTokenProviderService::GetToken() noexcept {
 ExecutionResult AutoRefreshTokenProviderService::RefreshToken() {
   AsyncContext<FetchTokenRequest, FetchTokenResponse> get_token_context(
       std::make_shared<FetchTokenRequest>(),
-      bind(&AutoRefreshTokenProviderService::OnRefreshTokenCallback, this, _1));
+      absl::bind_front(&AutoRefreshTokenProviderService::OnRefreshTokenCallback,
+                       this));
   auto execution_result = token_fetcher_->FetchToken(get_token_context);
   if (!execution_result.Successful()) {
     SCP_CRITICAL_CONTEXT(

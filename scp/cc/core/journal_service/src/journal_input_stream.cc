@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_join.h"
 #include "core/blob_storage_provider/src/common/error_codes.h"
 #include "core/interface/type_def.h"
@@ -44,9 +45,7 @@ using google::scp::core::journal_service::JournalStreamReadLogResponse;
 using google::scp::core::journal_service::JournalUtils;
 using google::scp::core::journal_service::LastCheckpointMetadata;
 using std::atomic;
-using std::bind;
 using std::list;
-using std::placeholders::_1;
 
 // TODO: Use configuration provider to update the following.
 static constexpr char kLastCheckpointBlobName[] = "last_checkpoint";
@@ -173,8 +172,8 @@ ExecutionResult JournalInputStream::ReadLastCheckpointBlob(
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
       std::make_shared<GetBlobRequest>(std::move(get_blob_request)),
-      bind(&JournalInputStream::OnReadLastCheckpointBlobCallback, this,
-           journal_stream_read_log_context, _1),
+      absl::bind_front(&JournalInputStream::OnReadLastCheckpointBlobCallback,
+                       this, journal_stream_read_log_context),
       journal_stream_read_log_context);
 
   return blob_storage_provider_client_->GetBlob(get_blob_context);
@@ -264,8 +263,8 @@ ExecutionResult JournalInputStream::ReadCheckpointBlob(
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
       std::make_shared<GetBlobRequest>(std::move(get_blob_request)),
-      bind(&JournalInputStream::OnReadCheckpointBlobCallback, this,
-           journal_stream_read_log_context, _1),
+      absl::bind_front(&JournalInputStream::OnReadCheckpointBlobCallback, this,
+                       journal_stream_read_log_context),
       journal_stream_read_log_context);
 
   return blob_storage_provider_client_->GetBlob(get_blob_context);
@@ -348,8 +347,8 @@ ExecutionResult JournalInputStream::ListCheckpoints(
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context(
       std::make_shared<ListBlobsRequest>(std::move(list_blobs_request)),
-      bind(&JournalInputStream::OnListCheckpointsCallback, this,
-           journal_stream_read_log_context, _1),
+      absl::bind_front(&JournalInputStream::OnListCheckpointsCallback, this,
+                       journal_stream_read_log_context),
       journal_stream_read_log_context);
 
   return blob_storage_provider_client_->ListBlobs(list_blobs_context);
@@ -453,8 +452,8 @@ ExecutionResult JournalInputStream::ListJournals(
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context(
       std::make_shared<ListBlobsRequest>(std::move(list_blobs_request)),
-      bind(&JournalInputStream::OnListJournalsCallback, this,
-           journal_stream_read_log_context, _1),
+      absl::bind_front(&JournalInputStream::OnListJournalsCallback, this,
+                       journal_stream_read_log_context),
       journal_stream_read_log_context);
 
   return blob_storage_provider_client_->ListBlobs(list_blobs_context);
@@ -678,8 +677,9 @@ ExecutionResult JournalInputStream::ReadJournalBlob(
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
       std::make_shared<GetBlobRequest>(std::move(get_blob_request)),
-      bind(&JournalInputStream::OnReadJournalBlobCallback, this,
-           journal_stream_read_log_context, _1, buffer_index),
+      std::bind(&JournalInputStream::OnReadJournalBlobCallback, this,
+                journal_stream_read_log_context, std::placeholders::_1,
+                buffer_index),
       journal_stream_read_log_context);
 
   return blob_storage_provider_client_->GetBlob(get_blob_context);

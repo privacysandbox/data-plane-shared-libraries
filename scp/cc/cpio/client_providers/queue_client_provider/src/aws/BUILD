@@ -34,6 +34,7 @@ cc_library(
         "//scp/cc/public/cpio/interface:cpio_errors",
         "//scp/cc/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
         "@aws_sdk_cpp//:sqs",
+        "@com_google_absl//absl/functional:bind_front",
         "@com_google_protobuf//:protobuf",
     ],
 )

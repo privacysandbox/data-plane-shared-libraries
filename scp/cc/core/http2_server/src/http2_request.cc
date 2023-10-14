@@ -17,6 +17,7 @@
 #include "http2_request.h"
 
 #include <algorithm>
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
@@ -27,9 +28,6 @@
 #include "http2_utils.h"
 
 using google::scp::core::http2_server::Http2Utils;
-using std::bind;
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 static constexpr size_t kMaxRequestBodySize = 1 * 1024 * 1024 * 1024;  // 100MB
 
@@ -123,8 +121,9 @@ ExecutionResult NgHttp2Request::UnwrapNgHttp2Request() noexcept {
 
 void NgHttp2Request::SetOnRequestBodyDataReceivedCallback(
     const RequestBodyDataReceivedCallback& callback) {
-  ng2_request_.on_data(bind(&NgHttp2Request::OnRequestBodyDataChunkReceived,
-                            this, _1, _2, callback));
+  ng2_request_.on_data(
+      std::bind(&NgHttp2Request::OnRequestBodyDataChunkReceived, this,
+                std::placeholders::_1, std::placeholders::_2, callback));
 }
 
 }  // namespace google::scp::core

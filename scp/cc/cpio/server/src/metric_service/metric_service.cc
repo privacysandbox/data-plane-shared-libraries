@@ -18,11 +18,11 @@
 
 #include <csignal>
 #include <filesystem>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <thread>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/time_provider/src/time_provider.h"
 #include "core/common/uuid/src/uuid.h"
@@ -88,11 +88,9 @@ using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
 using google::scp::cpio::client_providers::MetricClientProviderFactory;
-using std::bind;
 using std::cout;
 using std::endl;
 using std::runtime_error;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -118,7 +116,7 @@ class MetricServiceImpl : public MetricService::CallbackService {
       const PutMetricsRequest* request, PutMetricsResponse* response) override {
     return ExecuteNetworkCall<PutMetricsRequest, PutMetricsResponse>(
         server_context, request, response,
-        bind(&MetricClientInterface::PutMetrics, metric_client, _1));
+        absl::bind_front(&MetricClientInterface::PutMetrics, metric_client));
   }
 };
 

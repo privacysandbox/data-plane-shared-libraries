@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/functional/bind_front.h"
 #include "scp/cc/core/common/uuid/src/uuid.h"
 
 using google::scp::core::AsyncContext;
@@ -36,10 +37,8 @@ using google::scp::core::Uri;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED;
-using std::bind;
 using std::pair;
 using std::chrono::seconds;
-using std::placeholders::_1;
 
 namespace {
 constexpr char kAwsAuthTokenProvider[] = "AwsAuthTokenProvider";
@@ -92,8 +91,9 @@ ExecutionResult AwsAuthTokenProvider::GetSessionToken(
 
   http_context.request->path = std::make_shared<Uri>(kTokenServerPath);
 
-  http_context.callback = bind(&AwsAuthTokenProvider::OnGetSessionTokenCallback,
-                               this, get_token_context, _1);
+  http_context.callback =
+      absl::bind_front(&AwsAuthTokenProvider::OnGetSessionTokenCallback, this,
+                       get_token_context);
 
   auto execution_result = http_client_->PerformRequest(http_context);
   if (!execution_result.Successful()) {

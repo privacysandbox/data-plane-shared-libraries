@@ -25,6 +25,7 @@
 #include <thread>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "core/interface/errors.h"
 #include "core/interface/service_interface.h"
 #include "core/logger/src/logger.h"
@@ -88,12 +89,10 @@ using google::scp::cpio::StopLogger;
 using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
 using google::scp::cpio::client_providers::PrivateKeyClientProviderInterface;
-using std::bind;
 using std::cout;
 using std::endl;
 using std::list;
 using std::runtime_error;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -120,8 +119,8 @@ class PrivateKeyServiceImpl : public PrivateKeyService::CallbackService {
       ListPrivateKeysResponse* response) override {
     return ExecuteNetworkCall<ListPrivateKeysRequest, ListPrivateKeysResponse>(
         server_context, request, response,
-        bind(&PrivateKeyClientProviderInterface::ListPrivateKeys,
-             private_key_client, _1));
+        absl::bind_front(&PrivateKeyClientProviderInterface::ListPrivateKeys,
+                         private_key_client));
   }
 };
 

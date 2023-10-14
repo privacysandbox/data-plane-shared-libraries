@@ -26,6 +26,7 @@
 #include <aws/ec2/model/DescribeTagsRequest.h>
 #include <nlohmann/json.hpp>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_format.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/common/global_logger/src/global_logger.h"
@@ -80,10 +81,6 @@ using google::scp::core::errors::
 using google::scp::cpio::common::CpioUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 using nlohmann::json;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 namespace {
 constexpr char kAwsInstanceClientProvider[] = "AwsInstanceClientProvider";
@@ -176,8 +173,8 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
   auto execution_result =
       CpioUtils::AsyncToSync<GetCurrentInstanceResourceNameRequest,
                              GetCurrentInstanceResourceNameResponse>(
-          std::bind(&AwsInstanceClientProvider::GetCurrentInstanceResourceName,
-                    this, _1),
+          absl::bind_front(
+              &AwsInstanceClientProvider::GetCurrentInstanceResourceName, this),
           request, response);
 
   if (!execution_result.Successful()) {
@@ -199,8 +196,9 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceName(
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       get_token_context(
           std::make_shared<GetSessionTokenRequest>(),
-          std::bind(&AwsInstanceClientProvider::OnGetSessionTokenCallback, this,
-                    get_resource_name_context, _1),
+          absl::bind_front(
+              &AwsInstanceClientProvider::OnGetSessionTokenCallback, this,
+              get_resource_name_context),
           get_resource_name_context);
   auto execution_result =
       auth_token_provider_->GetSessionToken(get_token_context);
@@ -244,8 +242,9 @@ void AwsInstanceClientProvider::OnGetSessionTokenCallback(
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
       std::move(signed_request),
-      std::bind(&AwsInstanceClientProvider::OnGetInstanceResourceNameCallback,
-                this, get_resource_name_context, _1),
+      absl::bind_front(
+          &AwsInstanceClientProvider::OnGetInstanceResourceNameCallback, this,
+          get_resource_name_context),
       get_resource_name_context);
 
   auto execution_result = http1_client_->PerformRequest(http_context);
@@ -328,9 +327,9 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
   auto execution_result =
       CpioUtils::AsyncToSync<GetInstanceDetailsByResourceNameRequest,
                              GetInstanceDetailsByResourceNameResponse>(
-          std::bind(
+          absl::bind_front(
               &AwsInstanceClientProvider::GetInstanceDetailsByResourceName,
-              this, _1),
+              this),
           request, response);
 
   if (!execution_result.Successful()) {
@@ -383,9 +382,9 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceName(
   (*ec2_client_or)
       ->DescribeInstancesAsync(
           request,
-          std::bind(
+          absl::bind_front(
               &AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback,
-              this, get_details_context, _1, _2, _3, _4));
+              this, get_details_context));
 
   return SuccessExecutionResult();
 }
@@ -484,9 +483,9 @@ ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
 
   (*ec2_client_or)
       ->DescribeTagsAsync(
-          request,
-          std::bind(&AwsInstanceClientProvider::OnDescribeTagsAsyncCallback,
-                    this, get_tags_context, _1, _2, _3, _4));
+          request, absl::bind_front(
+                       &AwsInstanceClientProvider::OnDescribeTagsAsyncCallback,
+                       this, get_tags_context));
   return SuccessExecutionResult();
 }
 

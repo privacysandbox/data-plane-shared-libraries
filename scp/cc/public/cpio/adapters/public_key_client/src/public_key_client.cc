@@ -20,6 +20,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
@@ -43,8 +44,6 @@ using google::scp::core::utils::ConvertToPublicExecutionResult;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::PublicKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PublicKeyClientProviderInterface;
-using std::bind;
-using std::placeholders::_1;
 
 static constexpr char kPublicKeyClient[] = "PublicKeyClient";
 
@@ -100,8 +99,8 @@ core::ExecutionResult PublicKeyClient::ListPublicKeys(
     ListPublicKeysRequest request,
     Callback<ListPublicKeysResponse> callback) noexcept {
   return Execute<ListPublicKeysRequest, ListPublicKeysResponse>(
-      bind(&PublicKeyClientProviderInterface::ListPublicKeys,
-           public_key_client_provider_, _1),
+      absl::bind_front(&PublicKeyClientProviderInterface::ListPublicKeys,
+                       public_key_client_provider_),
       request, callback);
 }
 

@@ -16,13 +16,13 @@
 
 #include "aws_role_credentials_provider.h"
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
 
 #include <aws/sts/model/AssumeRoleRequest.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/common/time_provider/src/time_provider.h"
 #include "cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
@@ -50,10 +50,6 @@ using google::scp::core::common::TimeProvider;
 using google::scp::core::errors::
     SC_AWS_ROLE_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 static constexpr char kAwsRoleCredentialsProvider[] =
     "AwsRoleCredentialsProvider";
@@ -121,8 +117,9 @@ ExecutionResult AwsRoleCredentialsProvider::GetRoleCredentials(
 
   sts_client_->AssumeRoleAsync(
       sts_request,
-      bind(&AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback, this,
-           get_credentials_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback, this,
+          get_credentials_context),
       nullptr);
 
   return SuccessExecutionResult();

@@ -23,6 +23,7 @@
 #include <string>
 #include <thread>
 
+#include "absl/functional/bind_front.h"
 #include "core/interface/errors.h"
 #include "core/interface/service_interface.h"
 #include "core/logger/src/logger.h"
@@ -80,11 +81,9 @@ using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
 using google::scp::cpio::client_providers::ParameterClientProviderFactory;
 using google::scp::cpio::client_providers::ParameterClientProviderInterface;
-using std::bind;
 using std::cout;
 using std::endl;
 using std::runtime_error;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -111,8 +110,8 @@ class ParameterServiceImpl : public ParameterService::CallbackService {
       GetParameterResponse* response) override {
     return ExecuteNetworkCall<GetParameterRequest, GetParameterResponse>(
         server_context, request, response,
-        bind(&ParameterClientProviderInterface::GetParameter, parameter_client,
-             _1));
+        absl::bind_front(&ParameterClientProviderInterface::GetParameter,
+                         parameter_client));
   }
 };
 

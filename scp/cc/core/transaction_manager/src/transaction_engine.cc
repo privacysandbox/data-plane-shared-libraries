@@ -26,6 +26,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/serialization/src/serialization.h"
 #include "core/common/time_provider/src/time_provider.h"
 #include "core/common/uuid/src/uuid.h"
@@ -50,13 +51,10 @@ using google::scp::core::transaction_manager::proto::TransactionLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
 using std::atomic;
-using std::bind;
 using std::function;
 using std::list;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 static constexpr size_t kStartupWaitIntervalMilliseconds = 1000;
 static constexpr size_t kStopTransactionWaitLoopIntervalMilliseconds = 1000;
@@ -187,7 +185,8 @@ ExecutionResult TransactionEngine::Init() noexcept {
 
   return journal_service_->SubscribeForRecovery(
       kTransactionEngineId,
-      bind(&TransactionEngine::OnJournalServiceRecoverCallback, this, _1, _2));
+      absl::bind_front(&TransactionEngine::OnJournalServiceRecoverCallback,
+                       this));
 }
 
 ExecutionResult TransactionEngine::Run() noexcept {
@@ -416,8 +415,9 @@ ExecutionResult TransactionEngine::ResolveTransaction(
   AsyncContext<GetTransactionStatusRequest, GetTransactionStatusResponse>
       get_transaction_status_context(
           std::make_shared<GetTransactionStatusRequest>(),
-          bind(&TransactionEngine::OnGetRemoteTransactionStatusCallback, this,
-               transaction, _1),
+          absl::bind_front(
+              &TransactionEngine::OnGetRemoteTransactionStatusCallback, this,
+              transaction),
           transaction->context);
 
   get_transaction_status_context.request->transaction_id = transaction->id;
@@ -652,8 +652,9 @@ ExecutionResult TransactionEngine::RollForwardLocalAndRemoteTransactions(
   AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>
       remote_phase_context(
           std::make_shared<TransactionPhaseRequest>(),
-          bind(&TransactionEngine::OnRollForwardRemoteTransactionCallback, this,
-               transaction, _1),
+          absl::bind_front(
+              &TransactionEngine::OnRollForwardRemoteTransactionCallback, this,
+              transaction),
           transaction->context);
 
   remote_phase_context.request->transaction_execution_phase =
@@ -1106,8 +1107,8 @@ ExecutionResult TransactionEngine::LogTransactionAndProceedToNextPhase(
   journal_log_context.request->data =
       std::make_shared<BytesBuffer>(transaction_engine_log_bytes_buffer);
   journal_log_context.callback =
-      bind(&TransactionEngine::OnLogTransactionCallback, this, _1,
-           current_phase, transaction);
+      std::bind(&TransactionEngine::OnLogTransactionCallback, this,
+                std::placeholders::_1, current_phase, transaction);
 
   operation_dispatcher_
       .Dispatch<AsyncContext<JournalLogRequest, JournalLogResponse>>(
@@ -1264,8 +1265,8 @@ ExecutionResult TransactionEngine::LogStateAndProceedToNextPhase(
     std::shared_ptr<Transaction>& transaction) noexcept {
   return LogState(
       current_phase, transaction,
-      bind(&TransactionEngine::OnLogStateAndProceedToNextPhaseCallback, this,
-           _1, current_phase, transaction));
+      std::bind(&TransactionEngine::OnLogStateAndProceedToNextPhaseCallback,
+                this, std::placeholders::_1, current_phase, transaction));
 }
 
 ExecutionResult TransactionEngine::LogStateAndExecuteDistributedPhase(
@@ -1273,8 +1274,9 @@ ExecutionResult TransactionEngine::LogStateAndExecuteDistributedPhase(
     std::shared_ptr<Transaction>& transaction) noexcept {
   return LogState(
       current_phase, transaction,
-      bind(&TransactionEngine::OnLogStateAndExecuteDistributedPhaseCallback,
-           this, _1, current_phase, transaction));
+      std::bind(
+          &TransactionEngine::OnLogStateAndExecuteDistributedPhaseCallback,
+          this, std::placeholders::_1, current_phase, transaction));
 }
 
 void TransactionEngine::OnLogStateAndProceedToNextPhaseCallback(
@@ -1882,8 +1884,8 @@ ExecutionResult TransactionEngine::DispatchDistributedCommand(
     std::shared_ptr<TransactionCommand>& command,
     std::shared_ptr<Transaction>& transaction) noexcept {
   TransactionCommandCallback transaction_callback =
-      bind(&TransactionEngine::OnPhaseCallback, this, command_index,
-           current_phase, _1, transaction);
+      std::bind(&TransactionEngine::OnPhaseCallback, this, command_index,
+                current_phase, std::placeholders::_1, transaction);
   if (current_phase == TransactionPhase::Begin) {
     return command->begin(transaction_callback);
   }

@@ -24,6 +24,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "core/utils/src/base64.h"
@@ -50,10 +51,8 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Decode;
 using google::scp::core::utils::PadBase64Encoding;
 using nlohmann::json;
-using std::bind;
 using std::pair;
 using std::chrono::seconds;
-using std::placeholders::_1;
 
 namespace {
 constexpr char kGcpAuthTokenProvider[] = "GcpAuthTokenProvider";
@@ -155,8 +154,9 @@ ExecutionResult GcpAuthTokenProvider::GetSessionToken(
 
   http_context.request->path = std::make_shared<Uri>(kTokenServerPath);
 
-  http_context.callback = bind(&GcpAuthTokenProvider::OnGetSessionTokenCallback,
-                               this, get_token_context, _1);
+  http_context.callback =
+      absl::bind_front(&GcpAuthTokenProvider::OnGetSessionTokenCallback, this,
+                       get_token_context);
 
   auto execution_result = http_client_->PerformRequest(http_context);
   if (!execution_result.Successful()) {
@@ -253,9 +253,9 @@ ExecutionResult GcpAuthTokenProvider::GetSessionTokenForTargetAudience(
       kAudienceParameter, *get_token_context.request->token_target_audience_uri,
       "&", kFormatFullParameter));
 
-  http_context.callback =
-      bind(&GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback,
-           this, get_token_context, _1);
+  http_context.callback = absl::bind_front(
+      &GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback, this,
+      get_token_context);
 
   return http_client_->PerformRequest(http_context);
 }

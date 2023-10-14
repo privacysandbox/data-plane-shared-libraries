@@ -27,6 +27,7 @@
 #include <aws/dynamodb/model/QueryRequest.h>
 #include <aws/dynamodb/model/UpdateItemRequest.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/interface/configuration_keys.h"
 #include "core/nosql_database_provider/src/common/nosql_database_provider_utils.h"
@@ -49,11 +50,6 @@ using Aws::Utils::Outcome;
 using google::scp::core::async_executor::aws::AwsAsyncExecutor;
 using google::scp::core::nosql_database_provider::AwsDynamoDBUtils;
 using google::scp::core::nosql_database_provider::NoSQLDatabaseProviderUtils;
-using std::bind;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 static constexpr size_t kExpressionsInitialByteSize = 1024;
 static constexpr char kDynamoDB[] = "DynamoDB";
@@ -183,8 +179,8 @@ ExecutionResult AwsDynamoDB::GetDatabaseItem(
 
   dynamo_db_client_->QueryAsync(
       get_item_request,
-      bind(&AwsDynamoDB::OnGetDatabaseItemCallback, this,
-           get_database_item_context, _1, _2, _3, _4),
+      absl::bind_front(&AwsDynamoDB::OnGetDatabaseItemCallback, this,
+                       get_database_item_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -418,8 +414,8 @@ ExecutionResult AwsDynamoDB::UpsertDatabaseItem(
 
   dynamo_db_client_->UpdateItemAsync(
       update_item_request,
-      bind(&AwsDynamoDB::OnUpsertDatabaseItemCallback, this,
-           upsert_database_item_context, _1, _2, _3, _4),
+      absl::bind_front(&AwsDynamoDB::OnUpsertDatabaseItemCallback, this,
+                       upsert_database_item_context),
       nullptr);
 
   return SuccessExecutionResult();

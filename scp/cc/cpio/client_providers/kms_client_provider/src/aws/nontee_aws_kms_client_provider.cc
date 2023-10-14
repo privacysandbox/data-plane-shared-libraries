@@ -22,6 +22,7 @@
 #include <aws/core/auth/AWSCredentialsProvider.h>
 #include <aws/core/auth/AWSCredentialsProviderChain.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/utils/src/base64.h"
 #include "cpio/client_providers/interface/role_credentials_provider_interface.h"
@@ -55,8 +56,6 @@ using google::scp::core::errors::SC_AWS_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND;
 using google::scp::core::errors::SC_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
 using google::scp::cpio::common::CreateClientConfiguration;
-using std::bind;
-using std::placeholders::_1;
 
 /// Filename for logging errors
 static constexpr char kNonteeAwsKmsClientProvider[] =
@@ -137,8 +136,8 @@ ExecutionResult NonteeAwsKmsClientProvider::Decrypt(
 
   AsyncContext<DecryptRequest, Aead> get_aead_context(
       decrypt_context.request,
-      bind(&NonteeAwsKmsClientProvider::GetAeadCallbackToDecrypt, this,
-           decrypt_context, _1),
+      absl::bind_front(&NonteeAwsKmsClientProvider::GetAeadCallbackToDecrypt,
+                       this, decrypt_context),
       decrypt_context);
   return GetAead(get_aead_context);
 }
@@ -181,8 +180,9 @@ ExecutionResult NonteeAwsKmsClientProvider::GetAead(
     AsyncContext<DecryptRequest, Aead>& get_aead_context) noexcept {
   AsyncContext<DecryptRequest, KMSClient> create_kms_context(
       get_aead_context.request,
-      bind(&NonteeAwsKmsClientProvider::CreateKmsCallbackToCreateAead, this,
-           get_aead_context, _1),
+      absl::bind_front(
+          &NonteeAwsKmsClientProvider::CreateKmsCallbackToCreateAead, this,
+          get_aead_context),
       get_aead_context);
   return CreateKmsClient(create_kms_context);
 }
@@ -224,9 +224,9 @@ ExecutionResult NonteeAwsKmsClientProvider::CreateKmsClient(
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_role_credentials_context(
           std::move(request),
-          bind(&NonteeAwsKmsClientProvider::
-                   GetSessionCredentialsCallbackToCreateKms,
-               this, create_kms_context, _1),
+          absl::bind_front(&NonteeAwsKmsClientProvider::
+                               GetSessionCredentialsCallbackToCreateKms,
+                           this, create_kms_context),
           create_kms_context);
   return role_credentials_provider_->GetRoleCredentials(
       get_role_credentials_context);

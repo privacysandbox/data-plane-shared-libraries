@@ -18,9 +18,9 @@
 #include <unistd.h>
 
 #include <csignal>
-#include <functional>
 #include <string>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/uuid/src/uuid.h"
@@ -95,11 +95,9 @@ using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
-using std::bind;
 using std::cout;
 using std::endl;
 using std::runtime_error;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -127,8 +125,9 @@ class InstanceServiceImpl : public InstanceService::CallbackService {
     return ExecuteNetworkCall<GetCurrentInstanceResourceNameRequest,
                               GetCurrentInstanceResourceNameResponse>(
         server_context, request, response,
-        bind(&InstanceClientProviderInterface::GetCurrentInstanceResourceName,
-             instance_client, _1));
+        absl::bind_front(
+            &InstanceClientProviderInterface::GetCurrentInstanceResourceName,
+            instance_client));
   }
 
   grpc::ServerUnaryReactor* GetTagsByResourceName(
@@ -138,8 +137,9 @@ class InstanceServiceImpl : public InstanceService::CallbackService {
     return ExecuteNetworkCall<GetTagsByResourceNameRequest,
                               GetTagsByResourceNameResponse>(
         server_context, request, response,
-        bind(&InstanceClientProviderInterface::GetTagsByResourceName,
-             instance_client, _1));
+        absl::bind_front(
+            &InstanceClientProviderInterface::GetTagsByResourceName,
+            instance_client));
   }
 
   grpc::ServerUnaryReactor* GetInstanceDetailsByResourceName(
@@ -149,8 +149,9 @@ class InstanceServiceImpl : public InstanceService::CallbackService {
     return ExecuteNetworkCall<GetInstanceDetailsByResourceNameRequest,
                               GetInstanceDetailsByResourceNameResponse>(
         server_context, request, response,
-        bind(&InstanceClientProviderInterface::GetInstanceDetailsByResourceName,
-             instance_client, _1));
+        absl::bind_front(
+            &InstanceClientProviderInterface::GetInstanceDetailsByResourceName,
+            instance_client));
   }
 };
 

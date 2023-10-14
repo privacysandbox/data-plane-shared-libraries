@@ -13,10 +13,12 @@
 // limitations under the License.
 
 #include <chrono>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
 
+#include "absl/functional/bind_front.h"
 #include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -42,8 +44,6 @@ using google::scp::cpio::LogOption;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
 using std::atomic;
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 static constexpr char kRegion[] = "us-east-1";
 static constexpr char kInstanceId[] = "i-1234";
@@ -94,7 +94,8 @@ int main(int argc, char* argv[]) {
   atomic<bool> finished = false;
   result = instance_client->GetCurrentInstanceResourceName(
       GetCurrentInstanceResourceNameRequest(),
-      bind(GetCurrentInstanceResourceNameCallback, std::ref(finished), _1, _2));
+      absl::bind_front(GetCurrentInstanceResourceNameCallback,
+                       std::ref(finished)));
 
   if (!result.Successful()) {
     std::cout << "GetCurrentInstanceResourceName failed immediately: "

@@ -19,6 +19,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "core/interface/http_client_interface.h"
 #include "cpio/client_providers/interface/auth_token_provider_interface.h"
@@ -37,8 +38,6 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_GCP_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND;
-using std::bind;
-using std::placeholders::_1;
 
 namespace {
 constexpr char kGcpPrivateKeyFetcherProvider[] = "GcpPrivateKeyFetcherProvider";
@@ -72,8 +71,9 @@ ExecutionResult GcpPrivateKeyFetcherProvider::SignHttpRequest(
   AsyncContext<GetSessionTokenForTargetAudienceRequest, GetSessionTokenResponse>
       get_token_context(
           std::move(request),
-          bind(&GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback, this,
-               sign_request_context, _1),
+          absl::bind_front(
+              &GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback, this,
+              sign_request_context),
           sign_request_context);
 
   return auth_token_provider_->GetSessionTokenForTargetAudience(

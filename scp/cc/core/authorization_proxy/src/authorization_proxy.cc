@@ -15,10 +15,12 @@
  */
 #include "core/authorization_proxy/src/authorization_proxy.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
 
+#include "absl/functional/bind_front.h"
 #include "core/authorization_proxy/src/error_codes.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/http2_client/src/http2_client.h"
@@ -28,9 +30,6 @@ using google::scp::core::common::AutoExpiryConcurrentMap;
 using google::scp::core::common::kZeroUuid;
 using nghttp2::asio_http2::host_service_from_uri;
 using std::function;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
 
 static constexpr const char kAuthorizationProxy[] = "AuthorizationProxy";
 
@@ -75,8 +74,8 @@ AuthorizationProxy::AuthorizationProxy(
     std::unique_ptr<HttpRequestResponseAuthInterceptorInterface> http_helper)
     : cache_(kAuthorizationCacheEntryLifetimeSeconds,
              false /* extend_entry_lifetime_on_access */,
-             false /* block_entry_while_eviction */,
-             bind(&OnBeforeGarbageCollection, _1, _2, _3), async_executor),
+             false /* block_entry_while_eviction */, &OnBeforeGarbageCollection,
+             async_executor),
       server_endpoint_uri_(std::make_shared<std::string>(server_endpoint_url)),
       http_client_(http_client),
       http_helper_(std::move(http_helper)) {}
@@ -150,8 +149,8 @@ ExecutionResult AuthorizationProxy::Authorize(
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
       std::move(http_request),
-      bind(&AuthorizationProxy::HandleAuthorizeResponse, this,
-           authorization_context, key_value_pair.first, _1),
+      absl::bind_front(&AuthorizationProxy::HandleAuthorizeResponse, this,
+                       authorization_context, key_value_pair.first),
       authorization_context);
   auto result = http_client_->PerformRequest(http_context);
   if (!result.Successful()) {

@@ -36,7 +36,6 @@
 using google::scp::core::test::WaitUntil;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using std::atomic;
-using std::bind;
 using std::thread;
 using std::tuple;
 using std::chrono::duration_cast;

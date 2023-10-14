@@ -33,5 +33,6 @@ cc_library(
         "//scp/cc/core/utils/src:core_utils",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
+        "@com_google_absl//absl/functional:bind_front",
     ],
 )

@@ -25,6 +25,7 @@
 #include <aws/monitoring/CloudWatchErrors.h>
 #include <aws/monitoring/model/PutMetricDataRequest.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
@@ -66,11 +67,6 @@ using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_SHOULD_ENABLE_BATCH_RECORDING;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
-using std::bind;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 // Specifies the maximum number of HTTP connections to a single server.
 static constexpr size_t kCloudwatchMaxConcurrentConnections = 50;
@@ -187,8 +183,9 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
         chunk_payload + datums_payload > kAwsPayloadSizeLimit) {
       cloud_watch_client_->PutMetricDataAsync(
           request_chunk,
-          bind(&AwsMetricClientProvider::OnPutMetricDataAsyncCallback, this,
-               context_chunk, _1, _2, _3, _4));
+          absl::bind_front(
+              &AwsMetricClientProvider::OnPutMetricDataAsyncCallback, this,
+              context_chunk));
       active_push_count_++;
 
       // Resets all chunks.
@@ -210,8 +207,8 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
   if (!context_chunk.empty()) {
     cloud_watch_client_->PutMetricDataAsync(
         request_chunk,
-        bind(&AwsMetricClientProvider::OnPutMetricDataAsyncCallback, this,
-             context_chunk, _1, _2, _3, _4));
+        absl::bind_front(&AwsMetricClientProvider::OnPutMetricDataAsyncCallback,
+                         this, context_chunk));
     active_push_count_++;
   }
 

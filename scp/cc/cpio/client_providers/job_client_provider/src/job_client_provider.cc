@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
 #include "core/interface/type_def.h"
@@ -84,8 +85,6 @@ using google::scp::core::errors::SC_JOB_CLIENT_PROVIDER_UPDATION_CONFLICT;
 using google::scp::core::errors::
     SC_NO_SQL_DATABASE_PROVIDER_CONDITIONAL_CHECKED_FAILED;
 using google::scp::core::errors::SC_NO_SQL_DATABASE_PROVIDER_RECORD_NOT_FOUND;
-using std::bind;
-using std::placeholders::_1;
 
 namespace {
 constexpr char kJobClientProvider[] = "JobClientProvider";
@@ -142,9 +141,10 @@ ExecutionResult JobClientProvider::PutJob(
   AsyncContext<EnqueueMessageRequest, EnqueueMessageResponse>
       enqueue_message_context(
           std::move(enqueue_message_request),
-          bind(&JobClientProvider::OnEnqueueMessageCallback, this,
-               put_job_context, std::make_shared<std::string>(job_id),
-               std::move(server_job_id), _1),
+          absl::bind_front(&JobClientProvider::OnEnqueueMessageCallback, this,
+                           put_job_context,
+                           std::make_shared<std::string>(job_id),
+                           std::move(server_job_id)),
           put_job_context);
 
   return queue_client_provider_->EnqueueMessage(enqueue_message_context);
@@ -190,8 +190,8 @@ void JobClientProvider::OnEnqueueMessageCallback(
       create_database_item_context(
           std::make_shared<CreateDatabaseItemRequest>(
               std::move(*create_job_request_or)),
-          bind(&JobClientProvider::OnCreateNewJobItemCallback, this,
-               put_job_context, std::move(job), _1),
+          absl::bind_front(&JobClientProvider::OnCreateNewJobItemCallback, this,
+                           put_job_context, std::move(job)),
           put_job_context);
   auto execution_result = nosql_database_client_provider_->CreateDatabaseItem(
       create_database_item_context);
@@ -237,8 +237,8 @@ ExecutionResult JobClientProvider::GetNextJob(
   AsyncContext<GetTopMessageRequest, GetTopMessageResponse>
       get_top_message_context(
           std::move(std::make_shared<GetTopMessageRequest>()),
-          bind(&JobClientProvider::OnGetTopMessageCallback, this,
-               get_next_job_context, _1),
+          absl::bind_front(&JobClientProvider::OnGetTopMessageCallback, this,
+                           get_next_job_context),
           get_next_job_context);
 
   return queue_client_provider_->GetTopMessage(get_top_message_context);
@@ -284,9 +284,9 @@ void JobClientProvider::OnGetTopMessageCallback(
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       get_database_item_context(
           std::move(get_database_item_request),
-          bind(&JobClientProvider::OnGetNextJobItemCallback, this,
-               get_next_job_context, std::move(job_id),
-               std::move(server_job_id), std::move(receipt_info), _1),
+          absl::bind_front(&JobClientProvider::OnGetNextJobItemCallback, this,
+                           get_next_job_context, std::move(job_id),
+                           std::move(server_job_id), std::move(receipt_info)),
           get_next_job_context);
   auto execution_result = nosql_database_client_provider_->GetDatabaseItem(
       get_database_item_context);
@@ -371,8 +371,8 @@ ExecutionResult JobClientProvider::GetJobById(
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       get_database_item_context(
           std::move(get_database_item_request),
-          bind(&JobClientProvider::OnGetJobItemByJobIdCallback, this,
-               get_job_by_id_context, _1),
+          absl::bind_front(&JobClientProvider::OnGetJobItemByJobIdCallback,
+                           this, get_job_by_id_context),
           get_job_by_id_context);
 
   return nosql_database_client_provider_->GetDatabaseItem(
@@ -443,8 +443,9 @@ ExecutionResult JobClientProvider::UpdateJobBody(
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       get_database_item_context(
           std::move(get_database_item_request),
-          bind(&JobClientProvider::OnGetJobItemForUpdateJobBodyCallback, this,
-               update_job_body_context, _1),
+          absl::bind_front(
+              &JobClientProvider::OnGetJobItemForUpdateJobBodyCallback, this,
+              update_job_body_context),
           update_job_body_context);
 
   return nosql_database_client_provider_->GetDatabaseItem(
@@ -518,8 +519,9 @@ void JobClientProvider::OnGetJobItemForUpdateJobBodyCallback(
       upsert_database_item_context(
           std::move(std::make_shared<UpsertDatabaseItemRequest>(
               *upsert_job_request_or)),
-          bind(&JobClientProvider::OnUpsertUpdatedJobBodyJobItemCallback, this,
-               update_job_body_context, std::move(update_time), _1),
+          absl::bind_front(
+              &JobClientProvider::OnUpsertUpdatedJobBodyJobItemCallback, this,
+              update_job_body_context, std::move(update_time)),
           update_job_body_context);
 
   auto execution_result = nosql_database_client_provider_->UpsertDatabaseItem(
@@ -600,8 +602,9 @@ ExecutionResult JobClientProvider::UpdateJobStatus(
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       get_database_item_context(
           std::move(get_database_item_request),
-          bind(&JobClientProvider::OnGetJobItemForUpdateJobStatusCallback, this,
-               update_job_status_context, _1),
+          absl::bind_front(
+              &JobClientProvider::OnGetJobItemForUpdateJobStatusCallback, this,
+              update_job_status_context),
           update_job_status_context);
 
   return nosql_database_client_provider_->GetDatabaseItem(
@@ -728,9 +731,9 @@ void JobClientProvider::UpsertUpdatedJobStatusJobItem(
       upsert_database_item_context(
           std::move(std::make_shared<UpsertDatabaseItemRequest>(
               *upsert_job_request_or)),
-          bind(&JobClientProvider::OnUpsertUpdatedJobStatusJobItemCallback,
-               this, update_job_status_context, std::move(update_time),
-               retry_count, _1),
+          absl::bind_front(
+              &JobClientProvider::OnUpsertUpdatedJobStatusJobItemCallback, this,
+              update_job_status_context, std::move(update_time), retry_count),
           update_job_status_context);
 
   auto execution_result = nosql_database_client_provider_->UpsertDatabaseItem(
@@ -798,10 +801,10 @@ void JobClientProvider::DeleteJobMessageForUpdatingJobStatus(
   AsyncContext<DeleteMessageRequest, DeleteMessageResponse>
       delete_message_context(
           std::move(delete_message_request),
-          bind(&JobClientProvider::
-                   OnDeleteJobMessageForUpdatingJobStatusCallback,
-               this, update_job_status_context, std::move(update_time),
-               retry_count, _1),
+          absl::bind_front(&JobClientProvider::
+                               OnDeleteJobMessageForUpdatingJobStatusCallback,
+                           this, update_job_status_context,
+                           std::move(update_time), retry_count),
           update_job_status_context);
 
   auto execution_result =
@@ -910,8 +913,9 @@ ExecutionResult JobClientProvider::UpdateJobVisibilityTimeout(
                UpdateMessageVisibilityTimeoutResponse>
       update_message_visibility_timeout_context(
           std::move(update_message_visibility_timeout_request),
-          bind(&JobClientProvider::OnUpdateMessageVisibilityTimeoutCallback,
-               this, update_job_visibility_timeout_context, _1),
+          absl::bind_front(
+              &JobClientProvider::OnUpdateMessageVisibilityTimeoutCallback,
+              this, update_job_visibility_timeout_context),
           update_job_visibility_timeout_context);
 
   return queue_client_provider_->UpdateMessageVisibilityTimeout(
@@ -982,9 +986,9 @@ ExecutionResult JobClientProvider::DeleteOrphanedJobMessage(
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       get_database_item_context(
           std::move(get_database_item_request),
-          bind(&JobClientProvider::
-                   OnGetJobItemForDeleteOrphanedJobMessageCallback,
-               this, delete_orphaned_job_context, _1),
+          absl::bind_front(&JobClientProvider::
+                               OnGetJobItemForDeleteOrphanedJobMessageCallback,
+                           this, delete_orphaned_job_context),
           delete_orphaned_job_context);
 
   return nosql_database_client_provider_->GetDatabaseItem(
@@ -1052,9 +1056,10 @@ void JobClientProvider::DeleteJobMessageForDeletingOrphanedJob(
   AsyncContext<DeleteMessageRequest, DeleteMessageResponse>
       delete_message_context(
           std::move(delete_message_request),
-          bind(&JobClientProvider::
-                   OnDeleteJobMessageForDeleteOrphanedJobMessageCallback,
-               this, delete_orphaned_job_context, _1),
+          absl::bind_front(
+              &JobClientProvider::
+                  OnDeleteJobMessageForDeleteOrphanedJobMessageCallback,
+              this, delete_orphaned_job_context),
           delete_orphaned_job_context);
 
   auto execution_result =

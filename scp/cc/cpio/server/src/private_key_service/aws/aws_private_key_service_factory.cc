@@ -47,7 +47,6 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::KmsClientProviderInterface;
 using google::scp::cpio::client_providers::PrivateKeyFetcherProviderInterface;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
-using std::bind;
 
 namespace {
 constexpr char kAwsPrivateKeyServiceFactory[] = "AwsPrivateKeyServiceFactory";
@@ -87,34 +86,21 @@ ExecutionResult AwsPrivateKeyServiceFactory::Init() noexcept {
                             kZeroUuid, "Failed to read configurations");
 
   std::vector<ComponentCreator> creators(
-      {ComponentCreator(
-           bind(&AwsPrivateKeyServiceFactory::CreateIoAsyncExecutor, this),
-           "IoAsyncExecutor"),
-       ComponentCreator(
-           bind(&AwsPrivateKeyServiceFactory::CreateCpuAsyncExecutor, this),
-           "CpuAsyncExecutor"),
-       ComponentCreator(
-           bind(&AwsPrivateKeyServiceFactory::CreateHttp1Client, this),
-           "Http1Client"),
-       ComponentCreator(
-           bind(&AwsPrivateKeyServiceFactory::CreateHttp2Client, this),
-           "Http2Client"),
-       ComponentCreator(
-           bind(&AwsPrivateKeyServiceFactory::CreateAuthTokenProvider, this),
-           "AuthTokenProvider"),
-       ComponentCreator(
-           bind(&AwsPrivateKeyServiceFactory::CreateInstanceClient, this),
-           "InstanceClient"),
-       ComponentCreator(
-           bind(&AwsPrivateKeyServiceFactory::CreateRoleCredentialsProvider,
-                this),
-           "RoleCredentialsProvider"),
-       ComponentCreator(
-           bind(&AwsPrivateKeyServiceFactory::CreatePrivateKeyFetcher, this),
-           "PrivateKeyFetcher"),
-       ComponentCreator(
-           bind(&AwsPrivateKeyServiceFactory::CreateKmsClient, this),
-           "KmsClient")});
+      {ComponentCreator([this] { return CreateIoAsyncExecutor(); },
+                        "IoAsyncExecutor"),
+       ComponentCreator([this] { return CreateCpuAsyncExecutor(); },
+                        "CpuAsyncExecutor"),
+       ComponentCreator([this] { return CreateHttp1Client(); }, "Http1Client"),
+       ComponentCreator([this] { return CreateHttp2Client(); }, "Http2Client"),
+       ComponentCreator([this] { return CreateAuthTokenProvider(); },
+                        "AuthTokenProvider"),
+       ComponentCreator([this] { return CreateInstanceClient(); },
+                        "InstanceClient"),
+       ComponentCreator([this] { return CreateRoleCredentialsProvider(); },
+                        "RoleCredentialsProvider"),
+       ComponentCreator([this] { return CreatePrivateKeyFetcher(); },
+                        "PrivateKeyFetcher"),
+       ComponentCreator([this] { return CreateKmsClient(); }, "KmsClient")});
   component_factory_ = std::make_shared<ComponentFactory>(std::move(creators));
 
   RETURN_AND_LOG_IF_FAILURE(PrivateKeyServiceFactory::Init(),

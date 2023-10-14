@@ -34,6 +34,7 @@ cc_library(
         "//scp/cc/public/cpio/interface:cpio_errors",
         "//scp/cc/public/cpio/interface/crypto_client:type_def",
         "//scp/cc/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
+        "@com_google_absl//absl/functional:bind_front",
         "@com_google_protobuf//:protobuf",
         "@tink_cc//:binary_keyset_reader",
         "@tink_cc//:cleartext_keyset_handle",

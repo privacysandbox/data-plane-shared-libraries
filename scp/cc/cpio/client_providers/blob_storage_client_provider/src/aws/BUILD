@@ -30,6 +30,7 @@ cc_library(
         "//scp/cc/public/cpio/interface/blob_storage_client:type_def",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
+        "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings",
     ],
 )

@@ -15,6 +15,7 @@
  */
 #include "http2_response.h"
 
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -29,7 +30,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using nghttp2::asio_http2::header_map;
 using nghttp2::asio_http2::header_value;
-using std::placeholders::_1;
 
 namespace google::scp::core {
 void NgHttp2Response::OnClose(OnCloseErrorCode close_error_code,
@@ -44,8 +44,8 @@ void NgHttp2Response::OnClose(OnCloseErrorCode close_error_code,
 }
 
 void NgHttp2Response::SetOnCloseCallback(const OnCloseCallback& callback) {
-  ng2_response_.on_close(
-      std::bind(&NgHttp2Response::OnClose, this, _1, callback));
+  ng2_response_.on_close(std::bind(&NgHttp2Response::OnClose, this,
+                                   std::placeholders::_1, callback));
 }
 
 void NgHttp2Response::Send() noexcept {

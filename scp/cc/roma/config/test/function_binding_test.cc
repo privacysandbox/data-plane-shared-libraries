@@ -29,12 +29,12 @@
 
 #include <libplatform/libplatform.h>
 
+#include "absl/functional/bind_front.h"
 #include "include/v8.h"
 #include "roma/common/src/containers.h"
 #include "roma/config/src/function_binding_object.h"
 #include "roma/config/src/type_converter.h"
 
-using std::bind;
 using std::runtime_error;
 using std::tuple;
 using v8::Context;
@@ -49,8 +49,6 @@ using v8::Script;
 using v8::String;
 using v8::TryCatch;
 using v8::Value;
-
-using namespace std::placeholders;  // NOLINT
 
 namespace google::scp::roma::config::test {
 class FunctionBindingTest : public ::testing::Test {
@@ -486,7 +484,7 @@ TEST_F(FunctionBindingTest, ShouldAllowMemberFunctionAsHandler) {
   // Set the name by which the function will be called in JS
   func.function_name = "func_that_calls_member_func";
   // Set the C++ callback for the JS function
-  func.function = bind(&MyHandler::HookHandler, my_handler, _1);
+  func.function = absl::bind_front(&MyHandler::HookHandler, my_handler);
 
   auto js_source =
       "result = func_that_calls_member_func('From JS');"

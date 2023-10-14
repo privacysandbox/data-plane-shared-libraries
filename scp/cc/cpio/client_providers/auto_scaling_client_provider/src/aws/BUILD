@@ -32,6 +32,7 @@ cc_library(
         "//scp/cc/public/cpio/proto/auto_scaling_service/v1:auto_scaling_service_cc_proto",
         "@aws_sdk_cpp//:autoscaling",
         "@aws_sdk_cpp//:core",
+        "@com_google_absl//absl/functional:bind_front",
     ],
 )
 

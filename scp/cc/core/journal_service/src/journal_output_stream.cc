@@ -27,6 +27,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "core/blob_storage_provider/src/common/error_codes.h"
 #include "core/common/sized_or_timed_bytes_buffer/src/sized_or_timed_bytes_buffer.h"
 #include "core/common/time_provider/src/time_provider.h"
@@ -45,12 +46,8 @@ using google::scp::core::journal_service::JournalUtils;
 using google::scp::cpio::AggregateMetricInterface;
 using google::scp::cpio::MetricClientInterface;
 using std::atomic;
-using std::bind;
 using std::list;
 using std::chrono::milliseconds;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
 
 static constexpr char kJournalOutputStream[] = "JournalOutputStream";
 
@@ -228,8 +225,8 @@ ExecutionResult JournalOutputStream::WriteJournalBlob(
 
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context(
       std::make_shared<PutBlobRequest>(put_blob_request),
-      bind(&JournalOutputStream::OnWriteJournalBlobCallback, this, journal_id,
-           callback, _1),
+      absl::bind_front(&JournalOutputStream::OnWriteJournalBlobCallback, this,
+                       journal_id, callback),
       activity_id_, activity_id_);
 
   return blob_storage_provider_client_->PutBlob(put_blob_context);
@@ -320,7 +317,7 @@ void JournalOutputStream::WriteBatch(
 
   auto execution_result = WriteJournalBlob(
       *buffer, journal_id,
-      bind(&JournalOutputStream::NotifyBatch, this, flush_batch, _1));
+      absl::bind_front(&JournalOutputStream::NotifyBatch, this, flush_batch));
   if (!execution_result.Successful()) {
     NotifyBatch(flush_batch, execution_result);
   }

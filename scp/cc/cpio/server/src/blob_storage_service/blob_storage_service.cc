@@ -18,13 +18,13 @@
 
 #include <condition_variable>
 #include <csignal>
-#include <functional>
 #include <string>
 
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/generic/async_generic_service.h>
 #include <grpcpp/grpcpp.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/grpc_server/callback/src/read_reactor.h"
 #include "core/grpc_server/callback/src/write_reactor.h"
@@ -97,9 +97,7 @@ using google::scp::cpio::client_providers::CloudInitializerInterface;
 using grpc::ServerContext;
 using grpc::ServerReadReactor;
 using grpc::ServerWriteReactor;
-using std::bind;
 using SyncServerOption = grpc::ServerBuilder::SyncServerOption;
-using std::placeholders::_1;
 
 namespace {
 constexpr char kServiceFactoryName[] = "blob_storage_factory";
@@ -181,8 +179,8 @@ class BlobStorageServiceImpl : public BlobStorageService::CallbackService {
                                     GetBlobResponse* response) override {
     return ExecuteNetworkCall<GetBlobRequest, GetBlobResponse>(
         server_context, request, response,
-        bind(&BlobStorageClientProviderInterface::GetBlob, blob_storage_client,
-             _1));
+        absl::bind_front(&BlobStorageClientProviderInterface::GetBlob,
+                         blob_storage_client));
   }
 
   grpc::ServerUnaryReactor* PutBlob(grpc::CallbackServerContext* server_context,
@@ -190,8 +188,8 @@ class BlobStorageServiceImpl : public BlobStorageService::CallbackService {
                                     PutBlobResponse* response) override {
     return ExecuteNetworkCall<PutBlobRequest, PutBlobResponse>(
         server_context, request, response,
-        bind(&BlobStorageClientProviderInterface::PutBlob, blob_storage_client,
-             _1));
+        absl::bind_front(&BlobStorageClientProviderInterface::PutBlob,
+                         blob_storage_client));
   }
 
   grpc::ServerUnaryReactor* ListBlobsMetadata(
@@ -201,8 +199,8 @@ class BlobStorageServiceImpl : public BlobStorageService::CallbackService {
     return ExecuteNetworkCall<ListBlobsMetadataRequest,
                               ListBlobsMetadataResponse>(
         server_context, request, response,
-        bind(&BlobStorageClientProviderInterface::ListBlobsMetadata,
-             blob_storage_client, _1));
+        absl::bind_front(&BlobStorageClientProviderInterface::ListBlobsMetadata,
+                         blob_storage_client));
   }
 
   grpc::ServerUnaryReactor* DeleteBlob(
@@ -210,8 +208,8 @@ class BlobStorageServiceImpl : public BlobStorageService::CallbackService {
       const DeleteBlobRequest* request, DeleteBlobResponse* response) override {
     return ExecuteNetworkCall<DeleteBlobRequest, DeleteBlobResponse>(
         server_context, request, response,
-        bind(&BlobStorageClientProviderInterface::DeleteBlob,
-             blob_storage_client, _1));
+        absl::bind_front(&BlobStorageClientProviderInterface::DeleteBlob,
+                         blob_storage_client));
   }
 };
 

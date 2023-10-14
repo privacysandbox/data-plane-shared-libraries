@@ -31,6 +31,7 @@ cc_library(
         "//scp/cc/public/cpio/interface:cpio_errors",
         "//scp/cc/public/cpio/interface/public_key_client:type_def",
         "//scp/cc/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
+        "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
         "@nlohmann_json//:lib",

@@ -17,8 +17,8 @@
 #include <unistd.h>
 
 #include <csignal>
-#include <functional>
 
+#include "absl/functional/bind_front.h"
 #include "core/interface/service_interface.h"
 #include "core/logger/src/logger.h"
 #include "cpio/client_providers/interface/cloud_initializer_interface.h"
@@ -73,8 +73,6 @@ using google::scp::cpio::StopLogger;
 using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
 using google::scp::cpio::client_providers::NoSQLDatabaseClientProviderInterface;
-using std::bind;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -101,8 +99,8 @@ class NoSqlDatabaseServiceImpl : public NoSqlDatabaseService::CallbackService {
       GetDatabaseItemResponse* response) override {
     return ExecuteNetworkCall<GetDatabaseItemRequest, GetDatabaseItemResponse>(
         server_context, request, response,
-        bind(&NoSQLDatabaseClientProviderInterface::GetDatabaseItem,
-             nosql_database_client, _1));
+        absl::bind_front(&NoSQLDatabaseClientProviderInterface::GetDatabaseItem,
+                         nosql_database_client));
   }
 
   grpc::ServerUnaryReactor* CreateDatabaseItem(
@@ -112,8 +110,9 @@ class NoSqlDatabaseServiceImpl : public NoSqlDatabaseService::CallbackService {
     return ExecuteNetworkCall<CreateDatabaseItemRequest,
                               CreateDatabaseItemResponse>(
         server_context, request, response,
-        bind(&NoSQLDatabaseClientProviderInterface::CreateDatabaseItem,
-             nosql_database_client, _1));
+        absl::bind_front(
+            &NoSQLDatabaseClientProviderInterface::CreateDatabaseItem,
+            nosql_database_client));
   }
 
   grpc::ServerUnaryReactor* UpsertDatabaseItem(
@@ -123,8 +122,9 @@ class NoSqlDatabaseServiceImpl : public NoSqlDatabaseService::CallbackService {
     return ExecuteNetworkCall<UpsertDatabaseItemRequest,
                               UpsertDatabaseItemResponse>(
         server_context, request, response,
-        bind(&NoSQLDatabaseClientProviderInterface::UpsertDatabaseItem,
-             nosql_database_client, _1));
+        absl::bind_front(
+            &NoSQLDatabaseClientProviderInterface::UpsertDatabaseItem,
+            nosql_database_client));
   }
 };
 

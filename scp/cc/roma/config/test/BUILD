@@ -23,6 +23,7 @@ cc_test(
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/config/src:roma_config_lib",
+        "@com_google_absl//absl/functional:bind_front",
         "@com_google_googletest//:gtest_main",
         "@v8//:v8_icu",
     ],

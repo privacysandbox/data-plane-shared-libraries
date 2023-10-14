@@ -35,6 +35,7 @@ cc_library(
         "@boost//:asio_ssl",
         "@boost//:system",
         "@com_github_nghttp2_nghttp2//:nghttp2",
+        "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings",
     ],
 )

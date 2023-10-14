@@ -16,12 +16,12 @@
 
 #include "private_key_fetcher_provider.h"
 
-#include <functional>
 #include <memory>
 #include <utility>
 
 #include <nlohmann/json.hpp>
 
+#include "absl/functional/bind_front.h"
 #include "core/interface/async_context.h"
 #include "cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
 #include "public/core/interface/execution_result.h"
@@ -40,7 +40,6 @@ using google::scp::core::errors::
     SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND;
 using google::scp::cpio::client_providers::PrivateKeyFetchingRequest;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
-using std::placeholders::_1;
 
 static constexpr char kPrivateKeyFetcherProvider[] =
     "PrivateKeyFetcherProvider";
@@ -71,8 +70,8 @@ ExecutionResult PrivateKeyFetcherProvider::FetchPrivateKey(
   AsyncContext<PrivateKeyFetchingRequest, HttpRequest>
       sign_http_request_context(
           private_key_fetching_context.request,
-          bind(&PrivateKeyFetcherProvider::SignHttpRequestCallback, this,
-               private_key_fetching_context, _1),
+          absl::bind_front(&PrivateKeyFetcherProvider::SignHttpRequestCallback,
+                           this, private_key_fetching_context),
           private_key_fetching_context);
 
   return SignHttpRequest(sign_http_request_context);
@@ -94,8 +93,8 @@ void PrivateKeyFetcherProvider::SignHttpRequestCallback(
 
   AsyncContext<HttpRequest, HttpResponse> http_client_context(
       std::move(sign_http_request_context.response),
-      bind(&PrivateKeyFetcherProvider::PrivateKeyFetchingCallback, this,
-           private_key_fetching_context, _1),
+      absl::bind_front(&PrivateKeyFetcherProvider::PrivateKeyFetchingCallback,
+                       this, private_key_fetching_context),
       private_key_fetching_context);
   execution_result = http_client_->PerformRequest(http_client_context);
   if (!execution_result.Successful()) {

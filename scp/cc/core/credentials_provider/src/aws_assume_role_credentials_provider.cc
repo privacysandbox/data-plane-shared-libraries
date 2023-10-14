@@ -22,6 +22,7 @@
 
 #include <aws/sts/model/AssumeRoleRequest.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/common/time_provider/src/time_provider.h"
 
@@ -35,10 +36,6 @@ using Aws::STS::Model::AssumeRoleOutcome;
 using Aws::STS::Model::AssumeRoleRequest;
 using google::scp::core::async_executor::aws::AwsAsyncExecutor;
 using google::scp::core::common::TimeProvider;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 static constexpr char kAwsAssumeRoleCredentialsProvider[] =
     "AwsAssumeRoleCredentialsProvider";
@@ -87,8 +84,9 @@ ExecutionResult AwsAssumeRoleCredentialsProvider::GetCredentials(
 
   sts_client_->AssumeRoleAsync(
       sts_request,
-      bind(&AwsAssumeRoleCredentialsProvider::OnGetCredentialsCallback, this,
-           get_credentials_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsAssumeRoleCredentialsProvider::OnGetCredentialsCallback, this,
+          get_credentials_context),
       nullptr);
 
   return SuccessExecutionResult();

@@ -52,8 +52,6 @@ using google::scp::core::errors::
     SC_GCP_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::common::GcpUtils;
-using std::bind;
-using std::placeholders::_1;
 
 static constexpr char kGcpParameterClientProvider[] =
     "GcpParameterClientProvider";
@@ -118,8 +116,10 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
   access_secret_request.set_name(name);
 
   auto schedule_result = io_async_executor_->Schedule(
-      bind(&GcpParameterClientProvider::AsyncGetParameterCallback, this,
-           get_parameter_context, std::move(access_secret_request)),
+      [=, this,
+       access_secret_request = std::move(access_secret_request)]() mutable {
+        AsyncGetParameterCallback(get_parameter_context, access_secret_request);
+      },
       AsyncPriority::Normal);
 
   if (!schedule_result.Successful()) {

@@ -84,8 +84,6 @@ using grpc::CreateCustomChannel;
 using grpc::GoogleDefaultCredentials;
 using grpc::StatusCode;
 using grpc::StubOptions;
-using std::bind;
-using std::placeholders::_1;
 
 static constexpr char kGcpQueueClientProvider[] = "GcpQueueClientProvider";
 static constexpr char kGcpTopicFormatString[] = "projects/%s/topics/%s";
@@ -177,8 +175,7 @@ ExecutionResult GcpQueueClientProvider::EnqueueMessage(
   }
 
   auto execution_result = io_async_executor_->Schedule(
-      bind(&GcpQueueClientProvider::EnqueueMessageAsync, this,
-           enqueue_message_context),
+      [=, this]() mutable { EnqueueMessageAsync(enqueue_message_context); },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
     enqueue_message_context.result = execution_result;
@@ -242,8 +239,7 @@ ExecutionResult GcpQueueClientProvider::GetTopMessage(
     AsyncContext<GetTopMessageRequest, GetTopMessageResponse>&
         get_top_message_context) noexcept {
   auto execution_result = io_async_executor_->Schedule(
-      bind(&GcpQueueClientProvider::GetTopMessageAsync, this,
-           get_top_message_context),
+      [=, this]() mutable { GetTopMessageAsync(get_top_message_context); },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
     get_top_message_context.result = execution_result;
@@ -353,8 +349,10 @@ ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
   }
 
   auto execution_result = io_async_executor_->Schedule(
-      bind(&GcpQueueClientProvider::UpdateMessageVisibilityTimeoutAsync, this,
-           update_message_visibility_timeout_context),
+      [=, this]() mutable {
+        UpdateMessageVisibilityTimeoutAsync(
+            update_message_visibility_timeout_context);
+      },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
     update_message_visibility_timeout_context.result = execution_result;
@@ -425,8 +423,7 @@ ExecutionResult GcpQueueClientProvider::DeleteMessage(
   }
 
   auto execution_result = io_async_executor_->Schedule(
-      bind(&GcpQueueClientProvider::DeleteMessageAsync, this,
-           delete_message_context),
+      [=, this]() mutable { DeleteMessageAsync(delete_message_context); },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
     delete_message_context.result = execution_result;

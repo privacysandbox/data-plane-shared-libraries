@@ -19,8 +19,7 @@
 #include <memory>
 #include <utility>
 
-using std::bind;
-using std::placeholders::_1;
+#include "absl/functional/bind_front.h"
 
 namespace google::scp::core {
 
@@ -49,7 +48,7 @@ ExecutionResult Http2Forwarder::RouteRequest(
   context.correlation_id = original_context.correlation_id;
   context.request = original_context.request;
   context.callback =
-      bind(&Http2Forwarder::OnHttpResponse, this, original_context, _1);
+      absl::bind_front(&Http2Forwarder::OnHttpResponse, this, original_context);
   return http2_client_->PerformRequest(context);
 }
 

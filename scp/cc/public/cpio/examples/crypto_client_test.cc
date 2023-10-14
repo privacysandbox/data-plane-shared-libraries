@@ -15,10 +15,12 @@
  */
 
 #include <chrono>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
 
+#include "absl/functional/bind_front.h"
 #include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -47,9 +49,6 @@ using google::scp::cpio::CryptoClientInterface;
 using google::scp::cpio::CryptoClientOptions;
 using google::scp::cpio::LogOption;
 using std::atomic;
-using std::bind;
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 constexpr char kPublicKey[] = "testpublickey==";
 constexpr char kPrivateKey[] = "testprivatekey=";
@@ -83,7 +82,7 @@ void AeadEncryptCallback(atomic<bool>& finished, std::string& secret,
         aead_encrypt_response.encrypted_data().ciphertext());
     crypto_client->AeadDecrypt(
         std::move(aead_decrypt_request),
-        bind(AeadDecryptCallback, std::ref(finished), _1, _2));
+        absl::bind_front(AeadDecryptCallback, std::ref(finished)));
   } else {
     finished = true;
     std::cout << "Aead encrypt failure!" << GetErrorMessage(result.status_code)
@@ -107,7 +106,7 @@ void HpkeDecryptCallback(bool is_bidirectional, atomic<bool>& finished,
       aead_encrypt_request.set_secret(secret);
       crypto_client->AeadEncrypt(
           std::move(aead_encrypt_request),
-          bind(AeadEncryptCallback, std::ref(finished), secret, _1, _2));
+          absl::bind_front(AeadEncryptCallback, std::ref(finished), secret));
     } else {
       finished = true;
     }
@@ -131,9 +130,10 @@ void HpkeEncryptCallback(bool is_bidirectional, atomic<bool>& finished,
         hpke_encrypt_response.encrypted_data().ciphertext());
     hpke_decrypt_request.mutable_encrypted_data()->set_key_id(
         hpke_encrypt_response.encrypted_data().key_id());
-    crypto_client->HpkeDecrypt(std::move(hpke_decrypt_request),
-                               bind(HpkeDecryptCallback, is_bidirectional,
-                                    std::ref(finished), _1, _2));
+    crypto_client->HpkeDecrypt(
+        std::move(hpke_decrypt_request),
+        absl::bind_front(HpkeDecryptCallback, is_bidirectional,
+                         std::ref(finished)));
   } else {
     std::cout << "Hpke encrypt failure!" << GetErrorMessage(result.status_code)
               << std::endl;
@@ -181,7 +181,8 @@ int main(int argc, char* argv[]) {
   hpke_encrypt_request.set_is_bidirectional(is_bidirectional);
   crypto_client->HpkeEncrypt(
       std::move(hpke_encrypt_request),
-      bind(HpkeEncryptCallback, is_bidirectional, std::ref(finished), _1, _2));
+      absl::bind_front(HpkeEncryptCallback, is_bidirectional,
+                       std::ref(finished)));
   WaitUntil([&finished]() { return finished.load(); },
             std::chrono::milliseconds(3000));
 

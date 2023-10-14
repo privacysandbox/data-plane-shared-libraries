@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/time_provider/src/time_provider.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
@@ -49,11 +50,9 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_ALREADY_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
-using std::bind;
 using std::scoped_lock;
 using std::chrono::milliseconds;
 using std::chrono::nanoseconds;
-using std::placeholders::_1;
 
 static constexpr char kMetricClientProvider[] = "MetricClientProvider";
 static constexpr size_t kShutdownWaitIntervalMilliseconds = 100;
@@ -217,8 +216,9 @@ void MetricClientProvider::OnPutMetrics(
   any_context.request->UnpackTo(request.get());
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::move(request),
-      bind(CallbackToPackAnyResponse<PutMetricsRequest, PutMetricsResponse>,
-           any_context, _1),
+      absl::bind_front(
+          CallbackToPackAnyResponse<PutMetricsRequest, PutMetricsResponse>,
+          any_context),
       any_context);
   context.result = PutMetrics(context);
 }

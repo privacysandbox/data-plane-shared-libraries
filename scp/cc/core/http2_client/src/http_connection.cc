@@ -29,6 +29,7 @@
 #include <nghttp2/asio_http2.h>
 #include <nghttp2/asio_http2_client.h>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/common/global_logger/src/global_logger.h"
@@ -57,9 +58,6 @@ using nghttp2::asio_http2::header_map;
 using nghttp2::asio_http2::client::configure_tls_context;
 using nghttp2::asio_http2::client::response;
 using nghttp2::asio_http2::client::session;
-using std::bind;
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 static constexpr char kContentLengthHeader[] = "content-length";
 static constexpr char kHttp2Client[] = "Http2Client";
@@ -107,8 +105,9 @@ ExecutionResult HttpConnection::Init() noexcept {
     }
 
     session_->read_timeout(seconds(http2_read_timeout_in_sec_));
-    session_->on_connect(bind(&HttpConnection::OnConnectionCreated, this, _1));
-    session_->on_error(bind(&HttpConnection::OnConnectionError, this));
+    session_->on_connect(
+        absl::bind_front(&HttpConnection::OnConnectionCreated, this));
+    session_->on_error([this](error_code /*ignored*/) { OnConnectionError(); });
     return SuccessExecutionResult();
   } catch (...) {
     auto result = FailureExecutionResult(
@@ -348,10 +347,11 @@ void HttpConnection::SendHttpRequest(
   }
 
   http_context.response = std::make_shared<HttpResponse>();
-  http_request->on_response(
-      bind(&HttpConnection::OnResponseCallback, this, http_context, _1));
-  http_request->on_close(bind(&HttpConnection::OnRequestResponseClosed, this,
-                              request_id, http_context, _1));
+  http_request->on_response(absl::bind_front(
+      &HttpConnection::OnResponseCallback, this, http_context));
+  http_request->on_close(
+      absl::bind_front(&HttpConnection::OnRequestResponseClosed, this,
+                       request_id, http_context));
 }
 
 void HttpConnection::OnRequestResponseClosed(
@@ -420,8 +420,8 @@ void HttpConnection::OnResponseCallback(
     http_context.response->body.capacity = http_response.content_length();
   }
 
-  http_response.on_data(bind(&HttpConnection::OnResponseBodyCallback, this,
-                             http_context, _1, _2));
+  http_response.on_data(absl::bind_front(
+      &HttpConnection::OnResponseBodyCallback, this, http_context));
 }
 
 void HttpConnection::OnResponseBodyCallback(

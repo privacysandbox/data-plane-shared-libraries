@@ -27,6 +27,7 @@ cc_library(
         "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//scp/cc/public/cpio/interface:cpio_errors",
         "//scp/cc/public/cpio/interface:type_def",
+        "@com_google_absl//absl/functional:bind_front",
     ],
 )
 

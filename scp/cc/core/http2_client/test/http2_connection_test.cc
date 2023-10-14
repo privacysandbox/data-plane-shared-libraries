@@ -19,7 +19,6 @@
 #include <atomic>
 #include <chrono>
 #include <csignal>
-#include <functional>
 #include <future>
 #include <memory>
 #include <thread>
@@ -53,7 +52,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
-using std::bind;
 using std::future;
 using std::promise;
 using std::thread;

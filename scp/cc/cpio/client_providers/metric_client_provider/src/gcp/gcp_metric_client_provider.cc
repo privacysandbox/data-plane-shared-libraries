@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
 #include "cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
@@ -52,8 +53,6 @@ using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::client_providers::GcpInstanceResourceNameDetails;
 using google::scp::cpio::client_providers::GcpMetricClientUtils;
 using google::scp::cpio::common::GcpUtils;
-using std::bind;
-using std::placeholders::_1;
 
 static constexpr char kGcpMetricClientProvider[] = "GcpMetricClientProvider";
 
@@ -151,9 +150,9 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
     if (time_series_request.time_series().size() == kGcpTimeSeriesSizeLimit ||
         context_vector->empty()) {
       metric_client.AsyncCreateTimeSeries(time_series_request)
-          .then(std::bind(
+          .then(absl::bind_front(
               &GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback, this,
-              *requests_vector, _1));
+              *requests_vector));
       active_push_count_++;
 
       // Clear requests_vector and protobuf repeated field.

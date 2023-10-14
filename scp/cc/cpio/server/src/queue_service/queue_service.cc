@@ -20,6 +20,7 @@
 #include <functional>
 #include <string>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/interface/async_executor_interface.h"
 #include "core/interface/http_client_interface.h"
@@ -86,8 +87,6 @@ using google::scp::cpio::client_providers::InstanceClientProviderFactory;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::QueueClientOptions;
 using google::scp::cpio::client_providers::QueueClientProviderInterface;
-using std::bind;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -114,7 +113,8 @@ class QueueServiceImpl : public QueueService::CallbackService {
       EnqueueMessageResponse* response) override {
     return ExecuteNetworkCall<EnqueueMessageRequest, EnqueueMessageResponse>(
         server_context, request, response,
-        bind(&QueueClientProviderInterface::EnqueueMessage, queue_client, _1));
+        absl::bind_front(&QueueClientProviderInterface::EnqueueMessage,
+                         queue_client));
   }
 
   grpc::ServerUnaryReactor* GetTopMessage(
@@ -123,7 +123,8 @@ class QueueServiceImpl : public QueueService::CallbackService {
       GetTopMessageResponse* response) override {
     return ExecuteNetworkCall<GetTopMessageRequest, GetTopMessageResponse>(
         server_context, request, response,
-        bind(&QueueClientProviderInterface::GetTopMessage, queue_client, _1));
+        absl::bind_front(&QueueClientProviderInterface::GetTopMessage,
+                         queue_client));
   }
 
   grpc::ServerUnaryReactor* UpdateMessageVisibilityTimeout(
@@ -133,8 +134,9 @@ class QueueServiceImpl : public QueueService::CallbackService {
     return ExecuteNetworkCall<UpdateMessageVisibilityTimeoutRequest,
                               UpdateMessageVisibilityTimeoutResponse>(
         server_context, request, response,
-        bind(&QueueClientProviderInterface::UpdateMessageVisibilityTimeout,
-             queue_client, _1));
+        absl::bind_front(
+            &QueueClientProviderInterface::UpdateMessageVisibilityTimeout,
+            queue_client));
   }
 
   grpc::ServerUnaryReactor* DeleteMessage(
@@ -143,7 +145,8 @@ class QueueServiceImpl : public QueueService::CallbackService {
       DeleteMessageResponse* response) override {
     return ExecuteNetworkCall<DeleteMessageRequest, DeleteMessageResponse>(
         server_context, request, response,
-        bind(&QueueClientProviderInterface::DeleteMessage, queue_client, _1));
+        absl::bind_front(&QueueClientProviderInterface::DeleteMessage,
+                         queue_client));
   }
 };
 

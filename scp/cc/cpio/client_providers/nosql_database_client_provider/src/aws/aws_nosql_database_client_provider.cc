@@ -28,6 +28,7 @@
 #include <aws/dynamodb/model/QueryRequest.h>
 #include <aws/dynamodb/model/UpdateItemRequest.h>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
@@ -76,13 +77,8 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::SC_NO_SQL_DATABASE_PROVIDER_RECORD_NOT_FOUND;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::client_providers::AwsNoSQLDatabaseClientUtils;
-using std::bind;
 using std::optional;
 using std::pair;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 namespace {
 
@@ -209,8 +205,9 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::GetDatabaseItem(
 
   dynamo_db_client_->QueryAsync(
       get_item_request,
-      bind(&AwsNoSQLDatabaseClientProvider::OnGetDatabaseItemCallback, this,
-           get_database_item_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsNoSQLDatabaseClientProvider::OnGetDatabaseItemCallback, this,
+          get_database_item_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -351,8 +348,9 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::CreateDatabaseItem(
 
   dynamo_db_client_->PutItemAsync(
       put_item_request,
-      bind(&AwsNoSQLDatabaseClientProvider::OnCreateDatabaseItemCallback, this,
-           create_database_item_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsNoSQLDatabaseClientProvider::OnCreateDatabaseItemCallback, this,
+          create_database_item_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -464,8 +462,9 @@ ExecutionResult AwsNoSQLDatabaseClientProvider::UpsertDatabaseItem(
 
   dynamo_db_client_->UpdateItemAsync(
       update_item_request,
-      bind(&AwsNoSQLDatabaseClientProvider::OnUpsertDatabaseItemCallback, this,
-           upsert_database_item_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsNoSQLDatabaseClientProvider::OnUpsertDatabaseItemCallback, this,
+          upsert_database_item_context),
       nullptr);
 
   return SuccessExecutionResult();

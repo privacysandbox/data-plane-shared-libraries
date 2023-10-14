@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/errors.h"
@@ -49,8 +50,6 @@ using google::scp::core::utils::ConvertToPublicExecutionResult;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderFactory;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
-using std::bind;
-using std::placeholders::_1;
 
 static constexpr char kInstanceClient[] = "InstanceClient";
 
@@ -92,8 +91,9 @@ core::ExecutionResult InstanceClient::GetCurrentInstanceResourceName(
     Callback<GetCurrentInstanceResourceNameResponse> callback) noexcept {
   return Execute<GetCurrentInstanceResourceNameRequest,
                  GetCurrentInstanceResourceNameResponse>(
-      bind(&InstanceClientProviderInterface::GetCurrentInstanceResourceName,
-           instance_client_provider_, _1),
+      absl::bind_front(
+          &InstanceClientProviderInterface::GetCurrentInstanceResourceName,
+          instance_client_provider_),
       request, callback);
 }
 
@@ -101,8 +101,8 @@ core::ExecutionResult InstanceClient::GetTagsByResourceName(
     GetTagsByResourceNameRequest request,
     Callback<GetTagsByResourceNameResponse> callback) noexcept {
   return Execute<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>(
-      bind(&InstanceClientProviderInterface::GetTagsByResourceName,
-           instance_client_provider_, _1),
+      absl::bind_front(&InstanceClientProviderInterface::GetTagsByResourceName,
+                       instance_client_provider_),
       request, callback);
 }
 
@@ -111,8 +111,9 @@ core::ExecutionResult InstanceClient::GetInstanceDetailsByResourceName(
     Callback<GetInstanceDetailsByResourceNameResponse> callback) noexcept {
   return Execute<GetInstanceDetailsByResourceNameRequest,
                  GetInstanceDetailsByResourceNameResponse>(
-      bind(&InstanceClientProviderInterface::GetInstanceDetailsByResourceName,
-           instance_client_provider_, _1),
+      absl::bind_front(
+          &InstanceClientProviderInterface::GetInstanceDetailsByResourceName,
+          instance_client_provider_),
       request, callback);
 }
 

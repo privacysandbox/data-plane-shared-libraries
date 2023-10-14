@@ -29,6 +29,7 @@
 #include <aws/s3/model/ListObjectsRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/blob_storage_provider/src/aws/aws_s3_utils.h"
 #include "core/interface/configuration_keys.h"
@@ -56,11 +57,6 @@ using Aws::S3::Model::PutObjectResult;
 using google::scp::core::async_executor::aws::AwsAsyncExecutor;
 using google::scp::core::blob_storage_provider::AwsS3Utils;
 using google::scp::core::utils::Base64Encode;
-using std::bind;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 static constexpr char kAwsS3Provider[] = "AwsS3Provider";
 static constexpr size_t kMaxConcurrentConnections = 1000;
@@ -120,8 +116,8 @@ ExecutionResult AwsS3Client::GetBlob(
   get_object_request.SetKey(blob_name);
 
   s3_client_->GetObjectAsync(get_object_request,
-                             bind(&AwsS3Client::OnGetObjectCallback, this,
-                                  get_blob_context, _1, _2, _3, _4),
+                             absl::bind_front(&AwsS3Client::OnGetObjectCallback,
+                                              this, get_blob_context),
                              nullptr);
 
   return SuccessExecutionResult();
@@ -198,10 +194,11 @@ ExecutionResult AwsS3Client::ListBlobs(
     list_objects_request.SetMarker(marker);
   }
 
-  s3_client_->ListObjectsAsync(list_objects_request,
-                               bind(&AwsS3Client::OnListObjectsCallback, this,
-                                    list_blobs_context, _1, _2, _3, _4),
-                               nullptr);
+  s3_client_->ListObjectsAsync(
+      list_objects_request,
+      absl::bind_front(&AwsS3Client::OnListObjectsCallback, this,
+                       list_blobs_context),
+      nullptr);
 
   return SuccessExecutionResult();
 }
@@ -300,8 +297,8 @@ ExecutionResult AwsS3Client::PutBlob(
   put_object_request.SetContentMD5(base64_md5_checksum.c_str());
 
   s3_client_->PutObjectAsync(put_object_request,
-                             bind(&AwsS3Client::OnPutObjectCallback, this,
-                                  put_blob_context, _1, _2, _3, _4),
+                             absl::bind_front(&AwsS3Client::OnPutObjectCallback,
+                                              this, put_blob_context),
                              nullptr);
 
   return SuccessExecutionResult();
@@ -350,10 +347,11 @@ ExecutionResult AwsS3Client::DeleteBlob(
   delete_object_request.SetBucket(bucket_name);
   delete_object_request.SetKey(blob_name);
 
-  s3_client_->DeleteObjectAsync(delete_object_request,
-                                bind(&AwsS3Client::OnDeleteObjectCallback, this,
-                                     delete_blob_context, _1, _2, _3, _4),
-                                nullptr);
+  s3_client_->DeleteObjectAsync(
+      delete_object_request,
+      absl::bind_front(&AwsS3Client::OnDeleteObjectCallback, this,
+                       delete_blob_context),
+      nullptr);
 
   return SuccessExecutionResult();
 }

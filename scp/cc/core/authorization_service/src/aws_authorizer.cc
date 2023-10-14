@@ -26,6 +26,7 @@
 #include <nlohmann/json.hpp>
 #include <openssl/base64.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/http2_client/src/aws/aws_v4_signer.h"
 #include "core/http2_client/src/http2_client.h"
 #include "core/interface/http_types.h"
@@ -34,10 +35,6 @@
 #include "error_codes.h"
 
 using boost::system::error_code;
-using std::bind;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
 using json = nlohmann::json;
 using google::scp::core::common::AutoExpiryConcurrentMap;
 using google::scp::core::utils::Base64Decode;
@@ -66,7 +63,7 @@ AwsAuthorizer::AwsAuthorizer(
               kAuthorizationTokenCacheLifetimeSeconds,
               false /* extend_entry_lifetime_on_access */,
               false /* block_entry_while_eviction */,
-              bind(&AwsAuthorizer::OnBeforeGarbageCollection, this, _1, _2, _3),
+              absl::bind_front(&AwsAuthorizer::OnBeforeGarbageCollection, this),
               async_executor)),
       server_endpoint_(std::make_shared<std::string>(server_endpoint)),
       aws_region_(aws_region),
@@ -204,8 +201,8 @@ ExecutionResult AwsAuthorizer::Authorize(
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
       std::move(http_request),
-      bind(&AwsAuthorizer::HandleHttpResponse, this, authorization_context,
-           cache_entry_key, _1),
+      absl::bind_front(&AwsAuthorizer::HandleHttpResponse, this,
+                       authorization_context, cache_entry_key),
       authorization_context);
   auto result = http_client_->PerformRequest(http_context);
   if (!result.Successful()) {

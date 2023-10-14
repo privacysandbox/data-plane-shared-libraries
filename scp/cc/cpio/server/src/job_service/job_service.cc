@@ -17,9 +17,9 @@
 #include <unistd.h>
 
 #include <csignal>
-#include <functional>
 #include <string>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/interface/async_executor_interface.h"
 #include "core/interface/service_interface.h"
@@ -85,8 +85,6 @@ using google::scp::cpio::StopLogger;
 using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
 using google::scp::cpio::client_providers::JobClientProviderInterface;
-using std::bind;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -112,7 +110,7 @@ class JobServiceImpl : public JobService::CallbackService {
                                    PutJobResponse* response) override {
     return ExecuteNetworkCall<PutJobRequest, PutJobResponse>(
         server_context, request, response,
-        bind(&JobClientProviderInterface::PutJob, job_client, _1));
+        absl::bind_front(&JobClientProviderInterface::PutJob, job_client));
   }
 
   grpc::ServerUnaryReactor* GetNextJob(
@@ -120,7 +118,7 @@ class JobServiceImpl : public JobService::CallbackService {
       const GetNextJobRequest* request, GetNextJobResponse* response) override {
     return ExecuteNetworkCall<GetNextJobRequest, GetNextJobResponse>(
         server_context, request, response,
-        bind(&JobClientProviderInterface::GetNextJob, job_client, _1));
+        absl::bind_front(&JobClientProviderInterface::GetNextJob, job_client));
   }
 
   grpc::ServerUnaryReactor* GetJobById(
@@ -128,7 +126,7 @@ class JobServiceImpl : public JobService::CallbackService {
       const GetJobByIdRequest* request, GetJobByIdResponse* response) override {
     return ExecuteNetworkCall<GetJobByIdRequest, GetJobByIdResponse>(
         server_context, request, response,
-        bind(&JobClientProviderInterface::GetJobById, job_client, _1));
+        absl::bind_front(&JobClientProviderInterface::GetJobById, job_client));
   }
 
   grpc::ServerUnaryReactor* UpdateJobBody(
@@ -137,7 +135,8 @@ class JobServiceImpl : public JobService::CallbackService {
       UpdateJobBodyResponse* response) override {
     return ExecuteNetworkCall<UpdateJobBodyRequest, UpdateJobBodyResponse>(
         server_context, request, response,
-        bind(&JobClientProviderInterface::UpdateJobBody, job_client, _1));
+        absl::bind_front(&JobClientProviderInterface::UpdateJobBody,
+                         job_client));
   }
 
   grpc::ServerUnaryReactor* UpdateJobStatus(
@@ -146,7 +145,8 @@ class JobServiceImpl : public JobService::CallbackService {
       UpdateJobStatusResponse* response) override {
     return ExecuteNetworkCall<UpdateJobStatusRequest, UpdateJobStatusResponse>(
         server_context, request, response,
-        bind(&JobClientProviderInterface::UpdateJobStatus, job_client, _1));
+        absl::bind_front(&JobClientProviderInterface::UpdateJobStatus,
+                         job_client));
   }
 
   grpc::ServerUnaryReactor* UpdateJobVisibilityTimeout(
@@ -156,8 +156,9 @@ class JobServiceImpl : public JobService::CallbackService {
     return ExecuteNetworkCall<UpdateJobVisibilityTimeoutRequest,
                               UpdateJobVisibilityTimeoutResponse>(
         server_context, request, response,
-        bind(&JobClientProviderInterface::UpdateJobVisibilityTimeout,
-             job_client, _1));
+        absl::bind_front(
+            &JobClientProviderInterface::UpdateJobVisibilityTimeout,
+            job_client));
   }
 
   grpc::ServerUnaryReactor* DeleteOrphanedJobMessage(
@@ -167,8 +168,8 @@ class JobServiceImpl : public JobService::CallbackService {
     return ExecuteNetworkCall<DeleteOrphanedJobMessageRequest,
                               DeleteOrphanedJobMessageResponse>(
         server_context, request, response,
-        bind(&JobClientProviderInterface::DeleteOrphanedJobMessage, job_client,
-             _1));
+        absl::bind_front(&JobClientProviderInterface::DeleteOrphanedJobMessage,
+                         job_client));
   }
 };
 

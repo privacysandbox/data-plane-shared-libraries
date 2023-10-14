@@ -16,6 +16,7 @@
 
 #include "http2_server.h"
 
+#include <functional>
 #include <memory>
 #include <set>
 #include <string>
@@ -24,6 +25,7 @@
 
 #include <nghttp2/asio_http2_server.h>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "core/authorization_proxy/src/error_codes.h"
 #include "core/common/concurrent_map/src/error_codes.h"
@@ -57,11 +59,8 @@ using google::scp::cpio::MetricUtils;
 using nghttp2::asio_http2::server::configure_tls_context_easy;
 using nghttp2::asio_http2::server::request;
 using nghttp2::asio_http2::server::response;
-using std::bind;
 using std::set;
 using std::thread;
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 static constexpr char kHttp2Server[] = "Http2Server";
 
@@ -183,7 +182,7 @@ ExecutionResult Http2Server::Run() noexcept {
     // handler is looked up again inside it. Ideally, we can do the look up
     // here, and pass the result to bind(), to save runtime cost.
     http2_server_.handle(path,
-                         bind(&Http2Server::OnHttp2Request, this, _1, _2));
+                         absl::bind_front(&Http2Server::OnHttp2Request, this));
   }
 
   http2_server_.read_timeout(
@@ -271,7 +270,8 @@ void Http2Server::OnHttp2Request(const request& request,
   // throughout the lifetime of this context and subsequent child contexts.
   AsyncContext<NgHttp2Request, NgHttp2Response> http2_context(
       http2Request,
-      bind(&Http2Server::OnHttp2Response, this, _1, request_endpoint_type),
+      std::bind(&Http2Server::OnHttp2Response, this, std::placeholders::_1,
+                request_endpoint_type),
       parent_activity_id, http2Request->id);
   http2_context.response = std::make_shared<NgHttp2Response>(response);
   http2_context.response->headers = std::make_shared<core::HttpHeaders>();
@@ -331,21 +331,24 @@ void Http2Server::RouteOrHandleHttp2Request(
 
     if (!endpoint_info->is_local_endpoint) {
       // Rebind the callback with the updated request target type
-      http2_context.callback = bind(&Http2Server::OnHttp2Response, this, _1,
-                                    RequestTargetEndpointType::Remote);
+      http2_context.callback =
+          std::bind(&Http2Server::OnHttp2Response, this, std::placeholders::_1,
+                    RequestTargetEndpointType::Remote);
       // Perform routing when request data is obtained on the connection. If the
       // connection is closed, do OnHttp2CleanupRoutedRequest.
       http2_context.request->SetOnRequestBodyDataReceivedCallback(
-          bind(&Http2Server::OnHttp2RequestDataObtainedRoutedRequest, this,
-               http2_context, *endpoint_info, _1));
-      http2_context.response->SetOnCloseCallback(
-          bind(&Http2Server::OnHttp2CleanupOfRoutedRequest, this,
-               http2_context.request->id, http2_context.request->id, _1));
+          absl::bind_front(
+              &Http2Server::OnHttp2RequestDataObtainedRoutedRequest, this,
+              http2_context, *endpoint_info));
+      http2_context.response->SetOnCloseCallback(absl::bind_front(
+          &Http2Server::OnHttp2CleanupOfRoutedRequest, this,
+          http2_context.request->id, http2_context.request->id));
       return;
     }
     // Rebind the callback with the updated request target type
-    http2_context.callback = bind(&Http2Server::OnHttp2Response, this, _1,
-                                  RequestTargetEndpointType::Local);
+    http2_context.callback =
+        std::bind(&Http2Server::OnHttp2Response, this, std::placeholders::_1,
+                  RequestTargetEndpointType::Local);
     // Local endpoint handling continues below.
   }
 
@@ -365,8 +368,8 @@ void Http2Server::OnHttp2RequestDataObtainedRoutedRequest(
   // Typecast to avoid copying data when constructing a new context.
   AsyncContext<HttpRequest, HttpResponse> routing_context(
       std::static_pointer_cast<HttpRequest>(http2_context.request),
-      std::bind(&Http2Server::OnRoutingResponseReceived, this, http2_context,
-                _1),
+      absl::bind_front(&Http2Server::OnRoutingResponseReceived, this,
+                       http2_context),
       http2_context);
   // The target path should reflect the forwarding endpoint.
   routing_context.request->path = std::make_shared<std::string>(
@@ -445,8 +448,9 @@ void Http2Server::HandleHttp2Request(
 
   AsyncContext<AuthorizationProxyRequest, AuthorizationProxyResponse>
       authorization_context(authorization_request,
-                            bind(&Http2Server::OnAuthorizationCallback, this,
-                                 _1, http2_context.request->id, sync_context),
+                            std::bind(&Http2Server::OnAuthorizationCallback,
+                                      this, std::placeholders::_1,
+                                      http2_context.request->id, sync_context),
                             http2_context);
 
   operation_dispatcher_.Dispatch<
@@ -477,11 +481,11 @@ void Http2Server::HandleHttp2Request(
   // 3. Connection is terminated (response.on_closed is invoked)
   //
   http2_context.request->SetOnRequestBodyDataReceivedCallback(
-      bind(&Http2Server::OnHttp2RequestBodyDataReceived, this, _1,
-           http2_context.request->id));
+      std::bind(&Http2Server::OnHttp2RequestBodyDataReceived, this,
+                std::placeholders::_1, http2_context.request->id));
   http2_context.response->SetOnCloseCallback(
-      bind(&Http2Server::OnHttp2Cleanup, this, http2_context.request->id,
-           http2_context.request->id, _1));
+      absl::bind_front(&Http2Server::OnHttp2Cleanup, this,
+                       http2_context.request->id, http2_context.request->id));
 }
 
 void Http2Server::OnAuthorizationCallback(
@@ -507,8 +511,9 @@ void Http2Server::OnHttp2RequestBodyDataReceived(
   // AsyncExecutor to unblock the nghttp2 thread for other requests
   // If unable to schedule, handle it synchronously.
   auto execution_result = async_executor_->Schedule(
-      bind(&Http2Server::OnHttp2PendingCallback, this,
-           callback_execution_result, request_id),
+      [=, this] {
+        OnHttp2PendingCallback(callback_execution_result, request_id);
+      },
       AsyncPriority::Urgent /* callbacks go with urgent priority */);
   if (!execution_result.Successful()) {
     OnHttp2PendingCallback(callback_execution_result, request_id);

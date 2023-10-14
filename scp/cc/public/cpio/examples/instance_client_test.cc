@@ -13,10 +13,12 @@
 // limitations under the License.
 
 #include <chrono>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
 
+#include "absl/functional/bind_front.h"
 #include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -43,8 +45,6 @@ using google::scp::cpio::InstanceClientInterface;
 using google::scp::cpio::InstanceClientOptions;
 using google::scp::cpio::LogOption;
 using std::atomic;
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 std::unique_ptr<InstanceClientInterface> instance_client;
 
@@ -82,7 +82,7 @@ void GetCurrentInstanceResourceNameCallback(
       get_resource_name_response.instance_resource_name());
   result = instance_client->GetTagsByResourceName(
       std::move(get_tags_request),
-      bind(GetTagsByResourceNameCallback, std::ref(finished), _1, _2));
+      absl::bind_front(GetTagsByResourceNameCallback, std::ref(finished)));
   if (!result.Successful()) {
     std::cout << "GetTagsByResourceName failed immediately!"
               << GetErrorMessage(result.status_code) << std::endl;
@@ -117,7 +117,8 @@ int main(int argc, char* argv[]) {
   atomic<bool> finished = false;
   result = instance_client->GetCurrentInstanceResourceName(
       GetCurrentInstanceResourceNameRequest(),
-      bind(GetCurrentInstanceResourceNameCallback, std::ref(finished), _1, _2));
+      absl::bind_front(GetCurrentInstanceResourceNameCallback,
+                       std::ref(finished)));
 
   if (!result.Successful()) {
     std::cout << "GetCurrentInstanceResourceName failed immediately: "

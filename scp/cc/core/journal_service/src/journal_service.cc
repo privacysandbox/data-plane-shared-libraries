@@ -16,13 +16,13 @@
 
 #include "journal_service.h"
 
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "core/interface/configuration_keys.h"
 #include "core/interface/metrics_def.h"
@@ -51,12 +51,10 @@ using google::scp::cpio::MetricUtils;
 using google::scp::cpio::SimpleMetricInterface;
 using google::scp::cpio::TimeEvent;
 using std::atomic;
-using std::bind;
 using std::function;
 using std::thread;
 using std::unordered_set;
 using std::chrono::milliseconds;
-using std::placeholders::_1;
 
 static constexpr size_t kMaxWaitTimeForFlushMs = 20;
 
@@ -208,8 +206,9 @@ ExecutionResult JournalService::Recover(
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context(
           std::make_shared<JournalStreamReadLogRequest>(),
-          bind(&JournalService::OnJournalStreamReadLogCallback, this,
-               time_event, replayed_log_ids, journal_recover_context, _1),
+          absl::bind_front(&JournalService::OnJournalStreamReadLogCallback,
+                           this, time_event, replayed_log_ids,
+                           journal_recover_context),
           journal_recover_context);
   journal_stream_read_log_context.request->max_journal_id_to_process =
       journal_recover_context.request->max_journal_id_to_process;
@@ -376,8 +375,8 @@ ExecutionResult JournalService::Log(
   AsyncContext<JournalStreamAppendLogRequest, JournalStreamAppendLogResponse>
       journal_stream_append_log_context(
           std::make_shared<JournalStreamAppendLogRequest>(),
-          bind(&JournalService::OnJournalStreamAppendLogCallback, this,
-               journal_log_context, _1),
+          absl::bind_front(&JournalService::OnJournalStreamAppendLogCallback,
+                           this, journal_log_context),
           journal_log_context);
   journal_stream_append_log_context.request->journal_log =
       std::make_shared<JournalLog>();

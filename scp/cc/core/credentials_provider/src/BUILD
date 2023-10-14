@@ -29,5 +29,6 @@ cc_library(
         "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
         "//scp/cc/core/interface:interface_lib",
         "@aws_sdk_cpp//:sts",
+        "@com_google_absl//absl/functional:bind_front",
     ],
 )

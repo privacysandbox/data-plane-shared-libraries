@@ -36,6 +36,7 @@
 #include <aws/s3/model/UploadPartRequest.h>
 #include <google/protobuf/util/time_util.h>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
@@ -113,16 +114,11 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Encode;
 using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
-using std::bind;
 using std::optional;
 using std::chrono::duration_cast;
 using std::chrono::minutes;
 using std::chrono::nanoseconds;
 using std::chrono::seconds;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 namespace {
 constexpr char kAwsS3Provider[] = "AwsBlobStorageClientProvider";
@@ -251,8 +247,8 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlob(
 
   s3_client_->GetObjectAsync(
       get_object_request,
-      bind(&AwsBlobStorageClientProvider::OnGetObjectCallback, this,
-           get_blob_context, _1, _2, _3, _4),
+      absl::bind_front(&AwsBlobStorageClientProvider::OnGetObjectCallback, this,
+                       get_blob_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -336,8 +332,8 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlobStream(
 
   s3_client_->GetObjectAsync(
       MakeGetObjectRequest(request, std::move(range)),
-      bind(&AwsBlobStorageClientProvider::OnGetObjectStreamCallback, this,
-           get_blob_stream_context, tracker, _1, _2, _3, _4),
+      absl::bind_front(&AwsBlobStorageClientProvider::OnGetObjectStreamCallback,
+                       this, get_blob_stream_context, tracker),
       nullptr);
 
   return SuccessExecutionResult();
@@ -475,8 +471,8 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
 
   s3_client_->GetObjectAsync(
       MakeGetObjectRequest(request, std::move(range)),
-      bind(&AwsBlobStorageClientProvider::OnGetObjectStreamCallback, this,
-           get_blob_stream_context, tracker, _1, _2, _3, _4),
+      absl::bind_front(&AwsBlobStorageClientProvider::OnGetObjectStreamCallback,
+                       this, get_blob_stream_context, tracker),
       nullptr);
 }
 
@@ -524,8 +520,9 @@ ExecutionResult AwsBlobStorageClientProvider::ListBlobsMetadata(
 
   s3_client_->ListObjectsAsync(
       list_objects_request,
-      bind(&AwsBlobStorageClientProvider::OnListObjectsMetadataCallback, this,
-           list_blobs_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsBlobStorageClientProvider::OnListObjectsMetadataCallback, this,
+          list_blobs_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -613,8 +610,8 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlob(
 
   s3_client_->PutObjectAsync(
       put_object_request,
-      bind(&AwsBlobStorageClientProvider::OnPutObjectCallback, this,
-           put_blob_context, _1, _2, _3, _4),
+      absl::bind_front(&AwsBlobStorageClientProvider::OnPutObjectCallback, this,
+                       put_blob_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -666,8 +663,9 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlobStream(
   create_request.SetKey(request.blob_portion().metadata().blob_name().c_str());
   s3_client_->CreateMultipartUploadAsync(
       create_request,
-      bind(&AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback, this,
-           put_blob_stream_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback, this,
+          put_blob_stream_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -754,8 +752,8 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
 
   s3_client->UploadPartAsync(
       part_request,
-      bind(&AwsBlobStorageClientProvider::OnUploadPartCallback, this,
-           put_blob_stream_context, tracker, _1, _2, _3, _4),
+      absl::bind_front(&AwsBlobStorageClientProvider::OnUploadPartCallback,
+                       this, put_blob_stream_context, tracker),
       nullptr);
 }
 
@@ -768,9 +766,11 @@ void AwsBlobStorageClientProvider::ScheduleAnotherPutBlobStreamPoll(
     const std::shared_ptr<const AsyncCallerContext> async_context,
     seconds rescan_time) {
   auto schedule_result = io_async_executor_->ScheduleFor(
-      bind(&AwsBlobStorageClientProvider::OnUploadPartCallback, this,
-           put_blob_stream_context, tracker, s3_client, upload_part_request,
-           upload_part_outcome, async_context),
+      [&, this] {
+        OnUploadPartCallback(put_blob_stream_context, tracker, s3_client,
+                             upload_part_request, upload_part_outcome,
+                             async_context);
+      },
       (TimeProvider::GetSteadyTimestampInNanoseconds() + rescan_time).count());
   if (!schedule_result.Successful()) {
     put_blob_stream_context.result = schedule_result;
@@ -939,8 +939,8 @@ void AwsBlobStorageClientProvider::OnUploadPartCallback(
 
   s3_client->UploadPartAsync(
       new_upload_request,
-      bind(&AwsBlobStorageClientProvider::OnUploadPartCallback, this,
-           put_blob_stream_context, tracker, _1, _2, _3, _4),
+      absl::bind_front(&AwsBlobStorageClientProvider::OnUploadPartCallback,
+                       this, put_blob_stream_context, tracker),
       nullptr);
 }
 
@@ -974,8 +974,8 @@ void AwsBlobStorageClientProvider::CompleteUpload(
 
     s3_client_->UploadPartAsync(
         new_upload_request,
-        bind(&AwsBlobStorageClientProvider::OnUploadPartCallback, this,
-             put_blob_stream_context, tracker, _1, _2, _3, _4),
+        absl::bind_front(&AwsBlobStorageClientProvider::OnUploadPartCallback,
+                         this, put_blob_stream_context, tracker),
         nullptr);
     return;
   }
@@ -987,8 +987,9 @@ void AwsBlobStorageClientProvider::CompleteUpload(
 
   s3_client_->CompleteMultipartUploadAsync(
       complete_request,
-      bind(&AwsBlobStorageClientProvider::OnCompleteMultipartUploadCallback,
-           this, put_blob_stream_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsBlobStorageClientProvider::OnCompleteMultipartUploadCallback,
+          this, put_blob_stream_context),
       nullptr);
 }
 
@@ -1028,8 +1029,9 @@ void AwsBlobStorageClientProvider::AbortUpload(
 
   s3_client_->AbortMultipartUploadAsync(
       abort_request,
-      bind(&AwsBlobStorageClientProvider::OnAbortMultipartUploadCallback, this,
-           put_blob_stream_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsBlobStorageClientProvider::OnAbortMultipartUploadCallback, this,
+          put_blob_stream_context),
       nullptr);
 }
 
@@ -1079,8 +1081,8 @@ ExecutionResult AwsBlobStorageClientProvider::DeleteBlob(
 
   s3_client_->DeleteObjectAsync(
       delete_object_request,
-      bind(&AwsBlobStorageClientProvider::OnDeleteObjectCallback, this,
-           delete_blob_context, _1, _2, _3, _4),
+      absl::bind_front(&AwsBlobStorageClientProvider::OnDeleteObjectCallback,
+                       this, delete_blob_context),
       nullptr);
 
   return SuccessExecutionResult();

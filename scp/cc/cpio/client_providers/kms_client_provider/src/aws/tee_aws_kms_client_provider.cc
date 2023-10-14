@@ -24,6 +24,7 @@
 #include <aws/core/auth/AWSCredentialsProvider.h>
 #include <aws/core/auth/AWSCredentialsProviderChain.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/utils/src/base64.h"
 #include "cpio/client_providers/interface/role_credentials_provider_interface.h"
 #include "cpio/common/src/aws/aws_utils.h"
@@ -58,8 +59,6 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Decode;
 using google::scp::cpio::common::CreateClientConfiguration;
 using std::array;
-using std::bind;
-using std::placeholders::_1;
 
 /// Filename for logging errors
 static constexpr char kTeeAwsKmsClientProvider[] = "TeeAwsKmsClientProvider";
@@ -160,8 +159,9 @@ ExecutionResult TeeAwsKmsClientProvider::Decrypt(
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_session_credentials_context(
           std::move(get_credentials_request),
-          bind(&TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt,
-               this, decrypt_context, _1),
+          absl::bind_front(
+              &TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt,
+              this, decrypt_context),
           decrypt_context);
   return credential_provider_->GetRoleCredentials(
       get_session_credentials_context);

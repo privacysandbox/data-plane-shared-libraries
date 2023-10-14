@@ -26,6 +26,7 @@
 #include <aws/autoscaling/model/CompleteLifecycleActionRequest.h>
 #include <aws/autoscaling/model/DescribeAutoScalingInstancesRequest.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
@@ -68,10 +69,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_AWS_AUTO_SCALING_CLIENT_PROVIDER_MULTIPLE_INSTANCES_FOUND;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 static constexpr char kAwsAutoScalingClientProvider[] =
     "AwsAutoScalingClientProvider";
@@ -142,9 +139,9 @@ ExecutionResult AwsAutoScalingClientProvider::TryFinishInstanceTermination(
 
   auto_scaling_client_->DescribeAutoScalingInstancesAsync(
       request,
-      bind(
+      absl::bind_front(
           &AwsAutoScalingClientProvider::OnDescribeAutoScalingInstancesCallback,
-          this, try_termination_context, _1, _2, _3, _4),
+          this, try_termination_context),
       nullptr);
 
   return SuccessExecutionResult();
@@ -223,8 +220,9 @@ void AwsAutoScalingClientProvider::OnDescribeAutoScalingInstancesCallback(
 
   auto_scaling_client_->CompleteLifecycleActionAsync(
       complete_lifecycle_action_request,
-      bind(&AwsAutoScalingClientProvider::OnCompleteLifecycleActionCallback,
-           this, try_termination_context, _1, _2, _3, _4),
+      absl::bind_front(
+          &AwsAutoScalingClientProvider::OnCompleteLifecycleActionCallback,
+          this, try_termination_context),
       nullptr);
 }
 

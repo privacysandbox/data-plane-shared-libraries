@@ -16,12 +16,14 @@
 
 #include "metric_client.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
 
 #include <google/protobuf/util/time_util.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
@@ -51,8 +53,6 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::MetricClientProviderFactory;
 using google::scp::cpio::client_providers::MetricClientUtils;
-using std::bind;
-using std::placeholders::_1;
 
 static constexpr char kMetricClient[] = "MetricClient";
 

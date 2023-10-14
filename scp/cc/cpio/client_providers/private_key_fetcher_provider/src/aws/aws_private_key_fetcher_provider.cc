@@ -25,6 +25,7 @@
 #include <boost/system/error_code.hpp>
 #include <nghttp2/asio_http2.h>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "core/interface/http_client_interface.h"
 #include "cpio/client_providers/interface/auth_token_provider_interface.h"
@@ -60,8 +61,6 @@ using google::scp::core::errors::
     SC_AWS_PRIVATE_KEY_FETCHER_PROVIDER_REGION_NOT_FOUND;
 using google::scp::core::utils::GetEscapedUriWithQuery;
 using nghttp2::asio_http2::host_service_from_uri;
-using std::bind;
-using std::placeholders::_1;
 
 namespace {
 constexpr char kAwsPrivateKeyFetcherProvider[] = "AwsPrivateKeyFetcherProvider";
@@ -94,9 +93,10 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequest(
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_session_credentials_context(
           std::move(request),
-          bind(&AwsPrivateKeyFetcherProvider::
-                   CreateSessionCredentialsCallbackToSignHttpRequest,
-               this, sign_request_context, _1),
+          absl::bind_front(
+              &AwsPrivateKeyFetcherProvider::
+                  CreateSessionCredentialsCallbackToSignHttpRequest,
+              this, sign_request_context),
           sign_request_context);
   return role_credentials_provider_->GetRoleCredentials(
       get_session_credentials_context);

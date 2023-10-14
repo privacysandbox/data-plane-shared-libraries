@@ -25,6 +25,7 @@
 #include <aws/ssm/SSMClient.h>
 #include <aws/ssm/model/GetParametersRequest.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/interface/async_context.h"
 #include "cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
@@ -58,10 +59,6 @@ using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
-using std::placeholders::_1;
-using std::placeholders::_2;
-using std::placeholders::_3;
-using std::placeholders::_4;
 
 /// Filename for logging errors
 static constexpr char kAwsParameterClientProvider[] =
@@ -119,8 +116,8 @@ ExecutionResult AwsParameterClientProvider::GetParameter(
 
   ssm_client_->GetParametersAsync(
       request,
-      bind(&AwsParameterClientProvider::OnGetParametersCallback, this,
-           list_parameters_context, _1, _2, _3, _4),
+      absl::bind_front(&AwsParameterClientProvider::OnGetParametersCallback,
+                       this, list_parameters_context),
       nullptr);
 
   return SuccessExecutionResult();

@@ -49,8 +49,6 @@ using google::scp::core::errors::
     SC_PRIVATE_KEY_CLIENT_PROVIDER_UNMATCHED_ENDPOINTS_SPLITS;
 using google::scp::core::utils::Base64Encode;
 using std::atomic;
-using std::bind;
-using std::placeholders::_1;
 
 static constexpr char kPrivateKeyClientProvider[] = "PrivateKeyClientProvider";
 
@@ -115,9 +113,9 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
       AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>
           fetch_private_key_context(
               std::move(request),
-              bind(&PrivateKeyClientProvider::OnFetchPrivateKeyCallback, this,
-                   list_private_keys_context, _1, list_keys_status,
-                   endpoints_status, uri_index),
+              std::bind(&PrivateKeyClientProvider::OnFetchPrivateKeyCallback,
+                        this, list_private_keys_context, std::placeholders::_1,
+                        list_keys_status, endpoints_status, uri_index),
               list_private_keys_context);
 
       auto execution_result =
@@ -254,9 +252,10 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
             ->gcp_wip_provider);
     AsyncContext<DecryptRequest, DecryptResponse> decrypt_context(
         std::make_shared<DecryptRequest>(kms_decrypt_request),
-        bind(&PrivateKeyClientProvider::OnDecrpytCallback, this,
-             list_private_keys_context, _1, list_keys_status, endpoints_status,
-             encryption_key, uri_index),
+        std::bind(&PrivateKeyClientProvider::OnDecrpytCallback, this,
+                  list_private_keys_context, std::placeholders::_1,
+                  list_keys_status, endpoints_status, encryption_key,
+                  uri_index),
         list_private_keys_context);
     execution_result = kms_client_provider_->Decrypt(decrypt_context);
 

@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
@@ -63,9 +64,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::SC_CONFIGURATION_FETCHER_CONVERSION_FAILED;
 using google::scp::core::errors::
     SC_CONFIGURATION_FETCHER_ENVIRONMENT_NAME_NOT_FOUND;
-using std::bind;
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 namespace {
 constexpr char kConfigurationFetcher[] = "ConfigurationFetcher";
@@ -77,7 +75,7 @@ ExecutionResultOr<std::string> ConfigurationFetcher::GetParameterByName(
     std::string parameter_name) noexcept {
   std::string parameter;
   auto execution_result = SyncUtils::AsyncToSync<std::string, std::string>(
-      bind(&ConfigurationFetcher::GetParameterByNameAsync, this, _1),
+      absl::bind_front(&ConfigurationFetcher::GetParameterByNameAsync, this),
       parameter_name, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetParameterByName for %s.",
@@ -95,7 +93,8 @@ ExecutionResultOr<LogOption> ConfigurationFetcher::GetSharedLogOption(
   LogOption parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, LogOption>(
-          bind(&ConfigurationFetcher::GetSharedLogOptionAsync, this, _1),
+          absl::bind_front(&ConfigurationFetcher::GetSharedLogOptionAsync,
+                           this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetSharedLogOption %s.",
@@ -108,8 +107,8 @@ core::ExecutionResult ConfigurationFetcher::GetSharedLogOptionAsync(
   auto context_with_parameter_name =
       ConfigurationFetcherUtils::ContextConvertCallback<LogOption>(
           kSdkClientLogOption, context,
-          bind(ConfigurationFetcherUtils::StringToEnum<LogOption>, _1,
-               kLogOptionConfigMap));
+          std::bind(ConfigurationFetcherUtils::StringToEnum<LogOption>,
+                    std::placeholders::_1, kLogOptionConfigMap));
   return GetConfiguration(context_with_parameter_name);
 }
 
@@ -118,7 +117,8 @@ ExecutionResultOr<size_t> ConfigurationFetcher::GetSharedCpuThreadCount(
   size_t parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, size_t>(
-          bind(&ConfigurationFetcher::GetSharedCpuThreadCountAsync, this, _1),
+          absl::bind_front(&ConfigurationFetcher::GetSharedCpuThreadCountAsync,
+                           this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetSharedCpuThreadCount %s.",
@@ -131,7 +131,7 @@ ExecutionResult ConfigurationFetcher::GetSharedCpuThreadCountAsync(
   auto context_with_parameter_name =
       ConfigurationFetcherUtils::ContextConvertCallback<size_t>(
           kSharedCpuThreadCount, context,
-          bind(ConfigurationFetcherUtils::StringToUInt<size_t>, _1));
+          absl::bind_front(ConfigurationFetcherUtils::StringToUInt<size_t>));
   return GetConfiguration(context_with_parameter_name);
 }
 
@@ -140,8 +140,8 @@ ExecutionResultOr<size_t> ConfigurationFetcher::GetSharedCpuThreadPoolQueueCap(
   size_t parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, size_t>(
-          bind(&ConfigurationFetcher::GetSharedCpuThreadPoolQueueCapAsync, this,
-               _1),
+          absl::bind_front(
+              &ConfigurationFetcher::GetSharedCpuThreadPoolQueueCapAsync, this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetSharedCpuThreadPoolQueueCap %s.",
@@ -154,7 +154,7 @@ ExecutionResult ConfigurationFetcher::GetSharedCpuThreadPoolQueueCapAsync(
   auto context_with_parameter_name =
       ConfigurationFetcherUtils::ContextConvertCallback<size_t>(
           kSharedCpuThreadPoolQueueCap, context,
-          bind(ConfigurationFetcherUtils::StringToUInt<size_t>, _1));
+          absl::bind_front(ConfigurationFetcherUtils::StringToUInt<size_t>));
   return GetConfiguration(context_with_parameter_name);
 }
 
@@ -163,7 +163,8 @@ ExecutionResultOr<size_t> ConfigurationFetcher::GetSharedIoThreadCount(
   size_t parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, size_t>(
-          bind(&ConfigurationFetcher::GetSharedIoThreadCountAsync, this, _1),
+          absl::bind_front(&ConfigurationFetcher::GetSharedIoThreadCountAsync,
+                           this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetSharedIoThreadCount %s.",
@@ -176,7 +177,7 @@ ExecutionResult ConfigurationFetcher::GetSharedIoThreadCountAsync(
   auto context_with_parameter_name =
       ConfigurationFetcherUtils::ContextConvertCallback<size_t>(
           kSharedIoThreadCount, context,
-          bind(ConfigurationFetcherUtils::StringToUInt<size_t>, _1));
+          absl::bind_front(ConfigurationFetcherUtils::StringToUInt<size_t>));
   return GetConfiguration(context_with_parameter_name);
 }
 
@@ -185,8 +186,8 @@ ExecutionResultOr<size_t> ConfigurationFetcher::GetSharedIoThreadPoolQueueCap(
   size_t parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, size_t>(
-          bind(&ConfigurationFetcher::GetSharedIoThreadPoolQueueCapAsync, this,
-               _1),
+          absl::bind_front(
+              &ConfigurationFetcher::GetSharedIoThreadPoolQueueCapAsync, this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetSharedIoThreadPoolQueueCap %s.",
@@ -199,7 +200,7 @@ ExecutionResult ConfigurationFetcher::GetSharedIoThreadPoolQueueCapAsync(
   auto context_with_parameter_name =
       ConfigurationFetcherUtils::ContextConvertCallback<size_t>(
           kSharedIoThreadPoolQueueCap, context,
-          bind(ConfigurationFetcherUtils::StringToUInt<size_t>, _1));
+          ConfigurationFetcherUtils::StringToUInt<size_t>);
   return GetConfiguration(context_with_parameter_name);
 }
 
@@ -208,7 +209,8 @@ ExecutionResultOr<std::string> ConfigurationFetcher::GetJobClientJobQueueName(
   std::string parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
-          bind(&ConfigurationFetcher::GetJobClientJobQueueNameAsync, this, _1),
+          absl::bind_front(&ConfigurationFetcher::GetJobClientJobQueueNameAsync,
+                           this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetJobClientJobQueueName %s.",
@@ -228,7 +230,8 @@ ExecutionResultOr<std::string> ConfigurationFetcher::GetJobClientJobTableName(
   std::string parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
-          bind(&ConfigurationFetcher::GetJobClientJobTableNameAsync, this, _1),
+          absl::bind_front(&ConfigurationFetcher::GetJobClientJobTableNameAsync,
+                           this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetJobClientJobTableName %s.",
@@ -249,8 +252,9 @@ ConfigurationFetcher::GetGcpJobClientSpannerInstanceName(
   std::string parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
-          bind(&ConfigurationFetcher::GetGcpJobClientSpannerInstanceNameAsync,
-               this, _1),
+          absl::bind_front(
+              &ConfigurationFetcher::GetGcpJobClientSpannerInstanceNameAsync,
+              this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
 
@@ -273,8 +277,9 @@ ConfigurationFetcher::GetGcpJobClientSpannerDatabaseName(
   std::string parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
-          bind(&ConfigurationFetcher::GetGcpJobClientSpannerDatabaseNameAsync,
-               this, _1),
+          absl::bind_front(
+              &ConfigurationFetcher::GetGcpJobClientSpannerDatabaseNameAsync,
+              this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
 
@@ -297,9 +302,10 @@ ConfigurationFetcher::GetGcpNoSQLDatabaseClientSpannerInstanceName(
   std::string parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
-          bind(&ConfigurationFetcher::
-                   GetGcpNoSQLDatabaseClientSpannerInstanceNameAsync,
-               this, _1),
+          absl::bind_front(
+              &ConfigurationFetcher::
+                  GetGcpNoSQLDatabaseClientSpannerInstanceNameAsync,
+              this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(
       execution_result, kConfigurationFetcher, kZeroUuid,
@@ -322,9 +328,10 @@ ConfigurationFetcher::GetGcpNoSQLDatabaseClientSpannerDatabaseName(
   std::string parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
-          bind(&ConfigurationFetcher::
-                   GetGcpNoSQLDatabaseClientSpannerDatabaseNameAsync,
-               this, _1),
+          absl::bind_front(
+              &ConfigurationFetcher::
+                  GetGcpNoSQLDatabaseClientSpannerDatabaseNameAsync,
+              this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(
       execution_result, kConfigurationFetcher, kZeroUuid,
@@ -346,7 +353,8 @@ ExecutionResultOr<std::string> ConfigurationFetcher::GetQueueClientQueueName(
   std::string parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, std::string>(
-          bind(&ConfigurationFetcher::GetQueueClientQueueNameAsync, this, _1),
+          absl::bind_front(&ConfigurationFetcher::GetQueueClientQueueNameAsync,
+                           this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetQueueClientQueueName %s.",
@@ -366,7 +374,8 @@ ExecutionResultOr<HpkeKem> ConfigurationFetcher::GetCryptoClientHpkeKem(
   HpkeKem parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, HpkeKem>(
-          bind(&ConfigurationFetcher::GetCryptoClientHpkeKemAsync, this, _1),
+          absl::bind_front(&ConfigurationFetcher::GetCryptoClientHpkeKemAsync,
+                           this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetCryptoClientHpkeKem %s.",
@@ -379,8 +388,8 @@ core::ExecutionResult ConfigurationFetcher::GetCryptoClientHpkeKemAsync(
   auto context_with_parameter_name =
       ConfigurationFetcherUtils::ContextConvertCallback<HpkeKem>(
           kCryptoClientHpkeKem, context,
-          bind(ConfigurationFetcherUtils::StringToEnum<HpkeKem>, _1,
-               kHpkeKemConfigMap));
+          std::bind(ConfigurationFetcherUtils::StringToEnum<HpkeKem>,
+                    std::placeholders::_1, kHpkeKemConfigMap));
   return GetConfiguration(context_with_parameter_name);
 }
 
@@ -389,7 +398,8 @@ ExecutionResultOr<HpkeKdf> ConfigurationFetcher::GetCryptoClientHpkeKdf(
   HpkeKdf parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, HpkeKdf>(
-          bind(&ConfigurationFetcher::GetCryptoClientHpkeKdfAsync, this, _1),
+          absl::bind_front(&ConfigurationFetcher::GetCryptoClientHpkeKdfAsync,
+                           this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetCryptoClientHpkeKdf %s.",
@@ -402,8 +412,8 @@ core::ExecutionResult ConfigurationFetcher::GetCryptoClientHpkeKdfAsync(
   auto context_with_parameter_name =
       ConfigurationFetcherUtils::ContextConvertCallback<HpkeKdf>(
           kCryptoClientHpkeKdf, context,
-          bind(ConfigurationFetcherUtils::StringToEnum<HpkeKdf>, _1,
-               kHpkeKdfConfigMap));
+          std::bind(ConfigurationFetcherUtils::StringToEnum<HpkeKdf>,
+                    std::placeholders::_1, kHpkeKdfConfigMap));
   return GetConfiguration(context_with_parameter_name);
 }
 
@@ -412,7 +422,8 @@ ExecutionResultOr<HpkeAead> ConfigurationFetcher::GetCryptoClientHpkeAead(
   HpkeAead parameter;
   auto execution_result =
       SyncUtils::AsyncToSync<GetConfigurationRequest, HpkeAead>(
-          bind(&ConfigurationFetcher::GetCryptoClientHpkeAeadAsync, this, _1),
+          absl::bind_front(&ConfigurationFetcher::GetCryptoClientHpkeAeadAsync,
+                           this),
           request, parameter);
   RETURN_AND_LOG_IF_FAILURE(execution_result, kConfigurationFetcher, kZeroUuid,
                             "Failed to GetCryptoClientHpkeAead %s.",
@@ -425,8 +436,8 @@ core::ExecutionResult ConfigurationFetcher::GetCryptoClientHpkeAeadAsync(
   auto context_with_parameter_name =
       ConfigurationFetcherUtils::ContextConvertCallback<HpkeAead>(
           kCryptoClientHpkeAead, context,
-          bind(ConfigurationFetcherUtils::StringToEnum<HpkeAead>, _1,
-               kHpkeAeadConfigMap));
+          std::bind(ConfigurationFetcherUtils::StringToEnum<HpkeAead>,
+                    std::placeholders::_1, kHpkeAeadConfigMap));
   return GetConfiguration(context_with_parameter_name);
 }
 
@@ -445,8 +456,9 @@ core::ExecutionResult ConfigurationFetcher::GetConfiguration(
         get_configuration_context) noexcept {
   return instance_client_->GetCurrentInstanceResourceName(
       GetCurrentInstanceResourceNameRequest(),
-      bind(&ConfigurationFetcher::GetCurrentInstanceResourceNameCallback, this,
-           _1, _2, get_configuration_context));
+      std::bind(&ConfigurationFetcher::GetCurrentInstanceResourceNameCallback,
+                this, std::placeholders::_1, std::placeholders::_2,
+                get_configuration_context));
 }
 
 void ConfigurationFetcher::GetCurrentInstanceResourceNameCallback(
@@ -466,8 +478,10 @@ void ConfigurationFetcher::GetCurrentInstanceResourceNameCallback(
   request.set_instance_resource_name(response.instance_resource_name());
   if (auto result = instance_client_->GetInstanceDetailsByResourceName(
           std::move(request),
-          bind(&ConfigurationFetcher::GetInstanceDetailsByResourceNameCallback,
-               this, _1, _2, response, get_configuration_context));
+          std::bind(
+              &ConfigurationFetcher::GetInstanceDetailsByResourceNameCallback,
+              this, std::placeholders::_1, std::placeholders::_2, response,
+              get_configuration_context));
       !result.Successful()) {
     get_configuration_context.result = result;
     SCP_ERROR_CONTEXT(
@@ -512,8 +526,10 @@ void ConfigurationFetcher::GetInstanceDetailsByResourceNameCallback(
   request.set_parameter_name(absl::StrCat("scp-", it->second, "-",
                                           *get_configuration_context.request));
   if (auto result = parameter_client_->GetParameter(
-          std::move(request), bind(&ConfigurationFetcher::GetParameterCallback,
-                                   this, _1, _2, get_configuration_context));
+          std::move(request),
+          std::bind(&ConfigurationFetcher::GetParameterCallback, this,
+                    std::placeholders::_1, std::placeholders::_2,
+                    get_configuration_context));
       !result.Successful()) {
     get_configuration_context.result = result;
     SCP_ERROR_CONTEXT(kConfigurationFetcher, get_configuration_context,

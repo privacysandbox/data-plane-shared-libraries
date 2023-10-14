@@ -52,7 +52,6 @@ using google::scp::cpio::client_providers::GcpKmsClientProvider;
 using google::scp::cpio::client_providers::GcpPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::KmsClientProviderInterface;
 using google::scp::cpio::client_providers::PrivateKeyFetcherProviderInterface;
-using std::bind;
 using std::list;
 
 namespace {
@@ -81,27 +80,17 @@ GcpPrivateKeyServiceFactory::CreateKmsClient() noexcept {
 
 ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
   std::vector<ComponentCreator> creators(
-      {ComponentCreator(
-           bind(&GcpPrivateKeyServiceFactory::CreateIoAsyncExecutor, this),
-           "IoAsyncExecutor"),
-       ComponentCreator(
-           bind(&GcpPrivateKeyServiceFactory::CreateCpuAsyncExecutor, this),
-           "CpuAsyncExecutor"),
-       ComponentCreator(
-           bind(&GcpPrivateKeyServiceFactory::CreateHttp1Client, this),
-           "Http1Client"),
-       ComponentCreator(
-           bind(&GcpPrivateKeyServiceFactory::CreateHttp2Client, this),
-           "Http2Client"),
-       ComponentCreator(
-           bind(&GcpPrivateKeyServiceFactory::CreateAuthTokenProvider, this),
-           "AuthTokenProvider"),
-       ComponentCreator(
-           bind(&GcpPrivateKeyServiceFactory::CreatePrivateKeyFetcher, this),
-           "PrivateKeyFetcher"),
-       ComponentCreator(
-           bind(&GcpPrivateKeyServiceFactory::CreateKmsClient, this),
-           "KmsClient")});
+      {ComponentCreator([this] { return CreateIoAsyncExecutor(); },
+                        "IoAsyncExecutor"),
+       ComponentCreator([this] { return CreateIoAsyncExecutor(); },
+                        "CpuAsyncExecutor"),
+       ComponentCreator([this] { return CreateHttp1Client(); }, "Http1Client"),
+       ComponentCreator([this] { return CreateHttp2Client(); }, "Http2Client"),
+       ComponentCreator([this] { return CreateAuthTokenProvider(); },
+                        "AuthTokenProvider"),
+       ComponentCreator([this] { return CreatePrivateKeyFetcher(); },
+                        "PrivateKeyFetcher"),
+       ComponentCreator([this] { return CreateKmsClient(); }, "KmsClient")});
   component_factory_ = std::make_shared<ComponentFactory>(std::move(creators));
 
   RETURN_AND_LOG_IF_FAILURE(PrivateKeyServiceFactory::Init(),

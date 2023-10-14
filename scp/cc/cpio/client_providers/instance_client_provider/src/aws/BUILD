@@ -34,6 +34,7 @@ cc_library(
         "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:ec2",
+        "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings:str_format",
         "@nlohmann_json//:lib",
     ],

@@ -16,6 +16,7 @@
 
 #include "gcp_spanner.h"
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -25,6 +26,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "core/common/time_provider/src/time_provider.h"
@@ -60,11 +62,9 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using json = nlohmann::json;
 using google::cloud::spanner::MakeInsertOrUpdateMutation;
-using std::bind;
 using std::optional;
 using std::pair;
 using std::unordered_map;
-using std::placeholders::_1;
 
 constexpr char kGcpSpanner[] = "GcpSpanner";
 
@@ -506,10 +506,10 @@ void GcpSpanner::UpsertDatabaseItemAsync(
   const auto& table_name = *upsert_database_item_context.request->table_name;
   ExecutionResult prepare_result = SuccessExecutionResult();
   auto commit_result_or = client.Commit(
-      bind(&GcpSpanner::UpsertFunctor, std::ref(client),
-           std::ref(upsert_select_options), enforce_row_existence,
-           std::ref(new_attributes), std::ref(prepare_result),
-           std::ref(table_name), _1),
+      absl::bind_front(&GcpSpanner::UpsertFunctor, std::ref(client),
+                       std::ref(upsert_select_options), enforce_row_existence,
+                       std::ref(new_attributes), std::ref(prepare_result),
+                       std::ref(table_name)),
       LimitedTimeTransactionRerunPolicy(
           kTransactionRetryMaxTimeLimitDurationInMs)
           .clone(),

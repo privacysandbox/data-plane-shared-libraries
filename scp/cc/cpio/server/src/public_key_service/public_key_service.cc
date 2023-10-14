@@ -25,6 +25,7 @@
 #include <thread>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/http2_client/src/http2_client.h"
 #include "core/interface/async_executor_interface.h"
@@ -80,12 +81,10 @@ using google::scp::cpio::StopLogger;
 using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::client_providers::PublicKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PublicKeyClientProviderInterface;
-using std::bind;
 using std::cout;
 using std::endl;
 using std::list;
 using std::runtime_error;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -113,8 +112,8 @@ class PublicKeyServiceImpl : public PublicKeyService::CallbackService {
       ListPublicKeysResponse* response) override {
     return ExecuteNetworkCall<ListPublicKeysRequest, ListPublicKeysResponse>(
         server_context, request, response,
-        bind(&PublicKeyClientProviderInterface::ListPublicKeys,
-             public_key_client, _1));
+        absl::bind_front(&PublicKeyClientProviderInterface::ListPublicKeys,
+                         public_key_client));
   }
 };
 

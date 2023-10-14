@@ -21,7 +21,6 @@
 
 #include <chrono>
 #include <csignal>
-#include <functional>
 #include <future>
 #include <memory>
 #include <string_view>
@@ -33,6 +32,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/numbers.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/async_executor/src/async_executor.h"
@@ -45,7 +45,6 @@
 using namespace nghttp2::asio_http2;          // NOLINT
 using namespace nghttp2::asio_http2::server;  // NOLINT
 using namespace std::chrono_literals;         // NOLINT
-using namespace std::placeholders;            // NOLINT
 
 using google::scp::core::AsyncExecutor;
 using google::scp::core::SuccessExecutionResult;
@@ -58,7 +57,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using std::atomic;
-using std::bind;
 using std::future;
 using std::promise;
 using std::thread;
@@ -149,7 +147,7 @@ class HttpServer {
           200u, {{std::string("content-length"),
                   {std::to_string(length + SHA256_DIGEST_LENGTH), false}}});
       auto handler = std::make_shared<RandomGenHandler>(length);
-      res.end(bind(&RandomGenHandler::handle, handler, _1, _2, _3));
+      res.end(absl::bind_front(&RandomGenHandler::handle, handler));
     });
 
     server.listen_and_serve(ec, address_, port_, true);

@@ -30,6 +30,7 @@ cc_library(
         "//scp/cc/core/http2_client/src:http2_client_lib",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/utils/src:core_utils",
+        "@com_google_absl//absl/functional:bind_front",
         "@nlohmann_json//:lib",
     ],
 )

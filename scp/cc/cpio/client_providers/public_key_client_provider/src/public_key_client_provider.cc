@@ -23,6 +23,7 @@
 
 #include <google/protobuf/util/time_util.h>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
 #include "core/interface/http_client_interface.h"
@@ -59,8 +60,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS;
 using std::atomic;
-using std::bind;
-using std::placeholders::_1;
 
 static constexpr int kSToMsConversionBase = 1e3;
 static constexpr char kPublicKeyClientProvider[] = "PublicKeyClientProvider";
@@ -94,9 +93,9 @@ void PublicKeyClientProvider::OnListPublicKeys(
   any_context.request->UnpackTo(request.get());
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request),
-      bind(CallbackToPackAnyResponse<ListPublicKeysRequest,
-                                     ListPublicKeysResponse>,
-           any_context, _1),
+      absl::bind_front(CallbackToPackAnyResponse<ListPublicKeysRequest,
+                                                 ListPublicKeysResponse>,
+                       any_context),
       any_context);
   context.result = ListPublicKeys(context);
 }
@@ -130,9 +129,9 @@ ExecutionResult PublicKeyClientProvider::ListPublicKeys(
 
     AsyncContext<HttpRequest, HttpResponse> http_client_context(
         std::move(http_request),
-        bind(&PublicKeyClientProvider::OnPerformRequestCallback, this,
-             public_key_fetching_context, _1, got_success_result,
-             unfinished_counter),
+        std::bind(&PublicKeyClientProvider::OnPerformRequestCallback, this,
+                  public_key_fetching_context, std::placeholders::_1,
+                  got_success_result, unfinished_counter),
         public_key_fetching_context);
 
     auto execution_result = http_client_->PerformRequest(http_client_context);

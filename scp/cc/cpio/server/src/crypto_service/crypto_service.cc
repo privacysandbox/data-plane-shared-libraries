@@ -18,13 +18,13 @@
 
 #include <csignal>
 #include <filesystem>
-#include <functional>
 #include <iostream>
 #include <list>
 #include <string>
 #include <thread>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/http2_client/src/http2_client.h"
 #include "core/interface/async_executor_interface.h"
@@ -91,12 +91,10 @@ using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::client_providers::CryptoClientProvider;
 using google::scp::cpio::client_providers::CryptoClientProviderInterface;
-using std::bind;
 using std::cout;
 using std::endl;
 using std::list;
 using std::runtime_error;
-using std::placeholders::_1;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -118,7 +116,8 @@ class CryptoServiceImpl : public CryptoService::CallbackService {
       HpkeEncryptResponse* response) override {
     return ExecuteNetworkCall<HpkeEncryptRequest, HpkeEncryptResponse>(
         server_context, request, response,
-        bind(&CryptoClientProviderInterface::HpkeEncrypt, crypto_client, _1));
+        absl::bind_front(&CryptoClientProviderInterface::HpkeEncrypt,
+                         crypto_client));
   }
 
   grpc::ServerUnaryReactor* HpkeDecrypt(
@@ -127,7 +126,8 @@ class CryptoServiceImpl : public CryptoService::CallbackService {
       HpkeDecryptResponse* response) override {
     return ExecuteNetworkCall<HpkeDecryptRequest, HpkeDecryptResponse>(
         server_context, request, response,
-        bind(&CryptoClientProviderInterface::HpkeDecrypt, crypto_client, _1));
+        absl::bind_front(&CryptoClientProviderInterface::HpkeDecrypt,
+                         crypto_client));
   }
 
   grpc::ServerUnaryReactor* AeadEncrypt(
@@ -136,7 +136,8 @@ class CryptoServiceImpl : public CryptoService::CallbackService {
       AeadEncryptResponse* response) override {
     return ExecuteNetworkCall<AeadEncryptRequest, AeadEncryptResponse>(
         server_context, request, response,
-        bind(&CryptoClientProviderInterface::AeadEncrypt, crypto_client, _1));
+        absl::bind_front(&CryptoClientProviderInterface::AeadEncrypt,
+                         crypto_client));
   }
 
   grpc::ServerUnaryReactor* AeadDecrypt(
@@ -145,7 +146,8 @@ class CryptoServiceImpl : public CryptoService::CallbackService {
       AeadDecryptResponse* response) override {
     return ExecuteNetworkCall<AeadDecryptRequest, AeadDecryptResponse>(
         server_context, request, response,
-        bind(&CryptoClientProviderInterface::AeadDecrypt, crypto_client, _1));
+        absl::bind_front(&CryptoClientProviderInterface::AeadDecrypt,
+                         crypto_client));
   }
 };
 

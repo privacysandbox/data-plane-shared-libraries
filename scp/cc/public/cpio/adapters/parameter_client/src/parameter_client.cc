@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/errors.h"
@@ -44,8 +45,6 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::ParameterClientProviderFactory;
 using google::scp::cpio::client_providers::ParameterClientProviderInterface;
-using std::bind;
-using std::placeholders::_1;
 
 static constexpr char kParameterClient[] = "ParameterClient";
 
@@ -114,8 +113,8 @@ core::ExecutionResult ParameterClient::GetParameter(
     GetParameterRequest request,
     Callback<GetParameterResponse> callback) noexcept {
   return Execute<GetParameterRequest, GetParameterResponse>(
-      bind(&ParameterClientProviderInterface::GetParameter,
-           parameter_client_provider_, _1),
+      absl::bind_front(&ParameterClientProviderInterface::GetParameter,
+                       parameter_client_provider_),
       request, callback);
 }
 

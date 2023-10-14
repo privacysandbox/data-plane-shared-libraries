@@ -25,6 +25,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -70,13 +71,11 @@ using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::common::CpioUtils;
 using nlohmann::json;
 using std::atomic;
-using std::bind;
 using std::map;
 using std::nullopt;
 using std::optional;
 using std::pair;
 using std::promise;
-using std::placeholders::_1;
 
 namespace {
 constexpr char kGcpInstanceClientProvider[] = "GcpInstanceClientProvider";
@@ -180,8 +179,8 @@ ExecutionResult GcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
   auto execution_result =
       CpioUtils::AsyncToSync<GetCurrentInstanceResourceNameRequest,
                              GetCurrentInstanceResourceNameResponse>(
-          bind(&GcpInstanceClientProvider::GetCurrentInstanceResourceName, this,
-               _1),
+          absl::bind_front(
+              &GcpInstanceClientProvider::GetCurrentInstanceResourceName, this),
           request, response);
 
   if (!execution_result.Successful()) {
@@ -239,8 +238,9 @@ GcpInstanceClientProvider::MakeHttpRequestsForInstanceResourceName(
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
       std::move(http_request),
-      bind(&GcpInstanceClientProvider::OnGetInstanceResourceName, this,
-           get_resource_name_context, _1, instance_resource_name_tracker, type),
+      std::bind(&GcpInstanceClientProvider::OnGetInstanceResourceName, this,
+                get_resource_name_context, std::placeholders::_1,
+                instance_resource_name_tracker, type),
       get_resource_name_context);
 
   auto execution_result = http1_client_->PerformRequest(http_context);
@@ -350,8 +350,9 @@ ExecutionResult GcpInstanceClientProvider::GetTagsByResourceName(
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       get_token_context(
           std::make_shared<GetSessionTokenRequest>(),
-          bind(&GcpInstanceClientProvider::OnGetSessionTokenForTagsCallback,
-               this, get_tags_context, _1),
+          absl::bind_front(
+              &GcpInstanceClientProvider::OnGetSessionTokenForTagsCallback,
+              this, get_tags_context),
           get_tags_context);
 
   auto execution_result =
@@ -402,8 +403,9 @@ void GcpInstanceClientProvider::OnGetSessionTokenForTagsCallback(
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
       std::move(signed_request),
-      bind(&GcpInstanceClientProvider::OnGetTagsByResourceNameCallback, this,
-           get_tags_context, _1),
+      absl::bind_front(
+          &GcpInstanceClientProvider::OnGetTagsByResourceNameCallback, this,
+          get_tags_context),
       get_tags_context);
 
   auto execution_result = http2_client_->PerformRequest(http_context);
@@ -511,8 +513,9 @@ ExecutionResult GcpInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
   auto execution_result =
       CpioUtils::AsyncToSync<GetInstanceDetailsByResourceNameRequest,
                              GetInstanceDetailsByResourceNameResponse>(
-          bind(&GcpInstanceClientProvider::GetInstanceDetailsByResourceName,
-               this, _1),
+          absl::bind_front(
+              &GcpInstanceClientProvider::GetInstanceDetailsByResourceName,
+              this),
           request, response);
 
   if (!execution_result.Successful()) {
@@ -548,11 +551,12 @@ ExecutionResult GcpInstanceClientProvider::GetInstanceDetailsByResourceName(
   }
 
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
-      get_token_context(std::make_shared<GetSessionTokenRequest>(),
-                        bind(&GcpInstanceClientProvider::
-                                 OnGetSessionTokenForInstanceDetailsCallback,
-                             this, get_instance_details_context, _1),
-                        get_instance_details_context);
+      get_token_context(
+          std::make_shared<GetSessionTokenRequest>(),
+          absl::bind_front(&GcpInstanceClientProvider::
+                               OnGetSessionTokenForInstanceDetailsCallback,
+                           this, get_instance_details_context),
+          get_instance_details_context);
 
   execution_result = auth_token_provider_->GetSessionToken(get_token_context);
   if (!execution_result.Successful()) {
@@ -603,8 +607,8 @@ void GcpInstanceClientProvider::OnGetSessionTokenForInstanceDetailsCallback(
 
   AsyncContext<HttpRequest, HttpResponse> http_context(
       std::move(signed_request),
-      bind(&GcpInstanceClientProvider::OnGetInstanceDetailsCallback, this,
-           get_instance_details_context, _1),
+      absl::bind_front(&GcpInstanceClientProvider::OnGetInstanceDetailsCallback,
+                       this, get_instance_details_context),
       get_instance_details_context);
 
   auto execution_result = http2_client_->PerformRequest(http_context);

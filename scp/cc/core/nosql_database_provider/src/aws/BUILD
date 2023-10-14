@@ -30,6 +30,7 @@ cc_library(
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/nosql_database_provider/src/common:core_nosql_database_provider_common_lib",
         "@aws_sdk_cpp//:dynamodb",
+        "@com_google_absl//absl/functional:bind_front",
         "@nlohmann_json//:lib",
     ],
 )

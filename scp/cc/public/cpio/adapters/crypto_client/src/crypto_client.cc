@@ -16,8 +16,10 @@
 
 #include "crypto_client.h"
 
+#include <functional>
 #include <memory>
 
+#include "absl/functional/bind_front.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
@@ -42,8 +44,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::utils::ConvertToPublicExecutionResult;
 using google::scp::cpio::client_providers::CryptoClientProvider;
 using google::scp::cpio::client_providers::CryptoClientProviderInterface;
-using std::bind;
-using std::placeholders::_1;
 
 namespace {
 constexpr char kCryptoClient[] = "CryptoClient";
@@ -86,8 +86,8 @@ core::ExecutionResult CryptoClient::HpkeEncrypt(
     HpkeEncryptRequest request,
     Callback<HpkeEncryptResponse> callback) noexcept {
   return Execute<HpkeEncryptRequest, HpkeEncryptResponse>(
-      bind(&CryptoClientProviderInterface::HpkeEncrypt, crypto_client_provider_,
-           _1),
+      absl::bind_front(&CryptoClientProviderInterface::HpkeEncrypt,
+                       crypto_client_provider_),
       request, callback);
 }
 
@@ -95,8 +95,8 @@ core::ExecutionResult CryptoClient::HpkeDecrypt(
     HpkeDecryptRequest request,
     Callback<HpkeDecryptResponse> callback) noexcept {
   return Execute<HpkeDecryptRequest, HpkeDecryptResponse>(
-      bind(&CryptoClientProviderInterface::HpkeDecrypt, crypto_client_provider_,
-           _1),
+      absl::bind_front(&CryptoClientProviderInterface::HpkeDecrypt,
+                       crypto_client_provider_),
       request, callback);
 }
 
@@ -104,8 +104,8 @@ core::ExecutionResult CryptoClient::AeadEncrypt(
     AeadEncryptRequest request,
     Callback<AeadEncryptResponse> callback) noexcept {
   return Execute<AeadEncryptRequest, AeadEncryptResponse>(
-      bind(&CryptoClientProviderInterface::AeadEncrypt, crypto_client_provider_,
-           _1),
+      absl::bind_front(&CryptoClientProviderInterface::AeadEncrypt,
+                       crypto_client_provider_),
       request, callback);
 }
 
@@ -113,8 +113,8 @@ core::ExecutionResult CryptoClient::AeadDecrypt(
     AeadDecryptRequest request,
     Callback<AeadDecryptResponse> callback) noexcept {
   return Execute<AeadDecryptRequest, AeadDecryptResponse>(
-      bind(&CryptoClientProviderInterface::AeadDecrypt, crypto_client_provider_,
-           _1),
+      absl::bind_front(&CryptoClientProviderInterface::AeadDecrypt,
+                       crypto_client_provider_),
       request, callback);
 }
 

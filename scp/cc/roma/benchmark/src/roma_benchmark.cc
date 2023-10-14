@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <future>
 #include <list>
 #include <memory>
@@ -60,7 +61,6 @@ using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
 using std::chrono::seconds;
 using std::chrono::system_clock;
-using std::placeholders::_1;
 
 namespace {
 
@@ -411,8 +411,9 @@ void RomaBenchmark::SendRequestBatch() {
   atomic<size_t> sent_request = 0;
   while (sent_request < requests_per_thread_) {
     while (!BatchExecute(requests,
-                         bind(&RomaBenchmark::CallbackBatch, this, _1,
-                              privacy_sandbox::server_common::Stopwatch()))
+                         std::bind(&RomaBenchmark::CallbackBatch, this,
+                                   std::placeholders::_1,
+                                   privacy_sandbox::server_common::Stopwatch()))
                 .ok()) {}
     sent_request++;
   }
@@ -424,9 +425,10 @@ void RomaBenchmark::SendRequest() {
     auto code_object =
         std::make_unique<InvocationRequestSharedInput>(code_obj_);
     // Retry Execute to dispatch code_obj until success.
-    while (!Execute(move(code_object),
-                    bind(&RomaBenchmark::Callback, this, _1,
-                         privacy_sandbox::server_common::Stopwatch()))
+    while (!Execute(
+                move(code_object),
+                std::bind(&RomaBenchmark::Callback, this, std::placeholders::_1,
+                          privacy_sandbox::server_common::Stopwatch()))
                 .ok()) {
       // Recreate code_object and update start_time when request send failed.
       code_object = std::make_unique<InvocationRequestSharedInput>(code_obj_);
