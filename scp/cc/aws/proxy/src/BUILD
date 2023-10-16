@@ -319,6 +319,6 @@ container_layer(
         ":proxify_tar",
     ],
     visibility = [
-        "//production/packaging/aws:__subpackages__",
+        "//visibility:public",  # Leave as public for KV server.
     ],
 )
