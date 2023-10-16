@@ -25,8 +25,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::TCPTrafficForwarderSocat;
-using std::cout;
-using std::thread;
 using ::testing::HasSubstr;
 
 namespace google::scp::core::tcp_traffic_forwarder::test {

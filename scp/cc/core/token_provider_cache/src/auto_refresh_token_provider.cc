@@ -27,9 +27,6 @@
 using google::scp::core::FetchTokenRequest;
 using google::scp::core::FetchTokenResponse;
 using google::scp::core::common::TimeProvider;
-using std::shared_lock;
-using std::unique_lock;
-using std::chrono::seconds;
 
 static constexpr const char kAutoRefreshTokenProvider[] =
     "AutoRefreshTokenProvider";
@@ -54,7 +51,7 @@ ExecutionResult AutoRefreshTokenProviderService::Stop() noexcept {
 
 ExecutionResultOr<std::shared_ptr<Token>>
 AutoRefreshTokenProviderService::GetToken() noexcept {
-  shared_lock lock(mutex_);
+  std::shared_lock lock(mutex_);
   if (!cached_token_) {
     return FailureExecutionResult(
         errors::SC_AUTO_REFRESH_TOKEN_PROVIDER_TOKEN_NOT_AVAILABLE);
@@ -75,7 +72,7 @@ ExecutionResult AutoRefreshTokenProviderService::RefreshToken() {
         "rescheduling RefreshToken");
     // Reset the cached token
     {
-      unique_lock lock(mutex_);
+      std::unique_lock lock(mutex_);
       cached_token_ = nullptr;
     }
     // Schedule Refresh for later
@@ -98,7 +95,7 @@ void AutoRefreshTokenProviderService::OnRefreshTokenCallback(
                       "rescheduling RefreshToken");
     // Reset the cached token
     {
-      unique_lock lock(mutex_);
+      std::unique_lock lock(mutex_);
       cached_token_ = nullptr;
     }
     // Schedule Refresh for later
@@ -119,7 +116,7 @@ void AutoRefreshTokenProviderService::OnRefreshTokenCallback(
 
   // Cache the fetched token
   {
-    unique_lock lock(mutex_);
+    std::unique_lock lock(mutex_);
     cached_token_ =
         std::make_shared<std::string>(get_token_context.response->token);
   }

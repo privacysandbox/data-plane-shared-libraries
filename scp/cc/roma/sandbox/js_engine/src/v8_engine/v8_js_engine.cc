@@ -17,6 +17,7 @@
 #include "v8_js_engine.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -69,7 +70,6 @@ using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8IsolateVisitor;
 using google::scp::roma::sandbox::worker::WorkerUtils;
 using google::scp::roma::worker::ExecutionUtils;
-using std::uint8_t;
 using v8::Array;
 using v8::ArrayBuffer;
 using v8::Context;

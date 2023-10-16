@@ -43,7 +43,6 @@ using google::scp::roma::sandbox::native_function_binding::NativeFunctionTable;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
-using std::thread;
 
 namespace google::scp::roma::sandbox::roma_service {
 RomaService* RomaService::instance_ = nullptr;
@@ -89,7 +88,7 @@ void RomaService::RegisterLogBindings() noexcept {
 ExecutionResult RomaService::Init() noexcept {
   size_t concurrency = config_.number_of_workers;
   if (concurrency == 0) {
-    concurrency = thread::hardware_concurrency();
+    concurrency = std::thread::hardware_concurrency();
   }
 
   size_t worker_queue_cap = config_.worker_queue_max_items;

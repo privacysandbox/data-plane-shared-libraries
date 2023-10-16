@@ -29,10 +29,6 @@
 #include "core/tcp_traffic_forwarder/src/error_codes.h"
 
 using google::scp::core::common::kZeroUuid;
-using std::cerr;
-using std::cout;
-using std::endl;
-using std::chrono::milliseconds;
 
 static constexpr char kTCPTrafficForwarderSocat[] = "TCPTrafficForwarderSocat";
 
@@ -115,31 +111,35 @@ ExecutionResult TCPTrafficForwarderSocat::Run() noexcept {
     // affected by it.
     int error = setsid();
     if (error == -1) {
-      cerr << "Child: Failed to set PGID and SID. errno: " << errno << endl;
+      std::cerr << "Child: Failed to set PGID and SID. errno: " << errno
+                << std::endl;
       exit(1);
     } else {
-      cout << "Child: Set the process PGID and SID to " << getpgid(getpid())
-           << ", " << getsid(getpid()) << " respectively" << endl;
+      std::cout << "Child: Set the process PGID and SID to "
+                << getpgid(getpid()) << ", " << getsid(getpid())
+                << " respectively" << std::endl;
     }
 
 #if !defined(_SCP_CORE_SOCAT_FORWARDER_NON_PRIVILEGED)
     static constexpr int kNobodyUserId = 65534;
     error = setgid(kNobodyUserId);
     if (error == -1) {
-      cerr << "Child: Failed to set process group ID. errno: " << errno << endl;
+      std::cerr << "Child: Failed to set process group ID. errno: " << errno
+                << std::endl;
       exit(1);
     } else {
-      cout << "Child: Set the process real group ID to: " << getgid()
-           << " effective group ID: " << getegid() << endl;
+      std::cout << "Child: Set the process real group ID to: " << getgid()
+                << " effective group ID: " << getegid() << std::endl;
     }
 
     error = setuid(kNobodyUserId);
     if (error == -1) {
-      cerr << "Child: Failed to set process user ID. errno: " << errno << endl;
+      std::cerr << "Child: Failed to set process user ID. errno: " << errno
+                << std::endl;
       exit(1);
     } else {
-      cout << "Child: Set the process real user ID to: " << getuid()
-           << " effective user ID: " << geteuid() << endl;
+      std::cout << "Child: Set the process real user ID to: " << getuid()
+                << " effective user ID: " << geteuid() << std::endl;
     }
 #endif
 
@@ -196,7 +196,7 @@ ExecutionResult TCPTrafficForwarderSocat::Stop() noexcept {
   }
 
   // Give the socat processes some time do die.
-  std::this_thread::sleep_for(milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   // Account for any potentially orphaned socat processes that should be killed.
   auto there_are_socat_processes_running = []() -> bool {
     char line_buffer[256];
@@ -237,7 +237,7 @@ ExecutionResult TCPTrafficForwarderSocat::Stop() noexcept {
   while (!kill_all_socat_processes()) {
     SCP_INFO(kTCPTrafficForwarderSocat, kZeroUuid,
              "Waiting for all socat processes to die.");
-    std::this_thread::sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   child_pid_ = -1;

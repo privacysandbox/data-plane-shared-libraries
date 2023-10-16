@@ -89,8 +89,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
-using std::chrono::microseconds;
-using std::chrono::milliseconds;
 using testing::_;
 using testing::ElementsAre;
 using testing::Eq;
@@ -563,11 +561,11 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
   // it is not.
 
   // Wait until it enters the code path we want.
-  std::this_thread::sleep_for(milliseconds(50));
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   put_blob_stream_context_.TryPushRequest(std::move(request2));
 
   // Wait until it enters the code path we want.
-  std::this_thread::sleep_for(milliseconds(50));
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
   put_blob_stream_context_.TryPushRequest(std::move(request3));
 
   put_blob_stream_context_.MarkDone();
@@ -794,7 +792,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
 
   EXPECT_SUCCESS(provider_.PutBlobStream(put_blob_stream_context_));
 
-  std::this_thread::sleep_for(microseconds(kStreamKeepAliveMicrosCount));
+  std::this_thread::sleep_for(
+      std::chrono::microseconds(kStreamKeepAliveMicrosCount));
   EXPECT_TRUE(finish_called_.load());
   EXPECT_TRUE(put_blob_stream_context_.IsMarkedDone());
 }

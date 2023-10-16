@@ -27,9 +27,6 @@
 
 #include "error_codes.h"
 
-using std::mt19937;
-using std::uniform_int_distribution;
-
 static constexpr char kHexMap[] = {"0123456789ABCDEF"};
 
 namespace google::scp::core::common {
@@ -40,8 +37,8 @@ Uuid Uuid::GenerateUuid() noexcept {
 
   uint64_t high = current_clock.fetch_add(1);
   static std::random_device random_device_local;
-  static mt19937 random_generator(random_device_local());
-  uniform_int_distribution<uint64_t> distribution;
+  static std::mt19937 random_generator(random_device_local());
+  std::uniform_int_distribution<uint64_t> distribution;
 
   uint64_t low = distribution(random_generator);
   return Uuid{.high = high, .low = low};

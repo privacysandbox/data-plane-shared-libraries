@@ -26,12 +26,11 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::
     SC_ROMA_FUNCTION_TABLE_COULD_NOT_FIND_FUNCTION_NAME;
 using google::scp::core::errors::SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED;
-using std::lock_guard;
 
 namespace google::scp::roma::sandbox::native_function_binding {
 ExecutionResult NativeFunctionTable::Register(absl::string_view function_name,
                                               NativeBinding binding) {
-  lock_guard lock(native_functions_map_mutex_);
+  std::lock_guard lock(native_functions_map_mutex_);
   const auto [_, was_inserted] =
       native_functions_.insert({std::string(function_name), binding});
   if (!was_inserted) {
@@ -46,7 +45,7 @@ ExecutionResult NativeFunctionTable::Call(
     proto::FunctionBindingIoProto& function_binding_proto) {
   NativeBinding func;
   {
-    lock_guard lock(native_functions_map_mutex_);
+    std::lock_guard lock(native_functions_map_mutex_);
     auto fn_it = native_functions_.find(function_name);
     if (fn_it == native_functions_.end()) {
       return FailureExecutionResult(

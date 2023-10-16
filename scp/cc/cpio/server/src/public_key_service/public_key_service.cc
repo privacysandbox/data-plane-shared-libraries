@@ -81,9 +81,6 @@ using google::scp::cpio::StopLogger;
 using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::client_providers::PublicKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PublicKeyClientProviderInterface;
-using std::cout;
-using std::endl;
-using std::runtime_error;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;

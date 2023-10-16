@@ -28,11 +28,6 @@
 #include "error_codes.h"
 #include "typedef.h"
 
-using std::memory_order_relaxed;
-using std::mt19937;
-using std::thread;
-using std::uniform_int_distribution;
-
 namespace google::scp::core {
 ExecutionResult AsyncExecutor::Init() noexcept {
   if (thread_count_ <= 0 || thread_count_ > kMaxThreadCount) {
@@ -134,8 +129,8 @@ AsyncExecutor::PickTaskExecutor(
     TaskExecutorPoolType task_executor_pool_type,
     TaskLoadBalancingScheme task_load_balancing_scheme) {
   static std::random_device random_device_local;
-  static mt19937 random_generator(random_device_local());
-  static uniform_int_distribution<uint64_t> distribution;
+  static std::mt19937 random_generator(random_device_local());
+  static std::uniform_int_distribution<uint64_t> distribution;
 
   // Thread local task counters, initial value of the task counter with a random
   // value so that all the caller threads do not pick the same executor to start
@@ -171,13 +166,13 @@ AsyncExecutor::PickTaskExecutor(
   if (task_load_balancing_scheme ==
       TaskLoadBalancingScheme::RoundRobinPerThread) {
     if (task_executor_pool_type == TaskExecutorPoolType::UrgentPool) {
-      auto picked_index =
-          task_counter_urgent_thread_local.fetch_add(1, memory_order_relaxed) %
-          task_executor_pool.size();
+      auto picked_index = task_counter_urgent_thread_local.fetch_add(
+                              1, std::memory_order_relaxed) %
+                          task_executor_pool.size();
       return task_executor_pool.at(picked_index);
     } else if (task_executor_pool_type == TaskExecutorPoolType::NotUrgentPool) {
       auto picked_index = task_counter_not_urgent_thread_local.fetch_add(
-                              1, memory_order_relaxed) %
+                              1, std::memory_order_relaxed) %
                           task_executor_pool.size();
       return task_executor_pool.at(picked_index);
     } else {

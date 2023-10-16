@@ -114,10 +114,6 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Encode;
 using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
-using std::chrono::duration_cast;
-using std::chrono::minutes;
-using std::chrono::nanoseconds;
-using std::chrono::seconds;
 
 namespace {
 constexpr char kAwsS3Provider[] = "AwsBlobStorageClientProvider";
@@ -125,11 +121,13 @@ constexpr size_t kMaxConcurrentConnections = 1000;
 constexpr size_t kListBlobsMetadataMaxResults = 1000;
 constexpr size_t k64KbCount = 64 << 10;
 constexpr size_t kMinimumPartSize = 5 << 20;
-constexpr nanoseconds kDefaultStreamKeepaliveNanos =
-    duration_cast<nanoseconds>(minutes(5));
-constexpr nanoseconds kMaximumStreamKeepaliveNanos =
-    duration_cast<nanoseconds>(minutes(10));
-constexpr seconds kPutBlobRescanTime = seconds(5);
+constexpr std::chrono::nanoseconds kDefaultStreamKeepaliveNanos =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::minutes(5));
+constexpr std::chrono::nanoseconds kMaximumStreamKeepaliveNanos =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::minutes(10));
+constexpr std::chrono::seconds kPutBlobRescanTime = std::chrono::seconds(5);
 
 template <typename Context, typename Request>
 ExecutionResult SetContentMd5(Context& context, Request& request,
@@ -698,10 +696,11 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
   tracker->blob_name = request.blob_portion().metadata().blob_name();
   tracker->upload_id =
       create_multipart_upload_outcome.GetResult().GetUploadId();
-  auto duration = request.has_stream_keepalive_duration()
-                      ? nanoseconds(TimeUtil::DurationToNanoseconds(
-                            request.stream_keepalive_duration()))
-                      : kDefaultStreamKeepaliveNanos;
+  auto duration =
+      request.has_stream_keepalive_duration()
+          ? std::chrono::nanoseconds(TimeUtil::DurationToNanoseconds(
+                request.stream_keepalive_duration()))
+          : kDefaultStreamKeepaliveNanos;
   if (duration > kMaximumStreamKeepaliveNanos) {
     auto result = FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(
@@ -724,9 +723,10 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
     // Set part number to 0. OnUploadPartCallback expects the part number to be
     // the last successfully uploaded part - we haven't uploaded any yet.
     part_request.SetPartNumber(0);
-    ScheduleAnotherPutBlobStreamPoll(
-        put_blob_stream_context, tracker, s3_client, part_request,
-        UploadPartOutcome() /*unneeded*/, async_context, seconds(0));
+    ScheduleAnotherPutBlobStreamPoll(put_blob_stream_context, tracker,
+                                     s3_client, part_request,
+                                     UploadPartOutcome() /*unneeded*/,
+                                     async_context, std::chrono::seconds(0));
     return;
   }
 
@@ -763,7 +763,7 @@ void AwsBlobStorageClientProvider::ScheduleAnotherPutBlobStreamPoll(
     const UploadPartRequest& upload_part_request,
     UploadPartOutcome upload_part_outcome,
     const std::shared_ptr<const AsyncCallerContext> async_context,
-    seconds rescan_time) {
+    std::chrono::seconds rescan_time) {
   auto schedule_result = io_async_executor_->ScheduleFor(
       [&, this] {
         OnUploadPartCallback(put_blob_stream_context, tracker, s3_client,

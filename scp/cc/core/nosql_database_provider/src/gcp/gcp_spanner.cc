@@ -58,8 +58,6 @@ using google::scp::core::FinishContext;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common ::TimeProvider;
 using google::scp::core::nosql_database_provider::GcpSpannerUtils;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 using json = nlohmann::json;
 using google::cloud::spanner::MakeInsertOrUpdateMutation;
 

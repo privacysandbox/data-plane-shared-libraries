@@ -50,8 +50,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::thread;
-using std::chrono::seconds;
 using testing::Contains;
 using testing::EndsWith;
 using testing::Eq;
@@ -73,7 +71,7 @@ constexpr char kHttpResponseMock[] =
       "token_type":"Bearer"
     })";
 constexpr char kAccessTokenMock[] = "b0Aaekm1IeizWZVKoBQQULOiiT_PDcQk";
-constexpr seconds kTokenLifetime = seconds(3599);
+constexpr std::chrono::seconds kTokenLifetime = std::chrono::seconds(3599);
 
 constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
@@ -83,7 +81,8 @@ constexpr char kIdentityServerPath[] =
     "http://metadata/computeMetadata/v1/instance/service-accounts/default/"
     "identity";
 constexpr char kAudience[] = "www.google.com";
-constexpr seconds kTokenLifetimeForTargetAudience = seconds(3600);
+constexpr std::chrono::seconds kTokenLifetimeForTargetAudience =
+    std::chrono::seconds(3600);
 
 // eyJleHAiOjE2NzI3NjA3MDEsImlzcyI6Imlzc3VlciIsImF1ZCI6ImF1ZGllbmNlIiwic3ViIjoic3ViamVjdCIsImlhdCI6MTY3Mjc1NzEwMX0=
 // decodes to:

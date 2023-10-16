@@ -57,8 +57,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricInstanceFactory;
 using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
 using testing::Return;
 
 namespace google::scp::core::test {
@@ -411,7 +409,7 @@ void SubmitUntilSuccess(HttpClient& http_client,
   ExecutionResult execution_result = RetryExecutionResult(123);
   while (execution_result.status == ExecutionStatus::Retry) {
     execution_result = http_client.PerformRequest(context);
-    std::this_thread::sleep_for(milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
   EXPECT_SUCCESS(execution_result);
 }

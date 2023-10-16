@@ -30,8 +30,6 @@
 
 #include "error_codes.h"
 
-using std::cerr;
-
 using google::scp::core::common::ToString;
 using google::scp::core::common::Uuid;
 using google::scp::core::errors::SC_SYSLOG_CLOSE_CONNECTION_ERROR;
@@ -98,12 +96,12 @@ void SyslogLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
         vsyslog(LOG_CRIT, formatted_message.c_str(), args);
         break;
       case LogLevel::kNone:
-        cerr << "Invalid log type";
+        std::cerr << "Invalid log type";
         break;
     }
   } catch (...) {
     // TODO: Add code to get exception message
-    cerr << "Exception thrown while writing to syslog";
+    std::cerr << "Exception thrown while writing to syslog";
   }
 }
 }  // namespace google::scp::core::logger::log_providers

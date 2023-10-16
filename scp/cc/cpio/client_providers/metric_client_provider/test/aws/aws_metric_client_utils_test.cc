@@ -64,10 +64,6 @@ using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_OVERSIZE_DATUM_DIMENSIONS;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::AwsMetricClientUtils;
-using std::chrono::duration_cast;
-using std::chrono::hours;
-using std::chrono::milliseconds;
-using std::chrono::system_clock;
 
 namespace google::scp::cpio::client_providers::test {
 static constexpr size_t kAwsMetricDatumSizeLimit = 1000;
@@ -81,7 +77,8 @@ class AwsMetricClientUtilsTest : public ::testing::Test {
       PutMetricsRequest& record_metric_request,
       const std::string& value = kValue, int metrics_num = 1,
       int64_t timestamp_in_ms =
-          duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::system_clock::now().time_since_epoch())
               .count()) {
     for (auto i = 0; i < metrics_num; i++) {
       auto metric = record_metric_request.add_metrics();
@@ -162,9 +159,13 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidTimestamp) {
                           std::chrono::system_clock::now().time_since_epoch())
                           .count();
   Timestamp old_time_stamp =
-      current_time - duration_cast<milliseconds>(hours(24 * 15)).count();
+      current_time - std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::hours(24 * 15))
+                         .count();
   Timestamp ahead_time_stamp =
-      current_time + duration_cast<milliseconds>(hours(24 * 15)).count();
+      current_time + std::chrono::duration_cast<std::chrono::milliseconds>(
+                         std::chrono::hours(24 * 15))
+                         .count();
   std::vector<Timestamp> timestamp_vector = {negative_time, old_time_stamp,
                                              ahead_time_stamp};
 

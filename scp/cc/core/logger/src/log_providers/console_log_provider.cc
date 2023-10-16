@@ -28,8 +28,6 @@
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::ToString;
 using google::scp::core::common::Uuid;
-using std::cout;
-using std::endl;
 
 constexpr size_t nano_seconds_multiplier = (1000 * 1000 * 1000);
 
@@ -80,6 +78,6 @@ void ConsoleLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
 }
 
 void ConsoleLogProvider::Print(const std::string& output) noexcept {
-  cout << output << endl;
+  std::cout << output << std::endl;
 }
 }  // namespace google::scp::core::logger

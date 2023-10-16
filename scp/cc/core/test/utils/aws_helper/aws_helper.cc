@@ -53,7 +53,6 @@ using Aws::SSM::SSMClient;
 using Aws::SSM::Model::GetParametersRequest;
 using Aws::SSM::Model::PutParameterRequest;
 using Aws::Utils::CryptoBuffer;
-using std::chrono::milliseconds;
 
 /// Fixed connect timeout to create an AWS client.
 constexpr int kConnectTimeoutMs = 6000;
@@ -193,7 +192,7 @@ void CreateKey(const std::shared_ptr<KMSClient>& kms_client,
     if (!outcome.IsSuccess()) {
       std::cout << "Failed to create key: " << outcome.GetError().GetMessage()
                 << std::endl;
-      std::this_thread::sleep_for(milliseconds(500));
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
       ++retry_count;
     } else {
       std::cout << "Succeeded to create key." << std::endl;

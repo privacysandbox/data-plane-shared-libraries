@@ -107,23 +107,18 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 
-using std::ios_base;
-using std::chrono::duration;
-using std::chrono::duration_cast;
-using std::chrono::minutes;
-using std::chrono::nanoseconds;
-using std::chrono::seconds;
-
 namespace {
 
 constexpr size_t kMaxConcurrentConnections = 1000;
 constexpr size_t kListBlobsMetadataMaxResults = 1000;
 constexpr size_t k64KbCount = 64 << 10;
-constexpr nanoseconds kDefaultStreamKeepaliveNanos =
-    duration_cast<nanoseconds>(minutes(5));
-constexpr nanoseconds kMaximumStreamKeepaliveNanos =
-    duration_cast<nanoseconds>(minutes(10));
-constexpr seconds kPutBlobRescanTime = seconds(5);
+constexpr std::chrono::nanoseconds kDefaultStreamKeepaliveNanos =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::minutes(5));
+constexpr std::chrono::nanoseconds kMaximumStreamKeepaliveNanos =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::minutes(10));
+constexpr std::chrono::seconds kPutBlobRescanTime = std::chrono::seconds(5);
 
 bool IsPageTokenObject(const ListBlobsMetadataRequest& list_blobs_request,
                        const ObjectMetadata& obj_metadata) {
@@ -661,10 +656,11 @@ void GcpBlobStorageClientProvider::InitPutBlobStream(
   Client cloud_storage_client(*cloud_storage_client_shared_);
   const auto& request = *put_blob_stream_context.request;
   auto tracker = std::make_shared<PutBlobStreamTracker>();
-  auto duration = request.has_stream_keepalive_duration()
-                      ? nanoseconds(TimeUtil::DurationToNanoseconds(
-                            request.stream_keepalive_duration()))
-                      : kDefaultStreamKeepaliveNanos;
+  auto duration =
+      request.has_stream_keepalive_duration()
+          ? std::chrono::nanoseconds(TimeUtil::DurationToNanoseconds(
+                request.stream_keepalive_duration()))
+          : kDefaultStreamKeepaliveNanos;
   if (duration > kMaximumStreamKeepaliveNanos) {
     auto result = FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(

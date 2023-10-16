@@ -26,8 +26,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 
-using std::runtime_error;
-
 // localstack version is pinned so that tests are repeatable
 static constexpr char kLocalstackImage[] = "localstack/localstack:1.0.3";
 // gcloud SDK tool version is pinned so that tests are repeatable
@@ -160,7 +158,7 @@ std::string GetIpAddress(const std::string& network_name,
                    network_name, ".IPAddress }}' ", container_name);
   auto pipe = popen(command.c_str(), "r");
   if (!pipe) {
-    throw runtime_error("Failed to fetch IP address for container!");
+    throw std::runtime_error("Failed to fetch IP address for container!");
     return "";
   }
 
@@ -170,7 +168,7 @@ std::string GetIpAddress(const std::string& network_name,
 
   auto return_status = pclose(pipe);
   if (return_status == EXIT_FAILURE) {
-    throw runtime_error(
+    throw std::runtime_error(
         "Failed to close pipe to fetch IP address for container!");
     return "";
   }
@@ -188,7 +186,7 @@ void GrantPermissionToFolder(const std::string& container_name,
       absl::StrCat("docker exec -itd ", container_name, " chmod 666 ", folder);
   auto result = std::system(s.c_str());
   if (result != 0) {
-    throw runtime_error("Failed to grant permission!");
+    throw std::runtime_error("Failed to grant permission!");
   } else {
     std::cout << "Succeeded to grant permission!" << std::endl;
   }

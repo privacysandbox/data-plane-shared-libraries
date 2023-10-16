@@ -51,7 +51,6 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Decode;
 using google::scp::core::utils::PadBase64Encoding;
 using nlohmann::json;
-using std::chrono::seconds;
 
 namespace {
 constexpr char kGcpAuthTokenProvider[] = "GcpAuthTokenProvider";
@@ -221,7 +220,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
   // The life time of GCP access token is about 1 hour.
   uint64_t expiry_seconds = json_response[kJsonTokenExpiryKey].get<uint64_t>();
   get_token_context.response->token_lifetime_in_seconds =
-      seconds(expiry_seconds);
+      std::chrono::seconds(expiry_seconds);
   auto access_token = json_response[kJsonAccessTokenKey].get<std::string>();
   get_token_context.response->session_token =
       std::make_shared<std::string>(std::move(access_token));
@@ -345,7 +344,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
   uint64_t issued_seconds =
       json_web_token[kJsonTokenIssuedAtKey].get<uint64_t>();
   get_token_context.response->token_lifetime_in_seconds =
-      seconds(expiry_seconds - issued_seconds);
+      std::chrono::seconds(expiry_seconds - issued_seconds);
 
   get_token_context.result = SuccessExecutionResult();
   get_token_context.Finish();

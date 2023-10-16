@@ -30,8 +30,6 @@
 
 using google::scp::core::common::TimeProvider;
 using google::scp::core::lease_manager::mock::MockLeaseRefreshLivenessCheck;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 using ::testing::Invoke;
 using ::testing::Return;
 

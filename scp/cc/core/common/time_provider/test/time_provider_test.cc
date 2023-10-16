@@ -22,12 +22,10 @@
 
 #include <thread>
 
-using std::chrono::nanoseconds;
-
 namespace google::scp::core::common::test {
 TEST(TimeProviderTest,
      GetUniqueWallTimestampInNanosecondsReturnsUniqueTimestampSingleThread) {
-  nanoseconds prev_timestamp =
+  std::chrono::nanoseconds prev_timestamp =
       TimeProvider::GetUniqueWallTimestampInNanoseconds();
   for (int i = 0; i < 100000; i++) {
     auto timestamp = TimeProvider::GetUniqueWallTimestampInNanoseconds();
@@ -54,7 +52,7 @@ TEST(TimeProviderTest,
         [&](int thread_number) {
           while (!start.load()) {}
 
-          nanoseconds prev_timestamp =
+          std::chrono::nanoseconds prev_timestamp =
               TimeProvider::GetUniqueWallTimestampInNanoseconds();
           for (int i = 0; i < timestamp_fetch_count; i++) {
             auto timestamp =

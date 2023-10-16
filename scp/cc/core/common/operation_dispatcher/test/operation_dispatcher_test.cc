@@ -35,7 +35,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::chrono::milliseconds;
 
 namespace google::scp::core::common::test {
 TEST(OperationDispatcherTests, SuccessfulOperation) {

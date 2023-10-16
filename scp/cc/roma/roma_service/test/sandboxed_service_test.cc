@@ -35,9 +35,6 @@
 
 using google::scp::core::test::WaitUntil;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
-using std::thread;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 using ::testing::HasSubstr;
 
 using namespace std::placeholders;     // NOLINT
@@ -630,7 +627,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   WaitUntil([&]() { return load_finished.load(); }, 10s);
 
   int num_threads = 10;
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   for (int i = 0; i < num_threads; i++) {
     std::atomic<bool> local_execute = false;
     threads.emplace_back([&, i]() {

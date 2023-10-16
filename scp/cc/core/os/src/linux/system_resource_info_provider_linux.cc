@@ -28,7 +28,6 @@
 
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
-using std::ifstream;
 
 using google::scp::core::errors::
     SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_COULD_NOT_FIND_MEMORY_INFO;
@@ -47,7 +46,7 @@ namespace google::scp::core::os::linux {
 ExecutionResultOr<uint64_t>
 SystemResourceInfoProviderLinux::GetAvailableMemoryKb() noexcept {
   auto meminfo_file_path = GetMemInfoFilePath();
-  ifstream meminfo_file(meminfo_file_path);
+  std::ifstream meminfo_file(meminfo_file_path);
   if (meminfo_file.fail()) {
     return FailureExecutionResult(
         SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_COULD_NOT_OPEN_MEMINFO_FILE);

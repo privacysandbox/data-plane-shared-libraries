@@ -59,7 +59,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::GcpInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
-using std::chrono::seconds;
 using testing::_;
 using testing::Eq;
 using testing::IsEmpty;

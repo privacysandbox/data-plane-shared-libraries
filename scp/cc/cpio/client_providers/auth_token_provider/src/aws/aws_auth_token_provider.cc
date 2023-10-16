@@ -37,7 +37,6 @@ using google::scp::core::Uri;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED;
-using std::chrono::seconds;
 
 namespace {
 constexpr char kAwsAuthTokenProvider[] = "AwsAuthTokenProvider";
@@ -125,7 +124,7 @@ void AwsAuthTokenProvider::OnGetSessionTokenCallback(
   get_token_context.response->session_token = std::make_shared<std::string>(
       http_client_context.response->body.ToString());
   get_token_context.response->token_lifetime_in_seconds =
-      seconds(kTokenTtlInSecondHeaderValue);
+      std::chrono::seconds(kTokenTtlInSecondHeaderValue);
   get_token_context.result = SuccessExecutionResult();
   get_token_context.Finish();
 }

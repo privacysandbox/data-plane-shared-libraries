@@ -27,9 +27,6 @@ namespace beast = boost::beast;
 namespace http = beast::http;
 using tcp = boost::asio::ip::tcp;
 
-using std::thread;
-using std::chrono::milliseconds;
-
 namespace google::scp::core::test {
 namespace {
 void HandleErrorIfPresent(const boost::system::error_code& ec,
@@ -68,7 +65,7 @@ ExecutionResultOr<in_port_t> GetUnusedPortNumber() {
 
 TestHttp1Server::TestHttp1Server() {
   std::atomic_bool ready(false);
-  thread_ = thread([this, &ready]() {
+  thread_ = std::thread([this, &ready]() {
     boost::asio::io_context ioc(/*concurrency_hint=*/1);
     tcp::endpoint ep(tcp::v4(), /*port=*/0);
     tcp::acceptor acceptor(ioc, ep);
@@ -89,7 +86,7 @@ TestHttp1Server::TestHttp1Server() {
         }
       });
       ready = true;
-      ioc.run_for(milliseconds(100));
+      ioc.run_for(std::chrono::milliseconds(100));
       ioc.reset();
     }
   });

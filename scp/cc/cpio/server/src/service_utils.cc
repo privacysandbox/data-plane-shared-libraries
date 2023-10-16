@@ -53,9 +53,6 @@ using google::scp::core::logger::Logger;
 using google::scp::core::logger::log_providers::SyslogLogProvider;
 using google::scp::cpio::client_providers::CloudInitializerFactory;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
-using std::cout;
-using std::endl;
-using std::runtime_error;
 
 namespace google::scp::cpio {
 void Init(const std::shared_ptr<ServiceInterface>& service,
@@ -65,11 +62,11 @@ void Init(const std::shared_ptr<ServiceInterface>& service,
     if (!execution_result.Successful()) {
       SCP_ERROR(service_name, kZeroUuid, execution_result,
                 "Failed to initialize the service.");
-      throw runtime_error(service_name + " failed to initialized. " +
-                          GetErrorMessage(execution_result.status_code));
+      throw std::runtime_error(service_name + " failed to initialized. " +
+                               GetErrorMessage(execution_result.status_code));
     }
     SCP_INFO(service_name, kZeroUuid, "Properly initialized the service.");
-    cout << service_name << " initialized." << endl;
+    std::cout << service_name << " initialized." << std::endl;
   }
 }
 
@@ -80,11 +77,11 @@ void Run(const std::shared_ptr<ServiceInterface>& service,
     if (!execution_result.Successful()) {
       SCP_ERROR(service_name, kZeroUuid, execution_result,
                 "Failed to run the service.");
-      throw runtime_error(service_name + " failed to run. " +
-                          GetErrorMessage(execution_result.status_code));
+      throw std::runtime_error(service_name + " failed to run. " +
+                               GetErrorMessage(execution_result.status_code));
     }
     SCP_INFO(service_name, kZeroUuid, "Successfully running the service.");
-    cout << service_name << " running." << endl;
+    std::cout << service_name << " running." << std::endl;
   }
 }
 
@@ -95,11 +92,11 @@ void Stop(const std::shared_ptr<ServiceInterface>& service,
     if (!execution_result.Successful()) {
       SCP_ERROR(service_name, kZeroUuid, execution_result,
                 "Failed to stop the service.");
-      throw runtime_error(service_name + " failed to stop. " +
-                          GetErrorMessage(execution_result.status_code));
+      throw std::runtime_error(service_name + " failed to stop. " +
+                               GetErrorMessage(execution_result.status_code));
     }
     SCP_INFO(service_name, kZeroUuid, "Properly stopped the service.");
-    cout << service_name << " stopped." << endl;
+    std::cout << service_name << " stopped." << std::endl;
   }
 }
 
@@ -112,7 +109,7 @@ void RunLogger(
           .Successful()) {
     auto it = kLogOptionConfigMap.find(log_option_config);
     if (it == kLogOptionConfigMap.end()) {
-      throw runtime_error("Invalid Log option.");
+      throw std::runtime_error("Invalid Log option.");
     }
     log_option = it->second;
   }
@@ -132,13 +129,13 @@ void RunLogger(
   }
   if (logger_ptr) {
     if (!logger_ptr->Init().Successful()) {
-      throw runtime_error("Cannot initialize logger.");
+      throw std::runtime_error("Cannot initialize logger.");
     }
     if (!logger_ptr->Run().Successful()) {
-      throw runtime_error("Cannot run logger.");
+      throw std::runtime_error("Cannot run logger.");
     }
     GlobalLogger::SetGlobalLogger(std::move(logger_ptr));
-    cout << "Logger running." << endl;
+    std::cout << "Logger running." << std::endl;
   }
 }
 
@@ -146,9 +143,9 @@ void StopLogger() {
   if (GlobalLogger::GetGlobalLogger()) {
     auto execution_result = GlobalLogger::GetGlobalLogger()->Stop();
     if (!execution_result.Successful()) {
-      throw runtime_error("Logger failed to stop.");
+      throw std::runtime_error("Logger failed to stop.");
     }
-    cout << "Logger stopped." << endl;
+    std::cout << "Logger stopped." << std::endl;
   }
 }
 
@@ -203,8 +200,8 @@ std::string ReadConfigString(
   std::string config_value;
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
-    throw runtime_error(config_key + " is not provided. " +
-                        GetErrorMessage(execution_result.status_code));
+    throw std::runtime_error(config_key + " is not provided. " +
+                             GetErrorMessage(execution_result.status_code));
   }
   return config_value;
 }
@@ -214,8 +211,8 @@ void ReadConfigStringList(
     const std::string& config_key, std::list<std::string>& config_values) {
   auto execution_result = config_provider->Get(config_key, config_values);
   if (!execution_result.Successful()) {
-    throw runtime_error(config_key + " is not provided. " +
-                        GetErrorMessage(execution_result.status_code));
+    throw std::runtime_error(config_key + " is not provided. " +
+                             GetErrorMessage(execution_result.status_code));
   }
 }
 
@@ -224,8 +221,8 @@ ExecutionResult TryReadConfigStringList(
     const std::string& config_key, std::list<std::string>& config_values) {
   auto execution_result = config_provider->Get(config_key, config_values);
   if (!execution_result.Successful()) {
-    cout << "Optional " << config_key << " is not provided. "
-         << GetErrorMessage(execution_result.status_code) << endl;
+    std::cout << "Optional " << config_key << " is not provided. "
+              << GetErrorMessage(execution_result.status_code) << std::endl;
   }
   return execution_result;
 }
@@ -235,8 +232,8 @@ ExecutionResult TryReadConfigString(
     const std::string& config_key, std::string& config_value) {
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
-    cout << "Optional " << config_key << " is not provided. "
-         << GetErrorMessage(execution_result.status_code) << endl;
+    std::cout << "Optional " << config_key << " is not provided. "
+              << GetErrorMessage(execution_result.status_code) << std::endl;
   }
   return execution_result;
 }
@@ -246,8 +243,8 @@ ExecutionResult TryReadConfigBool(
     const std::string& config_key, bool& config_value) {
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
-    cout << "Optional " << config_key << " is not provided. "
-         << GetErrorMessage(execution_result.status_code) << endl;
+    std::cout << "Optional " << config_key << " is not provided. "
+              << GetErrorMessage(execution_result.status_code) << std::endl;
   }
   return execution_result;
 }
@@ -258,8 +255,8 @@ int32_t ReadConfigInt(
   int32_t config_value;
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
-    throw runtime_error(config_key + " is not provided. " +
-                        GetErrorMessage(execution_result.status_code));
+    throw std::runtime_error(config_key + " is not provided. " +
+                             GetErrorMessage(execution_result.status_code));
   }
   return config_value;
 }
@@ -269,8 +266,8 @@ ExecutionResult TryReadConfigInt(
     const std::string& config_key, int32_t& config_value) {
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
-    cout << "Optional " << config_key << " is not provided. "
-         << GetErrorMessage(execution_result.status_code) << endl;
+    std::cout << "Optional " << config_key << " is not provided. "
+              << GetErrorMessage(execution_result.status_code) << std::endl;
   }
   return execution_result;
 }

@@ -43,7 +43,6 @@ using boost::algorithm::to_lower;
 using boost::system::error_code;
 using google::scp::core::common::kZeroUuid;
 using nghttp2::asio_http2::host_service_from_uri;
-using std::lock_guard;
 
 static constexpr char kHttpsTag[] = "https";
 static constexpr char kHttpTag[] = "http";
@@ -193,7 +192,7 @@ ExecutionResult HttpConnectionPool::GetConnection(
 
 void HttpConnectionPool::RecycleConnection(
     std::shared_ptr<HttpConnection>& connection) noexcept {
-  lock_guard lock(connection_lock_);
+  std::lock_guard lock(connection_lock_);
 
   if (!connection->IsDropped()) {
     return;

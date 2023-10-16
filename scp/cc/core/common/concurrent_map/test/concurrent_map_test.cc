@@ -30,7 +30,6 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::common::ConcurrentMap;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::ScpTestBase;
-using std::thread;
 
 namespace google::scp::core::common::test {
 

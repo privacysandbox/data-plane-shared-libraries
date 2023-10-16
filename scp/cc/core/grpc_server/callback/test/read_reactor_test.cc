@@ -29,7 +29,6 @@
 using grpc::ServerCallbackReader;
 using grpc::ServerReadReactor;
 using grpc::internal::ServerReactor;
-using std::thread;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::InSequence;
@@ -113,10 +112,10 @@ MATCHER_P(StatusCodeIs, code, "") {
 }
 
 TEST_F(ReadReactorTest, BasicSequenceWorks) {
-  thread finisher_thread;
+  std::thread finisher_thread;
   reactor_->initiate_call_function = [&finisher_thread](auto context) {
     // Spawn a thread to listen for when to finish context.
-    finisher_thread = thread([context]() mutable {
+    finisher_thread = std::thread([context]() mutable {
       int val;
       std::unique_ptr<SomeRequest> req = context.TryGetNextRequest();
       for (val = 11; req != nullptr; val++) {
@@ -158,9 +157,9 @@ TEST_F(ReadReactorTest, BasicSequenceWorks) {
 }
 
 TEST_F(ReadReactorTest, FailureOnInitiationWorks) {
-  thread finisher_thread;
+  std::thread finisher_thread;
   reactor_->initiate_call_function = [&finisher_thread](auto context) {
-    finisher_thread = thread([context]() mutable {
+    finisher_thread = std::thread([context]() mutable {
       context.result = FailureExecutionResult(SC_UNKNOWN);
       context.Finish();
       finished = true;
@@ -201,20 +200,21 @@ TEST_F(ReadReactorTest, FailureOnInitialReadWorks) {
 
 TEST_F(ReadReactorTest, MakesNewResponseOnFailure) {
   std::atomic_int read_count = 0;
-  thread finisher_thread;
+  std::thread finisher_thread;
   reactor_->initiate_call_function = [&finisher_thread,
                                       &read_count](auto context) {
-    finisher_thread = thread([context, read_count = &read_count]() mutable {
-      // Once the second read goes through, they will try to enqueue a
-      // message but the queue is marked as done, so it will fail.
-      while (*read_count < 2) {}
-      // Spawn a thread to listen for when to finish context.
-      // Return error and don't populate context.response.
-      context.result = FailureExecutionResult(SC_UNKNOWN);
-      context.MarkDone();
-      context.Finish();
-      finished = true;
-    });
+    finisher_thread =
+        std::thread([context, read_count = &read_count]() mutable {
+          // Once the second read goes through, they will try to enqueue a
+          // message but the queue is marked as done, so it will fail.
+          while (*read_count < 2) {}
+          // Spawn a thread to listen for when to finish context.
+          // Return error and don't populate context.response.
+          context.result = FailureExecutionResult(SC_UNKNOWN);
+          context.MarkDone();
+          context.Finish();
+          finished = true;
+        });
     return SuccessExecutionResult();
   };
   InSequence seq;
@@ -241,10 +241,10 @@ TEST_F(ReadReactorTest, MakesNewResponseOnFailure) {
 }
 
 TEST_F(ReadReactorTest, CancellationWorks) {
-  thread finisher_thread;
+  std::thread finisher_thread;
   reactor_->initiate_call_function = [&finisher_thread](auto context) {
     // Spawn a thread to listen for when to finish context.
-    finisher_thread = thread([context]() mutable {
+    finisher_thread = std::thread([context]() mutable {
       // Empty the queue and then move on.
       auto queue_is_done = [context = context]() mutable {
         if (context.TryGetNextRequest() == nullptr &&

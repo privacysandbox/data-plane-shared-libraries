@@ -32,8 +32,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::errors::SC_ROMA_WORKER_API_INVALID_DURATION;
 using google::scp::roma::sandbox::constants::
     kExecutionMetricSandboxedJsEngineCallDuration;
-using std::lock_guard;
-using std::mutex;
 
 namespace google::scp::roma::sandbox::worker_api {
 ExecutionResult WorkerApiSapi::Init() noexcept {
@@ -50,7 +48,7 @@ ExecutionResult WorkerApiSapi::Stop() noexcept {
 
 ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
     const WorkerApi::RunCodeRequest& request) noexcept {
-  lock_guard<mutex> lock(run_code_mutex_);
+  std::lock_guard<std::mutex> lock(run_code_mutex_);
 
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(std::string(request.code));

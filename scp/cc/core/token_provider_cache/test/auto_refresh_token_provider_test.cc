@@ -28,8 +28,6 @@
 
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
 using ::testing::_;
 using ::testing::DoAll;
 using ::testing::Eq;
@@ -89,7 +87,7 @@ TEST_F(AutoRefreshTokenProviderTest, StartStopWithTokenSuccess) {
             context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds =
-                seconds(1);  // 1 second expiry
+                std::chrono::seconds(1);  // 1 second expiry
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();
@@ -112,7 +110,8 @@ TEST_F(AutoRefreshTokenProviderTest, RunStartsTokenRefresh) {
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
             context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
-            context.response->token_lifetime_in_seconds = seconds(1234567);
+            context.response->token_lifetime_in_seconds =
+                std::chrono::seconds(1234567);
             called = true;
             return SuccessExecutionResult();
           });
@@ -128,14 +127,16 @@ TEST_F(AutoRefreshTokenProviderTest, QueryFailureRetriesRefresh) {
           [](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
             context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
-            context.response->token_lifetime_in_seconds = seconds(1234567);
+            context.response->token_lifetime_in_seconds =
+                std::chrono::seconds(1234567);
             return FailureExecutionResult(1234);
           })
       .WillOnce(
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
             context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
-            context.response->token_lifetime_in_seconds = seconds(1234567);
+            context.response->token_lifetime_in_seconds =
+                std::chrono::seconds(1234567);
             called = true;
             return SuccessExecutionResult();
           });
@@ -150,7 +151,8 @@ TEST_F(AutoRefreshTokenProviderTest, QueryCallbackFailureRetriesRefresh) {
           [](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
             context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
-            context.response->token_lifetime_in_seconds = seconds(1234567);
+            context.response->token_lifetime_in_seconds =
+                std::chrono::seconds(1234567);
             context.result = FailureExecutionResult(1234);
             context.Finish();
             return SuccessExecutionResult();
@@ -159,7 +161,8 @@ TEST_F(AutoRefreshTokenProviderTest, QueryCallbackFailureRetriesRefresh) {
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
             context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
-            context.response->token_lifetime_in_seconds = seconds(1234567);
+            context.response->token_lifetime_in_seconds =
+                std::chrono::seconds(1234567);
             called = true;
             return SuccessExecutionResult();
           });
@@ -174,7 +177,7 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndRefreshed) {
             context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds =
-                seconds(1);  // 1 second expiry
+                std::chrono::seconds(1);  // 1 second expiry
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();
@@ -183,7 +186,8 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndRefreshed) {
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
             context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "def";
-            context.response->token_lifetime_in_seconds = seconds(360);
+            context.response->token_lifetime_in_seconds =
+                std::chrono::seconds(360);
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();
@@ -194,16 +198,16 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndRefreshed) {
   ExecutionResultOr<std::shared_ptr<Token>> token_or;
   do {
     token_or = token_provider_->GetToken();
-    std::this_thread::sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   } while (!token_or.Successful());
 
   EXPECT_THAT(token_or, IsSuccessfulAndHolds(Pointee(Eq("abc"))));
 
-  std::this_thread::sleep_for(milliseconds(500));
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   do {
     token_or = token_provider_->GetToken();
-    std::this_thread::sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   } while (token_or.Successful() && *token_or.value() == "abc");
 
   EXPECT_THAT(token_or, IsSuccessfulAndHolds(Pointee(Eq("def"))));
@@ -217,7 +221,7 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndResetIfTokenFetchFails) {
             context.response = std::make_shared<FetchTokenResponse>();
             context.response->token = "abc";
             context.response->token_lifetime_in_seconds =
-                seconds(1);  // 1 second expiry
+                std::chrono::seconds(1);  // 1 second expiry
             context.result = SuccessExecutionResult();
             context.Finish();
             return SuccessExecutionResult();
@@ -234,12 +238,12 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsCachedAndResetIfTokenFetchFails) {
   ExecutionResultOr<std::shared_ptr<Token>> token_or;
   do {
     token_or = token_provider_->GetToken();
-    std::this_thread::sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   } while (!token_or.Successful());
 
   EXPECT_THAT(token_or, IsSuccessfulAndHolds(Pointee(Eq("abc"))));
 
-  std::this_thread::sleep_for(milliseconds(1000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   EXPECT_THAT(token_provider_->GetToken(),
               ResultIs(FailureExecutionResult(

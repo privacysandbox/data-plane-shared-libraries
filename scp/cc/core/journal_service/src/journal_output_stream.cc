@@ -45,7 +45,6 @@ using google::scp::core::journal_service::JournalStreamAppendLogResponse;
 using google::scp::core::journal_service::JournalUtils;
 using google::scp::cpio::AggregateMetricInterface;
 using google::scp::cpio::MetricClientInterface;
-using std::chrono::milliseconds;
 
 static constexpr char kJournalOutputStream[] = "JournalOutputStream";
 

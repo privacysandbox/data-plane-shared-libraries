@@ -37,7 +37,6 @@ using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
 using google::scp::roma::sandbox::worker::WorkerFactory;
-using std::thread;
 
 namespace google::scp::roma::sandbox::worker_api::test {
 TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
@@ -102,7 +101,7 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   auto result = sandbox_api.Init();
   EXPECT_SUCCESS(result);
 
-  thread to_handle_function_call(
+  std::thread to_handle_function_call(
       [](int fd) {
         sandbox2::Comms comms(fd);
         FunctionBindingIoProto io_proto;
@@ -203,7 +202,7 @@ TEST(WorkerSandboxApiTest,
   auto result = sandbox_api.Init();
   EXPECT_SUCCESS(result);
 
-  thread to_handle_function_call(
+  std::thread to_handle_function_call(
       [](int fd) {
         sandbox2::Comms comms(fd);
         FunctionBindingIoProto io_proto;

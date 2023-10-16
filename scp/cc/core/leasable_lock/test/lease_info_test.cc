@@ -32,9 +32,6 @@ using google::scp::core::UpsertDatabaseItemRequest;
 using google::scp::core::UpsertDatabaseItemResponse;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::test::ResultIs;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
 
 static constexpr char kPartitionLockTableDefaultName[] =
     "core_ll_partition_lock_table";
@@ -56,9 +53,9 @@ class LeasableLockOnNoSQLDatabaseLeaseInfoInternalTester
     EXPECT_TRUE(lease_info_internal.IsExpired());
 
     lease_info_internal = LeaseInfoInternal(
-        lease_info, duration_cast<milliseconds>(
+        lease_info, std::chrono::duration_cast<std::chrono::milliseconds>(
                         TimeProvider::GetWallTimestampInNanoseconds()) +
-                        seconds(1));
+                        std::chrono::seconds(1));
     EXPECT_FALSE(lease_info_internal.IsExpired());
   }
 
@@ -70,10 +67,11 @@ class LeasableLockOnNoSQLDatabaseLeaseInfoInternalTester
     LeaseInfoInternal lease_info_internal(lease_info);
     EXPECT_TRUE(lease_info_internal.IsExpired());
 
-    lease_info_internal.SetExpirationTimestampFromNow(milliseconds(500));
+    lease_info_internal.SetExpirationTimestampFromNow(
+        std::chrono::milliseconds(500));
     EXPECT_FALSE(lease_info_internal.IsExpired());
 
-    std::this_thread::sleep_for(seconds(1));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_TRUE(lease_info_internal.IsExpired());
   }
 
@@ -95,52 +93,54 @@ class LeasableLockOnNoSQLDatabaseLeaseInfoInternalTester
     lease_info.service_endpoint_address = "10.1.1.1";
 
     LeaseInfoInternal lease_info_internal(lease_info);
-    lease_info_internal.SetExpirationTimestampFromNow(milliseconds(500));
+    lease_info_internal.SetExpirationTimestampFromNow(
+        std::chrono::milliseconds(500));
 
-    EXPECT_FALSE(
-        lease_info_internal.IsLeaseRenewalRequired(milliseconds(500), 50));
-    EXPECT_FALSE(
-        lease_info_internal.IsLeaseRenewalRequired(milliseconds(900), 50));
-    EXPECT_TRUE(
-        lease_info_internal.IsLeaseRenewalRequired(milliseconds(1100), 50));
+    EXPECT_FALSE(lease_info_internal.IsLeaseRenewalRequired(
+        std::chrono::milliseconds(500), 50));
+    EXPECT_FALSE(lease_info_internal.IsLeaseRenewalRequired(
+        std::chrono::milliseconds(900), 50));
+    EXPECT_TRUE(lease_info_internal.IsLeaseRenewalRequired(
+        std::chrono::milliseconds(1100), 50));
 
-    lease_info_internal.SetExpirationTimestampFromNow(seconds(50));
-    EXPECT_FALSE(
-        lease_info_internal.IsLeaseRenewalRequired(milliseconds(10), 50));
+    lease_info_internal.SetExpirationTimestampFromNow(std::chrono::seconds(50));
+    EXPECT_FALSE(lease_info_internal.IsLeaseRenewalRequired(
+        std::chrono::milliseconds(10), 50));
 
-    lease_info_internal.SetExpirationTimestampFromNow(seconds(0));
-    EXPECT_TRUE(lease_info_internal.IsLeaseRenewalRequired(seconds(10), 50));
+    lease_info_internal.SetExpirationTimestampFromNow(std::chrono::seconds(0));
+    EXPECT_TRUE(lease_info_internal.IsLeaseRenewalRequired(
+        std::chrono::seconds(10), 50));
   }
 
   void LeaseInfoInternalTestIsHalfLeaseDurationPassed() {
     LeaseInfo lease_info;
     lease_info.lease_acquirer_id = "1";
     lease_info.service_endpoint_address = "10.1.1.1";
-    auto lease_duration_in_ms = milliseconds(10000);  // 10 sec
+    auto lease_duration_in_ms = std::chrono::milliseconds(10000);  // 10 sec
 
     LeaseInfoInternal lease_info_internal(lease_info);
     lease_info_internal.SetExpirationTimestampFromNow(
-        seconds(10));  // 10 s left in the current lease.
+        std::chrono::seconds(10));  // 10 s left in the current lease.
     EXPECT_FALSE(
         lease_info_internal.IsHalfLeaseDurationPassed(lease_duration_in_ms));
 
     lease_info_internal.SetExpirationTimestampFromNow(
-        seconds(2));  // 2 s left in the current lease.
+        std::chrono::seconds(2));  // 2 s left in the current lease.
     EXPECT_TRUE(
         lease_info_internal.IsHalfLeaseDurationPassed(lease_duration_in_ms));
 
     lease_info_internal.SetExpirationTimestampFromNow(
-        seconds(6));  // 6 s left in the current lease.
+        std::chrono::seconds(6));  // 6 s left in the current lease.
     EXPECT_FALSE(
         lease_info_internal.IsHalfLeaseDurationPassed(lease_duration_in_ms));
 
     lease_info_internal.SetExpirationTimestampFromNow(
-        seconds(4));  // 4 s left in the current lease.
+        std::chrono::seconds(4));  // 4 s left in the current lease.
     EXPECT_TRUE(
         lease_info_internal.IsHalfLeaseDurationPassed(lease_duration_in_ms));
 
     lease_info_internal.SetExpirationTimestampFromNow(
-        milliseconds(0));  // Lease expired already.
+        std::chrono::milliseconds(0));  // Lease expired already.
     EXPECT_TRUE(
         lease_info_internal.IsHalfLeaseDurationPassed(lease_duration_in_ms));
   }

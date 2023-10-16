@@ -61,9 +61,6 @@ using google::scp::cpio::client_providers::GcpMetricClientUtils;
 using google::scp::cpio::client_providers::mock::
     MockGcpMetricClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::system_clock;
 using testing::ByMove;
 using testing::NiceMock;
 using testing::Return;
@@ -131,7 +128,8 @@ class GcpMetricClientProviderTest : public ::testing::Test {
 static void SetPutMetricsRequest(
     PutMetricsRequest& record_metric_request, const std::string& value = kValue,
     const int64_t& timestamp_in_ms =
-        duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch())
             .count()) {
   auto metric = record_metric_request.add_metrics();
   metric->set_name(kName);

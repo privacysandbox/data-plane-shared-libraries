@@ -34,7 +34,6 @@
 using Aws::Map;
 using Aws::String;
 using google::scp::core::test::StartLocalStackContainer;
-using std::runtime_error;
 
 namespace google::scp::cpio::test {
 void TestAwsSdkServerStarter::RunCloud() {
@@ -42,7 +41,7 @@ void TestAwsSdkServerStarter::RunCloud() {
   if (StartLocalStackContainer(config_.network_name,
                                config_.cloud_container_name,
                                config_.cloud_port) != 0) {
-    throw runtime_error("Failed to start localstack container!");
+    throw std::runtime_error("Failed to start localstack container!");
   }
 }
 

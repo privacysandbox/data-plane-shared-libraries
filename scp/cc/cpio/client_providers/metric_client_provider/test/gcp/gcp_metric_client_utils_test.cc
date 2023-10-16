@@ -52,9 +52,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_GCP_METRIC_CLIENT_INVALID_METRIC_VALUE;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::GcpMetricClientUtils;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::system_clock;
 
 namespace google::scp::cpio::test {
 static constexpr char kName[] = "test_name";
@@ -77,7 +74,8 @@ class GcpMetricClientUtilsTest : public ::testing::Test {
       PutMetricsRequest& record_metric_request,
       const std::string& value = kValue,
       const int64_t& timestamp_in_ms =
-          duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::system_clock::now().time_since_epoch())
               .count()) {
     auto metric = record_metric_request.add_metrics();
     metric->set_name(kName);

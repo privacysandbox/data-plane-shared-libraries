@@ -20,14 +20,13 @@
 #include <fstream>
 #include <list>
 
-using std::ifstream;
 using json = nlohmann::json;
 
 namespace google::scp::core {
 
 ExecutionResult ConfigProvider::Init() noexcept {
   try {
-    ifstream jsonFile(config_file_);
+    std::ifstream jsonFile(config_file_);
     config_json_ = json::parse(jsonFile);
   } catch (json::parse_error& e) {
     return FailureExecutionResult(

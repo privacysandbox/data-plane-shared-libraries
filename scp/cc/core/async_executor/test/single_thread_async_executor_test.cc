@@ -33,10 +33,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::common::TimeProvider;
-using std::chrono::duration_cast;
-using std::chrono::high_resolution_clock;
-using std::chrono::nanoseconds;
-using std::chrono::seconds;
 using testing::Values;
 
 namespace google::scp::core::test {
@@ -110,11 +106,12 @@ TEST(SingleThreadAsyncExecutorTests, ExceedingQueueCapSchedule) {
 
   {
     // Blocking queue with enough work
-    executor.Schedule([&]() { std::this_thread::sleep_for(seconds(5)); },
-                      AsyncPriority::Normal);
+    executor.Schedule(
+        [&]() { std::this_thread::sleep_for(std::chrono::seconds(5)); },
+        AsyncPriority::Normal);
 
     // try to push more than the queue can handle
-    auto start_time = high_resolution_clock::now();
+    auto start_time = std::chrono::high_resolution_clock::now();
     while (true) {
       auto result = executor.Schedule([&]() {}, AsyncPriority::Normal);
 
@@ -123,9 +120,9 @@ TEST(SingleThreadAsyncExecutorTests, ExceedingQueueCapSchedule) {
         break;
       }
 
-      auto end_time = high_resolution_clock::now();
+      auto end_time = std::chrono::high_resolution_clock::now();
       auto diff = end_time - start_time;
-      if (diff > seconds(5)) {
+      if (diff > std::chrono::seconds(5)) {
         FAIL() << "Queue cap schedule was never exceeded.";
       }
     }

@@ -42,11 +42,6 @@ using google::scp::core::lease_manager::mock::MockLeaseEventSink;
 using google::scp::core::lease_manager::mock::MockLeaseRefresher;
 using google::scp::core::lease_manager::mock::MockLeaseRefresherFactory;
 using google::scp::core::lease_manager::mock::MockLeaseRefreshLivenessCheck;
-using std::mutex;
-using std::nullopt;
-using std::unique_lock;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 using ::testing::_;
 using ::testing::Optional;
 using ::testing::Return;
@@ -59,7 +54,7 @@ class LeaseManagerV2Test : public ::testing::Test {
  protected:
   void SetUpMocksForLock(
       std::shared_ptr<MockLeasableLock> mock_lock,
-      std::optional<LeaseInfo> current_lease_owner = nullopt) {
+      std::optional<LeaseInfo> current_lease_owner = std::nullopt) {
     // Set up mock calls for mock_lock_
     ON_CALL(*mock_lock, ShouldRefreshLease()).WillByDefault(Return(true));
     ON_CALL(*mock_lock, RefreshLease(_))

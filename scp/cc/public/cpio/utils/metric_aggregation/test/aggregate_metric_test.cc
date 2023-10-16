@@ -57,8 +57,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricDefinition;
 using google::scp::cpio::MetricUnit;
-using std::mutex;
-using std::thread;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -232,10 +230,10 @@ TEST_F(AggregateMetricTest, IncrementByMultipleThreads) {
   auto value = 10;
   auto num_threads = 2;
   auto num_calls = 10;
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
 
   for (auto i = 0; i < num_threads; ++i) {
-    threads.push_back(thread([&]() {
+    threads.push_back(std::thread([&]() {
       for (auto j = 0; j < num_calls; j++) {
         for (const auto& code : kEventList) {
           EXPECT_SUCCESS(aggregate_metric.IncrementBy(value, code));

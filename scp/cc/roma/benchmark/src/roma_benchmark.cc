@@ -52,13 +52,6 @@ using google::scp::roma::sandbox::constants::
 using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
 using google::scp::roma::sandbox::constants::
     kInputParsingMetricJsEngineDuration;
-using std::cout;
-using std::endl;
-using std::thread;
-using std::chrono::duration_cast;
-using std::chrono::nanoseconds;
-using std::chrono::seconds;
-using std::chrono::system_clock;
 
 namespace {
 
@@ -174,20 +167,22 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
   config.sandbox_request_response_shared_buffer_size_mb = 16;
   auto status = RomaInit(config);
   if (!status.ok()) {
-    cout << "RomaInit failed due to " << status.message() << endl;
+    std::cout << "RomaInit failed due to " << status.message() << std::endl;
     return;
   }
 
-  cout << "\nRoma RunTest config:"
-       << "\n\tworkers: " << test_configuration.workers
-       << "\n\tqueue_size: " << test_configuration.queue_size
-       << "\n\trequest_threads: " << test_configuration.request_threads
-       << "\n\trequests per thread: " << test_configuration.requests_per_thread
-       << "\n\tBatch size: " << test_configuration.batch_size << endl;
+  std::cout << "\nRoma RunTest config:"
+            << "\n\tworkers: " << test_configuration.workers
+            << "\n\tqueue_size: " << test_configuration.queue_size
+            << "\n\trequest_threads: " << test_configuration.request_threads
+            << "\n\trequests per thread: "
+            << test_configuration.requests_per_thread
+            << "\n\tBatch size: " << test_configuration.batch_size << std::endl;
 
   status = LoadCodeObject(test_configuration.js_source_code);
   if (!status.ok()) {
-    cout << "LoadCodeObject failed due to " << status.message() << endl;
+    std::cout << "LoadCodeObject failed due to " << status.message()
+              << std::endl;
     return;
   }
 
@@ -206,7 +201,7 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
 
   status = RomaStop();
   if (!status.ok()) {
-    cout << "RomaStop failed due to " << status.message() << endl;
+    std::cout << "RomaStop failed due to " << status.message() << std::endl;
   }
 }
 
@@ -242,8 +237,8 @@ absl::Status LoadCodeObject(const std::string& code_string) {
                     if (resp->ok()) {
                       load_success = true;
                     } else {
-                      cout << "LoadCodeObj failed with "
-                           << resp->status().message() << endl;
+                      std::cout << "LoadCodeObj failed with "
+                                << resp->status().message() << std::endl;
                     }
                     done.set_value();
                   });
@@ -278,9 +273,10 @@ void RomaBenchmark::RunTest() {
   work_threads.reserve(threads_);
   for (auto i = 0; i < threads_; i++) {
     if (batch_size_ > 1) {
-      work_threads.push_back(thread(&RomaBenchmark::SendRequestBatch, this));
+      work_threads.push_back(
+          std::thread(&RomaBenchmark::SendRequestBatch, this));
     } else {
-      work_threads.push_back(thread(&RomaBenchmark::SendRequest, this));
+      work_threads.push_back(std::thread(&RomaBenchmark::SendRequest, this));
     }
   }
 
@@ -301,102 +297,107 @@ void RomaBenchmark::ConsoleTestMetrics() {
   for (auto i = 0; i < empty_spots; i++) {
     latency_metrics_.pop_back();
   }
-  cout << "\n Elapsed time: " << absl::ToInt64Nanoseconds(elapsed_time_)
-       << " ns" << endl;
-  cout << "\nNative Roma e2e total finished Requests: "
-       << FormatWithCommas(success_requests_ + failed_requests_) << endl;
-  cout << "Success Requests: " << FormatWithCommas(success_requests_) << endl;
-  cout << "Failed Requests: " << FormatWithCommas(failed_requests_) << endl;
+  std::cout << "\n Elapsed time: " << absl::ToInt64Nanoseconds(elapsed_time_)
+            << " ns" << std::endl;
+  std::cout << "\nNative Roma e2e total finished Requests: "
+            << FormatWithCommas(success_requests_ + failed_requests_)
+            << std::endl;
+  std::cout << "Success Requests: " << FormatWithCommas(success_requests_)
+            << std::endl;
+  std::cout << "Failed Requests: " << FormatWithCommas(failed_requests_)
+            << std::endl;
 
-  cout << "RPS: "
-       << FormatWithCommas((success_requests_ + failed_requests_) /
-                           absl::ToInt64Seconds(elapsed_time_))
-       << endl;
+  std::cout << "RPS: "
+            << FormatWithCommas((success_requests_ + failed_requests_) /
+                                absl::ToInt64Seconds(elapsed_time_))
+            << std::endl;
 
   auto average_metric = BenchmarkMetrics::GetMeanMetrics(latency_metrics_);
-  cout << "\nMean metrics:" << endl;
-  cout << "\te2e execution time: "
-       << absl::ToInt64Nanoseconds(average_metric.total_execute_time) << " ns"
-       << endl;
-  cout << "\tSandbox elapsed: "
-       << absl::ToInt64Nanoseconds(average_metric.sandbox_elapsed) << " ns"
-       << endl;
-  cout << "\tV8 elapsed: "
-       << absl::ToInt64Nanoseconds(average_metric.v8_elapsed) << " ns" << endl;
-  cout << "\tInput parsing elapsed: "
-       << absl::ToInt64Nanoseconds(average_metric.input_parsing_elapsed)
-       << " ns" << endl;
-  cout << "\tHandler function calling elapsed: "
-       << absl::ToInt64Nanoseconds(average_metric.handler_calling_elapse)
-       << " ns\n"
-       << endl;
+  std::cout << "\nMean metrics:" << std::endl;
+  std::cout << "\te2e execution time: "
+            << absl::ToInt64Nanoseconds(average_metric.total_execute_time)
+            << " ns" << std::endl;
+  std::cout << "\tSandbox elapsed: "
+            << absl::ToInt64Nanoseconds(average_metric.sandbox_elapsed) << " ns"
+            << std::endl;
+  std::cout << "\tV8 elapsed: "
+            << absl::ToInt64Nanoseconds(average_metric.v8_elapsed) << " ns"
+            << std::endl;
+  std::cout << "\tInput parsing elapsed: "
+            << absl::ToInt64Nanoseconds(average_metric.input_parsing_elapsed)
+            << " ns" << std::endl;
+  std::cout << "\tHandler function calling elapsed: "
+            << absl::ToInt64Nanoseconds(average_metric.handler_calling_elapse)
+            << " ns\n"
+            << std::endl;
 
   {
     std::sort(latency_metrics_.begin(), latency_metrics_.end(),
               BenchmarkMetrics::CompareByTotalExec);
-    cout << "e2e execution Elapsed: " << endl;
+    std::cout << "e2e execution Elapsed: " << std::endl;
     for (auto& p : kPercentiles) {
       auto index = latency_metrics_.size() / 100 * p;
 
-      cout << "\t" << p << "th percentile: "
-           << absl::ToInt64Nanoseconds(
-                  latency_metrics_.at(index).total_execute_time)
-           << " ns" << endl;
+      std::cout << "\t" << p << "th percentile: "
+                << absl::ToInt64Nanoseconds(
+                       latency_metrics_.at(index).total_execute_time)
+                << " ns" << std::endl;
     }
   }
 
   {
     std::sort(latency_metrics_.begin(), latency_metrics_.end(),
               BenchmarkMetrics::CompareBySandboxElapsed);
-    cout << "Sandbox Elapsed: " << endl;
+    std::cout << "Sandbox Elapsed: " << std::endl;
     for (auto& p : kPercentiles) {
       auto index = latency_metrics_.size() / 100 * p;
 
-      cout << "\t" << p << "th percentile: "
-           << absl::ToInt64Nanoseconds(
-                  latency_metrics_.at(index).sandbox_elapsed)
-           << " ns" << endl;
+      std::cout << "\t" << p << "th percentile: "
+                << absl::ToInt64Nanoseconds(
+                       latency_metrics_.at(index).sandbox_elapsed)
+                << " ns" << std::endl;
     }
   }
 
   {
     std::sort(latency_metrics_.begin(), latency_metrics_.end(),
               BenchmarkMetrics::CompareByV8Elapsed);
-    cout << "V8 Elapsed: " << endl;
+    std::cout << "V8 Elapsed: " << std::endl;
     for (auto& p : kPercentiles) {
       auto index = latency_metrics_.size() / 100 * p;
 
-      cout << "\t" << p << "th percentile: "
-           << absl::ToInt64Nanoseconds(latency_metrics_.at(index).v8_elapsed)
-           << " ns" << endl;
+      std::cout << "\t" << p << "th percentile: "
+                << absl::ToInt64Nanoseconds(
+                       latency_metrics_.at(index).v8_elapsed)
+                << " ns" << std::endl;
     }
   }
 
   {
     std::sort(latency_metrics_.begin(), latency_metrics_.end(),
               BenchmarkMetrics::CompareByInputsParsingElapsed);
-    cout << "Inputs parsing Elapsed: " << endl;
+    std::cout << "Inputs parsing Elapsed: " << std::endl;
     for (auto& p : kPercentiles) {
       auto index = latency_metrics_.size() / 100 * p;
 
-      cout << "\t" << p << "th percentile: "
-           << absl::ToInt64Nanoseconds(
-                  latency_metrics_.at(index).input_parsing_elapsed)
-           << " ns" << endl;
+      std::cout << "\t" << p << "th percentile: "
+                << absl::ToInt64Nanoseconds(
+                       latency_metrics_.at(index).input_parsing_elapsed)
+                << " ns" << std::endl;
     }
   }
 
   {
     std::sort(latency_metrics_.begin(), latency_metrics_.end(),
               BenchmarkMetrics::CompareByHandlerCallingElapsed);
-    cout << "Handler calling Elapsed: " << endl;
+    std::cout << "Handler calling Elapsed: " << std::endl;
     for (auto& p : kPercentiles) {
       auto index = latency_metrics_.size() / 100 * p;
 
-      cout << "\t" << p << "th percentile: "
-           << absl::ToInt64Nanoseconds(
-                  latency_metrics_.at(index).handler_calling_elapse)
-           << " ns" << endl;
+      std::cout << "\t" << p << "th percentile: "
+                << absl::ToInt64Nanoseconds(
+                       latency_metrics_.at(index).handler_calling_elapse)
+                << " ns" << std::endl;
     }
   }
 }

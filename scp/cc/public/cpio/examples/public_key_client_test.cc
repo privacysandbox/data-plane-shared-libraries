@@ -40,7 +40,6 @@ using google::scp::cpio::LogOption;
 using google::scp::cpio::PublicKeyClientFactory;
 using google::scp::cpio::PublicKeyClientInterface;
 using google::scp::cpio::PublicKeyClientOptions;
-using std::chrono::milliseconds;
 
 constexpr char kPublicKeyEndpoint[] = "https://test.publickey.com";
 

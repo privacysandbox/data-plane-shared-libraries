@@ -73,9 +73,6 @@ using google::scp::cpio::TestAwsParameterClient;
 using google::scp::cpio::TestAwsParameterClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
-using std::runtime_error;
-using std::thread;
-using std::chrono::milliseconds;
 
 namespace {
 constexpr char kLocalHost[] = "http://127.0.0.1";
@@ -111,7 +108,7 @@ class CpioIntegrationTest : public ::testing::Test {
     // Starts localstack
     if (StartLocalStackContainer("", kLocalstackContainerName,
                                  kLocalstackPort) != 0) {
-      throw runtime_error("Failed to start localstack!");
+      throw std::runtime_error("Failed to start localstack!");
     }
   }
 
@@ -163,7 +160,7 @@ class CpioIntegrationTest : public ::testing::Test {
     int8_t retry_count = 0;
     while (!parameter_available && retry_count < 20) {
       parameter_available = !GetParameter(ssm_client, kParameterName).empty();
-      std::this_thread::sleep_for(milliseconds(500));
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
       ++retry_count;
     }
 
@@ -227,9 +224,9 @@ class CpioIntegrationTest : public ::testing::Test {
 TEST_F(CpioIntegrationTest, MetricClientPutMetricsSuccessfully) {
   CreateMetricClient();
 
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   for (auto i = 0; i < 2; ++i) {
-    threads.push_back(thread([&]() {
+    threads.push_back(std::thread([&]() {
       for (auto j = 0; j < 5; j++) {
         std::atomic<bool> finished = false;
         auto context = AsyncContext<PutMetricsRequest, PutMetricsResponse>(

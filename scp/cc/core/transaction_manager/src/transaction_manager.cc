@@ -45,10 +45,6 @@ using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MetricName;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MetricUtils;
-using std::mutex;
-using std::thread;
-using std::unique_lock;
-using std::chrono::milliseconds;
 
 static constexpr size_t kShutdownWaitIntervalMilliseconds = 100;
 
@@ -144,7 +140,7 @@ ExecutionResult TransactionManager::Stop() noexcept {
              active_transactions_count_.load());
     // The wait value can be any.
     std::this_thread::sleep_for(
-        milliseconds(kShutdownWaitIntervalMilliseconds));
+        std::chrono::milliseconds(kShutdownWaitIntervalMilliseconds));
   }
 
   auto execution_result = active_transactions_metric_->Stop();

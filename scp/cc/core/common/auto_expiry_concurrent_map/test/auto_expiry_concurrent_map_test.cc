@@ -45,12 +45,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::TestTimeoutException;
 using google::scp::core::test::WaitUntil;
 using google::scp::core::test::WaitUntilOrReturn;
-using std::defer_lock;
-using std::shared_lock;
-using std::shared_timed_mutex;
-using std::unique_lock;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
 
 namespace google::scp::core::common::test {
 class EmptyEntry {};
@@ -105,7 +99,7 @@ TEST_F(AutoExpiryConcurrentMapTest, InsertingNewElementExtendOnAccessEnabled) {
   underlying_entry->being_evicted = false;
 
   auto current_clock = (TimeProvider::GetSteadyTimestampInNanoseconds() +
-                        seconds(cache_lifetime_))
+                        std::chrono::seconds(cache_lifetime_))
                            .count();
 
   EXPECT_THAT(auto_expiry_map.Insert(pair, entry),
@@ -143,7 +137,7 @@ TEST_F(AutoExpiryConcurrentMapTest,
   underlying_entry->being_evicted = false;
 
   auto current_clock = (TimeProvider::GetSteadyTimestampInNanoseconds() +
-                        seconds(cache_lifetime_))
+                        std::chrono::seconds(cache_lifetime_))
                            .count();
 
   EXPECT_THAT(auto_expiry_map.Insert(pair, entry),
@@ -227,7 +221,7 @@ TEST_F(AutoExpiryConcurrentMapTest, FindingElementExtendOnAccessEnabled) {
   underlying_entry->being_evicted = false;
 
   auto current_clock = (TimeProvider::GetSteadyTimestampInNanoseconds() +
-                        seconds(cache_lifetime_))
+                        std::chrono::seconds(cache_lifetime_))
                            .count();
   EXPECT_SUCCESS(auto_expiry_map.Find(3, entry));
 
@@ -259,7 +253,7 @@ TEST_F(AutoExpiryConcurrentMapTest,
   underlying_entry->being_evicted = false;
 
   auto current_clock = (TimeProvider::GetSteadyTimestampInNanoseconds() +
-                        seconds(cache_lifetime_))
+                        std::chrono::seconds(cache_lifetime_))
                            .count();
   EXPECT_SUCCESS(auto_expiry_map.Find(3, entry));
 
@@ -425,7 +419,7 @@ TEST_F(AutoExpiryConcurrentMapTest, GarbageCollection) {
   auto_expiry_map.GetUnderlyingConcurrentMap().Find(3, underlying_entry);
   underlying_entry->expiration_time = 0;
 
-  shared_lock<shared_timed_mutex> lock(underlying_entry->record_lock);
+  std::shared_lock<std::shared_timed_mutex> lock(underlying_entry->record_lock);
 
   auto_expiry_map.RunGarbageCollector();
   EXPECT_EQ(keys_to_be_deleted.size(), 0);
@@ -671,7 +665,7 @@ TEST(AutoExpiryConcurrentMapEntryTest, IsEntryExpired) {
   EXPECT_EQ(entry.IsExpired(), true);
 
   entry.expiration_time =
-      (current_time + seconds(2)).count(); /* adding 2 seconds */
+      (current_time + std::chrono::seconds(2)).count(); /* adding 2 seconds */
   EXPECT_EQ(entry.IsExpired(), false);
 }
 
@@ -687,7 +681,7 @@ TEST(AutoExpiryConcurrentMapEntryTest, StopShouldWaitForScheduledWork) {
                               &gc_completion_lambdas_mutex](
                                  std::string&, std::shared_ptr<std::string>&,
                                  std::function<void(bool)> completion_lambda) {
-    unique_lock lock(gc_completion_lambdas_mutex);
+    std::unique_lock lock(gc_completion_lambdas_mutex);
     gc_completion_lambdas.push_back(std::move(completion_lambda));
   };
 
@@ -721,7 +715,7 @@ TEST(AutoExpiryConcurrentMapEntryTest, StopShouldWaitForScheduledWork) {
   EXPECT_SUCCESS(map.Run());
 
   WaitUntil([&gc_completion_lambdas, &gc_completion_lambdas_mutex]() {
-    unique_lock lock(gc_completion_lambdas_mutex);
+    std::unique_lock lock(gc_completion_lambdas_mutex);
     return gc_completion_lambdas.size() == 3;
   });
 
@@ -735,7 +729,7 @@ TEST(AutoExpiryConcurrentMapEntryTest, StopShouldWaitForScheduledWork) {
   // Cannot be stopped because there is pending work..
   EXPECT_THAT(
       WaitUntilOrReturn([&stop_completed]() { return stop_completed.load(); },
-                        /*timeout=*/milliseconds(2000)),
+                        /*timeout=*/std::chrono::milliseconds(2000)),
       ResultIs(FailureExecutionResult(
           core::test::errors::SC_TEST_UTILS_TEST_WAIT_TIMEOUT)));
 
@@ -747,7 +741,7 @@ TEST(AutoExpiryConcurrentMapEntryTest, StopShouldWaitForScheduledWork) {
 
   EXPECT_SUCCESS(
       WaitUntilOrReturn([&stop_completed]() { return stop_completed.load(); },
-                        /*timeout=*/milliseconds(2000)));
+                        /*timeout=*/std::chrono::milliseconds(2000)));
 
   stop_thread.join();
   EXPECT_SUCCESS(async_executor->Stop());

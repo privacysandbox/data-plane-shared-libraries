@@ -46,9 +46,6 @@ using google::scp::core::common::TimeProvider;
 using google::scp::core::nosql_database_provider::mock::
     MockNoSQLDatabaseProviderNoOverrides;
 using google::scp::core::test::ResultIs;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
 
 static constexpr char kPartitionLockTableDefaultName[] =
     "core_ll_partition_lock_table";
@@ -84,7 +81,8 @@ static const std::vector<NoSqlDatabaseKeyValuePair>
 void SetOverridesOnMockNoSQLDatabase(
     const std::shared_ptr<MockNoSQLDatabaseProviderNoOverrides>&
         mock_nosql_database_provider_,
-    const LeaseInfo& lease_info, milliseconds lease_expiration_timestamp) {
+    const LeaseInfo& lease_info,
+    std::chrono::milliseconds lease_expiration_timestamp) {
   ON_CALL(*mock_nosql_database_provider_, GetDatabaseItem)
       .WillByDefault([=](AsyncContext<GetDatabaseItemRequest,
                                       GetDatabaseItemResponse>& context) {
@@ -126,8 +124,9 @@ class LeasableLockOnNoSQLDatabasePrivate : public LeasableLockOnNoSQLDatabase {
   explicit LeasableLockOnNoSQLDatabasePrivate(Args... args)
       : LeasableLockOnNoSQLDatabase(args...) {}
 
-  void SetCachedCurrentLeaseOwner(LeaseInfo& lease_owner_info,
-                                  milliseconds lease_expiration_timestamp) {
+  void SetCachedCurrentLeaseOwner(
+      LeaseInfo& lease_owner_info,
+      std::chrono::milliseconds lease_expiration_timestamp) {
     LeaseInfoInternal lease_info;
     lease_info.lease_owner_info = lease_owner_info;
     lease_info.lease_expiration_timestamp_in_milliseconds =
@@ -136,11 +135,11 @@ class LeasableLockOnNoSQLDatabasePrivate : public LeasableLockOnNoSQLDatabase {
   }
 
   // Should be used only when the current_lease_ is valid
-  milliseconds GetCurrentLeaseExpirationTimestamp() {
+  std::chrono::milliseconds GetCurrentLeaseExpirationTimestamp() {
     if (current_lease_.has_value()) {
       return current_lease_->lease_expiration_timestamp_in_milliseconds;
     }
-    return milliseconds(0);
+    return std::chrono::milliseconds(0);
   }
 
   bool IsLeaseCached() { return current_lease_.has_value(); }
@@ -160,7 +159,8 @@ class LeasableLockOnNoSQLDatabaseTest : public ::testing::Test {
   LeaseInfo lease_acquirer_1_;
   LeaseInfo lease_acquirer_2_;
   size_t lease_renewal_percent_time_left_ = 80;
-  milliseconds lease_duration_in_ms_ = milliseconds(1500);
+  std::chrono::milliseconds lease_duration_in_ms_ =
+      std::chrono::milliseconds(1500);
   std::string leasable_lock_key_ = "0";
   std::string lease_table_name_ = kPartitionLockTableDefaultName;
   std::shared_ptr<MockNoSQLDatabaseProviderNoOverrides>
@@ -408,9 +408,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
       lease_renewal_percent_time_left_);
   // Expired lease
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_1_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() - milliseconds(1)));
+      lease_acquirer_1_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() -
+                             std::chrono::milliseconds(1)));
   EXPECT_TRUE(leasable_lock.ShouldRefreshLease());
 }
 
@@ -423,9 +423,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
 
   // Not expired lease
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_2_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() + seconds(100)));
+      lease_acquirer_2_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() +
+                             std::chrono::seconds(100)));
 
   EXPECT_FALSE(leasable_lock.ShouldRefreshLease());
 }
@@ -439,9 +439,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
 
   // Expired lease and non owner lease
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_2_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() - seconds(1)));
+      lease_acquirer_2_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() -
+                             std::chrono::seconds(1)));
 
   EXPECT_TRUE(leasable_lock.ShouldRefreshLease());
 }
@@ -454,9 +454,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
       lease_renewal_percent_time_left_);
 
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_1_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() + seconds(6)));
+      lease_acquirer_1_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() +
+                             std::chrono::seconds(6)));
 
   EXPECT_FALSE(leasable_lock.ShouldRefreshLease());
 }
@@ -469,41 +469,41 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
       lease_renewal_percent_time_left_);
 
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_1_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() + seconds(1)));
+      lease_acquirer_1_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() +
+                             std::chrono::seconds(1)));
 
   EXPECT_TRUE(leasable_lock.ShouldRefreshLease());
 }
 
 TEST_F(LeasableLockOnNoSQLDatabaseTest,
        ShouldRefreshLeaseIsTrueIfNonOwningLeaseHasStaleCachedLease) {
-  auto lease_duration = seconds(15);
+  auto lease_duration = std::chrono::seconds(15);
   LeasableLockOnNoSQLDatabasePrivate leasable_lock(
       nosql_database_provider_, lease_acquirer_1_, lease_table_name_,
       leasable_lock_key_, lease_duration, lease_renewal_percent_time_left_);
 
   // Non expired lease and non owner lease
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_2_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() + seconds(2)));
+      lease_acquirer_2_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() +
+                             std::chrono::seconds(2)));
 
   EXPECT_TRUE(leasable_lock.ShouldRefreshLease());
 }
 
 TEST_F(LeasableLockOnNoSQLDatabaseTest,
        ShouldRefreshLeaseIsFalseIfNonOwningLeaseHasFreshCachedLease) {
-  auto lease_duration = seconds(15);
+  auto lease_duration = std::chrono::seconds(15);
   LeasableLockOnNoSQLDatabasePrivate leasable_lock(
       nosql_database_provider_, lease_acquirer_1_, lease_table_name_,
       leasable_lock_key_, lease_duration, lease_renewal_percent_time_left_);
 
   // Non expired lease and non owner lease
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_2_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() + seconds(9)));
+      lease_acquirer_2_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() +
+                             std::chrono::seconds(9)));
 
   EXPECT_FALSE(leasable_lock.ShouldRefreshLease());
 }
@@ -516,9 +516,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
       lease_renewal_percent_time_left_);
 
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_1_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() + seconds(100)));
+      lease_acquirer_1_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() +
+                             std::chrono::seconds(100)));
 
   EXPECT_TRUE(leasable_lock.IsCurrentLeaseOwner());
 }
@@ -531,9 +531,9 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
       lease_renewal_percent_time_left_);
 
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_2_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() + seconds(100)));
+      lease_acquirer_2_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() +
+                             std::chrono::seconds(100)));
 
   EXPECT_FALSE(leasable_lock.IsCurrentLeaseOwner());
 }
@@ -546,17 +546,19 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
       lease_renewal_percent_time_left_);
 
   leasable_lock.SetCachedCurrentLeaseOwner(
-      lease_acquirer_1_,
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() - seconds(1)));
+      lease_acquirer_1_, std::chrono::duration_cast<std::chrono::milliseconds>(
+                             TimeProvider::GetWallTimestampInNanoseconds() -
+                             std::chrono::seconds(1)));
 
   EXPECT_FALSE(leasable_lock.IsCurrentLeaseOwner());
 }
 
 TEST_F(LeasableLockOnNoSQLDatabaseTest,
        RefreshLeaseRefreshesTheCachedLeaseForFirstTimeOwnerAndExpired) {
-  auto current_lease_owner_lease_expiration = duration_cast<milliseconds>(
-      TimeProvider::GetWallTimestampInNanoseconds() - seconds(100));
+  auto current_lease_owner_lease_expiration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          TimeProvider::GetWallTimestampInNanoseconds() -
+          std::chrono::seconds(100));
   SetOverridesOnMockNoSQLDatabase(mock_nosql_database_provider_,
                                   lease_acquirer_1_,
                                   current_lease_owner_lease_expiration);
@@ -583,8 +585,10 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
 TEST_F(
     LeasableLockOnNoSQLDatabaseTest,
     RefreshLeaseRefreshesTheCachedLeaseForFirstTimeNotOwnerAndLeaseNotExpired) {
-  auto current_lease_owner_lease_expiration = duration_cast<milliseconds>(
-      TimeProvider::GetWallTimestampInNanoseconds() + seconds(100));
+  auto current_lease_owner_lease_expiration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          TimeProvider::GetWallTimestampInNanoseconds() +
+          std::chrono::seconds(100));
   SetOverridesOnMockNoSQLDatabase(mock_nosql_database_provider_,
                                   lease_acquirer_2_,
                                   current_lease_owner_lease_expiration);
@@ -610,8 +614,10 @@ TEST_F(
 
 TEST_F(LeasableLockOnNoSQLDatabaseTest,
        RefreshLeaseRefreshesTheCachedLeaseForFirstTimeNotOwnerAndButExpired) {
-  auto current_lease_owner_lease_expiration = duration_cast<milliseconds>(
-      TimeProvider::GetWallTimestampInNanoseconds() - seconds(1));
+  auto current_lease_owner_lease_expiration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          TimeProvider::GetWallTimestampInNanoseconds() -
+          std::chrono::seconds(1));
   SetOverridesOnMockNoSQLDatabase(mock_nosql_database_provider_,
                                   lease_acquirer_2_,
                                   current_lease_owner_lease_expiration);
@@ -635,8 +641,10 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
 
 TEST_F(LeasableLockOnNoSQLDatabaseTest,
        RefreshLeaseRefreshesTheCachedLeaseIfOwner) {
-  auto current_lease_owner_lease_expiration = duration_cast<milliseconds>(
-      TimeProvider::GetWallTimestampInNanoseconds() - seconds(1));
+  auto current_lease_owner_lease_expiration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          TimeProvider::GetWallTimestampInNanoseconds() -
+          std::chrono::seconds(1));
   SetOverridesOnMockNoSQLDatabase(mock_nosql_database_provider_,
                                   lease_acquirer_1_,
                                   current_lease_owner_lease_expiration);
@@ -664,9 +672,10 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
 
 TEST_F(LeasableLockOnNoSQLDatabaseTest,
        RefreshLeaseRefreshesTheCachedLeaseIfNonOwnerAndExpired) {
-  milliseconds initial_expired_lease_expiration_timestamp =
-      duration_cast<milliseconds>(
-          TimeProvider::GetWallTimestampInNanoseconds() - milliseconds(1));
+  std::chrono::milliseconds initial_expired_lease_expiration_timestamp =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          TimeProvider::GetWallTimestampInNanoseconds() -
+          std::chrono::milliseconds(1));
   // Initially the database has a lease of other lease acquirer for +10
   SetOverridesOnMockNoSQLDatabase(mock_nosql_database_provider_,
                                   lease_acquirer_2_,
@@ -696,8 +705,10 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
 
 TEST_F(LeasableLockOnNoSQLDatabaseTest,
        RefreshLeaseDoesNotRefreshTheCachedLeaseIfNonOwnerAndNotExpired) {
-  auto initial_lease_expiration_timestamp = duration_cast<milliseconds>(
-      TimeProvider::GetWallTimestampInNanoseconds() + seconds(10));
+  auto initial_lease_expiration_timestamp =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          TimeProvider::GetWallTimestampInNanoseconds() +
+          std::chrono::seconds(10));
 
   // Initially the database has a lease of other lease acquirer for +10
   SetOverridesOnMockNoSQLDatabase(mock_nosql_database_provider_,
@@ -744,8 +755,10 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest,
 TEST_F(LeasableLockOnNoSQLDatabaseTest, LeaseIsNotWrittenIfReadOnlyIsTrue) {
   LeaseInfo lease_acquirer_2_ = {"2", "2.1.1.1"};
   LeaseInfo lease_acquirer_info_next = {"1", "10.1.1.1"};
-  milliseconds initial_lease_expiration_timestamp = duration_cast<milliseconds>(
-      TimeProvider::GetWallTimestampInNanoseconds() + seconds(100));
+  std::chrono::milliseconds initial_lease_expiration_timestamp =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          TimeProvider::GetWallTimestampInNanoseconds() +
+          std::chrono::seconds(100));
   // Initially the database has a lease of other lease acquirer for +10
   SetOverridesOnMockNoSQLDatabase(mock_nosql_database_provider_,
                                   lease_acquirer_2_,
@@ -753,7 +766,7 @@ TEST_F(LeasableLockOnNoSQLDatabaseTest, LeaseIsNotWrittenIfReadOnlyIsTrue) {
 
   LeasableLockOnNoSQLDatabasePrivate leasable_lock(
       mock_nosql_database_provider_, lease_acquirer_info_next,
-      kPartitionLockTableDefaultName, "0", seconds(15), 80);
+      kPartitionLockTableDefaultName, "0", std::chrono::seconds(15), 80);
   leasable_lock.SetCachedCurrentLeaseOwner(lease_acquirer_2_,
                                            initial_lease_expiration_timestamp);
 

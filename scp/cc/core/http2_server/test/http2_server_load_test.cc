@@ -68,11 +68,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricClientFactory;
 using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
-using std::cout;
-using std::endl;
-using std::thread;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
 using ::testing::_;
 using ::testing::An;
 using ::testing::AnyOf;
@@ -174,13 +169,13 @@ TEST_F(HttpServerLoadTest,
   size_t client_connection_read_timeout_in_seconds = 4;
 
   std::atomic<bool> is_qps_thread_stopped = false;
-  thread qps_thread([this, &is_qps_thread_stopped]() {
+  std::thread qps_thread([this, &is_qps_thread_stopped]() {
     auto req_prev = total_requests_received_on_server.load();
     while (!is_qps_thread_stopped) {
       auto req = total_requests_received_on_server.load();
-      cout << "QPS: " << req - req_prev << endl;
+      std::cout << "QPS: " << req - req_prev << std::endl;
       req_prev = req;
-      std::this_thread::sleep_for(seconds(1));
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
   });
 
@@ -207,8 +202,8 @@ TEST_F(HttpServerLoadTest,
     }
 
     // Send requests on each of the http clients.
-    cout << "Round " << i + 1 << ": "
-         << "Initialized clients. Sending requests..." << endl;
+    std::cout << "Round " << i + 1 << ": "
+              << "Initialized clients. Sending requests..." << std::endl;
     for (auto& http2_client : http2_clients) {
       auto request = std::make_shared<HttpRequest>();
       request->method = core::HttpMethod::POST;
@@ -223,14 +218,14 @@ TEST_F(HttpServerLoadTest,
     }
 
     while (client_requests_completed_in_current_round < num_clients) {
-      std::this_thread::sleep_for(milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    cout << "Round " << i + 1 << ": "
-         << "client_requests_completed_in_current_round: "
-         << client_requests_completed_in_current_round
-         << " total_requests_received_on_server: "
-         << total_requests_received_on_server << endl;
+    std::cout << "Round " << i + 1 << ": "
+              << "client_requests_completed_in_current_round: "
+              << client_requests_completed_in_current_round
+              << " total_requests_received_on_server: "
+              << total_requests_received_on_server << std::endl;
 
     // Send another round of multiple requests on the same set of clients.
     for (auto& http2_client : http2_clients) {
@@ -250,16 +245,16 @@ TEST_F(HttpServerLoadTest,
 
     while (client_requests_completed_in_current_round <
            (num_clients * requests_per_client)) {
-      std::this_thread::sleep_for(milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    cout << "Round " << i + 1 << ": "
-         << "client_requests_completed_in_current_round: "
-         << client_requests_completed_in_current_round
-         << " total_requests_received_on_server: "
-         << total_requests_received_on_server << endl;
+    std::cout << "Round " << i + 1 << ": "
+              << "client_requests_completed_in_current_round: "
+              << client_requests_completed_in_current_round
+              << " total_requests_received_on_server: "
+              << total_requests_received_on_server << std::endl;
 
-    cout << "Stopping clients" << endl;
+    std::cout << "Stopping clients" << std::endl;
 
     for (auto& http2_client : http2_clients) {
       EXPECT_SUCCESS(http2_client->Stop());

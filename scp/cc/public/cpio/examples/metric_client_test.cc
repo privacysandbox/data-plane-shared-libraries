@@ -40,7 +40,6 @@ using google::scp::cpio::LogOption;
 using google::scp::cpio::MetricClientFactory;
 using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricClientOptions;
-using std::chrono::milliseconds;
 
 int main(int argc, char* argv[]) {
   CpioOptions cpio_options;

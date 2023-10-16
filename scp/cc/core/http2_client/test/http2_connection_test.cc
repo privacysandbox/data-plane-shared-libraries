@@ -51,8 +51,6 @@ using google::scp::core::http2_client::mock::MockHttpConnection;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::thread;
-using std::chrono::milliseconds;
 
 namespace google::scp::core {
 

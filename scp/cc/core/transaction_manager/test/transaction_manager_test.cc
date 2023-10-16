@@ -54,7 +54,6 @@ using google::scp::core::transaction_manager::mock::MockTransactionManager;
 using google::scp::cpio::MetricInstanceFactory;
 using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
-using std::thread;
 
 namespace google::scp::core::test {
 
@@ -304,9 +303,10 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
         };
 
     std::atomic<size_t> total = 0;
-    std::vector<thread> threads;
+    std::vector<std::thread> threads;
     mock_async_executor->schedule_mock = [&](AsyncOperation work) {
-      threads.push_back(thread([work = std::move(work)]() mutable { work(); }));
+      threads.push_back(
+          std::thread([work = std::move(work)]() mutable { work(); }));
       return SuccessExecutionResult();
     };
 
@@ -375,10 +375,11 @@ TEST_F(TransactionManagerTests, StopValidation) {
     transaction_manager.GetActiveTransactionsCount()++;
 
     std::atomic<bool> finished = false;
-    thread decrement_active_transactions([&transaction_manager, &finished]() {
-      transaction_manager.GetActiveTransactionsCount() -= 2;
-      finished = true;
-    });
+    std::thread decrement_active_transactions(
+        [&transaction_manager, &finished]() {
+          transaction_manager.GetActiveTransactionsCount() -= 2;
+          finished = true;
+        });
 
     EXPECT_SUCCESS(transaction_manager.Stop());
     EXPECT_TRUE(finished.load());

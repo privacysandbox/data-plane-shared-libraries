@@ -36,13 +36,6 @@ using grpc::InsecureServerCredentials;
 using grpc::ResourceQuota;
 using grpc::ServerBuilder;
 
-using std::bad_alloc;
-using std::condition_variable;
-using std::mutex;
-using std::scoped_lock;
-using std::thread;
-using std::unique_lock;
-
 static constexpr char kGrpcNetworkService[] = "GrpcNetworkService";
 
 namespace google::scp::core {
@@ -70,7 +63,7 @@ ExecutionResult GrpcNetworkService::Init() noexcept {
     for (size_t i = 0; i < concurrency_; ++i) {
       completion_queues_.emplace_back(server_builder_->AddCompletionQueue());
     }
-  } catch (bad_alloc& e) {
+  } catch (std::bad_alloc& e) {
     auto execution_result =
         FailureExecutionResult(errors::SC_NETWORK_SERVICE_OOM);
     SCP_ERROR(kGrpcNetworkService, kZeroUuid, execution_result,
@@ -98,11 +91,11 @@ ExecutionResult GrpcNetworkService::Run() noexcept {
     return execution_result;
   }
   for (size_t i = 0; i < completion_queues_.size(); ++i) {
-    mutex mtx;
-    unique_lock<mutex> lock(mtx);
-    condition_variable cv;
-    pollers_.emplace_back(thread(&GrpcNetworkService::Worker, this, i,
-                                 std::ref(mtx), std::ref(cv)));
+    std::mutex mtx;
+    std::unique_lock<std::mutex> lock(mtx);
+    std::condition_variable cv;
+    pollers_.emplace_back(std::thread(&GrpcNetworkService::Worker, this, i,
+                                      std::ref(mtx), std::ref(cv)));
     cv.wait(lock);
   }
   return SuccessExecutionResult();
@@ -121,14 +114,14 @@ ExecutionResult GrpcNetworkService::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-void GrpcNetworkService::Worker(size_t index, mutex& mtx,
-                                condition_variable& cv) {
+void GrpcNetworkService::Worker(size_t index, std::mutex& mtx,
+                                std::condition_variable& cv) {
   auto queue = completion_queues_[index];
   GrpcTagManager<GrpcGenericContext> tag_manager;
   tag_manager.Allocate(queue, service_);
   // Unblock parent thread
   {
-    scoped_lock<mutex> lock(mtx);
+    std::scoped_lock<std::mutex> lock(mtx);
     cv.notify_one();
   }
   while (true) {

@@ -91,9 +91,6 @@ using google::scp::cpio::TryReadConfigInt;
 using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::client_providers::CryptoClientProvider;
 using google::scp::cpio::client_providers::CryptoClientProviderInterface;
-using std::cout;
-using std::endl;
-using std::runtime_error;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;
@@ -194,7 +191,7 @@ void RunClients() {
           .Successful()) {
     auto it = kHpkeKemConfigMap.find(hpke_kem);
     if (it == kHpkeKemConfigMap.end()) {
-      throw runtime_error("Invalid HpkeKem config.");
+      throw std::runtime_error("Invalid HpkeKem config.");
     }
     options->hpke_params.set_kem(it->second);
   }
@@ -203,7 +200,7 @@ void RunClients() {
           .Successful()) {
     auto it = kHpkeKdfConfigMap.find(hpke_kdf);
     if (it == kHpkeKdfConfigMap.end()) {
-      throw runtime_error("Invalid HpkeKdf config.");
+      throw std::runtime_error("Invalid HpkeKdf config.");
     }
     options->hpke_params.set_kdf(it->second);
   }
@@ -212,7 +209,7 @@ void RunClients() {
           .Successful()) {
     auto it = kHpkeAeadConfigMap.find(hpke_aead);
     if (it == kHpkeAeadConfigMap.end()) {
-      throw runtime_error("Invalid HpkeAead config.");
+      throw std::runtime_error("Invalid HpkeAead config.");
     }
     options->hpke_params.set_aead(it->second);
   }

@@ -52,12 +52,11 @@ using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricLabels;
 using google::scp::cpio::MetricName;
 using google::scp::cpio::MetricValue;
-using std::mutex;
-using std::chrono::milliseconds;
 
 static constexpr char kAggregateMetric[] = "AggregateMetric";
 
-static constexpr milliseconds kStopWaitSleepDuration = milliseconds(500);
+static constexpr std::chrono::milliseconds kStopWaitSleepDuration =
+    std::chrono::milliseconds(500);
 
 namespace google::scp::cpio {
 AggregateMetric::AggregateMetric(
@@ -242,9 +241,10 @@ ExecutionResult AggregateMetric::ScheduleMetricPush() noexcept {
         core::errors::SC_CUSTOMIZED_METRIC_NOT_RUNNING);
   }
 
-  Timestamp next_push_time = (TimeProvider::GetSteadyTimestampInNanoseconds() +
-                              milliseconds(push_interval_duration_in_ms_))
-                                 .count();
+  Timestamp next_push_time =
+      (TimeProvider::GetSteadyTimestampInNanoseconds() +
+       std::chrono::milliseconds(push_interval_duration_in_ms_))
+          .count();
   auto execution_result = async_executor_->ScheduleFor(
       [this]() {
         RunMetricPush();

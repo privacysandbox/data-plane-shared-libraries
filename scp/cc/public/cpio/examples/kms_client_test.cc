@@ -41,7 +41,6 @@ using google::scp::cpio::KmsClientFactory;
 using google::scp::cpio::KmsClientInterface;
 using google::scp::cpio::KmsClientOptions;
 using google::scp::cpio::LogOption;
-using std::chrono::milliseconds;
 
 constexpr char kCiphertext[] = "test_ciphertext";
 constexpr char kKeyResourceName[] = "test_key_resource_name";

@@ -55,15 +55,14 @@ using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_METRIC_LIMIT_REACHED_PER_REQUEST;
 using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_OVERSIZE_DATUM_DIMENSIONS;
-using std::chrono::duration_cast;
-using std::chrono::hours;
-using std::chrono::seconds;
-using std::chrono::system_clock;
 
 static constexpr int kTwoWeeksSecondsCount =
-    duration_cast<seconds>(hours(24 * 14)).count();
+    std::chrono::duration_cast<std::chrono::seconds>(
+        std::chrono::hours(24 * 14))
+        .count();
 static constexpr int kTwoHoursSecondsCount =
-    duration_cast<seconds>(hours(2)).count();
+    std::chrono::duration_cast<std::chrono::seconds>(std::chrono::hours(2))
+        .count();
 
 static const std::map<MetricUnit, StandardUnit> kAwsMetricUnitMap = {
     {MetricUnit::METRIC_UNIT_UNKNOWN, StandardUnit::NOT_SET},
@@ -133,12 +132,14 @@ ExecutionResult AwsMetricClientUtils::ParseRequestToDatum(
 
     MetricDatum datum;
     // The default value of the timestamp is the current time.
-    auto metric_timestamp = Aws::Utils::DateTime(system_clock::now());
+    auto metric_timestamp =
+        Aws::Utils::DateTime(std::chrono::system_clock::now());
     if (input_timestamp_in_ms > 0) {
       auto current_time = Aws::Utils::DateTime().Now();
       metric_timestamp = Aws::Utils::DateTime(input_timestamp_in_ms);
-      auto difference =
-          duration_cast<seconds>(current_time - metric_timestamp).count();
+      auto difference = std::chrono::duration_cast<std::chrono::seconds>(
+                            current_time - metric_timestamp)
+                            .count();
       // The valid timestamp of metric cannot be earlier than two weeks or
       // later than two hours.
       if (difference > kTwoWeeksSecondsCount ||

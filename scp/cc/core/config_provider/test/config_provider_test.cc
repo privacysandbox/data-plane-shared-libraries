@@ -31,21 +31,18 @@ using google::scp::core::ConfigProvider;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
-using std::filesystem::path;
-
 namespace google::scp::core::test {
-path GetTestDataDir(std::string relative_path) {
-  path test_srcdir_env = std::getenv("TEST_SRCDIR");
-  path test_workspace_env = std::getenv("TEST_WORKSPACE");
+std::filesystem::path GetTestDataDir(std::string relative_path) {
+  std::filesystem::path test_srcdir_env = std::getenv("TEST_SRCDIR");
+  std::filesystem::path test_workspace_env = std::getenv("TEST_WORKSPACE");
 
-  return path(test_srcdir_env) / path(test_workspace_env) /
-         std::move(relative_path);
+  return test_srcdir_env / test_workspace_env / std::move(relative_path);
 }
 
 TEST(ConfigProviderTest, GetConfigs) {
-  path relative_path =
+  std::filesystem::path relative_path =
       "scp/cc/core/config_provider/test/resources/test_config.json";
-  path full_path = GetTestDataDir(relative_path);
+  std::filesystem::path full_path = GetTestDataDir(relative_path);
 
   ConfigProvider config(full_path);
 
@@ -84,9 +81,9 @@ TEST(ConfigProviderTest, GetConfigs) {
 }
 
 TEST(ConfigProviderTest, GetConfigsFailed) {
-  path relative_path =
+  std::filesystem::path relative_path =
       "scp/cc/core/config_provider/test/resources/test_config.json";
-  path full_path = GetTestDataDir(relative_path);
+  std::filesystem::path full_path = GetTestDataDir(relative_path);
 
   ConfigProvider config(full_path);
 
@@ -106,9 +103,9 @@ TEST(ConfigProviderTest, GetConfigsFailed) {
 }
 
 TEST(ConfigProviderTest, InitFailed) {
-  path relative_path =
+  std::filesystem::path relative_path =
       "scp/cc/core/config_provider/test/resources/unknown_config.json";
-  path full_path = GetTestDataDir(relative_path);
+  std::filesystem::path full_path = GetTestDataDir(relative_path);
 
   ConfigProvider config(full_path);
 
@@ -118,9 +115,9 @@ TEST(ConfigProviderTest, InitFailed) {
 }
 
 TEST(ConfigProviderTest, ShowErrorInfo) {
-  path relative_path =
+  std::filesystem::path relative_path =
       "scp/cc/core/config_provider/test/resources/unknown_config.json";
-  path full_path = GetTestDataDir(relative_path);
+  std::filesystem::path full_path = GetTestDataDir(relative_path);
 
   ConfigProvider config(full_path);
 

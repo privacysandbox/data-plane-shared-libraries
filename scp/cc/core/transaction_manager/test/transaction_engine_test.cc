@@ -94,8 +94,6 @@ using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
 using google::scp::cpio::MetricInstanceFactory;
 using google::scp::cpio::MockMetricClient;
-using std::thread;
-using std::chrono::milliseconds;
 
 static constexpr Uuid kDefaultUuid = {0, 0};
 
@@ -1143,14 +1141,14 @@ TEST_F(TransactionEngineTest,
       TransactionPhase::Commit, TransactionPhase::Commit};
 
   std::atomic<size_t> total_callbacks = 0;
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   TransactionAction action = [&](TransactionCommandCallback& callback) {
     ExecutionResult execution_result = SuccessExecutionResult();
     if (total_callbacks++ == 3) {
       execution_result = FailureExecutionResult(1);
     } else {
-      threads.push_back(thread([callback, execution_result]() mutable {
-        std::this_thread::sleep_for(milliseconds(200));
+      threads.push_back(std::thread([callback, execution_result]() mutable {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         callback(execution_result);
       }));
     }
@@ -1261,11 +1259,11 @@ TEST_F(TransactionEngineTest,
       TransactionPhase::CommitNotify, TransactionPhase::AbortNotify};
 
   std::atomic<size_t> total_callbacks = 0;
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   TransactionAction action = [&](TransactionCommandCallback& callback) {
     ExecutionResult execution_result = SuccessExecutionResult();
-    threads.push_back(thread([callback, execution_result]() mutable {
-      std::this_thread::sleep_for(milliseconds(200));
+    threads.push_back(std::thread([callback, execution_result]() mutable {
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
       callback(execution_result);
     }));
     return execution_result;

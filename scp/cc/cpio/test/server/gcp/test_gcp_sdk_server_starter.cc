@@ -31,19 +31,18 @@
 
 using google::scp::core::test::GetIpAddress;
 using google::scp::core::test::StartGcpContainer;
-using std::runtime_error;
 
 namespace google::scp::cpio::test {
 void TestGcpSdkServerStarter::RunCloud() {
   // Starts GCP container.
   if (StartGcpContainer(config_.network_name, config_.cloud_container_name,
                         config_.cloud_port) != 0) {
-    throw runtime_error("Failed to start GCP container!");
+    throw std::runtime_error("Failed to start GCP container!");
   }
 
   // Needs to start PubSub Emulator separately.
   if (StartPubSubEmulator() != 0) {
-    throw runtime_error("Failed to start Pubsub emulator!");
+    throw std::runtime_error("Failed to start Pubsub emulator!");
   }
 }
 

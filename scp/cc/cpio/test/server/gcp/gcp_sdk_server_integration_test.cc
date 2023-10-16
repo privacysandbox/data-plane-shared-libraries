@@ -57,8 +57,6 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerUnaryReactor;
 using grpc::Status;
-using std::mt19937;
-using std::runtime_error;
 
 namespace {
 constexpr char kLocalHost[] = "http://127.0.0.1";
@@ -79,7 +77,7 @@ static std::string GetRandomString(const std::string& prefix) {
   // Bucket name can only be lower case.
   std::string str("abcdefghijklmnopqrstuvwxyz");
   static random_device random_device_local;
-  static mt19937 generator(random_device_local());
+  static std::mt19937 generator(random_device_local());
   shuffle(str.begin(), str.end(), generator);
   return prefix + str.substr(0, 10);
 }

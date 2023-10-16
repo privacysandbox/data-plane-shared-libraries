@@ -70,7 +70,6 @@ using google::scp::core::errors::SC_GCP_INSTANCE_CLIENT_ZONE_PARSING_FAILURE;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::common::CpioUtils;
 using nlohmann::json;
-using std::nullopt;
 
 namespace {
 constexpr char kGcpInstanceClientProvider[] = "GcpInstanceClientProvider";

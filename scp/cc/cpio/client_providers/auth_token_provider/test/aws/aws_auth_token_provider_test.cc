@@ -44,8 +44,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::thread;
-using std::chrono::seconds;
 using testing::Eq;
 using testing::Pair;
 using testing::Pointee;
@@ -105,7 +103,7 @@ TEST_F(AwsAuthTokenProviderTest,
     EXPECT_THAT(context.response->session_token,
                 Pointee(Eq(kHttpResponseMock)));
     EXPECT_EQ(context.response->token_lifetime_in_seconds,
-              seconds(kTokenTtlInSecondHeaderValue));
+              std::chrono::seconds(kTokenTtlInSecondHeaderValue));
     finished = true;
   };
   EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),

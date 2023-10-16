@@ -35,7 +35,6 @@
 #include "roma/config/src/function_binding_object.h"
 #include "roma/config/src/type_converter.h"
 
-using std::runtime_error;
 using v8::Context;
 using v8::External;
 using v8::FunctionCallbackInfo;

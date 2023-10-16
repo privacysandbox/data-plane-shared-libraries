@@ -25,8 +25,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::test::WaitUntil;
-using std::chrono::duration_cast;
-using std::chrono::seconds;
 
 namespace google::scp::core::common {
 TEST(CancellableThreadTaskTest, CreateTaskAndWaitUntilComplete) {
@@ -46,17 +44,19 @@ TEST(CancellableThreadTaskTest,
         end_timestamp = TimeProvider::GetSteadyTimestampInNanoseconds();
         is_done = true;
       },
-      seconds(startup_delay_in_seconds));
+      std::chrono::seconds(startup_delay_in_seconds));
   WaitUntil([&is_done]() { return is_done == true; });
-  EXPECT_GE(duration_cast<seconds>(end_timestamp - start_timestamp).count(),
-            seconds(startup_delay_in_seconds).count());
+  EXPECT_GE(std::chrono::duration_cast<std::chrono::seconds>(end_timestamp -
+                                                             start_timestamp)
+                .count(),
+            std::chrono::seconds(startup_delay_in_seconds).count());
 }
 
 TEST(CancellableThreadTaskTest, CreateTaskAndCancel) {
   std::atomic<bool> is_done(false);
   size_t startup_delay_in_seconds = 10;
   CancellableThreadTask task([&is_done]() { is_done = true; },
-                             seconds(startup_delay_in_seconds));
+                             std::chrono::seconds(startup_delay_in_seconds));
 
   // Task can be cancelled.
   EXPECT_TRUE(task.Cancel());
@@ -70,7 +70,7 @@ TEST(CancellableThreadTaskTest, CannotCancelWhileExecuting) {
     }
   });
   // Wait for a bit for the task to start executing..
-  std::this_thread::sleep_for(seconds(1));
+  std::this_thread::sleep_for(std::chrono::seconds(1));
 
   // Task cannot be cancelled
   EXPECT_FALSE(task.Cancel());

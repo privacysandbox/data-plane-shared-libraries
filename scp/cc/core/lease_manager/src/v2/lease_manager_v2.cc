@@ -29,16 +29,10 @@
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
-using std::mutex;
-using std::thread;
-using std::unique_lock;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
 
-static constexpr milliseconds
+static constexpr std::chrono::milliseconds
     kLeaseAcquisitionPreferenceInvocationIntervalInMilliseconds =
-        milliseconds(1000);
+        std::chrono::milliseconds(1000);
 
 static constexpr char kLeaseManagerV2[] = "LeaseManagerV2";
 
@@ -80,7 +74,7 @@ ExecutionResult LeaseManagerV2::Run() noexcept {
     // An arbitrary lease refresher is chosen here as all of them have the
     // same lease duration. We do not support different lease durations for
     // refreshers yet, although not enforced.
-    auto lease_duration_in_milliseconds = milliseconds(
+    auto lease_duration_in_milliseconds = std::chrono::milliseconds(
         lease_refreshers_.begin()
             ->second.leasable_lock->GetConfiguredLeaseDurationInMilliseconds());
     lease_refresh_liveness_enforcer_ =
@@ -107,12 +101,12 @@ ExecutionResult LeaseManagerV2::Run() noexcept {
   // Initiate start on thread and wait until it starts.
   std::atomic<bool> is_thread_started(false);
   lease_preference_manager_thread_ =
-      std::make_unique<thread>([this, &is_thread_started]() {
+      std::make_unique<std::thread>([this, &is_thread_started]() {
         is_thread_started = true;
         LeaseAcquisitionPreferenceManagerThreadFunction();
       });
   while (!is_thread_started) {
-    std::this_thread::sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   return SuccessExecutionResult();
@@ -159,7 +153,7 @@ ExecutionResult LeaseManagerV2::ManageLeaseOnLock(
 
 ExecutionResult LeaseManagerV2::SetLeaseAcquisitionPreference(
     LeaseAcquisitionPreference preference) noexcept {
-  unique_lock<mutex> lock(lease_preference_mutex_);
+  std::unique_lock<std::mutex> lock(lease_preference_mutex_);
   lease_acquisition_preference_ = preference;
   return SuccessExecutionResult();
 }
@@ -404,10 +398,10 @@ void LeaseManagerV2::
 void LeaseManagerV2::PerformLeaseAcquisitionPreferenceManagement() {
   LeaseAcquisitionPreference lease_preference_snapshot;
   {
-    unique_lock<mutex> lock(lease_preference_mutex_);
+    std::unique_lock<std::mutex> lock(lease_preference_mutex_);
     lease_preference_snapshot = lease_acquisition_preference_;
   }
-  unique_lock<mutex> lock(lease_preference_manager_mutex_);
+  std::unique_lock<std::mutex> lock(lease_preference_manager_mutex_);
   // Lease new leases (or) give up existing leases
   // 1. Get leases held count.
   size_t leases_held_count = 0;

@@ -34,11 +34,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::common::TimeProvider;
-using std::chrono::duration_cast;
-using std::chrono::hours;
-using std::chrono::milliseconds;
-using std::chrono::nanoseconds;
-using std::chrono::seconds;
 using testing::Values;
 
 namespace google::scp::core::test {
@@ -112,7 +107,9 @@ TEST(SingleThreadPriorityAsyncExecutorTests, ExceedingQueueCapSchedule) {
   EXPECT_SUCCESS(executor.Run());
 
   AsyncTask task;
-  auto two_seconds = duration_cast<nanoseconds>(seconds(2)).count();
+  auto two_seconds = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         std::chrono::seconds(2))
+                         .count();
 
   auto schedule_for_timestamp = task.GetExecutionTimestamp() + two_seconds;
   EXPECT_SUCCESS(executor.ScheduleFor([&]() {}, schedule_for_timestamp));
@@ -134,7 +131,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, CountWorkSingleThread) {
     EXPECT_SUCCESS(executor.ScheduleFor([&]() { count++; }, 123456));
   }
   // Waits some time to finish the work.
-  WaitUntil([&]() { return count == queue_cap; }, seconds(30));
+  WaitUntil([&]() { return count == queue_cap; }, std::chrono::seconds(30));
   EXPECT_EQ(count, queue_cap);
 
   EXPECT_SUCCESS(executor.Stop());
@@ -184,9 +181,15 @@ TEST(SingleThreadPriorityAsyncExecutorTests, OrderedTasksExecution) {
   EXPECT_SUCCESS(executor.Run());
 
   AsyncTask task;
-  auto half_second = duration_cast<nanoseconds>(milliseconds(500)).count();
-  auto one_second = duration_cast<nanoseconds>(seconds(1)).count();
-  auto two_seconds = duration_cast<nanoseconds>(seconds(2)).count();
+  auto half_second = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         std::chrono::milliseconds(500))
+                         .count();
+  auto one_second = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        std::chrono::seconds(1))
+                        .count();
+  auto two_seconds = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         std::chrono::seconds(2))
+                         .count();
 
   std::atomic<size_t> counter(0);
   EXPECT_SUCCESS(
@@ -199,7 +202,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, OrderedTasksExecution) {
       executor.ScheduleFor([&]() { EXPECT_EQ(counter++, 0); },
                            task.GetExecutionTimestamp() + half_second));
 
-  WaitUntil([&]() { return counter == 3; }, seconds(30));
+  WaitUntil([&]() { return counter == 3; }, std::chrono::seconds(30));
   EXPECT_SUCCESS(executor.Stop());
 }
 
@@ -225,7 +228,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, AsyncContextCallback) {
       12345));
 
   // Waits some time to finish the work.
-  WaitUntil([&]() { return callback_count == 1; }, seconds(30));
+  WaitUntil([&]() { return callback_count == 1; }, std::chrono::seconds(30));
 
   // Verifies the work is executed.
   EXPECT_EQ(*(context.response), "response");
@@ -254,7 +257,8 @@ TEST(SingleThreadPriorityAsyncExecutorTests, FinishWorkWhenStopInMiddle) {
   EXPECT_SUCCESS(executor.Stop());
 
   // Waits some time to finish the work.
-  WaitUntil([&]() { return urgent_count == queue_cap; }, seconds(30));
+  WaitUntil([&]() { return urgent_count == queue_cap; },
+            std::chrono::seconds(30));
 
   EXPECT_EQ(urgent_count, queue_cap);
 }
@@ -267,9 +271,9 @@ TEST(SingleThreadPriorityAsyncExecutorTests, TaskCancellation) {
 
   for (int i = 0; i < queue_cap; i++) {
     std::function<bool()> cancellation_callback;
-    Timestamp next_clock =
-        (TimeProvider::GetSteadyTimestampInNanoseconds() + milliseconds(500))
-            .count();
+    Timestamp next_clock = (TimeProvider::GetSteadyTimestampInNanoseconds() +
+                            std::chrono::milliseconds(500))
+                               .count();
 
     EXPECT_SUCCESS(executor.ScheduleFor([&]() { EXPECT_EQ(true, false); },
                                         next_clock, cancellation_callback));
@@ -278,7 +282,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, TaskCancellation) {
   }
   EXPECT_SUCCESS(executor.Stop());
 
-  std::this_thread::sleep_for(seconds(2));
+  std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 TEST(SingleThreadPriorityAsyncExecutorTests,
@@ -291,7 +295,9 @@ TEST(SingleThreadPriorityAsyncExecutorTests,
   for (int i = 0; i < queue_cap; i++) {
     std::function<bool()> cancellation_callback;
     auto far_ahead_timestamp =
-        (TimeProvider::GetSteadyTimestampInNanoseconds() + hours(24)).count();
+        (TimeProvider::GetSteadyTimestampInNanoseconds() +
+         std::chrono::hours(24))
+            .count();
 
     EXPECT_SUCCESS(executor.ScheduleFor([&]() { EXPECT_EQ(true, false); },
                                         far_ahead_timestamp,

@@ -40,7 +40,6 @@ using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
-using std::chrono::milliseconds;
 
 static constexpr char kRegion[] = "us-east-1";
 
@@ -96,7 +95,8 @@ int main(int argc, char* argv[]) {
     std::cout << "PutMetrics failed immediately: "
               << GetErrorMessage(result.status_code) << std::endl;
   }
-  WaitUntil([&finished]() { return finished.load(); }, milliseconds(100000));
+  WaitUntil([&finished]() { return finished.load(); },
+            std::chrono::milliseconds(100000));
 
   result = metric_client->Stop();
   if (!result.Successful()) {

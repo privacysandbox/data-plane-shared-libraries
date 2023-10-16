@@ -83,9 +83,6 @@ using google::scp::cpio::TryReadConfigString;
 using google::scp::cpio::client_providers::AutoScalingClientProviderFactory;
 using google::scp::cpio::client_providers::AutoScalingClientProviderInterface;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
-using std::cout;
-using std::endl;
-using std::runtime_error;
 
 namespace {
 constexpr int32_t kDefaultNumCompletionQueues = 2;

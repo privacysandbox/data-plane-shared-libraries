@@ -31,7 +31,6 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::GetErrorMessage;
-using std::chrono::milliseconds;
 
 namespace google::scp::roma::sandbox::dispatcher {
 ExecutionResult Dispatcher::Init() noexcept {

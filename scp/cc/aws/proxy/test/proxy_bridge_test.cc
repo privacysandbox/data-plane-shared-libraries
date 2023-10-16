@@ -27,7 +27,6 @@
 #include <boost/asio.hpp>
 
 using boost::system::error_code;
-using std::thread;
 using UdsSocket = boost::asio::local::stream_protocol::socket;
 
 namespace asio = boost::asio;
@@ -50,7 +49,7 @@ TEST(ProxyBridge, EmptyConnection) {
     bridge->ForwardTraffic();
   }
 
-  thread worker_thread([&]() { io_context.run(); });
+  std::thread worker_thread([&]() { io_context.run(); });
   dest_sock0.close();
   uint8_t dummy_buff[64];
   error_code ec;
@@ -84,7 +83,7 @@ TEST(ProxyBridge, HalfClosure) {
     bridge->ForwardTraffic();
   }
 
-  thread worker_thread([&]() { io_context.run(); });
+  std::thread worker_thread([&]() { io_context.run(); });
   // Send FIN
   dest_sock0.shutdown(Socket::shutdown_send);
   uint8_t recv_buff[64];
@@ -132,8 +131,8 @@ TEST(ProxyBridge, ForwardTraffic) {
     send_buf[i] = i & 0xff;
   }
 
-  thread worker_thread([&]() { io_context.run(); });
-  thread writer_thread([&]() {
+  std::thread worker_thread([&]() { io_context.run(); });
+  std::thread writer_thread([&]() {
     constexpr size_t buf_size = 10 * 1024 * 1024;
     error_code ec;
     asio::write(client_sock0, asio::buffer(send_buf.get(), buf_size), ec);
@@ -180,7 +179,7 @@ TEST(ProxyBridge, InboundConnection) {
     bridge->PerformSocks5Handshake();
   }
 
-  thread worker_thread([&]() {
+  std::thread worker_thread([&]() {
     error_code ec;
     io_context.run(ec);
     EXPECT_FALSE(ec.failed()) << "io_context.run() failed: " << ec.message();
@@ -217,7 +216,7 @@ TEST(ProxyBridge, InboundConnection) {
     send_buf[i] = i & 0xff;
   }
 
-  thread writer_thread([&]() {
+  std::thread writer_thread([&]() {
     constexpr size_t buf_size = 10 * 1024 * 1024;
     error_code ec;
     asio::write(client_sock0, asio::buffer(send_buf.get(), buf_size), ec);

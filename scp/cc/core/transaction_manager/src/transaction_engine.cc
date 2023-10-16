@@ -50,8 +50,6 @@ using google::scp::core::transaction_manager::proto::TransactionEngineLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
 
 static constexpr size_t kStartupWaitIntervalMilliseconds = 1000;
 static constexpr size_t kStopTransactionWaitLoopIntervalMilliseconds = 1000;
@@ -250,7 +248,8 @@ ExecutionResult TransactionEngine::Run() noexcept {
              "Transaction Engine has '%llu' pending transactions to be "
              "resolved. Waiting...",
              pending_calls.load());
-    std::this_thread::sleep_for(milliseconds(kStartupWaitIntervalMilliseconds));
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(kStartupWaitIntervalMilliseconds));
   }
 
   SCP_INFO(kTransactionEngine, activity_id_,
@@ -295,8 +294,8 @@ ExecutionResult TransactionEngine::Stop() noexcept {
                "Transaction Engine waiting on an active transaction '%s' that "
                "is busy doing some work",
                ToString(transaction->id).c_str());
-      std::this_thread::sleep_for(
-          milliseconds(kStopTransactionWaitLoopIntervalMilliseconds));
+      std::this_thread::sleep_for(std::chrono::milliseconds(
+          kStopTransactionWaitLoopIntervalMilliseconds));
     }
   }
 
@@ -958,7 +957,7 @@ ExecutionResult TransactionEngine::InitializeTransaction(
   transaction->is_loaded = true;
   transaction->expiration_time =
       (TimeProvider::GetSteadyTimestampInNanoseconds() +
-       seconds(transaction_timeout_in_seconds_))
+       std::chrono::seconds(transaction_timeout_in_seconds_))
           .count();
   transaction->last_execution_timestamp =
       TimeProvider::GetWallTimestampInNanosecondsAsClockTicks();

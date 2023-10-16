@@ -31,7 +31,6 @@
 
 namespace asio = boost::asio;
 using boost::system::error_code;
-using std::thread;
 
 namespace google::scp::proxy {
 bool SocketVendorServer::Init() {

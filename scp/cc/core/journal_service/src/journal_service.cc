@@ -50,8 +50,6 @@ using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MetricUtils;
 using google::scp::cpio::SimpleMetricInterface;
 using google::scp::cpio::TimeEvent;
-using std::thread;
-using std::chrono::milliseconds;
 
 static constexpr size_t kMaxWaitTimeForFlushMs = 20;
 
@@ -153,13 +151,14 @@ ExecutionResult JournalService::Run() noexcept {
 
   std::atomic<bool> flushing_thread_started(false);
   flushing_thread_ =
-      std::make_unique<thread>([this, &flushing_thread_started]() {
+      std::make_unique<std::thread>([this, &flushing_thread_started]() {
         flushing_thread_started = true;
         FlushJournalOutputStream();
       });
 
   while (!flushing_thread_started) {
-    std::this_thread::sleep_for(milliseconds(kStartupWaitIntervalMilliseconds));
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(kStartupWaitIntervalMilliseconds));
   }
 
   return SuccessExecutionResult();
@@ -437,7 +436,7 @@ void JournalService::FlushJournalOutputStream() noexcept {
     }
 
     std::this_thread::sleep_for(
-        milliseconds(journal_flush_interval_in_milliseconds_));
+        std::chrono::milliseconds(journal_flush_interval_in_milliseconds_));
   }
 }
 

@@ -57,7 +57,6 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockMetricClientWithOverrides;
-using std::thread;
 
 namespace {
 constexpr size_t kMetricsBatchSize = 1000;
@@ -337,10 +336,10 @@ TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
         batch_push_called_count++;
         return SuccessExecutionResult();
       };
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   for (auto i = 0; i < 100; ++i) {
     threads.push_back(
-        thread([&]() { EXPECT_SUCCESS(client->PutMetrics(context)); }));
+        std::thread([&]() { EXPECT_SUCCESS(client->PutMetrics(context)); }));
   }
 
   for (auto& thread : threads) {

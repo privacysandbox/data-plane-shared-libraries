@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -42,7 +43,6 @@ using google::scp::roma::sandbox::constants::kRequestTypeJavascriptWithWasm;
 using google::scp::roma::sandbox::constants::kRequestTypeWasm;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
-using std::uint8_t;
 
 namespace google::scp::roma::sandbox::worker::test {
 static const std::vector<uint8_t> kWasmBin = {

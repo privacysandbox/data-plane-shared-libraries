@@ -28,12 +28,9 @@
 
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
-using std::thread;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 
-static constexpr milliseconds kDefaultEnforcerIntervalInMilliseconds =
-    milliseconds(1000);
+static constexpr std::chrono::milliseconds
+    kDefaultEnforcerIntervalInMilliseconds = std::chrono::milliseconds(1000);
 
 static constexpr char kLeaseRefreshLivenessEnforcer[] =
     "LeaseRefreshLivenessEnforcer";
@@ -72,7 +69,8 @@ LeaseRefreshLivenessEnforcer::PerformLeaseLivenessEnforcement() noexcept {
           "'%llu', Elapsed Time: '%llu' (ms), Lease Duration: '%llu'",
           lease_refresh_steady_timestamp.count(),
           current_steady_timestamp.count(),
-          duration_cast<milliseconds>(elapsed_time).count(),
+          std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_time)
+              .count(),
           lease_duration_in_milliseconds_.count());
       return execution_result;
     }
@@ -103,8 +101,9 @@ void LeaseRefreshLivenessEnforcer::LivenessEnforcerThreadFunction() {
 
     // Sleep until next round, only the required amount.
     auto enforcement_elapsed_duration_in_milliseconds =
-        duration_cast<milliseconds>(end_timestamp - start_timestamp);
-    auto sleep_duration_in_milliseconds = milliseconds(0);
+        std::chrono::duration_cast<std::chrono::milliseconds>(end_timestamp -
+                                                              start_timestamp);
+    auto sleep_duration_in_milliseconds = std::chrono::milliseconds(0);
     if (enforcement_elapsed_duration_in_milliseconds <
         enforcement_interval_in_milliseconds_) {
       sleep_duration_in_milliseconds =
@@ -140,12 +139,13 @@ ExecutionResult LeaseRefreshLivenessEnforcer::Run() noexcept {
 
   // Start Enforcer and wait until it starts.
   std::atomic<bool> is_thread_started(false);
-  enforcer_thread_ = std::make_unique<thread>([this, &is_thread_started]() {
-    is_thread_started = true;
-    LivenessEnforcerThreadFunction();
-  });
+  enforcer_thread_ =
+      std::make_unique<std::thread>([this, &is_thread_started]() {
+        is_thread_started = true;
+        LivenessEnforcerThreadFunction();
+      });
   while (!is_thread_started) {
-    std::this_thread::sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   // Set a min-priority under FIFO scheduling policy to increase the chances of

@@ -39,9 +39,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_PUBLIC_KEYS_FETCH_FAILED;
 using google::scp::core::test::ResultIs;
-using std::istringstream;
-using std::regex;
-using std::tm;
 
 static constexpr char kPublicKeyHeaderDate[] = "date";
 static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";

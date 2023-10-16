@@ -35,8 +35,6 @@
 
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::utils::GetEscapedUriWithQuery;
-using std::regex;
-using std::smatch;
 
 namespace google::scp::core {
 
@@ -47,8 +45,8 @@ constexpr int64_t kCurlOptTimeout = 60L;
 constexpr char kHttp1CurlWrapper[] = "Http1CurlWrapper";
 
 ExecutionResult GetExecutionResultFromCurlError(const std::string& err_buffer) {
-  regex error_code_regex("([0-9]{3})");
-  smatch http_code_match;
+  std::regex error_code_regex("([0-9]{3})");
+  std::smatch http_code_match;
   int http_code;
   if (std::regex_search(err_buffer, http_code_match, error_code_regex)) {
     if (!absl::SimpleAtoi(std::string_view(http_code_match.str(0)),
@@ -145,7 +143,7 @@ size_t ResponseHeaderHandler(char* contents, size_t byte_size, size_t num_bytes,
     return contents_size;
   }
   std::string contents_str(contents, contents_size);
-  if (regex r("HTTP.*[0-9]{3}"); std::regex_search(contents_str, r)) {
+  if (std::regex r("HTTP.*[0-9]{3}"); std::regex_search(contents_str, r)) {
     // The header is just the HTTP response code.
     return contents_size;
   }

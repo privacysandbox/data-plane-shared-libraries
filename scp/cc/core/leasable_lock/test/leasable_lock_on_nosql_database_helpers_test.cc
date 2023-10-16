@@ -16,8 +16,6 @@
 
 #include <chrono>
 
-using std::chrono::milliseconds;
-
 #include "core/interface/nosql_database_provider_interface.h"
 #include "core/nosql_database_provider/mock/mock_nosql_database_provider_no_overrides.h"
 #include "public/core/test/interface/execution_result_matchers.h"
@@ -57,7 +55,8 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
 
   void TestConstructAttributesFromLeaseInfo() {
     LeaseInfoInternal lease;
-    lease.lease_expiration_timestamp_in_milliseconds = milliseconds(123445);
+    lease.lease_expiration_timestamp_in_milliseconds =
+        std::chrono::milliseconds(123445);
     lease.lease_owner_info.lease_acquirer_id = "214314515515";
     lease.lease_owner_info.service_endpoint_address = "12.1.1.1";
 
@@ -86,7 +85,8 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
 
   void TestObtainLeaseInfoFromAttributes() {
     LeaseInfoInternal lease;
-    lease.lease_expiration_timestamp_in_milliseconds = milliseconds(123445);
+    lease.lease_expiration_timestamp_in_milliseconds =
+        std::chrono::milliseconds(123445);
     lease.lease_owner_info.lease_acquirer_id = "214314515515";
     lease.lease_owner_info.service_endpoint_address = "12.1.1.1";
 
@@ -108,7 +108,8 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
 
   void TestReadSynchronouslyFromDatabasePassesCorrectContext() {
     LeaseInfoInternal lease;
-    lease.lease_expiration_timestamp_in_milliseconds = milliseconds(444444);
+    lease.lease_expiration_timestamp_in_milliseconds =
+        std::chrono::milliseconds(444444);
     lease.lease_owner_info.lease_acquirer_id = "389168531658715";
     lease.lease_owner_info.service_endpoint_address = "18.1.1.1";
 
@@ -188,12 +189,13 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
   void TestWriteLeaseSynchronouslyToDatabasePassesCorrectContext() {
     LeaseInfoInternal prev_lease;
     prev_lease.lease_expiration_timestamp_in_milliseconds =
-        milliseconds(123445);
+        std::chrono::milliseconds(123445);
     prev_lease.lease_owner_info.lease_acquirer_id = "214314515515";
     prev_lease.lease_owner_info.service_endpoint_address = "12.1.1.1";
 
     LeaseInfoInternal new_lease;
-    new_lease.lease_expiration_timestamp_in_milliseconds = milliseconds(444444);
+    new_lease.lease_expiration_timestamp_in_milliseconds =
+        std::chrono::milliseconds(444444);
     new_lease.lease_owner_info.lease_acquirer_id = "389168531658715";
     new_lease.lease_owner_info.service_endpoint_address = "18.1.1.1";
 
@@ -255,12 +257,13 @@ class LeasableLockOnNoSQLDatabaseTester : public LeasableLockOnNoSQLDatabase {
   void TestWriteLeaseSynchronouslyToDatabaseFailsIfRequestExecutionFails() {
     LeaseInfoInternal prev_lease;
     prev_lease.lease_expiration_timestamp_in_milliseconds =
-        milliseconds(123445);
+        std::chrono::milliseconds(123445);
     prev_lease.lease_owner_info.lease_acquirer_id = "214314515515";
     prev_lease.lease_owner_info.service_endpoint_address = "12.1.1.1";
 
     LeaseInfoInternal new_lease;
-    new_lease.lease_expiration_timestamp_in_milliseconds = milliseconds(444444);
+    new_lease.lease_expiration_timestamp_in_milliseconds =
+        std::chrono::milliseconds(444444);
     new_lease.lease_owner_info.lease_acquirer_id = "389168531658715";
     new_lease.lease_owner_info.service_endpoint_address = "18.1.1.1";
 

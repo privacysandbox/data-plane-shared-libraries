@@ -27,10 +27,6 @@
 #include "typedef.h"
 
 using google::scp::core::common::ConcurrentQueue;
-using std::mutex;
-using std::thread;
-using std::unique_lock;
-using std::chrono::milliseconds;
 
 static constexpr size_t kLockWaitTimeInMilliseconds = 5;
 
@@ -57,7 +53,7 @@ ExecutionResult SingleThreadAsyncExecutor::Run() noexcept {
   }
 
   is_running_ = true;
-  working_thread_ = std::make_unique<thread>(
+  working_thread_ = std::make_unique<std::thread>(
       [affinity_cpu_number =
            affinity_cpu_number_](SingleThreadAsyncExecutor* ptr) {
         if (affinity_cpu_number.has_value()) {
@@ -76,11 +72,12 @@ ExecutionResult SingleThreadAsyncExecutor::Run() noexcept {
 }
 
 void SingleThreadAsyncExecutor::StartWorker() noexcept {
-  unique_lock<mutex> thread_lock(mutex_);
+  std::unique_lock<std::mutex> thread_lock(mutex_);
 
   while (true) {
     condition_variable_.wait_for(
-        thread_lock, milliseconds(kLockWaitTimeInMilliseconds), [&]() {
+        thread_lock, std::chrono::milliseconds(kLockWaitTimeInMilliseconds),
+        [&]() {
           return !is_running_ || high_pri_queue_->Size() > 0 ||
                  normal_pri_queue_->Size() > 0;
         });
@@ -110,7 +107,7 @@ ExecutionResult SingleThreadAsyncExecutor::Stop() noexcept {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
   }
 
-  unique_lock<mutex> thread_lock(mutex_);
+  std::unique_lock<std::mutex> thread_lock(mutex_);
   is_running_ = false;
 
   if (drop_tasks_on_stop_) {
@@ -127,7 +124,7 @@ ExecutionResult SingleThreadAsyncExecutor::Stop() noexcept {
   // there is a chance that Stop returns successful but the thread has not been
   // killed.
   while (!(worker_thread_started_.load() && worker_thread_stopped_.load())) {
-    std::this_thread::sleep_for(milliseconds(kSleepDurationMs));
+    std::this_thread::sleep_for(std::chrono::milliseconds(kSleepDurationMs));
   }
 
   return SuccessExecutionResult();
@@ -160,7 +157,8 @@ ExecutionResult SingleThreadAsyncExecutor::Schedule(
   return SuccessExecutionResult();
 };
 
-ExecutionResultOr<thread::id> SingleThreadAsyncExecutor::GetThreadId() const {
+ExecutionResultOr<std::thread::id> SingleThreadAsyncExecutor::GetThreadId()
+    const {
   if (!is_running_.load()) {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
   }

@@ -38,7 +38,6 @@ using boost::algorithm::split;
 using boost::algorithm::to_lower_copy;
 using boost::algorithm::token_compress_off;
 using boost::algorithm::token_compress_on;
-using std::chrono::system_clock;
 
 static constexpr const char* kEmptyStringSha256 =
     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
@@ -349,8 +348,8 @@ void AwsV4Signer::AddSignatureHeader(
 }
 
 std::string AwsV4Signer::GetSigningTime() {
-  auto chrono_now = system_clock::now();
-  time_t time_t_now = system_clock::to_time_t(chrono_now);
+  auto chrono_now = std::chrono::system_clock::now();
+  time_t time_t_now = std::chrono::system_clock::to_time_t(chrono_now);
   struct tm gmt_timestamp;
   gmtime_r(&time_t_now, &gmt_timestamp);
   char formatted_timestamp[64] = {0};

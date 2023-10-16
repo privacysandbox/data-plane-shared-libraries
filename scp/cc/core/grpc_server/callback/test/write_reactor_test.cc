@@ -30,7 +30,6 @@ using google::scp::core::common::ConcurrentQueue;
 using grpc::ServerCallbackWriter;
 using grpc::ServerWriteReactor;
 using grpc::internal::ServerReactor;
-using std::thread;
 using testing::_;
 using testing::Eq;
 using testing::ExplainMatchResult;
@@ -122,12 +121,12 @@ MATCHER_P(SomeResponseHasResult, result, "") {
 }
 
 TEST_F(WriteReactorTest, BasicSequenceWorks) {
-  thread async_thread;
+  std::thread async_thread;
   req_.set_field(5);
   reactor_->initiate_call_function = [this, &async_thread](auto context) {
     EXPECT_EQ(context.request->field(), req_.field());
     // Spawn a thread to push elements onto the queue and then finish.
-    async_thread = thread([context]() mutable {
+    async_thread = std::thread([context]() mutable {
       for (int i = 0; i < 3; i++) {
         SomeResponse resp;
         resp.set_field(i);
@@ -180,10 +179,10 @@ TEST_F(WriteReactorTest, FailureOnInitiationWorks) {
 }
 
 TEST_F(WriteReactorTest, FailureOnAsyncOperationWorks) {
-  thread async_thread;
+  std::thread async_thread;
   reactor_->initiate_call_function = [&async_thread](auto context) {
     // Spawn a thread to push elements onto the queue and then finish.
-    async_thread = thread([context]() mutable {
+    async_thread = std::thread([context]() mutable {
       SomeResponse resp;
       resp.set_field(0);
       context.TryPushResponse(std::move(resp));
@@ -217,10 +216,10 @@ TEST_F(WriteReactorTest, FailureOnAsyncOperationWorks) {
 // before Finish. When Finish is called, then context.result contains the true
 // result.
 TEST_F(WriteReactorTest, CapturesExecutionResultWhenCalledOutOfOrder) {
-  thread async_thread;
+  std::thread async_thread;
   reactor_->initiate_call_function = [&async_thread](auto context) {
     // Spawn a thread to push elements onto the queue and then finish.
-    async_thread = thread([context]() mutable {
+    async_thread = std::thread([context]() mutable {
       context.result = FailureExecutionResult(SC_UNKNOWN);
       SomeResponse resp;
       resp.set_field(0);
@@ -257,10 +256,10 @@ TEST_F(WriteReactorTest, CapturesExecutionResultWhenCalledOutOfOrder) {
 }
 
 TEST_F(WriteReactorTest, FailureOnWriteWorks) {
-  thread async_thread;
+  std::thread async_thread;
   reactor_->initiate_call_function = [&async_thread](auto context) {
     // Spawn a thread to push elements onto the queue and then finish.
-    async_thread = thread([context]() mutable {
+    async_thread = std::thread([context]() mutable {
       SomeResponse resp;
       resp.set_field(1);
       context.TryPushResponse(std::move(resp));
@@ -288,10 +287,10 @@ TEST_F(WriteReactorTest, FailureOnWriteWorks) {
 }
 
 TEST_F(WriteReactorTest, CancellationWorks) {
-  thread async_thread;
+  std::thread async_thread;
   reactor_->initiate_call_function = [&async_thread](auto context) {
     // Spawn a thread to push elements onto the queue and then finish.
-    async_thread = thread([context]() mutable {
+    async_thread = std::thread([context]() mutable {
       SomeResponse resp;
       resp.set_field(0);
       context.TryPushResponse(resp);

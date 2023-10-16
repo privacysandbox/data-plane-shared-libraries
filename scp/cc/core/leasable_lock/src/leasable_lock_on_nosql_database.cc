@@ -36,12 +36,6 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::TimeDuration;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
-using std::mutex;
-using std::shared_lock;
-using std::shared_mutex;
-using std::unique_lock;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 
 namespace google::scp::core {
 
@@ -53,7 +47,8 @@ constexpr char kLeasableLock[] = "LeasableLock";
 LeasableLockOnNoSQLDatabase::LeasableLockOnNoSQLDatabase(
     std::shared_ptr<NoSQLDatabaseProviderInterface> database,
     LeaseInfo lease_acquirer_info, std::string table_name,
-    std::string lock_row_key, milliseconds lease_duration_in_milliseconds,
+    std::string lock_row_key,
+    std::chrono::milliseconds lease_duration_in_milliseconds,
     uint64_t lease_renewal_threshold_percent_time_left_in_lease) noexcept
     : database_(database),
       lease_acquirer_info_(lease_acquirer_info),
@@ -66,7 +61,7 @@ LeasableLockOnNoSQLDatabase::LeasableLockOnNoSQLDatabase(
 
 ExecutionResult LeasableLockOnNoSQLDatabase::RefreshLease(
     bool is_read_only_lease_refresh) noexcept {
-  unique_lock<mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
 
   SCP_INFO(kLeasableLock, activity_id_,
            "LockId: '%s', Starting to refresh the lease.",
@@ -125,7 +120,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::RefreshLease(
               lock_row_key_.c_str(),
               lease_read.lease_expiration_timestamp_in_milliseconds,
               lease_read.lease_expiration_timestamp_in_milliseconds -
-                  duration_cast<milliseconds>(
+                  std::chrono::duration_cast<std::chrono::milliseconds>(
                       TimeProvider::GetWallTimestampInNanoseconds()));
     return result;
   }
@@ -145,7 +140,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::RefreshLease(
       new_lease.lease_expiration_timestamp_in_milliseconds -
           lease_read.lease_expiration_timestamp_in_milliseconds,
       new_lease.lease_expiration_timestamp_in_milliseconds -
-          duration_cast<milliseconds>(
+          std::chrono::duration_cast<std::chrono::milliseconds>(
               TimeProvider::GetWallTimestampInNanoseconds()));
 
   current_lease_ = new_lease;
@@ -153,7 +148,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::RefreshLease(
 }
 
 bool LeasableLockOnNoSQLDatabase::ShouldRefreshLease() const noexcept {
-  unique_lock<mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
   // Lease will be refreshed if
   // 1. Current Lease is expired
   // 2. Current Lease is not expired, the lease is owned by this caller and
@@ -186,7 +181,7 @@ LeasableLockOnNoSQLDatabase::GetConfiguredLeaseDurationInMilliseconds()
 
 std::optional<LeaseInfo> LeasableLockOnNoSQLDatabase::GetCurrentLeaseOwnerInfo()
     const noexcept {
-  unique_lock<mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
   // If current cached lease info says that the lease is expired, then do not
   // return stale information.
   if (current_lease_.has_value() && !current_lease_->IsExpired()) {
@@ -198,7 +193,7 @@ std::optional<LeaseInfo> LeasableLockOnNoSQLDatabase::GetCurrentLeaseOwnerInfo()
 bool LeasableLockOnNoSQLDatabase::IsCurrentLeaseOwner() const noexcept {
   // If cached lease info is expired, assume lease is lost (if the caller was
   // an owner of the lease).
-  unique_lock<mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
   return current_lease_.has_value() && !current_lease_->IsExpired() &&
          current_lease_->IsLeaseOwner(lease_acquirer_info_.lease_acquirer_id);
 }
@@ -215,13 +210,14 @@ bool LeasableLockOnNoSQLDatabase::LeaseInfoInternal::IsLeaseOwner(
 }
 
 void LeasableLockOnNoSQLDatabase::LeaseInfoInternal::
-    SetExpirationTimestampFromNow(milliseconds lease_duration_in_milliseconds) {
+    SetExpirationTimestampFromNow(
+        std::chrono::milliseconds lease_duration_in_milliseconds) {
   lease_expiration_timestamp_in_milliseconds =
       GetCurrentTimeInMilliseconds() + lease_duration_in_milliseconds;
 }
 
 bool LeasableLockOnNoSQLDatabase::LeaseInfoInternal::IsLeaseRenewalRequired(
-    milliseconds lease_duration_in_milliseconds,
+    std::chrono::milliseconds lease_duration_in_milliseconds,
     uint64_t lease_renewal_threshold_percent_time_left_in_lease) const {
   auto now_timestamp_in_milliseconds = GetCurrentTimeInMilliseconds();
   if (now_timestamp_in_milliseconds >
@@ -239,7 +235,7 @@ bool LeasableLockOnNoSQLDatabase::LeaseInfoInternal::IsLeaseRenewalRequired(
 }
 
 bool LeasableLockOnNoSQLDatabase::LeaseInfoInternal::IsHalfLeaseDurationPassed(
-    milliseconds lease_duration_in_milliseconds) const {
+    std::chrono::milliseconds lease_duration_in_milliseconds) const {
   auto now_timestamp_in_milliseconds = GetCurrentTimeInMilliseconds();
   if (now_timestamp_in_milliseconds >
       lease_expiration_timestamp_in_milliseconds) {
@@ -252,10 +248,10 @@ bool LeasableLockOnNoSQLDatabase::LeaseInfoInternal::IsHalfLeaseDurationPassed(
           (lease_duration_in_milliseconds.count() / 2.0));
 }
 
-milliseconds
+std::chrono::milliseconds
 LeasableLockOnNoSQLDatabase::LeaseInfoInternal::GetCurrentTimeInMilliseconds()
     const {
-  return duration_cast<milliseconds>(
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
       TimeProvider::GetWallTimestampInNanoseconds());
 }
 };  // namespace google::scp::core

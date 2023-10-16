@@ -50,10 +50,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_GCP_METRIC_CLIENT_FAILED_WITH_INVALID_TIMESTAMP;
 using google::scp::core::errors::SC_GCP_METRIC_CLIENT_INVALID_METRIC_VALUE;
-using std::chrono::duration_cast;
-using std::chrono::hours;
-using std::chrono::minutes;
-using std::chrono::seconds;
 
 /// Prefix of the metric type for all custom metrics.
 static constexpr char kCustomMetricTypePrefix[] = "custom.googleapis.com";
@@ -67,9 +63,11 @@ static constexpr char kInstanceZoneKey[] = "zone";
 static constexpr size_t kGcpMetricLabelsSizeLimit = 30;
 
 static constexpr int k25HoursSecondsCount =
-    duration_cast<seconds>(hours(25)).count();
+    std::chrono::duration_cast<std::chrono::seconds>(std::chrono::hours(25))
+        .count();
 static constexpr int k5MinsSecondsCount =
-    duration_cast<seconds>(minutes(5)).count();
+    std::chrono::duration_cast<std::chrono::seconds>(std::chrono::minutes(5))
+        .count();
 
 namespace google::scp::cpio::client_providers {
 

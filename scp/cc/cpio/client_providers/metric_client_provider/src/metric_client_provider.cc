@@ -50,9 +50,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_ALREADY_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
-using std::scoped_lock;
-using std::chrono::milliseconds;
-using std::chrono::nanoseconds;
 
 static constexpr char kMetricClientProvider[] = "MetricClientProvider";
 static constexpr size_t kShutdownWaitIntervalMilliseconds = 100;
@@ -111,7 +108,7 @@ ExecutionResult MetricClientProvider::Stop() noexcept {
 
   while (active_push_count_ > 0) {
     std::this_thread::sleep_for(
-        milliseconds(kShutdownWaitIntervalMilliseconds));
+        std::chrono::milliseconds(kShutdownWaitIntervalMilliseconds));
   }
 
   return SuccessExecutionResult();

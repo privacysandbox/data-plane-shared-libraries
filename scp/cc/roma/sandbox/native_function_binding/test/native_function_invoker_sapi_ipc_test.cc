@@ -35,7 +35,6 @@ using google::scp::roma::sandbox::constants::
     kFuctionBindingMetadataFunctionName;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
-using std::thread;
 
 namespace google::scp::roma::sandbox::native_function_binding::test {
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldReturnFailureOnInvokeIfBadFd) {
@@ -51,7 +50,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldMakeCallOnFd) {
 
   NativeFunctionInvokerSapiIpc invoker(fd_pair[0]);
 
-  thread to_handle_message([fd = fd_pair[1]]() {
+  std::thread to_handle_message([fd = fd_pair[1]]() {
     sandbox2::Comms comms(fd);
     proto::FunctionBindingIoProto io_proto;
     EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
@@ -73,7 +72,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldAppendFunctionNameToMetadata) {
 
   NativeFunctionInvokerSapiIpc invoker(fd_pair[0]);
 
-  thread to_handle_message([fd = fd_pair[1]]() {
+  std::thread to_handle_message([fd = fd_pair[1]]() {
     sandbox2::Comms comms(fd);
     proto::FunctionBindingIoProto io_proto;
     EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));

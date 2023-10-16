@@ -19,14 +19,11 @@
 
 #include "absl/log/check.h"
 
-using std::ifstream;
-using std::runtime_error;
-
 namespace google::scp::roma::wasm::testing {
 std::vector<char> WasmTestingUtils::LoadWasmFile(const std::string& file_path) {
   std::vector<char> file_contents;
 
-  ifstream input_file(file_path);
+  std::ifstream input_file(file_path);
   CHECK(input_file.good()) << "File: " + file_path + " does not exist.";
 
   input_file.seekg(0, std::ios::end);

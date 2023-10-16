@@ -28,15 +28,11 @@
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
-using std::thread;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::nanoseconds;
-using std::chrono::seconds;
 
 static constexpr char kLeaseRefresher[] = "LeaseRefresher";
-static constexpr milliseconds kLeaseRefreshInvocationIntervalInMilliseconds =
-    milliseconds(1000);
+static constexpr std::chrono::milliseconds
+    kLeaseRefreshInvocationIntervalInMilliseconds =
+        std::chrono::milliseconds(1000);
 
 namespace google::scp::core {
 LeaseRefresher::LeaseRefresher(
@@ -66,12 +62,12 @@ ExecutionResult LeaseRefresher::Run() noexcept {
   // Initiate start on thread and wait until it starts.
   std::atomic<bool> is_thread_started(false);
   lease_refresher_thread_ =
-      std::make_unique<thread>([this, &is_thread_started]() {
+      std::make_unique<std::thread>([this, &is_thread_started]() {
         is_thread_started = true;
         LeaseRefreshThreadFunction();
       });
   while (!is_thread_started) {
-    std::this_thread::sleep_for(milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   return SuccessExecutionResult();
 }
@@ -173,8 +169,9 @@ static LeaseTransitionType PerformLeaseTransitionAndNotifyLeaseEventSink(
 ExecutionResult LeaseRefresher::PerformLeaseRefresh() noexcept {
   std::unique_lock lock(lease_refresh_mutex_);
   auto execution_result = SuccessExecutionResult();
-  auto refresh_start_timestamp = duration_cast<milliseconds>(
-      TimeProvider::GetSteadyTimestampInNanoseconds());
+  auto refresh_start_timestamp =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          TimeProvider::GetSteadyTimestampInNanoseconds());
 
   //
   // 1) Refresh Lease
@@ -221,7 +218,8 @@ ExecutionResult LeaseRefresher::PerformLeaseRefresh() noexcept {
       last_lease_refresh_timestamp_.load().count(),
       ToString(leasable_lock_id_).c_str(), was_lease_owner, is_lease_owner,
       lease_refresh_mode, prev_lease_refresh_mode, lease_owner_info.has_value(),
-      ((duration_cast<milliseconds>(last_lease_refresh_timestamp_.load()) -
+      ((std::chrono::duration_cast<std::chrono::milliseconds>(
+            last_lease_refresh_timestamp_.load()) -
         refresh_start_timestamp))
           .count());
 
@@ -265,7 +263,8 @@ ExecutionResult LeaseRefresher::SetLeaseRefreshMode(
   return SuccessExecutionResult();
 }
 
-nanoseconds LeaseRefresher::GetLastLeaseRefreshTimestamp() const noexcept {
+std::chrono::nanoseconds LeaseRefresher::GetLastLeaseRefreshTimestamp()
+    const noexcept {
   auto timestamp = last_lease_refresh_timestamp_.load();
   SCP_INFO(kLeaseRefresher, object_activity_id_,
            "LockId: '%s' Returning '%llu'", ToString(leasable_lock_id_).c_str(),

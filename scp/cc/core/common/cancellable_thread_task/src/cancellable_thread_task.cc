@@ -16,10 +16,9 @@
 
 #include "cancellable_thread_task.h"
 
-using std::chrono::milliseconds;
-
-static constexpr milliseconds kStartupDelayWaitLoopIntervalInMilliseconds =
-    milliseconds(500);
+static constexpr std::chrono::milliseconds
+    kStartupDelayWaitLoopIntervalInMilliseconds =
+        std::chrono::milliseconds(500);
 
 namespace google::scp::core::common {
 

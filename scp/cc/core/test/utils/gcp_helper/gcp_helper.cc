@@ -30,7 +30,6 @@ using google::pubsub::v1::Topic;
 using grpc::ClientContext;
 using grpc::Status;
 using grpc::StubOptions;
-using std::runtime_error;
 
 namespace google::scp::core::test {
 std::unique_ptr<Publisher::StubInterface> CreatePublisherStub(
@@ -49,7 +48,7 @@ void CreateTopic(Publisher::StubInterface& stub, const std::string& project_id,
   Topic response;
   auto status = stub.CreateTopic(&client_context, topic, &response);
   if (!status.ok()) {
-    throw runtime_error("Failed to create topic:" + topic_name);
+    throw std::runtime_error("Failed to create topic:" + topic_name);
   } else {
     std::cout << "Succeeded to create topic:" << topic_name << std::endl;
   }

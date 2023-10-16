@@ -25,14 +25,11 @@
 
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::TimeProvider;
-using std::mutex;
-using std::thread;
-using std::unique_lock;
-using std::chrono::milliseconds;
 
 namespace google::scp::core {
-static constexpr milliseconds kNoOngoingLeaseAcquisitionTimestamp(0);
-static constexpr milliseconds kSleepDurationMs(10);
+static constexpr std::chrono::milliseconds kNoOngoingLeaseAcquisitionTimestamp(
+    0);
+static constexpr std::chrono::milliseconds kSleepDurationMs(10);
 
 static constexpr char kLeaseManager[] = "LeaseManager";
 
@@ -66,7 +63,7 @@ ExecutionResult LeaseManager::ManageLeaseOnLock(
   }
 
   // Lease duration must be atleast a couple of cycles of lease enforcer
-  // thread enforcement period.
+  // std::thread enforcement period.
   if (leasable_lock->GetConfiguredLeaseDurationInMilliseconds() <
       ((uint64_t)(2 * lease_enforcer_frequency_in_milliseconds_.count()))) {
     return FailureExecutionResult(
@@ -80,7 +77,7 @@ ExecutionResult LeaseManager::ManageLeaseOnLock(
 
 void LeaseManager::LeaseObtainerThreadFunction() {
   bool previously_lease_owner = false;
-  unique_lock<mutex> lock(lease_obtainer_thread_mutex_);
+  std::unique_lock<std::mutex> lock(lease_obtainer_thread_mutex_);
   while (true) {
     obtain_lease_condvar_.wait(
         lock, [&]() { return obtain_lease_ || !component_running_; });
@@ -124,7 +121,7 @@ void LeaseManager::LeaseObtainerThreadFunction() {
 }
 
 void LeaseManager::LeaseEnforcerThreadFunction() {
-  unique_lock<mutex> lock(lease_enforcer_thread_mutex_);
+  std::unique_lock<std::mutex> lock(lease_enforcer_thread_mutex_);
   while (true) {
     component_running_condvar_.wait_for(
         lock, lease_enforcer_frequency_in_milliseconds_,
@@ -149,13 +146,13 @@ void LeaseManager::LeaseEnforcerThreadFunction() {
 }
 
 void LeaseManager::NotifyLeaseObtainer(bool obtain_lease) {
-  unique_lock<mutex> lock(lease_obtainer_thread_mutex_);
+  std::unique_lock<std::mutex> lock(lease_obtainer_thread_mutex_);
   obtain_lease_ = obtain_lease;
   obtain_lease_condvar_.notify_all();
 }
 
 void LeaseManager::NotifyLeaseEnforcerToStopRunning() {
-  unique_lock<mutex> lock(lease_enforcer_thread_mutex_);
+  std::unique_lock<std::mutex> lock(lease_enforcer_thread_mutex_);
   component_running_ = false;
   component_running_condvar_.notify_all();
 }
@@ -195,20 +192,20 @@ ExecutionResult LeaseManager::Run() noexcept {
 
   component_running_ = true;
 
-  lease_obtainer_thread_ = std::make_unique<thread>([this]() {
+  lease_obtainer_thread_ = std::make_unique<std::thread>([this]() {
     lease_obtainer_thread_started_ = true;
     LeaseObtainerThreadFunction();
   });
   while (!lease_obtainer_thread_started_) {
-    std::this_thread::sleep_for(milliseconds(kSleepDurationMs));
+    std::this_thread::sleep_for(std::chrono::milliseconds(kSleepDurationMs));
   }
 
-  lease_enforcer_thread_ = std::make_unique<thread>([this]() {
+  lease_enforcer_thread_ = std::make_unique<std::thread>([this]() {
     lease_enforcer_thread_started_ = true;
     LeaseEnforcerThreadFunction();
   });
   while (!lease_enforcer_thread_started_) {
-    std::this_thread::sleep_for(milliseconds(kSleepDurationMs));
+    std::this_thread::sleep_for(std::chrono::milliseconds(kSleepDurationMs));
   }
 
   // TODO: Set high priority for threads.

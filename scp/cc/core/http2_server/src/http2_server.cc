@@ -59,7 +59,6 @@ using google::scp::cpio::MetricUtils;
 using nghttp2::asio_http2::server::configure_tls_context_easy;
 using nghttp2::asio_http2::server::request;
 using nghttp2::asio_http2::server::response;
-using std::thread;
 
 static constexpr char kHttp2Server[] = "Http2Server";
 

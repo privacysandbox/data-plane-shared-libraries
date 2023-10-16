@@ -27,9 +27,6 @@
 
 using google::scp::core::blob_storage_provider::mock::MockBlobStorageProvider;
 using google::scp::core::test::WaitUntil;
-using std::ifstream;
-using std::ios;
-using std::ofstream;
 
 namespace google::scp::core::test {
 TEST(MockBlobStorageProviderTest, GetBlob) {
@@ -42,7 +39,8 @@ TEST(MockBlobStorageProviderTest, GetBlob) {
   std::string file_content = "1234";
   std::vector<char> bytes(file_content.begin(), file_content.end());
 
-  ofstream output_stream("bucket_get/1.txt", ios::trunc | ios::binary);
+  std::ofstream output_stream("bucket_get/1.txt",
+                              std::ios::trunc | std::ios::binary);
   output_stream << file_content;
   output_stream.close();
 
@@ -88,8 +86,8 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
       [&](AsyncContext<PutBlobRequest, PutBlobResponse>& context) {
         EXPECT_SUCCESS(context.result);
 
-        ifstream input_stream("bucket_put/test_hash/1.txt",
-                              ios::ate | ios::binary);
+        std::ifstream input_stream("bucket_put/test_hash/1.txt",
+                                   std::ios::ate | std::ios::binary);
         auto content_length = input_stream.tellg();
         input_stream.seekg(0);
         EXPECT_EQ(bytes.size(), content_length);
@@ -124,7 +122,8 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
   std::string file_content = "1234";
   std::vector<char> bytes(file_content.begin(), file_content.end());
 
-  ofstream output_stream("bucket_delete/2.txt", ios::trunc | ios::binary);
+  std::ofstream output_stream("bucket_delete/2.txt",
+                              std::ios::trunc | std::ios::binary);
   output_stream << file_content;
   output_stream.close();
 
@@ -161,16 +160,20 @@ TEST(MockBlobStorageProviderTest, ListBlobs) {
   std::filesystem::create_directory("bucket_list/1/3");
   std::filesystem::create_directory("bucket_list/2");
 
-  ofstream output_stream1("bucket_list/2.txt", ios::trunc | ios::binary);
+  std::ofstream output_stream1("bucket_list/2.txt",
+                               std::ios::trunc | std::ios::binary);
   output_stream1.close();
 
-  ofstream output_stream2("bucket_list/1/2.txt", ios::trunc | ios::binary);
+  std::ofstream output_stream2("bucket_list/1/2.txt",
+                               std::ios::trunc | std::ios::binary);
   output_stream2.close();
 
-  ofstream output_stream3("bucket_list/1/3/4.txt", ios::trunc | ios::binary);
+  std::ofstream output_stream3("bucket_list/1/3/4.txt",
+                               std::ios::trunc | std::ios::binary);
   output_stream3.close();
 
-  ofstream output_stream4("bucket_list/2/5.txt", ios::trunc | ios::binary);
+  std::ofstream output_stream4("bucket_list/2/5.txt",
+                               std::ios::trunc | std::ios::binary);
   output_stream4.close();
 
   std::shared_ptr<BlobStorageClientInterface> blob_storage_client;

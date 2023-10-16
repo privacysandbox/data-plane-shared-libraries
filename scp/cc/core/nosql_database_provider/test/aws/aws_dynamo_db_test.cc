@@ -66,8 +66,6 @@ using google::scp::core::nosql_database_provider::aws::mock::MockAwsDynamoDB;
 using google::scp::core::nosql_database_provider::aws::mock::
     MockAwsDynamoDBClient;
 using google::scp::core::test::WaitUntil;
-using std::mt19937;
-using std::uniform_int_distribution;
 
 namespace google::scp::core::test {
 TEST(AwsDynamoDBTests, GetItemWithPartitionAndSortKeyWithoutAttributes) {
@@ -745,8 +743,8 @@ TEST(AwsDynamoDBTests, DISABLED_LeaseManagerWithLeasableLockOnDynamoDB) {
       std::make_shared<MockAwsDynamoDB>(dynamo_db_client, mock_async_executor);
 
   static std::random_device random_device_local;
-  static mt19937 random_generator(random_device_local());
-  uniform_int_distribution<uint64_t> distribution;
+  static std::mt19937 random_generator(random_device_local());
+  std::uniform_int_distribution<uint64_t> distribution;
 
   LeaseInfo lease_info;
   lease_info.lease_acquirer_id = std::to_string(distribution(random_generator));

@@ -42,12 +42,6 @@ using google::scp::core::TimeDuration;
 using google::scp::core::UpsertDatabaseItemRequest;
 using google::scp::core::UpsertDatabaseItemResponse;
 using google::scp::core::common::TimeProvider;
-using std::mutex;
-using std::shared_lock;
-using std::shared_mutex;
-using std::unique_lock;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 
 namespace google::scp::core {
 ExecutionResult LeasableLockOnNoSQLDatabase::ConstructAttributesFromLeaseInfo(
@@ -113,7 +107,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ObtainLeaseInfoFromAttributes(
       }
 
       lease.lease_expiration_timestamp_in_milliseconds =
-          milliseconds(timestamp_value);
+          std::chrono::milliseconds(timestamp_value);
     } else if (*attribute.attribute_name ==
                std::string_view(
                    kLockTableLeaseAcquisitionDisallowedAttributeName)) {
@@ -174,7 +168,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::WriteLeaseSynchronouslyToDatabase(
 
   // Wait for the query to be executed.
   while (!request_executed) {
-    std::this_thread::sleep_for(milliseconds(5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 
   if (!response_context.result.Successful()) {
@@ -211,7 +205,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ReadLeaseSynchronouslyFromDatabase(
 
   // Wait for the query to be executed.
   while (!request_executed) {
-    std::this_thread::sleep_for(milliseconds(5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 
   if (!response_context.result.Successful()) {

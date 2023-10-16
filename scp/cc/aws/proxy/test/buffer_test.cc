@@ -23,8 +23,6 @@
 #include <unordered_set>
 #include <vector>
 
-using std::thread;
-
 namespace google::scp::proxy {
 
 // This is exactly like iovec, but to make it more universal, we define it here.

@@ -33,7 +33,6 @@ using google::scp::core::test::PortMapToSelf;
 using google::scp::core::test::RemoveNetwork;
 using google::scp::core::test::StartContainer;
 using google::scp::core::test::StopContainer;
-using std::runtime_error;
 
 namespace google::scp::cpio::test {
 void TestSdkServerStarter::RunSdkServer(
@@ -41,7 +40,7 @@ void TestSdkServerStarter::RunSdkServer(
     const absl::flat_hash_map<std::string, std::string>& env_overrides) {
   std::cout << "Loading SDK image" << std::endl;
   if (LoadImage(image_location) != 0) {
-    throw runtime_error("Failed to load SDK image!");
+    throw std::runtime_error("Failed to load SDK image!");
   }
 
   std::cout << "Starting SDK server" << std::endl;
@@ -54,14 +53,14 @@ void TestSdkServerStarter::RunSdkServer(
   if (StartContainer(config_.network_name, config_.sdk_container_name,
                      image_name, PortMapToSelf(config_.sdk_port), "", env,
                      "-v /tmp:/tmp:rw")) {
-    throw runtime_error("Failed to start SDK container!");
+    throw std::runtime_error("Failed to start SDK container!");
   }
 }
 
 void TestSdkServerStarter::Setup() {
   // Creates network.
   if (CreateNetwork(config_.network_name) != 0) {
-    throw runtime_error("Failed to create network!");
+    throw std::runtime_error("Failed to create network!");
   }
 
   RunCloud();
@@ -72,17 +71,17 @@ void TestSdkServerStarter::Setup() {
 
 void TestSdkServerStarter::StopSdkServer() {
   if (StopContainer(config_.sdk_container_name) != 0) {
-    throw runtime_error("Failed to stop SDK container!");
+    throw std::runtime_error("Failed to stop SDK container!");
   }
 }
 
 void TestSdkServerStarter::Teardown() {
   if (StopContainer(config_.cloud_container_name) != 0) {
-    throw runtime_error("Failed to stop cloud container!");
+    throw std::runtime_error("Failed to stop cloud container!");
   }
   std::this_thread::sleep_for(std::chrono::seconds(5));
   if (RemoveNetwork(config_.network_name) != 0) {
-    throw runtime_error("Failed to remove network!");
+    throw std::runtime_error("Failed to remove network!");
   }
 }
 }  // namespace google::scp::cpio::test

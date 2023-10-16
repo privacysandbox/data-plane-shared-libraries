@@ -56,8 +56,6 @@ using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::thread;
-using std::chrono::milliseconds;
 
 static constexpr TimeDuration kHttp2ReadTimeoutInSeconds = 10;
 

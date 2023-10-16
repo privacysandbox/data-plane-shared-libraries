@@ -68,8 +68,6 @@ using google::scp::core::transaction_manager::proto::TransactionEngineLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
-using std::thread;
-using std::chrono::milliseconds;
 
 namespace google::scp::core::test {
 

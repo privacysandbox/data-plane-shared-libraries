@@ -25,11 +25,6 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::TimeProvider;
-using std::cout;
-using std::endl;
-using std::thread;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 
 namespace google::scp::core::test {
 class SingleThreadAsyncExecutorBenchmarkTest : public ::testing::Test {
@@ -68,7 +63,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
     }
   };
 
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
     threads.emplace_back(task_queueing_function, i);
   }
@@ -78,12 +73,14 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
   start = true;
   while (execution_count_ != (num_threads_scheduling_tasks_ *
                               task_schedule_count_per_thread_ * 5)) {
-    std::this_thread::sleep_for(milliseconds(5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
   auto end_ns = TimeProvider::GetSteadyTimestampInNanoseconds();
 
-  cout << (duration_cast<milliseconds>(end_ns - start_ns)).count()
-       << " milliseconds elapsed" << endl;
+  std::cout << (std::chrono::duration_cast<std::chrono::milliseconds>(end_ns -
+                                                                      start_ns))
+                   .count()
+            << " milliseconds elapsed" << std::endl;
 
   EXPECT_SUCCESS(async_executor_->Stop());
   EXPECT_EQ(execution_count_.load(), 5 * num_threads_scheduling_tasks_ *
@@ -108,7 +105,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTaskMixedPriority) {
     }
   };
 
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
     threads.emplace_back(task_queueing_function, i);
   }
@@ -118,12 +115,14 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTaskMixedPriority) {
   start = true;
   while (execution_count_ != (num_threads_scheduling_tasks_ *
                               task_schedule_count_per_thread_ * 5)) {
-    std::this_thread::sleep_for(milliseconds(5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
   auto end_ns = TimeProvider::GetSteadyTimestampInNanoseconds();
 
-  cout << (duration_cast<milliseconds>(end_ns - start_ns)).count()
-       << " milliseconds elapsed" << endl;
+  std::cout << (std::chrono::duration_cast<std::chrono::milliseconds>(end_ns -
+                                                                      start_ns))
+                   .count()
+            << " milliseconds elapsed" << std::endl;
 
   EXPECT_SUCCESS(async_executor_->Stop());
   EXPECT_EQ(execution_count_.load(), 5 * num_threads_scheduling_tasks_ *

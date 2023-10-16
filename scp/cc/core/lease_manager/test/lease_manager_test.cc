@@ -29,11 +29,6 @@
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using std::mutex;
-using std::thread;
-using std::unique_lock;
-using std::chrono::milliseconds;
-
 using google::scp::core::LeaseInfo;
 using google::scp::core::lease_manager::mock::MockLeasableLock;
 using google::scp::core::lease_manager::mock::MockLeaseManagerWithOverrides;
@@ -127,7 +122,7 @@ TEST(LeaseManagerTest, AcquiresAndRenewsLease) {
 
   EXPECT_SUCCESS(lease_manager.Run());
   while (callback_counter <= 1) {
-    std::this_thread::sleep_for(milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   EXPECT_SUCCESS(lease_manager.Stop());
   EXPECT_FALSE(process_terminated);
@@ -187,7 +182,7 @@ TEST(LeaseManagerTest, LosesAndReacquiresLease) {
 
   EXPECT_SUCCESS(lease_manager.Run());
   while (callback_counter <= 4) {
-    std::this_thread::sleep_for(milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   EXPECT_SUCCESS(lease_manager.Stop());
   EXPECT_FALSE(process_terminated);
@@ -213,14 +208,14 @@ TEST(LeaseManagerTest,
                 leasable_lock,
                 [&](LeaseTransitionType lease_transition,
                     std::optional<LeaseInfo> owner) {
-                  std::this_thread::sleep_for(milliseconds(
+                  std::this_thread::sleep_for(std::chrono::milliseconds(
                       lease_obtain_max_time_threshold_in_milliseconds * 2));
                 }),
             SuccessExecutionResult());
 
   EXPECT_SUCCESS(lease_manager.Run());
   while (!process_terminated) {
-    std::this_thread::sleep_for(milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   EXPECT_SUCCESS(lease_manager.Stop());
   EXPECT_TRUE(process_terminated);
@@ -241,8 +236,8 @@ TEST(LeaseManagerTest, ProcessTerminatesIfLeaseAcquireOnLockTakesLong) {
   leasable_lock->SetLeaseDurationInMilliseconds(500);
   leasable_lock->AllowLeaseAcquire();
   leasable_lock->SetOnBeforeAcquireLease([&]() {
-    std::this_thread::sleep_for(
-        milliseconds(lease_obtain_max_time_threshold_in_milliseconds * 2));
+    std::this_thread::sleep_for(std::chrono::milliseconds(
+        lease_obtain_max_time_threshold_in_milliseconds * 2));
   });
   EXPECT_SUCCESS(lease_manager.Init());
   EXPECT_EQ(lease_manager.ManageLeaseOnLock(
@@ -252,7 +247,7 @@ TEST(LeaseManagerTest, ProcessTerminatesIfLeaseAcquireOnLockTakesLong) {
 
   EXPECT_SUCCESS(lease_manager.Run());
   while (!process_terminated) {
-    std::this_thread::sleep_for(milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   EXPECT_SUCCESS(lease_manager.Stop());
   EXPECT_TRUE(process_terminated);

@@ -35,14 +35,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::async_executor::mock::MockAsyncExecutorWithInternals;
-using std::hash;
-using std::mutex;
-using std::thread;
-using std::unique_lock;
-using std::chrono::duration_cast;
-using std::chrono::high_resolution_clock;
-using std::chrono::nanoseconds;
-using std::chrono::seconds;
 
 namespace google::scp::core::test {
 
@@ -136,11 +128,12 @@ TEST(AsyncExecutorTests, ExceedingQueueCapSchedule) {
 
   {
     // Blocking queue with enough work
-    executor.Schedule([&]() { std::this_thread::sleep_for(seconds(5)); },
-                      AsyncPriority::Normal);
+    executor.Schedule(
+        [&]() { std::this_thread::sleep_for(std::chrono::seconds(5)); },
+        AsyncPriority::Normal);
 
     // try to push more than the queue can handle
-    auto start_time = high_resolution_clock::now();
+    auto start_time = std::chrono::high_resolution_clock::now();
     while (true) {
       auto result = executor.Schedule([&]() {}, AsyncPriority::Normal);
 
@@ -149,9 +142,9 @@ TEST(AsyncExecutorTests, ExceedingQueueCapSchedule) {
         break;
       }
 
-      auto end_time = high_resolution_clock::now();
+      auto end_time = std::chrono::high_resolution_clock::now();
       auto diff = end_time - start_time;
-      if (diff > seconds(5)) {
+      if (diff > std::chrono::seconds(5)) {
         FAIL() << "Queue cap schedule was never exceeded.";
       }
     }
@@ -159,7 +152,9 @@ TEST(AsyncExecutorTests, ExceedingQueueCapSchedule) {
 
   {
     AsyncTask task;
-    auto two_seconds = duration_cast<nanoseconds>(seconds(2)).count();
+    auto two_seconds = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                           std::chrono::seconds(2))
+                           .count();
 
     auto schedule_for_timestamp = task.GetExecutionTimestamp() + two_seconds;
     executor.ScheduleFor([&]() {}, schedule_for_timestamp);
@@ -510,7 +505,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     }
 
     // A different thread picks round robin as well.
-    thread thread([&]() {
+    std::thread thread([&]() {
       for (int i = 0; i < num_executors; i++) {
         auto task_executor_or = PickTaskExecutor(
             AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
@@ -565,7 +560,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // Run picking executors
     absl::flat_hash_map<std::shared_ptr<SingleThreadAsyncExecutor>, int>
         task_executor_pool_picked_counts;
-    mutex mutex;
+    std::mutex mutex;
 
     auto picking_function = [&](int pick_times) {
       for (int i = 0; i < pick_times; i++) {
@@ -575,17 +570,17 @@ class AsyncExecutorAccessor : public AsyncExecutor {
             TaskLoadBalancingScheme::RoundRobinPerThread);
         EXPECT_SUCCESS(task_executor_or);
         {
-          unique_lock lock(mutex);
+          std::unique_lock lock(mutex);
           task_executor_pool_picked_counts[*task_executor_or] += 1;
         }
       }
     };
 
     // 40 tasks for the 40 executors.
-    thread thread1(picking_function, 15);
-    thread thread2(picking_function, 4);
-    thread thread3(picking_function, 10);
-    thread thread4(picking_function, 11);
+    std::thread thread1(picking_function, 15);
+    std::thread thread2(picking_function, 4);
+    std::thread thread3(picking_function, 10);
+    std::thread thread4(picking_function, 11);
 
     thread1.join();
     thread2.join();
@@ -617,7 +612,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // Run picking executors
     absl::flat_hash_map<std::shared_ptr<SingleThreadAsyncExecutor>, int>
         task_executor_pool_picked_counts;
-    mutex mutex;
+    std::mutex mutex;
 
     auto picking_function = [&](int pick_times) {
       for (int i = 0; i < pick_times; i++) {
@@ -627,17 +622,17 @@ class AsyncExecutorAccessor : public AsyncExecutor {
             TaskLoadBalancingScheme::RoundRobinGlobal);
         EXPECT_SUCCESS(task_executor_or);
         {
-          unique_lock lock(mutex);
+          std::unique_lock lock(mutex);
           task_executor_pool_picked_counts[*task_executor_or] += 1;
         }
       }
     };
 
     // 40 tasks for the 40 executors.
-    thread thread1(picking_function, 15);
-    thread thread2(picking_function, 4);
-    thread thread3(picking_function, 10);
-    thread thread4(picking_function, 11);
+    std::thread thread1(picking_function, 15);
+    std::thread thread2(picking_function, 4);
+    std::thread thread3(picking_function, 10);
+    std::thread thread4(picking_function, 11);
 
     thread1.join();
     thread2.join();

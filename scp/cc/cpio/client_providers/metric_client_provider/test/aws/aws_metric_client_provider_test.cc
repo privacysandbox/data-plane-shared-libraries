@@ -63,9 +63,6 @@ using google::scp::cpio::client_providers::AwsMetricClientUtils;
 using google::scp::cpio::client_providers::mock::
     MockAwsMetricClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockCloudWatchClient;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::system_clock;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -105,7 +102,8 @@ class AwsMetricClientProviderTest : public ::testing::Test {
       PutMetricsRequest& record_metric_request,
       const std::string& value = kValue, int metrics_num = 1,
       const int64_t& timestamp_in_ms =
-          duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::system_clock::now().time_since_epoch())
               .count()) {
     record_metric_request.set_metric_namespace(kNamespace);
     for (auto i = 0; i < metrics_num; i++) {

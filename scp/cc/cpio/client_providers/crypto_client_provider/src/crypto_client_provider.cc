@@ -95,8 +95,6 @@ using google::scp::core::errors::SC_CRYPTO_CLIENT_PROVIDER_SECRET_EXPORT_FAILED;
 using google::scp::core::errors::
     SC_CRYPTO_CLIENT_PROVIDER_SPLIT_CIPHERTEXT_FAILED;
 using google::scp::core::utils::Base64Decode;
-using std::mt19937;
-using std::uniform_int_distribution;
 
 namespace {
 /// Filename for logging errors
@@ -200,8 +198,8 @@ size_t GetSecretLength(const SecretLength& secret_length) {
  */
 uint64_t GetRandomNumber(int size) {
   static std::random_device random_device_local;
-  static mt19937 random_generator(random_device_local());
-  uniform_int_distribution<uint64_t> distribution;
+  static std::mt19937 random_generator(random_device_local());
+  std::uniform_int_distribution<uint64_t> distribution;
 
   return distribution(random_generator) % size;
 }

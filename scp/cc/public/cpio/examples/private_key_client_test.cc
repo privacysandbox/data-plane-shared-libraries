@@ -39,7 +39,6 @@ using google::scp::cpio::PrivateKeyClientFactory;
 using google::scp::cpio::PrivateKeyClientInterface;
 using google::scp::cpio::PrivateKeyClientOptions;
 using google::scp::cpio::PrivateKeyVendingEndpoint;
-using std::chrono::milliseconds;
 
 constexpr char kPrivateKeyEndpoint1[] = "https://test.privatekey1.com";
 constexpr char kPrivateKeyEndpoint2[] = "https://test.privatekey2.com";

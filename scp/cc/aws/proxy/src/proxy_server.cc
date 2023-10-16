@@ -38,10 +38,6 @@
 #include "proxy_bridge.h"
 #include "socket_types.h"
 
-using std::shared_lock;
-using std::thread;
-using std::unique_lock;
-
 using namespace boost::asio;  // NOLINT
 
 namespace google::scp::proxy {
@@ -111,7 +107,7 @@ void ProxyServer::Run(size_t concurrency) {
     concurrency = std::thread::hardware_concurrency();
   }
   StartAsyncAccept();
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   threads.reserve(concurrency);
   for (auto i = 0u; i <= concurrency; ++i) {
     threads.emplace_back([this]() { io_context_.run(); });

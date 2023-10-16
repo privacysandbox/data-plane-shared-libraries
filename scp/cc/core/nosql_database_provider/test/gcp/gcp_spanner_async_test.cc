@@ -77,7 +77,6 @@ using google::scp::core::logger::ConsoleLogProvider;
 using google::scp::core::logger::Logger;
 using google::scp::core::nosql_database_provider::GcpSpanner;
 using google::scp::core::test::TestLoggingUtils;
-using std::thread;
 using testing::_;
 using testing::Eq;
 using testing::ExplainMatchResult;
@@ -338,10 +337,10 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetTest) {
   for (auto& b : finished) b = false;
 
   std::atomic_bool start{false};
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   threads.reserve(GetThreadCount());
   for (int i = 0; i < GetThreadCount(); i++) {
-    threads.push_back(thread([this, &start, i = i, &finished] {
+    threads.push_back(std::thread([this, &start, i = i, &finished] {
       WaitUntil([&start]() -> bool { return start; });
 
       std::string partition_key_val = std::to_string((i % 3) + 1);
@@ -549,10 +548,10 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadUpsertTest) {
   std::vector<std::atomic_bool> finished(GetThreadCount());
   for (auto& b : finished) b = false;
 
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   threads.reserve(GetThreadCount());
   for (int i = 0; i < GetThreadCount(); i++) {
-    threads.push_back(thread([this, &start, i = i, &finished]() {
+    threads.push_back(std::thread([this, &start, i = i, &finished]() {
       WaitUntil([&start]() -> bool { return start; });
 
       std::string partition_key_str = absl::StrCat(i + 1);
@@ -627,10 +626,10 @@ TEST_P(GcpSpannerAsyncTests, MultiThreadGetAndConditionalUpsertTest) {
   std::atomic_bool start(false);
   std::atomic_int total_rpc_count(0);
 
-  std::vector<thread> threads;
+  std::vector<std::thread> threads;
   threads.reserve(GetThreadCount());
   for (int i = 0; i < GetThreadCount(); i++) {
-    threads.push_back(thread([this, &start, &total_rpc_count]() {
+    threads.push_back(std::thread([this, &start, &total_rpc_count]() {
       WaitUntil([&start]() -> bool { return start; });
 
       std::atomic_bool finished(false);
