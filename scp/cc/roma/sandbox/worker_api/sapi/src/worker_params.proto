@@ -13,10 +13,9 @@
 // limitations under the License.
 
 syntax = "proto3";
-
-import "google/protobuf/duration.proto";
 package worker_api;
 
+import "google/protobuf/duration.proto";
 
 message WorkerParamsProto {
   reserved 6;
