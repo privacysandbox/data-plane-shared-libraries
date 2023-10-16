@@ -184,8 +184,8 @@ struct Definition : DefinitionName,
   template <Privacy non_impact = privacy, Instrument counter = instrument>
   constexpr explicit Definition(
       absl::string_view name, absl::string_view description,
-      std::enable_if_t<non_impact == Privacy::kNonImpacting&& counter ==
-                       Instrument::kUpDownCounter>* = nullptr)
+      std::enable_if_t<non_impact == Privacy::kNonImpacting &&
+                       counter == Instrument::kUpDownCounter>* = nullptr)
       : DefinitionName(name, description) {}
 
   template <Instrument counter = instrument>
@@ -204,9 +204,9 @@ struct Definition : DefinitionName,
       absl::string_view name, absl::string_view description,
       absl::string_view partition_type,
       absl::Span<const absl::string_view> public_partitions,
-      std::enable_if_t<non_impact ==
-                       Privacy::kNonImpacting&& partitioned_counter ==
-                       Instrument::kPartitionedCounter>* = nullptr)
+      std::enable_if_t<non_impact == Privacy::kNonImpacting &&
+                       partitioned_counter ==
+                           Instrument::kPartitionedCounter>* = nullptr)
       : DefinitionName(name, description),
         internal::Partitioned(partition_type, INT_MAX, public_partitions) {
     public_partitions_copy_ = public_partitions_;
@@ -232,8 +232,8 @@ struct Definition : DefinitionName,
   constexpr explicit Definition(
       absl::string_view name, absl::string_view description,
       absl::Span<const double> histogram_boundaries,
-      std::enable_if_t<non_impact == Privacy::kNonImpacting&& histogram ==
-                       Instrument::kHistogram>* = nullptr)
+      std::enable_if_t<non_impact == Privacy::kNonImpacting &&
+                       histogram == Instrument::kHistogram>* = nullptr)
       : DefinitionName(name, description),
         internal::Histogram(histogram_boundaries) {
     histogram_boundaries_copy_ = histogram_boundaries_;
@@ -244,8 +244,8 @@ struct Definition : DefinitionName,
       absl::string_view name, absl::string_view description,
       absl::Span<const double> histogram_boundaries, T upper_bound,
       T lower_bound,
-      std::enable_if_t<impact == Privacy::kImpacting&& histogram ==
-                       Instrument::kHistogram>* = nullptr)
+      std::enable_if_t<impact == Privacy::kImpacting &&
+                       histogram == Instrument::kHistogram>* = nullptr)
       : DefinitionName(name, description),
         internal::Histogram(histogram_boundaries),
         internal::DifferentialPrivacy<T>(upper_bound, lower_bound) {
@@ -256,8 +256,8 @@ struct Definition : DefinitionName,
   template <Privacy non_impact = privacy, Instrument gauge = instrument>
   constexpr explicit Definition(
       absl::string_view name, absl::string_view description,
-      std::enable_if_t<non_impact == Privacy::kNonImpacting&& gauge ==
-                       Instrument::kGauge>* = nullptr)
+      std::enable_if_t<non_impact == Privacy::kNonImpacting &&
+                       gauge == Instrument::kGauge>* = nullptr)
       : DefinitionName(name, description) {}
 };
 
