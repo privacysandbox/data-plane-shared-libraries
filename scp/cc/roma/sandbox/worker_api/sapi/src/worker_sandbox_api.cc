@@ -244,9 +244,10 @@ ExecutionResult WorkerSandboxApi::Stop() noexcept {
 
 ExecutionResult WorkerSandboxApi::InternalRunCode(
     ::worker_api::WorkerParamsProto& params) noexcept {
-  int serialized_size = params.ByteSizeLong();
+  const int serialized_size = params.ByteSizeLong();
 
   std::unique_ptr<sapi::v::LenVal> sapi_len_val;
+  std::string len_val_data;
   int input_serialized_size(serialized_size);
   sapi::v::IntBase<size_t> output_serialized_size_ptr;
 
@@ -261,8 +262,7 @@ ExecutionResult WorkerSandboxApi::InternalRunCode(
       return FailureExecutionResult(
           SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_DATA);
     }
-
-    sapi_len_val = std::make_unique<sapi::v::LenVal>("", 0);
+    sapi_len_val = std::make_unique<sapi::v::LenVal>(nullptr, 0);
   } else {
     ROMA_VLOG(1) << "Request serialized size " << serialized_size
                  << "bytes is larger than the Buffer capacity "
@@ -271,13 +271,14 @@ ExecutionResult WorkerSandboxApi::InternalRunCode(
 
     // Set input_serialized_size to 0 to indicate the data shared by LenVal.
     input_serialized_size = 0;
-    std::vector<uint8_t> serialized_data(serialized_size);
-    if (!params.SerializeToArray(serialized_data.data(), serialized_size)) {
+    len_val_data.resize(serialized_size);
+    if (!params.SerializeToArray(len_val_data.data(), serialized_size)) {
       LOG(ERROR) << "Failed to serialize run_code request protobuf into array.";
       return FailureExecutionResult(
           SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_DATA);
     }
-    sapi_len_val = std::make_unique<sapi::v::LenVal>(serialized_data);
+    sapi_len_val = std::make_unique<sapi::v::LenVal>(len_val_data.data(),
+                                                     len_val_data.size());
   }
 
   auto status_or = worker_wrapper_api_->RunCodeFromSerializedData(
