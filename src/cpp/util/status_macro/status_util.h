@@ -18,6 +18,7 @@
 #define FLEDGE_SERVICES_COMMON_UTIL_STATUS_UTIL_H_
 
 #include "absl/status/status.h"
+#include "google/rpc/status.pb.h"
 #include "include/grpcpp/grpcpp.h"
 
 namespace privacy_sandbox::server_common {
@@ -27,6 +28,13 @@ grpc::Status FromAbslStatus(const absl::Status& status);
 
 // Converts from grpc::Status to absl::Status.
 absl::Status ToAbslStatus(const grpc::Status& status);
+
+inline google::rpc::Status SaveStatusAsRpcStatus(const absl::Status& status) {
+  google::rpc::Status ret;
+  ret.set_code(static_cast<int>(status.code()));
+  ret.set_message(status.message());
+  return ret;
+}
 
 }  // namespace privacy_sandbox::server_common
 

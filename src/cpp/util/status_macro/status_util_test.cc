@@ -74,5 +74,16 @@ TEST(StatusUtilTest, AbslToGrpc) {
   }
 }
 
+TEST(StatusUtilTest, SaveStatusAsRpcStatus) {
+  for (const auto& mapping : status_mappings) {
+    auto status = absl::Status(mapping.second, "error message");
+    auto expected_message =
+        status.code() == absl::StatusCode::kOk ? "" : status.message();
+    auto converted = SaveStatusAsRpcStatus(status);
+    EXPECT_THAT(converted.code(), mapping.first);
+    EXPECT_THAT(converted.message(), expected_message);
+  }
+}
+
 }  // namespace
 }  // namespace privacy_sandbox::server_common
