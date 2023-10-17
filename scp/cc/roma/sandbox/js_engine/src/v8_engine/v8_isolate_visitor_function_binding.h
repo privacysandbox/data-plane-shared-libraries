@@ -41,9 +41,9 @@ class V8IsolateVisitorFunctionBinding : public V8IsolateVisitor {
       const std::shared_ptr<native_function_binding::NativeFunctionInvoker>&
           function_invoker)
       : function_names_(function_names), function_invoker_(function_invoker) {
-    for (auto function_name : function_names_) {
-      auto pair = std::pair(function_name, this);
-      binding_references_.push_back(std::make_shared<BindingPair>(pair));
+    for (const auto& function_name : function_names_) {
+      binding_references_.emplace_back(
+          std::make_shared<BindingPair>(function_name, this));
     }
   }
 

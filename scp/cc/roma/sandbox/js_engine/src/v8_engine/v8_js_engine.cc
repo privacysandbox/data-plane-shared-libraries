@@ -499,7 +499,8 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   }
 
   Local<Value> handler;
-  auto result = ExecutionUtils::GetJsHandler(function_name, handler, err_msg);
+  const auto result =
+      ExecutionUtils::GetJsHandler(function_name, handler, err_msg);
   if (!result.Successful()) {
     LOG(ERROR) << "GetJsHandler failed with "
                << GetErrorMessage(result.status_code);
@@ -737,7 +738,6 @@ V8JsEngine::CompileAndRunJsWithWasm(
   }
 
   auto v8_isolate = current_compilation_context->v8_isolate;
-
   if (!v8_isolate) {
     return FailureExecutionResult(SC_ROMA_V8_ENGINE_ISOLATE_NOT_INITIALIZED);
   }
@@ -749,10 +749,8 @@ V8JsEngine::CompileAndRunJsWithWasm(
   }
 
   StartWatchdogTimer(v8_isolate, metadata);
-
-  auto execution_result =
+  const auto execution_result =
       ExecuteJs(current_compilation_context, function_name, input, metadata);
-
   // End execution_watchdog_ in case it terminate the standby isolate.
   StopWatchdogTimer();
 

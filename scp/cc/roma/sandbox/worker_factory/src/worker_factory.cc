@@ -59,7 +59,8 @@ ExecutionResultOr<std::shared_ptr<Worker>> WorkerFactory::Create(
     std::vector<std::shared_ptr<V8IsolateVisitor>> isolate_visitors = {
         std::make_shared<V8IsolateVisitorFunctionBinding>(
             params.v8_worker_engine_params.native_js_function_names,
-            native_function_invoker)};
+            native_function_invoker),
+    };
 
     auto v8_engine = std::make_shared<V8JsEngine>(
         isolate_visitors, params.v8_worker_engine_params.resource_constraints);

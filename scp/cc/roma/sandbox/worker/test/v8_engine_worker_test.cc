@@ -49,7 +49,8 @@ static const std::vector<uint8_t> kWasmBin = {
     0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
     0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07,
     0x07, 0x01, 0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a, 0x09, 0x01,
-    0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b};
+    0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b,
+};
 
 class V8EngineWorkerTest : public ::testing::Test {
  public:
@@ -64,22 +65,22 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
   Worker worker(engine, false /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
-  std::string js_code = R"(function hello_js() { return "Hello World!"; })";
+  constexpr std::string_view js_code =
+      R"(function hello_js() { return "Hello World!"; })";
   std::vector<absl::string_view> input;
-  absl::flat_hash_map<std::string, std::string> metadata = {
+  const absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
-      {kRequestAction, kRequestActionExecute}};
+      {kRequestAction, kRequestActionExecute},
+  };
 
-  absl::Span<const uint8_t> empty_wasm;
-
-  auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-
+  constexpr absl::Span<const uint8_t> empty_wasm;
+  const auto response_or =
+      worker.RunCode(std::string(js_code), input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
 
-  auto response_string = *response_or->response;
-
+  const auto response_string = *response_or->response;
   EXPECT_EQ(response_string, R"("Hello World!")");
 }
 
@@ -94,10 +95,10 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
   absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
-      {kRequestAction, kRequestActionLoad}};
+      {kRequestAction, kRequestActionLoad},
+  };
 
-  absl::Span<const uint8_t> empty_wasm;
-
+  constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
   auto response_string = *response_or->response;
@@ -105,9 +106,11 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   // Load v2
   js_code = R"(function hello_js() { return "Hello Version 2!"; })";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "2"},
-              {kRequestAction, kRequestActionLoad}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "2"},
+      {kRequestAction, kRequestActionLoad},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -116,10 +119,12 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   // Execute v1
   js_code = "";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "1"},
-              {kRequestAction, kRequestActionExecute},
-              {kHandlerName, "hello_js"}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "1"},
+      {kRequestAction, kRequestActionExecute},
+      {kHandlerName, "hello_js"},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -128,10 +133,12 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   // Execute v2
   js_code = "";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "2"},
-              {kRequestAction, kRequestActionExecute},
-              {kHandlerName, "hello_js"}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "2"},
+      {kRequestAction, kRequestActionExecute},
+      {kHandlerName, "hello_js"},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -162,9 +169,10 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
   absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
-      {kRequestAction, kRequestActionLoad}};
+      {kRequestAction, kRequestActionLoad},
+  };
 
-  absl::Span<const uint8_t> empty_wasm;
+  constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
   auto response_string = *response_or->response;
@@ -184,9 +192,11 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
             return instance.exports.add(a, b);
           }
         )""";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "2"},
-              {kRequestAction, kRequestActionLoad}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "2"},
+      {kRequestAction, kRequestActionLoad},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -197,10 +207,12 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
   {
     js_code = "";
     input = {"1", "2"};
-    metadata = {{kRequestType, kRequestTypeJavascript},
-                {kCodeVersion, "1"},
-                {kRequestAction, kRequestActionExecute},
-                {kHandlerName, "hello_js"}};
+    metadata = {
+        {kRequestType, kRequestTypeJavascript},
+        {kCodeVersion, "1"},
+        {kRequestAction, kRequestActionExecute},
+        {kHandlerName, "hello_js"},
+    };
 
     response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
     EXPECT_SUCCESS(response_or.result());
@@ -212,10 +224,12 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
   {
     js_code = "";
     input = {"5", "7"};
-    metadata = {{kRequestType, kRequestTypeJavascript},
-                {kCodeVersion, "2"},
-                {kRequestAction, kRequestActionExecute},
-                {kHandlerName, "hello_js"}};
+    metadata = {
+        {kRequestType, kRequestTypeJavascript},
+        {kCodeVersion, "2"},
+        {kRequestAction, kRequestActionExecute},
+        {kHandlerName, "hello_js"},
+    };
 
     response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
     EXPECT_SUCCESS(response_or.result());
@@ -238,9 +252,10 @@ TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
       {kRequestType, kRequestTypeJavascript},
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
-      {kRequestAction, kRequestActionLoad}};
+      {kRequestAction, kRequestActionLoad},
+  };
 
-  absl::Span<const uint8_t> empty_wasm;
+  constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
 
@@ -292,9 +307,9 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   absl::flat_hash_map<std::string, std::string> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
-      {kRequestAction, kRequestActionLoad}};
-  absl::Span<const uint8_t> empty_wasm;
-
+      {kRequestAction, kRequestActionLoad},
+  };
+  constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
   auto response_string = *response_or->response;
@@ -302,9 +317,11 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   // Load v2
   js_code = R"(function hello_js() { return "Hello Version 2!"; })";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "2"},
-              {kRequestAction, kRequestActionLoad}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "2"},
+      {kRequestAction, kRequestActionLoad},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -313,10 +330,12 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   // Execute v1
   js_code = "";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "1"},
-              {kRequestAction, kRequestActionExecute},
-              {kHandlerName, "hello_js"}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "1"},
+      {kRequestAction, kRequestActionExecute},
+      {kHandlerName, "hello_js"},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -325,10 +344,12 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   // Execute v2
   js_code = "";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "2"},
-              {kRequestAction, kRequestActionExecute},
-              {kHandlerName, "hello_js"}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "2"},
+      {kRequestAction, kRequestActionExecute},
+      {kHandlerName, "hello_js"},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -337,9 +358,11 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   // Load v2 updated (overwrite the version of the code)
   js_code = R"(function hello_js() { return "Hello Version 2 but Updated!"; })";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "2"},
-              {kRequestAction, kRequestActionLoad}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "2"},
+      {kRequestAction, kRequestActionLoad},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -348,10 +371,12 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   // Execute v2 should result in updated version
   js_code = "";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "2"},
-              {kRequestAction, kRequestActionExecute},
-              {kHandlerName, "hello_js"}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "2"},
+      {kRequestAction, kRequestActionExecute},
+      {kHandlerName, "hello_js"},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -360,10 +385,12 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   // But Executing v1 should yield not change
   js_code = "";
-  metadata = {{kRequestType, kRequestTypeJavascript},
-              {kCodeVersion, "1"},
-              {kRequestAction, kRequestActionExecute},
-              {kHandlerName, "hello_js"}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascript},
+      {kCodeVersion, "1"},
+      {kRequestAction, kRequestActionExecute},
+      {kHandlerName, "hello_js"},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -398,7 +425,8 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionExecute},
-      {kWasmCodeArrayName, "addModule"}};
+      {kWasmCodeArrayName, "addModule"},
+  };
 
   auto wasm = absl::Span<const uint8_t>(kWasmBin);
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
@@ -428,7 +456,8 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
       {kRequestType, kRequestTypeJavascriptWithWasm},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad},
-      {kWasmCodeArrayName, "addModule"}};
+      {kWasmCodeArrayName, "addModule"},
+  };
 
   auto wasm = absl::Span<const uint8_t>(kWasmBin);
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
@@ -455,10 +484,12 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
       "./scp/cc/roma/testing/cpp_wasi_dependency_example/wasi_dependency.wasm");
   std::vector<uint8_t> wasm_code(wasm_str.begin(), wasm_str.end());
   wasm = absl::Span<const uint8_t>(wasm_code);
-  metadata = {{kRequestType, kRequestTypeJavascriptWithWasm},
-              {kCodeVersion, "2"},
-              {kRequestAction, kRequestActionLoad},
-              {kWasmCodeArrayName, "testModule"}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascriptWithWasm},
+      {kCodeVersion, "2"},
+      {kRequestAction, kRequestActionLoad},
+      {kWasmCodeArrayName, "testModule"},
+  };
 
   response_or = worker.RunCode(js_code, input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
@@ -468,10 +499,12 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   // Execute v1
   js_code = "";
 
-  metadata = {{kRequestType, kRequestTypeJavascriptWithWasm},
-              {kCodeVersion, "1"},
-              {kRequestAction, kRequestActionExecute},
-              {kHandlerName, "hello_js"}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascriptWithWasm},
+      {kCodeVersion, "1"},
+      {kRequestAction, kRequestActionExecute},
+      {kHandlerName, "hello_js"},
+  };
 
   input = {"1", "2"};
   response_or = worker.RunCode(js_code, input, metadata, wasm);
@@ -481,10 +514,12 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
 
   // Execute v2
   js_code = "";
-  metadata = {{kRequestType, kRequestTypeJavascriptWithWasm},
-              {kCodeVersion, "2"},
-              {kRequestAction, kRequestActionExecute},
-              {kHandlerName, "test_wasi"}};
+  metadata = {
+      {kRequestType, kRequestTypeJavascriptWithWasm},
+      {kCodeVersion, "2"},
+      {kRequestAction, kRequestActionExecute},
+      {kHandlerName, "test_wasi"},
+  };
 
   input = {"1"};
   response_or = worker.RunCode(js_code, input, metadata, wasm);
@@ -517,8 +552,8 @@ TEST_F(V8EngineWorkerTest,
       {kHandlerName, "hello_js"},
       {kCodeVersion, "1"},
       {kRequestAction, kRequestActionLoad},
-      {kWasmCodeArrayName, "addModule"}};
-
+      {kWasmCodeArrayName, "addModule"},
+  };
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
 

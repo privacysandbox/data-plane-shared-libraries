@@ -18,12 +18,15 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_v8_js_engine_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "error_codes.h",
+        "snapshot_compilation_context.h",
+        "v8_isolate_visitor.h",
+        "v8_isolate_visitor_function_binding.cc",
+        "v8_isolate_visitor_function_binding.h",
+        "v8_js_engine.cc",
+        "v8_js_engine.h",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
