@@ -23,7 +23,10 @@ build:roma_sandboxed --cxxopt=-fbracket-depth=512
 
 try-import %workspace%/builders/.coverage.bazelrc
 
+build:sanitizers_common --keep_going
+
 # Address sanitizer, set action_env to segregate cache entries
+build:asan --config=sanitizers_common
 build:asan --action_env=PRIVACY_SANDBOX_SERVERS_ASAN=1
 build:asan --strip=never
 build:asan --compilation_mode=dbg
@@ -39,6 +42,7 @@ build:asan --linkopt=-fuse-ld=lld
 build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always:detect_odr_violation=0
 
 # Thread sanitizer
+build:tsan --config=sanitizers_common
 build:tsan --action_env=PRIVACY_SANDBOX_SERVERS_TSAN=1
 build:tsan --strip=never
 build:tsan --copt=-fsanitize=thread
@@ -50,6 +54,7 @@ build:tsan --copt=-fno-omit-frame-pointer
 build:tsan --linkopt=-fsanitize=thread
 
 # Memory sanitizer
+build:msan --config=sanitizers_common
 build:msan --action_env=PRIVACY_SANDBOX_SERVERS_MSAN=1
 build:msan --strip=never
 build:msan --copt=-fsanitize=memory
@@ -59,6 +64,7 @@ build:msan --copt=-fno-omit-frame-pointer
 build:msan --linkopt=-fsanitize=memory
 
 # Undefined Behavior sanitizer
+build:ubsan --config=sanitizers_common
 build:ubsan --action_env=PRIVACY_SANDBOX_SERVERS_UBSAN=1
 build:ubsan --strip=never
 build:ubsan --copt=-fsanitize=undefined
