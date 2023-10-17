@@ -37,9 +37,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using ::testing::HasSubstr;
 
-using namespace std::placeholders;     // NOLINT
-using namespace std::chrono_literals;  // NOLINT
-
 namespace google::scp::roma::test {
 static const std::vector<uint8_t> kWasmBin = {
     0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
@@ -116,8 +113,9 @@ TEST(SandboxedServiceTest, ExecuteCode) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
 
   status = RomaStop();
@@ -190,9 +188,10 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
-  WaitUntil([&]() { return failed_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
+  WaitUntil([&]() { return failed_finished.load(); }, std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
 
   status = RomaStop();
@@ -243,8 +242,9 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
 
   status = RomaStop();
@@ -295,8 +295,9 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, "undefined");
 
   status = RomaStop();
@@ -351,8 +352,9 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
 
   status = RomaStop();
@@ -386,7 +388,8 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -464,8 +467,9 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("some cool string1 string2")");
 
   status = RomaStop();
@@ -624,7 +628,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   int num_threads = 10;
   std::vector<std::thread> threads;
@@ -660,11 +664,13 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
 
       EXPECT_TRUE(batch_status.ok());
 
-      WaitUntil([&]() { return local_execute.load(); }, 10s);
+      WaitUntil([&]() { return local_execute.load(); },
+                std::chrono::seconds(10));
     });
   }
 
-  WaitUntil([&]() { return execute_finished >= num_threads; }, 10s);
+  WaitUntil([&]() { return execute_finished >= num_threads; },
+            std::chrono::seconds(10));
   EXPECT_EQ(res_count.load(), batch_size * num_threads);
 
   for (auto& t : threads) {
@@ -728,10 +734,11 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
     }
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   for (auto i = 0u; i < total_runs; ++i) {
-    WaitUntil([&, i]() { return finished[i].load(); }, 30s);
+    WaitUntil([&, i]() { return finished[i].load(); },
+              std::chrono::seconds(30));
     std::string expected_result = std::string(R"("Hello world! )") +
                                   std::string("\\\"Foobar") +
                                   std::to_string(i) + std::string("\\\"\"");
@@ -797,8 +804,9 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Foobar String from C++")");
 
   status = RomaStop();
@@ -867,8 +875,9 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Foobar String from C++")");
 
   status = RomaStop();
@@ -935,8 +944,9 @@ TEST(
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(
       result,
       R"(["str 1 Some other stuff 1","str 2 Some other stuff 2","str 3 Some other stuff 3"])");
@@ -1015,8 +1025,9 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   // Since the map makes it over the wire, we can't guarantee the order of the
   // keys so we assert that the expected key-value pairs are present.
   EXPECT_THAT(result, HasSubstr(R"(["key-a1","value-a1"])"));
@@ -1086,8 +1097,9 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   EXPECT_EQ(result, R"("String from C++")");
 
@@ -1144,8 +1156,9 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Foobar Hello World from WASM")");
 
   status = RomaStop();
@@ -1251,10 +1264,10 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_timeout.load(); }, 10s);
-  WaitUntil([&]() { return execute_failed.load(); }, 10s);
-  WaitUntil([&]() { return execute_success.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_timeout.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_failed.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_success.load(); }, std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1312,7 +1325,7 @@ TEST(SandboxedServiceTest,
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   load_finished = false;
 
@@ -1335,7 +1348,7 @@ TEST(SandboxedServiceTest,
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -1356,7 +1369,8 @@ TEST(SandboxedServiceTest,
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   execute_finished.store(false);
 
@@ -1381,7 +1395,8 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
 
-    WaitUntil([&]() { return execute_finished.load(); }, 10s);
+    WaitUntil([&]() { return execute_finished.load(); },
+              std::chrono::seconds(10));
 
     EXPECT_EQ("233", result);
   }
@@ -1409,7 +1424,8 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
 
-    WaitUntil([&]() { return execute_finished.load(); }, 10s);
+    WaitUntil([&]() { return execute_finished.load(); },
+              std::chrono::seconds(10));
 
     EXPECT_EQ(R"("Hello, World!")", result);
   }
@@ -1571,8 +1587,9 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
         });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
 
   status = RomaStop();
@@ -1629,8 +1646,9 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Hello world1! \"Foobar\"")");
 
   load_finished = false;
@@ -1653,7 +1671,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   execute_finished = false;
 
@@ -1674,7 +1692,8 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   execute_finished = false;
   result = "";
@@ -1698,7 +1717,8 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Hello world2! \"Foobar\"")");
 
   status = RomaStop();
@@ -1735,7 +1755,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   // Start a batch execution
   {
@@ -1781,8 +1801,9 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   EXPECT_EQ(result, R"("Hello world1! \"Foobar\"")");
 
@@ -1829,7 +1850,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   privacy_sandbox::server_common::Stopwatch timer;
 
@@ -1855,7 +1876,8 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return execute_finished.load(); }, 30s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(30));
   auto elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
   // Should have elapsed more than 9sec.
   EXPECT_GE(elapsed_time_ms, 9000);
@@ -1885,9 +1907,11 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return execute_finished.load(); }, 30s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(30));
   elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
-  // Should have elapsed more than 10sec since that's our timeout.
+  // Should have elapsed more than 10sec since that's our
+  // timeout.
   EXPECT_GE(elapsed_time_ms, 10000);
   // But less than 11
   EXPECT_LE(elapsed_time_ms, 11000);
@@ -1925,7 +1949,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1997,9 +2021,10 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_failed.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_failed.load(); }, std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2072,9 +2097,10 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_failed.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_failed.load(); }, std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2128,8 +2154,9 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Foobar1 Barfoo2")");
 
   status = RomaStop();
@@ -2183,8 +2210,9 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2219,7 +2247,7 @@ TEST(SandboxedServiceTest,
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -2241,7 +2269,8 @@ TEST(SandboxedServiceTest,
         });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   // Should be able to load same version
   load_finished = false;
@@ -2261,7 +2290,7 @@ TEST(SandboxedServiceTest,
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   // Execution should work now
   execute_finished = false;
@@ -2279,7 +2308,8 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2329,7 +2359,7 @@ TEST(SandboxedServiceTest,
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -2346,7 +2376,8 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   EXPECT_EQ(result, R"({"0":1,"1":2,"2":3,"3":4,"4":4,"5":3,"6":2,"7":1})");
 
@@ -2381,7 +2412,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   // Execute version 1
   {
@@ -2399,7 +2430,8 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   // Should be able to load same version
   load_finished = false;
@@ -2419,7 +2451,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   // Execution should run the new version of the code
   execute_finished = false;
@@ -2437,7 +2469,8 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2497,7 +2530,7 @@ TEST(SandboxedServiceTest,
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -2514,7 +2547,8 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
 
   EXPECT_EQ(result, R"str("Hello there :)")str");
 
@@ -2578,8 +2612,9 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, "3");
 
   status = RomaStop();
@@ -2720,8 +2755,8 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished1.load(); }, 10s);
-  WaitUntil([&]() { return load_finished2.load(); }, 10s);
+  WaitUntil([&]() { return load_finished1.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return load_finished2.load(); }, std::chrono::seconds(10));
   status = RomaStop();
   EXPECT_TRUE(status.ok());
 }
@@ -2779,8 +2814,9 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, "3");
 
   status = RomaStop();
@@ -2838,7 +2874,7 @@ TEST(SandboxedServiceTest,
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -2861,7 +2897,8 @@ TEST(SandboxedServiceTest,
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
   execute_finished.store(false);
 
   {
@@ -2887,7 +2924,8 @@ TEST(SandboxedServiceTest,
                      });
     EXPECT_TRUE(status.ok());
 
-    WaitUntil([&]() { return execute_finished.load(); }, 10s);
+    WaitUntil([&]() { return execute_finished.load(); },
+              std::chrono::seconds(10));
 
     EXPECT_EQ("3", result);
   }
@@ -2948,8 +2986,9 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return success_execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return success_execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Hello world! ")");
 
   status = RomaStop();
@@ -3008,8 +3047,9 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return oversize_execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return oversize_execute_finished.load(); },
+            std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -3070,8 +3110,9 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return oversize_execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return oversize_execute_finished.load(); },
+            std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -3112,7 +3153,7 @@ TEST(SandboxedServiceTest,
     ASSERT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -3212,10 +3253,13 @@ TEST(SandboxedServiceTest,
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return success_execute_finished.load(); }, 10s);
-  WaitUntil([&]() { return failed_execute_finished.load(); }, 10s);
-  WaitUntil([&]() { return retry_success_execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return success_execute_finished.load(); },
+            std::chrono::seconds(10));
+  WaitUntil([&]() { return failed_execute_finished.load(); },
+            std::chrono::seconds(10));
+  WaitUntil([&]() { return retry_success_execute_finished.load(); },
+            std::chrono::seconds(10));
   EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
   EXPECT_EQ(retry_result, R"("Hello world! \"Foobar\"")");
 
@@ -3315,10 +3359,13 @@ TEST(SandboxedServiceTest,
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, 10s);
-  WaitUntil([&]() { return success_execute_finished.load(); }, 10s);
-  WaitUntil([&]() { return failed_execute_finished.load(); }, 10s);
-  WaitUntil([&]() { return retry_success_execute_finished.load(); }, 10s);
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return success_execute_finished.load(); },
+            std::chrono::seconds(10));
+  WaitUntil([&]() { return failed_execute_finished.load(); },
+            std::chrono::seconds(10));
+  WaitUntil([&]() { return retry_success_execute_finished.load(); },
+            std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());

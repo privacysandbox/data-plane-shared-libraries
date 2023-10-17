@@ -55,11 +55,6 @@ using google::scp::cpio::Cpio;
 using google::scp::cpio::CpioOptions;
 using google::scp::cpio::LogOption;
 using google::scp::cpio::client_providers::GlobalCpio;
-using std::cerr;
-using std::cout;
-using std::endl;
-using std::mutex;
-using std::scoped_lock;
 
 namespace {
 constexpr char kBucketName[] = "blob-storage-service-test-bucket";
@@ -71,20 +66,20 @@ int main(int argc, char* argv[]) {
   cpio_options.log_option = LogOption::kConsoleLog;
   auto result = Cpio::InitCpio(cpio_options);
   if (!result.Successful()) {
-    cerr << "Failed to initialize CPIO: " << GetErrorMessage(result.status_code)
-         << endl;
+    std::cerr << "Failed to initialize CPIO: "
+              << GetErrorMessage(result.status_code) << std::endl;
   }
 
   auto blob_storage_client = BlobStorageClientFactory::Create();
   result = blob_storage_client->Init();
   if (!result.Successful()) {
-    cerr << "Failed to Init BlobStorageClient: "
-         << GetErrorMessage(result.status_code) << endl;
+    std::cerr << "Failed to Init BlobStorageClient: "
+              << GetErrorMessage(result.status_code) << std::endl;
   }
   result = blob_storage_client->Run();
   if (!result.Successful()) {
-    cerr << "Failed to Run BlobStorageClient: "
-         << GetErrorMessage(result.status_code) << endl;
+    std::cerr << "Failed to Run BlobStorageClient: "
+              << GetErrorMessage(result.status_code) << std::endl;
   }
 
   {
@@ -106,14 +101,14 @@ int main(int argc, char* argv[]) {
         });
     auto put_blob_result = blob_storage_client->PutBlob(put_blob_context);
     if (!put_blob_result.Successful()) {
-      cerr << "Putting blob failed: "
-           << GetErrorMessage(put_blob_result.status_code) << endl;
+      std::cerr << "Putting blob failed: "
+                << GetErrorMessage(put_blob_result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
     WaitUntil([&finished]() { return finished.load(); });
     if (!result.Successful()) {
-      cerr << "Putting blob failed asynchronously: "
-           << GetErrorMessage(result.status_code) << endl;
+      std::cerr << "Putting blob failed asynchronously: "
+                << GetErrorMessage(result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -128,20 +123,20 @@ int main(int argc, char* argv[]) {
         std::move(get_blob_request), [&result, &finished](auto& context) {
           result = context.result;
           if (result.Successful()) {
-            cout << "Got blob: " << context.response->DebugString();
+            std::cout << "Got blob: " << context.response->DebugString();
           }
           finished = true;
         });
     auto get_blob_result = blob_storage_client->GetBlob(get_blob_context);
     if (!get_blob_result.Successful()) {
-      cerr << "Getting blob failed: "
-           << GetErrorMessage(get_blob_result.status_code) << endl;
+      std::cerr << "Getting blob failed: "
+                << GetErrorMessage(get_blob_result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
     WaitUntil([&finished]() { return finished.load(); });
     if (!result.Successful()) {
-      cerr << "Getting blob failed asynchronously: "
-           << GetErrorMessage(result.status_code) << endl;
+      std::cerr << "Getting blob failed asynchronously: "
+                << GetErrorMessage(result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -158,22 +153,24 @@ int main(int argc, char* argv[]) {
                                     [&result, &finished](auto& context) {
                                       result = context.result;
                                       if (result.Successful()) {
-                                        cout << "Listed blobs: "
-                                             << context.response->DebugString();
+                                        std::cout
+                                            << "Listed blobs: "
+                                            << context.response->DebugString();
                                       }
                                       finished = true;
                                     });
     auto list_blobs_metadata_result =
         blob_storage_client->ListBlobsMetadata(list_blobs_metadata_context);
     if (!list_blobs_metadata_result.Successful()) {
-      cerr << "Listing blobs failed: "
-           << GetErrorMessage(list_blobs_metadata_result.status_code) << endl;
+      std::cerr << "Listing blobs failed: "
+                << GetErrorMessage(list_blobs_metadata_result.status_code)
+                << std::endl;
       exit(EXIT_FAILURE);
     }
     WaitUntil([&finished]() { return finished.load(); });
     if (!result.Successful()) {
-      cerr << "Listing blobs failed asynchronously: "
-           << GetErrorMessage(result.status_code) << endl;
+      std::cerr << "Listing blobs failed asynchronously: "
+                << GetErrorMessage(result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -193,14 +190,14 @@ int main(int argc, char* argv[]) {
     auto delete_blob_result =
         blob_storage_client->DeleteBlob(delete_blob_context);
     if (!delete_blob_result.Successful()) {
-      cerr << "Deleting blob failed: "
-           << GetErrorMessage(delete_blob_result.status_code) << endl;
+      std::cerr << "Deleting blob failed: "
+                << GetErrorMessage(delete_blob_result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
     WaitUntil([&finished]() { return finished.load(); });
     if (!result.Successful()) {
-      cerr << "Deleting blob failed asynchronously: "
-           << GetErrorMessage(result.status_code) << endl;
+      std::cerr << "Deleting blob failed asynchronously: "
+                << GetErrorMessage(result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -232,8 +229,9 @@ int main(int argc, char* argv[]) {
     auto put_blob_stream_result =
         blob_storage_client->PutBlobStream(put_blob_stream_context);
     if (!put_blob_stream_result.Successful()) {
-      cerr << "Putting blob failed: "
-           << GetErrorMessage(put_blob_stream_result.status_code) << endl;
+      std::cerr << "Putting blob failed: "
+                << GetErrorMessage(put_blob_stream_result.status_code)
+                << std::endl;
       exit(EXIT_FAILURE);
     }
     // After this point, the client is waiting for elements to be pushed
@@ -249,14 +247,14 @@ int main(int argc, char* argv[]) {
     // don't here which incurs a copy.
     if (auto result = put_blob_stream_context.TryPushRequest(request);
         !result.Successful()) {
-      cerr << "Failed enqueueing a new element" << endl;
+      std::cerr << "Failed enqueueing a new element" << std::endl;
       exit(EXIT_FAILURE);
     }
 
     request.mutable_blob_portion()->set_data(" data");
     if (auto result = put_blob_stream_context.TryPushRequest(request);
         !result.Successful()) {
-      cerr << "Failed enqueueing a new element" << endl;
+      std::cerr << "Failed enqueueing a new element" << std::endl;
       exit(EXIT_FAILURE);
     }
 
@@ -266,14 +264,14 @@ int main(int argc, char* argv[]) {
 
     WaitUntil([&finished]() { return finished.load(); });
     if (!result.Successful()) {
-      cerr << "Putting blob failed asynchronously: "
-           << GetErrorMessage(result.status_code) << endl;
+      std::cerr << "Putting blob failed asynchronously: "
+                << GetErrorMessage(result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
   {
     // GetBlobStream - callback version.
-    mutex log_mutex;
+    std::mutex log_mutex;
     std::atomic_bool finished(false);
     auto get_blob_stream_request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_request->mutable_blob_metadata()->set_bucket_name(
@@ -293,13 +291,13 @@ int main(int argc, char* argv[]) {
           if (resp == nullptr) {
             // If dequeueing is unsuccessful, then context should be done.
             if (!context.IsMarkedDone()) {
-              scoped_lock lock(log_mutex);
-              cerr << "This should never happen" << endl;
+              std::scoped_lock lock(log_mutex);
+              std::cerr << "This should never happen" << std::endl;
             }
             finished = true;
           } else {
-            scoped_lock lock(log_mutex);
-            cout << "Got blob portion: " << resp->DebugString();
+            std::scoped_lock lock(log_mutex);
+            std::cout << "Got blob portion: " << resp->DebugString();
           }
         };
 
@@ -307,8 +305,8 @@ int main(int argc, char* argv[]) {
 
     WaitUntil([&finished]() { return finished.load(); });
     if (!result.Successful()) {
-      cerr << "Getting blob stream failed asynchronously: "
-           << GetErrorMessage(result.status_code) << endl;
+      std::cerr << "Getting blob stream failed asynchronously: "
+                << GetErrorMessage(result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -335,8 +333,9 @@ int main(int argc, char* argv[]) {
     auto get_blob_stream_result =
         blob_storage_client->GetBlobStream(get_blob_stream_context);
     if (!get_blob_stream_result.Successful()) {
-      cerr << "Getting blob stream failed: "
-           << GetErrorMessage(get_blob_stream_result.status_code) << endl;
+      std::cerr << "Getting blob stream failed: "
+                << GetErrorMessage(get_blob_stream_result.status_code)
+                << std::endl;
       exit(EXIT_FAILURE);
     }
 
@@ -355,18 +354,18 @@ int main(int argc, char* argv[]) {
       if (resp == nullptr) {
         continue;
       }
-      cout << "Got blob portion: " << resp->DebugString() << endl;
+      std::cout << "Got blob portion: " << resp->DebugString() << std::endl;
     }
 
     WaitUntil([&finished]() { return finished.load(); });
     if (!result.Successful()) {
-      cerr << "Getting blob stream failed asynchronously: "
-           << GetErrorMessage(result.status_code) << endl;
+      std::cerr << "Getting blob stream failed asynchronously: "
+                << GetErrorMessage(result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
 #endif
 
-  cout << "Done :)" << endl;
+  std::cout << "Done :)" << std::endl;
   return EXIT_SUCCESS;
 }

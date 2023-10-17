@@ -37,8 +37,6 @@
 
 using google::scp::core::test::WaitUntil;
 
-using namespace std::chrono_literals;  // NOLINT
-
 namespace google::scp::roma::test {
 
 static void LoadCode(size_t code_bloat_size = 1000) {

@@ -27,7 +27,6 @@
 #include "core/network/test/helloworld.pb.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using namespace std::placeholders;  // NOLINT
 using helloworld::Greeter;
 using helloworld::HelloReply;
 using helloworld::HelloRequest;

@@ -44,7 +44,6 @@
 
 using namespace nghttp2::asio_http2;          // NOLINT
 using namespace nghttp2::asio_http2::server;  // NOLINT
-using namespace std::chrono_literals;         // NOLINT
 
 using google::scp::core::AsyncExecutor;
 using google::scp::core::SuccessExecutionResult;
