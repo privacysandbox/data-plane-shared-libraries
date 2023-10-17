@@ -71,7 +71,6 @@ using google::scp::cpio::client_providers::mock::MockKMSClient;
 using google::scp::cpio::client_providers::mock::
     MockNonteeAwsKmsClientProviderWithOverrides;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
-using std::atomic;
 
 static constexpr char kAssumeRoleArn[] = "assumeRoleArn";
 static constexpr char kKeyArn[] = "keyArn";
@@ -188,7 +187,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kKeyArn);
   kms_decrypt_request->set_ciphertext(kCiphertext);
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrypt_request,
@@ -210,7 +209,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kKeyArn);
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrypt_request,
@@ -234,7 +233,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingKeyArn) {
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_ciphertext(kCiphertext);
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrypt_request,
@@ -259,7 +258,7 @@ TEST_F(TeeAwsKmsClientProviderTest, FailedDecryption) {
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kWrongKeyArn);
   kms_decrypt_request->set_ciphertext(kCiphertext);
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrypt_request,

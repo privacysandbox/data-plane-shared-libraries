@@ -29,9 +29,6 @@
 using grpc::ServerCallbackReader;
 using grpc::ServerReadReactor;
 using grpc::internal::ServerReactor;
-using std::atomic_bool;
-using std::atomic_int;
-using std::function;
 using std::thread;
 using testing::Eq;
 using testing::ExplainMatchResult;
@@ -41,7 +38,7 @@ using testing::Not;
 using testing::Return;
 
 namespace {
-atomic_bool finished = false;
+std::atomic_bool finished = false;
 }
 
 namespace google::scp::core::test {
@@ -86,7 +83,8 @@ class TestReadReactor : public ReadReactor<SomeRequest, SomeResponse> {
 
   // We use this function object as a mock to avoid using gMock on the class we
   // want to test.
-  function<ExecutionResult(ProducerStreamingContext<SomeRequest, SomeResponse>)>
+  std::function<ExecutionResult(
+      ProducerStreamingContext<SomeRequest, SomeResponse>)>
       initiate_call_function;
 
  private:
@@ -202,7 +200,7 @@ TEST_F(ReadReactorTest, FailureOnInitialReadWorks) {
 }
 
 TEST_F(ReadReactorTest, MakesNewResponseOnFailure) {
-  atomic_int read_count = 0;
+  std::atomic_int read_count = 0;
   thread finisher_thread;
   reactor_->initiate_call_function = [&finisher_thread,
                                       &read_count](auto context) {

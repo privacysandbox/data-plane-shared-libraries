@@ -43,7 +43,6 @@ using google::scp::roma::sandbox::native_function_binding::NativeFunctionTable;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
-using std::function;
 using std::thread;
 
 namespace google::scp::roma::sandbox::roma_service {

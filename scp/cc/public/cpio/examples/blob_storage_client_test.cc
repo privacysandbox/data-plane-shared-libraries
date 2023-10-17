@@ -55,12 +55,9 @@ using google::scp::cpio::Cpio;
 using google::scp::cpio::CpioOptions;
 using google::scp::cpio::LogOption;
 using google::scp::cpio::client_providers::GlobalCpio;
-using std::atomic_bool;
-using std::atomic_int;
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::function;
 using std::mutex;
 using std::scoped_lock;
 
@@ -93,7 +90,7 @@ int main(int argc, char* argv[]) {
   {
     // PutBlob.
     auto data = "some data string";
-    atomic_bool finished(false);
+    std::atomic_bool finished(false);
     ExecutionResult result;
     auto put_blob_request = std::make_shared<PutBlobRequest>();
     put_blob_request->mutable_blob()->mutable_metadata()->set_bucket_name(
@@ -122,7 +119,7 @@ int main(int argc, char* argv[]) {
   }
   {
     // GetBlob.
-    atomic_bool finished(false);
+    std::atomic_bool finished(false);
     ExecutionResult result;
     auto get_blob_request = std::make_shared<GetBlobRequest>();
     get_blob_request->mutable_blob_metadata()->set_bucket_name(kBucketName);
@@ -150,7 +147,7 @@ int main(int argc, char* argv[]) {
   }
   {
     // ListBlobsMetadata.
-    atomic_bool finished(false);
+    std::atomic_bool finished(false);
     ExecutionResult result;
     auto list_blobs_metadata_request =
         std::make_shared<ListBlobsMetadataRequest>();
@@ -182,7 +179,7 @@ int main(int argc, char* argv[]) {
   }
   {
     // DeleteBlob.
-    atomic_bool finished(false);
+    std::atomic_bool finished(false);
     ExecutionResult result;
     auto delete_blob_request = std::make_shared<DeleteBlobRequest>();
     delete_blob_request->mutable_blob_metadata()->set_bucket_name(kBucketName);
@@ -213,7 +210,7 @@ int main(int argc, char* argv[]) {
   {
     // PutBlobStream.
 
-    atomic_bool finished(false);
+    std::atomic_bool finished(false);
     auto put_blob_stream_request = std::make_shared<PutBlobStreamRequest>();
     put_blob_stream_request->mutable_blob_portion()
         ->mutable_metadata()
@@ -277,7 +274,7 @@ int main(int argc, char* argv[]) {
   {
     // GetBlobStream - callback version.
     mutex log_mutex;
-    atomic_bool finished(false);
+    std::atomic_bool finished(false);
     auto get_blob_stream_request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_request->mutable_blob_metadata()->set_bucket_name(
         kBucketName);
@@ -317,7 +314,7 @@ int main(int argc, char* argv[]) {
   }
   {
     // GetBlobStream - polling version.
-    atomic_bool finished(false);
+    std::atomic_bool finished(false);
     auto get_blob_stream_request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_request->mutable_blob_metadata()->set_bucket_name(
         kBucketName);

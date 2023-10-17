@@ -34,7 +34,6 @@
 
 using google::scp::core::mock::MockService;
 using google::scp::core::mock::TestNode;
-using std::function;
 using ::testing::Contains;
 
 namespace google::scp::core::test {

@@ -24,7 +24,6 @@ using google::scp::core::LeaseInfo;
 using google::scp::core::LeaseTransitionType;
 using google::scp::core::ServiceInterface;
 using google::scp::core::common::Uuid;
-using std::optional;
 
 static constexpr char kComponentLifecycleLeaseEventSink[] =
     "ComponentLifecycleLeaseEventSink";
@@ -36,7 +35,7 @@ ComponentLifecycleLeaseEventSink::ComponentLifecycleLeaseEventSink(
 
 void ComponentLifecycleLeaseEventSink::OnLeaseTransition(
     const LeasableLockId& lock_id, LeaseTransitionType lease_transition_type,
-    optional<LeaseInfo>) noexcept {
+    std::optional<LeaseInfo>) noexcept {
   ExecutionResult execution_result;
   switch (lease_transition_type) {
     case LeaseTransitionType::kAcquired:

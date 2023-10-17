@@ -48,7 +48,6 @@ using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 using google::scp::roma::sandbox::worker_pool::WorkerPool;
 using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
-using std::atomic;
 
 namespace {
 WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
@@ -87,7 +86,7 @@ TEST(DispatcherTest, CanRunCode) {
   load_request->js =
       "function test(input) { return input + \" Some string\"; }";
 
-  atomic<bool> done_loading(false);
+  std::atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
@@ -105,7 +104,7 @@ TEST(DispatcherTest, CanRunCode) {
   execute_request->handler_name = "test";
   execute_request->input.push_back(R"("Hello")");
 
-  atomic<bool> done_executing(false);
+  std::atomic<bool> done_executing(false);
 
   result = dispatcher.Dispatch(
       std::move(execute_request),
@@ -140,7 +139,7 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
   // Bad JS
   load_request->js = "function test(input) { ";
 
-  atomic<bool> done_loading(false);
+  std::atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
@@ -174,7 +173,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
   execute_request->handler_name = "test";
   execute_request->input.push_back(R"("Hello")");
 
-  atomic<bool> done_executing(false);
+  std::atomic<bool> done_executing(false);
 
   auto result = dispatcher.Dispatch(
       std::move(execute_request),
@@ -210,7 +209,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string";)";
 
-  atomic<bool> done_loading(false);
+  std::atomic<bool> done_loading(false);
 
   auto result = dispatcher.Broadcast(
       std::move(load_request),
@@ -222,7 +221,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
   WaitUntil([&done_loading]() { return done_loading.load(); });
 
-  atomic<int> execution_count(0);
+  std::atomic<int> execution_count(0);
   // More than the number of workers to make sure the requests can indeed run in
   // all workers.
   int requests_sent = number_of_workers * 3;
@@ -275,7 +274,7 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
   // Bad syntax
   load_request->js = "function test(s) { return";
 
-  atomic<bool> done_loading(false);
+  std::atomic<bool> done_loading(false);
 
   auto result = dispatcher.Broadcast(
       std::move(load_request),
@@ -311,7 +310,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string";)";
 
-  atomic<bool> done_loading(false);
+  std::atomic<bool> done_loading(false);
 
   auto result = dispatcher.Broadcast(
       std::move(load_request),
@@ -342,7 +341,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
     batch.push_back(execute_request);
   }
 
-  atomic<bool> finished_batch(false);
+  std::atomic<bool> finished_batch(false);
   std::vector<absl::StatusOr<ResponseObject>> test_batch_response;
 
   dispatcher.DispatchBatch(
@@ -403,7 +402,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
     }
   )""";
 
-  atomic<bool> done_loading(false);
+  std::atomic<bool> done_loading(false);
 
   auto result = dispatcher.Broadcast(
       std::move(load_request),
@@ -424,7 +423,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
     batch.push_back(execute_request);
   }
 
-  atomic<bool> finished_batch(false);
+  std::atomic<bool> finished_batch(false);
 
   result = dispatcher.DispatchBatch(
       batch,
@@ -471,7 +470,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string";)";
 
-  atomic<bool> done_loading(false);
+  std::atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
@@ -489,7 +488,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   execute_request->handler_name = "test";
   execute_request->input.push_back(R"("Hello")");
 
-  atomic<bool> done_executing(false);
+  std::atomic<bool> done_executing(false);
 
   result = dispatcher.Dispatch(
       std::move(execute_request),
@@ -573,7 +572,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string 1";)";
 
-  atomic<bool> done_loading(false);
+  std::atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
@@ -613,7 +612,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   execute_request->handler_name = "test";
   execute_request->input.push_back(R"("Hello")");
 
-  atomic<bool> done_executing(false);
+  std::atomic<bool> done_executing(false);
 
   result = dispatcher.Dispatch(
       std::move(execute_request),
@@ -694,7 +693,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   load_request->version_num = 1;
   load_request->js = R"(test = (s) => s + " Some string 1";)";
 
-  atomic<bool> done_loading(false);
+  std::atomic<bool> done_loading(false);
 
   auto result = dispatcher.Dispatch(
       std::move(load_request),
@@ -756,7 +755,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   }
 
   // Execute all versions, those loaded before and after the worker crash
-  atomic<bool> done_executing(false);
+  std::atomic<bool> done_executing(false);
 
   for (int i = 0; i < 10; i++) {
     done_executing.store(false);

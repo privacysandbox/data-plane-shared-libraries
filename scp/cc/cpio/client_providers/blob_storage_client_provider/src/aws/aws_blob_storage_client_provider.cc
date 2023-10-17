@@ -114,7 +114,6 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Encode;
 using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
-using std::optional;
 using std::chrono::duration_cast;
 using std::chrono::minutes;
 using std::chrono::nanoseconds;
@@ -181,7 +180,7 @@ ExecutionResult ValidateGetBlobRequest(Context& context) {
 // Builds an AWS GetObjectRequest, for GetBlob or GetBlobStream.
 template <typename ProtoRequest>
 GetObjectRequest MakeGetObjectRequest(const ProtoRequest& proto_request,
-                                      optional<std::string> range) {
+                                      std::optional<std::string> range) {
   String bucket_name(proto_request.blob_metadata().bucket_name());
   String blob_name(proto_request.blob_metadata().blob_name());
   GetObjectRequest get_object_request;
@@ -237,7 +236,7 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlob(
   const auto& request = *get_blob_context.request;
   RETURN_IF_FAILURE(ValidateGetBlobRequest(get_blob_context));
 
-  optional<std::string> range;
+  std::optional<std::string> range;
   if (request.has_byte_range()) {
     // SetRange is inclusive on both ends.
     range = absl::StrCat("bytes=", request.byte_range().begin_byte_index(), "-",
@@ -310,7 +309,7 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlobStream(
   // If the end index is out of bounds of the object, that's fine - S3 will
   // truncate the response to the end of the object. If the begin index is out
   // of bounds, S3 will fail but this is OK to propagate to the client.
-  optional<std::string> range;
+  std::optional<std::string> range;
   if (request.has_byte_range()) {
     // The initial value should be
     // <begin_index, min(begin_index + read_size - 1, end_index)>
@@ -463,7 +462,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
   // We can safely start at last_end_index + 1 because it is in bounds.
   // We can safely end at the computed new_end_index because even if it is out
   // of bounds, S3 will still succeed but truncate the response.
-  optional<std::string> range = absl::StrCat(
+  std::optional<std::string> range = absl::StrCat(
       "bytes=", tracker->last_end_byte_index + 1, "-", new_end_index);
 
   tracker->last_begin_byte_index = tracker->last_end_byte_index + 1;

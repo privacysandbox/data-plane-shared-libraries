@@ -36,8 +36,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::client_providers::AwsResourceNameDetails;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::atomic;
-using std::tuple;
 using testing::Pair;
 using testing::Pointee;
 using testing::Return;
@@ -127,7 +125,7 @@ TEST(AwsInstanceClientUtilsTest, GetInstanceResourceNameDetails) {
 }
 
 class AwsInstanceClientUtilsTestII
-    : public TestWithParam<tuple<std::string, ExecutionResult>> {
+    : public TestWithParam<std::tuple<std::string, ExecutionResult>> {
  protected:
   std::string GetResourceName() { return std::get<0>(GetParam()); }
 

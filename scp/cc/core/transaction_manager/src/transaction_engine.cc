@@ -50,9 +50,6 @@ using google::scp::core::transaction_manager::proto::TransactionEngineLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
-using std::atomic;
-using std::function;
-using std::list;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 
@@ -201,7 +198,7 @@ ExecutionResult TransactionEngine::Run() noexcept {
            "Transaction Engine has '%llu' active transactions to be resolved.",
            active_transactions_map_.Size());
 
-  atomic<size_t> pending_calls(0);
+  std::atomic<size_t> pending_calls(0);
 
   for (auto active_transaction_id : active_transaction_ids) {
     std::shared_ptr<Transaction> transaction;
@@ -348,7 +345,7 @@ ExecutionResult TransactionEngine::UnlockRemotelyCoordinatedTransaction(
 
 void TransactionEngine::OnBeforeGarbageCollection(
     Uuid& transaction_id, std::shared_ptr<Transaction>& transaction,
-    function<void(bool)> should_delete_entry) noexcept {
+    std::function<void(bool)> should_delete_entry) noexcept {
   // Transaction entry is never deleted from the cache by the garbage
   // collection function of the map. The TransactionEngine itself does the
   // deletion explicitly when the transaction moves to a termination phase.
@@ -1228,7 +1225,7 @@ ExecutionResult TransactionEngine::SerializeState(
 
 ExecutionResult TransactionEngine::LogState(
     TransactionPhase current_phase, std::shared_ptr<Transaction>& transaction,
-    function<void(AsyncContext<JournalLogRequest, JournalLogResponse>&)>
+    std::function<void(AsyncContext<JournalLogRequest, JournalLogResponse>&)>
         callback) noexcept {
   BytesBuffer transaction_engine_log_bytes_buffer;
   auto execution_result =
@@ -1546,7 +1543,7 @@ ExecutionResult TransactionEngine::GetTransactionStatus(
 }
 
 ExecutionResult TransactionEngine::Checkpoint(
-    std::shared_ptr<list<CheckpointLog>>& checkpoint_logs) noexcept {
+    std::shared_ptr<std::list<CheckpointLog>>& checkpoint_logs) noexcept {
   std::vector<Uuid> active_transactions;
   auto execution_result = active_transactions_map_.Keys(active_transactions);
   if (!execution_result.Successful()) {
@@ -1684,7 +1681,7 @@ void TransactionEngine::ProceedToNextPhase(
   auto current_phase_execution_result =
       transaction->current_phase_execution_result;
 
-  list<size_t> failed_indices;
+  std::list<size_t> failed_indices;
   if (transaction->current_phase_failed) {
     auto failed = false;
     size_t command_index = 0;
@@ -1720,7 +1717,7 @@ void TransactionEngine::ProceedToNextPhase(
   if (transaction->is_coordinated_remotely) {
     // Filter commands corresponding to the failed indices for sending them
     // back to the caller
-    list<std::shared_ptr<TransactionCommand>> failed_commands;
+    std::list<std::shared_ptr<TransactionCommand>> failed_commands;
     for (const auto& failed_index : failed_indices) {
       failed_commands.push_back(
           transaction->context.request->commands[failed_index]);

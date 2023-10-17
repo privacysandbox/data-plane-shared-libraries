@@ -56,7 +56,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::
     MockGcpParameterClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::atomic;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::NiceMock;
@@ -121,7 +120,7 @@ TEST_F(GcpParameterClientProviderTest, SucceedToFetchParameter) {
               AccessSecretVersion(RequestHasName(secret_name_mock)))
       .WillOnce(Return(response));
 
-  atomic<bool> condition;
+  std::atomic<bool> condition;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -142,7 +141,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
               AccessSecretVersion(RequestHasName(secret_name_mock)))
       .WillOnce(Return(Status(StatusCode::kNotFound, "Not Found")));
 
-  atomic<bool> condition;
+  std::atomic<bool> condition;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -174,7 +173,7 @@ TEST_F(GcpParameterClientProviderTest,
               AccessSecretVersion(RequestHasName(secret_name_mock)))
       .WillOnce(Return(Status(StatusCode::kInvalidArgument, "")));
 
-  atomic<bool> condition;
+  std::atomic<bool> condition;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -195,7 +194,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
               AccessSecretVersion(RequestHasName(secret_name_mock)))
       .WillOnce(Return(Status(StatusCode::kUnknown, "")));
 
-  atomic<bool> condition;
+  std::atomic<bool> condition;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(

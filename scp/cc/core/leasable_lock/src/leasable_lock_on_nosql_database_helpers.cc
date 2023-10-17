@@ -42,9 +42,7 @@ using google::scp::core::TimeDuration;
 using google::scp::core::UpsertDatabaseItemRequest;
 using google::scp::core::UpsertDatabaseItemResponse;
 using google::scp::core::common::TimeProvider;
-using std::atomic;
 using std::mutex;
-using std::optional;
 using std::shared_lock;
 using std::shared_mutex;
 using std::unique_lock;
@@ -131,7 +129,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::ObtainLeaseInfoFromAttributes(
 ExecutionResult LeasableLockOnNoSQLDatabase::WriteLeaseSynchronouslyToDatabase(
     const LeaseInfoInternal& previous_lease,
     const LeaseInfoInternal& new_lease) {
-  atomic<bool> request_executed = false;
+  std::atomic<bool> request_executed = false;
 
   AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>
       response_context;
@@ -188,7 +186,7 @@ ExecutionResult LeasableLockOnNoSQLDatabase::WriteLeaseSynchronouslyToDatabase(
 
 ExecutionResult LeasableLockOnNoSQLDatabase::ReadLeaseSynchronouslyFromDatabase(
     LeaseInfoInternal& lease) {
-  atomic<bool> request_executed = false;
+  std::atomic<bool> request_executed = false;
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       response_context;
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse> request_context(

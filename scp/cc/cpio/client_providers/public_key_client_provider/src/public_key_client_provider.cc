@@ -59,7 +59,6 @@ using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_HTTP_CLIENT_REQUIRED;
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS;
-using std::atomic;
 
 static constexpr int kSToMsConversionBase = 1e3;
 static constexpr char kPublicKeyClientProvider[] = "PublicKeyClientProvider";
@@ -114,8 +113,8 @@ ExecutionResult PublicKeyClientProvider::ListPublicKeys(
   // Use got_success_result and unfinished_counter to track whether get success
   // response and how many failed responses. Only return one response whether
   // success or failed.
-  auto got_success_result = std::make_shared<atomic<bool>>(false);
-  auto unfinished_counter = std::make_shared<atomic<size_t>>(
+  auto got_success_result = std::make_shared<std::atomic<bool>>(false);
+  auto unfinished_counter = std::make_shared<std::atomic<size_t>>(
       public_key_client_options_->endpoints.size());
 
   ExecutionResult result = FailureExecutionResult(
@@ -161,7 +160,7 @@ ExecutionResult PublicKeyClientProvider::ListPublicKeys(
 void ExecutionResultCheckingHelper(
     AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse>& context,
     const ExecutionResult& result,
-    std::shared_ptr<atomic<size_t>> unfinished_counter) noexcept {
+    std::shared_ptr<std::atomic<size_t>> unfinished_counter) noexcept {
   auto pervious_unfinished = unfinished_counter->fetch_sub(1);
   if (pervious_unfinished == 1) {
     context.result = result;
@@ -175,8 +174,8 @@ void PublicKeyClientProvider::OnPerformRequestCallback(
     AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse>&
         public_key_fetching_context,
     AsyncContext<HttpRequest, HttpResponse>& http_client_context,
-    std::shared_ptr<atomic<bool>> got_success_result,
-    std::shared_ptr<atomic<size_t>> unfinished_counter) noexcept {
+    std::shared_ptr<std::atomic<bool>> got_success_result,
+    std::shared_ptr<std::atomic<size_t>> unfinished_counter) noexcept {
   if (got_success_result->load()) {
     return;
   }

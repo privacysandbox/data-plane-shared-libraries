@@ -36,7 +36,6 @@
 #include "roma/config/src/type_converter.h"
 
 using std::runtime_error;
-using std::tuple;
 using v8::Context;
 using v8::External;
 using v8::FunctionCallbackInfo;
@@ -156,7 +155,7 @@ static std::string RunV8Function(Isolate* isolate, std::string source_js,
 }
 
 // User provided JS function
-static std::string StringInputStringOutput(tuple<std::string>& input) {
+static std::string StringInputStringOutput(std::tuple<std::string>& input) {
   return std::get<0>(input) + " " +
          "Value added within user-provided function call";
 }
@@ -303,7 +302,7 @@ TEST_F(FunctionBindingTest, PassingNullValueToFunction) {
 
 // User provided JS function
 static std::vector<std::string> StringInputVectorOfStringOutput(
-    tuple<std::string>& input) {
+    std::tuple<std::string>& input) {
   std::vector<std::string> output;
   output.push_back(std::get<0>(input));
   output.push_back("And some added stuff");
@@ -327,7 +326,7 @@ TEST_F(FunctionBindingTest,
 
 // User provided JS function
 static std::vector<std::string> VectorOfStringInputVectorOfStringOutput(
-    tuple<std::vector<std::string>>& input) {
+    std::tuple<std::vector<std::string>>& input) {
   auto input_vec = std::get<0>(input);
 
   std::vector<std::string> output;
@@ -365,8 +364,8 @@ static std::string ConcatenateVector(std::vector<std::string>& vec) {
 
 // User provided JS function
 static std::vector<std::string> MixedInputAndVectorOfStringOutput(
-    tuple<std::vector<std::string>, std::string, std::vector<std::string>,
-          std::string>& input) {
+    std::tuple<std::vector<std::string>, std::string, std::vector<std::string>,
+               std::string>& input) {
   auto input_one = std::get<0>(input);
   auto input_two = std::get<1>(input);
   auto input_three = std::get<2>(input);
@@ -404,8 +403,8 @@ TEST_F(FunctionBindingTest, VectorOfStringOutputAndMixedInput) {
 
 // User provided JS function
 static common::Map<std::string, std::string> VectorsOfStringInputAndMapOutput(
-    tuple<std::vector<std::string>, std::vector<std::string>,
-          std::vector<std::string>, std::vector<std::string>>& input) {
+    std::tuple<std::vector<std::string>, std::vector<std::string>,
+               std::vector<std::string>, std::vector<std::string>>& input) {
   auto input_one = std::get<0>(input);
   auto input_two = std::get<1>(input);
   auto input_three = std::get<2>(input);

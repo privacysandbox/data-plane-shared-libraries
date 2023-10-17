@@ -43,7 +43,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::ParameterClient;
 using google::scp::cpio::ParameterClientOptions;
 using google::scp::cpio::mock::MockParameterClientWithOverrides;
-using std::atomic;
 
 namespace google::scp::cpio::test {
 class ParameterClientTest : public ::testing::Test {
@@ -72,7 +71,7 @@ TEST_F(ParameterClientTest, GetParameterSuccess) {
         return SuccessExecutionResult();
       });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->GetParameter(GetParameterRequest(),
                                     [&](const ExecutionResult result,
                                         GetParameterResponse response) {
@@ -92,7 +91,7 @@ TEST_F(ParameterClientTest, GetParameterFailure) {
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(
       client_->GetParameter(
           GetParameterRequest(),

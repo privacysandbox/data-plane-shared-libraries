@@ -70,7 +70,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_ROMA_WORKER_API_UNINITIALIZED_SANDBOX;
 using google::scp::core::errors::SC_ROMA_WORKER_API_WORKER_CRASHED;
 using google::scp::roma::sandbox::constants::kBadFd;
-using std::numeric_limits;
 
 namespace google::scp::roma::sandbox::worker_api {
 

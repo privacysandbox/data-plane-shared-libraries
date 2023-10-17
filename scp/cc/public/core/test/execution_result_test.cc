@@ -28,8 +28,6 @@
 
 using google::scp::core::common::GlobalLogger;
 using google::scp::core::logger::mock::MockLogger;
-using std::function;
-using std::pair;
 using testing::_;
 using testing::ElementsAre;
 using testing::Eq;
@@ -116,7 +114,7 @@ TEST(MacroTest, RETURN_IF_FAILURETest) {
   }
 
   {
-    auto helper = [](function<ExecutionResult()> fun,
+    auto helper = [](std::function<ExecutionResult()> fun,
                      bool& succeeded) -> ExecutionResult {
       RETURN_IF_FAILURE(fun());
       succeeded = true;
@@ -281,7 +279,7 @@ TEST_F(MacroLogTest, ASSIGN_OR_RETURNLogTest) {
 }
 
 TEST(MacroTest, ASSIGN_OR_RETURNFunctionTest) {
-  auto helper = [](function<ExecutionResultOr<int>()> fun,
+  auto helper = [](std::function<ExecutionResultOr<int>()> fun,
                    int& val) -> ExecutionResult {
     ASSIGN_OR_RETURN(val, fun());
     val++;
@@ -338,7 +336,7 @@ TEST(MacroTest, ASSIGN_OR_RETURNDeclareWorksInline) {
 
 TEST(MacroTest, ASSIGN_OR_RETURNWorksWithInnerMembers) {
   auto helper = [](ExecutionResultOr<int> result_or) -> ExecutionResultOr<int> {
-    pair<int, std::string> pair;
+    std::pair<int, std::string> pair;
     ASSIGN_OR_RETURN(pair.first, result_or);
     return pair.first;
   };

@@ -24,7 +24,6 @@
 #include <vector>
 
 using std::thread;
-using std::unordered_set;
 
 namespace google::scp::proxy {
 

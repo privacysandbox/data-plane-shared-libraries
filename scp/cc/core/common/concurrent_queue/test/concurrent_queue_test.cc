@@ -30,7 +30,6 @@ using google::scp::core::common::ConcurrentQueue;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::ScpTestBase;
 
-using std::atomic;
 using std::thread;
 
 namespace google::scp::core::common::test {
@@ -67,7 +66,7 @@ TEST_F(ConcurrentQueueTests, MultiThreadedEnqueue) {
   ConcurrentQueue<int> queue(100);
 
   std::vector<thread> threads;
-  std::vector<atomic<uint64_t>> bitmap((1000 + 63) / 64);
+  std::vector<std::atomic<uint64_t>> bitmap((1000 + 63) / 64);
 
   for (auto i = 0; i < 1000; ++i) {
     threads.push_back(thread([i, &queue, &bitmap]() {

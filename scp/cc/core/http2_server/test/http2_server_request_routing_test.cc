@@ -63,7 +63,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricInstanceFactory;
 using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
-using std::promise;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using testing::_;

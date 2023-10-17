@@ -62,9 +62,6 @@ using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using json = nlohmann::json;
 using google::cloud::spanner::MakeInsertOrUpdateMutation;
-using std::optional;
-using std::pair;
-using std::unordered_map;
 
 constexpr char kGcpSpanner[] = "GcpSpanner";
 
@@ -88,7 +85,8 @@ constexpr double kTransactionRetryBackoffMultiplier = 2.0;
 // not present.
 template <typename Request>
 ExecutionResult ValidatePartitionAndSortKey(
-    const unordered_map<std::string, pair<std::string, optional<std::string>>>*
+    const std::unordered_map<
+        std::string, std::pair<std::string, std::optional<std::string>>>*
         table_name_to_keys,
     const Request& req) {
   if (!table_name_to_keys) return SuccessExecutionResult();
@@ -401,10 +399,9 @@ GcpSpanner::UpsertSelectOptions::BuildUpsertSelectOptions(
   return upsert_select_options;
 }
 
-ExecutionResult GcpSpanner::GetMergedJson(RowStream& row_stream,
-                                          bool enforce_row_existence,
-                                          json new_attributes,
-                                          optional<SpannerJson>& spanner_json) {
+ExecutionResult GcpSpanner::GetMergedJson(
+    RowStream& row_stream, bool enforce_row_existence, json new_attributes,
+    std::optional<SpannerJson>& spanner_json) {
   auto row_it = row_stream.begin();
   if (!row_it->ok()) {
     auto result = GcpSpannerUtils::ConvertCloudSpannerErrorToExecutionResult(
@@ -476,7 +473,7 @@ Mutations GcpSpanner::UpsertFunctor(
   auto row_stream =
       client.ExecuteQuery(txn, upsert_select_options.select_statement);
 
-  optional<SpannerJson> spanner_json;
+  std::optional<SpannerJson> spanner_json;
   prepare_result = GetMergedJson(row_stream, enforce_row_existence,
                                  std::move(new_attributes), spanner_json);
   if (!prepare_result.Successful()) {

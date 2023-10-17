@@ -65,7 +65,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockSSMClient;
-using std::atomic;
 using testing::NiceMock;
 using testing::Return;
 
@@ -159,7 +158,7 @@ TEST_F(AwsParameterClientProviderTest, FailedToFetchParameters) {
   GetParametersOutcome outcome(error);
   mock_ssm_client_->get_parameters_outcome_mock = outcome;
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -179,7 +178,7 @@ TEST_F(AwsParameterClientProviderTest, InvalidParameterName) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   auto request = std::make_shared<GetParameterRequest>();
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
@@ -201,7 +200,7 @@ TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
   EXPECT_SUCCESS(client_->Run());
   MockParameters();
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name("invalid_parameter");
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -231,7 +230,7 @@ TEST_F(AwsParameterClientProviderTest, MultipleParametersFound) {
   GetParametersOutcome get_parameters_outcome(result);
   mock_ssm_client_->get_parameters_outcome_mock = get_parameters_outcome;
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -253,7 +252,7 @@ TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
 
   MockParameters();
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context1(

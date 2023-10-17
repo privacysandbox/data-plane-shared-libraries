@@ -68,7 +68,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricClientFactory;
 using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
-using std::atomic;
 using std::cout;
 using std::endl;
 using std::thread;
@@ -160,7 +159,7 @@ class HttpServerLoadTest : public testing::Test {
   std::shared_ptr<AsyncExecutorInterface> async_executor_for_client_;
   std::shared_ptr<HttpServerInterface> http_server_;
   std::shared_ptr<HttpClientInterface> http2_client_;
-  atomic<size_t> total_requests_received_on_server = 0;
+  std::atomic<size_t> total_requests_received_on_server = 0;
 };
 
 TEST_F(HttpServerLoadTest,
@@ -174,7 +173,7 @@ TEST_F(HttpServerLoadTest,
   size_t connections_per_client = 1;
   size_t client_connection_read_timeout_in_seconds = 4;
 
-  atomic<bool> is_qps_thread_stopped = false;
+  std::atomic<bool> is_qps_thread_stopped = false;
   thread qps_thread([this, &is_qps_thread_stopped]() {
     auto req_prev = total_requests_received_on_server.load();
     while (!is_qps_thread_stopped) {
@@ -195,7 +194,7 @@ TEST_F(HttpServerLoadTest,
         total_requests_received_on_server;
 
     // Reset the counter to process new clients.
-    atomic<size_t> client_requests_completed_in_current_round = 0;
+    std::atomic<size_t> client_requests_completed_in_current_round = 0;
 
     // Initialize a bunch of clients.
     std::vector<std::shared_ptr<HttpClientInterface>> http2_clients;

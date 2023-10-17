@@ -40,7 +40,6 @@ using google::scp::cpio::LogOption;
 using google::scp::cpio::MetricClientFactory;
 using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricClientOptions;
-using std::atomic;
 using std::chrono::milliseconds;
 
 int main(int argc, char* argv[]) {
@@ -77,7 +76,7 @@ int main(int argc, char* argv[]) {
   auto& labels = *metric->mutable_labels();
   labels[std::string("label_key")] = std::string("label_value");
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   auto context = AsyncContext<PutMetricsRequest, PutMetricsResponse>(
       std::move(request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse> context) {

@@ -55,7 +55,6 @@ using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_METRIC_LIMIT_REACHED_PER_REQUEST;
 using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_OVERSIZE_DATUM_DIMENSIONS;
-using std::map;
 using std::chrono::duration_cast;
 using std::chrono::hours;
 using std::chrono::seconds;
@@ -66,7 +65,7 @@ static constexpr int kTwoWeeksSecondsCount =
 static constexpr int kTwoHoursSecondsCount =
     duration_cast<seconds>(hours(2)).count();
 
-static const map<MetricUnit, StandardUnit> kAwsMetricUnitMap = {
+static const std::map<MetricUnit, StandardUnit> kAwsMetricUnitMap = {
     {MetricUnit::METRIC_UNIT_UNKNOWN, StandardUnit::NOT_SET},
     {MetricUnit::METRIC_UNIT_SECONDS, StandardUnit::Seconds},
     {MetricUnit::METRIC_UNIT_MICROSECONDS, StandardUnit::Microseconds},

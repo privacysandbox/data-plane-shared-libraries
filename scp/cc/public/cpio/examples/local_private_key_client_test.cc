@@ -38,7 +38,6 @@ using google::scp::cpio::PrivateKeyClientOptions;
 using google::scp::cpio::PrivateKeyVendingEndpoint;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
-using std::atomic;
 using std::chrono::milliseconds;
 
 constexpr char kPrivateKeyEndpoint1[] = "https://test.privatekey1.com";
@@ -93,7 +92,7 @@ int main(int argc, char* argv[]) {
 
   ListPrivateKeysRequest request;
   request.add_key_ids(kKeyId1);
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   result = private_key_client->ListPrivateKeys(
       std::move(request),
       [&](const ExecutionResult result, ListPrivateKeysResponse response) {

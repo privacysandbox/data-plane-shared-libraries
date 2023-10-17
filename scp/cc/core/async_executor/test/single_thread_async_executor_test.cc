@@ -33,7 +33,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::common::TimeProvider;
-using std::atomic;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::nanoseconds;
@@ -141,7 +140,7 @@ TEST(SingleThreadAsyncExecutorTests, CountWorkSingleThread) {
   executor.Init();
   executor.Run();
   {
-    atomic<int> count(0);
+    std::atomic<int> count(0);
     for (int i = 0; i < queue_cap / 2; i++) {
       executor.Schedule([&]() { count++; }, AsyncPriority::Normal);
       executor.Schedule([&]() { count++; }, AsyncPriority::High);
@@ -164,7 +163,7 @@ TEST_P(AffinityTest, CountWorkSingleThreadWithAffinity) {
   executor.Init();
   executor.Run();
   {
-    atomic<int> count(0);
+    std::atomic<int> count(0);
     for (int i = 0; i < queue_cap / 2; i++) {
       executor.Schedule(
           [&]() {
@@ -209,7 +208,7 @@ TEST(SingleThreadAsyncExecutorTests, CountWorkMultipleThread) {
   executor.Init();
   executor.Run();
 
-  atomic<int> count(0);
+  std::atomic<int> count(0);
   for (int i = 0; i < queue_cap / 2; i++) {
     executor.Schedule([&]() { count++; }, AsyncPriority::Normal);
     executor.Schedule([&]() { count++; }, AsyncPriority::High);
@@ -271,8 +270,8 @@ TEST(SingleThreadAsyncExecutorTests, FinishWorkWhenStopInMiddle) {
   executor.Init();
   executor.Run();
 
-  atomic<int> normal_count(0);
-  atomic<int> medium_count(0);
+  std::atomic<int> normal_count(0);
+  std::atomic<int> medium_count(0);
   for (int i = 0; i < queue_cap / 2; i++) {
     executor.Schedule(
         [&]() {

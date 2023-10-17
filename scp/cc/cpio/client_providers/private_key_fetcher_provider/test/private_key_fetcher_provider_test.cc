@@ -52,7 +52,6 @@ using google::scp::cpio::client_providers::PrivateKeyFetchingRequest;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using google::scp::cpio::client_providers::mock::
     MockPrivateKeyFetcherProviderWithOverrides;
-using std::atomic;
 
 static constexpr char kKeyId[] = "123";
 static constexpr char kRegion[] = "region";
@@ -141,7 +140,7 @@ TEST_F(PrivateKeyFetcherProviderTest, FetchPrivateKey) {
     ]
   })");
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       request_, [&](AsyncContext<PrivateKeyFetchingRequest,
@@ -163,7 +162,7 @@ TEST_F(PrivateKeyFetcherProviderTest, FailedToFetchPrivateKey) {
   ExecutionResult result = FailureExecutionResult(SC_UNKNOWN);
   http_client_->http_get_result_mock = result;
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       std::move(request_),
       [&](AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
@@ -180,7 +179,7 @@ TEST_F(PrivateKeyFetcherProviderTest, FailedToSignHttpRequest) {
   ExecutionResult result = FailureExecutionResult(SC_UNKNOWN);
   private_key_fetcher_provider_->sign_http_request_result_mock = result;
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       std::move(request_),
       [&](AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
@@ -206,7 +205,7 @@ TEST_F(PrivateKeyFetcherProviderTest, PrivateKeyNotFound) {
         "ttlTime": 0
     })");
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       std::move(request_),
       [&](AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&

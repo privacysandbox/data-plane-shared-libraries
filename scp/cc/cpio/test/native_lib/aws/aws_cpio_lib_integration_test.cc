@@ -73,7 +73,6 @@ using google::scp::cpio::TestAwsParameterClient;
 using google::scp::cpio::TestAwsParameterClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
-using std::atomic;
 using std::runtime_error;
 using std::thread;
 using std::chrono::milliseconds;
@@ -232,7 +231,7 @@ TEST_F(CpioIntegrationTest, MetricClientPutMetricsSuccessfully) {
   for (auto i = 0; i < 2; ++i) {
     threads.push_back(thread([&]() {
       for (auto j = 0; j < 5; j++) {
-        atomic<bool> finished = false;
+        std::atomic<bool> finished = false;
         auto context = AsyncContext<PutMetricsRequest, PutMetricsResponse>(
             CreatePutMetricsRequest(),
             [&](AsyncContext<PutMetricsRequest, PutMetricsResponse> context) {
@@ -255,7 +254,7 @@ TEST_F(CpioIntegrationTest, MetricClientPutMetricsSuccessfully) {
 TEST_F(CpioIntegrationTest, ParameterClientGetParameterSuccessfully) {
   CreateParameterClientAndSetupData();
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   GetParameterRequest request;
   request.set_parameter_name(kParameterName);
   EXPECT_EQ(
@@ -274,7 +273,7 @@ TEST_F(CpioIntegrationTest, ParameterClientGetParameterSuccessfully) {
 TEST_F(CpioIntegrationTest, BlobStorageClientPutBlobSuccessfully) {
   CreateBlobStorageClientAndSetupData();
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   auto request = std::make_shared<PutBlobRequest>();
   request->mutable_blob()->mutable_metadata()->set_bucket_name(kBucketName);
   request->mutable_blob()->mutable_metadata()->set_blob_name(kBlobName);
@@ -296,7 +295,7 @@ TEST_F(CpioIntegrationTest, KmsClientDecryptSuccessfully) {
   std::string ciphertext;
   CreateKmsClientAndSetupData(key_resource_name, ciphertext);
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   auto request = std::make_shared<DecryptRequest>();
   request->set_ciphertext(ciphertext);
   request->set_kms_region("us-east-1");

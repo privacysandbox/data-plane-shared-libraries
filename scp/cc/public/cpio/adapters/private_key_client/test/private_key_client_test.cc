@@ -43,7 +43,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::PrivateKeyClient;
 using google::scp::cpio::PrivateKeyClientOptions;
 using google::scp::cpio::mock::MockPrivateKeyClientWithOverrides;
-using std::atomic;
 
 namespace google::scp::cpio::test {
 class PrivateKeyClientTest : public ::testing::Test {
@@ -73,7 +72,7 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysSuccess) {
         return SuccessExecutionResult();
       });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->ListPrivateKeys(ListPrivateKeysRequest(),
                                        [&](const ExecutionResult result,
                                            ListPrivateKeysResponse response) {
@@ -93,7 +92,7 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysFailure) {
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(
       client_->ListPrivateKeys(
           ListPrivateKeysRequest(),

@@ -66,7 +66,6 @@ using google::scp::core::nosql_database_provider::aws::mock::MockAwsDynamoDB;
 using google::scp::core::nosql_database_provider::aws::mock::
     MockAwsDynamoDBClient;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
 using std::mt19937;
 using std::uniform_int_distribution;
 

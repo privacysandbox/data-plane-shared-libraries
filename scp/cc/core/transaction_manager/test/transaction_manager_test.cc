@@ -54,8 +54,6 @@ using google::scp::core::transaction_manager::mock::MockTransactionManager;
 using google::scp::cpio::MetricInstanceFactory;
 using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
-using std::atomic;
-using std::list;
 using std::thread;
 
 namespace google::scp::core::test {
@@ -305,7 +303,7 @@ TEST_F(TransactionManagerTests, ExecuteValidation) {
           return SuccessExecutionResult();
         };
 
-    atomic<size_t> total = 0;
+    std::atomic<size_t> total = 0;
     std::vector<thread> threads;
     mock_async_executor->schedule_mock = [&](AsyncOperation work) {
       threads.push_back(thread([work = std::move(work)]() mutable { work(); }));
@@ -376,7 +374,7 @@ TEST_F(TransactionManagerTests, StopValidation) {
     transaction_manager.GetActiveTransactionsCount()++;
     transaction_manager.GetActiveTransactionsCount()++;
 
-    atomic<bool> finished = false;
+    std::atomic<bool> finished = false;
     thread decrement_active_transactions([&transaction_manager, &finished]() {
       transaction_manager.GetActiveTransactionsCount() -= 2;
       finished = true;
@@ -417,7 +415,7 @@ TEST_F(TransactionManagerTests, CannotCheckpointIfRunning) {
   MockTransactionManager transaction_manager(async_executor, transaction_engine,
                                              1, mock_metric_instance_factory_);
   transaction_manager.Init();
-  auto checkpoint_logs = std::make_shared<list<CheckpointLog>>();
+  auto checkpoint_logs = std::make_shared<std::list<CheckpointLog>>();
   EXPECT_SUCCESS(transaction_manager.Checkpoint(checkpoint_logs));
 
   transaction_manager.Run();

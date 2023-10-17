@@ -34,8 +34,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::common::TimeProvider;
-using std::atomic;
-using std::function;
 using std::chrono::duration_cast;
 using std::chrono::hours;
 using std::chrono::milliseconds;
@@ -131,7 +129,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, CountWorkSingleThread) {
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
 
-  atomic<int> count(0);
+  std::atomic<int> count(0);
   for (int i = 0; i < queue_cap; i++) {
     EXPECT_SUCCESS(executor.ScheduleFor([&]() { count++; }, 123456));
   }
@@ -153,7 +151,7 @@ TEST_P(AffinityTest, CountWorkSingleThreadWithAffinity) {
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
 
-  atomic<int> count(0);
+  std::atomic<int> count(0);
   for (int i = 0; i < queue_cap; i++) {
     EXPECT_SUCCESS(executor.ScheduleFor(
         [&]() {
@@ -190,7 +188,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, OrderedTasksExecution) {
   auto one_second = duration_cast<nanoseconds>(seconds(1)).count();
   auto two_seconds = duration_cast<nanoseconds>(seconds(2)).count();
 
-  atomic<size_t> counter(0);
+  std::atomic<size_t> counter(0);
   EXPECT_SUCCESS(
       executor.ScheduleFor([&]() { EXPECT_EQ(counter++, 2); },
                            task.GetExecutionTimestamp() + two_seconds));
@@ -244,7 +242,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, FinishWorkWhenStopInMiddle) {
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
 
-  atomic<int> urgent_count(0);
+  std::atomic<int> urgent_count(0);
   for (int i = 0; i < queue_cap; i++) {
     EXPECT_SUCCESS(executor.ScheduleFor(
         [&]() {
@@ -268,7 +266,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, TaskCancellation) {
   EXPECT_SUCCESS(executor.Run());
 
   for (int i = 0; i < queue_cap; i++) {
-    function<bool()> cancellation_callback;
+    std::function<bool()> cancellation_callback;
     Timestamp next_clock =
         (TimeProvider::GetSteadyTimestampInNanoseconds() + milliseconds(500))
             .count();
@@ -291,7 +289,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests,
   EXPECT_SUCCESS(executor.Run());
 
   for (int i = 0; i < queue_cap; i++) {
-    function<bool()> cancellation_callback;
+    std::function<bool()> cancellation_callback;
     auto far_ahead_timestamp =
         (TimeProvider::GetSteadyTimestampInNanoseconds() + hours(24)).count();
 

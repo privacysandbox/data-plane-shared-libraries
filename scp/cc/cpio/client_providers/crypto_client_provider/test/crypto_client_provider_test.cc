@@ -67,8 +67,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::ScpTestBase;
 using google::scp::core::test::WaitUntil;
 using google::scp::core::utils::Base64Encode;
-using std::atomic;
-using std::function;
 
 namespace google::scp::cpio::client_providers::test {
 constexpr char kKeyId[] = "key_id";

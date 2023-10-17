@@ -46,7 +46,6 @@ using google::scp::core::errors::SC_NO_SQL_DATABASE_PROVIDER_UNRETRIABLE_ERROR;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
-using std::pair;
 using testing::Eq;
 using testing::Optional;
 using testing::Pair;
@@ -200,8 +199,8 @@ TEST(AwsNoSQLDatabaseClientUtilsTests,
               IsSuccessfulAndHolds(attribute_value));
 }
 
-class AwsDynamoDBErrorTest
-    : public testing::TestWithParam<pair<DynamoDBErrors, ExecutionResult>> {
+class AwsDynamoDBErrorTest : public testing::TestWithParam<
+                                 std::pair<DynamoDBErrors, ExecutionResult>> {
  protected:
   DynamoDBErrors GetErrorToConvert() { return std::get<0>(GetParam()); }
 

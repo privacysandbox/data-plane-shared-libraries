@@ -58,7 +58,6 @@ using google::scp::core::errors::
     SC_TEE_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
 using google::scp::cpio::common::CreateClientConfiguration;
-using std::array;
 
 /// Filename for logging errors
 static constexpr char kTeeAwsKmsClientProvider[] = "TeeAwsKmsClientProvider";
@@ -220,7 +219,7 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 
 ExecutionResult TeeAwsKmsClientProvider::DecryptUsingEnclavesKmstoolCli(
     const std::string& command, std::string& plaintext) noexcept {
-  array<char, kBufferSize> buffer;
+  std::array<char, kBufferSize> buffer;
   std::string result;
   auto pipe = popen(command.c_str(), "r");
   if (!pipe) {

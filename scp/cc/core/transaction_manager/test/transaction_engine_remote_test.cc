@@ -61,15 +61,13 @@ using google::scp::core::transaction_manager::proto::TransactionEngineLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
-using std::atomic;
-using std::function;
 using std::thread;
 using std::chrono::milliseconds;
 
 namespace google::scp::core::test {
 
 TEST(TransactionEngineRemoteTest, VerifyExecuteRemoteOperation) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
@@ -334,7 +332,7 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseNonmatchingTransactionEndPhase) {
 void ExecutePhaseProperCallbacksCalled(
     TransactionPhase transaction_phase,
     TransactionExecutionPhase requested_phase,
-    function<void(MockTransactionEngine&)> mock_function) {
+    std::function<void(MockTransactionEngine&)> mock_function) {
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
   std::shared_ptr<AsyncExecutorInterface> async_executor =
@@ -383,8 +381,8 @@ void ExecutePhaseProperCallbacksCalled(
 }
 
 TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledBegin) {
-  atomic<bool> condition = false;
-  function<void(MockTransactionEngine&)> mock =
+  std::atomic<bool> condition = false;
+  std::function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.begin_transaction_mock =
             [&](std::shared_ptr<Transaction>& transaction) {
@@ -399,8 +397,8 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledBegin) {
 }
 
 TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledPrepare) {
-  atomic<bool> condition = false;
-  function<void(MockTransactionEngine&)> mock =
+  std::atomic<bool> condition = false;
+  std::function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.prepare_transaction_mock =
             [&](std::shared_ptr<Transaction>& transaction) {
@@ -415,8 +413,8 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledPrepare) {
 }
 
 TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledCommit) {
-  atomic<bool> condition = false;
-  function<void(MockTransactionEngine&)> mock =
+  std::atomic<bool> condition = false;
+  std::function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.commit_transaction_mock =
             [&](std::shared_ptr<Transaction>& transaction) {
@@ -432,8 +430,8 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledCommit) {
 
 TEST(TransactionEngineRemoteTest,
      ExecutePhaseProperCallbacksCalledCommitNotify) {
-  atomic<bool> condition = false;
-  function<void(MockTransactionEngine&)> mock =
+  std::atomic<bool> condition = false;
+  std::function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.commit_notify_transaction_mock =
             [&](std::shared_ptr<Transaction>& transaction) {
@@ -449,8 +447,8 @@ TEST(TransactionEngineRemoteTest,
 
 TEST(TransactionEngineRemoteTest,
      ExecutePhaseProperCallbacksCalledAbortNotify) {
-  atomic<bool> condition = false;
-  function<void(MockTransactionEngine&)> mock =
+  std::atomic<bool> condition = false;
+  std::function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.abort_notify_transaction_mock =
             [&](std::shared_ptr<Transaction>& transaction) {
@@ -467,8 +465,8 @@ TEST(TransactionEngineRemoteTest,
 }
 
 TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledEnd) {
-  atomic<bool> condition = false;
-  function<void(MockTransactionEngine&)> mock =
+  std::atomic<bool> condition = false;
+  std::function<void(MockTransactionEngine&)> mock =
       [&](MockTransactionEngine& transaction_engine) {
         transaction_engine.end_transaction_mock =
             [&](std::shared_ptr<Transaction>& transaction) {
@@ -496,7 +494,7 @@ TEST(TransactionEngineRemoteTest, ExecutePhaseProperCallbacksCalledEnd) {
 }
 
 TEST(TransactionEngineRemoteTest, ProceedToNextPhaseRemotely) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
   std::shared_ptr<AsyncExecutorInterface> async_executor =
@@ -538,7 +536,7 @@ TEST(TransactionEngineRemoteTest, ProceedToNextPhaseRemotely) {
 }
 
 TEST(TransactionEngineRemoteTest, ProceedToNextPhaseRemotelyFailed) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
   std::shared_ptr<AsyncExecutorInterface> async_executor =

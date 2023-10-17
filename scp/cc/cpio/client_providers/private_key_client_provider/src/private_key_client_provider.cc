@@ -48,7 +48,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_PRIVATE_KEY_CLIENT_PROVIDER_UNMATCHED_ENDPOINTS_SPLITS;
 using google::scp::core::utils::Base64Encode;
-using std::atomic;
 
 static constexpr char kPrivateKeyClientProvider[] = "PrivateKeyClientProvider";
 

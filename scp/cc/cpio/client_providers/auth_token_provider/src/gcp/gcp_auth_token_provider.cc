@@ -51,7 +51,6 @@ using google::scp::core::errors::
 using google::scp::core::utils::Base64Decode;
 using google::scp::core::utils::PadBase64Encoding;
 using nlohmann::json;
-using std::pair;
 using std::chrono::seconds;
 
 namespace {
@@ -84,7 +83,7 @@ constexpr char kJsonTokenExpiryKeyForTargetAudience[] = "exp";
 const auto& GetRequiredJWTComponents() {
   static char const* components[3];
   using iterator_type = decltype(std::cbegin(components));
-  static pair<iterator_type, iterator_type> iterator_pair = []() {
+  static std::pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kJsonAccessTokenKey;
     components[1] = kJsonTokenExpiryKey;
     components[2] = kJsonTokenTypeKey;
@@ -97,7 +96,7 @@ const auto& GetRequiredJWTComponents() {
 const auto& GetRequiredJWTComponentsForTargetAudienceToken() {
   static char const* components[5];
   using iterator_type = decltype(std::cbegin(components));
-  static pair<iterator_type, iterator_type> iterator_pair = []() {
+  static std::pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kJsonTokenIssuerKey;
     components[1] = kJsonTokenAudienceKey;
     components[2] = kJsonTokenSubjectKey;

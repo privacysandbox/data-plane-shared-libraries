@@ -38,7 +38,6 @@ using google::scp::cpio::LogOption;
 using google::scp::cpio::ParameterClientFactory;
 using google::scp::cpio::ParameterClientInterface;
 using google::scp::cpio::ParameterClientOptions;
-using std::atomic;
 
 static constexpr char kTestParameterName[] = "test_parameter";
 
@@ -67,7 +66,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   GetParameterRequest get_parameter_request;
   get_parameter_request.set_parameter_name(kTestParameterName);
   result = parameter_client->GetParameter(

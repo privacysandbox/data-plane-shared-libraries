@@ -52,7 +52,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::utils::Base64Decode;
 using google::scp::core::utils::Base64Encode;
 using helloworld::HelloWorld;
-using std::tuple;
 
 namespace {
 constexpr char kHelloWorldName[] = "hello";
@@ -134,8 +133,9 @@ Item CreateJobAsDatabaseItem(
 
 namespace google::scp::cpio::client_providers::test {
 
-class JobClientUtilsTest : public ::testing::TestWithParam<
-                               tuple<JobStatus, JobStatus, ExecutionResult>> {
+class JobClientUtilsTest
+    : public ::testing::TestWithParam<
+          std::tuple<JobStatus, JobStatus, ExecutionResult>> {
  public:
   JobStatus GetCurrentStatus() const { return std::get<0>(GetParam()); }
 

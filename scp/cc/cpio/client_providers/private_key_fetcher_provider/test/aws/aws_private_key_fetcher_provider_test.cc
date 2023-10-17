@@ -56,7 +56,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
-using std::atomic;
 
 namespace {
 constexpr char kAccountIdentity[] = "accountIdentity";
@@ -135,7 +134,7 @@ TEST_F(AwsPrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
 }
 
 TEST_F(AwsPrivateKeyFetcherProviderTest, SignHttpRequest) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<PrivateKeyFetchingRequest, HttpRequest> context(
       request_,
@@ -153,7 +152,7 @@ TEST_F(AwsPrivateKeyFetcherProviderTest, SignHttpRequest) {
 TEST_F(AwsPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
   credentials_provider_->fail_credentials = true;
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<PrivateKeyFetchingRequest, HttpRequest> context(
       request_,

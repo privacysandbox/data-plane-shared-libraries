@@ -83,7 +83,6 @@ using google::scp::cpio::client_providers::PublicKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PublicKeyClientProviderInterface;
 using std::cout;
 using std::endl;
-using std::list;
 using std::runtime_error;
 
 namespace {
@@ -175,7 +174,7 @@ void RunClients() {
   Run(async_executor, kAsyncExecutorName);
 
   http_client = std::make_shared<HttpClient>(async_executor);
-  list<std::string> public_key_vending_service_endpoints;
+  std::list<std::string> public_key_vending_service_endpoints;
   ReadConfigStringList(config_provider, kPublicKeyVendingServiceEndpoints,
                        public_key_vending_service_endpoints);
   Init(http_client, kHttpClientName);

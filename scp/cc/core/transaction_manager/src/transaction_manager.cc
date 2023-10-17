@@ -45,9 +45,6 @@ using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MetricName;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MetricUtils;
-using std::atomic;
-using std::function;
-using std::list;
 using std::mutex;
 using std::thread;
 using std::unique_lock;
@@ -176,7 +173,7 @@ ExecutionResult TransactionManager::Execute(
     return FailureExecutionResult(errors::SC_TRANSACTION_MANAGER_NOT_STARTED);
   }
 
-  function<void()> task = [this, transaction_context]() mutable {
+  std::function<void()> task = [this, transaction_context]() mutable {
     active_transactions_metric_->Increment(kMetricEventReceivedTransaction);
 
     // To avoid circular dependency we create a copy. We need to decrement
@@ -231,7 +228,7 @@ ExecutionResult TransactionManager::ExecutePhase(
     return FailureExecutionResult(errors::SC_TRANSACTION_MANAGER_NOT_STARTED);
   }
 
-  function<void()> task = [this, transaction_phase_context]() mutable {
+  std::function<void()> task = [this, transaction_phase_context]() mutable {
     active_transactions_metric_->Increment(kMetricEventReceivedTransaction);
     // To avoid circular dependency we create a copy. We need to decrement
     // the active transactions.
@@ -269,7 +266,7 @@ ExecutionResult TransactionManager::ExecutePhase(
 }
 
 ExecutionResult TransactionManager::Checkpoint(
-    std::shared_ptr<list<CheckpointLog>>& checkpoint_logs) noexcept {
+    std::shared_ptr<std::list<CheckpointLog>>& checkpoint_logs) noexcept {
   if (started_) {
     return FailureExecutionResult(
         errors::SC_TRANSACTION_MANAGER_CANNOT_CREATE_CHECKPOINT_WHEN_STARTED);

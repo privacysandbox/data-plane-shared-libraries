@@ -25,7 +25,6 @@
 
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::TimeProvider;
-using std::atomic;
 using std::mutex;
 using std::thread;
 using std::unique_lock;

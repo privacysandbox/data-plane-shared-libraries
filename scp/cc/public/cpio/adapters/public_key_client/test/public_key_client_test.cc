@@ -42,7 +42,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::PublicKeyClient;
 using google::scp::cpio::PublicKeyClientOptions;
 using google::scp::cpio::mock::MockPublicKeyClientWithOverrides;
-using std::atomic;
 using testing::Return;
 
 namespace google::scp::cpio::test {
@@ -72,7 +71,7 @@ TEST_F(PublicKeyClientTest, ListPublicKeysSuccess) {
         return SuccessExecutionResult();
       });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->ListPublicKeys(ListPublicKeysRequest(),
                                       [&](const ExecutionResult result,
                                           ListPublicKeysResponse response) {
@@ -92,7 +91,7 @@ TEST_F(PublicKeyClientTest, ListPublicKeysFailure) {
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(
       client_->ListPublicKeys(
           ListPublicKeysRequest(),

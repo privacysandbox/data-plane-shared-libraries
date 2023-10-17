@@ -50,8 +50,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
-using std::atomic_bool;
 using std::thread;
 using std::chrono::seconds;
 using testing::Contains;
@@ -138,7 +136,7 @@ TEST_F(GcpAuthTokenProviderTest,
     return SuccessExecutionResult();
   });
 
-  atomic_bool finished(false);
+  std::atomic_bool finished(false);
   fetch_token_context_.callback = [&finished](auto& context) {
     EXPECT_SUCCESS(context.result);
     if (!context.response) {
@@ -163,7 +161,7 @@ TEST_F(GcpAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
     return SuccessExecutionResult();
   });
 
-  atomic_bool finished(false);
+  std::atomic_bool finished(false);
   fetch_token_context_.callback = [&finished](auto& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
     finished = true;
@@ -242,7 +240,7 @@ TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
     return SuccessExecutionResult();
   });
 
-  atomic_bool finished(false);
+  std::atomic_bool finished(false);
   fetch_token_for_target_audience_context_.callback =
       [&finished](auto& context) {
         EXPECT_SUCCESS(context.result);
@@ -267,7 +265,7 @@ TEST_F(GcpAuthTokenProviderTest,
     return SuccessExecutionResult();
   });
 
-  atomic_bool finished(false);
+  std::atomic_bool finished(false);
   fetch_token_for_target_audience_context_.callback = [&finished](
                                                           auto& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));

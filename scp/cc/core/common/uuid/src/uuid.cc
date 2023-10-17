@@ -27,7 +27,6 @@
 
 #include "error_codes.h"
 
-using std::atomic;
 using std::mt19937;
 using std::uniform_int_distribution;
 
@@ -36,7 +35,7 @@ static constexpr char kHexMap[] = {"0123456789ABCDEF"};
 namespace google::scp::core::common {
 Uuid Uuid::GenerateUuid() noexcept {
   // TODO: Might want to use GetUniqueWallTimestampInNanoseconds()
-  static atomic<Timestamp> current_clock(
+  static std::atomic<Timestamp> current_clock(
       TimeProvider::GetWallTimestampInNanosecondsAsClockTicks());
 
   uint64_t high = current_clock.fetch_add(1);

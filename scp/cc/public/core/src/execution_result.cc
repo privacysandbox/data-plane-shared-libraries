@@ -21,19 +21,17 @@
 
 #include "core/common/proto/common.pb.h"
 
-using std::map;
-
 namespace google::scp::core {
-map<core::common::proto::ExecutionStatus, ExecutionStatus> ReverseMap(
-    const map<ExecutionStatus, core::common::proto::ExecutionStatus>& m) {
-  map<core::common::proto::ExecutionStatus, ExecutionStatus> r;
+std::map<core::common::proto::ExecutionStatus, ExecutionStatus> ReverseMap(
+    const std::map<ExecutionStatus, core::common::proto::ExecutionStatus>& m) {
+  std::map<core::common::proto::ExecutionStatus, ExecutionStatus> r;
   for (const auto& kv : m) {
     r[kv.second] = kv.first;
   }
   return r;
 }
 
-const map<ExecutionStatus, core::common::proto::ExecutionStatus>
+const std::map<ExecutionStatus, core::common::proto::ExecutionStatus>
     kExecutionStatusToProtoMap = {
         {ExecutionStatus::Success,
          core::common::proto::ExecutionStatus::EXECUTION_STATUS_SUCCESS},

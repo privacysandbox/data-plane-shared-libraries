@@ -61,7 +61,6 @@ using google::scp::cpio::client_providers::GcpMetricClientUtils;
 using google::scp::cpio::client_providers::mock::
     MockGcpMetricClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::atomic;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
@@ -185,7 +184,7 @@ TEST_F(GcpMetricClientProviderTest,
 
   auto metric_name =
       GcpMetricClientUtils::ConstructProjectName(kProjectIdValue);
-  atomic<int> received_metrics = 0;
+  std::atomic<int> received_metrics = 0;
   EXPECT_CALL(*connection_, AsyncCreateTimeSeries(RequestEquals(
                                 metric_name, kDifferentNamespace)))
       .WillRepeatedly([&](CreateTimeSeriesRequest const& request) {
@@ -216,7 +215,7 @@ TEST_F(GcpMetricClientProviderTest, MetricsBatchPush) {
 
   auto metric_name =
       GcpMetricClientUtils::ConstructProjectName(kProjectIdValue);
-  atomic<int> received_metrics = 0;
+  std::atomic<int> received_metrics = 0;
   EXPECT_CALL(*connection_,
               AsyncCreateTimeSeries(RequestEquals(metric_name, kNamespace)))
       .WillRepeatedly([&](CreateTimeSeriesRequest const& request) {
@@ -239,7 +238,7 @@ TEST_F(GcpMetricClientProviderTest, FailedMetricsBatchPush) {
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
-  atomic<int> metric_responses = 0;
+  std::atomic<int> metric_responses = 0;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
@@ -252,7 +251,7 @@ TEST_F(GcpMetricClientProviderTest, FailedMetricsBatchPush) {
 
   auto metric_name =
       GcpMetricClientUtils::ConstructProjectName(kProjectIdValue);
-  atomic<int> received_metrics = 0;
+  std::atomic<int> received_metrics = 0;
   EXPECT_CALL(*connection_,
               AsyncCreateTimeSeries(RequestEquals(metric_name, kNamespace)))
       .WillRepeatedly([&](CreateTimeSeriesRequest const& request) {
@@ -271,7 +270,7 @@ TEST_F(GcpMetricClientProviderTest, FailedMetricsBatchPush) {
 }
 
 TEST_F(GcpMetricClientProviderTest, AsyncCreateTimeSeriesCallback) {
-  atomic<int> received_responses = 0;
+  std::atomic<int> received_responses = 0;
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(

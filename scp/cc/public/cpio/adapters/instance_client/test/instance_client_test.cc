@@ -45,7 +45,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::mock::MockInstanceClientWithOverrides;
-using std::atomic;
 
 namespace google::scp::cpio::test {
 class InstanceClientTest : public ::testing::Test {
@@ -77,7 +76,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
             return SuccessExecutionResult();
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->GetCurrentInstanceResourceName(
                   GetCurrentInstanceResourceNameRequest(),
                   [&](const ExecutionResult result,
@@ -100,7 +99,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->GetCurrentInstanceResourceName(
                   GetCurrentInstanceResourceNameRequest(),
                   [&](const ExecutionResult result,
@@ -123,7 +122,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
         return SuccessExecutionResult();
       });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->GetTagsByResourceName(
                   GetTagsByResourceNameRequest(),
                   [&](const ExecutionResult result,
@@ -144,7 +143,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->GetTagsByResourceName(
                   GetTagsByResourceNameRequest(),
                   [&](const ExecutionResult result,
@@ -170,7 +169,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
             return SuccessExecutionResult();
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->GetInstanceDetailsByResourceName(
                   GetInstanceDetailsByResourceNameRequest(),
                   [&](const ExecutionResult result,
@@ -193,7 +192,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->GetInstanceDetailsByResourceName(
                   GetInstanceDetailsByResourceNameRequest(),
                   [&](const ExecutionResult result,

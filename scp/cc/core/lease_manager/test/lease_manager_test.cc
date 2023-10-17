@@ -29,9 +29,7 @@
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using std::atomic;
 using std::mutex;
-using std::optional;
 using std::thread;
 using std::unique_lock;
 using std::chrono::milliseconds;
@@ -52,16 +50,17 @@ TEST(LeaseManagerTest, InitStartRunStop) {
   EXPECT_SUCCESS(lease_manager.Init());
   EXPECT_EQ(lease_manager.ManageLeaseOnLock(
                 leasable_lock, [](LeaseTransitionType lease_transition_type,
-                                  optional<LeaseInfo> lease_owner) {}),
+                                  std::optional<LeaseInfo> lease_owner) {}),
             SuccessExecutionResult());
   EXPECT_SUCCESS(lease_manager.Run());
   // Run() on an already running lease manager should fail.
   EXPECT_NE(lease_manager.Run(), SuccessExecutionResult());
 
   // ManageLeaseOnLock() while LeaseManager is running should fail.
-  EXPECT_NE(lease_manager.ManageLeaseOnLock(
-                leasable_lock, [](LeaseTransitionType, optional<LeaseInfo>) {}),
-            SuccessExecutionResult());
+  EXPECT_NE(
+      lease_manager.ManageLeaseOnLock(
+          leasable_lock, [](LeaseTransitionType, std::optional<LeaseInfo>) {}),
+      SuccessExecutionResult());
 
   EXPECT_SUCCESS(lease_manager.Stop());
   // Stop() on an already running lease manager should fail.
@@ -78,7 +77,7 @@ TEST(LeaseManagerTest, StartsAndStopsThreads) {
   EXPECT_SUCCESS(lease_manager.Init());
   EXPECT_EQ(lease_manager.ManageLeaseOnLock(
                 leasable_lock, [](LeaseTransitionType lease_transition_type,
-                                  optional<LeaseInfo> lease_owner) {}),
+                                  std::optional<LeaseInfo> lease_owner) {}),
             SuccessExecutionResult());
   EXPECT_SUCCESS(lease_manager.Run());
   EXPECT_TRUE(lease_manager.IsLeaseEnforcerThreadStarted());
@@ -90,8 +89,8 @@ TEST(LeaseManagerTest, StartsAndStopsThreads) {
 }
 
 TEST(LeaseManagerTest, AcquiresAndRenewsLease) {
-  atomic<bool> process_terminated(false);
-  atomic<int> callback_counter(0);
+  std::atomic<bool> process_terminated(false);
+  std::atomic<int> callback_counter(0);
 
   LeaseInfo lease_acquirer_info;
   lease_acquirer_info.lease_acquirer_id = "123";
@@ -108,23 +107,23 @@ TEST(LeaseManagerTest, AcquiresAndRenewsLease) {
   leasable_lock->SetLeaseOwnerInfo(lease_acquirer_info);
   leasable_lock->AllowLeaseAcquire();
   EXPECT_SUCCESS(lease_manager.Init());
-  EXPECT_EQ(
-      lease_manager.ManageLeaseOnLock(
-          leasable_lock,
-          [&](LeaseTransitionType lease_transition, optional<LeaseInfo> owner) {
-            EXPECT_TRUE(owner.has_value());
-            if (callback_counter == 0) {
-              EXPECT_EQ(lease_transition, LeaseTransitionType::kAcquired);
-              EXPECT_EQ(owner->service_endpoint_address,
-                        lease_acquirer_info.service_endpoint_address);
-            } else {
-              EXPECT_EQ(lease_transition, LeaseTransitionType::kRenewed);
-              EXPECT_EQ(owner->service_endpoint_address,
-                        lease_acquirer_info.service_endpoint_address);
-            }
-            callback_counter++;
-          }),
-      SuccessExecutionResult());
+  EXPECT_EQ(lease_manager.ManageLeaseOnLock(
+                leasable_lock,
+                [&](LeaseTransitionType lease_transition,
+                    std::optional<LeaseInfo> owner) {
+                  EXPECT_TRUE(owner.has_value());
+                  if (callback_counter == 0) {
+                    EXPECT_EQ(lease_transition, LeaseTransitionType::kAcquired);
+                    EXPECT_EQ(owner->service_endpoint_address,
+                              lease_acquirer_info.service_endpoint_address);
+                  } else {
+                    EXPECT_EQ(lease_transition, LeaseTransitionType::kRenewed);
+                    EXPECT_EQ(owner->service_endpoint_address,
+                              lease_acquirer_info.service_endpoint_address);
+                  }
+                  callback_counter++;
+                }),
+            SuccessExecutionResult());
 
   EXPECT_SUCCESS(lease_manager.Run());
   while (callback_counter <= 1) {
@@ -135,8 +134,8 @@ TEST(LeaseManagerTest, AcquiresAndRenewsLease) {
 }
 
 TEST(LeaseManagerTest, LosesAndReacquiresLease) {
-  atomic<bool> process_terminated(false);
-  atomic<int> callback_counter = {0};
+  std::atomic<bool> process_terminated(false);
+  std::atomic<int> callback_counter = {0};
 
   LeaseInfo lease_acquirer_info;
   lease_acquirer_info.lease_acquirer_id = "123";
@@ -153,37 +152,38 @@ TEST(LeaseManagerTest, LosesAndReacquiresLease) {
   leasable_lock->SetLeaseOwnerInfo(lease_acquirer_info);
   leasable_lock->AllowLeaseAcquire();
   EXPECT_SUCCESS(lease_manager.Init());
-  EXPECT_EQ(
-      lease_manager.ManageLeaseOnLock(
-          leasable_lock,
-          [&](LeaseTransitionType lease_transition, optional<LeaseInfo> owner) {
-            if (callback_counter == 0) {
-              EXPECT_TRUE(owner.has_value());
-              EXPECT_EQ(lease_transition, LeaseTransitionType::kAcquired);
-              EXPECT_EQ(owner->service_endpoint_address,
-                        lease_acquirer_info.service_endpoint_address);
-            } else if (callback_counter == 1) {
-              EXPECT_TRUE(owner.has_value());
-              EXPECT_EQ(lease_transition, LeaseTransitionType::kRenewed);
-              EXPECT_EQ(owner->service_endpoint_address,
-                        lease_acquirer_info.service_endpoint_address);
-              leasable_lock->DisallowLeaseAcquire();
-            } else if (callback_counter == 2) {
-              EXPECT_FALSE(owner.has_value());
-              EXPECT_EQ(lease_transition, LeaseTransitionType::kLost);
-            } else if (callback_counter == 3) {
-              EXPECT_FALSE(owner.has_value());
-              EXPECT_EQ(lease_transition, LeaseTransitionType::kNotAcquired);
-              leasable_lock->AllowLeaseAcquire();
-            } else {
-              EXPECT_TRUE(owner.has_value());
-              EXPECT_EQ(lease_transition, LeaseTransitionType::kAcquired);
-              EXPECT_EQ(owner->service_endpoint_address,
-                        lease_acquirer_info.service_endpoint_address);
-            }
-            callback_counter++;
-          }),
-      SuccessExecutionResult());
+  EXPECT_EQ(lease_manager.ManageLeaseOnLock(
+                leasable_lock,
+                [&](LeaseTransitionType lease_transition,
+                    std::optional<LeaseInfo> owner) {
+                  if (callback_counter == 0) {
+                    EXPECT_TRUE(owner.has_value());
+                    EXPECT_EQ(lease_transition, LeaseTransitionType::kAcquired);
+                    EXPECT_EQ(owner->service_endpoint_address,
+                              lease_acquirer_info.service_endpoint_address);
+                  } else if (callback_counter == 1) {
+                    EXPECT_TRUE(owner.has_value());
+                    EXPECT_EQ(lease_transition, LeaseTransitionType::kRenewed);
+                    EXPECT_EQ(owner->service_endpoint_address,
+                              lease_acquirer_info.service_endpoint_address);
+                    leasable_lock->DisallowLeaseAcquire();
+                  } else if (callback_counter == 2) {
+                    EXPECT_FALSE(owner.has_value());
+                    EXPECT_EQ(lease_transition, LeaseTransitionType::kLost);
+                  } else if (callback_counter == 3) {
+                    EXPECT_FALSE(owner.has_value());
+                    EXPECT_EQ(lease_transition,
+                              LeaseTransitionType::kNotAcquired);
+                    leasable_lock->AllowLeaseAcquire();
+                  } else {
+                    EXPECT_TRUE(owner.has_value());
+                    EXPECT_EQ(lease_transition, LeaseTransitionType::kAcquired);
+                    EXPECT_EQ(owner->service_endpoint_address,
+                              lease_acquirer_info.service_endpoint_address);
+                  }
+                  callback_counter++;
+                }),
+            SuccessExecutionResult());
 
   EXPECT_SUCCESS(lease_manager.Run());
   while (callback_counter <= 4) {
@@ -195,7 +195,7 @@ TEST(LeaseManagerTest, LosesAndReacquiresLease) {
 
 TEST(LeaseManagerTest,
      ProcessTerminatesIfLeaseTransitionCallbackInvocationTakesLong) {
-  atomic<bool> process_terminated(false);
+  std::atomic<bool> process_terminated(false);
 
   uint64_t lease_enforcer_frequency_in_milliseconds = 100;
   uint64_t lease_obtain_max_time_threshold_in_milliseconds = 500;
@@ -209,14 +209,14 @@ TEST(LeaseManagerTest,
   leasable_lock->AllowLeaseAcquire();
   leasable_lock->SetLeaseDurationInMilliseconds(500);
   EXPECT_SUCCESS(lease_manager.Init());
-  EXPECT_EQ(
-      lease_manager.ManageLeaseOnLock(
-          leasable_lock,
-          [&](LeaseTransitionType lease_transition, optional<LeaseInfo> owner) {
-            std::this_thread::sleep_for(milliseconds(
-                lease_obtain_max_time_threshold_in_milliseconds * 2));
-          }),
-      SuccessExecutionResult());
+  EXPECT_EQ(lease_manager.ManageLeaseOnLock(
+                leasable_lock,
+                [&](LeaseTransitionType lease_transition,
+                    std::optional<LeaseInfo> owner) {
+                  std::this_thread::sleep_for(milliseconds(
+                      lease_obtain_max_time_threshold_in_milliseconds * 2));
+                }),
+            SuccessExecutionResult());
 
   EXPECT_SUCCESS(lease_manager.Run());
   while (!process_terminated) {
@@ -227,7 +227,7 @@ TEST(LeaseManagerTest,
 }
 
 TEST(LeaseManagerTest, ProcessTerminatesIfLeaseAcquireOnLockTakesLong) {
-  atomic<bool> process_terminated(false);
+  std::atomic<bool> process_terminated(false);
 
   uint64_t lease_enforcer_frequency_in_milliseconds = 100;
   uint64_t lease_obtain_max_time_threshold_in_milliseconds = 500;
@@ -247,7 +247,7 @@ TEST(LeaseManagerTest, ProcessTerminatesIfLeaseAcquireOnLockTakesLong) {
   EXPECT_SUCCESS(lease_manager.Init());
   EXPECT_EQ(lease_manager.ManageLeaseOnLock(
                 leasable_lock, [&](LeaseTransitionType lease_transition,
-                                   optional<LeaseInfo> owner) {}),
+                                   std::optional<LeaseInfo> owner) {}),
             SuccessExecutionResult());
 
   EXPECT_SUCCESS(lease_manager.Run());

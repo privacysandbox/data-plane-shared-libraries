@@ -82,7 +82,6 @@ using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::GcpBlobStorageClientProvider;
 using google::scp::cpio::client_providers::GcpCloudStorageFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::tuple;
 using testing::ByMove;
 using testing::ElementsAre;
 using testing::Eq;
@@ -118,7 +117,7 @@ class MockGcpCloudStorageFactory : public GcpCloudStorageFactory {
 // to observe>
 class GcpBlobStorageClientProviderTest
     : public testing::TestWithParam<
-          tuple<uint64_t, uint64_t, std::string, std::string>> {
+          std::tuple<uint64_t, uint64_t, std::string, std::string>> {
  protected:
   GcpBlobStorageClientProviderTest()
       : instance_client_(std::make_shared<MockInstanceClientProvider>()),

@@ -33,8 +33,6 @@ using google::scp::core::ConfigProviderInterface;
 using google::scp::core::kAggregatedMetricIntervalMs;
 using google::scp::core::kDefaultAggregatedMetricIntervalMs;
 using google::scp::core::common::kZeroUuid;
-using std::optional;
-using std::reference_wrapper;
 
 static constexpr char kMetricInstanceFactory[] = "MetricInstanceFactory";
 

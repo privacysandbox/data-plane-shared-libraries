@@ -32,9 +32,7 @@
 
 using google::scp::core::lease_manager::mock::MockLeasableLock;
 using google::scp::core::lease_manager::mock::MockLeaseEventSink;
-using std::atomic;
 using std::mutex;
-using std::optional;
 using std::unique_lock;
 using std::chrono::milliseconds;
 using ::testing::_;

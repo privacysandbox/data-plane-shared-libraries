@@ -19,12 +19,10 @@
 #include <list>
 #include <string>
 
-using std::list;
-
 namespace google::scp::core::utils {
 void SplitStringByDelimiter(const std::string& str,
                             const std::string& delimiter,
-                            list<std::string>& out) {
+                            std::list<std::string>& out) {
   auto start = 0U;
   auto end = str.find(delimiter);
 

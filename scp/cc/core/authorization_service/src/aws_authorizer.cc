@@ -39,7 +39,6 @@ using json = nlohmann::json;
 using google::scp::core::common::AutoExpiryConcurrentMap;
 using google::scp::core::utils::Base64Decode;
 using nghttp2::asio_http2::host_service_from_uri;
-using std::function;
 
 static constexpr const char kAWSAuthorizer[] = "AWSAuthorizer";
 static constexpr const char kAccessKey[] = "access_key";
@@ -84,7 +83,7 @@ ExecutionResult AwsAuthorizer::Stop() noexcept {
 void AwsAuthorizer::OnBeforeGarbageCollection(
     std::string& token,
     std::shared_ptr<AwsAuthorizationTokenCacheEntry>& transaction,
-    function<void(bool)> should_delete_entry) noexcept {
+    std::function<void(bool)> should_delete_entry) noexcept {
   // TODO: Enable pre-expiration refresh.
   should_delete_entry(true);
 }

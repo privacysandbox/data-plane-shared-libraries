@@ -25,7 +25,6 @@
 #include "core/test/utils/conditional_wait.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using std::atomic_bool;
 using testing::AtLeast;
 using testing::ExplainMatchResult;
 using testing::InSequence;
@@ -115,7 +114,7 @@ TEST_F(Http1CurlClientTest, IssuesPerformRequestOnWrapper) {
   EXPECT_CALL(*wrapper_, PerformRequest(RequestEquals(expected_request)))
       .WillOnce(Return(response));
 
-  atomic_bool finished(false);
+  std::atomic_bool finished(false);
   http_context.callback = [&response, &finished](auto& http_context) {
     EXPECT_SUCCESS(http_context.result);
     EXPECT_THAT(http_context.response, Pointee(ResponseEquals(response)));
@@ -148,7 +147,7 @@ TEST_F(Http1CurlClientTest, RetriesWork) {
         .WillOnce(Return(response));
   }
 
-  atomic_bool finished(false);
+  std::atomic_bool finished(false);
   http_context.callback = [&response, &finished](auto& http_context) {
     EXPECT_SUCCESS(http_context.result);
     EXPECT_THAT(http_context.response, Pointee(ResponseEquals(response)));
@@ -175,7 +174,7 @@ TEST_F(Http1CurlClientTest, FailureEnds) {
       .WillRepeatedly(
           Return(RetryExecutionResult(errors::SC_CURL_CLIENT_REQUEST_FAILED)));
 
-  atomic_bool finished(false);
+  std::atomic_bool finished(false);
   http_context.callback = [&finished](auto& context) {
     EXPECT_THAT(context.result, Not(IsSuccessful()));
     finished = true;

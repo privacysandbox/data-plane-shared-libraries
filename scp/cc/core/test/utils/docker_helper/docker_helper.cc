@@ -26,7 +26,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 
-using std::array;
 using std::runtime_error;
 
 // localstack version is pinned so that tests are repeatable

@@ -52,7 +52,6 @@ using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
-using std::atomic;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -206,7 +205,7 @@ TEST_F(MetricInstanceFactoryTest,
   AutoInitRunStop to_handle_aggregate_metric(*aggregate_metric);
 
   {
-    atomic<int> schedule_is_called = 0;
+    std::atomic<int> schedule_is_called = 0;
     EXPECT_CALL(*mock_metric_client_, PutMetrics)
         .WillRepeatedly([&](auto context) {
           EXPECT_EQ(context.request->metrics(0).name(), kMetricName);
@@ -228,7 +227,7 @@ TEST_F(MetricInstanceFactoryTest,
   }
 
   {
-    atomic<int> schedule_is_called = 0;
+    std::atomic<int> schedule_is_called = 0;
     EXPECT_CALL(*mock_metric_client_, PutMetrics)
         .WillRepeatedly([&](auto context) {
           EXPECT_EQ(context.request->metrics(0).name(), kMetricName);

@@ -44,8 +44,6 @@ using google::scp::core::journal_service::JournalStreamReadLogRequest;
 using google::scp::core::journal_service::JournalStreamReadLogResponse;
 using google::scp::core::journal_service::JournalUtils;
 using google::scp::core::journal_service::LastCheckpointMetadata;
-using std::atomic;
-using std::list;
 
 // TODO: Use configuration provider to update the following.
 static constexpr char kLastCheckpointBlobName[] = "last_checkpoint";

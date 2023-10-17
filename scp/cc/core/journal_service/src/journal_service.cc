@@ -50,10 +50,7 @@ using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MetricUtils;
 using google::scp::cpio::SimpleMetricInterface;
 using google::scp::cpio::TimeEvent;
-using std::atomic;
-using std::function;
 using std::thread;
-using std::unordered_set;
 using std::chrono::milliseconds;
 
 static constexpr size_t kMaxWaitTimeForFlushMs = 20;
@@ -154,7 +151,7 @@ ExecutionResult JournalService::Run() noexcept {
 
   RETURN_IF_FAILURE(journal_output_count_metric_->Run());
 
-  atomic<bool> flushing_thread_started(false);
+  std::atomic<bool> flushing_thread_started(false);
   flushing_thread_ =
       std::make_unique<thread>([this, &flushing_thread_started]() {
         flushing_thread_started = true;
@@ -202,7 +199,7 @@ ExecutionResult JournalService::Recover(
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>&
         journal_recover_context) noexcept {
   std::shared_ptr<TimeEvent> time_event = std::make_shared<TimeEvent>();
-  auto replayed_log_ids = std::make_shared<unordered_set<std::string>>();
+  auto replayed_log_ids = std::make_shared<std::unordered_set<std::string>>();
   AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>
       journal_stream_read_log_context(
           std::make_shared<JournalStreamReadLogRequest>(),
@@ -235,7 +232,7 @@ ExecutionResult JournalService::Recover(
 
 void JournalService::OnJournalStreamReadLogCallback(
     std::shared_ptr<TimeEvent>& time_event,
-    std::shared_ptr<unordered_set<std::string>>& replayed_log_ids,
+    std::shared_ptr<std::unordered_set<std::string>>& replayed_log_ids,
     AsyncContext<JournalRecoverRequest, JournalRecoverResponse>&
         journal_recover_context,
     AsyncContext<JournalStreamReadLogRequest, JournalStreamReadLogResponse>&

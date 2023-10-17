@@ -35,8 +35,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
-using std::function;
 using std::chrono::milliseconds;
 
 namespace google::scp::core::common::test {
@@ -46,14 +44,14 @@ TEST(OperationDispatcherTests, SuccessfulOperation) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<bool> condition(false);
+  std::atomic<bool> condition(false);
   AsyncContext<std::string, std::string> context;
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_SUCCESS(context.result);
     condition = true;
   };
 
-  function<ExecutionResult(AsyncContext<std::string, std::string>&)>
+  std::function<ExecutionResult(AsyncContext<std::string, std::string>&)>
       dispatch_to_component =
           [](AsyncContext<std::string, std::string>& context) {
             context.result = SuccessExecutionResult();
@@ -71,14 +69,15 @@ TEST(OperationDispatcherTests, SuccessfulOperationProducerStreaming) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<bool> condition(false);
+  std::atomic<bool> condition(false);
   ProducerStreamingContext<std::string, std::string> context;
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_SUCCESS(context.result);
     condition = true;
   };
 
-  function<ExecutionResult(ProducerStreamingContext<std::string, std::string>&)>
+  std::function<ExecutionResult(
+      ProducerStreamingContext<std::string, std::string>&)>
       dispatch_to_component =
           [](ProducerStreamingContext<std::string, std::string>& context) {
             context.result = SuccessExecutionResult();
@@ -96,8 +95,8 @@ TEST(OperationDispatcherTests, SuccessfulOperationConsumerStreaming) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<int> process_call_count(0);
-  atomic<bool> condition(false);
+  std::atomic<int> process_call_count(0);
+  std::atomic<bool> condition(false);
   ConsumerStreamingContext<std::string, std::string> context;
   context.process_callback =
       [&](ConsumerStreamingContext<std::string, std::string>& context,
@@ -110,7 +109,8 @@ TEST(OperationDispatcherTests, SuccessfulOperationConsumerStreaming) {
         }
       };
 
-  function<ExecutionResult(ConsumerStreamingContext<std::string, std::string>&)>
+  std::function<ExecutionResult(
+      ConsumerStreamingContext<std::string, std::string>&)>
       dispatch_to_component =
           [](ConsumerStreamingContext<std::string, std::string>& context) {
             context.ProcessNextMessage();
@@ -132,14 +132,14 @@ TEST(OperationDispatcherTests, FailedOperation) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<bool> condition(false);
+  std::atomic<bool> condition(false);
   AsyncContext<std::string, std::string> context;
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(1)));
     condition = true;
   };
 
-  function<ExecutionResult(AsyncContext<std::string, std::string>&)>
+  std::function<ExecutionResult(AsyncContext<std::string, std::string>&)>
       dispatch_to_component =
           [](AsyncContext<std::string, std::string>& context) {
             context.result = FailureExecutionResult(1);
@@ -157,14 +157,15 @@ TEST(OperationDispatcherTests, FailedOperationProducerStreaming) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<bool> condition(false);
+  std::atomic<bool> condition(false);
   ProducerStreamingContext<std::string, std::string> context;
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(1)));
     condition = true;
   };
 
-  function<ExecutionResult(ProducerStreamingContext<std::string, std::string>&)>
+  std::function<ExecutionResult(
+      ProducerStreamingContext<std::string, std::string>&)>
       dispatch_to_component =
           [](ProducerStreamingContext<std::string, std::string>& context) {
             context.result = FailureExecutionResult(1);
@@ -182,8 +183,8 @@ TEST(OperationDispatcherTests, FailedOperationConsumerStreaming) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<int> process_call_count(0);
-  atomic<bool> condition(false);
+  std::atomic<int> process_call_count(0);
+  std::atomic<bool> condition(false);
   ConsumerStreamingContext<std::string, std::string> context;
   context.process_callback =
       [&](ConsumerStreamingContext<std::string, std::string>& context,
@@ -196,7 +197,8 @@ TEST(OperationDispatcherTests, FailedOperationConsumerStreaming) {
         }
       };
 
-  function<ExecutionResult(ConsumerStreamingContext<std::string, std::string>&)>
+  std::function<ExecutionResult(
+      ConsumerStreamingContext<std::string, std::string>&)>
       dispatch_to_component =
           [](ConsumerStreamingContext<std::string, std::string>& context) {
             context.ProcessNextMessage();
@@ -218,7 +220,7 @@ TEST(OperationDispatcherTests, RetryOperation) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 10, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<bool> condition(false);
+  std::atomic<bool> condition(false);
   AsyncContext<std::string, std::string> context;
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_THAT(context.result,
@@ -228,7 +230,7 @@ TEST(OperationDispatcherTests, RetryOperation) {
     condition = true;
   };
 
-  function<ExecutionResult(AsyncContext<std::string, std::string>&)>
+  std::function<ExecutionResult(AsyncContext<std::string, std::string>&)>
       dispatch_to_component =
           [](AsyncContext<std::string, std::string>& context) {
             context.result = RetryExecutionResult(1);
@@ -246,7 +248,7 @@ TEST(OperationDispatcherTests, RetryOperationProducerStreaming) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 10, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<bool> condition(false);
+  std::atomic<bool> condition(false);
   ProducerStreamingContext<std::string, std::string> context;
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_THAT(context.result,
@@ -256,7 +258,8 @@ TEST(OperationDispatcherTests, RetryOperationProducerStreaming) {
     condition = true;
   };
 
-  function<ExecutionResult(ProducerStreamingContext<std::string, std::string>&)>
+  std::function<ExecutionResult(
+      ProducerStreamingContext<std::string, std::string>&)>
       dispatch_to_component =
           [](ProducerStreamingContext<std::string, std::string>& context) {
             context.result = RetryExecutionResult(1);
@@ -274,8 +277,8 @@ TEST(OperationDispatcherTests, RetryOperationConsumerStreaming) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 10, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<int> process_call_count(0);
-  atomic<bool> condition(false);
+  std::atomic<int> process_call_count(0);
+  std::atomic<bool> condition(false);
   ConsumerStreamingContext<std::string, std::string> context;
   context.process_callback =
       [&](ConsumerStreamingContext<std::string, std::string>& context,
@@ -291,7 +294,8 @@ TEST(OperationDispatcherTests, RetryOperationConsumerStreaming) {
         }
       };
 
-  function<ExecutionResult(ConsumerStreamingContext<std::string, std::string>&)>
+  std::function<ExecutionResult(
+      ConsumerStreamingContext<std::string, std::string>&)>
       dispatch_to_component =
           [](ConsumerStreamingContext<std::string, std::string>& context) {
             context.ProcessNextMessage();
@@ -314,7 +318,7 @@ TEST(OperationDispatcherTests, OperationExpiration) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 10, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<bool> condition(false);
+  std::atomic<bool> condition(false);
   AsyncContext<std::string, std::string> context;
   context.expiration_time = UINT64_MAX;
 
@@ -326,8 +330,8 @@ TEST(OperationDispatcherTests, OperationExpiration) {
     condition = true;
   };
 
-  atomic<size_t> retry_count = 0;
-  function<ExecutionResult(AsyncContext<std::string, std::string>&)>
+  std::atomic<size_t> retry_count = 0;
+  std::function<ExecutionResult(AsyncContext<std::string, std::string>&)>
       dispatch_to_component =
           [&](AsyncContext<std::string, std::string>& context) {
             if (++retry_count == 4) {
@@ -348,14 +352,14 @@ TEST(OperationDispatcherTests, FailedOnAcceptance) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<bool> condition(false);
+  std::atomic<bool> condition(false);
   AsyncContext<std::string, std::string> context;
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(1234)));
     condition = true;
   };
 
-  function<ExecutionResult(AsyncContext<std::string, std::string>&)>
+  std::function<ExecutionResult(AsyncContext<std::string, std::string>&)>
       dispatch_to_component =
           [](AsyncContext<std::string, std::string>& context) {
             return FailureExecutionResult(1234);
@@ -371,7 +375,7 @@ TEST(OperationDispatcherTests, RetryOnAcceptance) {
   RetryStrategy retry_strategy(RetryStrategyType::Exponential, 0, 5);
   OperationDispatcher dispatcher(mock_async_executor, retry_strategy);
 
-  atomic<bool> condition(false);
+  std::atomic<bool> condition(false);
   AsyncContext<std::string, std::string> context;
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_THAT(context.result,
@@ -380,7 +384,7 @@ TEST(OperationDispatcherTests, RetryOnAcceptance) {
     condition = true;
   };
 
-  function<ExecutionResult(AsyncContext<std::string, std::string>&)>
+  std::function<ExecutionResult(AsyncContext<std::string, std::string>&)>
       dispatch_to_component =
           [](AsyncContext<std::string, std::string>& context) {
             return RetryExecutionResult(1234);

@@ -56,9 +56,6 @@ using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
-using std::future;
-using std::promise;
 using std::thread;
 using std::chrono::milliseconds;
 
@@ -167,7 +164,7 @@ class HttpServer {
   http2 server;
 
  private:
-  atomic<bool> is_running_{false};
+  std::atomic<bool> is_running_{false};
   std::string address_;
   std::string port_;
   size_t num_threads_;
@@ -185,7 +182,7 @@ TEST(HttpClientTest, FailedToConnect) {
   http_client.Init();
   http_client.Run();
 
-  atomic<bool> finished(false);
+  std::atomic<bool> finished(false);
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -238,7 +235,7 @@ TEST_F(HttpClientTestII, Success) {
   request->method = HttpMethod::GET;
   request->path = std::make_shared<std::string>(
       "http://localhost:" + std::to_string(server->PortInUse()) + "/test");
-  promise<void> done;
+  std::promise<void> done;
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -261,7 +258,7 @@ TEST_F(HttpClientTestII, SingleQueryIsEscaped) {
       "/pingpong_query_param");
   request->query = std::make_shared<std::string>("foo=!@#$");
 
-  atomic<bool> finished(false);
+  std::atomic<bool> finished(false);
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -284,7 +281,7 @@ TEST_F(HttpClientTestII, MultiQueryIsEscaped) {
       "/pingpong_query_param");
   request->query = std::make_shared<std::string>("foo=!@#$&bar=%^()");
 
-  atomic<bool> finished(false);
+  std::atomic<bool> finished(false);
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -304,7 +301,7 @@ TEST_F(HttpClientTestII, FailedToGetResponse) {
   // Get has no corresponding handler.
   request->path = std::make_shared<std::string>(
       "http://localhost:" + std::to_string(server->PortInUse()) + "/wrong");
-  promise<void> done;
+  std::promise<void> done;
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -325,7 +322,7 @@ TEST_F(HttpClientTestII, SequentialReuse) {
       "http://localhost:" + std::to_string(server->PortInUse()) + "/test");
 
   for (int i = 0; i < 10; ++i) {
-    promise<void> done;
+    std::promise<void> done;
     AsyncContext<HttpRequest, HttpResponse> context(
         std::move(request),
         [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -347,7 +344,7 @@ TEST_F(HttpClientTestII, ConcurrentReuse) {
   std::shared_ptr<AsyncExecutorInterface> async_executor =
       std::make_shared<AsyncExecutor>(2, 1000);
 
-  std::vector<promise<void>> done;
+  std::vector<std::promise<void>> done;
   done.reserve(10);
   for (int i = 0; i < 10; ++i) {
     done.emplace_back();
@@ -374,7 +371,7 @@ TEST_F(HttpClientTestII, LargeData) {
       "http://localhost:" + std::to_string(server->PortInUse()) + "/random");
   request->query =
       std::make_shared<std::string>("length=" + std::to_string(to_generate));
-  atomic<bool> finished(false);
+  std::atomic<bool> finished(false);
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -402,7 +399,7 @@ TEST_F(HttpClientTestII, ClientFinishesContextWhenServerIsStopped) {
   {
     request->path = std::make_shared<std::string>(
         "http://localhost:" + std::to_string(server->PortInUse()) + "/test");
-    promise<void> done;
+    std::promise<void> done;
     AsyncContext<HttpRequest, HttpResponse> context(
         std::move(request),
         [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -421,7 +418,7 @@ TEST_F(HttpClientTestII, ClientFinishesContextWhenServerIsStopped) {
     request->path = std::make_shared<std::string>(
         "http://localhost:" + std::to_string(server->PortInUse()) + "/stop");
 
-    promise<void> done;
+    std::promise<void> done;
     AsyncContext<HttpRequest, HttpResponse> context(
         std::move(request),
         [&](AsyncContext<HttpRequest, HttpResponse>& context) {

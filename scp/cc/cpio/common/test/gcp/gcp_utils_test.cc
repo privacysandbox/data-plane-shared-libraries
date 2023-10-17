@@ -40,13 +40,12 @@ using google::scp::core::errors::SC_GCP_UNIMPLEMENTED;
 using google::scp::core::errors::SC_GCP_UNKNOWN;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using std::tuple;
 using ::testing::TestWithParam;
 
 namespace google::scp::cpio::common::test {
 
 class GcpUtilsCloudStatusTest
-    : public TestWithParam<tuple<cloud::Status, ExecutionResult>> {
+    : public TestWithParam<std::tuple<cloud::Status, ExecutionResult>> {
  protected:
   cloud::Status GetStatusToConvert() { return std::get<0>(GetParam()); }
 
@@ -100,7 +99,7 @@ INSTANTIATE_TEST_SUITE_P(
                         FailureExecutionResult(SC_GCP_UNKNOWN))));
 
 class GcpUtilsGrpcStatusTest
-    : public TestWithParam<tuple<grpc::Status, ExecutionResult>> {
+    : public TestWithParam<std::tuple<grpc::Status, ExecutionResult>> {
  protected:
   grpc::Status GetStatusToConvert() { return std::get<0>(GetParam()); }
 

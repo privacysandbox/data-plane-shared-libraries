@@ -57,8 +57,6 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockMetricClientWithOverrides;
-using std::atomic;
-using std::function;
 using std::thread;
 
 namespace {
@@ -206,7 +204,7 @@ TEST_F(MetricClientProviderTest, LaunchScheduleMetricsBatchPushWithRun) {
   bool schedule_for_is_called = false;
   mock_async_executor_->schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         schedule_for_is_called = true;
         return FailureExecutionResult(SC_UNKNOWN);
       };
@@ -248,10 +246,10 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
       mock_async_executor_, CreateMetricBatchingOptions(true));
 
-  atomic<bool> schedule_for_is_called = false;
+  std::atomic<bool> schedule_for_is_called = false;
   mock_async_executor_->schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         schedule_for_is_called = true;
         return SuccessExecutionResult();
       };
@@ -260,7 +258,7 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
       CreatePutMetricsRequest(),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  atomic<bool> batch_push_called = false;
+  std::atomic<bool> batch_push_called = false;
   client->metrics_batch_push_mock =
       [&](const std::shared_ptr<std::vector<core::AsyncContext<
               cmrt::sdk::metric_service::v1::PutMetricsRequest,
@@ -330,7 +328,7 @@ TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
       std::move(request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  atomic<int> batch_push_called_count = 0;
+  std::atomic<int> batch_push_called_count = 0;
   client->metrics_batch_push_mock =
       [&](const std::shared_ptr<
           std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&

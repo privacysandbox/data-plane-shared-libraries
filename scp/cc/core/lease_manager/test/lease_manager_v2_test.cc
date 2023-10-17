@@ -42,10 +42,8 @@ using google::scp::core::lease_manager::mock::MockLeaseEventSink;
 using google::scp::core::lease_manager::mock::MockLeaseRefresher;
 using google::scp::core::lease_manager::mock::MockLeaseRefresherFactory;
 using google::scp::core::lease_manager::mock::MockLeaseRefreshLivenessCheck;
-using std::atomic;
 using std::mutex;
 using std::nullopt;
-using std::optional;
 using std::unique_lock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -59,8 +57,9 @@ static constexpr size_t kSecondInMillis = 1000;
 
 class LeaseManagerV2Test : public ::testing::Test {
  protected:
-  void SetUpMocksForLock(std::shared_ptr<MockLeasableLock> mock_lock,
-                         optional<LeaseInfo> current_lease_owner = nullopt) {
+  void SetUpMocksForLock(
+      std::shared_ptr<MockLeasableLock> mock_lock,
+      std::optional<LeaseInfo> current_lease_owner = nullopt) {
     // Set up mock calls for mock_lock_
     ON_CALL(*mock_lock, ShouldRefreshLease()).WillByDefault(Return(true));
     ON_CALL(*mock_lock, RefreshLease(_))
@@ -227,9 +226,9 @@ TEST_F(LeaseManagerV2Test, ThreeLocksRefreshLeasesAndInvokeSink) {
   EXPECT_CALL(*mock_leasable_lock_3_, RefreshLease(_))
       .WillRepeatedly(Return(SuccessExecutionResult()));
 
-  atomic<bool> lock_1_sink_invoked_(false);
-  atomic<bool> lock_2_sink_invoked_(false);
-  atomic<bool> lock_3_sink_invoked_(false);
+  std::atomic<bool> lock_1_sink_invoked_(false);
+  std::atomic<bool> lock_2_sink_invoked_(false);
+  std::atomic<bool> lock_3_sink_invoked_(false);
   EXPECT_CALL(*mock_event_sink_1_, OnLeaseTransition(lock_id_1_, _, _))
       .WillRepeatedly(
           [&lock_1_sink_invoked_]() { lock_1_sink_invoked_ = true; });

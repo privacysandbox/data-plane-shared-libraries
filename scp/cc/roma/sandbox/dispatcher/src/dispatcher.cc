@@ -31,7 +31,6 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::GetErrorMessage;
-using std::atomic;
 using std::chrono::milliseconds;
 
 namespace google::scp::roma::sandbox::dispatcher {
@@ -50,7 +49,7 @@ ExecutionResult Dispatcher::Stop() noexcept {
 ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
                                       Callback broadcast_callback) noexcept {
   auto worker_count = worker_pool_->GetPoolSize();
-  auto finished_counter = std::make_shared<atomic<size_t>>(0);
+  auto finished_counter = std::make_shared<std::atomic<size_t>>(0);
   auto responses_storage = std::make_shared<
       std::vector<std::unique_ptr<absl::StatusOr<ResponseObject>>>>(
       worker_count);

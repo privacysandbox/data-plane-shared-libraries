@@ -48,7 +48,6 @@ using google::scp::cpio::CryptoClientFactory;
 using google::scp::cpio::CryptoClientInterface;
 using google::scp::cpio::CryptoClientOptions;
 using google::scp::cpio::LogOption;
-using std::atomic;
 
 constexpr char kPublicKey[] = "testpublickey==";
 constexpr char kPrivateKey[] = "testprivatekey=";
@@ -58,7 +57,7 @@ constexpr char kResponsePayload[] = "hijklmn";
 
 std::unique_ptr<CryptoClientInterface> crypto_client;
 
-void AeadDecryptCallback(atomic<bool>& finished, ExecutionResult result,
+void AeadDecryptCallback(std::atomic<bool>& finished, ExecutionResult result,
                          AeadDecryptResponse aead_decrypt_response) {
   finished = true;
   if (result.Successful()) {
@@ -70,7 +69,7 @@ void AeadDecryptCallback(atomic<bool>& finished, ExecutionResult result,
   }
 }
 
-void AeadEncryptCallback(atomic<bool>& finished, std::string& secret,
+void AeadEncryptCallback(std::atomic<bool>& finished, std::string& secret,
                          ExecutionResult result,
                          AeadEncryptResponse aead_encrypt_response) {
   if (result.Successful()) {
@@ -90,7 +89,7 @@ void AeadEncryptCallback(atomic<bool>& finished, std::string& secret,
   }
 }
 
-void HpkeDecryptCallback(bool is_bidirectional, atomic<bool>& finished,
+void HpkeDecryptCallback(bool is_bidirectional, std::atomic<bool>& finished,
                          ExecutionResult result,
                          HpkeDecryptResponse hpke_decrypt_response) {
   if (result.Successful()) {
@@ -117,7 +116,7 @@ void HpkeDecryptCallback(bool is_bidirectional, atomic<bool>& finished,
   }
 }
 
-void HpkeEncryptCallback(bool is_bidirectional, atomic<bool>& finished,
+void HpkeEncryptCallback(bool is_bidirectional, std::atomic<bool>& finished,
                          ExecutionResult result,
                          HpkeEncryptResponse hpke_encrypt_response) {
   if (result.Successful()) {
@@ -172,7 +171,7 @@ int main(int argc, char* argv[]) {
 
   std::cout << "Run crypto client successfully!" << std::endl;
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   HpkeEncryptRequest hpke_encrypt_request;
   hpke_encrypt_request.mutable_public_key()->set_public_key(
       std::string(kPublicKey));

@@ -63,7 +63,6 @@ using google::scp::cpio::client_providers::AwsMetricClientUtils;
 using google::scp::cpio::client_providers::mock::
     MockAwsMetricClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockCloudWatchClient;
-using std::atomic;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::system_clock;
@@ -191,8 +190,8 @@ TEST_F(AwsMetricClientProviderTest, KeepMetricsInTheSameRequest) {
   client->GetCloudWatchClient()->put_metric_data_outcome_mock =
       PutMetricDataOutcome(result);
 
-  atomic<int> put_metric_data_request_count = 0;
-  atomic<int> number_datums_received = 0;
+  std::atomic<int> put_metric_data_request_count = 0;
+  std::atomic<int> number_datums_received = 0;
   client->GetCloudWatchClient()->put_metric_data_async_mock =
       [&](const Aws::CloudWatch::Model::PutMetricDataRequest& request,
           const Aws::CloudWatch::PutMetricDataResponseReceivedHandler& handler,
@@ -236,7 +235,7 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithError) {
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
-  atomic<int64_t> context_finish_count = 0;
+  std::atomic<int64_t> context_finish_count = 0;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
@@ -270,7 +269,7 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithSuccess) {
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
-  atomic<int64_t> context_finish_count = 0;
+  std::atomic<int64_t> context_finish_count = 0;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
@@ -334,7 +333,7 @@ TEST_F(AwsMetricClientProviderTest, OneMetricWithoutBatchRecordingSucceed) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request, kValue, 100);
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {

@@ -25,20 +25,19 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::test::WaitUntil;
-using std::atomic;
 using std::chrono::duration_cast;
 using std::chrono::seconds;
 
 namespace google::scp::core::common {
 TEST(CancellableThreadTaskTest, CreateTaskAndWaitUntilComplete) {
-  atomic<bool> is_done(false);
+  std::atomic<bool> is_done(false);
   CancellableThreadTask task([&is_done]() { is_done = true; });
   WaitUntil([&is_done]() { return is_done == true; });
 }
 
 TEST(CancellableThreadTaskTest,
      CreateTaskAndWaitUntilCompleteWithStartupDelay) {
-  atomic<bool> is_done(false);
+  std::atomic<bool> is_done(false);
   size_t startup_delay_in_seconds = 2;
   auto start_timestamp = TimeProvider::GetSteadyTimestampInNanoseconds();
   auto end_timestamp = start_timestamp;  // init end to start as a default
@@ -54,7 +53,7 @@ TEST(CancellableThreadTaskTest,
 }
 
 TEST(CancellableThreadTaskTest, CreateTaskAndCancel) {
-  atomic<bool> is_done(false);
+  std::atomic<bool> is_done(false);
   size_t startup_delay_in_seconds = 10;
   CancellableThreadTask task([&is_done]() { is_done = true; },
                              seconds(startup_delay_in_seconds));
@@ -64,7 +63,7 @@ TEST(CancellableThreadTaskTest, CreateTaskAndCancel) {
 }
 
 TEST(CancellableThreadTaskTest, CannotCancelWhileExecuting) {
-  atomic<bool> should_exit(false);
+  std::atomic<bool> should_exit(false);
   CancellableThreadTask task([&should_exit]() {
     while (!should_exit) {
       std::this_thread::yield();

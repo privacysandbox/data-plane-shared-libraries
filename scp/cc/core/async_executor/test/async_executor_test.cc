@@ -35,7 +35,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::async_executor::mock::MockAsyncExecutorWithInternals;
-using std::atomic;
 using std::hash;
 using std::mutex;
 using std::thread;
@@ -178,7 +177,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThread) {
   executor.Init();
   executor.Run();
   {
-    atomic<int> count(0);
+    std::atomic<int> count(0);
     for (int i = 0; i < queue_cap; i++) {
       executor.Schedule([&]() { count++; }, AsyncPriority::Normal);
     }
@@ -187,7 +186,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThread) {
     EXPECT_EQ(count, queue_cap);
   }
   {
-    atomic<int> count(0);
+    std::atomic<int> count(0);
     for (int i = 0; i < queue_cap; i++) {
       executor.ScheduleFor([&]() { count++; }, 123456);
     }
@@ -203,7 +202,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadWithAffinity) {
   AsyncExecutor executor(1, queue_cap);
   executor.Init();
   executor.Run();
-  atomic<int> count(0);
+  std::atomic<int> count(0);
   for (int i = 0; i < queue_cap / 2; i++) {
     executor.Schedule(
         [&]() {
@@ -234,7 +233,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadScheduleForWithAffinity) {
   AsyncExecutor executor(1, queue_cap);
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
-  atomic<int> count(0);
+  std::atomic<int> count(0);
   for (int i = 0; i < queue_cap / 2; i++) {
     executor.ScheduleFor(
         [&]() {
@@ -265,7 +264,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadNormalToUrgent) {
   AsyncExecutor executor(1, queue_cap);
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
-  atomic<int> count(0);
+  std::atomic<int> count(0);
   for (int i = 0; i < queue_cap / 2; i++) {
     executor.Schedule(
         [&]() {
@@ -290,7 +289,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadUrgentToNormal) {
   AsyncExecutor executor(1, queue_cap);
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
-  atomic<int> count(0);
+  std::atomic<int> count(0);
   for (int i = 0; i < queue_cap / 2; i++) {
     executor.ScheduleFor(
         [&]() {
@@ -316,7 +315,7 @@ TEST(AsyncExecutorTests, CountWorkMultipleThread) {
   executor.Init();
   executor.Run();
 
-  atomic<int> count(0);
+  std::atomic<int> count(0);
   for (int i = 0; i < queue_cap; i++) {
     executor.Schedule([&]() { count++; }, AsyncPriority::Normal);
   }
@@ -395,7 +394,7 @@ TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
   executor.Init();
   executor.Run();
 
-  atomic<int> normal_count(0);
+  std::atomic<int> normal_count(0);
   for (int i = 0; i < queue_cap; i++) {
     executor.Schedule(
         [&]() {
@@ -405,7 +404,7 @@ TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
         AsyncPriority::Normal);
   }
 
-  atomic<int> urgent_count(0);
+  std::atomic<int> urgent_count(0);
   for (int i = 0; i < queue_cap; i++) {
     executor.Schedule(
         [&]() {
@@ -684,7 +683,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     EXPECT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
-    atomic<bool> done(false);
+    std::atomic<bool> done(false);
     std::vector<std::shared_ptr<SingleThreadAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
@@ -713,7 +712,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     EXPECT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
-    atomic<bool> done(false);
+    std::atomic<bool> done(false);
     std::vector<std::shared_ptr<SingleThreadPriorityAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
@@ -742,7 +741,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     EXPECT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
-    atomic<bool> done(false);
+    std::atomic<bool> done(false);
     std::vector<std::shared_ptr<SingleThreadPriorityAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
@@ -771,7 +770,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     EXPECT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
-    atomic<bool> done(false);
+    std::atomic<bool> done(false);
     std::vector<std::shared_ptr<SingleThreadAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,

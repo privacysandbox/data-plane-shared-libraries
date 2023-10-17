@@ -44,8 +44,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
-using std::atomic_bool;
 using std::thread;
 using std::chrono::seconds;
 using testing::Eq;
@@ -100,7 +98,7 @@ TEST_F(AwsAuthTokenProviderTest,
     return SuccessExecutionResult();
   });
 
-  atomic_bool finished(false);
+  std::atomic_bool finished(false);
   fetch_token_context_.callback = [&finished](auto& context) {
     EXPECT_SUCCESS(context.result);
     ASSERT_TRUE(context.response);
@@ -123,7 +121,7 @@ TEST_F(AwsAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
     return SuccessExecutionResult();
   });
 
-  atomic_bool finished(false);
+  std::atomic_bool finished(false);
   fetch_token_context_.callback = [&finished](auto& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
     finished = true;

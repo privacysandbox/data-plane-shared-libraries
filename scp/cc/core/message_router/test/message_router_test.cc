@@ -34,7 +34,6 @@ using core::message_router::test::TestStringRequest;
 using core::message_router::test::TestStringResponse;
 using google::protobuf::Any;
 using google::scp::core::common::ConcurrentQueue;
-using std::atomic;
 
 namespace google::scp::core::test {
 class MessageRouterTest : public ::testing::Test {
@@ -79,7 +78,7 @@ class MessageRouterTest : public ::testing::Test {
 };
 
 TEST_F(MessageRouterTest, RequestNotSubscribed) {
-  atomic<int> count(0);
+  std::atomic<int> count(0);
   auto request = std::make_shared<Any>(any_request_1_);
   auto context = std::make_shared<AsyncContext<Any, Any>>(
       request, [&](AsyncContext<Any, Any>& context) {
@@ -155,14 +154,14 @@ TEST_F(MessageRouterTest, MultipleMessagesSingleSubscription) {
 }
 
 TEST_F(MessageRouterTest, MultipleSubscriptions) {
-  atomic<int> count_1(0);
+  std::atomic<int> count_1(0);
   router_.Subscribe(any_request_1_.type_url(),
                     [&](AsyncContext<Any, Any>& context) { count_1++; });
   auto request_1 = std::make_shared<Any>(any_request_1_);
   auto context_1 = std::make_shared<AsyncContext<Any, Any>>(
       request_1, [&](AsyncContext<Any, Any>& context) {});
 
-  atomic<int> count_2(0);
+  std::atomic<int> count_2(0);
   router_.Subscribe(any_request_2_.type_url(),
                     [&](AsyncContext<Any, Any>& context) { count_2++; });
   auto request_2 = std::make_shared<Any>(any_request_2_);

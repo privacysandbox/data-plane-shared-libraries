@@ -56,7 +56,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::
     MockAwsRoleCredentialsProviderWithOverrides;
 using google::scp::cpio::client_providers::mock::MockSTSClient;
-using std::atomic;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -98,7 +97,7 @@ class AwsRoleCredentialsProviderTest : public ::testing::Test {
 };
 
 TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleSuccess) {
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   mock_sts_client_->mock_assume_role_async =
       [&](const AssumeRoleRequest& request,
           const AssumeRoleResponseReceivedHandler&,

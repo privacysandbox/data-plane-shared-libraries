@@ -37,13 +37,13 @@ using google::scp::core::errors::SC_AWS_REQUEST_LIMIT_REACHED;
 using google::scp::core::errors::SC_AWS_SERVICE_UNAVAILABLE;
 using google::scp::core::errors::SC_AWS_VALIDATION_FAILED;
 using google::scp::core::test::ResultIs;
-using std::tuple;
 using testing::TestWithParam;
 using testing::Values;
 
 namespace google::scp::cpio::client_providers::test {
 class AutoScalingErrorConverterTest
-    : public TestWithParam<tuple<AutoScalingErrors, FailureExecutionResult>> {
+    : public TestWithParam<
+          std::tuple<AutoScalingErrors, FailureExecutionResult>> {
  protected:
   AWSError<AutoScalingErrors> GetAutoScalingErrorsToConvert() {
     return AWSError<AutoScalingErrors>(std::get<0>(GetParam()), false);

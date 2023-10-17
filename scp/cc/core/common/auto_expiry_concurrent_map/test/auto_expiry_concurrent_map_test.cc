@@ -46,7 +46,6 @@ using google::scp::core::test::TestTimeoutException;
 using google::scp::core::test::WaitUntil;
 using google::scp::core::test::WaitUntilOrReturn;
 using std::defer_lock;
-using std::function;
 using std::shared_lock;
 using std::shared_timed_mutex;
 using std::unique_lock;
@@ -72,10 +71,11 @@ class AutoExpiryConcurrentMapTest : public ::testing::Test {
 
   size_t cache_lifetime_ = 10;
   std::shared_ptr<MockAsyncExecutor> mock_async_executor_;
-  function<void(int&, std::shared_ptr<EmptyEntry>&, function<void(bool)>)>
+  std::function<void(int&, std::shared_ptr<EmptyEntry>&,
+                     std::function<void(bool)>)>
       on_before_element_deletion_callback_ =
           [](int& key, std::shared_ptr<EmptyEntry>&,
-             function<void(bool can_delete)> deleter) {};
+             std::function<void(bool can_delete)> deleter) {};
 };
 
 TEST_F(AutoExpiryConcurrentMapTest, InsertingNewElementExtendOnAccessEnabled) {
@@ -404,7 +404,7 @@ TEST_F(AutoExpiryConcurrentMapTest, GarbageCollection) {
   std::vector<int> keys_to_be_deleted;
   auto on_before_element_deletion_callback_ =
       [&](int& key, std::shared_ptr<EmptyEntry>&,
-          function<void(bool can_delete)> deleter) {
+          std::function<void(bool can_delete)> deleter) {
         keys_to_be_deleted.push_back(key);
       };
 
@@ -451,7 +451,7 @@ TEST_F(AutoExpiryConcurrentMapTest, OnRemoveEntryFromCacheLogged) {
   std::vector<int> keys_to_be_deleted;
   auto on_before_element_deletion_callback_ =
       [&](int& key, std::shared_ptr<EmptyEntry>&,
-          function<void(bool can_delete)> deleter) {
+          std::function<void(bool can_delete)> deleter) {
         keys_to_be_deleted.push_back(key);
       };
 
@@ -515,7 +515,7 @@ TEST_F(AutoExpiryConcurrentMapTest, NoDeletionForUnloadedData) {
   bool schedule_for_is_called = false;
   mock_async_executor_->schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         schedule_for_is_called = true;
         return SuccessExecutionResult();
       };
@@ -550,7 +550,7 @@ TEST_F(AutoExpiryConcurrentMapTest, NoDeletionForUnExpired) {
   bool schedule_for_is_called = false;
   mock_async_executor_->schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         schedule_for_is_called = true;
         return SuccessExecutionResult();
       };
@@ -576,10 +576,10 @@ TEST_F(AutoExpiryConcurrentMapTest, NoDeletionForUnExpired) {
 
 TEST(AutoExpiryConcurrentMapDeletionTest, DeletionForExpired) {
   size_t total_count = 0;
-  std::vector<function<void(bool)>> deleters;
+  std::vector<std::function<void(bool)>> deleters;
   auto on_before_element_deletion_callback =
       [&](int& key, std::shared_ptr<EmptyEntry>& entry,
-          function<void(bool)> deleter) {
+          std::function<void(bool)> deleter) {
         total_count++;
         deleters.push_back(deleter);
       };
@@ -619,7 +619,7 @@ TEST(AutoExpiryConcurrentMapDeletionTest, DeletionForExpired) {
 
   bool schedule_for_called = false;
   mock_async_executor->schedule_for_mock = [&](AsyncOperation work, Timestamp,
-                                               function<bool()>&) {
+                                               std::function<bool()>&) {
     schedule_for_called = true;
     return SuccessExecutionResult();
   };

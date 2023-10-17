@@ -49,7 +49,6 @@ using google::scp::cpio::CryptoClient;
 using google::scp::cpio::CryptoClientOptions;
 using google::scp::cpio::client_providers::mock::MockCryptoClientProvider;
 using google::scp::cpio::mock::MockCryptoClientWithOverrides;
-using std::atomic;
 using testing::Return;
 
 namespace google::scp::cpio::test {
@@ -86,7 +85,7 @@ TEST_F(CryptoClientTest, HpkeEncryptSuccess) {
             return SuccessExecutionResult();
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->HpkeEncrypt(HpkeEncryptRequest(),
                                    [&](const ExecutionResult result,
                                        HpkeEncryptResponse response) {
@@ -106,7 +105,7 @@ TEST_F(CryptoClientTest, HpkeEncryptFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(
       client_->HpkeEncrypt(
           HpkeEncryptRequest(),
@@ -128,7 +127,7 @@ TEST_F(CryptoClientTest, HpkeDecryptSuccess) {
             return SuccessExecutionResult();
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->HpkeDecrypt(HpkeDecryptRequest(),
                                    [&](const ExecutionResult result,
                                        HpkeDecryptResponse response) {
@@ -148,7 +147,7 @@ TEST_F(CryptoClientTest, HpkeDecryptFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(
       client_->HpkeDecrypt(
           HpkeDecryptRequest(),
@@ -170,7 +169,7 @@ TEST_F(CryptoClientTest, AeadEncryptSuccess) {
             return SuccessExecutionResult();
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->AeadEncrypt(AeadEncryptRequest(),
                                    [&](const ExecutionResult result,
                                        AeadEncryptResponse response) {
@@ -190,7 +189,7 @@ TEST_F(CryptoClientTest, AeadEncryptFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(
       client_->AeadEncrypt(
           AeadEncryptRequest(),
@@ -212,7 +211,7 @@ TEST_F(CryptoClientTest, AeadDecryptSuccess) {
             return SuccessExecutionResult();
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(client_->AeadDecrypt(AeadDecryptRequest(),
                                    [&](const ExecutionResult result,
                                        AeadDecryptResponse response) {
@@ -232,7 +231,7 @@ TEST_F(CryptoClientTest, AeadDecryptFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   EXPECT_THAT(
       client_->AeadDecrypt(
           AeadDecryptRequest(),

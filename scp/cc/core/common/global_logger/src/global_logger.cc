@@ -19,11 +19,9 @@
 #include <memory>
 #include <utility>
 
-using std::unordered_set;
-
 namespace google::scp::core::common {
 static std::unique_ptr<LoggerInterface> logger_instance_;
-static unordered_set<LogLevel> enabled_log_levels_ = {
+static std::unordered_set<LogLevel> enabled_log_levels_ = {
     LogLevel::kAlert,     LogLevel::kCritical, LogLevel::kDebug,
     LogLevel::kEmergency, LogLevel::kError,    LogLevel::kInfo,
     LogLevel::kWarning};
@@ -33,7 +31,7 @@ const std::unique_ptr<LoggerInterface>& GlobalLogger::GetGlobalLogger() {
 }
 
 void GlobalLogger::SetGlobalLogLevels(
-    const unordered_set<LogLevel>& log_levels) {
+    const std::unordered_set<LogLevel>& log_levels) {
   enabled_log_levels_ = log_levels;
 }
 

@@ -34,8 +34,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::client_providers::GcpInstanceResourceNameDetails;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::atomic;
-using std::tuple;
 using testing::_;
 using testing::DoAll;
 using testing::Pair;
@@ -143,7 +141,7 @@ INSTANTIATE_TEST_SUITE_P(
         R"("//compute.googleapis.com/projects/123456/zones/us-west1/12345")"));
 
 class GcpInstanceClientUtilsTestIII
-    : public TestWithParam<tuple<std::string, std::string>> {
+    : public TestWithParam<std::tuple<std::string, std::string>> {
  protected:
   std::string GetResourceName() { return std::get<0>(GetParam()); }
 

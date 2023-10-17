@@ -50,9 +50,6 @@ using google::scp::core::authorization_service::mock::
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
-using std::function;
-using std::promise;
 
 namespace google::scp::core {
 
@@ -137,7 +134,7 @@ TEST(AwsAuthorizerTest, BasicHappyPath) {
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef", "amz_date":"19891107T123456Z"})"));
   request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
-  promise<void> done;
+  std::promise<void> done;
   Context context(std::move(request), [&](Context& context) {
     EXPECT_SUCCESS(context.result);
     done.set_value();
@@ -169,7 +166,7 @@ TEST(AwsAuthorizerTest, BasicUnauthorized) {
       "amz_date":"19891107T123456Z"})"));
   request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
-  promise<void> done;
+  std::promise<void> done;
   Context context(std::move(request), [&](Context& context) {
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(
@@ -203,7 +200,7 @@ TEST(AwsAuthorizerTest, MalformedServerResponse) {
       "amz_date":"19891107T123456Z"})"));
   request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
-  promise<void> done;
+  std::promise<void> done;
   Context context(std::move(request), [&](Context& context) {
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(
@@ -250,7 +247,7 @@ TEST(AwsAuthorizerTest, CannotConnectServer) {
       "amz_date":"19891107T123456Z"})"));
   request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
-  promise<void> done;
+  std::promise<void> done;
   Context context(std::move(request), [&](Context& context) {
     EXPECT_THAT(
         context.result,
@@ -364,7 +361,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
 
   Context context(std::move(request), [&](Context& context) {});
 
-  atomic<size_t> counter = 0;
+  std::atomic<size_t> counter = 0;
   http_client->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>
               http_context_callback) mutable {
@@ -403,7 +400,7 @@ TEST(AwsAuthorizerTest, HttpClientIsCalledOnlyOnceForEvaluatingTokens) {
   http_context.result = SuccessExecutionResult();
   http_context.Finish();
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   context.callback = [&](Context& context) {
     EXPECT_EQ(*context.response->authorized_domain, "blahblah");
     called = true;
@@ -439,7 +436,7 @@ TEST(AwsAuthorizerTest, HttpClientFailureWillInvalidateCache) {
 
   Context context(std::move(request), [&](Context& context) {});
 
-  atomic<size_t> counter = 0;
+  std::atomic<size_t> counter = 0;
   http_client->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>
               http_context_callback) mutable {
@@ -484,7 +481,7 @@ TEST(AwsAuthorizerTest, HttpClientFailureOnResponse) {
 
   Context context(std::move(request), [&](Context& context) {});
 
-  atomic<size_t> counter = 0;
+  std::atomic<size_t> counter = 0;
   http_client->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse> http_context) mutable {
         counter++;
@@ -508,7 +505,7 @@ TEST(AwsAuthorizerTest, OnBeforeGarbageCollection) {
 
   bool called = false;
   std::string cache_entry_key;
-  function<void(bool)> should_delete_entry = [&](bool should_delete) {
+  std::function<void(bool)> should_delete_entry = [&](bool should_delete) {
     EXPECT_EQ(should_delete, true);
     called = true;
   };
@@ -537,7 +534,7 @@ TEST(AwsAuthorizerTest, InsertionWhileDeletionShouldReturnRefreshStatusCode) {
       R"({"access_key":"OHMYGOODLORD", "signature":"123456789abcdefabcdef", "amz_date":"19891107T123456Z"})"));
   request->claimed_identity = std::make_shared<std::string>("claimed_identity");
 
-  promise<void> done;
+  std::promise<void> done;
   Context context(request, [&](Context& context) {
     EXPECT_SUCCESS(context.result);
     done.set_value();

@@ -89,7 +89,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
-using std::atomic_bool;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
 using testing::_;
@@ -166,7 +165,7 @@ class AwsBlobStorageClientProviderStreamTest : public ::testing::Test {
 
   // We check that this gets flipped after every call to ensure the context's
   // Finish() is called.
-  atomic_bool finish_called_{false};
+  std::atomic_bool finish_called_{false};
 
   SDKOptions options_;
 };

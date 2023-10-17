@@ -70,12 +70,7 @@ using google::scp::core::errors::SC_GCP_INSTANCE_CLIENT_ZONE_PARSING_FAILURE;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::common::CpioUtils;
 using nlohmann::json;
-using std::atomic;
-using std::map;
 using std::nullopt;
-using std::optional;
-using std::pair;
-using std::promise;
 
 namespace {
 constexpr char kGcpInstanceClientProvider[] = "GcpInstanceClientProvider";
@@ -122,7 +117,7 @@ constexpr char kTagBindingsListKey[] = "tagBindings";
 const auto& GetRequiredFieldsForInstanceDetails() {
   static char const* components[2];
   using iterator_type = decltype(std::cbegin(components));
-  static pair<iterator_type, iterator_type> iterator_pair = []() {
+  static std::pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kInstanceDetailsJsonIdKey;
     components[1] = kNetworkInterfacesKey;
     return std::make_pair(std::cbegin(components), std::cend(components));
@@ -133,7 +128,7 @@ const auto& GetRequiredFieldsForInstanceDetails() {
 const auto& GetRequiredFieldsForResourceTags() {
   static char const* components[3];
   using iterator_type = decltype(std::cbegin(components));
-  static pair<iterator_type, iterator_type> iterator_pair = []() {
+  static std::pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kTagBindingNameKey;
     components[1] = kTagBindingParentKey;
     components[2] = kTagBindingTagValueKey;

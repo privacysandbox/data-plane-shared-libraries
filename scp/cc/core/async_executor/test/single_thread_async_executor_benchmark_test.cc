@@ -25,10 +25,8 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::TimeProvider;
-using std::atomic;
 using std::cout;
 using std::endl;
-using std::function;
 using std::thread;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -48,8 +46,8 @@ class SingleThreadAsyncExecutorBenchmarkTest : public ::testing::Test {
   int num_threads_scheduling_tasks_ = 10;
   int task_schedule_count_per_thread_ = 1000000;
   std::shared_ptr<SingleThreadAsyncExecutor> async_executor_;
-  atomic<int64_t> execution_count_ = 0;
-  function<void()> test_work_function_ = [&]() {
+  std::atomic<int64_t> execution_count_ = 0;
+  std::function<void()> test_work_function_ = [&]() {
     execution_count_ += 1;
     execution_count_ += 1;
     execution_count_ += 1;
@@ -61,7 +59,7 @@ class SingleThreadAsyncExecutorBenchmarkTest : public ::testing::Test {
 TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
   GTEST_SKIP();
   SetUpExecutor();
-  atomic<bool> start = false;
+  std::atomic<bool> start = false;
   auto task_queueing_function = [&](int id) {
     while (!start) {}
     for (int i = 0; i < task_schedule_count_per_thread_; i++) {
@@ -98,7 +96,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
 TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTaskMixedPriority) {
   GTEST_SKIP();
   SetUpExecutor();
-  atomic<bool> start = false;
+  std::atomic<bool> start = false;
   auto task_queueing_function = [&](int id) {
     while (!start) {}
     for (int i = 0; i < task_schedule_count_per_thread_; i++) {

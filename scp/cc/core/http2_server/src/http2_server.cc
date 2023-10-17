@@ -59,14 +59,13 @@ using google::scp::cpio::MetricUtils;
 using nghttp2::asio_http2::server::configure_tls_context_easy;
 using nghttp2::asio_http2::server::request;
 using nghttp2::asio_http2::server::response;
-using std::set;
 using std::thread;
 
 static constexpr char kHttp2Server[] = "Http2Server";
 
 static constexpr size_t kConnectionReadTimeoutInSeconds = 90;
 
-static const set<HttpStatusCode> kHttpStatusCode4xxMap = {
+static const std::set<HttpStatusCode> kHttpStatusCode4xxMap = {
     HttpStatusCode::BAD_REQUEST,
     HttpStatusCode::UNAUTHORIZED,
     HttpStatusCode::FORBIDDEN,
@@ -84,7 +83,7 @@ static const set<HttpStatusCode> kHttpStatusCode4xxMap = {
     HttpStatusCode::MISDIRECTED_REQUEST,
     HttpStatusCode::TOO_MANY_REQUESTS};
 
-static const set<HttpStatusCode> kHttpStatusCode5xxMap = {
+static const std::set<HttpStatusCode> kHttpStatusCode5xxMap = {
     HttpStatusCode::INTERNAL_SERVER_ERROR,
     HttpStatusCode::NOT_IMPLEMENTED,
     HttpStatusCode::BAD_GATEWAY,

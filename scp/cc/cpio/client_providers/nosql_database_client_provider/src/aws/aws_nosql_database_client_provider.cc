@@ -77,8 +77,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::SC_NO_SQL_DATABASE_PROVIDER_RECORD_NOT_FOUND;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::client_providers::AwsNoSQLDatabaseClientUtils;
-using std::optional;
-using std::pair;
 
 namespace {
 

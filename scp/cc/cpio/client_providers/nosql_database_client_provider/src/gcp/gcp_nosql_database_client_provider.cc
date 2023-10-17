@@ -99,9 +99,6 @@ using google::scp::cpio::client_providers::GcpNoSQLDatabaseClientUtils;
 using google::scp::cpio::client_providers::PartitionAndSortKey;
 using google::scp::cpio::common::GcpUtils;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlRequest;
-using std::optional;
-using std::pair;
-using std::unordered_map;
 
 using SpannerJson = google::cloud::spanner::Json;
 using json = nlohmann::json;
@@ -215,7 +212,8 @@ std::string BuildCreateTableStatement(const CreateTableRequest& request) {
 // values in table_name_to_keys. Returns success if table_name_to_keys is
 // not present.
 ExecutionResult ValidatePartitionAndSortKey(
-    const unordered_map<std::string, PartitionAndSortKey>* table_name_to_keys,
+    const std::unordered_map<std::string, PartitionAndSortKey>*
+        table_name_to_keys,
     const ItemKey& key) {
   if (!table_name_to_keys || table_name_to_keys->empty()) {
     return SuccessExecutionResult();
@@ -753,7 +751,7 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::GetMergedJson(
     AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>&
         upsert_database_item_context,
     RowStream& row_stream, bool enforce_row_existence, json new_attributes,
-    optional<SpannerJson>& spanner_json) {
+    std::optional<SpannerJson>& spanner_json) {
   auto row_it = row_stream.begin();
   if (!row_it->ok()) {
     auto result = GcpUtils::GcpErrorConverter(row_it->status());
@@ -831,7 +829,7 @@ Mutations GcpNoSQLDatabaseClientProvider::UpsertFunctor(
   auto row_stream =
       client.ExecuteQuery(txn, upsert_select_options.select_statement);
 
-  optional<SpannerJson> spanner_json;
+  std::optional<SpannerJson> spanner_json;
   prepare_result = GetMergedJson(upsert_database_item_context, row_stream,
                                  enforce_row_existence,
                                  std::move(new_attributes), spanner_json);
@@ -966,7 +964,7 @@ ExecutionResult GcpNoSQLDatabaseClientProvider::UpsertDatabaseItem(
 }
 
 ExecutionResultOr<
-    pair<std::shared_ptr<Client>, std::shared_ptr<DatabaseAdminClient>>>
+    std::pair<std::shared_ptr<Client>, std::shared_ptr<DatabaseAdminClient>>>
 SpannerFactory::CreateClients(
     std::shared_ptr<NoSQLDatabaseClientOptions> client_options,
     const std::string& project) noexcept {

@@ -73,8 +73,6 @@ using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
 using google::scp::cpio::MockSimpleMetric;
 using google::scp::cpio::TimeEvent;
-using std::atomic;
-using std::unordered_set;
 
 namespace google::scp::core::test {
 
@@ -292,7 +290,7 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackStreamFailure) {
   read_log_context.result = FailureExecutionResult(123);
 
   auto time_event = std::make_shared<TimeEvent>();
-  auto replayed_logs = std::make_shared<unordered_set<std::string>>();
+  auto replayed_logs = std::make_shared<std::unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 
@@ -345,7 +343,7 @@ TEST_F(JournalServiceTests, OnJournalStreamReadLogCallbackNoCallbackFound) {
   read_log_context.response->read_logs->push_back(log_object);
   read_log_context.result = SuccessExecutionResult();
   auto time_event = std::make_shared<TimeEvent>();
-  auto replayed_logs = std::make_shared<unordered_set<std::string>>();
+  auto replayed_logs = std::make_shared<std::unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 }
@@ -360,7 +358,7 @@ TEST_F(JournalServiceTests,
   std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   mock_blob_storage_provider_->CreateBlobStorageClient(blob_storage_client);
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
       journal_recover_context;
   journal_recover_context.callback =
@@ -392,7 +390,7 @@ TEST_F(JournalServiceTests,
   journal_service.GetSubscribersMap().Insert(pair, callback);
 
   auto time_event = std::make_shared<TimeEvent>();
-  auto replayed_logs = std::make_shared<unordered_set<std::string>>();
+  auto replayed_logs = std::make_shared<std::unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 
@@ -409,7 +407,7 @@ TEST_F(JournalServiceTests,
   std::shared_ptr<BlobStorageClientInterface> blob_storage_client;
   mock_blob_storage_provider_->CreateBlobStorageClient(blob_storage_client);
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   AsyncContext<JournalRecoverRequest, JournalRecoverResponse>
       journal_recover_context;
   journal_recover_context.callback =
@@ -463,7 +461,7 @@ TEST_F(JournalServiceTests,
   journal_service.GetSubscribersMap().Insert(pair, callback);
 
   auto time_event = std::make_shared<TimeEvent>();
-  auto replayed_logs = std::make_shared<unordered_set<std::string>>();
+  auto replayed_logs = std::make_shared<std::unordered_set<std::string>>();
   journal_service.OnJournalStreamReadLogCallback(
       time_event, replayed_logs, journal_recover_context, read_log_context);
 

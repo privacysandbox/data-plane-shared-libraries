@@ -43,7 +43,6 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::client_providers::mock::MockKMSClient;
-using std::atomic;
 
 namespace google::scp::cpio::client_providers::test {
 class AwsKmsAeadTest : public ::testing::Test {

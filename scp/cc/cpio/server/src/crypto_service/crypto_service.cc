@@ -93,7 +93,6 @@ using google::scp::cpio::client_providers::CryptoClientProvider;
 using google::scp::cpio::client_providers::CryptoClientProviderInterface;
 using std::cout;
 using std::endl;
-using std::list;
 using std::runtime_error;
 
 namespace {

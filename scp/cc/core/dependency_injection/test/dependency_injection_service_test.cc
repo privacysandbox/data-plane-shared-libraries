@@ -30,9 +30,6 @@
 #include "scp/cc/core/dependency_injection/src/error_codes.h"
 #include "scp/cc/core/interface/dependency_injection_service_interface.h"
 
-using std::function;
-using std::unordered_set;
-
 using google::scp::core::errors::
     SC_DEPENDENCY_INJECTION_COMPONENT_ALREADY_REGISTERED;
 using google::scp::core::errors::

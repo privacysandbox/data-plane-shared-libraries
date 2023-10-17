@@ -101,9 +101,6 @@ using google::scp::cpio::client_providers::PartitionAndSortKey;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlMetadata;
 using google::spanner::admin::database::v1::UpdateDatabaseDdlRequest;
-using std::optional;
-using std::pair;
-using std::unordered_map;
 using testing::_;
 using testing::ByMove;
 using testing::Eq;
@@ -127,10 +124,10 @@ constexpr char kBudgetKeySortKeyName[] = "Timeframe";
 constexpr char kPartitionLockTableName[] = "PartitionLock";
 constexpr char kPartitionLockPartitionKeyName[] = "LockId";
 
-std::unique_ptr<unordered_map<std::string, PartitionAndSortKey>>
+std::unique_ptr<std::unordered_map<std::string, PartitionAndSortKey>>
 GetTableNameToKeysMap() {
   auto map =
-      std::make_unique<unordered_map<std::string, PartitionAndSortKey>>();
+      std::make_unique<std::unordered_map<std::string, PartitionAndSortKey>>();
   PartitionAndSortKey budget_key_pair;
   budget_key_pair.SetPartitionKey(kBudgetKeyPartitionKeyName);
   budget_key_pair.SetSortKey(kBudgetKeySortKeyName);
@@ -167,11 +164,12 @@ namespace google::scp::cpio::client_providers::test {
 
 class MockSpannerFactory : public SpannerFactory {
  public:
-  MOCK_METHOD((ExecutionResultOr<pair<std::shared_ptr<Client>,
-                                      std::shared_ptr<DatabaseAdminClient>>>),
-              CreateClients,
-              (std::shared_ptr<NoSQLDatabaseClientOptions>, const std::string&),
-              (noexcept, override));
+  MOCK_METHOD(
+      (ExecutionResultOr<std::pair<std::shared_ptr<Client>,
+                                   std::shared_ptr<DatabaseAdminClient>>>),
+      CreateClients,
+      (std::shared_ptr<NoSQLDatabaseClientOptions>, const std::string&),
+      (noexcept, override));
   MOCK_METHOD((Options), CreateClientOptions,
               (std::shared_ptr<NoSQLDatabaseClientOptions>),
               (noexcept, override));

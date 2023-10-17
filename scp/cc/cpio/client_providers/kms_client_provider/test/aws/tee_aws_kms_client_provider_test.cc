@@ -63,7 +63,6 @@ using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
 using google::scp::cpio::client_providers::mock::
     MockTeeAwsKmsClientProviderWithOverrides;
-using std::atomic;
 
 static constexpr char kAssumeRoleArn[] = "assumeRoleArn";
 static constexpr char kCiphertext[] = "ciphertext";
@@ -112,7 +111,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_kms_region(kRegion);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   std::string expect_command =
       "/kmstool_enclave_cli --region us-east-1"
@@ -146,7 +145,7 @@ TEST_F(TeeAwsKmsClientProviderTest, FailedToDecode) {
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_kms_region(kRegion);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   client_->returned_plaintext = "invalid";
 
@@ -170,7 +169,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
   auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_kms_region(kRegion);
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
@@ -193,7 +192,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingAssumeRoleArn) {
   auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_kms_region(kRegion);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
@@ -216,7 +215,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingRegion) {
   auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,

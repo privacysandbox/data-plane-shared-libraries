@@ -37,7 +37,6 @@ using google::scp::core::Uri;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED;
-using std::pair;
 using std::chrono::seconds;
 
 namespace {

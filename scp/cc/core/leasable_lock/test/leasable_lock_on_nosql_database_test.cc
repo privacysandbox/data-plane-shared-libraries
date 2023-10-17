@@ -46,7 +46,6 @@ using google::scp::core::common::TimeProvider;
 using google::scp::core::nosql_database_provider::mock::
     MockNoSQLDatabaseProviderNoOverrides;
 using google::scp::core::test::ResultIs;
-using std::atomic;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using std::chrono::seconds;

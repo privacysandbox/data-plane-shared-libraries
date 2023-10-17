@@ -31,10 +31,7 @@
 #include "typedef.h"
 
 using google::scp::core::common::TimeProvider;
-using std::atomic;
-using std::function;
 using std::mutex;
-using std::priority_queue;
 using std::thread;
 using std::unique_lock;
 using std::chrono::milliseconds;
@@ -46,10 +43,9 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::Init() noexcept {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_INVALID_QUEUE_CAP);
   }
 
-  queue_ =
-      std::make_shared<priority_queue<std::shared_ptr<AsyncTask>,
-                                      std::vector<std::shared_ptr<AsyncTask>>,
-                                      AsyncTaskCompareGreater>>();
+  queue_ = std::make_shared<std::priority_queue<
+      std::shared_ptr<AsyncTask>, std::vector<std::shared_ptr<AsyncTask>>,
+      AsyncTaskCompareGreater>>();
   return SuccessExecutionResult();
 };
 
@@ -161,13 +157,13 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::Stop() noexcept {
 
 ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
     AsyncOperation work, Timestamp timestamp) noexcept {
-  function<bool()> cancellation_callback = []() { return false; };
+  std::function<bool()> cancellation_callback = []() { return false; };
   return ScheduleFor(std::move(work), timestamp, cancellation_callback);
 };
 
 ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
     AsyncOperation work, Timestamp timestamp,
-    function<bool()>& cancellation_callback) noexcept {
+    std::function<bool()>& cancellation_callback) noexcept {
   if (!is_running_) {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
   }

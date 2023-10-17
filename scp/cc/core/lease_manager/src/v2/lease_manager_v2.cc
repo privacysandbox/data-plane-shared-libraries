@@ -29,9 +29,7 @@
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
-using std::atomic;
 using std::mutex;
-using std::optional;
 using std::thread;
 using std::unique_lock;
 using std::chrono::duration_cast;
@@ -107,7 +105,7 @@ ExecutionResult LeaseManagerV2::Run() noexcept {
 
   // Start Lease Preference Manager.
   // Initiate start on thread and wait until it starts.
-  atomic<bool> is_thread_started(false);
+  std::atomic<bool> is_thread_started(false);
   lease_preference_manager_thread_ =
       std::make_unique<thread>([this, &is_thread_started]() {
         is_thread_started = true;

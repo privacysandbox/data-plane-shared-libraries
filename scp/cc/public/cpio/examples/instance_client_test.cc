@@ -44,12 +44,11 @@ using google::scp::cpio::InstanceClientFactory;
 using google::scp::cpio::InstanceClientInterface;
 using google::scp::cpio::InstanceClientOptions;
 using google::scp::cpio::LogOption;
-using std::atomic;
 
 std::unique_ptr<InstanceClientInterface> instance_client;
 
 void GetTagsByResourceNameCallback(
-    atomic<bool>& finished, ExecutionResult result,
+    std::atomic<bool>& finished, ExecutionResult result,
     GetTagsByResourceNameResponse get_tags_response) {
   if (!result.Successful()) {
     std::cout << "GetTagsByResourceName failed: "
@@ -65,7 +64,7 @@ void GetTagsByResourceNameCallback(
 }
 
 void GetCurrentInstanceResourceNameCallback(
-    atomic<bool>& finished, ExecutionResult result,
+    std::atomic<bool>& finished, ExecutionResult result,
     GetCurrentInstanceResourceNameResponse get_resource_name_response) {
   if (!result.Successful()) {
     std::cout << "Hpke encrypt failure!" << GetErrorMessage(result.status_code)
@@ -114,7 +113,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   result = instance_client->GetCurrentInstanceResourceName(
       GetCurrentInstanceResourceNameRequest(),
       absl::bind_front(GetCurrentInstanceResourceNameCallback,

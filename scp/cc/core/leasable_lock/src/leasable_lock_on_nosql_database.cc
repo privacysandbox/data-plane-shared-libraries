@@ -36,9 +36,7 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::TimeDuration;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
-using std::atomic;
 using std::mutex;
-using std::optional;
 using std::shared_lock;
 using std::shared_mutex;
 using std::unique_lock;
@@ -186,7 +184,7 @@ LeasableLockOnNoSQLDatabase::GetConfiguredLeaseDurationInMilliseconds()
   return lease_duration_in_milliseconds_.count();
 }
 
-optional<LeaseInfo> LeasableLockOnNoSQLDatabase::GetCurrentLeaseOwnerInfo()
+std::optional<LeaseInfo> LeasableLockOnNoSQLDatabase::GetCurrentLeaseOwnerInfo()
     const noexcept {
   unique_lock<mutex> lock(mutex_);
   // If current cached lease info says that the lease is expired, then do not

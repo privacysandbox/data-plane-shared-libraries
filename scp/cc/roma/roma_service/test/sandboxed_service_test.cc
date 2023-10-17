@@ -35,9 +35,7 @@
 
 using google::scp::core::test::WaitUntil;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
-using std::atomic;
 using std::thread;
-using std::tuple;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 using ::testing::HasSubstr;
@@ -82,8 +80,8 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -136,9 +134,9 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
-  atomic<bool> failed_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
+  std::atomic<bool> failed_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -211,8 +209,8 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -263,8 +261,8 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -315,8 +313,8 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -372,7 +370,7 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   // We don't load any code, just try to execute some version
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -404,8 +402,8 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -483,10 +481,10 @@ TEST(SandboxedServiceTest, BatchExecute) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<int> res_count(0);
+  std::atomic<int> res_count(0);
   size_t batch_size(5);
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -544,11 +542,11 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<int> res_count(0);
+  std::atomic<int> res_count(0);
   // Large batch
   size_t batch_size(100);
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -607,10 +605,10 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<int> res_count(0);
+  std::atomic<int> res_count(0);
   size_t batch_size(100);
-  atomic<bool> load_finished = false;
-  atomic<int> execute_finished = 0;
+  std::atomic<bool> load_finished = false;
+  std::atomic<int> execute_finished = 0;
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -688,10 +686,10 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<bool> load_finished = false;
+  std::atomic<bool> load_finished = false;
   size_t total_runs = 10;
   std::vector<std::string> results(total_runs);
-  std::vector<atomic<bool>> finished(total_runs);
+  std::vector<std::atomic<bool>> finished(total_runs);
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -764,8 +762,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -833,8 +831,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -903,8 +901,8 @@ TEST(
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -978,8 +976,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1054,8 +1052,8 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1107,8 +1105,8 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   auto wasm_bin = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/"
@@ -1164,10 +1162,10 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_timeout = false;
-  atomic<bool> execute_failed = false;
-  atomic<bool> execute_success = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_timeout = false;
+  std::atomic<bool> execute_failed = false;
+  std::atomic<bool> execute_success = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1287,8 +1285,8 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1440,7 +1438,7 @@ TEST(SandboxedServiceTest,
         "./scp/cc/roma/testing/"
         "cpp_wasm_allocate_memory/allocate_memory.wasm");
 
-    atomic<bool> load_finished = false;
+    std::atomic<bool> load_finished = false;
     {
       auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
@@ -1486,7 +1484,7 @@ TEST(SandboxedServiceTest,
         "./scp/cc/roma/testing/"
         "cpp_wasm_allocate_memory/allocate_memory.wasm");
 
-    atomic<bool> load_finished = false;
+    std::atomic<bool> load_finished = false;
     {
       auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
@@ -1519,8 +1517,8 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1593,8 +1591,8 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   // Load version 1
   {
@@ -1719,8 +1717,8 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   // Load version 1
   {
@@ -1802,8 +1800,8 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1908,7 +1906,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<bool> load_finished = false;
+  std::atomic<bool> load_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1942,9 +1940,9 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
-  atomic<bool> execute_failed = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
+  std::atomic<bool> execute_failed = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2016,9 +2014,9 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
-  atomic<bool> execute_failed = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
+  std::atomic<bool> execute_failed = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2092,8 +2090,8 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2148,8 +2146,8 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2203,8 +2201,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2308,8 +2306,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2366,8 +2364,8 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   // Load v1
   {
@@ -2474,8 +2472,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2534,8 +2532,8 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2597,8 +2595,8 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<bool> load_finished1 = false;
-  atomic<bool> load_finished2 = false;
+  std::atomic<bool> load_finished1 = false;
+  std::atomic<bool> load_finished2 = false;
 
   absl::flat_hash_map<std::string, std::string> tags;
   tags[kWasmCodeArrayName] = "addModule";
@@ -2738,8 +2736,8 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2804,8 +2802,8 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<bool> load_finished = false;
-  atomic<bool> execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
 
   // dummy code that gets killed by the JS engine if it allocates too much
   // memory
@@ -2912,8 +2910,8 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> success_execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> success_execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2972,8 +2970,8 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> oversize_execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> oversize_execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3030,8 +3028,8 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<bool> load_finished = false;
-  atomic<bool> oversize_execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> oversize_execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3094,7 +3092,7 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
+  std::atomic<bool> load_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3135,11 +3133,11 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  atomic<bool> load_finished = false;
-  atomic<bool> success_execute_finished = false;
-  atomic<bool> failed_execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> success_execute_finished = false;
+  std::atomic<bool> failed_execute_finished = false;
   std::string retry_result;
-  atomic<bool> retry_success_execute_finished = false;
+  std::atomic<bool> retry_success_execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3239,10 +3237,10 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  atomic<bool> load_finished = false;
-  atomic<bool> success_execute_finished = false;
-  atomic<bool> failed_execute_finished = false;
-  atomic<bool> retry_success_execute_finished = false;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> success_execute_finished = false;
+  std::atomic<bool> failed_execute_finished = false;
+  std::atomic<bool> retry_success_execute_finished = false;
 
   {
     auto code_obj = std::make_unique<CodeObject>();

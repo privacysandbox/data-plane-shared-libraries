@@ -29,7 +29,6 @@ using boost::system::error_code;
 using google::scp::core::common::AutoExpiryConcurrentMap;
 using google::scp::core::common::kZeroUuid;
 using nghttp2::asio_http2::host_service_from_uri;
-using std::function;
 
 static constexpr const char kAuthorizationProxy[] = "AuthorizationProxy";
 
@@ -39,7 +38,7 @@ namespace google::scp::core {
 
 void OnBeforeGarbageCollection(std::string&,
                                std::shared_ptr<AuthorizationProxy::CacheEntry>&,
-                               function<void(bool)> should_delete_entry) {
+                               std::function<void(bool)> should_delete_entry) {
   should_delete_entry(true);
 }
 

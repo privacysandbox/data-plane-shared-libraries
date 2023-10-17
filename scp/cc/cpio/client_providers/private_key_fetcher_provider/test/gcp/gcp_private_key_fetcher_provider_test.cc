@@ -51,7 +51,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::GcpPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
-using std::atomic;
 using testing::Pair;
 using testing::Pointee;
 using testing::Return;
@@ -141,7 +140,7 @@ MATCHER_P(TargetAudienceUriEquals, expected_target_audience_uri, "") {
 }
 
 TEST_F(GcpPrivateKeyFetcherProviderTest, SignHttpRequest) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   EXPECT_CALL(*credentials_provider_,
               GetSessionTokenForTargetAudience(
@@ -187,7 +186,7 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
         return context.result;
       });
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<PrivateKeyFetchingRequest, HttpRequest> context(
       request_,
       [&](AsyncContext<PrivateKeyFetchingRequest, HttpRequest>& context) {

@@ -40,7 +40,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::cpio::MetricClient;
 using google::scp::cpio::MetricClientOptions;
 using google::scp::cpio::mock::MockMetricClientWithOverrides;
-using std::atomic;
 using testing::Return;
 
 namespace google::scp::cpio::test {

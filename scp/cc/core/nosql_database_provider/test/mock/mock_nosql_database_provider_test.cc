@@ -31,7 +31,6 @@ using google::scp::core::common::ConcurrentMap;
 using google::scp::core::nosql_database_provider::mock::
     MockNoSQLDatabaseProvider;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
 
 namespace google::scp::core::test {
 
@@ -72,7 +71,7 @@ TEST(MockNoSQLDatabaseProviderTests, GetItemWithPartitionAndSortKey) {
   MockNoSQLDatabaseProvider nosql_database_provider;
   InitializeInMemoryDatabase(nosql_database_provider);
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       get_database_item_context(std::make_shared<GetDatabaseItemRequest>(),
                                 [&](auto& context) {
@@ -135,7 +134,7 @@ TEST(MockNoSQLDatabaseProviderTests, GetItemWithPartitionKey) {
   MockNoSQLDatabaseProvider nosql_database_provider;
   InitializeInMemoryDatabase(nosql_database_provider);
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       get_database_item_context(
           std::make_shared<GetDatabaseItemRequest>(), [&](auto& context) {
@@ -165,7 +164,7 @@ TEST(MockNoSQLDatabaseProviderTests, PartitionNotFound) {
   MockNoSQLDatabaseProvider nosql_database_provider;
   InitializeInMemoryDatabase(nosql_database_provider);
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       get_database_item_context(
           std::make_shared<GetDatabaseItemRequest>(), [&](auto& context) {
@@ -209,7 +208,7 @@ TEST(MockNoSQLDatabaseProviderTests, AttributeNotFound) {
   MockNoSQLDatabaseProvider nosql_database_provider;
   InitializeInMemoryDatabase(nosql_database_provider);
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<GetDatabaseItemRequest, GetDatabaseItemResponse>
       get_database_item_context(std::make_shared<GetDatabaseItemRequest>(),
                                 [&](auto& context) {
@@ -250,7 +249,7 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertNonExistingItem) {
   MockNoSQLDatabaseProvider nosql_database_provider;
   InitializeInMemoryDatabase(nosql_database_provider);
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>
       upsert_database_item_context(
           std::make_shared<UpsertDatabaseItemRequest>(), [&](auto& context) {
@@ -325,7 +324,7 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertExistingItem) {
   MockNoSQLDatabaseProvider nosql_database_provider;
   InitializeInMemoryDatabase(nosql_database_provider);
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>
       upsert_database_item_context(
           std::make_shared<UpsertDatabaseItemRequest>(), [&](auto& context) {
@@ -417,7 +416,7 @@ TEST(MockNoSQLDatabaseProviderTests, UpsertExistingItem) {
 
   // Upsert conditionally on attr1, attr2, to insert two new attributes and
   // modify existing attr1, attr2 as well.
-  atomic<bool> conditional_upsert_done = false;
+  std::atomic<bool> conditional_upsert_done = false;
   AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>
       conditional_upsert_database_item_context(
           std::make_shared<UpsertDatabaseItemRequest>(), [&](auto& context) {
@@ -491,7 +490,7 @@ TEST(MockNoSQLDatabaseProviderTests, TestInitializeTable) {
       .attribute_value =
           std::make_shared<NoSQLDatabaseValidAttributeValueTypes>(6)};
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<UpsertDatabaseItemRequest, UpsertDatabaseItemResponse>
       upsert_database_item_context(
           std::make_shared<UpsertDatabaseItemRequest>(), [&](auto& context) {

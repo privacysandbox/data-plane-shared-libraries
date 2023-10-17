@@ -51,9 +51,6 @@ using google::scp::core::http2_client::mock::MockHttpConnection;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
-using std::future;
-using std::promise;
 using std::thread;
 using std::chrono::milliseconds;
 
@@ -62,8 +59,8 @@ namespace google::scp::core {
 TEST(HttpConnectionTest, SimpleRequest) {
   http2 server;
   boost::system::error_code ec;
-  atomic<bool> release_response = false;
-  atomic<bool> response_released = false;
+  std::atomic<bool> release_response = false;
+  std::atomic<bool> response_released = false;
   server.num_threads(1);
   server.handle("/test", [&](const request& req, const response& res) {
     while (!release_response.load()) {
@@ -93,7 +90,7 @@ TEST(HttpConnectionTest, SimpleRequest) {
   http_context.request->path =
       std::make_shared<std::string>("http://localhost/test");
   http_context.request->method = HttpMethod::GET;
-  atomic<bool> is_called(false);
+  std::atomic<bool> is_called(false);
   http_context.callback =
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
         is_called.store(true);
@@ -129,7 +126,7 @@ TEST(HttpConnectionTest, SimpleRequest) {
 TEST(HttpConnectionTest, CancelCallbacks) {
   http2 server;
   boost::system::error_code ec;
-  atomic<bool> release_response = false;
+  std::atomic<bool> release_response = false;
   server.num_threads(1);
   server.handle("/test", [&](const request& req, const response& res) {
     while (!release_response.load()) {
@@ -196,7 +193,7 @@ TEST(HttpConnectionTest, CancelCallbacks) {
 TEST(HttpConnectionTest, StopRemovesCallback) {
   http2 server;
   boost::system::error_code ec;
-  atomic<bool> release_response = false;
+  std::atomic<bool> release_response = false;
   server.num_threads(1);
   server.handle("/test", [&](const request& req, const response& res) {
     while (!release_response.load()) {

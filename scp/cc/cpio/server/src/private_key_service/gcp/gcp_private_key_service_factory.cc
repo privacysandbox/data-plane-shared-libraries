@@ -52,7 +52,6 @@ using google::scp::cpio::client_providers::GcpKmsClientProvider;
 using google::scp::cpio::client_providers::GcpPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::KmsClientProviderInterface;
 using google::scp::cpio::client_providers::PrivateKeyFetcherProviderInterface;
-using std::list;
 
 namespace {
 constexpr char kGcpPrivateKeyServiceFactory[] = "GcpPrivateKeyServiceFactory";
@@ -99,7 +98,8 @@ ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
 
   // Read GCP specific configurations.
   // Read cloudfunction Urls.
-  list<std::string> secondary_private_key_vending_service_cloudfunction_urls;
+  std::list<std::string>
+      secondary_private_key_vending_service_cloudfunction_urls;
   RETURN_AND_LOG_IF_FAILURE(
       TryReadConfigStringList(
           config_provider_,
@@ -127,7 +127,7 @@ ExecutionResult GcpPrivateKeyServiceFactory::Init() noexcept {
       "Missing primary private key vending cloudfunction Url.");
 
   // Read WIP providers.
-  list<std::string> secondary_private_key_vending_service_wip_providers;
+  std::list<std::string> secondary_private_key_vending_service_wip_providers;
   RETURN_AND_LOG_IF_FAILURE(
       TryReadConfigStringList(
           config_provider_, kGcpSecondaryPrivateKeyVendingServiceWipProviders,

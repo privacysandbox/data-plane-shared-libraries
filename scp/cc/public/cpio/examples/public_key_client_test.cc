@@ -40,7 +40,6 @@ using google::scp::cpio::LogOption;
 using google::scp::cpio::PublicKeyClientFactory;
 using google::scp::cpio::PublicKeyClientInterface;
 using google::scp::cpio::PublicKeyClientOptions;
-using std::atomic;
 using std::chrono::milliseconds;
 
 constexpr char kPublicKeyEndpoint[] = "https://test.publickey.com";
@@ -75,7 +74,7 @@ int main(int argc, char* argv[]) {
   std::cout << "Run public key client successfully!" << std::endl;
 
   ListPublicKeysRequest request;
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   result = public_key_client->ListPublicKeys(
       std::move(request),
       [&](const ExecutionResult result, ListPublicKeysResponse response) {

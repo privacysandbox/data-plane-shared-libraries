@@ -53,7 +53,6 @@ using google::scp::cpio::MetricLabels;
 using google::scp::cpio::MetricName;
 using google::scp::cpio::MetricValue;
 using std::mutex;
-using std::pair;
 using std::chrono::milliseconds;
 
 static constexpr char kAggregateMetric[] = "AggregateMetric";
@@ -97,7 +96,7 @@ AggregateMetric::AggregateMetric(
     event_metric.AddMetricLabels(std::move(labels));
 
     event_counters_[event_code] = 0;
-    event_metric_infos_.insert(pair<std::string, MetricDefinition>(
+    event_metric_infos_.insert(std::pair<std::string, MetricDefinition>(
         event_code, std::move(event_metric)));
   }
 }

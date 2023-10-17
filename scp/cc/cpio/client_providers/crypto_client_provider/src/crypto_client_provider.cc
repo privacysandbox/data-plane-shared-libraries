@@ -95,7 +95,6 @@ using google::scp::core::errors::SC_CRYPTO_CLIENT_PROVIDER_SECRET_EXPORT_FAILED;
 using google::scp::core::errors::
     SC_CRYPTO_CLIENT_PROVIDER_SPLIT_CIPHERTEXT_FAILED;
 using google::scp::core::utils::Base64Decode;
-using std::map;
 using std::mt19937;
 using std::uniform_int_distribution;
 
@@ -113,15 +112,15 @@ const tink::HpkeParams kDefaultHpkeParams = {tink::HpkeKem::kX25519HkdfSha256,
                                              tink::HpkeKdf::kHkdfSha256,
                                              tink::HpkeAead::kChaCha20Poly1305};
 /// Map from HpkeKem to Tink HpkeKem.
-const map<HpkeKem, tink::HpkeKem> kHpkeKemMap = {
+const std::map<HpkeKem, tink::HpkeKem> kHpkeKemMap = {
     {HpkeKem::DHKEM_X25519_HKDF_SHA256, tink::HpkeKem::kX25519HkdfSha256},
     {HpkeKem::KEM_UNKNOWN, tink::HpkeKem::kUnknownKem}};
 /// Map from HpkeKdf to Tink HpkeKdf.
-const map<HpkeKdf, tink::HpkeKdf> kHpkeKdfMap = {
+const std::map<HpkeKdf, tink::HpkeKdf> kHpkeKdfMap = {
     {HpkeKdf::HKDF_SHA256, tink::HpkeKdf::kHkdfSha256},
     {HpkeKdf::KDF_UNKNOWN, tink::HpkeKdf::kUnknownKdf}};
 /// Map from HpkeAead to Tink HpkeAead.
-const map<HpkeAead, tink::HpkeAead> kHpkeAeadMap = {
+const std::map<HpkeAead, tink::HpkeAead> kHpkeAeadMap = {
     {HpkeAead::AES_128_GCM, tink::HpkeAead::kAes128Gcm},
     {HpkeAead::AES_256_GCM, tink::HpkeAead::kAes256Gcm},
     {HpkeAead::CHACHA20_POLY1305, tink::HpkeAead::kChaCha20Poly1305},

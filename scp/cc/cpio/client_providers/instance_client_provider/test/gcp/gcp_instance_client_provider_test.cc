@@ -59,7 +59,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::GcpInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
-using std::atomic;
 using std::chrono::seconds;
 using testing::_;
 using testing::Eq;
@@ -237,7 +236,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
         return SuccessExecutionResult();
       });
 
-  atomic<size_t> condition{0};
+  std::atomic<size_t> condition{0};
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -285,7 +284,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  atomic<size_t> condition{0};
+  std::atomic<size_t> condition{0};
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -315,7 +314,7 @@ TEST_F(GcpInstanceClientProviderTest, FailedToGetCurrentInstanceResourceName) {
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
-  atomic<size_t> condition{0};
+  std::atomic<size_t> condition{0};
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -620,7 +619,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
         return SuccessExecutionResult();
       });
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -709,7 +708,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -770,7 +769,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
   EXPECT_CALL(*http2_client_, PerformRequest).Times(0);
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -810,7 +809,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -876,7 +875,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
   auto failure = FailureExecutionResult(
       SC_GCP_INSTANCE_CLIENT_INSTANCE_DETAILS_RESPONSE_MALFORMED);
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -948,7 +947,7 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
         return SuccessExecutionResult();
       });
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
@@ -978,7 +977,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
   EXPECT_CALL(*http2_client_, PerformRequest).Times(0);
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
@@ -1016,7 +1015,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
@@ -1083,7 +1082,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(
           std::move(get_tags_request_),
@@ -1133,7 +1132,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,

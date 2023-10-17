@@ -65,9 +65,6 @@ using google::scp::cpio::client_providers::mock::MockKmsClientProvider;
 using google::scp::cpio::client_providers::mock::
     MockPrivateKeyClientProviderWithOverrides;
 using google::scp::cpio::client_providers::mock::MockPrivateKeyFetcherProvider;
-using std::atomic;
-using std::map;
-using std::pair;
 using testing::Between;
 using testing::ElementsAre;
 using testing::Pointwise;
@@ -101,7 +98,7 @@ const std::vector<std::string> kTestKeyMaterials = {
     "key-material-1", "key-material-2", "key-material-3"};
 constexpr char kTestKeyMaterialBad[] = "bad-key-material";
 constexpr char kTestPrivateKey[] = "Test message";
-const map<std::string, std::string> kPlaintextMap = {
+const std::map<std::string, std::string> kPlaintextMap = {
     {kTestKeyMaterials[0], "\270G\005\364$\253\273\331\353\336\216>"},
     {kTestKeyMaterials[1], "\327\002\204 \232\377\002\330\225DB\f"},
     {kTestKeyMaterials[2], "; \362\240\2369\334r\r\373\253W"}};
@@ -125,13 +122,13 @@ constexpr char kDecryptedSinglePartyKey[] = "singlepartytestkey";
 
 namespace google::scp::cpio::client_providers::test {
 // Put them inside the namespace to use the type inside namespace easier.
-static const map<std::string, ExecutionResult>
+static const std::map<std::string, ExecutionResult>
     kMockSuccessKeyFetchingResultsForListByAge = {
         {kTestEndpoint1, SuccessExecutionResult()},
         {kTestEndpoint2, SuccessExecutionResult()},
         {kTestEndpoint3, SuccessExecutionResult()}};
 
-static const map<std::string, map<std::string, ExecutionResult>>
+static const std::map<std::string, std::map<std::string, ExecutionResult>>
     kMockSuccessKeyFetchingResults = {
         {kTestKeyIds[0],
          {{kTestEndpoint1, SuccessExecutionResult()},
@@ -180,10 +177,11 @@ static void GetPrivateKeyFetchingResponse(PrivateKeyFetchingResponse& response,
   response.encryption_keys.emplace_back(encryption_key);
 }
 
-static map<std::string, map<std::string, PrivateKeyFetchingResponse>>
+static std::map<std::string, std::map<std::string, PrivateKeyFetchingResponse>>
 CreateSuccessKeyFetchingResponseMap(size_t splits_in_key_data = 3,
                                     size_t call_num = 3) {
-  map<std::string, map<std::string, PrivateKeyFetchingResponse>> responses;
+  std::map<std::string, std::map<std::string, PrivateKeyFetchingResponse>>
+      responses;
   for (int i = 0; i < call_num; ++i) {
     for (int j = 0; j < 3; ++j) {
       PrivateKeyFetchingResponse mock_fetching_response;
@@ -196,9 +194,9 @@ CreateSuccessKeyFetchingResponseMap(size_t splits_in_key_data = 3,
   return responses;
 }
 
-static map<std::string, PrivateKeyFetchingResponse>
+static std::map<std::string, PrivateKeyFetchingResponse>
 CreateSuccessKeyFetchingResponseMapForListByAge() {
-  map<std::string, PrivateKeyFetchingResponse> responses;
+  std::map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 0; i < 3; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -210,7 +208,8 @@ CreateSuccessKeyFetchingResponseMapForListByAge() {
   return responses;
 }
 
-static const map<std::string, map<std::string, PrivateKeyFetchingResponse>>
+static const std::map<std::string,
+                      std::map<std::string, PrivateKeyFetchingResponse>>
     kMockSuccessKeyFetchingResponses = CreateSuccessKeyFetchingResponseMap();
 
 class PrivateKeyClientProviderTest : public ::testing::Test {
@@ -274,8 +273,10 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
   }
 
   void SetMockPrivateKeyFetchingClient(
-      const map<std::string, map<std::string, ExecutionResult>>& mock_results,
-      const map<std::string, map<std::string, PrivateKeyFetchingResponse>>&
+      const std::map<std::string, std::map<std::string, ExecutionResult>>&
+          mock_results,
+      const std::map<std::string,
+                     std::map<std::string, PrivateKeyFetchingResponse>>&
           mock_responses) {
     EXPECT_CALL(*mock_private_key_fetcher, FetchPrivateKey)
         .Times(Between(1, 9))
@@ -299,8 +300,8 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
   }
 
   void SetMockPrivateKeyFetchingClientForListByAge(
-      const map<std::string, ExecutionResult>& mock_results,
-      const map<std::string, PrivateKeyFetchingResponse>& mock_responses) {
+      const std::map<std::string, ExecutionResult>& mock_results,
+      const std::map<std::string, PrivateKeyFetchingResponse>& mock_responses) {
     EXPECT_CALL(*mock_private_key_fetcher, FetchPrivateKey)
         .Times(Between(1, 9))
         .WillRepeatedly([=](AsyncContext<PrivateKeyFetchingRequest,
@@ -355,7 +356,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -384,7 +385,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByAgeSuccess) {
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -414,7 +415,7 @@ TEST_F(PrivateKeyClientProviderTest, KeyListIsEmpty) {
 
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -433,7 +434,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointReturnEmptyList) {
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 6);
 
-  map<std::string, PrivateKeyFetchingResponse> responses;
+  std::map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 0; i < 2; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -450,7 +451,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointReturnEmptyList) {
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
 
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -469,7 +470,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 8);
 
-  map<std::string, PrivateKeyFetchingResponse> responses;
+  std::map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 0; i < 2; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -491,7 +492,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -514,7 +515,7 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 7);
 
-  map<std::string, PrivateKeyFetchingResponse> responses;
+  std::map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 1; i < 3; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -536,7 +537,7 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -560,7 +561,7 @@ TEST_F(PrivateKeyClientProviderTest,
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 7);
 
-  map<std::string, PrivateKeyFetchingResponse> responses;
+  std::map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 1; i < 3; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 2; ++j) {
@@ -583,7 +584,7 @@ TEST_F(PrivateKeyClientProviderTest,
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -629,7 +630,7 @@ TEST_F(PrivateKeyClientProviderTest, FetchingPrivateKeysFailed) {
   request.add_key_ids(kTestKeyIds[0]);
   request.add_key_ids(kTestKeyIdBad);
 
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -658,7 +659,7 @@ TEST_F(PrivateKeyClientProviderTest,
 
   auto expected_result = FailureExecutionResult(
       SC_PRIVATE_KEY_CLIENT_PROVIDER_UNMATCHED_ENDPOINTS_SPLITS);
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -684,7 +685,7 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithDecryptPrivateKey) {
   request.add_key_ids(kTestKeyIds[1]);
   request.add_key_ids(kTestKeyIds[2]);
 
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -728,7 +729,7 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithOneKmsDecryptContext) {
   request.add_key_ids(kTestKeyIds[0]);
   request.add_key_ids(kTestKeyIdBad);
 
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -852,7 +853,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
 
   std::string encoded_private_key;
   Base64Encode(kDecryptedSinglePartyKey, encoded_private_key);
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -876,7 +877,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
 
-  atomic<size_t> response_count = 0;
+  std::atomic<size_t> response_count = 0;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&

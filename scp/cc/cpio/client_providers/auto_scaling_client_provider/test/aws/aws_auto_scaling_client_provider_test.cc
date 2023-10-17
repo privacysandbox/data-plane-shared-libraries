@@ -79,7 +79,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AutoScalingClientFactory;
 using google::scp::cpio::client_providers::mock::MockAutoScalingClient;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using std::atomic_bool;
 using testing::_;
 using testing::Eq;
 using testing::NiceMock;
@@ -162,7 +161,7 @@ class AwsAutoScalingClientProviderTest : public ::testing::Test {
 
   // We check that this gets flipped after every call to ensure the context's
   // Finish() is called.
-  atomic_bool finish_called_{false};
+  std::atomic_bool finish_called_{false};
 };
 
 TEST_F(AwsAutoScalingClientProviderTest,

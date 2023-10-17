@@ -68,10 +68,7 @@ using google::scp::core::transaction_manager::proto::TransactionEngineLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLog_1_0;
 using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
-using std::atomic;
-using std::function;
 using std::thread;
-using std::weak_ptr;
 using std::chrono::milliseconds;
 
 namespace google::scp::core::test {
@@ -79,8 +76,8 @@ namespace google::scp::core::test {
 void CreateLocalRemoteTransactionManagers(
     std::shared_ptr<MockTransactionEngine>& mock_transaction_engine_1,
     std::shared_ptr<MockTransactionEngine>& mock_transaction_engine_2,
-    function<void()>& init_function, function<void()>& run_function,
-    function<void()>& stop_function) {
+    std::function<void()>& init_function, std::function<void()>& run_function,
+    std::function<void()>& stop_function) {
   std::shared_ptr<JournalServiceInterface> mock_journal_service_1 =
       std::make_shared<MockJournalService>();
   std::shared_ptr<AsyncExecutorInterface> async_executor_1 =
@@ -126,9 +123,9 @@ void CreateLocalRemoteTransactionManagers(
       mock_transaction_engine_2;
 
   mock_remote_transaction_manager_1->transaction_engine =
-      weak_ptr<TransactionEngineInterface>(transaction_engine_1);
+      std::weak_ptr<TransactionEngineInterface>(transaction_engine_1);
   mock_remote_transaction_manager_2->transaction_engine =
-      weak_ptr<TransactionEngineInterface>(transaction_engine_2);
+      std::weak_ptr<TransactionEngineInterface>(transaction_engine_2);
 
   init_function = [async_executor_1, async_executor_2, transaction_engine_1,
                    transaction_engine_2]() {
@@ -181,9 +178,9 @@ TEST(TransactionEngineLocalAndRemoteTest,
      PendingCallbackShouldNotDeleteExpiredTransaction) {
   std::shared_ptr<MockTransactionEngine> mock_transaction_engine_1;
   std::shared_ptr<MockTransactionEngine> mock_transaction_engine_2;
-  function<void()> init_function;
-  function<void()> run_function;
-  function<void()> stop_function;
+  std::function<void()> init_function;
+  std::function<void()> run_function;
+  std::function<void()> stop_function;
 
   CreateLocalRemoteTransactionManagers(mock_transaction_engine_1,
                                        mock_transaction_engine_2, init_function,
@@ -218,10 +215,10 @@ TEST(TransactionEngineLocalAndRemoteTest,
   mock_transaction_engine_2->GetActiveTransactionsMap().Insert(
       pair_remote, transaction_remote);
 
-  atomic<bool> transaction_1_called(false);
+  std::atomic<bool> transaction_1_called(false);
   mock_transaction_engine_1->on_before_garbage_collection_pre_caller =
       [&](Uuid&, std::shared_ptr<Transaction>&,
-          function<void(bool)>& should_delete) {
+          std::function<void(bool)>& should_delete) {
         auto original_should_delete = should_delete;
         should_delete = [&, original_should_delete](bool delete_it) {
           EXPECT_EQ(delete_it, false);
@@ -230,10 +227,10 @@ TEST(TransactionEngineLocalAndRemoteTest,
         };
       };
 
-  atomic<bool> transaction_2_called(false);
+  std::atomic<bool> transaction_2_called(false);
   mock_transaction_engine_2->on_before_garbage_collection_pre_caller =
       [&](Uuid&, std::shared_ptr<Transaction>&,
-          function<void(bool)>& should_delete) {
+          std::function<void(bool)>& should_delete) {
         auto original_should_delete = should_delete;
         should_delete = [&, original_should_delete](bool delete_it) {
           EXPECT_EQ(delete_it, false);
@@ -261,9 +258,9 @@ void RunTransactionsWithDifferentSyncPhases(TransactionPhase local_phase,
                                             bool remote_phase_failed) {
   std::shared_ptr<MockTransactionEngine> mock_transaction_engine_1;
   std::shared_ptr<MockTransactionEngine> mock_transaction_engine_2;
-  function<void()> init_function;
-  function<void()> run_function;
-  function<void()> stop_function;
+  std::function<void()> init_function;
+  std::function<void()> run_function;
+  std::function<void()> stop_function;
 
   CreateLocalRemoteTransactionManagers(mock_transaction_engine_1,
                                        mock_transaction_engine_2, init_function,
@@ -399,9 +396,9 @@ void RunTransactionsWithDifferentOutOfSyncPhases(
     TransactionPhase local_phase, TransactionPhase remote_phase) {
   std::shared_ptr<MockTransactionEngine> mock_transaction_engine_1;
   std::shared_ptr<MockTransactionEngine> mock_transaction_engine_2;
-  function<void()> init_function;
-  function<void()> run_function;
-  function<void()> stop_function;
+  std::function<void()> init_function;
+  std::function<void()> run_function;
+  std::function<void()> stop_function;
 
   CreateLocalRemoteTransactionManagers(mock_transaction_engine_1,
                                        mock_transaction_engine_2, init_function,

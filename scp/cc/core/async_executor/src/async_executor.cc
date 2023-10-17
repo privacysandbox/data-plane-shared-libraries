@@ -28,8 +28,6 @@
 #include "error_codes.h"
 #include "typedef.h"
 
-using std::atomic;
-using std::function;
 using std::memory_order_relaxed;
 using std::mt19937;
 using std::thread;
@@ -142,14 +140,14 @@ AsyncExecutor::PickTaskExecutor(
   // Thread local task counters, initial value of the task counter with a random
   // value so that all the caller threads do not pick the same executor to start
   // with
-  static thread_local atomic<uint64_t> task_counter_urgent_thread_local(
+  static thread_local std::atomic<uint64_t> task_counter_urgent_thread_local(
       distribution(random_generator));
-  static thread_local atomic<uint64_t> task_counter_not_urgent_thread_local(
-      distribution(random_generator));
+  static thread_local std::atomic<uint64_t>
+      task_counter_not_urgent_thread_local(distribution(random_generator));
 
   // Global task counters
-  static atomic<uint64_t> task_counter_urgent(0);
-  static atomic<uint64_t> task_counter_not_urgent(0);
+  static std::atomic<uint64_t> task_counter_urgent(0);
+  static std::atomic<uint64_t> task_counter_not_urgent(0);
 
   if (affinity ==
       AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor) {

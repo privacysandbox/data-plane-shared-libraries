@@ -19,42 +19,40 @@
 #include <list>
 #include <string>
 
-using std::list;
-
 namespace google::scp::core::utils::test {
 TEST(StringUtilTest, ShouldHandleEmptyString) {
   std::string str = "";
   std::string delimiter = ",";
-  list<std::string> output;
+  std::list<std::string> output;
   SplitStringByDelimiter(str, delimiter, output);
 
-  EXPECT_EQ(output, list<std::string>({""}));
+  EXPECT_EQ(output, std::list<std::string>({""}));
 }
 
 TEST(StringUtilTest, ShouldHandleSingleItem) {
   std::string str = "a";
   std::string delimiter = ",";
-  list<std::string> output;
+  std::list<std::string> output;
   SplitStringByDelimiter(str, delimiter, output);
 
-  EXPECT_EQ(output, list<std::string>({"a"}));
+  EXPECT_EQ(output, std::list<std::string>({"a"}));
 }
 
 TEST(StringUtilTest, ShouldHandleSingleCharDelimiter) {
   std::string str = "a,b,c";
   std::string delimiter = ",";
-  list<std::string> output;
+  std::list<std::string> output;
   SplitStringByDelimiter(str, delimiter, output);
 
-  EXPECT_EQ(output, list<std::string>({"a", "b", "c"}));
+  EXPECT_EQ(output, std::list<std::string>({"a", "b", "c"}));
 }
 
 TEST(StringUtilTest, ShouldHandleMultiCharDelimiter) {
   std::string str = "a--b--c";
   std::string delimiter = "--";
-  list<std::string> output;
+  std::list<std::string> output;
   SplitStringByDelimiter(str, delimiter, output);
 
-  EXPECT_EQ(output, list<std::string>({"a", "b", "c"}));
+  EXPECT_EQ(output, std::list<std::string>({"a", "b", "c"}));
 }
 }  // namespace google::scp::core::utils::test

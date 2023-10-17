@@ -51,7 +51,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::mock::
     MockGcpKeyManagementServiceClient;
-using std::atomic;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::Return;
@@ -171,7 +170,7 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecode) {
   kms_decrpyt_request->set_account_identity(kServiceAccount);
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
@@ -211,7 +210,7 @@ TEST_F(GcpKmsClientProviderTest, SuccessToDecrypt) {
               Decrypt(RequestMatches(decrypt_request)))
       .WillOnce(Return(decrypt_response));
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
@@ -247,7 +246,7 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecrypt) {
               Decrypt(RequestMatches(decrypt_request)))
       .WillOnce(Return(Status(StatusCode::kInvalidArgument, "Invalid input")));
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {

@@ -30,9 +30,6 @@ using google::scp::core::common::ConcurrentQueue;
 using grpc::ServerCallbackWriter;
 using grpc::ServerWriteReactor;
 using grpc::internal::ServerReactor;
-using std::atomic_bool;
-using std::atomic_int;
-using std::function;
 using std::thread;
 using testing::_;
 using testing::Eq;
@@ -44,7 +41,7 @@ using testing::Not;
 using testing::Return;
 
 namespace {
-atomic_bool finished = false;
+std::atomic_bool finished = false;
 }
 
 namespace google::scp::core::test {
@@ -84,7 +81,8 @@ class TestWriteReactor : public WriteReactor<SomeRequest, SomeResponse> {
 
   // We use this function object as a mock to avoid using gMock on the class we
   // want to test.
-  function<ExecutionResult(ConsumerStreamingContext<SomeRequest, SomeResponse>)>
+  std::function<ExecutionResult(
+      ConsumerStreamingContext<SomeRequest, SomeResponse>)>
       initiate_call_function;
 
  private:

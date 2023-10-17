@@ -27,7 +27,6 @@
 
 using google::scp::core::blob_storage_provider::mock::MockBlobStorageProvider;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
 using std::ifstream;
 using std::ios;
 using std::ofstream;
@@ -37,7 +36,7 @@ TEST(MockBlobStorageProviderTest, GetBlob) {
   MockBlobStorageProvider mock_blob_storage_provider;
   std::filesystem::current_path("/tmp");
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   std::filesystem::create_directory("bucket_get");
 
   std::string file_content = "1234";
@@ -74,7 +73,7 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
   MockBlobStorageProvider mock_blob_storage_provider;
   std::filesystem::current_path("/tmp");
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   std::filesystem::create_directory("bucket_put");
 
   std::string file_content = "1234";
@@ -119,7 +118,7 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
   MockBlobStorageProvider mock_blob_storage_provider;
   std::filesystem::current_path("/tmp");
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   std::filesystem::create_directory("bucket_delete");
 
   std::string file_content = "1234";
@@ -156,7 +155,7 @@ TEST(MockBlobStorageProviderTest, ListBlobs) {
   MockBlobStorageProvider mock_blob_storage_provider;
   std::filesystem::current_path("/tmp");
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   std::filesystem::create_directory("bucket_list");
   std::filesystem::create_directory("bucket_list/1");
   std::filesystem::create_directory("bucket_list/1/3");

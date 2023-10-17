@@ -28,7 +28,6 @@
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::Uuid;
-using std::optional;
 using std::thread;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -113,7 +112,7 @@ static LeaseTransitionType PerformLeaseTransitionAndNotifyLeaseEventSink(
     const LeasableLockId& leasable_lock_id,
     std::shared_ptr<LeaseEventSinkInterface> lease_event_sink,
     bool is_lease_owner, LeaseRefreshMode lease_refresh_mode,
-    bool was_lease_owner, optional<LeaseInfo> current_lease_owner_info,
+    bool was_lease_owner, std::optional<LeaseInfo> current_lease_owner_info,
     LeaseRefreshMode prev_lease_refresh_mode) {
   if (!was_lease_owner && is_lease_owner) {
     // 1. Previously NOT owned, and currently owned.

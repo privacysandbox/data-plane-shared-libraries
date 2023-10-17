@@ -22,7 +22,6 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using boost::beast::http::status;
-using std::tuple;
 using testing::IsSupersetOf;
 using testing::Pair;
 
@@ -37,7 +36,7 @@ constexpr Byte kRequestBody[] = {'a', 'b', '\0', 'c'};
 constexpr Byte kResponseBody[] = {'\0', 'd', 'e', 'f'};
 
 class Http1CurlWrapperTest
-    : public ::testing::TestWithParam<tuple<status, ExecutionResult>> {
+    : public ::testing::TestWithParam<std::tuple<status, ExecutionResult>> {
  protected:
   Http1CurlWrapperTest()
       : response_body_(kResponseBody, sizeof(kResponseBody)),

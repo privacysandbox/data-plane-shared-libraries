@@ -52,10 +52,8 @@ using google::scp::roma::sandbox::constants::
 using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
 using google::scp::roma::sandbox::constants::
     kInputParsingMetricJsEngineDuration;
-using std::atomic;
 using std::cout;
 using std::endl;
-using std::list;
 using std::thread;
 using std::chrono::duration_cast;
 using std::chrono::nanoseconds;
@@ -64,7 +62,7 @@ using std::chrono::system_clock;
 
 namespace {
 
-const list<float> kPercentiles = {50, 90, 99, 99.99};
+const std::list<float> kPercentiles = {50, 90, 99, 99.99};
 
 CodeObject CreateCodeObj(const std::string& code_string) {
   CodeObject code_obj;
@@ -408,7 +406,7 @@ void RomaBenchmark::SendRequestBatch() {
   for (auto i = 0; i < batch_size_; i++) {
     requests.push_back(code_obj_);
   }
-  atomic<size_t> sent_request = 0;
+  std::atomic<size_t> sent_request = 0;
   while (sent_request < requests_per_thread_) {
     while (!BatchExecute(requests,
                          std::bind(&RomaBenchmark::CallbackBatch, this,
@@ -420,7 +418,7 @@ void RomaBenchmark::SendRequestBatch() {
 }
 
 void RomaBenchmark::SendRequest() {
-  atomic<size_t> sent_request = 0;
+  std::atomic<size_t> sent_request = 0;
   while (sent_request < requests_per_thread_) {
     auto code_object =
         std::make_unique<InvocationRequestSharedInput>(code_obj_);

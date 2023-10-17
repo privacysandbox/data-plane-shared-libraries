@@ -49,7 +49,6 @@ using google::scp::core::errors::
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
 
 static constexpr char kPublicKeyHeaderDate[] = "date";
 static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";
@@ -133,7 +132,7 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
 };
 
 TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
-  atomic<int> perform_calls(0);
+  std::atomic<int> perform_calls(0);
   auto success_response = GetValidHttpResponse();
   http_client_->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
@@ -147,7 +146,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
 
   auto request = std::make_shared<ListPublicKeysRequest>();
 
-  atomic<int> success_callback(0);
+  std::atomic<int> success_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
@@ -173,7 +172,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
 TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
   ExecutionResult failed_result = FailureExecutionResult(SC_UNKNOWN);
 
-  atomic<int> perform_calls(0);
+  std::atomic<int> perform_calls(0);
   auto success_response = GetValidHttpResponse();
   http_client_->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
@@ -186,7 +185,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
 
   auto request = std::make_shared<ListPublicKeysRequest>();
 
-  atomic<int> failure_callback(0);
+  std::atomic<int> failure_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
@@ -204,7 +203,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
 }
 
 TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
-  atomic<int> perform_calls(0);
+  std::atomic<int> perform_calls(0);
   auto success_response = GetValidHttpResponse();
   http_client_->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
@@ -217,7 +216,7 @@ TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
   auto cpio_failure = FailureExecutionResult(
       SC_PUBLIC_KEY_CLIENT_PROVIDER_ALL_URIS_REQUEST_PERFORM_FAILED);
 
-  atomic<int> failure_callback(0);
+  std::atomic<int> failure_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
@@ -236,7 +235,7 @@ TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
 
 TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
   ExecutionResult failed_result = FailureExecutionResult(SC_UNKNOWN);
-  atomic<int> perform_calls(0);
+  std::atomic<int> perform_calls(0);
   auto success_response = GetValidHttpResponse();
   http_client_->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
@@ -256,7 +255,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
       };
 
   auto request = std::make_shared<ListPublicKeysRequest>();
-  atomic<int> success_callback(0);
+  std::atomic<int> success_callback(0);
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {

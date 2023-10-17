@@ -91,7 +91,6 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerUnaryReactor;
 using grpc::Status;
-using std::atomic;
 using std::mt19937;
 using std::runtime_error;
 

@@ -45,8 +45,6 @@ using google::scp::core::journal_service::JournalStreamAppendLogResponse;
 using google::scp::core::journal_service::JournalUtils;
 using google::scp::cpio::AggregateMetricInterface;
 using google::scp::cpio::MetricClientInterface;
-using std::atomic;
-using std::list;
 using std::chrono::milliseconds;
 
 static constexpr char kJournalOutputStream[] = "JournalOutputStream";
@@ -280,8 +278,8 @@ void JournalOutputStream::OnWriteJournalBlobCallback(
 }
 
 void JournalOutputStream::WriteBatch(
-    const std::shared_ptr<list<AsyncContext<JournalStreamAppendLogRequest,
-                                            JournalStreamAppendLogResponse>>>&
+    const std::shared_ptr<std::list<AsyncContext<
+        JournalStreamAppendLogRequest, JournalStreamAppendLogResponse>>>&
         flush_batch,
     JournalId journal_id) noexcept {
   SCP_DEBUG(kJournalOutputStream, activity_id_,
@@ -324,8 +322,8 @@ void JournalOutputStream::WriteBatch(
 }
 
 void JournalOutputStream::NotifyBatch(
-    const std::shared_ptr<list<AsyncContext<JournalStreamAppendLogRequest,
-                                            JournalStreamAppendLogResponse>>>&
+    const std::shared_ptr<std::list<AsyncContext<
+        JournalStreamAppendLogRequest, JournalStreamAppendLogResponse>>>&
         flush_batch,
     ExecutionResult& execution_result) noexcept {
   if (!execution_result.Successful()) {
@@ -360,9 +358,8 @@ ExecutionResult JournalOutputStream::FlushLogs() noexcept {
   }
 
   auto current_journal_id = current_journal_id_;
-  auto batch_logs =
-      std::make_shared<list<AsyncContext<JournalStreamAppendLogRequest,
-                                         JournalStreamAppendLogResponse>>>();
+  auto batch_logs = std::make_shared<std::list<AsyncContext<
+      JournalStreamAppendLogRequest, JournalStreamAppendLogResponse>>>();
   for (size_t i = 0; i < batch_size;) {
     AsyncContext<JournalStreamAppendLogRequest, JournalStreamAppendLogResponse>
         context;

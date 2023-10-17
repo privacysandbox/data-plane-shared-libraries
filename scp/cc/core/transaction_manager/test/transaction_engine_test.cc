@@ -94,10 +94,6 @@ using google::scp::core::transaction_manager::proto::TransactionLogType;
 using google::scp::core::transaction_manager::proto::TransactionPhaseLog_1_0;
 using google::scp::cpio::MetricInstanceFactory;
 using google::scp::cpio::MockMetricClient;
-using std::atomic;
-using std::function;
-using std::list;
-using std::set;
 using std::thread;
 using std::chrono::milliseconds;
 
@@ -368,7 +364,7 @@ TEST_F(TransactionEngineTest, VerifyExecuteOperationInvalidInitialization) {
 }
 
 TEST_F(TransactionEngineTest, VerifyExecuteOperation) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
@@ -419,7 +415,7 @@ TEST_F(TransactionEngineTest, VerifyExecuteOperation) {
 }
 
 TEST_F(TransactionEngineTest, VerifyNotStartedOperation) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
@@ -459,7 +455,7 @@ TEST_F(TransactionEngineTest, VerifyNotStartedOperation) {
 }
 
 TEST_F(TransactionEngineTest, VerifyBeginOperation) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
@@ -499,7 +495,7 @@ TEST_F(TransactionEngineTest, VerifyBeginOperation) {
 }
 
 TEST_F(TransactionEngineTest, VerifyPrepareOperation) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
@@ -561,12 +557,12 @@ TEST_F(TransactionEngineTest, VerifyPrepareOperation) {
 void VerifyDispatchedOperations(
     TransactionPhase previous_phase, TransactionPhase current_phase,
     TransactionCommand transaction_command,
-    function<void(MockTransactionEngine& mock_transaction_engine,
-                  std::shared_ptr<Transaction>& current_transaction,
-                  atomic<bool>& condition)>
+    std::function<void(MockTransactionEngine& mock_transaction_engine,
+                       std::shared_ptr<Transaction>& current_transaction,
+                       std::atomic<bool>& condition)>
         mock_function,
     ExecutionResult transaction_execution_result, size_t pending_callbacks) {
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
@@ -627,13 +623,13 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperations) {
   transaction_commands.back().notify = action;
 
   for (size_t i = 0; i < previous_phases.size(); ++i) {
-    atomic<size_t> total_dispatched_commands = 0;
-    function<void(MockTransactionEngine & mock_transaction_engine,
-                  std::shared_ptr<Transaction> & current_transaction,
-                  atomic<bool> & condition)>
+    std::atomic<size_t> total_dispatched_commands = 0;
+    std::function<void(MockTransactionEngine & mock_transaction_engine,
+                       std::shared_ptr<Transaction> & current_transaction,
+                       std::atomic<bool> & condition)>
         mock_function = [&](MockTransactionEngine& mock_transaction_engine,
                             std::shared_ptr<Transaction>& current_transaction,
-                            atomic<bool>& condition) mutable {
+                            std::atomic<bool>& condition) mutable {
           mock_transaction_engine
               .log_transaction_and_proceed_to_next_phase_mock =
               [&](TransactionPhase phase,
@@ -702,13 +698,13 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsFailedPartially) {
   transaction_commands.back().notify = action;
 
   for (size_t i = 0; i < previous_phases.size(); ++i) {
-    atomic<size_t> total_dispatched_commands = 0;
-    function<void(MockTransactionEngine & mock_transaction_engine,
-                  std::shared_ptr<Transaction> & current_transaction,
-                  atomic<bool> & condition)>
+    std::atomic<size_t> total_dispatched_commands = 0;
+    std::function<void(MockTransactionEngine & mock_transaction_engine,
+                       std::shared_ptr<Transaction> & current_transaction,
+                       std::atomic<bool> & condition)>
         mock_function = [&](MockTransactionEngine& mock_transaction_engine,
                             std::shared_ptr<Transaction>& current_transaction,
-                            atomic<bool>& condition) mutable {
+                            std::atomic<bool>& condition) mutable {
           mock_transaction_engine
               .log_transaction_and_proceed_to_next_phase_mock =
               [&](TransactionPhase phase,
@@ -790,13 +786,13 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsFailedCompletely) {
   transaction_commands.back().notify = action;
 
   for (size_t i = 0; i < previous_phases.size(); ++i) {
-    atomic<size_t> total_dispatched_commands = 0;
-    function<void(MockTransactionEngine & mock_transaction_engine,
-                  std::shared_ptr<Transaction> & current_transaction,
-                  atomic<bool> & condition)>
+    std::atomic<size_t> total_dispatched_commands = 0;
+    std::function<void(MockTransactionEngine & mock_transaction_engine,
+                       std::shared_ptr<Transaction> & current_transaction,
+                       std::atomic<bool> & condition)>
         mock_function = [&](MockTransactionEngine& mock_transaction_engine,
                             std::shared_ptr<Transaction>& current_transaction,
-                            atomic<bool>& condition) mutable {
+                            std::atomic<bool>& condition) mutable {
           mock_transaction_engine
               .log_transaction_and_proceed_to_next_phase_mock =
               [&](TransactionPhase phase,
@@ -878,13 +874,13 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotified) {
   transaction_commands.back().notify = action;
 
   for (size_t i = 0; i < previous_phases.size(); ++i) {
-    atomic<size_t> total_callbacks = 0;
-    function<void(MockTransactionEngine & mock_transaction_engine,
-                  std::shared_ptr<Transaction> & current_transaction,
-                  atomic<bool> & condition)>
+    std::atomic<size_t> total_callbacks = 0;
+    std::function<void(MockTransactionEngine & mock_transaction_engine,
+                       std::shared_ptr<Transaction> & current_transaction,
+                       std::atomic<bool> & condition)>
         mock_function = [&](MockTransactionEngine& mock_transaction_engine,
                             std::shared_ptr<Transaction>& current_transaction,
-                            atomic<bool>& condition) mutable {
+                            std::atomic<bool>& condition) mutable {
           mock_transaction_engine
               .log_transaction_and_proceed_to_next_phase_mock =
               [&](TransactionPhase phase,
@@ -936,7 +932,7 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithFailure) {
       TransactionPhase::Begin, TransactionPhase::Prepare,
       TransactionPhase::Commit, TransactionPhase::Commit};
 
-  atomic<size_t> total_callbacks = 0;
+  std::atomic<size_t> total_callbacks = 0;
   TransactionAction action = [&](TransactionCommandCallback& callback) {
     ExecutionResult execution_result = SuccessExecutionResult();
     if (total_callbacks++ == 3) {
@@ -963,12 +959,12 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithFailure) {
 
   for (size_t i = 0; i < previous_phases.size(); ++i) {
     total_callbacks = 0;
-    function<void(MockTransactionEngine & mock_transaction_engine,
-                  std::shared_ptr<Transaction> & current_transaction,
-                  atomic<bool> & condition)>
+    std::function<void(MockTransactionEngine & mock_transaction_engine,
+                       std::shared_ptr<Transaction> & current_transaction,
+                       std::atomic<bool> & condition)>
         mock_function = [&](MockTransactionEngine& mock_transaction_engine,
                             std::shared_ptr<Transaction>& current_transaction,
-                            atomic<bool>& condition) mutable {
+                            std::atomic<bool>& condition) mutable {
           mock_transaction_engine
               .log_transaction_and_proceed_to_next_phase_mock =
               [&](TransactionPhase phase,
@@ -1043,7 +1039,7 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithSuccess) {
       TransactionPhase::Prepare, TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::AbortNotify};
 
-  atomic<size_t> total_callbacks = 0;
+  std::atomic<size_t> total_callbacks = 0;
   TransactionAction action = [&](TransactionCommandCallback& callback) {
     ExecutionResult execution_result = SuccessExecutionResult();
     callback(execution_result);
@@ -1068,12 +1064,12 @@ TEST_F(TransactionEngineTest, VerifyDispatchedOperationsNotifiedWithSuccess) {
 
   for (size_t i = 0; i < previous_phases.size(); ++i) {
     total_callbacks = 0;
-    function<void(MockTransactionEngine & mock_transaction_engine,
-                  std::shared_ptr<Transaction> & current_transaction,
-                  atomic<bool> & condition)>
+    std::function<void(MockTransactionEngine & mock_transaction_engine,
+                       std::shared_ptr<Transaction> & current_transaction,
+                       std::atomic<bool> & condition)>
         mock_function = [&](MockTransactionEngine& mock_transaction_engine,
                             std::shared_ptr<Transaction>& current_transaction,
-                            atomic<bool>& condition) mutable {
+                            std::atomic<bool>& condition) mutable {
           mock_transaction_engine
               .log_transaction_and_proceed_to_next_phase_mock =
               [&](TransactionPhase phase,
@@ -1146,7 +1142,7 @@ TEST_F(TransactionEngineTest,
       TransactionPhase::Begin, TransactionPhase::Prepare,
       TransactionPhase::Commit, TransactionPhase::Commit};
 
-  atomic<size_t> total_callbacks = 0;
+  std::atomic<size_t> total_callbacks = 0;
   std::vector<thread> threads;
   TransactionAction action = [&](TransactionCommandCallback& callback) {
     ExecutionResult execution_result = SuccessExecutionResult();
@@ -1179,12 +1175,12 @@ TEST_F(TransactionEngineTest,
     total_callbacks = 0;
     threads.clear();
 
-    function<void(MockTransactionEngine & mock_transaction_engine,
-                  std::shared_ptr<Transaction> & current_transaction,
-                  atomic<bool> & condition)>
+    std::function<void(MockTransactionEngine & mock_transaction_engine,
+                       std::shared_ptr<Transaction> & current_transaction,
+                       std::atomic<bool> & condition)>
         mock_function = [&](MockTransactionEngine& mock_transaction_engine,
                             std::shared_ptr<Transaction>& current_transaction,
-                            atomic<bool>& condition) mutable {
+                            std::atomic<bool>& condition) mutable {
           mock_transaction_engine
               .log_transaction_and_proceed_to_next_phase_mock =
               [&](TransactionPhase phase,
@@ -1264,7 +1260,7 @@ TEST_F(TransactionEngineTest,
       TransactionPhase::Prepare, TransactionPhase::Commit,
       TransactionPhase::CommitNotify, TransactionPhase::AbortNotify};
 
-  atomic<size_t> total_callbacks = 0;
+  std::atomic<size_t> total_callbacks = 0;
   std::vector<thread> threads;
   TransactionAction action = [&](TransactionCommandCallback& callback) {
     ExecutionResult execution_result = SuccessExecutionResult();
@@ -1294,12 +1290,12 @@ TEST_F(TransactionEngineTest,
   for (size_t i = 0; i < previous_phases.size(); ++i) {
     total_callbacks = 0;
     threads.clear();
-    function<void(MockTransactionEngine & mock_transaction_engine,
-                  std::shared_ptr<Transaction> & current_transaction,
-                  atomic<bool> & condition)>
+    std::function<void(MockTransactionEngine & mock_transaction_engine,
+                       std::shared_ptr<Transaction> & current_transaction,
+                       std::atomic<bool> & condition)>
         mock_function = [&](MockTransactionEngine& mock_transaction_engine,
                             std::shared_ptr<Transaction>& current_transaction,
-                            atomic<bool>& condition) mutable {
+                            std::atomic<bool>& condition) mutable {
           mock_transaction_engine
               .log_transaction_and_proceed_to_next_phase_mock =
               [&](TransactionPhase phase,
@@ -1374,7 +1370,7 @@ TEST_F(TransactionEngineTest, VerifyNonDispatchedSuccessNextPhases) {
                                                    TransactionPhase::Committed,
                                                    TransactionPhase::Aborted};
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
   std::shared_ptr<AsyncExecutorInterface> async_executor =
@@ -1455,7 +1451,7 @@ TEST_F(TransactionEngineTest, VerifyNonDispatchedFailureNextPhases) {
                                                    TransactionPhase::Committed,
                                                    TransactionPhase::Aborted};
 
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
 
   std::shared_ptr<JournalServiceInterface> mock_journal_service =
       std::make_shared<MockJournalService>();
@@ -2610,7 +2606,7 @@ TEST_F(TransactionEngineTest, Checkpoint) {
       async_executor, mock_transaction_command_serializer, journal_service,
       remote_transaction_manager);
 
-  auto checkpoint_logs = std::make_shared<list<CheckpointLog>>();
+  auto checkpoint_logs = std::make_shared<std::list<CheckpointLog>>();
   mock_transaction_engine.Checkpoint(checkpoint_logs);
   EXPECT_EQ(checkpoint_logs->size(), 0);
 
@@ -2882,7 +2878,7 @@ TEST_F(TransactionEngineTest, ResolveNonRemotelyCoordinatedTransaction) {
     transaction->current_phase_failed = false;
     transaction->current_phase_execution_result = SuccessExecutionResult();
     transaction->expiration_time = 0;
-    atomic<bool> called = false;
+    std::atomic<bool> called = false;
     mock_transaction_engine.proceed_to_next_phase_mock =
         [&](TransactionPhase, std::shared_ptr<Transaction>&) { called = true; };
     EXPECT_SUCCESS(mock_transaction_engine.ResolveTransaction(transaction));
@@ -2900,7 +2896,7 @@ TEST_F(TransactionEngineTest, ResolveNonRemotelyCoordinatedTransaction) {
     transaction->current_phase_failed = false;
     transaction->current_phase_execution_result = SuccessExecutionResult();
     transaction->expiration_time = 0;
-    atomic<bool> called = false;
+    std::atomic<bool> called = false;
     mock_transaction_engine.proceed_to_next_phase_mock =
         [&](TransactionPhase, std::shared_ptr<Transaction>&) { called = true; };
     EXPECT_SUCCESS(mock_transaction_engine.ResolveTransaction(transaction));
@@ -2989,7 +2985,7 @@ TEST_F(TransactionEngineTest,
   std::shared_ptr<RemoteTransactionManagerInterface>
       remote_transaction_manager = mock_remote_transaction_manager;
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_remote_transaction_manager->get_transaction_status_mock =
       [&](AsyncContext<GetTransactionStatusRequest,
                        GetTransactionStatusResponse>&
@@ -3036,7 +3032,7 @@ TEST_F(TransactionEngineTest,
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.unlock_remotely_coordinated_transaction_mock =
       [&](std::shared_ptr<Transaction>& transaction) {
         called = true;
@@ -3088,7 +3084,7 @@ TEST_F(TransactionEngineTest, OnGetRemoteTransactionStatusCallbackUnExpired) {
   transaction->is_coordinated_remotely = true;
   transaction->is_waiting_for_remote = false;
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.unlock_remotely_coordinated_transaction_mock =
       [&](auto& transaction) {
         called = true;
@@ -3133,7 +3129,7 @@ TEST_F(TransactionEngineTest,
   transaction->is_waiting_for_remote = false;
   transaction->current_phase = TransactionPhase::End;
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.unlock_remotely_coordinated_transaction_mock =
       [&](auto& transaction) {
         EXPECT_TRUE(transaction->blocked);
@@ -3179,7 +3175,7 @@ TEST_F(TransactionEngineTest,
   transaction->is_waiting_for_remote = false;
   transaction->current_phase = TransactionPhase::CommitNotify;
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.unlock_remotely_coordinated_transaction_mock =
       [&](auto& transaction) {
         called = true;
@@ -3225,7 +3221,7 @@ TEST_F(TransactionEngineTest,
   transaction->current_phase = TransactionPhase::CommitNotify;
   transaction->current_phase_failed = true;
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.unlock_remotely_coordinated_transaction_mock =
       [&](auto& transaction) {
         called = true;
@@ -3271,7 +3267,7 @@ TEST_F(TransactionEngineTest,
   transaction->is_waiting_for_remote = false;
   transaction->current_phase = TransactionPhase::Commit;
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.roll_forward_local_transaction_mock =
       [&](std::shared_ptr<Transaction>& transaction_copy,
           TransactionExecutionPhase next_phase, bool phase_failed) {
@@ -3322,7 +3318,7 @@ TEST_F(TransactionEngineTest,
   transaction->is_waiting_for_remote = false;
   transaction->current_phase = TransactionPhase::CommitNotify;
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.roll_forward_local_and_remote_transactions_mock =
       [&](std::shared_ptr<Transaction>& transaction_copy,
           Timestamp remote_last_execution_time) {
@@ -3383,8 +3379,8 @@ TEST_F(TransactionEngineTest, OnRemoteTransactionNotFound) {
         async_executor, mock_transaction_command_serializer, journal_service,
         remote_transaction_manager);
 
-    atomic<bool> unlock_called = false;
-    atomic<bool> execute_phase_called = false;
+    std::atomic<bool> unlock_called = false;
+    std::atomic<bool> execute_phase_called = false;
     if (phase != TransactionPhase::Begin &&
         phase != TransactionPhase::Prepare &&
         phase != TransactionPhase::Aborted &&
@@ -3485,7 +3481,7 @@ TEST_F(TransactionEngineTest, OnRemoteTransactionNotFoundUnlockTransaction) {
       async_executor, mock_transaction_command_serializer, journal_service,
       remote_transaction_manager);
 
-  atomic<bool> execute_phase_called = false;
+  std::atomic<bool> execute_phase_called = false;
   mock_transaction_engine.execute_phase_internal_mock =
       [&](std::shared_ptr<Transaction>& transaction,
           AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&
@@ -3494,7 +3490,7 @@ TEST_F(TransactionEngineTest, OnRemoteTransactionNotFoundUnlockTransaction) {
         return FailureExecutionResult(12345);
       };
 
-  atomic<bool> unlocked = false;
+  std::atomic<bool> unlocked = false;
   mock_transaction_engine.unlock_remotely_coordinated_transaction_mock =
       [&](std::shared_ptr<Transaction>& transaction) {
         unlocked = true;
@@ -3556,14 +3552,14 @@ TEST_F(TransactionEngineTest, RollForwardLocalTransaction) {
             async_executor, mock_transaction_command_serializer,
             journal_service, remote_transaction_manager);
 
-        atomic<bool> unlocked = false;
+        std::atomic<bool> unlocked = false;
         mock_transaction_engine.unlock_remotely_coordinated_transaction_mock =
             [&](std::shared_ptr<Transaction>& transaction) {
               unlocked = true;
               return SuccessExecutionResult();
             };
 
-        atomic<bool> called = false;
+        std::atomic<bool> called = false;
         mock_transaction_engine.execute_phase_internal_mock =
             [&](std::shared_ptr<Transaction>& copied_transaction,
                 AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&
@@ -3657,7 +3653,7 @@ TEST_F(TransactionEngineTest, RollForwardLocalAndRemoteTransactions) {
     std::shared_ptr<RemoteTransactionManagerInterface>
         remote_transaction_manager = mock_remote_transaction_manager;
 
-    atomic<bool> called = false;
+    std::atomic<bool> called = false;
     MockTransactionEngine mock_transaction_engine(
         async_executor, mock_transaction_command_serializer, journal_service,
         transaction_phase_manager, mock_remote_transaction_manager, 100000);
@@ -3727,7 +3723,7 @@ TEST_F(TransactionEngineTest, OnRollForwardRemoteTransactionCallbackFailed) {
       remote_transaction_phase_context;
   remote_transaction_phase_context.result = FailureExecutionResult(123);
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.unlock_remotely_coordinated_transaction_mock =
       [&](std::shared_ptr<Transaction>& transaction) {
         called = true;
@@ -3778,14 +3774,14 @@ TEST_F(TransactionEngineTest,
   remote_transaction_phase_context.response->last_execution_timestamp =
       12348966;
 
-  atomic<bool> unlocked = false;
+  std::atomic<bool> unlocked = false;
   mock_transaction_engine.unlock_remotely_coordinated_transaction_mock =
       [&](std::shared_ptr<Transaction>& transaction) {
         unlocked = true;
         return SuccessExecutionResult();
       };
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.execute_phase_internal_mock =
       [&](std::shared_ptr<Transaction>& transaction,
           AsyncContext<TransactionPhaseRequest, TransactionPhaseResponse>&
@@ -4325,7 +4321,7 @@ TEST_F(TransactionEngineTest, ExecutePhaseInternalHandlePhases) {
       TransactionPhase::Unknown,
   };
 
-  absl::flat_hash_map<TransactionExecutionPhase, set<TransactionPhase>>
+  absl::flat_hash_map<TransactionExecutionPhase, std::set<TransactionPhase>>
       valid_phases = {
           {TransactionExecutionPhase::Begin, {TransactionPhase::Begin}},
           {TransactionExecutionPhase::Prepare, {TransactionPhase::Prepare}},
@@ -4402,7 +4398,7 @@ TEST_F(TransactionEngineTest, ExecutePhaseInternalHandlePhasesWithCallback) {
   transaction->current_phase = TransactionPhase::Begin;
   transaction_phase_context.request->transaction_execution_phase =
       TransactionExecutionPhase::Begin;
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   mock_transaction_engine.begin_transaction_mock =
       [&](std::shared_ptr<Transaction>& transaction) { called = true; };
 
@@ -4532,7 +4528,7 @@ TEST_F(TransactionEngineTest, GetTransactionStatus) {
 
   transaction->is_coordinated_remotely = true;
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   get_transaction_status_context
       .callback = [&](AsyncContext<GetTransactionStatusRequest,
                                    GetTransactionStatusResponse>&
@@ -4645,7 +4641,7 @@ TEST_F(TransactionEngineTest,
   get_transaction_status_context.request->transaction_secret =
       std::make_shared<std::string>("correct-txn-secret");
 
-  atomic<bool> called = false;
+  std::atomic<bool> called = false;
   get_transaction_status_context
       .callback = [&](AsyncContext<GetTransactionStatusRequest,
                                    GetTransactionStatusResponse>&

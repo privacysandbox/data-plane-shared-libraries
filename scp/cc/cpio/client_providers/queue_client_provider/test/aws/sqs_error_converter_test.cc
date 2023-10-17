@@ -41,13 +41,12 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_AWS_REQUEST_LIMIT_REACHED;
 using google::scp::core::errors::SC_AWS_SERVICE_UNAVAILABLE;
 using google::scp::core::errors::SC_AWS_VALIDATION_FAILED;
-using std::tuple;
 using testing::TestWithParam;
 using testing::Values;
 
 namespace google::scp::cpio::client_providers::test {
 class SqsErrorConverterTest
-    : public TestWithParam<tuple<SQSErrors, FailureExecutionResult>> {
+    : public TestWithParam<std::tuple<SQSErrors, FailureExecutionResult>> {
  protected:
   SQSErrors GetSqsErrorsToConvert() { return std::get<0>(GetParam()); }
 

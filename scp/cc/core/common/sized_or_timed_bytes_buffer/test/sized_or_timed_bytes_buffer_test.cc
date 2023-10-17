@@ -32,8 +32,6 @@ using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::common::SizedOrTimedBytesBuffer;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
-using std::function;
 
 namespace google::scp::core::common::test {
 TEST(SizedOrTimedBytesBufferTest, InitFunction) {
@@ -46,7 +44,7 @@ TEST(SizedOrTimedBytesBufferTest, InitFunction) {
 
     struct Response {};
 
-    atomic<bool> condition = false;
+    std::atomic<bool> condition = false;
     auto get_data_size_function = [](AsyncContext<Request, Response>&) {
       return 1;
     };
@@ -61,7 +59,7 @@ TEST(SizedOrTimedBytesBufferTest, InitFunction) {
     MockAsyncExecutor mock_async_executor;
     mock_async_executor.schedule_for_mock =
         [&](AsyncOperation work, Timestamp timestamp,
-            function<bool()>& cancellation_callback) {
+            std::function<bool()>& cancellation_callback) {
           EXPECT_EQ(timestamp, 1234);
           condition = true;
           return result;
@@ -97,16 +95,16 @@ TEST(SizedOrTimedBytesBufferTest, AppendDataWithMaxSize) {
       };
 
   MockAsyncExecutor mock_async_executor;
-  atomic<bool> schedule_condition = false;
+  std::atomic<bool> schedule_condition = false;
   mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
-  atomic<bool> schedule_for_condition = false;
+  std::atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
         return SuccessExecutionResult();
@@ -152,16 +150,16 @@ TEST(SizedOrTimedBytesBufferTest, AppendDataWithMaxSizeNoCapacityAvailable) {
       };
 
   MockAsyncExecutor mock_async_executor;
-  atomic<bool> schedule_condition = false;
+  std::atomic<bool> schedule_condition = false;
   mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
-  atomic<bool> schedule_for_condition = false;
+  std::atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
         return SuccessExecutionResult();
@@ -198,12 +196,13 @@ TEST(SizedOrTimedBytesBufferTest, FlushData) {
     return 1;
   };
 
-  function<ExecutionResult(AsyncContext<Request, Response>&, BytesBuffer&,
-                           size_t&)>
+  std::function<ExecutionResult(AsyncContext<Request, Response>&, BytesBuffer&,
+                                size_t&)>
       serialize_function = [](AsyncContext<Request, Response>&, BytesBuffer&,
                               size_t&) { return SuccessExecutionResult(); };
 
-  function<ExecutionResult(BytesBuffer&, function<void(ExecutionResult&)>)>
+  std::function<ExecutionResult(BytesBuffer&,
+                                std::function<void(ExecutionResult&)>)>
       flush_function =
           [](BytesBuffer&,
              std::function<void(ExecutionResult&)> on_flush_completed) {
@@ -211,16 +210,16 @@ TEST(SizedOrTimedBytesBufferTest, FlushData) {
           };
 
   MockAsyncExecutor mock_async_executor;
-  atomic<bool> schedule_condition = false;
+  std::atomic<bool> schedule_condition = false;
   mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
-  atomic<bool> schedule_for_condition = false;
+  std::atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
         return SuccessExecutionResult();
@@ -258,12 +257,13 @@ TEST(SizedOrTimedBytesBufferTest, AppendBeforeFlushData) {
     return 1;
   };
 
-  function<ExecutionResult(AsyncContext<Request, Response>&, BytesBuffer&,
-                           size_t&)>
+  std::function<ExecutionResult(AsyncContext<Request, Response>&, BytesBuffer&,
+                                size_t&)>
       serialize_function = [](AsyncContext<Request, Response>&, BytesBuffer&,
                               size_t&) { return SuccessExecutionResult(); };
 
-  function<ExecutionResult(BytesBuffer&, function<void(ExecutionResult&)>)>
+  std::function<ExecutionResult(BytesBuffer&,
+                                std::function<void(ExecutionResult&)>)>
       flush_function =
           [](BytesBuffer&,
              std::function<void(ExecutionResult&)> on_flush_completed) {
@@ -271,16 +271,16 @@ TEST(SizedOrTimedBytesBufferTest, AppendBeforeFlushData) {
           };
 
   MockAsyncExecutor mock_async_executor;
-  atomic<bool> schedule_condition = false;
+  std::atomic<bool> schedule_condition = false;
   mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
-  atomic<bool> schedule_for_condition = false;
+  std::atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
         return SuccessExecutionResult();
@@ -301,7 +301,7 @@ TEST(SizedOrTimedBytesBufferTest, AppendBeforeFlushData) {
           flush_function, 1000, 1234);
 
   AsyncContext<Request, Response> context;
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   context.callback = [&](AsyncContext<Request, Response>& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(1234)));
     condition = true;
@@ -325,12 +325,13 @@ TEST(SizedOrTimedBytesBufferTest, FlushFailure) {
     return 1;
   };
 
-  function<ExecutionResult(AsyncContext<Request, Response>&, BytesBuffer&,
-                           size_t&)>
+  std::function<ExecutionResult(AsyncContext<Request, Response>&, BytesBuffer&,
+                                size_t&)>
       serialize_function = [](AsyncContext<Request, Response>&, BytesBuffer&,
                               size_t&) { return SuccessExecutionResult(); };
 
-  function<ExecutionResult(BytesBuffer&, function<void(ExecutionResult&)>)>
+  std::function<ExecutionResult(BytesBuffer&,
+                                std::function<void(ExecutionResult&)>)>
       flush_function =
           [](BytesBuffer&,
              std::function<void(ExecutionResult&)> on_flush_completed) {
@@ -338,16 +339,16 @@ TEST(SizedOrTimedBytesBufferTest, FlushFailure) {
           };
 
   MockAsyncExecutor mock_async_executor;
-  atomic<bool> schedule_condition = false;
+  std::atomic<bool> schedule_condition = false;
   mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
-  atomic<bool> schedule_for_condition = false;
+  std::atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
         return SuccessExecutionResult();
@@ -368,7 +369,7 @@ TEST(SizedOrTimedBytesBufferTest, FlushFailure) {
           failed_flush_function, 1000, 1234);
 
   AsyncContext<Request, Response> context;
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   context.callback = [&](AsyncContext<Request, Response>& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(1234)));
     condition = true;
@@ -392,12 +393,13 @@ TEST(SizedOrTimedBytesBufferTest, ProperFlushData) {
     return 1;
   };
 
-  function<ExecutionResult(AsyncContext<Request, Response>&, BytesBuffer&,
-                           size_t&)>
+  std::function<ExecutionResult(AsyncContext<Request, Response>&, BytesBuffer&,
+                                size_t&)>
       serialize_function = [](AsyncContext<Request, Response>&, BytesBuffer&,
                               size_t&) { return SuccessExecutionResult(); };
 
-  function<ExecutionResult(BytesBuffer&, function<void(ExecutionResult&)>)>
+  std::function<ExecutionResult(BytesBuffer&,
+                                std::function<void(ExecutionResult&)>)>
       flush_function =
           [](BytesBuffer& bytes_buffer,
              std::function<void(ExecutionResult&)> on_flush_completed) {
@@ -406,16 +408,16 @@ TEST(SizedOrTimedBytesBufferTest, ProperFlushData) {
           };
 
   MockAsyncExecutor mock_async_executor;
-  atomic<bool> schedule_condition = false;
+  std::atomic<bool> schedule_condition = false;
   mock_async_executor.schedule_mock = [&](AsyncOperation work) {
     schedule_condition = true;
     return SuccessExecutionResult();
   };
 
-  atomic<bool> schedule_for_condition = false;
+  std::atomic<bool> schedule_for_condition = false;
   mock_async_executor.schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         EXPECT_EQ(timestamp, 1234);
         schedule_for_condition = true;
         return SuccessExecutionResult();
@@ -438,7 +440,7 @@ TEST(SizedOrTimedBytesBufferTest, ProperFlushData) {
           failed_flush_function, 1000, 1234);
 
   AsyncContext<Request, Response> context;
-  atomic<bool> condition = false;
+  std::atomic<bool> condition = false;
   context.callback = [&](AsyncContext<Request, Response>& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(1234)));
     condition = true;

@@ -32,8 +32,6 @@ using google::scp::core::EnvConfigProvider;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
-using std::list;
-
 namespace google::scp::core::test {
 
 TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
@@ -61,23 +59,23 @@ TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
   char int32_t_val[] = "key-for-int32t-value=6000";
   putenv(int32_t_val);
 
-  list<std::string> out_string_list;
-  list<std::string> expect_string_list({"1", "2"});
+  std::list<std::string> out_string_list;
+  std::list<std::string> expect_string_list({"1", "2"});
   char string_list_val[] = "key-for-string-list=1,2";
   putenv(string_list_val);
 
-  list<int32_t> out_int32_t_list;
-  list<int32_t> expect_int32_t_list({1, 2});
+  std::list<int32_t> out_int32_t_list;
+  std::list<int32_t> expect_int32_t_list({1, 2});
   char int32_t_list[] = "key-for-int32t-list=1,2";
   putenv(int32_t_list);
 
-  list<size_t> out_size_t_list;
-  list<size_t> expect_size_t_list({3, 4});
+  std::list<size_t> out_size_t_list;
+  std::list<size_t> expect_size_t_list({3, 4});
   char size_t_list[] = "key-for-sizet-list=3,4";
   putenv(size_t_list);
 
-  list<bool> out_bool_list;
-  list<bool> expect_bool_list({true, false});
+  std::list<bool> out_bool_list;
+  std::list<bool> expect_bool_list({true, false});
   char bool_list[] = "key-for-bool-list=true,false";
   putenv(bool_list);
 
@@ -194,7 +192,7 @@ TEST(EnvConfigProviderTest, GetStringListFailsWhenDoesNotExist) {
   EnvConfigProvider config;
   config.Init();
 
-  list<std::string> out_val;
+  std::list<std::string> out_val;
   EXPECT_THAT(config.Get("non-existing-val", out_val),
               ResultIs(FailureExecutionResult(
                   errors::SC_CONFIG_PROVIDER_KEY_NOT_FOUND)));
@@ -207,11 +205,11 @@ TEST(EnvConfigProviderTest, GetStringListShouldHandleSingleItem) {
   char env_var[] = "single-item-list=1";
   putenv(env_var);
 
-  list<std::string> out_val;
+  std::list<std::string> out_val;
   auto ret = config.Get("single-item-list", out_val);
 
   EXPECT_SUCCESS(ret);
-  list<std::string> expected_list({"1"});
+  std::list<std::string> expected_list({"1"});
   EXPECT_EQ(out_val, expected_list);
 }
 
@@ -222,7 +220,7 @@ TEST(EnvConfigProviderTest, GetInt32TListShouldFailWhenNotInt32TList) {
   char env_var[] = "not-int32t-list=a,2,c";
   putenv(env_var);
 
-  list<int32_t> out_val;
+  std::list<int32_t> out_val;
   auto ret = config.Get("not-int32t-list", out_val);
 
   EXPECT_THAT(ret, ResultIs(FailureExecutionResult(
@@ -236,7 +234,7 @@ TEST(EnvConfigProviderTest, GetSizeTListShouldFailWhenNotSizeTList) {
   char env_var[] = "not-sizet-list=a,2,c";
   putenv(env_var);
 
-  list<size_t> out_val;
+  std::list<size_t> out_val;
   auto ret = config.Get("not-sizet-list", out_val);
 
   EXPECT_THAT(ret, ResultIs(FailureExecutionResult(
@@ -250,7 +248,7 @@ TEST(EnvConfigProviderTest, GetBoolListShouldFailWhenNotBoolList) {
   char env_var[] = "not-bool-list=a,true,c";
   putenv(env_var);
 
-  list<bool> out_val;
+  std::list<bool> out_val;
   auto ret = config.Get("not-bool-list", out_val);
 
   EXPECT_THAT(ret, ResultIs(FailureExecutionResult(

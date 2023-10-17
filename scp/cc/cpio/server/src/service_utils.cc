@@ -55,7 +55,6 @@ using google::scp::cpio::client_providers::CloudInitializerFactory;
 using google::scp::cpio::client_providers::CloudInitializerInterface;
 using std::cout;
 using std::endl;
-using std::list;
 using std::runtime_error;
 
 namespace google::scp::cpio {
@@ -212,7 +211,7 @@ std::string ReadConfigString(
 
 void ReadConfigStringList(
     const std::shared_ptr<ConfigProviderInterface> config_provider,
-    const std::string& config_key, list<std::string>& config_values) {
+    const std::string& config_key, std::list<std::string>& config_values) {
   auto execution_result = config_provider->Get(config_key, config_values);
   if (!execution_result.Successful()) {
     throw runtime_error(config_key + " is not provided. " +
@@ -222,7 +221,7 @@ void ReadConfigStringList(
 
 ExecutionResult TryReadConfigStringList(
     const std::shared_ptr<ConfigProviderInterface> config_provider,
-    const std::string& config_key, list<std::string>& config_values) {
+    const std::string& config_key, std::list<std::string>& config_values) {
   auto execution_result = config_provider->Get(config_key, config_values);
   if (!execution_result.Successful()) {
     cout << "Optional " << config_key << " is not provided. "

@@ -91,7 +91,6 @@ using google::scp::cpio::client_providers::GetSessionTokenRequest;
 using google::scp::cpio::client_providers::GetSessionTokenResponse;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using google::scp::cpio::client_providers::mock::MockEC2Client;
-using std::atomic;
 using testing::_;
 using testing::Eq;
 using testing::IsEmpty;
@@ -227,7 +226,7 @@ TEST_F(AwsInstanceClientProviderTest, GetCurrentInstanceResourceNameSuccess) {
         return SuccessExecutionResult();
       });
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -386,7 +385,7 @@ TEST_F(AwsInstanceClientProviderTest,
 
   auto malformed_failure = FailureExecutionResult(
       SC_AWS_INSTANCE_CLIENT_INSTANCE_RESOURCE_NAME_RESPONSE_MALFORMED);
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -415,7 +414,7 @@ TEST_F(AwsInstanceClientProviderTest,
 
   EXPECT_CALL(*http_client_, PerformRequest).Times(0);
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -458,7 +457,7 @@ TEST_F(AwsInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -555,7 +554,7 @@ TEST_F(AwsInstanceClientProviderTest, GetInstanceDetailsByResourceName) {
   auto request = std::make_shared<GetInstanceDetailsByResourceNameRequest>();
   request->set_instance_resource_name(kAwsInstanceResourceNameMock);
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -590,7 +589,7 @@ TEST_F(AwsInstanceClientProviderTest,
   auto request = std::make_shared<GetInstanceDetailsByResourceNameRequest>();
   request->set_instance_resource_name(kAwsInstanceResourceNameMock);
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -625,7 +624,7 @@ TEST_F(AwsInstanceClientProviderTest,
 
   auto failure = FailureExecutionResult(
       SC_AWS_INSTANCE_CLIENT_PROVIDER_DESCRIBE_INSTANCES_RESPONSE_MALFORMED);
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -667,7 +666,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameSucceed) {
   auto request = std::make_shared<GetTagsByResourceNameRequest>();
   request->set_resource_name(kAwsInstanceResourceNameMock);
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(request),
               [&](AsyncContext<GetTagsByResourceNameRequest,
@@ -700,7 +699,7 @@ TEST_F(AwsInstanceClientProviderTest,
   auto request = std::make_shared<GetTagsByResourceNameRequest>();
   request->set_resource_name(kAwsInstanceResourceNameMock);
 
-  atomic<bool> condition{false};
+  std::atomic<bool> condition{false};
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(request),
               [&](AsyncContext<GetTagsByResourceNameRequest,
@@ -772,7 +771,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
   EXPECT_CALL(*ec2_factory_, CreateClient(RegionMatched(kRegionUsWest1), _))
       .WillOnce(Return(ec2_client_));
 
-  atomic<int> condition{0};
+  std::atomic<int> condition{0};
   auto request_empty_region = std::make_shared<GetTagsByResourceNameRequest>();
   request_empty_region->set_resource_name(kAwsInstanceResourceNameMock);
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>

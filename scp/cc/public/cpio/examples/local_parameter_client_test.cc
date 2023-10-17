@@ -38,7 +38,6 @@ using google::scp::cpio::ParameterClientInterface;
 using google::scp::cpio::ParameterClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
-using std::atomic;
 
 static constexpr char kRegion[] = "us-east-1";
 static constexpr char kTestParameterName[] = "test_parameter";
@@ -69,7 +68,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   GetParameterRequest get_parameter_request;
   get_parameter_request.set_parameter_name(kTestParameterName);
   result = parameter_client->GetParameter(

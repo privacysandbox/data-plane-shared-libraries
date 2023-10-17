@@ -93,7 +93,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsSqsClientFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockSqsClient;
-using std::atomic_bool;
 using testing::_;
 using testing::Eq;
 using testing::NiceMock;
@@ -196,7 +195,7 @@ class AwsQueueClientProviderTest : public ::testing::Test {
 
   // We check that this gets flipped after every call to ensure the context's
   // Finish() is called.
-  atomic_bool finish_called_{false};
+  std::atomic_bool finish_called_{false};
 };
 
 TEST_F(AwsQueueClientProviderTest, RunWithNullQueueClientOptions) {

@@ -27,8 +27,6 @@ namespace beast = boost::beast;
 namespace http = beast::http;
 using tcp = boost::asio::ip::tcp;
 
-using std::atomic_bool;
-using std::multimap;
 using std::thread;
 using std::chrono::milliseconds;
 
@@ -69,7 +67,7 @@ ExecutionResultOr<in_port_t> GetUnusedPortNumber() {
 }
 
 TestHttp1Server::TestHttp1Server() {
-  atomic_bool ready(false);
+  std::atomic_bool ready(false);
   thread_ = thread([this, &ready]() {
     boost::asio::io_context ioc(/*concurrency_hint=*/1);
     tcp::endpoint ep(tcp::v4(), /*port=*/0);
@@ -167,9 +165,9 @@ TestHttp1Server::~TestHttp1Server() {
   thread_.join();
 }
 
-multimap<std::string, std::string> GetRequestHeadersMap(
+std::multimap<std::string, std::string> GetRequestHeadersMap(
     const http::request<http::dynamic_body>& request) {
-  multimap<std::string, std::string> ret;
+  std::multimap<std::string, std::string> ret;
   for (const auto& header : request) {
     ret.insert(
         {std::string(header.name_string()), std::string(header.value())});

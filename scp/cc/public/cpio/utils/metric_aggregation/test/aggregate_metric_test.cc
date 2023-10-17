@@ -57,7 +57,6 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricDefinition;
 using google::scp::cpio::MetricUnit;
-using std::atomic;
 using std::mutex;
 using std::thread;
 
@@ -104,7 +103,7 @@ TEST_F(AggregateMetricTest, Run) {
 }
 
 TEST_F(AggregateMetricTest, ScheduleMetricPush) {
-  atomic<int> schedule_for_is_called = 0;
+  std::atomic<int> schedule_for_is_called = 0;
   mock_async_executor_->schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp, std::function<bool()>&) {
         schedule_for_is_called++;

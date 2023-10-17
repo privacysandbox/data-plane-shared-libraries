@@ -31,7 +31,6 @@ using google::scp::core::ConfigProvider;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
-using std::list;
 using std::filesystem::path;
 
 namespace google::scp::core::test {
@@ -58,14 +57,14 @@ TEST(ConfigProviderTest, GetConfigs) {
   size_t expect_int = 5000;
   bool out_bool;
   bool expect_bool = true;
-  list<std::string> out_string_list;
-  list<std::string> expect_string_list({"1", "2"});
-  list<int32_t> out_int_list;
-  list<int32_t> expect_int_list({1, 2});
-  list<size_t> out_size_list;
-  list<size_t> expect_size_list({3, 4});
-  list<bool> out_bool_list;
-  list<bool> expect_bool_list({true, false});
+  std::list<std::string> out_string_list;
+  std::list<std::string> expect_string_list({"1", "2"});
+  std::list<int32_t> out_int_list;
+  std::list<int32_t> expect_int_list({1, 2});
+  std::list<size_t> out_size_list;
+  std::list<size_t> expect_size_list({3, 4});
+  std::list<bool> out_bool_list;
+  std::list<bool> expect_bool_list({true, false});
 
   config.Get("server-ip", out_string);
   config.Get("server-run", out_bool);

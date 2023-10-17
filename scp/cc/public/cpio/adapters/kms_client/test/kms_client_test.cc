@@ -32,7 +32,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::test::IsSuccessful;
 using google::scp::cpio::mock::MockKmsClientWithOverrides;
-using std::atomic_bool;
 
 namespace google::scp::cpio::test {
 
@@ -48,7 +47,7 @@ class KmsClientTest : public ::testing::Test {
 TEST_F(KmsClientTest, DecryptSuccess) {
   AsyncContext<DecryptRequest, DecryptResponse> context;
   auto& client_provider = client_.GetKmsClientProvider();
-  atomic_bool called(false);
+  std::atomic_bool called(false);
 
   EXPECT_CALL(client_provider, Decrypt).WillOnce([&called](auto context) {
     called = true;

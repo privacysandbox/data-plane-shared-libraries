@@ -27,14 +27,12 @@
 
 #include "dependency_graph.h"
 #include "error_codes.h"
-using std::function;
-using std::unordered_set;
 
 namespace google::scp::core {
 
 ExecutionResult DependencyInjectionService::RegisterComponent(
     const std::string& id, const std::vector<std::string>& dependencies,
-    function<std::shared_ptr<ServiceInterface>(
+    std::function<std::shared_ptr<ServiceInterface>(
         const absl::flat_hash_map<std::string,
                                   std::shared_ptr<ServiceInterface>>&)>
         factory) noexcept {
@@ -68,7 +66,7 @@ ExecutionResult DependencyInjectionService::Stop() noexcept {
 }
 
 ExecutionResult DependencyInjectionService::Execute(
-    function<ExecutionResult(std::shared_ptr<ServiceInterface>)> execute) {
+    std::function<ExecutionResult(std::shared_ptr<ServiceInterface>)> execute) {
   for (auto& node : components_) {
     auto result = execute(node);
     if (result.status != ExecutionStatus::Success) {

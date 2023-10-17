@@ -27,7 +27,6 @@
 #include "typedef.h"
 
 using google::scp::core::common::ConcurrentQueue;
-using std::atomic;
 using std::mutex;
 using std::thread;
 using std::unique_lock;

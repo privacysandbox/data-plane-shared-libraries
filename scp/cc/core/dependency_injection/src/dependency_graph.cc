@@ -28,14 +28,12 @@
 #include "component_dependency_node.h"
 #include "component_dependency_node_collection.h"
 #include "error_codes.h"
-using std::function;
-using std::unordered_set;
 
 namespace google::scp::core {
 
 bool DependencyGraph::AddNode(
     const std::string& id, const std::vector<std::string>& dependencies,
-    function<std::shared_ptr<ServiceInterface>(
+    std::function<std::shared_ptr<ServiceInterface>(
         const absl::flat_hash_map<std::string,
                                   std::shared_ptr<ServiceInterface>>&)>
         factory) noexcept {

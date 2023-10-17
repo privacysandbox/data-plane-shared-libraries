@@ -28,7 +28,6 @@
 
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
-using std::atomic;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using ::testing::_;
@@ -107,7 +106,7 @@ TEST_F(AutoRefreshTokenProviderTest, TokenIsInvalidToStart) {
 }
 
 TEST_F(AutoRefreshTokenProviderTest, RunStartsTokenRefresh) {
-  atomic<bool> called(false);
+  std::atomic<bool> called(false);
   EXPECT_CALL(*token_fetcher_, FetchToken)
       .WillOnce(
           [&](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
@@ -123,7 +122,7 @@ TEST_F(AutoRefreshTokenProviderTest, RunStartsTokenRefresh) {
 }
 
 TEST_F(AutoRefreshTokenProviderTest, QueryFailureRetriesRefresh) {
-  atomic<bool> called(false);
+  std::atomic<bool> called(false);
   EXPECT_CALL(*token_fetcher_, FetchToken)
       .WillOnce(
           [](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {
@@ -145,7 +144,7 @@ TEST_F(AutoRefreshTokenProviderTest, QueryFailureRetriesRefresh) {
 }
 
 TEST_F(AutoRefreshTokenProviderTest, QueryCallbackFailureRetriesRefresh) {
-  atomic<bool> called(false);
+  std::atomic<bool> called(false);
   EXPECT_CALL(*token_fetcher_, FetchToken)
       .WillOnce(
           [](AsyncContext<FetchTokenRequest, FetchTokenResponse> context) {

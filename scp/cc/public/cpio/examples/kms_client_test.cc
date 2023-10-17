@@ -41,7 +41,6 @@ using google::scp::cpio::KmsClientFactory;
 using google::scp::cpio::KmsClientInterface;
 using google::scp::cpio::KmsClientOptions;
 using google::scp::cpio::LogOption;
-using std::atomic;
 using std::chrono::milliseconds;
 
 constexpr char kCiphertext[] = "test_ciphertext";
@@ -78,7 +77,7 @@ int main(int argc, char* argv[]) {
   request->set_ciphertext(kCiphertext);
   request->set_key_resource_name(kKeyResourceName);
 
-  atomic<bool> finished = false;
+  std::atomic<bool> finished = false;
   AsyncContext<DecryptRequest, DecryptResponse> decrypt_context(
       std::move(request), [&finished](auto& context) {
         if (!context.result.Successful()) {

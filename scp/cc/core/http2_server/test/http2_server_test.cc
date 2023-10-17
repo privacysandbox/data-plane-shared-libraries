@@ -57,7 +57,6 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricInstanceFactory;
 using google::scp::cpio::MetricInstanceFactoryInterface;
 using google::scp::cpio::MockMetricClient;
-using std::promise;
 using std::chrono::milliseconds;
 using std::chrono::seconds;
 using testing::Return;
@@ -475,7 +474,7 @@ TEST_F(Http2ServerTest, ShouldHandleRequestProperlyWhenTlsIsEnabled) {
   request->method = HttpMethod::GET;
   request->path =
       std::make_shared<std::string>("https://localhost:" + port + test_path);
-  promise<void> done;
+  std::promise<void> done;
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {

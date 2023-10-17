@@ -37,8 +37,6 @@ using google::scp::core::journal_service::JournalStreamAppendLogRequest;
 using google::scp::core::journal_service::JournalStreamAppendLogResponse;
 using google::scp::core::journal_service::mock::MockJournalOutputStream;
 using google::scp::core::test::WaitUntil;
-using std::atomic;
-using std::function;
 
 namespace google::scp::core::test {
 TEST(JournalOutputStreamTests, AppendLog) {
@@ -47,7 +45,7 @@ TEST(JournalOutputStreamTests, AppendLog) {
   MockAsyncExecutor async_executor_mock;
   async_executor_mock.schedule_for_mock =
       [&](AsyncOperation work, Timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         return SuccessExecutionResult();
       };
   async_executor_mock.schedule_mock = [&](AsyncOperation work) {
@@ -91,7 +89,7 @@ TEST(JournalOutputStreamTests, FlushLogsFailure) {
   MockAsyncExecutor async_executor_mock;
   async_executor_mock.schedule_for_mock =
       [&](AsyncOperation work, Timestamp,
-          function<bool()>& cancellation_callback) {
+          std::function<bool()>& cancellation_callback) {
         return SuccessExecutionResult();
       };
   async_executor_mock.schedule_mock = [&](AsyncOperation work) {
@@ -507,7 +505,7 @@ TEST(JournalOutputStreamTests, OnWriteJournalBlobCallback) {
                                           FailureExecutionResult(123),
                                           RetryExecutionResult(12345)};
   for (auto result : results) {
-    atomic<bool> condition = false;
+    std::atomic<bool> condition = false;
     auto callback = [&](ExecutionResult& execution_result) {
       EXPECT_THAT(execution_result, ResultIs(result));
       condition = true;

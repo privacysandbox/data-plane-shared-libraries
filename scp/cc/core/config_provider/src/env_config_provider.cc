@@ -19,8 +19,6 @@
 #include <list>
 #include <string>
 
-using std::list;
-
 namespace google::scp::core {
 
 ExecutionResult EnvConfigProvider::Init() noexcept {
@@ -56,22 +54,22 @@ ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
 }
 
 ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
-                                       list<std::string>& out) noexcept {
+                                       std::list<std::string>& out) noexcept {
   return Get<std::string>(key, out);
 }
 
 ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
-                                       list<int32_t>& out) noexcept {
+                                       std::list<int32_t>& out) noexcept {
   return Get<int32_t>(key, out);
 }
 
 ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
-                                       list<size_t>& out) noexcept {
+                                       std::list<size_t>& out) noexcept {
   return Get<size_t>(key, out);
 }
 
 ExecutionResult EnvConfigProvider::Get(const ConfigKey& key,
-                                       list<bool>& out) noexcept {
+                                       std::list<bool>& out) noexcept {
   return Get<bool>(key, out);
 }
 }  // namespace google::scp::core

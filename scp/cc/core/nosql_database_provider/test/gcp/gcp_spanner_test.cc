@@ -72,9 +72,6 @@ using google::scp::core::logger::ConsoleLogProvider;
 using google::scp::core::logger::Logger;
 using google::scp::core::nosql_database_provider::GcpSpanner;
 using google::spanner::v1::ResultSetStats;
-using std::optional;
-using std::pair;
-using std::unordered_map;
 using testing::_;
 using testing::A;
 using testing::ByMove;
@@ -97,8 +94,8 @@ class TestGcpSpanner : public GcpSpanner {
   explicit TestGcpSpanner(
       std::shared_ptr<Client> spanner_client,
       std::shared_ptr<AsyncExecutorInterface> async_executor,
-      std::unique_ptr<
-          unordered_map<std::string, pair<std::string, optional<std::string>>>>
+      std::unique_ptr<std::unordered_map<
+          std::string, std::pair<std::string, std::optional<std::string>>>>
           table_name_to_keys)
       : GcpSpanner(spanner_client, async_executor,
                    std::move(table_name_to_keys), AsyncPriority::Normal,
@@ -136,11 +133,11 @@ constexpr char kBudgetKeySortKeyName[] = "Timeframe";
 constexpr char kPartitionLockTableName[] = "PartitionLock";
 constexpr char kPartitionLockPartitionKeyName[] = "LockId";
 
-std::unique_ptr<
-    unordered_map<std::string, pair<std::string, optional<std::string>>>>
+std::unique_ptr<std::unordered_map<
+    std::string, std::pair<std::string, std::optional<std::string>>>>
 GetTableNameToKeysMap() {
-  auto map = std::make_unique<
-      unordered_map<std::string, pair<std::string, optional<std::string>>>>();
+  auto map = std::make_unique<std::unordered_map<
+      std::string, std::pair<std::string, std::optional<std::string>>>>();
   map->emplace(kBudgetKeyTableName, std::make_pair(kBudgetKeyPartitionKeyName,
                                                    kBudgetKeySortKeyName));
   map->emplace(kPartitionLockTableName,
