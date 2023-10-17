@@ -87,7 +87,8 @@ absl::Status BatchExecuteInternal(std::vector<RequestT>& batch,
   }
 
   auto* roma_service = RomaService::Instance();
-  auto result = roma_service->Dispatcher().DispatchBatch(batch, batch_callback);
+  auto result = roma_service->Dispatcher().DispatchBatch(
+      batch, std::move(batch_callback));
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma Batch Execute failed due to dispatch error: " +
@@ -179,12 +180,12 @@ absl::Status Execute(
 
 absl::Status BatchExecute(std::vector<InvocationRequestStrInput>& batch,
                           BatchCallback batch_callback) {
-  return BatchExecuteInternal(batch, batch_callback);
+  return BatchExecuteInternal(batch, std::move(batch_callback));
 }
 
 absl::Status BatchExecute(std::vector<InvocationRequestSharedInput>& batch,
                           BatchCallback batch_callback) {
-  return BatchExecuteInternal(batch, batch_callback);
+  return BatchExecuteInternal(batch, std::move(batch_callback));
 }
 
 absl::Status LoadCodeObj(std::unique_ptr<CodeObject> code_object,

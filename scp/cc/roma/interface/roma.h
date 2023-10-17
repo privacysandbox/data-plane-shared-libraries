@@ -123,8 +123,8 @@ absl::Status Execute(
 
 // Batch API
 // void Callback(const vector<ResponseObject>&);
-using BatchCallback =
-    std::function<void(const std::vector<absl::StatusOr<ResponseObject>>&)>;
+using BatchCallback = absl::AnyInvocable<void(
+    const std::vector<absl::StatusOr<ResponseObject>>&)>;
 
 // Async & Batch API.
 // Batch execute a batch of invocation requests. Can only be called when a valid

@@ -97,14 +97,16 @@ class Dispatcher : public core::ServiceInterface {
             batch_size, absl::StatusOr<ResponseObject>());
     auto finished_counter = std::make_shared<std::atomic<size_t>>(0);
 
+    auto batch_callback_ptr =
+        std::make_shared<BatchCallback>(std::move(batch_callback));
     for (size_t index = 0; index < batch_size; ++index) {
       auto callback =
-          [batch_response, finished_counter, batch_callback, index](
+          [batch_response, finished_counter, batch_callback_ptr, index](
               std::unique_ptr<absl::StatusOr<ResponseObject>> obj_response) {
-            batch_response->at(index) = *obj_response;
+            batch_response->at(index) = *std::move(obj_response);
             auto finished_value = finished_counter->fetch_add(1);
             if (finished_value + 1 == batch_response->size()) {
-              batch_callback(*batch_response);
+              (*batch_callback_ptr)(*batch_response);
             }
           };
 
