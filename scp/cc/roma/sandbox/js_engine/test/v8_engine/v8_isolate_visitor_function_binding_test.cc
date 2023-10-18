@@ -42,12 +42,6 @@ using google::scp::roma::sandbox::native_function_binding::
 
 using ::testing::_;
 using ::testing::Ref;
-using testing::Return;
-using v8::Context;
-using v8::FunctionCallbackInfo;
-using v8::HandleScope;
-using v8::Isolate;
-using v8::Local;
 
 namespace google::scp::roma::sandbox::js_engine::test {
 class V8IsolateVisitorFunctionBindingTest : public ::testing::Test {
@@ -81,7 +75,7 @@ TEST_F(V8IsolateVisitorFunctionBindingTest,
   AutoInitRunStop to_handle_engine(js_engine);
 
   EXPECT_CALL(*function_invoker, Invoke("cool_func", _))
-      .WillOnce(Return(SuccessExecutionResult()));
+      .WillOnce(testing::Return(SuccessExecutionResult()));
 
   auto result_or = js_engine.CompileAndRunJs(
       R"(function func() { cool_func(); return ""; })", "func", {}, {});

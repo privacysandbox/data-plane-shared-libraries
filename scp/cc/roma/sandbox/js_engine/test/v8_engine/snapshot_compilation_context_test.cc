@@ -26,23 +26,19 @@
 #include "include/v8.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::test::ResultIs;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::
     SnapshotCompilationContext;
 using testing::IsNull;
 using testing::NotNull;
-using v8::Isolate;
 
 namespace google::scp::roma::sandbox::js_engine::test {
 class SnapshotCompilationContextTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     const int my_pid = getpid();
-    const std::string proc_exe_path =
-        std::string("/proc/") + std::to_string(my_pid) + "/exe";
+    const std::string proc_exe_path = absl::StrCat("/proc/", my_pid, "/exe");
     auto my_path = std::make_unique<char[]>(PATH_MAX);
-    ssize_t sz = readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
+    const auto sz = readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
     ASSERT_GT(sz, 0);
     v8::V8::InitializeICUDefaultLocation(my_path.get());
     v8::V8::InitializeExternalStartupData(my_path.get());
@@ -60,12 +56,11 @@ class SnapshotCompilationContextTest : public ::testing::Test {
   std::vector<v8::Isolate*> created_isolates;
   std::vector<std::shared_ptr<void>> create_contexts;
 
-  Isolate* CreateIsolate() {
-    Isolate::CreateParams params;
+  v8::Isolate* CreateIsolate() {
+    v8::Isolate::CreateParams params;
     params.array_buffer_allocator =
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-    auto isolate = Isolate::New(params);
-
+    const auto& isolate = v8::Isolate::New(params);
     created_isolates.emplace_back(isolate);
     return isolate;
   }
@@ -76,26 +71,27 @@ class SnapshotCompilationContextTest : public ::testing::Test {
 v8::Platform* SnapshotCompilationContextTest::platform_{nullptr};
 
 TEST_F(SnapshotCompilationContextTest, IsolateShouldDisposeAfterNoRefers) {
-  create_contexts.reserve(5);
+  constexpr int64_t kContextCount = 5;
+  create_contexts.reserve(kContextCount);
 
-  for (auto i = 0; i < 5; i++) {
+  for (auto i = 0; i < kContextCount; i++) {
     create_contexts.emplace_back(CreateCompilationContext());
   }
-  for (auto i = 0; i < 5; i++) {
+  for (auto i = 0; i < kContextCount; i++) {
     // The isolates are initialized.
     EXPECT_THAT(created_isolates[i]->GetHeapProfiler(), NotNull());
   }
 
-  EXPECT_EQ(create_contexts.size(), 5);
-  EXPECT_EQ(created_isolates.size(), 5);
+  EXPECT_EQ(create_contexts.size(), kContextCount);
+  EXPECT_EQ(created_isolates.size(), kContextCount);
 
   // Clear the contexts from vector which will remove all refers of the context.
   create_contexts.clear();
 
   EXPECT_EQ(create_contexts.size(), 0);
-  EXPECT_EQ(created_isolates.size(), 5);
+  EXPECT_EQ(created_isolates.size(), kContextCount);
 
-  for (auto i = 0; i < 5; i++) {
+  for (auto i = 0; i < kContextCount; i++) {
     // The isolates are disposed.
     EXPECT_THAT(created_isolates[i]->GetHeapProfiler(), IsNull());
   }
