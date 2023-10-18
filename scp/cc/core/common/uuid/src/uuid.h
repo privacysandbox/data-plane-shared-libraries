@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <utility>
 
 #include "public/core/interface/execution_result.h"
 
@@ -34,6 +35,12 @@ struct Uuid {
   // High value.
   uint64_t high = 0;
   uint64_t low = 0;
+
+  // A Uuid hash that can be used for absl containers.
+  template <typename H>
+  friend H AbslHashValue(H h, const Uuid& uuid) {
+    return H::combine(std::move(h), uuid.high, uuid.low);
+  }
 
   bool operator==(const Uuid& other) const {
     return high == other.high && low == other.low;

@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_set.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "core/blob_storage_provider/mock/mock_blob_storage_provider.h"
@@ -2256,7 +2257,8 @@ TEST_P(MockJournalInputStreamTestWithParam,
   }
 }
 
-BytesBuffer GenerateLogBytes(size_t count, std::set<Uuid>& completed_logs,
+BytesBuffer GenerateLogBytes(size_t count,
+                             absl::flat_hash_set<Uuid>& completed_logs,
                              std::vector<Timestamp>& timestamps,
                              std::vector<Uuid>& component_ids,
                              std::vector<Uuid>& log_ids,
@@ -2470,7 +2472,7 @@ TEST_P(MockJournalInputStreamTestWithParam,
   auto& journal_ids = mock_journal_input_stream.GetJournalIds();
   auto& journal_buffers = mock_journal_input_stream.GetJournalBuffers();
   for (size_t i = 0; i < counts.size(); ++i) {
-    std::set<Uuid> completed_logs;
+    absl::flat_hash_set<Uuid> completed_logs;
     std::vector<Uuid> log_ids;
     std::vector<JournalLog> journal_logs;
     std::vector<Timestamp> timestamps;
@@ -2551,7 +2553,7 @@ TEST_F(MockJournalInputStreamTest, ReadJournalLogBatch) {
   auto& journal_ids = mock_journal_input_stream.GetJournalIds();
   auto& journal_buffers = mock_journal_input_stream.GetJournalBuffers();
   for (size_t i = 0; i < counts.size(); ++i) {
-    std::set<Uuid> completed_logs;
+    absl::flat_hash_set<Uuid> completed_logs;
     std::vector<Uuid> log_ids;
     std::vector<JournalLog> journal_logs;
     std::vector<Timestamp> timestamps;
