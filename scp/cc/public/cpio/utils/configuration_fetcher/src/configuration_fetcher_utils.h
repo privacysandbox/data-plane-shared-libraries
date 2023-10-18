@@ -84,7 +84,8 @@ class ConfigurationFetcherUtils {
 
   template <typename EnumT>
   static core::ExecutionResultOr<EnumT> StringToEnum(
-      const std::string& value, const std::map<std::string, EnumT>& enum_map) {
+      const std::string& value,
+      const absl::flat_hash_map<std::string, EnumT>& enum_map) {
     auto it = enum_map.find(value);
     if (it == enum_map.end()) {
       auto result = core::FailureExecutionResult(

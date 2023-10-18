@@ -17,9 +17,9 @@
 #ifndef CPIO_SERVER_INTERFACE_CONFIGURATION_KEYS_H_
 #define CPIO_SERVER_INTERFACE_CONFIGURATION_KEYS_H_
 
-#include <map>
 #include <string>
 
+#include "absl/container/flat_hash_map.h"
 #include "public/cpio/interface/type_def.h"
 
 // Common configurations for all SDK services.
@@ -28,10 +28,13 @@ namespace google::scp::cpio {
 // default value SysLog.
 static constexpr char kSdkClientLogOption[] = "cmrt_sdk_log_option";
 
-static const std::map<std::string, LogOption> kLogOptionConfigMap = {
-    {"NoLog", LogOption::kNoLog},
-    {"ConsoleLog", LogOption::kConsoleLog},
-    {"SysLog", LogOption::kSysLog}};
+static const auto& kLogOptionConfigMap =
+    *new absl::flat_hash_map<std::string, LogOption>{
+        {"NoLog", LogOption::kNoLog},
+        {"ConsoleLog", LogOption::kConsoleLog},
+        {"SysLog", LogOption::kSysLog},
+    };
+
 }  // namespace google::scp::cpio
 
 #endif  // CPIO_SERVER_INTERFACE_CONFIGURATION_KEYS_H_

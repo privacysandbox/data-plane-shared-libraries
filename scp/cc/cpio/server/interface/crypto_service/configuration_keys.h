@@ -17,9 +17,9 @@
 #ifndef CPIO_SERVER_INTERFACE_CRYPTO_SERVICE_CONFIGURATION_KEYS_H_
 #define CPIO_SERVER_INTERFACE_CRYPTO_SERVICE_CONFIGURATION_KEYS_H_
 
-#include <map>
 #include <string>
 
+#include "absl/container/flat_hash_map.h"
 #include "public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 
 namespace google::scp::cpio {
@@ -51,19 +51,26 @@ static constexpr char kCryptoClientMinPollers[] =
 static constexpr char kCryptoClientMaxPollers[] =
     "cmrt_sdk_crypto_client_max_pollers";
 
-static const std::map<std::string, cmrt::sdk::crypto_service::v1::HpkeKem>
-    kHpkeKemConfigMap = {
+static const auto& kHpkeKemConfigMap =
+    *new absl::flat_hash_map<std::string,
+                             cmrt::sdk::crypto_service::v1::HpkeKem>{
         {"DHKEM_X25519_HKDF_SHA256",
-         cmrt::sdk::crypto_service::v1::HpkeKem::DHKEM_X25519_HKDF_SHA256}};
-static const std::map<std::string, cmrt::sdk::crypto_service::v1::HpkeKdf>
-    kHpkeKdfConfigMap = {
-        {"HKDF_SHA256", cmrt::sdk::crypto_service::v1::HpkeKdf::HKDF_SHA256}};
-static const std::map<std::string, cmrt::sdk::crypto_service::v1::HpkeAead>
-    kHpkeAeadConfigMap = {
+         cmrt::sdk::crypto_service::v1::HpkeKem::DHKEM_X25519_HKDF_SHA256},
+    };
+static const auto& kHpkeKdfConfigMap =
+    *new absl::flat_hash_map<std::string,
+                             cmrt::sdk::crypto_service::v1::HpkeKdf>{
+        {"HKDF_SHA256", cmrt::sdk::crypto_service::v1::HpkeKdf::HKDF_SHA256},
+    };
+static const auto& kHpkeAeadConfigMap =
+    *new absl::flat_hash_map<std::string,
+                             cmrt::sdk::crypto_service::v1::HpkeAead>{
         {"AES_128_GCM", cmrt::sdk::crypto_service::v1::HpkeAead::AES_128_GCM},
         {"AES_256_GCM", cmrt::sdk::crypto_service::v1::HpkeAead::AES_256_GCM},
         {"CHACHA20_POLY1305",
-         cmrt::sdk::crypto_service::v1::HpkeAead::CHACHA20_POLY1305}};
+         cmrt::sdk::crypto_service::v1::HpkeAead::CHACHA20_POLY1305},
+    };
+
 }  // namespace google::scp::cpio
 
 #endif  // CPIO_SERVER_INTERFACE_CRYPTO_SERVICE_CONFIGURATION_KEYS_H_
