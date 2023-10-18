@@ -18,9 +18,9 @@
 #define CORE_INTERFACE_ERRORS_H_
 
 #include <functional>
-#include <map>
 #include <string>
 
+#include "absl/container/flat_hash_map.h"
 #include "public/core/interface/execution_result.h"
 
 namespace google::scp::core::errors {
@@ -89,10 +89,11 @@ struct SCPError {
   HttpStatusCode error_http_status_code;
 };
 
-std::map<uint64_t, std::map<uint64_t, SCPError>>& GetGlobalErrorCodes();
+absl::flat_hash_map<uint64_t, absl::flat_hash_map<uint64_t, SCPError>>&
+GetGlobalErrorCodes();
 
 /// @brief The global map of error_code and associated public error code.
-std::map<uint64_t, uint64_t>& GetPublicErrorCodesMap();
+absl::flat_hash_map<uint64_t, uint64_t>& GetPublicErrorCodesMap();
 
 /**
  * @brief Registers component code.

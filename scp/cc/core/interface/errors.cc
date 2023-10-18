@@ -16,19 +16,24 @@
 
 #include "errors.h"
 
+#include "absl/container/flat_hash_map.h"
 #include "public/core/interface/execution_result.h"
 
 namespace google::scp::core::errors {
-std::map<uint64_t, std::map<uint64_t, SCPError>>& GetGlobalErrorCodes() {
+absl::flat_hash_map<uint64_t, absl::flat_hash_map<uint64_t, SCPError>>&
+GetGlobalErrorCodes() {
   /// Defines global_error_codes to store all error codes.
-  static std::map<uint64_t, std::map<uint64_t, SCPError>> global_error_codes;
+  static auto& global_error_codes =
+      *new absl::flat_hash_map<uint64_t,
+                               absl::flat_hash_map<uint64_t, SCPError>>();
   return global_error_codes;
 }
 
-std::map<uint64_t, uint64_t>& GetPublicErrorCodesMap() {
+absl::flat_hash_map<uint64_t, uint64_t>& GetPublicErrorCodesMap() {
   /// Defines public_error_codes_map to store error codes and associated public
   /// error code.
-  static std::map<uint64_t, uint64_t> public_error_codes_map;
+  static auto& public_error_codes_map =
+      *new absl::flat_hash_map<uint64_t, uint64_t>();
   return public_error_codes_map;
 }
 }  // namespace google::scp::core::errors

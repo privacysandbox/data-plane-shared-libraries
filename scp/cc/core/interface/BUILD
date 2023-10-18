@@ -120,5 +120,6 @@ cc_library(
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/public/core/interface:execution_result",
+        "@com_google_absl//absl/container:flat_hash_map",
     ],
 )
