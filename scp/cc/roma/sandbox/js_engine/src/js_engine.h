@@ -135,7 +135,7 @@ class JsEngine : public core::ServiceInterface {
    */
   virtual core::ExecutionResultOr<JsEngineExecutionResponse>
   CompileAndRunJsWithWasm(
-      const std::string& code, const absl::Span<const std::uint8_t>& wasm,
+      const std::string& code, absl::Span<const std::uint8_t> wasm,
       const std::string& function_name,
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string, std::string>& metadata,

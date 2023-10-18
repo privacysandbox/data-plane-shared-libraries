@@ -61,7 +61,7 @@ ExecutionResult Worker::Stop() noexcept {
 ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
     const std::string& code, const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string, std::string>& metadata,
-    const absl::Span<const uint8_t>& wasm) {
+    absl::Span<const uint8_t> wasm) {
   auto request_type_or =
       WorkerUtils::GetValueFromMetadata(metadata, kRequestType);
   RETURN_IF_FAILURE(request_type_or.result());

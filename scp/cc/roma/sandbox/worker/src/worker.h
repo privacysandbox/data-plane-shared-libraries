@@ -66,7 +66,7 @@ class Worker : public core::ServiceInterface {
   virtual core::ExecutionResultOr<js_engine::ExecutionResponse> RunCode(
       const std::string& code, const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string, std::string>& metadata,
-      const absl::Span<const uint8_t>& wasm);
+      absl::Span<const uint8_t> wasm);
 
  private:
   std::shared_ptr<js_engine::JsEngine> js_engine_;

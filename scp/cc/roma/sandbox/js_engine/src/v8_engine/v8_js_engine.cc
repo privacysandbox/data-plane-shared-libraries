@@ -235,7 +235,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(
 }
 
 core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
-    v8::StartupData& startup_data, const absl::Span<const uint8_t>& wasm,
+    v8::StartupData& startup_data, absl::Span<const uint8_t> wasm,
     const absl::flat_hash_map<std::string, std::string>& metadata,
 
     std::string& err_msg) noexcept {
@@ -350,7 +350,7 @@ void V8JsEngine::StopWatchdogTimer() noexcept {
 
 ExecutionResultOr<RomaJsEngineCompilationContext>
 V8JsEngine::CreateCompilationContext(
-    const std::string& code, const absl::Span<const uint8_t>& wasm,
+    const std::string& code, absl::Span<const uint8_t> wasm,
     const absl::flat_hash_map<std::string, std::string>& metadata,
 
     std::string& err_msg) noexcept {
@@ -443,7 +443,7 @@ V8JsEngine::CreateCompilationContext(
 }
 
 core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
-    Isolate* isolate, const absl::Span<const uint8_t>& wasm,
+    Isolate* isolate, absl::Span<const uint8_t> wasm,
     std::string& err_msg) noexcept {
   Isolate::Scope isolate_scope(isolate);
   // Create a handle scope to keep the temporary object references.
@@ -712,7 +712,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
 ExecutionResultOr<JsEngineExecutionResponse>
 V8JsEngine::CompileAndRunJsWithWasm(
-    const std::string& code, const absl::Span<const uint8_t>& wasm,
+    const std::string& code, absl::Span<const uint8_t> wasm,
     const std::string& function_name,
     const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string, std::string>& metadata,

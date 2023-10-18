@@ -85,8 +85,7 @@ class BuildDependentConfig {
 
   // return error if metric is not configured right.
   absl::Status CheckMetricConfig(
-      const absl::Span<const metrics::DefinitionName* const>& server_metrics)
-      const;
+      absl::Span<const metrics::DefinitionName* const> server_metrics) const;
 
   // Override the public partition of a metric.
   void SetPartition(absl::string_view name,

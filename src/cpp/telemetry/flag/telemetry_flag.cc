@@ -112,8 +112,7 @@ absl::StatusOr<MetricConfig> BuildDependentConfig::GetMetricConfig(
 }
 
 absl::Status BuildDependentConfig::CheckMetricConfig(
-    const absl::Span<const metrics::DefinitionName* const>& server_metrics)
-    const {
+    absl::Span<const metrics::DefinitionName* const> server_metrics) const {
   std::string ret;
   for (const auto& [name, config] : metric_config_) {
     if (absl::c_find_if(server_metrics, [&name = name](const auto* metric_def) {

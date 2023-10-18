@@ -78,7 +78,7 @@ class V8JsEngine : public JsEngine {
 
   core::ExecutionResultOr<js_engine::JsEngineExecutionResponse>
   CompileAndRunJsWithWasm(
-      const std::string& code, const absl::Span<const std::uint8_t>& wasm,
+      const std::string& code, absl::Span<const std::uint8_t> wasm,
       const std::string& function_name,
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string, std::string>& metadata,
@@ -116,7 +116,7 @@ class V8JsEngine : public JsEngine {
    * @return core::ExecutionResult
    */
   core::ExecutionResult CreateSnapshotWithGlobals(
-      v8::StartupData& startup_data, const absl::Span<const std::uint8_t>& wasm,
+      v8::StartupData& startup_data, absl::Span<const std::uint8_t> wasm,
       const absl::flat_hash_map<std::string, std::string>& metadata,
       std::string& err_msg) noexcept;
   /**
@@ -132,7 +132,7 @@ class V8JsEngine : public JsEngine {
    */
   core::ExecutionResultOr<js_engine::RomaJsEngineCompilationContext>
   CreateCompilationContext(
-      const std::string& code, const absl::Span<const std::uint8_t>& wasm,
+      const std::string& code, absl::Span<const std::uint8_t> wasm,
       const absl::flat_hash_map<std::string, std::string>& metadata,
       std::string& err_msg) noexcept;
 
@@ -187,7 +187,7 @@ class V8JsEngine : public JsEngine {
    * @return core::ExecutionResult
    */
   core::ExecutionResult CompileWasmCodeArray(
-      v8::Isolate* isolate, const absl::Span<const std::uint8_t>& wasm,
+      v8::Isolate* isolate, absl::Span<const std::uint8_t> wasm,
       std::string& err_msg) noexcept;
 
   /**
