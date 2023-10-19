@@ -26,6 +26,8 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/functional/bind_front.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -47,6 +49,10 @@ using google::cmrt::sdk::instance_service::v1::
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
 using google::cmrt::sdk::instance_service::v1::InstanceDetails;
+using google::cmrt::sdk::instance_service::v1::
+    ListInstanceDetailsByEnvironmentRequest;
+using google::cmrt::sdk::instance_service::v1::
+    ListInstanceDetailsByEnvironmentResponse;
 using google::scp::core::AsyncContext;
 using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
@@ -92,6 +98,10 @@ constexpr char kGcpInstanceRNFormatString[] =
 constexpr char kInstanceResourceNamePrefix[] = "//compute.googleapis.com/";
 constexpr char kGcpInstanceGetUrlPrefix[] =
     "https://compute.googleapis.com/compute/v1/";
+constexpr char kListInstancesFormatString[] =
+    "https://compute.googleapis.com/compute/v1/projects/%s/aggregated/"
+    "instances?filter=(labels.environment=%s)";
+constexpr char kQueryWithPageTokenFormatString[] = "&pageToken=%s";
 constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
 constexpr char kInstanceDetailsJsonIdKey[] = "id";
@@ -111,6 +121,9 @@ constexpr char kTagBindingNameKey[] = "name";
 constexpr char kTagBindingParentKey[] = "parent";
 constexpr char kTagBindingTagValueKey[] = "tagValue";
 constexpr char kTagBindingsListKey[] = "tagBindings";
+constexpr char kItmes[] = "items";
+constexpr char kInstances[] = "instances";
+constexpr char kNextPageToken[] = "nextPageToken";
 
 // Returns a pair of iterators - one to the beginning, one to the end.
 const auto& GetRequiredFieldsForInstanceDetails() {
@@ -619,6 +632,57 @@ void GcpInstanceClientProvider::OnGetSessionTokenForInstanceDetailsCallback(
   }
 }
 
+template <typename T, typename Z>
+absl::StatusOr<InstanceDetails> ParseInstanceDetails(
+    json instance, AsyncContext<T, Z>& get_instance_details_context) {
+  if (!std::all_of(GetRequiredFieldsForInstanceDetails().first,
+                   GetRequiredFieldsForInstanceDetails().second,
+                   [&instance](const char* const component) {
+                     return instance.contains(component);
+                   })) {
+    auto error_message =
+        "Received http response doesn't contain the required fields.";
+    auto result = FailureExecutionResult(
+        SC_GCP_INSTANCE_CLIENT_INSTANCE_DETAILS_RESPONSE_MALFORMED);
+    SCP_ERROR_CONTEXT(kGcpInstanceClientProvider, get_instance_details_context,
+                      result, error_message);
+    get_instance_details_context.result = result;
+    get_instance_details_context.Finish();
+    return absl::InternalError(error_message);
+  }
+  InstanceDetails instance_details;
+  instance_details.set_instance_id(
+      instance[kInstanceDetailsJsonIdKey].get<std::string>());
+  // Get instance networks info from networkInterfaces.
+  for (const auto& network_interface : instance[kNetworkInterfacesKey]) {
+    std::string private_ip, public_ip;
+    if (network_interface.contains(kPrivateIpKey)) {
+      private_ip = network_interface[kPrivateIpKey].get<std::string>();
+    }
+    // Current GCP only supports one accessConfig.
+    if (network_interface.contains(kAccessConfigs)) {
+      for (const auto& access_config : network_interface[kAccessConfigs]) {
+        if (access_config.contains(kPublicIpKey)) {
+          public_ip = access_config[kPublicIpKey].get<std::string>();
+          break;
+        }
+      }
+    }
+    auto* network = instance_details.add_networks();
+    network->set_private_ipv4_address(std::move(private_ip));
+    network->set_public_ipv4_address(std::move(public_ip));
+  }
+  // Extract instance labels.
+  auto labels = instance.find(kInstanceLabelsKey);
+  if (labels != instance.end()) {
+    auto& labels_proto = *instance_details.mutable_labels();
+    for (json::iterator it = labels->begin(); it != labels->end(); ++it) {
+      labels_proto[it.key()] = it.value().get<std::string>();
+    }
+  }
+  return instance_details;
+}
+
 void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
     AsyncContext<GetInstanceDetailsByResourceNameRequest,
                  GetInstanceDetailsByResourceNameResponse>&
@@ -652,63 +716,167 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
     return;
   }
 
-  if (!std::all_of(GetRequiredFieldsForInstanceDetails().first,
-                   GetRequiredFieldsForInstanceDetails().second,
-                   [&json_response](const char* const component) {
-                     return json_response.contains(component);
-                   })) {
+  get_instance_details_context.response =
+      std::make_shared<GetInstanceDetailsByResourceNameResponse>();
+  auto maybe_instance =
+      ParseInstanceDetails(json_response, get_instance_details_context);
+  if (!maybe_instance.ok()) {
+    return;
+  }
+  auto instance = std::move(*maybe_instance);
+  *(get_instance_details_context.response->mutable_instance_details()) =
+      std::move(instance);
+  get_instance_details_context.result = SuccessExecutionResult();
+  get_instance_details_context.Finish();
+}
+
+ExecutionResult GcpInstanceClientProvider::ListInstanceDetailsByEnvironment(
+    AsyncContext<ListInstanceDetailsByEnvironmentRequest,
+                 ListInstanceDetailsByEnvironmentResponse>&
+        get_instance_details_context) noexcept {
+  if (get_instance_details_context.request->environment().empty() ||
+      get_instance_details_context.request->project_id().empty()) {
     auto result = FailureExecutionResult(
-        SC_GCP_INSTANCE_CLIENT_INSTANCE_DETAILS_RESPONSE_MALFORMED);
+        core::errors::SC_GCP_INSTANCE_CLIENT_INSTANCE_INVALID_ARGUMENTS);
     SCP_ERROR_CONTEXT(
         kGcpInstanceClientProvider, get_instance_details_context, result,
-        "Received http response doesn't contain the required fields.");
+        "Must set environment -- %s -- and project id -- %s",
+        get_instance_details_context.request->environment().c_str(),
+        get_instance_details_context.request->project_id().c_str());
     get_instance_details_context.result = result;
+    get_instance_details_context.Finish();
+    return result;
+  }
+  AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
+      get_token_context(
+          std::make_shared<GetSessionTokenRequest>(),
+          absl::bind_front(&GcpInstanceClientProvider::
+                               OnGetSessionTokenForListInstanceDetailsCallback,
+                           this, get_instance_details_context),
+          get_instance_details_context);
+  auto execution_result =
+      auth_token_provider_->GetSessionToken(get_token_context);
+  if (!execution_result.Successful()) {
+    get_instance_details_context.result = execution_result;
+    SCP_ERROR_CONTEXT(
+        kGcpInstanceClientProvider, get_instance_details_context,
+        get_instance_details_context.result,
+        "Failed to perform http request to list the instances "
+        "for environment %s",
+        get_instance_details_context.request->environment().c_str());
+    get_instance_details_context.Finish();
+    return execution_result;
+  }
+  return SuccessExecutionResult();
+}
+
+void GcpInstanceClientProvider::OnGetSessionTokenForListInstanceDetailsCallback(
+    AsyncContext<ListInstanceDetailsByEnvironmentRequest,
+                 ListInstanceDetailsByEnvironmentResponse>&
+        get_instance_details_context,
+    AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
+        get_token_context) noexcept {
+  if (!get_token_context.result.Successful()) {
+    SCP_ERROR_CONTEXT(kGcpInstanceClientProvider, get_instance_details_context,
+                      get_token_context.result,
+                      "Failed to get the access token.");
+    get_instance_details_context.result = get_token_context.result;
+    get_instance_details_context.Finish();
+    return;
+  }
+  auto environment = get_instance_details_context.request->environment();
+  auto project_id = get_instance_details_context.request->project_id();
+  std::string uri =
+      absl::StrFormat(kListInstancesFormatString, project_id, environment);
+  if (get_instance_details_context.request->page_token().size() > 0) {
+    absl::StrAppend(
+        &uri,
+        absl::StrFormat(kQueryWithPageTokenFormatString,
+                        get_instance_details_context.request->page_token()));
+  }
+
+  auto signed_request = std::make_shared<HttpRequest>();
+  signed_request->path = std::make_shared<std::string>(std::move(uri));
+  signed_request->method = HttpMethod::GET;
+  const auto access_token = *get_token_context.response->session_token;
+  signed_request->headers = std::make_shared<core::HttpHeaders>();
+  signed_request->headers->insert(
+      {std::string(kAuthorizationHeaderKey),
+       absl::StrCat(kBearerTokenPrefix, access_token)});
+  AsyncContext<HttpRequest, HttpResponse> http_context(
+      std::move(signed_request),
+      absl::bind_front(
+          &GcpInstanceClientProvider::OnListInstanceDetailsCallback, this,
+          get_instance_details_context),
+      get_instance_details_context);
+  auto execution_result = http2_client_->PerformRequest(http_context);
+  if (!execution_result.Successful()) {
+    get_instance_details_context.result = execution_result;
+    SCP_ERROR_CONTEXT(
+        kGcpInstanceClientProvider, get_instance_details_context,
+        get_instance_details_context.result,
+        "Failed to perform http request to list the instances "
+        "for environment %s",
+        get_instance_details_context.request->environment().c_str());
+    get_instance_details_context.Finish();
+    return;
+  }
+}
+
+void GcpInstanceClientProvider::OnListInstanceDetailsCallback(
+    AsyncContext<ListInstanceDetailsByEnvironmentRequest,
+                 ListInstanceDetailsByEnvironmentResponse>&
+        get_instance_details_context,
+    AsyncContext<HttpRequest, HttpResponse>& http_client_context) noexcept {
+  if (!http_client_context.result.Successful()) {
+    SCP_ERROR_CONTEXT(
+        kGcpInstanceClientProvider, get_instance_details_context,
+        http_client_context.result,
+        "Failed to perform http request to list the instances "
+        "for environment %s",
+        get_instance_details_context.request->environment().c_str());
+    get_instance_details_context.result = http_client_context.result;
     get_instance_details_context.Finish();
     return;
   }
 
+  json json_response;
+  try {
+    json_response =
+        json::parse(http_client_context.response->body.bytes->begin(),
+                    http_client_context.response->body.bytes->end());
+  } catch (...) {
+    auto result = FailureExecutionResult(
+        SC_GCP_INSTANCE_CLIENT_INSTANCE_DETAILS_RESPONSE_MALFORMED);
+    SCP_ERROR_CONTEXT(
+        kGcpInstanceClientProvider, get_instance_details_context, result,
+        "Received http response could not be parsed into a JSON.");
+    get_instance_details_context.result = result;
+    get_instance_details_context.Finish();
+    return;
+  }
   get_instance_details_context.response =
-      std::make_shared<GetInstanceDetailsByResourceNameResponse>();
-  auto* instance_details =
-      get_instance_details_context.response->mutable_instance_details();
+      std::make_shared<ListInstanceDetailsByEnvironmentResponse>();
+  std::vector<InstanceDetails> instance_details_list;
 
-  auto instance_id =
-      json_response[kInstanceDetailsJsonIdKey].get<std::string>();
-  instance_details->set_instance_id(std::move(instance_id));
-
-  // Get instance networks info from networkInterfaces.
-  for (const auto& network_interface : json_response[kNetworkInterfacesKey]) {
-    std::string private_ip, public_ip;
-    if (network_interface.contains(kPrivateIpKey)) {
-      private_ip = network_interface[kPrivateIpKey].get<std::string>();
-    }
-
-    // Current GCP only supports one accessConfig.
-    if (network_interface.contains(kAccessConfigs)) {
-      for (const auto& access_config : network_interface[kAccessConfigs]) {
-        if (access_config.contains(kPublicIpKey)) {
-          public_ip = access_config[kPublicIpKey].get<std::string>();
-          break;
+  for (auto& element : json_response[kItmes]) {
+    if (element.contains(kInstances)) {
+      for (auto& instance : element[kInstances]) {
+        auto maybe_parsed_instance =
+            ParseInstanceDetails(instance, get_instance_details_context);
+        if (!maybe_parsed_instance.ok()) {
+          return;
         }
+        instance_details_list.push_back(std::move(*maybe_parsed_instance));
       }
     }
-
-    auto* network = instance_details->add_networks();
-    network->set_private_ipv4_address(std::move(private_ip));
-    network->set_public_ipv4_address(std::move(public_ip));
   }
-
-  // Extract instance labels.
-  auto labels = json_response.find(kInstanceLabelsKey);
-  if (labels != json_response.end()) {
-    auto& labels_proto =
-        *get_instance_details_context.response->mutable_instance_details()
-             ->mutable_labels();
-    for (json::iterator it = labels->begin(); it != labels->end(); ++it) {
-      labels_proto[it.key()] = it.value().get<std::string>();
-    }
+  get_instance_details_context.response->mutable_instance_details()->Assign(
+      instance_details_list.begin(), instance_details_list.end());
+  if (json_response.contains(kNextPageToken)) {
+    *get_instance_details_context.response->mutable_page_token() =
+        json_response[kNextPageToken];
   }
-
   get_instance_details_context.result = SuccessExecutionResult();
   get_instance_details_context.Finish();
 }

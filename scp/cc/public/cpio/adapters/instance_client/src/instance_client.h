@@ -58,6 +58,13 @@ class InstanceClient : public InstanceClientInterface {
                    GetInstanceDetailsByResourceNameResponse>
           callback) noexcept override;
 
+  core::ExecutionResult ListInstanceDetailsByEnvironment(
+      cmrt::sdk::instance_service::v1::ListInstanceDetailsByEnvironmentRequest
+          request,
+      Callback<cmrt::sdk::instance_service::v1::
+                   ListInstanceDetailsByEnvironmentResponse>
+          callback) noexcept override;
+
  protected:
   virtual core::ExecutionResult CreateInstanceClientProvider() noexcept;
 

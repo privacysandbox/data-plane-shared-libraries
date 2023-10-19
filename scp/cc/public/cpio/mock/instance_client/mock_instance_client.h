@@ -64,6 +64,16 @@ class MockInstanceClient : public InstanceClientInterface {
                     GetInstanceDetailsByResourceNameResponse>
            callback),
       (noexcept, override));
+
+  MOCK_METHOD(
+      core::ExecutionResult, ListInstanceDetailsByEnvironment,
+
+      (cmrt::sdk::instance_service::v1::ListInstanceDetailsByEnvironmentRequest
+           request,
+       Callback<cmrt::sdk::instance_service::v1::
+                    ListInstanceDetailsByEnvironmentResponse>
+           callback),
+      (noexcept, override));
 };
 
 }  // namespace google::scp::cpio

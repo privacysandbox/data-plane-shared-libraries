@@ -65,6 +65,14 @@ class MockInstanceClientProvider : public InstanceClientProviderInterface {
                                GetInstanceDetailsByResourceNameResponse>&)),
       (override, noexcept));
 
+  MOCK_METHOD(
+      core::ExecutionResult, ListInstanceDetailsByEnvironment,
+      ((core::AsyncContext<cmrt::sdk::instance_service::v1::
+                               ListInstanceDetailsByEnvironmentRequest,
+                           cmrt::sdk::instance_service::v1::
+                               ListInstanceDetailsByEnvironmentResponse>&)),
+      (override, noexcept));
+
   std::string instance_resource_name =
       R"(arn:aws:ec2:us-east-1:123456789012:instance/i-0e9801d129EXAMPLE)";
   core::ExecutionResult get_instance_resource_name_mock =

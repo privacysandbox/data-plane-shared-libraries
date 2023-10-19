@@ -92,6 +92,13 @@ class TestInstanceClientProvider : public InstanceClientProviderInterface {
   core::ExecutionResult GetCurrentInstanceResourceNameSync(
       std::string& resource_name) noexcept override;
 
+  core::ExecutionResult ListInstanceDetailsByEnvironment(
+      core::AsyncContext<cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentRequest,
+                         cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentResponse>&
+          context) noexcept override;
+
   core::ExecutionResult GetInstanceDetailsByResourceNameSync(
       const std::string& resource_name,
       cmrt::sdk::instance_service::v1::InstanceDetails&

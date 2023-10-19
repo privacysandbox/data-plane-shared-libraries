@@ -60,6 +60,10 @@ using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
 using google::cmrt::sdk::instance_service::v1::InstanceDetails;
 using google::cmrt::sdk::instance_service::v1::InstanceNetwork;
+using google::cmrt::sdk::instance_service::v1::
+    ListInstanceDetailsByEnvironmentRequest;
+using google::cmrt::sdk::instance_service::v1::
+    ListInstanceDetailsByEnvironmentResponse;
 using google::scp::core::AsyncContext;
 using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
@@ -515,6 +519,19 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
 
   FinishContext(SuccessExecutionResult(), get_tags_context,
                 cpu_async_executor_);
+}
+
+ExecutionResult AwsInstanceClientProvider::ListInstanceDetailsByEnvironment(
+    AsyncContext<ListInstanceDetailsByEnvironmentRequest,
+                 ListInstanceDetailsByEnvironmentResponse>&
+        get_instance_details_context) noexcept {
+  auto result = FailureExecutionResult(
+      core::errors::SC_AWS_INSTANCE_CLIENT_NOT_IMPLEMENTED);
+  SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_instance_details_context,
+                    result, "Not implemented");
+  get_instance_details_context.result = result;
+  get_instance_details_context.Finish();
+  return result;
 }
 
 ExecutionResultOr<std::shared_ptr<EC2Client>> AwsEC2ClientFactory::CreateClient(

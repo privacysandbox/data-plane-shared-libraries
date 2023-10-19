@@ -82,6 +82,19 @@ class InstanceClientProviderInterface : public core::ServiceInterface {
           context) noexcept = 0;
 
   /**
+   * @brief List Instances By Environment
+   *
+   * @param context context of the operation.
+   * @return core::ExecutionResult result of the operation.
+   */
+  virtual core::ExecutionResult ListInstanceDetailsByEnvironment(
+      core::AsyncContext<cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentRequest,
+                         cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentResponse>&
+          context) noexcept = 0;
+
+  /**
    * @brief Get the Instance Details By Resource Name object synchronously.
    *
    * @param resource_name the given resource name

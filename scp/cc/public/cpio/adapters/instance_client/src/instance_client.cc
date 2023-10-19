@@ -40,6 +40,10 @@ using google::cmrt::sdk::instance_service::v1::
     GetInstanceDetailsByResourceNameResponse;
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
+using google::cmrt::sdk::instance_service::v1::
+    ListInstanceDetailsByEnvironmentRequest;
+using google::cmrt::sdk::instance_service::v1::
+    ListInstanceDetailsByEnvironmentResponse;
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
@@ -113,6 +117,17 @@ core::ExecutionResult InstanceClient::GetInstanceDetailsByResourceName(
                  GetInstanceDetailsByResourceNameResponse>(
       absl::bind_front(
           &InstanceClientProviderInterface::GetInstanceDetailsByResourceName,
+          instance_client_provider_),
+      request, callback);
+}
+
+core::ExecutionResult InstanceClient::ListInstanceDetailsByEnvironment(
+    ListInstanceDetailsByEnvironmentRequest request,
+    Callback<ListInstanceDetailsByEnvironmentResponse> callback) noexcept {
+  return Execute<ListInstanceDetailsByEnvironmentRequest,
+                 ListInstanceDetailsByEnvironmentResponse>(
+      absl::bind_front(
+          &InstanceClientProviderInterface::ListInstanceDetailsByEnvironment,
           instance_client_provider_),
       request, callback);
 }

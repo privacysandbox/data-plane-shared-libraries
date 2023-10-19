@@ -32,6 +32,10 @@ using google::cmrt::sdk::instance_service::v1::
     GetInstanceDetailsByResourceNameResponse;
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
+using google::cmrt::sdk::instance_service::v1::
+    ListInstanceDetailsByEnvironmentRequest;
+using google::cmrt::sdk::instance_service::v1::
+    ListInstanceDetailsByEnvironmentResponse;
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
@@ -82,6 +86,13 @@ ExecutionResult TestInstanceClientProvider::GetTagsByResourceName(
 ExecutionResult TestInstanceClientProvider::GetInstanceDetailsByResourceName(
     AsyncContext<GetInstanceDetailsByResourceNameRequest,
                  GetInstanceDetailsByResourceNameResponse>& context) noexcept {
+  // Not implemented.
+  return SuccessExecutionResult();
+}
+
+ExecutionResult TestInstanceClientProvider::ListInstanceDetailsByEnvironment(
+    AsyncContext<ListInstanceDetailsByEnvironmentRequest,
+                 ListInstanceDetailsByEnvironmentResponse>& context) noexcept {
   // Not implemented.
   return SuccessExecutionResult();
 }

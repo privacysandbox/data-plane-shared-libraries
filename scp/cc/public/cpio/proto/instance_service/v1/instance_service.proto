@@ -102,3 +102,25 @@ message GetInstanceDetailsByResourceNameResponse {
   // Instance details.
   InstanceDetails instance_details = 2;
 }
+
+// Request to list instances for a given environment.
+message ListInstanceDetailsByEnvironmentRequest {
+  // Environment
+  string environment = 1;
+  // Project ID
+  string project_id = 2;
+  // Set from ListInstanceDetailsByEnvironmentResponse.page_token. Initially, this field
+  // should be empty.
+  string page_token = 3;
+}
+
+// Response of fetching instances for a given environment.
+message ListInstanceDetailsByEnvironmentResponse {
+  // The execution result.
+  scp.core.common.proto.ExecutionResult result = 1;
+  // Instance details.
+  repeated InstanceDetails instance_details = 2;
+  // Page token. If set, the client should issue more ListInstanceDetailsByEnvironmentRequest
+  // with page_token set to this value.
+  string page_token = 3;
+}

@@ -79,6 +79,16 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
                              GetInstanceDetailsByResourceNameResponse>&
           context) noexcept override;
 
+  // Not implemeted. AWS SDK supports this command, see
+  // `DescribeAutoScalingGroups`. Please use it directly. Alternatively, that
+  // SDK logic can also be put here.
+  core::ExecutionResult ListInstanceDetailsByEnvironment(
+      core::AsyncContext<cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentRequest,
+                         cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentResponse>&
+          context) noexcept override;
+
   core::ExecutionResult GetCurrentInstanceResourceNameSync(
       std::string& resource_name) noexcept override;
 

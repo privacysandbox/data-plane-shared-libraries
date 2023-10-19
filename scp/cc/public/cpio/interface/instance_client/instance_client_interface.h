@@ -81,6 +81,21 @@ class InstanceClientInterface : public core::ServiceInterface {
       Callback<cmrt::sdk::instance_service::v1::
                    GetInstanceDetailsByResourceNameResponse>
           callback) noexcept = 0;
+
+  /**
+   * @brief List instances for a given environment.
+   *
+   * @param request request for the call.
+   * @param callback callback will be triggered when the call completes
+   * including when the call fails.
+   * @return core::ExecutionResult scheduling result returned synchronously.
+   */
+  virtual core::ExecutionResult ListInstanceDetailsByEnvironment(
+      cmrt::sdk::instance_service::v1::ListInstanceDetailsByEnvironmentRequest
+          request,
+      Callback<cmrt::sdk::instance_service::v1::
+                   ListInstanceDetailsByEnvironmentResponse>
+          callback) noexcept = 0;
 };
 
 /// Factory to create InstanceClient.

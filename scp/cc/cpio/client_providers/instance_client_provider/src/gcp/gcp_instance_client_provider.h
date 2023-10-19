@@ -60,6 +60,13 @@ class GcpInstanceClientProvider : public InstanceClientProviderInterface {
                              GetInstanceDetailsByResourceNameResponse>&
           context) noexcept override;
 
+  core::ExecutionResult ListInstanceDetailsByEnvironment(
+      core::AsyncContext<cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentRequest,
+                         cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentResponse>&
+          context) noexcept override;
+
   core::ExecutionResult GetCurrentInstanceResourceNameSync(
       std::string& resource_name) noexcept override;
 
@@ -161,6 +168,31 @@ class GcpInstanceClientProvider : public InstanceClientProviderInterface {
                              GetInstanceDetailsByResourceNameRequest,
                          cmrt::sdk::instance_service::v1::
                              GetInstanceDetailsByResourceNameResponse>&
+          get_instance_details_context,
+      core::AsyncContext<core::HttpRequest, core::HttpResponse>&
+          http_client_context) noexcept;
+
+  void OnGetSessionTokenForListInstanceDetailsCallback(
+      core::AsyncContext<cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentRequest,
+                         cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentResponse>&
+          get_instance_details_context,
+      core::AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
+          get_session_token) noexcept;
+
+  /**
+   * @brief Is called after http client PerformRequest() is completed.
+   *
+   * @param get_instance_details_context the context for getting instance.
+   * details.
+   * @param http_client_context the context for http_client PerformRequest().
+   */
+  void OnListInstanceDetailsCallback(
+      core::AsyncContext<cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentRequest,
+                         cmrt::sdk::instance_service::v1::
+                             ListInstanceDetailsByEnvironmentResponse>&
           get_instance_details_context,
       core::AsyncContext<core::HttpRequest, core::HttpResponse>&
           http_client_context) noexcept;
