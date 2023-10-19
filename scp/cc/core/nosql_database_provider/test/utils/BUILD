@@ -25,6 +25,7 @@ cc_test(
             "utils/*.cc",
         ],
     ),
+    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",

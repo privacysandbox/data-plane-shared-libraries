@@ -23,6 +23,7 @@ cc_test(
         [
             "http1_curl_wrapper_test.cc",
         ],
+    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/curl_client/src:http1_curl_client_lib",

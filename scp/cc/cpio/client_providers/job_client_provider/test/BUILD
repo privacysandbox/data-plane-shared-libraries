@@ -38,6 +38,7 @@ cc_test(
         "job_client_provider_test.cc",
         "job_client_utils_test.cc",
     ],
+    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
     deps = [
         ":hello_world_cc_proto",
         "//scp/cc:cc_base_include_dir",
