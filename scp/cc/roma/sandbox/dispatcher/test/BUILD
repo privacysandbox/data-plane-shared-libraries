@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:private"])
 
 cc_test(
     name = "dispatcher_test",
@@ -30,5 +30,22 @@ cc_test(
         "//scp/cc/roma/sandbox/worker_pool/src:roma_worker_pool_lib",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "dispatcher_benchmark",
+    timeout = "eternal",
+    srcs = ["dispatcher_benchmark.cc"],
+    tags = ["manual"],
+    deps = [
+        "//scp/cc/core/async_executor/src:core_async_executor_lib",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/sandbox/dispatcher/src:roma_dispatcher_lib",
+        "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_sapi_lib",
+        "//scp/cc/roma/sandbox/worker_pool/src:roma_worker_pool_lib",
+        "@google_benchmark//:benchmark",
     ],
 )
