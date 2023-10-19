@@ -29,8 +29,6 @@ cc_library(
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/server/interface:server_interface_lib",
         "//scp/cc/cpio/server/interface/crypto_service:crypto_service_interface_lib",
-        "//scp/cc/cpio/server/interface/job_service:job_service_interface_lib",
-        "//scp/cc/cpio/server/interface/nosql_database_service:nosql_database_service_interface_lib",
         "//scp/cc/cpio/server/interface/queue_service:queue_service_interface_lib",
         "//scp/cc/public/cpio/interface:type_def",
         "//scp/cc/public/cpio/interface/instance_client",

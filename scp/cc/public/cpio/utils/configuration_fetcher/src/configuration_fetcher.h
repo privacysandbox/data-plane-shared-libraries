@@ -83,49 +83,6 @@ class ConfigurationFetcher : public ConfigurationFetcherInterface {
       core::AsyncContext<GetConfigurationRequest, size_t> context) noexcept
       override;
 
-  core::ExecutionResultOr<std::string> GetJobClientJobQueueName(
-      GetConfigurationRequest request) noexcept override;
-
-  core::ExecutionResult GetJobClientJobQueueNameAsync(
-      core::AsyncContext<GetConfigurationRequest, std::string> context) noexcept
-      override;
-
-  core::ExecutionResultOr<std::string> GetJobClientJobTableName(
-      GetConfigurationRequest request) noexcept override;
-
-  core::ExecutionResult GetJobClientJobTableNameAsync(
-      core::AsyncContext<GetConfigurationRequest, std::string> context) noexcept
-      override;
-
-  core::ExecutionResultOr<std::string> GetGcpJobClientSpannerInstanceName(
-      GetConfigurationRequest request) noexcept override;
-
-  core::ExecutionResult GetGcpJobClientSpannerInstanceNameAsync(
-      core::AsyncContext<GetConfigurationRequest, std::string> context) noexcept
-      override;
-
-  core::ExecutionResultOr<std::string> GetGcpJobClientSpannerDatabaseName(
-      GetConfigurationRequest request) noexcept override;
-
-  core::ExecutionResult GetGcpJobClientSpannerDatabaseNameAsync(
-      core::AsyncContext<GetConfigurationRequest, std::string> context) noexcept
-      override;
-
-  core::ExecutionResultOr<std::string>
-  GetGcpNoSQLDatabaseClientSpannerInstanceName(
-      GetConfigurationRequest request) noexcept override;
-
-  core::ExecutionResult GetGcpNoSQLDatabaseClientSpannerInstanceNameAsync(
-      core::AsyncContext<GetConfigurationRequest, std::string> context) noexcept
-      override;
-
-  core::ExecutionResultOr<std::string>
-  GetGcpNoSQLDatabaseClientSpannerDatabaseName(
-      GetConfigurationRequest request) noexcept override;
-
-  core::ExecutionResult GetGcpNoSQLDatabaseClientSpannerDatabaseNameAsync(
-      core::AsyncContext<GetConfigurationRequest, std::string> context) noexcept
-      override;
   core::ExecutionResultOr<std::string> GetQueueClientQueueName(
       GetConfigurationRequest request) noexcept override;
 

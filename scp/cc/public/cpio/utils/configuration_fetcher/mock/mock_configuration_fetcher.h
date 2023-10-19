@@ -73,54 +73,6 @@ class MockConfigurationFetcher : public ConfigurationFetcherInterface {
               ((core::AsyncContext<GetConfigurationRequest, size_t>)),
               (noexcept, override));
 
-  MOCK_METHOD(core::ExecutionResultOr<std::string>, GetJobClientJobQueueName,
-              ((GetConfigurationRequest)), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, GetJobClientJobQueueNameAsync,
-              ((core::AsyncContext<GetConfigurationRequest, std::string>)),
-              (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResultOr<std::string>, GetJobClientJobTableName,
-              ((GetConfigurationRequest)), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, GetJobClientJobTableNameAsync,
-              ((core::AsyncContext<GetConfigurationRequest, std::string>)),
-              (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResultOr<std::string>,
-              GetGcpJobClientSpannerInstanceName, ((GetConfigurationRequest)),
-              (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, GetGcpJobClientSpannerInstanceNameAsync,
-              ((core::AsyncContext<GetConfigurationRequest, std::string>)),
-              (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResultOr<std::string>,
-              GetGcpJobClientSpannerDatabaseName, ((GetConfigurationRequest)),
-              (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, GetGcpJobClientSpannerDatabaseNameAsync,
-              ((core::AsyncContext<GetConfigurationRequest, std::string>)),
-              (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResultOr<std::string>,
-              GetGcpNoSQLDatabaseClientSpannerInstanceName,
-              ((GetConfigurationRequest)), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult,
-              GetGcpNoSQLDatabaseClientSpannerInstanceNameAsync,
-              ((core::AsyncContext<GetConfigurationRequest, std::string>)),
-              (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResultOr<std::string>,
-              GetGcpNoSQLDatabaseClientSpannerDatabaseName,
-              ((GetConfigurationRequest)), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult,
-              GetGcpNoSQLDatabaseClientSpannerDatabaseNameAsync,
-              ((core::AsyncContext<GetConfigurationRequest, std::string>)),
-              (noexcept, override));
-
   MOCK_METHOD(core::ExecutionResultOr<std::string>, GetQueueClientQueueName,
               ((GetConfigurationRequest)), (noexcept, override));
 

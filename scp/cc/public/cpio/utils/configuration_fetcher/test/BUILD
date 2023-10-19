@@ -26,7 +26,6 @@ cc_test(
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/cpio/server/interface:server_interface_lib",
-        "//scp/cc/cpio/server/interface/job_service:job_service_interface_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/public/cpio/interface:type_def",
         "//scp/cc/public/cpio/mock/instance_client:instance_client_mock",
