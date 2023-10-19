@@ -167,10 +167,7 @@ cc_binary(
     name = "proxy",
     srcs = [":proxy.cc"],
     linkopts = ["-pthread"],
-    visibility = [
-        "//production/packaging/aws:__subpackages__",
-        "//scp/cc/aws/proxy/test:__subpackages__",
-    ],
+    visibility = ["//visibility:public"],
     deps = [
         ":config",
         ":proxy_server",
