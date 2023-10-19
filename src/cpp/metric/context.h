@@ -76,14 +76,14 @@ class Context {
   Context& operator=(const Context&) = delete;
 
   ~Context() {
+    constexpr int kLogFreqSec = 60;
     for (auto& callback : callbacks_) {
       absl::Status s = std::move(callback)();
-      ABSL_LOG_IF_EVERY_N_SEC(ERROR, !s.ok(), 60) << s;
+      ABSL_LOG_IF_EVERY_N_SEC(ERROR, !s.ok(), kLogFreqSec) << s;
     }
-
     for (auto& [def, accumulator] : accumulated_metric_) {
       absl::Status s = std::move(accumulator.callback)(accumulator.values);
-      ABSL_LOG_IF_EVERY_N_SEC(ERROR, !s.ok(), 60) << s;
+      ABSL_LOG_IF_EVERY_N_SEC(ERROR, !s.ok(), kLogFreqSec) << s;
     }
   }
 
