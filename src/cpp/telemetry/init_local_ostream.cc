@@ -47,7 +47,7 @@ CreatePeriodicExportingMetricReader(
 std::unique_ptr<opentelemetry::sdk::logs::LogRecordExporter>
 CreateLogRecordExporter(absl::optional<std::string> collector_endpoint) {
   return std::make_unique<
-      opentelemetry::exporter::logs::OStreamLogRecordExporter>(std::cout);
+      opentelemetry::exporter::logs::OStreamLogRecordExporter>(std::cerr);
 }
 
 }  // namespace privacy_sandbox::server_common
