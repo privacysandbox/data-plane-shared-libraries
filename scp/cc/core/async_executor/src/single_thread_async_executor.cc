@@ -110,12 +110,6 @@ ExecutionResult SingleThreadAsyncExecutor::Stop() noexcept {
   std::unique_lock<std::mutex> thread_lock(mutex_);
   is_running_ = false;
 
-  if (drop_tasks_on_stop_) {
-    std::shared_ptr<AsyncTask> task;
-    while (normal_pri_queue_->TryDequeue(task).Successful()) {}
-    while (high_pri_queue_->TryDequeue(task).Successful()) {}
-  }
-
   condition_variable_.notify_all();
   thread_lock.unlock();
 

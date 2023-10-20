@@ -253,8 +253,7 @@ TEST_F(AggregateMetricTest, IncrementByMultipleThreads) {
 
 TEST_F(AggregateMetricTest, StopShouldNotDiscardAnyCounters) {
   auto real_async_executor = std::make_shared<AsyncExecutor>(
-      2 /* thread count */, 1000 /* queue capacity */,
-      true /* drop tasks on stop*/);
+      2 /* thread count */, 1000 /* queue capacity */);
   EXPECT_SUCCESS(real_async_executor->Init());
   EXPECT_SUCCESS(real_async_executor->Run());
 

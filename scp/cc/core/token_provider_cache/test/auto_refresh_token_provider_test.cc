@@ -47,8 +47,7 @@ class TokenFetcherMock : public TokenFetcherInterface {
 class AutoRefreshTokenProviderTest : public testing::Test {
  protected:
   AutoRefreshTokenProviderTest()
-      : async_executor_(
-            std::make_shared<AsyncExecutor>(2, 1000, true /* drop tasks */)),
+      : async_executor_(std::make_shared<AsyncExecutor>(2, 1000)),
         token_fetcher_(nullptr) {
     EXPECT_SUCCESS(async_executor_->Init());
     EXPECT_SUCCESS(async_executor_->Run());

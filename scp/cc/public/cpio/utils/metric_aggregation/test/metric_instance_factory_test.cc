@@ -71,8 +71,7 @@ class MetricInstanceFactoryTest : public testing::Test {
   MetricInstanceFactoryTest() {
     mock_metric_client_ = std::make_shared<MockMetricClient>();
     real_async_executor_ = std::make_shared<AsyncExecutor>(
-        2 /* thread count */, 1000 /* queue capacity */,
-        true /* drop tasks on stop*/);
+        2 /* thread count */, 1000 /* queue capacity */);
 
     auto mock_config_provider = std::make_shared<MockConfigProvider>();
 

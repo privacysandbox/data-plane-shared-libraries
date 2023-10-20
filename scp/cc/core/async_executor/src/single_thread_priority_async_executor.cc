@@ -130,12 +130,6 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::Stop() noexcept {
   std::unique_lock<std::mutex> thread_lock(mutex_);
   is_running_ = false;
 
-  if (drop_tasks_on_stop_) {
-    while (queue_->size() > 0) {
-      queue_->pop();
-    }
-  }
-
   condition_variable_.notify_all();
   thread_lock.unlock();
 

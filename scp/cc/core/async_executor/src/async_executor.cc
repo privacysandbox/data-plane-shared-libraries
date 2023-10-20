@@ -45,14 +45,14 @@ ExecutionResult AsyncExecutor::Init() noexcept {
     size_t cpu_affinity_number = i % std::thread::hardware_concurrency();
     urgent_task_executor_pool_.push_back(
         std::make_shared<SingleThreadPriorityAsyncExecutor>(
-            queue_cap_, drop_tasks_on_stop_, cpu_affinity_number));
+            queue_cap_, cpu_affinity_number));
     auto execution_result = urgent_task_executor_pool_.back()->Init();
     if (!execution_result.Successful()) {
       return execution_result;
     }
     normal_task_executor_pool_.push_back(
-        std::make_shared<SingleThreadAsyncExecutor>(
-            queue_cap_, drop_tasks_on_stop_, cpu_affinity_number));
+        std::make_shared<SingleThreadAsyncExecutor>(queue_cap_,
+                                                    cpu_affinity_number));
     execution_result = normal_task_executor_pool_.back()->Init();
     if (!execution_result.Successful()) {
       return execution_result;

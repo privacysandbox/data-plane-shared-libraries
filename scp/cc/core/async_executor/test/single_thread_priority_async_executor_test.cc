@@ -144,7 +144,7 @@ class AffinityTest : public testing::TestWithParam<size_t> {
 
 TEST_P(AffinityTest, CountWorkSingleThreadWithAffinity) {
   int queue_cap = 10;
-  SingleThreadPriorityAsyncExecutor executor(queue_cap, false, GetCpu());
+  SingleThreadPriorityAsyncExecutor executor(queue_cap, GetCpu());
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
 

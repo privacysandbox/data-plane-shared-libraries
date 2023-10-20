@@ -81,13 +81,11 @@ class AsyncExecutor : public AsyncExecutorInterface {
    * scheme to use for the tasks
    */
   AsyncExecutor(size_t thread_count, size_t queue_cap,
-                bool drop_tasks_on_stop = false,
                 TaskLoadBalancingScheme task_load_balancing_scheme =
                     TaskLoadBalancingScheme::RoundRobinGlobal)
       : running_(false),
         thread_count_(thread_count),
         queue_cap_(queue_cap),
-        drop_tasks_on_stop_(drop_tasks_on_stop),
         task_load_balancing_scheme_(task_load_balancing_scheme) {}
 
   ExecutionResult Init() noexcept override;
@@ -140,8 +138,6 @@ class AsyncExecutor : public AsyncExecutorInterface {
   size_t thread_count_;
   /// The maximum length of the work queue.
   size_t queue_cap_;
-  /// Indicates whether the async executor should ignore the pending tasks.
-  bool drop_tasks_on_stop_;
   /// Executor pool for urgent work.
   std::vector<std::shared_ptr<UrgentTaskExecutor>> urgent_task_executor_pool_;
   /// Executor pool for normal work.

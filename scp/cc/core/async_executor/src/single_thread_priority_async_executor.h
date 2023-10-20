@@ -35,7 +35,7 @@ namespace google::scp::core {
 class SingleThreadPriorityAsyncExecutor : ServiceInterface {
  public:
   explicit SingleThreadPriorityAsyncExecutor(
-      size_t queue_cap, bool drop_tasks_on_stop = false,
+      size_t queue_cap,
       std::optional<size_t> affinity_cpu_number = std::nullopt)
       : is_running_(false),
         worker_thread_started_(false),
@@ -43,7 +43,6 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
         update_wait_time_(false),
         next_scheduled_task_timestamp_(UINT64_MAX),
         queue_cap_(queue_cap),
-        drop_tasks_on_stop_(drop_tasks_on_stop),
         affinity_cpu_number_(affinity_cpu_number) {}
 
   ExecutionResult Init() noexcept override;
@@ -105,8 +104,6 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
   std::atomic<Timestamp> next_scheduled_task_timestamp_;
   /// The maximum length of the work queue.
   size_t queue_cap_;
-  /// Indicates whether the async executor should ignore the pending tasks.
-  bool drop_tasks_on_stop_;
   /// An optional CPU to have an affinity for.
   std::optional<size_t> affinity_cpu_number_;
   /// A unique pointer to the working thread.
