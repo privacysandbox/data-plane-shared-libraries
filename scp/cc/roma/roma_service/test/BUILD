@@ -24,6 +24,7 @@ cc_test(
         "//scp/cc/roma/testing/cpp_wasm_allocate_memory",
         "//scp/cc/roma/testing/cpp_wasm_string_in_string_out_example",
     ],
+    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/roma_service/src:roma_service_lib",
