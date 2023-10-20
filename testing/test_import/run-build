@@ -89,6 +89,9 @@ function container_run_test() {
 
 # run the tests using bazel, if installed
 function bazel_run_test() {
+  if ! [[ -v NO_LOCAL_BAZEL ]]; then
+    return
+  fi
   if ! command bazel --help &>/dev/null; then
     printf "bazel not available, skipping 'direct' execution of test suite\n"
     return
