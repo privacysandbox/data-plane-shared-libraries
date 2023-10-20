@@ -72,20 +72,18 @@ void BM_Dispatch(benchmark::State& state) {
 
   // Note: queue_cap must be large enough to hold all of the queued tasks for
   // the benchmark.
-  std::shared_ptr<AsyncExecutor> async_executor =
-      std::make_shared<AsyncExecutor>(/*thread_count=*/1,
-                                      /*queue_cap=*/100000);
+  AsyncExecutor async_executor(/*thread_count=*/1,
+                               /*queue_cap=*/100000);
 
   std::vector<WorkerApiSapiConfig> configs{CreateWorkerApiSapiConfig()};
 
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
   // Note: max_pending_requests must be large enough to hold all of the queued
   // tasks for the benchmark.
-  Dispatcher dispatcher(async_executor, worker_pool,
+  Dispatcher dispatcher(&async_executor, &worker_pool,
                         /*max_pending_requests=*/100000,
                         /*code_version_cache_size=*/5);
   AutoInitRunStop for_dispatcher(dispatcher);

@@ -86,9 +86,9 @@ class RomaService : public core::ServiceInterface {
 
   static RomaService* instance_;
   Config config_;
-  std::shared_ptr<dispatcher::Dispatcher> dispatcher_;
-  std::shared_ptr<worker_pool::WorkerPool> worker_pool_;
-  std::shared_ptr<core::AsyncExecutor> async_executor_;
+  std::unique_ptr<dispatcher::Dispatcher> dispatcher_;
+  std::unique_ptr<worker_pool::WorkerPool> worker_pool_;
+  std::unique_ptr<core::AsyncExecutor> async_executor_;
   std::shared_ptr<native_function_binding::NativeFunctionTable>
       native_function_binding_table_;
   std::shared_ptr<native_function_binding::NativeFunctionHandlerSapiIpc>

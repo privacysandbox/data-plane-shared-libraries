@@ -67,17 +67,16 @@ WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
 namespace google::scp::roma::sandbox::dispatcher::test {
 
 TEST(DispatcherTest, CanRunCode) {
-  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
+  AsyncExecutor async_executor(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
+  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
@@ -120,17 +119,16 @@ TEST(DispatcherTest, CanRunCode) {
 }
 
 TEST(DispatcherTest, CanHandleCodeFailures) {
-  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
+  AsyncExecutor async_executor(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
+  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
@@ -154,17 +152,16 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
 }
 
 TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
-  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
+  AsyncExecutor async_executor(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
+  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
   auto execute_request = std::make_unique<InvocationRequestStrInput>();
@@ -189,19 +186,18 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
 
 TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   const size_t number_of_workers = 5;
-  auto async_executor = std::make_shared<AsyncExecutor>(number_of_workers, 100);
+  AsyncExecutor async_executor(number_of_workers, 100);
 
   std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < number_of_workers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool, 100, 5);
+  Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
@@ -253,19 +249,18 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
 TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
   const size_t number_of_workers = 5;
-  auto async_executor = std::make_shared<AsyncExecutor>(number_of_workers, 100);
+  AsyncExecutor async_executor(number_of_workers, 100);
 
   std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < number_of_workers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool, 100, 5);
+  Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
@@ -290,19 +285,18 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
 
 TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   const size_t number_of_workers = 5;
-  auto async_executor = std::make_shared<AsyncExecutor>(number_of_workers, 100);
+  AsyncExecutor async_executor(number_of_workers, 100);
 
   std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < number_of_workers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool, 100, 5);
+  Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
@@ -370,16 +364,15 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
 TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   // One worker with a one-item queue so that the queue takes long to empty out
   const size_t number_of_workers = 1;
-  auto async_executor = std::make_shared<AsyncExecutor>(
-      number_of_workers /*thread_count*/, 1 /*queue_cap*/);
+  AsyncExecutor async_executor(number_of_workers /*thread_count*/,
+                               1 /*queue_cap*/);
 
   std::vector<WorkerApiSapiConfig> configs = {CreateWorkerApiSapiConfig()};
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool,
+  Dispatcher dispatcher(&async_executor, &worker_pool,
                         100 /*max_pending_requests*/, 5 /*code_version_size*/);
   AutoInitRunStop for_dispatcher(dispatcher);
 
@@ -451,18 +444,17 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
 }
 
 TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
-  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
+  AsyncExecutor async_executor(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
   // Only one worker in the pool
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
+  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
@@ -503,7 +495,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   WaitUntil([&done_executing]() { return done_executing.load(); });
 
   // We loaded and executed successfully, so now we kill the one worker
-  auto worker = worker_pool->GetWorker(0);
+  auto worker = worker_pool.GetWorker(0);
   EXPECT_SUCCESS(worker.result());
   (*worker)->Terminate();
 
@@ -553,18 +545,17 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 }
 
 TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
-  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
+  AsyncExecutor async_executor(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
   // Only one worker in the pool
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
+  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
@@ -602,7 +593,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   WaitUntil([&done_loading]() { return done_loading.load(); });
 
   // We kill the worker so we expect the first request right after to fail
-  auto worker = worker_pool->GetWorker(0);
+  auto worker = worker_pool.GetWorker(0);
   EXPECT_SUCCESS(worker.result());
   (*worker)->Terminate();
 
@@ -674,18 +665,17 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 }
 
 TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
-  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
+  AsyncExecutor async_executor(1, 10);
 
   std::vector<WorkerApiSapiConfig> configs;
   configs.push_back(CreateWorkerApiSapiConfig());
 
   // Only one worker in the pool
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs);
-  AutoInitRunStop for_async_executor(*async_executor);
-  AutoInitRunStop for_worker_pool(*worker_pool);
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(async_executor, worker_pool, 10, 5);
+  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
   AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
@@ -723,7 +713,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   WaitUntil([&done_loading]() { return done_loading.load(); });
 
   // We kill the worker so we expect the first request right after to fail
-  auto worker = worker_pool->GetWorker(0);
+  auto worker = worker_pool.GetWorker(0);
   EXPECT_SUCCESS(worker.result());
   (*worker)->Terminate();
 
@@ -823,27 +813,23 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 }
 
 TEST(DispatcherTest, ShouldFailIfCodeVersionCacheSizeIsZero) {
-  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
-  constexpr size_t size = 0;
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(std::vector<WorkerApiSapiConfig>());
+  AsyncExecutor async_executor(1, 10);
+  WorkerPoolApiSapi worker_pool({});
   constexpr size_t max_pending_requests = 10;
   constexpr size_t code_version_cache_size = 0;
 
-  EXPECT_DEATH(Dispatcher(async_executor, worker_pool, max_pending_requests,
+  EXPECT_DEATH(Dispatcher(&async_executor, &worker_pool, max_pending_requests,
                           code_version_cache_size),
                "code_version_cache_size cannot be zero");
 }
 
 TEST(DispatcherTest, ShouldFailIfMaxPendingRequestsIsZero) {
-  auto async_executor = std::make_shared<AsyncExecutor>(1, 10);
-  constexpr size_t size = 0;
-  std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(std::vector<WorkerApiSapiConfig>());
+  AsyncExecutor async_executor(1, 10);
+  WorkerPoolApiSapi worker_pool({});
   constexpr size_t max_pending_requests = 0;
   constexpr size_t code_version_cache_size = 5;
 
-  EXPECT_DEATH(Dispatcher(async_executor, worker_pool, max_pending_requests,
+  EXPECT_DEATH(Dispatcher(&async_executor, &worker_pool, max_pending_requests,
                           code_version_cache_size),
                "max_pending_requests cannot be zero");
 }

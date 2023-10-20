@@ -43,9 +43,9 @@
 namespace google::scp::roma::sandbox::dispatcher {
 class Dispatcher : public core::ServiceInterface {
  public:
-  Dispatcher(std::shared_ptr<core::AsyncExecutor>& async_executor,
-             std::shared_ptr<worker_pool::WorkerPool>& worker_pool,
-             size_t max_pending_requests, size_t code_version_cache_size)
+  Dispatcher(core::AsyncExecutor* async_executor,
+             worker_pool::WorkerPool* worker_pool, size_t max_pending_requests,
+             size_t code_version_cache_size)
       : async_executor_(async_executor),
         worker_pool_(worker_pool),
         worker_index_(0),
@@ -291,8 +291,8 @@ class Dispatcher : public core::ServiceInterface {
   core::ExecutionResult ReloadCachedCodeObjects(
       std::shared_ptr<worker_api::WorkerApi>& worker);
 
-  std::shared_ptr<core::AsyncExecutor> async_executor_;
-  std::shared_ptr<worker_pool::WorkerPool> worker_pool_;
+  core::AsyncExecutor* async_executor_;
+  worker_pool::WorkerPool* worker_pool_;
   std::atomic<size_t> worker_index_;
   std::atomic<size_t> pending_requests_;
   const size_t max_pending_requests_;

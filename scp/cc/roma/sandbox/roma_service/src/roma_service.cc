@@ -105,13 +105,13 @@ ExecutionResult RomaService::Init() noexcept {
   RETURN_IF_FAILURE(result);
 
   async_executor_ =
-      std::make_shared<AsyncExecutor>(concurrency, worker_queue_cap);
+      std::make_unique<AsyncExecutor>(concurrency, worker_queue_cap);
   result = async_executor_->Init();
   RETURN_IF_FAILURE(result);
 
   // TODO: Make max_pending_requests configurable
-  dispatcher_ = std::make_shared<class Dispatcher>(
-      async_executor_, worker_pool_,
+  dispatcher_ = std::make_unique<class Dispatcher>(
+      async_executor_.get(), worker_pool_.get(),
       concurrency * worker_queue_cap /*max_pending_requests*/,
       config_.code_version_cache_size);
   result = dispatcher_->Init();
@@ -237,7 +237,7 @@ ExecutionResult RomaService::SetupWorkers(
     worker_configs.push_back(worker_api_sapi_config);
   }
 
-  worker_pool_ = std::make_shared<WorkerPoolApiSapi>(worker_configs);
+  worker_pool_ = std::make_unique<WorkerPoolApiSapi>(worker_configs);
   return worker_pool_->Init();
 }
 }  // namespace google::scp::roma::sandbox::roma_service
