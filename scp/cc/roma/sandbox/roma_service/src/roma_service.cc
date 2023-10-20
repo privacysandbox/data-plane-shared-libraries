@@ -237,8 +237,7 @@ ExecutionResult RomaService::SetupWorkers(
     worker_configs.push_back(worker_api_sapi_config);
   }
 
-  worker_pool_ =
-      std::make_shared<WorkerPoolApiSapi>(worker_configs, concurrency);
+  worker_pool_ = std::make_shared<WorkerPoolApiSapi>(worker_configs);
   return worker_pool_->Init();
 }
 }  // namespace google::scp::roma::sandbox::roma_service

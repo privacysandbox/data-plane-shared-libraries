@@ -28,18 +28,11 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::SC_ROMA_WORKER_POOL_WORKER_INDEX_OUT_OF_BOUNDS;
 
-static constexpr char kConfigAndPoolSizeDoNotMatch[] =
-    "ROMA: The worker config vector and the pool size do not match";
-
 namespace google::scp::roma::sandbox::worker_pool {
 WorkerPoolApiSapi::WorkerPoolApiSapi(
-    const std::vector<worker_api::WorkerApiSapiConfig>& config, size_t size) {
-  CHECK(config.size() == size) << kConfigAndPoolSizeDoNotMatch;
-
-  size_ = size;
-  for (auto i = 0; i < size_; i++) {
-    workers_.push_back(
-        std::make_shared<worker_api::WorkerApiSapi>(config.at(i)));
+    const std::vector<worker_api::WorkerApiSapiConfig>& configs) {
+  for (auto config : configs) {
+    workers_.push_back(std::make_shared<worker_api::WorkerApiSapi>(config));
   }
 }
 
@@ -77,12 +70,12 @@ ExecutionResult WorkerPoolApiSapi::Stop() noexcept {
 }
 
 size_t WorkerPoolApiSapi::GetPoolSize() noexcept {
-  return size_;
+  return workers_.size();
 }
 
 ExecutionResultOr<std::shared_ptr<worker_api::WorkerApi>>
 WorkerPoolApiSapi::GetWorker(size_t index) noexcept {
-  if (index >= size_) {
+  if (index >= workers_.size()) {
     return FailureExecutionResult(
         SC_ROMA_WORKER_POOL_WORKER_INDEX_OUT_OF_BOUNDS);
   }

@@ -38,8 +38,8 @@ class WorkerPoolApiSapi : public WorkerPool {
    * @param config The configs for the worker API objects.
    * @param size The size of the pool.
    */
-  WorkerPoolApiSapi(const std::vector<worker_api::WorkerApiSapiConfig>& config,
-                    size_t size = 4);
+  WorkerPoolApiSapi(
+      const std::vector<worker_api::WorkerApiSapiConfig>& configs);
 
   core::ExecutionResult Init() noexcept override;
 
@@ -53,7 +53,6 @@ class WorkerPoolApiSapi : public WorkerPool {
       size_t index) noexcept override;
 
  protected:
-  size_t size_;
   std::vector<std::shared_ptr<worker_api::WorkerApi>> workers_;
 };
 }  // namespace google::scp::roma::sandbox::worker_pool

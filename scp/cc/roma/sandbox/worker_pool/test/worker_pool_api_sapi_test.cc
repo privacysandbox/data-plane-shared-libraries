@@ -52,7 +52,7 @@ TEST(WorkerPoolTest, CanInitRunAndStop) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
-  auto pool = WorkerPoolApiSapi(configs, num_workers);
+  auto pool = WorkerPoolApiSapi(configs);
 
   auto result = pool.Init();
   EXPECT_SUCCESS(result);
@@ -71,7 +71,7 @@ TEST(WorkerPoolTest, CanGetPoolCount) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
-  auto pool = WorkerPoolApiSapi(configs, num_workers);
+  auto pool = WorkerPoolApiSapi(configs);
 
   auto result = pool.Init();
   EXPECT_SUCCESS(result);
@@ -92,7 +92,7 @@ TEST(WorkerPoolTest, CanGetWorker) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
-  auto pool = WorkerPoolApiSapi(configs, num_workers);
+  auto pool = WorkerPoolApiSapi(configs);
 
   auto result = pool.Init();
   EXPECT_SUCCESS(result);
@@ -111,11 +111,4 @@ TEST(WorkerPoolTest, CanGetWorker) {
   EXPECT_SUCCESS(result);
 }
 
-TEST(WorkerPoolTest, ConstructorFailsIfSizeIsInvalid) {
-  constexpr size_t size = 2;
-
-  // Pool of size 2, but no configs
-  EXPECT_DEATH(WorkerPoolApiSapi(std::vector<WorkerApiSapiConfig>(), size),
-               "ROMA: The worker config vector and the pool size do not match");
-}
 }  // namespace google::scp::roma::sandbox::worker_pool::test

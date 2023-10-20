@@ -79,7 +79,7 @@ void BM_Dispatch(benchmark::State& state) {
   std::vector<WorkerApiSapiConfig> configs{CreateWorkerApiSapiConfig()};
 
   std::shared_ptr<WorkerPool> worker_pool =
-      std::make_shared<WorkerPoolApiSapi>(configs, 1);
+      std::make_shared<WorkerPoolApiSapi>(configs);
   AutoInitRunStop for_async_executor(*async_executor);
   AutoInitRunStop for_worker_pool(*worker_pool);
 
