@@ -135,8 +135,8 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
   for (int i = 0; i < params->input_size(); i++) {
     input.push_back(params->input().at(i));
   }
-  absl::flat_hash_map<std::string, std::string> metadata;
-  for (auto&& element : params->metadata()) {
+  absl::flat_hash_map<std::string_view, std::string_view> metadata;
+  for (const auto& element : params->metadata()) {
     metadata[element.first] = element.second;
   }
   auto wasm_bin = reinterpret_cast<const uint8_t*>(params->wasm().c_str());

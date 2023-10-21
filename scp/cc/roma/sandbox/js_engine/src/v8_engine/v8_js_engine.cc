@@ -236,7 +236,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(
 
 core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     v8::StartupData& startup_data, absl::Span<const uint8_t> wasm,
-    const absl::flat_hash_map<std::string, std::string>& metadata,
+    const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
 
     std::string& err_msg) noexcept {
   v8::SnapshotCreator creator(external_references_.data());
@@ -325,7 +325,8 @@ void V8JsEngine::DisposeIsolate() noexcept {
 
 void V8JsEngine::StartWatchdogTimer(
     v8::Isolate* isolate,
-    const absl::flat_hash_map<std::string, std::string>& metadata) noexcept {
+    const absl::flat_hash_map<std::string_view, std::string_view>&
+        metadata) noexcept {
   // Get the timeout value from metadata. If no timeout tag is set, the
   // default value kDefaultExecutionTimeoutMs will be used.
   int timeout_ms = kDefaultExecutionTimeoutMs;
@@ -351,7 +352,7 @@ void V8JsEngine::StopWatchdogTimer() noexcept {
 ExecutionResultOr<RomaJsEngineCompilationContext>
 V8JsEngine::CreateCompilationContext(
     const std::string& code, absl::Span<const uint8_t> wasm,
-    const absl::flat_hash_map<std::string, std::string>& metadata,
+    const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
 
     std::string& err_msg) noexcept {
   if (code.empty()) {
@@ -471,7 +472,8 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
         current_compilation_context,
     const std::string& function_name,
     const std::vector<absl::string_view>& input,
-    const absl::flat_hash_map<std::string, std::string>& metadata) noexcept {
+    const absl::flat_hash_map<std::string_view, std::string_view>&
+        metadata) noexcept {
   ExecutionResponse execution_response;
 
   auto v8_isolate = current_compilation_context->v8_isolate;
@@ -589,7 +591,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
     const std::string& code, const std::string& function_name,
     const std::vector<absl::string_view>& input,
-    const absl::flat_hash_map<std::string, std::string>& metadata,
+    const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   return CompileAndRunJsWithWasm(code, absl::Span<const uint8_t>(),
                                  function_name, input, metadata, context);
@@ -598,7 +600,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
     const std::string& code, const std::string& function_name,
     const std::vector<absl::string_view>& input,
-    const absl::flat_hash_map<std::string, std::string>& metadata,
+    const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   JsEngineExecutionResponse execution_response;
 
@@ -715,7 +717,7 @@ V8JsEngine::CompileAndRunJsWithWasm(
     const std::string& code, absl::Span<const uint8_t> wasm,
     const std::string& function_name,
     const std::vector<absl::string_view>& input,
-    const absl::flat_hash_map<std::string, std::string>& metadata,
+    const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   std::string err_msg;
   JsEngineExecutionResponse execution_response;

@@ -33,8 +33,7 @@ struct TypeConverter {};
 
 template <>
 struct TypeConverter<std::string> {
-  static v8::Local<v8::Value> ToV8(v8::Isolate* isolate,
-                                   const std::string& val) {
+  static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, std::string_view val) {
     return v8::String::NewFromUtf8(isolate, val.data(),
                                    v8::NewStringType::kNormal,
                                    static_cast<uint32_t>(val.length()))

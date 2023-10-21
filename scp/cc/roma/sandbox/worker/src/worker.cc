@@ -60,7 +60,7 @@ ExecutionResult Worker::Stop() noexcept {
 
 ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
     const std::string& code, const std::vector<absl::string_view>& input,
-    const absl::flat_hash_map<std::string, std::string>& metadata,
+    const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     absl::Span<const uint8_t> wasm) {
   auto request_type_or =
       WorkerUtils::GetValueFromMetadata(metadata, kRequestType);
@@ -98,9 +98,10 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
   RomaJsEngineCompilationContext context;
   // Only reuse the context if this is not a load request.
   // A load request for an existing version should overwrite the given version.
+  const std::string code_version(*code_version_or);
   if (*action_or != kRequestActionLoad &&
-      compilation_contexts_.Contains(*code_version_or)) {
-    context = compilation_contexts_.Get(*code_version_or);
+      compilation_contexts_.Contains(code_version)) {
+    context = compilation_contexts_.Get(code_version);
   } else if (require_preload_ && *action_or != kRequestActionLoad) {
     // If we require preloads and we couldn't find a context and this is not a
     // load request, then bail out. This is an execution without a previous
@@ -134,10 +135,8 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
 
   if (*action_or == kRequestActionLoad &&
       response_or->compilation_context.has_context) {
-    compilation_contexts_.Set(*code_version_or,
-                              response_or->compilation_context);
-    ROMA_VLOG(1) << "caching compilation context for version "
-                 << *code_version_or;
+    compilation_contexts_.Set(code_version, response_or->compilation_context);
+    ROMA_VLOG(1) << "caching compilation context for version " << code_version;
   }
   return response_or->execution_response;
 }

@@ -93,7 +93,7 @@ class JsEngine : public core::ServiceInterface {
   virtual core::ExecutionResultOr<JsEngineExecutionResponse> CompileAndRunJs(
       const std::string& code, const std::string& function_name,
       const std::vector<absl::string_view>& input,
-      const absl::flat_hash_map<std::string, std::string>& metadata,
+      const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const RomaJsEngineCompilationContext& context) noexcept = 0;
 
   /**
@@ -113,7 +113,7 @@ class JsEngine : public core::ServiceInterface {
   virtual core::ExecutionResultOr<JsEngineExecutionResponse> CompileAndRunWasm(
       const std::string& code, const std::string& function_name,
       const std::vector<absl::string_view>& input,
-      const absl::flat_hash_map<std::string, std::string>& metadata,
+      const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const RomaJsEngineCompilationContext& context) noexcept = 0;
 
   /**
@@ -138,7 +138,7 @@ class JsEngine : public core::ServiceInterface {
       const std::string& code, absl::Span<const std::uint8_t> wasm,
       const std::string& function_name,
       const std::vector<absl::string_view>& input,
-      const absl::flat_hash_map<std::string, std::string>& metadata,
+      const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const RomaJsEngineCompilationContext& context) noexcept = 0;
 };
 }  // namespace google::scp::roma::sandbox::js_engine

@@ -30,8 +30,8 @@ namespace google::scp::roma::sandbox::worker {
 // Util function for worker.
 class WorkerUtils {
  public:
-  static core::ExecutionResultOr<std::string> GetValueFromMetadata(
-      const absl::flat_hash_map<std::string, std::string>& metadata,
+  static core::ExecutionResultOr<std::string_view> GetValueFromMetadata(
+      const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       std::string_view key) noexcept;
 
   static core::ExecutionResultOr<int> ConvertStrToInt(

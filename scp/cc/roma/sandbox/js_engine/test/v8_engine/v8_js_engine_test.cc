@@ -393,7 +393,7 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithDefaultTimeoutValue) {
       }
   )""";
   std::vector<absl::string_view> input;
-  absl::flat_hash_map<std::string, std::string> metadata;
+  absl::flat_hash_map<std::string_view, std::string_view> metadata;
 
   auto response_or =
       engine.CompileAndRunJs(js_code, "hello_js", input, metadata);
@@ -424,7 +424,7 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithCustomTimeoutTag) {
   std::vector<absl::string_view> input;
 
   {
-    absl::flat_hash_map<std::string, std::string> metadata;
+    absl::flat_hash_map<std::string_view, std::string_view> metadata;
     // Set the timeout flag to 100 milliseconds. When it runs for more than 100
     // milliseconds, it times out.
     metadata[kTimeoutMsTag] = "100";

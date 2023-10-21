@@ -72,26 +72,32 @@ bool V8TypesToProto(const v8::FunctionCallbackInfo<v8::Value>& info,
   // Try to convert to one of the supported types
   if (std::string string_native; TypeConverter<std::string>::FromV8(
           isolate, function_parameter, &string_native)) {
-    proto.set_input_string(string_native);
+    proto.set_input_string(std::move(string_native));
   } else if (StrVec vector_of_string_native; TypeConverter<StrVec>::FromV8(
                  isolate, function_parameter, &vector_of_string_native)) {
-    proto.mutable_input_list_of_string()->mutable_data()->Add(
-        vector_of_string_native.begin(), vector_of_string_native.end());
+    proto.mutable_input_list_of_string()->mutable_data()->Reserve(
+        vector_of_string_native.size());
+    for (auto&& native : vector_of_string_native) {
+      proto.mutable_input_list_of_string()->mutable_data()->Add(
+          std::move(native));
+    }
   } else if (StrMap map_of_string_native; TypeConverter<StrMap>::FromV8(
                  isolate, function_parameter, &map_of_string_native)) {
-    for (auto&& kvp : map_of_string_native) {
-      (*proto.mutable_input_map_of_string()->mutable_data())[kvp.first] =
-          kvp.second;
+    for (auto&& [key, value] : map_of_string_native) {
+      (*proto.mutable_input_map_of_string()->mutable_data())[std::move(key)] =
+          std::move(value);
     }
   } else if (function_parameter->IsUint8Array()) {
     const auto array = function_parameter.As<v8::Uint8Array>();
     const auto data_len = array->Length();
-    auto native_data = std::make_unique<uint8_t[]>(data_len);
-    if (!TypeConverter<uint8_t*>::FromV8(isolate, function_parameter,
-                                         native_data.get(), data_len)) {
+    std::string native_data;
+    native_data.resize(data_len);
+    if (!TypeConverter<uint8_t*>::FromV8(
+            isolate, function_parameter,
+            reinterpret_cast<uint8_t*>(native_data.data()), data_len)) {
       return false;
     }
-    proto.set_input_bytes(native_data.get(), data_len);
+    *proto.mutable_input_bytes() = std::move(native_data);
   } else {
     // Unknown type
     return false;

@@ -35,8 +35,8 @@ using google::scp::core::errors::SC_ROMA_WORKER_STR_CONVERT_INT_FAIL;
 
 namespace google::scp::roma::sandbox::worker {
 
-ExecutionResultOr<std::string> WorkerUtils::GetValueFromMetadata(
-    const absl::flat_hash_map<std::string, std::string>& metadata,
+ExecutionResultOr<std::string_view> WorkerUtils::GetValueFromMetadata(
+    const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     std::string_view key) noexcept {
   if (const auto& it = metadata.find(key); it != metadata.end()) {
     return it->second;
