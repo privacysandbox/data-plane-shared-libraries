@@ -35,19 +35,6 @@
 #include "roma/config/src/function_binding_object.h"
 #include "roma/config/src/type_converter.h"
 
-using v8::Context;
-using v8::External;
-using v8::FunctionCallbackInfo;
-using v8::HandleScope;
-using v8::Isolate;
-using v8::Local;
-using v8::MaybeLocal;
-using v8::ObjectTemplate;
-using v8::Script;
-using v8::String;
-using v8::TryCatch;
-using v8::Value;
-
 namespace google::scp::roma::config::test {
 class FunctionBindingTest : public ::testing::Test {
  protected:
@@ -68,7 +55,7 @@ class FunctionBindingTest : public ::testing::Test {
   void SetUp() override {
     create_params_.array_buffer_allocator =
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-    isolate_ = Isolate::New(create_params_);
+    isolate_ = v8::Isolate::New(create_params_);
   }
 
   void TearDown() override {
@@ -77,64 +64,69 @@ class FunctionBindingTest : public ::testing::Test {
   }
 
   static v8::Platform* platform_;
-  Isolate::CreateParams create_params_;
-  Isolate* isolate_;
+  v8::Isolate::CreateParams create_params_;
+  v8::Isolate* isolate_;
 };
 
 v8::Platform* FunctionBindingTest::platform_{nullptr};
 
 // Entry point to be able to call the user-provided JS function
-static void GlobalV8FunctionCallback(const FunctionCallbackInfo<Value>& info) {
+static void GlobalV8FunctionCallback(
+    const v8::FunctionCallbackInfo<v8::Value>& info) {
   auto isolate = info.GetIsolate();
-  Isolate::Scope isolate_scope(isolate);
-  HandleScope handle_scope(isolate);
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
 
   // Get the user-provided function
-  Local<External> data_object = Local<External>::Cast(info.Data());
+  v8::Local<v8::External> data_object =
+      v8::Local<v8::External>::Cast(info.Data());
   auto user_function =
       reinterpret_cast<FunctionBindingObjectBase*>(data_object->Value());
 
   user_function->InvokeInternalHandler(info);
 }
 
-static std::string RunV8Function(Isolate* isolate, std::string source_js,
+static std::string RunV8Function(v8::Isolate* isolate, std::string source_js,
                                  FunctionBindingObjectBase& function_binding) {
-  Isolate::Scope isolate_scope(isolate);
-  HandleScope handle_scope(isolate);
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
 
-  Local<ObjectTemplate> global_object_template = ObjectTemplate::New(isolate);
+  v8::Local<v8::ObjectTemplate> global_object_template =
+      v8::ObjectTemplate::New(isolate);
 
   global_object_template->SetInternalFieldCount(1);
 
   auto function_name = TypeConverter<std::string>::ToV8(
                            isolate, function_binding.GetFunctionName())
-                           .As<String>();
+                           .As<v8::String>();
 
-  // Allow retrieving the user-provided function from the FunctionCallbackInfo
-  // when the C++ callback is invoked so that it can be called.
-  Local<External> user_provided_function =
-      External::New(isolate, reinterpret_cast<void*>(&function_binding));
+  // Allow retrieving the user-provided function from the
+  // v8::FunctionCallbackInfo when the C++ callback is invoked so that it can be
+  // called.
+  v8::Local<v8::External> user_provided_function =
+      v8::External::New(isolate, reinterpret_cast<void*>(&function_binding));
   auto function_template = v8::FunctionTemplate::New(
       isolate, &GlobalV8FunctionCallback, user_provided_function);
 
   // set the global function
   global_object_template->Set(function_name, function_template);
   // Set the global object template on the context
-  Local<Context> global_context =
-      Context::New(isolate, nullptr, global_object_template);
+  v8::Local<v8::Context> global_context =
+      v8::Context::New(isolate, nullptr, global_object_template);
 
-  Context::Scope context_scope(global_context);
+  v8::Context::Scope context_scope(global_context);
 
   // Execute the JS code source. Which should call the function that we
   // registered by name from JS code
-  Local<String> source = String::NewFromUtf8(isolate, source_js.c_str(),
-                                             v8::NewStringType::kNormal)
-                             .ToLocalChecked();
-  Local<Script> script =
-      Script::Compile(global_context, source).ToLocalChecked();
+  v8::Local<v8::String> source =
+      v8::String::NewFromUtf8(isolate, source_js.c_str(),
+                              v8::NewStringType::kNormal)
+          .ToLocalChecked();
+  v8::Local<v8::Script> script =
+      v8::Script::Compile(global_context, source).ToLocalChecked();
 
-  TryCatch try_catch(isolate);
-  MaybeLocal<Value> result = script->Run(global_context);
+  v8::TryCatch try_catch(isolate);
+  v8::MaybeLocal<v8::Value> result = script->Run(global_context);
 
   // See if execution generated any errors
   if (try_catch.HasCaught()) {
@@ -147,7 +139,7 @@ static std::string RunV8Function(Isolate* isolate, std::string source_js,
     return error_message;
   }
 
-  String::Utf8Value result_as_string(isolate, result.ToLocalChecked());
+  v8::String::Utf8Value result_as_string(isolate, result.ToLocalChecked());
   auto result_str = std::string(*result_as_string);
 
   return result_str;

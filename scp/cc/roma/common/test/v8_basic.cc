@@ -35,14 +35,6 @@
 
 #include <libplatform/libplatform.h>
 
-using v8::Context;
-using v8::HandleScope;
-using v8::Isolate;
-using v8::Local;
-using v8::Script;
-using v8::String;
-using v8::Value;
-
 namespace google::scp::roma::test {
 class V8Test : public ::testing::Test {
  protected:
@@ -63,7 +55,7 @@ class V8Test : public ::testing::Test {
   void SetUp() override {
     create_params_.array_buffer_allocator =
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-    isolate_ = Isolate::New(create_params_);
+    isolate_ = v8::Isolate::New(create_params_);
   }
 
   void TearDown() override {
@@ -72,50 +64,51 @@ class V8Test : public ::testing::Test {
   }
 
   static v8::Platform* platform_;
-  Isolate::CreateParams create_params_;
-  Isolate* isolate_;
+  v8::Isolate::CreateParams create_params_;
+  v8::Isolate* isolate_;
 };
 
 v8::Platform* V8Test::platform_{nullptr};
 
 TEST_F(V8Test, BasicJs) {
-  Isolate::Scope isolate_scope(isolate_);
+  v8::Isolate::Scope isolate_scope(isolate_);
 
   // Create a stack-allocated handle scope.
-  HandleScope handle_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
 
   // Create a new context.
-  Local<Context> context = Context::New(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
 
   // Enter the context for compiling and running the hello world script.
-  Context::Scope context_scope(context);
+  v8::Context::Scope context_scope(context);
   // Create a string containing the JavaScript source code.
-  Local<String> source =
-      String::NewFromUtf8Literal(isolate_, "'Hello' + ', World!'");
+  v8::Local<v8::String> source =
+      v8::String::NewFromUtf8Literal(isolate_, "'Hello' + ', World!'");
 
   // Compile the source code.
-  Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+  v8::Local<v8::Script> script =
+      v8::Script::Compile(context, source).ToLocalChecked();
 
   // Run the script to get the result.
-  Local<Value> result = script->Run(context).ToLocalChecked();
+  v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
 
   // Convert the result to an UTF8 string.
-  String::Utf8Value utf8(isolate_, result);
+  v8::String::Utf8Value utf8(isolate_, result);
   std::string val(*utf8, utf8.length());
   EXPECT_EQ(val, "Hello, World!");
 }
 
 TEST_F(V8Test, BasicWasm) {
-  Isolate::Scope isolate_scope(isolate_);
+  v8::Isolate::Scope isolate_scope(isolate_);
 
   // Create a stack-allocated handle scope.
-  HandleScope handle_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
 
   // Create a new context.
-  Local<Context> context = Context::New(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
 
   // Enter the context for compiling and running the hello world script.
-  Context::Scope context_scope(context);
+  v8::Context::Scope context_scope(context);
 
   // Use the JavaScript API to generate a WebAssembly module.
   //
@@ -139,13 +132,15 @@ TEST_F(V8Test, BasicWasm) {
   )";
 
   // Create a string containing the JavaScript source code.
-  Local<String> source = String::NewFromUtf8Literal(isolate_, csource);
+  v8::Local<v8::String> source =
+      v8::String::NewFromUtf8Literal(isolate_, csource);
 
   // Compile the source code.
-  Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+  v8::Local<v8::Script> script =
+      v8::Script::Compile(context, source).ToLocalChecked();
 
   // Run the script to get the result.
-  Local<Value> result = script->Run(context).ToLocalChecked();
+  v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
 
   uint32_t number = result->Uint32Value(context).ToChecked();
   EXPECT_EQ(number, 7);

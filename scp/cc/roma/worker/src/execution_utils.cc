@@ -39,34 +39,6 @@ using google::scp::roma::wasm::RomaWasmStringRepresentation;
 using google::scp::roma::wasm::WasmDeserializer;
 using google::scp::roma::wasm::WasmSerializer;
 
-using v8::Array;
-using v8::Context;
-using v8::External;
-using v8::Function;
-using v8::FunctionCallback;
-using v8::FunctionCallbackInfo;
-using v8::Global;
-using v8::HandleScope;
-using v8::Int32;
-using v8::Isolate;
-using v8::JSON;
-using v8::Local;
-using v8::MemorySpan;
-using v8::Message;
-using v8::Name;
-using v8::NewStringType;
-using v8::Object;
-using v8::ObjectTemplate;
-using v8::Script;
-using v8::ScriptCompiler;
-using v8::String;
-using v8::TryCatch;
-using v8::UnboundScript;
-using v8::Undefined;
-using v8::Value;
-using v8::WasmMemoryObject;
-using v8::WasmModuleObject;
-
 namespace google::scp::roma::worker {
 static constexpr char kWasmMemory[] = "memory";
 static constexpr char kWasiSnapshotPreview[] = "wasi_snapshot_preview1";
@@ -74,16 +46,16 @@ static constexpr char kWasiProcExitFunctionName[] = "proc_exit";
 
 ExecutionResult ExecutionUtils::CompileRunJS(
     const std::string& js, std::string& err_msg,
-    Local<UnboundScript>* unbound_script) noexcept {
-  auto isolate = Isolate::GetCurrent();
-  TryCatch try_catch(isolate);
-  Local<Context> context(isolate->GetCurrentContext());
+    v8::Local<v8::UnboundScript>* unbound_script) noexcept {
+  auto isolate = v8::Isolate::GetCurrent();
+  v8::TryCatch try_catch(isolate);
+  v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  Local<v8::String> js_source =
+  v8::Local<v8::String> js_source =
       v8::String::NewFromUtf8(isolate, js.data(), v8::NewStringType::kNormal,
                               static_cast<uint32_t>(js.length()))
           .ToLocalChecked();
-  Local<v8::Script> script;
+  v8::Local<v8::Script> script;
   if (!v8::Script::Compile(context, js_source).ToLocal(&script)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
     return core::FailureExecutionResult(
@@ -94,7 +66,7 @@ ExecutionResult ExecutionUtils::CompileRunJS(
     *unbound_script = script->GetUnboundScript();
   }
 
-  Local<Value> script_result;
+  v8::Local<v8::Value> script_result;
   if (!script->Run(context).ToLocal(&script_result)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
     return core::FailureExecutionResult(
@@ -105,17 +77,17 @@ ExecutionResult ExecutionUtils::CompileRunJS(
 }
 
 ExecutionResult ExecutionUtils::GetJsHandler(const std::string& handler_name,
-                                             Local<Value>& handler,
+                                             v8::Local<v8::Value>& handler,
                                              std::string& err_msg) noexcept {
   if (handler_name.empty()) {
     return core::FailureExecutionResult(
         core::errors::SC_ROMA_V8_WORKER_BAD_HANDLER_NAME);
   }
-  auto isolate = Isolate::GetCurrent();
-  TryCatch try_catch(isolate);
-  Local<Context> context(isolate->GetCurrentContext());
+  auto isolate = v8::Isolate::GetCurrent();
+  v8::TryCatch try_catch(isolate);
+  v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  Local<v8::String> local_name =
+  v8::Local<v8::String> local_name =
       v8::String::NewFromUtf8(isolate, handler_name.data(),
                               v8::NewStringType::kNormal,
                               static_cast<uint32_t>(handler_name.length()))
@@ -135,23 +107,23 @@ ExecutionResult ExecutionUtils::GetJsHandler(const std::string& handler_name,
 
 ExecutionResult ExecutionUtils::CompileRunWASM(const std::string& wasm,
                                                std::string& err_msg) noexcept {
-  auto isolate = Isolate::GetCurrent();
+  auto isolate = v8::Isolate::GetCurrent();
   v8::HandleScope handle_scope(isolate);
-  TryCatch try_catch(isolate);
-  Local<Context> context(isolate->GetCurrentContext());
+  v8::TryCatch try_catch(isolate);
+  v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
   auto module_maybe = v8::WasmModuleObject::Compile(
       isolate,
       v8::MemorySpan<const uint8_t>(
           reinterpret_cast<const unsigned char*>(wasm.c_str()), wasm.length()));
-  Local<v8::WasmModuleObject> wasm_module;
+  v8::Local<v8::WasmModuleObject> wasm_module;
   if (!module_maybe.ToLocal(&wasm_module)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
     return core::FailureExecutionResult(
         core::errors::SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE);
   }
 
-  Local<Value> web_assembly;
+  v8::Local<v8::Value> web_assembly;
   if (!context->Global()
            ->Get(context, v8::String::NewFromUtf8(isolate, kWebAssemblyTag)
                               .ToLocalChecked())
@@ -161,7 +133,7 @@ ExecutionResult ExecutionUtils::CompileRunWASM(const std::string& wasm,
         core::errors::SC_ROMA_V8_WORKER_WASM_OBJECT_CREATION_FAILURE);
   }
 
-  Local<Value> wasm_instance;
+  v8::Local<v8::Value> wasm_instance;
   if (!web_assembly.As<v8::Object>()
            ->Get(
                context,
@@ -174,8 +146,8 @@ ExecutionResult ExecutionUtils::CompileRunWASM(const std::string& wasm,
 
   auto wasm_imports = ExecutionUtils::GenerateWasmImports(isolate);
 
-  Local<Value> instance_args[] = {wasm_module, wasm_imports};
-  Local<Value> wasm_construct;
+  v8::Local<v8::Value> instance_args[] = {wasm_module, wasm_imports};
+  v8::Local<v8::Value> wasm_construct;
   if (!wasm_instance.As<v8::Object>()
            ->CallAsConstructor(context, 2, instance_args)
            .ToLocal(&wasm_construct)) {
@@ -184,7 +156,7 @@ ExecutionResult ExecutionUtils::CompileRunWASM(const std::string& wasm,
         core::errors::SC_ROMA_V8_WORKER_WASM_OBJECT_CREATION_FAILURE);
   }
 
-  Local<Value> wasm_exports;
+  v8::Local<v8::Value> wasm_exports;
   if (!wasm_construct.As<v8::Object>()
            ->Get(context,
                  v8::String::NewFromUtf8(isolate, kExportsTag).ToLocalChecked())
@@ -210,14 +182,14 @@ ExecutionResult ExecutionUtils::CompileRunWASM(const std::string& wasm,
 }
 
 ExecutionResult ExecutionUtils::GetWasmHandler(const std::string& handler_name,
-                                               Local<Value>& handler,
+                                               v8::Local<v8::Value>& handler,
                                                std::string& err_msg) noexcept {
-  auto isolate = Isolate::GetCurrent();
-  TryCatch try_catch(isolate);
-  Local<Context> context(isolate->GetCurrentContext());
+  auto isolate = v8::Isolate::GetCurrent();
+  v8::TryCatch try_catch(isolate);
+  v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
   // Get wasm export object.
-  Local<Value> wasm_exports;
+  v8::Local<v8::Value> wasm_exports;
   if (!context->Global()
            ->Get(context,
                  v8::String::NewFromUtf8(isolate, kRegisteredWasmExports)
@@ -230,7 +202,7 @@ ExecutionResult ExecutionUtils::GetWasmHandler(const std::string& handler_name,
 
   // Fetch out the handler name from code object.
   auto str = std::string(handler_name.c_str(), handler_name.size());
-  Local<v8::String> local_name =
+  v8::Local<v8::String> local_name =
       TypeConverter<std::string>::ToV8(isolate, str).As<v8::String>();
 
   // If there is no handler function, or if it is not a function,
@@ -248,10 +220,10 @@ ExecutionResult ExecutionUtils::GetWasmHandler(const std::string& handler_name,
 }
 
 void ExecutionUtils::GlobalV8FunctionCallback(
-    const FunctionCallbackInfo<Value>& info) {
+    const v8::FunctionCallbackInfo<v8::Value>& info) {
   auto isolate = info.GetIsolate();
-  Isolate::Scope isolate_scope(isolate);
-  HandleScope handle_scope(isolate);
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
 
   if (info.Data().IsEmpty() || !info.Data()->IsExternal()) {
     isolate->ThrowError("Unexpected data in global callback");
@@ -259,7 +231,8 @@ void ExecutionUtils::GlobalV8FunctionCallback(
   }
 
   // Get the user-provided function
-  Local<External> data_object = Local<External>::Cast(info.Data());
+  v8::Local<v8::External> data_object =
+      v8::Local<v8::External>::Cast(info.Data());
   auto user_function =
       reinterpret_cast<FunctionBindingObjectBase*>(data_object->Value());
 
@@ -274,15 +247,15 @@ void ExecutionUtils::GlobalV8FunctionCallback(
 }
 
 ExecutionResult ExecutionUtils::CreateUnboundScript(
-    Global<UnboundScript>& unbound_script, Isolate* isolate,
+    v8::Global<v8::UnboundScript>& unbound_script, v8::Isolate* isolate,
     const std::string& js, std::string& err_msg) noexcept {
-  Isolate::Scope isolate_scope(isolate);
+  v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
 
-  Local<Context> context = Context::New(isolate);
-  Context::Scope context_scope(context);
+  v8::Local<v8::Context> context = v8::Context::New(isolate);
+  v8::Context::Scope context_scope(context);
 
-  Local<UnboundScript> local_unbound_script;
+  v8::Local<v8::UnboundScript> local_unbound_script;
   auto execution_result =
       ExecutionUtils::CompileRunJS(js, err_msg, &local_unbound_script);
   RETURN_IF_FAILURE(execution_result);
@@ -294,17 +267,17 @@ ExecutionResult ExecutionUtils::CreateUnboundScript(
 }
 
 ExecutionResult ExecutionUtils::BindUnboundScript(
-    const Global<UnboundScript>& global_unbound_script,
+    const v8::Global<v8::UnboundScript>& global_unbound_script,
     std::string& err_msg) noexcept {
-  auto isolate = Isolate::GetCurrent();
-  TryCatch try_catch(isolate);
-  Local<Context> context(isolate->GetCurrentContext());
-  Context::Scope context_scope(context);
+  auto isolate = v8::Isolate::GetCurrent();
+  v8::TryCatch try_catch(isolate);
+  v8::Local<v8::Context> context(isolate->GetCurrentContext());
+  v8::Context::Scope context_scope(context);
 
-  Local<UnboundScript> unbound_script =
-      Local<UnboundScript>::New(isolate, global_unbound_script);
+  v8::Local<v8::UnboundScript> unbound_script =
+      v8::Local<v8::UnboundScript>::New(isolate, global_unbound_script);
 
-  Local<Value> script_result;
+  v8::Local<v8::Value> script_result;
   if (!unbound_script->BindToCurrentContext()->Run(context).ToLocal(
           &script_result)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
@@ -315,27 +288,27 @@ ExecutionResult ExecutionUtils::BindUnboundScript(
   return core::SuccessExecutionResult();
 }
 
-Local<Value> ExecutionUtils::GetWasmMemoryObject(Isolate* isolate,
-                                                 Local<Context>& context) {
+v8::Local<v8::Value> ExecutionUtils::GetWasmMemoryObject(
+    v8::Isolate* isolate, v8::Local<v8::Context>& context) {
   auto wasm_exports = context->Global()
                           ->Get(context, TypeConverter<std::string>::ToV8(
                                              isolate, kRegisteredWasmExports))
                           .ToLocalChecked()
-                          .As<Object>();
+                          .As<v8::Object>();
 
   auto wasm_memory_maybe = wasm_exports->Get(
       context, TypeConverter<std::string>::ToV8(isolate, kWasmMemory));
 
   if (wasm_memory_maybe.IsEmpty()) {
-    return Undefined(isolate);
+    return v8::Undefined(isolate);
   }
 
   return wasm_memory_maybe.ToLocalChecked();
 }
 
-Local<Array> ExecutionUtils::InputToLocalArgv(
+v8::Local<v8::Array> ExecutionUtils::InputToLocalArgv(
     const std::vector<std::string_view>& input, bool is_wasm) noexcept {
-  auto isolate = Isolate::GetCurrent();
+  auto isolate = v8::Isolate::GetCurrent();
   auto context = isolate->GetCurrentContext();
 
   if (is_wasm) {
@@ -346,7 +319,7 @@ Local<Array> ExecutionUtils::InputToLocalArgv(
 }
 
 std::string ExecutionUtils::ExtractMessage(
-    Isolate* isolate, Local<v8::Message> message) noexcept {
+    v8::Isolate* isolate, v8::Local<v8::Message> message) noexcept {
   std::string exception_msg;
   TypeConverter<std::string>::FromV8(isolate, message->Get(), &exception_msg);
   // We want to return a message of the form:
@@ -362,36 +335,36 @@ std::string ExecutionUtils::ExtractMessage(
   return absl::StrFormat("line %i: %s", line, exception_msg);
 }
 
-Local<v8::Array> ExecutionUtils::ParseAsJsInput(
+v8::Local<v8::Array> ExecutionUtils::ParseAsJsInput(
     const std::vector<std::string_view>& input) {
-  auto isolate = Isolate::GetCurrent();
+  auto isolate = v8::Isolate::GetCurrent();
   auto context = isolate->GetCurrentContext();
 
   const int argc = input.size();
 
-  Local<v8::Array> argv = v8::Array::New(isolate, argc);
+  v8::Local<v8::Array> argv = v8::Array::New(isolate, argc);
   for (auto i = 0; i < argc; ++i) {
-    Local<v8::String> arg_str =
+    v8::Local<v8::String> arg_str =
         v8::String::NewFromUtf8(isolate, input[i].data(),
                                 v8::NewStringType::kNormal,
                                 static_cast<uint32_t>(input[i].length()))
             .ToLocalChecked();
 
-    Local<Value> arg = v8::Undefined(isolate);
+    v8::Local<v8::Value> arg = v8::Undefined(isolate);
     if (arg_str->Length() > 0 &&
         !v8::JSON::Parse(context, arg_str).ToLocal(&arg)) {
-      return Local<v8::Array>();
+      return v8::Local<v8::Array>();
     }
     if (!argv->Set(context, i, arg).ToChecked()) {
-      return Local<v8::Array>();
+      return v8::Local<v8::Array>();
     }
   }
 
   return argv;
 }
 
-Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
-    Isolate* isolate, Local<Context>& context,
+v8::Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
+    v8::Isolate* isolate, v8::Local<v8::Context>& context,
     const std::vector<std::string_view>& input) {
   // Parse it into JS types so we can distinguish types
   auto parsed_args = ExecutionUtils::ParseAsJsInput(input);
@@ -399,10 +372,10 @@ Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
 
   // Parsing the input failed
   if (argc != input.size()) {
-    return Local<v8::Array>();
+    return v8::Local<v8::Array>();
   }
 
-  Local<v8::Array> argv = v8::Array::New(isolate, argc);
+  v8::Local<v8::Array> argv = v8::Array::New(isolate, argc);
 
   auto wasm_memory = ExecutionUtils::GetWasmMemoryObject(isolate, context);
 
@@ -430,10 +403,10 @@ Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
     if (!arg->IsUint32() && !arg->IsInt32() && !arg->IsString() &&
         !arg->IsArray()) {
       argv.Clear();
-      return Local<v8::Array>();
+      return v8::Local<v8::Array>();
     }
 
-    Local<Value> new_arg;
+    v8::Local<v8::Value> new_arg;
 
     if (arg->IsUint32() || arg->IsInt32()) {
       // No serialization needed
@@ -447,7 +420,7 @@ Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
 
       // The serialization failed
       if (string_ptr_in_wasm_memory == UINT32_MAX) {
-        return Local<v8::Array>();
+        return v8::Local<v8::Array>();
       }
 
       new_arg =
@@ -462,7 +435,7 @@ Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
 
       if (!worked) {
         // This means the array is not an array of string
-        return Local<v8::Array>();
+        return v8::Local<v8::Array>();
       }
 
       auto list_ptr_in_wasm_memory =
@@ -472,7 +445,7 @@ Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
 
       // The serialization failed
       if (list_ptr_in_wasm_memory == UINT32_MAX) {
-        return Local<v8::Array>();
+        return v8::Local<v8::Array>();
       }
 
       new_arg = TypeConverter<uint32_t>::ToV8(isolate, list_ptr_in_wasm_memory);
@@ -482,16 +455,16 @@ Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
     }
 
     if (!argv->Set(context, i, new_arg).ToChecked()) {
-      return Local<v8::Array>();
+      return v8::Local<v8::Array>();
     }
   }
 
   return argv;
 }
 
-std::string ExecutionUtils::DescribeError(Isolate* isolate,
-                                          TryCatch* try_catch) noexcept {
-  const Local<Message> message = try_catch->Message();
+std::string ExecutionUtils::DescribeError(v8::Isolate* isolate,
+                                          v8::TryCatch* try_catch) noexcept {
+  const v8::Local<v8::Message> message = try_catch->Message();
   if (message.IsEmpty()) {
     return std::string();
   }
@@ -504,7 +477,7 @@ std::string ExecutionUtils::DescribeError(Isolate* isolate,
  *
  * @param info
  */
-static void WasiProcExit(const FunctionCallbackInfo<Value>& info) {
+static void WasiProcExit(const v8::FunctionCallbackInfo<v8::Value>& info) {
   (void)info;
   auto isolate = info.GetIsolate();
   isolate->TerminateExecution();
@@ -519,10 +492,9 @@ static void WasiProcExit(const FunctionCallbackInfo<Value>& info) {
  * @param name
  * @param wasi_function
  */
-static void RegisterWasiFunction(Isolate* isolate,
-                                 Local<Object>& wasi_snapshot_preview_object,
-                                 const std::string& name,
-                                 FunctionCallback wasi_function) {
+static void RegisterWasiFunction(
+    v8::Isolate* isolate, v8::Local<v8::Object>& wasi_snapshot_preview_object,
+    const std::string& name, v8::FunctionCallback wasi_function) {
   auto context = isolate->GetCurrentContext();
 
   auto func_name = TypeConverter<std::string>::ToV8(isolate, name);
@@ -531,7 +503,7 @@ static void RegisterWasiFunction(Isolate* isolate,
             v8::FunctionTemplate::New(isolate, wasi_function)
                 ->GetFunction(context)
                 .ToLocalChecked()
-                .As<Object>())
+                .As<v8::Object>())
       .Check();
 }
 
@@ -539,9 +511,9 @@ static void RegisterWasiFunction(Isolate* isolate,
  * @brief Generate an object which represents the wasi_snapshot_preview1 module
  *
  * @param isolate
- * @return Local<Object>
+ * @return v8::Local<v8::Object>
  */
-static Local<Object> GenerateWasiObject(Isolate* isolate) {
+static v8::Local<v8::Object> GenerateWasiObject(v8::Isolate* isolate) {
   // Register WASI runtime allowed functions
   auto wasi_snapshot_preview_object = v8::Object::New(isolate);
 
@@ -559,10 +531,10 @@ static Local<Object> GenerateWasiObject(Isolate* isolate) {
  * @param name
  * @param new_object
  */
-static void RegisterObjectInWasmImports(Isolate* isolate,
-                                        Local<Object>& imports_object,
+static void RegisterObjectInWasmImports(v8::Isolate* isolate,
+                                        v8::Local<v8::Object>& imports_object,
                                         const std::string& name,
-                                        Local<Object>& new_object) {
+                                        v8::Local<v8::Object>& new_object) {
   auto context = isolate->GetCurrentContext();
 
   auto obj_name = TypeConverter<std::string>::ToV8(isolate, name);
@@ -573,9 +545,10 @@ static void RegisterObjectInWasmImports(Isolate* isolate,
  * @brief Generate an object that represents the WASM imports modules
  *
  * @param isolate
- * @return Local<Object>
+ * @return v8::Local<v8::Object>
  */
-Local<Object> ExecutionUtils::GenerateWasmImports(Isolate* isolate) {
+v8::Local<v8::Object> ExecutionUtils::GenerateWasmImports(
+    v8::Isolate* isolate) {
   auto imports_object = v8::Object::New(isolate);
 
   auto wasi_object = GenerateWasiObject(isolate);
@@ -586,35 +559,34 @@ Local<Object> ExecutionUtils::GenerateWasmImports(Isolate* isolate) {
   return imports_object;
 }
 
-Local<Value> ExecutionUtils::ReadFromWasmMemory(Isolate* isolate,
-                                                Local<Context>& context,
-                                                int32_t offset) {
+v8::Local<v8::Value> ExecutionUtils::ReadFromWasmMemory(
+    v8::Isolate* isolate, v8::Local<v8::Context>& context, int32_t offset) {
   if (offset < 0) {
-    return Undefined(isolate);
+    return v8::Undefined(isolate);
   }
 
   auto wasm_memory_maybe = GetWasmMemoryObject(isolate, context);
   if (wasm_memory_maybe->IsUndefined()) {
-    return Undefined(isolate);
+    return v8::Undefined(isolate);
   }
 
-  auto wasm_memory = wasm_memory_maybe.As<WasmMemoryObject>()
+  auto wasm_memory = wasm_memory_maybe.As<v8::WasmMemoryObject>()
                          ->Buffer()
                          ->GetBackingStore()
                          ->Data();
-  auto wasm_memory_size = wasm_memory_maybe.As<WasmMemoryObject>()
+  auto wasm_memory_size = wasm_memory_maybe.As<v8::WasmMemoryObject>()
                               ->Buffer()
                               ->GetBackingStore()
                               ->ByteLength();
   auto wasm_memory_blob = static_cast<uint8_t*>(wasm_memory);
 
-  Local<Value> ret_val = Undefined(isolate);
+  v8::Local<v8::Value> ret_val = v8::Undefined(isolate);
 
   std::string read_str;
   WasmDeserializer::ReadCustomString(wasm_memory_blob, wasm_memory_size, offset,
                                      read_str);
   if (read_str.empty()) {
-    return Undefined(isolate);
+    return v8::Undefined(isolate);
   }
 
   ret_val = TypeConverter<std::string>::ToV8(isolate, read_str);
@@ -622,8 +594,8 @@ Local<Value> ExecutionUtils::ReadFromWasmMemory(Isolate* isolate,
   return ret_val;
 }
 
-ExecutionResult ExecutionUtils::V8PromiseHandler(Isolate* isolate,
-                                                 Local<Value>& result,
+ExecutionResult ExecutionUtils::V8PromiseHandler(v8::Isolate* isolate,
+                                                 v8::Local<v8::Value>& result,
                                                  std::string& err_msg) {
   // We don't need a callback handler for now. The default handler will wrap
   // the successful result of Promise::kFulfilled and the exception message of
@@ -637,7 +609,7 @@ ExecutionResult ExecutionUtils::V8PromiseHandler(Isolate* isolate,
 
   if (promise->State() == v8::Promise::kRejected) {
     // Extract the exception message from a rejected promise.
-    const Local<v8::Message> message =
+    const v8::Local<v8::Message> message =
         v8::Exception::CreateMessage(isolate, promise->Result());
     err_msg = ExecutionUtils::ExtractMessage(isolate, message);
     promise->MarkAsHandled();

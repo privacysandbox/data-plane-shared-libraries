@@ -54,18 +54,6 @@ using google::scp::roma::wasm::RomaWasmStringRepresentation;
 using google::scp::roma::wasm::WasmDeserializer;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using google::scp::roma::worker::ExecutionUtils;
-using v8::Array;
-using v8::Context;
-using v8::Function;
-using v8::HandleScope;
-using v8::Int32;
-using v8::Isolate;
-using v8::JSON;
-using v8::Local;
-using v8::TryCatch;
-using v8::UnboundScript;
-using v8::Value;
-using v8::WasmMemoryObject;
 
 namespace google::scp::roma::worker::test {
 
@@ -90,7 +78,7 @@ class ExecutionUtilsTest : public ::testing::Test {
 
     create_params_.array_buffer_allocator =
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-    isolate_ = Isolate::New(create_params_);
+    isolate_ = v8::Isolate::New(create_params_);
   }
 
   void TearDown() override {
@@ -108,13 +96,13 @@ class ExecutionUtilsTest : public ::testing::Test {
   // RunCode() is used to create an executable environment to execute the code.
   ExecutionResult RunCode(const RunCodeArguments& args, std::string& output,
                           std::string& err_msg) noexcept {
-    Isolate::Scope isolate_scope(isolate_);
-    HandleScope handle_scope(isolate_);
-    TryCatch try_catch(isolate_);
-    Local<Context> context = Context::New(isolate_);
-    Context::Scope context_scope(context);
+    v8::Isolate::Scope isolate_scope(isolate_);
+    v8::HandleScope handle_scope(isolate_);
+    v8::TryCatch try_catch(isolate_);
+    v8::Local<v8::Context> context = v8::Context::New(isolate_);
+    v8::Context::Scope context_scope(context);
 
-    Local<Value> handler;
+    v8::Local<v8::Value> handler;
 
     // Compile and run JavaScript code object when JavaScript code obj is
     // available.
@@ -155,10 +143,10 @@ class ExecutionUtilsTest : public ::testing::Test {
 
     auto input = args.input;
     auto argc = input.size();
-    Local<Value> argv[argc];
+    v8::Local<v8::Value> argv[argc];
     {
       auto argv_array =
-          ExecutionUtils::InputToLocalArgv(input, is_wasm_run).As<Array>();
+          ExecutionUtils::InputToLocalArgv(input, is_wasm_run).As<v8::Array>();
       // If argv_array size doesn't match with input. Input conversion failed.
       if (argv_array.IsEmpty() || argv_array->Length() != argc) {
         err_msg = ExecutionUtils::DescribeError(isolate_, &try_catch);
@@ -169,8 +157,8 @@ class ExecutionUtilsTest : public ::testing::Test {
       }
     }
 
-    Local<Function> handler_func = handler.As<Function>();
-    Local<Value> result;
+    v8::Local<v8::Function> handler_func = handler.As<v8::Function>();
+    v8::Local<v8::Value> result;
     if (!handler_func->Call(context, context->Global(), argc, argv)
              .ToLocal(&result)) {
       err_msg = ExecutionUtils::DescribeError(isolate_, &try_catch);
@@ -179,13 +167,13 @@ class ExecutionUtilsTest : public ::testing::Test {
 
     // If this is a WASM run then we need to deserialize the returned data
     if (is_wasm_run) {
-      auto offset = result.As<Int32>()->Value();
+      auto offset = result.As<v8::Int32>()->Value();
 
       result = ExecutionUtils::ReadFromWasmMemory(isolate_, context, offset);
     }
 
-    auto json_string_maybe = JSON::Stringify(context, result);
-    Local<v8::String> json_string;
+    auto json_string_maybe = v8::JSON::Stringify(context, result);
+    v8::Local<v8::String> json_string;
     if (!json_string_maybe.ToLocal(&json_string)) {
       err_msg = ExecutionUtils::DescribeError(isolate_, &try_catch);
       return FailureExecutionResult(SC_ROMA_V8_WORKER_RESULT_PARSE_FAILURE);
@@ -197,9 +185,9 @@ class ExecutionUtilsTest : public ::testing::Test {
   }
 
   Config config;
-  Isolate::CreateParams create_params_;
+  v8::Isolate::CreateParams create_params_;
   static v8::Platform* platform_;
-  Isolate* isolate_{nullptr};
+  v8::Isolate* isolate_{nullptr};
 };
 
 v8::Platform* ExecutionUtilsTest::platform_{nullptr};
@@ -207,12 +195,12 @@ v8::Platform* ExecutionUtilsTest::platform_{nullptr};
 TEST_F(ExecutionUtilsTest, InputToLocalArgv) {
   std::vector<std::string> list = {"1", "2", "3"};
   {
-    Isolate::Scope isolate_scope(isolate_);
-    HandleScope handle_scope(isolate_);
-    Local<Context> context = Context::New(isolate_);
-    Context::Scope context_scope(context);
+    v8::Isolate::Scope isolate_scope(isolate_);
+    v8::HandleScope handle_scope(isolate_);
+    v8::Local<v8::Context> context = v8::Context::New(isolate_);
+    v8::Context::Scope context_scope(context);
     std::vector<std::string_view> input(list.begin(), list.end());
-    Local<Array> local_list = ExecutionUtils::InputToLocalArgv(input);
+    v8::Local<v8::Array> local_list = ExecutionUtils::InputToLocalArgv(input);
     for (size_t idx = 0; idx < list.size(); ++idx) {
       v8::String::Utf8Value output(
           isolate_,
@@ -229,19 +217,19 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvJsonInput) {
       R"({"value":2})",
   };
   {
-    Isolate::Scope isolate_scope(isolate_);
-    HandleScope handle_scope(isolate_);
-    Local<Context> context = Context::New(isolate_);
-    Context::Scope context_scope(context);
+    v8::Isolate::Scope isolate_scope(isolate_);
+    v8::HandleScope handle_scope(isolate_);
+    v8::Local<v8::Context> context = v8::Context::New(isolate_);
+    v8::Context::Scope context_scope(context);
 
     std::vector<std::string_view> input(list.begin(), list.end());
-    Local<Array> local_list = ExecutionUtils::InputToLocalArgv(input);
+    v8::Local<v8::Array> local_list = ExecutionUtils::InputToLocalArgv(input);
 
     for (size_t idx = 0; idx < list.size(); ++idx) {
       auto expected = list.at(idx);
       auto json_value = local_list->Get(context, idx).ToLocalChecked();
       v8::String::Utf8Value output(
-          isolate_, JSON::Stringify(context, json_value).ToLocalChecked());
+          isolate_, v8::JSON::Stringify(context, json_value).ToLocalChecked());
       EXPECT_EQ(0, strcmp(*output, expected.c_str()));
     }
   }
@@ -253,10 +241,10 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvInvalidJsonInput) {
       R"({"value":2})",
   };
   {
-    Isolate::Scope isolate_scope(isolate_);
-    HandleScope handle_scope(isolate_);
-    Local<Context> context = Context::New(isolate_);
-    Context::Scope context_scope(context);
+    v8::Isolate::Scope isolate_scope(isolate_);
+    v8::HandleScope handle_scope(isolate_);
+    v8::Local<v8::Context> context = v8::Context::New(isolate_);
+    v8::Context::Scope context_scope(context);
 
     std::vector<std::string_view> input(list.begin(), list.end());
     auto v8_array = ExecutionUtils::ExecutionUtils::InputToLocalArgv(input);
@@ -276,10 +264,10 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvInputWithEmptyString) {
       "{}",
   };
   {
-    Isolate::Scope isolate_scope(isolate_);
-    HandleScope handle_scope(isolate_);
-    Local<Context> context = Context::New(isolate_);
-    Context::Scope context_scope(context);
+    v8::Isolate::Scope isolate_scope(isolate_);
+    v8::HandleScope handle_scope(isolate_);
+    v8::Local<v8::Context> context = v8::Context::New(isolate_);
+    v8::Context::Scope context_scope(context);
 
     std::vector<std::string_view> input(list.begin(), list.end());
     auto v8_array = ExecutionUtils::ExecutionUtils::InputToLocalArgv(input);
@@ -287,7 +275,7 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvInputWithEmptyString) {
       auto expected = expected_list.at(idx);
       auto json_value = v8_array->Get(context, idx).ToLocalChecked();
       v8::String::Utf8Value output(
-          isolate_, JSON::Stringify(context, json_value).ToLocalChecked());
+          isolate_, v8::JSON::Stringify(context, json_value).ToLocalChecked());
       EXPECT_EQ(0, strcmp(*output, expected.c_str()));
     }
   }
@@ -441,10 +429,10 @@ TEST_F(ExecutionUtilsTest, ScriptCompileFailure) {
   std::string err_msg;
   std::string js("function Handler(a, b) {");
   {
-    Isolate::Scope isolate_scope(isolate_);
-    HandleScope handle_scope(isolate_);
-    Local<Context> context = Context::New(isolate_);
-    Context::Scope context_scope(context);
+    v8::Isolate::Scope isolate_scope(isolate_);
+    v8::HandleScope handle_scope(isolate_);
+    v8::Local<v8::Context> context = v8::Context::New(isolate_);
+    v8::Context::Scope context_scope(context);
     auto result = ExecutionUtils::CompileRunJS(js, err_msg);
     EXPECT_EQ(result,
               FailureExecutionResult(SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE));
