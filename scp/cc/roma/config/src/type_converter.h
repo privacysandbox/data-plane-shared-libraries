@@ -264,10 +264,15 @@ template <>
 struct TypeConverter<uint8_t*> {
   static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, const uint8_t* data,
                                    size_t data_size) {
-    v8::Local<v8::ArrayBuffer> buffer =
-        v8::ArrayBuffer::New(isolate, data_size);
+    auto buffer = v8::ArrayBuffer::New(isolate, data_size);
     memcpy(buffer->Data(), data, data_size);
     return v8::Uint8Array::New(buffer, 0, data_size);
+  }
+
+  static v8::Local<v8::Value> ToV8(v8::Isolate* isolate,
+                                   std::string_view data) {
+    return ToV8(isolate, reinterpret_cast<const uint8_t*>(data.data()),
+                data.size());
   }
 
   static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
@@ -285,6 +290,12 @@ struct TypeConverter<uint8_t*> {
 
     memcpy(out, val_array->Buffer()->Data(), val_array->Length());
     return true;
+  }
+
+  static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
+                     std::string& data) {
+    return FromV8(isolate, val, reinterpret_cast<uint8_t*>(data.data()),
+                  data.size());
   }
 };
 }  // namespace google::scp::roma

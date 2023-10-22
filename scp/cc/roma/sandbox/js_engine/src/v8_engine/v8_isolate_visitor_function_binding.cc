@@ -92,9 +92,8 @@ bool V8TypesToProto(const v8::FunctionCallbackInfo<v8::Value>& info,
     const auto data_len = array->Length();
     std::string native_data;
     native_data.resize(data_len);
-    if (!TypeConverter<uint8_t*>::FromV8(
-            isolate, function_parameter,
-            reinterpret_cast<uint8_t*>(native_data.data()), data_len)) {
+    if (!TypeConverter<uint8_t*>::FromV8(isolate, function_parameter,
+                                         native_data)) {
       return false;
     }
     *proto.mutable_input_bytes() = std::move(native_data);
@@ -117,10 +116,7 @@ v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
     return TypeConverter<absl::flat_hash_map<std::string, std::string>>::ToV8(
         isolate, proto.output_map_of_string().data());
   } else if (proto.has_output_bytes()) {
-    const auto& bytes = proto.output_bytes();
-    return TypeConverter<uint8_t*>::ToV8(
-        isolate, reinterpret_cast<const uint8_t*>(bytes.data()),
-        bytes.length());
+    return TypeConverter<uint8_t*>::ToV8(isolate, proto.output_bytes());
   }
 
   // This function didn't return anything from C++
