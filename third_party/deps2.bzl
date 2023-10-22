@@ -40,9 +40,9 @@ def buf_dependencies():
     maybe(
         http_archive,
         name = "rules_buf",
-        sha256 = "3fe244c9efa42a41edd83f63dee1b5570a1951a654030658b86bfaea6a268164",
-        strip_prefix = "rules_buf-0.1.0",
-        urls = ["https://github.com/bufbuild/rules_buf/archive/refs/tags/v0.1.0.zip"],
+        sha256 = "523a4e06f0746661e092d083757263a249fedca535bd6dd819a8c50de074731a",
+        strip_prefix = "rules_buf-0.1.1",
+        urls = ["https://github.com/bufbuild/rules_buf/archive/refs/tags/v0.1.1.zip"],
     )
 
 def quiche_dependencies():
