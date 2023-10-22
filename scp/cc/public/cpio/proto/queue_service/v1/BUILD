@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(
-    "@com_google_googleapis_imports//:imports.bzl",
-    "cc_grpc_library",
-    "cc_proto_library",
-)
+load("@com_google_googleapis_imports//:imports.bzl", "cc_grpc_library", "cc_proto_library")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -30,9 +27,6 @@ proto_library(
     ],
 )
 
-##############################################################################
-# C++
-##############################################################################
 cc_proto_library(
     name = "queue_service_cc_proto",
     deps = [":queue_service_proto"],
@@ -44,4 +38,11 @@ cc_grpc_library(
     generate_mocks = True,
     grpc_only = True,
     deps = [":queue_service_cc_proto"],
+)
+
+buf_lint_test(
+    name = "queue_service_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":queue_service_proto"],
 )

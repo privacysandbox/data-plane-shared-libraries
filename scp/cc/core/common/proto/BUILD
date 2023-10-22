@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
@@ -19,14 +20,17 @@ package(default_visibility = ["//visibility:public"])
 
 proto_library(
     name = "core_common_proto",
-    srcs = glob(
-        [
-            "*.proto",
-        ],
-    ),
+    srcs = ["common.proto"],
 )
 
 cc_proto_library(
     name = "core_common_proto_lib",
     deps = [":core_common_proto"],
+)
+
+buf_lint_test(
+    name = "core_common_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":core_common_proto"],
 )

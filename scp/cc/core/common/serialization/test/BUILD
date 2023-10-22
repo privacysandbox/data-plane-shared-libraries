@@ -1,3 +1,5 @@
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+
 # Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,4 +41,11 @@ cc_test(
         "//scp/cc/core/test/utils:utils_lib",
         "@com_google_googletest//:gtest_main",
     ],
+)
+
+buf_lint_test(
+    name = "serialization_test_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":serialization_test_proto"],
 )

@@ -12,10 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//visibility:public"])
+
+proto_library(
+    name = "roma_function_binding_io_proto",
+    srcs = ["function_binding_io.proto"],
+)
+
+cc_proto_library(
+    name = "roma_function_binding_io_cc_proto",
+    deps = [":roma_function_binding_io_proto"],
+)
 
 cc_library(
     name = "roma_interface_lib",
@@ -35,12 +46,9 @@ cc_library(
     ],
 )
 
-proto_library(
-    name = "roma_function_binding_io_proto",
-    srcs = ["function_binding_io.proto"],
-)
-
-cc_proto_library(
-    name = "roma_function_binding_io_cc_proto",
-    deps = [":roma_function_binding_io_proto"],
+buf_lint_test(
+    name = "roma_function_binding_io_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":roma_function_binding_io_proto"],
 )

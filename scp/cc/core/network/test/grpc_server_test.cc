@@ -27,9 +27,9 @@
 #include "core/network/test/helloworld.pb.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using helloworld::Greeter;
-using helloworld::HelloReply;
-using helloworld::HelloRequest;
+using helloworld::GreeterService;
+using helloworld::SayHelloRequest;
+using helloworld::SayHelloResponse;
 
 namespace google::scp::core {
 TEST(GRPCServerTest, StartStop) {
@@ -50,9 +50,9 @@ TEST(GRPCServerTest, NotRegistered) {
 
   auto channel =
       grpc::CreateChannel("localhost:5555", grpc::InsecureChannelCredentials());
-  auto stub = Greeter::NewStub(channel);
-  HelloRequest request;
-  HelloReply reply;
+  auto stub = GreeterService::NewStub(channel);
+  SayHelloRequest request;
+  SayHelloResponse reply;
   grpc::ClientContext ctx;
   auto status = stub->SayHello(&ctx, request, &reply);
   EXPECT_FALSE(status.ok());
@@ -67,20 +67,20 @@ TEST(GRPCServerTest, SingleCall) {
   server.Init();
   server.Run();
 
-  GrpcHandler<HelloRequest, HelloReply> handler(
-      [](AsyncContext<HelloRequest, HelloReply>& ctx) {
-        ctx.response = std::make_shared<HelloReply>();
+  GrpcHandler<SayHelloRequest, SayHelloResponse> handler(
+      [](AsyncContext<SayHelloRequest, SayHelloResponse>& ctx) {
+        ctx.response = std::make_shared<SayHelloResponse>();
         ctx.response->mutable_message()->append("Foo");
         ctx.result = SuccessExecutionResult();
         ctx.Finish();
       });
-  server.RegisterHandler("/helloworld.Greeter/SayHello", handler);
+  server.RegisterHandler("/helloworld.GreeterService/SayHello", handler);
 
   auto channel =
       grpc::CreateChannel("localhost:5555", grpc::InsecureChannelCredentials());
-  auto stub = Greeter::NewStub(channel);
-  HelloRequest request;
-  HelloReply reply;
+  auto stub = GreeterService::NewStub(channel);
+  SayHelloRequest request;
+  SayHelloResponse reply;
   grpc::ClientContext ctx;
   auto status = stub->SayHello(&ctx, request, &reply);
   EXPECT_TRUE(status.ok());
@@ -95,26 +95,26 @@ TEST(GRPCServerTest, ConcurrentCalls) {
   server.Init();
   server.Run();
 
-  GrpcHandler<HelloRequest, HelloReply> handler(
-      [](AsyncContext<HelloRequest, HelloReply>& ctx) {
-        ctx.response = std::make_shared<HelloReply>();
+  GrpcHandler<SayHelloRequest, SayHelloResponse> handler(
+      [](AsyncContext<SayHelloRequest, SayHelloResponse>& ctx) {
+        ctx.response = std::make_shared<SayHelloResponse>();
         ctx.response->mutable_message()->append("Foo");
         ctx.result = SuccessExecutionResult();
         ctx.Finish();
       });
-  server.RegisterHandler("/helloworld.Greeter/SayHello", handler);
+  server.RegisterHandler("/helloworld.GreeterService/SayHello", handler);
 
   auto channel =
       grpc::CreateChannel("localhost:5555", grpc::InsecureChannelCredentials());
-  auto stub = Greeter::NewStub(channel);
+  auto stub = GreeterService::NewStub(channel);
 
   std::vector<std::thread> threads;
   // launch a few threads, each thread does a few calls.
   for (int i = 0; i < 10; ++i) {
     threads.emplace_back(std::thread([&stub]() {
       for (int i = 0; i < 10; ++i) {
-        HelloRequest request;
-        HelloReply reply;
+        SayHelloRequest request;
+        SayHelloResponse reply;
         grpc::ClientContext ctx;
         auto status = stub->SayHello(&ctx, request, &reply);
         EXPECT_TRUE(status.ok());

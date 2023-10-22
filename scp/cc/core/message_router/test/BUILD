@@ -12,19 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 proto_library(
-    name = "test",
+    name = "test_proto",
     srcs = ["test.proto"],
 )
 
 cc_proto_library(
     name = "test_cc_proto",
-    deps = [":test"],
+    deps = [":test_proto"],
 )
 
 cc_test(
@@ -42,4 +43,11 @@ cc_test(
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
+)
+
+buf_lint_test(
+    name = "test_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":test_proto"],
 )

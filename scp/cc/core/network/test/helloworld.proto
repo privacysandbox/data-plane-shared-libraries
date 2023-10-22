@@ -17,17 +17,17 @@ syntax = "proto3";
 package helloworld;
 
 // The greeting service definition.
-service Greeter {
+service GreeterService {
   // Sends a greeting
-  rpc SayHello(HelloRequest) returns (HelloReply) {}
+  rpc SayHello(SayHelloRequest) returns (SayHelloResponse) {}
 }
 
 // The request message containing the user's name.
-message HelloRequest {
+message SayHelloRequest {
   string name = 1;
 }
 
 // The response message containing the greetings
-message HelloReply {
+message SayHelloResponse {
   string message = 1;
 }

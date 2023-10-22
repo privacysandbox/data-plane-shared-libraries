@@ -1,3 +1,5 @@
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+
 # Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,10 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(
-    "@com_google_googleapis_imports//:imports.bzl",
-    "cc_proto_library",
-)
+load("@com_google_googleapis_imports//:imports.bzl", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -25,10 +24,14 @@ proto_library(
     srcs = ["detailed_execution_result.proto"],
 )
 
-##############################################################################
-# C++
-##############################################################################
 cc_proto_library(
     name = "detailed_execution_result_cc_proto",
     deps = [":detailed_execution_result_proto"],
+)
+
+buf_lint_test(
+    name = "detailed_execution_result_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":detailed_execution_result_proto"],
 )

@@ -13,9 +13,16 @@
 # limitations under the License.
 
 load("@com_github_grpc_grpc//bazel:grpc_build_system.bzl", "grpc_proto_library")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+
+proto_library(
+    name = "helloworld_proto",
+    srcs = ["helloworld.proto"],
+)
 
 grpc_proto_library(
     name = "helloworld_grpc",
@@ -44,4 +51,11 @@ cc_test(
         "//scp/cc/core/network/src:core_network_lib",
         "@com_google_googletest//:gtest_main",
     ],
+)
+
+buf_lint_test(
+    name = "helloworld_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":helloworld_proto"],
 )

@@ -1,3 +1,5 @@
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+
 # Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,4 +67,11 @@ cc_test(
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_googletest//:gtest_main",
     ],
+)
+
+buf_lint_test(
+    name = "callback_server_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":callback_server_proto"],
 )

@@ -14,9 +14,20 @@
 
 load("@com_google_sandboxed_api//sandboxed_api/bazel:proto.bzl", "sapi_proto_library")
 load("@com_google_sandboxed_api//sandboxed_api/bazel:sapi.bzl", "sapi_library")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//scp/cc/roma/sandbox/worker_api:__subpackages__"])
+
+proto_library(
+    name = "worker_api_proto",
+    srcs = [
+        "worker_init_params.proto",
+        "worker_params.proto",
+    ],
+    deps = ["@com_google_protobuf//:duration_proto"],
+)
 
 sapi_proto_library(
     name = "worker_params_proto",
@@ -92,4 +103,11 @@ cc_library(
         "//scp/cc/roma/sandbox/worker_factory/src:roma_worker_factory_lib",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],
+)
+
+buf_lint_test(
+    name = "worker_api_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":worker_api_proto"],
 )
