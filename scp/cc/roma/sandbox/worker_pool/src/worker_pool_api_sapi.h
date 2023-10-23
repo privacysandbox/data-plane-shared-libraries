@@ -49,11 +49,11 @@ class WorkerPoolApiSapi : public WorkerPool {
 
   size_t GetPoolSize() noexcept override;
 
-  core::ExecutionResultOr<std::shared_ptr<worker_api::WorkerApi>> GetWorker(
+  core::ExecutionResultOr<worker_api::WorkerApi*> GetWorker(
       size_t index) noexcept override;
 
  protected:
-  std::vector<std::shared_ptr<worker_api::WorkerApi>> workers_;
+  std::vector<std::unique_ptr<worker_api::WorkerApi>> workers_;
 };
 }  // namespace google::scp::roma::sandbox::worker_pool
 

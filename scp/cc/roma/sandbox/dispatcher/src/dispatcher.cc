@@ -94,7 +94,7 @@ ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
 }
 
 ExecutionResult Dispatcher::ReloadCachedCodeObjects(
-    std::shared_ptr<worker_api::WorkerApi>& worker) {
+    worker_api::WorkerApi& worker) {
   auto all_cached_code_objects = code_object_cache_.GetAll();
 
   pending_requests_ += all_cached_code_objects.size();
@@ -120,7 +120,7 @@ ExecutionResult Dispatcher::ReloadCachedCodeObjects(
     }
 
     // Send the code objects to the worker again so it reloads its cache
-    auto run_code_result_or = worker->RunCode(*run_code_request_or);
+    auto run_code_result_or = worker.RunCode(*run_code_request_or);
     if (!run_code_result_or.result().Successful()) {
       ptr_cached_code.release();
       pending_requests_ -= all_cached_code_objects.size();

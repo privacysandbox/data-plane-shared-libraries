@@ -32,7 +32,7 @@ namespace google::scp::roma::sandbox::worker_pool {
 WorkerPoolApiSapi::WorkerPoolApiSapi(
     const std::vector<worker_api::WorkerApiSapiConfig>& configs) {
   for (auto config : configs) {
-    workers_.push_back(std::make_shared<worker_api::WorkerApiSapi>(config));
+    workers_.push_back(std::make_unique<worker_api::WorkerApiSapi>(config));
   }
 }
 
@@ -73,13 +73,13 @@ size_t WorkerPoolApiSapi::GetPoolSize() noexcept {
   return workers_.size();
 }
 
-ExecutionResultOr<std::shared_ptr<worker_api::WorkerApi>>
-WorkerPoolApiSapi::GetWorker(size_t index) noexcept {
+ExecutionResultOr<worker_api::WorkerApi*> WorkerPoolApiSapi::GetWorker(
+    size_t index) noexcept {
   if (index >= workers_.size()) {
     return FailureExecutionResult(
         SC_ROMA_WORKER_POOL_WORKER_INDEX_OUT_OF_BOUNDS);
   }
 
-  return workers_.at(index);
+  return workers_.at(index).get();
 }
 }  // namespace google::scp::roma::sandbox::worker_pool

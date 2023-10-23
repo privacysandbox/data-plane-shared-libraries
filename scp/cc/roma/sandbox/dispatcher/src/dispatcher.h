@@ -249,7 +249,7 @@ class Dispatcher : public core::ServiceInterface {
               // This means that the worker crashed and the request could be
               // retried, however, we need to reload the worker with the
               // cached code.
-              auto reload_result = ReloadCachedCodeObjects(*worker_or);
+              auto reload_result = ReloadCachedCodeObjects(**worker_or);
               if (!reload_result.Successful()) {
                 LOG(ERROR) << "Reloading the worker cache failed with "
                            << core::errors::GetErrorMessage(
@@ -288,8 +288,7 @@ class Dispatcher : public core::ServiceInterface {
     return schedule_result;
   }
 
-  core::ExecutionResult ReloadCachedCodeObjects(
-      std::shared_ptr<worker_api::WorkerApi>& worker);
+  core::ExecutionResult ReloadCachedCodeObjects(worker_api::WorkerApi& worker);
 
   core::AsyncExecutor* async_executor_;
   worker_pool::WorkerPool* worker_pool_;

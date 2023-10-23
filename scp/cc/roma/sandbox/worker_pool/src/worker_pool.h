@@ -39,8 +39,11 @@ class WorkerPool : public core::ServiceInterface {
    * @param index
    * @return core::ExecutionResultOr<std::shared_ptr<worker_api::WorkerApi>>
    */
-  virtual core::ExecutionResultOr<std::shared_ptr<worker_api::WorkerApi>>
-  GetWorker(size_t index) noexcept = 0;
+  // TODO (b/305957393) - ExecutionResultOr doesn't support using references as
+  // values.  Once we switch to absl::StatusOr, remove the raw pointer and
+  // switch to references instead.
+  virtual core::ExecutionResultOr<worker_api::WorkerApi*> GetWorker(
+      size_t index) noexcept = 0;
 };
 }  // namespace google::scp::roma::sandbox::worker_pool
 

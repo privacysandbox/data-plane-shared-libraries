@@ -105,7 +105,7 @@ TEST(WorkerPoolTest, CanGetWorker) {
   auto worker2 = pool.GetWorker(1);
   EXPECT_SUCCESS(worker2.result());
 
-  EXPECT_NE(worker1->get(), worker2->get());
+  EXPECT_NE(worker1, worker2);
 
   result = pool.Stop();
   EXPECT_SUCCESS(result);
