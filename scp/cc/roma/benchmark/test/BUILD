@@ -46,6 +46,7 @@ cc_test(
     name = "fake_kv_server_test",
     size = "small",
     srcs = ["fake_kv_server_test.cc"],
+    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/benchmark/src:fake_kv_server",

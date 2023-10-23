@@ -20,6 +20,7 @@ cc_test(
     name = "logging_test",
     size = "small",
     srcs = ["logging_test.cc"],
+    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/roma_service/src:roma_service_lib",

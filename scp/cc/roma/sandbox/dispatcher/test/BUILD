@@ -20,6 +20,7 @@ cc_test(
     name = "dispatcher_test",
     size = "large",
     srcs = ["dispatcher_test.cc"],
+    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
         "//scp/cc/core/test/utils:utils_lib",

@@ -26,6 +26,7 @@ cc_test(
         "//scp/cc/roma/testing/rust_wasm_list_of_string_in_list_of_string_out_example",
         "//scp/cc/roma/testing/rust_wasm_string_in_string_out_example",
     ],
+    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",

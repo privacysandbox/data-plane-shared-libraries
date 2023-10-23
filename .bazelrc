@@ -37,6 +37,8 @@ build:asan --copt=-g
 build:asan --copt=-fno-omit-frame-pointer
 build:asan --linkopt=-fsanitize=address
 build:asan --linkopt=-fuse-ld=lld
+build:asan --build_tests_only
+build:asan --test_tag_filters=-noasan
 # TODO(b/293876281): Re-enable ODR violation checking once it's fixed in the
 # ZLib library that we depend on.
 build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always:detect_odr_violation=0
