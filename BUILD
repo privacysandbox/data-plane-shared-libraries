@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 
 string_flag(
@@ -119,4 +120,17 @@ EOF""",
     executable = True,
     local = True,
     message = "copy bazel test logs",
+)
+
+gazelle_binary(
+    name = "gazelle-buf",
+    languages = [
+        "@bazel_gazelle//language/proto:go_default_library",
+        "@rules_buf//gazelle/buf:buf",
+    ],
+)
+
+gazelle(
+    name = "gazelle",
+    gazelle = ":gazelle-buf",
 )

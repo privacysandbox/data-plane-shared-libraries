@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
@@ -59,4 +60,11 @@ proto_library(
 cc_proto_library(
     name = "config_cc_proto",
     deps = [":config_proto"],
+)
+
+buf_lint_test(
+    name = "config_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":config_proto"],
 )

@@ -21,9 +21,11 @@ load(
 )
 load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
 load("@io_bazel_rules_docker//repositories:go_repositories.bzl", "go_deps")
+load("@rules_buf//gazelle/buf:repositories.bzl", "gazelle_buf_dependencies")
 
 def deps4():
     container_deps()
     go_deps()
+    gazelle_buf_dependencies()
     rules_closure_dependencies()
     rules_closure_toolchains()

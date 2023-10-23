@@ -14,6 +14,7 @@
 
 """Further initialization of shared control plane dependencies."""
 
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
@@ -28,7 +29,7 @@ load("@google_privacysandbox_servers_common//scp/build_defs/tink:tink_defs.bzl",
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 
-GO_TOOLCHAINS_VERSION = "1.19.9"
+GO_TOOLCHAINS_VERSION = "1.21.1"
 
 def buf_dependencies():
     # rules_buf (https://docs.buf.build/build-systems/bazel)
@@ -73,6 +74,7 @@ def deps2(
     bazel_skylib_workspace()
     go_rules_dependencies()
     go_register_toolchains(version = go_toolchains_version)
+    gazelle_dependencies()
     rules_pkg_dependencies()
     import_v8()
     sandboxed_api()
