@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_CONFIG_SRC_TYPE_CONVERTER_H_
-#define ROMA_CONFIG_SRC_TYPE_CONVERTER_H_
+#ifndef SCP_CC_ROMA_CONFIG_SRC_TYPE_CONVERTER
+#define SCP_CC_ROMA_CONFIG_SRC_TYPE_CONVERTER
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <google/protobuf/map.h>
@@ -58,24 +59,6 @@ struct TypeConverter<std::string> {
 
 template <>
 struct TypeConverter<std::vector<std::string>> {
-  static v8::Local<v8::Value> ToV8(v8::Isolate* isolate,
-                                   const std::vector<std::string>& val) {
-    v8::Local<v8::Array> array = v8::Array::New(isolate, val.size());
-
-    // Return an empty result if there was an error creating the array.
-    if (array.IsEmpty()) {
-      return v8::Local<v8::Array>();
-    }
-
-    for (size_t i = 0; i < val.size(); i++) {
-      const auto v8_str = TypeConverter<std::string>::ToV8(isolate, val.at(i));
-      const auto result = array->Set(isolate->GetCurrentContext(), i, v8_str);
-      result.Check();
-    }
-
-    return array;
-  }
-
   static v8::Local<v8::Value> ToV8(
       v8::Isolate* isolate,
       const google::protobuf::RepeatedPtrField<std::string>& val) {
@@ -111,62 +94,7 @@ struct TypeConverter<std::vector<std::string>> {
         return false;
       }
 
-      out->push_back(str);
-    }
-
-    return true;
-  }
-};
-
-template <>
-struct TypeConverter<common::Map<std::string, std::string>> {
-  static v8::Local<v8::Value> ToV8(v8::Isolate* isolate,
-                                   common::Map<std::string, std::string>& val) {
-    auto map = v8::Map::New(isolate);
-    auto keys = val.Keys();
-
-    for (auto& key : keys) {
-      map->Set(isolate->GetCurrentContext(),
-               TypeConverter<std::string>::ToV8(isolate, key),
-               TypeConverter<std::string>::ToV8(isolate, val.Get(key)));
-    }
-
-    return map;
-  }
-
-  static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
-                     common::Map<std::string, std::string>* out) {
-    if (val.IsEmpty() || !val->IsMap()) {
-      return false;
-    }
-
-    auto v8_map = val.As<v8::Map>();
-    // This turns the map into an array of size Size()*2, where index N is a
-    // key, and N+1 is the value for the given key.
-    auto map_as_array = v8_map->AsArray();
-
-    for (auto i = 0; i < map_as_array->Length(); i += 2) {
-      auto key_index = i;
-      auto value_index = i + 1;
-
-      auto key = map_as_array->Get(isolate->GetCurrentContext(), key_index)
-                     .ToLocalChecked();
-      auto value = map_as_array->Get(isolate->GetCurrentContext(), value_index)
-                       .ToLocalChecked();
-
-      std::string key_str;
-      std::string val_str;
-      bool key_conversion =
-          TypeConverter<std::string>::FromV8(isolate, key, &key_str);
-      bool value_conversion =
-          TypeConverter<std::string>::FromV8(isolate, value, &val_str);
-
-      if (!key_conversion || !value_conversion) {
-        out->Clear();
-        return false;
-      }
-
-      out->Set(key_str, val_str);
+      out->push_back(std::move(str));
     }
 
     return true;
@@ -175,20 +103,6 @@ struct TypeConverter<common::Map<std::string, std::string>> {
 
 template <>
 struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
-  static v8::Local<v8::Value> ToV8(
-      v8::Isolate* isolate,
-      const absl::flat_hash_map<std::string, std::string>& val) {
-    auto map = v8::Map::New(isolate);
-
-    for (const auto& kvp : val) {
-      map->Set(isolate->GetCurrentContext(),
-               TypeConverter<std::string>::ToV8(isolate, kvp.first),
-               TypeConverter<std::string>::ToV8(isolate, kvp.second));
-    }
-
-    return map;
-  }
-
   static v8::Local<v8::Value> ToV8(
       v8::Isolate* isolate,
       const google::protobuf::Map<std::string, std::string>& val) {
@@ -300,4 +214,4 @@ struct TypeConverter<uint8_t*> {
 };
 }  // namespace google::scp::roma
 
-#endif  // ROMA_CONFIG_SRC_TYPE_CONVERTER_H_
+#endif  // SCP_CC_ROMA_CONFIG_SRC_TYPE_CONVERTER

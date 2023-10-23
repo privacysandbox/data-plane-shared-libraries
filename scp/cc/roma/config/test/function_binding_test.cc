@@ -300,21 +300,6 @@ static std::vector<std::string> StringInputVectorOfStringOutput(
   return output;
 }
 
-TEST_F(FunctionBindingTest,
-       FunctionBindingByNameStringInputAndVectorOfStringOutput) {
-  // Function that returns a vector of string and takes in a string as input
-  FunctionBindingObject<std::vector<std::string>, std::string> func;
-  // Set the name by which the function will be called in JS
-  func.function_name = "str_in_vec_str_out";
-  // Set the C++ callback for the JS function
-  func.function = StringInputVectorOfStringOutput;
-
-  auto result =
-      RunV8Function(isolate_, "str_in_vec_str_out('Hello from JS!');", func);
-
-  EXPECT_EQ(result, "Hello from JS!,And some added stuff");
-}
-
 // User provided JS function
 static std::vector<std::string> VectorOfStringInputVectorOfStringOutput(
     std::tuple<std::vector<std::string>>& input) {
@@ -326,23 +311,6 @@ static std::vector<std::string> VectorOfStringInputVectorOfStringOutput(
     output.push_back(input_vec.at(i));
   }
   return output;
-}
-
-TEST_F(FunctionBindingTest,
-       FunctionBindingByNameVectorOfStringInputAndVectorOfStringOutput) {
-  // Function that returns a vector of string string and takes in a vector of
-  // string as input
-  FunctionBindingObject<std::vector<std::string>, std::vector<std::string>>
-      func;
-  // Set the name by which the function will be called in JS
-  func.function_name = "vec_str_in_vec_str_out";
-  // Set the C++ callback for the JS function
-  func.function = VectorOfStringInputVectorOfStringOutput;
-
-  auto result = RunV8Function(
-      isolate_, "vec_str_in_vec_str_out(['H','E','L','L','O']);", func);
-
-  EXPECT_EQ(result, "O,L,L,E,H");
 }
 
 static std::string ConcatenateVector(std::vector<std::string>& vec) {
@@ -370,28 +338,6 @@ static std::vector<std::string> MixedInputAndVectorOfStringOutput(
   return output;
 }
 
-TEST_F(FunctionBindingTest, VectorOfStringOutputAndMixedInput) {
-  // Function that returns a vector of string and takes mixed types as input
-  FunctionBindingObject<std::vector<std::string>, std::vector<std::string>,
-                        std::string, std::vector<std::string>, std::string>
-      func;
-  // Set the name by which the function will be called in JS
-  func.function_name = "mixed_in_vec_str_out";
-  // Set the C++ callback for the JS function
-  func.function = MixedInputAndVectorOfStringOutput;
-
-  auto js_source =
-      "list_one = ['H','E','L','L','O'];"
-      "str_one = 'MY';"
-      "list_two = ['F','R','I','E','N','D'];"
-      "str_two = ':)';"
-      "mixed_in_vec_str_out(list_one, str_one, list_two, str_two)";
-
-  auto result = RunV8Function(isolate_, js_source, func);
-
-  EXPECT_EQ(result, "HELLO,MY,FRIEND,:)");
-}
-
 // User provided JS function
 static common::Map<std::string, std::string> VectorsOfStringInputAndMapOutput(
     std::tuple<std::vector<std::string>, std::vector<std::string>,
@@ -407,36 +353,6 @@ static common::Map<std::string, std::string> VectorsOfStringInputAndMapOutput(
   output.Set("vec3", ConcatenateVector(input_three));
   output.Set("vec4", ConcatenateVector(input_four));
   return output;
-}
-
-TEST_F(FunctionBindingTest, MapOutputAndVectorsOfStringInput) {
-  // Function that returns a map<string, string >and takes vectors of string as
-  // input
-  FunctionBindingObject<common::Map<std::string, std::string>,
-                        std::vector<std::string>, std::vector<std::string>,
-                        std::vector<std::string>, std::vector<std::string>>
-      func;
-  // Set the name by which the function will be called in JS
-  func.function_name = "vecs_str_in_map_out";
-  // Set the C++ callback for the JS function
-  func.function = VectorsOfStringInputAndMapOutput;
-
-  auto js_source =
-      "list_one = ['A','B','C','D','E'];"
-      "list_two = ['F','G','H','I','J'];"
-      "list_three = ['K','L','M','N','O'];"
-      "list_four = ['P','Q','R','S','T'];"
-      "map = vecs_str_in_map_out(list_one, list_two, list_three, list_four);"
-      "result = [];"
-      "for (let [key, value] of  map.entries()) {"
-      "entry = key + '-' + value;"
-      "result.push(entry);"
-      "}"
-      "result;";
-
-  auto result = RunV8Function(isolate_, js_source, func);
-
-  EXPECT_EQ(result, "vec1-ABCDE,vec2-FGHIJ,vec3-KLMNO,vec4-PQRST");
 }
 
 TEST_F(FunctionBindingTest, ShouldAllowInlineHandler) {

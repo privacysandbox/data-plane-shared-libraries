@@ -128,22 +128,6 @@ static void AssertArrayEquality(v8::Isolate* isolate,
   }
 }
 
-TEST_F(TypeConverterTest, VectorOfStringToV8Array) {
-  v8::Isolate::Scope isolate_scope(isolate_);
-  v8::HandleScope handle_scope(isolate_);
-  // Array allocation requires a context
-  v8::Local<v8::Context> global_context = v8::Context::New(isolate_);
-  v8::Context::Scope context_scope(global_context);
-
-  const std::vector<std::string> vec = {"one", "two", "three"};
-
-  const v8::Local<v8::Array> v8_array =
-      TypeConverter<std::vector<std::string>>::ToV8(isolate_, vec)
-          .As<v8::Array>();
-
-  AssertArrayEquality(isolate_, vec, v8_array);
-}
-
 TEST_F(TypeConverterTest, ListOfStringProtoToV8Array) {
   v8::Isolate::Scope isolate_scope(isolate_);
   v8::HandleScope handle_scope(isolate_);
@@ -311,74 +295,6 @@ static void AssertFlatHashMapOfStringEquality(
   EXPECT_THAT(native_map_vals, ::testing::ElementsAreArray(v8_map_vals));
 }
 
-TEST_F(TypeConverterTest, MapOfStringStringToV8Map) {
-  v8::Isolate::Scope isolate_scope(isolate_);
-  v8::HandleScope handle_scope(isolate_);
-  // Array allocation requires a context
-  v8::Local<v8::Context> context = v8::Context::New(isolate_);
-  v8::Context::Scope context_scope(context);
-
-  common::Map<std::string, std::string> map;
-  map.Set("key1", "val1");
-  map.Set("key2", "val2");
-  map.Set("key3", "val3");
-
-  v8::Local<v8::Map> v8_map =
-      TypeConverter<common::Map<std::string, std::string>>::ToV8(isolate_, map)
-          .As<v8::Map>();
-
-  AssertMapOfStringEquality(isolate_, map, v8_map);
-}
-
-TEST_F(TypeConverterTest, v8MapToMapOfStringString) {
-  v8::Isolate::Scope isolate_scope(isolate_);
-  v8::HandleScope handle_scope(isolate_);
-  // Array allocation requires a context
-  v8::Local<v8::Context> context = v8::Context::New(isolate_);
-  v8::Context::Scope context_scope(context);
-
-  v8::Local<v8::Map> v8_map = v8::Map::New(isolate_);
-  v8_map
-      ->Set(context, v8::String::NewFromUtf8Literal(isolate_, "key1"),
-            v8::String::NewFromUtf8Literal(isolate_, "val1"))
-      .ToLocalChecked();
-  v8_map
-      ->Set(context, v8::String::NewFromUtf8Literal(isolate_, "key2"),
-            v8::String::NewFromUtf8Literal(isolate_, "val2"))
-      .ToLocalChecked();
-  v8_map
-      ->Set(context, v8::String::NewFromUtf8Literal(isolate_, "key3"),
-            v8::String::NewFromUtf8Literal(isolate_, "val3"))
-      .ToLocalChecked();
-
-  common::Map<std::string, std::string> map;
-  EXPECT_TRUE((TypeConverter<common::Map<std::string, std::string>>::FromV8(
-      isolate_, v8_map, &map)));
-
-  AssertMapOfStringEquality(isolate_, map, v8_map);
-}
-
-TEST_F(TypeConverterTest, FlatHashMapOfStringStringToV8Map) {
-  v8::Isolate::Scope isolate_scope(isolate_);
-  v8::HandleScope handle_scope(isolate_);
-  // Array allocation requires a context
-  v8::Local<v8::Context> context = v8::Context::New(isolate_);
-  v8::Context::Scope context_scope(context);
-
-  const absl::flat_hash_map<std::string, std::string> kv_map = {
-      {"key1", "val1"},
-      {"key2", "val2"},
-      {"key3", "val3"},
-  };
-
-  const v8::Local<v8::Map> v8_map =
-      TypeConverter<absl::flat_hash_map<std::string, std::string>>::ToV8(
-          isolate_, kv_map)
-          .As<v8::Map>();
-
-  AssertFlatHashMapOfStringEquality(isolate_, kv_map, v8_map);
-}
-
 TEST_F(TypeConverterTest, MapOfStringStringProtoToV8Map) {
   v8::Isolate::Scope isolate_scope(isolate_);
   v8::HandleScope handle_scope(isolate_);
@@ -434,84 +350,6 @@ TEST_F(TypeConverterTest, v8MapToFlatHashMapOfStringString) {
 }
 
 TEST_F(TypeConverterTest,
-       v8MapToMapOfStringStringShouldFailWithUnsupportedTypeVal) {
-  v8::Isolate::Scope isolate_scope(isolate_);
-  v8::HandleScope handle_scope(isolate_);
-  // Array allocation requires a context
-  v8::Local<v8::Context> context = v8::Context::New(isolate_);
-  v8::Context::Scope context_scope(context);
-
-  v8::Local<v8::Map> v8_map = v8::Map::New(isolate_);
-  v8_map
-      ->Set(context, v8::String::NewFromUtf8Literal(isolate_, "key1"),
-            v8::Number::New(isolate_, 1))
-      .ToLocalChecked();
-
-  common::Map<std::string, std::string> map;
-  EXPECT_FALSE((TypeConverter<common::Map<std::string, std::string>>::FromV8(
-      isolate_, v8_map, &map)));
-
-  EXPECT_EQ(map.Size(), 0);
-}
-
-TEST_F(TypeConverterTest,
-       v8MapToFlatHashMapOfStringStringShouldFailWithUnsupportedTypeVal) {
-  v8::Isolate::Scope isolate_scope(isolate_);
-  v8::HandleScope handle_scope(isolate_);
-  // Array allocation requires a context
-  v8::Local<v8::Context> context = v8::Context::New(isolate_);
-  v8::Context::Scope context_scope(context);
-
-  v8::Local<v8::Map> v8_map = v8::Map::New(isolate_);
-  v8_map
-      ->Set(context, v8::String::NewFromUtf8Literal(isolate_, "key1"),
-            v8::Number::New(isolate_, 1))
-      .ToLocalChecked();
-
-  absl::flat_hash_map<std::string, std::string> map;
-  EXPECT_FALSE(
-      (TypeConverter<absl::flat_hash_map<std::string, std::string>>::FromV8(
-          isolate_, v8_map, &map)));
-
-  EXPECT_EQ(map.size(), 0);
-}
-
-TEST_F(TypeConverterTest,
-       v8MapToMapOfStringStringShouldFailWithUnsupportedTypeKey) {
-  v8::Isolate::Scope isolate_scope(isolate_);
-  v8::HandleScope handle_scope(isolate_);
-  // Array allocation requires a context
-  v8::Local<v8::Context> context = v8::Context::New(isolate_);
-  v8::Context::Scope context_scope(context);
-
-  v8::Local<v8::Map> v8_map = v8::Map::New(isolate_);
-  v8_map
-      ->Set(context, v8::String::NewFromUtf8Literal(isolate_, "key1"),
-            v8::String::NewFromUtf8Literal(isolate_, "val1"))
-      .ToLocalChecked();
-  // Number key
-  v8_map
-      ->Set(context, v8::Number::New(isolate_, 1),
-            v8::String::NewFromUtf8Literal(isolate_, "val2"))
-      .ToLocalChecked();
-  v8_map
-      ->Set(context, v8::String::NewFromUtf8Literal(isolate_, "key3"),
-            v8::String::NewFromUtf8Literal(isolate_, "val3"))
-      .ToLocalChecked();
-  // Number value
-  v8_map
-      ->Set(context, v8::String::NewFromUtf8Literal(isolate_, "key4"),
-            v8::Number::New(isolate_, 1))
-      .ToLocalChecked();
-
-  common::Map<std::string, std::string> map;
-  EXPECT_FALSE((TypeConverter<common::Map<std::string, std::string>>::FromV8(
-      isolate_, v8_map, &map)));
-
-  EXPECT_EQ(map.Size(), 0);
-}
-
-TEST_F(TypeConverterTest,
        v8MapToFlatHashMapOfStringStringShouldFailWithUnsupportedTypeKey) {
   v8::Isolate::Scope isolate_scope(isolate_);
   v8::HandleScope handle_scope(isolate_);
@@ -545,27 +383,6 @@ TEST_F(TypeConverterTest,
           isolate_, v8_map, &map)));
 
   EXPECT_EQ(map.size(), 0);
-}
-
-TEST_F(TypeConverterTest,
-       v8MapToMapOfStringStringShouldFailWithUnsupportedMixedTypes) {
-  v8::Isolate::Scope isolate_scope(isolate_);
-  v8::HandleScope handle_scope(isolate_);
-  // Array allocation requires a context
-  v8::Local<v8::Context> context = v8::Context::New(isolate_);
-  v8::Context::Scope context_scope(context);
-
-  v8::Local<v8::Map> v8_map = v8::Map::New(isolate_);
-  v8_map
-      ->Set(context, v8::Number::New(isolate_, 1),
-            v8::String::NewFromUtf8Literal(isolate_, "val1"))
-      .ToLocalChecked();
-
-  common::Map<std::string, std::string> map;
-  EXPECT_FALSE((TypeConverter<common::Map<std::string, std::string>>::FromV8(
-      isolate_, v8_map, &map)));
-
-  EXPECT_EQ(map.Size(), 0);
 }
 
 TEST_F(TypeConverterTest,
