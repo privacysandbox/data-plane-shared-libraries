@@ -41,7 +41,7 @@ class GcpParameterServiceFactory : public ParameterServiceFactory {
    * @brief Creates ParameterClient.
    *
    * @param config_provider provides configurations
-   * @return std::unique_ptr<core::TokenProviderCacheInterface>
+   * @return std::shared_ptr<ParameterClientProviderInterface>
    */
   std::shared_ptr<client_providers::ParameterClientProviderInterface>
   CreateParameterClient() noexcept override;

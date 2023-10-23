@@ -37,7 +37,7 @@ class GcpMetricServiceFactory : public MetricServiceFactory {
    * @brief Creates MetricClient.
    *
    * @param config_provider provides configurations
-   * @return std::unique_ptr<core::TokenProviderCacheInterface>
+   * @return std::shared_ptr<MetricClientInterface>
    */
   std::shared_ptr<MetricClientInterface> CreateMetricClient() noexcept override;
 
