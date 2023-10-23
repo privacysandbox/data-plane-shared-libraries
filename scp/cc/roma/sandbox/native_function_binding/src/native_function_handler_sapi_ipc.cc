@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "roma/sandbox/constants/constants.h"
@@ -34,17 +35,14 @@ static constexpr char kCouldNotFindFunctionName[] =
 
 namespace google::scp::roma::sandbox::native_function_binding {
 NativeFunctionHandlerSapiIpc::NativeFunctionHandlerSapiIpc(
-    std::shared_ptr<NativeFunctionTable>& function_table,
-    std::vector<int> local_fds, std::vector<int> remote_fds) {
-  stop_ = false;
-  function_table_ = function_table;
-  auto process_count = local_fds.size();
-
-  for (int i = 0; i < process_count; i++) {
-    ipc_comms_.push_back(std::make_shared<sandbox2::Comms>(local_fds.at(i)));
+    NativeFunctionTable* function_table, const std::vector<int>& local_fds,
+    std::vector<int> remote_fds)
+    : stop_(false),
+      function_table_(function_table),
+      remote_fds_(std::move(remote_fds)) {
+  for (int local_fd : local_fds) {
+    ipc_comms_.emplace_back(local_fd);
   }
-
-  remote_fds_ = remote_fds;
 }
 
 ExecutionResult NativeFunctionHandlerSapiIpc::Init() noexcept {
@@ -55,11 +53,11 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Run() noexcept {
   for (int i = 0; i < ipc_comms_.size(); i++) {
     function_handler_threads_.emplace_back([this, i] {
       while (true) {
-        auto comms = ipc_comms_.at(i);
+        sandbox2::Comms& comms = ipc_comms_.at(i);
         proto::FunctionBindingIoProto io_proto;
 
         // This unblocks once a call is issued from the other side
-        bool received = comms->RecvProtoBuf(&io_proto);
+        bool received = comms.RecvProtoBuf(&io_proto);
 
         if (stop_.load()) {
           break;
@@ -84,7 +82,7 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Run() noexcept {
           }
         }
 
-        if (!comms->SendProtoBuf(io_proto)) {
+        if (!comms.SendProtoBuf(io_proto)) {
           continue;
         }
       }
@@ -113,8 +111,8 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Stop() noexcept {
     }
   }
 
-  for (auto& c : ipc_comms_) {
-    c->Terminate();
+  for (sandbox2::Comms& c : ipc_comms_) {
+    c.Terminate();
   }
 
   return SuccessExecutionResult();

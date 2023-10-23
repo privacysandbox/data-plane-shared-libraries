@@ -40,9 +40,9 @@ class NativeFunctionHandlerSapiIpc : public core::ServiceInterface {
    * @param remote_fds The remote file descriptors. These are what the remote
    * process uses to send requests to this process.
    */
-  NativeFunctionHandlerSapiIpc(
-      std::shared_ptr<NativeFunctionTable>& function_table,
-      std::vector<int> local_fds, std::vector<int> remote_fds);
+  NativeFunctionHandlerSapiIpc(NativeFunctionTable* function_table,
+                               const std::vector<int>&,
+                               std::vector<int> remote_fds);
 
   core::ExecutionResult Init() noexcept override;
 
@@ -53,9 +53,9 @@ class NativeFunctionHandlerSapiIpc : public core::ServiceInterface {
  private:
   std::atomic<bool> stop_;
 
-  std::shared_ptr<NativeFunctionTable> function_table_;
+  NativeFunctionTable* function_table_;
   std::vector<std::thread> function_handler_threads_;
-  std::vector<std::shared_ptr<sandbox2::Comms>> ipc_comms_;
+  std::vector<sandbox2::Comms> ipc_comms_;
   // We need the remote file descriptors to unblock the local ones when stopping
   std::vector<int> remote_fds_;
 };

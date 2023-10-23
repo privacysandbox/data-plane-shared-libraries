@@ -44,8 +44,8 @@ TEST(NativeFunctionHandlerSapiIpcTest, IninRunStop) {
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
-  auto function_table = std::make_shared<NativeFunctionTable>();
-  NativeFunctionHandlerSapiIpc handler(function_table, local_fds, remote_fds);
+  NativeFunctionTable function_table;
+  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
 
   EXPECT_SUCCESS(handler.Init());
   EXPECT_SUCCESS(handler.Run());
@@ -64,9 +64,9 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
-  auto function_table = std::make_shared<NativeFunctionTable>();
-  function_table->Register("cool_function_name", FunctionToBeCalled);
-  NativeFunctionHandlerSapiIpc handler(function_table, local_fds, remote_fds);
+  NativeFunctionTable function_table;
+  function_table.Register("cool_function_name", FunctionToBeCalled);
+  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
   AutoInitRunStop for_handler(handler);
 
   g_called_registered_function = false;
@@ -92,9 +92,9 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
-  auto function_table = std::make_shared<NativeFunctionTable>();
+  NativeFunctionTable function_table;
   // We don't register any functions with the function table
-  NativeFunctionHandlerSapiIpc handler(function_table, local_fds, remote_fds);
+  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
   AutoInitRunStop for_handler(handler);
 
   g_called_registered_function = false;
@@ -124,9 +124,9 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
-  auto function_table = std::make_shared<NativeFunctionTable>();
+  NativeFunctionTable function_table;
   // We don't register any functions with the function table
-  NativeFunctionHandlerSapiIpc handler(function_table, local_fds, remote_fds);
+  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
   AutoInitRunStop for_handler(handler);
 
   g_called_registered_function = false;
@@ -166,10 +166,10 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
-  auto function_table = std::make_shared<NativeFunctionTable>();
-  function_table->Register("cool_function_name_one", FunctionOne);
-  function_table->Register("cool_function_name_two", FunctionTwo);
-  NativeFunctionHandlerSapiIpc handler(function_table, local_fds, remote_fds);
+  NativeFunctionTable function_table;
+  function_table.Register("cool_function_name_one", FunctionOne);
+  function_table.Register("cool_function_name_two", FunctionTwo);
+  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
   AutoInitRunStop for_handler(handler);
 
   g_called_registered_function_one = false;

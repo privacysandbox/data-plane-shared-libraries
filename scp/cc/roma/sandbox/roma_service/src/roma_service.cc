@@ -164,15 +164,13 @@ ExecutionResult RomaService::Stop() noexcept {
 
 ExecutionResultOr<RomaService::NativeFunctionBindingSetup>
 RomaService::SetupNativeFunctionHandler(size_t concurrency) {
-  native_function_binding_table_ = std::make_shared<NativeFunctionTable>();
-
   std::vector<std::shared_ptr<FunctionBindingObjectV2>> function_bindings;
   config_.GetFunctionBindings(function_bindings);
 
   std::vector<std::string> function_names;
 
   for (auto& binding : function_bindings) {
-    auto result = native_function_binding_table_->Register(
+    auto result = native_function_binding_table_.Register(
         binding->function_name, binding->function);
     RETURN_IF_FAILURE(result);
 
@@ -193,13 +191,13 @@ RomaService::SetupNativeFunctionHandler(size_t concurrency) {
   }
 
   native_function_binding_handler_ =
-      std::make_shared<NativeFunctionHandlerSapiIpc>(
-          native_function_binding_table_, local_fds, remote_fds);
+      std::make_unique<NativeFunctionHandlerSapiIpc>(
+          &native_function_binding_table_, local_fds, remote_fds);
   auto result = native_function_binding_handler_->Init();
   RETURN_IF_FAILURE(result);
 
   NativeFunctionBindingSetup setup{
-      .remote_file_descriptors = remote_fds,
+      .remote_file_descriptors = std::move(remote_fds),
       .local_file_descriptors = local_fds,
       .js_function_names = function_names,
   };
