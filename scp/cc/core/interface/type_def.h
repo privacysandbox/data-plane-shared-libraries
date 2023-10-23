@@ -29,12 +29,7 @@ namespace google::scp::core {
 using Timestamp = uint64_t;
 using TimeDuration = uint64_t;
 using Byte = char;
-using JournalId = uint64_t;
-using CheckpointId = uint64_t;
 using Token = std::string;
-
-static constexpr JournalId kInvalidJournalId = 0;
-static constexpr CheckpointId kInvalidCheckpointId = 0;
 
 /// The default aggregate interval in milliseconds for AggregatedMetric.
 static constexpr TimeDuration kDefaultAggregatedMetricIntervalMs = 1000;

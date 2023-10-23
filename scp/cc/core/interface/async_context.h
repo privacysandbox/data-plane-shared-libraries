@@ -148,8 +148,7 @@ struct AsyncContext {
   common::Uuid activity_id;
 
   /// The unique id for the operation the current context is relate to.
-  /// For example, in CPIO, it could be for a request, and in PBS, it could be
-  /// for a transaction.
+  /// For example, in CPIO, it could be for a request.
   common::Uuid correlation_id;
 
   /// The input request for the operation.
