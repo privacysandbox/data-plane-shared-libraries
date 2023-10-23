@@ -44,12 +44,39 @@ static constexpr char kWasmMemory[] = "memory";
 static constexpr char kWasiSnapshotPreview[] = "wasi_snapshot_preview1";
 static constexpr char kWasiProcExitFunctionName[] = "proc_exit";
 
+ExecutionResult ExecutionUtils::CreatePerformanceNow(v8::Isolate* isolate) {
+  v8::Local<v8::Context> context(isolate->GetCurrentContext());
+  v8::Local<v8::String> source =
+      v8::String::NewFromUtf8(isolate,
+                              "const performance = { now: () => Date.now() };")
+          .ToLocalChecked();
+
+  v8::Local<v8::Script> script;
+  if (!v8::Script::Compile(context, source).ToLocal(&script)) {
+    return core::FailureExecutionResult(
+        core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE);
+  }
+
+  v8::Local<v8::Value> script_result;
+  if (!script->Run(context).ToLocal(&script_result)) {
+    return core::FailureExecutionResult(
+        core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE);
+  }
+
+  return core::SuccessExecutionResult();
+}
+
 ExecutionResult ExecutionUtils::CompileRunJS(
     const std::string& js, std::string& err_msg,
     v8::Local<v8::UnboundScript>* unbound_script) noexcept {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
+
+  if (auto result = CreatePerformanceNow(isolate); !result.Successful()) {
+    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
+    return result;
+  }
 
   v8::Local<v8::String> js_source =
       v8::String::NewFromUtf8(isolate, js.data(), v8::NewStringType::kNormal,

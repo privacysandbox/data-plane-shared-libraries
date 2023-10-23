@@ -322,12 +322,67 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInput) {
   EXPECT_EQ(output, "3");
 }
 
+TEST_F(ExecutionUtilsTest, PerformanceNowDeclaredInJs) {
+  RunCodeArguments code_obj;
+  code_obj.js =
+      R"(
+        function Handler() {
+          // Date.now overriden to always return the same number.
+          Date.now = () => 1672531200000;
+          return performance.now() === Date.now();
+        }
+      )";
+  code_obj.handler_name = "Handler";
+
+  std::string output;
+  std::string err_msg;
+  auto result = RunCode(code_obj, output, err_msg);
+  EXPECT_SUCCESS(result);
+  EXPECT_EQ(output, "true");
+}
+
+TEST_F(ExecutionUtilsTest, JsPredicateMatchesTrueOutput) {
+  RunCodeArguments code_obj;
+  code_obj.js = "var Predicate = () => true;";
+  code_obj.handler_name = "Predicate";
+
+  std::string output;
+  std::string err_msg;
+  auto result = RunCode(code_obj, output, err_msg);
+  EXPECT_SUCCESS(result);
+  EXPECT_EQ(output, "true");
+}
+
+TEST_F(ExecutionUtilsTest, JsPredicateMatchesFalseOutput) {
+  RunCodeArguments code_obj;
+  code_obj.js = "var Predicate = () => false;";
+  code_obj.handler_name = "Predicate";
+
+  std::string output;
+  std::string err_msg;
+  auto result = RunCode(code_obj, output, err_msg);
+  EXPECT_SUCCESS(result);
+  EXPECT_EQ(output, "false");
+}
+
+TEST_F(ExecutionUtilsTest, JsFunctionOutput) {
+  RunCodeArguments code_obj;
+  code_obj.js = "var Handler = () => 3;";
+  code_obj.handler_name = "Handler";
+
+  std::string output;
+  std::string err_msg;
+  auto result = RunCode(code_obj, output, err_msg);
+  EXPECT_SUCCESS(result);
+  EXPECT_EQ(output, "3");
+}
+
 TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInputMissKey) {
   RunCodeArguments code_obj;
   code_obj.js =
       R"(
         function Handler(a, b) {
-          return (a["value"] + b["value"]);
+          return (a.value + b.value);
         }
       )";
   code_obj.handler_name = "Handler";
@@ -349,7 +404,7 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInputMissValue) {
   code_obj.js =
       R"(
         function Handler(a, b) {
-          return (a["value"] + b["value"]);
+          return (a["value"] + b.value);
         }
       )";
   code_obj.handler_name = "Handler";
@@ -370,9 +425,7 @@ TEST_F(ExecutionUtilsTest, RunCodeObjRunWithLessArgs) {
   // When handler function argument is Json data, function still can call and
   // run without any error, but there is no valid output.
   RunCodeArguments code_obj;
-  code_obj.js =
-      "function Handler(a, b) { "
-      "return (a + b); }";
+  code_obj.js = "var Handler = (a, b) => (a + b);";
   code_obj.handler_name = "Handler";
 
   std::string output;
@@ -389,7 +442,7 @@ TEST_F(ExecutionUtilsTest, RunCodeObjRunWithJsonArgsMissing) {
   code_obj.js =
       R"(
         function Handler(a, b) {
-          return (a["value"] + b["value"]);
+          return (a.value + b.value);
         }
       )";
   code_obj.handler_name = "Handler";
