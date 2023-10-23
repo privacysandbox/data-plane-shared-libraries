@@ -108,6 +108,25 @@ TEST(WorkerWrapperTest,
   EXPECT_EQ(SC_OK, result);
 }
 
+// Function object which invokes 'free' on its parameter, which must be
+// a pointer. Can be used to store malloc-allocated pointers in std::unique_ptr:
+//
+// std::unique_ptr<int, FreeDeleter> foo_ptr(
+//     static_cast<int*>(malloc(sizeof(int))));
+struct FreeDeleter {
+  inline void operator()(void* ptr) const { free(ptr); }
+};
+
+sapi::LenValStruct CreateLenValStruct(std::string_view in_str) {
+  // We need to copy the serialized proto because RunCodeFromSerializedData()
+  // will take ownership of the data that it contains and we don't want to free
+  // the same memory twice.
+  std::unique_ptr<uint8_t[], FreeDeleter> out_str(
+      static_cast<uint8_t*>(malloc(in_str.size())));
+  memcpy(out_str.get(), in_str.data(), in_str.size());
+  return sapi::LenValStruct{in_str.size(), out_str.release()};
+}
+
 TEST(WorkerWrapperTest,
      CanRunCodeThroughWrapperWithoutPreloadSharedWithLenValStruct) {
   auto init_params = GetDefaultInitParams();
@@ -134,22 +153,17 @@ TEST(WorkerWrapperTest,
 
   std::string serialized_worker_params;
   ASSERT_TRUE(params_proto.SerializeToString(&serialized_worker_params));
-  // We need to copy the serialized proto because RunCodeFromSerializedData()
-  // will take ownership of the data that it contains and we don't want to free
-  // the same memory twice.
-  std::unique_ptr<unsigned char[]> worker_params_data(
-      new unsigned char[serialized_worker_params.size()]);
-  memcpy(worker_params_data.get(), serialized_worker_params.data(),
-         serialized_worker_params.length());
-
-  sapi::LenValStruct sapi_worker_params(
-      serialized_worker_params.size(),
-      static_cast<void*>(worker_params_data.release()));
+  auto sapi_worker_params = CreateLenValStruct(serialized_worker_params);
 
   size_t output_serialized_size_ptr;
   result = ::RunCodeFromSerializedData(&sapi_worker_params, 0,
                                        &output_serialized_size_ptr);
   ASSERT_EQ(SC_OK, result);
+
+  // Take ownership of the response bytes, these will have been malloc'd by
+  // RunCodeFromSerializedData() if it was successful.
+  std::unique_ptr<uint8_t[], FreeDeleter> response_bytes(
+      static_cast<uint8_t*>(sapi_worker_params.data));
 
   ::worker_api::WorkerParamsProto response_proto;
   ASSERT_TRUE(response_proto.ParseFromArray(buffer_ptr_->data(),
@@ -191,17 +205,7 @@ TEST(WorkerWrapperTest, OverSizeResponseSharedWithLenValStruct) {
 
   std::string serialized_worker_params;
   ASSERT_TRUE(params_proto.SerializeToString(&serialized_worker_params));
-  // We need to copy the serialized proto because RunCodeFromSerializedData()
-  // will take ownership of the data that it contains and we don't want to free
-  // the same memory twice.
-  std::unique_ptr<unsigned char[]> worker_params_data(
-      new unsigned char[serialized_worker_params.size()]);
-  memcpy(worker_params_data.get(), serialized_worker_params.data(),
-         serialized_worker_params.length());
-
-  sapi::LenValStruct sapi_worker_params(
-      serialized_worker_params.size(),
-      static_cast<void*>(worker_params_data.release()));
+  auto sapi_worker_params = CreateLenValStruct(serialized_worker_params);
 
   size_t output_serialized_size_ptr;
   result = ::RunCodeFromSerializedData(&sapi_worker_params, 0,
@@ -210,7 +214,7 @@ TEST(WorkerWrapperTest, OverSizeResponseSharedWithLenValStruct) {
 
   // Take ownership of the response bytes, these will have been malloc'd by
   // RunCodeFromSerializedData() if it was successful.
-  std::unique_ptr<unsigned char[]> response_bytes(
+  std::unique_ptr<unsigned char[], FreeDeleter> response_bytes(
       static_cast<unsigned char*>(sapi_worker_params.data));
 
   ::worker_api::WorkerParamsProto response_proto;
@@ -294,10 +298,8 @@ TEST(WorkerWrapperTest,
   ASSERT_TRUE(
       params_proto.SerializeToArray(buffer_ptr_->data(), serialized_size));
 
-  size_t input_serialized_size_ptr(serialized_size);
   size_t output_serialized_size_ptr;
   result = ::RunCodeFromBuffer(serialized_size, &output_serialized_size_ptr);
-
   EXPECT_EQ(SC_ROMA_WORKER_API_RESPONSE_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY,
             result);
 

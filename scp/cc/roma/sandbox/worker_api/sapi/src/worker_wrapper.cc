@@ -186,7 +186,6 @@ StatusCode Run() {
   if (!worker_) {
     return SC_ROMA_WORKER_API_UNINITIALIZED_WORKER;
   }
-
   return worker_->Run().status_code;
 }
 
@@ -194,7 +193,7 @@ StatusCode Stop() {
   if (!worker_) {
     return SC_ROMA_WORKER_API_UNINITIALIZED_WORKER;
   }
-  auto result = worker_->Stop();
+  const google::scp::core::ExecutionResult result = worker_->Stop();
   worker_.reset();
   return result.status_code;
 }
@@ -228,8 +227,7 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
     return SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA;
   }
 
-  auto result = RunCode(&params);
-  if (result != SC_OK) {
+  if (const auto result = RunCode(&params); result != SC_OK) {
     return result;
   }
 
@@ -237,8 +235,7 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
   params.clear_code();
   params.clear_input();
 
-  auto serialized_size = params.ByteSizeLong();
-
+  const size_t serialized_size = params.ByteSizeLong();
   if (serialized_size < request_and_response_data_buffer_size_bytes_) {
     ROMA_VLOG(1) << "Response data sharing with Buffer";
 
@@ -261,7 +258,7 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
 
     uint8_t* serialized_data = static_cast<uint8_t*>(malloc(serialized_size));
     if (!serialized_data) {
-      LOG(ERROR) << "Failed to malloc uint8_t* serialized_data with size of "
+      LOG(ERROR) << "Failed to allocate uint8_t* serialized_data with size of "
                  << serialized_size;
       return SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_RESPONSE_DATA;
     }
@@ -288,7 +285,7 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
   }
 
   ROMA_VLOG(1) << "Worker wrapper successfully executed the request";
-  return result;
+  return SC_OK;
 }
 
 StatusCode RunCodeFromBuffer(int input_serialized_size,
