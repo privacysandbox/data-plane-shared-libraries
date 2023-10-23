@@ -44,13 +44,4 @@ ExecutionResultOr<std::string_view> WorkerUtils::GetValueFromMetadata(
   return FailureExecutionResult(SC_ROMA_WORKER_MISSING_METADATA_ITEM);
 }
 
-ExecutionResultOr<int> WorkerUtils::ConvertStrToInt(
-    std::string_view value) noexcept {
-  int converted_int;
-  if (!absl::SimpleAtoi(value, &converted_int)) {
-    return FailureExecutionResult(SC_ROMA_WORKER_STR_CONVERT_INT_FAIL);
-  }
-  return converted_int;
-}
-
 }  // namespace google::scp::roma::sandbox::worker

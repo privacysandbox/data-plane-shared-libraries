@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "public/core/interface/execution_result.h"
@@ -318,12 +319,11 @@ void V8JsEngine::StartWatchdogTimer(
   auto timeout_str_or =
       WorkerUtils::GetValueFromMetadata(metadata, kTimeoutMsTag);
   if (timeout_str_or.result().Successful()) {
-    auto timeout_int_or = WorkerUtils::ConvertStrToInt(timeout_str_or.value());
-    if (timeout_int_or.result().Successful()) {
-      timeout_ms = timeout_int_or.value();
+    if (int t; absl::SimpleAtoi(timeout_str_or.value(), &t)) {
+      timeout_ms = t;
     } else {
-      LOG(ERROR) << "Timeout tag parsing with error "
-                 << GetErrorMessage(timeout_int_or.result().status_code);
+      LOG(ERROR) << "Timeout tag parsing with error: Could not convert timeout "
+                    "tag to integer";
     }
   }
   ROMA_VLOG(1) << "StartWatchdogTimer timeout set to " << timeout_ms << " ms";
