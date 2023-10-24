@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "roma/common/src/containers.h"
 #include "roma/config/src/type_converter.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"

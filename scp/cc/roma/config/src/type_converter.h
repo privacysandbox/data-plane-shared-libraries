@@ -26,7 +26,6 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "include/v8.h"
-#include "roma/common/src/containers.h"
 
 namespace google::scp::roma {
 template <typename T>

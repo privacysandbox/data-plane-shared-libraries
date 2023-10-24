@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "include/v8.h"
-#include "roma/common/src/containers.h"
 
 #include "type_converter.h"
 
@@ -122,41 +121,36 @@ class FunctionBindingObject : public FunctionBindingObjectBase {
     // Tuple that will be passed as input to the user-provided C++ function
     std::tuple<TInputs...> arguments_tuple;
 
-    constexpr_for<0>([&info, &isolate, &conversion_worked,
-                      &arguments_tuple](auto i) {
-      using TGivenInput =
-          typename std::tuple_element<i, std::tuple<TInputs...>>::type;
+    constexpr_for<0>(
+        [&info, &isolate, &conversion_worked, &arguments_tuple](auto i) {
+          using TGivenInput =
+              typename std::tuple_element<i, std::tuple<TInputs...>>::type;
 
-      constexpr bool output_types_are_only_allowed_ones =
-          std::is_same<std::string, TReturn>::value ||
-          std::is_same<std::vector<std::string>, TReturn>::value ||
-          std::is_same<common::Map<std::string, std::string>, TReturn>::value;
+          constexpr bool output_types_are_only_allowed_ones =
+              std::is_same<std::string, TReturn>::value ||
+              std::is_same<std::vector<std::string>, TReturn>::value;
 
-      constexpr bool input_types_are_only_allowed_ones =
-          std::is_same<std::string, TGivenInput>::value ||
-          std::is_same<std::vector<std::string>, TGivenInput>::value ||
-          std::is_same<common::Map<std::string, std::string>,
-                       TGivenInput>::value;
+          constexpr bool input_types_are_only_allowed_ones =
+              std::is_same<std::string, TGivenInput>::value ||
+              std::is_same<std::vector<std::string>, TGivenInput>::value;
 
-      // We only allow these types as output for now
-      static_assert(output_types_are_only_allowed_ones,
-                    "Only allowed output types are std::string and "
-                    "std::vector<std::string> and "
-                    "roma::common::Map<std::string, std::string>");
+          // We only allow these types as output for now
+          static_assert(output_types_are_only_allowed_ones,
+                        "Only allowed output types are std::string and "
+                        "std::vector<std::string>");
 
-      // We only allow these types as input for now
-      static_assert(input_types_are_only_allowed_ones,
-                    "Only allowed input types are std::string and "
-                    "std::vector<std::string> and "
-                    "roma::common::Map<std::string, std::string>");
+          // We only allow these types as input for now
+          static_assert(input_types_are_only_allowed_ones,
+                        "Only allowed input types are std::string and "
+                        "std::vector<std::string>");
 
-      TGivenInput value;
-      if (!TypeConverter<TGivenInput>::FromV8(isolate, info[i], &value)) {
-        conversion_worked = false;
-      } else {
-        std::get<i>(arguments_tuple) = value;
-      }
-    });
+          TGivenInput value;
+          if (!TypeConverter<TGivenInput>::FromV8(isolate, info[i], &value)) {
+            conversion_worked = false;
+          } else {
+            std::get<i>(arguments_tuple) = value;
+          }
+        });
 
     if (!conversion_worked) {
       auto error_message =

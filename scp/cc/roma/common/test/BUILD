@@ -25,14 +25,3 @@ cc_test(
         "@v8//:v8_icu",
     ],
 )
-
-cc_test(
-    name = "map_test",
-    size = "small",
-    srcs = ["map_test.cc"],
-    deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/common/src:roma_common_lib",
-        "@com_google_googletest//:gtest_main",
-    ],
-)

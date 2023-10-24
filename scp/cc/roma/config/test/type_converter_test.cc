@@ -30,7 +30,6 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "include/v8.h"
-#include "roma/common/src/containers.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
 namespace google::scp::roma::config::test {
@@ -214,37 +213,6 @@ TEST_F(TypeConverterTest,
                                                                v8_array, &vec));
 
   EXPECT_TRUE(vec.empty());
-}
-
-static void AssertMapOfStringEquality(
-    v8::Isolate* isolate, common::Map<std::string, std::string>& map,
-    v8::Local<v8::Map>& v8_map) {
-  EXPECT_EQ(map.Size(), v8_map->Size());
-
-  // This turns the map into an array of size Size()*2, where index N is a key,
-  // and N+1 is the value for the given key.
-  auto v8_map_as_array = v8_map->AsArray();
-  auto native_map_keys = map.Keys();
-
-  int j = 0;
-  for (size_t i = 0; i < v8_map_as_array->Length(); i += 2) {
-    auto key_index = i;
-    auto value_index = i + 1;
-
-    auto v8_key = v8_map_as_array->Get(isolate->GetCurrentContext(), key_index)
-                      .ToLocalChecked()
-                      .As<v8::String>();
-    auto v8_val =
-        v8_map_as_array->Get(isolate->GetCurrentContext(), value_index)
-            .ToLocalChecked()
-            .As<v8::String>();
-
-    auto native_key = native_map_keys.at(j++);
-    auto native_val = map.Get(native_key);
-
-    AssertStringEquality(isolate, native_key, v8_key);
-    AssertStringEquality(isolate, native_val, v8_val);
-  }
 }
 
 static void AssertFlatHashMapOfStringEquality(

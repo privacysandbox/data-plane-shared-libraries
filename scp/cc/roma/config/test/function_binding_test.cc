@@ -31,7 +31,6 @@
 
 #include "absl/functional/bind_front.h"
 #include "include/v8.h"
-#include "roma/common/src/containers.h"
 #include "roma/config/src/function_binding_object.h"
 #include "roma/config/src/type_converter.h"
 
@@ -335,23 +334,6 @@ static std::vector<std::string> MixedInputAndVectorOfStringOutput(
   output.push_back(input_two);
   output.push_back(ConcatenateVector(input_three));
   output.push_back(input_four);
-  return output;
-}
-
-// User provided JS function
-static common::Map<std::string, std::string> VectorsOfStringInputAndMapOutput(
-    std::tuple<std::vector<std::string>, std::vector<std::string>,
-               std::vector<std::string>, std::vector<std::string>>& input) {
-  auto input_one = std::get<0>(input);
-  auto input_two = std::get<1>(input);
-  auto input_three = std::get<2>(input);
-  auto input_four = std::get<3>(input);
-
-  common::Map<std::string, std::string> output;
-  output.Set("vec1", ConcatenateVector(input_one));
-  output.Set("vec2", ConcatenateVector(input_two));
-  output.Set("vec3", ConcatenateVector(input_three));
-  output.Set("vec4", ConcatenateVector(input_four));
   return output;
 }
 
