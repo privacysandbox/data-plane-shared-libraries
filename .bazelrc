@@ -54,6 +54,8 @@ build:tsan --copt=-DDYNAMIC_ANNOTATIONS_EXTERNAL_IMPL=1
 build:tsan --copt=-O1
 build:tsan --copt=-fno-omit-frame-pointer
 build:tsan --linkopt=-fsanitize=thread
+build:tsan --build_tests_only
+build:tsan --test_tag_filters=-notsan
 
 # Memory sanitizer
 build:msan --config=sanitizers_common

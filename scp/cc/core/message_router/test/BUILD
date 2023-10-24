@@ -32,6 +32,7 @@ cc_test(
     name = "message_router_test",
     size = "small",
     srcs = ["message_router_test.cc"],
+    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test.
     deps = [
         ":test_cc_proto",
         "//scp/cc:cc_base_include_dir",

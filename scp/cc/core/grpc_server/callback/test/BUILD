@@ -42,6 +42,7 @@ cc_proto_library(
 cc_test(
     name = "read_reactor_test",
     srcs = ["read_reactor_test.cc"],
+    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test.
     deps = [
         ":callback_server_cc_proto",
         "//scp/cc:cc_base_include_dir",

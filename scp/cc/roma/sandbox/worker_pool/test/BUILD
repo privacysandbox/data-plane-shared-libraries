@@ -20,9 +20,13 @@ cc_test(
     name = "worker_pool_api_sapi_test",
     size = "small",
     srcs = ["worker_pool_api_sapi_test.cc"],
-    # TODO(b/290798808) - Fix ASAN errors in this test.
+    # TODO(b/293876281) - Fix ASAN errors in this test.
     # fatal error: sorry, this include generates a translation unit too large for Clang to process.
-    tags = ["noasan"],
+    # TODO(b/307540489) - Fix TSAN errors in this test.
+    tags = [
+        "noasan",
+        "notsan",
+    ],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",

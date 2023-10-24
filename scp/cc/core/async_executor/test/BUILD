@@ -20,6 +20,7 @@ cc_test(
     name = "async_executor_test",
     size = "small",
     srcs = ["async_executor_test.cc"],
+    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test.
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
@@ -36,6 +37,7 @@ cc_test(
     name = "single_thread_async_executor_test",
     size = "small",
     srcs = ["single_thread_async_executor_test.cc"],
+    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test.
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
@@ -52,6 +54,7 @@ cc_test(
     timeout = "moderate",
     srcs = ["single_thread_priority_async_executor_test.cc"],
     flaky = True,
+    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test.
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",

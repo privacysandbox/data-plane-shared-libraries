@@ -24,7 +24,7 @@ cc_test(
         "//scp/cc/roma/testing/cpp_wasi_dependency_example",
         "//scp/cc/roma/testing/cpp_wasm_string_in_string_out_example",
     ],
-    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
+    tags = ["noasan"],  # TODO(b/293876281) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
@@ -39,7 +39,7 @@ cc_test(
     name = "v8_isolate_visitor_function_binding_test",
     size = "small",
     srcs = ["v8_isolate_visitor_function_binding_test.cc"],
-    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
+    tags = ["noasan"],  # TODO(b/293876281) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
@@ -52,7 +52,7 @@ cc_test(
     name = "snapshot_compilation_context_test",
     size = "small",
     srcs = ["snapshot_compilation_context_test.cc"],
-    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
+    tags = ["noasan"],  # TODO(b/293876281) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",

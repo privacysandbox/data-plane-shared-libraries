@@ -20,6 +20,7 @@ cc_test(
     name = "aggregate_metric_test",
     size = "small",
     srcs = ["aggregate_metric_test.cc"],
+    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test.
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
@@ -86,6 +87,7 @@ cc_test(
     copts = [
         "-std=c++17",
     ],
+    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test.
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",

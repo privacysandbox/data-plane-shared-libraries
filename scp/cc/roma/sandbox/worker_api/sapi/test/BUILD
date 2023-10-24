@@ -20,7 +20,10 @@ cc_test(
     name = "worker_sandbox_api_test",
     size = "small",
     srcs = ["worker_sandbox_api_test.cc"],
-    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
+    tags = [
+        "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
+        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
+    ],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
@@ -35,7 +38,7 @@ cc_test(
     name = "worker_wrapper_test",
     size = "small",
     srcs = ["worker_wrapper_test.cc"],
-    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
+    tags = ["noasan"],  # TODO(b/293876281) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",

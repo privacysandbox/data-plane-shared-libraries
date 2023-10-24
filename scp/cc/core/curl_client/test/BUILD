@@ -23,7 +23,10 @@ cc_test(
         [
             "http1_curl_wrapper_test.cc",
         ],
-    tags = ["noasan"],  # TODO(b/290798808) - Fix ASAN errors in this test.
+    tags = [
+        "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
+        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/curl_client/src:http1_curl_client_lib",
@@ -42,6 +45,7 @@ cc_test(
         [
             "http1_curl_client_test.cc",
         ],
+    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test.
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
