@@ -40,7 +40,7 @@ def deps3():
     install_v8_python_deps()
 
     rules_buf_dependencies()
-    rules_buf_toolchains(version = "v1.7.0")
+    rules_buf_toolchains(version = "v1.27.1")
     tink_cc_deps()
     container_repositories()
     switched_rules_by_language(

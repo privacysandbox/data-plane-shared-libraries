@@ -16,7 +16,6 @@ syntax = "proto3";
 
 package google.cmrt.sdk.kms_service.v1;
 
-import "google/protobuf/duration.proto";
 import "scp/cc/core/common/proto/common.proto";
 
 // For faster allocations of sub-messages.
