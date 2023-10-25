@@ -18,11 +18,12 @@
 #define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_TABLE_H_
 
 #include <functional>
-#include <mutex>
 #include <string>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/string_view.h"
+#include "absl/synchronization/mutex.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
@@ -42,7 +43,8 @@ class NativeFunctionTable {
    * @return core::ExecutionResult
    */
   core::ExecutionResult Register(absl::string_view function_name,
-                                 NativeBinding binding);
+                                 NativeBinding binding)
+      ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_);
 
   /**
    * @brief Call a function that has been previously registered.
@@ -53,11 +55,13 @@ class NativeFunctionTable {
    */
   core::ExecutionResult Call(
       absl::string_view function_name,
-      proto::FunctionBindingIoProto& function_binding_proto);
+      proto::FunctionBindingIoProto& function_binding_proto)
+      ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_);
 
  private:
-  absl::flat_hash_map<std::string, NativeBinding> native_functions_;
-  std::mutex native_functions_map_mutex_;
+  absl::flat_hash_map<std::string, NativeBinding> native_functions_
+      ABSL_GUARDED_BY(native_functions_map_mutex_);
+  absl::Mutex native_functions_map_mutex_;
 };
 }  // namespace google::scp::roma::sandbox::native_function_binding
 

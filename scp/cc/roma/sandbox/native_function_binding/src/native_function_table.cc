@@ -16,8 +16,6 @@
 
 #include "native_function_table.h"
 
-#include <mutex>
-
 #include "error_codes.h"
 
 using google::scp::core::ExecutionResult;
@@ -30,9 +28,10 @@ using google::scp::core::errors::SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED;
 namespace google::scp::roma::sandbox::native_function_binding {
 ExecutionResult NativeFunctionTable::Register(absl::string_view function_name,
                                               NativeBinding binding) {
-  std::lock_guard lock(native_functions_map_mutex_);
+  absl::MutexLock lock(&native_functions_map_mutex_);
   const auto [_, was_inserted] =
       native_functions_.insert({std::string(function_name), binding});
+
   if (!was_inserted) {
     return FailureExecutionResult(
         SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED);
@@ -45,7 +44,7 @@ ExecutionResult NativeFunctionTable::Call(
     proto::FunctionBindingIoProto& function_binding_proto) {
   NativeBinding func;
   {
-    std::lock_guard lock(native_functions_map_mutex_);
+    absl::MutexLock lock(&native_functions_map_mutex_);
     auto fn_it = native_functions_.find(function_name);
     if (fn_it == native_functions_.end()) {
       return FailureExecutionResult(

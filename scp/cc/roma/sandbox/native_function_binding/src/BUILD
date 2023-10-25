@@ -62,6 +62,7 @@ cc_library(
         "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/synchronization",
         "@com_google_sandboxed_api//sandboxed_api:sapi",
         "@com_google_sandboxed_api//sandboxed_api:vars",
     ],
