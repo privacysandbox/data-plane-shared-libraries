@@ -1,0 +1,2002 @@
+positions: instr line
+events: cpu(ms)
+
+ob=(1) /usr/lib/x86_64-linux-gnu/libpthread-2.31.so
+fl=
+fn=
+0x7f3414ccd3cc 0 760
+-157 0 420
+
+ob=(2) /usr/lib/x86_64-linux-gnu/libc-2.31.so
+fl=
+fn=
+-4395953 0 30
++48 0 30
+-900620 0 20
++869787 0 20
+
+ob=(3) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/scp/cc/roma/sandbox/dispatcher/test/dispatcher_benchmark
+fl=(1) scp/cc/roma/interface/roma.h
+fn=(1) google::scp::roma::CodeObject::~CodeObject
+0x55f75afc7be1 46 10
+
+ob=(2)
+fl=
+fn=
+0x7f341480e0ab 0 10
++33107 0 10
++505637 0 10
++470480 0 10
+
+ob=(4) /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28
+fl=
+fn=
++1242145 0 10
+
+ob=(1)
+fl=
+fn=
++2710717 0 10
++5403 0 10
+
+ob=(5) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_absl/absl/synchronization/libsynchronization.so
+fl=(2) external/com_google_absl/absl/synchronization/mutex.cc
+fn=(2) absl::lts_20230125::Mutex::Unlock
++925029 1713 10
++6 1730 10
+
+ob=(6) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/utf8_range/libutf8_validity.so
+fl=
+fn=
++1203436 0 10
+
+ob=(7) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_absl/absl/container/libraw_hash_set.so
+fl=
+fn=
++42350 0 10
+
+ob=(8) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/libvars.so
+fl=(3) external/com_google_absl/absl/status/status.h
+fn=(3) ok
++11005303 803 10
+
+ob=(8)
+fl=(4) external/com_google_sandboxed_api/sandboxed_api/var_ptr.h
+fn=(4) sapi::v::Ptr::~Ptr
++9240 32 10
+
+ob=(8)
+fl=(5) external/com_google_sandboxed_api/sandboxed_api/var_lenval.h
+fn=(5) sapi::v::LenVal::~LenVal
++3168 43 10
+
+ob=(9) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/sandbox2/util/libbpf_helper.so
+fl=
+fn=
++102113 0 10
+
+ob=(10) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/scp/cc/roma/sandbox/worker_api/sapi/src/libworker_params_proto.so
+fl=(6) bazel-out/k8-opt/bin/scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.cc
+fn=(6) worker_api::WorkerParamsProto::Clear
++4694592 344 10
+
+ob=(10)
+fl=(7) bazel-out/k8-opt/bin/external/com_google_protobuf/src/google/protobuf/io/_virtual_includes/io/google/protobuf/io/coded_stream.h
+fn=(7) UnsafeVarint
++1535 921 10
+
+ob=(10)
+fl=(8) bazel-out/k8-opt/bin/external/com_google_protobuf/src/google/protobuf/_virtual_includes/protobuf_lite/google/protobuf/map_entry_lite.h
+fn=(8) ~Parser
++28124 298 10
+
+ob=(11) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/scp/cc/roma/sandbox/worker_api/sapi/src/libroma_worker_sandbox_api_lib.so
+fl=(9) /usr/include/c++/9/bits/unique_ptr.h
+fn=(9) operator()
++179150312 81 10
+
+ob=(11)
+fl=(10) /usr/include/c++/9/bits/char_traits.h
+fn=(10) copy
++295 372 10
+
+ob=(3)
+fl=
+fn=(11) _start
+0x55f75afc502d 0 0
+cfl=
+cfn=(12)  [2/6]
+calls=0 -202583593 0
+* * 50
+
+ob=(3)
+fl=(11) scp/cc/roma/sandbox/dispatcher/test/dispatcher_benchmark.cc
+fn=(13) (anonymous namespace)::BM_Dispatch
++643 84 0
+cfl=(12) scp/cc/core/test/utils/auto_init_run_stop.h
+cfn=(14) google::scp::core::test::AutoInitRunStop::AutoInitRunStop
+calls=0 +6060 25
+* * 20
++390 109 0
+cfl=(13) external/com_google_absl/absl/synchronization/blocking_counter.cc
+cfn=(15) absl::lts_20230125::BlockingCounter::Wait
+calls=0 0x7f3414da9e1d 58
+* * 20
++455 107 0
+cfl=(14) external/com_google_googletest/googlemock/include/gmock/gmock-matchers.h
+cfn=(16) testing::internal::PredicateFormatterFromMatcher::operator()
+calls=0 +5965 1588
+* * 10
+
+ob=(3)
+fl=(11)
+fn=(17) main
++1032 118 0
+cfl=(15) external/google_benchmark/src/benchmark.cc
+cfn=(18) benchmark::RunSpecifiedBenchmarks
+calls=0 +10876568 523
+* * 50
+
+ob=(3)
+fl=(12)
+fn=(14)
++3540 25 0
+cfl=(16) scp/cc/roma/sandbox/worker_pool/src/worker_pool_api_sapi.cc
+cfn=(19) google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi::Init
+calls=0 0x7f34208f70e8 48
+* * 20
+
+ob=(3)
+fl=(14)
+fn=(20) Cast
++938 353 0
+cfl=(14)
+cfn=(21) CastImpl
+calls=0 +938 371
+* * 10
+
+ob=(3)
+fl=(14)
+fn=(21)
+* 371 0
+cfl=(14)
+cfn=(22) operator Matcher
+calls=0 * 469
+* * 10
+
+ob=(3)
+fl=(14)
+fn=(23) MatcherCast
+* 513 0
+cfl=(14)
+cfn=(20)
+calls=0 * 353
+* * 10
+
+ob=(3)
+fl=(14)
+fn=(24) SafeMatcherCast
+* 520 0
+cfl=(14)
+cfn=(23)
+calls=0 * 513
+* * 10
+
+ob=(3)
+fl=(14)
+fn=(22)
+* 469 0
+cfl=
+cfn=(25)  [3/6]
+calls=0 0x7f3414a33b28 0
+* * 10
+
+ob=(3)
+fl=(14)
+fn=(16)
+* 1588 0
+cfl=(14)
+cfn=(24)
+calls=0 * 520
+* * 10
+
+ob=(3)
+fl=(17) scp/cc/roma/sandbox/dispatcher/src/dispatcher.h
+fn=(26) google::scp::roma::sandbox::dispatcher::Dispatcher::InternalDispatch()::{lambda()#1}::operator()
++12799 226 0
+cfl=(18) scp/cc/roma/sandbox/dispatcher/src/request_converter.h
+cfn=(27) google::scp::roma::sandbox::dispatcher::request_converter::RequestConverter::FromUserProvided
+calls=0 +17715 128
+* * 10
+cfl=(18)
+cfn=(27)
+calls=0 +17741 128
+* * 10
++112 239 0
+cfl=(19) scp/cc/roma/sandbox/worker_api/src/worker_api_sapi.cc
+cfn=(28) google::scp::roma::sandbox::worker_api::WorkerApiSapi::RunCode
+calls=0 0x7f34208e4e77 62
+* * 1350
+cfl=(19)
+cfn=(28)
+calls=0 0x7f34208e4ed5 68
+* * 10
++802 277 0
+cfl=(20) external/com_google_absl/absl/functional/internal/any_invocable.h
+cfn=(29) operator() [1/2]
+calls=0 +802 855
+* * 10
+
+ob=(3)
+fl=(20)
+fn=(9)
+* 855 0
+cfl=(20)
+cfn=(30) absl::lts_20230125::internal_any_invocable::LocalInvoker
+calls=0 +14276 301
+* * 10
+
+ob=(3)
+fl=(17)
+fn=(26)
++758 279 0
+cfl=(9)
+cfn=(31) ~unique_ptr [1/3]
+calls=0 +758 292
+* * 10
+
+ob=(3)
+fl=(9)
+fn=(9)
+* 81 0
+cfl=(1)
+cfn=(1)
+calls=0 -10281 46
+* * 10
+
+ob=(3)
+fl=(9)
+fn=(32) ~unique_ptr
+* 292 0
+cfl=(9)
+cfn=(33) operator() [2/2]
+calls=0 * 81
+* * 10
+
+ob=(3)
+fl=(18)
+fn=(34) RunRequestFromInputRequestCommon
++3244 41 0
+cfl=(21) /usr/include/c++/9/bits/basic_string.h
+cfn=(35) to_string
+calls=0 +3244 6566
+* * 10
+
+ob=(3)
+fl=(18)
+fn=(27)
+* 128 0
+cfl=(18)
+cfn=(34)
+calls=0 * 41
+* * 10
+
+ob=(3)
+fl=(21)
+fn=(35)
+* 6566 0
+cfl=(22) /usr/include/c++/9/ext/string_conversions.h
+cfn=(36) __gnu_cxx::__to_xstring
+calls=0 +2606 111
+* * 10
+
+ob=(3)
+fl=(18)
+fn=(34)
++26 39 0
+cfl=(23) external/com_google_absl/absl/container/internal/raw_hash_map.h
+cfn=(37) operator[] [1/2]
+calls=0 +26 169
+* * 10
+
+ob=(3)
+fl=(18)
+fn=(27)
+* 128 0
+cfl=(18)
+cfn=(34)
+calls=0 * 39
+* * 10
+
+ob=(3)
+fl=(23)
+fn=(38) operator[]
+* 169 0
+cfl=(23)
+cfn=(39) try_emplace [1/2]
+calls=0 * 129
+* * 10
+
+ob=(3)
+fl=(23)
+fn=(40) try_emplace
+* 129 0
+cfl=(23)
+cfn=(41) absl::lts_20230125::container_internal::raw_hash_map::try_emplace_impl
+calls=0 +5044 185
+* * 10
+
+ob=(3)
+fl=(22)
+fn=(36)
++2580 111 0
+cfl=
+cfn=(12)
+calls=0 0x7f3414807f99 0
+* * 10
+
+ob=(3)
+fl=(24) external/com_google_absl/absl/container/internal/raw_hash_set.h
+fn=(42) absl::lts_20230125::container_internal::raw_hash_set::prepare_insert
++1022 2482 0
+cfl=
+cfn=(43)  [5/6]
+calls=0 0x7f3414edccb1 0
+* * 10
+
+ob=(3)
+fl=(23)
+fn=(41)
++1442 185 0
+cfl=(24)
+cfn=(44) absl::lts_20230125::container_internal::raw_hash_set::find_or_prepare_insert [1/2]
+calls=0 +2037 2462
+* * 10
+
+ob=(3)
+fl=(24)
+fn=(45) absl::lts_20230125::container_internal::raw_hash_set::find_or_prepare_insert
++595 2462 0
+cfl=(24)
+cfn=(42)
+calls=0 -1442 2482
+* * 10
+
+ob=(3)
+fl=(20)
+fn=(46) InvokeR
++4609 131 0
+cfl=(25) /usr/include/c++/9/functional
+cfn=(47) invoke
+calls=0 +4609 81
+* * 10
+
+ob=(3)
+fl=(26) /usr/include/c++/9/bits/invoke.h
+fn=(48) __invoke
+* 95 0
+cfl=(26)
+cfn=(49) __invoke_impl [1/2]
+calls=0 * 60
+* * 10
+
+ob=(3)
+fl=(26)
+fn=(50) __invoke_impl
+* 60 0
+cfl=(11)
+cfn=(9)
+calls=0 * 105
+* * 10
+
+ob=(3)
+fl=(20)
+fn=(30)
+* 301 0
+cfl=(20)
+cfn=(46)
+calls=0 * 131
+* * 10
+
+ob=(3)
+fl=(25)
+fn=(47)
+* 81 0
+cfl=(26)
+cfn=(51) __invoke [1/2]
+calls=0 * 95
+* * 10
+
+ob=(3)
+fl=(11)
+fn=(9)
+* 105 0
+cfl=(13)
+cfn=(52) absl::lts_20230125::BlockingCounter::DecrementCount
+calls=0 0x7f3414da9d80 46
+* * 10
+
+ob=(3)
+fl=(15)
+fn=(18)
++10843069 523 0
+cfl=(15)
+cfn=(18)
+calls=0 +10845871 597
+* * 50
+
+ob=(3)
+fl=(15)
+fn=(53) RunBenchmarks
++2802 426 0
+cfl=(27) external/google_benchmark/src/benchmark_runner.cc
+cfn=(54) benchmark::internal::BenchmarkRunner::DoOneRepetition
+calls=0 +48750 424
+* * 50
+
+ob=(3)
+fl=(15)
+fn=(18)
+* 597 0
+cfl=(15)
+cfn=(53)
+calls=0 * 426
+* * 50
+
+ob=(3)
+fl=(28) external/google_benchmark/src/benchmark_api_internal.cc
+fn=(55) benchmark::internal::BenchmarkInstance::Run
++39030 98 0
+cfl=(11)
+cfn=(13)
+calls=0 -10880215 84
+* * 20
+cfl=(11)
+cfn=(13)
+calls=0 -10879825 109
+* * 20
+cfl=(11)
+cfn=(13)
+calls=0 -10879370 107
+* * 10
+
+ob=(3)
+fl=(27)
+fn=(56) benchmark::internal::BenchmarkRunner::DoNIterations
++3509 273 0
+cfl=(27)
+cfn=(57) benchmark::internal::(anonymous namespace)::RunInThread
+calls=0 +4871 132
+* * 50
+
+ob=(3)
+fl=(27)
+fn=(57)
++1362 132 0
+cfl=(28)
+cfn=(55)
+calls=0 -3509 98
+* * 50
+
+ob=(3)
+fl=(27)
+fn=(54)
++2047 424 0
+cfl=(27)
+cfn=(56)
+calls=0 -1362 273
+* * 50
+
+ob=(2)
+fl=
+fn=
+0x7f34147a0082 0 0
+cfl=(11)
+cfn=(17)
+calls=0 -10924286 118
+* * 50
++341802 0 0
+cfl=
+cfn=(12)
+calls=0 +450601 0
+* * 10
++83949 0 0
+cfl=
+cfn=(12)
+calls=0 * 0
+* * 10
++602521 0 0
+cfl=
+cfn=(58)  [1/6]
+calls=0 +4957807 0
+* * 1440
+
+ob=(4)
+fl=
+fn=
++1673718 0 0
+cfl=
+cfn=(12)
+calls=0 -544564 0
+* * 10
++180939 0 0
+cfl=(29) /usr/include/c++/9/thread
+cfn=(59) std::thread::_State_impl::_M_run
+calls=0 +200141953 195
+* * 1410
+cfl=(30) external/com_google_sandboxed_api/sandboxed_api/sandbox2/monitor_ptrace.cc
+cfn=(60) sandbox2::PtraceMonitor::Run
+calls=0 +20064740 354
+* * 20
+cfl=(30)
+cfn=(60)
+calls=0 +20064969 412
+* * 10
+
+ob=(1)
+fl=
+fn=
++2500629 0 0
+cfl=
+cfn=(25)
+calls=0 * 0
+* * 1440
+
+ob=(5)
+fl=(13)
+fn=(52)
++948088 46 0
+cfl=(31) external/com_google_absl/absl/synchronization/mutex.h
+cfn=(61) ~MutexLock [1/3]
+calls=0 +948088 552
+* * 10
+
+ob=(5)
+fl=(31)
+fn=(62) ~MutexLock
+* 552 0
+cfl=(2)
+cfn=(63) absl::lts_20230125::Mutex::UnlockSlow
+calls=0 +8772 2385
+* * 10
+
+ob=(5)
+fl=(13)
+fn=(15)
++157 58 0
+cfl=(2)
+cfn=(64) absl::lts_20230125::Mutex::Await
+calls=0 +5675 1591
+* * 20
+
+ob=(5)
+fl=(32) external/com_google_absl/absl/synchronization/internal/per_thread_sem.cc
+fn=(65) AbslInternalPerThreadSemWait_lts_20230125
++913 89 0
+cfl=(33) external/com_google_absl/absl/synchronization/internal/waiter.cc
+cfn=(66) absl::lts_20230125::synchronization_internal::Waiter::Wait
+calls=0 +1227 93
+* * 10
+
+ob=(5)
+fl=(34) external/com_google_absl/absl/synchronization/internal/futex.h
+fn=(67) WaitUntil
++314 104 0
+cfl=
+cfn=(12)
+calls=0 -5331569 0
+* * 10
+
+ob=(5)
+fl=(33)
+fn=(66)
+* 93 0
+cfl=(34)
+cfn=(67)
+calls=0 * 104
+* * 10
+
+ob=(5)
+fl=(33)
+fn=(68) Poke
++161 116 0
+cfl=(34)
+cfn=(69) Wake
+calls=0 +161 128
+* * 10
+
+ob=(5)
+fl=(34)
+fn=(69)
+* 128 0
+cfl=
+cfn=(12)
+calls=0 -5332044 0
+* * 10
+
+ob=(5)
+fl=(33)
+fn=(70) absl::lts_20230125::synchronization_internal::Waiter::Post
+* 110 0
+cfl=(33)
+cfn=(68)
+calls=0 * 116
+* * 10
+
+ob=(5)
+fl=(2)
+fn=(71) DecrementSynchSem
++2564 614 0
+cfl=(35) external/com_google_absl/absl/synchronization/internal/per_thread_sem.h
+cfn=(72) Wait
+calls=0 +2564 107
+* * 10
+
+ob=(5)
+fl=(35)
+fn=(72)
+* 107 0
+cfl=(32)
+cfn=(65)
+calls=0 -3039 89
+* * 10
+
+ob=(5)
+fl=(2)
+fn=(73) absl::lts_20230125::Mutex::Block
+* 1160 0
+cfl=(2)
+cfn=(71)
+calls=0 * 614
+* * 10
+
+ob=(5)
+fl=(2)
+fn=(64)
++1566 1591 0
+cfl=(2)
+cfn=(74) absl::lts_20230125::Mutex::AwaitCommon
+calls=0 +1726 1621
+* * 10
+cfl=(2)
+cfn=(74)
+calls=0 +1856 1628
+* * 10
+
+ob=(5)
+fl=(36) external/com_google_absl/absl/synchronization/internal/create_thread_identity.h
+fn=(75) GetOrCreateCurrentThreadIdentity
++160 45 0
+cfl=
+cfn=(58)
+calls=0 -919231 0
+* * 10
+
+ob=(5)
+fl=(2)
+fn=(76) Synch_GetPerThread
+* 568 0
+cfl=(36)
+cfn=(75)
+calls=0 * 45
+* * 10
+
+ob=(5)
+fl=(2)
+fn=(77) Synch_GetPerThreadAnnotated
+* 576 0
+cfl=(2)
+cfn=(76)
+calls=0 * 568
+* * 10
+
+ob=(5)
+fl=(2)
+fn=(74)
+* 1621 0
+cfl=(2)
+cfn=(77)
+calls=0 * 576
+* * 10
++130 1628 0
+cfl=(2)
+cfn=(73)
+calls=0 -1726 1160
+* * 10
+
+ob=(5)
+fl=(2)
+fn=(78) IncrementSynchSem
++2807 0 0
+cfl=(33)
+cfn=(70)
+calls=0 -4420 110
+* * 10
+
+ob=(5)
+fl=(2)
+fn=(79) Wakeup
+* 1191 0
+cfl=(2)
+cfn=(78)
+calls=0 * 0
+* * 10
+
+ob=(5)
+fl=(2)
+fn=(63)
+* 2385 0
+cfl=(2)
+cfn=(79)
+calls=0 * 1191
+* * 10
+
+ob=(12) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_protobuf/src/google/protobuf/libprotobuf_lite.so
+fl=(37) external/com_google_protobuf/src/google/protobuf/arenastring.cc
+fn=(80) MutableSlow
++1671974 219 0
+cfl=(38) bazel-out/k8-opt/bin/external/com_google_protobuf/src/google/protobuf/_virtual_includes/protobuf_lite/google/protobuf/arenastring.h
+cfn=(81) NewString
+calls=0 +1671974 363
+* * 10
+
+ob=(12)
+fl=(38)
+fn=(81)
+* 363 0
+cfl=
+cfn=(25)
+calls=0 -5310422 0
+* * 10
+
+ob=(12)
+fl=(37)
+fn=(82) google::protobuf::internal::ArenaStringPtr::Mutable[abi:cxx11]
+* 186 0
+cfl=(37)
+cfn=(80)
+calls=0 * 219
+* * 10
+
+ob=(12)
+fl=(39) external/com_google_protobuf/src/google/protobuf/message_lite.cc
+fn=(83) google::protobuf::internal::MergeFromImpl
++160986 138 0
+cfl=(6)
+cfn=(84) worker_api::WorkerParamsProto::_InternalParse
+calls=0 +15391775 406
+* * 10
+cfl=(6)
+cfn=(84)
+calls=0 +15391894 417
+* * 10
+cfl=(6)
+cfn=(84)
+calls=0 +15392095 441
+* * 10
+
+ob=(12)
+fl=(40) bazel-out/k8-opt/bin/external/com_google_protobuf/src/google/protobuf/_virtual_includes/protobuf_lite/google/protobuf/message_lite.h
+fn=(85) ParseFrom
++4948 581 0
+cfl=(6)
+cfn=(6)
+calls=0 +15229949 344
+* * 10
+
+ob=(12)
+fl=(39)
+fn=(86) google::protobuf::MessageLite::ParseFromArray
+* 321 0
+cfl=(40)
+cfn=(85)
+calls=0 * 581
+* * 10
+
+ob=(12)
+fl=(39)
+fn=(87) SerializeToArrayImpl
++2841 392 0
+cfl=(6)
+cfn=(88) worker_api::WorkerParamsProto::_InternalSerialize
+calls=0 +15226536 482
+* * 10
+
+ob=(12)
+fl=(39)
+fn=(89) google::protobuf::MessageLite::SerializePartialToArray
+* 531 0
+cfl=(39)
+cfn=(87)
+calls=0 * 392
+* * 10
+
+ob=(12)
+fl=(41) external/com_google_protobuf/src/google/protobuf/wire_format_lite.cc
+fn=(90) google::protobuf::internal::WireFormatLite::VerifyUtf8String
++35308 631 0
+cfl=
+cfn=(91)  [4/6]
+calls=0 -634606 0
+* * 10
+
+ob=(13) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/util/libfileops.so
+fl=(42) external/com_google_sandboxed_api/sandboxed_api/util/fileops.cc
+fn=(92) sapi::file_util::fileops::WriteToFD
++10147008 315 0
+cfl=
+cfn=(58)
+calls=0 -2788590 0
+* * 10
+
+ob=(14) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/sandbox2/libcomms.so
+fl=(43) external/com_google_sandboxed_api/sandboxed_api/sandbox2/comms.cc
+fn=(93) sandbox2::Comms::SendTLV
++142328 246 0
+cfl=(43)
+cfn=(94) sandbox2::Comms::Send
+calls=0 +142560 520
+* * 220
++21 249 0
+cfl=(43)
+cfn=(94)
+calls=0 +232 520
+* * 110
++24 252 0
+cfl=(43)
+cfn=(94)
+calls=0 +211 520
+* * 80
++20 255 0
+cfl=(31)
+cfn=(95) ~MutexLock [2/3]
+calls=0 +20 552
+* * 10
+
+ob=(14)
+fl=(31)
+fn=(62)
+* 552 0
+cfl=(2)
+cfn=(2)
+calls=0 -12162757 1713
+* * 10
+
+ob=(14)
+fl=(43)
+fn=(9)
++167 516 0
+cfl=
+cfn=(58)
+calls=0 -13077991 0
+* * 410
+
+ob=(14)
+fl=(43)
+fn=(94)
+* 520 0
+cfl=(43)
+cfn=(9)
+calls=0 * 516
+* * 410
+
+ob=(14)
+fl=(43)
+fn=(9)
++3568 550 0
+cfl=
+cfn=(58)
+calls=0 -13078001 0
+* * 760
+
+ob=(14)
+fl=(43)
+fn=(96) sandbox2::Comms::Recv
+* 554 0
+cfl=(43)
+cfn=(9)
+calls=0 * 550
+* * 760
+
+ob=(14)
+fl=(43)
+fn=(97) sandbox2::Comms::RecvTL
++431 575 0
+cfl=(43)
+cfn=(96)
+calls=0 * 554
+* * 360
++20 579 0
+cfl=(43)
+cfn=(96)
+calls=0 -431 554
+* * 230
+
+ob=(14)
+fl=(43)
+fn=(98) sandbox2::Comms::RecvTLV
++647 624 0
+cfl=(43)
+cfn=(97)
+calls=0 -20 575
+* * 360
+cfl=(43)
+cfn=(97)
+calls=0 * 579
+* * 230
++79 638 0
+cfl=(43)
+cfn=(96)
+calls=0 -1098 554
+* * 170
+
+ob=(8)
+fl=(44) external/com_google_sandboxed_api/sandboxed_api/rpcchannel.cc
+fn=(99) sapi::RPCChannel::Call
++83402 36 0
+cfl=(43)
+cfn=(93)
+calls=0 -4956 249
+* * 10
+cfl=(43)
+cfn=(93)
+calls=0 -4932 252
+* * 10
++19 39 0
+cfl=(44)
+cfn=(100) sapi::RPCChannel::Return
+calls=0 +299 48
+* * 140
+
+ob=(8)
+fl=(45) external/com_google_absl/absl/status/statusor.h
+fn=(3)
++5 491 0
+cfl=(3)
+cfn=(3)
+calls=0 +5 803
+* * 10
+
+ob=(8)
+fl=(44)
+fn=(99)
+* 39 0
+cfl=(45)
+cfn=(3)
+calls=0 * 491
+* * 10
++74 42 0
+cfl=(31)
+cfn=(101) ~MutexLock [3/3]
+calls=0 +74 552
+* * 10
+
+ob=(8)
+fl=(31)
+fn=(62)
+* 552 0
+cfl=(2)
+cfn=(2)
+calls=0 -12251163 1730
+* * 10
+
+ob=(8)
+fl=(44)
+fn=(100)
++201 48 0
+cfl=(43)
+cfn=(98)
+calls=0 -83579 624
+* * 590
+cfl=(43)
+cfn=(98)
+calls=0 -83500 638
+* * 170
+
+ob=(8)
+fl=(44)
+fn=(102) sapi::RPCChannel::Allocate
++1983 75 0
+cfl=(43)
+cfn=(93)
+calls=0 -88678 246
+* * 70
+cfl=(43)
+cfn=(93)
+calls=0 -88657 249
+* * 40
+cfl=(43)
+cfn=(93)
+calls=0 -88633 252
+* * 40
+cfl=(43)
+cfn=(93)
+calls=0 -88613 255
+* * 10
++21 79 0
+cfl=(44)
+cfn=(100)
+calls=0 -1983 48
+* * 290
+
+ob=(8)
+fl=(44)
+fn=(103) sapi::RPCChannel::Free
++747 111 0
+cfl=(43)
+cfn=(93)
+calls=0 -90682 246
+* * 150
+cfl=(43)
+cfn=(93)
+calls=0 -90661 249
+* * 60
+cfl=(43)
+cfn=(93)
+calls=0 -90637 252
+* * 30
++18 115 0
+cfl=(44)
+cfn=(100)
+calls=0 -2751 48
+* * 330
+
+ob=(8)
+fl=(46) external/com_google_sandboxed_api/sandboxed_api/var_abstract.cc
+fn=(104) sapi::v::Var::Allocate
++2921 73 0
+cfl=(44)
+cfn=(102)
+calls=0 -765 79
+* * 290
+cfl=(44)
+cfn=(102)
+calls=0 -786 75
+* * 160
+
+ob=(8)
+fl=(46)
+fn=(105) sapi::v::Var::TransferToSandboxee
++412 115 0
+cfl=
+cfn=(12)
+calls=0 -17568199 0
+* * 30
+
+ob=(8)
+fl=(46)
+fn=(106) sapi::v::Var::TransferFromSandboxee
++1552 151 0
+cfl=
+cfn=(12)
+calls=0 -17568659 0
+* * 30
+
+ob=(8)
+fl=(46)
+fn=(107) Free
++2016 89 0
+cfl=(44)
+cfn=(103)
+calls=0 -4885 115
+* * 330
+cfl=(44)
+cfn=(103)
+calls=0 -4903 111
+* * 240
+
+ob=(8)
+fl=(46)
+fn=(108) sapi::v::Var::~Var
+* 37 0
+cfl=(46)
+cfn=(107)
+calls=0 * 89
+* * 570
+
+ob=(8)
+fl=(46)
+fn=(9)
++94 41 0
+cfl=(4)
+cfn=(4)
+calls=0 -705 32
+* * 10
+
+ob=(8)
+fl=(46)
+fn=(108)
+* 39 0
+cfl=(9)
+cfn=(109) ~unique_ptr [2/3]
+calls=0 * 292
+* * 10
+
+ob=(8)
+fl=(9)
+fn=(32)
+* 292 0
+cfl=(46)
+cfn=(9)
+calls=0 * 41
+* * 10
+
+ob=(8)
+fl=(47) external/com_google_sandboxed_api/sandboxed_api/var_lenval.cc
+fn=(110) sapi::v::LenVal::Allocate
++1535 28 0
+cfl=(46)
+cfn=(104)
+calls=0 -4074 73
+* * 120
++26 29 0
+cfl=(46)
+cfn=(104)
+calls=0 -5609 73
+* * 150
+
+ob=(8)
+fl=(47)
+fn=(111) sapi::v::LenVal::TransferToSandboxee
++170 44 0
+cfl=(46)
+cfn=(105)
+calls=0 -5223 115
+* * 30
+
+ob=(8)
+fl=(47)
+fn=(112) sapi::v::LenVal::TransferFromSandboxee
++99 51 0
+cfl=(46)
+cfn=(106)
+calls=0 -3841 151
+* * 20
+
+ob=(8)
+fl=(5)
+fn=(5)
++574 43 0
+cfl=(5)
+cfn=(113) ~LenVal
+calls=0 +574 43
+* * 140
+
+ob=(8)
+fl=(5)
+fn=(113)
+* 43 0
+cfl=(46)
+cfn=(108)
+calls=0 -2498 37
+* * 140
+
+ob=(8)
+fl=(5)
+fn=(5)
++48 43 0
+cfl=(5)
+cfn=(113)
+calls=0 +48 43
+* * 160
+
+ob=(8)
+fl=(48) external/com_google_sandboxed_api/sandboxed_api/var_array.h
+fn=(114) ~Array
+* 64 0
+cfl=(46)
+cfn=(108)
+calls=0 -2546 37
+* * 160
+
+ob=(8)
+fl=(5)
+fn=(113)
+* 43 0
+cfl=(48)
+cfn=(114)
+calls=0 * 64
+* * 160
+
+ob=(8)
+fl=(5)
+fn=(5)
++8 43 0
+cfl=(5)
+cfn=(113)
+calls=0 +8 43
+* * 10
+
+ob=(8)
+fl=(5)
+fn=(113)
+* 43 0
+cfl=(46)
+cfn=(108)
+calls=0 -2460 39
+* * 10
+
+ob=(15) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/sandbox2/libpolicy.so
+fl=(49) external/com_google_sandboxed_api/sandboxed_api/sandbox2/policy.cc
+fn=(115) sandbox2::Policy::GetPolicy
++3122124 71 0
+cfl=(49)
+cfn=(116) sandbox2::Policy::GetDefaultPolicy
+calls=0 +3123959 135
+* * 10
+
+ob=(15)
+fl=(49)
+fn=(116)
++1835 135 0
+cfl=
+cfn=(117)  [6/6]
+calls=0 -3020102 0
+* * 10
+
+ob=(15)
+fl=(49)
+fn=(118) sandbox2::Policy::SendPolicy
++869 220 0
+cfl=(49)
+cfn=(115)
+calls=0 -1835 71
+* * 10
+
+ob=(16) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/libembed_file.so
+fl=(50) external/com_google_sandboxed_api/sandboxed_api/embed_file.cc
+fn=(119) sapi::EmbedFile::CreateFdForFileToc
++600119 70 0
+cfl=(42)
+cfn=(92)
+calls=0 -3368058 315
+* * 10
+
+ob=(16)
+fl=(50)
+fn=(120) sapi::EmbedFile::GetFdForFileToc
++1630 115 0
+cfl=(50)
+cfn=(119)
+calls=0 * 70
+* * 10
+
+ob=(16)
+fl=(50)
+fn=(121) sapi::EmbedFile::GetDupFdForFileToc
++389 129 0
+cfl=(50)
+cfn=(120)
+calls=0 * 115
+* * 10
+
+ob=(17) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/sandbox2/libmonitor_base.so
+fl=(51) external/com_google_sandboxed_api/sandboxed_api/sandbox2/monitor_base.cc
+fn=(122) InitSendPolicy
++305178 271 0
+cfl=(49)
+cfn=(118)
+calls=0 -602138 220
+* * 10
+
+ob=(17)
+fl=(51)
+fn=(123) sandbox2::MonitorBase::Launch
+* 235 0
+cfl=(51)
+cfn=(122)
+calls=0 * 271
+* * 10
+
+ob=(18) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/sandbox2/libmonitor_ptrace.so
+fl=(30)
+fn=(60)
++127873 354 0
+cfl=
+cfn=(12)
+calls=0 -22507497 0
+* * 20
++229 412 0
+cfl=(30)
+cfn=(124) sandbox2::PtraceMonitor::StateProcessStopped
+calls=0 +9068 914
+* * 10
+
+ob=(18)
+fl=(30)
+fn=(124)
++8839 914 0
+cfl=
+cfn=(12)
+calls=0 -21777614 0
+* * 10
+
+ob=(19) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/sandbox2/libsandbox2.so
+fl=(52) external/com_google_sandboxed_api/sandboxed_api/sandbox2/sandbox2.cc
+fn=(125) sandbox2::Sandbox2::RunAsync
++51743 74 0
+cfl=(52)
+cfn=(126) sandbox2::Sandbox2::Launch
+calls=0 +51954 116
+* * 10
+
+ob=(19)
+fl=(52)
+fn=(126)
++211 116 0
+cfl=(51)
+cfn=(123)
+calls=0 -188684 235
+* * 10
+
+ob=(20) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/external/com_google_sandboxed_api/sandboxed_api/libsapi.so
+fl=(53) external/com_google_sandboxed_api/sandboxed_api/sandbox.cc
+fn=(127) sapi::Sandbox::Init
++51362 200 0
+cfl=(52)
+cfn=(125)
+calls=0 -211 74
+* * 10
++109 143 0
+cfl=(50)
+cfn=(121)
+calls=0 -545435 129
+* * 10
+
+ob=(20)
+fl=(53)
+fn=(128) sapi::Sandbox::SynchronizePtrBefore
++3491 261 0
+cfl=(47)
+cfn=(111)
+calls=0 -4273239 44
+* * 30
+
+ob=(20)
+fl=(53)
+fn=(129) Allocate
++80 220 0
+cfl=(46)
+cfn=(104)
+calls=0 -4282535 73
+* * 180
+cfl=(47)
+cfn=(110)
+calls=0 -4276900 29
+* * 150
+cfl=(47)
+cfn=(110)
+calls=0 -4276926 28
+* * 120
+
+ob=(20)
+fl=(53)
+fn=(128)
+* 247 0
+cfl=(53)
+cfn=(129)
+calls=0 * 220
+* * 450
+
+ob=(20)
+fl=(53)
+fn=(130) sapi::Sandbox::SynchronizePtrAfter
++792 290 0
+cfl=(47)
+cfn=(112)
+calls=0 -4276711 51
+* * 20
+cfl=(46)
+cfn=(106)
+calls=0 -4280651 151
+* * 10
+
+ob=(20)
+fl=(53)
+fn=(131) sapi::Sandbox::Call
++1603 321 0
+cfl=(53)
+cfn=(128)
+calls=0 -792 247
+* * 450
+cfl=(53)
+cfn=(128)
+calls=0 -872 261
+* * 30
++689 352 0
+cfl=(44)
+cfn=(99)
+calls=0 -4290980 39
+* * 140
+cfl=(44)
+cfn=(99)
+calls=0 -4290999 36
+* * 20
+cfl=(44)
+cfn=(99)
+calls=0 -4290975 39
+* * 10
+cfl=(44)
+cfn=(99)
+calls=0 -4290901 42
+* * 10
++401 367 0
+cfl=(53)
+cfn=(130)
+calls=0 -2292 290
+* * 30
+
+ob=(10)
+fl=(54) bazel-out/k8-opt/bin/external/com_google_protobuf/src/google/protobuf/_virtual_includes/protobuf_lite/google/protobuf/parse_context.h
+fn=(132) ParseMessage
++517888 1141 0
+cfl=(55) bazel-out/k8-opt/bin/external/com_google_protobuf/src/google/protobuf/_virtual_includes/protobuf_nowkt/google/protobuf/map_field.h
+cfn=(133) google::protobuf::internal::MapField::_InternalParse
+calls=0 +542047 645
+* * 10
+
+ob=(10)
+fl=(6)
+fn=(84)
+* 406 0
+cfl=(54)
+cfn=(132)
+calls=0 * 1141
+* * 10
+
+ob=(10)
+fl=(56) bazel-out/k8-opt/bin/scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.h
+fn=(134) _internal_mutable_wasm
++119 654 0
+cfl=(37)
+cfn=(82)
+calls=0 -15391775 186
+* * 10
+
+ob=(10)
+fl=(6)
+fn=(84)
+* 417 0
+cfl=(56)
+cfn=(134)
+calls=0 * 654
+* * 10
+
+ob=(10)
+fl=(54)
+fn=(132)
++201 1141 0
+cfl=(55)
+cfn=(133)
+calls=0 +28700 645
+* * 10
+
+ob=(10)
+fl=(6)
+fn=(84)
+* 441 0
+cfl=(54)
+cfn=(132)
+calls=0 * 1141
+* * 10
+
+ob=(10)
+fl=(7)
+fn=(135) WriteBytesMaybeAliased
++375 725 0
+cfl=(7)
+cfn=(136) WriteStringMaybeAliased
+calls=0 +375 718
+* * 10
+
+ob=(10)
+fl=(7)
+fn=(136)
+* 718 0
+cfl=(7)
+cfn=(7)
+calls=0 * 921
+* * 10
+
+ob=(10)
+fl=(6)
+fn=(88)
+* 482 0
+cfl=(7)
+cfn=(135)
+calls=0 * 725
+* * 10
+
+ob=(10)
+fl=(57) bazel-out/k8-opt/bin/external/com_google_protobuf/src/google/protobuf/_virtual_includes/protobuf_lite/google/protobuf/map_field_lite.h
+fn=(137) _InternalParse
++23464 109 0
+cfl=(8)
+cfn=(138) google::protobuf::internal::MapEntryImpl::Parser::_InternalParse
+calls=0 +24048 316
+* * 10
+
+ob=(10)
+fl=(55)
+fn=(133)
+* 645 0
+cfl=(57)
+cfn=(137)
+calls=0 * 109
+* * 10
+
+ob=(10)
+fl=(56)
+fn=(139) ValidateValue
++584 104 0
+cfl=(41)
+cfn=(90)
+calls=0 -15211851 631
+* * 10
+
+ob=(10)
+fl=(8)
+fn=(138)
+* 316 0
+cfl=(56)
+cfn=(139)
+calls=0 * 104
+* * 10
+
+ob=(10)
+fl=(57)
+fn=(137)
++4076 110 0
+cfl=(8)
+cfn=(8)
+calls=0 +4076 298
+* * 10
+
+ob=(10)
+fl=(55)
+fn=(133)
+* 645 0
+cfl=(57)
+cfn=(137)
+calls=0 * 110
+* * 10
+
+ob=(11)
+fl=(58) scp/cc/roma/sandbox/worker_api/sapi/src/worker_sandbox_api.cc
+fn=(140) google::scp::roma::sandbox::worker_api::WorkerSandboxApi::Init
++179144814 115 0
+cfl=(53)
+cfn=(127)
+calls=0 -553872 200
+* * 10
+cfl=(53)
+cfn=(127)
+calls=0 -553763 143
+* * 10
+
+ob=(11)
+fl=(58)
+fn=(141) google::scp::roma::sandbox::worker_api::WorkerSandboxApi::InternalRunCode
++4093 256 0
+cfl=(39)
+cfn=(89)
+calls=0 -194396633 531
+* * 10
++501 283 0
+cfl=(59) bazel-out/k8-opt/bin/scp/cc/roma/sandbox/worker_api/sapi/src/roma_worker_wrapper_lib-sapi.sapi.h
+cfn=(142) google::scp::roma::sandbox::worker_api::WorkerWrapperApi::RunCodeFromSerializedData
+calls=0 +1777 71
+* * 690
+cfl=(59)
+cfn=(142)
+calls=0 +1700 71
+* * 10
++109 295 0
+cfl=(39)
+cfn=(83)
+calls=0 -194409016 138
+* * 30
+cfl=(39)
+cfn=(86)
+calls=0 -194404068 321
+* * 10
++768 315 0
+cfl=(46)
+cfn=(108)
+calls=0 -183978344 37
+* * 270
++27 315 0
+cfl=(9)
+cfn=(143) ~unique_ptr [3/3]
+calls=0 +27 292
+* * 10
+
+ob=(11)
+fl=(9)
+fn=(32)
+* 292 0
+cfl=(9)
+cfn=(29)
+calls=0 * 81
+* * 10
+
+ob=(11)
+fl=(58)
+fn=(141)
++5 315 0
+cfl=(9)
+cfn=(143)
+calls=0 +5 292
+* * 320
+
+ob=(11)
+fl=(9)
+fn=(9)
+* 81 0
+cfl=(5)
+cfn=(5)
+calls=0 -183976598 43
+* * 160
+cfl=(5)
+cfn=(5)
+calls=0 -183976646 43
+* * 140
+cfl=(5)
+cfn=(5)
+calls=0 -183976681 43
+* * 10
+cfl=(5)
+cfn=(5)
+calls=0 -183976590 43
+* * 10
+
+ob=(11)
+fl=(9)
+fn=(32)
+* 292 0
+cfl=(9)
+cfn=(29)
+calls=0 * 81
+* * 320
+
+ob=(11)
+fl=(21)
+fn=(144) _M_construct
++290 270 0
+cfl=(21)
+cfn=(145) _M_construct_aux
+calls=0 +290 251
+* * 10
+
+ob=(11)
+fl=(60) /usr/include/c++/9/bits/basic_string.tcc
+fn=(144)
+* 225 0
+cfl=(21)
+cfn=(146) _S_copy_chars
+calls=0 * 402
+* * 10
+
+ob=(11)
+fl=(21)
+fn=(145)
+* 251 0
+cfl=(60)
+cfn=(144)
+calls=0 * 225
+* * 10
+
+ob=(11)
+fl=(21)
+fn=(147) _S_copy
+* 355 0
+cfl=(10)
+cfn=(10)
+calls=0 * 372
+* * 10
+
+ob=(11)
+fl=(21)
+fn=(146)
+* 402 0
+cfl=(21)
+cfn=(147)
+calls=0 * 355
+* * 10
+
+ob=(11)
+fl=(21)
+fn=(148) basic_string
+* 531 0
+cfl=(21)
+cfn=(144)
+calls=0 * 270
+* * 10
+
+ob=(11)
+fl=(59)
+fn=(142)
+* 71 0
+cfl=(21)
+cfn=(148)
+calls=0 * 531
+* * 10
+
+ob=(11)
+fl=(61) external/com_google_sandboxed_api/sandboxed_api/sandbox.h
+fn=(149) Call
++77 86 0
+cfl=(53)
+cfn=(131)
+calls=0 -179698404 321
+* * 480
+cfl=(53)
+cfn=(131)
+calls=0 -179697715 352
+* * 180
+cfl=(53)
+cfn=(131)
+calls=0 -179697314 367
+* * 30
+
+ob=(11)
+fl=(59)
+fn=(142)
+* 71 0
+cfl=(61)
+cfn=(149)
+calls=0 * 86
+* * 690
+
+ob=(11)
+fl=(58)
+fn=(150) google::scp::roma::sandbox::worker_api::WorkerSandboxApi::RunCode
++1720 372 0
+cfl=(58)
+cfn=(141)
+calls=0 -1276 283
+* * 700
+cfl=(58)
+cfn=(141)
+calls=0 -367 315
+* * 320
+cfl=(58)
+cfn=(141)
+calls=0 -399 315
+* * 270
+cfl=(58)
+cfn=(141)
+calls=0 -1167 295
+* * 40
+cfl=(58)
+cfn=(141)
+calls=0 -1777 256
+* * 10
+cfl=(58)
+cfn=(141)
+calls=0 -372 315
+* * 10
+
+ob=(21) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/scp/cc/roma/sandbox/worker_api/src/libroma_worker_api_sapi_lib.so
+fl=(19)
+fn=(28)
++71879 62 0
+cfl=(58)
+cfn=(150)
+calls=0 * 372
+* * 1350
++94 68 0
+cfl=(23)
+cfn=(151) operator[] [2/2]
+calls=0 +94 169
+* * 10
+
+ob=(21)
+fl=(23)
+fn=(38)
+* 169 0
+cfl=(23)
+cfn=(152) try_emplace [2/2]
+calls=0 * 129
+* * 10
+
+ob=(21)
+fl=(23)
+fn=(40)
+* 129 0
+cfl=(23)
+cfn=(153) try_emplace_impl
+calls=0 * 185
+* * 10
+
+ob=(21)
+fl=(23)
+fn=(153)
+* 185 0
+cfl=(24)
+cfn=(154) absl::lts_20230125::container_internal::raw_hash_set::find_or_prepare_insert [2/2]
+calls=0 +11279 2447
+* * 10
+
+ob=(21)
+fl=(24)
+fn=(45)
++11279 2447 0
+cfl=(62) /usr/include/c++/9/string_view
+cfn=(155) basic_string_view
+calls=0 +11279 124
+* * 10
+
+ob=(21)
+fl=(62)
+fn=(155)
+* 124 0
+cfl=(10)
+cfn=(156) length
+calls=0 * 342
+* * 10
+
+ob=(21)
+fl=(10)
+fn=(156)
+* 342 0
+cfl=
+cfn=(12)
+calls=0 -201208817 0
+* * 10
+
+ob=(22) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/scp/cc/roma/sandbox/worker_pool/src/libroma_worker_pool_lib.so
+fl=(16)
+fn=(19)
++62980 48 0
+cfl=(58)
+cfn=(140)
+calls=0 -90842 115
+* * 20
+
+ob=(23) /bazel_root/build_ubuntu_804f627/848e331961d7f872628e991bd04cb9a6/execroot/google_privacysandbox_servers_common/bazel-out/k8-opt/bin/scp/cc/core/async_executor/src/libcore_async_executor_lib.so
+fl=(63) /usr/include/x86_64-linux-gnu/c++/9/bits/gthr-default.h
+fn=(157) __gthread_cond_timedwait
++108826 872 0
+cfl=
+cfn=(58)
+calls=0 -197318935 0
+* * 10
+
+ob=(23)
+fl=(64) /usr/include/c++/9/condition_variable
+fn=(158) __wait_until_impl
+* 188 0
+cfl=(63)
+cfn=(157)
+calls=0 * 872
+* * 10
+
+ob=(23)
+fl=(65) scp/cc/core/async_executor/src/single_thread_async_executor.cc
+fn=(159) google::scp::core::SingleThreadAsyncExecutor::StartWorker
+* 78 0
+cfl=(64)
+cfn=(160) wait_for
+calls=0 * 165
+* * 10
+
+ob=(23)
+fl=(64)
+fn=(160)
+* 165 0
+cfl=(64)
+cfn=(161) wait_until
+calls=0 * 138
+* * 10
+
+ob=(23)
+fl=(64)
+fn=(161)
+* 121 0
+cfl=(64)
+cfn=(158)
+calls=0 * 188
+* * 10
+* 138 0
+cfl=(64)
+cfn=(161)
+calls=0 * 121
+* * 10
+
+ob=(23)
+fl=(66) scp/cc/core/async_executor/src/async_task.h
+fn=(162) Execute
++593 66 0
+cfl=(20)
+cfn=(33)
+calls=0 +593 855
+* * 1400
+
+ob=(23)
+fl=(65)
+fn=(159)
+* 100 0
+cfl=(66)
+cfn=(162)
+calls=0 * 66
+* * 1400
+
+ob=(23)
+fl=(20)
+fn=(9)
+* 855 0
+cfl=(17)
+cfn=(26)
+calls=0 0x55f75afc9df2 239
+* * 1360
+cfl=(17)
+cfn=(26)
+calls=0 0x55f75afc9d82 226
+* * 20
+cfl=(17)
+cfn=(26)
+calls=0 0x55f75afca114 277
+* * 10
+cfl=(17)
+cfn=(26)
+calls=0 0x55f75afca40a 279
+* * 10
+
+ob=(23)
+fl=(29)
+fn=(163) _M_invoke
++2902 244 0
+cfl=(26)
+cfn=(164) __invoke [2/2]
+calls=0 +2902 95
+* * 1410
+
+ob=(23)
+fl=(26)
+fn=(48)
+* 95 0
+cfl=(26)
+cfn=(165) __invoke_impl [2/2]
+calls=0 * 60
+* * 1410
+
+ob=(23)
+fl=(26)
+fn=(50)
+* 60 0
+cfl=(65)
+cfn=(9)
+calls=0 * 64
+* * 1410
+
+ob=(23)
+fl=(29)
+fn=(9)
+* 251 0
+cfl=(29)
+cfn=(163)
+calls=0 * 244
+* * 1410
+
+ob=(23)
+fl=(65)
+fn=(9)
+* 64 0
+cfl=(65)
+cfn=(159)
+calls=0 -2902 100
+* * 1400
+cfl=(65)
+cfn=(159)
+calls=0 -3495 78
+* * 10
+
+ob=(23)
+fl=(29)
+fn=(59)
+* 195 0
+cfl=(29)
+cfn=(9)
+calls=0 * 251
+* * 1410
