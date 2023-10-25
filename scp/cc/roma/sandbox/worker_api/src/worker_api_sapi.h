@@ -18,10 +18,11 @@
 #define ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_SAPI_H_
 
 #include <memory>
-#include <mutex>
 #include <string>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "roma/config/src/config.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
 #include "roma/sandbox/worker_factory/src/worker_factory.h"
@@ -47,20 +48,25 @@ class WorkerApiSapi : public WorkerApi {
  public:
   explicit WorkerApiSapi(const WorkerApiSapiConfig& config);
 
-  core::ExecutionResult Init() noexcept override;
+  core::ExecutionResult Init() noexcept override
+      ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  core::ExecutionResult Run() noexcept override;
+  core::ExecutionResult Run() noexcept override
+      ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  core::ExecutionResult Stop() noexcept override;
+  core::ExecutionResult Stop() noexcept override
+      ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
   core::ExecutionResultOr<WorkerApi::RunCodeResponse> RunCode(
-      const WorkerApi::RunCodeRequest& request) noexcept override;
+      const WorkerApi::RunCodeRequest& request) noexcept override
+      ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  core::ExecutionResult Terminate() noexcept override;
+  core::ExecutionResult Terminate() noexcept override
+      ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
  private:
-  WorkerSandboxApi sandbox_api_;
-  std::mutex run_code_mutex_;
+  WorkerSandboxApi sandbox_api_ ABSL_GUARDED_BY(run_code_mutex_);
+  absl::Mutex run_code_mutex_;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 

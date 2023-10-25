@@ -25,6 +25,7 @@ cc_library(
         "//scp/cc/core/interface:type_def_lib",
         "//scp/cc/public/core/interface:execution_result",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 

@@ -17,7 +17,6 @@
 #include "worker_api_sapi.h"
 
 #include <memory>
-#include <mutex>
 #include <string>
 #include <utility>
 
@@ -47,21 +46,22 @@ WorkerApiSapi::WorkerApiSapi(const WorkerApiSapiConfig& config)
           config.enable_sandbox_sharing_request_response_with_buffer_only) {}
 
 ExecutionResult WorkerApiSapi::Init() noexcept {
+  absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Init();
 }
 
 ExecutionResult WorkerApiSapi::Run() noexcept {
+  absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Run();
 }
 
 ExecutionResult WorkerApiSapi::Stop() noexcept {
+  absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Stop();
 }
 
 ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
     const WorkerApi::RunCodeRequest& request) noexcept {
-  std::lock_guard<std::mutex> lock(run_code_mutex_);
-
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(std::string(request.code));
   params_proto.mutable_input()->Add(request.input.begin(), request.input.end());
@@ -71,7 +71,14 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
   }
 
   privacy_sandbox::server_common::Stopwatch stopwatch;
-  const auto result = sandbox_api_.RunCode(params_proto);
+  core::ExecutionResult result;
+  {
+    // Only this block is mutex protected because everything else is dealing
+    // with input and output arguments, which is threadsafe.
+    absl::MutexLock lock(&run_code_mutex_);
+    result = std::move(sandbox_api_.RunCode(params_proto));
+  }
+
   if (!result.Successful()) {
     return result;
   }
@@ -93,6 +100,7 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
 }
 
 ExecutionResult WorkerApiSapi::Terminate() noexcept {
+  absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Terminate();
 }
 }  // namespace google::scp::roma::sandbox::worker_api
