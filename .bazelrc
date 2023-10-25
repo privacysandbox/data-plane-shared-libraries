@@ -24,6 +24,8 @@ build:roma_sandboxed --cxxopt=-fbracket-depth=512
 try-import %workspace%/builders/.coverage.bazelrc
 
 build:sanitizers_common --keep_going
+build:sanitizers_common --cache_test_results=no
+build:sanitizers_common --build_tests_only
 
 # Address sanitizer, set action_env to segregate cache entries
 build:asan --config=sanitizers_common
@@ -37,7 +39,6 @@ build:asan --copt=-g
 build:asan --copt=-fno-omit-frame-pointer
 build:asan --linkopt=-fsanitize=address
 build:asan --linkopt=-fuse-ld=lld
-build:asan --build_tests_only
 build:asan --test_tag_filters=-noasan
 # TODO(b/293876281): Re-enable ODR violation checking once it's fixed in the
 # ZLib library that we depend on.
@@ -54,7 +55,6 @@ build:tsan --copt=-DDYNAMIC_ANNOTATIONS_EXTERNAL_IMPL=1
 build:tsan --copt=-O1
 build:tsan --copt=-fno-omit-frame-pointer
 build:tsan --linkopt=-fsanitize=thread
-build:tsan --build_tests_only
 build:tsan --test_tag_filters=-notsan
 
 # Memory sanitizer
