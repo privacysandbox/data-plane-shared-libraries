@@ -41,6 +41,10 @@ cc_test(
     srcs = [
         "gcp_blob_storage_client_provider_stream_test.cc",
     ],
+    # This test case appears to depend on GCP implementation details.
+    # It checks how many calls GCP internal libraries make to the user defined
+    # `StorageConnection::UploadChunk` method.
+    tags = ["manual"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",

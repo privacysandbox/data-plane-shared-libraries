@@ -31,8 +31,8 @@ namespace testing {
 
 class MockClient : public google::cloud::storage::internal::RawClient {
  public:
-  // GCS requires chunks to be a multiple of 256 KiB.
-  static constexpr size_t kUploadSize = 256 * 1024;
+  // GCS upload buffer size is 8MiB.
+  static constexpr size_t kUploadSize = 8 * 1024 * 1024;
 
   MockClient()
       : client_options_(
