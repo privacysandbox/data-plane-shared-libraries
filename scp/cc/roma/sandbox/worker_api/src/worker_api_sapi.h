@@ -45,18 +45,7 @@ struct WorkerApiSapiConfig {
 
 class WorkerApiSapi : public WorkerApi {
  public:
-  explicit WorkerApiSapi(const WorkerApiSapiConfig& config) {
-    sandbox_api_ = std::make_unique<WorkerSandboxApi>(
-        config.worker_js_engine, config.js_engine_require_code_preload,
-        config.compilation_context_cache_size,
-        config.native_js_function_comms_fd, config.native_js_function_names,
-        config.max_worker_virtual_memory_mb,
-        config.js_engine_resource_constraints.initial_heap_size_in_mb,
-        config.js_engine_resource_constraints.maximum_heap_size_in_mb,
-        config.js_engine_max_wasm_memory_number_of_pages,
-        config.sandbox_request_response_shared_buffer_size_mb,
-        config.enable_sandbox_sharing_request_response_with_buffer_only);
-  }
+  explicit WorkerApiSapi(const WorkerApiSapiConfig& config);
 
   core::ExecutionResult Init() noexcept override;
 
@@ -70,7 +59,7 @@ class WorkerApiSapi : public WorkerApi {
   core::ExecutionResult Terminate() noexcept override;
 
  private:
-  std::unique_ptr<WorkerSandboxApi> sandbox_api_;
+  WorkerSandboxApi sandbox_api_;
   std::mutex run_code_mutex_;
 };
 }  // namespace google::scp::roma::sandbox::worker_api

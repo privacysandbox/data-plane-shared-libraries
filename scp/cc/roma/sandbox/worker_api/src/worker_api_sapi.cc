@@ -34,16 +34,28 @@ using google::scp::roma::sandbox::constants::
     kExecutionMetricSandboxedJsEngineCallDuration;
 
 namespace google::scp::roma::sandbox::worker_api {
+WorkerApiSapi::WorkerApiSapi(const WorkerApiSapiConfig& config)
+    : sandbox_api_(
+          config.worker_js_engine, config.js_engine_require_code_preload,
+          config.compilation_context_cache_size,
+          config.native_js_function_comms_fd, config.native_js_function_names,
+          config.max_worker_virtual_memory_mb,
+          config.js_engine_resource_constraints.initial_heap_size_in_mb,
+          config.js_engine_resource_constraints.maximum_heap_size_in_mb,
+          config.js_engine_max_wasm_memory_number_of_pages,
+          config.sandbox_request_response_shared_buffer_size_mb,
+          config.enable_sandbox_sharing_request_response_with_buffer_only) {}
+
 ExecutionResult WorkerApiSapi::Init() noexcept {
-  return sandbox_api_->Init();
+  return sandbox_api_.Init();
 }
 
 ExecutionResult WorkerApiSapi::Run() noexcept {
-  return sandbox_api_->Run();
+  return sandbox_api_.Run();
 }
 
 ExecutionResult WorkerApiSapi::Stop() noexcept {
-  return sandbox_api_->Stop();
+  return sandbox_api_.Stop();
 }
 
 ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
@@ -59,7 +71,7 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
   }
 
   privacy_sandbox::server_common::Stopwatch stopwatch;
-  const auto result = sandbox_api_->RunCode(params_proto);
+  const auto result = sandbox_api_.RunCode(params_proto);
   if (!result.Successful()) {
     return result;
   }
@@ -81,6 +93,6 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
 }
 
 ExecutionResult WorkerApiSapi::Terminate() noexcept {
-  return sandbox_api_->Terminate();
+  return sandbox_api_.Terminate();
 }
 }  // namespace google::scp::roma::sandbox::worker_api
