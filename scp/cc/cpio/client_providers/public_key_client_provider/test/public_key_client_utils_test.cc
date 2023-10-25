@@ -23,6 +23,7 @@
 #include <regex>
 #include <utility>
 
+#include "absl/strings/str_cat.h"
 #include "core/interface/http_types.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
@@ -56,6 +57,28 @@ TEST(PublicKeyClientUtilsTest, ParseExpiredTimeFromHeadersSuccess) {
 
   uint64_t expired_time;
   auto result =
+      PublicKeyClientUtils::ParseExpiredTimeFromHeaders(headers, expired_time);
+  EXPECT_SUCCESS(result);
+  EXPECT_EQ(expired_time, kExpectedExpiredTimeSecs);
+
+  // CDNs may add a 'public' response directive.
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+  headers.clear();
+  headers.insert({kPublicKeyHeaderDate, kHeaderDateExample});
+  headers.insert({kPublicKeyHeaderCacheControl,
+                  absl::StrCat("public,", kCacheControlExample)});
+
+  result =
+      PublicKeyClientUtils::ParseExpiredTimeFromHeaders(headers, expired_time);
+  EXPECT_SUCCESS(result);
+  EXPECT_EQ(expired_time, kExpectedExpiredTimeSecs);
+
+  headers.clear();
+  headers.insert({kPublicKeyHeaderDate, kHeaderDateExample});
+  headers.insert({kPublicKeyHeaderCacheControl,
+                  absl::StrCat(kCacheControlExample, ",public")});
+
+  result =
       PublicKeyClientUtils::ParseExpiredTimeFromHeaders(headers, expired_time);
   EXPECT_SUCCESS(result);
   EXPECT_EQ(expired_time, kExpectedExpiredTimeSecs);

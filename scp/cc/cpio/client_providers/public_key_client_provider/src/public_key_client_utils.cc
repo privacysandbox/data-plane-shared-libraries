@@ -19,6 +19,7 @@
 #include <locale>
 #include <memory>
 #include <regex>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -50,7 +51,7 @@ static constexpr char kPublicKeyLabel[] = "key";
 static constexpr char kPublicKeyHeaderDate[] = "date";
 static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";
 static constexpr char kPublicKeyDateTimeFormat[] = "%a, %d %b %Y %H:%M:%S";
-static constexpr char kPublicKeyMaxAgePrefix[] = "max-age=";
+static constexpr char kPublicKeyMaxAgeRegex[] = R"(max-age=(\d+))";
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult PublicKeyClientUtils::ParseExpiredTimeFromHeaders(
@@ -64,23 +65,26 @@ ExecutionResult PublicKeyClientUtils::ParseExpiredTimeFromHeaders(
   std::tm time_date = {};
   std::istringstream stream_time(created_date->second);
   stream_time >> std::get_time(&time_date, kPublicKeyDateTimeFormat);
-  auto max_age = std::regex_replace(cache_control->second,
-                                    std::regex(kPublicKeyMaxAgePrefix), "");
-
   auto mt_time = std::mktime(&time_date);
   if (mt_time < 0) {
     return FailureExecutionResult(
         SC_PUBLIC_KEY_CLIENT_PROVIDER_EXPIRED_TIME_FETCH_FAILED);
   }
-
-  int max_age_val = 0;
-  if (absl::SimpleAtoi(std::string_view(max_age), &max_age_val)) {
-    expired_time_in_s = mt_time + max_age_val;
-    return SuccessExecutionResult();
-  } else {
-    return FailureExecutionResult(
-        SC_PUBLIC_KEY_CLIENT_PROVIDER_EXPIRED_TIME_FETCH_FAILED);
+  std::smatch results;
+  std::regex max_age_capture_expression(kPublicKeyMaxAgeRegex);
+  if (std::regex_search(cache_control->second, results,
+                        max_age_capture_expression)) {
+    // Use the capture group text (idx 1), not the entire text match (idx 0):
+    std::string max_age_seconds = results.str(1);
+    int max_age_val = 0;
+    if (absl::SimpleAtoi(max_age_seconds, &max_age_val)) {
+      expired_time_in_s = mt_time + max_age_val;
+      return SuccessExecutionResult();
+    }
   }
+
+  return FailureExecutionResult(
+      SC_PUBLIC_KEY_CLIENT_PROVIDER_EXPIRED_TIME_FETCH_FAILED);
 }
 
 ExecutionResult PublicKeyClientUtils::ParsePublicKeysFromBody(
