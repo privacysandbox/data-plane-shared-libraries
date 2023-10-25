@@ -22,6 +22,7 @@
 namespace google::scp::core::errors {
 absl::flat_hash_map<uint64_t, absl::flat_hash_map<uint64_t, SCPError>>&
 GetGlobalErrorCodes() {
+  // Static duration map is heap allocated to avoid destructor call.
   /// Defines global_error_codes to store all error codes.
   static auto& global_error_codes =
       *new absl::flat_hash_map<uint64_t,
@@ -32,6 +33,7 @@ GetGlobalErrorCodes() {
 absl::flat_hash_map<uint64_t, uint64_t>& GetPublicErrorCodesMap() {
   /// Defines public_error_codes_map to store error codes and associated public
   /// error code.
+  // Static duration map is heap allocated to avoid destructor call.
   static auto& public_error_codes_map =
       *new absl::flat_hash_map<uint64_t, uint64_t>();
   return public_error_codes_map;

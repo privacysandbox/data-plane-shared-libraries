@@ -19,7 +19,6 @@
 #include <cctype>
 #include <cstdint>
 #include <functional>
-#include <map>
 #include <memory>
 #include <random>
 #include <sstream>
@@ -34,6 +33,7 @@
 #include <tink/subtle/aes_gcm_boringssl.h>
 #include <tink/util/secret_data.h>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/strings/escaping.h"
 #include "core/interface/async_context.h"
@@ -96,33 +96,37 @@ using google::scp::core::errors::
     SC_CRYPTO_CLIENT_PROVIDER_SPLIT_CIPHERTEXT_FAILED;
 using google::scp::core::utils::Base64Decode;
 
+namespace google::scp::cpio::client_providers {
+namespace tink = ::crypto::tink::internal;
+
 namespace {
 /// Filename for logging errors
 constexpr char kCryptoClientProvider[] = "CryptoClientProvider";
 constexpr char kDefaultExporterContext[] = "aead key";
-}  // namespace
-
-namespace google::scp::cpio::client_providers {
-namespace tink = ::crypto::tink::internal;
 
 /// Default HpkeParams if it is not configured or specified from the request.
 const tink::HpkeParams kDefaultHpkeParams = {tink::HpkeKem::kX25519HkdfSha256,
                                              tink::HpkeKdf::kHkdfSha256,
                                              tink::HpkeAead::kChaCha20Poly1305};
+// Static duration maps are heap allocated to avoid destructor call.
 /// Map from HpkeKem to Tink HpkeKem.
-const std::map<HpkeKem, tink::HpkeKem> kHpkeKemMap = {
+const auto& kHpkeKemMap = *new absl::flat_hash_map<HpkeKem, tink::HpkeKem>{
     {HpkeKem::DHKEM_X25519_HKDF_SHA256, tink::HpkeKem::kX25519HkdfSha256},
-    {HpkeKem::KEM_UNKNOWN, tink::HpkeKem::kUnknownKem}};
+    {HpkeKem::KEM_UNKNOWN, tink::HpkeKem::kUnknownKem},
+};
 /// Map from HpkeKdf to Tink HpkeKdf.
-const std::map<HpkeKdf, tink::HpkeKdf> kHpkeKdfMap = {
+const auto& kHpkeKdfMap = *new absl::flat_hash_map<HpkeKdf, tink::HpkeKdf>{
     {HpkeKdf::HKDF_SHA256, tink::HpkeKdf::kHkdfSha256},
-    {HpkeKdf::KDF_UNKNOWN, tink::HpkeKdf::kUnknownKdf}};
+    {HpkeKdf::KDF_UNKNOWN, tink::HpkeKdf::kUnknownKdf},
+};
 /// Map from HpkeAead to Tink HpkeAead.
-const std::map<HpkeAead, tink::HpkeAead> kHpkeAeadMap = {
+const auto& kHpkeAeadMap = *new absl::flat_hash_map<HpkeAead, tink::HpkeAead>{
     {HpkeAead::AES_128_GCM, tink::HpkeAead::kAes128Gcm},
     {HpkeAead::AES_256_GCM, tink::HpkeAead::kAes256Gcm},
     {HpkeAead::CHACHA20_POLY1305, tink::HpkeAead::kChaCha20Poly1305},
-    {HpkeAead::AEAD_UNKNOWN, tink::HpkeAead::kUnknownAead}};
+    {HpkeAead::AEAD_UNKNOWN, tink::HpkeAead::kUnknownAead},
+};
+}  // namespace
 
 /**
  * @brief Gets configured HpkeParams if it is set otherwise gets default

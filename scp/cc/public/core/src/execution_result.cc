@@ -17,22 +17,25 @@
 
 #include "public/core/interface/execution_result.h"
 
-#include <map>
-
+#include "absl/container/flat_hash_map.h"
 #include "core/common/proto/common.pb.h"
 
 namespace google::scp::core {
-std::map<core::common::proto::ExecutionStatus, ExecutionStatus> ReverseMap(
-    const std::map<ExecutionStatus, core::common::proto::ExecutionStatus>& m) {
-  std::map<core::common::proto::ExecutionStatus, ExecutionStatus> r;
+namespace {
+absl::flat_hash_map<core::common::proto::ExecutionStatus, ExecutionStatus>
+ReverseMap(const absl::flat_hash_map<ExecutionStatus,
+                                     core::common::proto::ExecutionStatus>& m) {
+  absl::flat_hash_map<core::common::proto::ExecutionStatus, ExecutionStatus> r;
   for (const auto& kv : m) {
     r[kv.second] = kv.first;
   }
   return r;
 }
 
-const std::map<ExecutionStatus, core::common::proto::ExecutionStatus>
-    kExecutionStatusToProtoMap = {
+// Static duration maps are heap allocated to avoid destructor call.
+const auto& kExecutionStatusToProtoMap =
+    *new absl::flat_hash_map<ExecutionStatus,
+                             core::common::proto::ExecutionStatus>{
         {ExecutionStatus::Success,
          core::common::proto::ExecutionStatus::EXECUTION_STATUS_SUCCESS},
         {ExecutionStatus::Failure,
@@ -40,8 +43,11 @@ const std::map<ExecutionStatus, core::common::proto::ExecutionStatus>
         {ExecutionStatus::Retry,
          core::common::proto::ExecutionStatus::EXECUTION_STATUS_RETRY}};
 
-const std::map<core::common::proto::ExecutionStatus, ExecutionStatus>
-    kProtoToExecutionStatusMap = ReverseMap(kExecutionStatusToProtoMap);
+const auto& kProtoToExecutionStatusMap =
+    *new absl::flat_hash_map<core::common::proto::ExecutionStatus,
+                             ExecutionStatus>(
+        ReverseMap(kExecutionStatusToProtoMap));
+}  // namespace
 
 core::common::proto::ExecutionStatus ToStatusProto(ExecutionStatus& status) {
   return kExecutionStatusToProtoMap.at(status);
@@ -58,9 +64,9 @@ ExecutionResult::ExecutionResult(
     const core::common::proto::ExecutionResult result_proto) {
   auto mapped_status = ExecutionStatus::Failure;
   // Handle proto status UNKNOWN
-  if (kProtoToExecutionStatusMap.find(result_proto.status()) !=
-      kProtoToExecutionStatusMap.end()) {
-    mapped_status = kProtoToExecutionStatusMap.at(result_proto.status());
+  if (const auto it = kProtoToExecutionStatusMap.find(result_proto.status());
+      it != kProtoToExecutionStatusMap.end()) {
+    mapped_status = it->second;
   }
   status = mapped_status;
   status_code = result_proto.status_code();

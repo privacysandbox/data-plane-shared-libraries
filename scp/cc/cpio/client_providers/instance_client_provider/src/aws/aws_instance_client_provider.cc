@@ -16,9 +16,7 @@
 
 #include "aws_instance_client_provider.h"
 
-#include <map>
 #include <memory>
-#include <set>
 #include <string>
 #include <utility>
 
@@ -26,6 +24,7 @@
 #include <aws/ec2/model/DescribeTagsRequest.h>
 #include <nlohmann/json.hpp>
 
+#include "absl/container/flat_hash_set.h"
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_format.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
@@ -102,18 +101,6 @@ constexpr char kInstanceIdKey[] = "instanceId";
 constexpr char kRegionKey[] = "region";
 constexpr char kAwsInstanceResourceNameFormat[] =
     "arn:aws:ec2:%s:%s:instance/%s";
-
-// Available Regions. Refers to
-// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
-const std::set<std::string> kAwsRegionCodes = {
-    "us-east-2",      "us-east-1",      "us-west-1",      "us-west-2",
-    "af-south-1",     "ap-east-1",      "ap-south-2",     "ap-southeast-3",
-    "ap-southeast-4", "ap-south-1",     "ap-northeast-3", "ap-northeast-2",
-    "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ca-central-1",
-    "eu-central-1",   "eu-west-1",      "eu-west-2",      "eu-south-1",
-    "eu-west-3",      "eu-south-2",     "eu-north-1",     "eu-central-2",
-    "me-south-1",     "me-central-1",   "sa-east-1",
-};
 constexpr char kDefaultRegionCode[] = "us-east-1";
 
 // Returns a pair of iterators - one to the beginning, one to the end.
@@ -148,6 +135,17 @@ ExecutionResult AwsInstanceClientProvider::Stop() noexcept {
 ExecutionResultOr<std::shared_ptr<EC2Client>>
 AwsInstanceClientProvider::GetEC2ClientByRegion(
     const std::string& region) noexcept {
+  // Available Regions. Refers to
+  // https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
+  static const auto& kAwsRegionCodes = *new absl::flat_hash_set<std::string>{
+      "us-east-2",      "us-east-1",      "us-west-1",      "us-west-2",
+      "af-south-1",     "ap-east-1",      "ap-south-2",     "ap-southeast-3",
+      "ap-southeast-4", "ap-south-1",     "ap-northeast-3", "ap-northeast-2",
+      "ap-southeast-1", "ap-southeast-2", "ap-northeast-1", "ca-central-1",
+      "eu-central-1",   "eu-west-1",      "eu-west-2",      "eu-south-1",
+      "eu-west-3",      "eu-south-2",     "eu-north-1",     "eu-central-2",
+      "me-south-1",     "me-central-1",   "sa-east-1",
+  };
   auto target_region = region.empty() ? kDefaultRegionCode : region;
   auto it = kAwsRegionCodes.find(target_region);
   if (it == kAwsRegionCodes.end()) {

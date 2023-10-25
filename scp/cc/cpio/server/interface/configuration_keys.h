@@ -28,6 +28,7 @@ namespace google::scp::cpio {
 // default value SysLog.
 static constexpr char kSdkClientLogOption[] = "cmrt_sdk_log_option";
 
+// Static duration map is heap allocated to avoid destructor call.
 static const auto& kLogOptionConfigMap =
     *new absl::flat_hash_map<std::string, LogOption>{
         {"NoLog", LogOption::kNoLog},

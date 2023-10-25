@@ -51,6 +51,7 @@ static constexpr char kCryptoClientMinPollers[] =
 static constexpr char kCryptoClientMaxPollers[] =
     "cmrt_sdk_crypto_client_max_pollers";
 
+// Static duration maps are heap allocated to avoid destructor call.
 static const auto& kHpkeKemConfigMap =
     *new absl::flat_hash_map<std::string,
                              cmrt::sdk::crypto_service::v1::HpkeKem>{
