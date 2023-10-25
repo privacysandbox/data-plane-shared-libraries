@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
@@ -62,14 +63,14 @@ ExecutionResultOr<std::shared_ptr<Worker>> WorkerFactory::Create(
             native_function_invoker),
     };
 
-    auto v8_engine = std::make_shared<V8JsEngine>(
+    auto v8_engine = std::make_unique<V8JsEngine>(
         isolate_visitors, params.v8_worker_engine_params.resource_constraints);
 
     auto one_time_setup = GetEngineOneTimeSetup(params);
     v8_engine->OneTimeSetup(one_time_setup);
 
     auto worker =
-        std::make_shared<Worker>(v8_engine, params.require_preload,
+        std::make_shared<Worker>(std::move(v8_engine), params.require_preload,
                                  params.compilation_context_cache_size);
 
     return worker;

@@ -38,15 +38,9 @@ namespace google::scp::roma::sandbox::worker {
 /// and executes them inside of a JS/WASM engine.
 class Worker : public core::ServiceInterface {
  public:
-  explicit Worker(std::shared_ptr<js_engine::JsEngine> js_engine,
+  explicit Worker(std::unique_ptr<js_engine::JsEngine> js_engine,
                   bool require_preload = true,
-                  size_t compilation_context_cache_size = 5)
-      : js_engine_(js_engine),
-        require_preload_(require_preload),
-        compilation_contexts_(compilation_context_cache_size) {
-    CHECK(compilation_context_cache_size > 0)
-        << "compilation_context_cache_size cannot be zero";
-  }
+                  size_t compilation_context_cache_size = 5);
 
   core::ExecutionResult Init() noexcept override;
 
@@ -69,7 +63,7 @@ class Worker : public core::ServiceInterface {
       absl::Span<const uint8_t> wasm);
 
  private:
-  std::shared_ptr<js_engine::JsEngine> js_engine_;
+  std::unique_ptr<js_engine::JsEngine> js_engine_;
   bool require_preload_;
   /**
    * @brief Used to keep track of compilation contexts

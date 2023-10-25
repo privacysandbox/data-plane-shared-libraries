@@ -55,14 +55,14 @@ static const std::vector<uint8_t> kWasmBin = {
 class V8EngineWorkerTest : public ::testing::Test {
  public:
   static void SetUpTestSuite() {
-    V8JsEngine engine;
-    engine.OneTimeSetup();
+    auto engine = std::make_unique<V8JsEngine>();
+    engine->OneTimeSetup();
   }
 };
 
 TEST_F(V8EngineWorkerTest, CanRunJsCode) {
-  auto engine = std::make_shared<V8JsEngine>();
-  Worker worker(engine, false /*require_preload*/);
+  auto engine = std::make_unique<V8JsEngine>();
+  Worker worker(std::move(engine), false /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
   constexpr std::string_view js_code =
@@ -85,8 +85,8 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
-  auto engine = std::make_shared<V8JsEngine>();
-  Worker worker(engine, true /*require_preload*/);
+  auto engine = std::make_unique<V8JsEngine>();
+  Worker worker(std::move(engine), true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
   // Load v1
@@ -147,8 +147,8 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
-  auto engine = std::make_shared<V8JsEngine>();
-  Worker worker(engine, true /*require_preload*/);
+  auto engine = std::make_unique<V8JsEngine>();
+  Worker worker(std::move(engine), true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
   // Load v1
@@ -239,8 +239,8 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
 }
 
 TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
-  auto engine = std::make_shared<V8JsEngine>();
-  Worker worker(engine, true /*require_preload*/,
+  auto engine = std::make_unique<V8JsEngine>();
+  Worker worker(std::move(engine), true /*require_preload*/,
                 1 /*compilation_context_cache_size*/);
   AutoInitRunStop to_handle_worker(worker);
 
@@ -297,8 +297,8 @@ TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
 }
 
 TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
-  auto engine = std::make_shared<V8JsEngine>();
-  Worker worker(engine, true /*require_preload*/);
+  auto engine = std::make_unique<V8JsEngine>();
+  Worker worker(std::move(engine), true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
   // Load v1
@@ -399,17 +399,18 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 }
 
 TEST_F(V8EngineWorkerTest, ShouldFailIfCompilationContextCacheSizeIsZero) {
-  auto engine = std::make_shared<V8JsEngine>();
+  auto engine = std::make_unique<V8JsEngine>();
   constexpr bool require_preload = false;
   constexpr int compilation_context_cache_size = 0;
 
-  ASSERT_DEATH(Worker(engine, require_preload, compilation_context_cache_size),
+  ASSERT_DEATH(Worker(std::move(engine), require_preload,
+                      compilation_context_cache_size),
                "compilation_context_cache_size cannot be zero");
 }
 
 TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
-  auto engine = std::make_shared<V8JsEngine>();
-  Worker worker(engine, false /*require_preload*/);
+  auto engine = std::make_unique<V8JsEngine>();
+  Worker worker(std::move(engine), false /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
 
   auto js_code = R"""(
@@ -439,8 +440,8 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
 }
 
 TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
-  auto engine = std::make_shared<V8JsEngine>();
-  Worker worker(engine, true /*require_preload*/);
+  auto engine = std::make_unique<V8JsEngine>();
+  Worker worker(std::move(engine), true /*require_preload*/);
   AutoInitRunStop to_handle_worker(worker);
   std::vector<absl::string_view> input;
 
@@ -530,8 +531,8 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
 
 TEST_F(V8EngineWorkerTest,
        JSWithWasmShouldReturnFailureIfVersionIsNotInInCache) {
-  auto engine = std::make_shared<V8JsEngine>();
-  Worker worker(engine, true /*require_preload*/,
+  auto engine = std::make_unique<V8JsEngine>();
+  Worker worker(std::move(engine), true /*require_preload*/,
                 1 /*compilation_context_cache_size*/);
   AutoInitRunStop to_handle_worker(worker);
 

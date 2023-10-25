@@ -19,6 +19,7 @@
 #include <unistd.h>
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
@@ -46,6 +47,15 @@ using google::scp::roma::sandbox::js_engine::JsEngineExecutionResponse;
 using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
 
 namespace google::scp::roma::sandbox::worker {
+Worker::Worker(std::unique_ptr<js_engine::JsEngine> js_engine,
+               bool require_preload, size_t compilation_context_cache_size)
+    : js_engine_(std::move(js_engine)),
+      require_preload_(require_preload),
+      compilation_contexts_(compilation_context_cache_size) {
+  CHECK(compilation_context_cache_size > 0)
+      << "compilation_context_cache_size cannot be zero";
+}
+
 ExecutionResult Worker::Init() noexcept {
   return js_engine_->Init();
 }
