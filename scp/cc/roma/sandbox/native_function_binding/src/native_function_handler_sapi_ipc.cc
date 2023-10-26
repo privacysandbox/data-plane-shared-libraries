@@ -34,13 +34,15 @@ static constexpr char kCouldNotFindFunctionName[] =
     "ROMA: Could not find C++ function by name.";
 
 namespace google::scp::roma::sandbox::native_function_binding {
+
 NativeFunctionHandlerSapiIpc::NativeFunctionHandlerSapiIpc(
     NativeFunctionTable* function_table, const std::vector<int>& local_fds,
     std::vector<int> remote_fds)
     : stop_(false),
       function_table_(function_table),
       remote_fds_(std::move(remote_fds)) {
-  for (int local_fd : local_fds) {
+  ipc_comms_.reserve(local_fds.size());
+  for (const int local_fd : local_fds) {
     ipc_comms_.emplace_back(local_fd);
   }
 }
@@ -57,31 +59,26 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Run() noexcept {
         proto::FunctionBindingIoProto io_proto;
 
         // This unblocks once a call is issued from the other side
-        bool received = comms.RecvProtoBuf(&io_proto);
-
+        const bool received = comms.RecvProtoBuf(&io_proto);
         if (stop_.load()) {
           break;
         }
-
         if (!received) {
           continue;
         }
 
         // Get function name
-        std::string function_name;
-        if (io_proto.metadata().find(kFuctionBindingMetadataFunctionName) ==
-            io_proto.metadata().end()) {
-          // If we can't find the function, add errors to the proto to return
-          io_proto.mutable_errors()->Add(kCouldNotFindFunctionName);
-        } else {
-          function_name =
-              io_proto.metadata().at(kFuctionBindingMetadataFunctionName);
-          if (!function_table_->Call(function_name, io_proto).Successful()) {
+        if (const auto fn_it =
+                io_proto.metadata().find(kFuctionBindingMetadataFunctionName);
+            fn_it != io_proto.metadata().end()) {
+          if (!function_table_->Call(fn_it->second, io_proto).Successful()) {
             // If execution failed, add errors to the proto to return
             io_proto.mutable_errors()->Add(kFailedNativeHandlerExecution);
           }
+        } else {
+          // If we can't find the function, add errors to the proto to return
+          io_proto.mutable_errors()->Add(kCouldNotFindFunctionName);
         }
-
         if (!comms.SendProtoBuf(io_proto)) {
           continue;
         }
@@ -97,12 +94,11 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Stop() noexcept {
 
   // We write to the comms object so that we can unblock the function binding
   // threads waiting on it.
-  for (auto fd : remote_fds_) {
+  for (const int fd : remote_fds_) {
     sandbox2::Comms remote_comms(fd);
     proto::FunctionBindingIoProto io_proto;
     remote_comms.SendProtoBuf(io_proto);
   }
-
   // Wait for the function binding threads to stop before terminating the comms
   // object below.
   for (auto& t : function_handler_threads_) {
@@ -110,11 +106,10 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Stop() noexcept {
       t.join();
     }
   }
-
   for (sandbox2::Comms& c : ipc_comms_) {
     c.Terminate();
   }
-
   return SuccessExecutionResult();
 }
+
 }  // namespace google::scp::roma::sandbox::native_function_binding
