@@ -27,10 +27,10 @@ cc_test(
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/curl_client/mock:mock_curl_client",
         "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
         "//scp/cc/cpio/client_providers/instance_client_provider/src/gcp:gcp_instance_client_provider_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

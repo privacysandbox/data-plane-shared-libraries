@@ -20,8 +20,9 @@
 #include <gtest/gtest.h>
 
 #include "absl/strings/str_cat.h"
+#include "absl/synchronization/blocking_counter.h"
+#include "absl/synchronization/notification.h"
 #include "core/curl_client/mock/mock_curl_client.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
 #include "public/core/test/interface/execution_result_matchers.h"
@@ -56,7 +57,6 @@ using google::scp::core::errors::SC_GCP_INSTANCE_CLIENT_ZONE_PARSING_FAILURE;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::GcpInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using testing::_;
@@ -235,7 +235,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
         return SuccessExecutionResult();
       });
 
-  std::atomic<size_t> condition{0};
+  absl::Notification done;
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -245,12 +245,12 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
             EXPECT_SUCCESS(context.result);
             EXPECT_EQ(context.response->instance_resource_name(),
                       absl::StrCat("//compute.googleapis.com/", kResourceId));
-            condition++;
+            done.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load() == 1; });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -283,7 +283,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  std::atomic<size_t> condition{0};
+  absl::Notification done;
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -292,12 +292,12 @@ TEST_F(GcpInstanceClientProviderTest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
                         ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            condition++;
+            done.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load() == 1; });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest, FailedToGetCurrentInstanceResourceName) {
@@ -313,7 +313,7 @@ TEST_F(GcpInstanceClientProviderTest, FailedToGetCurrentInstanceResourceName) {
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
-  std::atomic<size_t> condition{0};
+  absl::Notification done;
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -322,12 +322,12 @@ TEST_F(GcpInstanceClientProviderTest, FailedToGetCurrentInstanceResourceName) {
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
                         ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            condition++;
+            done.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return condition.load() == 1; });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSyncSuccess) {
@@ -618,7 +618,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -632,12 +632,12 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
             EXPECT_EQ(details.networks(0).public_ipv4_address(),
                       "255.255.255.01");
             EXPECT_EQ(details.networks(0).private_ipv4_address(), "10.10.0.99");
-            condition.store(true);
+            done.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -707,7 +707,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -725,12 +725,12 @@ TEST_F(GcpInstanceClientProviderTest,
                           .networks(0)
                           .private_ipv4_address(),
                       "10.10.0.99");
-            condition.store(true);
+            done.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -768,7 +768,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
   EXPECT_CALL(*http2_client_, PerformRequest).Times(0);
 
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -777,12 +777,12 @@ TEST_F(GcpInstanceClientProviderTest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
                         ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            condition.store(true);
+            done.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -808,7 +808,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -817,12 +817,12 @@ TEST_F(GcpInstanceClientProviderTest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
                         ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            condition.store(true);
+            done.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -874,7 +874,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
   auto failure = FailureExecutionResult(
       SC_GCP_INSTANCE_CLIENT_INSTANCE_DETAILS_RESPONSE_MALFORMED);
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -882,12 +882,12 @@ TEST_F(GcpInstanceClientProviderTest,
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result, ResultIs(failure));
-            condition.store(true);
+            done.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
@@ -946,7 +946,7 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
@@ -956,12 +956,12 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
                             UnorderedElementsAre(Pair("name_1", "value_1"),
                                                  Pair("name_2", "value_2"),
                                                  Pair("name_3", "value_3")));
-                condition.store(true);
+                done.Notify();
               });
 
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -976,19 +976,19 @@ TEST_F(GcpInstanceClientProviderTest,
 
   EXPECT_CALL(*http2_client_, PerformRequest).Times(0);
 
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_THAT(context.result,
                             ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-                condition.store(true);
+                done.Notify();
               });
 
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -1014,19 +1014,19 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_THAT(context.result,
                             ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-                condition.store(true);
+                done.Notify();
               });
 
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -1081,7 +1081,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(
           std::move(get_tags_request_),
@@ -1091,12 +1091,12 @@ TEST_F(GcpInstanceClientProviderTest,
                 context.result,
                 ResultIs(FailureExecutionResult(
                     SC_GCP_INSTANCE_CLIENT_RESOURCE_TAGS_RESPONSE_MALFORMED)));
-            condition.store(true);
+            done.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -1131,19 +1131,19 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> condition{false};
+  absl::Notification done;
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
                 EXPECT_SUCCESS(context.result);
                 EXPECT_THAT(context.response->tags(), IsEmpty());
-                condition.store(true);
+                done.Notify();
               });
 
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 }  // namespace google::scp::cpio::client_providers::test
