@@ -41,6 +41,7 @@ cc_test(
     name = "execution_watchdog_test",
     size = "small",
     srcs = ["execution_watchdog_test.cc"],
+    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test. Flaky on amd64.
     deps = [
         "//scp/cc/roma/worker/src:execution_watchdog_lib",
         "@com_google_absl//absl/strings",
