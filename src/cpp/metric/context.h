@@ -38,6 +38,9 @@
 
 namespace privacy_sandbox::server_common::metrics {
 
+constexpr int kLogStandardFreqSec = 60;
+constexpr int kLogLowFreqSec = kLogStandardFreqSec * 10;
+
 /*
 One context will be created for one request, used to log metric. It will use
 `U* metric_router_` to `LogSafe()` only if metric is defined as safe and
@@ -76,14 +79,13 @@ class Context {
   Context& operator=(const Context&) = delete;
 
   ~Context() {
-    constexpr int kLogFreqSec = 60;
     for (auto& callback : callbacks_) {
       absl::Status s = std::move(callback)();
-      ABSL_LOG_IF_EVERY_N_SEC(ERROR, !s.ok(), kLogFreqSec) << s;
+      ABSL_LOG_IF_EVERY_N_SEC(ERROR, !s.ok(), kLogStandardFreqSec) << s;
     }
     for (auto& [def, accumulator] : accumulated_metric_) {
       absl::Status s = std::move(accumulator.callback)(accumulator.values);
-      ABSL_LOG_IF_EVERY_N_SEC(ERROR, !s.ok(), kLogFreqSec) << s;
+      ABSL_LOG_IF_EVERY_N_SEC(ERROR, !s.ok(), kLogStandardFreqSec) << s;
     }
   }
 
@@ -397,7 +399,7 @@ class Context {
         if (absl::c_binary_search(public_partitions, partition)) {
           ret.emplace_back(partition, numeric);
         } else {
-          ABSL_LOG_EVERY_N_SEC(WARNING, 60)
+          ABSL_LOG_EVERY_N_SEC(WARNING, kLogStandardFreqSec)
               << partition << " is not in public_partitions_ ["
               << partitioned.partition_type_ << "] of metric:" << name;
         }
@@ -410,8 +412,8 @@ class Context {
       // `max_partitions_contributed_` = 1, then it is not partitioned metric,
       // just return the value; otherwise it is private partition metric that
       // is not implemented yet, log a warning.
-      ABSL_LOG_IF_EVERY_N_SEC(WARNING,
-                              partitioned.max_partitions_contributed_ > 1, 600)
+      ABSL_LOG_IF_EVERY_N_SEC(
+          WARNING, partitioned.max_partitions_contributed_ > 1, kLogLowFreqSec)
           << "public_partitions_ not defined for metric : " << name;
       ret.insert(ret.begin(), value.begin(), value.end());
       if (ret.size() >= partitioned.max_partitions_contributed_) {
