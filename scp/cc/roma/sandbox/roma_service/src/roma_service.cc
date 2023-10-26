@@ -45,7 +45,9 @@ using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
 
 namespace google::scp::roma::sandbox::roma_service {
-RomaService* RomaService::instance_ = nullptr;
+
+absl::Mutex RomaService::instance_mu_;
+RomaService* RomaService::instance_;
 constexpr int kWorkerQueueMax = 100;
 
 namespace {
@@ -101,21 +103,18 @@ ExecutionResult RomaService::Init() noexcept {
       SetupNativeFunctionHandler(concurrency);
   RETURN_IF_FAILURE(native_function_binding_info_or.result());
 
-  auto result = SetupWorkers(*native_function_binding_info_or);
-  RETURN_IF_FAILURE(result);
+  RETURN_IF_FAILURE(SetupWorkers(*native_function_binding_info_or));
 
   async_executor_ =
       std::make_unique<AsyncExecutor>(concurrency, worker_queue_cap);
-  result = async_executor_->Init();
-  RETURN_IF_FAILURE(result);
+  RETURN_IF_FAILURE(async_executor_->Init());
 
   // TODO: Make max_pending_requests configurable
   dispatcher_ = std::make_unique<class Dispatcher>(
       async_executor_.get(), worker_pool_.get(),
       concurrency * worker_queue_cap /*max_pending_requests*/,
       config_.code_version_cache_size);
-  result = dispatcher_->Init();
-  RETURN_IF_FAILURE(result);
+  RETURN_IF_FAILURE(dispatcher_->Init());
   ROMA_VLOG(1) << "RomaService Init with " << config_.number_of_workers
                << " workers. The capacity of code cache is "
                << config_.code_version_cache_size;
@@ -123,42 +122,26 @@ ExecutionResult RomaService::Init() noexcept {
 }
 
 ExecutionResult RomaService::Run() noexcept {
-  auto result = native_function_binding_handler_->Run();
-  RETURN_IF_FAILURE(result);
-
-  result = async_executor_->Run();
-  RETURN_IF_FAILURE(result);
-
-  result = worker_pool_->Run();
-  RETURN_IF_FAILURE(result);
-
-  result = dispatcher_->Run();
-  RETURN_IF_FAILURE(result);
-
+  RETURN_IF_FAILURE(native_function_binding_handler_->Run());
+  RETURN_IF_FAILURE(async_executor_->Run());
+  RETURN_IF_FAILURE(worker_pool_->Run());
+  RETURN_IF_FAILURE(dispatcher_->Run());
   return SuccessExecutionResult();
 }
 
 ExecutionResult RomaService::Stop() noexcept {
   if (native_function_binding_handler_) {
-    auto result = native_function_binding_handler_->Stop();
-    RETURN_IF_FAILURE(result);
+    RETURN_IF_FAILURE(native_function_binding_handler_->Stop());
   }
-
   if (dispatcher_) {
-    auto result = dispatcher_->Stop();
-    RETURN_IF_FAILURE(result);
+    RETURN_IF_FAILURE(dispatcher_->Stop());
   }
-
   if (worker_pool_) {
-    auto result = worker_pool_->Stop();
-    RETURN_IF_FAILURE(result);
+    RETURN_IF_FAILURE(worker_pool_->Stop());
   }
-
   if (async_executor_) {
-    auto result = async_executor_->Stop();
-    RETURN_IF_FAILURE(result);
+    RETURN_IF_FAILURE(async_executor_->Stop());
   }
-
   return SuccessExecutionResult();
 }
 
@@ -168,24 +151,19 @@ RomaService::SetupNativeFunctionHandler(size_t concurrency) {
   config_.GetFunctionBindings(function_bindings);
 
   std::vector<std::string> function_names;
-
   for (auto& binding : function_bindings) {
-    auto result = native_function_binding_table_.Register(
-        binding->function_name, binding->function);
-    RETURN_IF_FAILURE(result);
-
+    RETURN_IF_FAILURE(native_function_binding_table_.Register(
+        binding->function_name, binding->function));
     function_names.push_back(binding->function_name);
   }
 
   std::vector<int> local_fds;
   std::vector<int> remote_fds;
-
   for (int i = 0; i < concurrency; i++) {
     int fd_pair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair) != 0) {
       return FailureExecutionResult(SC_ROMA_SERVICE_COULD_NOT_CREATE_FD_PAIR);
     }
-
     local_fds.push_back(fd_pair[0]);
     remote_fds.push_back(fd_pair[1]);
   }
@@ -193,35 +171,31 @@ RomaService::SetupNativeFunctionHandler(size_t concurrency) {
   native_function_binding_handler_ =
       std::make_unique<NativeFunctionHandlerSapiIpc>(
           &native_function_binding_table_, local_fds, remote_fds);
-  auto result = native_function_binding_handler_->Init();
-  RETURN_IF_FAILURE(result);
+  RETURN_IF_FAILURE(native_function_binding_handler_->Init());
 
   NativeFunctionBindingSetup setup{
       .remote_file_descriptors = std::move(remote_fds),
       .local_file_descriptors = local_fds,
       .js_function_names = function_names,
   };
-
   return setup;
 }
 
 ExecutionResult RomaService::SetupWorkers(
     const NativeFunctionBindingSetup& native_binding_setup) {
   std::vector<WorkerApiSapiConfig> worker_configs;
-  auto remote_fds = native_binding_setup.remote_file_descriptors;
-  auto function_names = native_binding_setup.js_function_names;
-
-  auto concurrency = remote_fds.size();
+  const auto& remote_fds = native_binding_setup.remote_file_descriptors;
+  const auto& function_names = native_binding_setup.js_function_names;
 
   JsEngineResourceConstraints resource_constraints;
   config_.GetJsEngineResourceConstraints(resource_constraints);
 
-  for (int i = 0; i < concurrency; i++) {
+  for (const int remote_fd : remote_fds) {
     WorkerApiSapiConfig worker_api_sapi_config{
         .worker_js_engine = worker::WorkerFactory::WorkerEngine::v8,
         .js_engine_require_code_preload = true,
         .compilation_context_cache_size = config_.code_version_cache_size,
-        .native_js_function_comms_fd = remote_fds.at(i),
+        .native_js_function_comms_fd = remote_fd,
         .native_js_function_names = function_names,
         .max_worker_virtual_memory_mb = config_.max_worker_virtual_memory_mb,
         .js_engine_resource_constraints = resource_constraints,
@@ -230,12 +204,12 @@ ExecutionResult RomaService::SetupWorkers(
         .sandbox_request_response_shared_buffer_size_mb =
             config_.sandbox_request_response_shared_buffer_size_mb,
         .enable_sandbox_sharing_request_response_with_buffer_only =
-            config_.enable_sandbox_sharing_request_response_with_buffer_only};
-
+            config_.enable_sandbox_sharing_request_response_with_buffer_only,
+    };
     worker_configs.push_back(worker_api_sapi_config);
   }
-
   worker_pool_ = std::make_unique<WorkerPoolApiSapi>(worker_configs);
   return worker_pool_->Init();
 }
+
 }  // namespace google::scp::roma::sandbox::roma_service

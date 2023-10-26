@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/interface/service_interface.h"
 #include "public/core/interface/execution_result.h"
@@ -40,18 +42,21 @@ class RomaService : public core::ServiceInterface {
 
   /// The the instance of the roma service. This function is thread-unsafe when
   /// instance_ is null.
-  static RomaService* Instance(const Config& config = Config()) {
+  static RomaService* Instance(const Config& config = Config())
+      ABSL_LOCKS_EXCLUDED(instance_mu_) {
+    absl::MutexLock lock(&instance_mu_);
     if (instance_ == nullptr) {
       instance_ = new RomaService(config);
     }
     return instance_;
   }
 
-  static void Delete() {
+  static void Delete() ABSL_LOCKS_EXCLUDED(instance_mu_) {
+    absl::MutexLock lock(&instance_mu_);
     if (instance_ != nullptr) {
       delete instance_;
+      instance_ = nullptr;
     }
-    instance_ = nullptr;
   }
 
   /// Return the dispatcher
@@ -84,7 +89,8 @@ class RomaService : public core::ServiceInterface {
   core::ExecutionResult SetupWorkers(
       const NativeFunctionBindingSetup& native_binding_setup);
 
-  static RomaService* instance_;
+  static absl::Mutex instance_mu_;
+  static RomaService* instance_ ABSL_GUARDED_BY(instance_mu_);
   Config config_;
   std::unique_ptr<dispatcher::Dispatcher> dispatcher_;
   std::unique_ptr<worker_pool::WorkerPool> worker_pool_;

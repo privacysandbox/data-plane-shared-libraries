@@ -34,5 +34,6 @@ cc_library(
         "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_handler_sapi_ipc_lib",
         "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_sapi_lib",
         "//scp/cc/roma/sandbox/worker_pool/src:roma_worker_pool_lib",
+        "@com_google_absl//absl/synchronization",
     ],
 )
