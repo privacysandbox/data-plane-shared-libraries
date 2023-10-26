@@ -137,6 +137,7 @@ AwsInstanceClientProvider::GetEC2ClientByRegion(
     const std::string& region) noexcept {
   // Available Regions. Refers to
   // https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
+  // Static duration map is heap allocated to avoid destructor call.
   static const auto& kAwsRegionCodes = *new absl::flat_hash_set<std::string>{
       "us-east-2",      "us-east-1",      "us-west-1",      "us-west-2",
       "af-south-1",     "ap-east-1",      "ap-south-2",     "ap-southeast-3",
