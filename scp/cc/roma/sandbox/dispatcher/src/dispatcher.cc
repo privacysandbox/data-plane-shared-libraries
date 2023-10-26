@@ -79,8 +79,8 @@ ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
 
     auto code_object_copy = std::make_unique<CodeObject>(*code_object);
 
-    auto dispatch_result = InternalDispatch(std::move(code_object_copy),
-                                            std::move(callback), worker_index);
+    auto dispatch_result = Dispatch(std::move(code_object_copy),
+                                    std::move(callback), worker_index);
 
     if (!dispatch_result.Successful()) {
       LOG(ERROR) << "Broadcast failed at the " << worker_index

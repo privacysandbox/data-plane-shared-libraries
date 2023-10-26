@@ -64,21 +64,6 @@ class Dispatcher : public core::ServiceInterface {
   core::ExecutionResult Stop() noexcept override;
 
   /**
-   * @brief Enqueues a request to be handled by the workers.
-   *
-   * @tparam RequestT The type of the request.
-   * @param request The request.
-   * @param callback The function to call once the request completes.
-   * @return core::ExecutionResult Whether the enqueue operation succeeded or
-   * not.
-   */
-  template <typename RequestT>
-  core::ExecutionResult Dispatch(std::unique_ptr<RequestT> request,
-                                 Callback callback) noexcept {
-    return InternalDispatch(std::move(request), std::move(callback));
-  }
-
-  /**
    * @brief Dispatch a set of requests. This function will block until all the
    * requests have been dispatched. This uses Dispatch.
    *
@@ -137,21 +122,20 @@ class Dispatcher : public core::ServiceInterface {
   core::ExecutionResult Broadcast(std::unique_ptr<CodeObject> code_object,
                                   Callback broadcast_callback) noexcept;
 
- private:
   /**
-   * @brief The internal dispatch function which puts a request into a worker
-   * queue.
+   * @brief Enqueues a request to be handled by the workers.
    *
-   * @tparam RequestT The request type.
+   * @tparam RequestT The type of the request.
    * @param request The request.
-   * @param callback The callback to invoke once the operation finishes.
-   * @return core::ExecutionResult Whether the dispatch call succeeded or
-   * failed.
+   * @param callback The function to call once the request completes.
+   * @param worker_index Specific worker to allocate request to.
+   * @return core::ExecutionResult Whether the enqueue operation succeeded or
+   * not.
    */
   template <typename RequestT>
-  core::ExecutionResult InternalDispatch(std::unique_ptr<RequestT> request,
-                                         Callback callback,
-                                         int32_t worker_index = -1) noexcept {
+  core::ExecutionResult Dispatch(std::unique_ptr<RequestT> request,
+                                 Callback callback,
+                                 int32_t worker_index = -1) noexcept {
     if (pending_requests_.load() >= max_pending_requests_) {
       return core::FailureExecutionResult(
           core::errors::SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_DUE_TO_CAPACITY);
@@ -288,6 +272,7 @@ class Dispatcher : public core::ServiceInterface {
     return schedule_result;
   }
 
+ private:
   core::ExecutionResult ReloadCachedCodeObjects(worker_api::WorkerApi& worker);
 
   core::AsyncExecutor* async_executor_;
