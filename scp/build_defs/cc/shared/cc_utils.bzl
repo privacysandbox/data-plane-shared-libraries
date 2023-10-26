@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
@@ -28,11 +28,12 @@ def cc_utils():
     )
 
     maybe(
-        git_repository,
+        http_archive,
         name = "oneTBB",
-        # Commits on Apr 6, 2023, v2021.9.0
-        commit = "a00cc3b8b5fb4d8115e9de56bf713157073ed68c",
-        remote = "https://github.com/oneapi-src/oneTBB.git",
+        # Release 2021.10.0 dated 2023-07-24
+        sha256 = "78fb7bb29b415f53de21a68c4fdf97de8ae035090d9ee9caa221e32c6e79567c",
+        strip_prefix = "oneTBB-2021.10.0",
+        urls = ["https://github.com/oneapi-src/oneTBB/archive/refs/tags/v2021.10.0.zip"],
     )
 
     maybe(
@@ -44,14 +45,4 @@ def cc_utils():
         urls = [
             "https://mirror.bazel.build/curl.haxx.se/download/curl-7.49.1.tar.gz",
         ],
-    )
-
-    maybe(
-        new_git_repository,
-        name = "moodycamel_concurrent_queue",
-        build_file = Label("//scp/build_defs/cc/shared/build_targets:moodycamel.BUILD"),
-        # Commited Mar 20, 2022
-        commit = "22c78daf65d2c8cce9399a29171676054aa98807",
-        remote = "https://github.com/cameron314/concurrentqueue.git",
-        shallow_since = "1647803790 -0400",
     )
