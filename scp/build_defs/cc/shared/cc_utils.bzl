@@ -12,19 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def cc_utils():
     maybe(
-        new_git_repository,
+        http_archive,
         name = "nlohmann_json",
         build_file = Label("//scp/build_defs/cc/shared/build_targets:nlohmann.BUILD"),
-        # Commits on Apr 6, 2022
-        commit = "15fa6a342af7b51cb51a22599026e01f1d81957b",
-        remote = "https://github.com/nlohmann/json.git",
-        shallow_since = "1649251595 +0200",
+        sha256 = "e5c7a9f49a16814be27e4ed0ee900ecd0092bfb7dbfca65b5a421b774dccaaed",
+        urls = [
+            "https://github.com/nlohmann/json/releases/download/v3.11.2/include.zip",
+        ],
     )
 
     maybe(
