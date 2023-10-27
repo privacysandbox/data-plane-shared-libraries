@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 
 #include <functional>
-#include <map>
 #include <memory>
 #include <string>
 #include <utility>
@@ -26,6 +25,7 @@
 
 #include <google/protobuf/util/time_util.h>
 
+#include "absl/container/flat_hash_map.h"
 #include "core/interface/async_context.h"
 #include "core/test/utils/conditional_wait.h"
 #include "core/test/utils/proto_test_utils.h"
@@ -98,10 +98,6 @@ const std::vector<std::string> kTestKeyMaterials = {
     "key-material-1", "key-material-2", "key-material-3"};
 constexpr char kTestKeyMaterialBad[] = "bad-key-material";
 constexpr char kTestPrivateKey[] = "Test message";
-const std::map<std::string, std::string> kPlaintextMap = {
-    {kTestKeyMaterials[0], "\270G\005\364$\253\273\331\353\336\216>"},
-    {kTestKeyMaterials[1], "\327\002\204 \232\377\002\330\225DB\f"},
-    {kTestKeyMaterials[2], "; \362\240\2369\334r\r\373\253W"}};
 constexpr char kSinglePartyPrivateKeyJson[] =
     R"(
     {
@@ -121,28 +117,6 @@ constexpr char kDecryptedSinglePartyKey[] = "singlepartytestkey";
 }  // namespace
 
 namespace google::scp::cpio::client_providers::test {
-// Put them inside the namespace to use the type inside namespace easier.
-static const std::map<std::string, ExecutionResult>
-    kMockSuccessKeyFetchingResultsForListByAge = {
-        {kTestEndpoint1, SuccessExecutionResult()},
-        {kTestEndpoint2, SuccessExecutionResult()},
-        {kTestEndpoint3, SuccessExecutionResult()}};
-
-static const std::map<std::string, std::map<std::string, ExecutionResult>>
-    kMockSuccessKeyFetchingResults = {
-        {kTestKeyIds[0],
-         {{kTestEndpoint1, SuccessExecutionResult()},
-          {kTestEndpoint2, SuccessExecutionResult()},
-          {kTestEndpoint3, SuccessExecutionResult()}}},
-        {kTestKeyIds[1],
-         {{kTestEndpoint1, SuccessExecutionResult()},
-          {kTestEndpoint2, SuccessExecutionResult()},
-          {kTestEndpoint3, SuccessExecutionResult()}}},
-        {kTestKeyIds[2],
-         {{kTestEndpoint1, SuccessExecutionResult()},
-          {kTestEndpoint2, SuccessExecutionResult()},
-          {kTestEndpoint3, SuccessExecutionResult()}}}};
-
 static void GetPrivateKeyFetchingResponse(PrivateKeyFetchingResponse& response,
                                           int key_id_index, int uri_index,
                                           size_t splits_in_key_data = 3,
@@ -177,10 +151,12 @@ static void GetPrivateKeyFetchingResponse(PrivateKeyFetchingResponse& response,
   response.encryption_keys.emplace_back(encryption_key);
 }
 
-static std::map<std::string, std::map<std::string, PrivateKeyFetchingResponse>>
+static absl::flat_hash_map<
+    std::string, absl::flat_hash_map<std::string, PrivateKeyFetchingResponse>>
 CreateSuccessKeyFetchingResponseMap(size_t splits_in_key_data = 3,
                                     size_t call_num = 3) {
-  std::map<std::string, std::map<std::string, PrivateKeyFetchingResponse>>
+  absl::flat_hash_map<
+      std::string, absl::flat_hash_map<std::string, PrivateKeyFetchingResponse>>
       responses;
   for (int i = 0; i < call_num; ++i) {
     for (int j = 0; j < 3; ++j) {
@@ -194,9 +170,9 @@ CreateSuccessKeyFetchingResponseMap(size_t splits_in_key_data = 3,
   return responses;
 }
 
-static std::map<std::string, PrivateKeyFetchingResponse>
+static absl::flat_hash_map<std::string, PrivateKeyFetchingResponse>
 CreateSuccessKeyFetchingResponseMapForListByAge() {
-  std::map<std::string, PrivateKeyFetchingResponse> responses;
+  absl::flat_hash_map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 0; i < 3; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -207,10 +183,6 @@ CreateSuccessKeyFetchingResponseMapForListByAge() {
 
   return responses;
 }
-
-static const std::map<std::string,
-                      std::map<std::string, PrivateKeyFetchingResponse>>
-    kMockSuccessKeyFetchingResponses = CreateSuccessKeyFetchingResponseMap();
 
 class PrivateKeyClientProviderTest : public ::testing::Test {
  protected:
@@ -273,10 +245,12 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
   }
 
   void SetMockPrivateKeyFetchingClient(
-      const std::map<std::string, std::map<std::string, ExecutionResult>>&
+      const absl::flat_hash_map<
+          std::string, absl::flat_hash_map<std::string, ExecutionResult>>&
           mock_results,
-      const std::map<std::string,
-                     std::map<std::string, PrivateKeyFetchingResponse>>&
+      const absl::flat_hash_map<
+          std::string,
+          absl::flat_hash_map<std::string, PrivateKeyFetchingResponse>>&
           mock_responses) {
     EXPECT_CALL(*mock_private_key_fetcher, FetchPrivateKey)
         .Times(Between(1, 9))
@@ -300,8 +274,9 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
   }
 
   void SetMockPrivateKeyFetchingClientForListByAge(
-      const std::map<std::string, ExecutionResult>& mock_results,
-      const std::map<std::string, PrivateKeyFetchingResponse>& mock_responses) {
+      const absl::flat_hash_map<std::string, ExecutionResult>& mock_results,
+      const absl::flat_hash_map<std::string, PrivateKeyFetchingResponse>&
+          mock_responses) {
     EXPECT_CALL(*mock_private_key_fetcher, FetchPrivateKey)
         .Times(Between(1, 9))
         .WillRepeatedly([=](AsyncContext<PrivateKeyFetchingRequest,
@@ -341,6 +316,40 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
       private_key_client_provider;
   std::shared_ptr<MockPrivateKeyFetcherProvider> mock_private_key_fetcher;
   std::shared_ptr<MockKmsClientProvider> mock_kms_client;
+
+  const absl::flat_hash_map<std::string, std::string> kPlaintextMap = {
+      {kTestKeyMaterials[0], "\270G\005\364$\253\273\331\353\336\216>"},
+      {kTestKeyMaterials[1], "\327\002\204 \232\377\002\330\225DB\f"},
+      {kTestKeyMaterials[2], "; \362\240\2369\334r\r\373\253W"},
+  };
+
+  const absl::flat_hash_map<std::string, ExecutionResult>
+      kMockSuccessKeyFetchingResultsForListByAge = {
+          {kTestEndpoint1, SuccessExecutionResult()},
+          {kTestEndpoint2, SuccessExecutionResult()},
+          {kTestEndpoint3, SuccessExecutionResult()},
+      };
+
+  const absl::flat_hash_map<std::string,
+                            absl::flat_hash_map<std::string, ExecutionResult>>
+      kMockSuccessKeyFetchingResults = {
+          {kTestKeyIds[0],
+           {{kTestEndpoint1, SuccessExecutionResult()},
+            {kTestEndpoint2, SuccessExecutionResult()},
+            {kTestEndpoint3, SuccessExecutionResult()}}},
+          {kTestKeyIds[1],
+           {{kTestEndpoint1, SuccessExecutionResult()},
+            {kTestEndpoint2, SuccessExecutionResult()},
+            {kTestEndpoint3, SuccessExecutionResult()}}},
+          {kTestKeyIds[2],
+           {{kTestEndpoint1, SuccessExecutionResult()},
+            {kTestEndpoint2, SuccessExecutionResult()},
+            {kTestEndpoint3, SuccessExecutionResult()}}},
+      };
+
+  const absl::flat_hash_map<
+      std::string, absl::flat_hash_map<std::string, PrivateKeyFetchingResponse>>
+      kMockSuccessKeyFetchingResponses = CreateSuccessKeyFetchingResponseMap();
 };
 
 TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
@@ -434,7 +443,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointReturnEmptyList) {
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 6);
 
-  std::map<std::string, PrivateKeyFetchingResponse> responses;
+  absl::flat_hash_map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 0; i < 2; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -470,7 +479,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 8);
 
-  std::map<std::string, PrivateKeyFetchingResponse> responses;
+  absl::flat_hash_map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 0; i < 2; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -515,7 +524,7 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 7);
 
-  std::map<std::string, PrivateKeyFetchingResponse> responses;
+  absl::flat_hash_map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 1; i < 3; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 3; ++j) {
@@ -561,7 +570,7 @@ TEST_F(PrivateKeyClientProviderTest,
   auto mock_result = SuccessExecutionResult();
   SetMockKmsClient(mock_result, 7);
 
-  std::map<std::string, PrivateKeyFetchingResponse> responses;
+  absl::flat_hash_map<std::string, PrivateKeyFetchingResponse> responses;
   for (int i = 1; i < 3; ++i) {
     PrivateKeyFetchingResponse mock_fetching_response;
     for (int j = 0; j < 2; ++j) {

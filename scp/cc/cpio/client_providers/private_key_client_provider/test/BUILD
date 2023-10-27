@@ -33,6 +33,7 @@ cc_test(
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
         "//scp/cc/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
