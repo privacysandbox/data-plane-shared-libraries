@@ -28,5 +28,6 @@ cc_library(
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:errors_lib",
         "//scp/cc/core/interface:logger_interface",
+        "@com_google_absl//absl/container:flat_hash_set",
     ],
 )

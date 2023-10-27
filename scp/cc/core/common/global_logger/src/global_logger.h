@@ -20,8 +20,8 @@
 #include <cstdarg>
 #include <memory>
 #include <string>
-#include <unordered_set>
 
+#include "absl/container/flat_hash_set.h"
 #include "core/interface/errors.h"
 #include "core/interface/logger_interface.h"
 
@@ -30,8 +30,7 @@ class GlobalLogger {
  public:
   static const std::unique_ptr<core::LoggerInterface>& GetGlobalLogger();
   static bool IsLogLevelEnabled(const LogLevel log_level);
-  static void SetGlobalLogLevels(
-      const std::unordered_set<LogLevel>& log_levels);
+  static void SetGlobalLogLevels(absl::flat_hash_set<LogLevel> log_levels);
   static void SetGlobalLogger(std::unique_ptr<core::LoggerInterface> logger);
   static void ShutdownGlobalLogger();
 };
