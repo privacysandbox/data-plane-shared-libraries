@@ -19,9 +19,9 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
+#include "absl/container/flat_hash_set.h"
 #include "public/core/interface/execution_result.h"
 
 #include "component_dependency_node.h"
@@ -72,9 +72,9 @@ class ComponentDependencyNodeCollection {
   std::vector<ComponentDependencyNode> GetVisitedOrder() noexcept;
 
  private:
-  std::unordered_set<std::string> dependency_path_ids_;
+  absl::flat_hash_set<std::string> dependency_path_ids_;
   std::vector<ComponentDependencyNode> dependency_path_;
-  std::unordered_set<ComponentDependencyNode, NodeHash> visited_;
+  absl::flat_hash_set<ComponentDependencyNode> visited_;
   std::vector<ComponentDependencyNode> visited_path_;
 };
 }  // namespace google::scp::core

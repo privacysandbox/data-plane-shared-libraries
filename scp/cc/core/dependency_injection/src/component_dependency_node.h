@@ -20,6 +20,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
@@ -39,6 +40,12 @@ struct ComponentDependencyNode {
   std::function<std::shared_ptr<ServiceInterface>(
       absl::flat_hash_map<std::string, std::shared_ptr<ServiceInterface>>)>
       factory;
+
+  // A ComponentDependencyNode hash that can be used for absl containers.
+  template <typename H>
+  friend H AbslHashValue(H h, const ComponentDependencyNode& node) {
+    return H::combine(std::move(h), node.id);
+  }
 
   bool operator==(const ComponentDependencyNode& otherNode) const {
     return id == otherNode.id;

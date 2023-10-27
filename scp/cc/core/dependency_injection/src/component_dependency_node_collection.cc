@@ -29,7 +29,7 @@ namespace google::scp::core {
 bool ComponentDependencyNodeCollection::AddNodeToPath(
     ComponentDependencyNode node) noexcept {
   dependency_path_.push_back(node);
-  if (dependency_path_ids_.count(node.id) > 0) {
+  if (dependency_path_ids_.contains(node.id)) {
     return false;
   }
   dependency_path_ids_.insert(node.id);
@@ -48,7 +48,7 @@ ComponentDependencyNodeCollection::GetCyclePath() noexcept {
 
 bool ComponentDependencyNodeCollection::WasVisited(
     ComponentDependencyNode node) noexcept {
-  return visited_.count(node) > 0;
+  return visited_.contains(node);
 }
 
 void ComponentDependencyNodeCollection::MarkVisited() noexcept {
