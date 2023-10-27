@@ -17,7 +17,7 @@
 
 #include <string>
 
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/btree_map.h"
 #include "cpio/test/server/test_sdk_server_starter.h"
 
 namespace google::scp::cpio::test {
@@ -32,8 +32,7 @@ class TestGcpSdkServerStarter : public TestSdkServerStarter {
   void RunCloud() override;
 
  private:
-  absl::flat_hash_map<std::string, std::string> CreateSdkEnvVariables()
-      override;
+  absl::btree_map<std::string, std::string> CreateSdkEnvVariables() override;
 
   int StartPubSubEmulator();
 };

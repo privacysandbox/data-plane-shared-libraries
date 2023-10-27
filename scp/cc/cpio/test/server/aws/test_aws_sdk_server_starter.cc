@@ -21,7 +21,7 @@
 #include <thread>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/btree_map.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "core/test/utils/aws_helper/aws_helper.h"
@@ -45,7 +45,7 @@ void TestAwsSdkServerStarter::RunCloud() {
   }
 }
 
-absl::flat_hash_map<std::string, std::string>
+absl::btree_map<std::string, std::string>
 TestAwsSdkServerStarter::CreateSdkEnvVariables() {
   std::string cloud_endpoint_in_container = absl::StrCat(
       "http://", config_.cloud_container_name, ":", config_.cloud_port);

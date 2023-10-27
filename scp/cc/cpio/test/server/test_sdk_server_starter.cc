@@ -22,7 +22,7 @@
 #include <thread>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/btree_map.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "core/test/utils/docker_helper/docker_helper.h"
@@ -37,7 +37,7 @@ using google::scp::core::test::StopContainer;
 namespace google::scp::cpio::test {
 void TestSdkServerStarter::RunSdkServer(
     const std::string& image_location, const std::string& image_name,
-    const absl::flat_hash_map<std::string, std::string>& env_overrides) {
+    const absl::btree_map<std::string, std::string>& env_overrides) {
   std::cout << "Loading SDK image" << std::endl;
   if (LoadImage(image_location) != 0) {
     throw std::runtime_error("Failed to load SDK image!");

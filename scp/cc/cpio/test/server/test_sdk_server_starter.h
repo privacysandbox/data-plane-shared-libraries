@@ -17,7 +17,7 @@
 
 #include <string>
 
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/btree_map.h"
 
 namespace google::scp::cpio::test {
 
@@ -47,7 +47,7 @@ class TestSdkServerStarter {
 
   void RunSdkServer(
       const std::string& image_location, const std::string& image_name,
-      const absl::flat_hash_map<std::string, std::string>& env_overrides = {});
+      const absl::btree_map<std::string, std::string>& env_overrides = {});
 
   void StopSdkServer();
 
@@ -57,8 +57,7 @@ class TestSdkServerStarter {
   TestSdkServerConfig config_;
 
  private:
-  virtual absl::flat_hash_map<std::string, std::string>
-  CreateSdkEnvVariables() = 0;
+  virtual absl::btree_map<std::string, std::string> CreateSdkEnvVariables() = 0;
 };
 }  // namespace google::scp::cpio::test
 

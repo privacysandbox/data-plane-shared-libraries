@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/btree_map.h"
 
 namespace google::scp::core::test {
 TEST(DockerHelper, PortMapToSelf) {
@@ -36,9 +36,10 @@ TEST(DockerHelper, BuildStartContainerCmd) {
             "--name=container_name -p "
             "9000:8000 image_name");
 
-  absl::flat_hash_map<std::string, std::string> envs({});
-  envs["host_address"] = "0.0.0.0";
-  envs["host_port"] = "8080";
+  absl::btree_map<std::string, std::string> envs({
+      {"host_address", "0.0.0.0"},
+      {"host_port", "8080"},
+  });
   EXPECT_EQ(BuildStartContainerCmd("network", "container_name", "image_name",
                                    "9000:9000", "1234-1240:1234", envs),
             "docker -D run --rm -itd --privileged --network=network "

@@ -38,12 +38,10 @@ sdk_container(
 cc_library(
     name = "test_aws_sdk_server_starter_lib",
     testonly = True,
-    srcs = glob(
-        [
-            "test_aws_sdk_server_starter.cc",
-            "test_aws_sdk_server_starter.h",
-        ],
-    ),
+    srcs = [
+        "test_aws_sdk_server_starter.cc",
+        "test_aws_sdk_server_starter.h",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
@@ -55,7 +53,7 @@ cc_library(
         "//scp/cc/cpio/server/src/metric_service/test_aws:test_aws_metric_service_factory_lib",
         "//scp/cc/cpio/server/src/parameter_service/test_aws:test_aws_parameter_service_factory_lib",
         "//scp/cc/cpio/test/server:test_sdk_server_starter_lib",
-        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:btree",
         "@com_google_absl//absl/strings:str_format",
     ],
 )

@@ -21,7 +21,7 @@
 #include <thread>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/btree_map.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "core/test/utils/docker_helper/docker_helper.h"
@@ -46,20 +46,18 @@ void TestGcpSdkServerStarter::RunCloud() {
   }
 }
 
-absl::flat_hash_map<std::string, std::string>
+absl::btree_map<std::string, std::string>
 TestGcpSdkServerStarter::CreateSdkEnvVariables() {
-  absl::flat_hash_map<std::string, std::string> env_variables;
-  std::string gcp_endpoint_in_container =
-      GetIpAddress(config_.network_name, config_.cloud_container_name) + ":" +
-      config_.cloud_port;
-  env_variables[kSdkClientLogOption] = "ConsoleLog";
-  // "test-project" is the pre-exist project in the emulator.
-  env_variables[kTestGcpQueueClientProjectId] = "test-project";
-  env_variables[kQueueClientQueueName] = config_.queue_service_queue_name;
-  env_variables[kTestGcpQueueClientCloudEndpointOverride] =
-      gcp_endpoint_in_container;
-
-  return env_variables;
+  return absl::btree_map<std::string, std::string>({
+      {kSdkClientLogOption, "ConsoleLog"},
+      // gcp_endpoint_in_container
+      {kTestGcpQueueClientCloudEndpointOverride,
+       GetIpAddress(config_.network_name, config_.cloud_container_name) + ":" +
+           config_.cloud_port},
+      // "test-project" is the pre-exist project in the emulator.
+      {kTestGcpQueueClientProjectId, "test-project"},
+      {kQueueClientQueueName, config_.queue_service_queue_name},
+  });
 }
 
 int TestGcpSdkServerStarter::StartPubSubEmulator() {

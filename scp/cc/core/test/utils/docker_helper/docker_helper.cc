@@ -14,6 +14,7 @@
 
 #include "docker_helper.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <iostream>
@@ -21,8 +22,10 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <utility>
+#include <vector>
 
-#include "absl/container/flat_hash_map.h"
+#include "absl/container/btree_map.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 
@@ -40,7 +43,7 @@ std::string PortMapToSelf(std::string_view port) {
 int StartLocalStackContainer(const std::string& network,
                              const std::string& container_name,
                              const std::string& exposed_port) {
-  const absl::flat_hash_map<std::string, std::string> env_variables{
+  const absl::btree_map<std::string, std::string> env_variables{
       {"EDGE_PORT", exposed_port},
   };
   return StartContainer(network, container_name, kLocalstackImage,
@@ -51,7 +54,7 @@ int StartLocalStackContainer(const std::string& network,
 int StartGcpContainer(const std::string& network,
                       const std::string& container_name,
                       const std::string& exposed_port) {
-  absl::flat_hash_map<std::string, std::string> env_variables;
+  absl::btree_map<std::string, std::string> env_variables;
   return StartContainer(network, container_name, kGcpImage,
                         PortMapToSelf(exposed_port), "9000-9050",
                         env_variables);
@@ -61,7 +64,7 @@ int StartContainer(
     const std::string& network, const std::string& container_name,
     const std::string& image_name, const std::string& port_mapping1,
     const std::string& port_mapping2,
-    const absl::flat_hash_map<std::string, std::string>& environment_variables,
+    const absl::btree_map<std::string, std::string>& environment_variables,
     const std::string& addition_args) {
   return std::system(BuildStartContainerCmd(
                          network, container_name, image_name, port_mapping1,
@@ -73,7 +76,7 @@ std::string BuildStartContainerCmd(
     const std::string& network, const std::string& container_name,
     const std::string& image_name, const std::string& port_mapping1,
     const std::string& port_mapping2,
-    const absl::flat_hash_map<std::string, std::string>& environment_variables,
+    const absl::btree_map<std::string, std::string>& environment_variables,
     const std::string& addition_args) {
   auto ports_mapping = absl::StrFormat("-p %s ", port_mapping1);
   if (!port_mapping2.empty()) {

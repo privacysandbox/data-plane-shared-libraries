@@ -34,12 +34,10 @@ sdk_container(
 cc_library(
     name = "test_gcp_sdk_server_starter_lib",
     testonly = True,
-    srcs = glob(
-        [
-            "test_gcp_sdk_server_starter.cc",
-            "test_gcp_sdk_server_starter.h",
-        ],
-    ),
+    srcs = [
+        "test_gcp_sdk_server_starter.cc",
+        "test_gcp_sdk_server_starter.h",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
@@ -49,7 +47,7 @@ cc_library(
         "//scp/cc/cpio/server/interface/queue_service:queue_service_interface_lib",
         "//scp/cc/cpio/server/src/queue_service/test_gcp:test_gcp_queue_service_factory_lib",
         "//scp/cc/cpio/test/server:test_sdk_server_starter_lib",
-        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:btree",
     ],
 )
 
