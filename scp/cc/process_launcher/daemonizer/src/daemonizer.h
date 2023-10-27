@@ -21,10 +21,10 @@
 
 #include <atomic>
 #include <memory>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "process_launcher/argument_parser/src/json_arg_parser.h"
 #include "public/core/interface/execution_result.h"
 
@@ -56,9 +56,9 @@ class Daemonizer {
   char** executables_;
   JsonArgParser<ExecutableArgument> executable_arg_parser_;
   std::vector<std::shared_ptr<ExecutableArgument>> executable_args_;
-  std::unordered_map<pid_t, std::shared_ptr<ExecutableArgument>>
+  absl::flat_hash_map<pid_t, std::shared_ptr<ExecutableArgument>>
       pid_to_executable_arg_map_;
-  std::unordered_set<std::shared_ptr<ExecutableArgument>>
+  absl::flat_hash_set<std::shared_ptr<ExecutableArgument>>
       executable_arg_to_launch_set_;
 
   /**

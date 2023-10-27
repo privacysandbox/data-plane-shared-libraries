@@ -50,13 +50,12 @@ ExecutionResult Daemonizer::Run() noexcept {
   }
 
   executable_arg_to_launch_set_ =
-      std::unordered_set<std::shared_ptr<ExecutableArgument>>(
+      absl::flat_hash_set<std::shared_ptr<ExecutableArgument>>(
           executable_args_.begin(), executable_args_.end());
 
   while (true) {
     for (auto& exe_arg : executable_args_) {
-      if (executable_arg_to_launch_set_.find(exe_arg) ==
-          executable_arg_to_launch_set_.end()) {
+      if (!executable_arg_to_launch_set_.contains(exe_arg)) {
         // This process does not need to be launched
         continue;
       }
