@@ -54,6 +54,7 @@ cc_library(
         "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
+        "@com_google_absl//absl/synchronization",
         "@nlohmann_json//:lib",
     ],
 )

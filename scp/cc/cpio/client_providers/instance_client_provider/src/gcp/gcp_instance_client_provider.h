@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/interface/http_client_interface.h"
 #include "cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "cpio/client_providers/interface/instance_client_provider_interface.h"
@@ -85,9 +87,11 @@ class GcpInstanceClientProvider : public InstanceClientProviderInterface {
     // Instance id fetching response.
     std::string instance_id;
     // Num of outstanding calls left.
-    std::atomic<size_t> num_outstanding_calls{3};
+    absl::Mutex num_outstanding_calls_mu;
+    size_t num_outstanding_calls ABSL_GUARDED_BY(num_outstanding_calls_mu) = 3;
     // Whether get_resource_name_context got failure result
-    std::atomic<bool> got_failure{false};
+    absl::Mutex got_failure_mu;
+    bool got_failure ABSL_GUARDED_BY(got_failure_mu) = false;
   };
 
   enum class ResourceType {

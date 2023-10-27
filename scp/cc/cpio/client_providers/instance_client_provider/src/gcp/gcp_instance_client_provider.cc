@@ -252,11 +252,11 @@ GcpInstanceClientProvider::MakeHttpRequestsForInstanceResourceName(
 
   auto execution_result = http1_client_->PerformRequest(http_context);
   if (!execution_result.Successful()) {
-    // If got_failure exchange success, then the other thread hasn't failed -
-    // we should be the ones to log and finish the context.
-    auto got_result = false;
-    if (instance_resource_name_tracker->got_failure.compare_exchange_strong(
-            got_result, true)) {
+    // If got_failure is false, then the other thread hasn't failed - we should
+    // be the ones to log and finish the context.
+    if (absl::MutexLock l(&instance_resource_name_tracker->got_failure_mu);
+        !instance_resource_name_tracker->got_failure) {
+      instance_resource_name_tracker->got_failure = true;
       get_resource_name_context.result = execution_result;
       SCP_ERROR_CONTEXT(
           kGcpInstanceClientProvider, get_resource_name_context,
@@ -279,17 +279,18 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
     std::shared_ptr<InstanceResourceNameTracker> instance_resource_name_tracker,
     ResourceType type) noexcept {
   // If got_failure is true, no need to process this request.
-  if (instance_resource_name_tracker->got_failure.load()) {
+  if (absl::MutexLock l(&instance_resource_name_tracker->got_failure_mu);
+      instance_resource_name_tracker->got_failure) {
     return;
   }
 
   auto result = http_client_context.result;
   if (!result.Successful()) {
-    // If got_failure exchange success, then the other thread hasn't failed -
-    // we should be the ones to log and finish the context.
-    auto got_result = false;
-    if (instance_resource_name_tracker->got_failure.compare_exchange_strong(
-            got_result, true)) {
+    // If got_failure is false, then the other thread hasn't failed - we should
+    // be the ones to log and finish the context.
+    if (absl::MutexLock l(&instance_resource_name_tracker->got_failure_mu);
+        !instance_resource_name_tracker->got_failure) {
+      instance_resource_name_tracker->got_failure = true;
       get_resource_name_context.result = result;
       SCP_ERROR_CONTEXT(
           kGcpInstanceClientProvider, get_resource_name_context,
@@ -333,9 +334,14 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
     }
   }
 
-  auto prev_unfinished =
-      instance_resource_name_tracker->num_outstanding_calls.fetch_sub(1);
-  if (prev_unfinished == 1) {
+  int num_outstanding_calls;
+  {
+    absl::MutexLock l(
+        &instance_resource_name_tracker->num_outstanding_calls_mu);
+    num_outstanding_calls =
+        --instance_resource_name_tracker->num_outstanding_calls;
+  }
+  if (num_outstanding_calls == 0) {
     get_resource_name_context.response =
         std::make_shared<GetCurrentInstanceResourceNameResponse>();
     // The instance resource name is
