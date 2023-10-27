@@ -33,6 +33,8 @@ cc_library(
         "//scp/cc/cpio/client_providers/role_credentials_provider/src:role_credentials_provider_select_lib",
         "//scp/cc/public/cpio/interface/private_key_client:type_def",
         "//scp/cc/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:node_hash_map",
         "@com_google_absl//absl/strings",
         "@tink_cc//:json_keyset_reader",
     ],

@@ -301,8 +301,7 @@ void PrivateKeyClientProvider::OnDecrpytCallback(
   const auto& key_id = *encryption_key->key_id;
 
   endpoints_status->map_mutex.lock();
-  auto it = endpoints_status->plaintext_key_id_map.find(key_id);
-  if (it == endpoints_status->plaintext_key_id_map.end()) {
+  if (!endpoints_status->plaintext_key_id_map.contains(key_id)) {
     endpoints_status->plaintext_key_id_map[key_id] =
         std::vector<std::string>(endpoint_count_);
     endpoints_status->finished_counter_key_id_map[key_id] = 0;

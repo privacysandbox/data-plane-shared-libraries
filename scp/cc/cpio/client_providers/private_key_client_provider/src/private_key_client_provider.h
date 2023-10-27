@@ -17,12 +17,13 @@
 #ifndef CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_CLIENT_PROVIDER_SRC_PRIVATE_KEY_CLIENT_PROVIDER_H_
 #define CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_CLIENT_PROVIDER_SRC_PRIVATE_KEY_CLIENT_PROVIDER_H_
 
-#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/node_hash_map.h"
 #include "core/interface/async_context.h"
 #include "core/interface/http_client_interface.h"
 #include "core/interface/http_types.h"
@@ -91,7 +92,8 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
     uint64_t call_count_per_endpoint;
 
     /// Map of all PrivateKeys to Key IDs.
-    std::map<std::string, cmrt::sdk::private_key_service::v1::PrivateKey>
+    absl::flat_hash_map<std::string,
+                        cmrt::sdk::private_key_service::v1::PrivateKey>
         private_key_id_map;
 
     /// How many key splits fetched in total.
@@ -118,10 +120,13 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
     virtual ~KeyEndPointsStatus() = default;
 
     /// Map of the plaintexts to key IDs.
-    std::map<std::string, std::vector<std::string>> plaintext_key_id_map;
+    absl::flat_hash_map<std::string, std::vector<std::string>>
+        plaintext_key_id_map;
 
     /// How many endpoints finished operation for current key.
-    std::map<std::string, std::atomic<size_t>> finished_counter_key_id_map;
+    /// Use `node_hash_map` because value type is not movable.
+    absl::node_hash_map<std::string, std::atomic<size_t>>
+        finished_counter_key_id_map;
 
     // Mutex to make sure only one thread accessing the plaintext_key_id_map and
     // finished_counter_key_id_map at one time.

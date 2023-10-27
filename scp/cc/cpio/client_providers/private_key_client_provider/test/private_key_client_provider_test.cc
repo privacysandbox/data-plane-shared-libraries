@@ -67,7 +67,7 @@ using google::scp::cpio::client_providers::mock::
 using google::scp::cpio::client_providers::mock::MockPrivateKeyFetcherProvider;
 using testing::Between;
 using testing::ElementsAre;
-using testing::Pointwise;
+using testing::UnorderedPointwise;
 
 namespace {
 constexpr char kTestAccountIdentity1[] = "Test1";
@@ -372,7 +372,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
               context) {
         auto expected_keys = BuildExpectedPrivateKeys(encoded_private_key);
         EXPECT_THAT(context.response->private_keys(),
-                    Pointwise(EqualsProto(), expected_keys));
+                    UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
         response_count.fetch_add(1);
       });
@@ -401,7 +401,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByAgeSuccess) {
               context) {
         auto expected_keys = BuildExpectedPrivateKeys(encoded_private_key);
         EXPECT_THAT(context.response->private_keys(),
-                    Pointwise(EqualsProto(), expected_keys));
+                    UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
         response_count.fetch_add(1);
       });
@@ -510,7 +510,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
         auto expected_keys =
             BuildExpectedPrivateKeys(encoded_private_key, 0, 1);
         EXPECT_THAT(context.response->private_keys(),
-                    Pointwise(EqualsProto(), expected_keys));
+                    UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
         response_count.fetch_add(1);
       });
@@ -555,7 +555,7 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
         auto expected_keys =
             BuildExpectedPrivateKeys(encoded_private_key, 0, 0);
         EXPECT_THAT(context.response->private_keys(),
-                    Pointwise(EqualsProto(), expected_keys));
+                    UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
         response_count.fetch_add(1);
       });
@@ -602,7 +602,7 @@ TEST_F(PrivateKeyClientProviderTest,
         auto expected_keys =
             BuildExpectedPrivateKeys(encoded_private_key, 0, 1);
         EXPECT_THAT(context.response->private_keys(),
-                    Pointwise(EqualsProto(), expected_keys));
+                    UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
         response_count.fetch_add(1);
       });
@@ -869,7 +869,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
               context) {
         auto expected_keys = BuildExpectedPrivateKeys(encoded_private_key);
         EXPECT_THAT(context.response->private_keys(),
-                    Pointwise(EqualsProto(), expected_keys));
+                    UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
         response_count.fetch_add(1);
       });
