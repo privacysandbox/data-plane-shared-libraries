@@ -29,5 +29,6 @@ cc_library(
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
         "//scp/cc/core/interface:interface_lib",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/container:flat_hash_map",
     ],
 )

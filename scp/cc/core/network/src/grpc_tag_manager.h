@@ -24,8 +24,9 @@
 #endif
 #include <memory>
 #include <type_traits>
-#include <unordered_map>
 #include <utility>
+
+#include "absl/container/flat_hash_map.h"
 
 namespace google::scp::core {
 /**
@@ -82,7 +83,7 @@ class GrpcTagManager {
   };
 
   Allocator allocator_;
-  std::unordered_map<void*, RegistryItem, Hash> registry_;
+  absl::flat_hash_map<void*, RegistryItem, Hash> registry_;
 };
 
 }  // namespace google::scp::core
