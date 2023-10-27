@@ -14,6 +14,7 @@
 
 #include "src/cpp/encryption/key_fetcher/src/private_key_fetcher.h"
 
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -171,10 +172,10 @@ std::optional<PrivateKey> PrivateKeyFetcher::GetKey(
     const google::scp::cpio::PublicPrivateKeyPairId& public_key_id) noexcept
     ABSL_LOCKS_EXCLUDED(mutex_) {
   absl::MutexLock l(&mutex_);
-  if (private_keys_map_.find(public_key_id) != private_keys_map_.end()) {
-    return std::optional<PrivateKey>(private_keys_map_[public_key_id]);
+  if (const auto it = private_keys_map_.find(public_key_id);
+      it != private_keys_map_.end()) {
+    return it->second;
   }
-
   return std::nullopt;
 }
 

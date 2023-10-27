@@ -38,35 +38,43 @@ class MockConfigProvider : public ConfigProviderInterface {
 
   ExecutionResult Get(const ConfigKey& key,
                       std::string& out) noexcept override {
-    if (string_config_map_.find(key) == string_config_map_.end()) {
+    if (const auto it = string_config_map_.find(key);
+        it != string_config_map_.end()) {
+      out = it->second;
+      return SuccessExecutionResult();
+    } else {
       return FailureExecutionResult(errors::SC_CONFIG_PROVIDER_KEY_NOT_FOUND);
     }
-    out = string_config_map_[key];
-    return SuccessExecutionResult();
   }
 
   ExecutionResult Get(const ConfigKey& key, size_t& out) noexcept override {
-    if (size_t_config_map_.find(key) == size_t_config_map_.end()) {
+    if (const auto it = size_t_config_map_.find(key);
+        it != size_t_config_map_.end()) {
+      out = it->second;
+      return SuccessExecutionResult();
+    } else {
       return FailureExecutionResult(errors::SC_CONFIG_PROVIDER_KEY_NOT_FOUND);
     }
-    out = size_t_config_map_[key];
-    return SuccessExecutionResult();
   }
 
   ExecutionResult Get(const ConfigKey& key, int32_t& out) noexcept override {
-    if (int32_t_config_map_.find(key) == int32_t_config_map_.end()) {
+    if (const auto it = int32_t_config_map_.find(key);
+        it != int32_t_config_map_.end()) {
+      out = it->second;
+      return SuccessExecutionResult();
+    } else {
       return FailureExecutionResult(errors::SC_CONFIG_PROVIDER_KEY_NOT_FOUND);
     }
-    out = int32_t_config_map_[key];
-    return SuccessExecutionResult();
   }
 
   ExecutionResult Get(const ConfigKey& key, bool& out) noexcept override {
-    if (bool_config_map_.find(key) == bool_config_map_.end()) {
+    if (const auto it = bool_config_map_.find(key);
+        it != bool_config_map_.end()) {
+      out = it->second;
+      return SuccessExecutionResult();
+    } else {
       return FailureExecutionResult(errors::SC_CONFIG_PROVIDER_KEY_NOT_FOUND);
     }
-    out = bool_config_map_[key];
-    return SuccessExecutionResult();
   }
 
   ExecutionResult Get(const ConfigKey& key,

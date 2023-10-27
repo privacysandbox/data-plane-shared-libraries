@@ -155,10 +155,10 @@ ExecutionResult V8JsEngine::Stop() noexcept {
 ExecutionResult V8JsEngine::OneTimeSetup(
     const absl::flat_hash_map<std::string, std::string>& config) noexcept {
   size_t max_wasm_memory_number_of_pages = 0;
-  if (config.find(kJsEngineOneTimeSetupWasmPagesKey) != config.end()) {
-    auto page_count = config.at(kJsEngineOneTimeSetupWasmPagesKey);
+  if (const auto it = config.find(kJsEngineOneTimeSetupWasmPagesKey);
+      it != config.end()) {
     std::stringstream page_count_converter;
-    page_count_converter << page_count;
+    page_count_converter << it->second;
     page_count_converter >> max_wasm_memory_number_of_pages;
   }
 

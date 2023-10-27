@@ -52,6 +52,8 @@ using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
+using ::testing::Contains;
+using ::testing::Key;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -234,9 +236,8 @@ TEST_F(MetricInstanceFactoryTest,
               context.request->metrics(0).unit(),
               cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_COUNT);
           EXPECT_EQ(context.request->metrics(0).value(), kMetricValue);
-          EXPECT_TRUE(
-              context.request->metrics(0).labels().find(kEventCodeKey) !=
-              context.request->metrics(0).labels().end());
+          EXPECT_THAT(context.request->metrics(0).labels(),
+                      Contains(Key(kEventCodeKey)));
           schedule_is_called++;
           context.result = SuccessExecutionResult();
           context.Finish();
