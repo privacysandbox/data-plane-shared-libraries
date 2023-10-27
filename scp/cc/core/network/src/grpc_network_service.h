@@ -22,7 +22,6 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#include <unordered_map>
 #include <vector>
 
 #include <grpcpp/completion_queue.h>
@@ -30,6 +29,7 @@
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 
+#include "absl/container/flat_hash_map.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/interface/network_service_interface.h"
 #include "public/core/interface/execution_result.h"
@@ -90,7 +90,7 @@ class GrpcNetworkService : public NetworkServiceInterface {
   std::shared_ptr<grpc::AsyncGenericService> service_;
   /// The map of uri to handlers. This map should be read only after run. Hence
   /// no locking is in place at the moment.
-  std::unordered_map<std::string, RPCServiceContextInterface::RpcHandler>
+  absl::flat_hash_map<std::string, RPCServiceContextInterface::RpcHandler>
       handlers_;
   std::unique_ptr<grpc::ServerBuilder> server_builder_;
   std::unique_ptr<grpc::Server> server_;
