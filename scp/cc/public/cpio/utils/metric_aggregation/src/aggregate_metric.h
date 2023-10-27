@@ -21,9 +21,10 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/node_hash_map.h"
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
 #include "cpio/client_providers/interface/metric_client_provider_interface.h"
@@ -93,13 +94,13 @@ class AggregateMetric : public AggregateMetricInterface {
    */
   virtual core::ExecutionResult ScheduleMetricPush() noexcept;
 
-  /// The unordered_map contains the event codes paired with its counter. The
+  /// The map contains the event codes paired with its counter. The
   /// event_counter is associated with the event_code.
-  std::unordered_map<std::string, std::atomic<size_t>> event_counters_;
+  /// Use `node_hash_map` because value type is not movable.
+  absl::node_hash_map<std::string, std::atomic<size_t>> event_counters_;
 
-  /// The unordered_map contains the event codes paired with its metric
-  /// definition.
-  std::unordered_map<std::string, const MetricDefinition> event_metric_infos_;
+  /// The map contains the event codes paired with its metric definition.
+  absl::flat_hash_map<std::string, const MetricDefinition> event_metric_infos_;
 
   /// An instance to the async executor.
   std::shared_ptr<core::AsyncExecutorInterface> async_executor_;

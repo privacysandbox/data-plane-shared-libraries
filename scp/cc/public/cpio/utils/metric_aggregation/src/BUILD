@@ -31,6 +31,8 @@ cc_library(
         "//scp/cc/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "//scp/cc/public/cpio/utils/metric_aggregation/interface:metric_aggregation_interface",
         "//scp/cc/public/cpio/utils/metric_aggregation/interface:type_def",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:node_hash_map",
         "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
