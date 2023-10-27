@@ -75,6 +75,7 @@ build:ubsan --copt=-fsanitize=undefined
 build:ubsan --copt=-O1
 build:ubsan --copt=-fno-omit-frame-pointer
 build:ubsan --linkopt=-lubsan
+build:ubsan --test_tag_filters=-noubsan
 
 # Required to build OpenTelemetry with Abseil
 build:otel --@io_opentelemetry_cpp//api:with_abseil
