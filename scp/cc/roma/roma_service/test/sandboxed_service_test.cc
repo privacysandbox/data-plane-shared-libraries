@@ -1209,13 +1209,13 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
     EXPECT_TRUE(status.ok());
   }
 
-  // The execution should timeout as the kTimeoutMsTag value is too small.
+  // The execution should timeout as the kTimeoutDurationTag value is too small.
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
     execution_obj->handler_name = "hello_js";
-    execution_obj->tags[kTimeoutMsTag] = "100";
+    execution_obj->tags[kTimeoutDurationTag] = "100ms";
 
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
@@ -1253,7 +1253,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
     execution_obj->version_num = 1;
     execution_obj->handler_name = "hello_js";
     execution_obj->input.push_back(R"("0")");
-    execution_obj->tags[kTimeoutMsTag] = "300";
+    execution_obj->tags[kTimeoutDurationTag] = "300ms";
 
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
@@ -1863,7 +1863,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("9000")");
-    execution_obj->tags["TimeoutMs"] = "10000";
+    execution_obj->tags[kTimeoutDurationTag] = "10000ms";
 
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
@@ -1898,7 +1898,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     execution_obj->version_num = 1;
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("11000")");
-    execution_obj->tags["TimeoutMs"] = "10000";
+    execution_obj->tags[kTimeoutDurationTag] = "10000ms";
 
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {

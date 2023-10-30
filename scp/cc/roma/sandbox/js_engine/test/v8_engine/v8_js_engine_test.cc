@@ -36,8 +36,8 @@ using google::scp::core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE;
 using google::scp::core::errors::SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE;
 using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::ResultIs;
-using google::scp::roma::kDefaultExecutionTimeoutMs;
-using google::scp::roma::kTimeoutMsTag;
+using google::scp::roma::kDefaultExecutionTimeout;
+using google::scp::roma::kTimeoutDurationTag;
 using google::scp::roma::kWasmCodeArrayName;
 
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
@@ -427,7 +427,7 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithCustomTimeoutTag) {
     absl::flat_hash_map<std::string_view, std::string_view> metadata;
     // Set the timeout flag to 100 milliseconds. When it runs for more than 100
     // milliseconds, it times out.
-    metadata[kTimeoutMsTag] = "100";
+    metadata[kTimeoutDurationTag] = "100ms";
 
     auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, metadata);

@@ -148,8 +148,9 @@ class V8JsEngine : public JsEngine {
    *
    * @param isolate the target isolate where the execution is running.
    * @param metadata metadata from the request which may contain a
-   * kTimeoutMsTag with the timeout value. If there is no kTimeoutMsTag, the
-   * default timeout value kDefaultExecutionTimeoutMs will be used.
+   * kTimeoutDurationTag with the timeout value. If there is no
+   * kTimeoutDurationTag, the default timeout value kDefaultExecutionTimeout
+   * will be used.
    */
   void StartWatchdogTimer(
       v8::Isolate* isolate,

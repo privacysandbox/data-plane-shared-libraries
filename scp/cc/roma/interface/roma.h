@@ -34,11 +34,16 @@ enum class [[deprecated(
     "Going forward, this value will be ignored and the only supported return "
     "type will be string.")]] WasmDataType{kUnknownType, kUint32, kString,
                                            kListOfString};
-/// @brief The key of timeout tag for request.
-static constexpr char kTimeoutMsTag[] = "TimeoutMs";
+/// @brief The key of timeout tag for request. This tag should be set with a
+/// valid absl::Duration string. From Abseil's Time Programming doc, A duration
+/// string is a possibly signed sequence of decimal numbers, each with optional
+/// fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time
+/// units are "ns", "us" "ms", "s", "m", "h".
+static constexpr char kTimeoutDurationTag[] = "TimeoutDuration";
 /// @brief Default value for request execution timeout. If no timeout tag is
 /// set, the default value will be used.
-static constexpr int kDefaultExecutionTimeoutMs = 5000;
+static constexpr absl::Duration kDefaultExecutionTimeout =
+    absl::Milliseconds(5000);
 /// @brief The wasm code array name tag for request.
 static constexpr char kWasmCodeArrayName[] = "roma.request.wasm_array_name";
 

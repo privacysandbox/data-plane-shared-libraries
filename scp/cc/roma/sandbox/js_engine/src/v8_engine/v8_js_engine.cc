@@ -55,7 +55,7 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_ROMA_V8_ENGINE_ERROR_INVOKING_HANDLER;
 using google::scp::core::errors::SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT;
 using google::scp::core::errors::SC_ROMA_V8_ENGINE_ISOLATE_NOT_INITIALIZED;
-using google::scp::roma::kDefaultExecutionTimeoutMs;
+using google::scp::roma::kDefaultExecutionTimeout;
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::TypeConverter;
 using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
@@ -314,20 +314,20 @@ void V8JsEngine::StartWatchdogTimer(
     const absl::flat_hash_map<std::string_view, std::string_view>&
         metadata) noexcept {
   // Get the timeout value from metadata. If no timeout tag is set, the
-  // default value kDefaultExecutionTimeoutMs will be used.
-  int timeout_ms = kDefaultExecutionTimeoutMs;
+  // default value kDefaultExecutionTimeout will be used.
+  auto timeout_ms = kDefaultExecutionTimeout;
   auto timeout_str_or =
-      WorkerUtils::GetValueFromMetadata(metadata, kTimeoutMsTag);
+      WorkerUtils::GetValueFromMetadata(metadata, kTimeoutDurationTag);
   if (timeout_str_or.result().Successful()) {
-    if (int t; absl::SimpleAtoi(timeout_str_or.value(), &t)) {
+    if (absl::Duration t; absl::ParseDuration(timeout_str_or.value(), &t)) {
       timeout_ms = t;
     } else {
       LOG(ERROR) << "Timeout tag parsing with error: Could not convert timeout "
-                    "tag to integer";
+                    "tag to absl::Duration.";
     }
   }
   ROMA_VLOG(1) << "StartWatchdogTimer timeout set to " << timeout_ms << " ms";
-  execution_watchdog_->StartTimer(isolate, absl::Milliseconds(timeout_ms));
+  execution_watchdog_->StartTimer(isolate, timeout_ms);
 }
 
 void V8JsEngine::StopWatchdogTimer() noexcept {
