@@ -101,12 +101,7 @@ int WorkerSandboxApi::TransferFdAndGetRemoteFd(
 
 ExecutionResult WorkerSandboxApi::Init() noexcept {
   if (worker_sapi_sandbox_) {
-    worker_sapi_sandbox_->Terminate();
-    // Wait for the sandbox to become INACTIVE
-    while (worker_sapi_sandbox_->is_active()) {
-      std::this_thread::yield();
-    }
-
+    worker_sapi_sandbox_->Terminate(/*attempt_graceful_exit=*/false);
     ROMA_VLOG(1) << "Successfully terminated the existing sapi sandbox";
   }
 
@@ -120,12 +115,6 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
 
   worker_wrapper_api_ =
       std::make_unique<WorkerWrapperApi>(worker_sapi_sandbox_.get());
-
-  // Wait for the sandbox to become ACTIVE
-  while (!worker_sapi_sandbox_->is_active()) {
-    std::this_thread::yield();
-  }
-  ROMA_VLOG(1) << "the sapi sandbox is active";
 
   int js_hook_remote_fd = kBadFd;
   if (native_js_function_comms_fd_ != kBadFd) {
@@ -236,7 +225,7 @@ ExecutionResult WorkerSandboxApi::Stop() noexcept {
     return FailureExecutionResult(*status_or);
   }
 
-  worker_sapi_sandbox_->Terminate();
+  worker_sapi_sandbox_->Terminate(/*attempt_graceful_exit=*/false);
 
   return SuccessExecutionResult();
 }
