@@ -26,3 +26,21 @@ def bazel_rules_closure():
             "https://github.com/bazelbuild/rules_closure/archive/0.12.0.tar.gz",
         ],
     )
+
+    # This is currently needed for closure_js_proto_library,
+    # since the server is using protobuf 3.23*., which no longer has javascript support.
+    # rules_closure uses this version of protoc.
+    # To make `closure_js_proto_library` work, we need to pass
+    # closure_js_proto_library(
+    #   ...
+    #   protocbin = "@com_google_protobuf_for_closure//:protoc"
+    # )
+    maybe(
+        http_archive,
+        name = "com_google_protobuf_for_closure",
+        sha256 = "387e2c559bb2c7c1bc3798c4e6cff015381a79b2758696afcbf8e88730b47389",
+        strip_prefix = "protobuf-3.19.6",
+        urls = [
+            "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.19.6.zip",
+        ],
+    )
