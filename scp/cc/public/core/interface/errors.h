@@ -20,13 +20,15 @@
 #include <string>
 
 namespace google::scp::core {
+
 /**
  * @brief Gets the error message.
  *
  * @param error_code the global error code.
- * @return std::string the message about the error code.
+ * @return std::string_view the message about the error code.
  */
-const char* GetErrorMessage(uint64_t error_code);
+std::string_view GetErrorMessage(uint64_t error_code);
+
 }  // namespace google::scp::core
 
 #endif  // SCP_CORE_INTERFACE_ERRORS_H_

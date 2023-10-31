@@ -104,7 +104,7 @@ TEST(ConfigProviderTest, InitFailed) {
   const auto res = config.Init();
   EXPECT_THAT(res, ResultIs(FailureExecutionResult(
                        errors::SC_CONFIG_PROVIDER_CANNOT_PARSE_CONFIG_FILE)));
-  EXPECT_STREQ(errors::GetErrorMessage(res.status_code),
+  EXPECT_STREQ(errors::GetErrorMessage(res.status_code).data(),
                "Config provider cannot load config file");
 }
 

@@ -22,6 +22,7 @@
 #include <string>
 
 #include "absl/container/flat_hash_set.h"
+#include "absl/strings/str_cat.h"
 #include "core/interface/errors.h"
 #include "core/interface/logger_interface.h"
 
@@ -36,9 +37,7 @@ class GlobalLogger {
 };
 }  // namespace google::scp::core::common
 
-#define SCP_LOCATION                                                        \
-  (std::string(__FILE__) + ":" + __func__ + ":" + std::to_string(__LINE__)) \
-      .c_str()
+#define SCP_LOCATION absl::StrCat(__FILE__, ":", __func__, ":", __LINE__)
 
 #define SCP_INFO(component_name, activity_id, message, ...)                  \
   __SCP_INFO_LOG(component_name, google::scp::core::common::kZeroUuid,       \
@@ -116,13 +115,13 @@ class GlobalLogger {
   if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&         \
       google::scp::core::common::GlobalLogger::IsLogLevelEnabled(           \
           google::scp::core::LogLevel::kError)) {                           \
-    auto message_with_error = std::string(message) +                        \
-                              std::string(" Failed with: ") +               \
-                              google::scp::core::errors::GetErrorMessage(   \
-                                  execution_result.status_code);            \
+    const auto message_with_error =                                         \
+        absl::StrCat(message, " Failed with: ",                             \
+                     google::scp::core::errors::GetErrorMessage(            \
+                         execution_result.status_code));                    \
     google::scp::core::common::GlobalLogger::GetGlobalLogger()->Error(      \
         component_name, correlation_id, parent_activity_id, activity_id,    \
-        SCP_LOCATION, message_with_error.c_str(), ##__VA_ARGS__);           \
+        SCP_LOCATION, message_with_error, ##__VA_ARGS__);                   \
   }
 
 #define SCP_CRITICAL(component_name, activity_id, execution_result, message, \
@@ -143,13 +142,13 @@ class GlobalLogger {
   if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&            \
       google::scp::core::common::GlobalLogger::IsLogLevelEnabled(              \
           google::scp::core::LogLevel::kCritical)) {                           \
-    auto message_with_error = std::string(message) +                           \
-                              std::string(" Failed with: ") +                  \
-                              google::scp::core::errors::GetErrorMessage(      \
-                                  execution_result.status_code);               \
+    const auto message_with_error =                                            \
+        absl::StrCat(message, " Failed with: ",                                \
+                     google::scp::core::errors::GetErrorMessage(               \
+                         execution_result.status_code));                       \
     google::scp::core::common::GlobalLogger::GetGlobalLogger()->Critical(      \
         component_name, correlation_id, parent_activity_id, activity_id,       \
-        SCP_LOCATION, message_with_error.c_str(), ##__VA_ARGS__);              \
+        SCP_LOCATION, message_with_error, ##__VA_ARGS__);                      \
   }
 
 #define SCP_ALERT(component_name, activity_id, execution_result, message, ...) \
@@ -168,13 +167,13 @@ class GlobalLogger {
   if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&         \
       google::scp::core::common::GlobalLogger::IsLogLevelEnabled(           \
           google::scp::core::LogLevel::kAlert)) {                           \
-    auto message_with_error = std::string(message) +                        \
-                              std::string(" Failed with: ") +               \
-                              google::scp::core::errors::GetErrorMessage(   \
-                                  execution_result.status_code);            \
+    const auto message_with_error =                                         \
+        absl::StrCat(message, " Failed with: ",                             \
+                     google::scp::core::errors::GetErrorMessage(            \
+                         execution_result.status_code));                    \
     google::scp::core::common::GlobalLogger::GetGlobalLogger()->Alert(      \
         component_name, correlation_id, parent_activity_id, activity_id,    \
-        SCP_LOCATION, message_with_error.c_str(), ##__VA_ARGS__);           \
+        SCP_LOCATION, message_with_error, ##__VA_ARGS__);                   \
   }
 
 #define SCP_EMERGENCY(component_name, activity_id, execution_result, message, \
@@ -196,13 +195,13 @@ class GlobalLogger {
   if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&            \
       google::scp::core::common::GlobalLogger::IsLogLevelEnabled(              \
           google::scp::core::LogLevel::kEmergency)) {                          \
-    auto message_with_error = std::string(message) +                           \
-                              std::string(" Failed with: ") +                  \
-                              google::scp::core::errors::GetErrorMessage(      \
-                                  execution_result.status_code);               \
+    const auto message_with_error =                                            \
+        absl::StrCat(message, " Failed with: ",                                \
+                     google::scp::core::errors::GetErrorMessage(               \
+                         execution_result.status_code));                       \
     google::scp::core::common::GlobalLogger::GetGlobalLogger()->Emergency(     \
         component_name, correlation_id, parent_activity_id, activity_id,       \
-        SCP_LOCATION, message_with_error.c_str(), ##__VA_ARGS__);              \
+        SCP_LOCATION, message_with_error, ##__VA_ARGS__);                      \
   }
 
 #endif  // CORE_COMMON_GLOBAL_LOGGER_SRC_GLOBAL_LOGGER_H_

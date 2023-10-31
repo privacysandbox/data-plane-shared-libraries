@@ -143,8 +143,7 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
     return FailureExecutionResult(SC_ROMA_WORKER_REQUEST_TYPE_NOT_SUPPORTED);
   }
 
-  if (*action_or == kRequestActionLoad &&
-      response_or->compilation_context.has_context) {
+  if (*action_or == kRequestActionLoad && response_or->compilation_context) {
     compilation_contexts_.Set(code_version, response_or->compilation_context);
     ROMA_VLOG(1) << "caching compilation context for version " << code_version;
   }

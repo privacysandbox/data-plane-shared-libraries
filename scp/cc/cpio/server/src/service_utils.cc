@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/strings/str_cat.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/config_provider/src/env_config_provider.h"
@@ -62,8 +63,9 @@ void Init(const std::shared_ptr<ServiceInterface>& service,
     if (!execution_result.Successful()) {
       SCP_ERROR(service_name, kZeroUuid, execution_result,
                 "Failed to initialize the service.");
-      throw std::runtime_error(service_name + " failed to initialized. " +
-                               GetErrorMessage(execution_result.status_code));
+      throw std::runtime_error(
+          absl::StrCat(service_name, " failed to initialized. ",
+                       GetErrorMessage(execution_result.status_code)));
     }
     SCP_INFO(service_name, kZeroUuid, "Properly initialized the service.");
     std::cout << service_name << " initialized." << std::endl;
@@ -77,8 +79,9 @@ void Run(const std::shared_ptr<ServiceInterface>& service,
     if (!execution_result.Successful()) {
       SCP_ERROR(service_name, kZeroUuid, execution_result,
                 "Failed to run the service.");
-      throw std::runtime_error(service_name + " failed to run. " +
-                               GetErrorMessage(execution_result.status_code));
+      throw std::runtime_error(
+          absl::StrCat(service_name, " failed to run. ",
+                       GetErrorMessage(execution_result.status_code)));
     }
     SCP_INFO(service_name, kZeroUuid, "Successfully running the service.");
     std::cout << service_name << " running." << std::endl;
@@ -92,8 +95,9 @@ void Stop(const std::shared_ptr<ServiceInterface>& service,
     if (!execution_result.Successful()) {
       SCP_ERROR(service_name, kZeroUuid, execution_result,
                 "Failed to stop the service.");
-      throw std::runtime_error(service_name + " failed to stop. " +
-                               GetErrorMessage(execution_result.status_code));
+      throw std::runtime_error(
+          absl::StrCat(service_name, " failed to stop. ",
+                       GetErrorMessage(execution_result.status_code)));
     }
     SCP_INFO(service_name, kZeroUuid, "Properly stopped the service.");
     std::cout << service_name << " stopped." << std::endl;
@@ -200,8 +204,9 @@ std::string ReadConfigString(
   std::string config_value;
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
-    throw std::runtime_error(config_key + " is not provided. " +
-                             GetErrorMessage(execution_result.status_code));
+    throw std::runtime_error(
+        absl::StrCat(config_key, " is not provided. ",
+                     GetErrorMessage(execution_result.status_code)));
   }
   return config_value;
 }
@@ -211,8 +216,9 @@ void ReadConfigStringList(
     const std::string& config_key, std::list<std::string>& config_values) {
   auto execution_result = config_provider->Get(config_key, config_values);
   if (!execution_result.Successful()) {
-    throw std::runtime_error(config_key + " is not provided. " +
-                             GetErrorMessage(execution_result.status_code));
+    throw std::runtime_error(
+        absl::StrCat(config_key, " is not provided. ",
+                     GetErrorMessage(execution_result.status_code)));
   }
 }
 
@@ -255,8 +261,9 @@ int32_t ReadConfigInt(
   int32_t config_value;
   auto execution_result = config_provider->Get(config_key, config_value);
   if (!execution_result.Successful()) {
-    throw std::runtime_error(config_key + " is not provided. " +
-                             GetErrorMessage(execution_result.status_code));
+    throw std::runtime_error(
+        absl::StrCat(config_key, " is not provided. ",
+                     GetErrorMessage(execution_result.status_code)));
   }
   return config_value;
 }

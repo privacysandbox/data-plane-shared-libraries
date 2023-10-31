@@ -41,20 +41,20 @@ TEST(ERRORS, ErrorMessageReturn) {
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0xFFFF,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
 
-  static std::string error_message = GetErrorMessage(COMPONENT_NAME_ERROR);
-  EXPECT_EQ(error_message, "Component error message test");
+  EXPECT_EQ(GetErrorMessage(COMPONENT_NAME_ERROR),
+            "Component error message test");
 }
 
 TEST(ERRORS, ErrorMessageSuccessErrorCode) {
-  EXPECT_STREQ("Success", GetErrorMessage(SC_OK));
+  EXPECT_STREQ("Success", GetErrorMessage(SC_OK).data());
 }
 
 TEST(ERRORS, ErrorMessageUnknownErrorCode) {
-  EXPECT_STREQ("Unknown Error", GetErrorMessage(SC_UNKNOWN));
+  EXPECT_STREQ("Unknown Error", GetErrorMessage(SC_UNKNOWN).data());
 }
 
 TEST(ERRORS, ErrorMessageUndefinedErrorCode) {
-  EXPECT_STREQ("InvalidErrorCode", GetErrorMessage(UINT64_MAX));
+  EXPECT_STREQ("InvalidErrorCode", GetErrorMessage(UINT64_MAX).data());
 }
 
 TEST(ERRORS, MapErrorCodePublic) {
@@ -66,8 +66,9 @@ TEST(ERRORS, MapErrorCodePublic) {
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0xFFFF,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
   MAP_TO_PUBLIC_ERROR_CODE(COMPONENT_NAME_ERROR, PUBLIC_COMPONENT_ERROR);
-  EXPECT_STREQ("Public error message test",
-               GetErrorMessage(GetPublicErrorCode(COMPONENT_NAME_ERROR)));
+  EXPECT_STREQ(
+      "Public error message test",
+      GetErrorMessage(GetPublicErrorCode(COMPONENT_NAME_ERROR)).data());
 }
 
 TEST(ERRORS, NoAssociatedPublicErrorCode) {

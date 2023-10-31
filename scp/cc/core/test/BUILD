@@ -18,11 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "core_test_lib",
-    srcs = glob(
-        [
-            "*.h",
-        ],
-    ),
+    srcs = glob(["*.h"]),
     deps = [
         "//scp/cc:cc_base_include_dir",
     ],

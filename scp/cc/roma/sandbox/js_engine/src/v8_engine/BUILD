@@ -54,6 +54,7 @@ cc_library(
         "//scp/cc/roma/worker/src:roma_execution_utils_lib",
         "//src/cpp/util:duration",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/strings",
         "@v8//:v8_icu",
     ],
 )

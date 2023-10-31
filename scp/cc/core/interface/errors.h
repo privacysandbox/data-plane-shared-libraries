@@ -127,22 +127,22 @@ constexpr uint64_t MakeErrorCode(uint64_t component, uint64_t error) {
  * @param message message about the error.
  * @param http_status_code Http status code.
  */
-#define DEFINE_ERROR_CODE(error_name, component, error, message,              \
-                          http_status_code)                                   \
-  static_assert(                                                              \
-      component < 0x8000,                                                     \
-      "Component code is too large! Valid range is [0x0001, 0x7FFF).");       \
-  static_assert(error < 0x10000,                                              \
-                "Error code is too large! Valid range is [0x0001, 0xFFFF]."); \
-  static uint64_t error_name =                                                \
-      ::google::scp::core::errors::MakeErrorCode(component, error);           \
-  static bool initialized_##component##error = []() {                         \
-    ::google::scp::core::errors::SCPError scp_error;                          \
-    scp_error.error_message = message;                                        \
-    scp_error.error_http_status_code = http_status_code;                      \
-    ::google::scp::core::errors::GetGlobalErrorCodes()[component].emplace(    \
-        error_name, scp_error);                                               \
-    return true;                                                              \
+#define DEFINE_ERROR_CODE(error_name, component, error, message,               \
+                          http_status_code)                                    \
+  static_assert(component > 0 && component < 0x8000,                           \
+                "Component code out of range. Valid range [0x0001, 0x7FFF)."); \
+  static_assert(                                                               \
+      error > 0 && error < 0x10000,                                            \
+      "Error code is out of range. Valid range is [0x0001, 0xFFFF].");         \
+  static constexpr uint64_t error_name =                                       \
+      ::google::scp::core::errors::MakeErrorCode(component, error);            \
+  static bool initialized_##component##error = []() {                          \
+    ::google::scp::core::errors::GetGlobalErrorCodes()[component].emplace(     \
+        error_name, ::google::scp::core::errors::SCPError{                     \
+                        .error_message = message,                              \
+                        .error_http_status_code = http_status_code,            \
+                    });                                                        \
+    return true;                                                               \
   }();
 
 /**
@@ -164,7 +164,7 @@ constexpr uint64_t MakeErrorCode(uint64_t component, uint64_t error) {
  * @param error_code error code.
  * @return uint64_t component code.
  */
-inline uint64_t ExtractComponentCode(uint64_t error_code) {
+constexpr uint64_t ExtractComponentCode(uint64_t error_code) {
   return ((error_code >> 16) & 0x7FFF);
 }
 
@@ -172,26 +172,32 @@ inline uint64_t ExtractComponentCode(uint64_t error_code) {
  * @brief Gets the error message.
  *
  * @param error_code the global error code.
- * @return std::string the message about the error code.
+ * @return std::string_view the message about the error code.
  */
-inline const char* GetErrorMessage(uint64_t error_code) {
-  static constexpr char kInvalidErrorCodeStr[] = "InvalidErrorCode";
-  static constexpr char kUnknownErrorCodeStr[] = "Unknown Error";
-  static constexpr char kSuccessErrorCodeStr[] = "Success";
+inline std::string_view GetErrorMessage(uint64_t error_code) {
+  static std::string_view kInvalidErrorCodeStr("InvalidErrorCode");
+  static std::string_view kUnknownErrorCodeStr("Unknown Error");
+  static std::string_view kSuccessErrorCodeStr("Success");
+  static std::string_view kUnknownComponentCodeStr("Unrecognized Component");
 
-  if (error_code == SC_OK) {
-    return kSuccessErrorCodeStr;
-  } else if (error_code == SC_UNKNOWN) {
-    return kUnknownErrorCodeStr;
+  switch (error_code) {
+    case SC_OK:
+      return std::string_view(kSuccessErrorCodeStr);
+    case SC_UNKNOWN:
+      return std::string_view(kUnknownErrorCodeStr);
+    default:
+      break;
   }
-
-  uint64_t component = ExtractComponentCode(error_code);
-  auto it = GetGlobalErrorCodes()[component].find(error_code);
-  if (it != GetGlobalErrorCodes()[component].end()) {
-    return it->second.error_message.c_str();
+  const uint64_t component = ExtractComponentCode(error_code);
+  const auto comp_it = GetGlobalErrorCodes().find(component);
+  if (comp_it == GetGlobalErrorCodes().end()) {
+    return std::string_view(kUnknownComponentCodeStr);
   }
-
-  return kInvalidErrorCodeStr;
+  const auto& comp_map = comp_it->second;
+  if (const auto it = comp_map.find(error_code); it != comp_map.end()) {
+    return std::string_view(it->second.error_message);
+  }
+  return std::string_view(kInvalidErrorCodeStr);
 }
 
 /**

@@ -37,6 +37,7 @@
 #include "src/cpp/util/duration.h"
 
 #include "error_codes.h"
+#include "snapshot_compilation_context.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
@@ -74,14 +75,13 @@ using google::scp::roma::sandbox::worker::WorkerUtils;
 using google::scp::roma::worker::ExecutionUtils;
 
 namespace {
+
 std::shared_ptr<std::string> GetCodeFromContext(
     const RomaJsEngineCompilationContext& context) {
   std::shared_ptr<std::string> code;
-
-  if (context.has_context) {
+  if (context) {
     code = std::static_pointer_cast<std::string>(context.context);
   }
-
   return code;
 }
 
@@ -109,30 +109,37 @@ ExecutionResult CreateV8Context(
   return SuccessExecutionResult();
 }
 
-ExecutionResult GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
-                         uint64_t error_code) noexcept {
+std::string BuildErrorString(std::vector<std::string> errors) {
+  std::string err_str;
+  for (const auto& e : errors) {
+    absl::StrAppend(&err_str, "\n", e);
+  }
+  return err_str;
+}
+
+std::vector<std::string> GetErrors(v8::Isolate* isolate,
+                                   v8::TryCatch& try_catch,
+                                   const uint64_t error_code) noexcept {
   std::vector<std::string> errors;
-
-  errors.push_back(GetErrorMessage(error_code));
-
+  errors.push_back(std::string(GetErrorMessage(error_code)));
   if (try_catch.HasCaught()) {
-    std::string error_msg;
-    if (!try_catch.Message().IsEmpty() &&
+    if (std::string error_msg;
+        !try_catch.Message().IsEmpty() &&
         TypeConverter<std::string>::FromV8(isolate, try_catch.Message()->Get(),
                                            &error_msg)) {
-      errors.push_back(error_msg);
+      errors.push_back(std::move(error_msg));
     }
   }
+  return errors;
+}
 
-  std::string error_string;
-  for (auto& e : errors) {
-    error_string += "\n" + e;
-  }
+ExecutionResult GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
+                         const uint64_t error_code) noexcept {
   // Caught error message from V8 sandbox only shows in DEBUG mode.
-  DLOG(ERROR) << error_string;
-
+  DLOG(ERROR) << BuildErrorString(GetErrors(isolate, try_catch, error_code));
   return FailureExecutionResult(error_code);
 }
+
 }  // namespace
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
@@ -164,8 +171,7 @@ ExecutionResult V8JsEngine::OneTimeSetup(
   }
 
   pid_t my_pid = getpid();
-  std::string proc_exe_path =
-      std::string("/proc/") + std::to_string(my_pid) + "/exe";
+  const auto proc_exe_path = absl::StrCat("/proc/", my_pid, "/exe");
   auto my_path = std::make_unique<char[]>(PATH_MAX);
   readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
   v8::V8::InitializeICUDefaultLocation(my_path.get());
@@ -173,11 +179,10 @@ ExecutionResult V8JsEngine::OneTimeSetup(
 
   // Set the max number of WASM memory pages
   if (max_wasm_memory_number_of_pages != 0) {
-    auto page_count = std::min(max_wasm_memory_number_of_pages,
-                               kMaxNumberOfWasm32BitMemPages);
-    auto flag_value =
-        std::string(kWasmMemPagesV8PlatformFlag) + std::to_string(page_count);
-
+    const size_t page_count = std::min(max_wasm_memory_number_of_pages,
+                                       kMaxNumberOfWasm32BitMemPages);
+    const auto flag_value =
+        absl::StrCat(kWasmMemPagesV8PlatformFlag, page_count);
     v8::V8::SetFlagsFromString(flag_value.c_str());
   }
 
@@ -337,14 +342,12 @@ ExecutionResultOr<RomaJsEngineCompilationContext>
 V8JsEngine::CreateCompilationContext(
     const std::string& code, absl::Span<const uint8_t> wasm,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
-
     std::string& err_msg) noexcept {
   if (code.empty()) {
     return FailureExecutionResult(
         SC_ROMA_V8_ENGINE_CREATE_COMPILATION_CONTEXT_FAILED_WITH_EMPTY_CODE);
   }
 
-  RomaJsEngineCompilationContext out_context;
   auto snapshot_context = std::make_shared<SnapshotCompilationContext>();
   // If wasm code array exists, a snapshot with global wasm code array will be
   // created. Otherwise, a normal snapshot containing compiled JS code will be
@@ -356,7 +359,6 @@ V8JsEngine::CreateCompilationContext(
                                       metadata, err_msg)
           : CreateSnapshot(snapshot_context->startup_data, code, err_msg);
   std::unique_ptr<V8IsolateWrapper> isolate_or;
-
   if (execution_result.Successful()) {
     isolate_or = CreateIsolate(snapshot_context->startup_data);
     if (!isolate_or) {
@@ -423,9 +425,10 @@ V8JsEngine::CreateCompilationContext(
   // execution watchdog inside the isolate.
   snapshot_context->isolate = std::move(isolate_or);
 
-  out_context.has_context = true;
-  out_context.context = snapshot_context;
-  return out_context;
+  RomaJsEngineCompilationContext js_ctx{
+      .context = snapshot_context,
+  };
+  return js_ctx;
 }
 
 core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
@@ -606,13 +609,11 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
   std::string input_code;
   RomaJsEngineCompilationContext out_context;
   // For now we just store and reuse the actual code as context.
-  auto context_code = GetCodeFromContext(context);
-  if (context_code) {
+  if (auto context_code = GetCodeFromContext(context); context_code) {
     input_code = *context_code;
     out_context = context;
   } else {
     input_code = code;
-    out_context.has_context = true;
     out_context.context = std::make_shared<std::string>(code);
   }
   execution_response.compilation_context = out_context;
@@ -633,8 +634,8 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
     v8::TryCatch try_catch(isolate);
 
     std::string errors;
-    auto result = ExecutionUtils::CompileRunWASM(input_code, errors);
-    if (!result.Successful()) {
+    if (auto result = ExecutionUtils::CompileRunWASM(input_code, errors);
+        !result.Successful()) {
       LOG(ERROR) << errors;
       return GetError(isolate_wrapper_->isolate(), try_catch,
                       result.status_code);
@@ -642,9 +643,9 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
     if (!function_name.empty()) {
       v8::Local<v8::Value> wasm_handler;
-      result =
-          ExecutionUtils::GetWasmHandler(function_name, wasm_handler, errors);
-      if (!result.Successful()) {
+      if (auto result = ExecutionUtils::GetWasmHandler(function_name,
+                                                       wasm_handler, errors);
+          !result.Successful()) {
         LOG(ERROR) << errors;
         return GetError(isolate_wrapper_->isolate(), try_catch,
                         result.status_code);
@@ -686,10 +687,10 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
                         SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);
       }
 
-      auto conversion_worked = TypeConverter<std::string>::FromV8(
-          isolate, result_json,
-          execution_response.execution_response.response.get());
-      if (!conversion_worked) {
+      if (auto conversion_worked = TypeConverter<std::string>::FromV8(
+              isolate, result_json,
+              execution_response.execution_response.response.get());
+          !conversion_worked) {
         return GetError(isolate, try_catch,
                         SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);
       }
@@ -711,26 +712,24 @@ V8JsEngine::CompileAndRunJsWithWasm(
     const RomaJsEngineCompilationContext& context) noexcept {
   std::string err_msg;
   JsEngineExecutionResponse execution_response;
-  std::shared_ptr<SnapshotCompilationContext> current_compilation_context;
-  if (!context.has_context) {
+  std::shared_ptr<SnapshotCompilationContext> curr_comp_ctx;
+  if (!context) {
     auto context_or = CreateCompilationContext(code, wasm, metadata, err_msg);
     if (!context_or.result().Successful()) {
       LOG(ERROR) << std::string("CreateCompilationContext failed with ")
                  << err_msg;
       return context_or.result();
     }
-
     execution_response.compilation_context = context_or.value();
-    current_compilation_context =
-        std::static_pointer_cast<SnapshotCompilationContext>(
-            context_or.value().context);
+    curr_comp_ctx = std::static_pointer_cast<SnapshotCompilationContext>(
+        context_or.value().context);
   } else {
-    current_compilation_context =
+    curr_comp_ctx =
         std::static_pointer_cast<SnapshotCompilationContext>(context.context);
   }
 
-  v8::Isolate* v8_isolate = current_compilation_context->isolate->isolate();
-  if (!v8_isolate) {
+  v8::Isolate* v8_isolate = curr_comp_ctx->isolate->isolate();
+  if (v8_isolate == nullptr) {
     return FailureExecutionResult(SC_ROMA_V8_ENGINE_ISOLATE_NOT_INITIALIZED);
   }
 
@@ -742,19 +741,18 @@ V8JsEngine::CompileAndRunJsWithWasm(
 
   StartWatchdogTimer(v8_isolate, metadata);
   const auto execution_result =
-      ExecuteJs(current_compilation_context, function_name, input, metadata);
+      ExecuteJs(curr_comp_ctx, function_name, input, metadata);
   // End execution_watchdog_ in case it terminate the standby isolate.
   StopWatchdogTimer();
-
   if (execution_result.Successful()) {
     execution_response.execution_response = execution_result.value();
     return execution_response;
   }
-
   // Return timeout error if the watchdog called isolate terminate.
   if (execution_watchdog_->IsTerminateCalled()) {
     return FailureExecutionResult(SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT);
   }
   return execution_result.result();
 }
+
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

@@ -19,7 +19,9 @@
 #include "public/core/interface/errors.h"
 
 namespace google::scp::core {
-const char* GetErrorMessage(uint64_t error_code) {
+
+std::string_view GetErrorMessage(const uint64_t error_code) {
   return errors::GetErrorMessage(error_code);
 }
+
 }  // namespace google::scp::core

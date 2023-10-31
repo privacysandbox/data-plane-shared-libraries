@@ -34,9 +34,8 @@ namespace google::scp::roma::sandbox::js_engine {
  *
  */
 struct RomaJsEngineCompilationContext {
-  RomaJsEngineCompilationContext() { has_context = false; }
+  operator bool() const { return bool(context); }
 
-  bool has_context;
   std::shared_ptr<void> context;
 };
 

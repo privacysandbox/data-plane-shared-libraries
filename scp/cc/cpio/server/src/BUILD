@@ -39,5 +39,6 @@ cc_library(
         "//scp/cc/public/cpio/interface:type_def",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
+        "@com_google_absl//absl/strings",
     ],
 )

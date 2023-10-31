@@ -20,6 +20,7 @@
 #include "public/core/interface/execution_result.h"
 
 namespace google::scp::core::errors {
+
 absl::flat_hash_map<uint64_t, absl::flat_hash_map<uint64_t, SCPError>>&
 GetGlobalErrorCodes() {
   // Static duration map is heap allocated to avoid destructor call.
@@ -38,4 +39,5 @@ absl::flat_hash_map<uint64_t, uint64_t>& GetPublicErrorCodesMap() {
       *new absl::flat_hash_map<uint64_t, uint64_t>();
   return public_error_codes_map;
 }
+
 }  // namespace google::scp::core::errors
