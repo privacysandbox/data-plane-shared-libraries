@@ -38,42 +38,52 @@ static constexpr uint8_t kATYP_v6 = 0x04;
 
 size_t FillAddrPort(void* msg, const sockaddr* addr) {
   uint8_t* buf = reinterpret_cast<uint8_t*>(msg);
-  if (addr->sa_family == AF_INET) {
-    buf[0] = kATYP_v4;
-    const sockaddr_in* v4addr = reinterpret_cast<const sockaddr_in*>(addr);
-    // V4 address is for sure 4 bytes.
-    memcpy(&buf[1], &v4addr->sin_addr, sizeof(v4addr->sin_addr));
-    // V4 address is for sure 2 bytes.
-    memcpy(&buf[1 + sizeof(v4addr->sin_addr)], &v4addr->sin_port,
-           sizeof(v4addr->sin_port));
-    return 1LU + sizeof(v4addr->sin_addr) + sizeof(v4addr->sin_port);  // ==7
-  } else if (addr->sa_family == AF_INET6) {
-    buf[0] = kATYP_v6;
-    const sockaddr_in6* v6addr = reinterpret_cast<const sockaddr_in6*>(addr);
-    // V6 address is for sure 16 bytes.
-    memcpy(&buf[1], &v6addr->sin6_addr, sizeof(v6addr->sin6_addr));
-    // V6 port is for sure 2 bytes.
-    memcpy(&buf[1 + sizeof(v6addr->sin6_addr)], &v6addr->sin6_port,
-           sizeof(v6addr->sin6_port));
-    return 1LU + sizeof(v6addr->sin6_addr) + sizeof(v6addr->sin6_port);  // ==19
-  } else {
-    return 0;
+  switch (addr->sa_family) {
+    case AF_INET: {
+      buf[0] = kATYP_v4;
+      const sockaddr_in* v4addr = reinterpret_cast<const sockaddr_in*>(addr);
+      // V4 address is for sure 4 bytes.
+      constexpr size_t sin_addr_size = sizeof(v4addr->sin_addr);
+      constexpr size_t sin_port_size = sizeof(v4addr->sin_port);
+      memcpy(&buf[1], &v4addr->sin_addr, sin_addr_size);
+      // V4 address is for sure 2 bytes.
+      memcpy(&buf[1 + sin_addr_size], &v4addr->sin_port, sin_port_size);
+      constexpr size_t ret_size = 1UL + sin_addr_size + sin_port_size;
+      static_assert(ret_size == 7);
+      return ret_size;
+    }
+    case AF_INET6: {
+      buf[0] = kATYP_v6;
+      const sockaddr_in6* v6addr = reinterpret_cast<const sockaddr_in6*>(addr);
+      constexpr size_t sin6_addr_size = sizeof(v6addr->sin6_addr);
+      constexpr size_t sin6_port_size = sizeof(v6addr->sin6_port);
+      // V6 address is for sure 16 bytes.
+      memcpy(&buf[1], &v6addr->sin6_addr, sin6_addr_size);
+      // V6 port is for sure 2 bytes.
+      memcpy(&buf[1 + sin6_addr_size], &v6addr->sin6_port, sin6_port_size);
+      constexpr size_t ret_size = 1UL + sin6_addr_size + sin6_port_size;
+      static_assert(ret_size == 19);
+      return ret_size;
+    }
+    default:
+      return 0;
   }
 }
 
-// Construct a sockaddr of the parent instance by looking and env variables, or
-// default if env not set.
+// Construct a sockaddr of the parent instance by looking and env variables,
+// or default if env not set.
 sockaddr_vm GetProxyVsockAddr() {
   unsigned int cid = kDefaultParentCid;
   unsigned int port = kDefaultParentPort;
   EnvGetVal(kParentCidEnv, cid);
   EnvGetVal(kParentPortEnv, port);
 
-  sockaddr_vm addr;
-  memset(&addr, 0, sizeof(addr));
-  addr.svm_family = AF_VSOCK;
-  addr.svm_port = port;
-  addr.svm_cid = cid;
+  // memset(&addr, 0, sizeof(addr));
+  sockaddr_vm addr = {
+      .svm_family = AF_VSOCK,
+      .svm_port = port,
+      .svm_cid = cid,
+  };
   return addr;
 }
 
