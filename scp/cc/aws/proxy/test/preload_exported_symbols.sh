@@ -16,36 +16,60 @@
 
 set -euo pipefail
 
-lib="$1"
+function calc_sha() {
+  declare -r val="$1"
+  printf "%s" "${val}" | sha1sum | cut -f1 -d" "
+}
 
-symbols=$(objdump -T "$lib" | grep '\.text' | awk '{print $7}' | LC_COLLATE=C sort)
-symbols_sha=$(echo $symbols | sha1sum | awk '{print $1}')
+declare -r lib="$1"
+
+declare -a -r objdump_args=(
+  "--dynamic-syms"
+  "--section=.text"
+  "${lib}"
+)
+function objdump_filter() {
+    # extract the symbols
+    grep -Ewv "SYMBOL TABLE|file format" \
+      | grep -o "[^ ]*$" \
+      | LC_COLLATE=C sort
+}
+
+# shellcheck disable=SC2207
+declare -a -r symbols_arr=($(objdump "${objdump_args[@]}" | objdump_filter))
+declare -r symbols="${symbols_arr[*]}"
+symbols_sha="$(calc_sha "${symbols}")"
+readonly symbols_sha
 
 # These are the expected exported symbols. They are essentially all the symbols
 # we are overriding. See preload.cc for more details.
-expected_symbols='
-__res_init
-__res_ninit
-accept
-accept4
-bind
-connect
-epoll_ctl
-getsockopt
-ioctl
-listen
-setsockopt'
+declare -a -r expected_symbols_arr=(
+  __res_init
+  __res_ninit
+  accept
+  accept4
+  bind
+  connect
+  epoll_ctl
+  getsockopt
+  ioctl
+  listen
+  setsockopt
+)
+declare -r expected_symbols="${expected_symbols_arr[*]}"
 
+expected_sha="$(calc_sha "${expected_symbols}")"
+readonly expected_sha
 
-expected_sha=$(echo $expected_symbols | sha1sum | awk '{print $1}')
-
-if [[ $expected_sha != $symbols_sha ]]; then
-  echo "!! FAILURE !! symbols mismatch"
-  echo "==== Symbols from file $1: ===="
-  echo "$symbols"
-  echo "sha = $symbols_sha"
-  echo "==== Expected Symbols: ===="
-  echo "$expected_symbols"
-  echo "sha = $expected_sha"
+if [[ ${expected_sha} != "${symbols_sha}" ]]; then
+  cat << EOF
+!! FAILURE !! symbols mismatch
+==== Symbols from file ${lib}: ====
+${symbols}
+sha = ${symbols_sha}
+==== Expected Symbols: ====
+${expected_symbols}
+sha = ${expected_sha}
+EOF
   exit 1
 fi
