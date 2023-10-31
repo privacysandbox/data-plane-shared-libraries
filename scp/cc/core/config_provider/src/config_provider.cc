@@ -20,15 +20,13 @@
 #include <fstream>
 #include <list>
 
-using json = nlohmann::json;
-
 namespace google::scp::core {
 
 ExecutionResult ConfigProvider::Init() noexcept {
   try {
     std::ifstream jsonFile(config_file_);
-    config_json_ = json::parse(jsonFile);
-  } catch (json::parse_error& e) {
+    config_json_ = nlohmann::json::parse(jsonFile);
+  } catch (const nlohmann::json::parse_error& e) {
     return FailureExecutionResult(
         errors::SC_CONFIG_PROVIDER_CANNOT_PARSE_CONFIG_FILE);
   }
@@ -81,4 +79,5 @@ ExecutionResult ConfigProvider::Get(const ConfigKey& key,
                                     std::list<bool>& out) noexcept {
   return Get<bool>(key, out);
 };
+
 }  // namespace google::scp::core
