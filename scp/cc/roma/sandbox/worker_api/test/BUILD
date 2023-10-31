@@ -21,7 +21,10 @@ cc_test(
     size = "small",
     srcs = ["worker_api_sapi_test.cc"],
     tags = [
-        "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
+        # This test has a translation unit too big for the debug ASAN build,
+        # run it in optimized mode:
+        "asanopt",
+        "noasan",
         "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
         "noubsan",  # TODO(b/308167161) - Fix UBSAN errors in this test.
     ],

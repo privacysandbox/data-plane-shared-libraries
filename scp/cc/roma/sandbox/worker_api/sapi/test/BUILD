@@ -21,7 +21,10 @@ cc_test(
     size = "small",
     srcs = ["worker_sandbox_api_test.cc"],
     tags = [
-        "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
+        # This test has a translation unit too big for the debug ASAN build,
+        # run it in optimized mode:
+        "asanopt",
+        "noasan",
         "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
         "noubsan",  # TODO(b/308167161) - Fix UBSAN errors in this test.
     ],
@@ -39,7 +42,6 @@ cc_test(
     name = "worker_wrapper_test",
     size = "small",
     srcs = ["worker_wrapper_test.cc"],
-    tags = ["noasan"],  # TODO(b/293876281) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",

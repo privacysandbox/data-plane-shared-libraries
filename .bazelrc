@@ -44,6 +44,24 @@ build:asan --test_tag_filters=-noasan
 # ZLib library that we depend on.
 build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always:detect_odr_violation=0
 
+# Address sanitizer, optimized build.
+# Sometimes the asan config above produces translation units that are too large
+# for Clang to process (because of SAPI).  For just those tests we use this
+# config: this has worse debugging properties but it at least lets us run the
+# sanitizer.
+build:asanopt --config=sanitizers_common
+build:asanopt --action_env=PRIVACY_SANDBOX_SERVERS_ASANOPT=1
+build:asanopt --copt=-fsanitize=address
+build:asanopt --copt=-DADDRESS_SANITIZER
+build:asanopt --copt=-O1
+build:asanopt --copt=-fno-omit-frame-pointer
+build:asanopt --linkopt=-fsanitize=address
+build:asanopt --linkopt=-fuse-ld=lld
+build:asanopt --test_tag_filters=asanopt
+# TODO(b/293876281): Re-enable ODR violation checking once it's fixed in the
+# ZLib library that we depend on.
+build:asanopt --action_env=ASAN_OPTIONS=detect_leaks=1:color=always:detect_odr_violation=0
+
 # Thread sanitizer
 build:tsan --config=sanitizers_common
 build:tsan --action_env=PRIVACY_SANDBOX_SERVERS_TSAN=1

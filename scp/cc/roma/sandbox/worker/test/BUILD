@@ -23,7 +23,6 @@ cc_test(
     data = [
         "//scp/cc/roma/testing/cpp_wasi_dependency_example",
     ],
-    tags = ["noasan"],  # TODO(b/293876281) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
