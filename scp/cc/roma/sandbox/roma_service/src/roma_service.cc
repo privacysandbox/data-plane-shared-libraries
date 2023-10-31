@@ -51,20 +51,19 @@ RomaService* RomaService::instance_;
 constexpr int kWorkerQueueMax = 100;
 
 namespace {
+
 void RomaLog(const FunctionBindingIoProto& io) {
-  const std::string& input = io.input_string();
-  LOG(INFO) << input;
+  LOG(INFO) << io.input_string();
 }
 
 void RomaWarn(const FunctionBindingIoProto& io) {
-  const std::string& input = io.input_string();
-  LOG(WARNING) << input;
+  LOG(WARNING) << io.input_string();
 }
 
 void RomaError(const FunctionBindingIoProto& io) {
-  const std::string& input = io.input_string();
-  LOG(ERROR) << input;
+  LOG(ERROR) << io.input_string();
 }
+
 }  // namespace
 
 void RomaService::RegisterLogBindings() noexcept {
