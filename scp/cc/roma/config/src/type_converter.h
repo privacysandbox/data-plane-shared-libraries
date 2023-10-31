@@ -84,6 +84,7 @@ struct TypeConverter<std::vector<std::string>> {
     }
 
     auto array = val.As<v8::Array>();
+    out->reserve(array->Length());
     for (size_t i = 0; i < array->Length(); i++) {
       auto item = array->Get(isolate->GetCurrentContext(), i).ToLocalChecked();
       std::string str;
@@ -127,6 +128,7 @@ struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
     // key, and N+1 is the value for the given key.
     auto map_as_array = v8_map->AsArray();
 
+    out->reserve(map_as_array->Length());
     for (auto i = 0; i < map_as_array->Length(); i += 2) {
       auto key_index = i;
       auto value_index = i + 1;
