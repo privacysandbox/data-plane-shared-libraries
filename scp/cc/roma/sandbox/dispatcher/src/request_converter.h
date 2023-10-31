@@ -84,6 +84,7 @@ struct RequestConverter<InvocationRequestStrInput> {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     RunRequestFromInputRequestCommon<
         std::unique_ptr<InvocationRequestStrInput>>(run_code_request, request);
+    run_code_request.input.reserve(request->input.size());
     for (auto& i : request->input) {
       run_code_request.input.push_back(i);
     }
@@ -106,6 +107,7 @@ struct RequestConverter<InvocationRequestSharedInput> {
     RunRequestFromInputRequestCommon<
         std::unique_ptr<InvocationRequestSharedInput>>(run_code_request,
                                                        request);
+    run_code_request.input.reserve(request->input.size());
     for (auto& i : request->input) {
       run_code_request.input.push_back(*i);
     }
