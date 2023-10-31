@@ -19,7 +19,6 @@
 
 #include <netinet/in.h>
 
-#include <map>
 #include <string>
 
 #include <boost/asio.hpp>
@@ -27,6 +26,7 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 
+#include "absl/container/btree_map.h"
 #include "core/interface/type_def.h"
 #include "public/core/interface/execution_result.h"
 
@@ -64,7 +64,7 @@ class TestHttp1Server {
 
   // Sets the headers to return in the HTTP response.
   void SetResponseHeaders(
-      const std::multimap<std::string, std::string>& response_headers);
+      const absl::btree_multimap<std::string, std::string>& response_headers);
 
   ~TestHttp1Server();
 
@@ -81,7 +81,7 @@ class TestHttp1Server {
   // The body to send in the HttpResponse.
   BytesBuffer response_body_;
   // A map of header names to values to send in the HttpResponse.
-  std::multimap<std::string, std::string> response_headers_;
+  absl::btree_multimap<std::string, std::string> response_headers_;
 
   // The thread which this server is running on.
   std::thread thread_;
@@ -93,7 +93,7 @@ class TestHttp1Server {
   std::atomic_bool accepting_{false};
 };
 
-std::multimap<std::string, std::string> GetRequestHeadersMap(
+absl::btree_multimap<std::string, std::string> GetRequestHeadersMap(
     const boost::beast::http::request<boost::beast::http::dynamic_body>&
         request);
 

@@ -17,12 +17,12 @@
 #ifndef CORE_INTERFACE_HTTP_TYPES_H_
 #define CORE_INTERFACE_HTTP_TYPES_H_
 
-#include <map>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "absl/container/btree_map.h"
 #include "core/common/concurrent_map/src/concurrent_map.h"
 
 #include "type_def.h"
@@ -39,7 +39,7 @@ enum class HttpMethod {
 using Uri = std::string;
 
 /// Keeps http headers key value pairs.
-using HttpHeaders = std::multimap<std::string, std::string>;
+using HttpHeaders = absl::btree_multimap<std::string, std::string>;
 
 struct AuthContext {
   std::shared_ptr<std::string> authorized_domain;

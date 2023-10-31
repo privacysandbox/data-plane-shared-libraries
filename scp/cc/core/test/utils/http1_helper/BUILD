@@ -27,5 +27,6 @@ cc_library(
         "//scp/cc/public/core/interface:execution_result",
         "@boost//:asio",
         "@boost//:beast",
+        "@com_google_absl//absl/container:btree",
     ],
 )

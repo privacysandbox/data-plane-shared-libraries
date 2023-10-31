@@ -15,7 +15,6 @@
  */
 #include "test_http1_server.h"
 
-#include <map>
 #include <string>
 #include <utility>
 
@@ -151,7 +150,7 @@ void TestHttp1Server::SetResponseBody(const BytesBuffer& body) {
 }
 
 void TestHttp1Server::SetResponseHeaders(
-    const std::multimap<std::string, std::string>& response_headers) {
+    const absl::btree_multimap<std::string, std::string>& response_headers) {
   response_headers_ = response_headers;
 }
 
@@ -162,9 +161,9 @@ TestHttp1Server::~TestHttp1Server() {
   thread_.join();
 }
 
-std::multimap<std::string, std::string> GetRequestHeadersMap(
+absl::btree_multimap<std::string, std::string> GetRequestHeadersMap(
     const http::request<http::dynamic_body>& request) {
-  std::multimap<std::string, std::string> ret;
+  absl::btree_multimap<std::string, std::string> ret;
   for (const auto& header : request) {
     ret.insert(
         {std::string(header.name_string()), std::string(header.value())});
