@@ -17,6 +17,16 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "v8_isolate_wrapper",
+    srcs = [
+        "v8_isolate_wrapper.h",
+    ],
+    deps = [
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
     name = "roma_v8_js_engine_lib",
     srcs = [
         "error_codes.h",
@@ -28,6 +38,7 @@ cc_library(
         "v8_js_engine.h",
     ],
     deps = [
+        ":v8_isolate_wrapper",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",

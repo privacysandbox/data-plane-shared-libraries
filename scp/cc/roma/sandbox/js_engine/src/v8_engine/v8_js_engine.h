@@ -28,6 +28,7 @@
 #include "public/core/interface/execution_result.h"
 #include "roma/interface/roma.h"
 #include "roma/sandbox/js_engine/src/js_engine.h"
+#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_wrapper.h"
 #include "roma/sandbox/worker/src/worker_utils.h"
 #include "roma/worker/src/execution_utils.h"
 #include "roma/worker/src/execution_watchdog.h"
@@ -136,8 +137,8 @@ class V8JsEngine : public JsEngine {
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       std::string& err_msg) noexcept;
 
-  /// @brief Create a v8 isolate instance.
-  virtual core::ExecutionResultOr<v8::Isolate*> CreateIsolate(
+  /// @brief Create a v8 isolate instance.  Returns nullptr on failure.
+  virtual std::unique_ptr<V8IsolateWrapper> CreateIsolate(
       const v8::StartupData& startup_data = {nullptr, 0}) noexcept;
 
   /// @brief Dispose v8 isolate.
@@ -200,7 +201,7 @@ class V8JsEngine : public JsEngine {
    */
   core::ExecutionResult InitAndRunWatchdog() noexcept;
 
-  v8::Isolate* v8_isolate_ = nullptr;
+  std::unique_ptr<V8IsolateWrapper> isolate_wrapper_;
   const std::vector<std::shared_ptr<V8IsolateVisitor>> isolate_visitors_;
 
   /// @brief These are external references (pointers to data outside of the

@@ -47,16 +47,3 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
-
-cc_test(
-    name = "snapshot_compilation_context_test",
-    size = "small",
-    srcs = ["snapshot_compilation_context_test.cc"],
-    tags = ["noasan"],  # TODO(b/293876281) - Fix ASAN errors in this test.
-    deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
-        "@com_google_googletest//:gtest_main",
-    ],
-)

@@ -24,6 +24,7 @@
 #include "include/v8.h"
 #include "public/core/interface/execution_result.h"
 #include "roma/sandbox/js_engine/src/js_engine.h"
+#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_wrapper.h"
 #include "roma/sandbox/worker/src/worker_utils.h"
 
 #include "error_codes.h"
@@ -39,7 +40,7 @@ enum class CacheType { kUnknown, kSnapshot, kUnboundScript };
  */
 class SnapshotCompilationContext {
  public:
-  v8::Isolate* v8_isolate{nullptr};
+  std::unique_ptr<V8IsolateWrapper> isolate;
 
   CacheType cache_type;
   /// The startup data to hold the snapshot of the context which contains the
@@ -51,11 +52,6 @@ class SnapshotCompilationContext {
 
   ~SnapshotCompilationContext() {
     unbound_script.Reset();
-
-    if (v8_isolate) {
-      v8_isolate->Dispose();
-      v8_isolate = nullptr;
-    }
 
     // If there's any previous data, deallocate it.
     if (startup_data.data) {
