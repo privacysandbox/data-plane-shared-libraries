@@ -84,19 +84,13 @@ TEST(ConfigProviderTest, GetConfigsFailed) {
   std::filesystem::path relative_path =
       "scp/cc/core/config_provider/test/resources/test_config.json";
   std::filesystem::path full_path = GetTestDataDir(relative_path);
-
   ConfigProvider config(full_path);
-
   config.Init();
-
   std::string out_string;
-
   EXPECT_SUCCESS(config.Init());
-
   EXPECT_THAT(config.Get("server-name", out_string),
               ResultIs(FailureExecutionResult(
                   errors::SC_CONFIG_PROVIDER_KEY_NOT_FOUND)));
-
   EXPECT_THAT(config.Get("buffer-length", out_string),
               ResultIs(FailureExecutionResult(
                   errors::SC_CONFIG_PROVIDER_VALUE_TYPE_ERROR)));
@@ -106,25 +100,12 @@ TEST(ConfigProviderTest, InitFailed) {
   std::filesystem::path relative_path =
       "scp/cc/core/config_provider/test/resources/unknown_config.json";
   std::filesystem::path full_path = GetTestDataDir(relative_path);
-
   ConfigProvider config(full_path);
-
-  EXPECT_THAT(config.Init(),
-              ResultIs(FailureExecutionResult(
-                  errors::SC_CONFIG_PROVIDER_CANNOT_PARSE_CONFIG_FILE)));
+  const auto res = config.Init();
+  EXPECT_THAT(res, ResultIs(FailureExecutionResult(
+                       errors::SC_CONFIG_PROVIDER_CANNOT_PARSE_CONFIG_FILE)));
+  EXPECT_STREQ(errors::GetErrorMessage(res.status_code),
+               "Config provider cannot load config file");
 }
 
-TEST(ConfigProviderTest, ShowErrorInfo) {
-  std::filesystem::path relative_path =
-      "scp/cc/core/config_provider/test/resources/unknown_config.json";
-  std::filesystem::path full_path = GetTestDataDir(relative_path);
-
-  ConfigProvider config(full_path);
-
-  auto status_code = config.Init().status_code;
-
-  std::string status_description = errors::GetErrorMessage(status_code);
-
-  EXPECT_EQ(status_description, "Config provider cannot load config file");
-}
 }  // namespace google::scp::core::test

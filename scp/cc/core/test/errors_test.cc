@@ -62,26 +62,19 @@ TEST(ERRORS, MapErrorCodePublic) {
 
   DEFINE_ERROR_CODE(PUBLIC_COMPONENT_ERROR, PUBLIC_COMPONENT_NAME, 0xFFFF,
                     "Public error message test", HttpStatusCode::BAD_REQUEST)
-
   REGISTER_COMPONENT_CODE(COMPONENT_NAME, 0x7DFF)
-
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0xFFFF,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
-
   MAP_TO_PUBLIC_ERROR_CODE(COMPONENT_NAME_ERROR, PUBLIC_COMPONENT_ERROR);
-
-  auto public_error_code = GetPublicErrorCode(COMPONENT_NAME_ERROR);
-  static std::string error_message = GetErrorMessage(public_error_code);
-  EXPECT_EQ(error_message, "Public error message test");
+  EXPECT_STREQ("Public error message test",
+               GetErrorMessage(GetPublicErrorCode(COMPONENT_NAME_ERROR)));
 }
 
 TEST(ERRORS, NoAssociatedPublicErrorCode) {
   REGISTER_COMPONENT_CODE(COMPONENT_NAME, 0x7DFF)
-
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0xEFFF,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
-
-  auto public_error_code = GetPublicErrorCode(COMPONENT_NAME_ERROR);
-  EXPECT_EQ(public_error_code, SC_UNKNOWN);
+  EXPECT_EQ(GetPublicErrorCode(COMPONENT_NAME_ERROR), SC_UNKNOWN);
 }
+
 }  // namespace google::scp::core::errors::test
