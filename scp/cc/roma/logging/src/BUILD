@@ -18,12 +18,12 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_logging_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "logging.cc",
+    ],
+    hdrs = [
+        "logging.h",
+    ],
     deps = [
         "//scp/cc/roma/config/src:roma_config_lib",
         "@com_google_absl//absl/log",

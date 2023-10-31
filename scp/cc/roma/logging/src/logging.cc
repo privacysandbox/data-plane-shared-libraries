@@ -25,18 +25,15 @@
 namespace google::scp::roma::logging {
 
 int GetVlogVerboseLevel() {
-  static int external_verbose_level = [] {
-    int external_verbose_level = std::numeric_limits<int>::min();
-    char* env_var = getenv(kRomaVlogLevel);
-    if (!env_var) {
-      return external_verbose_level;
+  static const int external_verbose_level = [] {
+    int lvl = std::numeric_limits<int>::min();
+    const char* env_var = getenv(kRomaVlogLevel);
+    if (env_var == nullptr) {
+      return lvl;
     }
-
-    CHECK(absl::SimpleAtoi(env_var, &external_verbose_level) &&
-          external_verbose_level >= 0)
+    CHECK(absl::SimpleAtoi(env_var, &lvl) && lvl >= 0)
         << "ROMA_VLOG_LEVEL needs to be an integer >= 0";
-
-    return external_verbose_level;
+    return lvl;
   }();
   return external_verbose_level;
 }
