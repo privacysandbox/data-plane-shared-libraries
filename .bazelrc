@@ -92,6 +92,7 @@ build:ubsan --strip=never
 build:ubsan --copt=-fsanitize=undefined
 build:ubsan --copt=-O1
 build:ubsan --copt=-fno-omit-frame-pointer
+build:ubsan --per_file_copt=//scp/cc/roma/sandbox/worker_api/sapi/.*@-DUNDEFINED_BEHAVIOR_SANITIZER
 build:ubsan --linkopt=-lubsan
 build:ubsan --test_tag_filters=-noubsan
 

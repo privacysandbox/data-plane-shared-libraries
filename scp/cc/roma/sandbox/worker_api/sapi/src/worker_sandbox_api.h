@@ -201,6 +201,10 @@ class WorkerSandboxApi : public core::ServiceInterface {
                                 .AllowReadlink()
                                 .AllowMmap()
                                 .AllowFork()
+#ifdef UNDEFINED_BEHAVIOR_SANITIZER
+                                .AllowPipe()
+                                .AllowLlvmSanitizers()
+#endif
                                 .AllowSyscall(__NR_tgkill)
                                 .AllowSyscall(__NR_recvmsg)
                                 .AllowSyscall(__NR_sendmsg)

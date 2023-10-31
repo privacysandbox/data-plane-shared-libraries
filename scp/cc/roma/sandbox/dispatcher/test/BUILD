@@ -23,7 +23,6 @@ cc_test(
     tags = [
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
         "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
-        "noubsan",  # TODO(b/308167161) - Fix UBSAN errors in this test.
     ],
     deps = [
         "//scp/cc/core/async_executor/src:core_async_executor_lib",

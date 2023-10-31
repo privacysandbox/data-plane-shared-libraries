@@ -43,7 +43,6 @@ cc_test(
     srcs = ["execution_watchdog_test.cc"],
     tags = [
         "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test. Flaky on amd64.
-        "noubsan",  # TODO(b/308167161) - Fix UBSAN errors in this test.
     ],
     deps = [
         "//scp/cc/roma/worker/src:execution_watchdog_lib",
