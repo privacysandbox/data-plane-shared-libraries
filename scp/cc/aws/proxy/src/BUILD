@@ -223,6 +223,7 @@ cc_binary(
         ":protocol",
         ":socket_vendor_server",
         "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/strings",
     ],
 )
 

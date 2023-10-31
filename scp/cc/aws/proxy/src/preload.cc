@@ -16,6 +16,8 @@
 
 #include <errno.h>
 
+#include <memory>
+
 #include "protocol.h"
 #include "socket_vendor_protocol.h"
 
@@ -464,7 +466,8 @@ EXPORT int bind(int sockfd, const struct sockaddr* addr,
   sockaddr_un uds_addr;
   memset(&uds_addr, 0, sizeof(uds_addr));
   uds_addr.sun_family = AF_UNIX;
-  memcpy(uds_addr.sun_path, kSocketVendorUdsPath, sizeof(kSocketVendorUdsPath));
+  memcpy(uds_addr.sun_path, kSocketVendorUdsPath.data(),
+         kSocketVendorUdsPath.size());
   if (libc_connect(sockfd, reinterpret_cast<sockaddr*>(&uds_addr),
                    sizeof(uds_addr)) < 0) {
     return -1;

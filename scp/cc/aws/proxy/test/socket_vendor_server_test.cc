@@ -50,7 +50,8 @@ TEST(SocketVendorServerTest, InitSuccess) {
   ofstream.close();
 
   Endpoint proxy_endpoint;
-  SocketVendorServer server(/*sock_path=*/temp_file_path, proxy_endpoint,
+  SocketVendorServer server(/*sock_path=*/std::string(temp_file_path),
+                            proxy_endpoint,
                             /*concurrency=*/1);
   EXPECT_TRUE(server.Init());
 }
@@ -64,7 +65,8 @@ TEST(SocketVendorServerTest, RunStop) {
   ofstream.close();
 
   Endpoint proxy_endpoint;
-  SocketVendorServer server(/*sock_path=*/temp_file_path, proxy_endpoint,
+  SocketVendorServer server(/*sock_path=*/std::string(temp_file_path),
+                            proxy_endpoint,
                             /*concurrency=*/1);
   ASSERT_TRUE(server.Init());
   std::thread server_thread([&server] { server.Run(); });

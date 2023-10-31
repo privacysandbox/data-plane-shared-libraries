@@ -19,6 +19,7 @@
 
 #include <string>
 
+#include "absl/strings/str_cat.h"
 #include "glog/logging.h"
 
 #include "protocol.h"
@@ -30,23 +31,22 @@ using google::scp::proxy::SocketVendorServer;
 int main(int argc, char* argv[]) {
   google::InitGoogleLogging(argv[0]);
   LOG(INFO) << "Nitro Enclave Proxy Socket Vendor (c) Google 2022.";
-  std::string lockfile(kSocketVendorUdsPath);
-  lockfile += ".lock";
-  int lock_fd =
+  const auto lockfile = absl::StrCat(kSocketVendorUdsPath, ".lock");
+  const int lock_fd =
       open(lockfile.c_str(), O_CLOEXEC | O_CREAT | O_RDWR, S_IRWXU | S_IRGRP);
   if (lock_fd < 0) {
     LOG(ERROR) << "Cannot open lock file: " << lockfile
                << ", error: " << strerror(errno);
     return 1;
   }
-  struct flock lock;
-  lock.l_type = F_WRLCK;
-  lock.l_whence = SEEK_SET;
-  lock.l_len = 1;
-  lock.l_start = 0;
-  lock.l_pid = 0;
-  int lock_result = fcntl(lock_fd, F_SETLK, &lock);
-  if (lock_result < 0) {
+  struct flock lock = {
+      .l_type = F_WRLCK,
+      .l_whence = SEEK_SET,
+      .l_start = 0,
+      .l_len = 1,
+      .l_pid = 0,
+  };
+  if (const int lock_result = fcntl(lock_fd, F_SETLK, &lock); lock_result < 0) {
     LOG(ERROR) << "Cannot lock file " << lockfile
                << ", another socket vendor is probably running.\n"
                   "(If so, it is probably OK.)";
@@ -55,16 +55,17 @@ int main(int argc, char* argv[]) {
 
   {
     // Ignore SIGPIPE.
-    struct sigaction act {};
+    struct sigaction act = {
+        .sa_handler = SIG_IGN,
+    };
 
-    act.sa_handler = SIG_IGN;
     sigaction(SIGPIPE, &act, nullptr);
   }
 
   auto addr = GetProxyVsockAddr();
   Endpoint ep(&addr, sizeof(addr));
 
-  SocketVendorServer server(kSocketVendorUdsPath, ep, 4);
+  SocketVendorServer server(std::string(kSocketVendorUdsPath), ep, 4);
   if (!server.Init()) {
     return 1;
   }

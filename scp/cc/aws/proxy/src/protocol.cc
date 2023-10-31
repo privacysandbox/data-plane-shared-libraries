@@ -77,11 +77,8 @@ sockaddr_vm GetProxyVsockAddr() {
   return addr;
 }
 
-void EnvGetVal(const char* env_name, unsigned int& val) {
-  if (env_name == nullptr) {
-    return;
-  }
-  char* val_str = getenv(env_name);
+void EnvGetVal(std::string_view env_name, unsigned int& val) {
+  char* val_str = getenv(env_name.data());
   if (val_str == nullptr) {
     return;
   }

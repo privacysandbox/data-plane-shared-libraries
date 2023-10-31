@@ -19,6 +19,7 @@
 
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <boost/asio/io_context.hpp>
@@ -30,10 +31,10 @@
 namespace google::scp::proxy {
 class SocketVendorServer {
  public:
-  SocketVendorServer(const std::string& sock_path, Endpoint proxy_endpoint,
+  SocketVendorServer(std::string sock_path, Endpoint proxy_endpoint,
                      size_t concurrency)
       : acceptor_(io_context_),
-        sock_path_(sock_path),
+        sock_path_(std::move(sock_path)),
         proxy_endpoint_(proxy_endpoint),
         concurrency_(concurrency) {}
 
