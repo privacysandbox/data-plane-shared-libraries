@@ -246,33 +246,6 @@ ExecutionResult ExecutionUtils::GetWasmHandler(const std::string& handler_name,
   return core::SuccessExecutionResult();
 }
 
-void ExecutionUtils::GlobalV8FunctionCallback(
-    const v8::FunctionCallbackInfo<v8::Value>& info) {
-  auto isolate = info.GetIsolate();
-  v8::Isolate::Scope isolate_scope(isolate);
-  v8::HandleScope handle_scope(isolate);
-
-  if (info.Data().IsEmpty() || !info.Data()->IsExternal()) {
-    isolate->ThrowError("Unexpected data in global callback");
-    return;
-  }
-
-  // Get the user-provided function
-  v8::Local<v8::External> data_object =
-      v8::Local<v8::External>::Cast(info.Data());
-  auto user_function =
-      reinterpret_cast<FunctionBindingObjectBase*>(data_object->Value());
-
-  if (user_function->signature != FunctionBindingObjectBase::kKnownSignature) {
-    // This signals a bad cast. The pointer we got is not really a
-    // FunctionBindingObjectBase
-    isolate->ThrowError("Unexpected function in global callback");
-    return;
-  }
-
-  user_function->InvokeInternalHandler(info);
-}
-
 ExecutionResult ExecutionUtils::CreateUnboundScript(
     v8::Global<v8::UnboundScript>& unbound_script, v8::Isolate* isolate,
     const std::string& js, std::string& err_msg) noexcept {

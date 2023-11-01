@@ -148,15 +148,6 @@ class ExecutionUtils {
       const std::vector<std::string_view>& input);
 
   /**
-   * @brief Function that is used as the entry point to call user-provided
-   * C++ binding functions.
-   *
-   * @param info
-   */
-  static void GlobalV8FunctionCallback(
-      const v8::FunctionCallbackInfo<v8::Value>& info);
-
-  /**
    * @brief Check if err_msg contains a WebAssembly ReferenceError.
    *
    * @param err_msg
