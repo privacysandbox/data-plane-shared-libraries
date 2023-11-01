@@ -30,11 +30,11 @@
 #include "error_codes.h"
 
 namespace google::scp::roma::sandbox::native_function_binding {
-using NativeBinding =
-    std::function<void(proto::FunctionBindingIoProto& function_binding_proto)>;
-
 class NativeFunctionTable {
  public:
+  using NativeBinding = std::function<void(
+      proto::FunctionBindingIoProto& function_binding_proto)>;
+
   /**
    * @brief Register a function binding in the table.
    *
