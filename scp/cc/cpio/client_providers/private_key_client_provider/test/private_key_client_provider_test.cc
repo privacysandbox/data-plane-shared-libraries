@@ -261,11 +261,13 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
           const auto& key_id = *context.request->key_id;
           context.result = mock_results.at(key_id).at(endpoint);
           if (context.result.Successful()) {
-            if (mock_responses.find(key_id) != mock_responses.end() &&
-                mock_responses.at(key_id).find(endpoint) !=
-                    mock_responses.at(key_id).end()) {
-              context.response = std::make_shared<PrivateKeyFetchingResponse>(
-                  mock_responses.at(key_id).at(endpoint));
+            if (const auto it = mock_responses.find(key_id);
+                it != mock_responses.end()) {
+              if (const auto response = it->second.find(endpoint);
+                  response != it->second.end()) {
+                context.response = std::make_shared<PrivateKeyFetchingResponse>(
+                    response->second);
+              }
             }
           }
           context.Finish();
@@ -285,9 +287,10 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
                                      ->private_key_vending_service_endpoint;
           context.result = mock_results.at(endpoint);
           if (context.result.Successful()) {
-            if (mock_responses.find(endpoint) != mock_responses.end()) {
-              context.response = std::make_shared<PrivateKeyFetchingResponse>(
-                  mock_responses.at(endpoint));
+            if (const auto it = mock_responses.find(endpoint);
+                it != mock_responses.end()) {
+              context.response =
+                  std::make_shared<PrivateKeyFetchingResponse>(it->second);
             }
           }
           context.Finish();
