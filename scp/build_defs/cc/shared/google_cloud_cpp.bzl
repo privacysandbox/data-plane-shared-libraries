@@ -20,21 +20,24 @@ def import_google_cloud_cpp():
     maybe(
         http_archive,
         name = "com_google_googleapis",
-        urls = [
-            "https://storage.googleapis.com/cloud-cpp-community-archive/com_google_googleapis/b6b4ed5d7ebdfc0ff8855311bd63ba258b94ae2b.tar.gz",
-            "https://github.com/googleapis/googleapis/archive/b6b4ed5d7ebdfc0ff8855311bd63ba258b94ae2b.tar.gz",
-        ],
-        sha256 = "faefdf45528de8c5c9a8a0454134c2f9a0916fbd55ccae1d2b15af9cbee30ee6",
-        strip_prefix = "googleapis-b6b4ed5d7ebdfc0ff8855311bd63ba258b94ae2b",
         build_file = Label("//scp/build_defs/cc/shared/build_targets:googleapis.BUILD"),
+        sha256 = "8e85caaee7e1238ff2dbdb6807ee3fbf44a41d712614a6fa61fa6df6ed8bb20b",
+        strip_prefix = "googleapis-cd747534b861c84ea7577e17cccb30b19a24b467",
+        urls = [
+            "https://github.com/googleapis/googleapis/archive/cd747534b861c84ea7577e17cccb30b19a24b467.tar.gz",
+        ],
     )
     maybe(
         http_archive,
         name = "com_github_googleapis_google_cloud_cpp",
+        patch_args = ["-p1"],
+        patches = [Label("//scp/build_defs/cc/shared:google_cloud_cpp.patch")],
         repo_mapping = {
             "@com_github_nlohmann_json": "@nlohmann_json",
         },
-        sha256 = "21fb441b5a670a18bb16b6826be8e0530888d0b94320847c538d46f5a54dddbc",
-        strip_prefix = "google-cloud-cpp-2.8.0",
-        url = "https://github.com/googleapis/google-cloud-cpp/archive/v2.8.0.tar.gz",
+        sha256 = "bfc7e31496abe0520dd9e83fb1f7029b82d935f62e86cec89412af8ada156109",
+        strip_prefix = "google-cloud-cpp-2.17.0",
+        urls = [
+            "https://github.com/googleapis/google-cloud-cpp/archive/refs/tags/v2.17.0.zip",
+        ],
     )

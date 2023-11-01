@@ -22,7 +22,7 @@
 #include <gmock/gmock.h>
 
 #include "google/cloud/storage/client.h"
-#include "google/cloud/storage/internal/raw_client.h"
+#include "google/cloud/storage/internal/storage_connection.h"
 
 namespace google {
 namespace cloud {

@@ -524,8 +524,10 @@ void ExpectResumableUpload(MockClient& mock_client, const std::string& bucket,
                                ResumableUploadRequest(bucket, blob))))
       .WillOnce(Return(CreateResumableUploadResponse{session_id}));
 
-  EXPECT_CALL(mock_client, UploadChunk(UploadChunkEquals(UploadChunkRequest(
-                               session_id, 0, MakeBuffer(initial_part)))))
+  auto hash_values = std::make_shared<HashFunction>();
+  EXPECT_CALL(mock_client,
+              UploadChunk(UploadChunkEquals(UploadChunkRequest(
+                  session_id, 0, MakeBuffer(initial_part), hash_values))))
       .WillOnce(
           Return(QueryResumableUploadResponse{next_offset, std::nullopt}));
 
@@ -536,8 +538,9 @@ void ExpectResumableUpload(MockClient& mock_client, const std::string& bucket,
           .WillRepeatedly(
               Return(QueryResumableUploadResponse{next_offset, std::nullopt}));
     }
-    EXPECT_CALL(mock_client, UploadChunk(UploadChunkEquals(UploadChunkRequest(
-                                 session_id, next_offset, MakeBuffer(*it)))))
+    EXPECT_CALL(mock_client,
+                UploadChunk(UploadChunkEquals(UploadChunkRequest(
+                    session_id, next_offset, MakeBuffer(*it), hash_values))))
         .WillOnce(Return(QueryResumableUploadResponse{
             next_offset + it->length(), std::nullopt}));
     next_offset += it->length();
@@ -545,7 +548,7 @@ void ExpectResumableUpload(MockClient& mock_client, const std::string& bucket,
   // Finalization call - no body but should return ObjectMetadata.
   EXPECT_CALL(mock_client,
               UploadChunk(UploadChunkEquals(UploadChunkRequest(
-                  session_id, next_offset, EmptyBuffer(), {} /*hash_values*/))))
+                  session_id, next_offset, EmptyBuffer(), hash_values))))
       .WillOnce(
           Return(QueryResumableUploadResponse{next_offset, ObjectMetadata{}}));
 }

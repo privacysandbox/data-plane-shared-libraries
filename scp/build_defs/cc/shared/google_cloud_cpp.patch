@@ -1,0 +1,13 @@
+diff --git a/bazel/crc32c.BUILD b/bazel/crc32c.BUILD
+index fd8615c669..f22bd2dd1d 100644
+--- a/bazel/crc32c.BUILD
++++ b/bazel/crc32c.BUILD
+@@ -81,7 +81,7 @@ crc32c_copts = select({
+     ":linux_sse42": ["-msse4.2"],
+     ":macos_sse42": ["-msse4.2"],
+     ":windows_sse42": ["/arch:AVX"],
+-    # No special flags are needed for ARM64+CRC32C.
++    "@platforms//cpu:aarch64": ["-march=armv8-a+crc"],  # http://b/305011309#comment12
+     "//conditions:default": [],
+ })
+ 
