@@ -23,7 +23,6 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_visitor.h"
 #include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_visitor_function_binding.h"
 #include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 #include "roma/sandbox/native_function_binding/src/native_function_invoker_sapi_ipc.h"
@@ -34,7 +33,6 @@ using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::errors::SC_ROMA_WORKER_FACTORY_UNKNOWN_ENGINE_TYPE;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
-using google::scp::roma::sandbox::js_engine::v8_js_engine::V8IsolateVisitor;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::
     V8IsolateVisitorFunctionBinding;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
@@ -57,10 +55,9 @@ ExecutionResultOr<std::shared_ptr<Worker>> WorkerFactory::Create(
         std::make_shared<NativeFunctionInvokerSapiIpc>(
             params.v8_worker_engine_params.native_js_function_comms_fd);
 
-    std::shared_ptr<V8IsolateVisitor> isolate_visitor =
-        std::make_shared<V8IsolateVisitorFunctionBinding>(
-            params.v8_worker_engine_params.native_js_function_names,
-            native_function_invoker);
+    auto isolate_visitor = std::make_shared<V8IsolateVisitorFunctionBinding>(
+        params.v8_worker_engine_params.native_js_function_names,
+        native_function_invoker);
 
     auto v8_engine = std::make_unique<V8JsEngine>(
         isolate_visitor, params.v8_worker_engine_params.resource_constraints);

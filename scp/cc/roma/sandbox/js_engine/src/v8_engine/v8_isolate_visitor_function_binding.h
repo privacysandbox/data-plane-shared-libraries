@@ -26,10 +26,9 @@
 #include "roma/sandbox/native_function_binding/src/native_function_invoker.h"
 
 #include "error_codes.h"
-#include "v8_isolate_visitor.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
-class V8IsolateVisitorFunctionBinding : public V8IsolateVisitor {
+class V8IsolateVisitorFunctionBinding {
  public:
   /**
    * @brief Create a V8IsolateVisitorFunctionBinding instance
@@ -49,10 +48,10 @@ class V8IsolateVisitorFunctionBinding : public V8IsolateVisitor {
 
   core::ExecutionResult Visit(
       v8::Isolate* isolate,
-      v8::Local<v8::ObjectTemplate>& global_object_template) noexcept override;
+      v8::Local<v8::ObjectTemplate>& global_object_template) noexcept;
 
   void AddExternalReferences(
-      std::vector<intptr_t>& external_references) noexcept override;
+      std::vector<intptr_t>& external_references) noexcept;
 
  private:
   using BindingPair = std::pair<std::string, V8IsolateVisitorFunctionBinding*>;

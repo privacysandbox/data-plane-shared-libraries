@@ -70,7 +70,8 @@ using google::scp::roma::sandbox::constants::kRequestId;
 using google::scp::roma::sandbox::constants::kWasmMemPagesV8PlatformFlag;
 using google::scp::roma::sandbox::js_engine::JsEngineExecutionResponse;
 using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
-using google::scp::roma::sandbox::js_engine::v8_js_engine::V8IsolateVisitor;
+using google::scp::roma::sandbox::js_engine::v8_js_engine::
+    V8IsolateVisitorFunctionBinding;
 using google::scp::roma::sandbox::worker::WorkerUtils;
 using google::scp::roma::worker::ExecutionUtils;
 
@@ -95,7 +96,7 @@ std::shared_ptr<std::string> GetCodeFromContext(
  */
 ExecutionResult CreateV8Context(
     v8::Isolate* isolate,
-    const std::shared_ptr<V8IsolateVisitor>& isolate_visitor,
+    const std::shared_ptr<V8IsolateVisitorFunctionBinding>& isolate_visitor,
     v8::Local<v8::Context>& context) noexcept {
   v8::Local<v8::ObjectTemplate> global_object_template =
       v8::ObjectTemplate::New(isolate);
@@ -241,7 +242,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
 
     v8::Context::Scope context_scope(context);
     auto wasm_code_array_name_or =
-        WorkerUtils::GetValueFromMetadata(metadata, kWasmCodeArrayName);
+        worker::WorkerUtils::GetValueFromMetadata(metadata, kWasmCodeArrayName);
     if (!wasm_code_array_name_or.result().Successful()) {
       LOG(ERROR)
           << std::string("Get wasm code array name from metadata with error ")

@@ -28,6 +28,7 @@
 #include "public/core/interface/execution_result.h"
 #include "roma/interface/roma.h"
 #include "roma/sandbox/js_engine/src/js_engine.h"
+#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_visitor_function_binding.h"
 #include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_wrapper.h"
 #include "roma/sandbox/worker/src/worker_utils.h"
 #include "roma/worker/src/execution_utils.h"
@@ -35,7 +36,6 @@
 
 #include "error_codes.h"
 #include "snapshot_compilation_context.h"
-#include "v8_isolate_visitor.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 /**
@@ -44,7 +44,8 @@ namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
  */
 class V8JsEngine : public JsEngine {
  public:
-  V8JsEngine(std::shared_ptr<V8IsolateVisitor> isolate_visitor = nullptr,
+  V8JsEngine(std::shared_ptr<V8IsolateVisitorFunctionBinding> isolate_visitor =
+                 nullptr,
              const JsEngineResourceConstraints& v8_resource_constraints =
                  JsEngineResourceConstraints())
       : isolate_visitor_(isolate_visitor),
@@ -200,7 +201,7 @@ class V8JsEngine : public JsEngine {
   core::ExecutionResult InitAndRunWatchdog() noexcept;
 
   std::unique_ptr<V8IsolateWrapper> isolate_wrapper_;
-  std::shared_ptr<V8IsolateVisitor> isolate_visitor_;
+  std::shared_ptr<V8IsolateVisitorFunctionBinding> isolate_visitor_;
 
   /// @brief These are external references (pointers to data outside of the
   /// v8 heap) which are needed for serialization of the v8 snapshot.

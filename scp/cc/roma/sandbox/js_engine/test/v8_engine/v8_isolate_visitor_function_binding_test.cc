@@ -29,13 +29,11 @@
 #include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 #include "roma/sandbox/native_function_binding/src/native_function_invoker.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
-#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_isolate_visitor.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::proto::FunctionBindingIoProto;
-using google::scp::roma::sandbox::js_engine::v8_js_engine::V8IsolateVisitor;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvoker;

@@ -31,7 +31,6 @@ cc_library(
     srcs = [
         "error_codes.h",
         "snapshot_compilation_context.h",
-        "v8_isolate_visitor.h",
         "v8_isolate_visitor_function_binding.cc",
         "v8_isolate_visitor_function_binding.h",
         "v8_js_engine.cc",
