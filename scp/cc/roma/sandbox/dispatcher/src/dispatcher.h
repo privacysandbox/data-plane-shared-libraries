@@ -167,15 +167,9 @@ class Dispatcher : public core::ServiceInterface {
     }
 
     const auto& request_id = request->id;
-    // This is a workaround to be able to register a lambda that needs to
-    // capture a non-copy-constructible input (request)
-    auto shared_request =
-        std::make_shared<std::unique_ptr<RequestT>>(std::move(request));
-
     auto schedule_result = async_executor_->Schedule(
-        [this, index, shared_request,
+        [this, index, request = std::move(request),
          callback = std::move(callback)]() mutable {
-          auto request = std::move(*shared_request);
           std::unique_ptr<absl::StatusOr<ResponseObject>> response_or;
 
           auto worker_or = worker_pool_->GetWorker(index);
