@@ -95,13 +95,13 @@ std::shared_ptr<std::string> GetCodeFromContext(
  */
 ExecutionResult CreateV8Context(
     v8::Isolate* isolate,
-    const std::vector<std::shared_ptr<V8IsolateVisitor>>& isolate_visitors,
+    const std::shared_ptr<V8IsolateVisitor>& isolate_visitor,
     v8::Local<v8::Context>& context) noexcept {
   v8::Local<v8::ObjectTemplate> global_object_template =
       v8::ObjectTemplate::New(isolate);
 
-  for (auto& visitor : isolate_visitors) {
-    auto result = visitor->Visit(isolate, global_object_template);
+  if (isolate_visitor) {
+    auto result = isolate_visitor->Visit(isolate, global_object_template);
     RETURN_IF_FAILURE(result);
   }
 
@@ -207,8 +207,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     v8::Local<v8::Context> context;
-    auto execution_result =
-        CreateV8Context(isolate, isolate_visitors_, context);
+    auto execution_result = CreateV8Context(isolate, isolate_visitor_, context);
     RETURN_IF_FAILURE(execution_result);
 
     v8::Context::Scope context_scope(context);
@@ -237,8 +236,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     v8::Local<v8::Context> context;
-    auto execution_result =
-        CreateV8Context(isolate, isolate_visitors_, context);
+    auto execution_result = CreateV8Context(isolate, isolate_visitor_, context);
     RETURN_IF_FAILURE(execution_result);
 
     v8::Context::Scope context_scope(context);
@@ -626,7 +624,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
   {
     auto execution_result =
-        CreateV8Context(isolate, isolate_visitors_, v8_context);
+        CreateV8Context(isolate, isolate_visitor_, v8_context);
     RETURN_IF_FAILURE(execution_result);
 
     v8::Context::Scope context_scope(v8_context);

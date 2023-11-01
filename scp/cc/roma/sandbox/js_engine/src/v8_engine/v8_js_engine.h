@@ -44,17 +44,15 @@ namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
  */
 class V8JsEngine : public JsEngine {
  public:
-  V8JsEngine(
-      const std::vector<std::shared_ptr<V8IsolateVisitor>>& isolate_visitors =
-          std::vector<std::shared_ptr<V8IsolateVisitor>>(),
-      const JsEngineResourceConstraints& v8_resource_constraints =
-          JsEngineResourceConstraints())
-      : isolate_visitors_(isolate_visitors),
+  V8JsEngine(std::shared_ptr<V8IsolateVisitor> isolate_visitor = nullptr,
+             const JsEngineResourceConstraints& v8_resource_constraints =
+                 JsEngineResourceConstraints())
+      : isolate_visitor_(isolate_visitor),
         v8_resource_constraints_(v8_resource_constraints),
         execution_watchdog_(
             std::make_unique<roma::worker::ExecutionWatchDog>()) {
-    for (const auto& visitor : isolate_visitors_) {
-      visitor->AddExternalReferences(external_references_);
+    if (isolate_visitor_) {
+      isolate_visitor_->AddExternalReferences(external_references_);
     }
     // Must be null terminated
     external_references_.push_back(0);
@@ -202,7 +200,7 @@ class V8JsEngine : public JsEngine {
   core::ExecutionResult InitAndRunWatchdog() noexcept;
 
   std::unique_ptr<V8IsolateWrapper> isolate_wrapper_;
-  const std::vector<std::shared_ptr<V8IsolateVisitor>> isolate_visitors_;
+  std::shared_ptr<V8IsolateVisitor> isolate_visitor_;
 
   /// @brief These are external references (pointers to data outside of the
   /// v8 heap) which are needed for serialization of the v8 snapshot.

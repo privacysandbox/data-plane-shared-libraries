@@ -68,10 +68,8 @@ TEST_F(V8IsolateVisitorFunctionBindingTest,
   auto visitor =
       std::make_shared<v8_js_engine::V8IsolateVisitorFunctionBinding>(
           function_names, function_invoker);
-  std::vector<std::shared_ptr<V8IsolateVisitor>> isolate_visitors;
-  isolate_visitors.push_back(visitor);
 
-  V8JsEngine js_engine(isolate_visitors);
+  V8JsEngine js_engine(visitor);
   AutoInitRunStop to_handle_engine(js_engine);
 
   EXPECT_CALL(*function_invoker, Invoke("cool_func", _))
@@ -79,5 +77,8 @@ TEST_F(V8IsolateVisitorFunctionBindingTest,
 
   auto result_or = js_engine.CompileAndRunJs(
       R"(function func() { cool_func(); return ""; })", "func", {}, {});
+  EXPECT_SUCCESS(result_or.result());
+  auto response_string = *result_or->execution_response.response;
+  EXPECT_EQ(response_string, "\"\"");
 }
 }  // namespace google::scp::roma::sandbox::js_engine::test
