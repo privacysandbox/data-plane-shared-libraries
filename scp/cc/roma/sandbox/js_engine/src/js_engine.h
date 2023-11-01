@@ -41,7 +41,7 @@ struct RomaJsEngineCompilationContext {
 
 struct ExecutionResponse {
   /// the response of handler function execution.
-  std::shared_ptr<std::string> response = std::make_shared<std::string>();
+  std::string response;
 
   /// the metrics for handler function execution.
   absl::flat_hash_map<std::string, absl::Duration> metrics;

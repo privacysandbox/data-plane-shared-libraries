@@ -564,7 +564,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     }
 
     auto conversion_worked = TypeConverter<std::string>::FromV8(
-        v8_isolate, result_json, execution_response.response.get());
+        v8_isolate, result_json, &execution_response.response);
     if (!conversion_worked) {
       LOG(ERROR) << "Failed to convert the V8 Local string to std::string";
       return GetError(v8_isolate, try_catch,
@@ -688,7 +688,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
       if (auto conversion_worked = TypeConverter<std::string>::FromV8(
               isolate, result_json,
-              execution_response.execution_response.response.get());
+              &execution_response.execution_response.response);
           !conversion_worked) {
         return GetError(isolate, try_catch,
                         SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);

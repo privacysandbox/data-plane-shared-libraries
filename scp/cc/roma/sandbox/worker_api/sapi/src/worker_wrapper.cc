@@ -166,7 +166,7 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
     (*params->mutable_metrics())[pair.first] = std::move(duration).value();
   }
 
-  params->set_response(*response_or.value().response);
+  params->set_response(std::move(response_or.value().response));
   return SC_OK;
 }
 
