@@ -34,7 +34,6 @@ cc_library(
         "*.cc",
         "*.h",
     ]),
-    includes = ["external/com_google_absl"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",

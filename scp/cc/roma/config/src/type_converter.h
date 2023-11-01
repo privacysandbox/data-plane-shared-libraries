@@ -47,9 +47,9 @@ struct TypeConverter<std::string> {
     }
 
     v8::Local<v8::String> str = v8::Local<v8::String>::Cast(val);
-    int length = str->Utf8Length(isolate);
-    out->resize(length);
-    str->WriteUtf8(isolate, &(*out)[0], length, nullptr,
+    const size_t len = str->Utf8Length(isolate);
+    out->resize(len);
+    str->WriteUtf8(isolate, &(*out)[0], len, nullptr,
                    v8::String::NO_NULL_TERMINATION);
 
     return true;
@@ -67,13 +67,11 @@ struct TypeConverter<std::vector<std::string>> {
     if (array.IsEmpty()) {
       return v8::Local<v8::Array>();
     }
-
     for (size_t i = 0; i < val.size(); i++) {
       const auto v8_str = TypeConverter<std::string>::ToV8(isolate, val.at(i));
       const auto result = array->Set(isolate->GetCurrentContext(), i, v8_str);
       result.Check();
     }
-
     return array;
   }
 
@@ -82,19 +80,17 @@ struct TypeConverter<std::vector<std::string>> {
     if (val.IsEmpty() || !val->IsArray()) {
       return false;
     }
-
     auto array = val.As<v8::Array>();
     out->reserve(array->Length());
     for (size_t i = 0; i < array->Length(); i++) {
       auto item = array->Get(isolate->GetCurrentContext(), i).ToLocalChecked();
-      std::string str;
-
-      if (!TypeConverter<std::string>::FromV8(isolate, item, &str)) {
+      if (std::string str;
+          TypeConverter<std::string>::FromV8(isolate, item, &str)) {
+        out->push_back(std::move(str));
+      } else {
         out->clear();
         return false;
       }
-
-      out->push_back(std::move(str));
     }
 
     return true;
@@ -107,13 +103,11 @@ struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
       v8::Isolate* isolate,
       const google::protobuf::Map<std::string, std::string>& val) {
     auto map = v8::Map::New(isolate);
-
-    for (const auto& kvp : val) {
+    for (const auto& [k, v] : val) {
       map->Set(isolate->GetCurrentContext(),
-               TypeConverter<std::string>::ToV8(isolate, kvp.first),
-               TypeConverter<std::string>::ToV8(isolate, kvp.second));
+               TypeConverter<std::string>::ToV8(isolate, k),
+               TypeConverter<std::string>::ToV8(isolate, v));
     }
-
     return map;
   }
 
@@ -122,35 +116,22 @@ struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
     if (!out || val.IsEmpty() || !val->IsMap()) {
       return false;
     }
-
     auto v8_map = val.As<v8::Map>();
     // This turns the map into an array of size Size()*2, where index N is a
     // key, and N+1 is the value for the given key.
-    auto map_as_array = v8_map->AsArray();
-
-    out->reserve(map_as_array->Length());
-    for (auto i = 0; i < map_as_array->Length(); i += 2) {
-      auto key_index = i;
-      auto value_index = i + 1;
-
-      auto key = map_as_array->Get(isolate->GetCurrentContext(), key_index)
-                     .ToLocalChecked();
-      auto value = map_as_array->Get(isolate->GetCurrentContext(), value_index)
-                       .ToLocalChecked();
-
-      std::string key_str;
-      std::string val_str;
-      bool key_conversion =
-          TypeConverter<std::string>::FromV8(isolate, key, &key_str);
-      bool value_conversion =
-          TypeConverter<std::string>::FromV8(isolate, value, &val_str);
-
-      if (!key_conversion || !value_conversion) {
+    const auto& m_arr = v8_map->AsArray();
+    out->reserve(m_arr->Length());
+    for (auto i = 0; i < m_arr->Length(); i += 2) {
+      auto k = m_arr->Get(isolate->GetCurrentContext(), i).ToLocalChecked();
+      auto v = m_arr->Get(isolate->GetCurrentContext(), i + 1).ToLocalChecked();
+      if (std::string k_str, v_str;
+          TypeConverter<std::string>::FromV8(isolate, k, &k_str) &&
+          TypeConverter<std::string>::FromV8(isolate, v, &v_str)) {
+        (*out)[k_str] = v_str;
+      } else {
         out->clear();
         return false;
       }
-
-      (*out)[key_str] = val_str;
     }
 
     return true;
@@ -168,9 +149,7 @@ struct TypeConverter<uint32_t> {
     if (val.IsEmpty() || !val->IsUint32()) {
       return false;
     }
-
     *out = val.As<v8::Uint32>()->Value();
-
     return true;
   }
 };
@@ -195,14 +174,12 @@ struct TypeConverter<uint8_t*> {
     if (val.IsEmpty() || !val->IsUint8Array() || out == nullptr) {
       return false;
     }
-
     auto val_array = val.As<v8::Uint8Array>();
     // The buffer size needs to match the size of the data we're trying to
     // write.
     if (val_array->Length() != out_buffer_size) {
       return false;
     }
-
     memcpy(out, val_array->Buffer()->Data(), val_array->Length());
     return true;
   }

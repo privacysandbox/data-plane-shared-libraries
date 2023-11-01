@@ -21,13 +21,16 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
+#include "absl/strings/str_cat.h"
 #include "include/v8.h"
 
 #include "type_converter.h"
 
 namespace google::scp::roma {
+
 /**
  * @brief Base class for a function binding object.
  * A function binding object represents a JS/C++ function binding. That is,
@@ -108,69 +111,66 @@ class FunctionBindingObject : public FunctionBindingObjectBase {
     v8::HandleScope handle_scope(isolate);
 
     if (info.Length() != num_inputs) {
-      auto error_message =
-          "(" + function_name + ") Unexpected number of inputs";
+      const auto errmsg =
+          absl::StrCat("(", function_name, ") Unexpected number of inputs");
       isolate->ThrowError(
-          TypeConverter<std::string>::ToV8(isolate, error_message)
-              .As<v8::String>());
+          TypeConverter<std::string>::ToV8(isolate, errmsg).As<v8::String>());
       return;
     }
 
-    bool conversion_worked = true;
+    bool conv_ok = true;
 
     // Tuple that will be passed as input to the user-provided C++ function
-    std::tuple<TInputs...> arguments_tuple;
+    std::tuple<TInputs...> args;
 
-    constexpr_for<0>(
-        [&info, &isolate, &conversion_worked, &arguments_tuple](auto i) {
-          using TGivenInput =
-              typename std::tuple_element<i, std::tuple<TInputs...>>::type;
+    constexpr_for<0>([&info, &isolate, &conv_ok, &args](auto i) {
+      using TGivenInput =
+          typename std::tuple_element<i, std::tuple<TInputs...>>::type;
 
-          constexpr bool output_types_are_only_allowed_ones =
-              std::is_same<std::string, TReturn>::value ||
-              std::is_same<std::vector<std::string>, TReturn>::value;
+      constexpr bool output_types_are_only_allowed_ones =
+          std::is_same<std::string, TReturn>::value ||
+          std::is_same<std::vector<std::string>, TReturn>::value;
 
-          constexpr bool input_types_are_only_allowed_ones =
-              std::is_same<std::string, TGivenInput>::value ||
-              std::is_same<std::vector<std::string>, TGivenInput>::value;
+      constexpr bool input_types_are_only_allowed_ones =
+          std::is_same<std::string, TGivenInput>::value ||
+          std::is_same<std::vector<std::string>, TGivenInput>::value;
 
-          // We only allow these types as output for now
-          static_assert(output_types_are_only_allowed_ones,
-                        "Only allowed output types are std::string and "
-                        "std::vector<std::string>");
+      // We only allow these types as output for now
+      static_assert(output_types_are_only_allowed_ones,
+                    "Only allowed output types are std::string and "
+                    "std::vector<std::string>");
 
-          // We only allow these types as input for now
-          static_assert(input_types_are_only_allowed_ones,
-                        "Only allowed input types are std::string and "
-                        "std::vector<std::string>");
+      // We only allow these types as input for now
+      static_assert(input_types_are_only_allowed_ones,
+                    "Only allowed input types are std::string and "
+                    "std::vector<std::string>");
 
-          TGivenInput value;
-          if (!TypeConverter<TGivenInput>::FromV8(isolate, info[i], &value)) {
-            conversion_worked = false;
-          } else {
-            std::get<i>(arguments_tuple) = value;
-          }
-        });
+      TGivenInput value;
+      if (conv_ok =
+              TypeConverter<TGivenInput>::FromV8(isolate, info[i], &value);
+          conv_ok) {
+        std::get<i>(args) = value;
+      }
+    });
 
-    if (!conversion_worked) {
-      auto error_message =
-          "(" + function_name + ") Error encountered while converting types";
+    if (!conv_ok) {
+      const auto errmsg = absl::StrCat(
+          "(", function_name, ") Error encountered while converting types");
       isolate->ThrowError(
-          TypeConverter<std::string>::ToV8(isolate, error_message)
-              .As<v8::String>());
+          TypeConverter<std::string>::ToV8(isolate, errmsg).As<v8::String>());
       return;
     }
 
     // Call the user-provided function and capture the output
-    TReturn function_output;
-    function_output = function(arguments_tuple);
+    TReturn function_output = function(args);
     // Convert the output to a JS type so that it can be returned by the JS
     // function
-    auto js_output = TypeConverter<TReturn>::ToV8(isolate, function_output);
-    info.GetReturnValue().Set(js_output);
+    const auto js_output =
+        TypeConverter<TReturn>::ToV8(isolate, function_output);
+    info.GetReturnValue().Set(std::move(js_output));
   }
 
-  // Utility to generate a compile-time for loop for the input types.
+  // Utility to generate a compile-time for-loop for the input types.
   // It unwraps the types, which are known at compile time so that all the
   // elements can be accessed and used.
   template <auto i, typename F>
@@ -181,6 +181,7 @@ class FunctionBindingObject : public FunctionBindingObjectBase {
     }
   }
 };
+
 }  // namespace google::scp::roma
 
 #endif  // ROMA_CONFIG_SRC_FUNCTION_BINDING_OBJECT_H_

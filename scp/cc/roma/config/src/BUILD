@@ -18,17 +18,19 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_config_lib",
-    srcs = glob([
-        "*.cc",
-        "*.h",
-    ]),
-    includes = ["external/com_google_absl"],
+    srcs = [
+        "config.h",
+        "function_binding_object.h",
+        "function_binding_object_v2.h",
+        "type_converter.h",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/common/src:roma_common_lib",
         "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/strings",
         "@v8//:v8_icu",
     ],
 )
