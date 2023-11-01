@@ -55,7 +55,7 @@ namespace privacy_sandbox::server_common {
 //   when it is built.
 // - All side effects (like logging or constructing a stack trace) happen when
 //   the builder is converted to a status.
-class ABSL_MUST_USE_RESULT StatusBuilder {
+class [[nodiscard]] StatusBuilder {
  public:
   StatusBuilder();
   ~StatusBuilder() {}
@@ -87,7 +87,7 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
   //
   // Returns `*this` to allow method chaining.
   StatusBuilder& SetPrepend() &;
-  ABSL_MUST_USE_RESULT StatusBuilder&& SetPrepend() &&;
+  [[nodiscard]] StatusBuilder&& SetPrepend() &&;
   // Mutates the builder so that the final additional message is appended to the
   // original error message in the status.  A convenience separator is not
   // placed between the messages.
@@ -97,36 +97,31 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
   //
   // Returns `*this` to allow method chaining.
   StatusBuilder& SetAppend() &;
-  ABSL_MUST_USE_RESULT StatusBuilder&& SetAppend() &&;
+  [[nodiscard]] StatusBuilder&& SetAppend() &&;
   // Mutates the builder to disable any logging that was set using any of the
   // logging functions below.  Returns `*this` to allow method chaining.
   StatusBuilder& SetNoLogging() &;
-  ABSL_MUST_USE_RESULT StatusBuilder&& SetNoLogging() &&;
+  [[nodiscard]] StatusBuilder&& SetNoLogging() &&;
   // Mutates the builder so that the result status will be logged (without a
   // stack trace) when this builder is converted to a Status.  This overrides
   // the logging settings from earlier calls to any of the logging mutator
   // functions.  Returns `*this` to allow method chaining.
   StatusBuilder& Log(absl::LogSeverity level) &;
-  ABSL_MUST_USE_RESULT StatusBuilder&& Log(absl::LogSeverity level) &&;
+  [[nodiscard]] StatusBuilder&& Log(absl::LogSeverity level) &&;
   StatusBuilder& LogError() & { return Log(absl::LogSeverity::kError); }
-  ABSL_MUST_USE_RESULT StatusBuilder&& LogError() && {
-    return std::move(LogError());
-  }
+  [[nodiscard]] StatusBuilder&& LogError() && { return std::move(LogError()); }
   StatusBuilder& LogWarning() & { return Log(absl::LogSeverity::kWarning); }
-  ABSL_MUST_USE_RESULT StatusBuilder&& LogWarning() && {
+  [[nodiscard]] StatusBuilder&& LogWarning() && {
     return std::move(LogWarning());
   }
   StatusBuilder& LogInfo() & { return Log(absl::LogSeverity::kInfo); }
-  ABSL_MUST_USE_RESULT StatusBuilder&& LogInfo() && {
-    return std::move(LogInfo());
-  }
+  [[nodiscard]] StatusBuilder&& LogInfo() && { return std::move(LogInfo()); }
   // Mutates the builder so that the result status will be logged every N
   // invocations (without a stack trace) when this builder is converted to a
   // Status.  This overrides the logging settings from earlier calls to any of
   // the logging mutator functions.  Returns `*this` to allow method chaining.
   StatusBuilder& LogEveryN(absl::LogSeverity level, int n) &;
-  ABSL_MUST_USE_RESULT StatusBuilder&& LogEveryN(absl::LogSeverity level,
-                                                 int n) &&;
+  [[nodiscard]] StatusBuilder&& LogEveryN(absl::LogSeverity level, int n) &&;
   // Mutates the builder so that the result status will be logged once per
   // period (without a stack trace) when this builder is converted to a Status.
   // This overrides the logging settings from earlier calls to any of the
@@ -134,21 +129,21 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
   // If period is absl::ZeroDuration() or less, then this is equivalent to
   // calling the Log() method.
   StatusBuilder& LogEvery(absl::LogSeverity level, absl::Duration period) &;
-  ABSL_MUST_USE_RESULT StatusBuilder&& LogEvery(absl::LogSeverity level,
-                                                absl::Duration period) &&;
+  [[nodiscard]] StatusBuilder&& LogEvery(absl::LogSeverity level,
+                                         absl::Duration period) &&;
   // Mutates the builder so that the result status will be VLOGged (without a
   // stack trace) when this builder is converted to a Status.  `verbose_level`
   // indicates the verbosity level that would be passed to VLOG().  This
   // overrides the logging settings from earlier calls to any of the logging
   // mutator functions.  Returns `*this` to allow method chaining.
   StatusBuilder& VLog(int verbose_level) &;
-  ABSL_MUST_USE_RESULT StatusBuilder&& VLog(int verbose_level) &&;
+  [[nodiscard]] StatusBuilder&& VLog(int verbose_level) &&;
   // Mutates the builder so that a stack trace will be logged if the status is
   // logged. One of the logging setters above should be called as well. If
   // logging is not yet enabled this behaves as if LogInfo().EmitStackTrace()
   // was called. Returns `*this` to allow method chaining.
   StatusBuilder& EmitStackTrace() &;
-  ABSL_MUST_USE_RESULT StatusBuilder&& EmitStackTrace() &&;
+  [[nodiscard]] StatusBuilder&& EmitStackTrace() &&;
   // Appends to the extra message that will be added to the original status.  By
   // default, the extra message is added to the original message as if by
   // `util::Annotate`, which includes a convenience separator between the
@@ -156,11 +151,11 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
   template <typename T>
   StatusBuilder& operator<<(const T& value) &;
   template <typename T>
-  ABSL_MUST_USE_RESULT StatusBuilder&& operator<<(const T& value) &&;
+  [[nodiscard]] StatusBuilder&& operator<<(const T& value) &&;
   // Sets the status code for the status that will be returned by this
   // StatusBuilder. Returns `*this` to allow method chaining.
   StatusBuilder& SetCode(absl::StatusCode code) &;
-  ABSL_MUST_USE_RESULT StatusBuilder&& SetCode(absl::StatusCode code) &&;
+  [[nodiscard]] StatusBuilder&& SetCode(absl::StatusCode code) &&;
   ///////////////////////////////// Adaptors /////////////////////////////////
   //
   // A StatusBuilder `adaptor` is a functor which can be included in a builder
@@ -266,15 +261,15 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
     return std::forward<Adaptor>(adaptor)(*this);
   }
   template <typename Adaptor>
-  ABSL_MUST_USE_RESULT auto
+  [[nodiscard]] auto
   With(Adaptor&& adaptor) && -> decltype(std::forward<Adaptor>(adaptor)(
       std::move(*this))) {
     return std::forward<Adaptor>(adaptor)(std::move(*this));
   }
   // Returns true if the Status created by this builder will be ok().
-  ABSL_MUST_USE_RESULT bool ok() const;
+  [[nodiscard]] bool ok() const;
   // Returns the (canonical) error code for the Status created by this builder.
-  ABSL_MUST_USE_RESULT absl::StatusCode code() const;
+  [[nodiscard]] absl::StatusCode code() const;
   // Implicit conversion to Status.
   //
   // Careful: this operator has side effects, so it should be called at
@@ -283,7 +278,7 @@ class ABSL_MUST_USE_RESULT StatusBuilder {
   operator absl::Status() const&;  // NOLINT: Builder converts implicitly.
   operator absl::Status() &&;      // NOLINT: Builder converts implicitly.
   // Returns the source location used to create this builder.
-  ABSL_MUST_USE_RESULT SourceLocation source_location() const;
+  [[nodiscard]] SourceLocation source_location() const;
 
  private:
   // Specifies how to join the error message in the original status and any
