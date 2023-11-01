@@ -34,23 +34,20 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::proto::FunctionBindingIoProto;
-using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
-using google::scp::roma::sandbox::native_function_binding::
-    NativeFunctionInvoker;
 
 using ::testing::_;
-using ::testing::Ref;
 
 namespace google::scp::roma::sandbox::js_engine::test {
 class V8IsolateVisitorFunctionBindingTest : public ::testing::Test {
  public:
   static void SetUpTestSuite() {
-    V8JsEngine engine;
+    js_engine::v8_js_engine::V8JsEngine engine;
     engine.OneTimeSetup();
   }
 };
 
-class NativeFunctionInvokerMock : public NativeFunctionInvoker {
+class NativeFunctionInvokerMock
+    : public native_function_binding::NativeFunctionInvoker {
  public:
   MOCK_METHOD(ExecutionResult, Invoke,
               (const std::string&, FunctionBindingIoProto&),
@@ -67,7 +64,7 @@ TEST_F(V8IsolateVisitorFunctionBindingTest,
       std::make_shared<v8_js_engine::V8IsolateVisitorFunctionBinding>(
           function_names, function_invoker);
 
-  V8JsEngine js_engine(visitor);
+  js_engine::v8_js_engine::V8JsEngine js_engine(visitor);
   AutoInitRunStop to_handle_engine(js_engine);
 
   EXPECT_CALL(*function_invoker, Invoke("cool_func", _))
@@ -76,7 +73,8 @@ TEST_F(V8IsolateVisitorFunctionBindingTest,
   auto result_or = js_engine.CompileAndRunJs(
       R"(function func() { cool_func(); return ""; })", "func", {}, {});
   EXPECT_SUCCESS(result_or.result());
-  auto response_string = *result_or->execution_response.response;
-  EXPECT_EQ(response_string, "\"\"");
+  const auto& response_string = result_or->execution_response.response;
+  EXPECT_THAT(response_string, testing::StrEq(R"("")"));
 }
+
 }  // namespace google::scp::roma::sandbox::js_engine::test
