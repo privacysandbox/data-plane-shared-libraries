@@ -19,7 +19,7 @@ def google_test():
     maybe(
         http_archive,
         name = "com_google_googletest",
-        sha256 = "8daa1a71395892f7c1ec5f7cb5b099a02e606be720d62f1a6a98f8f8898ec826",
-        strip_prefix = "googletest-e2239ee6043f73722e7aa812a459f54a28552929",
-        urls = ["https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip"],
+        sha256 = "1f357c27ca988c3f7c6b4bf68a9395005ac6761f034046e9dde0896e3aba00e4",
+        strip_prefix = "googletest-1.14.0",
+        urls = ["https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip"],
     )
