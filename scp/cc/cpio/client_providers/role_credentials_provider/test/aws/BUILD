@@ -19,7 +19,9 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_test(
     name = "aws_role_credentials_provider_test",
     size = "small",
-    srcs = glob(["aws_role_credentials_provider_test.cc"]),
+    srcs = [
+        "aws_role_credentials_provider_test.cc",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
@@ -37,8 +39,9 @@ cc_test(
 cc_test(
     name = "sts_error_converter_test",
     size = "small",
-    srcs =
-        ["sts_error_converter_test.cc"],
+    srcs = [
+        "sts_error_converter_test.cc",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",

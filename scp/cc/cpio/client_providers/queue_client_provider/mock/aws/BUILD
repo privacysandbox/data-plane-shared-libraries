@@ -19,11 +19,9 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_library(
     name = "aws_queue_client_provider_mock",
     testonly = True,
-    srcs = glob(
-        [
-            "mock_sqs_client.h",
-        ],
-    ),
+    srcs = [
+        "mock_sqs_client.h",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
