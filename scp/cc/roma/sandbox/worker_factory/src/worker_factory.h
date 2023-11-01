@@ -49,7 +49,7 @@ class WorkerFactory {
     V8WorkerEngineParams v8_worker_engine_params{};
   };
 
-  static core::ExecutionResultOr<std::shared_ptr<Worker>> Create(
+  static core::ExecutionResultOr<std::unique_ptr<Worker>> Create(
       const FactoryParams& params);
 };
 }  // namespace google::scp::roma::sandbox::worker

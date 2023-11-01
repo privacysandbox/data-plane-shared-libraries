@@ -48,7 +48,7 @@ static absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
   return one_time_setup;
 }
 
-ExecutionResultOr<std::shared_ptr<Worker>> WorkerFactory::Create(
+ExecutionResultOr<std::unique_ptr<Worker>> WorkerFactory::Create(
     const WorkerFactory::FactoryParams& params) {
   if (params.engine == WorkerFactory::WorkerEngine::v8) {
     auto native_function_invoker =
@@ -65,11 +65,9 @@ ExecutionResultOr<std::shared_ptr<Worker>> WorkerFactory::Create(
     auto one_time_setup = GetEngineOneTimeSetup(params);
     v8_engine->OneTimeSetup(one_time_setup);
 
-    auto worker =
-        std::make_shared<Worker>(std::move(v8_engine), params.require_preload,
-                                 params.compilation_context_cache_size);
-
-    return worker;
+    return std::make_unique<Worker>(std::move(v8_engine),
+                                    params.require_preload,
+                                    params.compilation_context_cache_size);
   }
 
   return FailureExecutionResult(SC_ROMA_WORKER_FACTORY_UNKNOWN_ENGINE_TYPE);

@@ -62,7 +62,7 @@ namespace {
 std::unique_ptr<Buffer> sandbox_data_shared_buffer_ptr_{nullptr};
 size_t request_and_response_data_buffer_size_bytes_{0};
 
-std::shared_ptr<Worker> worker_{nullptr};
+std::unique_ptr<Worker> worker_{nullptr};
 
 StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   if (worker_) {
@@ -120,7 +120,7 @@ StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   request_and_response_data_buffer_size_bytes_ =
       init_params->request_and_response_data_buffer_size_bytes();
 
-  worker_ = *worker_or;
+  worker_ = std::move(*worker_or);
   ROMA_VLOG(1) << "Worker wrapper successfully created the worker";
   return worker_->Init().status_code;
 }
