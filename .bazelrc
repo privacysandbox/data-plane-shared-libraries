@@ -10,6 +10,9 @@ build --config=otel
 
 test --test_output=errors
 
+build:run_all_tests --cache_test_results=no
+test:run_all_tests --test_verbose_timeout_warnings
+
 build:cpp --client_env=BAZEL_CXXOPTS=-std=c++17
 build:cpp --cxxopt=-std=c++17
 build:cpp --client_env=CC=clang

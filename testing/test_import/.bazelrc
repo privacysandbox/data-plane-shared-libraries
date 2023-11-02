@@ -8,3 +8,6 @@ build --color=yes
 build --client_env=BAZEL_CXXOPTS=-std=c++17
 
 test --test_output=errors
+
+build:run_all_tests --cache_test_results=no
+test:run_all_tests --test_verbose_timeout_warnings
