@@ -178,12 +178,23 @@ absl::Status Execute(
   return ExecuteInternal(std::move(invocation_req), std::move(callback));
 }
 
+absl::Status Execute(
+    std::unique_ptr<InvocationRequestStrViewInput> invocation_req,
+    Callback callback) {
+  return ExecuteInternal(std::move(invocation_req), std::move(callback));
+}
+
 absl::Status BatchExecute(std::vector<InvocationRequestStrInput>& batch,
                           BatchCallback batch_callback) {
   return BatchExecuteInternal(batch, std::move(batch_callback));
 }
 
 absl::Status BatchExecute(std::vector<InvocationRequestSharedInput>& batch,
+                          BatchCallback batch_callback) {
+  return BatchExecuteInternal(batch, std::move(batch_callback));
+}
+
+absl::Status BatchExecute(std::vector<InvocationRequestStrViewInput>& batch,
                           BatchCallback batch_callback) {
   return BatchExecuteInternal(batch, std::move(batch_callback));
 }

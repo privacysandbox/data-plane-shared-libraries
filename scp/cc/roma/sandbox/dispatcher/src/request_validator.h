@@ -104,6 +104,17 @@ struct RequestValidator<InvocationRequestSharedInput> {
     return InvocationRequestCommon(request);
   }
 };
+
+/**
+ * @brief Template specialization to validate a InvocationRequestStrViewInput.
+ */
+template <>
+struct RequestValidator<InvocationRequestStrViewInput> {
+  static core::ExecutionResult Validate(
+      const std::unique_ptr<InvocationRequestStrViewInput>& request) {
+    return InvocationRequestCommon(request);
+  }
+};
 }  // namespace google::scp::roma::sandbox::dispatcher::request_validator
 
 #endif  // ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_VALIDATOR_H_

@@ -118,6 +118,61 @@ TEST(DispatcherTest, CanRunCode) {
   WaitUntil([&done_executing]() { return done_executing.load(); });
 }
 
+TEST(DispatcherTest, CanRunStringViewInputCode) {
+  AsyncExecutor async_executor(1, 10);
+
+  std::vector<WorkerApiSapiConfig> configs;
+  configs.push_back(CreateWorkerApiSapiConfig());
+
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
+
+  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
+  AutoInitRunStop for_dispatcher(dispatcher);
+
+  auto load_request = std::make_unique<CodeObject>();
+  load_request->id = "some_id";
+  load_request->version_num = 1;
+  load_request->js =
+      "function test(input) { return input + \" Some string\"; }";
+
+  std::atomic<bool> done_loading(false);
+
+  auto result = dispatcher.Dispatch(
+      std::move(load_request),
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        EXPECT_TRUE(resp->ok());
+        done_loading.store(true);
+      });
+  EXPECT_SUCCESS(result);
+
+  WaitUntil([&done_loading]() { return done_loading.load(); });
+
+  std::string_view input_str_view{R"("Hello")"};
+  auto execute_request = std::make_unique<InvocationRequestStrViewInput>(
+      InvocationRequestStrViewInput{
+          .id = "some_id",
+          .version_num = 1,
+          .handler_name = "test",
+          .input = {input_str_view},
+      });
+
+  std::atomic<bool> done_executing(false);
+
+  result = dispatcher.Dispatch(
+      std::move(execute_request),
+      [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        EXPECT_TRUE(resp->ok());
+        EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
+        done_executing.store(true);
+      });
+
+  EXPECT_SUCCESS(result);
+
+  WaitUntil([&done_executing]() { return done_executing.load(); });
+}
+
 TEST(DispatcherTest, CanHandleCodeFailures) {
   AsyncExecutor async_executor(1, 10);
 

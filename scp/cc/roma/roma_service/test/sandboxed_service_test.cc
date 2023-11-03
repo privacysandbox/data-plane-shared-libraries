@@ -123,6 +123,66 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   EXPECT_TRUE(status.ok());
 }
 
+TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
+  Config config;
+  config.number_of_workers = 2;
+  auto status = RomaInit(config);
+  EXPECT_TRUE(status.ok());
+
+  std::string result;
+  std::atomic<bool> load_finished = false;
+  std::atomic<bool> execute_finished = false;
+
+  {
+    auto load_code_obj_request = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_num = 1,
+        .js = R"JS_CODE(
+            function Handler(input) { return "Hello world! " + JSON.stringify(input);
+          }
+        )JS_CODE",
+    });
+
+    status =
+        LoadCodeObj(std::move(load_code_obj_request),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.store(true);
+                    });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    std::string_view input_str_view{R"("Foobar")"};
+    auto execute_request = std::make_unique<InvocationRequestStrViewInput>(
+        InvocationRequestStrViewInput{
+            .id = "foo",
+            .version_num = 1,
+            .handler_name = "Handler",
+            .input = {input_str_view},
+        });
+
+    status = Execute(std::move(execute_request),
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                       EXPECT_TRUE(resp->ok());
+                       if (resp->ok()) {
+                         auto& code_resp = **resp;
+                         result = code_resp.resp;
+                       }
+                       execute_finished.store(true);
+                     });
+    EXPECT_TRUE(status.ok());
+  }
+
+  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  WaitUntil([&]() { return execute_finished.load(); },
+            std::chrono::seconds(10));
+  EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
+
+  status = RomaStop();
+  EXPECT_TRUE(status.ok());
+}
+
 TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   Config config;
   config.number_of_workers = 2;

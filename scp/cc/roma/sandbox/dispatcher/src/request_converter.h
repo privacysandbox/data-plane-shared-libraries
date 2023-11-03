@@ -118,6 +118,30 @@ struct RequestConverter<InvocationRequestSharedInput> {
 };
 
 /**
+ * @brief Template specialization for InvocationRequestStrViewInput. This
+ * converts a InvocationRequestStrViewInput into a RunCodeRequest.
+ */
+template <>
+struct RequestConverter<InvocationRequestStrViewInput> {
+  static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
+  FromUserProvided(
+      const std::unique_ptr<InvocationRequestStrViewInput>& request,
+      const std::string& request_type) {
+    worker_api::WorkerApi::RunCodeRequest run_code_request;
+    RunRequestFromInputRequestCommon<
+        std::unique_ptr<InvocationRequestStrViewInput>>(run_code_request,
+                                                        request);
+    run_code_request.input.reserve(request->input.size());
+    for (auto& i : request->input) {
+      run_code_request.input.push_back(i);
+    }
+    InvocationRequestCommon(run_code_request, request, request_type);
+
+    return run_code_request;
+  }
+};
+
+/**
  * @brief Template specialization for CodeObject. This converts a CodeObject
  * into a RunCodeRequest.
  */

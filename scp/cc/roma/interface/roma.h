@@ -75,8 +75,10 @@ template <typename InputType>
 struct InvocationRequest {
   static_assert(
       std::is_same<InputType, std::string>::value ||
-          std::is_same<InputType, std::shared_ptr<std::string>>::value,
-      "InputType must be type std::string or std::shared_ptr<std::string>");
+          std::is_same<InputType, std::shared_ptr<std::string>>::value ||
+          std::is_same<InputType, std::string_view>::value,
+      "InputType must be type std::string, std::shared_ptr<std::string>, or "
+      "std::string_view");
 
   // The id of the invocation request.
   std::string id;
@@ -101,6 +103,7 @@ struct InvocationRequest {
 using InvocationRequestStrInput = InvocationRequest<std::string>;
 using InvocationRequestSharedInput =
     InvocationRequest<std::shared_ptr<std::string>>;
+using InvocationRequestStrViewInput = InvocationRequest<std::string_view>;
 
 // The response as result of execution of the code object or invocation request.
 struct ResponseObject {
@@ -126,6 +129,10 @@ absl::Status Execute(
     std::unique_ptr<InvocationRequestSharedInput> invocation_request,
     Callback callback);
 
+absl::Status Execute(
+    std::unique_ptr<InvocationRequestStrViewInput> invocation_request,
+    Callback callback);
+
 // Batch API
 // void Callback(const vector<ResponseObject>&);
 using BatchCallback = absl::AnyInvocable<void(
@@ -138,6 +145,9 @@ absl::Status BatchExecute(std::vector<InvocationRequestStrInput>& batch,
                           BatchCallback batch_callback);
 
 absl::Status BatchExecute(std::vector<InvocationRequestSharedInput>& batch,
+                          BatchCallback batch_callback);
+
+absl::Status BatchExecute(std::vector<InvocationRequestStrViewInput>& batch,
                           BatchCallback batch_callback);
 
 // Async API.
