@@ -209,7 +209,10 @@ cc_binary(
         "//production/packaging/aws:__subpackages__",
         "//scp/cc/aws/proxy/test:__subpackages__",
     ],
-    deps = ["//scp/cc/aws:include_dir"],
+    deps = [
+        "//scp/cc/aws:include_dir",
+        "@com_google_absl//absl/strings",
+    ],
 )
 
 cc_binary(
