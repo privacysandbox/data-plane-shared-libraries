@@ -300,13 +300,21 @@ pkg_tar(
     ],
 )
 
-pkg_tar(
-    name = "libnsm_tar",
+pkg_files(
+    name = "libnsm_libs",
     srcs = [
         "@libnsm//file",
     ],
-    mode = "0644",
-    package_dir = "/lib/x86_64-linux-gnu/",
+    attributes = pkg_attributes(mode = "0444"),
+    prefix = "/usr/lib/x86_64-linux-gnu/",
+)
+
+pkg_tar(
+    name = "libnsm_tar",
+    srcs = [
+        ":libnsm_libs",
+    ],
+    package_dir = "/",
 )
 
 container_layer(
