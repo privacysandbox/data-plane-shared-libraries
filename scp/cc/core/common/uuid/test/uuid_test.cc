@@ -16,6 +16,7 @@
 
 #include "core/common/uuid/src/uuid.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <string>
@@ -24,8 +25,10 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::test::ResultIs;
+using testing::StrEq;
 
 namespace google::scp::core::common::test {
+
 TEST(UuidTests, UuidGeneration) {
   Uuid uuid = Uuid::GenerateUuid();
 
@@ -34,34 +37,38 @@ TEST(UuidTests, UuidGeneration) {
 }
 
 TEST(UuidTests, UuidToString) {
-  Uuid uuid = Uuid::GenerateUuid();
+  constexpr std::string_view uuid_str = "1794CADF-6CD8-0B88-E79E-8E4B730042C6";
+  Uuid uuid;
+  FromString(std::string(uuid_str), uuid);
 
-  auto uuid_string = ToString(uuid);
+  const auto uuid_string = ToString(uuid);
+  EXPECT_THAT(uuid_string, StrEq(uuid_str));
+
   Uuid parsed_uuid;
   EXPECT_SUCCESS(FromString(uuid_string, parsed_uuid));
   EXPECT_EQ(parsed_uuid, uuid);
 }
 
 TEST(UuidTests, InvalidUuidString) {
-  std::string uuid_string = "123";
   Uuid parsed_uuid;
   EXPECT_THAT(
-      FromString(uuid_string, parsed_uuid),
+      FromString("123", parsed_uuid),
       ResultIs(FailureExecutionResult(core::errors::SC_UUID_INVALID_STRING)));
 
-  uuid_string = "3E2A3D09r48EDrA355rD346rAD7DC6CB0909";
+  // dashes expected in positions 8, 13, 18 and 23
   EXPECT_THAT(
-      FromString(uuid_string, parsed_uuid),
+      FromString("3E2A3D09-48ED-A355rD346-AD7DC6CB0909", parsed_uuid),
       ResultIs(FailureExecutionResult(core::errors::SC_UUID_INVALID_STRING)));
 
-  uuid_string = "3E2A3D09-48RD-A355-D346-AD7DC6CB0909";
+  // invalid hex value 'R'
   EXPECT_THAT(
-      FromString(uuid_string, parsed_uuid),
+      FromString("3E2A3D09-48RD-A355-D346-AD7DC6CB0909", parsed_uuid),
       ResultIs(FailureExecutionResult(core::errors::SC_UUID_INVALID_STRING)));
 
-  uuid_string = "3E2A3D09-48Ed-A355-D346-AD7DC6CB0909";
+  // lowercase hex values
   EXPECT_THAT(
-      FromString(uuid_string, parsed_uuid),
+      FromString("3e2a3d09-48ed-a355-d346-ad7dc6cb0909", parsed_uuid),
       ResultIs(FailureExecutionResult(core::errors::SC_UUID_INVALID_STRING)));
 }
+
 }  // namespace google::scp::core::common::test

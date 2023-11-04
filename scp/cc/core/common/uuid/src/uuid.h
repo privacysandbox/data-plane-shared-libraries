@@ -25,6 +25,7 @@
 #include "public/core/interface/execution_result.h"
 
 namespace google::scp::core::common {
+
 /**
  * @brief Creates universally unique identifiers. A uuid is a 128-bit id
  * composed of two parts: high and low. The high part is a uint64_t type and
@@ -94,6 +95,7 @@ std::string ToString(const Uuid& uuid) noexcept;
 ExecutionResult FromString(const std::string& uuid_string, Uuid& uuid) noexcept;
 
 static constexpr Uuid kZeroUuid{0ULL, 0ULL};
+
 }  // namespace google::scp::core::common
 
 #endif  // CORE_COMMON_UUID_SRC_UUID_H_

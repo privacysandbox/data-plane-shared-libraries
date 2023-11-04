@@ -12,23 +12,54 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_test(
     name = "uuid_test",
     size = "small",
-    srcs =
-        [
-            "uuid_test.cc",
-        ],
+    srcs = [
+        "uuid_test.cc",
+    ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest_main",
-        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "uuid_to_string",
+    srcs = [
+        "uuid_to_string.cc",
+    ],
+    hdrs = [
+        "uuid_to_string.h",
+    ],
+    deps = [
+        "//scp/cc/core/test/utils:utils_lib",
+        "@com_google_absl//absl/functional:any_invocable",
+    ],
+)
+
+cc_test(
+    name = "uuid_to_string_test",
+    size = "small",
+    srcs = [
+        "uuid_to_string_test.cc",
+    ],
+    deps = [
+        ":uuid_to_string",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "uuid_benchmark",
+    srcs = ["uuid_benchmark.cc"],
+    deps = [
+        ":uuid_to_string",
+        "//scp/cc/core/test/utils:utils_lib",
+        "@google_benchmark//:benchmark",
     ],
 )

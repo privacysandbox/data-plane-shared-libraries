@@ -23,13 +23,14 @@
 #include <sstream>
 #include <string>
 
+#include "absl/strings/ascii.h"
+#include "absl/strings/str_cat.h"
 #include "core/common/time_provider/src/time_provider.h"
 
 #include "error_codes.h"
 
-static constexpr char kHexMap[] = {"0123456789ABCDEF"};
-
 namespace google::scp::core::common {
+
 Uuid Uuid::GenerateUuid() noexcept {
   // TODO: Might want to use GetUniqueWallTimestampInNanoseconds()
   static std::atomic<Timestamp> current_clock(
@@ -41,71 +42,37 @@ Uuid Uuid::GenerateUuid() noexcept {
   std::uniform_int_distribution<uint64_t> distribution;
 
   uint64_t low = distribution(random_generator);
-  return Uuid{.high = high, .low = low};
+  return Uuid{
+      .high = high,
+      .low = low,
+  };
 }
 
-void AppendHex(int byte, std::string& string_to_append) {
-  int first_digit = byte >> 4;
-  string_to_append += kHexMap[first_digit];
+namespace {
 
-  int second_digit = byte & 0x0F;
-  string_to_append += kHexMap[second_digit];
-}
-
-uint64_t ReadHex(const std::string& string_to_read, int offset) {
-  std::string digits = string_to_read.substr(offset, 2);
+uint64_t ReadHex(const std::string& string_to_read, const int offset) {
+  const std::string digits = string_to_read.substr(offset, 2);
   std::istringstream istrstream(digits);
-
   int byte = 0;
   istrstream >> std::hex >> byte;
   return byte;
 }
 
+}  // namespace
+
 std::string ToString(const Uuid& uuid) noexcept {
-  // Uuid has two 8 bytes variable, high and low. Printing each byte to a
-  // hexadecimal value a guid can be generated.
-  std::string uuid_string;
-  uuid_string.reserve(36);
-
-  auto high = uuid.high;
-  auto low = uuid.low;
-
-  // Guid format is 00000000-0000-0000-0000-000000000000
-  // 4 bytes
-  AppendHex((high >> 56) & 0xFF, uuid_string);
-  AppendHex((high >> 48) & 0xFF, uuid_string);
-  AppendHex((high >> 40) & 0xFF, uuid_string);
-  AppendHex((high >> 32) & 0xFF, uuid_string);
-
-  uuid_string += "-";
-
-  // 2 bytes
-  AppendHex((high >> 24) & 0xFF, uuid_string);
-  AppendHex((high >> 16) & 0xFF, uuid_string);
-
-  uuid_string += "-";
-
-  // 2 bytes
-  AppendHex((high >> 8) & 0xFF, uuid_string);
-  AppendHex(high & 0xFF, uuid_string);
-
-  uuid_string += "-";
-
-  // 2 bytes
-  AppendHex((low >> 56) & 0xFF, uuid_string);
-  AppendHex((low >> 48) & 0xFF, uuid_string);
-
-  uuid_string += "-";
-
-  // 6 bytes
-  AppendHex((low >> 40) & 0xFF, uuid_string);
-  AppendHex((low >> 32) & 0xFF, uuid_string);
-  AppendHex((low >> 24) & 0xFF, uuid_string);
-  AppendHex((low >> 16) & 0xFF, uuid_string);
-  AppendHex((low >> 8) & 0xFF, uuid_string);
-  AppendHex(low & 0xFF, uuid_string);
-
-  return uuid_string;
+  // Uuid has two 8-byte variables, high and low. A GUID string can be generated
+  // by converting each byte to a hexadecimal value. The GUID format in hex is:
+  //   00000000-0000-0000-0000-000000000000
+  std::string uuid_str;
+  uuid_str.reserve(36);
+  absl::StrAppend(&uuid_str, absl::Hex(uuid.high, absl::kZeroPad16),
+                  absl::Hex(uuid.low, absl::kZeroPad16));
+  absl::AsciiStrToUpper(&uuid_str);
+  for (int i : {20, 16, 12, 8}) {
+    uuid_str.insert(i, 1, '-');
+  }
+  return uuid_str;
 }
 
 ExecutionResult FromString(const std::string& uuid_string,
@@ -113,47 +80,45 @@ ExecutionResult FromString(const std::string& uuid_string,
   if (uuid_string.length() != 36) {
     return FailureExecutionResult(errors::SC_UUID_INVALID_STRING);
   }
-
-  if (uuid_string[8] != '-' || uuid_string[13] != '-' ||
-      uuid_string[18] != '-' || uuid_string[23] != '-') {
-    return FailureExecutionResult(errors::SC_UUID_INVALID_STRING);
-  }
-
   for (size_t i = 0; i < uuid_string.length(); ++i) {
     if (uuid_string[i] == '-') {
+      if (!(i == 8 || i == 13 || i == 18 || i == 23)) {
+        return FailureExecutionResult(errors::SC_UUID_INVALID_STRING);
+      }
       continue;
     }
-
     if (!std::isxdigit(uuid_string[i])) {
       return FailureExecutionResult(errors::SC_UUID_INVALID_STRING);
     }
-
-    if (islower(uuid_string[i])) {
+    if (std::islower(uuid_string[i])) {
       return FailureExecutionResult(errors::SC_UUID_INVALID_STRING);
     }
   }
 
-  uuid.high |= (ReadHex(uuid_string, 0) << 56);
-  uuid.high |= (ReadHex(uuid_string, 2) << 48);
-  uuid.high |= (ReadHex(uuid_string, 4) << 40);
-  uuid.high |= (ReadHex(uuid_string, 6) << 32);
-
-  uuid.high |= (ReadHex(uuid_string, 9) << 24);
-  uuid.high |= (ReadHex(uuid_string, 11) << 16);
-
-  uuid.high |= (ReadHex(uuid_string, 14) << 8);
-  uuid.high |= (ReadHex(uuid_string, 16));
-
-  uuid.low |= (ReadHex(uuid_string, 19) << 56);
-  uuid.low |= (ReadHex(uuid_string, 21) << 48);
-
-  uuid.low |= (ReadHex(uuid_string, 24) << 40);
-  uuid.low |= (ReadHex(uuid_string, 26) << 32);
-  uuid.low |= (ReadHex(uuid_string, 28) << 24);
-  uuid.low |= (ReadHex(uuid_string, 30) << 16);
-  uuid.low |= (ReadHex(uuid_string, 32) << 8);
-  uuid.low |= (ReadHex(uuid_string, 34));
-
+  constexpr int shifts[] = {56, 48, 40, 32, 24, 16, 8, 0};
+  size_t offset = 0;
+  for (auto shift : shifts) {
+    uuid.high |= (ReadHex(uuid_string, offset) << shift);
+    switch (shift) {
+      case 32:
+      case 16:
+      case 0:
+        offset += 3;
+        break;
+      default:
+        offset += 2;
+        break;
+    }
+  }
+  for (auto shift : shifts) {
+    uuid.low |= (ReadHex(uuid_string, offset) << shift);
+    if (shift == 48) {
+      offset += 3;
+    } else {
+      offset += 2;
+    }
+  }
   return SuccessExecutionResult();
 }
+
 }  // namespace google::scp::core::common
