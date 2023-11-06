@@ -16,6 +16,7 @@
 
 #include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -42,6 +43,8 @@ using google::scp::roma::kWasmCodeArrayName;
 
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
+using ::testing::IsEmpty;
+using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::js_engine::test {
 class V8JsEngineTest : public ::testing::Test {
@@ -71,7 +74,8 @@ TEST_F(V8JsEngineTest, CanRunJsCode) {
 
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
-  EXPECT_EQ(response_string, R"("Hello World! vec input 1 vec input 2")");
+  EXPECT_THAT(response_string,
+              StrEq(R"("Hello World! vec input 1 vec input 2")"));
 }
 
 TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseExplicitly) {
@@ -103,7 +107,7 @@ TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseExplicitly) {
 
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
-  EXPECT_EQ(response_string, R"("some cool string")");
+  EXPECT_THAT(response_string, StrEq(R"("some cool string")"));
 }
 
 TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseImplicitly) {
@@ -136,7 +140,7 @@ TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseImplicitly) {
 
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
-  EXPECT_EQ(response_string, R"("some cool string")");
+  EXPECT_THAT(response_string, StrEq(R"("some cool string")"));
 }
 
 TEST_F(V8JsEngineTest, CanHandlePromiseRejectionInAsyncJs) {
@@ -206,7 +210,7 @@ TEST_F(V8JsEngineTest, CanRunCodeRequestWithJsonInput) {
 
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
-  EXPECT_EQ(response_string, "3");
+  EXPECT_THAT(response_string, StrEq("3"));
 }
 
 TEST_F(V8JsEngineTest, ShouldFailIfInputIsBadJsonInput) {
@@ -252,7 +256,7 @@ TEST_F(V8JsEngineTest, ShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
 
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
-  EXPECT_EQ(response_string, "");
+  EXPECT_THAT(response_string, IsEmpty());
 }
 
 TEST_F(V8JsEngineTest, ShouldFailIfInputCannotBeParsed) {
@@ -317,7 +321,8 @@ TEST_F(V8JsEngineTest, CanRunWasmCode) {
 
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
-  EXPECT_EQ(response_string, R"("Some input string Hello World from WASM")");
+  EXPECT_THAT(response_string,
+              StrEq(R"("Some input string Hello World from WASM")"));
 }
 
 TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
@@ -338,7 +343,7 @@ TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
 
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
-  EXPECT_EQ(response_string, "");
+  EXPECT_THAT(response_string, IsEmpty());
 }
 
 TEST_F(V8JsEngineTest, WasmShouldFailIfInputCannotBeParsed) {
@@ -475,7 +480,7 @@ TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
     EXPECT_SUCCESS(response_or.result());
     const std::string& response_string =
         response_or->execution_response.response;
-    EXPECT_EQ(response_string, "3");
+    EXPECT_THAT(response_string, StrEq("3"));
   }
 
   {
@@ -484,7 +489,7 @@ TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
     EXPECT_SUCCESS(response_or.result());
     const std::string& response_string =
         response_or->execution_response.response;
-    EXPECT_EQ(response_string, "7");
+    EXPECT_THAT(response_string, StrEq("7"));
   }
 }
 
@@ -518,7 +523,7 @@ TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
     EXPECT_SUCCESS(response_or.result());
     const std::string& response_string =
         response_or->execution_response.response;
-    EXPECT_EQ(response_string, "3");
+    EXPECT_THAT(response_string, StrEq("3"));
   }
 
   {
@@ -527,7 +532,7 @@ TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
     EXPECT_SUCCESS(response_or.result());
     const std::string& response_string =
         response_or->execution_response.response;
-    EXPECT_EQ(response_string, "7");
+    EXPECT_THAT(response_string, StrEq("7"));
   }
 }
 
@@ -568,7 +573,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
     EXPECT_SUCCESS(response_or.result());
     const std::string& response_string =
         response_or->execution_response.response;
-    EXPECT_EQ(response_string, "3");
+    EXPECT_THAT(response_string, StrEq("3"));
   }
   {
     std::vector<absl::string_view> input = {"1", "6"};
@@ -580,7 +585,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
     EXPECT_SUCCESS(response_or.result());
     const std::string& response_string =
         response_or->execution_response.response;
-    EXPECT_EQ(response_string, "7");
+    EXPECT_THAT(response_string, StrEq("7"));
   }
 }
 
@@ -670,7 +675,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
         response_or->execution_response.response;
     std::cout << "\n output: " << response_string << "\n";
 
-    EXPECT_EQ(response_string, "0");
+    EXPECT_THAT(response_string, StrEq("0"));
   }
   {
     std::vector<absl::string_view> input = {"6"};
@@ -682,7 +687,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
     EXPECT_SUCCESS(response_or.result());
     const std::string& response_string =
         response_or->execution_response.response;
-    EXPECT_EQ(response_string, "1");
+    EXPECT_THAT(response_string, StrEq("1"));
   }
 }
 }  // namespace google::scp::roma::sandbox::js_engine::test

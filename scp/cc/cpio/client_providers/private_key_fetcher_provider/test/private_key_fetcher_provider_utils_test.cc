@@ -95,22 +95,22 @@ TEST(PrivateKeyFetchingClientUtilsTest, ParsePrivateKeySuccess) {
   EXPECT_SUCCESS(result);
   EXPECT_EQ(response.encryption_keys.size(), 1);
   const auto& encryption_key = *response.encryption_keys.begin();
-  EXPECT_EQ(*encryption_key->key_id, "123456");
-  EXPECT_EQ(*encryption_key->resource_name, "encryptionKeys/123456");
-  EXPECT_EQ(encryption_key->encryption_key_type,
-            EncryptionKeyType::kMultiPartyHybridEvenKeysplit);
-  EXPECT_EQ(*encryption_key->public_keyset_handle, "primaryKeyId");
-  EXPECT_EQ(*encryption_key->public_key_material, "testtest");
+  EXPECT_THAT(*encryption_key->key_id, "123456");
+  EXPECT_THAT(*encryption_key->resource_name, "encryptionKeys/123456");
+  EXPECT_THAT(encryption_key->encryption_key_type,
+              EncryptionKeyType::kMultiPartyHybridEvenKeysplit);
+  EXPECT_THAT(*encryption_key->public_keyset_handle, "primaryKeyId");
+  EXPECT_THAT(*encryption_key->public_key_material, "testtest");
   EXPECT_EQ(encryption_key->expiration_time_in_ms, 1669943990485);
   EXPECT_EQ(encryption_key->creation_time_in_ms, 1669252790485);
-  EXPECT_EQ(*encryption_key->key_data[0]->key_encryption_key_uri,
-            "aws-kms://arn:aws:kms:us-east-1:1234567:key");
-  EXPECT_EQ(*encryption_key->key_data[0]->public_key_signature, "");
-  EXPECT_EQ(*encryption_key->key_data[0]->key_material, "test=test");
-  EXPECT_EQ(*encryption_key->key_data[1]->key_encryption_key_uri,
-            "aws-kms://arn:aws:kms:us-east-1:12345:key");
-  EXPECT_EQ(*encryption_key->key_data[1]->public_key_signature, "");
-  EXPECT_EQ(*encryption_key->key_data[1]->key_material, "");
+  EXPECT_THAT(*encryption_key->key_data[0]->key_encryption_key_uri,
+              "aws-kms://arn:aws:kms:us-east-1:1234567:key");
+  EXPECT_THAT(*encryption_key->key_data[0]->public_key_signature, "");
+  EXPECT_THAT(*encryption_key->key_data[0]->key_material, "test=test");
+  EXPECT_THAT(*encryption_key->key_data[1]->key_encryption_key_uri,
+              "aws-kms://arn:aws:kms:us-east-1:12345:key");
+  EXPECT_THAT(*encryption_key->key_data[1]->public_key_signature, "");
+  EXPECT_THAT(*encryption_key->key_data[1]->key_material, "");
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyData) {
@@ -313,8 +313,8 @@ TEST(PrivateKeyFetchingClientUtilsTest, CreateHttpRequestForKeyId) {
   PrivateKeyFetchingClientUtils::CreateHttpRequest(request, http_request);
 
   EXPECT_EQ(http_request.method, HttpMethod::GET);
-  EXPECT_EQ(*http_request.path,
-            std::string(kPrivateKeyBaseUri) + "/" + std::string(kKeyId));
+  EXPECT_THAT(*http_request.path,
+              std::string(kPrivateKeyBaseUri) + "/" + std::string(kKeyId));
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, CreateHttpRequestForMaxAgeSeconds) {
@@ -327,8 +327,8 @@ TEST(PrivateKeyFetchingClientUtilsTest, CreateHttpRequestForMaxAgeSeconds) {
   PrivateKeyFetchingClientUtils::CreateHttpRequest(request, http_request);
 
   EXPECT_EQ(http_request.method, HttpMethod::GET);
-  EXPECT_EQ(*http_request.path, std::string(kPrivateKeyBaseUri) + ":recent");
-  EXPECT_EQ(*http_request.query, "maxAgeSeconds=1000000");
+  EXPECT_THAT(*http_request.path, std::string(kPrivateKeyBaseUri) + ":recent");
+  EXPECT_THAT(*http_request.query, "maxAgeSeconds=1000000");
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, ParseMultiplePrivateKeysSuccess) {
@@ -363,8 +363,8 @@ TEST(PrivateKeyFetchingClientUtilsTest, ParseMultiplePrivateKeysSuccess) {
 
   EXPECT_SUCCESS(result);
   EXPECT_EQ(response.encryption_keys.size(), 2);
-  EXPECT_EQ(*response.encryption_keys[0]->key_id, "111111");
-  EXPECT_EQ(*response.encryption_keys[1]->key_id, "222222");
+  EXPECT_THAT(*response.encryption_keys[0]->key_id, "111111");
+  EXPECT_THAT(*response.encryption_keys[1]->key_id, "222222");
 }
 
 TEST(PrivateKeyFetchingClientUtilsTest, ExtractKeyId) {

@@ -36,6 +36,7 @@
 #include "src/cpp/util/duration.h"
 
 using google::scp::core::test::WaitUntil;
+using ::testing::StrEq;
 
 namespace google::scp::roma::test {
 
@@ -86,10 +87,10 @@ static void ExecuteCode(const std::shared_ptr<std::string>& input) {
                 execute_finished.store(true);
               });
 
-  WaitUntil([&]() { return execute_finished.load(); }, 1000s);
+  WaitUntil([&]() { return execute_finished.load(); });
 
   EXPECT_TRUE(status.ok());
-  EXPECT_EQ(R"("Hello, World!")", result);
+  EXPECT_THAT(result, StrEq(R"("Hello, World!")"));
 }
 
 static void RunLoad(const size_t number_of_requests,

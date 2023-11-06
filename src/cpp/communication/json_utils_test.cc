@@ -14,21 +14,25 @@
 
 #include "src/cpp/communication/json_utils.h"
 
+#include <gtest/gtest.h>
+
 #include <string>
+
+#include <gmock/gmock.h>
 
 #include "google/protobuf/struct.pb.h"
 #include "google/protobuf/text_format.h"
-#include "gtest/gtest.h"
 
 namespace privacy_sandbox::server_common {
 namespace {
 
 using google::protobuf::Struct;
+using ::testing::StrEq;
 
 TEST(BinaryHttpTest, JsonToProtoSuccess) {
   const auto maybe_proto = JsonToProto<Struct>(R"({"key": "value"})");
   ASSERT_TRUE(maybe_proto.ok());
-  EXPECT_EQ(maybe_proto->fields().at("key").string_value(), "value");
+  EXPECT_THAT(maybe_proto->fields().at("key").string_value(), StrEq("value"));
 }
 
 TEST(BinaryHttpTest, JsonToProto_MalformedJson) {

@@ -15,6 +15,7 @@
  */
 #include "core/curl_client/src/http1_curl_wrapper.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "core/curl_client/src/error_codes.h"
@@ -22,8 +23,10 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using boost::beast::http::status;
-using testing::IsSupersetOf;
-using testing::Pair;
+using ::testing::IsEmpty;
+using ::testing::IsSupersetOf;
+using ::testing::Pair;
+using ::testing::StrEq;
 
 namespace google::scp::core::test {
 namespace {
@@ -69,7 +72,7 @@ TEST_F(Http1CurlWrapperTest, GetWorks) {
   auto response_or = subject_->PerformRequest(request);
   ASSERT_THAT(response_or, IsSuccessful());
   EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_EQ(response_or->body.ToString(), post_request_body_);
+  EXPECT_THAT(response_or->body.ToString(), StrEq(post_request_body_));
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
 }
@@ -89,7 +92,7 @@ TEST_F(Http1CurlWrapperTest, GetWorksWithHeaders) {
   auto response_or = subject_->PerformRequest(request);
   ASSERT_THAT(response_or, IsSuccessful());
   EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_EQ(response_or->body.ToString(), response_body_);
+  EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
 
   EXPECT_THAT(
       *response_or->headers,
@@ -112,10 +115,10 @@ TEST_F(Http1CurlWrapperTest, PostWorks) {
   auto response_or = subject_->PerformRequest(request);
   ASSERT_THAT(response_or, IsSuccessful());
   EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_EQ(response_or->body.ToString(), response_body_);
+  EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::post);
-  EXPECT_EQ(server_.RequestBody(), post_request_body_);
+  EXPECT_THAT(server_.RequestBody(), StrEq(post_request_body_));
 }
 
 TEST_F(Http1CurlWrapperTest, PutWorks) {
@@ -129,10 +132,10 @@ TEST_F(Http1CurlWrapperTest, PutWorks) {
   auto response_or = subject_->PerformRequest(request);
   ASSERT_THAT(response_or, IsSuccessful());
   EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_EQ(response_or->body.ToString(), response_body_);
+  EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::put);
-  EXPECT_EQ(server_.RequestBody(), post_request_body_);
+  EXPECT_THAT(server_.RequestBody(), StrEq(post_request_body_));
 }
 
 TEST_F(Http1CurlWrapperTest, PostWorksWithHeaders) {
@@ -151,14 +154,14 @@ TEST_F(Http1CurlWrapperTest, PostWorksWithHeaders) {
   auto response_or = subject_->PerformRequest(request);
   ASSERT_THAT(response_or, IsSuccessful());
   EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_EQ(response_or->body.ToString(), response_body_);
+  EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
 
   EXPECT_THAT(
       *response_or->headers,
       IsSupersetOf({Pair("resp1", "resp_val1"), Pair("resp2", "resp_val2")}));
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::post);
-  EXPECT_EQ(server_.RequestBody(), post_request_body_);
+  EXPECT_THAT(server_.RequestBody(), StrEq(post_request_body_));
 
   EXPECT_THAT(GetRequestHeadersMap(server_.Request()),
               IsSupersetOf({Pair("key1", "val1"), Pair("key2", "val2")}));
@@ -176,7 +179,7 @@ TEST_F(Http1CurlWrapperTest, SingleQueryIsEscaped) {
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
   // '=' should not be escaped.
-  EXPECT_EQ(server_.Request().target(), "/?foo=%21%40%23%24");
+  EXPECT_THAT(server_.Request().target(), StrEq("/?foo=%21%40%23%24"));
 }
 
 TEST_F(Http1CurlWrapperTest, MultiQueryIsEscaped) {
@@ -191,7 +194,8 @@ TEST_F(Http1CurlWrapperTest, MultiQueryIsEscaped) {
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
   // '=' should not be escaped.
-  EXPECT_EQ(server_.Request().target(), "/?foo=%21%40%23%24&bar=%25%5E%28%29");
+  EXPECT_THAT(server_.Request().target(),
+              StrEq("/?foo=%21%40%23%24&bar=%25%5E%28%29"));
 }
 
 TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
@@ -206,10 +210,10 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
     auto response_or = subject_->PerformRequest(request);
     ASSERT_THAT(response_or, IsSuccessful());
     EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-    EXPECT_EQ(response_or->body.ToString(), response_body_);
+    EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
 
     EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
-    EXPECT_EQ(server_.RequestBody(), "");
+    EXPECT_THAT(server_.RequestBody(), IsEmpty());
   }
   // Post.
   {
@@ -223,10 +227,10 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
     auto response_or = subject_->PerformRequest(request);
     ASSERT_THAT(response_or, IsSuccessful());
     EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-    EXPECT_EQ(response_or->body.ToString(), response_body_);
+    EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
 
     EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::post);
-    EXPECT_EQ(server_.RequestBody(), post_request_body_);
+    EXPECT_THAT(server_.RequestBody(), StrEq(post_request_body_));
   }
   // Get 2.
   {
@@ -239,10 +243,10 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
     auto response_or = subject_->PerformRequest(request);
     ASSERT_THAT(response_or, IsSuccessful());
     EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-    EXPECT_EQ(response_or->body.ToString(), response_body_);
+    EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
 
     EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
-    EXPECT_EQ(server_.RequestBody(), "");
+    EXPECT_THAT(server_.RequestBody(), IsEmpty());
   }
 }
 

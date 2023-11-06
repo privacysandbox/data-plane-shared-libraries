@@ -14,6 +14,7 @@
 
 #include "public/cpio/utils/metric_aggregation/src/aggregate_metric.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -57,6 +58,7 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricDefinition;
 using google::scp::cpio::MetricUnit;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -182,15 +184,16 @@ TEST_F(AggregateMetricTest, RunMetricPushHandler) {
     auto info = aggregate_metric.GetMetricInfo(code);
     EXPECT_SUCCESS(info.result());
     aggregate_metric.MetricPushHandler(counter_value, info.value());
-    EXPECT_EQ(metric_received.name(), kMetricName);
-    EXPECT_EQ(metric_received.labels().find("EventCode")->second, code);
-    EXPECT_EQ(metric_received.value(), std::to_string(counter_value));
+    EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
+    EXPECT_THAT(metric_received.labels().find("EventCode")->second,
+                StrEq(code));
+    EXPECT_THAT(metric_received.value(), StrEq(std::to_string(counter_value)));
   }
 
   aggregate_metric.MetricPushHandler(counter_value, metric_info);
-  EXPECT_EQ(metric_received.name(), kMetricName);
+  EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
   EXPECT_EQ(metric_received.labels().size(), 0);
-  EXPECT_EQ(metric_received.value(), std::to_string(counter_value));
+  EXPECT_THAT(metric_received.value(), StrEq(std::to_string(counter_value)));
   WaitUntil([&]() { return metric_push_is_called == 3; });
 }
 

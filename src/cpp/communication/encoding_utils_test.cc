@@ -18,7 +18,10 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/escaping.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+using ::testing::StrEq;
 
 namespace privacy_sandbox::server_common {
 namespace {
@@ -37,8 +40,9 @@ TEST(EncodingUtilsTest, EncodeResponsePayloadSuccess) {
   // 01                  - 00000007               - 7061796c6f6164 - 000...
   const std::string expected = "01000000077061796c6f6164";
 
-  EXPECT_EQ(absl::BytesToHexString(actual.value()).substr(0, expected.length()),
-            expected);
+  EXPECT_THAT(
+      absl::BytesToHexString(actual.value()).substr(0, expected.length()),
+      StrEq(expected));
   // The actual value should be encoded and padded to 128 bytes.
   EXPECT_EQ(actual.value().size(), 128);
 }
@@ -71,7 +75,8 @@ TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_NoPadding) {
 
   EXPECT_EQ(decoded_payload->framing_version, 0);
   EXPECT_EQ(decoded_payload->compression_type, CompressionType::kBrotli);
-  EXPECT_EQ(decoded_payload->compressed_data, expected_compressed_message);
+  EXPECT_THAT(decoded_payload->compressed_data,
+              StrEq(expected_compressed_message));
 }
 
 TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_WithPadding) {
@@ -82,7 +87,8 @@ TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_WithPadding) {
 
   EXPECT_EQ(decoded_payload->framing_version, 0);
   EXPECT_EQ(decoded_payload->compression_type, CompressionType::kBrotli);
-  EXPECT_EQ(decoded_payload->compressed_data, expected_compressed_message);
+  EXPECT_THAT(decoded_payload->compressed_data,
+              StrEq(expected_compressed_message));
 }
 
 TEST(EncodingUtilsTest, DecodeRequestPayloadFailure_MalformedPayload) {

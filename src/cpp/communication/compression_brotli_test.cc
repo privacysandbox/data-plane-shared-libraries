@@ -22,6 +22,8 @@
 #include "gtest/gtest.h"
 #include "src/cpp/communication/uncompressed.h"
 
+using ::testing::StrEq;
+
 namespace privacy_sandbox::server_common {
 namespace {
 
@@ -56,7 +58,7 @@ TEST(CompressionBlobReaderTest, Success) {
 
   auto maybe_compression_group = blob_reader.ExtractOneCompressionGroup();
   EXPECT_TRUE(maybe_compression_group.ok());
-  EXPECT_EQ(*maybe_compression_group, "qwertyuiop");
+  EXPECT_THAT(*maybe_compression_group, StrEq("qwertyuiop"));
   EXPECT_TRUE(blob_reader.IsDoneReading());
 }
 
@@ -77,17 +79,17 @@ TEST(CompressionGroupConcatenatorTest, Success) {
 
   auto maybe_compression_group = blob_reader.ExtractOneCompressionGroup();
   EXPECT_TRUE(maybe_compression_group.ok());
-  EXPECT_EQ(*maybe_compression_group, kTestString);
+  EXPECT_THAT(*maybe_compression_group, StrEq(kTestString));
   EXPECT_FALSE(blob_reader.IsDoneReading());
 
   maybe_compression_group = blob_reader.ExtractOneCompressionGroup();
   EXPECT_TRUE(maybe_compression_group.ok());
-  EXPECT_EQ(*maybe_compression_group, kTestString2);
+  EXPECT_THAT(*maybe_compression_group, StrEq(kTestString2));
   EXPECT_FALSE(blob_reader.IsDoneReading());
 
   maybe_compression_group = blob_reader.ExtractOneCompressionGroup();
   EXPECT_TRUE(maybe_compression_group.ok());
-  EXPECT_EQ(*maybe_compression_group, large_message);
+  EXPECT_THAT(*maybe_compression_group, StrEq(large_message));
   EXPECT_TRUE(blob_reader.IsDoneReading());
 }
 

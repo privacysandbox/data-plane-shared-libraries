@@ -23,6 +23,7 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 
 #include "glog/logging.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "quiche/common/quiche_data_writer.h"
 #include "src/cpp/communication/uncompressed.h"
@@ -36,6 +37,7 @@ using ::boost::iostreams::gzip_compressor;
 using ::boost::iostreams::gzip_decompressor;
 using ::boost::iostreams::gzip_params;
 using ::boost::iostreams::gzip::best_compression;
+using ::testing::StrEq;
 
 std::string BoostCompress(absl::string_view decompressed_string) {
   std::istringstream origin(decompressed_string.data());
@@ -72,7 +74,7 @@ TEST(GzipCompressionTests, CompressDecompress_EndToEnd) {
   absl::StatusOr<std::string> compression_group =
       blob_reader.ExtractOneCompressionGroup();
   ASSERT_TRUE(compression_group.ok());
-  ASSERT_EQ(payload, compression_group.value());
+  EXPECT_THAT(compression_group.value(), StrEq(payload));
 }
 
 TEST(GzipCompressionTests, CompressWithBoost) {
@@ -92,7 +94,7 @@ TEST(GzipCompressionTests, CompressWithBoost) {
   absl::StatusOr<std::string> compression_group =
       blob_reader.ExtractOneCompressionGroup();
   ASSERT_TRUE(compression_group.ok());
-  ASSERT_EQ(payload, compression_group.value());
+  EXPECT_THAT(compression_group.value(), StrEq(payload));
 }
 
 TEST(GzipCompressionTests, DecompressWithBoost) {
@@ -105,7 +107,7 @@ TEST(GzipCompressionTests, DecompressWithBoost) {
   absl::StatusOr<std::string> compressed = concatenator.Build();
 
   std::string boost_decompress = BoostDecompress(compressed->substr(4));
-  ASSERT_EQ(payload, boost_decompress);
+  EXPECT_THAT(boost_decompress, StrEq(payload));
 }
 
 }  // namespace

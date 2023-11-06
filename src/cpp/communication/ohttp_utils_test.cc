@@ -16,9 +16,13 @@
 
 #include "absl/strings/escaping.h"
 #include "absl/strings/match.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "quiche/common/quiche_random.h"
 #include "quiche/oblivious_http/oblivious_http_client.h"
+
+using ::testing::HasSubstr;
+using ::testing::StrEq;
 
 namespace privacy_sandbox::server_common {
 namespace {
@@ -68,7 +72,7 @@ TEST(OhttpUtilsTest, DecryptThrowsInvalidInputOnInvalidPrimitive) {
       DecryptEncapsulatedRequest(key, instance->EncapsulateAndSerialize());
   EXPECT_TRUE(IsInvalidArgument(result.status()));
   // Make sure the InvalidArgument error is on the AEAD ID being invalid.
-  EXPECT_TRUE(absl::StrContains(result.status().message(), "Invalid aeadID:3"));
+  EXPECT_THAT(result.status().message(), HasSubstr("Invalid aeadID:3"));
 }
 
 TEST(OhttpUtilsTest, DecryptEncapsulatedRequestSuccess) {
@@ -88,7 +92,7 @@ TEST(OhttpUtilsTest, DecryptEncapsulatedRequestSuccess) {
 
   const auto decrypted_req =
       DecryptEncapsulatedRequest(private_key, payload_bytes);
-  EXPECT_EQ(decrypted_req->GetPlaintextData(), plaintext_payload);
+  EXPECT_THAT(decrypted_req->GetPlaintextData(), StrEq(plaintext_payload));
 }
 
 TEST(OhttpUtilsTest, EncryptAndEncapsulateResponseSuccess) {
@@ -115,7 +119,7 @@ TEST(OhttpUtilsTest, EncryptAndEncapsulateResponseSuccess) {
 
   const auto response = http_client->DecryptObliviousHttpResponse(
       encapsulated_response.value(), oblivious_request_context);
-  EXPECT_EQ(response->GetPlaintextData(), response_payload);
+  EXPECT_THAT(response->GetPlaintextData(), StrEq(response_payload));
 }
 
 }  // namespace

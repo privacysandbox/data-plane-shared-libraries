@@ -16,6 +16,7 @@
 
 #include "cpio/client_providers/public_key_client_provider/src/public_key_client_utils.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <locale>
@@ -40,6 +41,7 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_PUBLIC_KEYS_FETCH_FAILED;
 using google::scp::core::test::ResultIs;
+using ::testing::StrEq;
 
 static constexpr char kPublicKeyHeaderDate[] = "date";
 static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";
@@ -149,10 +151,10 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodySuccess) {
 
   EXPECT_SUCCESS(result);
   EXPECT_EQ(public_keys.size(), 2);
-  EXPECT_EQ(public_keys[0].key_id(), "1234");
-  EXPECT_EQ(public_keys[0].public_key(), "abcdefg");
-  EXPECT_EQ(public_keys[1].key_id(), "5678");
-  EXPECT_EQ(public_keys[1].public_key(), "hijklmn");
+  EXPECT_THAT(public_keys[0].key_id(), StrEq("1234"));
+  EXPECT_THAT(public_keys[0].public_key(), StrEq("abcdefg"));
+  EXPECT_THAT(public_keys[1].key_id(), StrEq("5678"));
+  EXPECT_THAT(public_keys[1].public_key(), StrEq("hijklmn"));
 }
 
 TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoKeys) {

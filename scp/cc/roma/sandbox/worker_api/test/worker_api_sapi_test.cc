@@ -16,6 +16,7 @@
 
 #include "roma/sandbox/worker_api/src/worker_api_sapi.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <string>
@@ -32,6 +33,7 @@ using google::scp::roma::sandbox::constants::kRequestAction;
 using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
+using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::worker_api::test {
 
@@ -71,7 +73,7 @@ TEST(WorkerApiSapiTest, WorkerWorksThroughSandbox) {
   auto response_or = worker_api.RunCode(request);
 
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(*response_or->response, R"("World. Hello!")");
+  EXPECT_THAT(*response_or->response, StrEq(R"("World. Hello!")"));
 }
 
 TEST(WorkerApiSapiTest, WorkerWithInputsWorksThroughSandbox) {
@@ -96,7 +98,7 @@ TEST(WorkerApiSapiTest, WorkerWithInputsWorksThroughSandbox) {
   auto response_or = worker_api.RunCode(request);
 
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(*response_or->response, R"("pos0 string pos1 string")");
+  EXPECT_THAT(*response_or->response, StrEq(R"("pos0 string pos1 string")"));
 }
 
 TEST(WorkerApiSapiTest, ShouldGetExecutionMetrics) {
@@ -121,7 +123,7 @@ TEST(WorkerApiSapiTest, ShouldGetExecutionMetrics) {
   auto response_or = worker_api.RunCode(request);
 
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(*response_or->response, R"("pos0 string pos1 string")");
+  EXPECT_THAT(*response_or->response, StrEq(R"("pos0 string pos1 string")"));
 
   EXPECT_GT(
       response_or->metrics.at(kExecutionMetricSandboxedJsEngineCallDuration),

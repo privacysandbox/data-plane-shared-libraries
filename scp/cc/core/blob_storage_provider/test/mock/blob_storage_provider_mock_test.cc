@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -27,6 +28,7 @@
 
 using google::scp::core::blob_storage_provider::mock::MockBlobStorageProvider;
 using google::scp::core::test::WaitUntil;
+using ::testing::StrEq;
 
 namespace google::scp::core::test {
 TEST(MockBlobStorageProviderTest, GetBlob) {
@@ -185,14 +187,16 @@ TEST(MockBlobStorageProviderTest, ListBlobs) {
       [&](AsyncContext<ListBlobsRequest, ListBlobsResponse>& context) {
         EXPECT_SUCCESS(context.result);
 
-        EXPECT_EQ(context.response->blobs->size(), 7);
-        EXPECT_EQ(*context.response->blobs->at(0).blob_name, "1");
-        EXPECT_EQ(*context.response->blobs->at(1).blob_name, "1/2.txt");
-        EXPECT_EQ(*context.response->blobs->at(2).blob_name, "1/3");
-        EXPECT_EQ(*context.response->blobs->at(3).blob_name, "1/3/4.txt");
-        EXPECT_EQ(*context.response->blobs->at(4).blob_name, "2");
-        EXPECT_EQ(*context.response->blobs->at(6).blob_name, "2/5.txt");
-        EXPECT_EQ(*context.response->blobs->at(5).blob_name, "2.txt");
+        constexpr int kNumValues = 7;
+        absl::InlinedVector<std::string_view, kNumValues> expected = {
+            "1", "1/2.txt", "1/3", "1/3/4.txt", "2", "2.txt", "2/5.txt",
+        };
+
+        EXPECT_EQ(context.response->blobs->size(), kNumValues);
+        for (int i = 0; i < kNumValues; ++i) {
+          EXPECT_THAT(*context.response->blobs->at(i).blob_name,
+                      StrEq(expected[i]));
+        }
 
         condition = true;
       });

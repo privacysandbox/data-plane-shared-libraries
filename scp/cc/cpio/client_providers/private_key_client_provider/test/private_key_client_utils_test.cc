@@ -16,6 +16,7 @@
 
 #include "cpio/client_providers/private_key_client_provider/src/private_key_client_utils.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -52,6 +53,7 @@ using google::scp::core::test::ExpectTimestampEquals;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kTestKeyId[] = "name_test";
@@ -118,8 +120,9 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestSuccess) {
   auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
       1, encryption_key, kms_decrypt_request);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(kms_decrypt_request.ciphertext(), kTestKeyMaterial);
-  EXPECT_EQ(kms_decrypt_request.key_resource_name(), kTestKeyEncryptionKeyUri);
+  EXPECT_THAT(kms_decrypt_request.ciphertext(), StrEq(kTestKeyMaterial));
+  EXPECT_THAT(kms_decrypt_request.key_resource_name(),
+              StrEq(kTestKeyEncryptionKeyUri));
 }
 
 TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestFailed) {
@@ -178,8 +181,9 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestForSinglePartySucceeded) {
   absl::Base64Unescape("singlepartykey", &unescaped_key);
   std::string escaped_key;
   absl::Base64Escape(unescaped_key, &escaped_key);
-  EXPECT_EQ(kms_decrypt_request.ciphertext(), escaped_key);
-  EXPECT_EQ(kms_decrypt_request.key_resource_name(), kTestKeyEncryptionKeyUri);
+  EXPECT_THAT(kms_decrypt_request.ciphertext(), StrEq(escaped_key));
+  EXPECT_THAT(kms_decrypt_request.key_resource_name(),
+              StrEq(kTestKeyEncryptionKeyUri));
 }
 
 TEST(PrivateKeyClientUtilsTest,
@@ -225,8 +229,8 @@ TEST(PrivateKeyClientUtilsTest, GetPrivateKeyInfo) {
   auto result =
       PrivateKeyClientUtils::GetPrivateKeyInfo(encryption_key, private_key);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(private_key.key_id(), "name_test");
-  EXPECT_EQ(private_key.public_key(), kTestPublicKeyMaterial);
+  EXPECT_THAT(private_key.key_id(), StrEq("name_test"));
+  EXPECT_THAT(private_key.public_key(), StrEq(kTestPublicKeyMaterial));
   ExpectTimestampEquals(private_key.expiration_time(),
                         TimeUtil::MillisecondsToTimestamp(kTestExpirationTime));
   ExpectTimestampEquals(private_key.creation_time(),
@@ -244,7 +248,7 @@ TEST(PrivateKeyClientUtilsTest, ReconstructXorKeysetHandle) {
   auto result = PrivateKeyClientUtils::ReconstructXorKeysetHandle(
       endpoint_responses, private_key);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(private_key, message);
+  EXPECT_THAT(private_key, StrEq(message));
 }
 
 TEST(PrivateKeyClientUtilsTest,

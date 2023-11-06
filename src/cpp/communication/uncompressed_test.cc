@@ -18,6 +18,8 @@
 #include "gtest/gtest.h"
 #include "src/cpp/communication/compression.h"
 
+using ::testing::StrEq;
+
 namespace privacy_sandbox::server_common {
 namespace {
 
@@ -41,7 +43,7 @@ TEST(CompressionGroupConcatenatorTest, Success) {
 
     std::string_view output;
     EXPECT_TRUE(data_reader.ReadStringPiece(&output, compression_group_size));
-    EXPECT_EQ(output, test_string);
+    EXPECT_THAT(output, StrEq(test_string));
   }
 }
 
@@ -61,12 +63,12 @@ TEST(CompressionBlobReaderTest, Success) {
 
   auto maybe_compression_group = blob_reader->ExtractOneCompressionGroup();
   EXPECT_TRUE(maybe_compression_group.ok());
-  EXPECT_EQ(*maybe_compression_group, kTestString);
+  EXPECT_THAT(*maybe_compression_group, StrEq(kTestString));
   EXPECT_FALSE(blob_reader->IsDoneReading());
 
   maybe_compression_group = blob_reader->ExtractOneCompressionGroup();
   EXPECT_TRUE(maybe_compression_group.ok());
-  EXPECT_EQ(*maybe_compression_group, kTestString2);
+  EXPECT_THAT(*maybe_compression_group, StrEq(kTestString2));
   EXPECT_TRUE(blob_reader->IsDoneReading());
 }
 

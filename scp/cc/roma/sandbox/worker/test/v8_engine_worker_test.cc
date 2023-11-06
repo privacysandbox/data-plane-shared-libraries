@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstdint>
@@ -43,6 +44,8 @@ using google::scp::roma::sandbox::constants::kRequestTypeJavascriptWithWasm;
 using google::scp::roma::sandbox::constants::kRequestTypeWasm;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
+using ::testing::IsEmpty;
+using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::worker::test {
 static const std::vector<uint8_t> kWasmBin = {
@@ -80,7 +83,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
       worker.RunCode(std::string(js_code), input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
 
-  EXPECT_EQ(response_or->response, R"("Hello World!")");
+  EXPECT_THAT(response_or->response, StrEq(R"("Hello World!")"));
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
@@ -100,7 +103,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
   constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "");
+  EXPECT_THAT(response_or->response, IsEmpty());
 
   // Load v2
   js_code = R"(function hello_js() { return "Hello Version 2!"; })";
@@ -112,7 +115,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "");
+  EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v1
   js_code = "";
@@ -125,7 +128,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, R"("Hello Version 1!")");
+  EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 1!")"));
 
   // Execute v2
   js_code = "";
@@ -138,7 +141,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, R"("Hello Version 2!")");
+  EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 2!")"));
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
@@ -170,7 +173,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
   constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "");
+  EXPECT_THAT(response_or->response, IsEmpty());
 
   // Load v2
   js_code = R"""(
@@ -194,7 +197,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "");
+  EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v1
   {
@@ -209,7 +212,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
 
     response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
     EXPECT_SUCCESS(response_or.result());
-    EXPECT_EQ(response_or->response, "3");
+    EXPECT_THAT(response_or->response, StrEq("3"));
   }
 
   // Execute v2
@@ -225,7 +228,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
 
     response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
     EXPECT_SUCCESS(response_or.result());
-    EXPECT_EQ(response_or->response, "12");
+    EXPECT_THAT(response_or->response, StrEq("12"));
   }
 }
 
@@ -255,7 +258,7 @@ TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
   // Code was loaded so we don't need to send the source code again
   response_or = worker.RunCode("", input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, R"("Hello World!")");
+  EXPECT_THAT(response_or->response, StrEq(R"("Hello World!")"));
 
   // Execute v2 - Should fail since we haven't loaded v2
   metadata[kCodeVersion] = "2";
@@ -282,7 +285,7 @@ TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
   // Code was loaded so we don't need to send the source code again
   response_or = worker.RunCode("", input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, R"("Hello World!")");
+  EXPECT_THAT(response_or->response, StrEq(R"("Hello World!")"));
 }
 
 TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
@@ -301,7 +304,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "");
+  EXPECT_THAT(response_or->response, IsEmpty());
 
   // Load v2
   js_code = R"(function hello_js() { return "Hello Version 2!"; })";
@@ -313,7 +316,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "");
+  EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v1
   js_code = "";
@@ -326,7 +329,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, R"("Hello Version 1!")");
+  EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 1!")"));
 
   // Execute v2
   js_code = "";
@@ -339,7 +342,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, R"("Hello Version 2!")");
+  EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 2!")"));
 
   // Load v2 updated (overwrite the version of the code)
   js_code = R"(function hello_js() { return "Hello Version 2 but Updated!"; })";
@@ -351,7 +354,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "");
+  EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v2 should result in updated version
   js_code = "";
@@ -364,7 +367,8 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, R"("Hello Version 2 but Updated!")");
+  EXPECT_THAT(response_or->response,
+              StrEq(R"("Hello Version 2 but Updated!")"));
 
   // But Executing v1 should yield not change
   js_code = "";
@@ -377,7 +381,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, R"("Hello Version 1!")");
+  EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 1!")"));
 }
 
 TEST_F(V8EngineWorkerTest, ShouldFailIfCompilationContextCacheSizeIsZero) {
@@ -415,7 +419,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
 
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "3");
+  EXPECT_THAT(response_or->response, StrEq("3"));
 }
 
 TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
@@ -442,7 +446,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   auto wasm = absl::Span<const uint8_t>(kWasmBin);
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "");
+  EXPECT_THAT(response_or->response, IsEmpty());
 
   // Load v2
   js_code = R"""(
@@ -472,7 +476,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
 
   response_or = worker.RunCode(js_code, input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "");
+  EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v1
   js_code = "";
@@ -487,7 +491,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   input = {"1", "2"};
   response_or = worker.RunCode(js_code, input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "3");
+  EXPECT_THAT(response_or->response, StrEq("3"));
 
   // Execute v2
   js_code = "";
@@ -501,7 +505,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   input = {"1"};
   response_or = worker.RunCode(js_code, input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "0");
+  EXPECT_THAT(response_or->response, StrEq("0"));
 }
 
 TEST_F(V8EngineWorkerTest,
@@ -538,7 +542,7 @@ TEST_F(V8EngineWorkerTest,
   input = {"1", "2"};
   response_or = worker.RunCode("", input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "3");
+  EXPECT_THAT(response_or->response, StrEq("3"));
 
   // Execute v2 - Should fail since we haven't loaded v2
   metadata[kCodeVersion] = "2";
@@ -565,6 +569,6 @@ TEST_F(V8EngineWorkerTest,
   // Code was loaded so we don't need to send the source code again
   response_or = worker.RunCode("", input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
-  EXPECT_EQ(response_or->response, "3");
+  EXPECT_THAT(response_or->response, StrEq("3"));
 }
 }  // namespace google::scp::roma::sandbox::worker::test

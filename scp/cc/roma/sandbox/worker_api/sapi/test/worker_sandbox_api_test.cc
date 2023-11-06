@@ -16,6 +16,7 @@
 
 #include "roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <signal.h>
@@ -37,6 +38,7 @@ using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
 using google::scp::roma::sandbox::worker::WorkerFactory;
+using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::worker_api::test {
 TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
@@ -62,7 +64,8 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
 
   result = sandbox_api.RunCode(params_proto);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(params_proto.response(), R"js("Hi there from sandboxed JS :)")js");
+  EXPECT_THAT(params_proto.response(),
+              StrEq(R"js("Hi there from sandboxed JS :)")js"));
 
   result = sandbox_api.Stop();
   EXPECT_SUCCESS(result);
@@ -131,7 +134,7 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   to_handle_function_call.join();
 
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(params_proto.response(), R"("from C++ from JS")");
+  EXPECT_THAT(params_proto.response(), StrEq(R"("from C++ from JS")"));
 
   result = sandbox_api.Stop();
   EXPECT_SUCCESS(result);
@@ -171,7 +174,7 @@ TEST(WorkerSandboxApiTest, SandboxShouldComeBackUpIfItDies) {
   (*params_proto.mutable_metadata())[kRequestAction] = kRequestActionExecute;
 
   int sandbox_pid = sandbox_api.GetUnderlyingSandbox()->pid();
-  EXPECT_EQ(0, kill(sandbox_pid, SIGKILL));
+  EXPECT_EQ(kill(sandbox_pid, SIGKILL), 0);
   // Wait for the sandbox to die
   while (sandbox_api.GetUnderlyingSandbox()->is_active()) {}
 
@@ -183,7 +186,8 @@ TEST(WorkerSandboxApiTest, SandboxShouldComeBackUpIfItDies) {
   // Run code again and this time it should work
   result = sandbox_api.RunCode(params_proto);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(params_proto.response(), R"js("Hi there from sandboxed JS :)")js");
+  EXPECT_THAT(params_proto.response(),
+              StrEq(R"js("Hi there from sandboxed JS :)")js"));
 
   result = sandbox_api.Stop();
   EXPECT_SUCCESS(result);
@@ -229,7 +233,7 @@ TEST(WorkerSandboxApiTest,
   params_proto.mutable_input()->Add(R"("from JS")");
 
   int sandbox_pid = sandbox_api.GetUnderlyingSandbox()->pid();
-  EXPECT_EQ(0, kill(sandbox_pid, SIGKILL));
+  EXPECT_EQ(kill(sandbox_pid, SIGKILL), 0);
   // Wait for the sandbox to die
   while (sandbox_api.GetUnderlyingSandbox()->is_active()) {}
 
@@ -244,7 +248,7 @@ TEST(WorkerSandboxApiTest,
 
   to_handle_function_call.join();
 
-  EXPECT_EQ(params_proto.response(), R"("from C++ hook :) from JS")");
+  EXPECT_THAT(params_proto.response(), StrEq(R"("from C++ hook :) from JS")"));
 
   result = sandbox_api.Stop();
   EXPECT_SUCCESS(result);

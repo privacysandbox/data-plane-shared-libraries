@@ -17,6 +17,7 @@
 // These tests validate the C++/JS function binding. That is, the registration
 // of a C++ function which gets called when a JS code block invokes it.
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <linux/limits.h>
@@ -33,6 +34,8 @@
 #include "include/v8.h"
 #include "roma/config/src/function_binding_object.h"
 #include "roma/config/src/type_converter.h"
+
+using ::testing::StrEq;
 
 namespace google::scp::roma::config::test {
 class FunctionBindingTest : public ::testing::Test {
@@ -161,8 +164,9 @@ TEST_F(FunctionBindingTest, FunctionBindingByNameStringInputAndStringOutput) {
   auto result =
       RunV8Function(isolate_, "str_in_str_out('Hello from JS!');", func);
 
-  EXPECT_EQ(result,
-            "Hello from JS! Value added within user-provided function call");
+  EXPECT_THAT(
+      result,
+      StrEq("Hello from JS! Value added within user-provided function call"));
 }
 
 TEST_F(FunctionBindingTest,
@@ -176,9 +180,9 @@ TEST_F(FunctionBindingTest,
 
   auto result = RunV8Function(isolate_, "str_in_str_out(1);", func);
 
-  EXPECT_EQ(result,
-            "Uncaught Error: (str_in_str_out) Error encountered while "
-            "converting types");
+  EXPECT_THAT(result,
+              StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
+                    "converting types"));
 }
 
 TEST_F(
@@ -193,9 +197,9 @@ TEST_F(
 
   auto result = RunV8Function(isolate_, "str_in_str_out([1,2,3]);", func);
 
-  EXPECT_EQ(result,
-            "Uncaught Error: (str_in_str_out) Error encountered while "
-            "converting types");
+  EXPECT_THAT(result,
+              StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
+                    "converting types"));
 }
 
 TEST_F(FunctionBindingTest,
@@ -209,9 +213,9 @@ TEST_F(FunctionBindingTest,
 
   auto result = RunV8Function(isolate_, "str_in_str_out(['Hel', 'lo']);", func);
 
-  EXPECT_EQ(result,
-            "Uncaught Error: (str_in_str_out) Error encountered while "
-            "converting types");
+  EXPECT_THAT(result,
+              StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
+                    "converting types"));
 }
 
 TEST_F(FunctionBindingTest,
@@ -225,9 +229,9 @@ TEST_F(FunctionBindingTest,
 
   auto result = RunV8Function(isolate_, "obj = {}; str_in_str_out(obj);", func);
 
-  EXPECT_EQ(result,
-            "Uncaught Error: (str_in_str_out) Error encountered while "
-            "converting types");
+  EXPECT_THAT(result,
+              StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
+                    "converting types"));
 }
 
 TEST_F(FunctionBindingTest, PassingLessArgumentsThanExpected) {
@@ -240,8 +244,9 @@ TEST_F(FunctionBindingTest, PassingLessArgumentsThanExpected) {
 
   auto result = RunV8Function(isolate_, "str_in_str_out();", func);
 
-  EXPECT_EQ(result,
-            "Uncaught Error: (str_in_str_out) Unexpected number of inputs");
+  EXPECT_THAT(
+      result,
+      StrEq("Uncaught Error: (str_in_str_out) Unexpected number of inputs"));
 }
 
 TEST_F(FunctionBindingTest, PassingMoreArgumentsThanExpected) {
@@ -255,8 +260,9 @@ TEST_F(FunctionBindingTest, PassingMoreArgumentsThanExpected) {
   auto result = RunV8Function(
       isolate_, "str_in_str_out('All good', 'Unexpected');", func);
 
-  EXPECT_EQ(result,
-            "Uncaught Error: (str_in_str_out) Unexpected number of inputs");
+  EXPECT_THAT(
+      result,
+      StrEq("Uncaught Error: (str_in_str_out) Unexpected number of inputs"));
 }
 
 TEST_F(FunctionBindingTest, PassingUndefinedValueToFunction) {
@@ -270,9 +276,9 @@ TEST_F(FunctionBindingTest, PassingUndefinedValueToFunction) {
   auto result =
       RunV8Function(isolate_, "a = undefined; str_in_str_out(a);", func);
 
-  EXPECT_EQ(result,
-            "Uncaught Error: (str_in_str_out) Error encountered while "
-            "converting types");
+  EXPECT_THAT(result,
+              StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
+                    "converting types"));
 }
 
 TEST_F(FunctionBindingTest, PassingNullValueToFunction) {
@@ -285,9 +291,9 @@ TEST_F(FunctionBindingTest, PassingNullValueToFunction) {
 
   auto result = RunV8Function(isolate_, "a = null; str_in_str_out(a);", func);
 
-  EXPECT_EQ(result,
-            "Uncaught Error: (str_in_str_out) Error encountered while "
-            "converting types");
+  EXPECT_THAT(result,
+              StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
+                    "converting types"));
 }
 
 // User provided JS function
@@ -353,7 +359,7 @@ TEST_F(FunctionBindingTest, ShouldAllowInlineHandler) {
 
   auto result = RunV8Function(isolate_, js_source, func);
 
-  EXPECT_EQ(result, "From JS-From lambda");
+  EXPECT_THAT(result, StrEq("From JS-From lambda"));
 }
 
 class MyHandler {
@@ -380,7 +386,7 @@ TEST_F(FunctionBindingTest, ShouldAllowMemberFunctionAsHandler) {
 
   auto result = RunV8Function(isolate_, js_source, func);
 
-  EXPECT_EQ(result, "From JS-From member function");
+  EXPECT_THAT(result, StrEq("From JS-From member function"));
 }
 
 }  // namespace google::scp::roma::config::test

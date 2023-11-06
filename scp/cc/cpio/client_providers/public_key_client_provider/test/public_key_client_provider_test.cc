@@ -14,6 +14,7 @@
 
 #include "cpio/client_providers/public_key_client_provider/src/public_key_client_provider.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <functional>
@@ -49,6 +50,7 @@ using google::scp::core::errors::
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
+using ::testing::StrEq;
 
 static constexpr char kPublicKeyHeaderDate[] = "date";
 static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";
@@ -151,10 +153,12 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
         EXPECT_SUCCESS(context.result);
-        EXPECT_EQ(context.response->public_keys()[0].key_id(), "1234");
-        EXPECT_EQ(context.response->public_keys()[0].public_key(), "abcdefg");
-        EXPECT_EQ(context.response->public_keys()[1].key_id(), "5678");
-        EXPECT_EQ(context.response->public_keys()[1].public_key(), "hijklmn");
+        EXPECT_THAT(context.response->public_keys()[0].key_id(), StrEq("1234"));
+        EXPECT_THAT(context.response->public_keys()[0].public_key(),
+                    StrEq("abcdefg"));
+        EXPECT_THAT(context.response->public_keys()[1].key_id(), StrEq("5678"));
+        EXPECT_THAT(context.response->public_keys()[1].public_key(),
+                    StrEq("hijklmn"));
         EXPECT_EQ(context.response->expiration_time().seconds(),
                   kExpectedExpiredTimeInSeconds);
         success_callback++;

@@ -16,6 +16,7 @@
 
 #include "roma/sandbox/worker_api/sapi/src/worker_wrapper.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "absl/container/flat_hash_map.h"
@@ -38,6 +39,7 @@ using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
 using google::scp::roma::sandbox::worker::WorkerFactory;
+using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::worker_api::test {
 constexpr size_t kBufferSize = 1 * 1024 * 1024 /* 1Mib */;
@@ -102,7 +104,7 @@ TEST(WorkerWrapperTest,
   ::worker_api::WorkerParamsProto response_proto;
   ASSERT_TRUE(response_proto.ParseFromArray(buffer_ptr_->data(),
                                             output_serialized_size_ptr));
-  EXPECT_EQ(response_proto.response(), R"js("Hi there from JS :)")js");
+  EXPECT_THAT(response_proto.response(), StrEq(R"js("Hi there from JS :)")js"));
 
   result = ::Stop();
   EXPECT_EQ(SC_OK, result);
@@ -168,7 +170,7 @@ TEST(WorkerWrapperTest,
   ::worker_api::WorkerParamsProto response_proto;
   ASSERT_TRUE(response_proto.ParseFromArray(buffer_ptr_->data(),
                                             output_serialized_size_ptr));
-  EXPECT_EQ(response_proto.response(), R"js("Hi there from JS :)")js");
+  EXPECT_THAT(response_proto.response(), StrEq(R"js("Hi there from JS :)")js"));
 
   result = ::Stop();
   EXPECT_EQ(SC_OK, result);
@@ -259,7 +261,7 @@ TEST(WorkerWrapperTest, CanRunCodeWithBufferShareOnly) {
   ::worker_api::WorkerParamsProto response_proto;
   ASSERT_TRUE(response_proto.ParseFromArray(buffer_ptr_->data(),
                                             output_serialized_size_ptr));
-  EXPECT_EQ(response_proto.response(), R"js("Hi there from JS :)")js");
+  EXPECT_THAT(response_proto.response(), StrEq(R"js("Hi there from JS :)")js"));
 
   result = ::Stop();
   EXPECT_EQ(SC_OK, result);
