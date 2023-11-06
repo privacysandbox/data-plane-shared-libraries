@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.50.0 (2023-11-06)
+
+
+### Features
+
+* Add openssh-client to build-debian image
+
 ## 0.49.1 (2023-10-30)
 
 

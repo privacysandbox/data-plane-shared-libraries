@@ -70,12 +70,13 @@ function install_misc() {
     chrpath="0.16-*" \
     libcurl4="7.68.*" \
     curl="7.68.*" \
-    file="1:5*" \
+    file="1:5.*" \
     gettext="0.19.*" \
     git="1:2.25.*" \
     gnupg="2.2.*" \
     locales="2.31-*" \
     lsb-release="11.1.*" \
+    openssh-client="1:8.2*" \
     patch="2.7.*" \
     rename="1.10-*" \
     software-properties-common="0.99.*" \
