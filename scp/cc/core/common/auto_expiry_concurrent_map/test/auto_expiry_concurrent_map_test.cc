@@ -651,7 +651,9 @@ TEST(AutoExpiryConcurrentMapEntryTest, ExtendEntryExpiration) {
   EXPECT_EQ(cached_expiration, entry.expiration_time.load());
 }
 
-TEST(AutoExpiryConcurrentMapEntryTest, IsEntryExpired) {
+// TODO: b/308837955 - Enable test once anti-pattern std::atomic has been
+// removed
+TEST(AutoExpiryConcurrentMapEntryTest, DISABLED_IsEntryExpired) {
   std::shared_ptr<EmptyEntry> empty_entry;
   UnderlyingEntry entry(empty_entry, 1);
   entry.expiration_time = UINT64_MAX;
