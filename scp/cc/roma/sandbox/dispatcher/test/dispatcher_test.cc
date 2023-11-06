@@ -48,6 +48,7 @@ using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 using google::scp::roma::sandbox::worker_pool::WorkerPool;
 using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
+using ::testing::StrEq;
 
 namespace {
 WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
@@ -109,7 +110,7 @@ TEST(DispatcherTest, CanRunCode) {
       std::move(execute_request),
       [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
-        EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
+        EXPECT_THAT((*resp)->resp, StrEq(R"("Hello Some string")"));
         done_executing.store(true);
       });
 
@@ -164,7 +165,7 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
       std::move(execute_request),
       [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
-        EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
+        EXPECT_THAT((*resp)->resp, StrEq(R"("Hello Some string")"));
         done_executing.store(true);
       });
 
@@ -289,8 +290,8 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
         [&execution_count,
          i](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
-          EXPECT_EQ(absl::StrCat(R"("Hello)", i, R"( Some string")"),
-                    (*resp)->resp);
+          EXPECT_THAT((*resp)->resp,
+                      absl::StrCat(R"("Hello)", i, R"( Some string")"));
           execution_count++;
         });
 
@@ -541,7 +542,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
       std::move(execute_request),
       [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
-        EXPECT_EQ(R"("Hello Some string")", (*resp)->resp);
+        EXPECT_THAT((*resp)->resp, StrEq(R"("Hello Some string")"));
         done_executing.store(true);
       });
 
@@ -590,7 +591,8 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
       std::move(execute_request),
       [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
         EXPECT_TRUE(resp->ok());
-        EXPECT_EQ(R"("Hello after restart :) Some string")", (*resp)->resp);
+        EXPECT_THAT((*resp)->resp,
+                    StrEq(R"("Hello after restart :) Some string")"));
         done_executing.store(true);
       });
 
@@ -689,7 +691,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
         [&done_executing](
             std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
-          EXPECT_EQ(R"("Hello 1 Some string 1")", (*resp)->resp);
+          EXPECT_THAT((*resp)->resp, StrEq(R"("Hello 1 Some string 1")"));
           done_executing.store(true);
         });
     EXPECT_SUCCESS(result);
@@ -709,7 +711,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
         [&done_executing](
             std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
-          EXPECT_EQ(R"("Hello 2 Some string 2")", (*resp)->resp);
+          EXPECT_THAT((*resp)->resp, StrEq(R"("Hello 2 Some string 2")"));
           done_executing.store(true);
         });
 
@@ -816,7 +818,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
         [&done_executing](
             std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
-          EXPECT_EQ("\"Hello 1 Some string 1\"", (*resp)->resp);
+          EXPECT_THAT((*resp)->resp, StrEq("\"Hello 1 Some string 1\""));
           done_executing.store(true);
         });
     EXPECT_SUCCESS(result);
@@ -836,7 +838,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
         [&done_executing](
             std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
-          EXPECT_EQ("\"Hello 2 Some string 2\"", (*resp)->resp);
+          EXPECT_THAT((*resp)->resp, StrEq("\"Hello 2 Some string 2\""));
           done_executing.store(true);
         });
 
@@ -857,7 +859,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
         [&done_executing](
             std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
-          EXPECT_EQ("\"Hello 3 Some string 3\"", (*resp)->resp);
+          EXPECT_THAT((*resp)->resp, StrEq("\"Hello 3 Some string 3\""));
           done_executing.store(true);
         });
 

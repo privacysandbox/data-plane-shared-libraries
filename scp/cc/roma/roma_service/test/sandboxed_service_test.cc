@@ -36,6 +36,8 @@
 using google::scp::core::test::WaitUntil;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using ::testing::HasSubstr;
+using ::testing::IsEmpty;
+using ::testing::StrEq;
 
 namespace google::scp::roma::test {
 static const std::vector<uint8_t> kWasmBin = {
@@ -59,10 +61,10 @@ TEST(SandboxedServiceTest,
 
   auto status = RomaInit(config);
   EXPECT_FALSE(status.ok());
-  EXPECT_EQ(
-      "Roma initialization failed due to internal error: Could not initialize "
-      "the wrapper API.",
-      status.message());
+  EXPECT_THAT(status.message(),
+              StrEq("Roma initialization failed due to internal "
+                    "error: Could not initialize "
+                    "the wrapper API."));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -117,7 +119,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -177,7 +179,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -238,14 +240,15 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
     execution_obj->handler_name = "WrongHandler";
     execution_obj->input.push_back(R"("Foobar")");
 
-    status = Execute(std::move(execution_obj),
-                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       // Execute should fail with the expected error.
-                       EXPECT_FALSE(resp->ok());
-                       EXPECT_EQ("Failed to get valid function handler.",
-                                 resp->status().message());
-                       failed_finished.store(true);
-                     });
+    status =
+        Execute(std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  // Execute should fail with the expected error.
+                  EXPECT_FALSE(resp->ok());
+                  EXPECT_THAT(resp->status().message(),
+                              StrEq("Failed to get valid function handler."));
+                  failed_finished.store(true);
+                });
     EXPECT_TRUE(status.ok());
   }
 
@@ -253,7 +256,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
   WaitUntil([&]() { return failed_finished.load(); }, std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -306,7 +309,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -359,7 +362,7 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, "undefined");
+  EXPECT_THAT(result, StrEq("undefined"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -389,7 +392,7 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      EXPECT_EQ("my_cool_id", (*resp)->id);
+                      EXPECT_THAT((*resp)->id, StrEq("my_cool_id"));
                       load_finished.store(true);
                     });
     EXPECT_TRUE(status.ok());
@@ -416,7 +419,7 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -439,14 +442,15 @@ TEST(SandboxedServiceTest,
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
-    status = Execute(std::move(execution_obj),
-                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       // Execute should fail with the expected error.
-                       EXPECT_FALSE(resp->ok());
-                       EXPECT_EQ("Could not find code version in cache.",
-                                 resp->status().message());
-                       execute_finished.store(true);
-                     });
+    status =
+        Execute(std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  // Execute should fail with the expected error.
+                  EXPECT_FALSE(resp->ok());
+                  EXPECT_THAT(resp->status().message(),
+                              StrEq("Could not find code version in cache."));
+                  execute_finished.store(true);
+                });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return execute_finished.load(); },
@@ -531,7 +535,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("some cool string1 string2")");
+  EXPECT_THAT(result, StrEq(R"("some cool string1 string2")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -578,7 +582,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
         [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
           for (auto resp : batch_resp) {
             EXPECT_TRUE(resp.ok());
-            EXPECT_EQ(resp->resp, R"("Hello world! \"Foobar\"")");
+            EXPECT_THAT(resp->resp, StrEq(R"("Hello world! \"Foobar\"")"));
           }
           res_count.store(batch_resp.size());
           execute_finished.store(true);
@@ -597,8 +601,8 @@ TEST(SandboxedServiceTest, BatchExecute) {
 TEST(SandboxedServiceTest,
      BatchExecuteShouldExecuteAllRequestsEvenWithSmallQueues) {
   Config config;
-  // Queue of size one and 10 workers. Incoming work should block while workers
-  // are busy and can't pick up items.
+  // Queue of size one and 10 workers. Incoming work should block while
+  // workers are busy and can't pick up items.
   config.worker_queue_max_items = 1;
   config.number_of_workers = 10;
   auto status = RomaInit(config);
@@ -643,7 +647,7 @@ TEST(SandboxedServiceTest,
           [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
             for (auto resp : batch_resp) {
               EXPECT_TRUE(resp.ok());
-              EXPECT_EQ(resp->resp, R"("Hello world! \"Foobar\"")");
+              EXPECT_THAT(resp->resp, StrEq(R"("Hello world! \"Foobar\"")"));
             }
             res_count.store(batch_resp.size());
             execute_finished.store(true);
@@ -715,7 +719,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
                 EXPECT_TRUE(resp.ok());
                 auto result =
                     "\"Hello world! \\\"Foobar" + std::to_string(i) + "\\\"\"";
-                EXPECT_EQ(resp->resp, result);
+                EXPECT_THAT(resp->resp, StrEq(result));
               }
               res_count += batch_resp.size();
               execute_finished++;
@@ -803,7 +807,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
     std::string expected_result = std::string(R"("Hello world! )") +
                                   std::string("\\\"Foobar") +
                                   std::to_string(i) + std::string("\\\"\"");
-    EXPECT_EQ(results[i], expected_result);
+    EXPECT_THAT(results[i], StrEq(expected_result));
   }
 
   status = RomaStop();
@@ -868,7 +872,7 @@ TEST(SandboxedServiceTest,
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Foobar String from C++")");
+  EXPECT_THAT(result, StrEq(R"("Foobar String from C++")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -877,8 +881,8 @@ TEST(SandboxedServiceTest,
 void StringInStringOutFunctionWithRequestIdCheck(
     proto::FunctionBindingIoProto& io) {
   // Should be able to read the request ID
-  EXPECT_EQ("id-that-should-be-available-in-hook-metadata",
-            io.metadata().at("roma.request.id"));
+  EXPECT_THAT(io.metadata().at("roma.request.id"),
+              StrEq("id-that-should-be-available-in-hook-metadata"));
 
   io.set_output_string(io.input_string() + " String from C++");
 }
@@ -939,7 +943,7 @@ TEST(SandboxedServiceTest,
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Foobar String from C++")");
+  EXPECT_THAT(result, StrEq(R"("Foobar String from C++")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1008,9 +1012,10 @@ TEST(
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(
+  EXPECT_THAT(
       result,
-      R"(["str 1 Some other stuff 1","str 2 Some other stuff 2","str 3 Some other stuff 3"])");
+      StrEq(
+          R"(["str 1 Some other stuff 1","str 2 Some other stuff 2","str 3 Some other stuff 3"])"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1162,7 +1167,7 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
 
-  EXPECT_EQ(result, R"("String from C++")");
+  EXPECT_THAT(result, StrEq(R"("String from C++")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1220,7 +1225,7 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Foobar Hello World from WASM")");
+  EXPECT_THAT(result, StrEq(R"("Foobar Hello World from WASM")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1269,7 +1274,8 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
     EXPECT_TRUE(status.ok());
   }
 
-  // The execution should timeout as the kTimeoutDurationTag value is too small.
+  // The execution should timeout as the kTimeoutDurationTag value is too
+  // small.
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
@@ -1277,14 +1283,15 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
     execution_obj->handler_name = "hello_js";
     execution_obj->tags[kTimeoutDurationTag] = "100ms";
 
-    status = Execute(std::move(execution_obj),
-                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       EXPECT_FALSE(resp->ok());
-                       // Timeout error.
-                       EXPECT_EQ(resp->status().message(),
-                                 "V8 execution terminated due to timeout.");
-                       execute_timeout.store(true);
-                     });
+    status =
+        Execute(std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_FALSE(resp->ok());
+                  // Timeout error.
+                  EXPECT_THAT(resp->status().message(),
+                              StrEq("V8 execution terminated due to timeout."));
+                  execute_timeout.store(true);
+                });
     EXPECT_TRUE(status.ok());
   }
 
@@ -1299,8 +1306,8 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_FALSE(resp->ok());
-                       EXPECT_EQ(resp->status().message(),
-                                 "Error when invoking the handler.");
+                       EXPECT_THAT(resp->status().message(),
+                                   StrEq("Error when invoking the handler."));
                        execute_failed.store(true);
                      });
     EXPECT_TRUE(status.ok());
@@ -1319,7 +1326,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
-                       EXPECT_EQ(code_resp.resp, R"("Hello world!")");
+                       EXPECT_THAT(code_resp.resp, StrEq(R"("Hello world!")"));
                        execute_success.store(true);
                      });
     EXPECT_TRUE(status.ok());
@@ -1423,8 +1430,9 @@ TEST(SandboxedServiceTest,
         std::move(execution_obj),
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_FALSE(resp->ok());
-          EXPECT_EQ("Sandbox worker crashed during execution of request.",
-                    resp->status().message());
+          EXPECT_THAT(
+              resp->status().message(),
+              StrEq("Sandbox worker crashed during execution of request."));
           execute_finished.store(true);
         });
     EXPECT_TRUE(status.ok());
@@ -1459,7 +1467,7 @@ TEST(SandboxedServiceTest,
     WaitUntil([&]() { return execute_finished.load(); },
               std::chrono::seconds(10));
 
-    EXPECT_EQ("233", result);
+    EXPECT_THAT(result, StrEq("233"));
   }
 
   execute_finished.store(false);
@@ -1488,7 +1496,7 @@ TEST(SandboxedServiceTest,
     WaitUntil([&]() { return execute_finished.load(); },
               std::chrono::seconds(10));
 
-    EXPECT_EQ(R"("Hello, World!")", result);
+    EXPECT_THAT(result, StrEq(R"("Hello, World!")"));
   }
 
   status = RomaStop();
@@ -1499,8 +1507,8 @@ TEST(SandboxedServiceTest,
      LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
   {
     Config config;
-    // This module was compiled with a memory requirement of 10MiB (160 pages -
-    // each page is 64KiB). When we set the limit to 150 pages, it fails to
+    // This module was compiled with a memory requirement of 10MiB (160 pages
+    // - each page is 64KiB). When we set the limit to 150 pages, it fails to
     // properly build the WASM object.
     config.max_wasm_memory_number_of_pages = 150;
     config.number_of_workers = 1;
@@ -1526,8 +1534,8 @@ TEST(SandboxedServiceTest,
           [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
             // Fails
             EXPECT_FALSE(resp->ok());
-            EXPECT_EQ("Failed to create wasm object.",
-                      resp->status().message());
+            EXPECT_THAT(resp->status().message(),
+                        StrEq("Failed to create wasm object."));
             load_finished.store(true);
           });
       EXPECT_TRUE(status.ok());
@@ -1539,14 +1547,14 @@ TEST(SandboxedServiceTest,
     EXPECT_TRUE(status.ok());
   }
 
-  // We now load the same WASM but with the amount of memory it requires, and it
-  // should work. Note that this requires restarting the service since this
+  // We now load the same WASM but with the amount of memory it requires, and
+  // it should work. Note that this requires restarting the service since this
   // limit is an initialization limit for the JS engine.
 
   {
     Config config;
-    // This module was compiled with a memory requirement of 10MiB (160 pages -
-    // each page is 64KiB). When we set the limit to 160 pages, it should be
+    // This module was compiled with a memory requirement of 10MiB (160 pages
+    // - each page is 64KiB). When we set the limit to 160 pages, it should be
     // able to properly build the WASM object.
     config.max_wasm_memory_number_of_pages = 160;
     config.number_of_workers = 1;
@@ -1651,7 +1659,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1710,7 +1718,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world1! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world1! \"Foobar\"")"));
 
   load_finished = false;
 
@@ -1736,8 +1744,8 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
 
   execute_finished = false;
 
-  // Execute version 1 - Should fail since the cache has one spot, and we loaded
-  // a new version.
+  // Execute version 1 - Should fail since the cache has one spot, and we
+  // loaded a new version.
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
@@ -1780,7 +1788,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   }
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world2! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world2! \"Foobar\"")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1866,7 +1874,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
 
-  EXPECT_EQ(result, R"("Hello world1! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world1! \"Foobar\"")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1944,7 +1952,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   EXPECT_GE(elapsed_time_ms, 9000);
   // But less than 10.
   EXPECT_LE(elapsed_time_ms, 10000);
-  EXPECT_EQ(result, R"("Hello world!")");
+  EXPECT_THAT(result, StrEq(R"("Hello world!")"));
 
   result = "";
   execute_finished = false;
@@ -1976,7 +1984,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   EXPECT_GE(elapsed_time_ms, 10000);
   // But less than 11
   EXPECT_LE(elapsed_time_ms, 11000);
-  EXPECT_EQ(result, "");
+  EXPECT_THAT(result, IsEmpty());
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1999,14 +2007,14 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
   )JS_CODE";
 
-    status =
-        LoadCodeObj(std::move(code_obj),
-                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_FALSE(resp->ok());
-                      EXPECT_EQ(resp->status().message(),
-                                "Failed to compile JavaScript code object.");
-                      load_finished.store(true);
-                    });
+    status = LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_FALSE(resp->ok());
+          EXPECT_THAT(resp->status().message(),
+                      StrEq("Failed to compile JavaScript code object."));
+          load_finished.store(true);
+        });
     EXPECT_TRUE(status.ok());
   }
 
@@ -2055,13 +2063,14 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("9000");
 
-    status = Execute(std::move(execution_obj),
-                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       ASSERT_TRUE(resp->ok());
-                       auto& code_resp = **resp;
-                       EXPECT_EQ(code_resp.resp, R"("Hello world! 9000")");
-                       execute_finished.store(true);
-                     });
+    status =
+        Execute(std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  ASSERT_TRUE(resp->ok());
+                  auto& code_resp = **resp;
+                  EXPECT_THAT(code_resp.resp, StrEq(R"("Hello world! 9000")"));
+                  execute_finished.store(true);
+                });
     EXPECT_TRUE(status.ok());
   }
 
@@ -2075,8 +2084,8 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_FALSE(resp->ok());
-                       EXPECT_EQ(resp->status().message(),
-                                 "Error when invoking the handler.");
+                       EXPECT_THAT(resp->status().message(),
+                                   StrEq("Error when invoking the handler."));
                        execute_failed.store(true);
                      });
     EXPECT_TRUE(status.ok());
@@ -2131,13 +2140,14 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("9000");
 
-    status = Execute(std::move(execution_obj),
-                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       ASSERT_TRUE(resp->ok());
-                       auto& code_resp = **resp;
-                       EXPECT_EQ(code_resp.resp, R"("Hello world! 9000")");
-                       execute_finished.store(true);
-                     });
+    status =
+        Execute(std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  ASSERT_TRUE(resp->ok());
+                  auto& code_resp = **resp;
+                  EXPECT_THAT(code_resp.resp, StrEq(R"("Hello world! 9000")"));
+                  execute_finished.store(true);
+                });
     EXPECT_TRUE(status.ok());
   }
 
@@ -2151,8 +2161,8 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        ASSERT_FALSE(resp->ok());
-                       EXPECT_EQ(resp->status().message(),
-                                 "Error when invoking the handler.");
+                       EXPECT_THAT(resp->status().message(),
+                                   StrEq("Error when invoking the handler."));
                        execute_failed.store(true);
                      });
     EXPECT_TRUE(status.ok());
@@ -2218,7 +2228,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Foobar1 Barfoo2")");
+  EXPECT_THAT(result, StrEq(R"("Foobar1 Barfoo2")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2265,8 +2275,8 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_FALSE(resp->ok());
                        // Should return failure
-                       EXPECT_EQ("Error parsing input as valid JSON.",
-                                 resp->status().message());
+                       EXPECT_THAT(resp->status().message(),
+                                   StrEq("Error parsing input as valid JSON."));
                        execute_finished.store(true);
                      });
     EXPECT_TRUE(status.ok());
@@ -2317,17 +2327,16 @@ TEST(SandboxedServiceTest,
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
-    status = Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          // Execution should fail since load didn't work for this
-          // code version
-          EXPECT_FALSE(resp->ok());
-          EXPECT_EQ(
-              "Could not find a stored context for the execution request.",
-              resp->status().message());
-          execute_finished.store(true);
-        });
+    status = Execute(std::move(execution_obj),
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                       // Execution should fail since load didn't work for this
+                       // code version
+                       EXPECT_FALSE(resp->ok());
+                       EXPECT_THAT(resp->status().message(),
+                                   StrEq("Could not find a stored context "
+                                         "for the execution request."));
+                       execute_finished.store(true);
+                     });
     EXPECT_TRUE(status.ok());
   }
   WaitUntil([&]() { return execute_finished.load(); },
@@ -2364,7 +2373,7 @@ TEST(SandboxedServiceTest,
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
-                       EXPECT_EQ(R"("Hello there")", (*resp)->resp);
+                       EXPECT_THAT((*resp)->resp, StrEq(R"("Hello there")"));
                        execute_finished.store(true);
                      });
     EXPECT_TRUE(status.ok());
@@ -2440,7 +2449,8 @@ TEST(SandboxedServiceTest,
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
 
-  EXPECT_EQ(result, R"({"0":1,"1":2,"2":3,"3":4,"4":4,"5":3,"6":2,"7":1})");
+  EXPECT_THAT(result,
+              StrEq(R"({"0":1,"1":2,"2":3,"3":4,"4":4,"5":3,"6":2,"7":1})"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2486,7 +2496,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
-                       EXPECT_EQ(R"("version 1")", (*resp)->resp);
+                       EXPECT_THAT((*resp)->resp, StrEq(R"("version 1")"));
                        execute_finished.store(true);
                      });
     EXPECT_TRUE(status.ok());
@@ -2525,7 +2535,8 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
-                       EXPECT_EQ(R"("version 1 but updated")", (*resp)->resp);
+                       EXPECT_THAT((*resp)->resp,
+                                   StrEq(R"("version 1 but updated")"));
                        execute_finished.store(true);
                      });
     EXPECT_TRUE(status.ok());
@@ -2611,7 +2622,7 @@ TEST(SandboxedServiceTest,
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
 
-  EXPECT_EQ(result, R"str("Hello there :)")str");
+  EXPECT_THAT(result, StrEq(R"str("Hello there :)")str"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2676,7 +2687,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, "3");
+  EXPECT_THAT(result, StrEq("3"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2716,9 +2727,9 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
-    EXPECT_EQ(status.message(),
-              "Roma LoadCodeObj failed due to wasm code and wasm code "
-              "array conflict.");
+    EXPECT_THAT(status.message(),
+                StrEq("Roma LoadCodeObj failed due to wasm code and wasm code "
+                      "array conflict."));
   }
 
   // Missing JS code
@@ -2734,8 +2745,8 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
-    EXPECT_EQ(status.message(),
-              "Roma LoadCodeObj failed due to empty code content.");
+    EXPECT_THAT(status.message(),
+                StrEq("Roma LoadCodeObj failed due to empty code content."));
   }
 
   // Missing wasm code array name tag
@@ -2751,9 +2762,9 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
-    EXPECT_EQ(status.message(),
-              "Roma LoadCodeObj failed due to empty wasm_bin or "
-              "missing wasm code array name tag.");
+    EXPECT_THAT(status.message(),
+                StrEq("Roma LoadCodeObj failed due to empty wasm_bin or "
+                      "missing wasm code array name tag."));
   }
 
   // Missing wasm_bin
@@ -2769,9 +2780,9 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
-    EXPECT_EQ(status.message(),
-              "Roma LoadCodeObj failed due to empty wasm_bin or "
-              "missing wasm code array name tag.");
+    EXPECT_THAT(status.message(),
+                StrEq("Roma LoadCodeObj failed due to empty wasm_bin or "
+                      "missing wasm code array name tag."));
   }
 
   // Wrong wasm array name tag
@@ -2878,7 +2889,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, "3");
+  EXPECT_THAT(result, StrEq("3"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2951,8 +2962,9 @@ TEST(SandboxedServiceTest,
         std::move(execution_obj),
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_FALSE(resp->ok());
-          EXPECT_EQ("Sandbox worker crashed during execution of request.",
-                    resp->status().message());
+          EXPECT_THAT(
+              resp->status().message(),
+              StrEq("Sandbox worker crashed during execution of request."));
           execute_finished.store(true);
         });
     EXPECT_TRUE(status.ok());
@@ -2988,7 +3000,7 @@ TEST(SandboxedServiceTest,
     WaitUntil([&]() { return execute_finished.load(); },
               std::chrono::seconds(10));
 
-    EXPECT_EQ("3", result);
+    EXPECT_THAT(result, StrEq("3"));
   }
 
   status = RomaStop();
@@ -3050,7 +3062,7 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
   WaitUntil([&]() { return success_execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world! ")");
+  EXPECT_THAT(result, StrEq(R"("Hello world! ")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -3202,15 +3214,15 @@ TEST(SandboxedServiceTest,
     std::string dummy_js_string(payload_size, 'A');
     code_obj->js = "\"" + dummy_js_string + "\"";
 
-    status =
-        LoadCodeObj(std::move(code_obj),
-                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_FALSE(resp->ok());
-                      EXPECT_EQ(resp->status().message(),
-                                "The size of request serialized data is "
-                                "larger than the Buffer capacity.");
-                      load_finished.store(true);
-                    });
+    status = LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_FALSE(resp->ok());
+          EXPECT_THAT(resp->status().message(),
+                      StrEq("The size of request serialized data is "
+                            "larger than the Buffer capacity."));
+          load_finished.store(true);
+        });
     ASSERT_TRUE(status.ok());
   }
 
@@ -3285,14 +3297,15 @@ TEST(SandboxedServiceTest,
     std::string dummy_string(payload_size, 'A');
     execution_obj->input.push_back("\"" + dummy_string + "\"");
 
-    status = Execute(std::move(execution_obj),
-                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       EXPECT_FALSE(resp->ok());
-                       EXPECT_EQ(resp->status().message(),
-                                 "The size of request serialized data is "
-                                 "larger than the Buffer capacity.");
-                       failed_execute_finished.store(true);
-                     });
+    status =
+        Execute(std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_FALSE(resp->ok());
+                  EXPECT_THAT(resp->status().message(),
+                              StrEq("The size of request serialized data is "
+                                    "larger than the Buffer capacity."));
+                  failed_execute_finished.store(true);
+                });
     EXPECT_TRUE(status.ok());
   }
 
@@ -3321,8 +3334,8 @@ TEST(SandboxedServiceTest,
             std::chrono::seconds(10));
   WaitUntil([&]() { return retry_success_execute_finished.load(); },
             std::chrono::seconds(10));
-  EXPECT_EQ(result, R"("Hello world! \"Foobar\"")");
-  EXPECT_EQ(retry_result, R"("Hello world! \"Foobar\"")");
+  EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
+  EXPECT_THAT(retry_result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -3381,7 +3394,8 @@ TEST(SandboxedServiceTest,
     EXPECT_TRUE(status.ok());
   }
 
-  // execute failed as the response payload size is larger than buffer capacity.
+  // execute failed as the response payload size is larger than buffer
+  // capacity.
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
@@ -3391,15 +3405,16 @@ TEST(SandboxedServiceTest,
     auto payload_size = 1024 * 1024 * 1.2;
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
-    status = Execute(std::move(execution_obj),
-                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       // Failure in execution
-                       EXPECT_FALSE(resp->ok());
-                       EXPECT_EQ(resp->status().message(),
-                                 "The size of response serialized data is "
-                                 "larger than the Buffer capacity.");
-                       failed_execute_finished.store(true);
-                     });
+    status =
+        Execute(std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  // Failure in execution
+                  EXPECT_FALSE(resp->ok());
+                  EXPECT_THAT(resp->status().message(),
+                              StrEq("The size of response serialized data is "
+                                    "larger than the Buffer capacity."));
+                  failed_execute_finished.store(true);
+                });
     EXPECT_TRUE(status.ok());
   }
 

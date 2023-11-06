@@ -16,6 +16,7 @@
 
 #include "core/config_provider/src/env_config_provider.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <stdlib.h>
@@ -31,6 +32,11 @@
 using google::scp::core::EnvConfigProvider;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
+using ::testing::ElementsAre;
+using ::testing::IsEmpty;
+using ::testing::IsFalse;
+using ::testing::IsTrue;
+using ::testing::StrEq;
 
 namespace google::scp::core::test {
 
@@ -60,22 +66,18 @@ TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
   putenv(int32_t_val);
 
   std::list<std::string> out_string_list;
-  std::list<std::string> expect_string_list({"1", "2"});
   char string_list_val[] = "key-for-string-list=1,2";
   putenv(string_list_val);
 
   std::list<int32_t> out_int32_t_list;
-  std::list<int32_t> expect_int32_t_list({1, 2});
   char int32_t_list[] = "key-for-int32t-list=1,2";
   putenv(int32_t_list);
 
   std::list<size_t> out_size_t_list;
-  std::list<size_t> expect_size_t_list({3, 4});
   char size_t_list[] = "key-for-sizet-list=3,4";
   putenv(size_t_list);
 
   std::list<bool> out_bool_list;
-  std::list<bool> expect_bool_list({true, false});
   char bool_list[] = "key-for-bool-list=true,false";
   putenv(bool_list);
 
@@ -104,14 +106,14 @@ TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
   config.Get("key-for-bool-list", out_bool_list);
   EXPECT_SUCCESS(ret);
 
-  EXPECT_EQ(out_string, expect_string);
+  EXPECT_THAT(out_string, StrEq(expect_string));
   EXPECT_EQ(out_size_t, expect_size_t);
   EXPECT_EQ(out_int32_t, expect_int32_t);
   EXPECT_EQ(out_bool, expect_bool);
-  EXPECT_EQ(out_string_list, expect_string_list);
-  EXPECT_EQ(out_int32_t_list, expect_int32_t_list);
-  EXPECT_EQ(out_size_t_list, expect_size_t_list);
-  EXPECT_EQ(out_bool_list, expect_bool_list);
+  EXPECT_THAT(out_string_list, ElementsAre(StrEq("1"), StrEq("2")));
+  EXPECT_THAT(out_int32_t_list, ElementsAre(1, 2));
+  EXPECT_THAT(out_size_t_list, ElementsAre(3, 4));
+  EXPECT_THAT(out_bool_list, ElementsAre(IsTrue(), IsFalse()));
 }
 
 TEST(EnvConfigProviderTest, WhenSetToEmtpyValueGetStringValueShouldSucceed) {
@@ -123,7 +125,7 @@ TEST(EnvConfigProviderTest, WhenSetToEmtpyValueGetStringValueShouldSucceed) {
 
   std::string out_string;
   EXPECT_SUCCESS(config.Get("a-var-thats-empty", out_string));
-  EXPECT_EQ("", out_string);
+  EXPECT_THAT(out_string, IsEmpty());
 }
 
 TEST(EnvConfigProviderTest, WhenSetToEmptyValueGetNonStringValueShouldFail) {

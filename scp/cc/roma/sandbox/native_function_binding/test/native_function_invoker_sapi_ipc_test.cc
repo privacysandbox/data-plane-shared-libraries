@@ -16,6 +16,7 @@
 
 #include "roma/sandbox/native_function_binding/src/native_function_invoker_sapi_ipc.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <sys/socket.h>
@@ -35,6 +36,7 @@ using google::scp::roma::sandbox::constants::
     kFuctionBindingMetadataFunctionName;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
+using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::native_function_binding::test {
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldReturnFailureOnInvokeIfBadFd) {
@@ -46,7 +48,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldReturnFailureOnInvokeIfBadFd) {
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldMakeCallOnFd) {
   int fd_pair[2];
-  EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
+  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
 
   NativeFunctionInvokerSapiIpc invoker(fd_pair[0]);
 
@@ -63,12 +65,12 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldMakeCallOnFd) {
 
   to_handle_message.join();
 
-  EXPECT_EQ("Some string", io_proto.output_string());
+  EXPECT_THAT(io_proto.output_string(), StrEq("Some string"));
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldAppendFunctionNameToMetadata) {
   int fd_pair[2];
-  EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
+  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
 
   NativeFunctionInvokerSapiIpc invoker(fd_pair[0]);
 
@@ -76,8 +78,8 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldAppendFunctionNameToMetadata) {
     sandbox2::Comms comms(fd);
     proto::FunctionBindingIoProto io_proto;
     EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
-    EXPECT_EQ("func_name",
-              io_proto.metadata().at(kFuctionBindingMetadataFunctionName));
+    EXPECT_THAT(io_proto.metadata().at(kFuctionBindingMetadataFunctionName),
+                StrEq("func_name"));
     io_proto.set_output_string("Some string");
     EXPECT_TRUE(comms.SendProtoBuf(io_proto));
   });
@@ -87,6 +89,6 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldAppendFunctionNameToMetadata) {
 
   to_handle_message.join();
 
-  EXPECT_EQ("Some string", io_proto.output_string());
+  EXPECT_THAT(io_proto.output_string(), StrEq("Some string"));
 }
 }  // namespace google::scp::roma::sandbox::native_function_binding::test

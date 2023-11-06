@@ -16,6 +16,7 @@
 
 #include "process_launcher/argument_parser/src/json_arg_parser.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "core/test/scp_test_base.h"
@@ -31,6 +32,10 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::ScpTestBase;
 using google::scp::process_launcher::ExecutableArgument;
 using google::scp::process_launcher::JsonArgParser;
+using ::testing::ElementsAre;
+using ::testing::IsNull;
+using ::testing::SizeIs;
+using ::testing::StrEq;
 
 namespace google::scp::process_launcher::test {
 class JsonArgParserTest : public ScpTestBase {};
@@ -77,8 +82,8 @@ TEST_F(JsonArgParserTest,
       R"({"executable_name":"/full/path/to/executable"})", parsed_value);
 
   EXPECT_SUCCESS(result);
-  EXPECT_EQ("/full/path/to/executable", parsed_value.executable_name);
-  EXPECT_EQ(0, parsed_value.command_line_args.size());
+  EXPECT_THAT(parsed_value.executable_name, StrEq("/full/path/to/executable"));
+  EXPECT_THAT(parsed_value.command_line_args, SizeIs(0));
 }
 
 TEST_F(JsonArgParserTest,
@@ -95,10 +100,10 @@ TEST_F(JsonArgParserTest,
   auto result = parser.Parse(std::string(json_string), parsed_value);
 
   EXPECT_SUCCESS(result);
-  EXPECT_EQ("/full/path/to/executable2", parsed_value.executable_name);
-  EXPECT_EQ(2, parsed_value.command_line_args.size());
-  EXPECT_EQ("arg1", parsed_value.command_line_args[0]);
-  EXPECT_EQ("123", parsed_value.command_line_args[1]);
+  EXPECT_THAT(parsed_value.executable_name, StrEq("/full/path/to/executable2"));
+  EXPECT_THAT(parsed_value.command_line_args, SizeIs(2));
+  EXPECT_THAT(parsed_value.command_line_args,
+              ElementsAre(StrEq("arg1"), StrEq("123")));
   EXPECT_TRUE(parsed_value.restart);
 }
 
@@ -110,13 +115,13 @@ TEST_F(JsonArgParserTest, ExecutableArgShouldBuildExecutableVectorWithArgs) {
   std::vector<char*> cstring_vec;
   value.ToExecutableVector(cstring_vec);
 
-  ASSERT_EQ(5, cstring_vec.size());
-  EXPECT_EQ(0, strcmp("/some/exe/name", cstring_vec.at(0)))
+  ASSERT_THAT(cstring_vec, SizeIs(5));
+  EXPECT_STREQ(cstring_vec.at(0), "/some/exe/name")
       << "The executable name should be first in the vector";
-  EXPECT_EQ(0, strcmp("arg1", cstring_vec.at(1)));
-  EXPECT_EQ(0, strcmp("arg2", cstring_vec.at(2)));
-  EXPECT_EQ(0, strcmp("arg3", cstring_vec.at(3)));
-  EXPECT_EQ(nullptr, cstring_vec.at(4)) << "The last element should be NULL";
+  EXPECT_STREQ(cstring_vec.at(1), "arg1");
+  EXPECT_STREQ(cstring_vec.at(2), "arg2");
+  EXPECT_STREQ(cstring_vec.at(3), "arg3");
+  EXPECT_THAT(cstring_vec.at(4), IsNull()) << "The last element should be NULL";
 }
 
 TEST_F(JsonArgParserTest, ExecutableArgShouldBuildExecutableVectorWithNoArgs) {
@@ -126,10 +131,11 @@ TEST_F(JsonArgParserTest, ExecutableArgShouldBuildExecutableVectorWithNoArgs) {
   std::vector<char*> cstring_vec;
   value.ToExecutableVector(cstring_vec);
 
-  ASSERT_EQ(2, cstring_vec.size());
-  EXPECT_EQ(0, strcmp("/some/exe/name", cstring_vec.at(0)))
+  ASSERT_THAT(cstring_vec, SizeIs(2));
+  EXPECT_STREQ(cstring_vec.at(0), "/some/exe/name")
       << "The executable name should be first in the vector";
-  EXPECT_EQ(nullptr, cstring_vec.at(1)) << "The last element should be NULL";
+  EXPECT_THAT(cstring_vec.at(1), IsNull())
+      << "The last element should be NULL ";
 }
 
 TEST_F(JsonArgParserTest, SucceedWithTrueShouldRecoverFailuresFlag) {
@@ -146,8 +152,8 @@ TEST_F(JsonArgParserTest, SucceedWithTrueShouldRecoverFailuresFlag) {
   auto result = parser.Parse(std::string(json_string), parsed_value);
 
   EXPECT_SUCCESS(result);
-  EXPECT_EQ("/full/path/to/executable2", parsed_value.executable_name);
-  EXPECT_EQ(2, parsed_value.command_line_args.size());
+  EXPECT_THAT(parsed_value.executable_name, StrEq("/full/path/to/executable2"));
+  EXPECT_THAT(parsed_value.command_line_args, SizeIs(2));
   EXPECT_TRUE(parsed_value.restart);
 }
 
@@ -164,8 +170,8 @@ TEST_F(JsonArgParserTest, SucceedWithFalseShouldRecoverFailuresFlag) {
   auto result = parser.Parse(std::string(json_string), parsed_value);
 
   EXPECT_SUCCESS(result);
-  EXPECT_EQ("/full/path/to/executable2", parsed_value.executable_name);
-  EXPECT_EQ(0, parsed_value.command_line_args.size());
+  EXPECT_THAT(parsed_value.executable_name, StrEq("/full/path/to/executable2"));
+  EXPECT_THAT(parsed_value.command_line_args, SizeIs(0));
   EXPECT_FALSE(parsed_value.restart);
 }
 }  // namespace google::scp::process_launcher::test

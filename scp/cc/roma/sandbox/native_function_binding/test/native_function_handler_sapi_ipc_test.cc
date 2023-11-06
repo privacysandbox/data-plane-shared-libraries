@@ -16,6 +16,7 @@
 
 #include "roma/sandbox/native_function_binding/src/native_function_handler_sapi_ipc.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <sys/socket.h>
@@ -37,11 +38,13 @@ using google::scp::roma::sandbox::constants::
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;
 using google::scp::roma::sandbox::native_function_binding::NativeFunctionTable;
+using ::testing::SizeIs;
+using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::native_function_binding::test {
 TEST(NativeFunctionHandlerSapiIpcTest, IninRunStop) {
   int fd_pair[2];
-  EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
+  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
@@ -61,7 +64,7 @@ void FunctionToBeCalled(proto::FunctionBindingIoProto& io_proto) {
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   int fd_pair[2];
-  EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
+  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
@@ -83,13 +86,14 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
 
   EXPECT_TRUE(g_called_registered_function);
-  EXPECT_EQ("I'm an output standalone string", io_proto.output_string());
+  EXPECT_THAT(io_proto.output_string(),
+              StrEq("I'm an output standalone string"));
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest,
      ShouldAddErrorsIfFunctionNameIsNotFoundInTable) {
   int fd_pair[2];
-  EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
+  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
@@ -115,13 +119,14 @@ TEST(NativeFunctionHandlerSapiIpcTest,
                io_proto.has_input_list_of_string() ||
                io_proto.has_input_map_of_string());
   EXPECT_GE(io_proto.errors().size(), 0);
-  EXPECT_EQ(io_proto.errors(0), "ROMA: Failed to execute the C++ function.");
+  EXPECT_THAT(io_proto.errors(0),
+              StrEq("ROMA: Failed to execute the C++ function."));
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest,
      ShouldAddErrorsIfFunctionNameIsNotInMetadata) {
   int fd_pair[2];
-  EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
+  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
@@ -145,7 +150,8 @@ TEST(NativeFunctionHandlerSapiIpcTest,
                io_proto.has_input_list_of_string() ||
                io_proto.has_input_map_of_string());
   EXPECT_GE(io_proto.errors().size(), 0);
-  EXPECT_EQ(io_proto.errors(0), "ROMA: Could not find C++ function by name.");
+  EXPECT_THAT(io_proto.errors(0),
+              StrEq("ROMA: Could not find C++ function by name."));
 }
 
 static bool g_called_registered_function_one;
@@ -163,7 +169,7 @@ void FunctionTwo(proto::FunctionBindingIoProto& io_proto) {
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   int fd_pair[2];
-  EXPECT_EQ(0, socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair));
+  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
@@ -187,8 +193,8 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
 
   EXPECT_TRUE(g_called_registered_function_one);
-  EXPECT_EQ(io_proto.errors().size(), 0);
-  EXPECT_EQ("From function one", io_proto.output_string());
+  EXPECT_THAT(io_proto.errors(), SizeIs(0));
+  EXPECT_THAT(io_proto.output_string(), StrEq("From function one"));
 
   io_proto.Clear();
   (*io_proto.mutable_metadata())[kFuctionBindingMetadataFunctionName] =
@@ -200,7 +206,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
 
   EXPECT_TRUE(g_called_registered_function_two);
-  EXPECT_EQ(io_proto.errors().size(), 0);
-  EXPECT_EQ("From function two", io_proto.output_string());
+  EXPECT_THAT(io_proto.errors(), SizeIs(0));
+  EXPECT_THAT(io_proto.output_string(), StrEq("From function two"));
 }
 }  // namespace google::scp::roma::sandbox::native_function_binding::test
