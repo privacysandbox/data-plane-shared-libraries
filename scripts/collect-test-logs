@@ -34,7 +34,7 @@ function copy_log_outputs() {
   declare -r _rootdest="$1"
   declare -r _prune_to_dir="$2"
   declare -r _filepath="$3"
-  declare -r _logpath="${_filepath##*/${_prune_to_dir}/}"
+  declare -r _logpath="${_filepath##*/"${_prune_to_dir}"/}"
   declare -r _destdir="${_rootdest}/${_logpath%/*}"
   declare -r _fname="${_filepath##*/}"
   declare -r _destfname="${_fname/#test./sponge_log.}"
@@ -106,9 +106,9 @@ mkdir -p "${OUTDIR}"/{test,other}
 
 if [[ -d "${WORKSPACE}"/bazel-testlogs ]]; then
   # copy all test.log and test.xml files
-  find -L "${WORKSPACE}"/bazel-testlogs/${PATH_FILTER} -type f '(' -name test.log -o -name test.xml ')' -exec bash -c 'copy_log_outputs "${OUTDIR}"/test bazel-testlogs "$0"' {} ';'
+  find -L "${WORKSPACE}"/bazel-testlogs/"${PATH_FILTER}" -type f '(' -name test.log -o -name test.xml ')' -exec bash -c 'copy_log_outputs "${OUTDIR}"/test bazel-testlogs "$0"' {} ';'
   # extract test outputs
-  find -L "${WORKSPACE}"/bazel-testlogs/${PATH_FILTER} -type f -name outputs.zip -exec bash -c 'extract_test_outputs "${OUTDIR}"/test "$0"' {} ';'
+  find -L "${WORKSPACE}"/bazel-testlogs/"${PATH_FILTER}" -type f -name outputs.zip -exec bash -c 'extract_test_outputs "${OUTDIR}"/test "$0"' {} ';'
 fi
 if [[ -d "${WORKSPACE}"/bazel-out ]]; then
   # copy log files under bazel-out (except for test.log)
@@ -125,5 +125,5 @@ fi
 )
 printf "stored bazel logs to %s\n" "${TARGET_DIR}/${ZIP_FILENAME}" &>/dev/stderr
 unzip -Z -h "${TARGET_DIR}/${ZIP_FILENAME}" &>/dev/stderr
-${TOOLS_DIR}/normalize-dist
+"${TOOLS_DIR}"/normalize-dist
 rm -rf "${OUTDIR}"
