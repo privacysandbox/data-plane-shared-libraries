@@ -32,19 +32,15 @@
 namespace google::scp::core::common {
 
 Uuid Uuid::GenerateUuid() noexcept {
-  // TODO: Might want to use GetUniqueWallTimestampInNanoseconds()
-  static std::atomic<Timestamp> current_clock(
-      TimeProvider::GetWallTimestampInNanosecondsAsClockTicks());
-
-  uint64_t high = current_clock.fetch_add(1);
+  static std::atomic<Timestamp> current_clock =
+      TimeProvider::GetWallTimestampInNanosecondsAsClockTicks();
   static std::random_device random_device_local;
   static std::mt19937 random_generator(random_device_local());
-  std::uniform_int_distribution<uint64_t> distribution;
 
-  uint64_t low = distribution(random_generator);
+  std::uniform_int_distribution<uint64_t> distribution;
   return Uuid{
-      .high = high,
-      .low = low,
+      .high = current_clock.fetch_add(1),
+      .low = distribution(random_generator),
   };
 }
 
