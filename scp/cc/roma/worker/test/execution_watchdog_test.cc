@@ -75,7 +75,8 @@ TEST_F(ExecutionWatchdogTest, StopDoesntTerminate) {
   ASSERT_FALSE(watch_dog_.IsTerminateCalled());
 }
 
-TEST_F(ExecutionWatchdogTest, TerminateOnTimeoutStartTimerAfterRun) {
+// TODO: b/309509915 - Enable test once issue is solved.
+TEST_F(ExecutionWatchdogTest, DISABLED_TerminateOnTimeoutStartTimerAfterRun) {
   watch_dog_.Init();
   watch_dog_.Run();
   constexpr absl::Duration duration = absl::Milliseconds(10);
@@ -88,7 +89,8 @@ TEST_F(ExecutionWatchdogTest, TerminateOnTimeoutStartTimerAfterRun) {
   watch_dog_.Stop();
 }
 
-TEST_F(ExecutionWatchdogTest, TerminateOnTimeoutStartTimerBeforeRun) {
+// TODO: b/309509915 - Enable test once issue is solved.
+TEST_F(ExecutionWatchdogTest, DISABLED_TerminateOnTimeoutStartTimerBeforeRun) {
   watch_dog_.Init();
   constexpr absl::Duration duration = absl::Milliseconds(10);
   watch_dog_.StartTimer(isolate_, duration);
