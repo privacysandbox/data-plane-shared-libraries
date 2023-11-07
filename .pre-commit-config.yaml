@@ -50,15 +50,22 @@ repos:
   - id: script-must-have-extension
   - id: require-ascii
   - id: shellcheck
-    files: ^$
+    exclude: (?x)^(
+      scp/build_defs/aws/.*|
+      scp/cc/public/cpio/build_deps/.*|
+      scp/cc/public/tools/.*|
+      scp/cc/tools/.*|
+      .*experimental/.*|
+      .*internal/.*
+      )$
 
 - repo: https://github.com/bufbuild/buf
-  rev: v1.27.0
+  rev: v1.27.2
   hooks:
   - id: buf-format
 
 - repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: v17.0.2
+  rev: v17.0.4
   hooks:
   - id: clang-format
     types_or:
