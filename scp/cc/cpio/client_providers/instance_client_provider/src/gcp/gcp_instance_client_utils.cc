@@ -68,21 +68,17 @@ ExecutionResultOr<std::string> GcpInstanceClientUtils::GetCurrentProjectId(
     const std::shared_ptr<InstanceClientProviderInterface>&
         instance_client) noexcept {
   std::string instance_resource_name;
-  if (auto result = instance_client->GetCurrentInstanceResourceNameSync(
-          instance_resource_name);
-      !result.Successful()) {
-    SCP_ERROR(kGcpInstanceClientUtils, kZeroUuid, result,
-              "Failed getting instance resource name.");
-    return result;
-  }
+  RETURN_AND_LOG_IF_FAILURE(instance_client->GetCurrentInstanceResourceNameSync(
+                                instance_resource_name),
+                            kGcpInstanceClientUtils, kZeroUuid,
+                            "Failed getting instance resource name.");
 
   auto project_id_or =
       ParseProjectIdFromInstanceResourceName(instance_resource_name);
-  if (!project_id_or.Successful()) {
-    SCP_ERROR(kGcpInstanceClientUtils, kZeroUuid, project_id_or.result(),
-              "Failed to parse instance resource name %s to get project ID",
-              instance_resource_name.c_str());
-  }
+  RETURN_AND_LOG_IF_FAILURE(
+      project_id_or.result(), kGcpInstanceClientUtils, kZeroUuid,
+      "Failed to parse instance resource name %s to get project ID",
+      instance_resource_name.c_str());
 
   return std::move(*project_id_or);
 }
@@ -91,8 +87,11 @@ ExecutionResultOr<std::string>
 GcpInstanceClientUtils::ParseProjectIdFromInstanceResourceName(
     const std::string& resource_name) noexcept {
   GcpInstanceResourceNameDetails details;
-  auto result = GetInstanceResourceNameDetails(resource_name, details);
-  RETURN_IF_FAILURE(result);
+  RETURN_AND_LOG_IF_FAILURE(
+      GetInstanceResourceNameDetails(resource_name, details),
+      kGcpInstanceClientUtils, kZeroUuid,
+      "Failed to get instance resource name details for %s",
+      resource_name.c_str());
   return std::move(details.project_id);
 }
 
@@ -100,8 +99,11 @@ ExecutionResultOr<std::string>
 GcpInstanceClientUtils::ParseZoneIdFromInstanceResourceName(
     const std::string& resource_name) noexcept {
   GcpInstanceResourceNameDetails details;
-  auto result = GetInstanceResourceNameDetails(resource_name, details);
-  RETURN_IF_FAILURE(result);
+  RETURN_AND_LOG_IF_FAILURE(
+      GetInstanceResourceNameDetails(resource_name, details),
+      kGcpInstanceClientUtils, kZeroUuid,
+      "Failed to get instance resource name details for %s",
+      resource_name.c_str());
   return std::move(details.zone_id);
 }
 
@@ -109,8 +111,11 @@ ExecutionResultOr<std::string>
 GcpInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
     const std::string& resource_name) noexcept {
   GcpInstanceResourceNameDetails details;
-  auto result = GetInstanceResourceNameDetails(resource_name, details);
-  RETURN_IF_FAILURE(result);
+  RETURN_AND_LOG_IF_FAILURE(
+      GetInstanceResourceNameDetails(resource_name, details),
+      kGcpInstanceClientUtils, kZeroUuid,
+      "Failed to get instance resource name details for %s",
+      resource_name.c_str());
   return std::move(details.instance_id);
 }
 
@@ -118,8 +123,12 @@ ExecutionResult GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(
     const std::string& resource_name) noexcept {
   std::regex re(kInstanceResourceNameRegex);
   if (!std::regex_match(resource_name, re)) {
-    return FailureExecutionResult(
+    auto result = FailureExecutionResult(
         SC_GCP_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME);
+    RETURN_AND_LOG_IF_FAILURE(
+        result, kGcpInstanceClientUtils, kZeroUuid,
+        "Resource name %s doesn't match the expected regex.",
+        resource_name.c_str());
   }
 
   return SuccessExecutionResult();
@@ -128,8 +137,10 @@ ExecutionResult GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(
 ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
     const std::string& resource_name,
     GcpInstanceResourceNameDetails& detail) noexcept {
-  auto result = ValidateInstanceResourceNameFormat(resource_name);
-  RETURN_IF_FAILURE(result);
+  RETURN_AND_LOG_IF_FAILURE(ValidateInstanceResourceNameFormat(resource_name),
+                            kGcpInstanceClientUtils, kZeroUuid,
+                            "Resource name %s is invalid.",
+                            resource_name.c_str());
 
   std::string resource_id =
       resource_name.substr(std::strlen(kInstanceResourceNamePrefix));

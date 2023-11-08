@@ -76,6 +76,19 @@ TEST(GcpInstanceClientUtilsTest, GetCurrentProjectIdFailedWithResourceName) {
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
 }
 
+TEST(GcpInstanceClientUtilsTest,
+     GetCurrentProjectIdFailedWithInvalidProjectId) {
+  auto instance_client = std::make_shared<MockInstanceClientProvider>();
+  instance_client->instance_resource_name =
+      R"(//compute.googleapis.com/projects//zones/us-central1-c/instances/987654321)";
+
+  auto project_id =
+      GcpInstanceClientUtils::GetCurrentProjectId(instance_client);
+  EXPECT_THAT(project_id.result(),
+              ResultIs(FailureExecutionResult(
+                  SC_GCP_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME)));
+}
+
 TEST(GcpInstanceClientUtilsTest, ValidateInstanceResourceNameFormat) {
   EXPECT_THAT(GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(
                   kResourceNameMock),
