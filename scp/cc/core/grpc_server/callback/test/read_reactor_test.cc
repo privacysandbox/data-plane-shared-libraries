@@ -29,12 +29,14 @@
 using grpc::ServerCallbackReader;
 using grpc::ServerReadReactor;
 using grpc::internal::ServerReactor;
+using testing::AtLeast;
 using testing::Eq;
 using testing::ExplainMatchResult;
 using testing::InSequence;
 using testing::NiceMock;
 using testing::Not;
 using testing::Return;
+using testing::Sequence;
 
 namespace {
 std::atomic_bool finished = false;
@@ -118,9 +120,10 @@ TEST_F(ReadReactorTest, BasicSequenceWorks) {
     finisher_thread = std::thread([context]() mutable {
       int val;
       std::unique_ptr<SomeRequest> req = context.TryGetNextRequest();
-      for (val = 11; req != nullptr; val++) {
+      for (val = 11; req != nullptr || !context.IsMarkedDone();
+           req = context.TryGetNextRequest()) {
         EXPECT_EQ(req->field(), val);
-        req = context.TryGetNextRequest();
+        val++;
       }
       EXPECT_EQ(val, 13);
       context.result = SuccessExecutionResult();
@@ -217,7 +220,6 @@ TEST_F(ReadReactorTest, MakesNewResponseOnFailure) {
         });
     return SuccessExecutionResult();
   };
-  InSequence seq;
 
   auto normal_read = [this, &read_count](auto* request) {
     SomeRequest req;
@@ -226,11 +228,15 @@ TEST_F(ReadReactorTest, MakesNewResponseOnFailure) {
     read_count++;
     reactor_->OnReadDone(true /*read_performed*/);
   };
+  Sequence s1, s2;
   EXPECT_CALL(reader_, Read)
+      .InSequence(s1, s2)
       .WillOnce(normal_read)
       .WillOnce(normal_read)
-      .WillRepeatedly(Return());
-  EXPECT_CALL(reader_, Finish(StatusCodeIs(grpc::StatusCode::OK)));
+      .RetiresOnSaturation();
+  EXPECT_CALL(reader_, Read).InSequence(s2).WillRepeatedly(Return());
+  EXPECT_CALL(reader_, Finish(StatusCodeIs(grpc::StatusCode::OK)))
+      .InSequence(s1);
   reactor_->Start();
 
   WaitUntil([]() { return finished.load(); });
