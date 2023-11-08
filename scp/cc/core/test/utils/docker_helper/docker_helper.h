@@ -19,7 +19,6 @@
 #include <string_view>
 
 #include "absl/container/btree_map.h"
-#include "absl/strings/str_format.h"
 
 namespace google::scp::core::test {
 std::string PortMapToSelf(std::string_view port);

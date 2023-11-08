@@ -28,6 +28,7 @@
 #include "absl/container/btree_map.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/substitute.h"
 
 // localstack version is pinned so that tests are repeatable
 static constexpr char kLocalstackImage[] = "localstack/localstack:1.0.3";
@@ -78,30 +79,29 @@ std::string BuildStartContainerCmd(
     const std::string& port_mapping2,
     const absl::btree_map<std::string, std::string>& environment_variables,
     const std::string& addition_args) {
-  auto ports_mapping = absl::StrFormat("-p %s ", port_mapping1);
+  std::string ports_mapping = absl::Substitute("-p $0 ", port_mapping1);
   if (!port_mapping2.empty()) {
-    ports_mapping += absl::StrFormat("-p %s ", port_mapping2);
+    ports_mapping += absl::Substitute("-p $0 ", port_mapping2);
   }
 
   std::string name_network;
   if (!network.empty()) {
-    name_network = absl::StrFormat("--network=%s ", network);
+    name_network = absl::Substitute("--network=$0 ", network);
   }
 
   std::string envs;
-  for (auto it = environment_variables.begin();
-       it != environment_variables.end(); ++it) {
-    envs += absl::StrFormat("--env %s=%s ", it->first, it->second);
+  for (const auto& [var_name, value] : environment_variables) {
+    envs += absl::Substitute("--env $0=$1 ", var_name, value);
   }
 
-  return absl::StrFormat(
+  return absl::Substitute(
       "docker -D run --rm -itd --privileged "
-      "%s"
-      "--name=%s "
-      "%s"
-      "%s"
-      "%s"
-      "%s",
+      "$0"
+      "--name=$1 "
+      "$2"
+      "$3"
+      "$4"
+      "$5",
       name_network, container_name, ports_mapping, envs,
       addition_args.empty() ? addition_args : addition_args + " ", image_name);
 }
@@ -112,10 +112,10 @@ int CreateImage(const std::string& image_target, const std::string& args) {
 
 std::string BuildCreateImageCmd(const std::string& image_target,
                                 const std::string& args) {
-  auto cmd = absl::StrFormat(
-      "bazel build --action_env=BAZEL_CXXOPTS='-std=c++17' %s", image_target);
+  std::string cmd =
+      "bazel build --action_env=BAZEL_CXXOPTS='-std=c++17' " + image_target;
   if (!args.empty()) {
-    cmd += " " + args;
+    absl::StrAppend(&cmd, " ", args);
   }
   return cmd;
 }
@@ -125,7 +125,7 @@ int LoadImage(const std::string& image_name) {
 }
 
 std::string BuildLoadImageCmd(const std::string& image_name) {
-  return absl::StrFormat("docker load < %s", image_name);
+  return "docker load < " + image_name;
 }
 
 int CreateNetwork(const std::string& network_name) {
@@ -133,7 +133,7 @@ int CreateNetwork(const std::string& network_name) {
 }
 
 std::string BuildCreateNetworkCmd(const std::string& network_name) {
-  return absl::StrFormat("docker network create %s", network_name);
+  return "docker network create " + network_name;
 }
 
 int RemoveNetwork(const std::string& network_name) {
@@ -141,7 +141,7 @@ int RemoveNetwork(const std::string& network_name) {
 }
 
 std::string BuildRemoveNetworkCmd(const std::string& network_name) {
-  return absl::StrFormat("docker network rm %s", network_name);
+  return "docker network rm " + network_name;
 }
 
 int StopContainer(const std::string& container_name) {
@@ -149,7 +149,7 @@ int StopContainer(const std::string& container_name) {
 }
 
 std::string BuildStopContainerCmd(const std::string& container_name) {
-  return absl::StrFormat("docker rm -f %s", container_name);
+  return "docker rm -f " + container_name;
 }
 
 std::string GetIpAddress(const std::string& network_name,
