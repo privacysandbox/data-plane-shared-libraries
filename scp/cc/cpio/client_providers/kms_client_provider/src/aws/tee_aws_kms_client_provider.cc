@@ -18,8 +18,11 @@
 
 #include <cstdio>
 #include <utility>
+#include <vector>
 
 #include "absl/functional/bind_front.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/strip.h"
 #include "core/utils/src/base64.h"
 #include "cpio/client_providers/interface/role_credentials_provider_interface.h"
 #include "public/cpio/interface/kms_client/type_def.h"
@@ -31,6 +34,7 @@ using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
+using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
@@ -46,41 +50,42 @@ using google::scp::core::errors::
     SC_TEE_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
 
+namespace google::scp::cpio::client_providers {
+namespace {
+
 /// Filename for logging errors
-static constexpr char kTeeAwsKmsClientProvider[] = "TeeAwsKmsClientProvider";
+constexpr char kTeeAwsKmsClientProvider[] = "TeeAwsKmsClientProvider";
 
-static constexpr int kBufferSize = 1024;
-
-static void BuildDecryptCmd(const std::string& region,
-                            const std::string& ciphertext,
-                            const std::string& access_key_id,
-                            const std::string& access_key_secret,
-                            const std::string& security_token,
-                            std::string& command) noexcept {
+std::vector<std::string> BuildDecryptArgs(std::string region,
+                                          std::string ciphertext,
+                                          std::string access_key_id,
+                                          std::string access_key_secret,
+                                          std::string security_token) noexcept {
+  std::vector<std::string> args = {"decrypt"};
   if (!region.empty()) {
-    command += std::string(" --region ") + region;
+    args.push_back("--region");
+    args.push_back(std::move(region));
   }
-
   if (!access_key_id.empty()) {
-    command += std::string(" --aws-access-key-id ") + access_key_id;
+    args.push_back("--aws-access-key-id");
+    args.push_back(std::move(access_key_id));
   }
-
   if (!access_key_secret.empty()) {
-    command += std::string(" --aws-secret-access-key ") + access_key_secret;
+    args.push_back("--aws-secret-access-key");
+    args.push_back(std::move(access_key_secret));
   }
-
   if (!security_token.empty()) {
-    command += std::string(" --aws-session-token ") + security_token;
+    args.push_back("--aws-session-token");
+    args.push_back(std::move(security_token));
   }
-
   if (!ciphertext.empty()) {
-    command += std::string(" --ciphertext ") + ciphertext;
+    args.push_back("--ciphertext");
+    args.push_back(std::move(ciphertext));
   }
-
-  command = "/kmstool_enclave_cli decrypt" + command;
+  return args;
 }
 
-namespace google::scp::cpio::client_providers {
+}  // namespace
 
 ExecutionResult TeeAwsKmsClientProvider::Init() noexcept {
   if (!credential_provider_) {
@@ -169,26 +174,26 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   const auto& get_session_credentials_response =
       *get_session_credentials_context.response;
 
-  std::string command;
-  BuildDecryptCmd(decrypt_context.request->kms_region(),
-                  decrypt_context.request->ciphertext(),
-                  get_session_credentials_response.access_key_id->c_str(),
-                  get_session_credentials_response.access_key_secret->c_str(),
-                  get_session_credentials_response.security_token->c_str(),
-                  command);
+  std::vector<std::string> decrypt_args =
+      BuildDecryptArgs(decrypt_context.request->kms_region(),
+                       decrypt_context.request->ciphertext(),
+                       *get_session_credentials_response.access_key_id,
+                       *get_session_credentials_response.access_key_secret,
+                       *get_session_credentials_response.security_token);
 
-  std::string plaintext;
-  auto execute_result = DecryptUsingEnclavesKmstoolCli(command, plaintext);
+  const ExecutionResultOr<std::string> plaintext =
+      DecryptUsingEnclavesKmstoolCli("/kmstool_enclave_cli",
+                                     std::move(decrypt_args));
 
-  if (!execute_result.Successful()) {
-    decrypt_context.result = execute_result;
+  if (!plaintext.Successful()) {
+    decrypt_context.result = plaintext.result();
     decrypt_context.Finish();
     return;
   }
 
   // Decode the plaintext.
   std::string decoded_plaintext;
-  execute_result = Base64Decode(plaintext, decoded_plaintext);
+  ExecutionResult execute_result = Base64Decode(*plaintext, decoded_plaintext);
   if (!execute_result.Successful()) {
     SCP_ERROR_CONTEXT(kTeeAwsKmsClientProvider, decrypt_context, execute_result,
                       "Failed to decode data.");
@@ -204,44 +209,30 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   decrypt_context.Finish();
 }
 
-ExecutionResult TeeAwsKmsClientProvider::DecryptUsingEnclavesKmstoolCli(
-    const std::string& command, std::string& plaintext) noexcept {
-  std::array<char, kBufferSize> buffer;
-  std::string result;
-  auto pipe = popen(command.c_str(), "r");
-  if (!pipe) {
-    auto execution_result = FailureExecutionResult(
-        SC_TEE_AWS_KMS_CLIENT_PROVIDER_KMSTOOL_CLI_EXECUTION_FAILED);
-    // popen will put the error in errno.
-    char buffer_arr[9999];
-    char* error_msg = strerror_r(errno, buffer_arr, 9999);
-    SCP_ERROR(kTeeAwsKmsClientProvider, kZeroUuid, execution_result,
-              "Enclaves KMSTool Cli execution failed on initializing pipe "
-              "stream. Command: %s Error message: %s.",
-              command.c_str(), error_msg);
+ExecutionResultOr<std::string>
+TeeAwsKmsClientProvider::DecryptUsingEnclavesKmstoolCli(
+    std::string command, std::vector<std::string> args) noexcept {
+  std::vector<char*> exec_args;
+  exec_args.reserve(args.size() + 2);
+  exec_args.push_back(command.data());
+  for (std::string& arg : args) {
+    exec_args.push_back(arg.data());
+  }
+  exec_args.push_back(nullptr);
+  if (absl::StatusOr<std::string> output = utils::Exec(exec_args);
+      !output.ok()) {
+    core::FailureExecutionResult execution_result(
+        google::scp::core::errors::
+            SC_TEE_AWS_KMS_CLIENT_PROVIDER_KMSTOOL_CLI_EXECUTION_FAILED);
+    SCP_ERROR(kTeeAwsKmsClientProvider, google::scp::core::common::kZeroUuid,
+              execution_result, "%s", std::move(output).status().message());
     return execution_result;
+  } else {
+    std::string_view plaintext = *output;
+    absl::ConsumePrefix(&plaintext, "PLAINTEXT: ");
+    absl::ConsumeSuffix(&plaintext, "\n");
+    return std::string(plaintext);
   }
-
-  while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
-    result += buffer.data();
-  }
-
-  auto return_status = pclose(pipe);
-  if (return_status == EXIT_FAILURE) {
-    auto execution_result = FailureExecutionResult(
-        SC_TEE_AWS_KMS_CLIENT_PROVIDER_KMSTOOL_CLI_EXECUTION_FAILED);
-    // pclose will put the error in errno.
-    char buffer_arr[9999];
-    char* error_msg = strerror_r(errno, buffer_arr, 9999);
-    SCP_ERROR(kTeeAwsKmsClientProvider, kZeroUuid, execution_result,
-              "Enclaves KMSTool Cli execution failed on closing pipe stream. "
-              "Command: %s Error message: %s",
-              command.c_str(), error_msg);
-    return execution_result;
-  }
-
-  TeeAwsKmsClientProviderUtils::ExtractPlaintext(result, plaintext);
-  return SuccessExecutionResult();
 }
 
 #ifndef TEST_CPIO

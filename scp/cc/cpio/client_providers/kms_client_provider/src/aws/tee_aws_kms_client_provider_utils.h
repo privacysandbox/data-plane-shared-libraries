@@ -18,19 +18,22 @@
 #define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AWS_TEE_AWS_KMS_CLIENT_PROVIDER_UTILS_H_
 
 #include <string>
+#include <string_view>
 
-namespace google::scp::cpio::client_providers {
-class TeeAwsKmsClientProviderUtils {
- public:
-  /**
-   * @brief Extracts the plaintext from the decrypt result.
-   *
-   * @param decrypt_result the decrypt result.
-   * @param[out] plaintext the plaintext.
-   */
-  static void ExtractPlaintext(const std::string& decrypt_result,
-                               std::string& plaintext) noexcept;
-};
-}  // namespace google::scp::cpio::client_providers
+#include "absl/status/statusor.h"
+#include "absl/types/span.h"
+
+namespace google::scp::cpio::client_providers::utils {
+
+/**
+ * @brief Executes a command with arguments and returns its output.
+ *
+ * @param args a null terminated span of C-style strings where the args[0] is
+ * the command to run and args[i > 0] are arguments.
+ * @return the standard output.
+ */
+absl::StatusOr<std::string> Exec(absl::Span<char* const> args) noexcept;
+
+}  // namespace google::scp::cpio::client_providers::utils
 
 #endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AWS_TEE_AWS_KMS_CLIENT_PROVIDER_UTILS_H_

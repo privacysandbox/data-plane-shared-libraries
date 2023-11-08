@@ -32,10 +32,9 @@ class MockTeeAwsKmsClientProviderWithOverrides
           credential_provider)
       : TeeAwsKmsClientProvider(credential_provider) {}
 
-  core::ExecutionResult DecryptUsingEnclavesKmstoolCli(
-      const std::string& command, std::string& plaintext) noexcept override {
-    plaintext = returned_plaintext;
-    return core::SuccessExecutionResult();
+  core::ExecutionResultOr<std::string> DecryptUsingEnclavesKmstoolCli(
+      std::string command, std::vector<std::string> args) noexcept override {
+    return returned_plaintext;
   }
 
   std::string returned_plaintext;

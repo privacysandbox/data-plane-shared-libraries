@@ -88,6 +88,9 @@ cc_library(
         "//scp/cc/public/cpio/interface:cpio_errors",
         "//scp/cc/public/cpio/interface/kms_client:type_def",
         "@aws_sdk_cpp//:kms",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
         "@tink_cc",
     ],
 )

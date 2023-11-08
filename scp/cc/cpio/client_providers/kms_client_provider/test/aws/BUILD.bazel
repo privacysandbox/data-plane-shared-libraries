@@ -12,9 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+
+cc_binary(
+    name = "true",
+    srcs = ["true_main.cc"],
+)
+
+cc_binary(
+    name = "false",
+    srcs = ["false_main.cc"],
+)
+
+cc_binary(
+    name = "hello",
+    srcs = ["hello_main.cc"],
+    deps = [
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
+)
 
 cc_test(
     name = "nontee_aws_kms_client_provider_test",
@@ -75,9 +94,17 @@ cc_test(
     size = "small",
     srcs =
         ["tee_aws_kms_client_provider_utils_test.cc"],
+    data = [
+        ":false",
+        ":hello",
+        ":true",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/cpio/client_providers/kms_client_provider/src/aws:tee_aws_kms_client_provider_lib",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )

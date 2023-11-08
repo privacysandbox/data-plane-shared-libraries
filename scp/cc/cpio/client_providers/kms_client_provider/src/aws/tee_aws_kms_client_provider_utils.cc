@@ -16,27 +16,60 @@
 
 #include "tee_aws_kms_client_provider_utils.h"
 
+#include <sys/wait.h>
+
 #include <string>
+#include <string_view>
 
-namespace {
-constexpr char kDecryptResultPrefix[] = "PLAINTEXT: ";
-}
+#include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_join.h"
 
-namespace google::scp::cpio::client_providers {
-void TeeAwsKmsClientProviderUtils::ExtractPlaintext(
-    const std::string& decrypt_result, std::string& plaintext) noexcept {
-  int8_t prefix_size = std::string(kDecryptResultPrefix).length();
-  auto length = decrypt_result.length();
-  auto start = decrypt_result.find(kDecryptResultPrefix);
-  if (start == std::string::npos) {
-    start = 0;
+namespace google::scp::cpio::client_providers::utils {
+
+absl::StatusOr<std::string> Exec(absl::Span<char* const> args) noexcept {
+  int fd[2];
+  if (pipe(fd) == -1) {
+    return absl::ErrnoToStatus(errno, "Exec failed to create a pipe.");
+  }
+  const pid_t pid = fork();
+  if (pid == 0) {
+    close(fd[0]);
+
+    // Redirect child standard output to pipe and execute.
+    if (dup2(fd[1], STDOUT_FILENO) == -1 || execv(args[0], &args[0]) == -1) {
+      exit(errno);
+    }
+  } else if (pid == -1) {
+    return absl::ErrnoToStatus(errno, "Exec failed to fork a child.");
+  }
+
+  // Only parent gets here (pid > 0).
+  close(fd[1]);
+  if (int status; waitpid(pid, &status, /*options=*/0) == -1) {
+    return absl::ErrnoToStatus(errno, "Exec failed to wait for child.");
+  } else if (!WIFEXITED(status)) {
+    return absl::InternalError(absl::StrCat(
+        "Exec child process exited abnormally while executing command '",
+        absl::StrJoin(args, " "), "'"));
+  } else if (const int child_errno = WEXITSTATUS(status);
+             child_errno != EXIT_SUCCESS) {
+    return absl::ErrnoToStatus(
+        child_errno,
+        absl::StrCat("Exec child process exited with non-zero error number ",
+                     child_errno, " while executing command '",
+                     absl::StrJoin(args, " "), "'"));
+  }
+  std::string result;
+  if (FILE* const stream = fdopen(fd[0], "r"); stream != nullptr) {
+    std::array<char, 1024> buffer;
+    while (fgets(buffer.data(), buffer.size(), stream) != nullptr) {
+      result += buffer.data();
+    }
   } else {
-    start = start + prefix_size;
-    length -= start;
+    return absl::ErrnoToStatus(errno, "Exec failed to read from pipe.");
   }
-  if (decrypt_result.back() == '\n') {
-    length -= 1;
-  }
-  plaintext = decrypt_result.substr(start, length);
+  return result;
 }
-}  // namespace google::scp::cpio::client_providers
+
+}  // namespace google::scp::cpio::client_providers::utils

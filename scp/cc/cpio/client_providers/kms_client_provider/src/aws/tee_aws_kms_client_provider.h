@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "core/interface/async_context.h"
 #include "core/interface/credentials_provider_interface.h"
@@ -70,8 +71,8 @@ class TeeAwsKmsClientProvider : public KmsClientProviderInterface {
       core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
           get_session_credentials_context) noexcept;
 
-  virtual core::ExecutionResult DecryptUsingEnclavesKmstoolCli(
-      const std::string& command, std::string& plaintext) noexcept;
+  virtual core::ExecutionResultOr<std::string> DecryptUsingEnclavesKmstoolCli(
+      std::string command, std::vector<std::string> args) noexcept;
 
   /// Credential provider.
   const std::shared_ptr<RoleCredentialsProviderInterface> credential_provider_;
