@@ -14,6 +14,7 @@
 
 #include "core/blob_storage_provider/src/aws/aws_s3.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -66,6 +67,10 @@ using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::blob_storage_provider::AwsS3Client;
 using google::scp::core::blob_storage_provider::aws::mock::MockS3Client;
 using google::scp::core::blob_storage_provider::mock::MockAwsS3Client;
+using ::testing::ElementsAre;
+using ::testing::Eq;
+using ::testing::IsEmpty;
+using ::testing::StrEq;
 
 namespace google::scp::core::test {
 // Tests for AwsS3.
@@ -87,8 +92,8 @@ TEST_F(AwsS3Tests, GetBlob) {
       [](const GetObjectRequest& get_object_request,
          const GetObjectResponseReceivedHandler&,
          const std::shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(get_object_request.GetBucket(), "bucket_name");
-        EXPECT_EQ(get_object_request.GetKey(), "blob_name");
+        EXPECT_THAT(get_object_request.GetBucket(), StrEq("bucket_name"));
+        EXPECT_THAT(get_object_request.GetKey(), StrEq("blob_name"));
       };
 
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
@@ -159,10 +164,10 @@ TEST_F(AwsS3Tests, OnGetObjectCallback) {
           EXPECT_EQ(get_blob_context.response->buffer->length, 12);
           EXPECT_EQ(get_blob_context.response->buffer->capacity, 12);
           EXPECT_EQ(get_blob_context.response->buffer->bytes->size(), 12);
-          std::string str("Hello world!");
-          for (int i = 0; i < 12; ++i) {
-            EXPECT_EQ(get_blob_context.response->buffer->bytes->at(i), str[i]);
-          }
+          EXPECT_THAT(
+              std::string(get_blob_context.response->buffer->bytes->begin(),
+                          get_blob_context.response->buffer->bytes->end()),
+              StrEq("Hello world!"));
         };
 
     get_object_result.ReplaceBody(input_data);
@@ -183,9 +188,9 @@ TEST_F(AwsS3Tests, ListBlobs) {
       [](const ListObjectsRequest& list_objects_request,
          const ListObjectsResponseReceivedHandler&,
          const std::shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(list_objects_request.GetBucket(), "bucket_name");
-        EXPECT_EQ(list_objects_request.GetPrefix(), "");
-        EXPECT_EQ(list_objects_request.GetMarker(), "");
+        EXPECT_THAT(list_objects_request.GetBucket(), StrEq("bucket_name"));
+        EXPECT_THAT(list_objects_request.GetPrefix(), IsEmpty());
+        EXPECT_THAT(list_objects_request.GetMarker(), IsEmpty());
       };
 
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
@@ -206,9 +211,9 @@ TEST_F(AwsS3Tests, ListBlobsWithPrefix) {
       [](const ListObjectsRequest& list_objects_request,
          const ListObjectsResponseReceivedHandler&,
          const std::shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(list_objects_request.GetBucket(), "bucket_name");
-        EXPECT_EQ(list_objects_request.GetPrefix(), "blob_name");
-        EXPECT_EQ(list_objects_request.GetMarker(), "");
+        EXPECT_THAT(list_objects_request.GetBucket(), StrEq("bucket_name"));
+        EXPECT_THAT(list_objects_request.GetPrefix(), StrEq("blob_name"));
+        EXPECT_THAT(list_objects_request.GetMarker(), IsEmpty());
       };
 
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
@@ -231,9 +236,9 @@ TEST_F(AwsS3Tests, ListBlobsMarker) {
       [](const ListObjectsRequest& list_objects_request,
          const ListObjectsResponseReceivedHandler&,
          const std::shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(list_objects_request.GetBucket(), "bucket_name");
-        EXPECT_EQ(list_objects_request.GetPrefix(), "blob_name");
-        EXPECT_EQ(list_objects_request.GetMarker(), "marker");
+        EXPECT_THAT(list_objects_request.GetBucket(), StrEq("bucket_name"));
+        EXPECT_THAT(list_objects_request.GetPrefix(), StrEq("blob_name"));
+        EXPECT_THAT(list_objects_request.GetMarker(), StrEq("marker"));
       };
 
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
@@ -311,18 +316,17 @@ TEST_F(AwsS3Tests, PutBlob) {
   auto mock_s3_client = std::make_shared<MockS3Client>();
   auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
 
-  std::vector<Byte> bytes = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
   mock_s3_client->put_object_async_mock =
       [&](const PutObjectRequest& put_object_request,
           const PutObjectResponseReceivedHandler&,
           const std::shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(put_object_request.GetBucket(), "bucket_name");
-        EXPECT_EQ(put_object_request.GetKey(), "blob_name");
+        EXPECT_THAT(put_object_request.GetBucket(), StrEq("bucket_name"));
+        EXPECT_THAT(put_object_request.GetKey(), StrEq("blob_name"));
         char buffer[10];
         put_object_request.GetBody()->read(buffer, 10);
-        for (int i = 0; i < 10; i++) {
-          EXPECT_EQ(buffer[i], bytes[i]);
-        }
+        EXPECT_THAT(buffer,
+                    ElementsAre(Eq('1'), Eq('2'), Eq('3'), Eq('4'), Eq('5'),
+                                Eq('6'), Eq('7'), Eq('8'), Eq('9'), Eq('0')));
       };
 
   MockAwsS3Client aws_s3_client(s3_client, async_executor);
@@ -334,6 +338,7 @@ TEST_F(AwsS3Tests, PutBlob) {
       std::make_shared<std::string>("bucket_name");
   put_blob_context.request->buffer = std::make_shared<BytesBuffer>();
 
+  std::vector<Byte> bytes = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
   put_blob_context.request->buffer->bytes =
       std::make_shared<std::vector<Byte>>(bytes);
   put_blob_context.request->buffer->length = 10;
@@ -406,8 +411,8 @@ TEST_F(AwsS3Tests, DeleteBlob) {
       [&](const DeleteObjectRequest& delete_object_request,
           const DeleteObjectResponseReceivedHandler&,
           const std::shared_ptr<const AsyncCallerContext>&) {
-        EXPECT_EQ(delete_object_request.GetBucket(), "bucket_name");
-        EXPECT_EQ(delete_object_request.GetKey(), "blob_name");
+        EXPECT_THAT(delete_object_request.GetBucket(), StrEq("bucket_name"));
+        EXPECT_THAT(delete_object_request.GetKey(), StrEq("blob_name"));
       };
 
   MockAwsS3Client aws_s3_client(s3_client, async_executor);

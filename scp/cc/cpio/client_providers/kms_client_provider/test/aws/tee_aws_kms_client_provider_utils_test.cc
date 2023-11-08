@@ -14,27 +14,30 @@
 
 #include "cpio/client_providers/kms_client_provider/src/aws/tee_aws_kms_client_provider_utils.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <string>
+
+using ::testing::StrEq;
 
 namespace google::scp::cpio::client_providers::test {
 TEST(TeeAwsKmsClientProviderUtilsTest, ExtractPlaintext) {
   std::string plaintext;
   std::string decrypt_result = "answdetset";
   TeeAwsKmsClientProviderUtils::ExtractPlaintext(decrypt_result, plaintext);
-  EXPECT_EQ(plaintext, decrypt_result);
+  EXPECT_THAT(plaintext, StrEq(decrypt_result));
 
   std::string decrypt_result_1 = "PLAINTEXT: " + decrypt_result;
   TeeAwsKmsClientProviderUtils::ExtractPlaintext(decrypt_result_1, plaintext);
-  EXPECT_EQ(plaintext, decrypt_result);
+  EXPECT_THAT(plaintext, StrEq(decrypt_result));
 
   std::string decrypt_result_2 = "PLAINTEXT: " + decrypt_result + "\n";
   TeeAwsKmsClientProviderUtils::ExtractPlaintext(decrypt_result_2, plaintext);
-  EXPECT_EQ(plaintext, decrypt_result);
+  EXPECT_THAT(plaintext, StrEq(decrypt_result));
 
   std::string decrypt_result_3 = decrypt_result + "\n";
   TeeAwsKmsClientProviderUtils::ExtractPlaintext(decrypt_result_3, plaintext);
-  EXPECT_EQ(plaintext, decrypt_result);
+  EXPECT_THAT(plaintext, StrEq(decrypt_result));
 }
 }  // namespace google::scp::cpio::client_providers::test

@@ -31,8 +31,10 @@ namespace privacy_sandbox::server_common {
 namespace {
 
 using ::testing::AllOf;
-using ::testing::Eq;
+using ::testing::ElementsAre;
 using ::testing::HasSubstr;
+using ::testing::Pointwise;
+using ::testing::StrEq;
 
 absl::Status ReturnOk() { return absl::OkStatus(); }
 StatusBuilder ReturnOkBuilder() { return StatusBuilder(absl::OkStatus()); }
@@ -71,32 +73,32 @@ absl::StatusOr<std::unique_ptr<int>> ReturnStatusOrPtrValue(int v) {
 TEST(AssignOrReturn, Works) {
   auto func = []() -> absl::Status {
     PS_ASSIGN_OR_RETURN(int value1, ReturnStatusOrValue(1));
-    EXPECT_EQ(1, value1);
+    EXPECT_EQ(value1, 1);
     PS_ASSIGN_OR_RETURN(const int value2, ReturnStatusOrValue(2));
-    EXPECT_EQ(2, value2);
+    EXPECT_EQ(value2, 2);
     PS_ASSIGN_OR_RETURN(const int& value3, ReturnStatusOrValue(3));
-    EXPECT_EQ(3, value3);
+    EXPECT_EQ(value3, 3);
     PS_ASSIGN_OR_RETURN([[maybe_unused]] int value4,
                         ReturnStatusOrError("EXPECTED"));
     return ReturnError("ERROR");
   };
 
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 
 TEST(AssignOrReturn, WorksForGrpc) {
   auto func = []() -> grpc::Status { return ReturnGrpcError("ERROR"); };
-  EXPECT_THAT(func().error_message(), Eq("ERROR"));
+  EXPECT_THAT(func().error_message(), StrEq("ERROR"));
 }
 
 TEST(AssignOrReturn, WorksWithCommasInType) {
   auto func = []() -> absl::Status {
     PS_ASSIGN_OR_RETURN((std::tuple<int, int> t1),
                         ReturnStatusOrTupleValue(1, 1));
-    EXPECT_EQ((std::tuple{1, 1}), t1);
+    EXPECT_EQ(t1, (std::tuple{1, 1}));
     PS_ASSIGN_OR_RETURN((const std::tuple<int, std::tuple<int, int>, int> t2),
                         ReturnStatusOrTupleValue(1, std::tuple{1, 1}, 1));
-    EXPECT_EQ((std::tuple{1, std::tuple{1, 1}, 1}), t2);
+    EXPECT_EQ(t2, (std::tuple{1, std::tuple{1, 1}, 1}));
     PS_ASSIGN_OR_RETURN(
         (std::tuple<int, std::tuple<int, int>, int> t3),
         (ReturnStatusOrTupleError<int, std::tuple<int, int>, int>("EXPECTED")));
@@ -104,14 +106,14 @@ TEST(AssignOrReturn, WorksWithCommasInType) {
     return ReturnError("ERROR");
   };
 
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 
 TEST(AssignOrReturn, WorksWithStructureBindings) {
   auto func = []() -> absl::Status {
     PS_ASSIGN_OR_RETURN((const auto& [t1, t2, t3, t4, t5]),
                         ReturnStatusOrTupleValue(std::tuple{1, 1}, 1, 2, 3, 4));
-    EXPECT_EQ((std::tuple{1, 1}), t1);
+    EXPECT_EQ(t1, (std::tuple{1, 1}));
     EXPECT_EQ(1, t2);
     EXPECT_EQ(2, t3);
     EXPECT_EQ(3, t4);
@@ -121,7 +123,7 @@ TEST(AssignOrReturn, WorksWithStructureBindings) {
     return ReturnError("ERROR");
   };
 
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 
 TEST(AssignOrReturn, WorksWithParenthesesAndDereference) {
@@ -129,36 +131,36 @@ TEST(AssignOrReturn, WorksWithParenthesesAndDereference) {
     int integer;
     int* pointer_to_integer = &integer;
     PS_ASSIGN_OR_RETURN((*pointer_to_integer), ReturnStatusOrValue(1));
-    EXPECT_EQ(1, integer);
+    EXPECT_EQ(integer, 1);
     PS_ASSIGN_OR_RETURN(*pointer_to_integer, ReturnStatusOrValue(2));
-    EXPECT_EQ(2, integer);
+    EXPECT_EQ(integer, 2);
     // Make the test where the order of dereference matters and treat the
     // parentheses.
     pointer_to_integer--;
     int** pointer_to_pointer_to_integer = &pointer_to_integer;
     PS_ASSIGN_OR_RETURN((*pointer_to_pointer_to_integer)[1],
                         ReturnStatusOrValue(3));
-    EXPECT_EQ(3, integer);
+    EXPECT_EQ(integer, 3);
     PS_ASSIGN_OR_RETURN([[maybe_unused]] int t1,
                         ReturnStatusOrError("EXPECTED"));
     return ReturnError("ERROR");
   };
 
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 
 TEST(AssignOrReturn, WorksForExistingVariable) {
   auto func = []() -> absl::Status {
     int value = 1;
     PS_ASSIGN_OR_RETURN(value, ReturnStatusOrValue(2));
-    EXPECT_EQ(2, value);
+    EXPECT_EQ(value, 2);
     PS_ASSIGN_OR_RETURN(value, ReturnStatusOrValue(3));
-    EXPECT_EQ(3, value);
+    EXPECT_EQ(value, 3);
     PS_ASSIGN_OR_RETURN(value, ReturnStatusOrError("EXPECTED"));
     return ReturnError("ERROR");
   };
 
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 
 TEST(AssignOrReturn, UniquePtrWorks) {
@@ -168,7 +170,7 @@ TEST(AssignOrReturn, UniquePtrWorks) {
     return ReturnError("EXPECTED");
   };
 
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 
 TEST(AssignOrReturn, UniquePtrWorksForExistingVariable) {
@@ -182,7 +184,7 @@ TEST(AssignOrReturn, UniquePtrWorksForExistingVariable) {
     return ReturnError("EXPECTED");
   };
 
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 
 TEST(AssignOrReturn, WorksWithAppend) {
@@ -259,7 +261,7 @@ TEST(ReturnIfError, Works) {
     return ReturnError("ERROR");
   };
 
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 
 TEST(ReturnIfError, WorksWithBuilder) {
@@ -269,7 +271,7 @@ TEST(ReturnIfError, WorksWithBuilder) {
     PS_RETURN_IF_ERROR(ReturnErrorBuilder("EXPECTED"));
     return ReturnErrorBuilder("ERROR");
   };
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 TEST(ReturnIfError, WorksWithLambda) {
   auto func = []() -> absl::Status {
@@ -278,7 +280,7 @@ TEST(ReturnIfError, WorksWithLambda) {
     return ReturnError("ERROR");
   };
 
-  EXPECT_THAT(func().message(), Eq("EXPECTED"));
+  EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
 TEST(ReturnIfError, WorksWithAppend) {
   auto fail_test_if_called = []() -> std::string {

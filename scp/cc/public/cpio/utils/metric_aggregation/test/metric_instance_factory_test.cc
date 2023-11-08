@@ -54,6 +54,7 @@ using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
 using ::testing::Contains;
 using ::testing::Key;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -114,10 +115,10 @@ TEST_F(MetricInstanceFactoryTest, ConstructSimpleMetricInstance) {
     simple_metric->Push(kMetricValue);
     WaitUntil([&]() { return schedule_is_called; });
 
-    EXPECT_EQ(metric_received.name(), kMetricName);
+    EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
     EXPECT_EQ(metric_received.unit(),
               cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_COUNT);
-    EXPECT_EQ(metric_received.value(), kMetricValue);
+    EXPECT_THAT(metric_received.value(), StrEq(kMetricValue));
   }
 
   {
@@ -136,11 +137,11 @@ TEST_F(MetricInstanceFactoryTest, ConstructSimpleMetricInstance) {
     simple_metric->Push(kMetricValue, metric_info_override);
     WaitUntil([&]() { return schedule_is_called; });
 
-    EXPECT_EQ(metric_received.name(), kMetricNameUpdate);
+    EXPECT_THAT(metric_received.name(), StrEq(kMetricNameUpdate));
     EXPECT_EQ(
         metric_received.unit(),
         cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_MILLISECONDS);
-    EXPECT_EQ(metric_received.value(), kMetricValue);
+    EXPECT_THAT(metric_received.value(), StrEq(kMetricValue));
   }
 }
 
@@ -167,10 +168,10 @@ TEST_F(MetricInstanceFactoryTest, ConstructAggregateMetricInstance) {
     aggregate_metric->Increment();
     WaitUntil([&]() { return schedule_is_called; });
 
-    EXPECT_EQ(metric_received.name(), kMetricName);
+    EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
     EXPECT_EQ(metric_received.unit(),
               cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_COUNT);
-    EXPECT_EQ(metric_received.value(), kOneIncrease);
+    EXPECT_THAT(metric_received.value(), StrEq(kOneIncrease));
   }
 
   {
@@ -187,10 +188,10 @@ TEST_F(MetricInstanceFactoryTest, ConstructAggregateMetricInstance) {
     aggregate_metric->IncrementBy(std::stoi(kMetricValue));
     WaitUntil([&]() { return schedule_is_called; });
 
-    EXPECT_EQ(metric_received.name(), kMetricName);
+    EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
     EXPECT_EQ(metric_received.unit(),
               cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_COUNT);
-    EXPECT_EQ(metric_received.value(), kMetricValue);
+    EXPECT_THAT(metric_received.value(), StrEq(kMetricValue));
   }
 }
 
@@ -209,11 +210,11 @@ TEST_F(MetricInstanceFactoryTest,
     std::atomic<int> schedule_is_called = 0;
     EXPECT_CALL(*mock_metric_client_, PutMetrics)
         .WillRepeatedly([&](auto context) {
-          EXPECT_EQ(context.request->metrics(0).name(), kMetricName);
+          EXPECT_THAT(context.request->metrics(0).name(), StrEq(kMetricName));
           EXPECT_EQ(
               context.request->metrics(0).unit(),
               cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_COUNT);
-          EXPECT_EQ(context.request->metrics(0).value(), kOneIncrease);
+          EXPECT_THAT(context.request->metrics(0).value(), StrEq(kOneIncrease));
           schedule_is_called++;
           context.result = SuccessExecutionResult();
           context.Finish();
@@ -231,11 +232,11 @@ TEST_F(MetricInstanceFactoryTest,
     std::atomic<int> schedule_is_called = 0;
     EXPECT_CALL(*mock_metric_client_, PutMetrics)
         .WillRepeatedly([&](auto context) {
-          EXPECT_EQ(context.request->metrics(0).name(), kMetricName);
+          EXPECT_THAT(context.request->metrics(0).name(), StrEq(kMetricName));
           EXPECT_EQ(
               context.request->metrics(0).unit(),
               cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_COUNT);
-          EXPECT_EQ(context.request->metrics(0).value(), kMetricValue);
+          EXPECT_THAT(context.request->metrics(0).value(), StrEq(kMetricValue));
           EXPECT_THAT(context.request->metrics(0).labels(),
                       Contains(Key(kEventCodeKey)));
           schedule_is_called++;

@@ -14,6 +14,7 @@
 
 #include "cpio/client_providers/metric_client_provider/src/aws/aws_metric_client_provider.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -63,6 +64,7 @@ using google::scp::cpio::client_providers::AwsMetricClientUtils;
 using google::scp::cpio::client_providers::mock::
     MockAwsMetricClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockCloudWatchClient;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -153,7 +155,7 @@ TEST_F(AwsMetricClientProviderTest, SplitsOversizeRequestsVector) {
           const Aws::CloudWatch::PutMetricDataResponseReceivedHandler& handler,
           const std::shared_ptr<const Aws::Client::AsyncCallerContext>&
               context) {
-        EXPECT_EQ(request.GetNamespace(), kNamespace);
+        EXPECT_THAT(request.GetNamespace(), StrEq(kNamespace));
         put_metric_data_request_count += 1;
         return;
       };
@@ -195,7 +197,7 @@ TEST_F(AwsMetricClientProviderTest, KeepMetricsInTheSameRequest) {
           const Aws::CloudWatch::PutMetricDataResponseReceivedHandler& handler,
           const std::shared_ptr<const Aws::Client::AsyncCallerContext>&
               context) {
-        EXPECT_EQ(request.GetNamespace(), kNamespace);
+        EXPECT_THAT(request.GetNamespace(), StrEq(kNamespace));
         put_metric_data_request_count += 1;
         number_datums_received.fetch_add((request.GetMetricData().size()));
         return;

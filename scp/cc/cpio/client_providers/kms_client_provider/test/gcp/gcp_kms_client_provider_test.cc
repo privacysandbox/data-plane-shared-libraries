@@ -51,9 +51,9 @@ using google::scp::core::test::WaitUntil;
 using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::mock::
     MockGcpKeyManagementServiceClient;
-using testing::Eq;
-using testing::ExplainMatchResult;
-using testing::Return;
+using ::testing::ExplainMatchResult;
+using ::testing::Return;
+using ::testing::StrEq;
 
 static constexpr char kServiceAccount[] = "account";
 static constexpr char kWipProvider[] = "wip";
@@ -151,10 +151,10 @@ TEST_F(GcpKmsClientProviderTest, EmptyCiphertext) {
 }
 
 MATCHER_P(RequestMatches, req, "") {
-  return ExplainMatchResult(Eq(req.name()), arg.name(), result_listener) &&
-         ExplainMatchResult(Eq(req.ciphertext()), arg.ciphertext(),
+  return ExplainMatchResult(StrEq(req.name()), arg.name(), result_listener) &&
+         ExplainMatchResult(StrEq(req.ciphertext()), arg.ciphertext(),
                             result_listener) &&
-         ExplainMatchResult(Eq(req.additional_authenticated_data()),
+         ExplainMatchResult(StrEq(req.additional_authenticated_data()),
                             arg.additional_authenticated_data(),
                             result_listener);
 }
@@ -215,7 +215,7 @@ TEST_F(GcpKmsClientProviderTest, SuccessToDecrypt) {
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
         EXPECT_SUCCESS(context.result);
-        EXPECT_EQ(context.response->plaintext(), kPlaintext);
+        EXPECT_THAT(context.response->plaintext(), StrEq(kPlaintext));
         condition = true;
       });
 

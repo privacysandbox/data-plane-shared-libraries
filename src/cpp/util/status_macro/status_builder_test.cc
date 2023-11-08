@@ -22,14 +22,17 @@
 #include "absl/log/scoped_mock_log.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-namespace privacy_sandbox::server_common {
-namespace {
+
 using ::testing::_;
 using ::testing::AnyOf;
 using ::testing::Eq;
 using ::testing::HasSubstr;
 using ::testing::Pointee;
+using ::testing::StrEq;
 using ::testing::Test;
+
+namespace privacy_sandbox::server_common {
+namespace {
 // We use `#line` to produce some `source_location` values pointing at various
 // different (fake) files to test e.g. `VLog`, but we use it at the end of this
 // file so as not to mess up the source location data for the whole file.
@@ -43,6 +46,7 @@ struct Locs {
   static const SourceLocation kFoo;
   static const SourceLocation kBar;
 };
+
 class StatusBuilderTestWithLog : public Test {
  protected:
   void SetUp() override {}
@@ -50,36 +54,42 @@ class StatusBuilderTestWithLog : public Test {
   absl::ScopedMockLog scoped_mock_log_ =
       absl::ScopedMockLog(absl::MockLogDefault::kDisallowUnexpected);
 };
+
 // Converts a StatusBuilder to a Status.
 absl::Status ToStatus(const StatusBuilder& s) { return s; }
+
 // Converts a StatusBuilder to a Status and then ignores it.
 void ConvertToStatusAndIgnore(const StatusBuilder& s) {
   absl::Status status = s;
   (void)status;
 }
+
 TEST(StatusBuilderTest, Size) {
   EXPECT_LE(sizeof(StatusBuilder), 40)
       << "Relax this test with caution and thorough testing. If StatusBuilder "
          "is too large it can potentially blow stacks, especially in debug "
          "builds. See the comments for StatusBuilder::Rep.";
 }
+
 TEST(StatusBuilderTest, ExplicitSourceLocation) {
   const SourceLocation kLocation = PS_LOC;
   {
     const StatusBuilder builder(absl::OkStatus(), kLocation);
     EXPECT_THAT(builder.source_location().file_name(),
-                Eq(kLocation.file_name()));
+                StrEq(kLocation.file_name()));
     EXPECT_THAT(builder.source_location().line(), Eq(kLocation.line()));
   }
 }
+
 TEST(StatusBuilderTest, ImplicitSourceLocation) {
   const StatusBuilder builder(absl::OkStatus());
   auto loc = PS_LOC;
   EXPECT_THAT(builder.source_location().file_name(),
-              AnyOf(Eq(loc.file_name()), Eq("<source_location>")));
+              AnyOf(StrEq(loc.file_name()), StrEq("<source_location>")));
   EXPECT_THAT(builder.source_location().line(),
               AnyOf(Eq(1), Eq(loc.line() - 1)));
 }
+
 TEST(StatusBuilderTest, StatusCode) {
   // OK
   {
@@ -94,6 +104,7 @@ TEST(StatusBuilderTest, StatusCode) {
     EXPECT_THAT(builder.code(), Eq(absl::StatusCode::kInvalidArgument));
   }
 }
+
 TEST(StatusBuilderTest, Streaming) {
   EXPECT_THAT(
       ToStatus(StatusBuilder(absl::CancelledError(), Locs::kFoo) << "booyah"),
@@ -102,6 +113,7 @@ TEST(StatusBuilderTest, Streaming) {
                        << "world"),
               Eq(absl::AbortedError("hello; world")));
 }
+
 TEST(StatusBuilderTest, PrependLvalue) {
   {
     StatusBuilder builder(absl::CancelledError(), SourceLocation());
@@ -114,6 +126,7 @@ TEST(StatusBuilderTest, PrependLvalue) {
                 Eq(absl::AbortedError("world hello")));
   }
 }
+
 TEST(StatusBuilderTest, PrependRvalue) {
   EXPECT_THAT(
       ToStatus(
@@ -126,6 +139,7 @@ TEST(StatusBuilderTest, PrependRvalue) {
                << "world"),
       Eq(absl::AbortedError("world hello")));
 }
+
 TEST(StatusBuilderTest, AppendLvalue) {
   {
     StatusBuilder builder(absl::CancelledError(), SourceLocation());
@@ -138,6 +152,7 @@ TEST(StatusBuilderTest, AppendLvalue) {
                 Eq(absl::AbortedError("hello world")));
   }
 }
+
 TEST(StatusBuilderTest, AppendRvalue) {
   EXPECT_THAT(
       ToStatus(
@@ -161,6 +176,7 @@ TEST_F(StatusBuilderTestWithLog, LogEveryNFirstLogs) {
   ConvertToStatusAndIgnore(builder.LogEveryN(absl::LogSeverity::kWarning, 3)
                            << "no!");
 }
+
 TEST_F(StatusBuilderTestWithLog, LogEveryN2Lvalue) {
   EXPECT_CALL(scoped_mock_log_,
               Log(absl::LogSeverity::kWarning,
@@ -174,6 +190,7 @@ TEST_F(StatusBuilderTestWithLog, LogEveryN2Lvalue) {
                              << "no!");
   }
 }
+
 TEST_F(StatusBuilderTestWithLog, LogEveryN3Lvalue) {
   EXPECT_CALL(scoped_mock_log_,
               Log(absl::LogSeverity::kWarning,
@@ -187,6 +204,7 @@ TEST_F(StatusBuilderTestWithLog, LogEveryN3Lvalue) {
                              << "no!");
   }
 }
+
 TEST_F(StatusBuilderTestWithLog, LogEveryN7Lvalue) {
   EXPECT_CALL(scoped_mock_log_,
               Log(absl::LogSeverity::kWarning,
@@ -200,6 +218,7 @@ TEST_F(StatusBuilderTestWithLog, LogEveryN7Lvalue) {
                              << "no!");
   }
 }
+
 TEST_F(StatusBuilderTestWithLog, LogEveryNRvalue) {
   EXPECT_CALL(scoped_mock_log_,
               Log(absl::LogSeverity::kWarning,
@@ -214,6 +233,7 @@ TEST_F(StatusBuilderTestWithLog, LogEveryNRvalue) {
         << "no!");
   }
 }
+
 TEST_F(StatusBuilderTestWithLog, LogIncludesFileAndLine) {
   EXPECT_CALL(scoped_mock_log_,
               Log(absl::LogSeverity::kWarning, HasSubstr("/foo/secret.cc"),
@@ -224,6 +244,7 @@ TEST_F(StatusBuilderTestWithLog, LogIncludesFileAndLine) {
                                .Log(absl::LogSeverity::kWarning)
                            << "maybe?");
 }
+
 TEST_F(StatusBuilderTestWithLog, NoLoggingLvalue) {
   EXPECT_CALL(scoped_mock_log_, Log(_, _, _)).Times(0);
   scoped_mock_log_.StartCapturingLogs();
@@ -239,6 +260,7 @@ TEST_F(StatusBuilderTestWithLog, NoLoggingLvalue) {
                 Eq(absl::AbortedError("not at all")));
   }
 }
+
 TEST_F(StatusBuilderTestWithLog, NoLoggingRvalue) {
   EXPECT_CALL(scoped_mock_log_, Log(_, _, _)).Times(0);
   scoped_mock_log_.StartCapturingLogs();
@@ -252,6 +274,7 @@ TEST_F(StatusBuilderTestWithLog, NoLoggingRvalue) {
                        << "not at all"),
               Eq(absl::AbortedError("not at all")));
 }
+
 TEST_F(StatusBuilderTestWithLog,
        EmitStackTracePlusSomethingLikelyUniqueLvalue) {
   EXPECT_CALL(scoped_mock_log_,
@@ -262,6 +285,7 @@ TEST_F(StatusBuilderTestWithLog,
   StatusBuilder builder(absl::AbortedError(""), Locs::kBar);
   ConvertToStatusAndIgnore(builder.LogError().EmitStackTrace() << "maybe?");
 }
+
 TEST_F(StatusBuilderTestWithLog,
        EmitStackTracePlusSomethingLikelyUniqueRvalue) {
   EXPECT_CALL(scoped_mock_log_,
@@ -281,22 +305,25 @@ TEST(StatusBuilderTest, WithRvalueRef) {
                            .With(policy)),
               Eq(absl::AbortedError("hello; policy")));
 }
+
 TEST(StatusBuilderTest, WithRef) {
   auto policy = [](StatusBuilder sb) { return sb << "policy"; };
   StatusBuilder sb(absl::AbortedError("zomg"), Locs::kLevel1);
   EXPECT_THAT(ToStatus(sb.With(policy)),
               Eq(absl::AbortedError("zomg; policy")));
 }
+
 TEST(StatusBuilderTest, WithTypeChange) {
   auto policy = [](StatusBuilder sb) -> std::string {
     return sb.ok() ? "true" : "false";
   };
-  EXPECT_EQ(
+  EXPECT_THAT(
       StatusBuilder(absl::CancelledError(), SourceLocation()).With(policy),
-      "false");
-  EXPECT_EQ(StatusBuilder(absl::OkStatus(), SourceLocation()).With(policy),
-            "true");
+      StrEq("false"));
+  EXPECT_THAT(StatusBuilder(absl::OkStatus(), SourceLocation()).With(policy),
+              StrEq("true"));
 }
+
 TEST(StatusBuilderTest, WithVoidTypeAndSideEffects) {
   absl::StatusCode code;
   auto policy = [&code](absl::Status status) { code = status.code(); };
@@ -325,13 +352,16 @@ std::string ToStringViaStream(const T& x) {
   os << x;
   return os.str();
 }
+
 TEST(StatusBuilderTest, StreamInsertionOperator) {
   absl::Status status = absl::AbortedError("zomg");
   StatusBuilder builder(status, SourceLocation());
-  EXPECT_EQ(ToStringViaStream(status), ToStringViaStream(builder));
-  EXPECT_EQ(ToStringViaStream(status),
-            ToStringViaStream(StatusBuilder(status, SourceLocation())));
+  EXPECT_THAT(ToStringViaStream(status), StrEq(ToStringViaStream(builder)));
+  EXPECT_THAT(
+      ToStringViaStream(status),
+      StrEq(ToStringViaStream(StatusBuilder(status, SourceLocation()))));
 }
+
 TEST(WithExtraMessagePolicyTest, AppendsToExtraMessage) {
   // The policy simply calls operator<< on the builder; the following examples
   // demonstrate that, without duplicating all of the above tests.
@@ -356,17 +386,24 @@ TEST(WithExtraMessagePolicyTest, AppendsToExtraMessage) {
       ToStatus(builder.With(ExtraMessage("world")).With(ExtraMessage("!"))),
       Eq(absl::AbortedError("hello; world!")));
 }
+
 #line 1337 "/foo/secret.cc"
 const SourceLocation Locs::kSecret = SourceLocation::current();
+
 #line 1234 "/tmp/level0.cc"
 const SourceLocation Locs::kLevel0 = SourceLocation::current();
+
 #line 1234 "/tmp/level1.cc"
 const SourceLocation Locs::kLevel1 = SourceLocation::current();
+
 #line 1234 "/tmp/level2.cc"
 const SourceLocation Locs::kLevel2 = SourceLocation::current();
+
 #line 1337 "/foo/foo.cc"
 const SourceLocation Locs::kFoo = SourceLocation::current();
+
 #line 1337 "/bar/baz.cc"
 const SourceLocation Locs::kBar = SourceLocation::current();
+
 }  // namespace
 }  // namespace privacy_sandbox::server_common

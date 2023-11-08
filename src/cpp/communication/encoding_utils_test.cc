@@ -64,7 +64,8 @@ TEST(EncodingUtilsTest, DecodeMaxVersionMaxZipPayloadSuccess) {
 
   EXPECT_EQ(decoded_payload->framing_version, 7);
   EXPECT_EQ(static_cast<int>(decoded_payload->compression_type), 31);
-  EXPECT_EQ(decoded_payload->compressed_data, expected_compressed_message);
+  EXPECT_THAT(decoded_payload->compressed_data,
+              StrEq(expected_compressed_message));
 }
 
 TEST(EncodingUtilsTest, DecodeRequestPayloadSuccess_NoPadding) {

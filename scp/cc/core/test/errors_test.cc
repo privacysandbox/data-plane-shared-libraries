@@ -14,9 +14,12 @@
 
 #include "core/interface/errors.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "core/common/concurrent_queue/src/concurrent_queue.h"
+
+using ::testing::StrEq;
 
 namespace google::scp::core::errors::test {
 TEST(ERRORS, ComponentCodeRegistered) {
@@ -41,20 +44,20 @@ TEST(ERRORS, ErrorMessageReturn) {
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0xFFFF,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
 
-  EXPECT_EQ(GetErrorMessage(COMPONENT_NAME_ERROR),
-            "Component error message test");
+  EXPECT_THAT(GetErrorMessage(COMPONENT_NAME_ERROR),
+              StrEq("Component error message test"));
 }
 
 TEST(ERRORS, ErrorMessageSuccessErrorCode) {
-  EXPECT_STREQ("Success", GetErrorMessage(SC_OK).data());
+  EXPECT_STREQ(GetErrorMessage(SC_OK).data(), "Success");
 }
 
 TEST(ERRORS, ErrorMessageUnknownErrorCode) {
-  EXPECT_STREQ("Unknown Error", GetErrorMessage(SC_UNKNOWN).data());
+  EXPECT_STREQ(GetErrorMessage(SC_UNKNOWN).data(), "Unknown Error");
 }
 
 TEST(ERRORS, ErrorMessageUndefinedErrorCode) {
-  EXPECT_STREQ("InvalidErrorCode", GetErrorMessage(UINT64_MAX).data());
+  EXPECT_STREQ(GetErrorMessage(UINT64_MAX).data(), "InvalidErrorCode");
 }
 
 TEST(ERRORS, MapErrorCodePublic) {
@@ -66,9 +69,8 @@ TEST(ERRORS, MapErrorCodePublic) {
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0xFFFF,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
   MAP_TO_PUBLIC_ERROR_CODE(COMPONENT_NAME_ERROR, PUBLIC_COMPONENT_ERROR);
-  EXPECT_STREQ(
-      "Public error message test",
-      GetErrorMessage(GetPublicErrorCode(COMPONENT_NAME_ERROR)).data());
+  EXPECT_STREQ(GetErrorMessage(GetPublicErrorCode(COMPONENT_NAME_ERROR)).data(),
+               "Public error message test");
 }
 
 TEST(ERRORS, NoAssociatedPublicErrorCode) {

@@ -16,6 +16,7 @@
 
 #include "roma/worker/src/execution_utils.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <v8-context.h>
@@ -54,6 +55,8 @@ using google::scp::roma::wasm::RomaWasmStringRepresentation;
 using google::scp::roma::wasm::WasmDeserializer;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using google::scp::roma::worker::ExecutionUtils;
+using ::testing::IsEmpty;
+using ::testing::StrEq;
 
 namespace google::scp::roma::worker::test {
 
@@ -206,7 +209,7 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgv) {
           isolate_,
           local_list->Get(context, idx).ToLocalChecked().As<v8::String>());
       auto expected = list.at(idx);
-      EXPECT_EQ(0, strcmp(*output, expected.c_str()));
+      EXPECT_STREQ(*output, expected.c_str());
     }
   }
 }
@@ -230,7 +233,7 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvJsonInput) {
       auto json_value = local_list->Get(context, idx).ToLocalChecked();
       v8::String::Utf8Value output(
           isolate_, v8::JSON::Stringify(context, json_value).ToLocalChecked());
-      EXPECT_EQ(0, strcmp(*output, expected.c_str()));
+      EXPECT_STREQ(*output, expected.c_str());
     }
   }
 }
@@ -276,7 +279,7 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvInputWithEmptyString) {
       auto json_value = v8_array->Get(context, idx).ToLocalChecked();
       v8::String::Utf8Value output(
           isolate_, v8::JSON::Stringify(context, json_value).ToLocalChecked());
-      EXPECT_EQ(0, strcmp(*output, expected.c_str()));
+      EXPECT_STREQ(*output, expected.c_str());
     }
   }
 }
@@ -319,7 +322,7 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInput) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, "3");
+  EXPECT_THAT(output, StrEq("3"));
 }
 
 TEST_F(ExecutionUtilsTest, PerformanceNowDeclaredInJs) {
@@ -338,7 +341,7 @@ TEST_F(ExecutionUtilsTest, PerformanceNowDeclaredInJs) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, "true");
+  EXPECT_THAT(output, StrEq("true"));
 }
 
 TEST_F(ExecutionUtilsTest, JsPredicateMatchesTrueOutput) {
@@ -350,7 +353,7 @@ TEST_F(ExecutionUtilsTest, JsPredicateMatchesTrueOutput) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, "true");
+  EXPECT_THAT(output, StrEq("true"));
 }
 
 TEST_F(ExecutionUtilsTest, JsPredicateMatchesFalseOutput) {
@@ -362,7 +365,7 @@ TEST_F(ExecutionUtilsTest, JsPredicateMatchesFalseOutput) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, "false");
+  EXPECT_THAT(output, StrEq("false"));
 }
 
 TEST_F(ExecutionUtilsTest, JsFunctionOutput) {
@@ -374,7 +377,7 @@ TEST_F(ExecutionUtilsTest, JsFunctionOutput) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, "3");
+  EXPECT_THAT(output, StrEq("3"));
 }
 
 TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInputMissKey) {
@@ -432,7 +435,7 @@ TEST_F(ExecutionUtilsTest, RunCodeObjRunWithLessArgs) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, "null");
+  EXPECT_THAT(output, StrEq("null"));
 }
 
 TEST_F(ExecutionUtilsTest, RunCodeObjRunWithJsonArgsMissing) {
@@ -550,7 +553,7 @@ TEST_F(ExecutionUtilsTest, WasmSourceCodeUnmatchedName) {
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_EQ(result,
             FailureExecutionResult(SC_ROMA_V8_WORKER_HANDLER_INVALID_FUNCTION));
-  EXPECT_EQ(output, "");
+  EXPECT_THAT(output, IsEmpty());
 }
 
 TEST_F(ExecutionUtilsTest, CppWasmWithStringInputAndStringOutput) {
@@ -571,7 +574,7 @@ TEST_F(ExecutionUtilsTest, CppWasmWithStringInputAndStringOutput) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, R"("Input String :) Hello World from WASM")");
+  EXPECT_THAT(output, StrEq(R"("Input String :) Hello World from WASM")"));
 }
 
 TEST_F(ExecutionUtilsTest, RustWasmWithStringInputAndStringOutput) {
@@ -592,7 +595,7 @@ TEST_F(ExecutionUtilsTest, RustWasmWithStringInputAndStringOutput) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, R"("Input String :) Hello from rust!")");
+  EXPECT_THAT(output, StrEq(R"("Input String :) Hello from rust!")"));
 }
 
 TEST_F(ExecutionUtilsTest, JsEmbeddedGlobalWasmCompileRunExecute) {
@@ -618,6 +621,6 @@ TEST_F(ExecutionUtilsTest, JsEmbeddedGlobalWasmCompileRunExecute) {
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_SUCCESS(result);
-  EXPECT_EQ(output, std::to_string(3).c_str());
+  EXPECT_THAT(output, StrEq(std::to_string(3).c_str()));
 }
 }  // namespace google::scp::roma::worker::test

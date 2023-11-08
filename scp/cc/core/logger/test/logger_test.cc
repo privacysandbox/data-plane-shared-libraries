@@ -16,6 +16,7 @@
 
 #include "core/logger/src/logger.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -23,6 +24,7 @@
 #include <vector>
 
 #include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/logger/mock/mock_logger.h"
 #include "core/logger/src/log_utils.h"
@@ -34,6 +36,8 @@ using google::scp::core::common::Uuid;
 using google::scp::core::logger::FromString;
 using google::scp::core::logger::ToString;
 using google::scp::core::logger::mock::MockLogger;
+using ::testing::SizeIs;
+using ::testing::StrEq;
 
 namespace google::scp::core::test {
 class LoggerTests : public ScpTestBase {
@@ -48,8 +52,7 @@ class LoggerTests : public ScpTestBase {
     correlation_id = Uuid::GenerateUuid();
     correlation_id_str = ToString(correlation_id);
 
-    location =
-        std::string(__FILE__) + ":" + __func__ + ":" + std::to_string(__LINE__);
+    location = absl::StrCat(__FILE__, ":", __func__, ":", __LINE__);
   }
 
   Uuid uuid;
@@ -68,7 +71,7 @@ TEST_F(LoggerTests, LogDebug) {
               "Message");
 
   auto logs = logger.GetMessages();
-  EXPECT_EQ(logs.size(), 1);
+  EXPECT_THAT(logs, SizeIs(1));
 
   auto first_delim = logs[0].find("|");
   auto timestamp_string = logs[0].substr(0, first_delim);
@@ -77,9 +80,10 @@ TEST_F(LoggerTests, LogDebug) {
   double timestamp_dbl = 0.0;
   EXPECT_TRUE(
       absl::SimpleAtod(std::string_view(timestamp_string), &timestamp_dbl));
-  EXPECT_EQ(after_timestamp_string, "|||LoggerTest|" + correlation_id_str +
-                                        "|" + parent_uuid_str + "|" + uuid_str +
-                                        "|" + location + "|32: Message");
+  EXPECT_THAT(after_timestamp_string,
+              StrEq(absl::StrCat("|||LoggerTest|", correlation_id_str, "|",
+                                 parent_uuid_str, "|", uuid_str, "|", location,
+                                 "|32: Message")));
 }
 
 TEST_F(LoggerTests, LogInfo) {
@@ -88,7 +92,7 @@ TEST_F(LoggerTests, LogInfo) {
                "Message");
 
   auto logs = logger.GetMessages();
-  EXPECT_EQ(logs.size(), 1);
+  EXPECT_THAT(logs, SizeIs(1));
 
   auto first_delim = logs[0].find("|");
   auto timestamp_string = logs[0].substr(0, first_delim);
@@ -97,9 +101,10 @@ TEST_F(LoggerTests, LogInfo) {
   double timestamp_dbl = 0.0;
   EXPECT_TRUE(
       absl::SimpleAtod(std::string_view(timestamp_string), &timestamp_dbl));
-  EXPECT_EQ(after_timestamp_string, "|||LoggerTest|" + correlation_id_str +
-                                        "|" + parent_uuid_str + "|" + uuid_str +
-                                        "|" + location + "|16: Message");
+  EXPECT_THAT(after_timestamp_string,
+              StrEq(absl::StrCat("|||LoggerTest|", correlation_id_str, "|",
+                                 parent_uuid_str, "|", uuid_str, "|", location,
+                                 "|16: Message")));
 }
 
 TEST_F(LoggerTests, LogError) {
@@ -108,7 +113,7 @@ TEST_F(LoggerTests, LogError) {
                "Message");
 
   auto logs = logger.GetMessages();
-  EXPECT_EQ(logs.size(), 1);
+  EXPECT_THAT(logs, SizeIs(1));
 
   auto first_delim = logs[0].find("|");
   auto timestamp_string = logs[0].substr(0, first_delim);
@@ -117,9 +122,10 @@ TEST_F(LoggerTests, LogError) {
   double timestamp_dbl = 0.0;
   EXPECT_TRUE(
       absl::SimpleAtod(std::string_view(timestamp_string), &timestamp_dbl));
-  EXPECT_EQ(after_timestamp_string, "|||LoggerTest|" + correlation_id_str +
-                                        "|" + parent_uuid_str + "|" + uuid_str +
-                                        "|" + location + "|4: Message");
+  EXPECT_THAT(after_timestamp_string,
+              StrEq(absl::StrCat("|||LoggerTest|", correlation_id_str, "|",
+                                 parent_uuid_str, "|", uuid_str, "|", location,
+                                 "|4: Message")));
 }
 
 TEST_F(LoggerTests, LogWarning) {
@@ -129,7 +135,7 @@ TEST_F(LoggerTests, LogWarning) {
                  "Message");
 
   auto logs = logger.GetMessages();
-  EXPECT_EQ(logs.size(), 1);
+  EXPECT_THAT(logs, SizeIs(1));
 
   auto first_delim = logs[0].find("|");
   auto timestamp_string = logs[0].substr(0, first_delim);
@@ -138,9 +144,10 @@ TEST_F(LoggerTests, LogWarning) {
   double timestamp_dbl = 0.0;
   EXPECT_TRUE(
       absl::SimpleAtod(std::string_view(timestamp_string), &timestamp_dbl));
-  EXPECT_EQ(after_timestamp_string, "|||LoggerTest|" + correlation_id_str +
-                                        "|" + parent_uuid_str + "|" + uuid_str +
-                                        "|" + location + "|8: Message");
+  EXPECT_THAT(after_timestamp_string,
+              StrEq(absl::StrCat("|||LoggerTest|", correlation_id_str, "|",
+                                 parent_uuid_str, "|", uuid_str, "|", location,
+                                 "|8: Message")));
 }
 
 TEST_F(LoggerTests, LogWithArgs) {
@@ -150,22 +157,24 @@ TEST_F(LoggerTests, LogWithArgs) {
                  "Message %d %s", 1, "error");
 
   auto logs = logger.GetMessages();
-  EXPECT_EQ(logs.size(), 1);
+  EXPECT_THAT(logs, SizeIs(1));
 
   auto first_delim = logs[0].find("|");
   auto timestamp_string = logs[0].substr(0, first_delim);
   auto after_timestamp_string = logs[0].substr(first_delim);
 
-  EXPECT_EQ(after_timestamp_string, "|||LoggerTest|" + correlation_id_str +
-                                        "|" + parent_uuid_str + "|" + uuid_str +
-                                        "|" + location + "|8: Message 1 error");
+  EXPECT_THAT(after_timestamp_string,
+              StrEq(absl::StrCat("|||LoggerTest|", correlation_id_str, "|",
+                                 parent_uuid_str, "|", uuid_str, "|", location,
+                                 "|8: Message 1 error")));
 }
 
 TEST_F(LoggerTests, LogLevelToAndFromString) {
-  std::vector<LogLevel> log_levels = {LogLevel::kAlert, LogLevel::kCritical,
-                                      LogLevel::kDebug, LogLevel::kEmergency,
-                                      LogLevel::kError, LogLevel::kInfo,
-                                      LogLevel::kNone,  LogLevel::kWarning};
+  std::vector<LogLevel> log_levels = {
+      LogLevel::kAlert,     LogLevel::kCritical, LogLevel::kDebug,
+      LogLevel::kEmergency, LogLevel::kError,    LogLevel::kInfo,
+      LogLevel::kNone,      LogLevel::kWarning,
+  };
 
   for (auto log_level : log_levels) {
     EXPECT_EQ(FromString(ToString(log_level)), log_level);

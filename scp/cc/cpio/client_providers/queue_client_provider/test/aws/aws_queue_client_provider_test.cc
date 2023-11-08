@@ -93,10 +93,11 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsSqsClientFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockSqsClient;
-using testing::_;
-using testing::Eq;
-using testing::NiceMock;
-using testing::Return;
+using ::testing::_;
+using ::testing::Eq;
+using ::testing::NiceMock;
+using ::testing::Return;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -264,9 +265,9 @@ TEST_F(AwsQueueClientProviderTest, RunSuccessWithExistingQueue) {
 }
 
 MATCHER_P2(HasSendMessageRequestParams, queue_url, message_body, "") {
-  return ExplainMatchResult(Eq(queue_url), arg.GetQueueUrl(),
+  return ExplainMatchResult(StrEq(queue_url), arg.GetQueueUrl(),
                             result_listener) &&
-         ExplainMatchResult(Eq(message_body), arg.GetMessageBody(),
+         ExplainMatchResult(StrEq(message_body), arg.GetMessageBody(),
                             result_listener);
 }
 
@@ -280,7 +281,8 @@ TEST_F(AwsQueueClientProviderTest, EnqueueMessageSuccess) {
                  enqueue_message_context) {
         EXPECT_SUCCESS(enqueue_message_context.result);
 
-        EXPECT_EQ(enqueue_message_context.response->message_id(), kMessageId);
+        EXPECT_THAT(enqueue_message_context.response->message_id(),
+                    StrEq(kMessageId));
         finish_called_ = true;
       };
 
@@ -334,7 +336,7 @@ TEST_F(AwsQueueClientProviderTest, EnqueueMessageCallbackFailed) {
 
 MATCHER_P3(HasReceiveMessageRequestParams, queue_url, max_number_of_messages,
            wait_time_seconds, "") {
-  return ExplainMatchResult(Eq(queue_url), arg.GetQueueUrl(),
+  return ExplainMatchResult(StrEq(queue_url), arg.GetQueueUrl(),
                             result_listener) &&
          ExplainMatchResult(Eq(max_number_of_messages),
                             arg.GetMaxNumberOfMessages(), result_listener) &&
@@ -351,11 +353,12 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageSuccess) {
                  get_top_message_context) {
         EXPECT_SUCCESS(get_top_message_context.result);
 
-        EXPECT_EQ(get_top_message_context.response->message_id(), kMessageId);
-        EXPECT_EQ(get_top_message_context.response->message_body(),
-                  kMessageBody);
-        EXPECT_EQ(get_top_message_context.response->receipt_info(),
-                  kReceiptInfo);
+        EXPECT_THAT(get_top_message_context.response->message_id(),
+                    StrEq(kMessageId));
+        EXPECT_THAT(get_top_message_context.response->message_body(),
+                    StrEq(kMessageBody));
+        EXPECT_THAT(get_top_message_context.response->receipt_info(),
+                    StrEq(kReceiptInfo));
         finish_called_ = true;
       };
 

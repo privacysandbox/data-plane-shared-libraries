@@ -33,6 +33,7 @@ using google::scp::core::EnvConfigProvider;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using ::testing::ElementsAre;
+using ::testing::Eq;
 using ::testing::IsEmpty;
 using ::testing::IsFalse;
 using ::testing::IsTrue;
@@ -46,22 +47,18 @@ TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
   config.Init();
 
   std::string out_string;
-  std::string expect_string = "10.10.10.20";
   char string_val[] = "key-for-string-value=10.10.10.20";
   putenv(string_val);
 
   bool out_bool;
-  bool expect_bool = true;
   char bool_val[] = "key-for-bool-value=true";
   putenv(bool_val);
 
   size_t out_size_t;
-  size_t expect_size_t = 5000;
   char size_t_val[] = "key-for-sizet-value=5000";
   putenv(size_t_val);
 
   int32_t out_int32_t;
-  int32_t expect_int32_t = 6000;
   char int32_t_val[] = "key-for-int32t-value=6000";
   putenv(int32_t_val);
 
@@ -106,10 +103,10 @@ TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
   config.Get("key-for-bool-list", out_bool_list);
   EXPECT_SUCCESS(ret);
 
-  EXPECT_THAT(out_string, StrEq(expect_string));
-  EXPECT_EQ(out_size_t, expect_size_t);
-  EXPECT_EQ(out_int32_t, expect_int32_t);
-  EXPECT_EQ(out_bool, expect_bool);
+  EXPECT_THAT(out_string, StrEq("10.10.10.20"));
+  EXPECT_THAT(out_size_t, Eq(5000));
+  EXPECT_THAT(out_int32_t, Eq(6000));
+  EXPECT_TRUE(out_bool);
   EXPECT_THAT(out_string_list, ElementsAre(StrEq("1"), StrEq("2")));
   EXPECT_THAT(out_int32_t_list, ElementsAre(1, 2));
   EXPECT_THAT(out_size_t_list, ElementsAre(3, 4));

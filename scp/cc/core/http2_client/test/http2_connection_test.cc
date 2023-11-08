@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <stdint.h>
@@ -175,7 +176,7 @@ TEST(HttpConnectionTest, CancelCallbacks) {
   }
 
   connection.CancelPendingCallbacks();
-  EXPECT_EQ(is_called, true);
+  EXPECT_TRUE(is_called);
 
   connection.GetPendingNetworkCallbacks().Keys(keys);
   EXPECT_EQ(keys.size(), 0);
@@ -244,7 +245,7 @@ TEST(HttpConnectionTest, StopRemovesCallback) {
   connection.Stop();
   connection.GetPendingNetworkCallbacks().Keys(keys);
   EXPECT_EQ(keys.size(), 0);
-  EXPECT_EQ(is_called, true);
+  EXPECT_TRUE(is_called);
 
   release_response = true;
   connection.Stop();

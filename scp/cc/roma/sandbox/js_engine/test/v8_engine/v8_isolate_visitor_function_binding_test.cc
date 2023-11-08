@@ -36,6 +36,8 @@ using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::proto::FunctionBindingIoProto;
 
 using ::testing::_;
+using ::testing::Return;
+using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::js_engine::test {
 class V8IsolateVisitorFunctionBindingTest : public ::testing::Test {
@@ -68,13 +70,13 @@ TEST_F(V8IsolateVisitorFunctionBindingTest,
   AutoInitRunStop to_handle_engine(js_engine);
 
   EXPECT_CALL(*function_invoker, Invoke("cool_func", _))
-      .WillOnce(testing::Return(SuccessExecutionResult()));
+      .WillOnce(Return(SuccessExecutionResult()));
 
   auto result_or = js_engine.CompileAndRunJs(
       R"(function func() { cool_func(); return ""; })", "func", {}, {});
   EXPECT_SUCCESS(result_or.result());
   const auto& response_string = result_or->execution_response.response;
-  EXPECT_THAT(response_string, testing::StrEq(R"("")"));
+  EXPECT_THAT(response_string, StrEq(R"("")"));
 }
 
 }  // namespace google::scp::roma::sandbox::js_engine::test

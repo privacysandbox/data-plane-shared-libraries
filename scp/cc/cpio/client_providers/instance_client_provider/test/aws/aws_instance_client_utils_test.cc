@@ -36,12 +36,14 @@ using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::client_providers::AwsResourceNameDetails;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
-using testing::Pair;
-using testing::Pointee;
-using testing::Return;
-using testing::SetArgPointee;
-using testing::TestWithParam;
-using testing::UnorderedElementsAre;
+using ::testing::Pair;
+using ::testing::Pointee;
+using ::testing::Return;
+using ::testing::SetArgPointee;
+using ::testing::StrEq;
+using ::testing::TestWithParam;
+using ::testing::UnorderedElementsAre;
+using ::testing::Values;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -67,7 +69,7 @@ TEST(AwsInstanceClientUtilsTest, GetCurrentRegionCodeSuccess) {
 
   auto region_code =
       AwsInstanceClientUtils::GetCurrentRegionCode(instance_client);
-  EXPECT_EQ(*region_code, kRegionMock);
+  EXPECT_THAT(*region_code, StrEq(kRegionMock));
 }
 
 TEST(AwsInstanceClientUtilsTest, GetCurrentRegionCodeFailedWithResourceName) {
@@ -119,9 +121,9 @@ TEST(AwsInstanceClientUtilsTest, GetInstanceResourceNameDetails) {
   EXPECT_THAT(AwsInstanceClientUtils::GetResourceNameDetails(kResourceNameMock,
                                                              details),
               IsSuccessful());
-  EXPECT_EQ(details.account_id, kAccountIdMock);
-  EXPECT_EQ(details.region, kRegionMock);
-  EXPECT_EQ(details.resource_id, kInstanceIdMock);
+  EXPECT_THAT(details.account_id, StrEq(kAccountIdMock));
+  EXPECT_THAT(details.region, StrEq(kRegionMock));
+  EXPECT_THAT(details.resource_id, StrEq(kInstanceIdMock));
 }
 
 class AwsInstanceClientUtilsTestII
@@ -140,7 +142,7 @@ TEST_P(AwsInstanceClientUtilsTestII, FailedWithBadResourceName) {
 
 INSTANTIATE_TEST_SUITE_P(
     ValidateResourceNameFormat, AwsInstanceClientUtilsTestII,
-    testing::Values(
+    Values(
         std::make_tuple(
             "arn:aws:ec2:us-east-1:123456789012:instance/i-0e9801d129EXAMPLE",
             SuccessExecutionResult()),

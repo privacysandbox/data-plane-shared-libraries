@@ -22,9 +22,10 @@
 #include "roma/config/src/config.h"
 #include "roma/config/src/function_binding_object.h"
 
-namespace google::scp::roma::test {
-
 using google::scp::roma::proto::FunctionBindingIoProto;
+using ::testing::StrEq;
+
+namespace google::scp::roma::test {
 
 TEST(FakeKvServerTest, SmokeTest) {
   const Config config;
@@ -40,7 +41,7 @@ TEST(FakeKvServerTest, ExecuteCodeWithNoKeyData) {
   code_config.udf_handler_name = "hello";
   server.SetCodeObject(code_config);
 
-  EXPECT_EQ(R"("Hello world!")", server.ExecuteCode({}));
+  EXPECT_THAT(server.ExecuteCode({}), StrEq(R"("Hello world!")"));
 }
 
 TEST(FakeKvServerTest, ExecuteCodeWithKeyData) {
@@ -53,7 +54,8 @@ TEST(FakeKvServerTest, ExecuteCodeWithKeyData) {
   code_config.udf_handler_name = "hello";
   server.SetCodeObject(code_config);
 
-  EXPECT_EQ(R"("Hello world! \"ECHO\"")", server.ExecuteCode({R"("ECHO")"}));
+  EXPECT_THAT(server.ExecuteCode({R"("ECHO")"}),
+              StrEq(R"("Hello world! \"ECHO\"")"));
 }
 
 static void HelloWorldCallback(FunctionBindingIoProto& io) {
@@ -75,7 +77,8 @@ TEST(FakeKvServerTest, ExecuteCodeWithCallback) {
   code_config.udf_handler_name = "hello";
   server.SetCodeObject(code_config);
 
-  EXPECT_EQ(R"("Hello world! I am a callback!")", server.ExecuteCode({}));
+  EXPECT_THAT(server.ExecuteCode({}),
+              StrEq(R"("Hello world! I am a callback!")"));
 }
 
 }  // namespace google::scp::roma::test

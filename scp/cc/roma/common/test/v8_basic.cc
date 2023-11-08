@@ -19,6 +19,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <v8-context.h>
@@ -34,6 +35,8 @@
 #include <string>
 
 #include <libplatform/libplatform.h>
+
+using ::testing::StrEq;
 
 namespace google::scp::roma::test {
 class V8Test : public ::testing::Test {
@@ -95,7 +98,7 @@ TEST_F(V8Test, BasicJs) {
   // Convert the result to an UTF8 string.
   v8::String::Utf8Value utf8(isolate_, result);
   std::string val(*utf8, utf8.length());
-  EXPECT_EQ(val, "Hello, World!");
+  EXPECT_THAT(val, StrEq("Hello, World!"));
 }
 
 TEST_F(V8Test, BasicWasm) {

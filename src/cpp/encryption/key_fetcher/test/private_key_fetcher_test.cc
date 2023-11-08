@@ -25,13 +25,6 @@
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 
-// Note: PKS = Private Key Service.
-namespace privacy_sandbox::server_common {
-namespace {
-
-constexpr char kPublicKey[] = "pubkey";
-constexpr char kPrivateKey[] = "privkey";
-
 using ::google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;
 using ::google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse;
 using ::google::scp::core::ExecutionResult;
@@ -41,6 +34,14 @@ using ::google::scp::cpio::Callback;
 using ::google::scp::cpio::PrivateKeyClientInterface;
 using ::google::scp::cpio::PublicPrivateKeyPairId;
 using ::testing::Return;
+using ::testing::StrEq;
+
+// Note: PKS = Private Key Service.
+namespace privacy_sandbox::server_common {
+namespace {
+
+constexpr char kPublicKey[] = "pubkey";
+constexpr char kPrivateKey[] = "privkey";
 
 class MockPrivateKeyClient
     : public google::scp::cpio::PrivateKeyClientInterface {
@@ -98,7 +99,7 @@ TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
             // the ones passed into the method.
             EXPECT_EQ(request.max_age_seconds(),
                       ToInt64Seconds(absl::Hours(1)));
-            EXPECT_EQ(0, request.key_ids().size());
+            EXPECT_EQ(request.key_ids().size(), 0);
             callback(SuccessExecutionResult(), response);
             return SuccessExecutionResult();
           });
@@ -108,8 +109,8 @@ TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
 
   // Verify all fields were initialized correctly.
   EXPECT_TRUE(fetcher.GetKey("255").has_value());
-  EXPECT_EQ(fetcher.GetKey("255")->key_id, "255");
-  EXPECT_EQ(fetcher.GetKey("255")->private_key, kPrivateKey);
+  EXPECT_THAT(fetcher.GetKey("255")->key_id, StrEq("255"));
+  EXPECT_THAT(fetcher.GetKey("255")->private_key, StrEq(kPrivateKey));
   EXPECT_TRUE(fetcher.GetKey("255")->creation_time - absl::Now() <
               absl::Minutes(1));
 }

@@ -16,6 +16,7 @@
 
 #include "public/cpio/utils/metric_aggregation/src/metric_utils.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -30,6 +31,7 @@ using google::cmrt::sdk::metric_service::v1::Metric;
 using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
 using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
 using google::scp::cpio::MetricUnit;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -52,11 +54,11 @@ TEST(MetricUtilsTest, GetPutMetricsRequest) {
   MetricUtils::GetPutMetricsRequest(record_metric_request, metric_info,
                                     kMetricValue);
 
-  EXPECT_EQ(record_metric_request->metric_namespace(), kNamespace);
-  EXPECT_EQ(record_metric_request->metrics()[0].name(), kMetricName);
+  EXPECT_THAT(record_metric_request->metric_namespace(), StrEq(kNamespace));
+  EXPECT_THAT(record_metric_request->metrics()[0].name(), StrEq(kMetricName));
   EXPECT_EQ(record_metric_request->metrics()[0].unit(),
             cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_UNKNOWN);
-  EXPECT_EQ(record_metric_request->metrics()[0].value(), kMetricValue);
+  EXPECT_THAT(record_metric_request->metrics()[0].value(), StrEq(kMetricValue));
   EXPECT_EQ(record_metric_request->metrics()[0].labels().size(), 3);
   EXPECT_TRUE(record_metric_request->metrics()[0]
                   .labels()
@@ -68,13 +70,15 @@ TEST(MetricUtilsTest, CreateMetricLabelsWithComponentSignature) {
   auto metric_labels1 = MetricUtils::CreateMetricLabelsWithComponentSignature(
       kComponentValue, kMethodValue);
   EXPECT_EQ(metric_labels1.size(), 2);
-  EXPECT_EQ(metric_labels1.find("ComponentName")->second, kComponentValue);
-  EXPECT_EQ(metric_labels1.find("MethodName")->second, kMethodValue);
+  EXPECT_THAT(metric_labels1.find("ComponentName")->second,
+              StrEq(kComponentValue));
+  EXPECT_THAT(metric_labels1.find("MethodName")->second, StrEq(kMethodValue));
 
   auto metric_labels2 =
       MetricUtils::CreateMetricLabelsWithComponentSignature(kComponentValue);
   EXPECT_EQ(metric_labels2.size(), 1);
-  EXPECT_EQ(metric_labels2.find("ComponentName")->second, kComponentValue);
+  EXPECT_THAT(metric_labels2.find("ComponentName")->second,
+              StrEq(kComponentValue));
 }
 
 }  // namespace google::scp::cpio

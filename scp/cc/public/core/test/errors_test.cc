@@ -14,15 +14,17 @@
 
 #include "public/core/interface/errors.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "public/cpio/interface/error_codes.h"
 
 using google::scp::core::errors::SC_CPIO_INTERNAL_ERROR;
+using ::testing::StrEq;
 
 namespace google::scp::core::test {
 TEST(ErrorsTest, GetErrorMessageSuccessfully) {
-  EXPECT_EQ(std::string(GetErrorMessage(SC_CPIO_INTERNAL_ERROR)),
-            "Internal Error in CPIO");
+  EXPECT_THAT(std::string(GetErrorMessage(SC_CPIO_INTERNAL_ERROR)),
+              StrEq("Internal Error in CPIO"));
 }
 }  // namespace google::scp::core::test

@@ -14,6 +14,7 @@
 
 #include "cpio/client_providers/metric_client_provider/src/aws/aws_metric_client_utils.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -64,6 +65,7 @@ using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_OVERSIZE_DATUM_DIMENSIONS;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::AwsMetricClientUtils;
+using ::testing::StrEq;
 
 namespace google::scp::cpio::client_providers::test {
 static constexpr size_t kAwsMetricDatumSizeLimit = 1000;
@@ -110,7 +112,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumSuccess) {
   double value = 0.0;
   absl::SimpleAtod(std::string_view(kValue), &value);
   for (auto i = 0; i < 10; i++) {
-    EXPECT_EQ(datum_list.at(i).GetMetricName(), kName);
+    EXPECT_THAT(datum_list.at(i).GetMetricName(), StrEq(kName));
     EXPECT_EQ(datum_list.at(i).GetValue(), value);
     EXPECT_EQ(datum_list.at(i).GetUnit(),
               Aws::CloudWatch::Model::StandardUnit::Count);

@@ -14,6 +14,7 @@
 
 #include "cpio/client_providers/kms_client_provider/src/aws/aws_kms_aead.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -43,6 +44,7 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::client_providers::mock::MockKMSClient;
+using ::testing::StrEq;
 
 namespace google::scp::cpio::client_providers::test {
 class AwsKmsAeadTest : public ::testing::Test {
@@ -121,13 +123,13 @@ TEST_F(AwsKmsAeadTest, SuccessToCreateAwsKmsAead) {
 TEST_F(AwsKmsAeadTest, FailedToCreateAwsKmsAeadWithEmptyKeyArn) {
   StatusOr<std::unique_ptr<Aead>> kms_aead = AwsKmsAead::New("", kms_client_);
   ASSERT_FALSE(kms_aead.ok());
-  EXPECT_EQ(absl::StatusCode::kInvalidArgument, kms_aead.status().code());
+  EXPECT_EQ(kms_aead.status().code(), absl::StatusCode::kInvalidArgument);
 }
 
 TEST_F(AwsKmsAeadTest, FailedToCreateAwsKmsAeadWithEmptyKMSClient) {
   StatusOr<std::unique_ptr<Aead>> kms_aead = AwsKmsAead::New(key_arn_, nullptr);
   ASSERT_FALSE(kms_aead.ok());
-  EXPECT_EQ(absl::StatusCode::kInvalidArgument, kms_aead.status().code());
+  EXPECT_EQ(kms_aead.status().code(), absl::StatusCode::kInvalidArgument);
 }
 
 TEST_F(AwsKmsAeadTest, SuccessToEncrypt) {
@@ -136,7 +138,7 @@ TEST_F(AwsKmsAeadTest, SuccessToEncrypt) {
   StatusOr<std::string> actual_cipher_text =
       (*kms_aead)->Encrypt(plain_text_, associated_data_);
   ASSERT_TRUE(actual_cipher_text.ok());
-  EXPECT_EQ(cipher_text_, *actual_cipher_text);
+  EXPECT_THAT(*actual_cipher_text, StrEq(cipher_text_));
 }
 
 TEST_F(AwsKmsAeadTest, FailedToEncrypt) {
@@ -146,8 +148,8 @@ TEST_F(AwsKmsAeadTest, FailedToEncrypt) {
   StatusOr<std::string> actual_cipher_text =
       (*kms_aead)->Encrypt(bad_plain_text, associated_data_);
   ASSERT_FALSE(actual_cipher_text.ok());
-  EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            actual_cipher_text.status().code());
+  EXPECT_EQ(actual_cipher_text.status().code(),
+            absl::StatusCode::kInvalidArgument);
 }
 
 TEST_F(AwsKmsAeadTest, SuccessToDecrypt) {
@@ -156,7 +158,7 @@ TEST_F(AwsKmsAeadTest, SuccessToDecrypt) {
   StatusOr<std::string> actual_plain_text =
       (*kms_aead)->Decrypt(cipher_text_, associated_data_);
   ASSERT_TRUE(actual_plain_text.ok());
-  EXPECT_EQ(plain_text_, *actual_plain_text);
+  EXPECT_THAT(*actual_plain_text, StrEq(plain_text_));
 }
 
 TEST_F(AwsKmsAeadTest, FailedToDecrypt) {
@@ -166,8 +168,8 @@ TEST_F(AwsKmsAeadTest, FailedToDecrypt) {
   StatusOr<std::string> actual_plain_text =
       (*kms_aead)->Decrypt(bad_cipher_text, associated_data_);
   ASSERT_FALSE(actual_plain_text.ok());
-  EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            actual_plain_text.status().code());
+  EXPECT_EQ(actual_plain_text.status().code(),
+            absl::StatusCode::kInvalidArgument);
 }
 
 }  // namespace google::scp::cpio::client_providers::test

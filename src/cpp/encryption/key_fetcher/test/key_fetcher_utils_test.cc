@@ -16,19 +16,23 @@
 
 #include <string>
 
+#include <gmock/gmock.h>
+
 #include "include/gtest/gtest.h"
+
+using ::testing::StrEq;
 
 namespace privacy_sandbox::server_common {
 namespace {
 
 TEST(KeyFetcherUtilsTest, ToOhttpKeyIdSuccess) {
   std::string result = ToOhttpKeyId("3480000000000000");
-  EXPECT_EQ(result, "52");
+  EXPECT_THAT(result, StrEq("52"));
 }
 
 TEST(KeyFetcherUtilsTest, MaxOhttpKeyIdValue) {
   std::string result = ToOhttpKeyId("FF0000000");
-  EXPECT_EQ(result, "255");
+  EXPECT_THAT(result, StrEq("255"));
 }
 
 }  // namespace

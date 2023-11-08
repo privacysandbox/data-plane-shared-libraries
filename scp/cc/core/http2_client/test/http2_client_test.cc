@@ -55,6 +55,7 @@ using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
+using ::testing::StrEq;
 
 static constexpr TimeDuration kHttp2ReadTimeoutInSeconds = 10;
 
@@ -238,7 +239,8 @@ TEST_F(HttpClientTestII, Success) {
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
         EXPECT_SUCCESS(context.result);
         const auto& bytes = *context.response->body.bytes;
-        EXPECT_EQ(std::string(bytes.begin(), bytes.end()), "hello, world\n");
+        EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
+                    StrEq("hello, world\n"));
         done.set_value();
       });
 
@@ -262,7 +264,7 @@ TEST_F(HttpClientTestII, SingleQueryIsEscaped) {
         EXPECT_SUCCESS(context.result);
         auto query_param_it = context.response->headers->find("query_param");
         EXPECT_NE(query_param_it, context.response->headers->end());
-        EXPECT_EQ(query_param_it->second, "foo=%21%40%23%24");
+        EXPECT_THAT(query_param_it->second, StrEq("foo=%21%40%23%24"));
         finished.store(true);
       });
 
@@ -285,7 +287,8 @@ TEST_F(HttpClientTestII, MultiQueryIsEscaped) {
         EXPECT_SUCCESS(context.result);
         auto query_param_it = context.response->headers->find("query_param");
         EXPECT_NE(query_param_it, context.response->headers->end());
-        EXPECT_EQ(query_param_it->second, "foo=%21%40%23%24&bar=%25%5E%28%29");
+        EXPECT_THAT(query_param_it->second,
+                    StrEq("foo=%21%40%23%24&bar=%25%5E%28%29"));
         finished.store(true);
       });
 
@@ -325,7 +328,8 @@ TEST_F(HttpClientTestII, SequentialReuse) {
         [&](AsyncContext<HttpRequest, HttpResponse>& context) {
           EXPECT_SUCCESS(context.result);
           const auto& bytes = *context.response->body.bytes;
-          EXPECT_EQ(std::string(bytes.begin(), bytes.end()), "hello, world\n");
+          EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
+                      StrEq("hello, world\n"));
           done.set_value();
         });
     EXPECT_SUCCESS(http_client->PerformRequest(context));
@@ -350,7 +354,8 @@ TEST_F(HttpClientTestII, ConcurrentReuse) {
         [&, i](AsyncContext<HttpRequest, HttpResponse>& context) {
           EXPECT_SUCCESS(context.result);
           const auto& bytes = *context.response->body.bytes;
-          EXPECT_EQ(std::string(bytes.begin(), bytes.end()), "hello, world\n");
+          EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
+                      StrEq("hello, world\n"));
           done[i].set_value();
         });
     EXPECT_SUCCESS(http_client->PerformRequest(context));
@@ -402,7 +407,8 @@ TEST_F(HttpClientTestII, ClientFinishesContextWhenServerIsStopped) {
         [&](AsyncContext<HttpRequest, HttpResponse>& context) {
           EXPECT_THAT(context.result, IsSuccessful());
           const auto& bytes = *context.response->body.bytes;
-          EXPECT_EQ(std::string(bytes.begin(), bytes.end()), "hello, world\n");
+          EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
+                      "hello, world\n");
           done.set_value();
         });
 

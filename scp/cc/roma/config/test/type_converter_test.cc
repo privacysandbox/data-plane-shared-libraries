@@ -32,6 +32,9 @@
 #include "include/v8.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
+using ::testing::ElementsAreArray;
+using ::testing::StrEq;
+
 namespace google::scp::roma::config::test {
 class TypeConverterTest : public ::testing::Test {
  protected:
@@ -70,9 +73,8 @@ v8::Platform* TypeConverterTest::platform_{nullptr};
 static void AssertStringEquality(v8::Isolate* isolate,
                                  const std::string& native_str,
                                  const v8::Local<v8::String>& v8_str) {
-  EXPECT_EQ(native_str.size(), v8_str->Length());
-  EXPECT_EQ(
-      0, strcmp(*v8::String::Utf8Value(isolate, v8_str), native_str.c_str()));
+  EXPECT_EQ(v8_str->Length(), native_str.size());
+  EXPECT_THAT(*v8::String::Utf8Value(isolate, v8_str), StrEq(native_str));
 }
 
 TEST_F(TypeConverterTest, NativeStringToV8) {
@@ -117,7 +119,7 @@ TEST_F(TypeConverterTest, v8StringToNativeFailsWhenNotString) {
 static void AssertArrayEquality(v8::Isolate* isolate,
                                 const std::vector<std::string>& vec,
                                 const v8::Local<v8::Array>& v8_array) {
-  EXPECT_EQ(vec.size(), v8_array->Length());
+  EXPECT_EQ(v8_array->Length(), vec.size());
 
   for (uint32_t i = 0; i < v8_array->Length(); i++) {
     auto v8_array_item = v8_array->Get(isolate->GetCurrentContext(), i)
@@ -219,10 +221,10 @@ static void AssertFlatHashMapOfStringEquality(
     v8::Isolate* isolate,
     const absl::flat_hash_map<std::string, std::string>& map,
     const v8::Local<v8::Map>& v8_map) {
-  EXPECT_EQ(map.size(), v8_map->Size());
+  EXPECT_EQ(v8_map->Size(), map.size());
 
-  // This turns the map into an array of size Size()*2, where index N is a key,
-  // and N+1 is the value for the given key.
+  // This turns the map into an array of size Size()*2, where index N is a
+  // key, and N+1 is the value for the given key.
   auto v8_map_as_array = v8_map->AsArray();
   std::vector<std::string> native_map_keys;
   std::vector<std::string> native_map_vals;
@@ -259,8 +261,8 @@ static void AssertFlatHashMapOfStringEquality(
   std::sort(v8_map_keys.begin(), v8_map_keys.end());
   std::sort(v8_map_vals.begin(), v8_map_vals.end());
 
-  EXPECT_THAT(native_map_keys, ::testing::ElementsAreArray(v8_map_keys));
-  EXPECT_THAT(native_map_vals, ::testing::ElementsAreArray(v8_map_vals));
+  EXPECT_THAT(native_map_keys, ElementsAreArray(v8_map_keys));
+  EXPECT_THAT(native_map_vals, ElementsAreArray(v8_map_vals));
 }
 
 TEST_F(TypeConverterTest, MapOfStringStringProtoToV8Map) {
@@ -384,7 +386,7 @@ TEST_F(TypeConverterTest, NativeUint32ToV8) {
   v8::Local<v8::Uint32> v8_val =
       TypeConverter<uint32_t>::ToV8(isolate_, native_val).As<v8::Uint32>();
 
-  EXPECT_EQ(native_val, v8_val->Value());
+  EXPECT_EQ(v8_val->Value(), native_val);
 }
 
 TEST_F(TypeConverterTest, v8Uint32ToNative) {
@@ -396,7 +398,7 @@ TEST_F(TypeConverterTest, v8Uint32ToNative) {
   uint32_t native_val;
   EXPECT_TRUE(TypeConverter<uint32_t>::FromV8(isolate_, v8_val, &native_val));
 
-  EXPECT_EQ(4567, native_val);
+  EXPECT_EQ(native_val, 4567);
 }
 
 TEST_F(TypeConverterTest, v8Uint32ToNativeShouldFailWithUnknownType) {
@@ -424,19 +426,19 @@ TEST_F(TypeConverterTest, NativeUint8PointerToV8) {
           .As<v8::Uint8Array>();
 
   // Make sure sizes match
-  EXPECT_EQ(native_val.size(), v8_val->Length());
+  EXPECT_EQ(v8_val->Length(), native_val.size());
 
   // Compare the actual values
   for (int i = 0; i < native_val.size(); i++) {
     const auto val = v8_val->Get(global_context, i).ToLocalChecked();
     uint32_t native_int;
     TypeConverter<uint32_t>::FromV8(isolate_, val, &native_int);
-    EXPECT_EQ(native_val.at(i), native_int);
+    EXPECT_EQ(native_int, native_val.at(i));
   }
 
   // The above should be enough, but also compare the buffers to be thorough
   EXPECT_EQ(
-      0, memcmp(native_val.data(), v8_val->Buffer()->Data(), v8_val->Length()));
+      memcmp(native_val.data(), v8_val->Buffer()->Data(), v8_val->Length()), 0);
 }
 
 TEST_F(TypeConverterTest, V8Uint8ArrayToNativeUint8Pointer) {
@@ -463,11 +465,11 @@ TEST_F(TypeConverterTest, V8Uint8ArrayToNativeUint8Pointer) {
     const auto val = v8_val->Get(global_context, i).ToLocalChecked();
     uint32_t native_int;
     TypeConverter<uint32_t>::FromV8(isolate_, val, &native_int);
-    EXPECT_EQ(out_data.get()[i], native_int);
+    EXPECT_EQ(native_int, out_data.get()[i]);
   }
 
   // The above should be enough, but also compare the buffers to be thorough
-  EXPECT_EQ(0,
-            memcmp(out_data.get(), v8_val->Buffer()->Data(), v8_val->Length()));
+  EXPECT_EQ(memcmp(out_data.get(), v8_val->Buffer()->Data(), v8_val->Length()),
+            0);
 }
 }  // namespace google::scp::roma::config::test

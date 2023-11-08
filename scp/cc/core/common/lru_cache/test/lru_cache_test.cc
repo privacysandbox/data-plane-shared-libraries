@@ -16,9 +16,15 @@
 
 #include "core/common/lru_cache/src/lru_cache.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <string>
+
+#include "absl/strings/str_cat.h"
+
+using ::testing::SizeIs;
+using ::testing::StrEq;
 
 namespace google::scp::core::common::test {
 TEST(LruCacheTest, CanAddAndGetElement) {
@@ -32,7 +38,7 @@ TEST(LruCacheTest, CanAddAndGetElement) {
 
   auto read_value = cache.Get(key);
 
-  EXPECT_EQ(read_value, value);
+  EXPECT_THAT(read_value, StrEq(value));
 }
 
 TEST(LruCacheTest, ClearShouldEmptyCache) {
@@ -54,8 +60,8 @@ TEST(LruCacheTest, CanAddAndGetMultipleElements) {
   LruCache<std::string, std::string> cache(10);
 
   for (int i = 0; i < 10; i++) {
-    auto key = "Some Key" + std::to_string(i);
-    auto value = "Some value" + std::to_string(i);
+    auto key = absl::StrCat("Some Key", i);
+    auto value = absl::StrCat("Some value", i);
 
     cache.Set(key, value);
 
@@ -63,26 +69,27 @@ TEST(LruCacheTest, CanAddAndGetMultipleElements) {
 
     auto read_value = cache.Get(key);
 
-    EXPECT_EQ(read_value, value);
+    EXPECT_THAT(read_value, StrEq(value));
   }
 }
 
 TEST(LruCacheTest, ShouldReplaceOldestItem) {
-  LruCache<std::string, std::string> cache(5);
+  constexpr size_t kCacheSize = 5;
+  LruCache<std::string, std::string> cache(kCacheSize);
 
   // We add 5 items
-  for (int i = 0; i < 5; i++) {
-    auto key = "Some Key" + std::to_string(i);
-    auto value = "Some value" + std::to_string(i);
+  for (int i = 0; i < kCacheSize; i++) {
+    auto key = absl::StrCat("Some Key", i);
+    auto value = absl::StrCat("Some value", i);
 
     cache.Set(key, value);
     EXPECT_TRUE(cache.Contains(key));
 
     auto read_value = cache.Get(key);
-    EXPECT_EQ(read_value, value);
+    EXPECT_THAT(read_value, StrEq(value));
   }
 
-  EXPECT_EQ(cache.Size(), 5);
+  EXPECT_EQ(cache.Size(), kCacheSize);
 
   // We add a new element, and since the cache is at capacity, we should replace
   // the oldest element (the first one that was added)
@@ -92,7 +99,7 @@ TEST(LruCacheTest, ShouldReplaceOldestItem) {
   EXPECT_TRUE(cache.Contains(new_key));
 
   auto read_value = cache.Get(new_key);
-  EXPECT_EQ(read_value, new_value);
+  EXPECT_THAT(read_value, StrEq(new_value));
 
   // Size should still be 5
   EXPECT_EQ(cache.Size(), 5);
@@ -100,13 +107,13 @@ TEST(LruCacheTest, ShouldReplaceOldestItem) {
   // The first element that was inserted shouldn't exist
   EXPECT_FALSE(cache.Contains("Some Key0"));
   // The rest should exist
-  for (int i = 1; i < 5; i++) {
-    auto key = "Some Key" + std::to_string(i);
-    auto value = "Some value" + std::to_string(i);
+  for (int i = 1; i < kCacheSize; i++) {
+    auto key = absl::StrCat("Some Key", i);
+    auto value = absl::StrCat("Some value", i);
 
     EXPECT_TRUE(cache.Contains(key));
     auto read_value = cache.Get(key);
-    EXPECT_EQ(read_value, value);
+    EXPECT_THAT(read_value, StrEq(value));
   }
 }
 
@@ -123,7 +130,7 @@ TEST(LruCacheTest, LruPolicyShouldBeAffectedByGets) {
 
   // If we were to add an element as it is, then key1 should be evicted.
   // However, if we touch key1, then key2 should be evicted. Touch key1.
-  EXPECT_EQ(cache.Get(key1), value1);
+  EXPECT_THAT(cache.Get(key1), StrEq(value1));
 
   auto key3 = "Key3";
   auto value3 = "Value3";
@@ -171,7 +178,7 @@ TEST(LruCacheTest, ShouldBeAbleToReplaceValues) {
   auto key1 = "Key1";
   auto value1 = "Value1";
   cache.Set(key1, value1);
-  EXPECT_EQ(cache.Get(key1), value1);
+  EXPECT_THAT(cache.Get(key1), StrEq(value1));
 
   auto key2 = "Key2";
   auto value2 = "Value2";
@@ -180,16 +187,17 @@ TEST(LruCacheTest, ShouldBeAbleToReplaceValues) {
   auto new_value1 = "NewValue1";
   cache.Set(key1, new_value1);
 
-  EXPECT_EQ(cache.Get(key1), new_value1);
+  EXPECT_THAT(cache.Get(key1), StrEq(new_value1));
 }
 
 TEST(LruCacheTest, ShouldBeAbleToGetAllItems) {
-  LruCache<std::string, std::string> cache(2);
+  constexpr size_t kCacheSize = 2;
+  LruCache<std::string, std::string> cache(kCacheSize);
 
   auto key1 = "Key1";
   auto value1 = "Value1";
   cache.Set(key1, value1);
-  EXPECT_EQ(cache.Get(key1), value1);
+  EXPECT_THAT(cache.Get(key1), StrEq(value1));
 
   auto key2 = "Key2";
   auto value2 = "Value2";
@@ -197,8 +205,8 @@ TEST(LruCacheTest, ShouldBeAbleToGetAllItems) {
 
   auto all_items = cache.GetAll();
 
-  EXPECT_EQ(2, all_items.size());
-  EXPECT_EQ(all_items[key1], value1);
-  EXPECT_EQ(all_items[key2], value2);
+  EXPECT_THAT(all_items, SizeIs(kCacheSize));
+  EXPECT_THAT(all_items[key1], StrEq(value1));
+  EXPECT_THAT(all_items[key2], StrEq(value2));
 }
 }  // namespace google::scp::core::common::test

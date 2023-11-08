@@ -91,15 +91,16 @@ using google::scp::cpio::client_providers::GetSessionTokenRequest;
 using google::scp::cpio::client_providers::GetSessionTokenResponse;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using google::scp::cpio::client_providers::mock::MockEC2Client;
-using testing::_;
-using testing::Eq;
-using testing::IsEmpty;
-using testing::NiceMock;
-using testing::Pair;
-using testing::Pointee;
-using testing::Return;
-using testing::TestWithParam;
-using testing::UnorderedElementsAre;
+using ::testing::_;
+using ::testing::Eq;
+using ::testing::IsEmpty;
+using ::testing::NiceMock;
+using ::testing::Pair;
+using ::testing::Pointee;
+using ::testing::Return;
+using ::testing::StrEq;
+using ::testing::TestWithParam;
+using ::testing::UnorderedElementsAre;
 
 namespace {
 constexpr char kAwsInstanceDynamicDataUrl[] =
@@ -234,10 +235,10 @@ TEST_F(AwsInstanceClientProviderTest, GetCurrentInstanceResourceNameSuccess) {
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
-            EXPECT_EQ(
-                context.response->instance_resource_name(),
-                absl::StrFormat(kAwsInstanceResourceNameFormat, "us-east-1",
-                                "123456789", "i-1234567890"));
+            EXPECT_THAT(context.response->instance_resource_name(),
+                        StrEq(absl::StrFormat(kAwsInstanceResourceNameFormat,
+                                              "us-east-1", "123456789",
+                                              "i-1234567890")));
             condition.store(true);
           });
 
@@ -298,9 +299,9 @@ TEST_F(AwsInstanceClientProviderTest,
   EXPECT_THAT(
       instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
       IsSuccessful());
-  EXPECT_EQ(resource_name,
-            absl::StrFormat(kAwsInstanceResourceNameFormat, "us-east-1",
-                            "123456789", "i-1234567890"));
+  EXPECT_THAT(resource_name,
+              StrEq(absl::StrFormat(kAwsInstanceResourceNameFormat, "us-east-1",
+                                    "123456789", "i-1234567890")));
 }
 
 TEST_F(AwsInstanceClientProviderTest,
@@ -509,9 +510,10 @@ TEST_F(AwsInstanceClientProviderTest,
   EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceNameSync(
                   kAwsInstanceResourceNameMock, details),
               IsSuccessful());
-  EXPECT_EQ(details.instance_id(), kInstanceIdMock);
-  EXPECT_EQ(details.networks(0).public_ipv4_address(), kPublicIpMock);
-  EXPECT_EQ(details.networks(0).private_ipv4_address(), kPrivateIpMock);
+  EXPECT_THAT(details.instance_id(), StrEq(kInstanceIdMock));
+  EXPECT_THAT(details.networks(0).public_ipv4_address(), StrEq(kPublicIpMock));
+  EXPECT_THAT(details.networks(0).private_ipv4_address(),
+              StrEq(kPrivateIpMock));
   EXPECT_THAT(details.labels(),
               UnorderedElementsAre(Pair(kTagName1, kTagValue1),
                                    Pair(kTagName2, kTagValue2)));
@@ -563,10 +565,11 @@ TEST_F(AwsInstanceClientProviderTest, GetInstanceDetailsByResourceName) {
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
             const auto& details = context.response->instance_details();
-            EXPECT_EQ(details.instance_id(), kInstanceIdMock);
-            EXPECT_EQ(details.networks(0).public_ipv4_address(), kPublicIpMock);
-            EXPECT_EQ(details.networks(0).private_ipv4_address(),
-                      kPrivateIpMock);
+            EXPECT_THAT(details.instance_id(), StrEq(kInstanceIdMock));
+            EXPECT_THAT(details.networks(0).public_ipv4_address(),
+                        StrEq(kPublicIpMock));
+            EXPECT_THAT(details.networks(0).private_ipv4_address(),
+                        StrEq(kPrivateIpMock));
             condition.store(true);
           });
 

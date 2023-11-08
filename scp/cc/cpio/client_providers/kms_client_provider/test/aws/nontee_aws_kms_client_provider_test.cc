@@ -14,6 +14,7 @@
 
 #include "cpio/client_providers/kms_client_provider/src/aws/nontee_aws_kms_client_provider.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -56,6 +57,7 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::test::ResultIs;
 using google::scp::core::utils::Base64Decode;
+using ::testing::StrEq;
 
 using google::scp::core::errors::
     SC_AWS_KMS_CLIENT_PROVIDER_ASSUME_ROLE_NOT_FOUND;
@@ -193,7 +195,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
       kms_decrypt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
         EXPECT_SUCCESS(context.result);
-        EXPECT_EQ(context.response->plaintext(), kPlaintext);
+        EXPECT_THAT(context.response->plaintext(), StrEq(kPlaintext));
         condition = true;
       });
 

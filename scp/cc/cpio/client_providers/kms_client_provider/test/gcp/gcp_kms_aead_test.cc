@@ -31,9 +31,9 @@ using google::cloud::kms::v1::DecryptRequest;
 using google::cloud::kms::v1::DecryptResponse;
 using google::scp::cpio::client_providers::mock::
     MockGcpKeyManagementServiceClient;
-using testing::Eq;
-using testing::ExplainMatchResult;
-using testing::Return;
+using ::testing::ExplainMatchResult;
+using ::testing::Return;
+using ::testing::StrEq;
 
 static constexpr char kKeyName[] = "test";
 static constexpr char kPlaintext[] = "plaintext";
@@ -64,20 +64,20 @@ TEST_F(GcpKmsAeadTest, FailedToCreateGcpKmsAeadWithEmptyKeyArn) {
       "", std::dynamic_pointer_cast<GcpKeyManagementServiceClientInterface>(
               mock_gcp_kms_client_));
   ASSERT_FALSE(kms_aead.ok());
-  EXPECT_EQ(absl::StatusCode::kInvalidArgument, kms_aead.status().code());
+  EXPECT_EQ(kms_aead.status().code(), absl::StatusCode::kInvalidArgument);
 }
 
 TEST_F(GcpKmsAeadTest, FailedToCreateGcpKmsAeadWithEmptyKMSClient) {
   StatusOr<std::unique_ptr<Aead>> kms_aead = GcpKmsAead::New(kKeyName, nullptr);
   ASSERT_FALSE(kms_aead.ok());
-  EXPECT_EQ(absl::StatusCode::kInvalidArgument, kms_aead.status().code());
+  EXPECT_EQ(kms_aead.status().code(), absl::StatusCode::kInvalidArgument);
 }
 
 MATCHER_P(RequestMatches, req, "") {
-  return ExplainMatchResult(Eq(req.name()), arg.name(), result_listener) &&
-         ExplainMatchResult(Eq(req.ciphertext()), arg.ciphertext(),
+  return ExplainMatchResult(StrEq(req.name()), arg.name(), result_listener) &&
+         ExplainMatchResult(StrEq(req.ciphertext()), arg.ciphertext(),
                             result_listener) &&
-         ExplainMatchResult(Eq(req.additional_authenticated_data()),
+         ExplainMatchResult(StrEq(req.additional_authenticated_data()),
                             arg.additional_authenticated_data(),
                             result_listener);
 }
@@ -101,7 +101,7 @@ TEST_F(GcpKmsAeadTest, SuccessToDecrypt) {
       (*kms_aead)->Decrypt(kCiphertext, kAssociatedData);
 
   ASSERT_TRUE(actual_plain_text.ok());
-  EXPECT_EQ(kPlaintext, *actual_plain_text);
+  EXPECT_THAT(*actual_plain_text, StrEq(kPlaintext));
 }
 
 TEST_F(GcpKmsAeadTest, FailedToDecrypt) {
@@ -120,7 +120,7 @@ TEST_F(GcpKmsAeadTest, FailedToDecrypt) {
       (*kms_aead)->Decrypt(kCiphertext, kAssociatedData);
 
   ASSERT_FALSE(actual_plain_text.ok());
-  EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            actual_plain_text.status().code());
+  EXPECT_EQ(actual_plain_text.status().code(),
+            absl::StatusCode::kInvalidArgument);
 }
 }  // namespace google::scp::cpio::client_providers::test

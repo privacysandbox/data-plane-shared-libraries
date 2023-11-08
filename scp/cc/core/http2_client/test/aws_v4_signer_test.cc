@@ -16,6 +16,7 @@
 
 #include "core/http2_client/src/aws/aws_v4_signer.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <future>
@@ -26,6 +27,7 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::test::ResultIs;
+using ::testing::StrEq;
 
 namespace google::scp::core {
 
@@ -53,7 +55,7 @@ TEST(AwsV4SignerTest, BasicE2E) {
       "239227327adbcecca71c595956134c6f3d3567c60e895a1c5c3c4980238b32cb";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_EQ(iter->second, expected_header_val);
+  EXPECT_THAT(iter->second, StrEq(expected_header_val));
 }
 
 TEST(AwsV4SignerTest, DelimitedHeadersToSign) {
@@ -80,7 +82,7 @@ TEST(AwsV4SignerTest, DelimitedHeadersToSign) {
       "239227327adbcecca71c595956134c6f3d3567c60e895a1c5c3c4980238b32cb";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_EQ(iter->second, expected_header_val);
+  EXPECT_THAT(iter->second, StrEq(expected_header_val));
 }
 
 TEST(AwsV4SignerTest, IteratorHeadersToSign) {
@@ -107,7 +109,7 @@ TEST(AwsV4SignerTest, IteratorHeadersToSign) {
       "239227327adbcecca71c595956134c6f3d3567c60e895a1c5c3c4980238b32cb";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_EQ(iter->second, expected_header_val);
+  EXPECT_THAT(iter->second, StrEq(expected_header_val));
 }
 
 TEST(AwsV4SignerTest, MissingHeader) {
@@ -187,7 +189,7 @@ TEST(AwsV4SignerTest, AutoGenerateHost) {
       "239227327adbcecca71c595956134c6f3d3567c60e895a1c5c3c4980238b32cb";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_EQ(iter->second, expected_header_val);
+  EXPECT_THAT(iter->second, StrEq(expected_header_val));
 }
 
 TEST(AwsV4SignerTest, WithBody) {
@@ -213,8 +215,7 @@ TEST(AwsV4SignerTest, WithBody) {
 
   std::string canon_req;
   signer.CreateCanonicalRequest(canon_req, request, headers_to_sign);
-  EXPECT_EQ(canon_req,
-            R"(POST
+  EXPECT_THAT(canon_req, StrEq(R"(POST
 /test/auth
 
 content-type:application/json
@@ -222,7 +223,7 @@ host:cmhhru8hu0.execute-api.us-west-1.amazonaws.com
 x-amz-date:20220608T103745Z
 
 content-type;host;x-amz-date
-426fc04f04bf8fdb5831dc37bbb6dcf70f63a37e05a68c6ea5f63e85ae579376)");
+426fc04f04bf8fdb5831dc37bbb6dcf70f63a37e05a68c6ea5f63e85ae579376)"));
 
   static const char expected_header_val[] =
       "AWS4-HMAC-SHA256 "
@@ -232,6 +233,6 @@ content-type;host;x-amz-date
       "2dea4ba14ba1cf625582ab7d5d03f249b5f0b69632436bc943864a360afccffa";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_EQ(iter->second, expected_header_val);
+  EXPECT_THAT(iter->second, StrEq(expected_header_val));
 }
 }  // namespace google::scp::core

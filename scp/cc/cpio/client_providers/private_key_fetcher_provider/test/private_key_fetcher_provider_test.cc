@@ -15,6 +15,7 @@
 
 #include "cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <functional>
@@ -52,6 +53,7 @@ using google::scp::cpio::client_providers::PrivateKeyFetchingRequest;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using google::scp::cpio::client_providers::mock::
     MockPrivateKeyFetcherProviderWithOverrides;
+using ::testing::StrEq;
 
 static constexpr char kKeyId[] = "123";
 static constexpr char kRegion[] = "region";
@@ -148,7 +150,8 @@ TEST_F(PrivateKeyFetcherProviderTest, FetchPrivateKey) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->encryption_keys.size(), 1);
         const auto& encryption_key = *context.response->encryption_keys.begin();
-        EXPECT_EQ(*encryption_key->resource_name, "encryptionKeys/123456");
+        EXPECT_THAT(*encryption_key->resource_name,
+                    StrEq("encryptionKeys/123456"));
 
         condition = true;
         return SuccessExecutionResult();

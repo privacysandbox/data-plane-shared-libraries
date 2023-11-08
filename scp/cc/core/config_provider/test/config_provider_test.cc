@@ -16,6 +16,7 @@
 
 #include "core/config_provider/src/config_provider.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstdlib>
@@ -30,6 +31,11 @@
 using google::scp::core::ConfigProvider;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
+using ::testing::ElementsAre;
+using ::testing::Eq;
+using ::testing::IsFalse;
+using ::testing::IsTrue;
+using ::testing::StrEq;
 
 namespace google::scp::core::test {
 std::filesystem::path GetTestDataDir(std::string relative_path) {
@@ -49,19 +55,12 @@ TEST(ConfigProviderTest, GetConfigs) {
   config.Init();
 
   std::string out_string;
-  std::string expect_string = "10.10.10.20";
   size_t out_int;
-  size_t expect_int = 5000;
   bool out_bool;
-  bool expect_bool = true;
   std::list<std::string> out_string_list;
-  std::list<std::string> expect_string_list({"1", "2"});
   std::list<int32_t> out_int_list;
-  std::list<int32_t> expect_int_list({1, 2});
   std::list<size_t> out_size_list;
-  std::list<size_t> expect_size_list({3, 4});
   std::list<bool> out_bool_list;
-  std::list<bool> expect_bool_list({true, false});
 
   config.Get("server-ip", out_string);
   config.Get("server-run", out_bool);
@@ -71,13 +70,13 @@ TEST(ConfigProviderTest, GetConfigs) {
   config.Get("size-list", out_size_list);
   config.Get("bool-list", out_bool_list);
 
-  EXPECT_EQ(out_string, expect_string);
-  EXPECT_EQ(out_int, expect_int);
-  EXPECT_EQ(out_bool, expect_bool);
-  EXPECT_EQ(out_string_list, expect_string_list);
-  EXPECT_EQ(out_int_list, expect_int_list);
-  EXPECT_EQ(out_size_list, expect_size_list);
-  EXPECT_EQ(out_bool_list, expect_bool_list);
+  EXPECT_THAT(out_string, StrEq("10.10.10.20"));
+  EXPECT_THAT(out_int, Eq(5000));
+  EXPECT_THAT(out_bool, IsTrue());
+  EXPECT_THAT(out_string_list, ElementsAre(StrEq("1"), StrEq("2")));
+  EXPECT_THAT(out_int_list, ElementsAre(1, 2));
+  EXPECT_THAT(out_size_list, ElementsAre(3, 4));
+  EXPECT_THAT(out_bool_list, ElementsAre(IsTrue(), IsFalse()));
 }
 
 TEST(ConfigProviderTest, GetConfigsFailed) {

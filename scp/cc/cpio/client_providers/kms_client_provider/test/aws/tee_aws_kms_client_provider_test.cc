@@ -63,6 +63,7 @@ using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
 using google::scp::cpio::client_providers::mock::
     MockTeeAwsKmsClientProviderWithOverrides;
+using ::testing::StrEq;
 
 static constexpr char kAssumeRoleArn[] = "assumeRoleArn";
 static constexpr char kCiphertext[] = "ciphertext";
@@ -129,7 +130,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
         EXPECT_SUCCESS(context.result);
-        EXPECT_EQ(context.response->plaintext(), expect_command);
+        EXPECT_THAT(context.response->plaintext(), StrEq(expect_command));
         condition = true;
       });
 

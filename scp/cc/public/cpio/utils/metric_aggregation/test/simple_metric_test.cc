@@ -16,6 +16,7 @@
 
 #include "public/cpio/utils/metric_aggregation/src/simple_metric.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -50,6 +51,7 @@ using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kMetricName[] = "FrontEndRequestCount";
@@ -92,10 +94,10 @@ TEST_F(SimpleMetricTest, Push) {
   simple_metric_->Push(kMetricValue);
   WaitUntil([&]() { return schedule_is_called; });
 
-  EXPECT_EQ(metric_received.name(), kMetricName);
+  EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
   EXPECT_EQ(metric_received.unit(),
             cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_COUNT);
-  EXPECT_EQ(metric_received.value(), kMetricValue);
+  EXPECT_THAT(metric_received.value(), StrEq(kMetricValue));
 }
 
 TEST_F(SimpleMetricTest, PushWithMetricInfo) {
@@ -114,11 +116,11 @@ TEST_F(SimpleMetricTest, PushWithMetricInfo) {
   simple_metric_->Push(kMetricValue, metric_info_updated);
   WaitUntil([&]() { return schedule_is_called; });
 
-  EXPECT_EQ(metric_received.name(), kMetricNameUpdate);
+  EXPECT_THAT(metric_received.name(), StrEq(kMetricNameUpdate));
   EXPECT_EQ(
       metric_received.unit(),
       cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_MILLISECONDS);
-  EXPECT_EQ(metric_received.value(), kMetricValue);
+  EXPECT_THAT(metric_received.value(), StrEq(kMetricValue));
 }
 
 }  // namespace google::scp::cpio

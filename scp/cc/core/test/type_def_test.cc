@@ -16,7 +16,10 @@
 
 #include "core/interface/type_def.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+using ::testing::StrEq;
 
 namespace google::scp::core::test {
 namespace {
@@ -33,9 +36,8 @@ TEST(TypeDefTest, BytesBufferStringConstructor) {
   ASSERT_NE(buffer.bytes, nullptr);
 
   ASSERT_EQ(buffer.bytes->size(), str_len);
-  for (int i = 0; i < str_len; i++) {
-    EXPECT_EQ(buffer.bytes->at(i), str[i]);
-  }
+  EXPECT_THAT(std::string(buffer.bytes->begin(), buffer.bytes->end()),
+              StrEq(str));
 }
 
 TEST(TypeDefTest, BytesBufferToString) {
@@ -45,16 +47,16 @@ TEST(TypeDefTest, BytesBufferToString) {
     buffer.length++;
   }
 
-  EXPECT_EQ(buffer.ToString(), "12345");
+  EXPECT_THAT(buffer.ToString(), StrEq("12345"));
 
-  // Changing the length causes us to see the other default inserted '\0' after
-  // the emplaced string.
+  // Changing the length causes us to see the other default inserted '\0'
+  // after the emplaced string.
   buffer.length = buffer.capacity;
   auto actual_str = buffer.ToString();
 
   Byte arr[] = {'1', '2', '3', '4', '5', '\0', '\0', '\0', '\0', '\0'};
   std::string expected_str(arr, 10);
-  EXPECT_EQ(actual_str, expected_str);
+  EXPECT_THAT(actual_str, StrEq(expected_str));
 }
 
 }  // namespace

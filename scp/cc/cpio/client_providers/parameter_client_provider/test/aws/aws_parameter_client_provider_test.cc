@@ -65,8 +65,9 @@ using google::scp::core::test::ResultIs;
 using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockSSMClient;
-using testing::NiceMock;
-using testing::Return;
+using ::testing::NiceMock;
+using ::testing::Return;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -259,7 +260,8 @@ TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
       std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_SUCCESS(context.result);
-        EXPECT_EQ(context.response->parameter_value(), kParameterValue);
+        EXPECT_THAT(context.response->parameter_value(),
+                    StrEq(kParameterValue));
         condition = true;
       });
   EXPECT_SUCCESS(client_->GetParameter(context1));

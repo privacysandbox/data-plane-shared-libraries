@@ -29,17 +29,17 @@ TEST(ProxyServerTest, VsockSmokeTest) {
   config.vsock_ = true;
 
   ProxyServer server(config);
-  ASSERT_EQ(0, server.Port());
+  ASSERT_EQ(server.Port(), 0);
   // An open port should be chosen here but vSock only works inside a hypervisor
   // and so for this unit test it'll continue to be zero.
   server.BindListen();
-  ASSERT_EQ(0, server.Port());
+  ASSERT_EQ(server.Port(), 0);
 
   std::thread server_thread([&server] { server.Run(/*concurrency=*/1); });
   server.Stop();
   server_thread.join();
 
-  EXPECT_EQ(0, server.Port());
+  EXPECT_EQ(server.Port(), 0);
 }
 
 TEST(ProxyServerTest, TcpSmokeTest) {
@@ -48,10 +48,10 @@ TEST(ProxyServerTest, TcpSmokeTest) {
   config.vsock_ = false;
 
   ProxyServer server(config);
-  ASSERT_EQ(0, server.Port());
+  ASSERT_EQ(server.Port(), 0);
   // An open port should be chosen here:
   server.BindListen();
-  ASSERT_NE(0, server.Port());
+  ASSERT_NE(server.Port(), 0);
 
   std::thread server_thread([&server] { server.Run(/*concurrency=*/1); });
   server.Stop();

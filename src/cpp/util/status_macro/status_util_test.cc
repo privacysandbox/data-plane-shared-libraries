@@ -22,6 +22,8 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+using ::testing::StrEq;
+
 namespace privacy_sandbox::server_common {
 namespace {
 
@@ -59,7 +61,7 @@ TEST(StatusUtilTest, GrpcToAbsl) {
                                 : status.error_message();
     auto converted = ToAbslStatus(status);
     EXPECT_THAT(converted.code(), mapping.second);
-    EXPECT_THAT(converted.message(), expected_message);
+    EXPECT_THAT(converted.message(), StrEq(expected_message));
   }
 }
 
@@ -70,7 +72,7 @@ TEST(StatusUtilTest, AbslToGrpc) {
         status.code() == absl::StatusCode::kOk ? "" : status.message();
     auto converted = FromAbslStatus(status);
     EXPECT_THAT(converted.error_code(), mapping.first);
-    EXPECT_THAT(converted.error_message(), expected_message);
+    EXPECT_THAT(converted.error_message(), StrEq(expected_message));
   }
 }
 
@@ -81,7 +83,7 @@ TEST(StatusUtilTest, SaveStatusAsRpcStatus) {
         status.code() == absl::StatusCode::kOk ? "" : status.message();
     auto converted = SaveStatusAsRpcStatus(status);
     EXPECT_THAT(converted.code(), mapping.first);
-    EXPECT_THAT(converted.message(), expected_message);
+    EXPECT_THAT(converted.message(), StrEq(expected_message));
   }
 }
 
