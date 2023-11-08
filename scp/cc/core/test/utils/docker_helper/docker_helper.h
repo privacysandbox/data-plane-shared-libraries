@@ -23,48 +23,47 @@
 namespace google::scp::core::test {
 std::string PortMapToSelf(std::string_view port);
 
-int StartLocalStackContainer(const std::string& network,
-                             const std::string& container_name,
-                             const std::string& exposed_port);
+int StartLocalStackContainer(std::string_view network,
+                             std::string_view container_name,
+                             std::string_view exposed_port);
 
-int StartGcpContainer(const std::string& network,
-                      const std::string& container_name,
-                      const std::string& exposed_port);
+int StartGcpContainer(std::string_view network, std::string_view container_name,
+                      std::string_view exposed_port);
 
 int StartContainer(
-    const std::string& network, const std::string& container_name,
-    const std::string& image_name, const std::string& port_mapping1,
-    const std::string& port_mapping2 = "",
+    std::string_view network, std::string_view container_name,
+    std::string_view image_name, std::string_view port_mapping1,
+    std::string_view port_mapping2 = "",
     const absl::btree_map<std::string, std::string>& environment_variables = {},
-    const std::string& addition_args = "");
+    std::string_view addition_args = "");
 
-int CreateImage(const std::string& image_target, const std::string& args = "");
+int CreateImage(std::string_view image_target, std::string_view args = "");
 
-int LoadImage(const std::string& image_name);
+int LoadImage(std::string_view image_name);
 
-int CreateNetwork(const std::string& network_name);
+int CreateNetwork(std::string_view network_name);
 
-int RemoveNetwork(const std::string& network_name);
+int RemoveNetwork(std::string_view network_name);
 
-int StopContainer(const std::string& container_name);
+int StopContainer(std::string_view container_name);
 
-std::string BuildStopContainerCmd(const std::string& container_name);
+std::string BuildStopContainerCmd(std::string_view container_name);
 
-std::string BuildRemoveNetworkCmd(const std::string& network_name);
+std::string BuildRemoveNetworkCmd(std::string_view network_name);
 
-std::string BuildCreateNetworkCmd(const std::string& network_name);
+std::string BuildCreateNetworkCmd(std::string_view network_name);
 
-std::string BuildLoadImageCmd(const std::string& image_name);
+std::string BuildLoadImageCmd(std::string_view image_name);
 
-std::string BuildCreateImageCmd(const std::string& image_target,
-                                const std::string& args = "");
+std::string BuildCreateImageCmd(std::string_view image_target,
+                                std::string_view args = "");
 
 std::string BuildStartContainerCmd(
-    const std::string& network, const std::string& container_name,
-    const std::string& image_name, const std::string& port_mapping1,
-    const std::string& port_mapping2 = "",
+    std::string_view network, std::string_view container_name,
+    std::string_view image_name, std::string_view port_mapping1,
+    std::string_view port_mapping2 = "",
     const absl::btree_map<std::string, std::string>& environment_variables = {},
-    const std::string& addition_args = "");
+    std::string_view addition_args = "");
 
 /**
  * @brief Get the Ip Address of a docker container.
@@ -73,8 +72,8 @@ std::string BuildStartContainerCmd(
  * @param container_name the container name.
  * @return std::string the returned IP address.
  */
-std::string GetIpAddress(const std::string& network_name,
-                         const std::string& container_name);
+std::string GetIpAddress(std::string_view network_name,
+                         std::string_view container_name);
 
 /**
  * @brief Run docker command to grant 666 permission to the given folder inside
@@ -83,8 +82,8 @@ std::string GetIpAddress(const std::string& network_name,
  * @param container_name the name of the given container.
  * @param folder the given folder.
  */
-void GrantPermissionToFolder(const std::string& container_name,
-                             const std::string& folder);
+void GrantPermissionToFolder(std::string_view container_name,
+                             std::string_view folder);
 }  // namespace google::scp::core::test
 
 #endif  // CORE_TEST_UTILS_DOCKER_HELPER_DOCKER_HELPER_H_
