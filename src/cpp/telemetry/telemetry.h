@@ -26,6 +26,7 @@
 #include "absl/status/statusor.h"
 #include "absl/types/optional.h"
 #include "opentelemetry/common/attribute_value.h"
+#include "opentelemetry/logs/provider.h"
 #include "opentelemetry/nostd/string_view.h"
 #include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader.h"
 #include "opentelemetry/sdk/metrics/meter.h"
@@ -66,9 +67,16 @@ opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> GetTracer();
 
 // Must be called to initialize logging functionality.
 // If `ConfigureLogger` is not called, all logging will be NoOp.
-void ConfigureLogger(
+[[deprecated]] void ConfigureLogger(
     opentelemetry::sdk::resource::Resource resource,
     absl::optional<std::string> collector_endpoint = absl::nullopt);
+
+// Must be called to initialize log functionality.
+// If `ConfigurePrivateLogger` is not called, all log recording will be
+// NoOp. Returned LoggerProvider is not shared, invoker takes ownership.
+std::unique_ptr<opentelemetry::logs::LoggerProvider> ConfigurePrivateLogger(
+    opentelemetry::sdk::resource::Resource resource,
+    absl::optional<std::string> collector_endpoint);
 
 }  // namespace privacy_sandbox::server_common
 

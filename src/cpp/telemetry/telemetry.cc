@@ -19,7 +19,6 @@
 #include <utility>
 #include <vector>
 
-#include "opentelemetry/logs/provider.h"
 #include "opentelemetry/metrics/provider.h"
 #include "opentelemetry/nostd/shared_ptr.h"
 #include "opentelemetry/sdk/logs/logger.h"
@@ -125,6 +124,17 @@ void ConfigureLogger(Resource resource,
 
   // Set the global logger provider
   logs_api::Provider::SetLoggerProvider(provider);
+}
+
+std::unique_ptr<logs_api::LoggerProvider> ConfigurePrivateLogger(
+    Resource resource, absl::optional<std::string> collector_endpoint) {
+  if (!TelemetryProvider::GetInstance().log_enabled()) {
+    return std::make_unique<logs_api::NoopLoggerProvider>();
+  }
+  return LoggerProviderFactory::Create(
+      logs_sdk::SimpleLogRecordProcessorFactory::Create(
+          CreateLogRecordExporter(collector_endpoint)),
+      resource);
 }
 
 nostd::shared_ptr<Tracer> GetTracer() {

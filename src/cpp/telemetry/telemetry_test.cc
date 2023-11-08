@@ -70,6 +70,22 @@ TEST(Init, PrivateMetric) {
       dynamic_cast<opentelemetry::metrics::NoopMeterProvider*>(provider.get()));
 }
 
+TEST(Init, PrivateLog) {
+  InitTelemetry("service_name", "build_version",
+                /*trace_enabled=*/false,
+                /*metric_enabled=*/true,
+                /*logs_enabled=*/true);
+  auto private_logger = ConfigurePrivateLogger(
+      opentelemetry::sdk::resource::Resource::GetDefault(), "NOT USED");
+
+  // shared is no op
+  EXPECT_TRUE(dynamic_cast<opentelemetry::logs::NoopLoggerProvider*>(
+      opentelemetry::logs::Provider::GetLoggerProvider().get()));
+  // not shared is real logger
+  EXPECT_FALSE(dynamic_cast<opentelemetry::logs::NoopLoggerProvider*>(
+      private_logger.get()));
+}
+
 }  // namespace
 
 }  // namespace privacy_sandbox::server_common
