@@ -39,6 +39,8 @@ void BM_UuidToString(benchmark::State& state) {
   }
 }
 
+BENCHMARK(BM_UuidToString)->RangeMultiplier(10)->Range(10, 1000);
+
 void BM_UuidToString_AbslFormat(benchmark::State& state) {
   const int number_of_calls = state.range(0);
   for (auto _ : state) {
@@ -48,6 +50,8 @@ void BM_UuidToString_AbslFormat(benchmark::State& state) {
     }
   }
 }
+
+BENCHMARK(BM_UuidToString_AbslFormat)->RangeMultiplier(10)->Range(10, 1000);
 
 void BM_UuidToString_AbslAppend(benchmark::State& state) {
   const int number_of_calls = state.range(0);
@@ -59,6 +63,8 @@ void BM_UuidToString_AbslAppend(benchmark::State& state) {
   }
 }
 
+BENCHMARK(BM_UuidToString_AbslAppend)->RangeMultiplier(10)->Range(10, 1000);
+
 void BM_UuidToString_HexLookupMap(benchmark::State& state) {
   const int number_of_calls = state.range(0);
   for (auto _ : state) {
@@ -68,6 +74,8 @@ void BM_UuidToString_HexLookupMap(benchmark::State& state) {
     }
   }
 }
+
+BENCHMARK(BM_UuidToString_HexLookupMap)->RangeMultiplier(10)->Range(10, 1000);
 
 void BM_UuidToString_AppendHexByte(benchmark::State& state) {
   const int number_of_calls = state.range(0);
@@ -79,13 +87,9 @@ void BM_UuidToString_AppendHexByte(benchmark::State& state) {
   }
 }
 
-}  // namespace
-
-BENCHMARK(BM_UuidToString)->RangeMultiplier(10)->Range(10, 1000);
-BENCHMARK(BM_UuidToString_AbslAppend)->RangeMultiplier(10)->Range(10, 1000);
-BENCHMARK(BM_UuidToString_AbslFormat)->RangeMultiplier(10)->Range(10, 1000);
-BENCHMARK(BM_UuidToString_HexLookupMap)->RangeMultiplier(10)->Range(10, 1000);
 BENCHMARK(BM_UuidToString_AppendHexByte)->RangeMultiplier(10)->Range(10, 1000);
+
+}  // namespace
 
 // Run the benchmark
 BENCHMARK_MAIN();
