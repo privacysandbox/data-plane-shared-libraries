@@ -99,7 +99,7 @@ class DpAggregator : public DpAggregatorBase {
                 .SetUpper(definition_.upper_bound_)
                 .SetMaxPartitionsContributed(max_partitions_contributed)
                 .SetLaplaceMechanism(
-                    absl::make_unique<
+                    std::make_unique<
                         differential_privacy::LaplaceMechanism::Builder>())
                 .Build());
         it = bounded_sums_.emplace(each, std::move(bounded_sum)).first;
@@ -176,7 +176,7 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
               .SetUpper(1)  // histogram count add at most 1 each time
               .SetMaxPartitionsContributed(1)
               .SetLaplaceMechanism(
-                  absl::make_unique<
+                  std::make_unique<
                       differential_privacy::LaplaceMechanism::Builder>())
               .Build();
       CHECK_OK(bounded_sum);
