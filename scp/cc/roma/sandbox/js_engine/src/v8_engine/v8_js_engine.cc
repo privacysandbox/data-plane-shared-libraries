@@ -71,7 +71,7 @@ using google::scp::roma::sandbox::constants::kWasmMemPagesV8PlatformFlag;
 using google::scp::roma::sandbox::js_engine::JsEngineExecutionResponse;
 using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::
-    V8IsolateVisitorFunctionBinding;
+    V8IsolateFunctionBinding;
 using google::scp::roma::sandbox::worker::WorkerUtils;
 using google::scp::roma::worker::ExecutionUtils;
 
@@ -87,22 +87,24 @@ std::shared_ptr<std::string> GetCodeFromContext(
 }
 
 /**
- * @brief Create a context in given isolate with isolate_visitors registered.
+ * @brief Create a context in given isolate with isolate_function_binding
+ * registered.
  *
  * @param isolate
- * @param isolate_visitors
+ * @param isolate_function_binding
  * @param context
  * @return ExecutionResult
  */
 ExecutionResult CreateV8Context(
     v8::Isolate* isolate,
-    const std::shared_ptr<V8IsolateVisitorFunctionBinding>& isolate_visitor,
+    const std::shared_ptr<V8IsolateFunctionBinding>& isolate_function_binding,
     v8::Local<v8::Context>& context) noexcept {
   v8::Local<v8::ObjectTemplate> global_object_template =
       v8::ObjectTemplate::New(isolate);
 
-  if (isolate_visitor) {
-    auto result = isolate_visitor->Visit(isolate, global_object_template);
+  if (isolate_function_binding) {
+    auto result = isolate_function_binding->BindFunctions(
+        isolate, global_object_template);
     RETURN_IF_FAILURE(result);
   }
 
@@ -208,7 +210,8 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     v8::Local<v8::Context> context;
-    auto execution_result = CreateV8Context(isolate, isolate_visitor_, context);
+    auto execution_result =
+        CreateV8Context(isolate, isolate_function_binding_, context);
     RETURN_IF_FAILURE(execution_result);
 
     v8::Context::Scope context_scope(context);
@@ -237,7 +240,8 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     v8::Local<v8::Context> context;
-    auto execution_result = CreateV8Context(isolate, isolate_visitor_, context);
+    auto execution_result =
+        CreateV8Context(isolate, isolate_function_binding_, context);
     RETURN_IF_FAILURE(execution_result);
 
     v8::Context::Scope context_scope(context);
@@ -625,7 +629,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
   {
     auto execution_result =
-        CreateV8Context(isolate, isolate_visitor_, v8_context);
+        CreateV8Context(isolate, isolate_function_binding_, v8_context);
     RETURN_IF_FAILURE(execution_result);
 
     v8::Context::Scope context_scope(v8_context);

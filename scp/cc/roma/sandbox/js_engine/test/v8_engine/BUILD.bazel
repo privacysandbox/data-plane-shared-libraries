@@ -35,9 +35,9 @@ cc_test(
 )
 
 cc_test(
-    name = "v8_isolate_visitor_function_binding_test",
+    name = "v8_isolate_function_binding_test",
     size = "small",
-    srcs = ["v8_isolate_visitor_function_binding_test.cc"],
+    srcs = ["v8_isolate_function_binding_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_VISITOR_FUNCTION_BINDING_H_
-#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_VISITOR_FUNCTION_BINDING_H_
+#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_FUNCTION_BINDING_H_
+#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_FUNCTION_BINDING_H_
 
 #include <memory>
 #include <string>
@@ -28,14 +28,14 @@
 #include "error_codes.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
-class V8IsolateVisitorFunctionBinding {
+class V8IsolateFunctionBinding {
  public:
   /**
-   * @brief Create a V8IsolateVisitorFunctionBinding instance
+   * @brief Create a V8IsolateFunctionBinding instance
    * @param function_names is a list of the names of the functions that can be
    * registered in the v8 context.
    */
-  V8IsolateVisitorFunctionBinding(
+  V8IsolateFunctionBinding(
       const std::vector<std::string>& function_names,
       const std::shared_ptr<native_function_binding::NativeFunctionInvoker>&
           function_invoker)
@@ -46,7 +46,7 @@ class V8IsolateVisitorFunctionBinding {
     }
   }
 
-  core::ExecutionResult Visit(
+  core::ExecutionResult BindFunctions(
       v8::Isolate* isolate,
       v8::Local<v8::ObjectTemplate>& global_object_template) noexcept;
 
@@ -54,7 +54,7 @@ class V8IsolateVisitorFunctionBinding {
       std::vector<intptr_t>& external_references) noexcept;
 
  private:
-  using BindingPair = std::pair<std::string, V8IsolateVisitorFunctionBinding*>;
+  using BindingPair = std::pair<std::string, V8IsolateFunctionBinding*>;
   std::vector<std::shared_ptr<BindingPair>> binding_references_;
 
   static void GlobalV8FunctionCallback(
@@ -66,4 +66,4 @@ class V8IsolateVisitorFunctionBinding {
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 
-#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_VISITOR_FUNCTION_BINDING_H_
+#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_FUNCTION_BINDING_H_

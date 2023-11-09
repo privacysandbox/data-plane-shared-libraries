@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_visitor_function_binding.h"
+#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -40,7 +40,7 @@ using ::testing::Return;
 using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::js_engine::test {
-class V8IsolateVisitorFunctionBindingTest : public ::testing::Test {
+class V8IsolateFunctionBindingTest : public ::testing::Test {
  public:
   static void SetUpTestSuite() {
     js_engine::v8_js_engine::V8JsEngine engine;
@@ -58,13 +58,11 @@ class NativeFunctionInvokerMock
   virtual ~NativeFunctionInvokerMock() = default;
 };
 
-TEST_F(V8IsolateVisitorFunctionBindingTest,
-       FunctionBecomesAvailableInJavascript) {
+TEST_F(V8IsolateFunctionBindingTest, FunctionBecomesAvailableInJavascript) {
   auto function_invoker = std::make_shared<NativeFunctionInvokerMock>();
   std::vector<std::string> function_names = {"cool_func"};
-  auto visitor =
-      std::make_shared<v8_js_engine::V8IsolateVisitorFunctionBinding>(
-          function_names, function_invoker);
+  auto visitor = std::make_shared<v8_js_engine::V8IsolateFunctionBinding>(
+      function_names, function_invoker);
 
   js_engine::v8_js_engine::V8JsEngine js_engine(visitor);
   AutoInitRunStop to_handle_engine(js_engine);
