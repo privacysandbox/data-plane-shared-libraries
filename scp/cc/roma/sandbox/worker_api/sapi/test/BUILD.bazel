@@ -38,6 +38,23 @@ cc_test(
 )
 
 cc_test(
+    name = "worker_wrapper_benchmark",
+    timeout = "eternal",
+    srcs = ["worker_wrapper_benchmark.cc"],
+    tags = ["manual"],
+    deps = [
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_wrapper_lib",
+        "//scp/cc/roma/sandbox/worker_api/sapi/src:worker_init_params_cc_proto",
+        "//scp/cc/roma/sandbox/worker_factory/src:roma_worker_factory_lib",
+        "@com_google_googletest//:gtest_main",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_test(
     name = "worker_wrapper_test",
     size = "small",
     srcs = ["worker_wrapper_test.cc"],
