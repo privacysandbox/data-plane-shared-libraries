@@ -30,6 +30,22 @@ cc_test(
 )
 
 cc_test(
+    name = "type_converter_benchmark",
+    timeout = "eternal",
+    srcs = ["type_converter_benchmark.cc"],
+    tags = ["manual"],
+    deps = [
+        "//scp/cc:cc_base_include_dir",
+        "//scp/cc/core/interface:interface_lib",
+        "//scp/cc/roma/config/src:roma_config_lib",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_googletest//:gtest_main",
+        "@google_benchmark//:benchmark",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_test(
     name = "type_converter_test",
     srcs = ["type_converter_test.cc"],
     deps = [
