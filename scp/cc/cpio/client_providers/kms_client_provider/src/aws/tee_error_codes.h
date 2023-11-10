@@ -35,6 +35,7 @@ DEFINE_ERROR_CODE(SC_TEE_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND,
                   SC_TEE_AWS_KMS_CLIENT_PROVIDER, 0x0003, "No region found",
                   HttpStatusCode::NOT_FOUND)
 
+// Deprecated.
 DEFINE_ERROR_CODE(SC_TEE_AWS_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND,
                   SC_TEE_AWS_KMS_CLIENT_PROVIDER, 0x0004,
                   "Cannot find the key arn", HttpStatusCode::BAD_REQUEST)
@@ -44,6 +45,7 @@ DEFINE_ERROR_CODE(SC_TEE_AWS_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND,
                   "Cannot find cipher text",
                   HttpStatusCode::INTERNAL_SERVER_ERROR)
 
+// Deprecated.
 DEFINE_ERROR_CODE(SC_TEE_AWS_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED,
                   SC_TEE_AWS_KMS_CLIENT_PROVIDER, 0x0006, "Cannot decrpyt",
                   HttpStatusCode::INTERNAL_SERVER_ERROR)

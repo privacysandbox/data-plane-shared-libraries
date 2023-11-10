@@ -18,7 +18,6 @@
 
 #include <memory>
 #include <string>
-#include <utility>
 
 #include <tink/aead.h>
 #include <tink/util/status.h>
@@ -31,17 +30,14 @@
 #include "absl/strings/string_view.h"
 #include "google/cloud/kms/key_management_client.h"
 #include "google/cloud/kms/v1/service.grpc.pb.h"
-#include "google/cloud/options.h"
 
 #include "gcp_key_management_service_client.h"
 
 using crypto::tink::Aead;
 using crypto::tink::util::Status;
 using crypto::tink::util::StatusOr;
-using google::cloud::Options;
 using google::cloud::kms::KeyManagementServiceClient;
 using google::cloud::kms::v1::DecryptRequest;
-using google::cloud::kms::v1::DecryptResponse;
 
 namespace google::scp::cpio::client_providers {
 GcpKmsAead::GcpKmsAead(

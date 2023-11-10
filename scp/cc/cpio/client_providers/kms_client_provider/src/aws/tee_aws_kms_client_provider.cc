@@ -17,24 +17,16 @@
 #include "tee_aws_kms_client_provider.h"
 
 #include <cstdio>
-#include <iostream>
-#include <memory>
 #include <utility>
-
-#include <aws/core/auth/AWSCredentialsProvider.h>
-#include <aws/core/auth/AWSCredentialsProviderChain.h>
 
 #include "absl/functional/bind_front.h"
 #include "core/utils/src/base64.h"
 #include "cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "cpio/common/src/aws/aws_utils.h"
 #include "public/cpio/interface/kms_client/type_def.h"
 
 #include "tee_aws_kms_client_provider_utils.h"
 #include "tee_error_codes.h"
 
-using Aws::Auth::AWSCredentials;
-using Aws::Client::ClientConfiguration;
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;
 using google::scp::core::AsyncContext;
@@ -49,15 +41,10 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_TEE_AWS_KMS_CLIENT_PROVIDER_CREDENTIAL_PROVIDER_NOT_FOUND;
 using google::scp::core::errors::
-    SC_TEE_AWS_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED;
-using google::scp::core::errors::
-    SC_TEE_AWS_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND;
-using google::scp::core::errors::
     SC_TEE_AWS_KMS_CLIENT_PROVIDER_KMSTOOL_CLI_EXECUTION_FAILED;
 using google::scp::core::errors::
     SC_TEE_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
-using google::scp::cpio::common::CreateClientConfiguration;
 
 /// Filename for logging errors
 static constexpr char kTeeAwsKmsClientProvider[] = "TeeAwsKmsClientProvider";

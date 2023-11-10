@@ -23,7 +23,6 @@
 
 #include "core/utils/src/base64.h"
 #include "cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "google/cloud/kms/key_management_client.h"
 #include "public/cpio/interface/kms_client/type_def.h"
 
 #include "error_codes.h"
@@ -31,8 +30,6 @@
 #include "gcp_kms_aead.h"
 
 using crypto::tink::Aead;
-using google::cloud::kms::KeyManagementServiceClient;
-using google::cloud::kms::MakeKeyManagementServiceConnection;
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;
 using google::scp::core::AsyncContext;

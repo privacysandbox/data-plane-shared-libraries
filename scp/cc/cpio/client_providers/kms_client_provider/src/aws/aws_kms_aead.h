@@ -19,7 +19,6 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <aws/kms/KMSClient.h>
 #include <tink/aead.h>
