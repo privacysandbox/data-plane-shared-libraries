@@ -81,7 +81,7 @@ class ContextMap {
     return metric_router_->AddObserverable(definition, callback);
   }
 
-  const telemetry::BuildDependentConfig& metric_config() const {
+  telemetry::BuildDependentConfig& metric_config() {
     return metric_router_->metric_config();
   }
   const U& metric_router() const { return *metric_router_.get(); }

@@ -83,9 +83,7 @@ class MetricRouter {
       const Definition<T, privacy, instrument>& definition,
       absl::flat_hash_map<std::string, double> (*callback)());
 
-  const telemetry::BuildDependentConfig& metric_config() const {
-    return metric_config_;
-  }
+  telemetry::BuildDependentConfig& metric_config() { return metric_config_; }
 
  private:
   friend class MetricRouterTest;
@@ -115,7 +113,7 @@ class MetricRouter {
       observerable_;
   std::unique_ptr<MeterProvider> provider_;
   Meter* meter_;
-  const telemetry::BuildDependentConfig metric_config_;
+  telemetry::BuildDependentConfig metric_config_;
   DifferentiallyPrivate<MetricRouter> dp_;
 };
 
