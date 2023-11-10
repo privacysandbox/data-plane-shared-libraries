@@ -33,6 +33,7 @@
 #include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "scp/cc/public/cpio/interface/public_key_client/type_def.h"
 #include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
+#include "src/cpp/metric/key_fetch.h"
 
 namespace privacy_sandbox::server_common {
 
@@ -96,6 +97,10 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
               }
             }
 
+            KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(
+                platform, response.public_keys().size());
+            KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
+                platform, public_keys_[platform].size());
             std::vector<PublicPrivateKeyPairId> key_ids = GetKeyIds(platform);
             std::string key_ids_str = absl::StrJoin(key_ids, ", ");
             VLOG(3) << absl::StrFormat(
@@ -103,6 +108,11 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                 TimeUtil::ToString(response.expiration_time()));
             VLOG(3) << "Public key refresh flow completed successfully. ";
           } else {
+            KeyFetchResultCounter::IncrementPublicKeyFetchAsyncFailureCount();
+            KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(platform,
+                                                                       0);
+            KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
+                platform, public_keys_[platform].size());
             VLOG(1) << absl::StrFormat(
                 kKeyFetchFailMessage,
                 GetErrorMessage(execution_result.status_code));

@@ -23,6 +23,7 @@ cc_library(
     deps = [
         ":key_fetcher_utils",
         "//src/cpp/encryption/key_fetcher/interface:public_key_fetcher_interface",
+        "//src/cpp/metric:key_fetch",
         "@com_github_google_glog//:glog",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/random",
@@ -38,6 +39,7 @@ cc_library(
     deps = [
         ":key_fetcher_utils",
         "//src/cpp/encryption/key_fetcher/interface:private_key_fetcher_interface",
+        "//src/cpp/metric:key_fetch",
         "@com_github_google_glog//:glog",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",
@@ -68,6 +70,7 @@ cc_library(
         "//src/cpp/encryption/key_fetcher/interface:key_fetcher_manager_interface",
         "//src/cpp/encryption/key_fetcher/interface:private_key_fetcher_interface",
         "//src/cpp/encryption/key_fetcher/interface:public_key_fetcher_interface",
+        "//src/cpp/metric:key_fetch",
         "@com_github_google_glog//:glog",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:any_invocable",

@@ -33,6 +33,7 @@
 #include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "scp/cc/public/cpio/interface/private_key_client/type_def.h"
 #include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
+#include "src/cpp/metric/key_fetch.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
@@ -98,6 +99,7 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                    const ListPrivateKeysResponse response) {
         if (result.Successful()) {
           absl::MutexLock l(&mutex_);
+          int num_private_keys_added = 0;
           for (const auto& private_key : response.private_keys()) {
             std::string keyset_bytes;
             if (!absl::Base64Unescape(private_key.private_key(),
@@ -133,13 +135,19 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                               hpke_private_key.private_key(),
                               ProtoToAbslDuration(private_key.creation_time())};
             private_keys_map_.insert_or_assign(key.key_id, key);
+            ++num_private_keys_added;
+
             if (VLOG_IS_ON(2)) {
               VLOG(2) << absl::StrFormat(
                   "Caching private key: (KMS id: %s, OHTTP ID: %s)",
                   private_key.key_id(), key.key_id);
             }
           }
+          KeyFetchResultCounter::SetNumPrivateKeysParsedOnRecentFetch(
+              num_private_keys_added);
         } else {
+          KeyFetchResultCounter::IncrementPrivateKeyFetchAsyncFailureCount();
+          KeyFetchResultCounter::SetNumPrivateKeysParsedOnRecentFetch(0);
           static_cast<void>(
               HandleFailure(request.key_ids(), result.status_code));
         }
@@ -164,6 +172,8 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
       it++;
     }
   }
+  KeyFetchResultCounter::SetNumPrivateKeysCachedAfterRecentFetch(
+      private_keys_map_.size());
 
   return absl::OkStatus();
 }

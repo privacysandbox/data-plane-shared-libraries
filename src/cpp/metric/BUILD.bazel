@@ -167,3 +167,26 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "key_fetch",
+    hdrs = [
+        "key_fetch.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/cpp/encryption/key_fetcher/interface:public_key_fetcher_interface",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_test(
+    name = "key_fetch_test",
+    timeout = "short",
+    srcs = ["key_fetch_test.cc"],
+    deps = [
+        ":key_fetch",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

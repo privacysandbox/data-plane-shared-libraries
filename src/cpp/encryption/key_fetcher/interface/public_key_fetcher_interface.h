@@ -27,6 +27,9 @@
 
 namespace privacy_sandbox::server_common {
 
+// Need to update key refresh monitoring code in src/cpp/metric/key_fetch.h when
+// adding a new cloud platform. CloudPlatform::LOCAL is not needed for
+// monitoring's purpose.
 enum class CloudPlatform {
   LOCAL,
   GCP,
