@@ -201,7 +201,7 @@ class WorkerSandboxApi : public core::ServiceInterface {
                                 .AllowReadlink()
                                 .AllowMmap()
                                 .AllowFork()
-#ifdef UNDEFINED_BEHAVIOR_SANITIZER
+#ifdef LLVM_SANITIZER
                                 .AllowPipe()
                                 .AllowLlvmSanitizers()
 #endif

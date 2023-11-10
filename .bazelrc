@@ -60,6 +60,7 @@ build:asanopt --copt=-O1
 build:asanopt --copt=-fno-omit-frame-pointer
 build:asanopt --linkopt=-fsanitize=address
 build:asanopt --linkopt=-fuse-ld=lld
+build:asanopt --per_file_copt=//scp/cc/roma/sandbox/worker_api/sapi/.*@-DLLVM_SANITIZER
 build:asanopt --test_tag_filters=asanopt
 # TODO(b/293876281): Re-enable ODR violation checking once it's fixed in the
 # ZLib library that we depend on.
@@ -95,7 +96,7 @@ build:ubsan --strip=never
 build:ubsan --copt=-fsanitize=undefined
 build:ubsan --copt=-O1
 build:ubsan --copt=-fno-omit-frame-pointer
-build:ubsan --per_file_copt=//scp/cc/roma/sandbox/worker_api/sapi/.*@-DUNDEFINED_BEHAVIOR_SANITIZER
+build:ubsan --per_file_copt=//scp/cc/roma/sandbox/worker_api/sapi/.*@-DLLVM_SANITIZER
 build:ubsan --linkopt=-lubsan
 build:ubsan --test_tag_filters=-noubsan
 
