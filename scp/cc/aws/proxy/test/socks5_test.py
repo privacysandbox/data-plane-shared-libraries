@@ -116,7 +116,7 @@ if __name__ == "__main__":
     # Since many machines, including kokoro, do not support VSOCK loopback, we
     # use IP socket to to simulate VSOCK here by setting "-t".
     proxy_proc = subprocess.Popen(
-        [proxy_path, "-tp", "0"], stdout=subprocess.PIPE)
+        [proxy_path, "--use_vsock=0", "0"], stdout=subprocess.PIPE)
     proxy_proc.stdout.readline()  # skip first line
     line = proxy_proc.stdout.readline().strip()
     line_prefix = "Running on TCP port "

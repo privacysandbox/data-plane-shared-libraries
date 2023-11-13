@@ -41,8 +41,8 @@ namespace {
 void BM_StartAndStopThreads(benchmark::State& state) {
   const int number_of_threads = state.range(0);
   Config config;
-  config.socks5_port_ = 0;  // This will have the OS pick a free port for us.
-  config.vsock_ = (state.range(1) == 1);
+  config.socks5_port = 0;  // This will have the OS pick a free port for us.
+  config.vsock = (state.range(1) == 1);
 
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
   // is what's timed.
@@ -59,8 +59,8 @@ void BM_StartAndStopThreads(benchmark::State& state) {
 
 void BM_TcpConnect(benchmark::State& state) {
   Config config;
-  config.socks5_port_ = 0;  // This will have the OS pick a free port for us.
-  config.vsock_ = false;
+  config.socks5_port = 0;  // This will have the OS pick a free port for us.
+  config.vsock = false;
 
   ProxyServer server(config);
   server.BindListen();

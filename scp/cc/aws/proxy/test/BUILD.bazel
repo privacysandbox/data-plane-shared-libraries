@@ -110,16 +110,6 @@ cc_test(
 )
 
 cc_test(
-    name = "config_test",
-    size = "small",
-    srcs = ["config_test.cc"],
-    deps = [
-        "//scp/cc/aws/proxy/src:config",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
     name = "freelist_test",
     size = "small",
     srcs = ["freelist_test.cc"],

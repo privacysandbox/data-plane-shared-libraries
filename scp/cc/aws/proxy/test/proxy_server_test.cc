@@ -25,8 +25,8 @@ namespace {
 
 TEST(ProxyServerTest, VsockSmokeTest) {
   Config config;
-  config.socks5_port_ = 0;  // This will have the OS pick a free port for us.
-  config.vsock_ = true;
+  config.socks5_port = 0;  // This will have the OS pick a free port for us.
+  config.vsock = true;
 
   ProxyServer server(config);
   ASSERT_EQ(server.Port(), 0);
@@ -44,8 +44,8 @@ TEST(ProxyServerTest, VsockSmokeTest) {
 
 TEST(ProxyServerTest, TcpSmokeTest) {
   Config config;
-  config.socks5_port_ = 0;  // This will have the OS pick a free port for us.
-  config.vsock_ = false;
+  config.socks5_port = 0;  // This will have the OS pick a free port for us.
+  config.vsock = false;
 
   ProxyServer server(config);
   ASSERT_EQ(server.Port(), 0);

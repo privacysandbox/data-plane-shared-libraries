@@ -22,21 +22,12 @@ namespace google::scp::proxy {
 
 // The configurations of the proxy
 struct Config {
-  static constexpr uint16_t kDefaultPort = 8888;
-  static constexpr size_t kDefaultBufferSize = 65536;
-
-  // Parse the command line arguments and get a Config object.  Will exit on
-  // errors.
-  static Config Parse(int argc, char* argv[]);
-
-  Config();
-
   // The buffer size to use for internal logic.
-  size_t buffer_size_;
+  size_t buffer_size;
   // Port that socks5 server listens on.
-  uint16_t socks5_port_;
+  uint16_t socks5_port;
   // True if listen on vsock. Otherwise on TCP.
-  bool vsock_;
+  bool vsock;
 };
 }  // namespace google::scp::proxy
 

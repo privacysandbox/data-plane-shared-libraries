@@ -35,7 +35,7 @@ fi
 export PROXY_PARENT_PORT=8888
 
 # Run the proxy, get pid.
-$proxy_path -p $PROXY_PARENT_PORT &
+$proxy_path --port $PROXY_PARENT_PORT &
 proxy_pid=$!
 sleep 1
 

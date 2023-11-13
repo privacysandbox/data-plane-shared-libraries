@@ -43,9 +43,7 @@ using namespace boost::asio;  // NOLINT
 namespace google::scp::proxy {
 
 ProxyServer::ProxyServer(const Config& config)
-    : acceptor_(io_context_),
-      port_(config.socks5_port_),
-      vsock_(config.vsock_) {}
+    : acceptor_(io_context_), port_(config.socks5_port), vsock_(config.vsock) {}
 
 void ProxyServer::BindListen() {
   if (vsock_) {
