@@ -16,6 +16,18 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
+alias(
+    name = "libnsm_so",
+    actual = "@libnsm//file",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "kms_cli",
+    actual = "@kmstool_enclave_cli//file",
+    visibility = ["//visibility:public"],
+)
+
 cc_library(
     name = "nontee_aws_kms_client_provider_lib",
     srcs = [
