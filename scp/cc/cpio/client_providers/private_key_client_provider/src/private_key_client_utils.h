@@ -32,6 +32,32 @@
 #include "error_codes.h"
 
 namespace google::scp::cpio::client_providers {
+/// Which kind of filter to apply when listing private keys.
+enum class ListingMethod {
+  kByKeyId = 1,
+  kByMaxAge = 2,
+};
+
+/// Objects for decrypt result.
+struct DecryptResult {
+  core::ExecutionResult decrypt_result;
+  EncryptionKey encryption_key;
+  std::string plaintext;
+};
+
+/// Fetch and decrypt results for one endpoint.
+struct KeysResultPerEndpoint {
+  // If the ListingMethod is kByKeyId, each key ID will have a ExecutionResult
+  // which will be stored in the map here.
+  core::common::ConcurrentMap<std::string, core::ExecutionResult>
+      fetch_result_key_id_map;
+  // If the ListingMethod is kByMaxAge, all keys for each endpoint are sharing
+  // the same ExecutionResult which will be stored here.
+  core::ExecutionResult fetch_result = core::SuccessExecutionResult();
+  core::common::ConcurrentMap<std::string, DecryptResult>
+      decrypt_result_key_id_map;
+};
+
 class PrivateKeyClientUtils {
  public:
   /**
@@ -42,31 +68,60 @@ class PrivateKeyClientUtils {
    * @return core::ExecutionResult
    */
   static core::ExecutionResult GetKmsDecryptRequest(
-      const size_t endpoint_count,
       const std::shared_ptr<EncryptionKey>& encryption_key,
       cmrt::sdk::kms_service::v1::DecryptRequest& kms_decrypt_request) noexcept;
+  /**
+   * @brief Convert the given string to a vector of byte.
+   *
+   * @param str the given string.
+   * @return vector<byte> vector of byte.
+   */
+  static std::vector<std::byte> StrToBytes(const std::string& str) noexcept;
 
   /**
-   * @brief Get the Private Key object with unencrypts information.
+   * @brief XOR operation for two vectors of byte.
    *
-   * @param encryption_key EncryptionKey object.
-   * @param[out] private_key PrivateKey object for private key split.
-   * @return core::ExecutionResult
+   * @param arr1 vector of byte.
+   * @param arr2 vector of byte.
+   * @return std::vector<byte> Exclusive OR result of the two input vectors.
    */
-  static core::ExecutionResult GetPrivateKeyInfo(
-      const std::shared_ptr<EncryptionKey>& encryption_key,
-      cmrt::sdk::private_key_service::v1::PrivateKey& private_key) noexcept;
+  static std::vector<std::byte> XOR(
+      const std::vector<std::byte>& arr1,
+      const std::vector<std::byte>& arr2) noexcept;
 
   /**
-   * @brief Reconstruct Xor keyset.
+   * @brief Construct private key from decrypt result.
    *
-   * @param endpoint_responses split private key responses from all endpoints.
-   * @param[out] private_key final private key.
-   * @return core::ExecutionResult
+   * @param decrypt_results decrypt results.
+   * @return core::ExecutionResultOr<PrivateKey> construct result.
    */
-  static core::ExecutionResult ReconstructXorKeysetHandle(
-      const std::vector<std::string>& endpoint_responses,
-      std::string& private_key) noexcept;
+  static core::ExecutionResultOr<cmrt::sdk::private_key_service::v1::PrivateKey>
+  ConstructPrivateKey(
+      const std::vector<DecryptResult>& decrypt_results) noexcept;
+
+  /**
+   * @brief Extract fetch or decrypt failure result from key results for the
+   * given key ID.
+   *
+   * @param keys_result all key results.
+   * @param key_id the given key ID.
+   * @return core::ExecutionResult failure result.
+   */
+  static core::ExecutionResult ExtractAnyFailure(
+      std::vector<KeysResultPerEndpoint>& keys_result,
+      const std::string& key_id) noexcept;
+
+  /**
+   * @brief Extract single party key result for the given key ID.
+   *
+   * @param keys_result all key results.
+   * @param key_id the given key ID.
+   * @param endpoint_count endpoint count.
+   * @return std::Optional<DecryptResult> single party key result.
+   */
+  static std::optional<DecryptResult> ExtractSinglePartyKey(
+      std::vector<KeysResultPerEndpoint>& keys_result,
+      const std::string& key_id) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

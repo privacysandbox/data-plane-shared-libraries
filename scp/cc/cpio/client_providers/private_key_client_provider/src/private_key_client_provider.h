@@ -22,8 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/node_hash_map.h"
+#include "absl/container/btree_set.h"
 #include "core/interface/async_context.h"
 #include "core/interface/http_client_interface.h"
 #include "core/interface/http_types.h"
@@ -67,34 +66,27 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
           context) noexcept override;
 
  protected:
-  /// Which kind of filter to apply when listing private keys.
-  enum class ListingMethod {
-    kByKeyId = 1,
-    kByMaxAge = 2,
-  };
-
   /// The overall status of the whole ListPrivateKeys call.
   struct ListPrivateKeysStatus {
     ListPrivateKeysStatus()
         : total_key_split_count(0),
           finished_key_split_count(0),
           fetching_call_returned_count(0),
-          got_failure(false),
-          got_empty_key_list(false) {}
+          got_failure(false) {}
 
     virtual ~ListPrivateKeysStatus() = default;
 
+    /// List of ExecutionResult.
+    std::vector<KeysResultPerEndpoint> result_list;
+
+    /// List of ExecutionResult.
+    absl::btree_set<std::string> key_id_set;
+    // Mutex to make sure only one thread accessing the key_id_set.
+    std::mutex set_mutex;
+
     ListingMethod listing_method = ListingMethod::kByKeyId;
 
-    /// How many keys we are expecting.
-    uint64_t expected_total_key_count;
-
     uint64_t call_count_per_endpoint;
-
-    /// Map of all PrivateKeys to Key IDs.
-    absl::flat_hash_map<std::string,
-                        cmrt::sdk::private_key_service::v1::PrivateKey>
-        private_key_id_map;
 
     /// How many key splits fetched in total.
     std::atomic<size_t> total_key_split_count;
@@ -105,34 +97,6 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
 
     /// whether ListPrivateKeys() call got failure result.
     std::atomic<bool> got_failure;
-
-    /// whether an empty key list was returned from any endpoint.
-    std::atomic<bool> got_empty_key_list;
-  };
-
-  /// Operation status for a batch of calls to all endpoints. When listing keys
-  /// by IDs, it keeps the status of the calls to all endpoints for one key ID.
-  /// When listing keys by age, it keeps the status of the calls to all
-  /// endpoints by age.
-  struct KeyEndPointsStatus {
-    KeyEndPointsStatus() {}
-
-    virtual ~KeyEndPointsStatus() = default;
-
-    /// Map of the plaintexts to key IDs.
-    absl::flat_hash_map<std::string, std::vector<std::string>>
-        plaintext_key_id_map;
-
-    /// How many endpoints finished operation for current key.
-    /// Use `node_hash_map` because value type is not movable.
-    absl::node_hash_map<std::string, std::atomic<size_t>>
-        finished_counter_key_id_map;
-
-    // Mutex to make sure only one thread accessing the plaintext_key_id_map and
-    // finished_counter_key_id_map at one time.
-    // Use Mutex other than concurrent map because atomic cannot be stored in
-    // the concurrent map.
-    std::mutex map_mutex;
   };
 
   /**
@@ -154,7 +118,6 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
       core::AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
           fetch_private_key_context,
       std::shared_ptr<ListPrivateKeysStatus> list_keys_status,
-      std::shared_ptr<KeyEndPointsStatus> endpoints_status,
       size_t uri_index) noexcept;
 
   /**
@@ -167,7 +130,7 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
    * @param uri_index endpoint index in endpoints vector.
    *
    */
-  virtual void OnDecrpytCallback(
+  virtual void OnDecryptCallback(
       core::AsyncContext<
           cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest,
           cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>&
@@ -176,7 +139,6 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
                          cmrt::sdk::kms_service::v1::DecryptResponse>&
           decrypt_context,
       std::shared_ptr<ListPrivateKeysStatus> list_keys_status,
-      std::shared_ptr<KeyEndPointsStatus> endpoints_status,
       std::shared_ptr<EncryptionKey> encryption_key, size_t uri_index) noexcept;
 
   /// Configurations for PrivateKeyClient.

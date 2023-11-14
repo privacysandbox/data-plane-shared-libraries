@@ -29,6 +29,7 @@
 #include "absl/strings/escaping.h"
 #include "core/interface/http_types.h"
 #include "core/test/utils/timestamp_test_utils.h"
+#include "core/utils/src/base64.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
@@ -37,6 +38,7 @@ using google::cmrt::sdk::private_key_service::v1::PrivateKey;
 using google::protobuf::util::TimeUtil;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
+using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::
     SC_PRIVATE_KEY_CLIENT_PROVIDER_CANNOT_READ_ENCRYPTED_KEY_SET;
 using google::scp::core::errors::
@@ -51,6 +53,7 @@ using google::scp::core::errors::
     SC_PRIVATE_KEY_CLIENT_PROVIDER_SECRET_PIECE_SIZE_UNMATCHED;
 using google::scp::core::test::ExpectTimestampEquals;
 using google::scp::core::test::ResultIs;
+using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using ::testing::StrEq;
@@ -118,7 +121,7 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestSuccess) {
   auto encryption_key = CreateEncryptionKey();
   DecryptRequest kms_decrypt_request;
   auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
-      1, encryption_key, kms_decrypt_request);
+      encryption_key, kms_decrypt_request);
   EXPECT_SUCCESS(result);
   EXPECT_THAT(kms_decrypt_request.ciphertext(), StrEq(kTestKeyMaterial));
   EXPECT_THAT(kms_decrypt_request.key_resource_name(),
@@ -136,7 +139,7 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestFailed) {
 
   DecryptRequest kms_decrypt_request;
   auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
-      1, encryption_key, kms_decrypt_request);
+      encryption_key, kms_decrypt_request);
   EXPECT_THAT(result, ResultIs(FailureExecutionResult(
                           SC_PRIVATE_KEY_CLIENT_PROVIDER_KEY_DATA_NOT_FOUND)));
 }
@@ -146,7 +149,7 @@ TEST(PrivateKeyClientUtilsTest,
   auto encryption_key = CreateEncryptionKey("invalid");
   DecryptRequest kms_decrypt_request;
   auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
-      1, encryption_key, kms_decrypt_request);
+      encryption_key, kms_decrypt_request);
   EXPECT_THAT(result,
               ResultIs(FailureExecutionResult(
                   SC_PRIVATE_KEY_CLIENT_PROVIDER_INVALID_KEY_RESOURCE_NAME)));
@@ -174,7 +177,7 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestForSinglePartySucceeded) {
   auto encryption_key = CreateSinglePartyEncryptionKey();
   DecryptRequest kms_decrypt_request;
   auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
-      1, encryption_key, kms_decrypt_request);
+      encryption_key, kms_decrypt_request);
   EXPECT_SUCCESS(result);
   // Fill the key with padding.
   std::string unescaped_key;
@@ -187,24 +190,12 @@ TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestForSinglePartySucceeded) {
 }
 
 TEST(PrivateKeyClientUtilsTest,
-     GetKmsDecryptRequestForSinglePartyFailedForInvalidEndpointCount) {
-  auto encryption_key = CreateSinglePartyEncryptionKey();
-  DecryptRequest kms_decrypt_request;
-  auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
-      2, encryption_key, kms_decrypt_request);
-  EXPECT_THAT(
-      result,
-      ResultIs(FailureExecutionResult(
-          SC_PRIVATE_KEY_CLIENT_PROVIDER_INVALID_VENDING_ENDPOINT_COUNT)));
-}
-
-TEST(PrivateKeyClientUtilsTest,
      GetKmsDecryptRequestForSinglePartyFailedForInvalidKeyDataCount) {
   auto encryption_key =
       CreateSinglePartyEncryptionKey(2, kSinglePartyKeyMaterialJson);
   DecryptRequest kms_decrypt_request;
   auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
-      1, encryption_key, kms_decrypt_request);
+      encryption_key, kms_decrypt_request);
   EXPECT_THAT(result,
               ResultIs(FailureExecutionResult(
                   SC_PRIVATE_KEY_CLIENT_PROVIDER_INVALID_KEY_DATA_COUNT)));
@@ -215,55 +206,378 @@ TEST(PrivateKeyClientUtilsTest,
   auto encryption_key = CreateSinglePartyEncryptionKey(1, "invalidjson");
   DecryptRequest kms_decrypt_request;
   auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
-      1, encryption_key, kms_decrypt_request);
+      encryption_key, kms_decrypt_request);
   EXPECT_THAT(
       result,
       ResultIs(FailureExecutionResult(
           SC_PRIVATE_KEY_CLIENT_PROVIDER_CANNOT_READ_ENCRYPTED_KEY_SET)));
 }
 
-TEST(PrivateKeyClientUtilsTest, GetPrivateKeyInfo) {
+DecryptResult CreateDecryptResult(
+    std::string plaintext,
+    ExecutionResult decrypt_result = SuccessExecutionResult(),
+    bool multi_party_key = true) {
   auto encryption_key = CreateEncryptionKey();
+  if (!multi_party_key) {
+    encryption_key = CreateSinglePartyEncryptionKey();
+  }
+  DecryptResult result;
+  result.decrypt_result = decrypt_result;
+  result.encryption_key = std::move(*encryption_key);
+  result.plaintext = move(plaintext);
+  return result;
+}
 
-  PrivateKey private_key;
-  auto result =
-      PrivateKeyClientUtils::GetPrivateKeyInfo(encryption_key, private_key);
-  EXPECT_SUCCESS(result);
-  EXPECT_THAT(private_key.key_id(), StrEq("name_test"));
-  EXPECT_THAT(private_key.public_key(), StrEq(kTestPublicKeyMaterial));
+TEST(PrivateKeyClientUtilsTest, ConsturctPrivateKeySuccess) {
+  std::vector<DecryptResult> decrypt_results;
+  decrypt_results.emplace_back(
+      CreateDecryptResult("\270G\005\364$\253\273\331\353\336\216>"));
+  decrypt_results.emplace_back(
+      CreateDecryptResult("\327\002\204 \232\377\002\330\225DB\f"));
+  decrypt_results.emplace_back(
+      CreateDecryptResult("; \362\240\2369\334r\r\373\253W"));
+
+  auto private_key_or =
+      PrivateKeyClientUtils::ConstructPrivateKey(decrypt_results);
+  EXPECT_SUCCESS(private_key_or);
+  auto private_key = *private_key_or;
+  EXPECT_EQ(private_key.key_id(), "name_test");
+  EXPECT_EQ(private_key.public_key(), kTestPublicKeyMaterial);
   ExpectTimestampEquals(private_key.expiration_time(),
                         TimeUtil::MillisecondsToTimestamp(kTestExpirationTime));
   ExpectTimestampEquals(private_key.creation_time(),
                         TimeUtil::MillisecondsToTimestamp(kTestCreationTime));
-}
-
-TEST(PrivateKeyClientUtilsTest, ReconstructXorKeysetHandle) {
-  std::string message = "Test message";
-  std::vector<std::string> endpoint_responses = {
-      "\270G\005\364$\253\273\331\353\336\216>",
-      "\327\002\204 \232\377\002\330\225DB\f",
-      "; \362\240\2369\334r\r\373\253W"};
-
-  std::string private_key;
-  auto result = PrivateKeyClientUtils::ReconstructXorKeysetHandle(
-      endpoint_responses, private_key);
-  EXPECT_SUCCESS(result);
-  EXPECT_THAT(private_key, StrEq(message));
+  std::string encoded_key;
+  Base64Encode("Test message", encoded_key);
+  EXPECT_EQ(private_key.private_key(), encoded_key);
 }
 
 TEST(PrivateKeyClientUtilsTest,
-     ReconstructXorKeysetHandleFailedWithInvalidInputs) {
-  std::vector<std::string> endpoint_responses = {
-      "\270G\005\364$\253\273\331\353\336\216>",
-      "\327\002\204 \232\377\002\330", "; \362\240\2369\334r\r\373\253W"};
+     ConsturctPrivateKeyFailedWithUnmatchedPlaintextSize) {
+  std::vector<DecryptResult> decrypt_results;
+  decrypt_results.emplace_back(
+      CreateDecryptResult("\270G\005\364$\253\273\331\353\336\216>"));
+  decrypt_results.emplace_back(
+      CreateDecryptResult("\327\002\204 \232\377\002\330"));
+  decrypt_results.emplace_back(
+      CreateDecryptResult("; \362\240\2369\334r\r\373\253W"));
 
-  std::string private_key;
-  auto result = PrivateKeyClientUtils::ReconstructXorKeysetHandle(
-      endpoint_responses, private_key);
-  EXPECT_THAT(result,
+  auto private_key_or =
+      PrivateKeyClientUtils::ConstructPrivateKey(decrypt_results);
+  EXPECT_THAT(private_key_or,
               ResultIs(FailureExecutionResult(
                   SC_PRIVATE_KEY_CLIENT_PROVIDER_SECRET_PIECE_SIZE_UNMATCHED)));
-  EXPECT_TRUE(private_key.empty());
 }
 
+TEST(PrivateKeyClientUtilsTest,
+     ConsturctPrivateKeyFailedWithEmptyDecryptResult) {
+  std::vector<DecryptResult> decrypt_results;
+
+  auto private_key_or =
+      PrivateKeyClientUtils::ConstructPrivateKey(decrypt_results);
+  EXPECT_THAT(private_key_or,
+              ResultIs(FailureExecutionResult(
+                  SC_PRIVATE_KEY_CLIENT_PROVIDER_KEY_DATA_NOT_FOUND)));
+}
+
+TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureNoFailure) {
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  ExecutionResult fetch_result_out;
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  EXPECT_SUCCESS(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key1"));
+  EXPECT_SUCCESS(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key2"));
+}
+
+TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureReturnFetchFailure) {
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  ExecutionResult fetch_result_out;
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+  auto failure = FailureExecutionResult(SC_UNKNOWN);
+  keys_result_list[0].fetch_result = failure;
+
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  EXPECT_THAT(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key1"),
+      ResultIs(failure));
+  EXPECT_THAT(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key2"),
+      ResultIs(failure));
+}
+
+TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureReturnFetchFailureForOneKey) {
+  auto failure = FailureExecutionResult(SC_UNKNOWN);
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  ExecutionResult fetch_result_out;
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", failure), fetch_result_out);
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  EXPECT_THAT(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key1"),
+      ResultIs(failure));
+  EXPECT_SUCCESS(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key2"));
+}
+
+TEST(PrivateKeyClientUtilsTest,
+     ExtractAnyFailureReturnFetchFailureForBothKeys) {
+  auto failure = FailureExecutionResult(SC_UNKNOWN);
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  ExecutionResult fetch_result_out;
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", failure), fetch_result_out);
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", failure), fetch_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  EXPECT_THAT(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key1"),
+      ResultIs(failure));
+  EXPECT_THAT(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key2"),
+      ResultIs(failure));
+}
+
+TEST(PrivateKeyClientUtilsTest,
+     ExtractAnyFailureReturnDecryptFailureForOneKey) {
+  auto failure = FailureExecutionResult(SC_UNKNOWN);
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  ExecutionResult fetch_result_out;
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("", failure)),
+      decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  EXPECT_THAT(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key1"),
+      ResultIs(failure));
+  EXPECT_SUCCESS(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key2"));
+}
+
+TEST(PrivateKeyClientUtilsTest,
+     ExtractAnyFailureReturnDecryptFailureForBothKeys) {
+  auto failure = FailureExecutionResult(SC_UNKNOWN);
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  ExecutionResult fetch_result_out;
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("", failure)),
+      decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("", failure)),
+      decrypt_result_out);
+
+  EXPECT_THAT(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key1"),
+      ResultIs(failure));
+  EXPECT_THAT(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key2"),
+      ResultIs(failure));
+}
+
+TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureFetchResultNotFound) {
+  auto failure = FailureExecutionResult(SC_UNKNOWN);
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  ExecutionResult fetch_result_out;
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", failure), fetch_result_out);
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", failure), fetch_result_out);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("", failure)),
+      decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key3", CreateDecryptResult("")), decrypt_result_out);
+
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", failure), fetch_result_out);
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key2", failure), fetch_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key3", CreateDecryptResult("")), decrypt_result_out);
+
+  EXPECT_SUCCESS(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key3"));
+}
+
+TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureDecryptResultNotFound) {
+  auto failure = FailureExecutionResult(SC_UNKNOWN);
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  ExecutionResult fetch_result_out;
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[0].fetch_result_key_id_map.Insert(
+      std::make_pair("key3", SuccessExecutionResult()), fetch_result_out);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("", failure)),
+      decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("", failure)),
+      decrypt_result_out);
+
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key1", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].fetch_result_key_id_map.Insert(
+      std::make_pair("key3", SuccessExecutionResult()), fetch_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("", failure)),
+      decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("", failure)),
+      decrypt_result_out);
+
+  EXPECT_SUCCESS(
+      PrivateKeyClientUtils::ExtractAnyFailure(keys_result_list, "key3"));
+}
+
+TEST(PrivateKeyClientUtilsTest, ExtractSinglePartyKeyReturnNoKey) {
+  auto failure = FailureExecutionResult(SC_UNKNOWN);
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("")), decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("")), decrypt_result_out);
+
+  EXPECT_FALSE(
+      PrivateKeyClientUtils::ExtractSinglePartyKey(keys_result_list, "key1")
+          .has_value());
+  EXPECT_FALSE(
+      PrivateKeyClientUtils::ExtractSinglePartyKey(keys_result_list, "key2")
+          .has_value());
+  EXPECT_FALSE(
+      PrivateKeyClientUtils::ExtractSinglePartyKey(keys_result_list, "key3")
+          .has_value());
+}
+
+TEST(PrivateKeyClientUtilsTest, ExtractSinglePartyKeyReturnKey) {
+  auto failure = FailureExecutionResult(SC_UNKNOWN);
+  std::vector<KeysResultPerEndpoint> keys_result_list(2);
+  DecryptResult decrypt_result_out;
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("", failure, false)),
+      decrypt_result_out);
+  keys_result_list[0].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("", failure, false)),
+      decrypt_result_out);
+
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key1", CreateDecryptResult("", failure)),
+      decrypt_result_out);
+  keys_result_list[1].decrypt_result_key_id_map.Insert(
+      std::make_pair("key2", CreateDecryptResult("", failure, false)),
+      decrypt_result_out);
+
+  EXPECT_TRUE(
+      PrivateKeyClientUtils::ExtractSinglePartyKey(keys_result_list, "key1")
+          .has_value());
+  EXPECT_TRUE(
+      PrivateKeyClientUtils::ExtractSinglePartyKey(keys_result_list, "key2")
+          .has_value());
+  EXPECT_FALSE(
+      PrivateKeyClientUtils::ExtractSinglePartyKey(keys_result_list, "key3")
+          .has_value());
+}
 }  // namespace google::scp::cpio::client_providers::test
