@@ -118,9 +118,6 @@ ExecutionResult Daemonizer::Run() noexcept {
       continue;
     }
 
-    // This PID is no longer valid so we remove the mapping from PID to
-    // executable arg
-    pid_to_executable_arg_map_.erase(it);
     if (it->second->restart) {
       // Because this process exited we need to launch it again, so we add its
       // executable arg to the set of processes to launch.
@@ -134,6 +131,9 @@ ExecutionResult Daemonizer::Run() noexcept {
                 << it->second->executable_name
                 << "] exited. Will NOT restart it..." << std::endl;
     }
+    // This PID is no longer valid so we remove the mapping from PID to
+    // executable arg
+    pid_to_executable_arg_map_.erase(it);
 
     // TODO: change to exponential backoff with absolute failure if
     // too many failures within a time interval
