@@ -86,32 +86,6 @@ std::shared_ptr<std::string> GetCodeFromContext(
   return code;
 }
 
-/**
- * @brief Create a context in given isolate with isolate_function_binding
- * registered.
- *
- * @param isolate
- * @param isolate_function_binding
- * @param context
- * @return ExecutionResult
- */
-ExecutionResult CreateV8Context(
-    v8::Isolate* isolate,
-    const std::shared_ptr<V8IsolateFunctionBinding>& isolate_function_binding,
-    v8::Local<v8::Context>& context) noexcept {
-  v8::Local<v8::ObjectTemplate> global_object_template =
-      v8::ObjectTemplate::New(isolate);
-
-  if (isolate_function_binding) {
-    auto result = isolate_function_binding->BindFunctions(
-        isolate, global_object_template);
-    RETURN_IF_FAILURE(result);
-  }
-
-  context = v8::Context::New(isolate, nullptr, global_object_template);
-  return SuccessExecutionResult();
-}
-
 std::string BuildErrorString(std::vector<std::string> errors) {
   std::string err_str;
   for (const auto& e : errors) {
@@ -210,8 +184,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     v8::Local<v8::Context> context;
-    auto execution_result =
-        CreateV8Context(isolate, isolate_function_binding_, context);
+    auto execution_result = CreateV8Context(isolate, context);
     RETURN_IF_FAILURE(execution_result);
 
     v8::Context::Scope context_scope(context);
@@ -240,8 +213,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     v8::Local<v8::Context> context;
-    auto execution_result =
-        CreateV8Context(isolate, isolate_function_binding_, context);
+    auto execution_result = CreateV8Context(isolate, context);
     RETURN_IF_FAILURE(execution_result);
 
     v8::Context::Scope context_scope(context);
@@ -628,8 +600,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
   v8::Local<v8::Context> v8_context;
 
   {
-    auto execution_result =
-        CreateV8Context(isolate, isolate_function_binding_, v8_context);
+    auto execution_result = CreateV8Context(isolate, v8_context);
     RETURN_IF_FAILURE(execution_result);
 
     v8::Context::Scope context_scope(v8_context);
@@ -756,6 +727,21 @@ V8JsEngine::CompileAndRunJsWithWasm(
     return FailureExecutionResult(SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT);
   }
   return execution_result.result();
+}
+
+ExecutionResult V8JsEngine::CreateV8Context(v8::Isolate* isolate,
+                                            v8::Local<v8::Context>& context) {
+  v8::Local<v8::ObjectTemplate> global_object_template =
+      v8::ObjectTemplate::New(isolate);
+
+  if (isolate_function_binding_) {
+    auto result = isolate_function_binding_->BindFunctions(
+        isolate, global_object_template);
+    RETURN_IF_FAILURE(result);
+  }
+
+  context = v8::Context::New(isolate, nullptr, global_object_template);
+  return SuccessExecutionResult();
 }
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

@@ -191,16 +191,16 @@ ExecutionResult V8IsolateFunctionBinding::BindFunctions(
     return FailureExecutionResult(
         SC_ROMA_V8_ISOLATE_VISITOR_FUNCTION_BINDING_INVALID_ISOLATE);
   }
-  for (const auto& binding_ref : binding_references_) {
+  for (auto& binding_ref : binding_references_) {
     // Store a pointer to this V8IsolateFunctionBinding instance
     const v8::Local<v8::External>& binding_context_pair =
-        v8::External::New(isolate, reinterpret_cast<void*>(binding_ref.get()));
+        v8::External::New(isolate, reinterpret_cast<void*>(&binding_ref));
     // Create the function template to register in the global object
     const auto function_template = v8::FunctionTemplate::New(
         isolate, &GlobalV8FunctionCallback, binding_context_pair);
     // Convert the function binding name to a v8 type
     const auto& binding_name =
-        TypeConverter<std::string>::ToV8(isolate, binding_ref->first)
+        TypeConverter<std::string>::ToV8(isolate, binding_ref.first)
             .As<v8::String>();
     global_object_template->Set(binding_name, function_template);
   }
@@ -212,8 +212,7 @@ void V8IsolateFunctionBinding::AddExternalReferences(
   // Must add pointers that are not within the v8 heap to external_references_
   // so that the snapshot serialization works.
   for (const auto& binding_ref : binding_references_) {
-    external_references.push_back(
-        reinterpret_cast<intptr_t>(binding_ref.get()));
+    external_references.push_back(reinterpret_cast<intptr_t>(&binding_ref));
   }
   external_references.push_back(
       reinterpret_cast<intptr_t>(&GlobalV8FunctionCallback));

@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
@@ -44,11 +45,11 @@ namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
  */
 class V8JsEngine : public JsEngine {
  public:
-  V8JsEngine(std::shared_ptr<V8IsolateFunctionBinding>
+  V8JsEngine(std::unique_ptr<V8IsolateFunctionBinding>
                  isolate_function_binding = nullptr,
              const JsEngineResourceConstraints& v8_resource_constraints =
                  JsEngineResourceConstraints())
-      : isolate_function_binding_(isolate_function_binding),
+      : isolate_function_binding_(std::move(isolate_function_binding)),
         v8_resource_constraints_(v8_resource_constraints),
         execution_watchdog_(
             std::make_unique<roma::worker::ExecutionWatchDog>()) {
@@ -94,6 +95,17 @@ class V8JsEngine : public JsEngine {
           RomaJsEngineCompilationContext()) noexcept override;
 
  private:
+  /**
+   * @brief Create a context in given isolate with isolate_function_binding
+   * registered.
+   *
+   * @param isolate
+   * @param context
+   * @return ExecutionResult
+   */
+  core::ExecutionResult CreateV8Context(v8::Isolate* isolate,
+                                        v8::Local<v8::Context>& context);
+
   /**
    * @brief Create a Snapshot object
    *
@@ -201,7 +213,7 @@ class V8JsEngine : public JsEngine {
   core::ExecutionResult InitAndRunWatchdog() noexcept;
 
   std::unique_ptr<V8IsolateWrapper> isolate_wrapper_;
-  std::shared_ptr<V8IsolateFunctionBinding> isolate_function_binding_;
+  std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding_;
 
   /// @brief These are external references (pointers to data outside of the
   /// v8 heap) which are needed for serialization of the v8 snapshot.

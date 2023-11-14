@@ -37,14 +37,17 @@ class V8IsolateFunctionBinding {
    */
   V8IsolateFunctionBinding(
       const std::vector<std::string>& function_names,
-      const std::shared_ptr<native_function_binding::NativeFunctionInvoker>&
+      std::unique_ptr<native_function_binding::NativeFunctionInvoker>
           function_invoker)
-      : function_names_(function_names), function_invoker_(function_invoker) {
-    for (const auto& function_name : function_names_) {
-      binding_references_.emplace_back(
-          std::make_shared<BindingPair>(function_name, this));
+      : function_invoker_(std::move(function_invoker)) {
+    for (const auto& function_name : function_names) {
+      binding_references_.emplace_back(std::make_pair(function_name, this));
     }
   }
+
+  // Not copyable or movable
+  V8IsolateFunctionBinding(const V8IsolateFunctionBinding&) = delete;
+  V8IsolateFunctionBinding& operator=(const V8IsolateFunctionBinding&) = delete;
 
   core::ExecutionResult BindFunctions(
       v8::Isolate* isolate,
@@ -55,13 +58,12 @@ class V8IsolateFunctionBinding {
 
  private:
   using BindingPair = std::pair<std::string, V8IsolateFunctionBinding*>;
-  std::vector<std::shared_ptr<BindingPair>> binding_references_;
+  std::vector<BindingPair> binding_references_;
 
   static void GlobalV8FunctionCallback(
       const v8::FunctionCallbackInfo<v8::Value>& info);
 
-  const std::vector<std::string> function_names_;
-  std::shared_ptr<native_function_binding::NativeFunctionInvoker>
+  std::unique_ptr<native_function_binding::NativeFunctionInvoker>
       function_invoker_;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

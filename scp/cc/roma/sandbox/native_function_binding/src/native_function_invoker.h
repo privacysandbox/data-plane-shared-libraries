@@ -46,6 +46,10 @@ class NativeFunctionInvoker {
       const std::string& function_name,
       google::scp::roma::proto::FunctionBindingIoProto&
           function_binding_proto) noexcept = 0;
+
+  // The destructor must be virtual otherwise the base class destructor won't
+  // ever be invoked.
+  virtual ~NativeFunctionInvoker() {}
 };
 }  // namespace google::scp::roma::sandbox::native_function_binding
 

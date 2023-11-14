@@ -52,15 +52,16 @@ ExecutionResultOr<std::unique_ptr<Worker>> WorkerFactory::Create(
     const WorkerFactory::FactoryParams& params) {
   if (params.engine == WorkerFactory::WorkerEngine::v8) {
     auto native_function_invoker =
-        std::make_shared<NativeFunctionInvokerSapiIpc>(
+        std::make_unique<NativeFunctionInvokerSapiIpc>(
             params.v8_worker_engine_params.native_js_function_comms_fd);
 
-    auto isolate_visitor = std::make_shared<V8IsolateFunctionBinding>(
+    auto isolate_function_binding = std::make_unique<V8IsolateFunctionBinding>(
         params.v8_worker_engine_params.native_js_function_names,
-        native_function_invoker);
+        std::move(native_function_invoker));
 
     auto v8_engine = std::make_unique<V8JsEngine>(
-        isolate_visitor, params.v8_worker_engine_params.resource_constraints);
+        std::move(isolate_function_binding),
+        params.v8_worker_engine_params.resource_constraints);
 
     auto one_time_setup = GetEngineOneTimeSetup(params);
     v8_engine->OneTimeSetup(one_time_setup);

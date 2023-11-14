@@ -59,16 +59,16 @@ class NativeFunctionInvokerMock
 };
 
 TEST_F(V8IsolateFunctionBindingTest, FunctionBecomesAvailableInJavascript) {
-  auto function_invoker = std::make_shared<NativeFunctionInvokerMock>();
-  std::vector<std::string> function_names = {"cool_func"};
-  auto visitor = std::make_shared<v8_js_engine::V8IsolateFunctionBinding>(
-      function_names, function_invoker);
-
-  js_engine::v8_js_engine::V8JsEngine js_engine(visitor);
-  AutoInitRunStop to_handle_engine(js_engine);
-
+  auto function_invoker = std::make_unique<NativeFunctionInvokerMock>();
   EXPECT_CALL(*function_invoker, Invoke("cool_func", _))
       .WillOnce(Return(SuccessExecutionResult()));
+
+  std::vector<std::string> function_names = {"cool_func"};
+  auto visitor = std::make_unique<v8_js_engine::V8IsolateFunctionBinding>(
+      function_names, std::move(function_invoker));
+
+  js_engine::v8_js_engine::V8JsEngine js_engine(std::move(visitor));
+  AutoInitRunStop to_handle_engine(js_engine);
 
   auto result_or = js_engine.CompileAndRunJs(
       R"(function func() { cool_func(); return ""; })", "func", {}, {});
