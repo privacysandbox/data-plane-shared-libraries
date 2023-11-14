@@ -21,7 +21,9 @@
 #include <mutex>
 #include <string>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/synchronization/mutex.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/utils/metric_aggregation/interface/aggregate_metric_interface.h"
 
@@ -48,22 +50,27 @@ class MockAggregateMetric : public AggregateMetricInterface {
   }
 
   core::ExecutionResult IncrementBy(
-      uint64_t value, const std::string& event_code) noexcept override {
-    std::unique_lock lock(mutex_);
-    metric_count_map_[event_code] = GetCounter(event_code) + value;
+      uint64_t value, const std::string& event_code) noexcept override
+      ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock lock(&mutex_);
+    metric_count_map_[event_code] += value;
     return core::SuccessExecutionResult();
   }
 
-  size_t GetCounter(const std::string& event_code = std::string()) {
-    if (event_code.empty() || !metric_count_map_.contains(event_code)) {
+  size_t GetCounter(const std::string& event_code = std::string())
+      ABSL_LOCKS_EXCLUDED(mutex_) {
+    if (event_code.empty()) {
       return 0;
+    } else {
+      absl::MutexLock lock(&mutex_);
+      return metric_count_map_[event_code];
     }
-    return metric_count_map_.at(event_code);
   }
 
  private:
-  std::mutex mutex_;
-  absl::flat_hash_map<std::string, size_t> metric_count_map_;
+  absl::Mutex mutex_;
+  absl::flat_hash_map<std::string, size_t> metric_count_map_
+      ABSL_GUARDED_BY(mutex_);
 };
 }  // namespace google::scp::cpio
 
