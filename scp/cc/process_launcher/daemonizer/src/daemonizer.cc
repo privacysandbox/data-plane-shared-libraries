@@ -55,7 +55,8 @@ ExecutionResult Daemonizer::Run() noexcept {
 
   while (true) {
     for (auto& exe_arg : executable_args_) {
-      if (!executable_arg_to_launch_set_.contains(exe_arg)) {
+      // Remove process from the set of processes to start.
+      if (executable_arg_to_launch_set_.erase(exe_arg) == 0) {
         // This process does not need to be launched
         continue;
       }
@@ -80,9 +81,6 @@ ExecutionResult Daemonizer::Run() noexcept {
                 << "] with pid [" << proc_pid << "]" << std::endl;
 
       pid_to_executable_arg_map_[proc_pid] = exe_arg;
-      // Since we launched this process, we remove it from the set
-      // of processes to start.
-      executable_arg_to_launch_set_.erase(exe_arg);
     }
 
     // Wait for any launched process to exit.
@@ -112,29 +110,28 @@ ExecutionResult Daemonizer::Run() noexcept {
     // If this is an unknown PID, just continue. This is most likely a process
     // started by a child, which was then orphaned and ended up parented by this
     // process.
-    if (pid_to_executable_arg_map_.find(failed_proc_pid) ==
-        pid_to_executable_arg_map_.end()) {
+    const auto it = pid_to_executable_arg_map_.find(failed_proc_pid);
+    if (it == pid_to_executable_arg_map_.end()) {
       std::cout << "A child process which was not explicitly started has died. "
                    "This is most likely a grandchild process."
                 << std::endl;
       continue;
     }
 
-    auto failed_process_arg = pid_to_executable_arg_map_[failed_proc_pid];
     // This PID is no longer valid so we remove the mapping from PID to
     // executable arg
-    pid_to_executable_arg_map_.erase(failed_proc_pid);
-    if (failed_process_arg->restart) {
+    pid_to_executable_arg_map_.erase(it);
+    if (it->second->restart) {
       // Because this process exited we need to launch it again, so we add its
       // executable arg to the set of processes to launch.
-      executable_arg_to_launch_set_.insert(failed_process_arg);
+      executable_arg_to_launch_set_.insert(it->second);
 
       std::cout << "Process with executable_name ["
-                << failed_process_arg->executable_name
-                << "] exited. Restarting it..." << std::endl;
+                << it->second->executable_name << "] exited. Restarting it..."
+                << std::endl;
     } else {
       std::cout << "Process with executable_name ["
-                << failed_process_arg->executable_name
+                << it->second->executable_name
                 << "] exited. Will NOT restart it..." << std::endl;
     }
 
