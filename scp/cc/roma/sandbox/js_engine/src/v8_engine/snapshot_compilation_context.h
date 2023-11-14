@@ -40,15 +40,7 @@ enum class CacheType { kUnknown, kSnapshot, kUnboundScript };
  */
 class SnapshotCompilationContext {
  public:
-  std::unique_ptr<V8IsolateWrapper> isolate;
-
-  CacheType cache_type;
-  /// The startup data to hold the snapshot of the context which contains the
-  /// compiled code.
-  v8::StartupData startup_data{nullptr, 0};
-
-  /// An instance of UnboundScript used to cache compiled code in isolate.
-  v8::Global<v8::UnboundScript> unbound_script;
+  SnapshotCompilationContext() {}
 
   ~SnapshotCompilationContext() {
     unbound_script.Reset();
@@ -59,6 +51,22 @@ class SnapshotCompilationContext {
       startup_data = {nullptr, 0};
     }
   }
+
+  // Not copyable or movable.
+  // The move operations are implicitly disabled.
+  SnapshotCompilationContext(const SnapshotCompilationContext&) = delete;
+  SnapshotCompilationContext& operator=(const SnapshotCompilationContext&) =
+      delete;
+
+  std::unique_ptr<V8IsolateWrapper> isolate;
+
+  CacheType cache_type;
+  /// The startup data to hold the snapshot of the context which contains the
+  /// compiled code.
+  v8::StartupData startup_data{nullptr, 0};
+
+  /// An instance of UnboundScript used to cache compiled code in isolate.
+  v8::Global<v8::UnboundScript> unbound_script;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 
