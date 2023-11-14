@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "test_code",
+    hdrs = ["test_code.h"],
+)
 
 cc_test(
     name = "benchmark_suite_test",
@@ -63,7 +68,21 @@ cc_test(
     srcs = ["kv_server_udf_benchmark.cc"],
     tags = ["manual"],
     deps = [
+        ":test_code",
         "//scp/cc/roma/benchmark/src:fake_kv_server",
+        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_test(
+    name = "ba_server_benchmark",
+    timeout = "eternal",
+    srcs = ["ba_server_benchmark.cc"],
+    tags = ["manual"],
+    deps = [
+        ":test_code",
+        "//scp/cc/roma/benchmark/src:fake_ba_server",
         "//scp/cc/roma/roma_service/src:roma_service_lib",
         "@google_benchmark//:benchmark",
     ],

@@ -17,6 +17,23 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "fake_ba_server",
+    testonly = 1,
+    srcs = [
+        "fake_ba_server.cc",
+    ],
+    hdrs = ["fake_ba_server.h"],
+    deps = [
+        "//scp/cc:cc_base_include_dir",
+        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_library(
     name = "fake_kv_server",
     testonly = 1,
     srcs = [

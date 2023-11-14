@@ -23,44 +23,34 @@
 
 namespace google::scp::roma::benchmark {
 
-// From:
-// https://github.com/privacysandbox/fledge-key-value-service/blob/main/components/udf/code_config.h
-struct CodeConfig {
-  // Only one of js or wasm needs to be set.
-  // If both are, js will have priority.
-  std::string js;
-  std::string wasm;
-  std::string udf_handler_name;
-};
+using DispatchConfig = google::scp::roma::Config;
+using DispatchRequest = google::scp::roma::InvocationRequestSharedInput;
 
-// This class is used for benchmarking the way that the FLEDGE Key/Value Server
-// uses the ROMA library.
+// This class is used for benchmarking the way that the FLEDGE Bidding and
+// Auction Services use the ROMA library.
 //
 // It's a loose approximation of the code here:
-// https://github.com/privacysandbox/fledge-key-value-service/blob/main/components/udf/udf_client.h
+// https://github.com/privacysandbox/bidding-auction-servers/blob/main/services/common/clients/code_dispatcher/v8_dispatcher.h
 //
 // Key differences are:
 // * This code will abort on failures, we're only benchmarking the happy path.
 // * Some config (e.g. timeouts) is hardcoded.
-class FakeKvServer {
+class FakeBaServer {
  public:
-  explicit FakeKvServer(const Config& config);
+  explicit FakeBaServer(DispatchConfig config);
 
-  ~FakeKvServer();
+  ~FakeBaServer();
 
   // Not copyable or movable
-  FakeKvServer(const FakeKvServer&) = delete;
-  FakeKvServer& operator=(const FakeKvServer&) = delete;
+  FakeBaServer(const FakeBaServer&) = delete;
+  FakeBaServer& operator=(const FakeBaServer&) = delete;
 
-  // Executes the UDF with the given keys. Code object must be set before making
-  // this call.
-  std::string ExecuteCode(const std::vector<std::string> keys);
+  // Synchronously loads code.
+  void LoadSync(int version, absl::string_view js) const;
 
-  // Sets the JS or WASM code object that will be used for UDF execution
-  void SetCodeObject(CodeConfig code_config);
-
- private:
-  std::string handler_name_;
+  // Unlike the B&A codebase, this call blocks until all of the execution is
+  // finished.
+  void BatchExecute(std::vector<DispatchRequest>& batch) const;
 };
 
 }  // namespace google::scp::roma::benchmark
