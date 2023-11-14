@@ -161,9 +161,11 @@ struct RequestConverter<CodeObject> {
         request_type;
     run_code_request.code = request->js.empty() ? request->wasm : request->js;
     run_code_request.wasm = request->wasm_bin;
-    if (request->tags.contains(google::scp::roma::kWasmCodeArrayName)) {
+    if (const auto it =
+            request->tags.find(google::scp::roma::kWasmCodeArrayName);
+        it != request->tags.end()) {
       run_code_request.metadata[google::scp::roma::kWasmCodeArrayName] =
-          request->tags[google::scp::roma::kWasmCodeArrayName];
+          it->second;
     }
     return run_code_request;
   }
