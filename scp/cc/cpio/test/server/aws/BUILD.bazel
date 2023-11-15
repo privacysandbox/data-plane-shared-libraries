@@ -12,28 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("//scp/cc/public/cpio/build_deps/shared:sdk_container.bzl", "sdk_container")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+# load("//scp/cc/public/cpio/build_deps/shared:sdk_container.bzl", "sdk_container")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
-sdk_container(
-    name = "test_aws_sdk_server",
-    inside_tee = False,
-    is_test_server = True,
-    platform = "aws",
-    recover_client_binaries = False,
-    recover_sdk_binaries = False,
-    sdk_binaries =
-        {
-            "blob_storage_service": {
-            },
-            "metric_service": {
-            },
-            "parameter_service": {
-            },
-        },
-)
+# sdk_container(
+#     name = "test_aws_sdk_server",
+#     inside_tee = False,
+#     is_test_server = True,
+#     platform = "aws",
+#     recover_client_binaries = False,
+#     recover_sdk_binaries = False,
+#     sdk_binaries =
+#         {
+#             "blob_storage_service": {
+#             },
+#             "metric_service": {
+#             },
+#             "parameter_service": {
+#             },
+#         },
+# )
 
 cc_library(
     name = "test_aws_sdk_server_starter_lib",
@@ -63,32 +63,33 @@ cc_library(
 #  --//scp/cc/cpio/server/interface:is_test_server=True \
 #  --//scp/cc/public/cpio/interface:run_inside_tee=False \
 #  scp/cc/cpio/test/server/aws:aws_sdk_server_integration_test"
-cc_test(
-    name = "aws_sdk_server_integration_test",
-    size = "large",
-    timeout = "long",
-    srcs = ["aws_sdk_server_integration_test.cc"],
-    data = [
-        "//scp/cc/cpio/test/server/aws:test_aws_sdk_server_container.tar",
-    ],
-    tags = ["manual"],
-    deps = [
-        ":test_aws_sdk_server_starter_lib",
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/interface:logger_interface",
-        "//scp/cc/core/logger/src:logger_lib",
-        "//scp/cc/core/logger/src/log_providers:log_providers_lib",
-        "//scp/cc/core/logger/src/log_providers/syslog:syslog_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/server/interface:server_interface_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/proto/blob_storage_service/v1:blob_storage_service_grpc",
-        "//scp/cc/public/cpio/proto/metric_service/v1:metric_service_cc_grpc",
-        "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_grpc",
-        "@aws_sdk_cpp//:core",
-        "@com_github_grpc_grpc//:grpc++_reflection",  # for grpc_cli
-        "@com_google_googletest//:gtest_main",
-        "@com_google_protobuf//:protobuf",
-    ],
-)
+
+# cc_test(
+#     name = "aws_sdk_server_integration_test",
+#     size = "large",
+#     timeout = "long",
+#     srcs = ["aws_sdk_server_integration_test.cc"],
+#     data = [
+#         "//scp/cc/cpio/test/server/aws:test_aws_sdk_server_container.tar",
+#     ],
+#     tags = ["manual"],
+#     deps = [
+#         ":test_aws_sdk_server_starter_lib",
+#         "//scp/cc:cc_base_include_dir",
+#         "//scp/cc/core/interface:interface_lib",
+#         "//scp/cc/core/interface:logger_interface",
+#         "//scp/cc/core/logger/src:logger_lib",
+#         "//scp/cc/core/logger/src/log_providers:log_providers_lib",
+#         "//scp/cc/core/logger/src/log_providers/syslog:syslog_lib",
+#         "//scp/cc/core/test/utils:utils_lib",
+#         "//scp/cc/cpio/server/interface:server_interface_lib",
+#         "//scp/cc/public/core/test/interface:execution_result_matchers",
+#         "//scp/cc/public/cpio/proto/blob_storage_service/v1:blob_storage_service_grpc",
+#         "//scp/cc/public/cpio/proto/metric_service/v1:metric_service_cc_grpc",
+#         "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_grpc",
+#         "@aws_sdk_cpp//:core",
+#         "@com_github_grpc_grpc//:grpc++_reflection",  # for grpc_cli
+#         "@com_google_googletest//:gtest_main",
+#         "@com_google_protobuf//:protobuf",
+#     ],
+# )

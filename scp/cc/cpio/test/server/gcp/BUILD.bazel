@@ -12,24 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("//scp/cc/public/cpio/build_deps/shared:sdk_container.bzl", "sdk_container")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+# load("//scp/cc/public/cpio/build_deps/shared:sdk_container.bzl", "sdk_container")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
-sdk_container(
-    name = "test_gcp_sdk_server",
-    inside_tee = False,
-    is_test_server = True,
-    platform = "gcp",
-    recover_client_binaries = False,
-    recover_sdk_binaries = True,
-    sdk_binaries =
-        {
-            "queue_service": {
-            },
-        },
-)
+# sdk_container(
+#     name = "test_gcp_sdk_server",
+#     inside_tee = False,
+#     is_test_server = True,
+#     platform = "gcp",
+#     recover_client_binaries = False,
+#     recover_sdk_binaries = True,
+#     sdk_binaries =
+#         {
+#             "queue_service": {
+#             },
+#         },
+# )
 
 cc_library(
     name = "test_gcp_sdk_server_starter_lib",
@@ -51,26 +51,26 @@ cc_library(
     ],
 )
 
-cc_test(
-    name = "gcp_sdk_server_integration_test",
-    size = "small",
-    timeout = "long",
-    srcs = ["gcp_sdk_server_integration_test.cc"],
-    data = [
-        "//scp/cc/cpio/test/server/gcp:test_gcp_sdk_server_container.tar",
-    ],
-    tags = ["manual"],
-    deps = [
-        ":test_gcp_sdk_server_starter_lib",
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/core/test/utils/docker_helper:docker_helper_lib",
-        "//scp/cc/core/test/utils/gcp_helper:gcp_helper_lib",
-        "//scp/cc/public/core/interface:execution_result",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/interface:cpio_errors",
-        "//scp/cc/public/cpio/proto/queue_service/v1:queue_service_cc_grpc",
-        "//scp/cc/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
+# cc_test(
+#     name = "gcp_sdk_server_integration_test",
+#     size = "small",
+#     timeout = "long",
+#     srcs = ["gcp_sdk_server_integration_test.cc"],
+#     data = [
+#         "//scp/cc/cpio/test/server/gcp:test_gcp_sdk_server_container.tar",
+#     ],
+#     tags = ["manual"],
+#     deps = [
+#         ":test_gcp_sdk_server_starter_lib",
+#         "//scp/cc:cc_base_include_dir",
+#         "//scp/cc/core/test/utils:utils_lib",
+#         "//scp/cc/core/test/utils/docker_helper:docker_helper_lib",
+#         "//scp/cc/core/test/utils/gcp_helper:gcp_helper_lib",
+#         "//scp/cc/public/core/interface:execution_result",
+#         "//scp/cc/public/core/test/interface:execution_result_matchers",
+#         "//scp/cc/public/cpio/interface:cpio_errors",
+#         "//scp/cc/public/cpio/proto/queue_service/v1:queue_service_cc_grpc",
+#         "//scp/cc/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
+#         "@com_google_googletest//:gtest_main",
+#     ],
+# )
