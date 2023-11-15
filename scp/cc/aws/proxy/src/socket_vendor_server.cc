@@ -25,7 +25,7 @@
 
 #include <boost/asio.hpp>
 
-#include "glog/logging.h"
+#include "absl/log/log.h"
 
 #include "socket_types.h"
 

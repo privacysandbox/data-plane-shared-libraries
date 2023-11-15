@@ -24,7 +24,7 @@
 
 #include <boost/asio.hpp>
 
-#include "glog/logging.h"
+#include "absl/log/log.h"
 #include "proxy/src/socket_vendor_protocol.h"
 
 using UdsSocket = boost::asio::local::stream_protocol::socket;

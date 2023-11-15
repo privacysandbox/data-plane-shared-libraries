@@ -17,10 +17,14 @@
 #include <fcntl.h>
 #include <signal.h>
 
+#include <iostream>
 #include <string>
 
+#include "absl/flags/parse.h"
+#include "absl/log/flags.h"
+#include "absl/log/initialize.h"
+#include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
-#include "glog/logging.h"
 
 #include "protocol.h"
 #include "socket_vendor_server.h"
@@ -29,8 +33,10 @@ using google::scp::proxy::Endpoint;
 using google::scp::proxy::SocketVendorServer;
 
 int main(int argc, char* argv[]) {
-  google::InitGoogleLogging(argv[0]);
-  LOG(INFO) << "Nitro Enclave Proxy Socket Vendor (c) Google 2022.";
+  absl::ParseCommandLine(argc, argv);
+  absl::InitializeLog();
+  std::cout << "Nitro Enclave Proxy Socket Vendor (c) Google 2022." << std::endl
+            << std::flush;
   const auto lockfile = absl::StrCat(kSocketVendorUdsPath, ".lock");
   const int lock_fd =
       open(lockfile.c_str(), O_CLOEXEC | O_CREAT | O_RDWR, S_IRWXU | S_IRGRP);

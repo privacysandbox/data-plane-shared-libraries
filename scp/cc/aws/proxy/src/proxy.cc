@@ -21,7 +21,9 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/log/check.h"
-#include "glog/logging.h"
+#include "absl/log/flags.h"
+#include "absl/log/initialize.h"
+#include "absl/log/log.h"
 #include "proxy/src/config.h"
 #include "proxy/src/proxy_server.h"
 
@@ -35,6 +37,10 @@ ABSL_FLAG(bool, use_vsock, true,
           "(or 0) if proxy listens on TCP");
 
 int main(int argc, char* argv[]) {
+  // Process command line parameters
+  absl::ParseCommandLine(argc, argv);
+  absl::InitializeLog();
+
   // The first thing we do is make sure that crashes will have a stacktrace
   // printed, with demangled symbols.
   absl::InitializeSymbolizer(argv[0]);
@@ -42,7 +48,6 @@ int main(int argc, char* argv[]) {
     absl::FailureSignalHandlerOptions options;
     absl::InstallFailureSignalHandler(options);
   }
-  google::InitGoogleLogging(argv[0]);
 
   // TODO(b/296559189): Writing to stdout rather than using GLog is necessary
   // here because socks5_test.py reads the TCP port that the test server is
@@ -58,8 +63,7 @@ int main(int argc, char* argv[]) {
     sigaction(SIGPIPE, &act, nullptr);
   }
 
-  // Process command line parameters
-  absl::ParseCommandLine(argc, argv);
+  // Process flags
   size_t buffer_size = absl::GetFlag(FLAGS_buffer_size);
   CHECK(buffer_size > 0) << "ERROR: Invalid buffer size: " << buffer_size;
   uint16_t port = absl::GetFlag(FLAGS_port);

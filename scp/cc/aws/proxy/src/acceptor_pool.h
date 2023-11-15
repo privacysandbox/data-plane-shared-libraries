@@ -24,7 +24,7 @@
 #include <boost/asio/ip/tcp.hpp>
 
 #include "absl/container/flat_hash_map.h"
-#include "glog/logging.h"
+#include "absl/log/log.h"
 
 #include "socket_types.h"
 

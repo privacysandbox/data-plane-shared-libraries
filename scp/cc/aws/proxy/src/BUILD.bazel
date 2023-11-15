@@ -25,8 +25,8 @@ cc_library(
     deps = [
         ":socket_types",
         "//scp/cc/aws:include_dir",
-        "@com_github_google_glog//:glog",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log",
     ],
 )
 
@@ -48,7 +48,7 @@ cc_library(
         ":socket_vendor_protocol",
         "//scp/cc/aws:include_dir",
         "@boost//:asio",
-        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/log",
     ],
 )
 
@@ -101,7 +101,7 @@ cc_library(
         ":socks5_state",
         "//scp/cc/aws:include_dir",
         "@boost//:asio",
-        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/log",
     ],
 )
 
@@ -144,7 +144,7 @@ cc_library(
         ":socket_types",
         "//scp/cc/aws:include_dir",
         "@boost//:asio",
-        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/log",
     ],
 )
 
@@ -156,7 +156,7 @@ cc_library(
         ":buffer",
         ":protocol",
         "//scp/cc/aws:include_dir",
-        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/log",
     ],
 )
 
@@ -168,12 +168,16 @@ cc_binary(
     deps = [
         ":config",
         ":proxy_server",
-        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/base:log_severity",
         "@com_google_absl//absl/debugging:failure_signal_handler",
         "@com_google_absl//absl/debugging:symbolize",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:flags",
+        "@com_google_absl//absl/log:globals",
+        "@com_google_absl//absl/log:initialize",
     ],
 )
 
@@ -225,7 +229,10 @@ cc_binary(
     deps = [
         ":protocol",
         ":socket_vendor_server",
-        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:flags",
+        "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/strings",
     ],
 )

@@ -22,7 +22,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
 
-#include "glog/logging.h"
+#include "absl/log/log.h"
 
 #include "socket_types.h"
 
@@ -44,11 +44,9 @@ namespace google::scp::proxy {
 std::atomic<uint64_t> ProxyBridge::connection_id_counter = 0;
 
 ProxyBridge::~ProxyBridge() {
-#ifndef NDEBUG
   LOG(INFO) << "[" << connection_id_ << "]"
             << "Destructing connection. UP = " << upstream_size_
             << ", DOWN = " << downstream_size_;
-#endif
   error_code ec;
   client_sock_.close(ec);
   dest_sock_.close(ec);
@@ -156,9 +154,7 @@ void ProxyBridge::ClientWriteHandler(const error_code& ec,
                                      size_t bytes_written) {
   writing_client_ = false;
   downstream_buff_.Drain(bytes_written);
-#ifndef NDEBUG
   downstream_size_ += bytes_written;
-#endif
   error_code shutdown_ec;
   if (ec.failed()) {
     LOG(ERROR) << "[" << connection_id_ << "]"
@@ -196,9 +192,7 @@ void ProxyBridge::DestReadHandler(const error_code& ec, size_t bytes_read) {
 void ProxyBridge::DestWriteHandler(const error_code& ec, size_t bytes_written) {
   writing_dest_ = false;
   upstream_buff_.Drain(bytes_written);
-#ifndef NDEBUG
   upstream_size_ += bytes_written;
-#endif
   error_code shutdown_ec;
   if (ec.failed()) {
     LOG(ERROR) << "[" << connection_id_ << "]"

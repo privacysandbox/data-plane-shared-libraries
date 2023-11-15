@@ -24,7 +24,7 @@
 #include <thread>
 #include <vector>
 
-#include "glog/logging.h"
+#include "absl/log/log.h"
 #include "proxy/src/protocol.h"
 
 namespace google::scp::proxy {

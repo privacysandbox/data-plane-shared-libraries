@@ -148,7 +148,7 @@ cc_test(
     deps = [
         "//scp/cc/aws/proxy/src:client_session_pool",
         "//scp/cc/aws/proxy/src:socket_vendor_protocol",
-        "@com_github_google_glog//:glog",
+        "@com_google_absl//absl/log",
         "@com_google_googletest//:gtest_main",
     ],
 )

@@ -53,10 +53,8 @@ class ProxyBridge : public std::enable_shared_from_this<ProxyBridge> {
         dest_sock_(client_sock.get_executor()),
         upstream_buff_(freelist),
         downstream_buff_(freelist),
-#ifndef NDEBUG
         upstream_size_(0ul),
         downstream_size_(0ul),
-#endif
         acceptor_pool_(acceptor_pool) {
     SetSocks5StateCallbacks();
   }
@@ -74,10 +72,8 @@ class ProxyBridge : public std::enable_shared_from_this<ProxyBridge> {
         dest_sock_(std::move(dest_sock)),
         upstream_buff_(freelist),
         downstream_buff_(freelist),
-#ifndef NDEBUG
         upstream_size_(0ul),
         downstream_size_(0ul),
-#endif
         acceptor_pool_(acceptor_pool) {
     SetSocks5StateCallbacks();
   }
@@ -136,10 +132,9 @@ class ProxyBridge : public std::enable_shared_from_this<ProxyBridge> {
   Buffer downstream_buff_;
   // The socks5 handshake state.
   Socks5State socks5_state_;
-#ifndef NDEBUG  // Record the number of bytes in debug mode.
+  // Record the number of bytes.
   size_t upstream_size_;
   size_t downstream_size_;
-#endif
   boost::asio::cancellation_signal cancel_signal_;
   AcceptorPool* acceptor_pool_;
   // Flags indicating the state of the proxy connection. We only have 8 of them,
