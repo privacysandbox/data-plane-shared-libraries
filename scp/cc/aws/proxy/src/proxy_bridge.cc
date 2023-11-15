@@ -174,11 +174,11 @@ void ProxyBridge::DestReadHandler(const error_code& ec, size_t bytes_read) {
   downstream_buff_.Commit(bytes_read);
   if (ec.failed()) {
     if (ec == eof) {
-      LOG(INFO) << "[", connection_id_, "]",
-          "Dest connection successfully closed by peer.";
+      LOG(INFO) << "[" << connection_id_ << "]"
+                << "Dest connection successfully closed by peer.";
     } else {
-      LOG(ERROR) << "[", connection_id_, "]", "Dest read failed with error ",
-          ec.value();
+      LOG(ERROR) << "[" << connection_id_ << "]"
+                 << "Dest read failed with error " << ec.value();
     }
     dest_readable_ = false;
     if (downstream_buff_.data_size() == 0) {

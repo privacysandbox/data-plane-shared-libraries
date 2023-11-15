@@ -54,7 +54,7 @@ bool ClientSessionPool::Start() {
     LOG(ERROR) << "socket_vendor: bad BindRequest, " << ec.message();
     return false;
   }
-  LOG(INFO) << "socket_vendor: bindRequest on port ", bind_req.port;
+  LOG(INFO) << "socket_vendor: bindRequest on port " << bind_req.port;
   // On the bind call, we initiate the first connection to proxy to see if
   // binding on port can be successfully made.
   Socket first_socket(client_sock_.get_executor());
