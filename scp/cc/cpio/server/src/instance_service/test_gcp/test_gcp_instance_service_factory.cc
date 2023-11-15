@@ -74,7 +74,7 @@ ExecutionResult TestGcpInstanceServiceFactory::Init() noexcept {
 std::shared_ptr<InstanceClientProviderInterface>
 TestGcpInstanceServiceFactory::CreateInstanceClient() noexcept {
   auto options = std::make_shared<TestInstanceClientOptions>();
-  options->owner_id = project_id_;
+  options->project_id = project_id_;
   options->zone = zone_;
   options->instance_id = instance_id_;
   return std::make_shared<TestGcpInstanceClientProvider>(options);

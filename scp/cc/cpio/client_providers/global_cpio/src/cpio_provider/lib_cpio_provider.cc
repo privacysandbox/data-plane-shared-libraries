@@ -474,8 +474,8 @@ ExecutionResult LibCpioProvider::GetAuthTokenProvider(
   return SuccessExecutionResult();
 }
 
-const std::string& LibCpioProvider::GetOwnerId() noexcept {
-  return cpio_options_->owner_id;
+const std::string& LibCpioProvider::GetProjectId() noexcept {
+  return cpio_options_->project_id;
 }
 
 #ifndef TEST_CPIO

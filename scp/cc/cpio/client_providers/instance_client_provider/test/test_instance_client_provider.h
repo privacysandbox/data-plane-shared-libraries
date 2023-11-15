@@ -37,7 +37,7 @@ struct TestInstanceClientOptions {
         instance_id(cpio_options.instance_id),
         public_ipv4_address(cpio_options.public_ipv4_address),
         private_ipv4_address(cpio_options.private_ipv4_address),
-        owner_id(cpio_options.owner_id),
+        project_id(cpio_options.project_id),
         zone(cpio_options.zone) {}
 
   /// Cloud region.
@@ -48,8 +48,8 @@ struct TestInstanceClientOptions {
   std::string public_ipv4_address;
   /// Private IP address.
   std::string private_ipv4_address;
-  /// Owner ID.
-  std::string owner_id;
+  /// Project ID.
+  std::string project_id;
   /// Zone ID.
   std::string zone;
 };

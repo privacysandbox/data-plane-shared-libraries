@@ -117,7 +117,7 @@ class CpioIntegrationTest : public ::testing::Test {
   void SetUp() override {
     cpio_options.log_option = LogOption::kConsoleLog;
     cpio_options.region = "us-east-1";
-    cpio_options.owner_id = "123456789";
+    cpio_options.project_id = "123456789";
     cpio_options.instance_id = "987654321";
     cpio_options.sts_endpoint_override = localstack_endpoint;
     EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));

@@ -92,7 +92,7 @@ class GcpParameterClientProviderTest : public ::testing::Test {
         std::make_shared<SecretManagerServiceClient>(connection_);
 
     cpio_options.log_option = LogOption::kConsoleLog;
-    cpio_options.owner_id = kProjectIdValueMock;
+    cpio_options.project_id = kProjectIdValueMock;
     EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
 
     EXPECT_SUCCESS(client_->Init());

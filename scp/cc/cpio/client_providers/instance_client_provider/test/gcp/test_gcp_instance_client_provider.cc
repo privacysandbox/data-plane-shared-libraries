@@ -37,7 +37,7 @@ ExecutionResult
 TestGcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   resource_name =
-      absl::StrFormat(kGcpResourceNameFormat, test_options_->owner_id,
+      absl::StrFormat(kGcpResourceNameFormat, test_options_->project_id,
                       test_options_->zone, test_options_->instance_id);
   return SuccessExecutionResult();
 }

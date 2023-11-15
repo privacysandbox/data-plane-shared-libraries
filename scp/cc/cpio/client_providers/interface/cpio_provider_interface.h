@@ -126,11 +126,11 @@ class CpioProviderInterface : public core::ServiceInterface {
       std::shared_ptr<AuthTokenProviderInterface>&
           auth_token_provider) noexcept = 0;
   /**
-   * @brief Gets the Owner ID from CpioOptions if originally provided.
+   * @brief Gets the Project ID from CpioOptions if originally provided.
    *
-   * @return std::string of Cloud Zone.
+   * @return const std::string& of Cloud Project ID.
    */
-  virtual const std::string& GetOwnerId() noexcept = 0;
+  virtual const std::string& GetProjectId() noexcept = 0;
 };
 
 /// Factory to create CpioProvider.

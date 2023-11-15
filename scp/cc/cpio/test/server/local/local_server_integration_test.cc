@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 
   CpioOptions cpio_options = {};
   cpio_options.log_option = LogOption::kConsoleLog;
-  cpio_options.owner_id = absl::GetFlag(FLAGS_project_id);
+  cpio_options.project_id = absl::GetFlag(FLAGS_project_id);
   auto status = Cpio::InitCpio(cpio_options);
   if (!status.Successful()) {
     LOG(FATAL) << "Failed to initialize CPIO. "

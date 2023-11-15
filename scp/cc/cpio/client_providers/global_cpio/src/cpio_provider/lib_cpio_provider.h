@@ -89,7 +89,7 @@ class LibCpioProvider : public CpioProviderInterface {
       std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider) noexcept
       override;
 
-  const std::string& GetOwnerId() noexcept override;
+  const std::string& GetProjectId() noexcept override;
 
  protected:
   /// Global CPIO options.
