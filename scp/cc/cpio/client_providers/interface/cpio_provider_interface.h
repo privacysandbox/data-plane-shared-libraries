@@ -18,6 +18,7 @@
 #define CPIO_CLIENT_PROVIDERS_INTERFACE_CPIO_PROVIDER_INTERFACE_H_
 
 #include <memory>
+#include <string>
 
 #include "core/interface/async_executor_interface.h"
 #include "core/interface/http_client_interface.h"
@@ -124,6 +125,12 @@ class CpioProviderInterface : public core::ServiceInterface {
   virtual core::ExecutionResult GetAuthTokenProvider(
       std::shared_ptr<AuthTokenProviderInterface>&
           auth_token_provider) noexcept = 0;
+  /**
+   * @brief Gets the Owner ID from CpioOptions if originally provided.
+   *
+   * @return std::string of Cloud Zone.
+   */
+  virtual const std::string& GetOwnerId() noexcept = 0;
 };
 
 /// Factory to create CpioProvider.

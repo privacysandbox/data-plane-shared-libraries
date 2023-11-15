@@ -68,6 +68,11 @@ struct CpioOptions {
 
   /// Optional IO thread pool. If not set, an internal thread pool will be used.
   std::shared_ptr<core::AsyncExecutorInterface> io_async_executor;
+
+  /// Cloud owner ID. Project ID for GCP. If not set, attempted to be found
+  /// through the instance client. Not implemented for all services yet,
+  /// implemented for Parameter client only.
+  std::string owner_id;
 };
 
 template <typename TResponse>

@@ -23,8 +23,6 @@
 namespace google::scp::cpio {
 /// Global CPIO options to test CPIO.
 struct TestCpioOptions : public CpioOptions {
-  /// Cloud owner ID.
-  std::string owner_id;
   /// Cloud zone.
   std::string zone;
   /// Cloud region.

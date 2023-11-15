@@ -18,6 +18,7 @@
 #define CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_
 
 #include <memory>
+#include <string>
 
 #include "core/async_executor/src/async_executor.h"
 #include "core/interface/async_executor_interface.h"
@@ -87,6 +88,8 @@ class LibCpioProvider : public CpioProviderInterface {
   core::ExecutionResult GetAuthTokenProvider(
       std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider) noexcept
       override;
+
+  const std::string& GetOwnerId() noexcept override;
 
  protected:
   /// Global CPIO options.

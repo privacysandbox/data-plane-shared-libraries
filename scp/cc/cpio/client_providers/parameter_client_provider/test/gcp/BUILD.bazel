@@ -29,6 +29,7 @@ cc_test(
         "//scp/cc/cpio/client_providers/parameter_client_provider/mock/gcp:gcp_parameter_client_provider_mock",
         "//scp/cc/cpio/common/src/gcp:gcp_utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager_mocks",
         "@com_google_googletest//:gtest_main",
     ],

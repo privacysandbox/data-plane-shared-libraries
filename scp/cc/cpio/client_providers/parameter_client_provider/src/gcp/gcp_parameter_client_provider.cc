@@ -23,6 +23,7 @@
 #include "absl/strings/str_format.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
+#include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
 #include "cpio/common/src/gcp/gcp_utils.h"
 #include "google/cloud/secretmanager/secret_manager_client.h"
@@ -51,6 +52,7 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_GCP_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
+using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::common::GcpUtils;
 
 static constexpr char kGcpParameterClientProvider[] =
@@ -60,14 +62,20 @@ static constexpr char kGcpSecretNameFormatString[] =
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult GcpParameterClientProvider::Init() noexcept {
-  auto project_id_or =
-      GcpInstanceClientUtils::GetCurrentProjectId(instance_client_provider_);
-  if (!project_id_or.Successful()) {
-    SCP_ERROR(kGcpParameterClientProvider, kZeroUuid, project_id_or.result(),
-              "Failed to get project ID for current instance");
-    return project_id_or.result();
+  // Try to get project_id from Global Cpio Options, otherwise get project_id
+  // from running instance_client.
+  project_id_ = GlobalCpio::GetGlobalCpio()->GetOwnerId();
+
+  if (project_id_.empty()) {
+    auto project_id_or =
+        GcpInstanceClientUtils::GetCurrentProjectId(instance_client_provider_);
+    if (!project_id_or.Successful()) {
+      SCP_ERROR(kGcpParameterClientProvider, kZeroUuid, project_id_or.result(),
+                "Failed to get project ID for current instance");
+      return project_id_or.result();
+    }
+    project_id_ = std::move(*project_id_or);
   }
-  project_id_ = std::move(*project_id_or);
 
   sm_client_shared_ = GetSecretManagerClient();
   if (!sm_client_shared_) {

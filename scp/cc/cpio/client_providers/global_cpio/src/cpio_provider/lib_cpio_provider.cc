@@ -17,6 +17,7 @@
 #include "lib_cpio_provider.h"
 
 #include <memory>
+#include <string>
 
 #include "core/async_executor/src/async_executor.h"
 #include "core/common/global_logger/src/global_logger.h"
@@ -471,6 +472,10 @@ ExecutionResult LibCpioProvider::GetAuthTokenProvider(
   }
   auth_token_provider = auth_token_provider_;
   return SuccessExecutionResult();
+}
+
+const std::string& LibCpioProvider::GetOwnerId() noexcept {
+  return cpio_options_->owner_id;
 }
 
 #ifndef TEST_CPIO
