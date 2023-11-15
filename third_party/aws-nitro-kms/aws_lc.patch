@@ -1,0 +1,1887 @@
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/fipsmodule/cpucap/cpu_intel.c aws-lc-1.12.1-mod/crypto/fipsmodule/cpucap/cpu_intel.c
+--- aws-lc-1.12.1/crypto/fipsmodule/cpucap/cpu_intel.c	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/fipsmodule/cpucap/cpu_intel.c	2023-10-30 18:35:51.532871120 +0000
+@@ -55,6 +55,7 @@
+  * [including the GNU Public Licence.] */
+
+ #include <openssl/base.h>
++
+ #include "internal.h"
+
+ #if !defined(OPENSSL_NO_ASM) && (defined(OPENSSL_X86) || defined(OPENSSL_X86_64))
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/fipsmodule/evp/evp_ctx.c aws-lc-1.12.1-mod/crypto/fipsmodule/evp/evp_ctx.c
+--- aws-lc-1.12.1/crypto/fipsmodule/evp/evp_ctx.c	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/fipsmodule/evp/evp_ctx.c	2023-10-30 16:09:59.776886752 +0000
+@@ -62,6 +62,7 @@
+ #include <openssl/err.h>
+ #include <openssl/mem.h>
+
++#include "../delocate.h"
+ #include "../../internal.h"
+ #include "internal.h"
+
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/fipsmodule/evp/internal.h aws-lc-1.12.1-mod/crypto/fipsmodule/evp/internal.h
+--- aws-lc-1.12.1/crypto/fipsmodule/evp/internal.h	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/fipsmodule/evp/internal.h	2023-10-30 16:58:21.128319041 +0000
+@@ -61,6 +61,8 @@
+
+ #include <openssl/rsa.h>
+
++#include "../delocate.h"
++
+ #if defined(__cplusplus)
+ extern "C" {
+ #endif
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/fipsmodule/evp/p_ec.c aws-lc-1.12.1-mod/crypto/fipsmodule/evp/p_ec.c
+--- aws-lc-1.12.1/crypto/fipsmodule/evp/p_ec.c	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/fipsmodule/evp/p_ec.c	2023-10-30 16:53:13.968808990 +0000
+@@ -70,6 +70,7 @@
+ #include "internal.h"
+ #include "../ec/internal.h"
+ #include "../../internal.h"
++#include "../delocate.h"
+
+
+ typedef struct {
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/fipsmodule/evp/p_rsa.c aws-lc-1.12.1-mod/crypto/fipsmodule/evp/p_rsa.c
+--- aws-lc-1.12.1/crypto/fipsmodule/evp/p_rsa.c	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/fipsmodule/evp/p_rsa.c	2023-10-30 16:54:29.352687561 +0000
+@@ -69,6 +69,7 @@
+ #include "../rsa/internal.h"
+ #include "internal.h"
+ #include "../../rsa_extra/internal.h"
++#include "../delocate.h"
+
+ #define NO_PSS_SALT_LEN_RESTRICTION -1
+
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/kem/internal.h aws-lc-1.12.1-mod/crypto/kem/internal.h
+--- aws-lc-1.12.1/crypto/kem/internal.h	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/kem/internal.h	2023-11-01 16:01:12.498921511 +0000
+@@ -25,8 +25,8 @@
+                 const uint8_t *secret_key);
+ } KEM_METHOD;
+
+-extern const KEM_METHOD kem_kyber512r3_method;
+-extern const KEM_METHOD kem_kyber768r3_method;
++// extern const KEM_METHOD kem_kyber512r3_method;
++// extern const KEM_METHOD kem_kyber768r3_method;
+ extern const KEM_METHOD kem_kyber1024r3_method;
+
+ // KEM structure and helper functions.
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/kem/kem.c aws-lc-1.12.1-mod/crypto/kem/kem.c
+--- aws-lc-1.12.1/crypto/kem/kem.c	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/kem/kem.c	2023-11-01 16:01:48.630878676 +0000
+@@ -19,34 +19,34 @@
+ #define AWSLC_NUM_BUILT_IN_KEMS 3
+
+ // TODO(awslc): placeholder OIDs, replace with the real ones when available.
+-static const uint8_t kOIDKyber512r3[]  = {0xff, 0xff, 0xff, 0xff};
+-static const uint8_t kOIDKyber768r3[]  = {0xff, 0xff, 0xff, 0xff};
++// static const uint8_t kOIDKyber512r3[]  = {0xff, 0xff, 0xff, 0xff};
++// static const uint8_t kOIDKyber768r3[]  = {0xff, 0xff, 0xff, 0xff};
+ static const uint8_t kOIDKyber1024r3[] = {0xff, 0xff, 0xff, 0xff};
+
+ static const KEM built_in_kems[AWSLC_NUM_BUILT_IN_KEMS] = {
+-  {
+-    NID_KYBER512_R3,         // kem.nid
+-    kOIDKyber512r3,          // kem.oid
+-    sizeof(kOIDKyber512r3),  // kem.oid_len
+-    "Kyber512 Round-3",      // kem.comment
+-    800,                     // kem.public_key_len
+-    1632,                    // kem.secret_key_len
+-    768,                     // kem.ciphertext_len
+-    32,                      // kem.shared_secret_len
+-    &kem_kyber512r3_method,  // kem.method
+-  },
++  // {
++  //   NID_KYBER512_R3,         // kem.nid
++  //   kOIDKyber512r3,          // kem.oid
++  //   sizeof(kOIDKyber512r3),  // kem.oid_len
++  //   "Kyber512 Round-3",      // kem.comment
++  //   800,                     // kem.public_key_len
++  //   1632,                    // kem.secret_key_len
++  //   768,                     // kem.ciphertext_len
++  //   32,                      // kem.shared_secret_len
++  //   &kem_kyber512r3_method,  // kem.method
++  // },
+
+-  {
+-    NID_KYBER768_R3,         // kem.nid
+-    kOIDKyber768r3,          // kem.oid
+-    sizeof(kOIDKyber768r3),  // kem.oid_len
+-    "Kyber768 Round-3",      // kem.comment
+-    1184,                    // kem.public_key_len
+-    2400,                    // kem.secret_key_len
+-    1088,                    // kem.ciphertext_len
+-    32,                      // kem.shared_secret_len
+-    &kem_kyber768r3_method,  // kem.method
+-  },
++  // {
++  //   NID_KYBER768_R3,         // kem.nid
++  //   kOIDKyber768r3,          // kem.oid
++  //   sizeof(kOIDKyber768r3),  // kem.oid_len
++  //   "Kyber768 Round-3",      // kem.comment
++  //   1184,                    // kem.public_key_len
++  //   2400,                    // kem.secret_key_len
++  //   1088,                    // kem.ciphertext_len
++  //   32,                      // kem.shared_secret_len
++  //   &kem_kyber768r3_method,  // kem.method
++  // },
+
+   {
+     NID_KYBER1024_R3,         // kem.nid
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/kem/kem_methods.c aws-lc-1.12.1-mod/crypto/kem/kem_methods.c
+--- aws-lc-1.12.1/crypto/kem/kem_methods.c	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/kem/kem_methods.c	2023-11-01 16:00:46.934951540 +0000
+@@ -9,51 +9,51 @@
+
+ #include "../kyber/kem_kyber.h"
+
+-static int kyber512r3_keygen(uint8_t *public_key,
+-                             uint8_t *secret_key) {
+-  return kyber512r3_keypair(public_key, secret_key) == 0;
+-}
+-
+-static int kyber512r3_encaps(uint8_t *ciphertext,
+-                             uint8_t *shared_secret,
+-                             const uint8_t *public_key) {
+-  return kyber512r3_encapsulate(ciphertext, shared_secret, public_key) == 0;
+-}
+-
+-static int kyber512r3_decaps(uint8_t *shared_secret,
+-                             const uint8_t *ciphertext,
+-                             const uint8_t *secret_key) {
+-  return kyber512r3_decapsulate(shared_secret, ciphertext, secret_key) == 0;
+-}
+-
+-const KEM_METHOD kem_kyber512r3_method = {
+-  kyber512r3_keygen,
+-  kyber512r3_encaps,
+-  kyber512r3_decaps,
+-};
+-
+-static int kyber768r3_keygen(uint8_t *public_key,
+-                             uint8_t *secret_key) {
+-  return kyber768r3_keypair(public_key, secret_key) == 0;
+-}
+-
+-static int kyber768r3_encaps(uint8_t *ciphertext,
+-                             uint8_t *shared_secret,
+-                             const uint8_t *public_key) {
+-  return kyber768r3_encapsulate(ciphertext, shared_secret, public_key) == 0;
+-}
+-
+-static int kyber768r3_decaps(uint8_t *shared_secret,
+-                             const uint8_t *ciphertext,
+-                             const uint8_t *secret_key) {
+-  return kyber768r3_decapsulate(shared_secret, ciphertext, secret_key) == 0;
+-}
+-
+-const KEM_METHOD kem_kyber768r3_method = {
+-  kyber768r3_keygen,
+-  kyber768r3_encaps,
+-  kyber768r3_decaps,
+-};
++// static int kyber512r3_keygen(uint8_t *public_key,
++//                              uint8_t *secret_key) {
++//   return kyber512r3_keypair(public_key, secret_key) == 0;
++// }
++
++// static int kyber512r3_encaps(uint8_t *ciphertext,
++//                              uint8_t *shared_secret,
++//                              const uint8_t *public_key) {
++//   return kyber512r3_encapsulate(ciphertext, shared_secret, public_key) == 0;
++// }
++
++// static int kyber512r3_decaps(uint8_t *shared_secret,
++//                              const uint8_t *ciphertext,
++//                              const uint8_t *secret_key) {
++//   return kyber512r3_decapsulate(shared_secret, ciphertext, secret_key) == 0;
++// }
++
++// const KEM_METHOD kem_kyber512r3_method = {
++//   kyber512r3_keygen,
++//   kyber512r3_encaps,
++//   kyber512r3_decaps,
++// };
++
++// static int kyber768r3_keygen(uint8_t *public_key,
++//                              uint8_t *secret_key) {
++//   return kyber768r3_keypair(public_key, secret_key) == 0;
++// }
++
++// static int kyber768r3_encaps(uint8_t *ciphertext,
++//                              uint8_t *shared_secret,
++//                              const uint8_t *public_key) {
++//   return kyber768r3_encapsulate(ciphertext, shared_secret, public_key) == 0;
++// }
++
++// static int kyber768r3_decaps(uint8_t *shared_secret,
++//                              const uint8_t *ciphertext,
++//                              const uint8_t *secret_key) {
++//   return kyber768r3_decapsulate(shared_secret, ciphertext, secret_key) == 0;
++// }
++
++// const KEM_METHOD kem_kyber768r3_method = {
++//   kyber768r3_keygen,
++//   kyber768r3_encaps,
++//   kyber768r3_decaps,
++// };
+
+ static int kyber1024r3_keygen(uint8_t *public_key,
+                               uint8_t *secret_key) {
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/kyber/kem_kyber.c aws-lc-1.12.1-mod/crypto/kyber/kem_kyber.c
+--- aws-lc-1.12.1/crypto/kyber/kem_kyber.c	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/kyber/kem_kyber.c	2023-11-01 15:59:40.547028420 +0000
+@@ -11,39 +11,39 @@
+ // conditionally (or based on compile-time flags) called here, depending on
+ // platform support.
+
+-int kyber512r3_keypair(uint8_t *public_key /* OUT */,
+-                       uint8_t *secret_key /* OUT */) {
+-  return pqcrystals_kyber512_ref_keypair(public_key, secret_key);
+-}
+-
+-int kyber512r3_encapsulate(uint8_t *ciphertext       /* OUT */,
+-                           uint8_t *shared_secret    /* OUT */,
+-                           const uint8_t *public_key /* IN  */) {
+-  return pqcrystals_kyber512_ref_enc(ciphertext, shared_secret, public_key);
+-}
+-
+-int kyber512r3_decapsulate(uint8_t *shared_secret    /* OUT */,
+-                           const uint8_t *ciphertext /* IN  */,
+-                           const uint8_t *secret_key /* IN  */) {
+-  return pqcrystals_kyber512_ref_dec(shared_secret, ciphertext, secret_key);
+-}
+-
+-int kyber768r3_keypair(uint8_t *public_key /* OUT */,
+-                       uint8_t *secret_key /* OUT */) {
+-  return pqcrystals_kyber768_ref_keypair(public_key, secret_key);
+-}
+-
+-int kyber768r3_encapsulate(uint8_t *ciphertext       /* OUT */,
+-                           uint8_t *shared_secret    /* OUT */,
+-                           const uint8_t *public_key /* IN  */) {
+-  return pqcrystals_kyber768_ref_enc(ciphertext, shared_secret, public_key);
+-}
+-
+-int kyber768r3_decapsulate(uint8_t *shared_secret    /* OUT */,
+-                           const uint8_t *ciphertext /* IN  */,
+-                           const uint8_t *secret_key /* IN  */) {
+-  return pqcrystals_kyber768_ref_dec(shared_secret, ciphertext, secret_key);
+-}
++// int kyber512r3_keypair(uint8_t *public_key /* OUT */,
++//                        uint8_t *secret_key /* OUT */) {
++//   return pqcrystals_kyber512_ref_keypair(public_key, secret_key);
++// }
++
++// int kyber512r3_encapsulate(uint8_t *ciphertext       /* OUT */,
++//                            uint8_t *shared_secret    /* OUT */,
++//                            const uint8_t *public_key /* IN  */) {
++//   return pqcrystals_kyber512_ref_enc(ciphertext, shared_secret, public_key);
++// }
++
++// int kyber512r3_decapsulate(uint8_t *shared_secret    /* OUT */,
++//                            const uint8_t *ciphertext /* IN  */,
++//                            const uint8_t *secret_key /* IN  */) {
++//   return pqcrystals_kyber512_ref_dec(shared_secret, ciphertext, secret_key);
++// }
++
++// int kyber768r3_keypair(uint8_t *public_key /* OUT */,
++//                        uint8_t *secret_key /* OUT */) {
++//   return pqcrystals_kyber768_ref_keypair(public_key, secret_key);
++// }
++
++// int kyber768r3_encapsulate(uint8_t *ciphertext       /* OUT */,
++//                            uint8_t *shared_secret    /* OUT */,
++//                            const uint8_t *public_key /* IN  */) {
++//   return pqcrystals_kyber768_ref_enc(ciphertext, shared_secret, public_key);
++// }
++
++// int kyber768r3_decapsulate(uint8_t *shared_secret    /* OUT */,
++//                            const uint8_t *ciphertext /* IN  */,
++//                            const uint8_t *secret_key /* IN  */) {
++//   return pqcrystals_kyber768_ref_dec(shared_secret, ciphertext, secret_key);
++// }
+
+ int kyber1024r3_keypair(uint8_t *public_key /* OUT */,
+                         uint8_t *secret_key /* OUT */) {
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/kyber/pqcrystals_kyber_ref_common/api.h aws-lc-1.12.1-mod/crypto/kyber/pqcrystals_kyber_ref_common/api.h
+--- aws-lc-1.12.1/crypto/kyber/pqcrystals_kyber_ref_common/api.h	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/kyber/pqcrystals_kyber_ref_common/api.h	2023-11-01 16:00:18.618984536 +0000
+@@ -20,9 +20,9 @@
+ #define pqcrystals_kyber512_ref_dec BORINGSSL_ADD_PREFIX(BORINGSSL_PREFIX, pqcrystals_kyber512_ref_dec)
+ #endif
+
+-int pqcrystals_kyber512_ref_keypair(uint8_t *pk, uint8_t *sk);
+-int pqcrystals_kyber512_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk);
+-int pqcrystals_kyber512_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
++// int pqcrystals_kyber512_ref_keypair(uint8_t *pk, uint8_t *sk);
++// int pqcrystals_kyber512_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk);
++// int pqcrystals_kyber512_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
+
+ #define pqcrystals_kyber512_90s_ref_SECRETKEYBYTES pqcrystals_kyber512_SECRETKEYBYTES
+ #define pqcrystals_kyber512_90s_ref_PUBLICKEYBYTES pqcrystals_kyber512_PUBLICKEYBYTES
+@@ -35,9 +35,9 @@
+ #define pqcrystals_kyber512_90s_ref_dec BORINGSSL_ADD_PREFIX(BORINGSSL_PREFIX, pqcrystals_kyber512_90s_ref_dec)
+ #endif
+
+-int pqcrystals_kyber512_90s_ref_keypair(uint8_t *pk, uint8_t *sk);
+-int pqcrystals_kyber512_90s_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk);
+-int pqcrystals_kyber512_90s_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
++// int pqcrystals_kyber512_90s_ref_keypair(uint8_t *pk, uint8_t *sk);
++// int pqcrystals_kyber512_90s_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk);
++// int pqcrystals_kyber512_90s_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
+
+ #define pqcrystals_kyber768_SECRETKEYBYTES 2400
+ #define pqcrystals_kyber768_PUBLICKEYBYTES 1184
+@@ -55,9 +55,9 @@
+ #define pqcrystals_kyber768_ref_dec BORINGSSL_ADD_PREFIX(BORINGSSL_PREFIX, pqcrystals_kyber768_ref_dec)
+ #endif
+
+-int pqcrystals_kyber768_ref_keypair(uint8_t *pk, uint8_t *sk);
+-int pqcrystals_kyber768_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk);
+-int pqcrystals_kyber768_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
++// int pqcrystals_kyber768_ref_keypair(uint8_t *pk, uint8_t *sk);
++// int pqcrystals_kyber768_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk);
++// int pqcrystals_kyber768_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
+
+ #define pqcrystals_kyber768_90s_ref_SECRETKEYBYTES pqcrystals_kyber768_SECRETKEYBYTES
+ #define pqcrystals_kyber768_90s_ref_PUBLICKEYBYTES pqcrystals_kyber768_PUBLICKEYBYTES
+@@ -70,9 +70,9 @@
+ #define pqcrystals_kyber768_90s_ref_dec BORINGSSL_ADD_PREFIX(BORINGSSL_PREFIX, pqcrystals_kyber768_90s_ref_dec)
+ #endif
+
+-int pqcrystals_kyber768_90s_ref_keypair(uint8_t *pk, uint8_t *sk);
+-int pqcrystals_kyber768_90s_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk);
+-int pqcrystals_kyber768_90s_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
++// int pqcrystals_kyber768_90s_ref_keypair(uint8_t *pk, uint8_t *sk);
++// int pqcrystals_kyber768_90s_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk);
++// int pqcrystals_kyber768_90s_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk);
+
+ #define pqcrystals_kyber1024_SECRETKEYBYTES 3168
+ #define pqcrystals_kyber1024_PUBLICKEYBYTES 1568
+diff '--color=auto' -Naur aws-lc-1.12.1/crypto/kyber/pqcrystals_kyber_ref_common/params.h aws-lc-1.12.1-mod/crypto/kyber/pqcrystals_kyber_ref_common/params.h
+--- aws-lc-1.12.1/crypto/kyber/pqcrystals_kyber_ref_common/params.h	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/crypto/kyber/pqcrystals_kyber_ref_common/params.h	2023-10-31 19:11:28.840199918 +0000
+@@ -3,6 +3,8 @@
+
+ #include <openssl/base.h>
+
++#undef KYBER_K
++#define KYBER_K 4
+ // #define KYBER_90S	/* Uncomment this if you want the 90S variant */
+
+ /* Don't change parameters below this line */
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_alt.S	2023-10-30 22:02:08.931260641 +0000
+@@ -17,7 +17,7 @@
+ //
+ // Standard ARM ABI: X0 = res, X1 = scalar, X2 = point
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(curve25519_x25519_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_alt.S	2023-10-30 22:02:08.939260631 +0000
+@@ -14,7 +14,7 @@
+ //
+ // Standard ARM ABI: X0 = res, X1 = scalar
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519base_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(curve25519_x25519base_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_byte_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_byte_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_byte_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_byte_alt.S	2023-10-30 22:02:08.967260592 +0000
+@@ -14,7 +14,7 @@
+ //
+ // Standard ARM ABI: X0 = res, X1 = scalar
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519base_byte_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(curve25519_x25519base_byte_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_byte.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_byte.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_byte.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base_byte.S	2023-10-30 22:02:08.935260636 +0000
+@@ -14,7 +14,7 @@
+ //
+ // Standard ARM ABI: X0 = res, X1 = scalar
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519base_byte)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(curve25519_x25519base_byte)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519base.S	2023-10-30 22:02:09.307260126 +0000
+@@ -14,7 +14,7 @@
+ //
+ // Standard ARM ABI: X0 = res, X1 = scalar
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519base)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(curve25519_x25519base)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_byte_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_byte_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_byte_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_byte_alt.S	2023-10-30 22:02:08.935260636 +0000
+@@ -17,7 +17,7 @@
+ //
+ // Standard ARM ABI: X0 = res, X1 = scalar, X2 = point
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519_byte_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(curve25519_x25519_byte_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_byte.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_byte.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_byte.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519_byte.S	2023-10-30 22:02:08.967260592 +0000
+@@ -17,7 +17,7 @@
+ //
+ // Standard ARM ABI: X0 = res, X1 = scalar, X2 = point
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519_byte)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(curve25519_x25519_byte)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/curve25519/curve25519_x25519.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/curve25519/curve25519_x25519.S	2023-10-30 22:02:08.939260631 +0000
+@@ -17,7 +17,7 @@
+ //
+ // Standard ARM ABI: X0 = res, X1 = scalar, X2 = point
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(curve25519_x25519)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_add_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_add_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_add_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_add_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_add_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_add_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_bigendian_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_bigendian_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_bigendian_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_bigendian_6.S	2023-10-30 22:02:08.915260664 +0000
+@@ -23,7 +23,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_bigendian_6)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_bigendian_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_cmul_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_cmul_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_cmul_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_cmul_p384.S	2023-10-30 22:02:08.911260669 +0000
+@@ -11,7 +11,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = c, X2 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_cmul_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_cmul_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_deamont_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_deamont_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_deamont_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_deamont_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_deamont_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_deamont_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_demont_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_demont_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_demont_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_demont_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_demont_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_demont_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_double_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_double_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_double_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_double_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_double_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_double_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_half_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_half_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_half_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_half_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_half_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_half_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_littleendian_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_littleendian_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_littleendian_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_littleendian_6.S	2023-10-30 22:02:08.915260664 +0000
+@@ -23,7 +23,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_littleendian_6)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_littleendian_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mod_n384_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mod_n384_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mod_n384_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mod_n384_6.S	2023-10-30 22:02:08.915260664 +0000
+@@ -12,7 +12,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_n384_6)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_mod_n384_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mod_n384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mod_n384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mod_n384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mod_n384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -12,7 +12,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = k, X2 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_n384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_mod_n384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mod_p384_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mod_p384_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mod_p384_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mod_p384_6.S	2023-10-30 22:02:08.915260664 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_p384_6)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_mod_p384_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mod_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mod_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mod_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mod_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = k, X2 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_mod_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_montmul_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_montmul_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_montmul_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_montmul_p384_alt.S	2023-10-30 22:02:08.915260664 +0000
+@@ -14,7 +14,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montmul_p384_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_montmul_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_montmul_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_montmul_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_montmul_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_montmul_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -14,7 +14,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montmul_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_montmul_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_montsqr_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_montsqr_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_montsqr_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_montsqr_p384_alt.S	2023-10-30 22:02:08.915260664 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montsqr_p384_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_montsqr_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_montsqr_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_montsqr_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_montsqr_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_montsqr_p384.S	2023-10-30 22:02:08.931260641 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montsqr_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_montsqr_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mux_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mux_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_mux_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_mux_6.S	2023-10-30 22:02:08.915260664 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = p, X1 = z, X2 = x, X3 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mux_6)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_mux_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_neg_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_neg_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_neg_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_neg_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -9,7 +9,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_neg_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_neg_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_nonzero_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_nonzero_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_nonzero_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_nonzero_6.S	2023-10-30 22:02:08.915260664 +0000
+@@ -9,7 +9,7 @@
+ //
+ // Standard ARM ABI: X0 = x, returns X0
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_nonzero_6)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_nonzero_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_optneg_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_optneg_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_optneg_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_optneg_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -11,7 +11,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = p, X2 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_optneg_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_optneg_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_sub_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_sub_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_sub_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_sub_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_sub_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_sub_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_tomont_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_tomont_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_tomont_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_tomont_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_tomont_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_tomont_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_triple_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_triple_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/bignum_triple_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/bignum_triple_p384.S	2023-10-30 22:02:08.915260664 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_triple_p384)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_triple_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/p384_montjadd.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/p384_montjadd.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/p384_montjadd.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/p384_montjadd.S	2023-10-30 22:02:08.915260664 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = p3, X1 = p1, X2 = p2
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p384_montjadd)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(p384_montjadd)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/p384_montjdouble.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/p384_montjdouble.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/p384_montjdouble.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/p384_montjdouble.S	2023-10-30 22:02:08.915260664 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = p3, X1 = p1
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p384_montjdouble)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(p384_montjdouble)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/p384_montjmixadd.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/p384_montjmixadd.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p384/p384_montjmixadd.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p384/p384_montjmixadd.S	2023-10-30 22:02:08.915260664 +0000
+@@ -15,7 +15,7 @@
+ //
+ // Standard ARM ABI: X0 = p3, X1 = p1, X2 = p2
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p384_montjmixadd)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(p384_montjmixadd)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_add_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_add_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_add_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_add_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_add_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_add_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_cmul_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_cmul_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_cmul_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_cmul_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -11,7 +11,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = c, X2 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_cmul_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_cmul_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_deamont_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_deamont_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_deamont_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_deamont_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_deamont_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_deamont_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_demont_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_demont_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_demont_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_demont_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -13,7 +13,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_demont_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_demont_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_double_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_double_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_double_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_double_p521.S	2023-10-30 22:02:09.307260126 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_double_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_double_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_fromlebytes_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_fromlebytes_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_fromlebytes_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_fromlebytes_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -12,7 +12,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_fromlebytes_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_fromlebytes_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_half_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_half_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_half_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_half_p521.S	2023-10-30 22:02:09.335260087 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_half_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_half_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_mod_n521_9.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_mod_n521_9.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_mod_n521_9.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_mod_n521_9.S	2023-10-30 22:02:09.315260114 +0000
+@@ -12,7 +12,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_n521_9)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_mod_n521_9)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_mod_p521_9.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_mod_p521_9.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_mod_p521_9.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_mod_p521_9.S	2023-10-30 22:02:09.335260087 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_p521_9)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_mod_p521_9)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_montmul_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_montmul_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_montmul_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_montmul_p521_alt.S	2023-10-30 22:02:09.315260114 +0000
+@@ -15,7 +15,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montmul_p521_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_montmul_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_montmul_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_montmul_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_montmul_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_montmul_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -15,7 +15,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montmul_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_montmul_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_montsqr_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_montsqr_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_montsqr_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_montsqr_p521_alt.S	2023-10-30 22:02:09.315260114 +0000
+@@ -15,7 +15,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montsqr_p521_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_montsqr_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_montsqr_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_montsqr_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_montsqr_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_montsqr_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -15,7 +15,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montsqr_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_montsqr_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_mul_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_mul_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_mul_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_mul_p521_alt.S	2023-10-30 22:02:09.315260114 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mul_p521_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_mul_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_mul_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_mul_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_mul_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_mul_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mul_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_mul_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_neg_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_neg_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_neg_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_neg_p521.S	2023-10-30 22:02:09.335260087 +0000
+@@ -9,7 +9,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_neg_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_neg_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_optneg_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_optneg_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_optneg_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_optneg_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -11,7 +11,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = p, X2 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_optneg_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_optneg_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_sqr_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_sqr_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_sqr_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_sqr_p521_alt.S	2023-10-30 22:02:09.315260114 +0000
+@@ -9,7 +9,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_sqr_p521_alt)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_sqr_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_sqr_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_sqr_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_sqr_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_sqr_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -9,7 +9,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_sqr_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_sqr_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_sub_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_sub_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_sub_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_sub_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x, X2 = y
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_sub_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_sub_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_tolebytes_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_tolebytes_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_tolebytes_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_tolebytes_p521.S	2023-10-30 22:02:09.335260087 +0000
+@@ -12,7 +12,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_tolebytes_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_tolebytes_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_tomont_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_tomont_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_tomont_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_tomont_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_tomont_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_tomont_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_triple_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_triple_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/bignum_triple_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/bignum_triple_p521.S	2023-10-30 22:02:09.315260114 +0000
+@@ -10,7 +10,7 @@
+ //
+ // Standard ARM ABI: X0 = z, X1 = x
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_triple_p521)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(bignum_triple_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/p521_jadd.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/p521_jadd.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/p521_jadd.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/p521_jadd.S	2023-10-30 22:02:09.335260087 +0000
+@@ -16,7 +16,7 @@
+ //
+ // Standard ARM ABI: X0 = p3, X1 = p1, X2 = p2
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p521_jadd)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(p521_jadd)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/p521_jdouble.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/p521_jdouble.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/p521_jdouble.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/p521_jdouble.S	2023-10-30 22:02:09.339260081 +0000
+@@ -14,7 +14,7 @@
+ //
+ // Standard ARM ABI: X0 = p3, X1 = p1
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p521_jdouble)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(p521_jdouble)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/p521_jmixadd.S aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/p521_jmixadd.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/arm/p521/p521_jmixadd.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/arm/p521/p521_jmixadd.S	2023-10-30 22:02:09.315260114 +0000
+@@ -18,7 +18,7 @@
+ //
+ // Standard ARM ABI: X0 = p3, X1 = p1, X2 = p2
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p521_jmixadd)
+         S2N_BN_SYM_PRIVACY_DIRECTIVE(p521_jmixadd)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519_alt.S	2023-10-30 22:02:08.899260685 +0000
+@@ -25,7 +25,7 @@
+ // Standard x86-64 ABI: RDI = res, RSI = scalar, RDX = point
+ // Microsoft x64 ABI:   RCX = res, RDX = scalar, R8 = point
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519base_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519base_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519base_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519base_alt.S	2023-10-30 22:02:08.911260669 +0000
+@@ -22,7 +22,7 @@
+ // Standard x86-64 ABI: RDI = res, RSI = scalar
+ // Microsoft x64 ABI:   RCX = res, RDX = scalar
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519base_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519base.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519base.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519base.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519base.S	2023-10-30 22:02:08.907260674 +0000
+@@ -22,7 +22,7 @@
+ // Standard x86-64 ABI: RDI = res, RSI = scalar
+ // Microsoft x64 ABI:   RCX = res, RDX = scalar
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519base)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/curve25519/curve25519_x25519.S	2023-10-30 22:02:08.899260685 +0000
+@@ -25,7 +25,7 @@
+ // Standard x86-64 ABI: RDI = res, RSI = scalar, RDX = point
+ // Microsoft x64 ABI:   RCX = res, RDX = scalar, R8 = point
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(curve25519_x25519)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_add_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_add_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_add_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_add_p384.S	2023-10-30 22:02:08.851260751 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_add_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_bigendian_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_bigendian_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_bigendian_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_bigendian_6.S	2023-10-30 22:02:08.851260751 +0000
+@@ -24,7 +24,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_bigendian_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_cmul_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_cmul_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_cmul_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_cmul_p384_alt.S	2023-10-30 22:02:08.851260751 +0000
+@@ -13,7 +13,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = c, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_cmul_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_cmul_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_cmul_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_cmul_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_cmul_p384.S	2023-10-30 22:02:08.851260751 +0000
+@@ -13,7 +13,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = c, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_cmul_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_deamont_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_deamont_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_deamont_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_deamont_p384_alt.S	2023-10-30 22:02:08.851260751 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_deamont_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_deamont_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_deamont_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_deamont_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_deamont_p384.S	2023-10-30 22:02:08.851260751 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_deamont_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_demont_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_demont_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_demont_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_demont_p384_alt.S	2023-10-30 22:02:08.851260751 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_demont_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_demont_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_demont_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_demont_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_demont_p384.S	2023-10-30 22:02:08.851260751 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_demont_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_double_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_double_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_double_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_double_p384.S	2023-10-30 22:02:08.851260751 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_double_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_half_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_half_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_half_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_half_p384.S	2023-10-30 22:02:08.871260724 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_half_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_littleendian_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_littleendian_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_littleendian_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_littleendian_6.S	2023-10-30 22:02:08.851260751 +0000
+@@ -23,7 +23,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_littleendian_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384_6.S	2023-10-30 22:02:08.851260751 +0000
+@@ -14,7 +14,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_n384_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384_alt.S	2023-10-30 22:02:08.851260751 +0000
+@@ -14,7 +14,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = k, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_n384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_n384.S	2023-10-30 22:02:08.871260724 +0000
+@@ -14,7 +14,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = k, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_n384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384_6.S	2023-10-30 22:02:08.851260751 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_p384_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384_alt.S	2023-10-30 22:02:08.871260724 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = k, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mod_p384.S	2023-10-30 22:02:08.851260751 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = k, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_montmul_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_montmul_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_montmul_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_montmul_p384_alt.S	2023-10-30 22:02:08.871260724 +0000
+@@ -16,7 +16,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // -----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montmul_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_montmul_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_montmul_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_montmul_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_montmul_p384.S	2023-10-30 22:02:08.851260751 +0000
+@@ -16,7 +16,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // -----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montmul_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_montsqr_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_montsqr_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_montsqr_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_montsqr_p384_alt.S	2023-10-30 22:02:08.871260724 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montsqr_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_montsqr_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_montsqr_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_montsqr_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_montsqr_p384.S	2023-10-30 22:02:08.871260724 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montsqr_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mux_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mux_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_mux_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_mux_6.S	2023-10-30 22:02:08.851260751 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = p, RDX = z, R8 = x, R9 = y
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mux_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_neg_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_neg_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_neg_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_neg_p384.S	2023-10-30 22:02:08.871260724 +0000
+@@ -11,7 +11,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_neg_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_nonzero_6.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_nonzero_6.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_nonzero_6.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_nonzero_6.S	2023-10-30 22:02:08.851260751 +0000
+@@ -11,7 +11,7 @@
+ // Microsoft x64 ABI:   RCX = x, returns RAX
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_nonzero_6)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_optneg_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_optneg_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_optneg_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_optneg_p384.S	2023-10-30 22:02:08.851260751 +0000
+@@ -13,7 +13,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = p, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_optneg_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_sub_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_sub_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_sub_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_sub_p384.S	2023-10-30 22:02:08.871260724 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_sub_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_tomont_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_tomont_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_tomont_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_tomont_p384_alt.S	2023-10-30 22:02:08.851260751 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_tomont_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_tomont_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_tomont_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_tomont_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_tomont_p384.S	2023-10-30 22:02:08.851260751 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_tomont_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_triple_p384_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_triple_p384_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_triple_p384_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_triple_p384_alt.S	2023-10-30 22:02:08.851260751 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_triple_p384_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_triple_p384.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_triple_p384.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/bignum_triple_p384.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/bignum_triple_p384.S	2023-10-30 22:02:08.871260724 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_triple_p384)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/p384_montjadd.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/p384_montjadd.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/p384_montjadd.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/p384_montjadd.S	2023-10-30 22:02:08.851260751 +0000
+@@ -14,7 +14,7 @@
+ // Standard x86-64 ABI: RDI = p3, RSI = p1, RDX = p2
+ // Microsoft x64 ABI:   RCX = p3, RDX = p1, R8 = p2
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p384_montjadd)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/p384_montjdouble.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/p384_montjdouble.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/p384_montjdouble.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/p384_montjdouble.S	2023-10-30 22:02:08.851260751 +0000
+@@ -14,7 +14,7 @@
+ // Standard x86-64 ABI: RDI = p3, RSI = p1
+ // Microsoft x64 ABI:   RCX = p3, RDX = p1
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p384_montjdouble)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/p384_montjmixadd.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/p384_montjmixadd.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p384/p384_montjmixadd.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p384/p384_montjmixadd.S	2023-10-30 22:02:08.871260724 +0000
+@@ -16,7 +16,7 @@
+ // Standard x86-64 ABI: RDI = p3, RSI = p1, RDX = p2
+ // Microsoft x64 ABI:   RCX = p3, RDX = p1, R8 = p2
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p384_montjmixadd)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_add_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_add_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_add_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_add_p521.S	2023-10-30 22:02:08.899260685 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_add_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_cmul_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_cmul_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_cmul_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_cmul_p521_alt.S	2023-10-30 22:02:08.875260718 +0000
+@@ -13,7 +13,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = c, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_cmul_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_cmul_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_cmul_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_cmul_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_cmul_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -13,7 +13,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = c, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_cmul_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_deamont_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_deamont_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_deamont_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_deamont_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_deamont_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_demont_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_demont_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_demont_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_demont_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -15,7 +15,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_demont_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_double_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_double_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_double_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_double_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_double_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_fromlebytes_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_fromlebytes_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_fromlebytes_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_fromlebytes_p521.S	2023-10-30 22:02:08.871260724 +0000
+@@ -16,7 +16,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_fromlebytes_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_half_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_half_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_half_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_half_p521.S	2023-10-30 22:02:08.899260685 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_half_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mod_n521_9_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mod_n521_9_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mod_n521_9_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mod_n521_9_alt.S	2023-10-30 22:02:08.875260718 +0000
+@@ -14,7 +14,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_n521_9_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mod_n521_9.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mod_n521_9.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mod_n521_9.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mod_n521_9.S	2023-10-30 22:02:08.899260685 +0000
+@@ -14,7 +14,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_n521_9)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mod_p521_9.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mod_p521_9.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mod_p521_9.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mod_p521_9.S	2023-10-30 22:02:08.875260718 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mod_p521_9)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_montmul_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_montmul_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_montmul_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_montmul_p521_alt.S	2023-10-30 22:02:08.871260724 +0000
+@@ -17,7 +17,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montmul_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_montmul_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_montmul_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_montmul_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_montmul_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -17,7 +17,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montmul_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_montsqr_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_montsqr_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_montsqr_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_montsqr_p521_alt.S	2023-10-30 22:02:08.875260718 +0000
+@@ -17,7 +17,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montsqr_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_montsqr_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_montsqr_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_montsqr_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_montsqr_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -17,7 +17,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_montsqr_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mul_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mul_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mul_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mul_p521_alt.S	2023-10-30 22:02:08.875260718 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mul_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mul_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mul_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_mul_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_mul_p521.S	2023-10-30 22:02:08.871260724 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_mul_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_neg_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_neg_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_neg_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_neg_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -11,7 +11,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_neg_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_optneg_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_optneg_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_optneg_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_optneg_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -13,7 +13,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = p, R8 = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_optneg_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_sqr_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_sqr_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_sqr_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_sqr_p521_alt.S	2023-10-30 22:02:08.875260718 +0000
+@@ -11,7 +11,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_sqr_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_sqr_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_sqr_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_sqr_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_sqr_p521.S	2023-10-30 22:02:08.871260724 +0000
+@@ -11,7 +11,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_sqr_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_sub_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_sub_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_sub_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_sub_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x, R8 = y
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_sub_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_tolebytes_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_tolebytes_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_tolebytes_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_tolebytes_p521.S	2023-10-30 22:02:08.899260685 +0000
+@@ -16,7 +16,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_tolebytes_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_tomont_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_tomont_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_tomont_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_tomont_p521.S	2023-10-30 22:02:08.871260724 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_tomont_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_triple_p521_alt.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_triple_p521_alt.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_triple_p521_alt.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_triple_p521_alt.S	2023-10-30 22:02:08.875260718 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_triple_p521_alt)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_triple_p521.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_triple_p521.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/bignum_triple_p521.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/bignum_triple_p521.S	2023-10-30 22:02:08.875260718 +0000
+@@ -12,7 +12,7 @@
+ // Microsoft x64 ABI:   RCX = z, RDX = x
+ // ----------------------------------------------------------------------------
+
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(bignum_triple_p521)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/p521_jadd.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/p521_jadd.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/p521_jadd.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/p521_jadd.S	2023-10-30 22:02:08.899260685 +0000
+@@ -17,7 +17,7 @@
+ // Standard x86-64 ABI: RDI = p3, RSI = p1, RDX = p2
+ // Microsoft x64 ABI:   RCX = p3, RDX = p1, R8 = p2
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p521_jadd)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/p521_jdouble.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/p521_jdouble.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/p521_jdouble.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/p521_jdouble.S	2023-10-30 22:02:08.899260685 +0000
+@@ -15,7 +15,7 @@
+ // Standard x86-64 ABI: RDI = p3, RSI = p1
+ // Microsoft x64 ABI:   RCX = p3, RDX = p1
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p521_jdouble)
+diff '--color=auto' -Naur aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/p521_jmixadd.S aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/p521_jmixadd.S
+--- aws-lc-1.12.1/third_party/s2n-bignum/x86_att/p521/p521_jmixadd.S	2023-07-14 06:33:59.000000000 +0000
++++ aws-lc-1.12.1-mod/third_party/s2n-bignum/x86_att/p521/p521_jmixadd.S	2023-10-30 22:02:08.875260718 +0000
+@@ -19,7 +19,7 @@
+ // Standard x86-64 ABI: RDI = p3, RSI = p1, RDX = p2
+ // Microsoft x64 ABI:   RCX = p3, RDX = p1, R8 = p2
+ // ----------------------------------------------------------------------------
+-#include "_internal_s2n_bignum.h"
++#include "../../include/_internal_s2n_bignum.h"
+
+
+         S2N_BN_SYM_VISIBILITY_DIRECTIVE(p521_jmixadd)

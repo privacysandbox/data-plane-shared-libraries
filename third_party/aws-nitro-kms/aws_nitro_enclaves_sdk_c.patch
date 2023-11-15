@@ -1,0 +1,18 @@
+diff --git a/bin/kmstool-enclave-cli/main.c b/bin/kmstool-enclave-cli/main.c
+index f810459..9d0ae2d 100644
+--- a/bin/kmstool-enclave-cli/main.c
++++ b/bin/kmstool-enclave-cli/main.c
+@@ -268,6 +268,13 @@ static void init_kms_client(struct app_ctx *app_ctx, struct aws_credentials **cr
+     struct aws_nitro_enclaves_kms_client_configuration configuration = {
+         .allocator = app_ctx->allocator, .endpoint = &endpoint, .domain = AWS_SOCKET_VSOCK, .region = app_ctx->region};
+ 
++    if (app_ctx->proxy_port == 0) {
++        fprintf(stderr, "app_ctx->proxy_port is %d\n ", app_ctx->proxy_port);
++        configuration.endpoint = NULL;
++    }
++
++    fprintf(stderr, "app_ctx->proxy_port is %d\n ", app_ctx->proxy_port);
++
+     /* Sets the AWS credentials and creates a KMS client with them. */
+     struct aws_credentials *new_credentials = aws_credentials_new(
+         app_ctx->allocator,

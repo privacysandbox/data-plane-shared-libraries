@@ -12,33 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Description:
+#   AWS C I/O and TLS work for application protocols
+
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = "test_aws_kms_client_options",
-    hdrs = [
-        "test_aws_kms_client_options.h",
-    ],
-    deps = [
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/public/cpio/interface/kms_client:type_def",
-    ],
-)
+licenses(["notice"])  # Apache 2.0
+
+exports_files(["LICENSE"])
 
 cc_library(
-    name = "test_aws_kms_client",
-    srcs = [
-        "//scp/cc/public/cpio/adapters/kms_client/src:kms_client_srcs",
-        "//scp/cc/public/cpio/adapters/kms_client/test:test_aws_kms_client_srcs",
+    name = "aws_c_io",
+    srcs = glob([
+        "include/aws/io/*.h",
+        "include/aws/io/private/*.h",
+        "source/linux/*.c",
+        "source/pkcs11/v2.40/*.h",
+        "source/posix/*.c",
+        "source/s2n/*.c",
+        "source/*.c",
+        "source/*.h",
+    ]),
+    defines = [
+        "USE_VSOCK=1",
+        "USE_S2N=1",
     ],
-    hdrs = [
-        "//scp/cc/public/cpio/interface/kms_client:kms_client_interface.h",
+    includes = [
+        "include",
     ],
     deps = [
-        ":test_aws_kms_client_options",
-        "//scp/cc/cpio/client_providers/kms_client_provider/test/aws:test_aws_kms_client_provider_lib",
-        "//scp/cc/public/cpio/interface/kms_client",
+        "@nitrokmscli_aws_c_cal//:aws_c_cal",
+        "@nitrokmscli_aws_c_common//:aws_c_common",
+        "@nitrokmscli_s2n_tls//:s2n_tls",
     ],
 )

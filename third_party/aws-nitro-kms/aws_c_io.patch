@@ -1,0 +1,87 @@
+diff '--color=auto' -Naur aws-c-io-0.11.0/source/channel.c aws-c-io-0.11.0-mod/source/channel.c
+--- aws-c-io-0.11.0/source/channel.c	2022-04-27 16:41:44.000000000 +0000
++++ aws-c-io-0.11.0-mod/source/channel.c	2023-10-30 19:40:06.206708027 +0000
+@@ -162,7 +162,7 @@
+                 AWS_LS_IO_CHANNEL,
+                 "id=%p: message pool %p found in event-loop local storage: using it.",
+                 (void *)setup_args->channel,
+-                (void *)message_pool)
++                (void *)message_pool);
+         }
+
+         setup_args->channel->msg_pool = message_pool;
+diff '--color=auto' -Naur aws-c-io-0.11.0/source/exponential_backoff_retry_strategy.c aws-c-io-0.11.0-mod/source/exponential_backoff_retry_strategy.c
+--- aws-c-io-0.11.0/source/exponential_backoff_retry_strategy.c	2022-04-27 16:41:44.000000000 +0000
++++ aws-c-io-0.11.0-mod/source/exponential_backoff_retry_strategy.c	2023-10-30 19:39:47.830732124 +0000
+@@ -266,7 +266,7 @@
+             AWS_LS_IO_EXPONENTIAL_BACKOFF_RETRY_STRATEGY,
+             "id=%p: retry token %p is already scheduled.",
+             (void *)backoff_retry_token->base.retry_strategy,
+-            (void *)token)
++            (void *)token);
+         return aws_raise_error(AWS_ERROR_INVALID_STATE);
+     }
+
+diff '--color=auto' -Naur aws-c-io-0.11.0/source/host_resolver.c aws-c-io-0.11.0-mod/source/host_resolver.c
+--- aws-c-io-0.11.0/source/host_resolver.c	2022-04-27 16:41:44.000000000 +0000
++++ aws-c-io-0.11.0-mod/source/host_resolver.c	2023-10-30 19:39:28.094757870 +0000
+@@ -1199,7 +1199,7 @@
+         AWS_LS_IO_DNS,
+         "static: Either no requests have been made for an address for %s for the duration "
+         "of the ttl, or this thread is being forcibly shutdown. Killing thread.",
+-        host_entry->host_name->bytes)
++        host_entry->host_name->bytes);
+
+ done:
+
+diff '--color=auto' -Naur aws-c-io-0.11.0/source/posix/socket.c aws-c-io-0.11.0-mod/source/posix/socket.c
+--- aws-c-io-0.11.0/source/posix/socket.c	2022-04-27 16:41:44.000000000 +0000
++++ aws-c-io-0.11.0-mod/source/posix/socket.c	2023-10-30 19:39:05.938786601 +0000
+@@ -943,7 +943,7 @@
+                         AWS_LS_IO_SOCKET,
+                         "id=%p fd=%d:. Failed to determine remote address.",
+                         (void *)socket,
+-                        socket->io_handle.data.fd)
++                        socket->io_handle.data.fd);
+                 }
+                 new_sock->options.domain = AWS_SOCKET_IPV4;
+             } else if (in_addr.ss_family == AF_INET6) {
+@@ -960,7 +960,7 @@
+                         AWS_LS_IO_SOCKET,
+                         "id=%p fd=%d:. Failed to determine remote address.",
+                         (void *)socket,
+-                        socket->io_handle.data.fd)
++                        socket->io_handle.data.fd);
+                 }
+                 new_sock->options.domain = AWS_SOCKET_IPV6;
+             } else if (in_addr.ss_family == AF_UNIX) {
+diff '--color=auto' -Naur aws-c-io-0.11.0/source/s2n/s2n_tls_channel_handler.c aws-c-io-0.11.0-mod/source/s2n/s2n_tls_channel_handler.c
+--- aws-c-io-0.11.0/source/s2n/s2n_tls_channel_handler.c	2022-04-27 16:41:44.000000000 +0000
++++ aws-c-io-0.11.0-mod/source/s2n/s2n_tls_channel_handler.c	2023-10-30 19:42:09.426543662 +0000
+@@ -450,7 +450,7 @@
+ int aws_tls_client_handler_start_negotiation(struct aws_channel_handler *handler) {
+     struct s2n_handler *s2n_handler = (struct s2n_handler *)handler->impl;
+
+-    AWS_LOGF_TRACE(AWS_LS_IO_TLS, "id=%p: Kicking off TLS negotiation.", (void *)handler)
++    AWS_LOGF_TRACE(AWS_LS_IO_TLS, "id=%p: Kicking off TLS negotiation.", (void *)handler);
+     if (aws_channel_thread_is_callers_thread(s2n_handler->slot->channel)) {
+         if (s2n_handler->state == NEGOTIATION_ONGOING) {
+             s_drive_negotiation(handler);
+@@ -599,7 +599,7 @@
+     struct s2n_handler *s2n_handler = handler->impl;
+
+     if (status == AWS_TASK_STATUS_RUN_READY) {
+-        AWS_LOGF_DEBUG(AWS_LS_IO_TLS, "id=%p: Delayed shut down in write direction", (void *)handler)
++        AWS_LOGF_DEBUG(AWS_LS_IO_TLS, "id=%p: Delayed shut down in write direction", (void *)handler);
+         s2n_blocked_status blocked;
+         /* make a best effort, but the channel is going away after this run, so.... you only get one shot anyways */
+         s2n_shutdown(s2n_handler->connection, &blocked);
+@@ -870,7 +870,7 @@
+
+     if (dir == AWS_CHANNEL_DIR_WRITE) {
+         if (!abort_immediately && error_code != AWS_IO_SOCKET_CLOSED) {
+-            AWS_LOGF_DEBUG(AWS_LS_IO_TLS, "id=%p: Scheduling delayed write direction shutdown", (void *)handler)
++            AWS_LOGF_DEBUG(AWS_LS_IO_TLS, "id=%p: Scheduling delayed write direction shutdown", (void *)handler);
+             if (s_s2n_do_delayed_shutdown(handler, slot, error_code) == AWS_OP_SUCCESS) {
+                 return AWS_OP_SUCCESS;
+             }

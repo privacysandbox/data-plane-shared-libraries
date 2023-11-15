@@ -12,19 +12,66 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_layer",
+)
 load("@rules_cc//cc:defs.bzl", "cc_library")
+load(
+    "@rules_pkg//pkg:mappings.bzl",
+    "pkg_attributes",
+    "pkg_files",
+)
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 alias(
     name = "kms_cli",
-    actual = "@kmstool_enclave_cli//file",
+    # actual = "@kmstool_enclave_cli//file",
+    actual = "@nitrokmscli_aws_nitro_enclaves_sdk_c//:aws_nitro_enclaves_cli",
     visibility = ["//visibility:public"],
 )
 
 alias(
     name = "libnsm_so",
     actual = "@aws-nitro-enclaves-nsm-api//:nsm",
+    visibility = ["//visibility:public"],
+)
+
+pkg_files(
+    name = "cpio_kms_executables",
+    srcs = [
+        ":kms_cli",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/cpio/bin",
+)
+
+pkg_files(
+    name = "cpio_kms_libs",
+    srcs = [
+        ":libnsm_so",
+        "@json_c//:json-c",
+    ],
+    attributes = pkg_attributes(mode = "0444"),
+    prefix = "/cpio/lib",
+)
+
+pkg_tar(
+    name = "cpio_kms_binaries",
+    srcs = [
+        ":cpio_kms_executables",
+        ":cpio_kms_libs",
+    ],
+    package_dir = "/",
+)
+
+container_layer(
+    name = "cpio_kms_layer",
+    tars = [
+        ":cpio_kms_binaries",
+    ],
     visibility = ["//visibility:public"],
 )
 

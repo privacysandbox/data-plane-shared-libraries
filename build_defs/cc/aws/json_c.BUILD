@@ -40,6 +40,9 @@ copy_file(
     name = "json_h",
     src = "@google_privacysandbox_servers_common//build_defs/cc/aws:json_c.json.h",
     out = "json.h",
+    visibility = [
+        "@nitrokmscli_aws_nitro_enclaves_sdk_c//:__pkg__",
+    ],
 )
 
 cc_library(
@@ -85,6 +88,9 @@ cc_library(
         ":config.h",
         ":json.h",
         ":json_config.h",
+    ],
+    visibility = [
+        "@nitrokmscli_aws_nitro_enclaves_sdk_c//:__pkg__",
     ],
 )
 

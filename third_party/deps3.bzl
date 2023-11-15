@@ -27,6 +27,7 @@ load("@rules_fuzzing//fuzzing:init.bzl", "rules_fuzzing_init")
 load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
 load("@tink_cc//:tink_cc_deps.bzl", "tink_cc_deps")
 load("@v8_python_deps//:requirements.bzl", install_v8_python_deps = "install_deps")
+load("//third_party:aws_nitro_kms_deps.bzl", "aws_nitro_kms_repos")
 load("//third_party:bazel_rules_closure.bzl", "bazel_rules_closure")
 
 def deps3():
@@ -61,3 +62,4 @@ def deps3():
             "@aws-nitro-enclaves-nsm-api//:nsm-test/Cargo.toml",
         ],
     )
+    aws_nitro_kms_repos()

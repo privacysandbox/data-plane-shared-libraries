@@ -12,33 +12,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Description:
+#   AWS C Common
+
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = "test_aws_kms_client_options",
-    hdrs = [
-        "test_aws_kms_client_options.h",
-    ],
-    deps = [
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/public/cpio/interface/kms_client:type_def",
-    ],
-)
+licenses(["notice"])  # Apache 2.0
+
+exports_files(["LICENSE"])
 
 cc_library(
-    name = "test_aws_kms_client",
-    srcs = [
-        "//scp/cc/public/cpio/adapters/kms_client/src:kms_client_srcs",
-        "//scp/cc/public/cpio/adapters/kms_client/test:test_aws_kms_client_srcs",
-    ],
+    name = "aws_c_common",
+    srcs = glob([
+        "include/aws/common/*.h",
+        "include/aws/common/external/*.h",
+        "include/aws/common/private/*.h",
+        "source/*.c",
+        "source/external/*.c",
+        "source/posix/*.c",
+    ]),
     hdrs = [
-        "//scp/cc/public/cpio/interface/kms_client:kms_client_interface.h",
+        "include/aws/common/config.h",
     ],
-    deps = [
-        ":test_aws_kms_client_options",
-        "//scp/cc/cpio/client_providers/kms_client_provider/test/aws:test_aws_kms_client_provider_lib",
-        "//scp/cc/public/cpio/interface/kms_client",
+    defines = [
+        "AWS_AFFINITY_METHOD",
     ],
+    includes = [
+        "include",
+    ],
+    linkopts = ["-ldl"],
+    textual_hdrs = glob([
+        "include/**/*.inl",
+    ]),
+)
+
+genrule(
+    name = "config_h",
+    srcs = [
+        "include/aws/common/config.h.in",
+    ],
+    outs = [
+        "include/aws/common/config.h",
+    ],
+    cmd = "sed 's/cmakedefine/undef/g' $< > $@",
 )

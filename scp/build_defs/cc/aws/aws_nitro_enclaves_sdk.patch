@@ -1,0 +1,45 @@
+CBS_ASN1_TAG is not available in the boringSSL version our repo is using.
+This patch fixes the issue by replace with its actual primitive type uint32_t.
+
+diff --git a/source/cms.c b/source/cms.c
+index 6cf677d..6d2c303 100644
+--- a/source/cms.c
++++ b/source/cms.c
+@@ -26,7 +26,7 @@
+ static inline int get_any_ber_asn1_element(
+     CBS *cbs,
+     CBS *out,
+-    CBS_ASN1_TAG *out_tag,
++    uint32_t *out_tag,
+     size_t *out_header_len) {
+
+     /* TODO: out_indefinite is dereferenced by CBS_get_any_ber_asn1_element,
+
+diff --git a/bin/kmstool-enclave-cli/main.c b/bin/kmstool-enclave-cli/main.c
+index f810459..06774fc 100644
+--- a/bin/kmstool-enclave-cli/main.c
++++ b/bin/kmstool-enclave-cli/main.c
+@@ -262,12 +262,22 @@ static void s_parse_options(int argc, char **argv, const char *subcommand, struc
+  * @param[out] credentials: location to store the aws credentials
+  * @param[out] client: location to store new kms client
+  */
+-static void init_kms_client(struct app_ctx *app_ctx, struct aws_credentials **credentials, struct aws_nitro_enclaves_kms_client **client) {
++static void init_kms_client(
++    struct app_ctx *app_ctx,
++    struct aws_credentials **credentials,
++    struct aws_nitro_enclaves_kms_client **client) {
+     /* Parent is always on CID 3 */
+     struct aws_socket_endpoint endpoint = {.address = DEFAULT_PARENT_CID, .port = app_ctx->proxy_port};
+     struct aws_nitro_enclaves_kms_client_configuration configuration = {
+         .allocator = app_ctx->allocator, .endpoint = &endpoint, .domain = AWS_SOCKET_VSOCK, .region = app_ctx->region};
+ 
++    if (app_ctx->proxy_port == 0) {
++        fprintf(stdout, "app_ctx->proxy_port is %d\n ", app_ctx->proxy_port);
++        configuration.endpoint = NULL;
++    }
++
++    fprintf(stdout, "app_ctx->proxy_port is %d\n ", app_ctx->proxy_port);
++
+     /* Sets the AWS credentials and creates a KMS client with them. */
+     struct aws_credentials *new_credentials = aws_credentials_new(
+         app_ctx->allocator,
