@@ -86,33 +86,38 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
           VLOG(3) << "List public keys call finished.";
 
           if (execution_result.Successful()) {
+            const size_t num_public_keys = response.public_keys().size();
             {
               absl::MutexLock l(&mutex_);
-              public_keys_[platform] = std::vector<PublicKey>();
+              std::vector<PublicKey> platform_public_keys;
+              platform_public_keys.reserve(num_public_keys);
               for (const auto& key : response.public_keys()) {
                 PublicKey copy;
                 copy.set_key_id(ToOhttpKeyId(key.key_id()));
                 copy.set_public_key(key.public_key());
-                public_keys_[platform].push_back(copy);
+                platform_public_keys.push_back(std::move(copy));
               }
+              public_keys_[platform] = std::move(platform_public_keys);
             }
 
             KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(
-                platform, response.public_keys().size());
+                platform, num_public_keys);
             KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
-                platform, public_keys_[platform].size());
-            std::vector<PublicPrivateKeyPairId> key_ids = GetKeyIds(platform);
-            std::string key_ids_str = absl::StrJoin(key_ids, ", ");
+                platform, num_public_keys);
             VLOG(3) << absl::StrFormat(
-                kKeyFetchSuccessMessage, key_ids_str,
+                kKeyFetchSuccessMessage,
+                absl::StrJoin(GetKeyIds(platform), ", "),
                 TimeUtil::ToString(response.expiration_time()));
             VLOG(3) << "Public key refresh flow completed successfully. ";
           } else {
             KeyFetchResultCounter::IncrementPublicKeyFetchAsyncFailureCount();
             KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(platform,
                                                                        0);
-            KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
-                platform, public_keys_[platform].size());
+            {
+              absl::MutexLock l(&mutex_);
+              KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
+                  platform, public_keys_[platform].size());
+            }
             VLOG(1) << absl::StrFormat(
                 kKeyFetchFailMessage,
                 GetErrorMessage(execution_result.status_code));

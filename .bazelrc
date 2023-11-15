@@ -17,9 +17,9 @@ build:cpp --client_env=BAZEL_CXXOPTS=-std=c++17
 build:cpp --cxxopt=-std=c++17
 build:cpp --client_env=CC=clang
 build:cpp --copt=-Werror=return-type
+build:cpp --copt=-Werror=thread-safety-analysis
 build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
 build:cpp --per_file_copt=external/s2n_tls/*.c@-Wno-strict-prototypes
-
 
 build:roma_sandboxed --per_file_copt=.*sandboxed_api.*@-Wno-return-type
 build:roma_sandboxed --cxxopt=-fbracket-depth=512
