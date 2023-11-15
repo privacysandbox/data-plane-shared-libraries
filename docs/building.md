@@ -10,10 +10,10 @@ scripts/build_proxy
 
 ## Run proxy
 
-Extract and run the proxy binary for your linux distribution:
+Extract and run the proxy binary for your Linux distribution:
 
 ```shell
-unzip dist/aws/<proxy for your architecture>
+unzip dist/aws/<proxy for your Linux distribution>
 ./proxy --helpfull
 ./proxy --stderrthreshold=0
 ```
