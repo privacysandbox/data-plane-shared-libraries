@@ -27,10 +27,9 @@
 #include <aws/ssm/SSMErrors.h>
 #include <aws/ssm/model/GetParameterRequest.h>
 
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
-// #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "cpio/client_providers/parameter_client_provider/mock/aws/mock_ssm_client.h"
 #include "cpio/common/src/aws/error_codes.h"
@@ -56,7 +55,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockSSMClient;
 using ::testing::NiceMock;
@@ -154,7 +152,7 @@ TEST_F(AwsParameterClientProviderTest, FailedToFetchParameter) {
   Aws::SSM::Model::GetParameterOutcome outcome(error);
   mock_ssm_client_->get_parameter_outcome_mock = outcome;
 
-  std::atomic<bool> condition = false;
+  absl::Notification done;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -163,18 +161,17 @@ TEST_F(AwsParameterClientProviderTest, FailedToFetchParameter) {
         EXPECT_THAT(
             context.result,
             ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
-        condition = true;
+        done.Notify();
       });
   EXPECT_SUCCESS(client_->GetParameter(context));
-
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(AwsParameterClientProviderTest, InvalidParameterName) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  std::atomic<bool> condition = false;
+  absl::Notification done;
   auto request = std::make_shared<GetParameterRequest>();
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
@@ -183,12 +180,12 @@ TEST_F(AwsParameterClientProviderTest, InvalidParameterName) {
             context.result,
             ResultIs(FailureExecutionResult(
                 SC_AWS_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME)));
-        condition = true;
+        done.Notify();
       });
   EXPECT_THAT(client_->GetParameter(context),
               ResultIs(FailureExecutionResult(
                   SC_AWS_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME)));
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
@@ -208,7 +205,7 @@ TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
   Aws::SSM::Model::GetParameterOutcome outcome(error);
   mock_ssm_client_->get_parameter_outcome_mock = outcome;
 
-  std::atomic<bool> condition = false;
+  absl::Notification done;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(invalid_parameter_name);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -217,10 +214,10 @@ TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_AWS_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND)));
-        condition = true;
+        done.Notify();
       });
   EXPECT_SUCCESS(client_->GetParameter(context));
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 
 TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
@@ -228,7 +225,7 @@ TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
   EXPECT_SUCCESS(client_->Run());
   MockParameter();
 
-  std::atomic<bool> condition = false;
+  absl::Notification done;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
   AsyncContext<GetParameterRequest, GetParameterResponse> context1(
@@ -237,9 +234,9 @@ TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
         EXPECT_SUCCESS(context.result);
         EXPECT_THAT(context.response->parameter_value(),
                     StrEq(kParameterValue));
-        condition = true;
+        done.Notify();
       });
   EXPECT_SUCCESS(client_->GetParameter(context1));
-  WaitUntil([&]() { return condition.load(); });
+  done.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test
