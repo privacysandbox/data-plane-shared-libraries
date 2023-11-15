@@ -23,7 +23,7 @@
 
 #include <aws/core/utils/Outcome.h>
 #include <aws/ssm/SSMClient.h>
-#include <aws/ssm/model/GetParametersRequest.h>
+#include <aws/ssm/model/GetParameterRequest.h>
 
 #include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
@@ -40,8 +40,6 @@
 using Aws::Client::AsyncCallerContext;
 using Aws::Client::ClientConfiguration;
 using Aws::SSM::SSMClient;
-using Aws::SSM::Model::GetParametersOutcome;
-using Aws::SSM::Model::GetParametersRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;
 using google::scp::core::AsyncContext;
@@ -53,10 +51,6 @@ using google::scp::core::async_executor::aws::AwsAsyncExecutor;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME;
-using google::scp::core::errors::
-    SC_AWS_PARAMETER_CLIENT_PROVIDER_MULTIPLE_PARAMETERS_FOUND;
-using google::scp::core::errors::
-    SC_AWS_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 
@@ -98,74 +92,52 @@ ExecutionResult AwsParameterClientProvider::Stop() noexcept {
 
 ExecutionResult AwsParameterClientProvider::GetParameter(
     AsyncContext<GetParameterRequest, GetParameterResponse>&
-        list_parameters_context) noexcept {
-  if (list_parameters_context.request->parameter_name().empty()) {
+        get_parameter_context) noexcept {
+  if (get_parameter_context.request->parameter_name().empty()) {
     auto execution_result = FailureExecutionResult(
         SC_AWS_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME);
-    SCP_ERROR_CONTEXT(
-        kAwsParameterClientProvider, list_parameters_context, execution_result,
-        "Failed to get the parameter value for %s.",
-        list_parameters_context.request->parameter_name().c_str());
-    list_parameters_context.result = execution_result;
-    list_parameters_context.Finish();
+    SCP_ERROR_CONTEXT(kAwsParameterClientProvider, get_parameter_context,
+                      execution_result,
+                      "Failed to get the parameter value for %s.",
+                      get_parameter_context.request->parameter_name().c_str());
+    get_parameter_context.result = execution_result;
+    get_parameter_context.Finish();
     return execution_result;
   }
 
-  GetParametersRequest request;
-  request.AddNames(list_parameters_context.request->parameter_name().c_str());
+  Aws::SSM::Model::GetParameterRequest request;
+  request.SetName(get_parameter_context.request->parameter_name().c_str());
 
-  ssm_client_->GetParametersAsync(
+  ssm_client_->GetParameterAsync(
       request,
-      absl::bind_front(&AwsParameterClientProvider::OnGetParametersCallback,
-                       this, list_parameters_context),
+      absl::bind_front(&AwsParameterClientProvider::OnGetParameterCallback,
+                       this, get_parameter_context),
       nullptr);
 
   return SuccessExecutionResult();
 }
 
-void AwsParameterClientProvider::OnGetParametersCallback(
+void AwsParameterClientProvider::OnGetParameterCallback(
     AsyncContext<GetParameterRequest, GetParameterResponse>&
-        list_parameters_context,
-    const Aws::SSM::SSMClient*, const GetParametersRequest&,
-    const GetParametersOutcome& outcome,
+        get_parameter_context,
+    const Aws::SSM::SSMClient*, const Aws::SSM::Model::GetParameterRequest&,
+    const Aws::SSM::Model::GetParameterOutcome& outcome,
     const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   if (!outcome.IsSuccess()) {
     auto error_type = outcome.GetError().GetErrorType();
-    list_parameters_context.result = SSMErrorConverter::ConvertSSMError(
+    get_parameter_context.result = SSMErrorConverter::ConvertSSMError(
         error_type, outcome.GetError().GetMessage());
-    list_parameters_context.Finish();
+    get_parameter_context.Finish();
     return;
   }
-
-  if (outcome.GetResult().GetParameters().size() < 1) {
-    auto execution_result = FailureExecutionResult(
-        SC_AWS_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND);
-    SCP_ERROR_CONTEXT(
-        kAwsParameterClientProvider, list_parameters_context, execution_result,
-        "Failed to get the parameter value for %s.",
-        list_parameters_context.request->parameter_name().c_str());
-    list_parameters_context.result = execution_result;
-    list_parameters_context.Finish();
-    return;
-  }
-
-  if (outcome.GetResult().GetParameters().size() > 1) {
-    auto execution_result = FailureExecutionResult(
-        SC_AWS_PARAMETER_CLIENT_PROVIDER_MULTIPLE_PARAMETERS_FOUND);
-    SCP_ERROR_CONTEXT(
-        kAwsParameterClientProvider, list_parameters_context, execution_result,
-        "Failed to get the parameter value for %s.",
-        list_parameters_context.request->parameter_name().c_str());
-    list_parameters_context.result = execution_result;
-    list_parameters_context.Finish();
-    return;
-  }
-
-  list_parameters_context.response = std::make_shared<GetParameterResponse>();
-  list_parameters_context.response->set_parameter_value(
-      outcome.GetResult().GetParameters()[0].GetValue().c_str());
-  list_parameters_context.result = SuccessExecutionResult();
-  list_parameters_context.Finish();
+  get_parameter_context.response = std::make_shared<GetParameterResponse>();
+  get_parameter_context.response->set_parameter_value(
+      outcome.GetResult().GetParameter().GetValue().c_str());
+  std::cout << "received parameter is: "
+            << outcome.GetResult().GetParameter().GetValue().c_str()
+            << std::endl;
+  get_parameter_context.result = SuccessExecutionResult();
+  get_parameter_context.Finish();
 }
 
 std::shared_ptr<SSMClient> SSMClientFactory::CreateSSMClient(

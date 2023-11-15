@@ -21,7 +21,7 @@ import "scp/cc/core/common/proto/common.proto";
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
 
-// Fetches stored parameters from cloud. In AWS, they are stored in
+// Fetches a stored parameter from cloud. In AWS, they are stored in
 // ParameterStore. In GCP, they are stored in SecretManager.
 service ParameterService {
   // Fetches parameter from cloud.

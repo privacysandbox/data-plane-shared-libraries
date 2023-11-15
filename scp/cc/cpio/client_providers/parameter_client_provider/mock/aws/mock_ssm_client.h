@@ -18,36 +18,29 @@
 #define CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_MOCK_AWS_MOCK_SSM_CLIENT_H_
 
 #include <memory>
-#include <vector>
 
 #include <aws/ssm/SSMClient.h>
-#include <aws/ssm/model/GetParametersRequest.h>
+#include <aws/ssm/model/GetParameterRequest.h>
 
 namespace google::scp::cpio::client_providers::mock {
 class MockSSMClient : public Aws::SSM::SSMClient {
  public:
-  void GetParametersAsync(
-      const Aws::SSM::Model::GetParametersRequest& request,
-      const Aws::SSM::GetParametersResponseReceivedHandler& handler,
+  void GetParameterAsync(
+      const Aws::SSM::Model::GetParameterRequest& request,
+      const Aws::SSM::GetParameterResponseReceivedHandler& handler,
       const std::shared_ptr<const Aws::Client::AsyncCallerContext>& context =
           nullptr) const override {
-    if (IsEqual(request.GetNames(), get_parameters_request_mock.GetNames())) {
-      handler(this, request, get_parameters_outcome_mock, context);
+    if (request.GetName() == get_parameter_request_mock.GetName()) {
+      handler(this, request, get_parameter_outcome_mock, context);
       return;
     }
-    Aws::SSM::Model::GetParametersResult result;
-    handler(this, request, Aws::SSM::Model::GetParametersOutcome(result),
+    Aws::SSM::Model::GetParameterResult result;
+    handler(this, request, Aws::SSM::Model::GetParameterOutcome(result),
             context);
   }
 
-  Aws::SSM::Model::GetParametersRequest get_parameters_request_mock;
-  Aws::SSM::Model::GetParametersOutcome get_parameters_outcome_mock;
-
- private:
-  bool IsEqual(const Aws::Vector<Aws::String>& v1,
-               const Aws::Vector<Aws::String>& v2) const {
-    return std::is_permutation(v1.begin(), v1.end(), v2.begin());
-  }
+  Aws::SSM::Model::GetParameterRequest get_parameter_request_mock;
+  Aws::SSM::Model::GetParameterOutcome get_parameter_outcome_mock;
 };
 }  // namespace google::scp::cpio::client_providers::mock
 

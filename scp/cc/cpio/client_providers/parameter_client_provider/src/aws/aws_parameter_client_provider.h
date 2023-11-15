@@ -72,19 +72,19 @@ class AwsParameterClientProvider : public ParameterClientProviderInterface {
 
  protected:
   /**
-   * @brief Is called after AWS GetParameters call is completed.
+   * @brief Is called after AWS GetParameter call is completed.
    *
    * @param get_parameter_context the get parameter operation
    * context.
-   * @param outcome the operation outcome of AWS GetParameters.
+   * @param outcome the operation outcome of AWS GetParameter.
    */
-  virtual void OnGetParametersCallback(
+  virtual void OnGetParameterCallback(
       core::AsyncContext<
           cmrt::sdk::parameter_service::v1::GetParameterRequest,
           cmrt::sdk::parameter_service::v1::GetParameterResponse>&
           get_parameter_context,
-      const Aws::SSM::SSMClient*, const Aws::SSM::Model::GetParametersRequest&,
-      const Aws::SSM::Model::GetParametersOutcome& outcome,
+      const Aws::SSM::SSMClient*, const Aws::SSM::Model::GetParameterRequest&,
+      const Aws::SSM::Model::GetParameterOutcome& outcome,
       const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) noexcept;
 
   /**

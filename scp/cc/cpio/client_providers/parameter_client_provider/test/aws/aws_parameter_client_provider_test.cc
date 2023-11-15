@@ -25,7 +25,7 @@
 #include <aws/core/utils/Outcome.h>
 #include <aws/ssm/SSMClient.h>
 #include <aws/ssm/SSMErrors.h>
-#include <aws/ssm/model/GetParametersRequest.h>
+#include <aws/ssm/model/GetParameterRequest.h>
 
 #include "core/async_executor/mock/mock_async_executor.h"
 // #include "core/async_executor/src/aws/aws_async_executor.h"
@@ -43,10 +43,6 @@ using Aws::SDKOptions;
 using Aws::ShutdownAPI;
 using Aws::Client::AWSError;
 using Aws::SSM::SSMErrors;
-using Aws::SSM::Model::GetParametersOutcome;
-using Aws::SSM::Model::GetParametersRequest;
-using Aws::SSM::Model::GetParametersResult;
-using Aws::SSM::Model::Parameter;
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;
 using google::scp::core::AsyncContext;
@@ -57,8 +53,6 @@ using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::errors::SC_AWS_INTERNAL_SERVICE_ERROR;
 using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME;
-using google::scp::core::errors::
-    SC_AWS_PARAMETER_CLIENT_PROVIDER_MULTIPLE_PARAMETERS_FOUND;
 using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND;
 using google::scp::core::test::ResultIs;
@@ -117,20 +111,20 @@ class AwsParameterClientProviderTest : public ::testing::Test {
         io_async_executor, mock_ssm_client_factory_);
   }
 
-  void MockParameters() {
-    // Mocks GetParametersRequest.
-    GetParametersRequest get_parameters_request;
-    get_parameters_request.AddNames(kParameterName);
-    mock_ssm_client_->get_parameters_request_mock = get_parameters_request;
+  void MockParameter() {
+    // Mocks Aws::SSM::Model::GetParameterRequest.
+    Aws::SSM::Model::GetParameterRequest get_parameter_request;
+    get_parameter_request.SetName(kParameterName);
+    mock_ssm_client_->get_parameter_request_mock = get_parameter_request;
 
-    // Mocks success GetParametersOutcome
-    GetParametersResult result;
-    Parameter parameter;
+    // Mocks success Aws::SSM::Model::GetParameterOutcome.
+    Aws::SSM::Model::GetParameterResult result;
+    Aws::SSM::Model::Parameter parameter;
     parameter.SetName(kParameterName);
     parameter.SetValue(kParameterValue);
-    result.AddParameters(parameter);
-    GetParametersOutcome get_parameters_outcome(result);
-    mock_ssm_client_->get_parameters_outcome_mock = get_parameters_outcome;
+    result.SetParameter(parameter);
+    Aws::SSM::Model::GetParameterOutcome get_parameter_outcome(result);
+    mock_ssm_client_->get_parameter_outcome_mock = get_parameter_outcome;
   }
 
   void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
@@ -150,14 +144,15 @@ TEST_F(AwsParameterClientProviderTest, FailedToFetchRegion) {
   EXPECT_THAT(client_->Run(), ResultIs(failure));
 }
 
-TEST_F(AwsParameterClientProviderTest, FailedToFetchParameters) {
+TEST_F(AwsParameterClientProviderTest, FailedToFetchParameter) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
 
-  MockParameters();
-  AWSError<SSMErrors> error(SSMErrors::INTERNAL_FAILURE, false);
-  GetParametersOutcome outcome(error);
-  mock_ssm_client_->get_parameters_outcome_mock = outcome;
+  MockParameter();
+  AWSError<SSMErrors> error(SSMErrors::INTERNAL_FAILURE,
+                            /* isRetryable=*/false);
+  Aws::SSM::Model::GetParameterOutcome outcome(error);
+  mock_ssm_client_->get_parameter_outcome_mock = outcome;
 
   std::atomic<bool> condition = false;
   auto request = std::make_shared<GetParameterRequest>();
@@ -199,11 +194,23 @@ TEST_F(AwsParameterClientProviderTest, InvalidParameterName) {
 TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
-  MockParameters();
+
+  const std::string invalid_parameter_name("invalid_parameter");
+
+  // Mocks Aws::SSM::Model::GetParameterRequest with invalid_parameter.
+  Aws::SSM::Model::GetParameterRequest get_parameter_request;
+  get_parameter_request.SetName(invalid_parameter_name);
+  mock_ssm_client_->get_parameter_request_mock = get_parameter_request;
+  // Mocks Aws::SSM::Model::GetParameterOutcome with error parameter not found
+  // AWS error.
+  AWSError<SSMErrors> error(SSMErrors::PARAMETER_NOT_FOUND,
+                            /* isRetryable=*/false);
+  Aws::SSM::Model::GetParameterOutcome outcome(error);
+  mock_ssm_client_->get_parameter_outcome_mock = outcome;
 
   std::atomic<bool> condition = false;
   auto request = std::make_shared<GetParameterRequest>();
-  request->set_parameter_name("invalid_parameter");
+  request->set_parameter_name(invalid_parameter_name);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
@@ -216,42 +223,10 @@ TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
   WaitUntil([&]() { return condition.load(); });
 }
 
-TEST_F(AwsParameterClientProviderTest, MultipleParametersFound) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
-  MockParameters();
-  GetParametersResult result;
-  Parameter parameter1;
-  parameter1.SetName(kParameterName);
-  parameter1.SetValue(kParameterValue);
-  // Two parameters found.
-  result.AddParameters(parameter1);
-  result.AddParameters(parameter1);
-  GetParametersOutcome get_parameters_outcome(result);
-  mock_ssm_client_->get_parameters_outcome_mock = get_parameters_outcome;
-
-  std::atomic<bool> condition = false;
-  auto request = std::make_shared<GetParameterRequest>();
-  request->set_parameter_name(kParameterName);
-  AsyncContext<GetParameterRequest, GetParameterResponse> context(
-      std::move(request),
-      [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
-        EXPECT_THAT(
-            context.result,
-            ResultIs(FailureExecutionResult(
-                SC_AWS_PARAMETER_CLIENT_PROVIDER_MULTIPLE_PARAMETERS_FOUND)));
-        condition = true;
-      });
-  EXPECT_SUCCESS(client_->GetParameter(context));
-  WaitUntil([&]() { return condition.load(); });
-}
-
 TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
   EXPECT_SUCCESS(client_->Init());
   EXPECT_SUCCESS(client_->Run());
-
-  MockParameters();
+  MockParameter();
 
   std::atomic<bool> condition = false;
   auto request = std::make_shared<GetParameterRequest>();
