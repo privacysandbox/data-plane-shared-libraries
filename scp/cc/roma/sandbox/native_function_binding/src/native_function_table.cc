@@ -41,7 +41,7 @@ ExecutionResult NativeFunctionTable::Register(absl::string_view function_name,
 
 ExecutionResult NativeFunctionTable::Call(
     absl::string_view function_name,
-    proto::FunctionBindingIoProto& function_binding_proto) {
+    FunctionBindingPayload& function_binding_wrapper) {
   NativeBinding func;
   {
     absl::MutexLock lock(&native_functions_map_mutex_);
@@ -52,7 +52,7 @@ ExecutionResult NativeFunctionTable::Call(
     }
     func = fn_it->second;
   }
-  func(function_binding_proto);
+  func(function_binding_wrapper);
   return SuccessExecutionResult();
 }
 

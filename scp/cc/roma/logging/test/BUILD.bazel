@@ -14,8 +14,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_test(
     name = "logging_test",
     size = "small",
@@ -26,7 +24,7 @@ cc_test(
     ],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
         "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",

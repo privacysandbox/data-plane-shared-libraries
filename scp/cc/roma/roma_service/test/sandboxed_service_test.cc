@@ -27,16 +27,21 @@
 #include <vector>
 
 #include "absl/base/thread_annotations.h"
+#include "absl/log/log.h"
+#include "absl/log/scoped_mock_log.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "roma/config/src/config.h"
+#include "roma/config/src/function_binding_object_v2.h"
 #include "roma/interface/roma.h"
 #include "roma/wasm/test/testing_utils.h"
 #include "src/cpp/util/duration.h"
 
+using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
+using ::testing::_;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
@@ -184,6 +189,232 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
+}
+
+TEST(SandboxedServiceTest, ExecuteNativeLogFunctions) {
+  Config config;
+  config.number_of_workers = 2;
+  auto status = RomaInit(config);
+  EXPECT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  const auto& input = R"("Foobar")";
+  const auto& trim_first_last_char = [](const std::string& str) {
+    return str.substr(1, str.length() - 2);
+  };
+
+  absl::ScopedMockLog log;
+  EXPECT_CALL(log,
+              Log(absl::LogSeverity::kInfo, _, trim_first_last_char(input)));
+  EXPECT_CALL(log,
+              Log(absl::LogSeverity::kWarning, _, trim_first_last_char(input)));
+  EXPECT_CALL(log,
+              Log(absl::LogSeverity::kError, _, trim_first_last_char(input)));
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>();
+    code_obj->id = "foo";
+    code_obj->version_num = 1;
+    code_obj->js = R"JS_CODE(
+    function Handler(input) {
+      roma.n_log(input);
+      roma.n_warn(input);
+      roma.n_error(input);
+      return `Hello world! ${input}`;
+    }
+  )JS_CODE";
+
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.Notify();
+                    });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    execution_obj->id = "foo";
+    execution_obj->version_num = 1;
+    execution_obj->handler_name = "Handler";
+    execution_obj->input.push_back(input);
+
+    status = Execute(std::move(execution_obj),
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                       EXPECT_TRUE(resp->ok());
+                       if (resp->ok()) {
+                         auto& code_resp = **resp;
+                         result = code_resp.resp;
+                       }
+                       execute_finished.Notify();
+                     });
+    EXPECT_TRUE(status.ok());
+  }
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_THAT(result,
+              testing::StrEq(absl::StrCat(R"("Hello world! )",
+                                          trim_first_last_char(input), "\"")));
+
+  status = RomaStop();
+  EXPECT_TRUE(status.ok());
+
+  log.StopCapturingLogs();
+}
+
+void LogMetadataFunction(FunctionBindingPayload& wrapper) {
+  for (const auto& [key, val] : wrapper.metadata) {
+    LOG(INFO) << key << ": " << val;
+  }
+}
+
+std::unique_ptr<FunctionBindingObjectV2> CreateLogFunctionBindingObject() {
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
+  function_binding_object->function = LogMetadataFunction;
+  function_binding_object->function_name = "log_metadata";
+  return function_binding_object;
+}
+
+TEST(SandboxedServiceTest, InvocationReqTagsVisibleInNativeFunctions) {
+  Config config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
+  auto status = RomaInit(config);
+  EXPECT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+  const std::pair<std::string, std::string> metadata_pair{"key1", "val1"};
+
+  absl::ScopedMockLog log;
+  EXPECT_CALL(
+      log, Log(absl::LogSeverity::kInfo, _,
+               absl::StrCat(metadata_pair.first, ": ", metadata_pair.second)));
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_num = 1,
+        .js = "var Handler = () => log_metadata();",
+    });
+
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.Notify();
+                    });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationRequestStrInput>(InvocationRequestStrInput{
+            .id = "foo",
+            .version_num = 1,
+            .handler_name = "Handler",
+        });
+    execution_obj->metadata.insert(metadata_pair);
+
+    status = Execute(std::move(execution_obj),
+                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                       EXPECT_TRUE(resp->ok());
+                       if (resp->ok()) {
+                         auto& code_resp = **resp;
+                         result = code_resp.resp;
+                       }
+                       execute_finished.Notify();
+                     });
+    EXPECT_TRUE(status.ok());
+  }
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_THAT(result, testing::StrEq("undefined"));
+
+  status = RomaStop();
+  EXPECT_TRUE(status.ok());
+  log.StopCapturingLogs();
+}
+
+TEST(SandboxedServiceTest, ContextAssociatedWithEachNativeFunction) {
+  Config config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
+  auto status = RomaInit(config);
+  EXPECT_TRUE(status.ok());
+
+  absl::Notification load_finished;
+  size_t total_runs = 10;
+  std::vector<std::string> results(total_runs);
+  std::vector<absl::Notification> finished(total_runs);
+  const auto& metadata_tag = "Working";
+
+  absl::ScopedMockLog log;
+  for (auto i = 0u; i < total_runs; i++) {
+    EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
+                         absl::StrCat("key", i, ": ", metadata_tag, i)));
+  }
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_num = 1,
+        .js = "var Handler = () => log_metadata();",
+    });
+
+    status =
+        LoadCodeObj(std::move(code_obj),
+                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                      EXPECT_TRUE(resp->ok());
+                      load_finished.Notify();
+                    });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    for (auto i = 0u; i < total_runs; ++i) {
+      auto code_obj =
+          std::make_unique<InvocationRequestStrInput>(InvocationRequestStrInput{
+              .id = "foo",
+              .version_num = 1,
+              .handler_name = "Handler",
+          });
+      code_obj->metadata.insert(
+          {absl::StrCat("key", i), absl::StrCat(metadata_tag, i)});
+
+      status =
+          Execute(std::move(code_obj),
+                  [&, i](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                    EXPECT_TRUE(resp->ok());
+                    if (resp->ok()) {
+                      auto& code_resp = **resp;
+                      results[i] = code_resp.resp;
+                    }
+                    finished[i].Notify();
+                  });
+      EXPECT_TRUE(status.ok());
+    }
+  }
+
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+
+  for (auto i = 0u; i < total_runs; ++i) {
+    finished[i].WaitForNotificationWithTimeout(absl::Seconds(30));
+    EXPECT_THAT(results[i], testing::StrEq("undefined"));
+  }
+
+  status = RomaStop();
+  EXPECT_TRUE(status.ok());
+
+  log.StopCapturingLogs();
 }
 
 TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
@@ -806,8 +1037,9 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   EXPECT_TRUE(status.ok());
 }
 
-void StringInStringOutFunction(proto::FunctionBindingIoProto& io) {
-  io.set_output_string(io.input_string() + " String from C++");
+void StringInStringOutFunction(FunctionBindingPayload& wrapper) {
+  wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() +
+                                     " String from C++");
 }
 
 TEST(SandboxedServiceTest,
@@ -869,81 +1101,11 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 }
 
-void StringInStringOutFunctionWithRequestIdCheck(
-    proto::FunctionBindingIoProto& io) {
-  // Should be able to read the request ID
-  EXPECT_THAT(io.metadata().at("roma.request.id"),
-              StrEq("id-that-should-be-available-in-hook-metadata"));
-
-  io.set_output_string(io.input_string() + " String from C++");
-}
-
-TEST(SandboxedServiceTest,
-     ShouldBeAbleToGeRequestIdFromFunctionBindingMetadataInHook) {
-  Config config;
-  config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
-  function_binding_object->function =
-      StringInStringOutFunctionWithRequestIdCheck;
-  function_binding_object->function_name = "cool_function";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
-
-  auto status = RomaInit(config);
-  EXPECT_TRUE(status.ok());
-
-  std::string result;
-  absl::Notification load_finished;
-  absl::Notification execute_finished;
-
-  {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "some-cool-id-does-not-matter-because-its-a-load-request";
-    code_obj->version_num = 1;
-    code_obj->js = R"JS_CODE(
-    function Handler(input) { return cool_function(input);}
-    )JS_CODE";
-
-    status =
-        LoadCodeObj(std::move(code_obj),
-                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
-                      load_finished.Notify();
-                    });
-    EXPECT_TRUE(status.ok());
-  }
-
-  {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
-    // Should be available in the hook
-    execution_obj->id = "id-that-should-be-available-in-hook-metadata";
-    execution_obj->version_num = 1;
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
-
-    status = Execute(std::move(execution_obj),
-                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       EXPECT_TRUE(resp->ok());
-                       if (resp->ok()) {
-                         auto& code_resp = **resp;
-                         result = code_resp.resp;
-                       }
-                       execute_finished.Notify();
-                     });
-    EXPECT_TRUE(status.ok());
-  }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  EXPECT_THAT(result, StrEq(R"("Foobar String from C++")"));
-
-  status = RomaStop();
-  EXPECT_TRUE(status.ok());
-}
-
-void ListOfStringInListOfStringOutFunction(proto::FunctionBindingIoProto& io) {
+void ListOfStringInListOfStringOutFunction(FunctionBindingPayload& wrapper) {
   int i = 1;
 
-  for (auto& str : io.input_list_of_string().data()) {
-    io.mutable_output_list_of_string()->mutable_data()->Add(
+  for (auto& str : wrapper.io_proto.input_list_of_string().data()) {
+    wrapper.io_proto.mutable_output_list_of_string()->mutable_data()->Add(
         str + " Some other stuff " + std::to_string(i++));
   }
 }
@@ -1010,8 +1172,8 @@ TEST(
   EXPECT_TRUE(status.ok());
 }
 
-void MapOfStringInMapOfStringOutFunction(proto::FunctionBindingIoProto& io) {
-  for (auto& [key, value] : io.input_map_of_string().data()) {
+void MapOfStringInMapOfStringOutFunction(FunctionBindingPayload& wrapper) {
+  for (auto& [key, value] : wrapper.io_proto.input_map_of_string().data()) {
     std::string new_key;
     std::string new_val;
     if (key == "key-a") {
@@ -1021,7 +1183,8 @@ void MapOfStringInMapOfStringOutFunction(proto::FunctionBindingIoProto& io) {
       new_key = key + std::to_string(2);
       new_val = value + std::to_string(2);
     }
-    (*io.mutable_output_map_of_string()->mutable_data())[new_key] = new_val;
+    (*wrapper.io_proto.mutable_output_map_of_string()
+          ->mutable_data())[new_key] = new_val;
   }
 }
 
@@ -1092,13 +1255,13 @@ TEST(SandboxedServiceTest,
 }
 
 void StringInStringOutFunctionWithNoInputParams(
-    proto::FunctionBindingIoProto& io) {
+    FunctionBindingPayload& wrapper) {
   // Params are all empty
-  EXPECT_FALSE(io.has_input_string());
-  EXPECT_FALSE(io.has_input_list_of_string());
-  EXPECT_FALSE(io.has_input_map_of_string());
+  EXPECT_FALSE(wrapper.io_proto.has_input_string());
+  EXPECT_FALSE(wrapper.io_proto.has_input_list_of_string());
+  EXPECT_FALSE(wrapper.io_proto.has_input_map_of_string());
 
-  io.set_output_string("String from C++");
+  wrapper.io_proto.set_output_string("String from C++");
 }
 
 TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
@@ -1260,8 +1423,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
     EXPECT_TRUE(status.ok());
   }
 
-  // The execution should timeout as the kTimeoutDurationTag value is too
-  // small.
+  // The execution should timeout as the kTimeoutDurationTag value is too small.
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
@@ -1327,8 +1489,8 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   EXPECT_TRUE(status.ok());
 }
 
-void EchoFunction(proto::FunctionBindingIoProto& io) {
-  io.set_output_string(io.input_string());
+void EchoFunction(FunctionBindingPayload& wrapper) {
+  wrapper.io_proto.set_output_string(wrapper.io_proto.input_string());
 }
 
 TEST(SandboxedServiceTest,
@@ -2352,9 +2514,9 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 }
 
-void ByteOutFunction(proto::FunctionBindingIoProto& io) {
+void ByteOutFunction(FunctionBindingPayload& wrapper) {
   const std::vector<uint8_t> data = {1, 2, 3, 4, 4, 3, 2, 1};
-  io.set_output_bytes(data.data(), data.size());
+  wrapper.io_proto.set_output_bytes(data.data(), data.size());
 }
 
 TEST(SandboxedServiceTest,
@@ -2512,17 +2674,17 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   EXPECT_TRUE(status.ok());
 }
 
-void ByteInFunction(proto::FunctionBindingIoProto& io) {
-  auto data_len = io.input_bytes().size();
+void ByteInFunction(FunctionBindingPayload& wrapper) {
+  auto data_len = wrapper.io_proto.input_bytes().size();
   EXPECT_EQ(5, data_len);
-  auto byte_data = io.input_bytes().data();
+  auto byte_data = wrapper.io_proto.input_bytes().data();
   EXPECT_EQ(5, byte_data[0]);
   EXPECT_EQ(4, byte_data[1]);
   EXPECT_EQ(3, byte_data[2]);
   EXPECT_EQ(2, byte_data[3]);
   EXPECT_EQ(1, byte_data[4]);
 
-  io.set_output_string("Hello there :)");
+  wrapper.io_proto.set_output_string("Hello there :)");
 }
 
 TEST(SandboxedServiceTest,

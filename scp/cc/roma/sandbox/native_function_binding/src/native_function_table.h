@@ -25,6 +25,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/roma/config/src/function_binding_object_v2.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
 #include "error_codes.h"
@@ -32,8 +33,8 @@
 namespace google::scp::roma::sandbox::native_function_binding {
 class NativeFunctionTable {
  public:
-  using NativeBinding = std::function<void(
-      proto::FunctionBindingIoProto& function_binding_proto)>;
+  using NativeBinding =
+      std::function<void(FunctionBindingPayload& binding_wrapper)>;
 
   /**
    * @brief Register a function binding in the table.
@@ -53,9 +54,8 @@ class NativeFunctionTable {
    * @param function_binding_proto The function parameters.
    * @return core::ExecutionResult
    */
-  core::ExecutionResult Call(
-      absl::string_view function_name,
-      proto::FunctionBindingIoProto& function_binding_proto)
+  core::ExecutionResult Call(absl::string_view function_name,
+                             FunctionBindingPayload& function_binding_wrapper)
       ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_);
 
   // Remove all of the functions from the table.

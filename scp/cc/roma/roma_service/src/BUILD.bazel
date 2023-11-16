@@ -21,6 +21,7 @@ cc_library(
     srcs = ["roma.cc"],
     deps = [
         "//scp/cc:cc_base_include_dir",
+        "//scp/cc/core/common/uuid/src:uuid_lib",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/os/src/linux:system_resource_info_provider_linux_lib",
         "//scp/cc/roma/sandbox/dispatcher/src:roma_dispatcher_lib",

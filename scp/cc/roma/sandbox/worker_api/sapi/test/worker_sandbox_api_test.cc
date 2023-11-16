@@ -28,9 +28,9 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker_factory/src/worker_factory.h"
-#include "scp/cc/roma/interface/function_binding_io.pb.h"
+#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
-using google::scp::roma::proto::FunctionBindingIoProto;
+using google::scp::roma::proto::RpcWrapper;
 using google::scp::roma::sandbox::constants::kCodeVersion;
 using google::scp::roma::sandbox::constants::kHandlerName;
 using google::scp::roma::sandbox::constants::kRequestAction;
@@ -107,13 +107,13 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   std::thread to_handle_function_call(
       [](int fd) {
         sandbox2::Comms comms(fd);
-        FunctionBindingIoProto io_proto;
-        EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
+        RpcWrapper rpc_proto;
+        EXPECT_TRUE(comms.RecvProtoBuf(&rpc_proto));
 
-        auto result = "from C++ " + io_proto.input_string();
-        io_proto.set_output_string(result);
+        auto result = "from C++ " + rpc_proto.io_proto().input_string();
+        rpc_proto.mutable_io_proto()->set_output_string(result);
 
-        EXPECT_TRUE(comms.SendProtoBuf(io_proto));
+        EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
       },
       fds[0]);
 
@@ -209,13 +209,14 @@ TEST(WorkerSandboxApiTest,
   std::thread to_handle_function_call(
       [](int fd) {
         sandbox2::Comms comms(fd);
-        FunctionBindingIoProto io_proto;
-        EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
+        RpcWrapper rpc_proto;
+        EXPECT_TRUE(comms.RecvProtoBuf(&rpc_proto));
 
-        auto result = "from C++ hook :) " + io_proto.input_string();
-        io_proto.set_output_string(result);
+        auto result = absl::StrCat("from C++ hook :) ",
+                                   rpc_proto.io_proto().input_string());
+        rpc_proto.mutable_io_proto()->set_output_string(result);
 
-        EXPECT_TRUE(comms.SendProtoBuf(io_proto));
+        EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
       },
       fds[0]);
 

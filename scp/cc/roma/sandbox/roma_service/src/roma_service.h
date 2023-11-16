@@ -59,6 +59,10 @@ class RomaService {
     }
   }
 
+  core::ExecutionResult RegisterMetadata(
+      const std::string& uuid,
+      const absl::flat_hash_map<std::string, std::string>& metadata);
+
   /// Return the dispatcher
   dispatcher::Dispatcher& Dispatcher() { return *dispatcher_; }
 

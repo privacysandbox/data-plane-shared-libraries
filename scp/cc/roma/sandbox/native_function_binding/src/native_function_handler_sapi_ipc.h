@@ -19,6 +19,7 @@
 
 #include <atomic>
 #include <memory>
+#include <string>
 #include <thread>
 #include <vector>
 
@@ -50,6 +51,10 @@ class NativeFunctionHandlerSapiIpc {
 
   core::ExecutionResult Stop() noexcept;
 
+  core::ExecutionResult StoreMetadata(
+      const std::string& uuid,
+      const absl::flat_hash_map<std::string, std::string>& metadata) noexcept;
+
  private:
   std::atomic<bool> stop_;
 
@@ -58,6 +63,11 @@ class NativeFunctionHandlerSapiIpc {
   std::vector<sandbox2::Comms> ipc_comms_;
   // We need the remote file descriptors to unblock the local ones when stopping
   std::vector<int> remote_fds_;
+
+  // Map of invocation request uuid to associated metadata.
+  absl::flat_hash_map<std::string,
+                      absl::flat_hash_map<std::string, std::string>>
+      metadata_;
 };
 }  // namespace google::scp::roma::sandbox::native_function_binding
 

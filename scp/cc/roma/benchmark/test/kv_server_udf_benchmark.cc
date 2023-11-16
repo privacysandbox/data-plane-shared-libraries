@@ -91,8 +91,8 @@ void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
 }
 
 // This C++ callback function is called in the benchmark below:
-static void HelloWorldCallback(FunctionBindingIoProto& io) {
-  io.set_output_string("I am a callback");
+static void HelloWorldCallback(FunctionBindingPayload& wrapper) {
+  wrapper.io_proto.set_output_string("I am a callback");
 }
 
 void BM_ExecuteHelloWorldCallback(benchmark::State& state) {

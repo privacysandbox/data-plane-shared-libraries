@@ -31,10 +31,9 @@
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/native_function_binding/src/native_function_table.h"
 #include "sandboxed_api/sandbox2/comms.h"
+#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 using google::scp::core::test::AutoInitRunStop;
-using google::scp::roma::sandbox::constants::
-    kFuctionBindingMetadataFunctionName;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;
 using google::scp::roma::sandbox::native_function_binding::NativeFunctionTable;
@@ -57,9 +56,9 @@ TEST(NativeFunctionHandlerSapiIpcTest, IninRunStop) {
 
 static bool g_called_registered_function;
 
-void FunctionToBeCalled(proto::FunctionBindingIoProto& io_proto) {
+void FunctionToBeCalled(FunctionBindingPayload& wrapper) {
   g_called_registered_function = true;
-  io_proto.set_output_string("I'm an output standalone string");
+  wrapper.io_proto.set_output_string("I'm an output standalone string");
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
@@ -76,17 +75,16 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
 
   auto remote_fd = remote_fds.at(0);
   sandbox2::Comms comms(remote_fd);
-  proto::FunctionBindingIoProto io_proto;
-  (*io_proto.mutable_metadata())[kFuctionBindingMetadataFunctionName] =
-      "cool_function_name";
+  proto::RpcWrapper rpc_proto;
+  rpc_proto.set_function_name("cool_function_name");
   // Send the request over so that it's handled and the registered function
   // can be called
-  EXPECT_TRUE(comms.SendProtoBuf(io_proto));
+  EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
   // Receive the response
-  EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
+  EXPECT_TRUE(comms.RecvProtoBuf(&rpc_proto));
 
   EXPECT_TRUE(g_called_registered_function);
-  EXPECT_THAT(io_proto.output_string(),
+  EXPECT_THAT(rpc_proto.io_proto().output_string(),
               StrEq("I'm an output standalone string"));
 }
 
@@ -105,21 +103,20 @@ TEST(NativeFunctionHandlerSapiIpcTest,
 
   auto remote_fd = remote_fds.at(0);
   sandbox2::Comms comms(remote_fd);
-  proto::FunctionBindingIoProto io_proto;
-  (*io_proto.mutable_metadata())[kFuctionBindingMetadataFunctionName] =
-      "cool_function_name";
+  proto::RpcWrapper rpc_proto;
+  rpc_proto.set_function_name("cool_function_name");
   // Send the request over so that it's handled and the registered function
   // can be called
-  EXPECT_TRUE(comms.SendProtoBuf(io_proto));
+  EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
   // Receive the response
-  EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
+  EXPECT_TRUE(comms.RecvProtoBuf(&rpc_proto));
 
   EXPECT_FALSE(g_called_registered_function);
-  EXPECT_FALSE(io_proto.has_input_string() ||
-               io_proto.has_input_list_of_string() ||
-               io_proto.has_input_map_of_string());
-  EXPECT_GE(io_proto.errors().size(), 0);
-  EXPECT_THAT(io_proto.errors(0),
+  EXPECT_FALSE(rpc_proto.io_proto().has_input_string() ||
+               rpc_proto.io_proto().has_input_list_of_string() ||
+               rpc_proto.io_proto().has_input_map_of_string());
+  EXPECT_GE(rpc_proto.io_proto().errors().size(), 0);
+  EXPECT_THAT(rpc_proto.io_proto().errors(0),
               StrEq("ROMA: Failed to execute the C++ function."));
 }
 
@@ -138,33 +135,33 @@ TEST(NativeFunctionHandlerSapiIpcTest,
 
   auto remote_fd = remote_fds.at(0);
   sandbox2::Comms comms(remote_fd);
-  proto::FunctionBindingIoProto io_proto;
+  proto::RpcWrapper rpc_proto;
   // Send the request over so that it's handled and the registered function
   // can be called
-  EXPECT_TRUE(comms.SendProtoBuf(io_proto));
+  EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
   // Receive the response
-  EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
+  EXPECT_TRUE(comms.RecvProtoBuf(&rpc_proto));
 
   EXPECT_FALSE(g_called_registered_function);
-  EXPECT_FALSE(io_proto.has_input_string() ||
-               io_proto.has_input_list_of_string() ||
-               io_proto.has_input_map_of_string());
-  EXPECT_GE(io_proto.errors().size(), 0);
-  EXPECT_THAT(io_proto.errors(0),
+  EXPECT_FALSE(rpc_proto.io_proto().has_input_string() ||
+               rpc_proto.io_proto().has_input_list_of_string() ||
+               rpc_proto.io_proto().has_input_map_of_string());
+  EXPECT_GE(rpc_proto.io_proto().errors().size(), 0);
+  EXPECT_THAT(rpc_proto.io_proto().errors(0),
               StrEq("ROMA: Could not find C++ function by name."));
 }
 
 static bool g_called_registered_function_one;
 static bool g_called_registered_function_two;
 
-void FunctionOne(proto::FunctionBindingIoProto& io_proto) {
+void FunctionOne(FunctionBindingPayload& wrapper) {
   g_called_registered_function_one = true;
-  io_proto.set_output_string("From function one");
+  wrapper.io_proto.set_output_string("From function one");
 }
 
-void FunctionTwo(proto::FunctionBindingIoProto& io_proto) {
+void FunctionTwo(FunctionBindingPayload& wrapper) {
   g_called_registered_function_two = true;
-  io_proto.set_output_string("From function two");
+  wrapper.io_proto.set_output_string("From function two");
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
@@ -183,30 +180,28 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
 
   auto remote_fd = remote_fds.at(0);
   sandbox2::Comms comms(remote_fd);
-  proto::FunctionBindingIoProto io_proto;
-  (*io_proto.mutable_metadata())[kFuctionBindingMetadataFunctionName] =
-      "cool_function_name_one";
+  proto::RpcWrapper rpc_proto;
+  rpc_proto.set_function_name("cool_function_name_one");
   // Send the request over so that it's handled and the registered function
   // can be called
-  EXPECT_TRUE(comms.SendProtoBuf(io_proto));
+  EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
   // Receive the response
-  EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
+  EXPECT_TRUE(comms.RecvProtoBuf(&rpc_proto));
 
   EXPECT_TRUE(g_called_registered_function_one);
-  EXPECT_THAT(io_proto.errors(), SizeIs(0));
-  EXPECT_THAT(io_proto.output_string(), StrEq("From function one"));
+  EXPECT_EQ(rpc_proto.io_proto().errors().size(), 0);
+  EXPECT_THAT(rpc_proto.io_proto().output_string(), StrEq("From function one"));
 
-  io_proto.Clear();
-  (*io_proto.mutable_metadata())[kFuctionBindingMetadataFunctionName] =
-      "cool_function_name_two";
+  rpc_proto.Clear();
+  rpc_proto.set_function_name("cool_function_name_two");
   // Send the request over so that it's handled and the registered function
   // can be called
-  EXPECT_TRUE(comms.SendProtoBuf(io_proto));
+  EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
   // Receive the response
-  EXPECT_TRUE(comms.RecvProtoBuf(&io_proto));
+  EXPECT_TRUE(comms.RecvProtoBuf(&rpc_proto));
 
   EXPECT_TRUE(g_called_registered_function_two);
-  EXPECT_THAT(io_proto.errors(), SizeIs(0));
-  EXPECT_THAT(io_proto.output_string(), StrEq("From function two"));
+  EXPECT_EQ(rpc_proto.io_proto().errors().size(), 0);
+  EXPECT_THAT(rpc_proto.io_proto().output_string(), StrEq("From function two"));
 }
 }  // namespace google::scp::roma::sandbox::native_function_binding::test

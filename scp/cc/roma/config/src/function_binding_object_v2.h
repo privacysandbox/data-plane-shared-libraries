@@ -23,6 +23,20 @@
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
 namespace google::scp::roma {
+struct FunctionBindingPayload {
+  /**
+   * @brief The two-way proto used to receive input from the JS function,
+   * and return output from the C++ function
+   */
+  proto::FunctionBindingIoProto& io_proto;
+
+  /**
+   * @brief Metadata passed in from InvocationRequest to native functions
+   * outside of sandbox.
+   */
+  const absl::flat_hash_map<std::string, std::string> metadata;
+};
+
 class FunctionBindingObjectV2 {
  public:
   /**
@@ -33,7 +47,7 @@ class FunctionBindingObjectV2 {
   /**
    * @brief The function that will be bound to a Javascript function.
    */
-  std::function<void(proto::FunctionBindingIoProto&)> function;
+  std::function<void(FunctionBindingPayload&)> function;
 };
 }  // namespace google::scp::roma
 

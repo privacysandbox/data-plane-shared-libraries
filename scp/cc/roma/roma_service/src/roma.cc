@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "core/common/uuid/src/uuid.h"
 #include "core/interface/errors.h"
 #include "core/os/src/linux/system_resource_info_provider_linux.h"
 #include "roma/logging/src/logging.h"
@@ -66,8 +67,15 @@ absl::Status ExecuteInternal(std::unique_ptr<RequestT> invocation_req,
   }
 
   auto* roma_service = RomaService::Instance();
-  auto result = roma_service->Dispatcher().Dispatch(std::move(invocation_req),
-                                                    std::move(callback));
+  auto request_unique_id = google::scp::core::common::Uuid::GenerateUuid();
+  auto it_pair = invocation_req->tags.emplace(
+      google::scp::roma::sandbox::constants::kRequestUuid,
+      google::scp::core::common::ToString(request_unique_id));
+  roma_service->RegisterMetadata(it_pair.first->second,
+                                 invocation_req->metadata);
+
+  const auto result = roma_service->Dispatcher().Dispatch(
+      std::move(invocation_req), std::move(callback));
   if (!result.Successful()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma Execute failed due to: " +

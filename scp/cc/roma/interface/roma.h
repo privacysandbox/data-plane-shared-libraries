@@ -98,6 +98,9 @@ struct InvocationRequest {
   // The input arguments to invoke the handler function. The InputType string is
   // in a format that can be parsed as JSON.
   std::vector<InputType> input;
+  // Any server-side metadata associated with this code object. This metadata is
+  // passed into native functions without entering SAPI Sandbox and v8.
+  absl::flat_hash_map<std::string, std::string> metadata;
 };
 
 using InvocationRequestStrInput = InvocationRequest<std::string>;

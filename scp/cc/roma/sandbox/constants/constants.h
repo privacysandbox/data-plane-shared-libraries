@@ -25,7 +25,7 @@ static constexpr char kRequestTypeJavascriptWithWasm[] = "JSAndWASM";
 
 static constexpr char kHandlerName[] = "HandlerName";
 
-static constexpr char kRequestId[] = "RequestId";
+static constexpr char kRequestUuid[] = "RequestUuid";
 static constexpr char kCodeVersion[] = "CodeVersion";
 static constexpr char kRequestAction[] = "RequestAction";
 static constexpr char kRequestActionLoad[] = "Load";
@@ -33,10 +33,7 @@ static constexpr char kRequestActionExecute[] = "Execute";
 static constexpr char kJsEngineOneTimeSetupWasmPagesKey[] =
     "MaxWasmNumberOfPages";
 
-static constexpr char kFuctionBindingMetadataFunctionName[] =
-    "roma.js_function_binding_name";
-
-static constexpr char kMetadataRomaRequestId[] = "roma.request.id";
+static constexpr char kRequestId[] = "roma.request.id";
 
 static constexpr int kCodeVersionCacheSize = 5;
 

@@ -155,13 +155,8 @@ class WorkerSandboxApi {
     void GetArgs(std::vector<std::string>* args) const override {
 #ifdef ABSL_MIN_LOG_LEVEL
       // Gets ABSL_MIN_LOG_LEVEL value and pass it into sandbox.
-      args->push_back(absl::StrCat("--stderrthreshold=",
-                                   static_cast<int>(ABSL_MIN_LOG_LEVEL)));
-#else
-      // Sets `stderrthreshold` to absl::LogSeverity::kWarning by default. Only
-      // LOG(WARNING) and LOG(ERROR) logs from the sandbox will show up.
-      args->push_back(absl::StrCat(
-          "--stderrthreshold=", static_cast<int>(absl::LogSeverity::kWarning)));
+      args->push_back(
+          absl::StrCat("--stderrthreshold=", int64_t{ABSL_MIN_LOG_LEVEL}));
 #endif
     }
 

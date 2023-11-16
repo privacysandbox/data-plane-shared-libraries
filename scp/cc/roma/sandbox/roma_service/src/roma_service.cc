@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "roma/logging/src/logging.h"
+#include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker_api/src/worker_api_sapi.h"
 #include "roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
 
@@ -36,6 +37,7 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::SC_ROMA_SERVICE_COULD_NOT_CREATE_FD_PAIR;
 using google::scp::roma::FunctionBindingObjectV2;
 using google::scp::roma::proto::FunctionBindingIoProto;
+using google::scp::roma::sandbox::constants::kRequestUuid;
 using google::scp::roma::sandbox::dispatcher::Dispatcher;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;
@@ -51,34 +53,28 @@ RomaService* RomaService::instance_;
 constexpr int kWorkerQueueMax = 100;
 
 namespace {
-
-void RomaLog(const FunctionBindingIoProto& io) {
-  LOG(INFO) << io.input_string();
-}
-
-void RomaWarn(const FunctionBindingIoProto& io) {
-  LOG(WARNING) << io.input_string();
-}
-
-void RomaError(const FunctionBindingIoProto& io) {
-  LOG(ERROR) << io.input_string();
+absl::LogSeverity GetSeverity(std::string_view severity) {
+  if (severity == "ROMA_LOG") {
+    return absl::LogSeverity::kInfo;
+  } else if (severity == "ROMA_WARN") {
+    return absl::LogSeverity::kWarning;
+  } else {
+    return absl::LogSeverity::kError;
+  }
 }
 
 }  // namespace
 
 void RomaService::RegisterLogBindings() noexcept {
-  absl::flat_hash_map<std::string, std::function<void(FunctionBindingIoProto)>>
-      cpp_to_js_names = {
-          {"ROMA_LOG", RomaLog},
-          {"ROMA_WARN", RomaWarn},
-          {"ROMA_ERROR", RomaError},
-      };
-
-  const auto log_fn_factory = [&cpp_to_js_names](
-                                  const std::string& function_name) {
+  const auto log_fn_factory = [](const std::string& function_name) {
     auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
-    function_binding_object->function = cpp_to_js_names[function_name];
     function_binding_object->function_name = function_name;
+    const auto severity = GetSeverity(function_name);
+    function_binding_object->function =
+        [severity](FunctionBindingPayload& wrapper) {
+          LOG(LEVEL(severity)) << wrapper.io_proto.input_string();
+          wrapper.io_proto.set_output_string("");
+        };
     return function_binding_object;
   };
   for (const auto& name : {"ROMA_LOG", "ROMA_WARN", "ROMA_ERROR"}) {
@@ -123,6 +119,13 @@ ExecutionResult RomaService::Run() noexcept {
   RETURN_IF_FAILURE(native_function_binding_handler_->Run());
   RETURN_IF_FAILURE(async_executor_->Run());
   RETURN_IF_FAILURE(worker_pool_->Run());
+  return SuccessExecutionResult();
+}
+
+ExecutionResult RomaService::RegisterMetadata(
+    const std::string& uuid,
+    const absl::flat_hash_map<std::string, std::string>& metadata) {
+  native_function_binding_handler_->StoreMetadata(uuid, metadata);
   return SuccessExecutionResult();
 }
 

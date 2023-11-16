@@ -209,6 +209,7 @@ class ExecutionUtils {
       "ReferenceError: WebAssembly is not defined";
 
   static core::ExecutionResult CreatePerformanceNow(v8::Isolate* isolate);
+  static core::ExecutionResult CreateNativeLogFunctions(v8::Isolate* isolate);
 };
 }  // namespace google::scp::roma::worker
 

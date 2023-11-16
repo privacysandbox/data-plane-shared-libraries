@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "core/test/utils/auto_init_run_stop.h"
@@ -28,12 +29,12 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 #include "roma/sandbox/native_function_binding/src/native_function_invoker.h"
-#include "scp/cc/roma/interface/function_binding_io.pb.h"
+#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::test::AutoInitRunStop;
-using google::scp::roma::proto::FunctionBindingIoProto;
+using google::scp::roma::proto::RpcWrapper;
 
 using ::testing::_;
 using ::testing::Return;
@@ -51,16 +52,14 @@ class V8IsolateFunctionBindingTest : public ::testing::Test {
 class NativeFunctionInvokerMock
     : public native_function_binding::NativeFunctionInvoker {
  public:
-  MOCK_METHOD(ExecutionResult, Invoke,
-              (const std::string&, FunctionBindingIoProto&),
-              (noexcept, override));
+  MOCK_METHOD(ExecutionResult, Invoke, (RpcWrapper&), (noexcept, override));
 
   virtual ~NativeFunctionInvokerMock() = default;
 };
 
 TEST_F(V8IsolateFunctionBindingTest, FunctionBecomesAvailableInJavascript) {
   auto function_invoker = std::make_unique<NativeFunctionInvokerMock>();
-  EXPECT_CALL(*function_invoker, Invoke("cool_func", _))
+  EXPECT_CALL(*function_invoker, Invoke(_))
       .WillOnce(Return(SuccessExecutionResult()));
 
   std::vector<std::string> function_names = {"cool_func"};

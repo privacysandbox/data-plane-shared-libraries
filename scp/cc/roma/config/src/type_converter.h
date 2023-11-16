@@ -111,6 +111,42 @@ struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
     return map;
   }
 
+  // Populates out parameter, `out`, with the contents of a V8 object, `val`,
+  // for use in converting base JS objects to absl::flat_hash_map<std::string,
+  // std::string>
+  static bool FromV8Object(v8::Isolate* isolate, v8::Local<v8::Value> val,
+                           absl::flat_hash_map<std::string, std::string>* out) {
+    if (!val->IsObject()) {
+      return false;
+    }
+    auto v8_obj = val.As<v8::Object>();
+
+    auto property_names =
+        v8_obj->GetOwnPropertyNames(isolate->GetCurrentContext())
+            .ToLocalChecked();
+    for (auto i = 0; i < property_names->Length(); i++) {
+      auto prop =
+          property_names->Get(isolate->GetCurrentContext(), i).ToLocalChecked();
+      std::string prop_str;
+      bool prop_conversion =
+          TypeConverter<std::string>::FromV8(isolate, prop, &prop_str);
+
+      auto field =
+          v8_obj->Get(isolate->GetCurrentContext(), prop).ToLocalChecked();
+      std::string field_str;
+      bool field_conversion =
+          TypeConverter<std::string>::FromV8(isolate, field, &field_str);
+
+      if (!prop_conversion || !field_conversion) {
+        out->clear();
+        return false;
+      }
+      (*out)[prop_str] = field_str;
+    }
+
+    return true;
+  }
+
   static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
                      absl::flat_hash_map<std::string, std::string>* out) {
     if (!out || val.IsEmpty() || !val->IsMap()) {

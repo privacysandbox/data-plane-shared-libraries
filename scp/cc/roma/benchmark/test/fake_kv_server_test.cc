@@ -58,8 +58,8 @@ TEST(FakeKvServerTest, ExecuteCodeWithKeyData) {
               StrEq(R"("Hello world! \"ECHO\"")"));
 }
 
-static void HelloWorldCallback(FunctionBindingIoProto& io) {
-  io.set_output_string("I am a callback!");
+static void HelloWorldCallback(FunctionBindingPayload& wrapper) {
+  wrapper.io_proto.set_output_string("I am a callback!");
 }
 
 TEST(FakeKvServerTest, ExecuteCodeWithCallback) {

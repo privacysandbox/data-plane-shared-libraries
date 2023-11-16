@@ -42,8 +42,8 @@ static void RunRequestFromInputRequestCommon(
   run_code_request.metadata[google::scp::roma::sandbox::constants::kRequestId] =
       request->id;
 
-  for (auto& kv : request->tags) {
-    run_code_request.metadata[kv.first] = kv.second;
+  for (auto& [key, val] : request->tags) {
+    run_code_request.metadata[key] = val;
   }
 }
 

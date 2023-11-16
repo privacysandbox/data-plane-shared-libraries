@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
@@ -25,6 +26,7 @@
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
+#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 #include "error_codes.h"
 
@@ -38,7 +40,10 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_ROMA_V8_ISOLATE_VISITOR_FUNCTION_BINDING_INVALID_ISOLATE;
 using google::scp::roma::proto::FunctionBindingIoProto;
-using google::scp::roma::sandbox::constants::kMetadataRomaRequestId;
+using google::scp::roma::proto::RpcWrapper;
+using google::scp::roma::sandbox::constants::kRequestId;
+using google::scp::roma::sandbox::constants::kRequestUuid;
+using Callback = void (*)(const v8::FunctionCallbackInfo<v8::Value>& info);
 
 static constexpr char kCouldNotRunFunctionBinding[] =
     "ROMA: Could not run C++ function binding.";
@@ -123,12 +128,89 @@ v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
   return v8::Undefined(isolate);
 }
 
+absl::LogSeverity GetSeverity(std::string_view severity) {
+  if (severity == "log") {
+    return absl::LogSeverity::kInfo;
+  } else if (severity == "warn") {
+    return absl::LogSeverity::kWarning;
+  } else {
+    return absl::LogSeverity::kError;
+  }
+}
+
+v8::Local<v8::ObjectTemplate> CreateObjectAttribute(
+    v8::Isolate* isolate, v8::Local<v8::ObjectTemplate>& object_template,
+    std::string_view js_name) {
+  auto obj = v8::ObjectTemplate::New(isolate);
+  object_template->Set(isolate, js_name.data(), obj);
+  return obj;
+}
+
+v8::Local<v8::ObjectTemplate> InitObjectJsApi(
+    v8::Isolate* isolate, v8::Local<v8::ObjectTemplate>& object,
+    const absl::flat_hash_map<std::string_view, Callback>&
+        name_to_callback_map) {
+  for (const auto& [name, callback] : name_to_callback_map) {
+    auto binding_name =
+        TypeConverter<std::string>::ToV8(isolate, std::string(name))
+            .As<v8::String>();
+    auto function_template =
+        v8::FunctionTemplate::New(isolate, callback, binding_name);
+    // Convert the function binding name to a v8 type
+    object->Set(binding_name, function_template);
+  }
+  return object;
+}
+
 }  // namespace
+
+void V8IsolateFunctionBinding::V8LogCallback(
+    const v8::FunctionCallbackInfo<v8::Value>& info) {
+  v8::Isolate* isolate = info.GetIsolate();
+
+  const auto get_input = [&info, &isolate]() {
+    std::string input;
+    for (int i = 0; i < info.Length(); i++) {
+      absl::StrAppend(&input, *v8::String::Utf8Value(isolate, info[i]));
+    }
+    return input;
+  };
+
+  v8::String::Utf8Value severity(isolate, info.Data());
+  LOG(LEVEL(GetSeverity(*severity))) << get_input();
+}
+
+void V8IsolateFunctionBinding::V8MetricsCallback(
+    const v8::FunctionCallbackInfo<v8::Value>& info) {
+  using StrMap = absl::flat_hash_map<std::string, std::string>;
+  v8::Isolate* isolate = info.GetIsolate();
+
+  StrMap native_metrics;
+  if (TypeConverter<StrMap>::FromV8Object(isolate, info[0], &native_metrics)) {
+    for (const auto& metric : native_metrics) {
+      LOG(INFO) << metric.first << ": " << metric.second;
+    }
+  }
+}
+
+bool V8IsolateFunctionBinding::NativeFieldsToProto(
+    const BindingPair& binding_pair, FunctionBindingIoProto& function_proto,
+    RpcWrapper& rpc_proto) {
+  const std::string& native_function_name = binding_pair.first;
+  if (native_function_name.empty()) {
+    return false;
+  }
+
+  rpc_proto.set_function_name(native_function_name);
+  rpc_proto.set_request_id(binding_pair.second->invocation_req_id_);
+  rpc_proto.set_request_uuid(binding_pair.second->invocation_req_uuid_);
+  *rpc_proto.mutable_io_proto() = function_proto;
+  return true;
+}
 
 void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
     const v8::FunctionCallbackInfo<v8::Value>& info) {
   auto isolate = info.GetIsolate();
-  auto context = isolate->GetCurrentContext();
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
   auto data = info.Data();
@@ -145,42 +227,23 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
     return;
   }
 
-  // Read the request ID from the global object in the context
-  const auto& request_id_label =
-      TypeConverter<std::string>::ToV8(isolate, kMetadataRomaRequestId)
-          .As<v8::String>();
-  const auto& roma_request_id_maybe =
-      context->Global()->Get(context, request_id_label);
-  v8::Local<v8::Value> roma_request_id;
-  std::string roma_request_id_native;
-  if (roma_request_id_maybe.ToLocal(&roma_request_id) &&
-      TypeConverter<std::string>::FromV8(isolate, roma_request_id,
-                                         &roma_request_id_native)) {
-    // Set the request ID in the function call metadata so that it is accessible
-    // when the function is invoked in the user-provided binding.
-    (*function_invocation_proto.mutable_metadata())[kMetadataRomaRequestId] =
-        roma_request_id_native;
-  } else {
-    LOG(ERROR) << "Could not read request ID from metadata in hook.";
+  RpcWrapper rpc_proto;
+  if (!NativeFieldsToProto(*binding_info_pair, function_invocation_proto,
+                           rpc_proto)) {
+    isolate->ThrowError(kCouldNotRunFunctionBinding);
   }
 
-  const std::string& native_function_name = binding_info_pair->first;
-  if (native_function_name.empty()) {
-    isolate->ThrowError(kCouldNotRunFunctionBinding);
-    return;
-  }
-  const auto result = binding_info_pair->second->function_invoker_->Invoke(
-      native_function_name, function_invocation_proto);
+  const auto result =
+      binding_info_pair->second->function_invoker_->Invoke(rpc_proto);
   if (!result.Successful()) {
     isolate->ThrowError(kCouldNotRunFunctionBinding);
     return;
   }
-  if (!function_invocation_proto.errors().empty()) {
+  if (!rpc_proto.io_proto().errors().empty()) {
     isolate->ThrowError(kErrorInFunctionBindingInvocation);
     return;
   }
-  const auto& returned_value =
-      ProtoToV8Type(isolate, function_invocation_proto);
+  const auto& returned_value = ProtoToV8Type(isolate, rpc_proto.io_proto());
   info.GetReturnValue().Set(returned_value);
 }
 
@@ -204,7 +267,32 @@ ExecutionResult V8IsolateFunctionBinding::BindFunctions(
             .As<v8::String>();
     global_object_template->Set(binding_name, function_template);
   }
+
+  CreateGlobalRomaObject(isolate, global_object_template);
   return SuccessExecutionResult();
+}
+
+void V8IsolateFunctionBinding::CreateGlobalRomaObject(
+    v8::Isolate* isolate,
+    v8::Local<v8::ObjectTemplate>& global_object_template) const {
+  static auto roma =
+      CreateObjectAttribute(isolate, global_object_template, "roma");
+  [[maybe_unused]] static auto obj =
+      InitObjectJsApi(isolate, roma,
+                      absl::flat_hash_map<std::string_view, Callback>{
+                          {"recordMetrics", &V8MetricsCallback},
+                          {"log", &V8LogCallback},
+                          {"warn", &V8LogCallback},
+                          {"error", &V8LogCallback},
+                      });
+}
+
+void V8IsolateFunctionBinding::AddIds(std::string_view uuid,
+                                      std::string_view id) noexcept {
+  if (binding_references_.size() > 0) {
+    binding_references_[0].second->invocation_req_uuid_ = uuid;
+    binding_references_[0].second->invocation_req_id_ = id;
+  }
 }
 
 void V8IsolateFunctionBinding::AddExternalReferences(
@@ -216,5 +304,7 @@ void V8IsolateFunctionBinding::AddExternalReferences(
   }
   external_references.push_back(
       reinterpret_cast<intptr_t>(&GlobalV8FunctionCallback));
+  external_references.push_back(reinterpret_cast<intptr_t>(&V8LogCallback));
+  external_references.push_back(reinterpret_cast<intptr_t>(&V8MetricsCallback));
 }
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

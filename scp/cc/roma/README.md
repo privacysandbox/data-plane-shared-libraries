@@ -171,8 +171,8 @@ converters for every odd type in Roma. Here is an example of how to use this fea
 
     ```javascript
     // an example of UDF
-    void StringInStringOutFunction(proto::FunctionBindingIoProto& io) {
-      io.set_output_string(io.input_string() + " String from C++");
+    void StringInStringOutFunction(proto::FunctionBindingPayload& wrapper) {
+      wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() + " String from C++");
     }
     ```
 

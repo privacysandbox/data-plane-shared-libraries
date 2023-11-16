@@ -21,12 +21,14 @@
 #include <utility>
 #include <vector>
 
+#include "absl/log/log.h"
 #include "roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::roma::sandbox::constants::
-    kFuctionBindingMetadataFunctionName;
+using google::scp::roma::sandbox::constants::kRequestId;
+using google::scp::roma::sandbox::constants::kRequestUuid;
 
 static constexpr char kFailedNativeHandlerExecution[] =
     "ROMA: Failed to execute the C++ function.";
@@ -56,10 +58,10 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Run() noexcept {
     function_handler_threads_.emplace_back([this, i] {
       while (true) {
         sandbox2::Comms& comms = ipc_comms_.at(i);
-        proto::FunctionBindingIoProto io_proto;
+        proto::RpcWrapper wrapper_proto;
 
         // This unblocks once a call is issued from the other side
-        const bool received = comms.RecvProtoBuf(&io_proto);
+        const bool received = comms.RecvProtoBuf(&wrapper_proto);
         if (stop_.load()) {
           break;
         }
@@ -67,25 +69,45 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Run() noexcept {
           continue;
         }
 
+        absl::flat_hash_map<std::string, std::string> metadata;
+        auto io_proto = wrapper_proto.mutable_io_proto();
+        const auto& invocation_req_uuid = wrapper_proto.request_uuid();
+        if (const auto& metadata_it = metadata_.find(invocation_req_uuid);
+            metadata_it != metadata_.end()) {
+          metadata = metadata_it->second;
+          metadata_.erase(metadata_it);
+        }
+
         // Get function name
-        if (const auto fn_it =
-                io_proto.metadata().find(kFuctionBindingMetadataFunctionName);
-            fn_it != io_proto.metadata().end()) {
-          if (!function_table_->Call(fn_it->second, io_proto).Successful()) {
+        if (const auto function_name = wrapper_proto.function_name();
+            !function_name.empty()) {
+          if (FunctionBindingPayload wrapper{*io_proto, metadata};
+              !function_table_->Call(function_name, wrapper).Successful()) {
             // If execution failed, add errors to the proto to return
-            io_proto.mutable_errors()->Add(kFailedNativeHandlerExecution);
+            io_proto->mutable_errors()->Add(kFailedNativeHandlerExecution);
           }
         } else {
           // If we can't find the function, add errors to the proto to return
-          io_proto.mutable_errors()->Add(kCouldNotFindFunctionName);
+          io_proto->mutable_errors()->Add(kCouldNotFindFunctionName);
         }
-        if (!comms.SendProtoBuf(io_proto)) {
+        if (!comms.SendProtoBuf(wrapper_proto)) {
           continue;
         }
       }
     });
   }
 
+  return SuccessExecutionResult();
+}
+
+ExecutionResult NativeFunctionHandlerSapiIpc::StoreMetadata(
+    const std::string& uuid,
+    const absl::flat_hash_map<std::string, std::string>& metadata) noexcept {
+  const auto& uuid_it = metadata_.try_emplace(
+      uuid, absl::flat_hash_map<std::string, std::string>());
+  for (const auto& pair : metadata) {
+    uuid_it.first->second.insert(pair);
+  }
   return SuccessExecutionResult();
 }
 

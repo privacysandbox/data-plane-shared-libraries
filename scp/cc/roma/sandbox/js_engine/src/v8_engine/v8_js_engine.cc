@@ -65,8 +65,8 @@ using google::scp::roma::sandbox::constants::
     kInputParsingMetricJsEngineDuration;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
 using google::scp::roma::sandbox::constants::kMaxNumberOfWasm32BitMemPages;
-using google::scp::roma::sandbox::constants::kMetadataRomaRequestId;
 using google::scp::roma::sandbox::constants::kRequestId;
+using google::scp::roma::sandbox::constants::kRequestUuid;
 using google::scp::roma::sandbox::constants::kWasmMemPagesV8PlatformFlag;
 using google::scp::roma::sandbox::js_engine::JsEngineExecutionResponse;
 using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
@@ -493,23 +493,6 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     execution_response.metrics[kInputParsingMetricJsEngineDuration] =
         stopwatch.GetElapsedTime();
 
-    // Set the request ID in the global object
-    auto request_id_label =
-        TypeConverter<std::string>::ToV8(v8_isolate, kMetadataRomaRequestId)
-            .As<v8::String>();
-    auto request_id_or =
-        WorkerUtils::GetValueFromMetadata(metadata, kRequestId);
-    if (request_id_or.Successful()) {
-      auto request_id =
-          TypeConverter<std::string>::ToV8(v8_isolate, *request_id_or)
-              .As<v8::String>();
-      v8_context->Global()
-          ->Set(v8_context, request_id_label, request_id)
-          .Check();
-    } else {
-      LOG(ERROR) << "Could not read request ID from metadata.";
-    }
-
     stopwatch.Reset();
     v8::Local<v8::Value> result;
     if (!handler_func->Call(v8_context, v8_context->Global(), argc, argv)
@@ -700,6 +683,13 @@ V8JsEngine::CompileAndRunJsWithWasm(
   } else {
     curr_comp_ctx =
         std::static_pointer_cast<SnapshotCompilationContext>(context.context);
+
+    if (const auto &uuid_it = metadata.find(kRequestUuid),
+        id_it = metadata.find(kRequestId);
+        isolate_function_binding_ && uuid_it != metadata.end() &&
+        id_it != metadata.end()) {
+      isolate_function_binding_->AddIds(uuid_it->second, id_it->second);
+    }
   }
 
   v8::Isolate* v8_isolate = curr_comp_ctx->isolate->isolate();

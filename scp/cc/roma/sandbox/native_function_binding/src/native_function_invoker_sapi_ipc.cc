@@ -16,6 +16,7 @@
 
 #include "native_function_invoker_sapi_ipc.h"
 
+#include "absl/log/log.h"
 #include "roma/sandbox/constants/constants.h"
 
 #include "error_codes.h"
@@ -29,9 +30,9 @@ using google::scp ::core::errors ::
     SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_COULD_NOT_SEND_CALL_TO_PARENT;
 using google::scp::core::errors::
     SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_INVOKE_WITH_UNINITIALIZED_COMMS;
-using google::scp::roma::proto::FunctionBindingIoProto;
-using google::scp::roma::sandbox::constants::
-    kFuctionBindingMetadataFunctionName;
+using google::scp::roma::proto::RpcWrapper;
+using google::scp::roma::sandbox::constants::kRequestId;
+using google::scp::roma::sandbox::constants::kRequestUuid;
 
 static constexpr int kBadFd = -1;
 
@@ -43,25 +44,19 @@ NativeFunctionInvokerSapiIpc::NativeFunctionInvokerSapiIpc(int comms_fd) {
 }
 
 ExecutionResult NativeFunctionInvokerSapiIpc::Invoke(
-    const std::string& function_name,
-    FunctionBindingIoProto& function_binding_proto) noexcept {
+    RpcWrapper& rpc_wrapper_proto) noexcept {
   if (!ipc_comms_) {
     return FailureExecutionResult(
         SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_INVOKE_WITH_UNINITIALIZED_COMMS);
   }
 
-  // Set the function name so that it can be retrieved on the other side.
-  (*function_binding_proto
-        .mutable_metadata())[kFuctionBindingMetadataFunctionName] =
-      function_name;
-
-  auto sent = ipc_comms_->SendProtoBuf(function_binding_proto);
+  auto sent = ipc_comms_->SendProtoBuf(rpc_wrapper_proto);
   if (!sent) {
     return FailureExecutionResult(
         SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_COULD_NOT_SEND_CALL_TO_PARENT);
   }
 
-  auto recv = ipc_comms_->RecvProtoBuf(&function_binding_proto);
+  auto recv = ipc_comms_->RecvProtoBuf(&rpc_wrapper_proto);
   if (!recv) {
     return FailureExecutionResult(
         SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_COULD_NOT_RECV_RESPONSE_FROM_PARENT);

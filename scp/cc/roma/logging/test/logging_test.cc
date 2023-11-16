@@ -20,86 +20,100 @@
 #include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
-#include "absl/synchronization/notification.h"
-#include "absl/time/time.h"
-#include "roma/config/src/config.h"
+#include "absl/strings/string_view.h"
+#include "core/test/utils/auto_init_run_stop.h"
 #include "roma/interface/roma.h"
+#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
+#include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
+#include "roma/sandbox/native_function_binding/src/native_function_invoker.h"
 
-using google::scp::roma::FunctionBindingObjectV2;
-using google::scp::roma::proto::FunctionBindingIoProto;
+using google::scp::core::test::AutoInitRunStop;
+using google::scp::roma::sandbox::js_engine::v8_js_engine::
+    V8IsolateFunctionBinding;
+using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
+using google::scp::roma::sandbox::native_function_binding::
+    NativeFunctionInvoker;
+
 using ::testing::_;
 
 namespace google::scp::roma::test {
-TEST(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
-  const std::vector<std::string> inputs{
-      "str1",
-      "str2",
-      "str3",
+class LoggingTest : public ::testing::Test {
+ public:
+  static void SetUpTestSuite() {
+    V8JsEngine engine;
+    engine.OneTimeSetup();
+  }
+};
+
+class NativeFunctionInvokerMock : public NativeFunctionInvoker {
+ public:
+  MOCK_METHOD(core::ExecutionResult, Invoke, (proto::RpcWrapper&),
+              (noexcept, override));
+
+  virtual ~NativeFunctionInvokerMock() = default;
+};
+
+TEST_F(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
+  std::vector<std::string> outputs{
+      R"("str1")",
+      R"("str2")",
+      R"("str3")",
+  };
+
+  const auto& trim_first_last_char = [](const std::string& str) {
+    return str.substr(1, str.length() - 2);
   };
 
   absl::ScopedMockLog log;
-  EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, inputs[0]));
-  EXPECT_CALL(log, Log(absl::LogSeverity::kWarning, _, inputs[1]));
-  EXPECT_CALL(log, Log(absl::LogSeverity::kError, _, inputs[2]));
+  EXPECT_CALL(
+      log, Log(absl::LogSeverity::kInfo, _, trim_first_last_char(outputs[0])));
+  EXPECT_CALL(log, Log(absl::LogSeverity::kWarning, _,
+                       trim_first_last_char(outputs[1])));
+  EXPECT_CALL(
+      log, Log(absl::LogSeverity::kError, _, trim_first_last_char(outputs[2])));
+
+  EXPECT_CALL(
+      log, Log(absl::LogSeverity::kInfo, _,
+               absl::StrCat("metrics1: ", trim_first_last_char(outputs[0]))));
+  EXPECT_CALL(
+      log, Log(absl::LogSeverity::kInfo, _,
+               absl::StrCat("metrics2: ", trim_first_last_char(outputs[1]))));
+  EXPECT_CALL(
+      log, Log(absl::LogSeverity::kInfo, _,
+               absl::StrCat("metrics3: ", trim_first_last_char(outputs[2]))));
   log.StartCapturingLogs();
 
-  auto status = RomaInit();
-  EXPECT_TRUE(status.ok());
+  auto function_invoker = std::make_unique<NativeFunctionInvokerMock>();
+  std::vector<std::string> function_names = {};
+  auto visitor = std::make_unique<V8IsolateFunctionBinding>(
+      function_names, std::move(function_invoker));
 
-  absl::Notification load_finished;
-  {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_num = 1;
-    code_obj->js = R"JS_CODE(
+  V8JsEngine engine(std::move(visitor));
+  AutoInitRunStop to_handle_engine(engine);
+
+  constexpr auto js_code = R"JS_CODE(
     function Handler(input1, input2, input3) {
-      ROMA_LOG(input1);
-      ROMA_WARN(input2);
-      ROMA_ERROR(input3);
+      roma.log(input1);
+      roma.warn(input2);
+      roma.error(input3);
+      roma.recordMetrics({
+        "metrics1": input1,
+        "metrics2": input2,
+        "metrics3": input3,
+      })
       return "Hello World";
     }
   )JS_CODE";
 
-    status = google::scp::roma::LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          CHECK(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
-  }
+  auto response_or = engine.CompileAndRunJs(
+      js_code, "Handler",
+      std::vector<absl::string_view>(outputs.begin(), outputs.end()),
+      {} /*metadata*/);
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_SUCCESS(response_or.result());
+  auto response_string = response_or->execution_response.response;
+  EXPECT_THAT(response_string, testing::StrEq(R"("Hello World")"));
 
-  std::string result;
-  absl::Notification execute_finished;
-  {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
-    execution_obj->id = "foo";
-    execution_obj->version_num = 1;
-    execution_obj->handler_name = "Handler";
-    for (const auto& input : inputs) {
-      execution_obj->input.push_back(absl::StrCat("\"", input, "\""));
-    }
-
-    // Execute UDF.
-    status = google::scp::roma::Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          CHECK(resp->ok());
-          auto& code_resp = **resp;
-          result = code_resp.resp;
-          execute_finished.Notify();
-        });
-
-    EXPECT_TRUE(status.ok());
-  }
-
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  EXPECT_EQ(result, R"("Hello World")");
-
-  status = RomaStop();
-  EXPECT_TRUE(status.ok());
   log.StopCapturingLogs();
 }
 }  // namespace google::scp::roma::test

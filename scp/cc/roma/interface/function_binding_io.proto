@@ -24,8 +24,8 @@
 //
 // C++ Code:
 // void CoolFunction(
-// google::scp::roma::proto::FunctionBindingIoProto& io_object) {
-//  io_object.set_output_string(io_object.input_string() + "Hello");
+// google::scp::roma::proto::FunctionBindingPayload& wrapper) {
+//  wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() + "Hello");
 // }
 //
 
@@ -42,11 +42,7 @@ message MapOfStringProto {
 }
 
 message FunctionBindingIoProto {
-  // Input
-
-  // Metadata belonging to the function binding call. To be read from the c++
-  // function.
-  map<string, string> metadata = 1;
+  reserved 1;
 
   // Used to accumulate errors that occur in the JS execution.
   repeated string errors = 2;
@@ -59,8 +55,6 @@ message FunctionBindingIoProto {
     MapOfStringProto input_map_of_string = 5;
     bytes input_bytes = 20;
   }
-
-  // Output
 
   // The output that should be returned by the JS call. To be set by the c++
   // function.

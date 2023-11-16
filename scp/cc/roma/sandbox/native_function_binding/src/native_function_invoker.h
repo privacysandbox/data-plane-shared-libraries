@@ -20,7 +20,7 @@
 #include <string>
 
 #include "public/core/interface/execution_result.h"
-#include "scp/cc/roma/interface/function_binding_io.pb.h"
+#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 namespace google::scp::roma::sandbox::native_function_binding {
 /**
@@ -37,15 +37,17 @@ class NativeFunctionInvoker {
    * @brief Invoke a native function linked to the given function invocation.
    * @param function_name is the name of the function to invoke. This is the
    * name that was used to register the function on the JS side.
-   * @param[inout] function_binding_proto is the function binding context. It
-   * contains both the input to be passed to the c++ function as well as the
-   * return value that is set by the c++ function and which is passed to the JS
-   * function as a return. This is a two-way proto.
+   * @param[inout] rpc_wrapper is a wrapper around the function binding context
+   * and associated execution info needed for host process execution. The
+   * function binding context is a two-way proto that contains the input to be
+   * passed to the c++ function and the return value that is set by the c++
+   * function and which is passed to the JS function as a return. The execution
+   * info neeeded in the host process includes the associated invocation
+   * request's id and uuid, and the name of the native function to call with the
+   * function binding context in the host process.
    */
   virtual core::ExecutionResult Invoke(
-      const std::string& function_name,
-      google::scp::roma::proto::FunctionBindingIoProto&
-          function_binding_proto) noexcept = 0;
+      google::scp::roma::proto::RpcWrapper& rpc_wrapper_proto) noexcept = 0;
 
   // The destructor must be virtual otherwise the base class destructor won't
   // ever be invoked.

@@ -12,9 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//visibility:public"])
+
+proto_library(
+    name = "roma_rpc_wrapper",
+    srcs = ["rpc_wrapper.proto"],
+    deps = ["//scp/cc/roma/interface:roma_function_binding_io_proto"],
+)
+
+cc_proto_library(
+    name = "cc_roma_rpc_wrapper",
+    deps = [":roma_rpc_wrapper"],
+)
 
 cc_library(
     name = "roma_native_function_binding_lib",
@@ -35,6 +47,7 @@ cc_library(
         "native_function_invoker_sapi_ipc.h",
     ],
     deps = [
+        ":cc_roma_rpc_wrapper",
         ":roma_native_function_binding_lib",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
@@ -56,9 +69,11 @@ cc_library(
         "native_function_table.h",
     ],
     deps = [
+        ":cc_roma_rpc_wrapper",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/public/core/interface:execution_result",
+        "//scp/cc/roma/config/src:roma_config_lib",
         "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "@com_google_absl//absl/container:flat_hash_map",
