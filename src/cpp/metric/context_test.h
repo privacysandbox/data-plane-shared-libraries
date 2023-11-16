@@ -65,6 +65,8 @@ inline constexpr absl::string_view pv[] = {"buyer_1", "buyer_2", "buyer_3",
                                            "buyer_4", "buyer_5", "buyer_6"};
 inline constexpr DefinitionPartition kIntExactPartitioned(
     "kIntExactPartitioned", "", "buyer_name", pv);
+inline constexpr DefinitionPartition kIntExactAnyPartitioned(
+    "kIntExactPartitioned", "", "buyer_name", kEmptyPublicPartition);
 inline constexpr DefinitionPartitionUnsafe kIntUnSafePartitioned(
     "kIntUnSafePartitioned", "", "buyer_name", 5, pv, 1, 1);
 inline constexpr DefinitionPartitionUnsafe kIntUnSafePrivatePartitioned(
@@ -80,7 +82,7 @@ inline constexpr DefinitionGauge kIntExactGauge("kIntExactGauge", "");
 inline constexpr const DefinitionName* metric_list[] = {
     &kIntExactCounter,        &kIntExactCounter2,    &kIntApproximateCounter,
     &kIntApproximateCounter2, &kIntExactPartitioned, &kIntUnSafePartitioned,
-    &kIntExactHistogram,      &kIntExactGauge};
+    &kIntExactHistogram,      &kIntExactGauge,       &kIntExactAnyPartitioned};
 inline constexpr absl::Span<const DefinitionName* const> metric_list_span =
     metric_list;
 [[maybe_unused]] inline constexpr DefinitionSafe kNotInList("kNotInList", "");

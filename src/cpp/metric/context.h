@@ -99,6 +99,10 @@ class Context {
 
   bool is_request_successful() const { return is_request_successful_; }
 
+  void SetRequestStatus(absl::Status s) { request_result_ = std::move(s); }
+
+  const absl::Status& request_result() const { return request_result_; }
+
   // Logs metric for a UpDownCounter
   // Example: LogUpDownCounter<kCounterDefinition>(1);
   template <const auto& definition, typename T>
@@ -380,7 +384,9 @@ class Context {
   std::vector<std::pair<std::string, ValueT>> BoundPartitionsContributed(
       const absl::flat_hash_map<std::string, ValueT>& value,
       const MetricT& definition) {
-    return BoundPartitionsContributed(value, definition, definition.name_);
+    return BoundPartitionsContributed(
+        value, definition, definition.name_,
+        definition.type_privacy == Privacy::kImpacting);
   }
 
   // For Privacy kImpacting partitioned metrics, partitions must be in defined
@@ -390,7 +396,8 @@ class Context {
   template <typename T>
   std::vector<std::pair<std::string, T>> BoundPartitionsContributed(
       const absl::flat_hash_map<std::string, T>& value,
-      const internal::Partitioned& partitioned, absl::string_view name) {
+      const internal::Partitioned& partitioned, absl::string_view name,
+      bool is_privacy_impacting) {
     std::vector<std::pair<std::string, T>> ret;
     if (absl::Span<const absl::string_view> public_partitions =
             metric_router_->metric_config().GetPartition(partitioned, name);
@@ -413,7 +420,9 @@ class Context {
       // just return the value; otherwise it is private partition metric that
       // is not implemented yet, log a warning.
       ABSL_LOG_IF_EVERY_N_SEC(
-          WARNING, partitioned.max_partitions_contributed_ > 1, kLogLowFreqSec)
+          WARNING,
+          is_privacy_impacting && partitioned.max_partitions_contributed_ > 1,
+          kLogLowFreqSec)
           << "public_partitions_ not defined for metric : " << name;
       ret.insert(ret.begin(), value.begin(), value.end());
       if (ret.size() >= partitioned.max_partitions_contributed_) {
@@ -426,6 +435,7 @@ class Context {
   U* metric_router_;
   bool is_decrypted_ = false;
   bool is_request_successful_ = false;
+  absl::Status request_result_ = absl::OkStatus();
   absl::Mutex mutex_;
   std::vector<absl::AnyInvocable<absl::Status() &&>> callbacks_
       ABSL_GUARDED_BY(mutex_);

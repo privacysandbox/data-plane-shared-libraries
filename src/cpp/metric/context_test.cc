@@ -16,6 +16,12 @@
 
 namespace privacy_sandbox::server_common::metrics {
 
+TEST_F(BaseTest, RequestStatus) {
+  absl::Status err = absl::UnknownError("xyz");
+  context_->SetRequestStatus(err);
+  EXPECT_EQ(context_->request_result(), err);
+}
+
 TEST_F(BaseTest, BoundPartitionsContributed) {
   absl::flat_hash_map<std::string, int> m;
   for (int i = 1; i < 10; ++i) {
@@ -124,6 +130,21 @@ TEST_F(BaseTest, LogGaugeDeferred) {
               LogSafe(Matcher<const DefinitionGauge&>(Ref(kIntExactGauge)),
                       Eq(2), _, _))
       .WillOnce(Return(absl::OkStatus()));
+}
+
+TEST_F(BaseTest, LogSafePartitionedNotBounded) {
+  absl::flat_hash_map<std::string, int> m;
+  constexpr int kTotal = 100;
+  for (int i = 0; i < kTotal; ++i) {
+    m.emplace(absl::StrCat("buyer_xyz_", i), i);
+  }
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogSafe(Matcher<const DefinitionPartition&>(Ref(kIntExactAnyPartitioned)),
+              A<int>(), StartsWith("buyer_"), _))
+      .Times(Exactly(kTotal))
+      .WillRepeatedly(Return(absl::OkStatus()));
+  CHECK_OK(context_->LogUpDownCounter<kIntExactAnyPartitioned>(m));
 }
 
 TEST_F(BaseTest, LogPartitionedFiltered) {
