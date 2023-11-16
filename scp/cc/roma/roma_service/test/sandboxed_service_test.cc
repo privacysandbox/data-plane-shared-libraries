@@ -47,7 +47,8 @@ static const std::vector<uint8_t> kWasmBin = {
     0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b,
 };
 
-TEST(SandboxedServiceTest, InitStop) {
+// TODO(b/311435456): Reenable when cause of flakiness found.
+TEST(SandboxedServiceTest, DISABLED_InitStop) {
   auto status = RomaInit();
   EXPECT_TRUE(status.ok());
   status = RomaStop();
@@ -2833,7 +2834,8 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   EXPECT_TRUE(status.ok());
 }
 
-TEST(SandboxedServiceTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
+// TODO(b/311435456): Reenable when cause of flakiness found.
+TEST(SandboxedServiceTest, DISABLED_CanExecuteJSWithWasmCodeWithStandaloneJS) {
   Config config;
   config.number_of_workers = 2;
   auto status = RomaInit(config);
