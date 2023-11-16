@@ -26,12 +26,3 @@ def enclaves_kmstools_libraries():
         sha256 = "39ac7b55e30df69f963f8519686cd9e1ac3b815dd1f4cc85a35582bbc0fa6126",
         urls = ["https://storage.googleapis.com/scp-dependencies/aws/2023-03-27/kmstool_enclave_cli"],
     )
-
-    maybe(
-        http_file,
-        name = "libnsm",
-        downloaded_file_path = "libnsm.so",
-        executable = False,
-        sha256 = "df536a96458af26e4800b04aef0771a05728ed4fe7d24683cc4c1ea6bbd62d50",
-        urls = ["https://storage.googleapis.com/scp-dependencies/aws/2023-03-27/libnsm.so"],
-    )
