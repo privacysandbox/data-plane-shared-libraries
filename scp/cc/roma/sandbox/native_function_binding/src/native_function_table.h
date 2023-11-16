@@ -58,6 +58,9 @@ class NativeFunctionTable {
       proto::FunctionBindingIoProto& function_binding_proto)
       ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_);
 
+  // Remove all of the functions from the table.
+  void Clear() ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_);
+
  private:
   absl::flat_hash_map<std::string, NativeBinding> native_functions_
       ABSL_GUARDED_BY(native_functions_map_mutex_);

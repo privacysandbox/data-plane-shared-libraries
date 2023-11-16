@@ -132,6 +132,7 @@ ExecutionResult RomaService::Stop() noexcept {
   if (native_function_binding_handler_) {
     RETURN_IF_FAILURE(native_function_binding_handler_->Stop());
   }
+  native_function_binding_table_.Clear();
   if (dispatcher_) {
     RETURN_IF_FAILURE(dispatcher_->Stop());
   }

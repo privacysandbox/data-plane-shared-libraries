@@ -55,4 +55,10 @@ ExecutionResult NativeFunctionTable::Call(
   func(function_binding_proto);
   return SuccessExecutionResult();
 }
+
+void NativeFunctionTable::Clear() {
+  absl::MutexLock lock(&native_functions_map_mutex_);
+  native_functions_.clear();
+}
+
 }  // namespace google::scp::roma::sandbox::native_function_binding

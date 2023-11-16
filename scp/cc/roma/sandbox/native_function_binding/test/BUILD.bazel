@@ -41,3 +41,14 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "native_function_table_test",
+    size = "small",
+    srcs = ["native_function_table_test.cc"],
+    deps = [
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_handler_sapi_ipc_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
