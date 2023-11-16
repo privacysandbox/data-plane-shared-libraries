@@ -23,6 +23,7 @@ load("@io_bazel_rules_docker//repositories:repositories.bzl", container_reposito
 load("@io_opentelemetry_cpp//bazel:repository.bzl", "opentelemetry_cpp_deps")
 load("@rules_buf//buf:repositories.bzl", "rules_buf_dependencies", "rules_buf_toolchains")
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
 load("@tink_cc//:tink_cc_deps.bzl", "tink_cc_deps")
 load("@v8_python_deps//:requirements.bzl", install_v8_python_deps = "install_deps")
 load("//third_party:bazel_rules_closure.bzl", "bazel_rules_closure")
@@ -49,3 +50,16 @@ def deps3():
         grpc = True,
     )
     opentelemetry_cpp_deps()
+
+    # repin deps using:
+    #   EXTRA_DOCKER_RUN_ARGS="--env=CARGO_BAZEL_REPIN=1" builders/tools/bazel-debian sync --only=aws_nsm_crate_index
+    crates_repository(
+        name = "aws_nsm_crate_index",
+        cargo_lockfile = Label("//third_party/aws-nsm:Cargo.lock"),
+        lockfile = Label("//third_party/aws-nsm:Cargo.Bazel.lock"),
+        manifests = [
+            "@aws-nitro-enclaves-nsm-api//:Cargo.toml",
+            "@aws-nitro-enclaves-nsm-api//:nsm-lib/Cargo.toml",
+            "@aws-nitro-enclaves-nsm-api//:nsm-test/Cargo.toml",
+        ],
+    )

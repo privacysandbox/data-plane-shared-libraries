@@ -28,6 +28,8 @@ load("@google_privacysandbox_servers_common//scp/build_defs/cc/shared:sandboxed_
 load("@google_privacysandbox_servers_common//scp/build_defs/tink:tink_defs.bzl", "import_tink_git")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
+load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
 
 GO_TOOLCHAINS_VERSION = "1.21.1"
 
@@ -84,3 +86,11 @@ def deps2(
     quiche_dependencies()
     buf_dependencies()
     boost_deps()
+    rules_rust_dependencies()
+    rust_register_toolchains(
+        edition = "2018",
+        versions = [
+            "1.73.0",
+        ],
+    )
+    crate_universe_dependencies()

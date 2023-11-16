@@ -14,6 +14,7 @@
 
 """Further initialization of shared control plane dependencies."""
 
+load("@aws_nsm_crate_index//:defs.bzl", "crate_repositories")
 load(
     "@io_bazel_rules_closure//closure:repositories.bzl",
     "rules_closure_dependencies",
@@ -29,3 +30,5 @@ def deps4():
     gazelle_buf_dependencies()
     rules_closure_dependencies()
     rules_closure_toolchains()
+
+    crate_repositories()

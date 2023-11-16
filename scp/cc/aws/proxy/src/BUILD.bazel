@@ -313,7 +313,7 @@ pkg_tar(
 pkg_files(
     name = "libnsm_libs",
     srcs = [
-        "@libnsm//file",
+        "//scp/cc/cpio/client_providers/kms_client_provider/src/aws:libnsm_so",
     ],
     attributes = pkg_attributes(mode = "0444"),
     prefix = "/usr/lib/x86_64-linux-gnu/",

@@ -110,13 +110,11 @@ def import_aws_nitro_enclaves_sdk():
 
     maybe(
         http_archive,
-        name = "aws_nitro_enclaves_nsm_api",
+        name = "aws-nitro-enclaves-nsm-api",
         build_file = Label("//scp/build_defs/cc/aws:aws_nitro_enclaves_nsm_api.BUILD"),
-        sha256 = "a6b8c22c2d6dfe4166bc97ce3b78d7a7aee7be76b980aab64633417af8f00acb",
-        strip_prefix = "aws-nitro-enclaves-nsm-api-0.3.0",
-        urls = [
-            "https://github.com/aws/aws-nitro-enclaves-nsm-api/archive/refs/tags/v0.3.0.tar.gz",
-        ],
+        sha256 = "8150bb1e9e757f24ff35b19c10b924e2d96ed2a81f98efe05048c50e2e0804e6",
+        strip_prefix = "aws-nitro-enclaves-nsm-api-0.4.0",
+        urls = ["https://github.com/aws/aws-nitro-enclaves-nsm-api/archive/refs/tags/v0.4.0.zip"],
     )
 
     maybe(
