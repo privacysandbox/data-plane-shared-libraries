@@ -78,7 +78,6 @@ TEST(DispatcherTest, CanRunCode) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
@@ -130,7 +129,6 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
@@ -185,7 +183,6 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
@@ -218,7 +215,6 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto execute_request = std::make_unique<InvocationRequestStrInput>();
   execute_request->id = "some_id";
@@ -254,7 +250,6 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
@@ -317,7 +312,6 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
@@ -353,7 +347,6 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
@@ -430,7 +423,6 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
 
   Dispatcher dispatcher(&async_executor, &worker_pool,
                         100 /*max_pending_requests*/, 5 /*code_version_size*/);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
@@ -511,7 +503,6 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
@@ -613,7 +604,6 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
@@ -733,7 +723,6 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   AutoInitRunStop for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";

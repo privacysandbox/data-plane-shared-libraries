@@ -28,7 +28,7 @@
 #include "public/core/interface/execution_result.h"
 
 namespace google::scp::roma::sandbox::worker_api {
-class WorkerApi : public core::ServiceInterface {
+class WorkerApi {
  public:
   struct RunCodeRequest {
     absl::string_view code;
@@ -42,6 +42,10 @@ class WorkerApi : public core::ServiceInterface {
     std::vector<std::shared_ptr<std::string>> errors;
     absl::flat_hash_map<std::string, absl::Duration> metrics;
   };
+
+  virtual core::ExecutionResult Init() noexcept = 0;
+  virtual core::ExecutionResult Run() noexcept = 0;
+  virtual core::ExecutionResult Stop() noexcept = 0;
 
   /**
    * @brief Method to execute a code request.

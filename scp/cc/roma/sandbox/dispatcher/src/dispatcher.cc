@@ -33,18 +33,6 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::GetErrorMessage;
 
 namespace google::scp::roma::sandbox::dispatcher {
-ExecutionResult Dispatcher::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult Dispatcher::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult Dispatcher::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
                                       Callback broadcast_callback) noexcept {
   auto worker_count = worker_pool_->GetPoolSize();

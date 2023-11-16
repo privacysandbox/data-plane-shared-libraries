@@ -34,11 +34,11 @@
 #include "error_codes.h"
 
 namespace google::scp::roma::sandbox::roma_service {
-class RomaService : public core::ServiceInterface {
+class RomaService {
  public:
-  core::ExecutionResult Init() noexcept override;
-  core::ExecutionResult Run() noexcept override;
-  core::ExecutionResult Stop() noexcept override;
+  core::ExecutionResult Init() noexcept;
+  core::ExecutionResult Run() noexcept;
+  core::ExecutionResult Stop() noexcept;
 
   /// The the instance of the roma service. This function is thread-unsafe when
   /// instance_ is null.

@@ -113,7 +113,6 @@ ExecutionResult RomaService::Init() noexcept {
       async_executor_.get(), worker_pool_.get(),
       concurrency * worker_queue_cap /*max_pending_requests*/,
       config_.code_version_cache_size);
-  RETURN_IF_FAILURE(dispatcher_->Init());
   ROMA_VLOG(1) << "RomaService Init with " << config_.number_of_workers
                << " workers. The capacity of code cache is "
                << config_.code_version_cache_size;
@@ -124,7 +123,6 @@ ExecutionResult RomaService::Run() noexcept {
   RETURN_IF_FAILURE(native_function_binding_handler_->Run());
   RETURN_IF_FAILURE(async_executor_->Run());
   RETURN_IF_FAILURE(worker_pool_->Run());
-  RETURN_IF_FAILURE(dispatcher_->Run());
   return SuccessExecutionResult();
 }
 
@@ -133,9 +131,6 @@ ExecutionResult RomaService::Stop() noexcept {
     RETURN_IF_FAILURE(native_function_binding_handler_->Stop());
   }
   native_function_binding_table_.Clear();
-  if (dispatcher_) {
-    RETURN_IF_FAILURE(dispatcher_->Stop());
-  }
   if (worker_pool_) {
     RETURN_IF_FAILURE(worker_pool_->Stop());
   }

@@ -24,13 +24,17 @@
 #include "roma/sandbox/worker_api/src/worker_api.h"
 
 namespace google::scp::roma::sandbox::worker_pool {
-class WorkerPool : public core::ServiceInterface {
+class WorkerPool {
  public:
   /**
    * @brief Get the Pool Size
    *
    * @return size_t
    */
+  virtual core::ExecutionResult Init() noexcept = 0;
+  virtual core::ExecutionResult Run() noexcept = 0;
+  virtual core::ExecutionResult Stop() noexcept = 0;
+
   virtual size_t GetPoolSize() noexcept = 0;
 
   /**

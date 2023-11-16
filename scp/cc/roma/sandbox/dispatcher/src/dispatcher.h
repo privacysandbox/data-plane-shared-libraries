@@ -41,7 +41,7 @@
 #include "request_validator.h"
 
 namespace google::scp::roma::sandbox::dispatcher {
-class Dispatcher : public core::ServiceInterface {
+class Dispatcher {
  public:
   Dispatcher(core::AsyncExecutor* async_executor,
              worker_pool::WorkerPool* worker_pool, size_t max_pending_requests,
@@ -56,12 +56,6 @@ class Dispatcher : public core::ServiceInterface {
     CHECK(code_version_cache_size > 0)
         << "code_version_cache_size cannot be zero";
   }
-
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
 
   /**
    * @brief Dispatch a set of requests. This function will block until all the

@@ -37,7 +37,7 @@ namespace google::scp::roma::worker {
  * limit, ExecutionWatchDog will forcefully terminate v8 isolate.
  *
  */
-class ExecutionWatchDog : public core::ServiceInterface {
+class ExecutionWatchDog {
  public:
   ExecutionWatchDog()
       : expiring_flag_(SteadyClock::RealClock()),

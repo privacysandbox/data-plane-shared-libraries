@@ -46,7 +46,7 @@ namespace google::scp::roma::sandbox::worker_api {
  * a SAPI sandbox containing a roma worker.
  *
  */
-class WorkerSandboxApi : public core::ServiceInterface {
+class WorkerSandboxApi {
  public:
   /**
    * @brief Construct a new Worker Sandbox Api object.
@@ -106,11 +106,11 @@ class WorkerSandboxApi : public core::ServiceInterface {
     sandbox_data_shared_buffer_ptr_ = std::move(buffer).value();
   }
 
-  core::ExecutionResult Init() noexcept override;
+  core::ExecutionResult Init() noexcept;
 
-  core::ExecutionResult Run() noexcept override;
+  core::ExecutionResult Run() noexcept;
 
-  core::ExecutionResult Stop() noexcept override;
+  core::ExecutionResult Stop() noexcept;
 
   /**
    * @brief Send a request to run code to a worker running within a sandbox.

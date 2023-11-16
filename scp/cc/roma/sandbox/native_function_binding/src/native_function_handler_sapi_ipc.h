@@ -28,7 +28,7 @@
 #include "native_function_table.h"
 
 namespace google::scp::roma::sandbox::native_function_binding {
-class NativeFunctionHandlerSapiIpc : public core::ServiceInterface {
+class NativeFunctionHandlerSapiIpc {
  public:
   /**
    * @brief Construct a new Native Function Handler Sapi Ipc object
@@ -44,11 +44,11 @@ class NativeFunctionHandlerSapiIpc : public core::ServiceInterface {
                                const std::vector<int>&,
                                std::vector<int> remote_fds);
 
-  core::ExecutionResult Init() noexcept override;
+  core::ExecutionResult Init() noexcept;
 
-  core::ExecutionResult Run() noexcept override;
+  core::ExecutionResult Run() noexcept;
 
-  core::ExecutionResult Stop() noexcept override;
+  core::ExecutionResult Stop() noexcept;
 
  private:
   std::atomic<bool> stop_;

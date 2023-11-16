@@ -86,7 +86,6 @@ void BM_Dispatch(benchmark::State& state) {
   Dispatcher dispatcher(&async_executor, &worker_pool,
                         /*max_pending_requests=*/100000,
                         /*code_version_cache_size=*/5);
-  AutoInitRunStop for_dispatcher(dispatcher);
 
   for (auto _ : state) {
     absl::BlockingCounter is_loading(number_of_calls);

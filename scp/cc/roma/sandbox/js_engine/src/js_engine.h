@@ -67,8 +67,12 @@ struct JsEngineExecutionResponse {
  * @brief Interface for a JS engine.
  *
  */
-class JsEngine : public core::ServiceInterface {
+class JsEngine {
  public:
+  virtual core::ExecutionResult Init() noexcept = 0;
+  virtual core::ExecutionResult Run() noexcept = 0;
+  virtual core::ExecutionResult Stop() noexcept = 0;
+
   /**
    * Function that is intended to be called one at the beginning for any
    * one-time setup that is needed.

@@ -41,11 +41,11 @@ class WorkerPoolApiSapi : public WorkerPool {
   WorkerPoolApiSapi(
       const std::vector<worker_api::WorkerApiSapiConfig>& configs);
 
-  core::ExecutionResult Init() noexcept override;
+  core::ExecutionResult Init() noexcept;
 
-  core::ExecutionResult Run() noexcept override;
+  core::ExecutionResult Run() noexcept;
 
-  core::ExecutionResult Stop() noexcept override;
+  core::ExecutionResult Stop() noexcept;
 
   size_t GetPoolSize() noexcept override;
 

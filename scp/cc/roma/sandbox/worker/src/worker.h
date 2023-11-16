@@ -36,17 +36,17 @@
 namespace google::scp::roma::sandbox::worker {
 /// @brief This class acts a single-threaded worker which receives work items
 /// and executes them inside of a JS/WASM engine.
-class Worker : public core::ServiceInterface {
+class Worker {
  public:
   explicit Worker(std::unique_ptr<js_engine::JsEngine> js_engine,
                   bool require_preload = true,
                   size_t compilation_context_cache_size = 5);
 
-  core::ExecutionResult Init() noexcept override;
+  core::ExecutionResult Init() noexcept;
 
-  core::ExecutionResult Run() noexcept override;
+  core::ExecutionResult Run() noexcept;
 
-  core::ExecutionResult Stop() noexcept override;
+  core::ExecutionResult Stop() noexcept;
 
   /**
    * @brief Run code object with an internal JS/WASM engine.
