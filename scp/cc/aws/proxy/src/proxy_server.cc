@@ -83,12 +83,14 @@ void ProxyServer::BindListen() {
       port_ = ntohs(addr->sin6_port);
     }
   }
+  LOG(INFO) << "Socket bound and listening at port " << port_;
 }
 
 void ProxyServer::StartAsyncAccept() {
   acceptor_.async_accept([this](boost::system::error_code ec, Socket socket) {
     StartAsyncAccept();
     if (!ec) {
+      LOG(INFO) << "Socket received connection. Initiating handshake.";
       auto bridge =
           std::make_shared<ProxyBridge>(std::move(socket), &acceptor_pool_);
       bridge->PerformSocks5Handshake();
