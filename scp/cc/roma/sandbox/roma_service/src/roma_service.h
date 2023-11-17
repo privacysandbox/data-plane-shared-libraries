@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "absl/base/thread_annotations.h"
@@ -59,9 +60,7 @@ class RomaService {
     }
   }
 
-  core::ExecutionResult RegisterMetadata(
-      const std::string& uuid,
-      const absl::flat_hash_map<std::string, std::string>& metadata);
+  core::ExecutionResult RegisterMetadata(std::string uuid, TMetadata metadata);
 
   /// Return the dispatcher
   dispatcher::Dispatcher& Dispatcher() { return *dispatcher_; }

@@ -69,7 +69,7 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Run() noexcept {
           continue;
         }
 
-        absl::flat_hash_map<std::string, std::string> metadata;
+        TMetadata metadata;
         auto io_proto = wrapper_proto.mutable_io_proto();
         const auto& invocation_req_uuid = wrapper_proto.request_uuid();
         if (const auto& metadata_it = metadata_.find(invocation_req_uuid);
@@ -101,13 +101,8 @@ ExecutionResult NativeFunctionHandlerSapiIpc::Run() noexcept {
 }
 
 ExecutionResult NativeFunctionHandlerSapiIpc::StoreMetadata(
-    const std::string& uuid,
-    const absl::flat_hash_map<std::string, std::string>& metadata) noexcept {
-  const auto& uuid_it = metadata_.try_emplace(
-      uuid, absl::flat_hash_map<std::string, std::string>());
-  for (const auto& pair : metadata) {
-    uuid_it.first->second.insert(pair);
-  }
+    std::string uuid, TMetadata metadata) noexcept {
+  metadata_.emplace(std::move(uuid), std::move(metadata));
   return SuccessExecutionResult();
 }
 

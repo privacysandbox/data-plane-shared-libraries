@@ -100,7 +100,7 @@ struct InvocationRequest {
   std::vector<InputType> input;
   // Any server-side metadata associated with this code object. This metadata is
   // passed into native functions without entering SAPI Sandbox and v8.
-  absl::flat_hash_map<std::string, std::string> metadata;
+  TMetadata metadata;
 };
 
 using InvocationRequestStrInput = InvocationRequest<std::string>;

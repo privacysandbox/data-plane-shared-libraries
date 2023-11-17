@@ -122,10 +122,10 @@ ExecutionResult RomaService::Run() noexcept {
   return SuccessExecutionResult();
 }
 
-ExecutionResult RomaService::RegisterMetadata(
-    const std::string& uuid,
-    const absl::flat_hash_map<std::string, std::string>& metadata) {
-  native_function_binding_handler_->StoreMetadata(uuid, metadata);
+ExecutionResult RomaService::RegisterMetadata(std::string uuid,
+                                              TMetadata metadata) {
+  native_function_binding_handler_->StoreMetadata(std::move(uuid),
+                                                  std::move(metadata));
   return SuccessExecutionResult();
 }
 

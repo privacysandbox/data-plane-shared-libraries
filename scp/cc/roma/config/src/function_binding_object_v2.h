@@ -23,6 +23,8 @@
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
 namespace google::scp::roma {
+using TMetadata = absl::flat_hash_map<std::string, std::string>;
+
 struct FunctionBindingPayload {
   /**
    * @brief The two-way proto used to receive input from the JS function,
@@ -34,7 +36,7 @@ struct FunctionBindingPayload {
    * @brief Metadata passed in from InvocationRequest to native functions
    * outside of sandbox.
    */
-  const absl::flat_hash_map<std::string, std::string> metadata;
+  const TMetadata metadata;
 };
 
 class FunctionBindingObjectV2 {
