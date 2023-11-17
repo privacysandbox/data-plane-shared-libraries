@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 
-#include "core/test/utils/conditional_wait.h"
+#include "absl/synchronization/notification.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "public/cpio/adapters/instance_client/mock/mock_instance_client_with_overrides.h"
 #include "public/cpio/core/mock/mock_lib_cpio.h"
@@ -43,7 +43,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::mock::MockInstanceClientWithOverrides;
 
 namespace google::scp::cpio::test {
@@ -76,16 +75,16 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
             return SuccessExecutionResult();
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->GetCurrentInstanceResourceName(
                   GetCurrentInstanceResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetCurrentInstanceResourceNameResponse response) {
                     EXPECT_THAT(result, IsSuccessful());
-                    finished = true;
+                    finished.Notify();
                   }),
               IsSuccessful());
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
@@ -99,17 +98,17 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->GetCurrentInstanceResourceName(
                   GetCurrentInstanceResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetCurrentInstanceResourceNameResponse response) {
                     EXPECT_THAT(result,
                                 ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-                    finished = true;
+                    finished.Notify();
                   }),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
@@ -122,16 +121,16 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->GetTagsByResourceName(
                   GetTagsByResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetTagsByResourceNameResponse response) {
                     EXPECT_THAT(result, IsSuccessful());
-                    finished = true;
+                    finished.Notify();
                   }),
               IsSuccessful());
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
@@ -143,17 +142,17 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->GetTagsByResourceName(
                   GetTagsByResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetTagsByResourceNameResponse response) {
                     EXPECT_THAT(result,
                                 ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-                    finished = true;
+                    finished.Notify();
                   }),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
@@ -169,16 +168,16 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
             return SuccessExecutionResult();
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->GetInstanceDetailsByResourceName(
                   GetInstanceDetailsByResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetInstanceDetailsByResourceNameResponse response) {
                     EXPECT_THAT(result, IsSuccessful());
-                    finished = true;
+                    finished.Notify();
                   }),
               IsSuccessful());
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
@@ -192,17 +191,17 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->GetInstanceDetailsByResourceName(
                   GetInstanceDetailsByResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetInstanceDetailsByResourceNameResponse response) {
                     EXPECT_THAT(result,
                                 ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-                    finished = true;
+                    finished.Notify();
                   }),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(InstanceClientTest, FailureToCreateInstanceClientProvider) {

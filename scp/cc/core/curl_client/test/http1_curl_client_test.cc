@@ -19,10 +19,10 @@
 #include <gtest/gtest.h>
 
 #include "absl/log/check.h"
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/curl_client/src/error_codes.h"
 #include "core/curl_client/src/http1_curl_wrapper.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using testing::AtLeast;
@@ -114,16 +114,16 @@ TEST_F(Http1CurlClientTest, IssuesPerformRequestOnWrapper) {
   EXPECT_CALL(*wrapper_, PerformRequest(RequestEquals(expected_request)))
       .WillOnce(Return(response));
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   http_context.callback = [&response, &finished](auto& http_context) {
     EXPECT_SUCCESS(http_context.result);
     EXPECT_THAT(http_context.response, Pointee(ResponseEquals(response)));
-    finished = true;
+    finished.Notify();
   };
 
   ASSERT_THAT(subject_.PerformRequest(http_context), IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(Http1CurlClientTest, RetriesWork) {
@@ -147,16 +147,16 @@ TEST_F(Http1CurlClientTest, RetriesWork) {
         .WillOnce(Return(response));
   }
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   http_context.callback = [&response, &finished](auto& http_context) {
     EXPECT_SUCCESS(http_context.result);
     EXPECT_THAT(http_context.response, Pointee(ResponseEquals(response)));
-    finished = true;
+    finished.Notify();
   };
 
   ASSERT_THAT(subject_.PerformRequest(http_context), IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(Http1CurlClientTest, FailureEnds) {
@@ -174,15 +174,15 @@ TEST_F(Http1CurlClientTest, FailureEnds) {
       .WillRepeatedly(
           Return(RetryExecutionResult(errors::SC_CURL_CLIENT_REQUEST_FAILED)));
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   http_context.callback = [&finished](auto& context) {
     EXPECT_THAT(context.result, Not(IsSuccessful()));
-    finished = true;
+    finished.Notify();
   };
 
   ASSERT_THAT(subject_.PerformRequest(http_context), IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 }  // namespace

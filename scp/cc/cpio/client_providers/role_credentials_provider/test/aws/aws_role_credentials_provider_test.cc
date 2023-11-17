@@ -22,9 +22,9 @@
 #include <aws/sts/STSErrors.h>
 #include <aws/sts/model/AssumeRoleRequest.h>
 
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_executor_interface.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "cpio/client_providers/role_credentials_provider/mock/aws/mock_aws_role_credentials_provider_with_overrides.h"
 #include "cpio/client_providers/role_credentials_provider/mock/aws/mock_aws_sts_client.h"
@@ -52,7 +52,6 @@ using google::scp::core::errors::SC_AWS_INTERNAL_SERVICE_ERROR;
 using google::scp::core::errors::
     SC_AWS_ROLE_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::
     MockAwsRoleCredentialsProviderWithOverrides;
 using google::scp::cpio::client_providers::mock::MockSTSClient;
@@ -97,14 +96,14 @@ class AwsRoleCredentialsProviderTest : public ::testing::Test {
 };
 
 TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleSuccess) {
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   mock_sts_client_->mock_assume_role_async =
       [&](const AssumeRoleRequest& request,
           const AssumeRoleResponseReceivedHandler&,
           const std::shared_ptr<const AsyncCallerContext>&) {
         EXPECT_EQ(request.GetRoleArn(), kAssumeRoleArn);
         EXPECT_EQ(request.GetRoleSessionName(), kSessionName);
-        finished = true;
+        finished.Notify();
       };
 
   auto request = std::make_shared<GetRoleCredentialsRequest>();
@@ -116,11 +115,11 @@ TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleSuccess) {
                            GetRoleCredentialsResponse>& context) {});
   role_credentials_provider_->GetRoleCredentials(get_credentials_context);
 
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(AwsRoleCredentialsProviderTest, AssumeRoleFailure) {
-  auto is_called = false;
+  bool is_called = false;
   AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>
       get_credentials_context(
           std::make_shared<GetRoleCredentialsRequest>(),

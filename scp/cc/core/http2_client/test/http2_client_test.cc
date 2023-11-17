@@ -34,11 +34,11 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/numbers.h"
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/interface/async_context.h"
 #include "core/test/utils/auto_init_run_stop.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
@@ -54,7 +54,6 @@ using google::scp::core::common::RetryStrategyType;
 using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using ::testing::StrEq;
 
 static constexpr TimeDuration kHttp2ReadTimeoutInSeconds = 10;
@@ -180,7 +179,7 @@ TEST(HttpClientTest, FailedToConnect) {
   http_client.Init();
   http_client.Run();
 
-  std::atomic<bool> finished(false);
+  absl::Notification finished;
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -188,11 +187,11 @@ TEST(HttpClientTest, FailedToConnect) {
             context.result,
             ResultIs(FailureExecutionResult(
                 errors::SC_DISPATCHER_NOT_ENOUGH_TIME_REMAINED_FOR_OPERATION)));
-        finished.store(true);
+        finished.Notify();
       });
 
   EXPECT_SUCCESS(http_client.PerformRequest(context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
   http_client.Stop();
   async_executor->Stop();
 }
@@ -257,7 +256,7 @@ TEST_F(HttpClientTestII, SingleQueryIsEscaped) {
       "/pingpong_query_param");
   request->query = std::make_shared<std::string>("foo=!@#$");
 
-  std::atomic<bool> finished(false);
+  absl::Notification finished;
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -265,11 +264,11 @@ TEST_F(HttpClientTestII, SingleQueryIsEscaped) {
         auto query_param_it = context.response->headers->find("query_param");
         EXPECT_NE(query_param_it, context.response->headers->end());
         EXPECT_THAT(query_param_it->second, StrEq("foo=%21%40%23%24"));
-        finished.store(true);
+        finished.Notify();
       });
 
   EXPECT_SUCCESS(http_client->PerformRequest(context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(HttpClientTestII, MultiQueryIsEscaped) {
@@ -280,7 +279,7 @@ TEST_F(HttpClientTestII, MultiQueryIsEscaped) {
       "/pingpong_query_param");
   request->query = std::make_shared<std::string>("foo=!@#$&bar=%^()");
 
-  std::atomic<bool> finished(false);
+  absl::Notification finished;
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -289,11 +288,11 @@ TEST_F(HttpClientTestII, MultiQueryIsEscaped) {
         EXPECT_NE(query_param_it, context.response->headers->end());
         EXPECT_THAT(query_param_it->second,
                     StrEq("foo=%21%40%23%24&bar=%25%5E%28%29"));
-        finished.store(true);
+        finished.Notify();
       });
 
   EXPECT_SUCCESS(http_client->PerformRequest(context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(HttpClientTestII, FailedToGetResponse) {
@@ -373,7 +372,7 @@ TEST_F(HttpClientTestII, LargeData) {
       "http://localhost:" + std::to_string(server->PortInUse()) + "/random");
   request->query =
       std::make_shared<std::string>("length=" + std::to_string(to_generate));
-  std::atomic<bool> finished(false);
+  absl::Notification finished;
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
@@ -386,11 +385,11 @@ TEST_F(HttpClientTestII, LargeData) {
         SHA256(data, to_generate, hash);
         auto ret = memcmp(hash, data + to_generate, SHA256_DIGEST_LENGTH);
         EXPECT_EQ(ret, 0);
-        finished.store(true);
+        finished.Notify();
       });
 
   EXPECT_SUCCESS(http_client->PerformRequest(context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(HttpClientTestII, ClientFinishesContextWhenServerIsStopped) {

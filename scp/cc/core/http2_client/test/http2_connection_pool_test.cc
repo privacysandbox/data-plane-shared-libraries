@@ -15,7 +15,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "core/test/utils/conditional_wait.h"
+#include <atomic>
+
+#include "absl/synchronization/notification.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/core/async_executor/mock/mock_async_executor.h"
 #include "scp/cc/core/http2_client/mock/mock_http_connection.h"
@@ -145,7 +147,7 @@ TEST_F(HttpConnectionPoolTest,
 TEST_F(HttpConnectionPoolTest,
        GetConnectionOnADroppedConnectionRecyclesConnection) {
   std::atomic<size_t> create_connection_counter(0);
-  std::atomic<bool> recycle_invoked_on_connection(false);
+  absl::Notification recycle_invoked_on_connection;
   // Every other connection is dropped.
   connection_pool_->create_connection_override_ =
       [&, async_executor = async_executor_](
@@ -164,7 +166,7 @@ TEST_F(HttpConnectionPoolTest,
                 [connection, &recycle_invoked_on_connection](
                     std::shared_ptr<HttpConnection>& connection_to_recycle) {
                   if (connection == connection_to_recycle) {
-                    recycle_invoked_on_connection = true;
+                    recycle_invoked_on_connection.Notify();
                   }
                 };
           }
@@ -196,7 +198,7 @@ TEST_F(HttpConnectionPoolTest,
 
   EXPECT_EQ(connection2, connections[2]);
 
-  test::WaitUntil([&]() { return recycle_invoked_on_connection.load(); });
+  recycle_invoked_on_connection.WaitForNotification();
 }
 
 TEST_F(HttpConnectionPoolTest,

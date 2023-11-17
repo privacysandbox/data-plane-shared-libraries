@@ -23,9 +23,9 @@
 
 #include <aws/core/Aws.h>
 
+#include "absl/synchronization/notification.h"
 #include "core/http2_client/mock/mock_http_client.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/private_key_fetcher_provider/src/aws/error_codes.h"
 #include "cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
 #include "cpio/client_providers/role_credentials_provider/mock/mock_role_credentials_provider.h"
@@ -53,7 +53,6 @@ using google::scp::core::errors::
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
 
@@ -134,36 +133,36 @@ TEST_F(AwsPrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
 }
 
 TEST_F(AwsPrivateKeyFetcherProviderTest, SignHttpRequest) {
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<PrivateKeyFetchingRequest, HttpRequest> context(
       request_,
       [&](AsyncContext<PrivateKeyFetchingRequest, HttpRequest>& context) {
         EXPECT_SUCCESS(context.result);
-        condition = true;
+        condition.Notify();
         return SuccessExecutionResult();
       });
 
   EXPECT_THAT(aws_private_key_fetcher_provider_->SignHttpRequest(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(AwsPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
   credentials_provider_->fail_credentials = true;
 
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<PrivateKeyFetchingRequest, HttpRequest> context(
       request_,
       [&](AsyncContext<PrivateKeyFetchingRequest, HttpRequest>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_THAT(aws_private_key_fetcher_provider_->SignHttpRequest(context),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

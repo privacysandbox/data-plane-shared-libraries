@@ -22,8 +22,8 @@
 
 #include <aws/core/Aws.h>
 
+#include "absl/synchronization/notification.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "core/utils/src/base64.h"
 #include "core/utils/src/error_codes.h"
 #include "cpio/client_providers/kms_client_provider/mock/aws/mock_tee_aws_kms_client_provider_with_overrides.h"
@@ -57,7 +57,6 @@ using google::scp::core::errors::
     SC_TEE_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
@@ -112,7 +111,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_kms_region(kRegion);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   std::string expect_command =
       "/kmstool_enclave_cli --region us-east-1"
@@ -131,11 +130,11 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_THAT(context.response->plaintext(), StrEq(expect_command));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_SUCCESS(client_->Decrypt(context));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, FailedToDecode) {
@@ -146,7 +145,7 @@ TEST_F(TeeAwsKmsClientProviderTest, FailedToDecode) {
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_kms_region(kRegion);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   client_->returned_plaintext = "invalid";
 
@@ -156,11 +155,11 @@ TEST_F(TeeAwsKmsClientProviderTest, FailedToDecode) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_CORE_UTILS_INVALID_BASE64_ENCODING_LENGTH)));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_SUCCESS(client_->Decrypt(context));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
@@ -170,7 +169,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
   auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_kms_region(kRegion);
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
@@ -178,12 +177,12 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_TEE_AWS_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
-        condition = true;
+        condition.Notify();
       });
   EXPECT_THAT(client_->Decrypt(context),
               ResultIs(FailureExecutionResult(
                   SC_TEE_AWS_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingAssumeRoleArn) {
@@ -193,7 +192,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingAssumeRoleArn) {
   auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_kms_region(kRegion);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
@@ -201,12 +200,12 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingAssumeRoleArn) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_TEE_AWS_KMS_CLIENT_PROVIDER_ASSUME_ROLE_NOT_FOUND)));
-        condition = true;
+        condition.Notify();
       });
   EXPECT_THAT(client_->Decrypt(context),
               ResultIs(FailureExecutionResult(
                   SC_TEE_AWS_KMS_CLIENT_PROVIDER_ASSUME_ROLE_NOT_FOUND)));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingRegion) {
@@ -216,7 +215,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingRegion) {
   auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_account_identity(kAssumeRoleArn);
   kms_decrpyt_request->set_ciphertext(kCiphertext);
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
@@ -224,11 +223,11 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingRegion) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_TEE_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND)));
-        condition = true;
+        condition.Notify();
       });
   EXPECT_THAT(client_->Decrypt(context),
               ResultIs(FailureExecutionResult(
                   SC_TEE_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND)));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

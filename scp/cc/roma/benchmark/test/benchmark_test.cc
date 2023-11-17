@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
-#include <atomic>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -30,12 +29,11 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "core/test/utils/conditional_wait.h"
+#include "absl/synchronization/notification.h"
 #include "roma/config/src/config.h"
 #include "roma/interface/roma.h"
 #include "src/cpp/util/duration.h"
 
-using google::scp::core::test::WaitUntil;
 using ::testing::StrEq;
 
 namespace google::scp::roma::test {
@@ -53,17 +51,17 @@ static void LoadCode(size_t code_bloat_size = 1000) {
   const std::string bloat(code_bloat_size, 'A');
   code_obj->js += absl::StrFormat(R"(bloat = "%s";)", bloat);
 
-  std::atomic<bool> load_finished = false;
+  absl::Notification load_finished;
 
   auto status =
       LoadCodeObj(std::move(code_obj),
                   [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                     EXPECT_TRUE(resp->ok());
-                    load_finished.store(true);
+                    load_finished.Notify();
                   });
   EXPECT_TRUE(status.ok());
 
-  WaitUntil([&]() { return load_finished.load(); });
+  load_finished.WaitForNotification();
 }
 
 static void ExecuteCode(const std::shared_ptr<std::string>& input) {
@@ -73,7 +71,7 @@ static void ExecuteCode(const std::shared_ptr<std::string>& input) {
   code_obj->handler_name = "Handler";
   code_obj->input.push_back(input);
 
-  std::atomic<bool> execute_finished = false;
+  absl::Notification execute_finished;
   std::string result = "";
 
   auto status =
@@ -84,10 +82,10 @@ static void ExecuteCode(const std::shared_ptr<std::string>& input) {
                   auto& code_resp = **resp;
                   result = code_resp.resp;
                 }
-                execute_finished.store(true);
+                execute_finished.Notify();
               });
 
-  WaitUntil([&]() { return execute_finished.load(); });
+  execute_finished.WaitForNotification();
 
   EXPECT_TRUE(status.ok());
   EXPECT_THAT(result, StrEq(R"("Hello, World!")"));

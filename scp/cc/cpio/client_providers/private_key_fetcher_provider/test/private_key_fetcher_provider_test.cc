@@ -22,9 +22,9 @@
 #include <memory>
 #include <string>
 
+#include "absl/synchronization/notification.h"
 #include "core/http2_client/mock/mock_http_client.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/private_key_fetcher_provider/mock/mock_private_key_fetcher_provider_with_overrides.h"
 #include "cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
 #include "public/core/interface/execution_result.h"
@@ -48,7 +48,6 @@ using google::scp::core::errors::
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::PrivateKeyFetchingRequest;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using google::scp::cpio::client_providers::mock::
@@ -142,7 +141,7 @@ TEST_F(PrivateKeyFetcherProviderTest, FetchPrivateKey) {
     ]
   })");
 
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       request_, [&](AsyncContext<PrivateKeyFetchingRequest,
@@ -153,46 +152,46 @@ TEST_F(PrivateKeyFetcherProviderTest, FetchPrivateKey) {
         EXPECT_THAT(*encryption_key->resource_name,
                     StrEq("encryptionKeys/123456"));
 
-        condition = true;
+        condition.Notify();
         return SuccessExecutionResult();
       });
   EXPECT_THAT(private_key_fetcher_provider_->FetchPrivateKey(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(PrivateKeyFetcherProviderTest, FailedToFetchPrivateKey) {
   ExecutionResult result = FailureExecutionResult(SC_UNKNOWN);
   http_client_->http_get_result_mock = result;
 
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       std::move(request_),
       [&](AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
               context) {
-        condition = true;
+        condition.Notify();
         EXPECT_THAT(context.result, ResultIs(result));
       });
   EXPECT_THAT(private_key_fetcher_provider_->FetchPrivateKey(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(PrivateKeyFetcherProviderTest, FailedToSignHttpRequest) {
   ExecutionResult result = FailureExecutionResult(SC_UNKNOWN);
   private_key_fetcher_provider_->sign_http_request_result_mock = result;
 
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       std::move(request_),
       [&](AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
               context) {
-        condition = true;
+        condition.Notify();
         EXPECT_THAT(context.result, ResultIs(result));
       });
   EXPECT_THAT(private_key_fetcher_provider_->FetchPrivateKey(context),
               ResultIs(result));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(PrivateKeyFetcherProviderTest, PrivateKeyNotFound) {
@@ -208,18 +207,18 @@ TEST_F(PrivateKeyFetcherProviderTest, PrivateKeyNotFound) {
         "ttlTime": 0
     })");
 
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       std::move(request_),
       [&](AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
               context) {
-        condition = true;
+        condition.Notify();
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_PRIVATE_KEY_FETCHER_PROVIDER_KEY_DATA_NOT_FOUND)));
       });
   EXPECT_THAT(private_key_fetcher_provider_->FetchPrivateKey(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

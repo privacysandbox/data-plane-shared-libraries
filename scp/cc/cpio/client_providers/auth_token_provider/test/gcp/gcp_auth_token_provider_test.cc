@@ -24,8 +24,8 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/strings/str_cat.h"
+#include "absl/synchronization/notification.h"
 #include "core/curl_client/mock/mock_curl_client.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/auth_token_provider/src/gcp/error_codes.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
@@ -49,7 +49,6 @@ using google::scp::core::errors::
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using testing::Contains;
 using testing::EndsWith;
 using testing::Eq;
@@ -135,7 +134,7 @@ TEST_F(GcpAuthTokenProviderTest,
     return SuccessExecutionResult();
   });
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   fetch_token_context_.callback = [&finished](auto& context) {
     EXPECT_SUCCESS(context.result);
     if (!context.response) {
@@ -145,12 +144,12 @@ TEST_F(GcpAuthTokenProviderTest,
                   Pointee(Eq(kAccessTokenMock)));
       EXPECT_EQ(context.response->token_lifetime_in_seconds, kTokenLifetime);
     }
-    finished = true;
+    finished.Notify();
   };
   EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(GcpAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
@@ -160,15 +159,15 @@ TEST_F(GcpAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
     return SuccessExecutionResult();
   });
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   fetch_token_context_.callback = [&finished](auto& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-    finished = true;
+    finished.Notify();
   };
   EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_P(GcpAuthTokenProviderTest, GetSessionTokenFailsIfBadJson) {
@@ -181,17 +180,17 @@ TEST_P(GcpAuthTokenProviderTest, GetSessionTokenFailsIfBadJson) {
         return SuccessExecutionResult();
       });
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   fetch_token_context_.callback = [&finished](auto& context) {
     EXPECT_THAT(context.result,
                 ResultIs(RetryExecutionResult(
                     SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN)));
-    finished = true;
+    finished.Notify();
   };
   EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 INSTANTIATE_TEST_SUITE_P(BadTokens, GcpAuthTokenProviderTest,
@@ -239,7 +238,7 @@ TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
     return SuccessExecutionResult();
   });
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   fetch_token_for_target_audience_context_.callback =
       [&finished](auto& context) {
         EXPECT_SUCCESS(context.result);
@@ -247,13 +246,13 @@ TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
         EXPECT_EQ(context.response->token_lifetime_in_seconds,
                   kTokenLifetimeForTargetAudience);
 
-        finished = true;
+        finished.Notify();
       };
   EXPECT_THAT(authorizer_provider_->GetSessionTokenForTargetAudience(
                   fetch_token_for_target_audience_context_),
               IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(GcpAuthTokenProviderTest,
@@ -264,17 +263,17 @@ TEST_F(GcpAuthTokenProviderTest,
     return SuccessExecutionResult();
   });
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   fetch_token_for_target_audience_context_.callback = [&finished](
                                                           auto& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-    finished = true;
+    finished.Notify();
   };
   EXPECT_THAT(authorizer_provider_->GetSessionTokenForTargetAudience(
                   fetch_token_for_target_audience_context_),
               IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_P(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceFailsIfBadJson) {
@@ -288,18 +287,18 @@ TEST_P(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceFailsIfBadJson) {
         return SuccessExecutionResult();
       });
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   fetch_token_for_target_audience_context_.callback = [&finished](
                                                           auto& context) {
     EXPECT_THAT(context.result,
                 ResultIs(RetryExecutionResult(
                     SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN)));
-    finished = true;
+    finished.Notify();
   };
   EXPECT_THAT(authorizer_provider_->GetSessionTokenForTargetAudience(
                   fetch_token_for_target_audience_context_),
               IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

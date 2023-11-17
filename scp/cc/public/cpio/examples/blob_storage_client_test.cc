@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <atomic>
 #include <memory>
 #include <mutex>
 #include <utility>
 
+#include "absl/synchronization/notification.h"
 #include "core/common/operation_dispatcher/src/operation_dispatcher.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -48,7 +47,6 @@ using google::scp::core::common::OperationDispatcher;
 using google::scp::core::common::RetryStrategy;
 using google::scp::core::common::RetryStrategyType;
 using google::scp::core::errors::GetErrorMessage;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::BlobStorageClientFactory;
 using google::scp::cpio::BlobStorageClientInterface;
 using google::scp::cpio::Cpio;
@@ -85,7 +83,7 @@ int main(int argc, char* argv[]) {
   {
     // PutBlob.
     auto data = "some data string";
-    std::atomic_bool finished(false);
+    absl::Notification finished;
     ExecutionResult result;
     auto put_blob_request = std::make_shared<PutBlobRequest>();
     put_blob_request->mutable_blob()->mutable_metadata()->set_bucket_name(
@@ -97,7 +95,7 @@ int main(int argc, char* argv[]) {
         std::move(put_blob_request), [&result, &finished](auto& context) {
           result = context.result;
           // No other contents in PutBlobResponse.
-          finished = true;
+          finished.Notify();
         });
     auto put_blob_result = blob_storage_client->PutBlob(put_blob_context);
     if (!put_blob_result.Successful()) {
@@ -105,7 +103,7 @@ int main(int argc, char* argv[]) {
                 << GetErrorMessage(put_blob_result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
-    WaitUntil([&finished]() { return finished.load(); });
+    finished.WaitForNotification();
     if (!result.Successful()) {
       std::cerr << "Putting blob failed asynchronously: "
                 << GetErrorMessage(result.status_code) << std::endl;
@@ -114,7 +112,7 @@ int main(int argc, char* argv[]) {
   }
   {
     // GetBlob.
-    std::atomic_bool finished(false);
+    absl::Notification finished;
     ExecutionResult result;
     auto get_blob_request = std::make_shared<GetBlobRequest>();
     get_blob_request->mutable_blob_metadata()->set_bucket_name(kBucketName);
@@ -125,7 +123,7 @@ int main(int argc, char* argv[]) {
           if (result.Successful()) {
             std::cout << "Got blob: " << context.response->DebugString();
           }
-          finished = true;
+          finished.Notify();
         });
     auto get_blob_result = blob_storage_client->GetBlob(get_blob_context);
     if (!get_blob_result.Successful()) {
@@ -133,7 +131,7 @@ int main(int argc, char* argv[]) {
                 << GetErrorMessage(get_blob_result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
-    WaitUntil([&finished]() { return finished.load(); });
+    finished.WaitForNotification();
     if (!result.Successful()) {
       std::cerr << "Getting blob failed asynchronously: "
                 << GetErrorMessage(result.status_code) << std::endl;
@@ -142,7 +140,7 @@ int main(int argc, char* argv[]) {
   }
   {
     // ListBlobsMetadata.
-    std::atomic_bool finished(false);
+    absl::Notification finished;
     ExecutionResult result;
     auto list_blobs_metadata_request =
         std::make_shared<ListBlobsMetadataRequest>();
@@ -157,7 +155,7 @@ int main(int argc, char* argv[]) {
                                             << "Listed blobs: "
                                             << context.response->DebugString();
                                       }
-                                      finished = true;
+                                      finished.Notify();
                                     });
     auto list_blobs_metadata_result =
         blob_storage_client->ListBlobsMetadata(list_blobs_metadata_context);
@@ -167,7 +165,7 @@ int main(int argc, char* argv[]) {
                 << std::endl;
       exit(EXIT_FAILURE);
     }
-    WaitUntil([&finished]() { return finished.load(); });
+    finished.WaitForNotification();
     if (!result.Successful()) {
       std::cerr << "Listing blobs failed asynchronously: "
                 << GetErrorMessage(result.status_code) << std::endl;
@@ -176,7 +174,7 @@ int main(int argc, char* argv[]) {
   }
   {
     // DeleteBlob.
-    std::atomic_bool finished(false);
+    absl::Notification finished;
     ExecutionResult result;
     auto delete_blob_request = std::make_shared<DeleteBlobRequest>();
     delete_blob_request->mutable_blob_metadata()->set_bucket_name(kBucketName);
@@ -185,7 +183,7 @@ int main(int argc, char* argv[]) {
         std::move(delete_blob_request), [&result, &finished](auto& context) {
           result = context.result;
           // No other contents in DeleteBlobResponse.
-          finished = true;
+          finished.Notify();
         });
     auto delete_blob_result =
         blob_storage_client->DeleteBlob(delete_blob_context);
@@ -194,7 +192,7 @@ int main(int argc, char* argv[]) {
                 << GetErrorMessage(delete_blob_result.status_code) << std::endl;
       exit(EXIT_FAILURE);
     }
-    WaitUntil([&finished]() { return finished.load(); });
+    finished.WaitForNotification();
     if (!result.Successful()) {
       std::cerr << "Deleting blob failed asynchronously: "
                 << GetErrorMessage(result.status_code) << std::endl;
@@ -207,7 +205,7 @@ int main(int argc, char* argv[]) {
   {
     // PutBlobStream.
 
-    std::atomic_bool finished(false);
+    absl::Notification finished;
     auto put_blob_stream_request = std::make_shared<PutBlobStreamRequest>();
     put_blob_stream_request->mutable_blob_portion()
         ->mutable_metadata()
@@ -223,7 +221,7 @@ int main(int argc, char* argv[]) {
     put_blob_stream_context.callback = [&result, &finished](auto& context) {
       result = context.result;
       // No other contents in PutBlobStreamResponse.
-      finished = true;
+      finished.Notify();
     };
 
     auto put_blob_stream_result =
@@ -262,7 +260,7 @@ int main(int argc, char* argv[]) {
     // and will call the context's callback.
     put_blob_stream_context.MarkDone();
 
-    WaitUntil([&finished]() { return finished.load(); });
+    finished.WaitForNotification();
     if (!result.Successful()) {
       std::cerr << "Putting blob failed asynchronously: "
                 << GetErrorMessage(result.status_code) << std::endl;
@@ -272,7 +270,7 @@ int main(int argc, char* argv[]) {
   {
     // GetBlobStream - callback version.
     std::mutex log_mutex;
-    std::atomic_bool finished(false);
+    absl::Notification finished;
     auto get_blob_stream_request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_request->mutable_blob_metadata()->set_bucket_name(
         kBucketName);
@@ -294,7 +292,7 @@ int main(int argc, char* argv[]) {
               std::scoped_lock lock(log_mutex);
               std::cerr << "This should never happen" << std::endl;
             }
-            finished = true;
+            finished.Notify();
           } else {
             std::scoped_lock lock(log_mutex);
             std::cout << "Got blob portion: " << resp->DebugString();
@@ -303,7 +301,7 @@ int main(int argc, char* argv[]) {
 
     blob_storage_client->GetBlobStream(get_blob_stream_context);
 
-    WaitUntil([&finished]() { return finished.load(); });
+    finished.WaitForNotification();
     if (!result.Successful()) {
       std::cerr << "Getting blob stream failed asynchronously: "
                 << GetErrorMessage(result.status_code) << std::endl;
@@ -312,7 +310,7 @@ int main(int argc, char* argv[]) {
   }
   {
     // GetBlobStream - polling version.
-    std::atomic_bool finished(false);
+    absl::Notification finished;
     auto get_blob_stream_request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_request->mutable_blob_metadata()->set_bucket_name(
         kBucketName);
@@ -326,7 +324,7 @@ int main(int argc, char* argv[]) {
         [&result, &finished](auto& context, bool is_finish) {
           if (is_finish) {
             result = context.result;
-            finished = true;
+            finished.Notify();
           }
         };
 
@@ -357,7 +355,7 @@ int main(int argc, char* argv[]) {
       std::cout << "Got blob portion: " << resp->DebugString() << std::endl;
     }
 
-    WaitUntil([&finished]() { return finished.load(); });
+    finished.WaitForNotification();
     if (!result.Successful()) {
       std::cerr << "Getting blob stream failed asynchronously: "
                 << GetErrorMessage(result.status_code) << std::endl;

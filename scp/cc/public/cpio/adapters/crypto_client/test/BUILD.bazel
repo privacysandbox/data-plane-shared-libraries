@@ -34,6 +34,7 @@ cc_test(
         "//scp/cc/public/cpio/interface/crypto_client",
         "//scp/cc/public/cpio/interface/crypto_client:type_def",
         "//scp/cc/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

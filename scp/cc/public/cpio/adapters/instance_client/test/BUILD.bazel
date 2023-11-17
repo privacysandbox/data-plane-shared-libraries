@@ -41,6 +41,7 @@ cc_test(
         "//scp/cc/public/cpio/interface:cpio_errors",
         "//scp/cc/public/cpio/interface/instance_client",
         "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

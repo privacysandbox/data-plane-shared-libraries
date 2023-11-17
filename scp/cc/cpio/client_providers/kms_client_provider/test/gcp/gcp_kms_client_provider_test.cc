@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 
+#include "absl/synchronization/notification.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "core/utils/src/base64.h"
 #include "cpio/client_providers/kms_client_provider/mock/gcp/mock_gcp_key_management_service_client.h"
 #include "cpio/client_providers/kms_client_provider/src/gcp/error_codes.h"
@@ -47,7 +47,6 @@ using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED;
 using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::mock::
     MockGcpKeyManagementServiceClient;
@@ -170,21 +169,21 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecode) {
   kms_decrpyt_request->set_account_identity(kServiceAccount);
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
 
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_GCP_KMS_CLIENT_PROVIDER_BASE64_DECODING_FAILED)));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_THAT(client_->Decrypt(context),
               FailureExecutionResult(
                   SC_GCP_KMS_CLIENT_PROVIDER_BASE64_DECODING_FAILED));
 
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(GcpKmsClientProviderTest, SuccessToDecrypt) {
@@ -210,18 +209,18 @@ TEST_F(GcpKmsClientProviderTest, SuccessToDecrypt) {
               Decrypt(RequestMatches(decrypt_request)))
       .WillOnce(Return(decrypt_response));
 
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_THAT(context.response->plaintext(), StrEq(kPlaintext));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_SUCCESS(client_->Decrypt(context));
 
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(GcpKmsClientProviderTest, FailedToDecrypt) {
@@ -246,20 +245,20 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecrypt) {
               Decrypt(RequestMatches(decrypt_request)))
       .WillOnce(Return(Status(StatusCode::kInvalidArgument, "Invalid input")));
 
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_GCP_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED)));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_THAT(client_->Decrypt(context),
               ResultIs(FailureExecutionResult(
                   SC_GCP_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED)));
 
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

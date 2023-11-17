@@ -20,11 +20,11 @@
 #include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
-#include "core/test/utils/conditional_wait.h"
+#include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "roma/config/src/config.h"
 #include "roma/interface/roma.h"
 
-using google::scp::core::test::WaitUntil;
 using google::scp::roma::FunctionBindingObjectV2;
 using google::scp::roma::proto::FunctionBindingIoProto;
 using ::testing::_;
@@ -46,7 +46,7 @@ TEST(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
   auto status = RomaInit();
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished = false;
+  absl::Notification load_finished;
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -64,15 +64,15 @@ TEST(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
         std::move(code_obj),
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           CHECK(resp->ok());
-          load_finished.store(true);
+          load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   std::string result;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification execute_finished;
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
@@ -89,14 +89,13 @@ TEST(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
           CHECK(resp->ok());
           auto& code_resp = **resp;
           result = code_resp.resp;
-          execute_finished.store(true);
+          execute_finished.Notify();
         });
 
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_EQ(result, R"("Hello World")");
 
   status = RomaStop();

@@ -21,8 +21,8 @@
 #include <string>
 #include <utility>
 
+#include "absl/synchronization/notification.h"
 #include "core/interface/errors.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/parameter_client_provider/mock/mock_parameter_client_provider.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
@@ -39,7 +39,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::ParameterClient;
 using google::scp::cpio::ParameterClientOptions;
 using google::scp::cpio::mock::MockParameterClientWithOverrides;
@@ -71,15 +70,15 @@ TEST_F(ParameterClientTest, GetParameterSuccess) {
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->GetParameter(GetParameterRequest(),
                                     [&](const ExecutionResult result,
                                         GetParameterResponse response) {
                                       EXPECT_THAT(result, IsSuccessful());
-                                      finished = true;
+                                      finished.Notify();
                                     }),
               IsSuccessful());
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ParameterClientTest, GetParameterFailure) {
@@ -91,16 +90,16 @@ TEST_F(ParameterClientTest, GetParameterFailure) {
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(
       client_->GetParameter(
           GetParameterRequest(),
           [&](const ExecutionResult result, GetParameterResponse response) {
             EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished = true;
+            finished.Notify();
           }),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ParameterClientTest, FailureToCreateParameterClientProvider) {

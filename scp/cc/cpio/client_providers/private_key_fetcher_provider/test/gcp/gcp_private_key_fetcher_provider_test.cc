@@ -23,9 +23,9 @@
 #include <string>
 
 #include "absl/strings/str_cat.h"
+#include "absl/synchronization/notification.h"
 #include "core/http2_client/mock/mock_http_client.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
 #include "cpio/client_providers/private_key_fetcher_provider/src/gcp/error_codes.h"
@@ -48,7 +48,6 @@ using google::scp::core::errors::
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::GcpPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using testing::Pair;
@@ -140,7 +139,7 @@ MATCHER_P(TargetAudienceUriEquals, expected_target_audience_uri, "") {
 }
 
 TEST_F(GcpPrivateKeyFetcherProviderTest, SignHttpRequest) {
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   EXPECT_CALL(*credentials_provider_,
               GetSessionTokenForTargetAudience(
@@ -166,13 +165,13 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, SignHttpRequest) {
                     Pointee(UnorderedElementsAre(Pair(
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
-        condition = true;
+        condition.Notify();
         return SuccessExecutionResult();
       });
 
   EXPECT_THAT(gcp_private_key_fetcher_provider_->SignHttpRequest(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(GcpPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
@@ -186,17 +185,17 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
         return context.result;
       });
 
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
   AsyncContext<PrivateKeyFetchingRequest, HttpRequest> context(
       request_,
       [&](AsyncContext<PrivateKeyFetchingRequest, HttpRequest>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_THAT(gcp_private_key_fetcher_provider_->SignHttpRequest(context),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

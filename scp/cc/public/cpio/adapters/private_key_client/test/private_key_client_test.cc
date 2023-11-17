@@ -21,8 +21,8 @@
 #include <string>
 #include <utility>
 
+#include "absl/synchronization/notification.h"
 #include "core/interface/errors.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/private_key_client_provider/mock/mock_private_key_client_provider_with_overrides.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
@@ -39,7 +39,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::PrivateKeyClient;
 using google::scp::cpio::PrivateKeyClientOptions;
 using google::scp::cpio::mock::MockPrivateKeyClientWithOverrides;
@@ -72,15 +71,15 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysSuccess) {
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->ListPrivateKeys(ListPrivateKeysRequest(),
                                        [&](const ExecutionResult result,
                                            ListPrivateKeysResponse response) {
                                          EXPECT_THAT(result, IsSuccessful());
-                                         finished = true;
+                                         finished.Notify();
                                        }),
               IsSuccessful());
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientTest, ListPrivateKeysFailure) {
@@ -92,16 +91,16 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysFailure) {
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(
       client_->ListPrivateKeys(
           ListPrivateKeysRequest(),
           [&](const ExecutionResult result, ListPrivateKeysResponse response) {
             EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished = true;
+            finished.Notify();
           }),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientTest, FailureToCreatePrivateKeyClientProvider) {

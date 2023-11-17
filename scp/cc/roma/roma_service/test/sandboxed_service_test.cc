@@ -27,6 +27,8 @@
 #include <utility>
 #include <vector>
 
+#include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "core/test/utils/conditional_wait.h"
 #include "roma/config/src/config.h"
 #include "roma/interface/roma.h"
@@ -78,8 +80,8 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -94,7 +96,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -113,13 +115,12 @@ TEST(SandboxedServiceTest, ExecuteCode) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
@@ -133,8 +134,8 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto load_code_obj_request = std::make_unique<CodeObject>(CodeObject{
@@ -150,7 +151,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
         LoadCodeObj(std::move(load_code_obj_request),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -172,14 +173,13 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
@@ -193,9 +193,9 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
-  std::atomic<bool> failed_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+  absl::Notification failed_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -210,7 +210,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -229,7 +229,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
@@ -248,15 +248,14 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
                   EXPECT_FALSE(resp->ok());
                   EXPECT_THAT(resp->status().message(),
                               StrEq("Failed to get valid function handler."));
-                  failed_finished.store(true);
+                  failed_finished.Notify();
                 });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
-  WaitUntil([&]() { return failed_finished.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  failed_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
@@ -270,8 +269,8 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -285,7 +284,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -303,13 +302,12 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
@@ -323,8 +321,8 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -338,7 +336,7 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -356,13 +354,12 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq("undefined"));
 
   status = RomaStop();
@@ -376,8 +373,8 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -394,7 +391,7 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
                       EXPECT_THAT((*resp)->id, StrEq("my_cool_id"));
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -413,13 +410,12 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
@@ -434,7 +430,7 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   // We don't load any code, just try to execute some version
-  std::atomic<bool> execute_finished = false;
+  absl::Notification execute_finished;
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -450,12 +446,11 @@ TEST(SandboxedServiceTest,
                   EXPECT_FALSE(resp->ok());
                   EXPECT_THAT(resp->status().message(),
                               StrEq("Could not find code version in cache."));
-                  execute_finished.store(true);
+                  execute_finished.Notify();
                 });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -468,8 +463,8 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -511,7 +506,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -529,13 +524,12 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("some cool string1 string2")"));
 
   status = RomaStop();
@@ -550,8 +544,8 @@ TEST(SandboxedServiceTest, BatchExecute) {
 
   std::atomic<int> res_count(0);
   size_t batch_size(5);
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -565,7 +559,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -586,13 +580,13 @@ TEST(SandboxedServiceTest, BatchExecute) {
             EXPECT_THAT(resp->resp, StrEq(R"("Hello world! \"Foobar\"")"));
           }
           res_count.store(batch_resp.size());
-          execute_finished.store(true);
+          execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); });
-  WaitUntil([&]() { return execute_finished.load(); });
+  load_finished.WaitForNotification();
+  execute_finished.WaitForNotification();
   EXPECT_EQ(res_count.load(), batch_size);
 
   status = RomaStop();
@@ -612,8 +606,8 @@ TEST(SandboxedServiceTest,
   std::atomic<int> res_count(0);
   // Large batch
   size_t batch_size(100);
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -627,7 +621,7 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -651,14 +645,14 @@ TEST(SandboxedServiceTest,
               EXPECT_THAT(resp->resp, StrEq(R"("Hello world! \"Foobar\"")"));
             }
             res_count.store(batch_resp.size());
-            execute_finished.store(true);
+            execute_finished.Notify();
           });
     }
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); });
-  WaitUntil([&]() { return execute_finished.load(); });
+  load_finished.WaitForNotification();
+  execute_finished.WaitForNotification();
   EXPECT_EQ(res_count.load(), batch_size);
 
   status = RomaStop();
@@ -674,7 +668,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
 
   std::atomic<int> res_count(0);
   size_t batch_size(100);
-  std::atomic<bool> load_finished = false;
+  absl::Notification load_finished;
   std::atomic<int> execute_finished = 0;
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -689,17 +683,17 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   int num_threads = 10;
   std::vector<std::thread> threads;
   for (int i = 0; i < num_threads; i++) {
-    std::atomic<bool> local_execute = false;
+    absl::Notification local_execute;
     threads.emplace_back([&, i]() {
       auto execution_obj = InvocationRequestStrInput();
       execution_obj.id = "foo";
@@ -724,14 +718,13 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
               }
               res_count += batch_resp.size();
               execute_finished++;
-              local_execute.store(true);
+              local_execute.Notify();
             });
       }
 
       EXPECT_TRUE(batch_status.ok());
 
-      WaitUntil([&]() { return local_execute.load(); },
-                std::chrono::seconds(10));
+      local_execute.WaitForNotificationWithTimeout(absl::Seconds(10));
     });
   }
 
@@ -755,10 +748,10 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished = false;
+  absl::Notification load_finished;
   size_t total_runs = 10;
   std::vector<std::string> results(total_runs);
-  std::vector<std::atomic<bool>> finished(total_runs);
+  std::vector<absl::Notification> finished(total_runs);
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
@@ -772,7 +765,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -794,17 +787,16 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
                       auto& code_resp = **resp;
                       results[i] = code_resp.resp;
                     }
-                    finished[i].store(true);
+                    finished[i].Notify();
                   });
       EXPECT_TRUE(status.ok());
     }
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   for (auto i = 0u; i < total_runs; ++i) {
-    WaitUntil([&, i]() { return finished[i].load(); },
-              std::chrono::seconds(30));
+    finished[i].WaitForNotificationWithTimeout(absl::Seconds(30));
     std::string expected_result = std::string(R"("Hello world! )") +
                                   std::string("\\\"Foobar") +
                                   std::to_string(i) + std::string("\\\"\"");
@@ -832,8 +824,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -847,7 +839,7 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -866,13 +858,12 @@ TEST(SandboxedServiceTest,
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Foobar String from C++")"));
 
   status = RomaStop();
@@ -902,8 +893,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -917,7 +908,7 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -937,13 +928,12 @@ TEST(SandboxedServiceTest,
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Foobar String from C++")"));
 
   status = RomaStop();
@@ -973,8 +963,8 @@ TEST(
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -988,7 +978,7 @@ TEST(
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -1006,13 +996,12 @@ TEST(
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(
       result,
       StrEq(
@@ -1050,8 +1039,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1070,7 +1059,7 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -1088,13 +1077,12 @@ TEST(SandboxedServiceTest,
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   // Since the map makes it over the wire, we can't guarantee the order of the
   // keys so we assert that the expected key-value pairs are present.
   EXPECT_THAT(result, HasSubstr(R"(["key-a1","value-a1"])"));
@@ -1127,8 +1115,8 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1142,7 +1130,7 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -1160,13 +1148,12 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   EXPECT_THAT(result, StrEq(R"("String from C++")"));
 
@@ -1181,8 +1168,8 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   auto wasm_bin = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/"
@@ -1200,7 +1187,7 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -1219,13 +1206,12 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Foobar Hello World from WASM")"));
 
   status = RomaStop();
@@ -1239,10 +1225,10 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_timeout = false;
-  std::atomic<bool> execute_failed = false;
-  std::atomic<bool> execute_success = false;
+  absl::Notification load_finished;
+  absl::Notification execute_timeout;
+  absl::Notification execute_failed;
+  absl::Notification execute_success;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1270,7 +1256,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -1291,7 +1277,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
                   // Timeout error.
                   EXPECT_THAT(resp->status().message(),
                               StrEq("V8 execution terminated due to timeout."));
-                  execute_timeout.store(true);
+                  execute_timeout.Notify();
                 });
     EXPECT_TRUE(status.ok());
   }
@@ -1309,7 +1295,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
                        EXPECT_FALSE(resp->ok());
                        EXPECT_THAT(resp->status().message(),
                                    StrEq("Error when invoking the handler."));
-                       execute_failed.store(true);
+                       execute_failed.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
@@ -1328,15 +1314,15 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        EXPECT_THAT(code_resp.resp, StrEq(R"("Hello world!")"));
-                       execute_success.store(true);
+                       execute_success.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_timeout.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_failed.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_success.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_timeout.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_success.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -1364,10 +1350,8 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
-
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -1390,15 +1374,14 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-
-  load_finished = false;
 
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo2";
     code_obj->version_num = 2;
@@ -1413,13 +1396,14 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   {
+    absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
@@ -1434,17 +1418,14 @@ TEST(SandboxedServiceTest,
           EXPECT_THAT(
               resp->status().message(),
               StrEq("Sandbox worker crashed during execution of request."));
-          execute_finished.store(true);
+          execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
 
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
-
-  execute_finished.store(false);
-
   {
+    absl::Notification execute_finished;
     std::string result;
 
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -1461,19 +1442,17 @@ TEST(SandboxedServiceTest,
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
 
-    WaitUntil([&]() { return execute_finished.load(); },
-              std::chrono::seconds(10));
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
     EXPECT_THAT(result, StrEq("233"));
   }
 
-  execute_finished.store(false);
-
   {
+    absl::Notification execute_finished;
     std::string result;
 
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -1490,12 +1469,11 @@ TEST(SandboxedServiceTest,
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
 
-    WaitUntil([&]() { return execute_finished.load(); },
-              std::chrono::seconds(10));
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
     EXPECT_THAT(result, StrEq(R"("Hello, World!")"));
   }
@@ -1521,7 +1499,7 @@ TEST(SandboxedServiceTest,
         "./scp/cc/roma/testing/"
         "cpp_wasm_allocate_memory/allocate_memory.wasm");
 
-    std::atomic<bool> load_finished = false;
+    absl::Notification load_finished;
     {
       auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
@@ -1537,12 +1515,12 @@ TEST(SandboxedServiceTest,
             EXPECT_FALSE(resp->ok());
             EXPECT_THAT(resp->status().message(),
                         StrEq("Failed to create wasm object."));
-            load_finished.store(true);
+            load_finished.Notify();
           });
       EXPECT_TRUE(status.ok());
     }
 
-    WaitUntil([&]() { return load_finished.load(); });
+    load_finished.WaitForNotification();
 
     status = RomaStop();
     EXPECT_TRUE(status.ok());
@@ -1567,7 +1545,7 @@ TEST(SandboxedServiceTest,
         "./scp/cc/roma/testing/"
         "cpp_wasm_allocate_memory/allocate_memory.wasm");
 
-    std::atomic<bool> load_finished = false;
+    absl::Notification load_finished;
     {
       auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
@@ -1581,12 +1559,12 @@ TEST(SandboxedServiceTest,
           [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
             // Loading works
             EXPECT_TRUE(resp->ok());
-            load_finished.store(true);
+            load_finished.Notify();
           });
       EXPECT_TRUE(status.ok());
     }
 
-    WaitUntil([&]() { return load_finished.load(); });
+    load_finished.WaitForNotification();
 
     status = RomaStop();
     EXPECT_TRUE(status.ok());
@@ -1600,8 +1578,8 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -1616,7 +1594,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -1653,13 +1631,12 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
             std::cout << pair.first << ": " << pair.second << std::endl;
           }
 
-          execute_finished.store(true);
+          execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = RomaStop();
@@ -1675,56 +1652,57 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
 
-  // Load version 1
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_num = 1;
-    code_obj->js = R"JS_CODE(
+    // Load version 1
+    absl::Notification load_finished;
+    {
+      auto code_obj = std::make_unique<CodeObject>();
+      code_obj->id = "foo";
+      code_obj->version_num = 1;
+      code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world1! " + JSON.stringify(input);
     }
   )JS_CODE";
 
-    status =
-        LoadCodeObj(std::move(code_obj),
-                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
-                    });
-    EXPECT_TRUE(status.ok());
-  }
+      status = LoadCodeObj(
+          std::move(code_obj),
+          [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+            EXPECT_TRUE(resp->ok());
+            load_finished.Notify();
+          });
+      EXPECT_TRUE(status.ok());
+    }
 
-  // Execute version 1
-  {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
-    execution_obj->id = "foo";
-    execution_obj->version_num = 1;
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
+    // Execute version 1
+    {
+      absl::Notification execute_finished;
+      auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+      execution_obj->id = "foo";
+      execution_obj->version_num = 1;
+      execution_obj->handler_name = "Handler";
+      execution_obj->input.push_back(R"("Foobar")");
 
-    status = Execute(std::move(execution_obj),
-                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       EXPECT_TRUE(resp->ok());
-                       if (resp->ok()) {
-                         auto& code_resp = **resp;
-                         result = code_resp.resp;
-                       }
-                       execute_finished.store(true);
-                     });
-    EXPECT_TRUE(status.ok());
+      status =
+          Execute(std::move(execution_obj),
+                  [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                    EXPECT_TRUE(resp->ok());
+                    if (resp->ok()) {
+                      auto& code_resp = **resp;
+                      result = code_resp.resp;
+                    }
+                    execute_finished.Notify();
+                  });
+      EXPECT_TRUE(status.ok());
+      load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    }
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world1! \"Foobar\"")"));
-
-  load_finished = false;
 
   // Load version 2
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 2;
@@ -1737,17 +1715,16 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-
-  execute_finished = false;
 
   // Execute version 1 - Should fail since the cache has one spot, and we
   // loaded a new version.
   {
+    absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
@@ -1758,18 +1735,17 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        // Should fail
                        EXPECT_FALSE(resp->ok());
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
 
-  execute_finished = false;
   result = "";
 
   // Execute version 2
   {
+    absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 2;
@@ -1783,12 +1759,11 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world2! \"Foobar\"")"));
 
   status = RomaStop();
@@ -1804,11 +1779,10 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
 
   // Load version 1
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -1821,59 +1795,61 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   // Start a batch execution
   {
-    std::vector<InvocationRequestStrInput> batch;
-    for (int i = 0; i < 50; i++) {
-      InvocationRequestStrInput req;
-      req.id = "foo";
-      req.version_num = 1;
-      req.handler_name = "Handler";
-      req.input.push_back(R"("Foobar")");
-      batch.push_back(req);
-    }
-    auto batch_result = BatchExecute(
-        batch,
-        [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-          for (auto& resp : batch_resp) {
-            EXPECT_TRUE(resp.ok());
-            if (resp.ok()) {
-              auto& code_resp = resp.value();
-              result = code_resp.resp;
+    absl::Notification execute_finished;
+    {
+      std::vector<InvocationRequestStrInput> batch;
+      for (int i = 0; i < 50; i++) {
+        InvocationRequestStrInput req;
+        req.id = "foo";
+        req.version_num = 1;
+        req.handler_name = "Handler";
+        req.input.push_back(R"("Foobar")");
+        batch.push_back(req);
+      }
+      auto batch_result = BatchExecute(
+          batch,
+          [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
+            for (auto& resp : batch_resp) {
+              EXPECT_TRUE(resp.ok());
+              if (resp.ok()) {
+                auto& code_resp = resp.value();
+                result = code_resp.resp;
+              }
             }
-          }
-          execute_finished.store(true);
-        });
-  }
+            execute_finished.Notify();
+          });
+    }
 
-  load_finished = false;
-  // Load version 2 while execution is happening
-  {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_num = 2;
-    code_obj->js = R"JS_CODE(
+    // Load version 2 while execution is happening
+    absl::Notification load_finished;
+    {
+      auto code_obj = std::make_unique<CodeObject>();
+      code_obj->id = "foo";
+      code_obj->version_num = 2;
+      code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world2! " + JSON.stringify(input);
     }
   )JS_CODE";
 
-    status =
-        LoadCodeObj(std::move(code_obj),
-                    [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
-                    });
-    EXPECT_TRUE(status.ok());
+      status = LoadCodeObj(
+          std::move(code_obj),
+          [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+            EXPECT_TRUE(resp->ok());
+            load_finished.Notify();
+          });
+      EXPECT_TRUE(status.ok());
+    }
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
 
   EXPECT_THAT(result, StrEq(R"("Hello world1! \"Foobar\"")"));
 
@@ -1888,10 +1864,9 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
 
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -1915,16 +1890,16 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   privacy_sandbox::server_common::Stopwatch timer;
 
   {
+    absl::Notification execute_finished;
     // Should not timeout since we only sleep for 9 sec but the timeout is 10
     // sec.
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -1941,13 +1916,12 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30));
   }
 
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(30));
   auto elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
   // Should have elapsed more than 9sec.
   EXPECT_GE(elapsed_time_ms, 9000);
@@ -1956,10 +1930,10 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   EXPECT_THAT(result, StrEq(R"("Hello world!")"));
 
   result = "";
-  execute_finished = false;
   timer.Reset();
 
   {
+    absl::Notification execute_finished;
     // Should time out since we sleep for 11 which is longer than the 10
     // sec timeout.
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -1972,13 +1946,12 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_FALSE(resp->ok());
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30));
   }
 
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(30));
   elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
   // Should have elapsed more than 10sec since that's our
   // timeout.
@@ -1997,7 +1970,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished = false;
+  absl::Notification load_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2014,12 +1987,12 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
           EXPECT_FALSE(resp->ok());
           EXPECT_THAT(resp->status().message(),
                       StrEq("Failed to compile JavaScript code object."));
-          load_finished.store(true);
+          load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2031,9 +2004,9 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
-  std::atomic<bool> execute_failed = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+  absl::Notification execute_failed;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2052,7 +2025,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -2070,7 +2043,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
                   ASSERT_TRUE(resp->ok());
                   auto& code_resp = **resp;
                   EXPECT_THAT(code_resp.resp, StrEq(R"("Hello world! 9000")"));
-                  execute_finished.store(true);
+                  execute_finished.Notify();
                 });
     EXPECT_TRUE(status.ok());
   }
@@ -2087,15 +2060,14 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
                        ASSERT_FALSE(resp->ok());
                        EXPECT_THAT(resp->status().message(),
                                    StrEq("Error when invoking the handler."));
-                       execute_failed.store(true);
+                       execute_failed.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_failed.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2107,9 +2079,9 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
-  std::atomic<bool> execute_failed = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+  absl::Notification execute_failed;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2129,7 +2101,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -2147,7 +2119,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
                   ASSERT_TRUE(resp->ok());
                   auto& code_resp = **resp;
                   EXPECT_THAT(code_resp.resp, StrEq(R"("Hello world! 9000")"));
-                  execute_finished.store(true);
+                  execute_finished.Notify();
                 });
     EXPECT_TRUE(status.ok());
   }
@@ -2164,15 +2136,14 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
                        ASSERT_FALSE(resp->ok());
                        EXPECT_THAT(resp->status().message(),
                                    StrEq("Error when invoking the handler."));
-                       execute_failed.store(true);
+                       execute_failed.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_failed.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2185,8 +2156,8 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2202,7 +2173,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -2222,13 +2193,12 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Foobar1 Barfoo2")"));
 
   status = RomaStop();
@@ -2242,8 +2212,8 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2259,7 +2229,7 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -2278,13 +2248,12 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
                        // Should return failure
                        EXPECT_THAT(resp->status().message(),
                                    StrEq("Error parsing input as valid JSON."));
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2298,10 +2267,9 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
 
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -2315,13 +2283,14 @@ TEST(SandboxedServiceTest,
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       // Load should have failed
                       EXPECT_FALSE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   {
+    absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
@@ -2336,16 +2305,15 @@ TEST(SandboxedServiceTest,
                        EXPECT_THAT(resp->status().message(),
                                    StrEq("Could not find a stored context "
                                          "for the execution request."));
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
 
   // Should be able to load same version
-  load_finished = false;
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -2357,15 +2325,15 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   // Execution should work now
-  execute_finished = false;
   {
+    absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
@@ -2375,12 +2343,11 @@ TEST(SandboxedServiceTest,
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        EXPECT_THAT((*resp)->resp, StrEq(R"("Hello there")"));
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2404,8 +2371,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2426,11 +2393,11 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -2443,12 +2410,11 @@ TEST(SandboxedServiceTest,
                        EXPECT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        result = code_resp.resp;
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   EXPECT_THAT(result,
               StrEq(R"({"0":1,"1":2,"2":3,"3":4,"4":4,"5":3,"6":2,"7":1})"));
@@ -2464,11 +2430,10 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
 
   // Load v1
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -2480,14 +2445,15 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   // Execute version 1
   {
+    absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
@@ -2498,16 +2464,15 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
                        EXPECT_THAT((*resp)->resp, StrEq(R"("version 1")"));
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
 
   // Should be able to load same version
-  load_finished = false;
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -2519,15 +2484,15 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
+    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
 
   // Execution should run the new version of the code
-  execute_finished = false;
   {
+    absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
@@ -2538,12 +2503,11 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
                        EXPECT_TRUE(resp->ok());
                        EXPECT_THAT((*resp)->resp,
                                    StrEq(R"("version 1 but updated")"));
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -2575,8 +2539,8 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2599,11 +2563,11 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -2616,12 +2580,11 @@ TEST(SandboxedServiceTest,
                        EXPECT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        result = code_resp.resp;
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   EXPECT_THAT(result, StrEq(R"str("Hello there :)")str"));
 
@@ -2636,8 +2599,8 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2661,7 +2624,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -2681,13 +2644,12 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq("3"));
 
   status = RomaStop();
@@ -2700,8 +2662,8 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished1 = false;
-  std::atomic<bool> load_finished2 = false;
+  absl::Notification load_finished1;
+  absl::Notification load_finished2;
 
   absl::flat_hash_map<std::string, std::string> tags;
   tags[kWasmCodeArrayName] = "addModule";
@@ -2800,7 +2762,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_FALSE(resp->ok());
-                      load_finished1.store(true);
+                      load_finished1.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -2823,13 +2785,13 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_FALSE(resp->ok());
-                      load_finished2.store(true);
+                      load_finished2.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished1.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return load_finished2.load(); }, std::chrono::seconds(10));
+  load_finished1.WaitForNotificationWithTimeout(absl::Seconds(10));
+  load_finished2.WaitForNotificationWithTimeout(absl::Seconds(10));
   status = RomaStop();
   EXPECT_TRUE(status.ok());
 }
@@ -2842,8 +2804,8 @@ TEST(SandboxedServiceTest, DISABLED_CanExecuteJSWithWasmCodeWithStandaloneJS) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -2864,7 +2826,7 @@ TEST(SandboxedServiceTest, DISABLED_CanExecuteJSWithWasmCodeWithStandaloneJS) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -2884,13 +2846,12 @@ TEST(SandboxedServiceTest, DISABLED_CanExecuteJSWithWasmCodeWithStandaloneJS) {
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq("3"));
 
   status = RomaStop();
@@ -2909,8 +2870,7 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> execute_finished = false;
+  absl::Notification load_finished;
 
   // dummy code that gets killed by the JS engine if it allocates too much
   // memory
@@ -2944,13 +2904,14 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   {
+    absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
     execution_obj->version_num = 1;
@@ -2967,16 +2928,14 @@ TEST(SandboxedServiceTest,
           EXPECT_THAT(
               resp->status().message(),
               StrEq("Sandbox worker crashed during execution of request."));
-          execute_finished.store(true);
+          execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   }
 
-  WaitUntil([&]() { return execute_finished.load(); },
-            std::chrono::seconds(10));
-  execute_finished.store(false);
-
   {
+    absl::Notification execute_finished;
     std::string result;
 
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
@@ -2995,12 +2954,11 @@ TEST(SandboxedServiceTest,
                          auto& code_resp = **resp;
                          result = code_resp.resp;
                        }
-                       execute_finished.store(true);
+                       execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
 
-    WaitUntil([&]() { return execute_finished.load(); },
-              std::chrono::seconds(10));
+    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
     EXPECT_THAT(result, StrEq("3"));
   }
@@ -3020,8 +2978,8 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> success_execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification success_execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3038,7 +2996,7 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     ASSERT_TRUE(status.ok());
   }
@@ -3056,14 +3014,13 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        result = code_resp.resp;
-                       success_execute_finished.store(true);
+                       success_execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return success_execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  success_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world! ")"));
 
   status = RomaStop();
@@ -3081,8 +3038,8 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> oversize_execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification oversize_execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3097,7 +3054,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -3117,14 +3074,13 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        EXPECT_GE(code_resp.resp.length(), payload_size);
-                       oversize_execute_finished.store(true);
+                       oversize_execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return oversize_execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  oversize_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -3140,8 +3096,8 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> oversize_execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification oversize_execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3159,7 +3115,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -3180,14 +3136,13 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        EXPECT_GE(code_resp.resp.length(), payload_size);
-                       oversize_execute_finished.store(true);
+                       oversize_execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return oversize_execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  oversize_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -3205,7 +3160,7 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
+  absl::Notification load_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3223,12 +3178,12 @@ TEST(SandboxedServiceTest,
           EXPECT_THAT(resp->status().message(),
                       StrEq("The size of request serialized data is "
                             "larger than the Buffer capacity."));
-          load_finished.store(true);
+          load_finished.Notify();
         });
     ASSERT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -3246,11 +3201,11 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 
   std::string result;
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> success_execute_finished = false;
-  std::atomic<bool> failed_execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification success_execute_finished;
+  absl::Notification failed_execute_finished;
   std::string retry_result;
-  std::atomic<bool> retry_success_execute_finished = false;
+  absl::Notification retry_success_execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3265,7 +3220,7 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -3283,7 +3238,7 @@ TEST(SandboxedServiceTest,
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        result = code_resp.resp;
-                       success_execute_finished.store(true);
+                       success_execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
@@ -3306,7 +3261,7 @@ TEST(SandboxedServiceTest,
                   EXPECT_THAT(resp->status().message(),
                               StrEq("The size of request serialized data is "
                                     "larger than the Buffer capacity."));
-                  failed_execute_finished.store(true);
+                  failed_execute_finished.Notify();
                 });
     EXPECT_TRUE(status.ok());
   }
@@ -3324,18 +3279,16 @@ TEST(SandboxedServiceTest,
                        ASSERT_TRUE(resp->ok());
                        auto& code_resp = **resp;
                        retry_result = code_resp.resp;
-                       retry_success_execute_finished.store(true);
+                       retry_success_execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return success_execute_finished.load(); },
-            std::chrono::seconds(10));
-  WaitUntil([&]() { return failed_execute_finished.load(); },
-            std::chrono::seconds(10));
-  WaitUntil([&]() { return retry_success_execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  success_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  failed_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  retry_success_execute_finished.WaitForNotificationWithTimeout(
+      absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
   EXPECT_THAT(retry_result, StrEq(R"("Hello world! \"Foobar\"")"));
 
@@ -3354,10 +3307,10 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<bool> load_finished = false;
-  std::atomic<bool> success_execute_finished = false;
-  std::atomic<bool> failed_execute_finished = false;
-  std::atomic<bool> retry_success_execute_finished = false;
+  absl::Notification load_finished;
+  absl::Notification success_execute_finished;
+  absl::Notification failed_execute_finished;
+  absl::Notification retry_success_execute_finished;
 
   {
     auto code_obj = std::make_unique<CodeObject>();
@@ -3375,7 +3328,7 @@ TEST(SandboxedServiceTest,
         LoadCodeObj(std::move(code_obj),
                     [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       EXPECT_TRUE(resp->ok());
-                      load_finished.store(true);
+                      load_finished.Notify();
                     });
     EXPECT_TRUE(status.ok());
   }
@@ -3391,7 +3344,7 @@ TEST(SandboxedServiceTest,
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
-                       success_execute_finished.store(true);
+                       success_execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
@@ -3415,7 +3368,7 @@ TEST(SandboxedServiceTest,
                   EXPECT_THAT(resp->status().message(),
                               StrEq("The size of response serialized data is "
                                     "larger than the Buffer capacity."));
-                  failed_execute_finished.store(true);
+                  failed_execute_finished.Notify();
                 });
     EXPECT_TRUE(status.ok());
   }
@@ -3432,18 +3385,16 @@ TEST(SandboxedServiceTest,
     status = Execute(std::move(execution_obj),
                      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        EXPECT_TRUE(resp->ok());
-                       retry_success_execute_finished.store(true);
+                       retry_success_execute_finished.Notify();
                      });
     EXPECT_TRUE(status.ok());
   }
 
-  WaitUntil([&]() { return load_finished.load(); }, std::chrono::seconds(10));
-  WaitUntil([&]() { return success_execute_finished.load(); },
-            std::chrono::seconds(10));
-  WaitUntil([&]() { return failed_execute_finished.load(); },
-            std::chrono::seconds(10));
-  WaitUntil([&]() { return retry_success_execute_finished.load(); },
-            std::chrono::seconds(10));
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  success_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  failed_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  retry_success_execute_finished.WaitForNotificationWithTimeout(
+      absl::Seconds(10));
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());

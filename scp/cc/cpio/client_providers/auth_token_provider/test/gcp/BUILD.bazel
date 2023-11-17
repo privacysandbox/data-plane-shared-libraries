@@ -27,6 +27,7 @@ cc_test(
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/cpio/client_providers/auth_token_provider/src/gcp:gcp_auth_token_provider_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

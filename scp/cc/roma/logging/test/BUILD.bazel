@@ -28,6 +28,7 @@ cc_test(
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/roma_service/src:roma_service_lib",
         "@com_google_absl//absl/log:scoped_mock_log",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

@@ -17,9 +17,9 @@
 #include <memory>
 
 #include "absl/strings/str_cat.h"
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "cpio/client_providers/parameter_client_provider/mock/gcp/mock_gcp_parameter_client_provider_with_overrides.h"
 #include "cpio/client_providers/parameter_client_provider/src/gcp/error_codes.h"
@@ -54,7 +54,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_GCP_UNKNOWN;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
 using google::scp::cpio::client_providers::mock::
@@ -132,7 +131,7 @@ TEST_F(GcpParameterClientProviderTest, SucceedToFetchParameter) {
               AccessSecretVersion(RequestHasName(secret_name_mock)))
       .WillOnce(Return(response));
 
-  std::atomic<bool> condition;
+  absl::Notification condition;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -140,11 +139,11 @@ TEST_F(GcpParameterClientProviderTest, SucceedToFetchParameter) {
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->parameter_value(), kValueMock);
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_SUCCESS(client_->GetParameter(context));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
@@ -153,7 +152,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
               AccessSecretVersion(RequestHasName(secret_name_mock)))
       .WillOnce(Return(Status(StatusCode::kNotFound, "Not Found")));
 
-  std::atomic<bool> condition;
+  absl::Notification condition;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -161,11 +160,11 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_NOT_FOUND)));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_SUCCESS(client_->GetParameter(context));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(GcpParameterClientProviderTest, FailedWithInvalidParameterName) {
@@ -185,7 +184,7 @@ TEST_F(GcpParameterClientProviderTest,
               AccessSecretVersion(RequestHasName(secret_name_mock)))
       .WillOnce(Return(Status(StatusCode::kInvalidArgument, "")));
 
-  std::atomic<bool> condition;
+  absl::Notification condition;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -193,11 +192,11 @@ TEST_F(GcpParameterClientProviderTest,
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_INVALID_ARGUMENT)));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_SUCCESS(client_->GetParameter(context));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
@@ -206,7 +205,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
               AccessSecretVersion(RequestHasName(secret_name_mock)))
       .WillOnce(Return(Status(StatusCode::kUnknown, "")));
 
-  std::atomic<bool> condition;
+  absl::Notification condition;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterNameMock);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -214,11 +213,11 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_UNKNOWN)));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_SUCCESS(client_->GetParameter(context));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST(GcpParameterClientProviderTestII, InitFailedToFetchProjectId) {

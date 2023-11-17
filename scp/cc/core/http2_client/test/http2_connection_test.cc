@@ -17,7 +17,6 @@
 
 #include <stdint.h>
 
-#include <atomic>
 #include <chrono>
 #include <csignal>
 #include <future>
@@ -30,10 +29,10 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/http2_client/mock/mock_http_connection.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/core/http2_client/src/http2_client.h"
@@ -49,25 +48,22 @@ using google::scp::core::common::Uuid;
 using google::scp::core::http2_client::mock::MockHttpConnection;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 
 namespace google::scp::core {
 
 TEST(HttpConnectionTest, SimpleRequest) {
   http2 server;
   boost::system::error_code ec;
-  std::atomic<bool> release_response = false;
-  std::atomic<bool> response_released = false;
+  absl::Notification release_response;
+  absl::Notification response_released;
   server.num_threads(1);
   server.handle("/test", [&](const request& req, const response& res) {
-    while (!release_response.load()) {
-      usleep(10000);
-    }
+    release_response.WaitForNotification();
 
     res.write_head(200);
     res.end();
 
-    response_released = true;
+    response_released.Notify();
   });
   server.listen_and_serve(ec, "localhost", "0", true);
 
@@ -87,10 +83,10 @@ TEST(HttpConnectionTest, SimpleRequest) {
   http_context.request->path =
       std::make_shared<std::string>("http://localhost/test");
   http_context.request->method = HttpMethod::GET;
-  std::atomic<bool> is_called(false);
+  absl::Notification is_called;
   http_context.callback =
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
-        is_called.store(true);
+        is_called.Notify();
       };
 
   ExecutionResult execution_result = RetryExecutionResult(123);
@@ -106,12 +102,10 @@ TEST(HttpConnectionTest, SimpleRequest) {
     usleep(1000);
   }
 
-  release_response = true;
-  while (!response_released.load()) {
-    usleep(1000);
-  }
+  release_response.Notify();
+  response_released.WaitForNotification();
 
-  WaitUntil([&]() { return is_called.load(); });
+  is_called.WaitForNotification();
   connection.Stop();
   connection.GetPendingNetworkCallbacks().Keys(keys);
   EXPECT_EQ(keys.size(), 0);
@@ -123,12 +117,10 @@ TEST(HttpConnectionTest, SimpleRequest) {
 TEST(HttpConnectionTest, CancelCallbacks) {
   http2 server;
   boost::system::error_code ec;
-  std::atomic<bool> release_response = false;
+  absl::Notification release_response;
   server.num_threads(1);
   server.handle("/test", [&](const request& req, const response& res) {
-    while (!release_response.load()) {
-      usleep(10000);
-    }
+    release_response.WaitForNotification();
 
     res.write_head(200);
     res.end();
@@ -181,7 +173,7 @@ TEST(HttpConnectionTest, CancelCallbacks) {
   connection.GetPendingNetworkCallbacks().Keys(keys);
   EXPECT_EQ(keys.size(), 0);
 
-  release_response = true;
+  release_response.Notify();
   connection.Stop();
   server.stop();
   server.join();
@@ -190,12 +182,10 @@ TEST(HttpConnectionTest, CancelCallbacks) {
 TEST(HttpConnectionTest, StopRemovesCallback) {
   http2 server;
   boost::system::error_code ec;
-  std::atomic<bool> release_response = false;
+  absl::Notification release_response;
   server.num_threads(1);
   server.handle("/test", [&](const request& req, const response& res) {
-    while (!release_response.load()) {
-      usleep(10000);
-    }
+    release_response.WaitForNotification();
 
     res.write_head(200);
     res.end();
@@ -247,7 +237,7 @@ TEST(HttpConnectionTest, StopRemovesCallback) {
   EXPECT_EQ(keys.size(), 0);
   EXPECT_TRUE(is_called);
 
-  release_response = true;
+  release_response.Notify();
   connection.Stop();
   server.stop();
   server.join();

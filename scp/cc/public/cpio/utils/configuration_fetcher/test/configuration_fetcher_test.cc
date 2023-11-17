@@ -16,14 +16,13 @@
 
 #include <gtest/gtest.h>
 
-#include <atomic>
 #include <functional>
 #include <memory>
 #include <string>
 
 #include "absl/strings/str_cat.h"
+#include "absl/synchronization/notification.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/server/interface/configuration_keys.h"
 #include "cpio/server/interface/crypto_service/configuration_keys.h"
 #include "cpio/server/interface/queue_service/configuration_keys.h"
@@ -60,7 +59,6 @@ using google::scp::core::errors::
     SC_CONFIGURATION_FETCHER_ENVIRONMENT_NAME_NOT_FOUND;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 
 namespace {
 constexpr char kInstanceResourceName[] =
@@ -150,16 +148,16 @@ TEST_F(ConfigurationFetcherTest, GetParameterByNameAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kQueueClientQueueName,
                      kTestQueue);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<std::string, std::string>(
       std::make_shared<std::string>(kQueueClientQueueName),
       [&finished](AsyncContext<std::string, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestQueue);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetParameterByNameAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetParameterByNameSucceeded) {
@@ -176,16 +174,16 @@ TEST_F(ConfigurationFetcherTest, GetSharedLogOptionAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kSdkClientLogOption,
                      kTestLogOption);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, LogOption>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, LogOption> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, LogOption::kConsoleLog);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetSharedLogOptionAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetSharedLogOptionSucceeded) {
@@ -202,16 +200,16 @@ TEST_F(ConfigurationFetcherTest, GetSharedCpuThreadCountAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kSharedCpuThreadCount,
                      kTestSharedThreadCount);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, 10);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetSharedCpuThreadCountAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetSharedCpuThreadCountSucceeded) {
@@ -227,34 +225,34 @@ TEST_F(ConfigurationFetcherTest, GetSharedCpuThreadCountAsyncExceedingMin1) {
   ExpectGetCurrentInstanceResourceName(SuccessExecutionResult());
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kSharedCpuThreadCount, "-10");
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_CONFIGURATION_FETCHER_CONVERSION_FAILED)));
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetSharedCpuThreadCountAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetSharedCpuThreadCountAsyncExceedingMin2) {
   ExpectGetCurrentInstanceResourceName(SuccessExecutionResult());
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kSharedCpuThreadCount, "-1");
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_CONFIGURATION_FETCHER_CONVERSION_FAILED)));
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetSharedCpuThreadCountAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetSharedCpuThreadCountExceedingMax) {
@@ -272,16 +270,16 @@ TEST_F(ConfigurationFetcherTest, GetSharedCpuThreadPoolQueueCapAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kSharedCpuThreadPoolQueueCap,
                      kTestSharedThreadPoolQueueCap);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, 10000);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetSharedCpuThreadPoolQueueCapAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetSharedCpuThreadPoolQueueCapSucceeded) {
@@ -299,16 +297,16 @@ TEST_F(ConfigurationFetcherTest, GetSharedIoThreadCountAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kSharedIoThreadCount,
                      kTestSharedThreadCount);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, 10);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetSharedIoThreadCountAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetSharedIoThreadCountSucceeded) {
@@ -325,16 +323,16 @@ TEST_F(ConfigurationFetcherTest, GetSharedIoThreadPoolQueueCapAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kSharedIoThreadPoolQueueCap,
                      kTestSharedThreadPoolQueueCap);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, 10000);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetSharedIoThreadPoolQueueCapAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetSharedIoThreadPoolQueueCapSucceeded) {
@@ -352,16 +350,16 @@ TEST_F(ConfigurationFetcherTest, GetQueueClientQueueNameAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kQueueClientQueueName,
                      kTestQueue);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestQueue);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetQueueClientQueueNameAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetQueueClientQueueNameSucceeded) {
@@ -378,16 +376,16 @@ TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeKemAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kCryptoClientHpkeKem,
                      kTestHpkeKem);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, HpkeKem>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, HpkeKem> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, HpkeKem::DHKEM_X25519_HKDF_SHA256);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetCryptoClientHpkeKemAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeKemSucceeded) {
@@ -414,16 +412,16 @@ TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeKdfAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kCryptoClientHpkeKdf,
                      kTestHpkeKdf);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, HpkeKdf>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, HpkeKdf> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, HpkeKdf::HKDF_SHA256);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetCryptoClientHpkeKdfAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeKdfSucceeded) {
@@ -440,16 +438,16 @@ TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeAeadAsyncSucceeded) {
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(SuccessExecutionResult(), kCryptoClientHpkeAead,
                      kTestHpkeAead);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, HpkeAead>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, HpkeAead> context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, HpkeAead::CHACHA20_POLY1305);
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetCryptoClientHpkeAeadAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeAeadSucceeded) {
@@ -464,29 +462,29 @@ TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeAeadSucceeded) {
 TEST_F(ConfigurationFetcherTest, FailedToGetCurrentInstance) {
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   ExpectGetCurrentInstanceResourceName(failure);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr, [&](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_THAT(context.result, ResultIs(failure));
-        finished = true;
+        finished.Notify();
       });
   EXPECT_THAT(fetcher_->GetQueueClientQueueNameAsync(get_context),
               ResultIs(failure));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, FailedToGetInstanceDetails) {
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   ExpectGetCurrentInstanceResourceName(SuccessExecutionResult());
   ExpectGetInstanceDetails(failure, "");
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr, [&](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_THAT(context.result, ResultIs(failure));
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetQueueClientQueueNameAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, FailedToGetParameter) {
@@ -494,28 +492,28 @@ TEST_F(ConfigurationFetcherTest, FailedToGetParameter) {
   ExpectGetCurrentInstanceResourceName(SuccessExecutionResult());
   ExpectGetInstanceDetails(SuccessExecutionResult(), env_name_tag_);
   ExpectGetParameter(failure, kQueueClientQueueName, kTestQueue);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr, [&](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_THAT(context.result, ResultIs(failure));
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetQueueClientQueueNameAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(ConfigurationFetcherTest, EnvNameNotFound) {
   ExpectGetCurrentInstanceResourceName(SuccessExecutionResult());
   ExpectGetInstanceDetails(SuccessExecutionResult(), "invalid_tag");
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr, [&](AsyncContext<GetConfigurationRequest, std::string> context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_CONFIGURATION_FETCHER_ENVIRONMENT_NAME_NOT_FOUND)));
-        finished = true;
+        finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetQueueClientQueueNameAsync(get_context));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 }  // namespace google::scp::cpio

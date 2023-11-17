@@ -30,6 +30,7 @@ cc_test(
         "//scp/cc/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "@aws_sdk_cpp//:core",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

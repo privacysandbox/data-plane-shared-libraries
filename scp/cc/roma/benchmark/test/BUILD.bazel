@@ -43,6 +43,7 @@ cc_test(
         "//scp/cc/roma/roma_service/src:roma_service_lib",
         "//src/cpp/util:duration",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

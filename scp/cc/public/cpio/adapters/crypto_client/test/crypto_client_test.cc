@@ -21,8 +21,8 @@
 #include <string>
 #include <utility>
 
+#include "absl/synchronization/notification.h"
 #include "core/interface/errors.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "public/cpio/adapters/crypto_client/mock/mock_crypto_client_with_overrides.h"
@@ -44,7 +44,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::CryptoClient;
 using google::scp::cpio::CryptoClientOptions;
 using google::scp::cpio::client_providers::mock::MockCryptoClientProvider;
@@ -85,15 +84,15 @@ TEST_F(CryptoClientTest, HpkeEncryptSuccess) {
             return SuccessExecutionResult();
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->HpkeEncrypt(HpkeEncryptRequest(),
                                    [&](const ExecutionResult result,
                                        HpkeEncryptResponse response) {
                                      EXPECT_THAT(result, IsSuccessful());
-                                     finished = true;
+                                     finished.Notify();
                                    }),
               IsSuccessful());
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(CryptoClientTest, HpkeEncryptFailure) {
@@ -105,16 +104,16 @@ TEST_F(CryptoClientTest, HpkeEncryptFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(
       client_->HpkeEncrypt(
           HpkeEncryptRequest(),
           [&](const ExecutionResult result, HpkeEncryptResponse response) {
             EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished = true;
+            finished.Notify();
           }),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(CryptoClientTest, HpkeDecryptSuccess) {
@@ -127,15 +126,15 @@ TEST_F(CryptoClientTest, HpkeDecryptSuccess) {
             return SuccessExecutionResult();
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->HpkeDecrypt(HpkeDecryptRequest(),
                                    [&](const ExecutionResult result,
                                        HpkeDecryptResponse response) {
                                      EXPECT_THAT(result, IsSuccessful());
-                                     finished = true;
+                                     finished.Notify();
                                    }),
               IsSuccessful());
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(CryptoClientTest, HpkeDecryptFailure) {
@@ -147,16 +146,16 @@ TEST_F(CryptoClientTest, HpkeDecryptFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(
       client_->HpkeDecrypt(
           HpkeDecryptRequest(),
           [&](const ExecutionResult result, HpkeDecryptResponse response) {
             EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished = true;
+            finished.Notify();
           }),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(CryptoClientTest, AeadEncryptSuccess) {
@@ -169,15 +168,15 @@ TEST_F(CryptoClientTest, AeadEncryptSuccess) {
             return SuccessExecutionResult();
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->AeadEncrypt(AeadEncryptRequest(),
                                    [&](const ExecutionResult result,
                                        AeadEncryptResponse response) {
                                      EXPECT_THAT(result, IsSuccessful());
-                                     finished = true;
+                                     finished.Notify();
                                    }),
               IsSuccessful());
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(CryptoClientTest, AeadEncryptFailure) {
@@ -189,16 +188,16 @@ TEST_F(CryptoClientTest, AeadEncryptFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(
       client_->AeadEncrypt(
           AeadEncryptRequest(),
           [&](const ExecutionResult result, AeadEncryptResponse response) {
             EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished = true;
+            finished.Notify();
           }),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(CryptoClientTest, AeadDecryptSuccess) {
@@ -211,15 +210,15 @@ TEST_F(CryptoClientTest, AeadDecryptSuccess) {
             return SuccessExecutionResult();
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(client_->AeadDecrypt(AeadDecryptRequest(),
                                    [&](const ExecutionResult result,
                                        AeadDecryptResponse response) {
                                      EXPECT_THAT(result, IsSuccessful());
-                                     finished = true;
+                                     finished.Notify();
                                    }),
               IsSuccessful());
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(CryptoClientTest, AeadDecryptFailure) {
@@ -231,15 +230,15 @@ TEST_F(CryptoClientTest, AeadDecryptFailure) {
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   EXPECT_THAT(
       client_->AeadDecrypt(
           AeadDecryptRequest(),
           [&](const ExecutionResult result, AeadDecryptResponse response) {
             EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished = true;
+            finished.Notify();
           }),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 }  // namespace google::scp::cpio::test

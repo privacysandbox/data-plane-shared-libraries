@@ -29,6 +29,7 @@ cc_test(
         "//scp/cc/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
         "//scp/cc/cpio/client_providers/private_key_fetcher_provider/src/gcp:gcp_private_key_fetcher_provider_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

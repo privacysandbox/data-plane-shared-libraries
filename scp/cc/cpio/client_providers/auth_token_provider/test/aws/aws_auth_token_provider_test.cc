@@ -21,8 +21,8 @@
 #include <string>
 #include <utility>
 
+#include "absl/synchronization/notification.h"
 #include "core/curl_client/mock/mock_curl_client.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/auth_token_provider/src/aws/error_codes.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
@@ -43,7 +43,6 @@ using google::scp::core::errors::
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using testing::Eq;
 using testing::Pair;
 using testing::Pointee;
@@ -96,7 +95,7 @@ TEST_F(AwsAuthTokenProviderTest,
     return SuccessExecutionResult();
   });
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   fetch_token_context_.callback = [&finished](auto& context) {
     EXPECT_SUCCESS(context.result);
     ASSERT_TRUE(context.response);
@@ -104,12 +103,12 @@ TEST_F(AwsAuthTokenProviderTest,
                 Pointee(Eq(kHttpResponseMock)));
     EXPECT_EQ(context.response->token_lifetime_in_seconds,
               std::chrono::seconds(kTokenTtlInSecondHeaderValue));
-    finished = true;
+    finished.Notify();
   };
   EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(AwsAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
@@ -119,15 +118,15 @@ TEST_F(AwsAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
     return SuccessExecutionResult();
   });
 
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   fetch_token_context_.callback = [&finished](auto& context) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-    finished = true;
+    finished.Notify();
   };
   EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
-  WaitUntil([&finished]() { return finished.load(); });
+  finished.WaitForNotification();
 }
 
 TEST_F(AwsAuthTokenProviderTest, NullHttpClientProvider) {

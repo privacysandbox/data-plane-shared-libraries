@@ -26,9 +26,9 @@
 #include <aws/kms/KMSClient.h>
 #include <aws/kms/KMSErrors.h>
 
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "core/utils/src/base64.h"
 #include "cpio/client_providers/kms_client_provider/mock/aws/mock_nontee_aws_kms_client_provider_with_overrides.h"
 #include "cpio/client_providers/kms_client_provider/src/aws/nontee_error_codes.h"
@@ -68,7 +68,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_AWS_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED;
 using google::scp::core::errors::SC_AWS_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND;
 using google::scp::core::errors::SC_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockKMSClient;
 using google::scp::cpio::client_providers::mock::
     MockNonteeAwsKmsClientProviderWithOverrides;
@@ -189,18 +188,18 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kKeyArn);
   kms_decrypt_request->set_ciphertext(kCiphertext);
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrypt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_THAT(context.response->plaintext(), StrEq(kPlaintext));
-        condition = true;
+        condition.Notify();
       });
 
   EXPECT_SUCCESS(client_->Decrypt(context));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
@@ -211,7 +210,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kKeyArn);
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrypt_request,
@@ -219,12 +218,12 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_AWS_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
-        condition = true;
+        condition.Notify();
       });
   EXPECT_THAT(client_->Decrypt(context),
               ResultIs(FailureExecutionResult(
                   SC_AWS_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingKeyArn) {
@@ -235,12 +234,12 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingKeyArn) {
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_ciphertext(kCiphertext);
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrypt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
-        condition = true;
+        condition.Notify();
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_AWS_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND)));
@@ -248,7 +247,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingKeyArn) {
   EXPECT_THAT(client_->Decrypt(context),
               ResultIs(FailureExecutionResult(
                   SC_AWS_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND)));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, FailedDecryption) {
@@ -260,17 +259,17 @@ TEST_F(TeeAwsKmsClientProviderTest, FailedDecryption) {
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(kWrongKeyArn);
   kms_decrypt_request->set_ciphertext(kCiphertext);
-  std::atomic<bool> condition = false;
+  absl::Notification condition;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrypt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
-        condition = true;
+        condition.Notify();
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         SC_AWS_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED)));
       });
   EXPECT_SUCCESS(client_->Decrypt(context));
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test
