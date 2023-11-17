@@ -26,18 +26,18 @@
 #include "quiche/oblivious_http/common/oblivious_http_header_key_config.h"
 #include "quiche/oblivious_http/oblivious_http_gateway.h"
 #include "src/cpp/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
-#include "src/cpp/util/status_macro/status_macros.h"
 
 namespace privacy_sandbox::server_common {
 namespace {
 
 // Parameters used to configure Oblivious HTTP.
 // KEM: DHKEM(X25519, HKDF-SHA256) 0x0020
-constexpr uint16_t kX25519HkdfSha256KemId = EVP_HPKE_DHKEM_X25519_HKDF_SHA256;
+inline constexpr uint16_t kX25519HkdfSha256KemId =
+    EVP_HPKE_DHKEM_X25519_HKDF_SHA256;
 // KDF: HKDF-SHA256 0x0001
-constexpr uint16_t kHkdfSha256Id = EVP_HPKE_HKDF_SHA256;
+inline constexpr uint16_t kHkdfSha256Id = EVP_HPKE_HKDF_SHA256;
 // AEAD: AES-256-GCM 0x0002
-constexpr uint16_t kAes256GcmAeadId = EVP_HPKE_AES_256_GCM;
+inline constexpr uint16_t kAes256GcmAeadId = EVP_HPKE_AES_256_GCM;
 
 // TODO(b/269787188): Remove once KMS starts returning numeric key IDs.
 absl::StatusOr<uint8_t> ToIntKeyId(absl::string_view key_id) {
@@ -51,64 +51,16 @@ absl::StatusOr<uint8_t> ToIntKeyId(absl::string_view key_id) {
   return val;
 }
 
-// Examines the encapsulated request and determines which request label (AKA
-// media type) should be used to decrypt the request.
-absl::StatusOr<absl::string_view> GetRequestLabel(
-    absl::string_view encapsulated_request) {
-  static_assert((kOHTTPHeaderValue & kOHTTPHeaderCompareMask) ==
-                kOHTTPHeaderValue);
-
-  quiche::QuicheDataReader reader(encapsulated_request);
-  uint64_t read_number64;
-  if (!reader.ReadUInt64(&read_number64)) {
-    VLOG(2) << "Unable to read first 64 bits of encapsulated request";
-    return absl::InvalidArgumentError(kInvalidEncapsulatedRequestFormat);
-  }
-
-  // First, check to see if this encapsulated request follows the *old* format.
-  if ((read_number64 & kOHTTPHeaderCompareMask) == kOHTTPHeaderValue) {
-    return quiche::ObliviousHttpHeaderKeyConfig::kOhttpRequestLabel;
-  }
-
-  // Next, check to see if this encapsulated request follows the *new* format
-  // where the first byte is a zero followed by the encapsulated request.
-  if (read_number64 & 0xFF00000000000000 != 0) {
-    // In the future, we can branch here depending on the value of the first
-    // byte in the request. But today, we reject the request if it's not a zero.
-    VLOG(2) << "Detected request format using B&A request label, but expected 0"
-               "for the first byte of the encapsulated request";
-    return absl::InvalidArgumentError(kInvalidEncapsulatedRequestFormat);
-  }
-
-  uint64_t read_number64_shifted = read_number64 << 8;
-  if ((read_number64_shifted & kOHTTPHeaderCompareMask) != kOHTTPHeaderValue) {
-    VLOG(2) << "Unable to match encapsulated request with either expected"
-               "request format";
-    return absl::InvalidArgumentError(kInvalidEncapsulatedRequestFormat);
-  }
-
-  return kBiddingAuctionOhttpRequestLabel;
-}
-
 }  // namespace
 
-absl::StatusOr<EncapsulatedRequest> ParseEncapsulatedRequest(
-    absl::string_view encapsulated_request) {
-  PS_ASSIGN_OR_RETURN(const auto request_label,
-                      GetRequestLabel(encapsulated_request));
-
-  // If the request label is B&A's custom label, the first byte is a zero and
-  // the actual OHTTP request begins from the second byte. So trim off the first
-  // byte.
-  if (request_label == kBiddingAuctionOhttpRequestLabel) {
-    encapsulated_request = encapsulated_request.substr(1);
-  }
-
-  return EncapsulatedRequest{encapsulated_request, request_label};
+absl::StatusOr<uint8_t> ParseKeyId(
+    absl::string_view ohttp_encapsulated_request) {
+  return quiche::ObliviousHttpHeaderKeyConfig::
+      ParseKeyIdFromObliviousHttpRequestPayload(ohttp_encapsulated_request);
 }
 
 absl::StatusOr<quiche::ObliviousHttpRequest> DecryptEncapsulatedRequest(
-    const PrivateKey& private_key, const EncapsulatedRequest& request) {
+    const PrivateKey& private_key, absl::string_view encapsulated_request) {
   const auto key_id = ToIntKeyId(private_key.key_id);
   if (!key_id.ok()) {
     return absl::Status(absl::StatusCode::kInternal, key_id.status().message());
@@ -124,7 +76,7 @@ absl::StatusOr<quiche::ObliviousHttpRequest> DecryptEncapsulatedRequest(
 
   // Validate the encapsulated request matches the expected key config above.
   const auto payload_headers =
-      key_config->ParseOhttpPayloadHeader(request.request_payload);
+      key_config->ParseOhttpPayloadHeader(encapsulated_request);
   if (!payload_headers.ok()) {
     const std::string error = absl::StrCat(
         "Unsupported HPKE primitive ID provided in encapsulated request: ",
@@ -141,8 +93,7 @@ absl::StatusOr<quiche::ObliviousHttpRequest> DecryptEncapsulatedRequest(
   }
 
   absl::StatusOr<quiche::ObliviousHttpRequest> decrypted_req =
-      gateway->DecryptObliviousHttpRequest(request.request_payload,
-                                           request.request_label);
+      gateway->DecryptObliviousHttpRequest(encapsulated_request);
   if (!decrypted_req.ok()) {
     if (absl::IsInvalidArgument(decrypted_req.status())) {
       // Likely a malformed payload.
@@ -159,8 +110,7 @@ absl::StatusOr<quiche::ObliviousHttpRequest> DecryptEncapsulatedRequest(
 
 absl::StatusOr<std::string> EncryptAndEncapsulateResponse(
     const std::string plaintext_data, const PrivateKey& private_key,
-    quiche::ObliviousHttpRequest::Context& context,
-    absl::string_view request_label) {
+    quiche::ObliviousHttpRequest::Context& context) {
   const auto key_id = ToIntKeyId(private_key.key_id);
   if (!key_id.ok()) {
     return absl::Status(absl::StatusCode::kInternal, key_id.status().message());
@@ -181,15 +131,8 @@ absl::StatusOr<std::string> EncryptAndEncapsulateResponse(
                         gateway.status().message());
   }
 
-  // Based off of the request label, use the corresponding response label for
-  // response encryption.
-  absl::string_view response_label =
-      (request_label == kBiddingAuctionOhttpRequestLabel)
-          ? kBiddingAuctionOhttpResponseLabel
-          : quiche::ObliviousHttpHeaderKeyConfig::kOhttpResponseLabel;
-
-  const auto oblivious_response = gateway->CreateObliviousHttpResponse(
-      std::move(plaintext_data), context, response_label);
+  const auto oblivious_response =
+      gateway->CreateObliviousHttpResponse(std::move(plaintext_data), context);
   if (!oblivious_response.ok()) {
     const std::string error =
         absl::StrCat("Failed to create OHTTP response: ",

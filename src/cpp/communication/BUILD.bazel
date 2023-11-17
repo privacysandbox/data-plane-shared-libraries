@@ -49,7 +49,6 @@ cc_library(
     deps = [
         "//src/cpp/encryption/key_fetcher/interface:private_key_fetcher_interface",
         "//src/cpp/encryption/key_fetcher/interface:public_key_fetcher_interface",
-        "//src/cpp/util/status_macro:status_macros",
         "@com_github_google_glog//:glog",
         "@com_github_google_quiche//quiche:oblivious_http_unstable_api",
         "@com_google_absl//absl/hash",
