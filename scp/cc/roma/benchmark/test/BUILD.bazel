@@ -67,6 +67,7 @@ cc_test(
     name = "kv_server_udf_benchmark_test",
     timeout = "eternal",
     srcs = ["kv_server_udf_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
     tags = ["manual"],
     deps = [
         ":test_code",
@@ -80,6 +81,7 @@ cc_test(
     name = "ba_server_benchmark",
     timeout = "eternal",
     srcs = ["ba_server_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
     tags = ["manual"],
     deps = [
         ":test_code",

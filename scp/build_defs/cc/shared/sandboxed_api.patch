@@ -1,5 +1,5 @@
 diff --git a/sandboxed_api/bazel/sapi.bzl b/sandboxed_api/bazel/sapi.bzl
-index 94c28b0..50c2c31 100644
+index 51f47a8..04c139f 100644
 --- a/sandboxed_api/bazel/sapi.bzl
 +++ b/sandboxed_api/bazel/sapi.bzl
 @@ -20,7 +20,7 @@ load(
@@ -19,7 +19,7 @@ index 94c28b0..50c2c31 100644
  )
  
  def sapi_library(
-@@ -316,7 +315,7 @@ def sapi_library(
+@@ -323,7 +322,7 @@ def sapi_library(
      else:
          lib_hdrs += [generated_header]
  
@@ -28,7 +28,7 @@ index 94c28b0..50c2c31 100644
  
      # Library that contains generated interface and sandboxed binary as a data
      # dependency. Add this as a dependency instead of original library.
-@@ -332,9 +331,9 @@ def sapi_library(
+@@ -339,9 +338,9 @@ def sapi_library(
                  "@com_google_absl//absl/base:core_headers",
                  "@com_google_absl//absl/status",
                  "@com_google_absl//absl/status:statusor",
@@ -41,8 +41,8 @@ index 94c28b0..50c2c31 100644
              ] + deps +
              ([":" + name + "_embed"] if embed else []) +
              (default_deps if add_default_deps else []),
-@@ -351,7 +350,7 @@ def sapi_library(
-         ] + exported_funcs,  # must be both referenced, and exported
+@@ -359,7 +358,7 @@ def sapi_library(
+         malloc = malloc,
          deps = [
              ":" + name + ".lib",
 -            "//sandboxed_api:client",
@@ -50,7 +50,6 @@ index 94c28b0..50c2c31 100644
          ],
          copts = default_copts,
          **common
-
 diff --git a/sandboxed_api/examples/stringop/BUILD.bazel b/sandboxed_api/examples/stringop/BUILD.bazel
 index e337152..f6d5ee9 100644
 --- a/sandboxed_api/examples/stringop/BUILD.bazel
@@ -65,10 +64,10 @@ index e337152..f6d5ee9 100644
      ],
  )
 diff --git a/sandboxed_api/sandbox2/BUILD.bazel b/sandboxed_api/sandbox2/BUILD.bazel
-index 51d2977..3e37e12 100644
+index 9e0ade3..32d6d4a 100644
 --- a/sandboxed_api/sandbox2/BUILD.bazel
 +++ b/sandboxed_api/sandbox2/BUILD.bazel
-@@ -221,7 +221,7 @@ cc_library(
+@@ -223,7 +223,7 @@ cc_library(
          "//sandboxed_api/util:raw_logging",
          "@com_google_absl//absl/flags:flag",
          "@com_google_absl//absl/log",
@@ -100,32 +99,32 @@ index cb4913f..1eb7346 100644
  )
  
 diff --git a/sandboxed_api/sandbox2/examples/network/BUILD.bazel b/sandboxed_api/sandbox2/examples/network/BUILD.bazel
-index 82ccef6..fb9a53f 100644
+index 11baced..43e697b 100644
 --- a/sandboxed_api/sandbox2/examples/network/BUILD.bazel
 +++ b/sandboxed_api/sandbox2/examples/network/BUILD.bazel
 @@ -44,7 +44,7 @@ cc_binary(
-         "@com_google_absl//absl/log",
          "@com_google_absl//absl/log:globals",
          "@com_google_absl//absl/log:initialize",
+         "@com_google_absl//absl/status:statusor",
 -        "@com_google_absl//absl/strings:string_view",
 +        "@com_google_absl//absl/strings",
          "@com_google_absl//absl/time",
      ],
  )
 diff --git a/sandboxed_api/sandbox2/examples/network_proxy/BUILD.bazel b/sandboxed_api/sandbox2/examples/network_proxy/BUILD.bazel
-index 03e2e36..2d6f1c8 100644
+index 7f94437..3873b70 100644
 --- a/sandboxed_api/sandbox2/examples/network_proxy/BUILD.bazel
 +++ b/sandboxed_api/sandbox2/examples/network_proxy/BUILD.bazel
-@@ -40,7 +40,7 @@ cc_binary(
-         "@com_google_absl//absl/log",
+@@ -41,7 +41,7 @@ cc_binary(
          "@com_google_absl//absl/log:globals",
          "@com_google_absl//absl/log:initialize",
+         "@com_google_absl//absl/status:statusor",
 -        "@com_google_absl//absl/strings:string_view",
 +        "@com_google_absl//absl/strings",
          "@com_google_absl//absl/time",
      ],
  )
-@@ -65,7 +65,7 @@ cc_binary(
+@@ -66,7 +66,7 @@ cc_binary(
          "@com_google_absl//absl/status",
          "@com_google_absl//absl/status:statusor",
          "@com_google_absl//absl/strings:str_format",
@@ -169,4 +168,3 @@ index 9dac419..7fd166d 100644
          "@com_google_googletest//:gtest_main",
      ],
  )
- 

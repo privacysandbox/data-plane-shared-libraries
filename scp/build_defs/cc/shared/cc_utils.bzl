@@ -45,3 +45,19 @@ def cc_utils():
             "https://mirror.bazel.build/curl.haxx.se/download/curl-7.49.1.tar.gz",
         ],
     )
+
+    maybe(
+        http_archive,
+        name = "rules_fuzzing",
+        sha256 = "a5734cb42b1b69395c57e0bbd32ade394d5c3d6afbfe782b24816a96da24660d",
+        strip_prefix = "rules_fuzzing-0.1.1",
+        urls = ["https://github.com/bazelbuild/rules_fuzzing/archive/v0.1.1.zip"],
+    )
+
+    maybe(
+        http_archive,
+        name = "com_google_tcmalloc",
+        # Versions of TCMalloc after this one seem to have crashing problems.
+        strip_prefix = "tcmalloc-58c40a3b4bcf583d2993bc1b003279709c05f1d2",
+        urls = ["https://github.com/google/tcmalloc/archive/58c40a3b4bcf583d2993bc1b003279709c05f1d2.zip"],
+    )

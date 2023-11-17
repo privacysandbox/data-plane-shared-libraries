@@ -33,10 +33,7 @@ def absl():
     maybe(
         http_archive,
         name = "com_google_absl",
-        sha256 = "51d676b6846440210da48899e4df618a357e6e44ecde7106f1e44ea16ae8adc7",
-        strip_prefix = "abseil-cpp-20230125.3",
-        # Committed on May 4, 2023
-        urls = [
-            "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.3.zip",
-        ],
+        sha256 = "497ebdc3a4885d9209b9bd416e8c3f71e7a1fb8af249f6c2a80b7cbeefcd7e21",
+        strip_prefix = "abseil-cpp-20230802.1",
+        urls = ["https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.zip"],
     )

@@ -36,6 +36,7 @@
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/sandbox2/policy.h"
 #include "sandboxed_api/sandbox2/policybuilder.h"
+#include "sandboxed_api/sandbox2/util/bpf_helper.h"
 
 #include "error_codes.h"
 
@@ -218,6 +219,15 @@ class WorkerSandboxApi {
                                 .AllowSyscall(__NR_madvise)
                                 .AllowSyscall(__NR_ioctl)
                                 .AllowSyscall(__NR_prlimit64)
+                                //------------------------
+                                // These are for TCMalloc:
+                                .AllowTcMalloc()
+                                .AllowSyscall(__NR_sched_getparam)
+                                .AllowSyscall(__NR_sched_getscheduler)
+                                .AllowSyscall(__NR_clock_nanosleep)
+                                .AllowSyscall(__NR_sched_yield)
+                                .AllowSyscall(__NR_rseq)
+                                //------------------------
                                 .AllowDynamicStartup()
                                 .DisableNamespaces()
                                 .CollectStacktracesOnViolation(false)

@@ -33,6 +33,7 @@ cc_test(
     name = "type_converter_benchmark",
     timeout = "eternal",
     srcs = ["type_converter_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
     tags = ["manual"],
     deps = [
         "//scp/cc:cc_base_include_dir",

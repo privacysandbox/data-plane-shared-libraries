@@ -23,6 +23,7 @@ load("@io_bazel_rules_docker//repositories:repositories.bzl", container_reposito
 load("@io_opentelemetry_cpp//bazel:repository.bzl", "opentelemetry_cpp_deps")
 load("@rules_buf//buf:repositories.bzl", "rules_buf_dependencies", "rules_buf_toolchains")
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
+load("@rules_fuzzing//fuzzing:init.bzl", "rules_fuzzing_init")
 load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
 load("@tink_cc//:tink_cc_deps.bzl", "tink_cc_deps")
 load("@v8_python_deps//:requirements.bzl", install_v8_python_deps = "install_deps")
@@ -63,3 +64,4 @@ def deps3():
             "@aws-nitro-enclaves-nsm-api//:nsm-test/Cargo.toml",
         ],
     )
+    rules_fuzzing_init()

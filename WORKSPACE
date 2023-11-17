@@ -39,3 +39,11 @@ docker_container_deps()
 load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "container_deps")
 
 container_deps()
+
+load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
+
+rules_fuzzing_dependencies()
+
+load("@rules_fuzzing//fuzzing:init.bzl", "rules_fuzzing_init")
+
+rules_fuzzing_init()

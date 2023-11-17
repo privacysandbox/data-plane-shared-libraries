@@ -41,6 +41,7 @@ cc_test(
     name = "dispatcher_benchmark",
     timeout = "eternal",
     srcs = ["dispatcher_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
     tags = ["manual"],
     deps = [
         "//scp/cc/core/async_executor/src:core_async_executor_lib",

@@ -19,8 +19,8 @@ def sandboxed_api():
     maybe(
         git_repository,
         name = "com_google_sandboxed_api",
-        # main as of 08-24-2023
-        commit = "d5ff466c59993553fe546776488b86e9bb794b5c",
+        # main as of 11-17-2023
+        commit = "a0ba1c520f0bb72e8d9a8bf17580c074e666960e",
         remote = "https://github.com/google/sandboxed-api.git",
         patch_args = ["-p1"],
         patches = [

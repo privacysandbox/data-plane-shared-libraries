@@ -20,6 +20,9 @@ cc_test(
     name = "worker_sandbox_api_test",
     size = "small",
     srcs = ["worker_sandbox_api_test.cc"],
+    # Run with TCMalloc in this test to make sure that everything works with
+    # the allocator that we'll be using in benchmarks and production.
+    malloc = "@com_google_tcmalloc//tcmalloc",
     tags = [
         # This test has a translation unit too big for the debug ASAN build,
         # run it in optimized mode:
@@ -41,6 +44,7 @@ cc_test(
     name = "worker_wrapper_benchmark",
     timeout = "eternal",
     srcs = ["worker_wrapper_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
     tags = ["manual"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
