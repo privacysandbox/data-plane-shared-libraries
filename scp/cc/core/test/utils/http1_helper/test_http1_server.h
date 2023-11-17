@@ -89,8 +89,6 @@ class TestHttp1Server {
 
   // Indicates when thread should exit (false).
   std::atomic_bool run_{true};
-  // Indicates when a call to async_accept is outstanding.
-  std::atomic_bool accepting_{false};
 };
 
 absl::btree_multimap<std::string, std::string> GetRequestHeadersMap(
