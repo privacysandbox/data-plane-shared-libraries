@@ -23,11 +23,9 @@
 #include <vector>
 
 #include "core/blob_storage_provider/mock/mock_blob_storage_provider.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::blob_storage_provider::mock::MockBlobStorageProvider;
-using google::scp::core::test::WaitUntil;
 using ::testing::StrEq;
 
 namespace google::scp::core::test {

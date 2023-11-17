@@ -24,7 +24,6 @@
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/synchronization/notification.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
@@ -38,7 +37,6 @@ using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::Cpio;
 using google::scp::cpio::CpioOptions;
 using google::scp::cpio::LogOption;

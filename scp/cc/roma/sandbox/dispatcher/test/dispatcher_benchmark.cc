@@ -27,7 +27,6 @@
 #include "absl/synchronization/blocking_counter.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/test/utils/auto_init_run_stop.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/interface/roma.h"
 #include "roma/sandbox/dispatcher/src/dispatcher.h"
@@ -42,7 +41,6 @@ using google::scp::core::AsyncExecutor;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::test::AutoInitRunStop;
-using google::scp::core::test::WaitUntil;
 using google::scp::roma::CodeObject;
 using google::scp::roma::InvocationRequestStrInput;
 using google::scp::roma::ResponseObject;

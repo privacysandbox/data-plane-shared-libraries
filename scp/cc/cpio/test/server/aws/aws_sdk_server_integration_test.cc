@@ -37,7 +37,6 @@
 #include "core/logger/src/log_providers/syslog/syslog_log_provider.h"
 #include "core/logger/src/logger.h"
 #include "core/test/utils/aws_helper/aws_helper.h"
-#include "core/test/utils/conditional_wait.h"
 #include "core/test/utils/docker_helper/docker_helper.h"
 #include "core/test/utils/logging_utils.h"
 #include "cpio/server/interface/unix_socket_addresses.h"
@@ -85,7 +84,6 @@ using google::scp::core::test::PutParameter;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::TestLoggingUtils;
 using google::scp::core::test::TestTimeoutException;
-using google::scp::core::test::WaitUntil;
 using grpc::CallbackServerContext;
 using grpc::Server;
 using grpc::ServerBuilder;

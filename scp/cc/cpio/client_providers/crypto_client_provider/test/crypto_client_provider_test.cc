@@ -26,7 +26,6 @@
 #include "absl/strings/escaping.h"
 #include "core/interface/async_context.h"
 #include "core/test/scp_test_base.h"
-#include "core/test/utils/conditional_wait.h"
 #include "core/utils/src/base64.h"
 #include "core/utils/src/error_codes.h"
 #include "cpio/client_providers/crypto_client_provider/src/error_codes.h"
@@ -65,7 +64,6 @@ using google::scp::core::errors::SC_CRYPTO_CLIENT_PROVIDER_CREATE_AEAD_FAILED;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::ScpTestBase;
-using google::scp::core::test::WaitUntil;
 using google::scp::core::utils::Base64Encode;
 
 namespace google::scp::cpio::client_providers::test {

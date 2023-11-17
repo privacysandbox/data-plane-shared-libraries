@@ -19,7 +19,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "cpio/client_providers/instance_client_provider/src/aws/error_codes.h"
 #include "public/core/test/interface/execution_result_matchers.h"
@@ -32,7 +31,6 @@ using google::scp::core::errors::
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::client_providers::AwsResourceNameDetails;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;

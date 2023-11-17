@@ -31,7 +31,6 @@
 
 #include "core/common/operation_dispatcher/src/error_codes.h"
 #include "core/interface/errors.h"
-#include "core/test/utils/conditional_wait.h"
 #include "core/test/utils/gcp_helper/gcp_helper.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "public/cpio/proto/queue_service/v1/queue_service.grpc.pb.h"
@@ -51,7 +50,6 @@ using google::scp::core::test::CreatePublisherStub;
 using google::scp::core::test::CreateTopic;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using grpc::CallbackServerContext;
 using grpc::Server;
 using grpc::ServerBuilder;
