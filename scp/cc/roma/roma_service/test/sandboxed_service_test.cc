@@ -17,7 +17,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <atomic>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -27,15 +26,16 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/strings/str_cat.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "core/test/utils/conditional_wait.h"
 #include "roma/config/src/config.h"
 #include "roma/interface/roma.h"
 #include "roma/wasm/test/testing_utils.h"
 #include "src/cpp/util/duration.h"
 
-using google::scp::core::test::WaitUntil;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;
@@ -542,8 +542,8 @@ TEST(SandboxedServiceTest, BatchExecute) {
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<int> res_count(0);
-  size_t batch_size(5);
+  int res_count = 0;
+  constexpr size_t kBatchSize = 5;
   absl::Notification load_finished;
   absl::Notification execute_finished;
   {
@@ -571,7 +571,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
     execution_obj.handler_name = "Handler";
     execution_obj.input.push_back(R"("Foobar")");
 
-    std::vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
+    std::vector<InvocationRequestStrInput> batch(kBatchSize, execution_obj);
     status = BatchExecute(
         batch,
         [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
@@ -579,7 +579,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
             EXPECT_TRUE(resp.ok());
             EXPECT_THAT(resp->resp, StrEq(R"("Hello world! \"Foobar\"")"));
           }
-          res_count.store(batch_resp.size());
+          res_count = batch_resp.size();
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -587,7 +587,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
 
   load_finished.WaitForNotification();
   execute_finished.WaitForNotification();
-  EXPECT_EQ(res_count.load(), batch_size);
+  EXPECT_EQ(res_count, kBatchSize);
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -603,9 +603,10 @@ TEST(SandboxedServiceTest,
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
 
-  std::atomic<int> res_count(0);
+  absl::Mutex mu;
+  int res_count = 0;
   // Large batch
-  size_t batch_size(100);
+  constexpr size_t kBatchSize = 100;
   absl::Notification load_finished;
   absl::Notification execute_finished;
   {
@@ -633,7 +634,7 @@ TEST(SandboxedServiceTest,
     execution_obj.handler_name = "Handler";
     execution_obj.input.push_back(R"("Foobar")");
 
-    std::vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
+    std::vector<InvocationRequestStrInput> batch(kBatchSize, execution_obj);
 
     status = absl::Status(absl::StatusCode::kInternal, "fail");
     while (!status.ok()) {
@@ -644,7 +645,7 @@ TEST(SandboxedServiceTest,
               EXPECT_TRUE(resp.ok());
               EXPECT_THAT(resp->resp, StrEq(R"("Hello world! \"Foobar\"")"));
             }
-            res_count.store(batch_resp.size());
+            res_count = batch_resp.size();
             execute_finished.Notify();
           });
     }
@@ -653,7 +654,7 @@ TEST(SandboxedServiceTest,
 
   load_finished.WaitForNotification();
   execute_finished.WaitForNotification();
-  EXPECT_EQ(res_count.load(), batch_size);
+  EXPECT_EQ(res_count, kBatchSize);
 
   status = RomaStop();
   EXPECT_TRUE(status.ok());
@@ -665,12 +666,8 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   config.number_of_workers = 10;
   auto status = RomaInit(config);
   EXPECT_TRUE(status.ok());
-
-  std::atomic<int> res_count(0);
-  size_t batch_size(100);
-  absl::Notification load_finished;
-  std::atomic<int> execute_finished = 0;
   {
+    absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->version_num = 1;
@@ -685,57 +682,59 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
                       EXPECT_TRUE(resp->ok());
                       load_finished.Notify();
                     });
-    EXPECT_TRUE(status.ok());
+    ASSERT_TRUE(status.ok());
+    load_finished.WaitForNotification();
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  absl::Mutex res_count_mu;
+  int res_count ABSL_GUARDED_BY(res_count_mu) = 0;
 
-  int num_threads = 10;
+  constexpr int kNumThreads = 10;
+  constexpr size_t kBatchSize = 100;
   std::vector<std::thread> threads;
-  for (int i = 0; i < num_threads; i++) {
-    absl::Notification local_execute;
+  threads.reserve(kNumThreads);
+  for (int i = 0; i < kNumThreads; i++) {
     threads.emplace_back([&, i]() {
-      auto execution_obj = InvocationRequestStrInput();
+      absl::Notification local_execute;
+      InvocationRequestStrInput execution_obj{};
       execution_obj.id = "foo";
       execution_obj.version_num = 1;
       execution_obj.handler_name = "Handler";
-      auto input = "Foobar" + std::to_string(i);
-      execution_obj.input.push_back(R"(")" + input + R"(")");
+      execution_obj.input.push_back(absl::StrCat(R"(")", "Foobar", i, R"(")"));
 
-      std::vector<InvocationRequestStrInput> batch(batch_size, execution_obj);
+      std::vector<InvocationRequestStrInput> batch(kBatchSize, execution_obj);
 
-      auto batch_status = absl::Status(absl::StatusCode::kInternal, "fail");
-      while (!batch_status.ok()) {
-        batch_status = BatchExecute(
-            batch,
-            [&,
-             i](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-              for (auto resp : batch_resp) {
-                EXPECT_TRUE(resp.ok());
-                auto result =
-                    "\"Hello world! \\\"Foobar" + std::to_string(i) + "\\\"\"";
-                EXPECT_THAT(resp->resp, StrEq(result));
+      auto batch_callback =
+          [&,
+           i](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
+            for (auto resp : batch_resp) {
+              if (resp.ok()) {
+                EXPECT_THAT(resp->resp,
+                            StrEq(absl::StrCat("\"Hello world! \\\"Foobar", i,
+                                               "\\\"\"")));
+              } else {
+                ADD_FAILURE() << "resp is NOT OK.";
               }
+            }
+            {
+              absl::MutexLock l(&res_count_mu);
               res_count += batch_resp.size();
-              execute_finished++;
-              local_execute.Notify();
-            });
-      }
+            }
+            local_execute.Notify();
+          };
+      while (!BatchExecute(batch, batch_callback).ok()) {}
 
-      EXPECT_TRUE(batch_status.ok());
-
-      local_execute.WaitForNotificationWithTimeout(absl::Seconds(10));
+      // Thread cannot join until batch_callback is called.
+      local_execute.WaitForNotification();
     });
   }
 
-  WaitUntil([&]() { return execute_finished >= num_threads; },
-            std::chrono::seconds(10));
-  EXPECT_EQ(res_count.load(), batch_size * num_threads);
-
   for (auto& t : threads) {
-    if (t.joinable()) {
-      t.join();
-    }
+    t.join();
+  }
+  {
+    absl::MutexLock l(&res_count_mu);
+    EXPECT_EQ(res_count, kBatchSize * kNumThreads);
   }
 
   status = RomaStop();
