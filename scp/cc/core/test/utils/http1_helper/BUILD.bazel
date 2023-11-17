@@ -28,5 +28,6 @@ cc_library(
         "@boost//:asio",
         "@boost//:beast",
         "@com_google_absl//absl/container:btree",
+        "@com_google_absl//absl/synchronization",
     ],
 )

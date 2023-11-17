@@ -18,7 +18,6 @@
 #include <string>
 #include <utility>
 
-#include "core/test/utils/conditional_wait.h"
 #include "core/test/utils/http1_helper/errors.h"
 #include "public/core/interface/execution_result.h"
 
@@ -63,8 +62,7 @@ ExecutionResultOr<in_port_t> GetUnusedPortNumber() {
 }
 
 TestHttp1Server::TestHttp1Server() {
-  std::atomic_bool ready(false);
-  thread_ = std::thread([this, &ready]() {
+  thread_ = std::thread([this]() {
     boost::asio::io_context ioc(/*concurrency_hint=*/1);
     tcp::endpoint ep(tcp::v4(), /*port=*/0);
     tcp::acceptor acceptor(ioc, ep);
@@ -84,12 +82,18 @@ TestHttp1Server::TestHttp1Server() {
           exit(EXIT_FAILURE);
         }
       });
-      ready = true;
+      {
+        absl::MutexLock l(&has_run_mu_);
+        has_run_ = true;
+      }
       ioc.run_for(std::chrono::milliseconds(100));
       ioc.reset();
     }
   });
-  WaitUntil([&ready]() { return ready.load(); });
+
+  // Ensure `thread_` runs at least once before constructor completes.
+  absl::MutexLock l(&has_run_mu_);
+  has_run_mu_.Await(absl::Condition(&has_run_));
 }
 
 // Initiate the asynchronous operations associated with the connection.

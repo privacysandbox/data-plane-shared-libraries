@@ -26,7 +26,9 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/container/btree_map.h"
+#include "absl/synchronization/mutex.h"
 #include "core/interface/type_def.h"
 #include "public/core/interface/execution_result.h"
 
@@ -85,6 +87,11 @@ class TestHttp1Server {
 
   // The thread which this server is running on.
   std::thread thread_;
+
+  // Ensure `thread_` runs at least once before constructor completes.
+  absl::Mutex has_run_mu_;
+  bool has_run_ ABSL_GUARDED_BY(has_run_mu_) = false;
+
   in_port_t port_number_ = 0;
 
   // Indicates when thread should exit (false).
