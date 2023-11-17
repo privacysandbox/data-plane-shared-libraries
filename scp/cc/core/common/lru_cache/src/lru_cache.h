@@ -17,7 +17,7 @@
 #ifndef CORE_COMMON_LRU_CACHE_SRC_LRU_CACHE_H_
 #define CORE_COMMON_LRU_CACHE_SRC_LRU_CACHE_H_
 
-#include <list>
+#include <deque>
 #include <mutex>
 #include <tuple>
 #include <utility>
@@ -28,28 +28,20 @@ namespace google::scp::core::common {
 /**
  * @brief Least Recently Used (LRU) cache
  *
- * @tparam TKey
- * @tparam TVal
+ * @tparam TKey: a copyable type
+ * @tparam TVal: a copyable type
  */
 template <typename TKey, typename TVal>
 class LruCache {
  public:
   explicit LruCache(size_t capacity) : capacity_(capacity) {}
 
-  void Set(const TKey& key, const TVal& value) {
-    std::lock_guard lock(data_mutex_);
+  void Set(const TKey& key, TVal value) { Get(key) = std::move(value); }
 
-    InternalSet(key, value);
-  }
-
+  // Gets key from cache, inserting an entry if it doesn't exist.
   TVal& Get(const TKey& key) {
     std::lock_guard lock(data_mutex_);
-
-    auto existing_element = data_[key];
-    auto value = std::get<1>(existing_element);
-    // Set to update the freshness of the element
-    InternalSet(key, value);
-    return std::get<1>(data_[key]);
+    return InternalGet(key);
   }
 
   size_t Size() {
@@ -57,7 +49,7 @@ class LruCache {
     return data_.size();
   }
 
-  size_t Capacity() { return capacity_; }
+  size_t Capacity() const { return capacity_; }
 
   bool Contains(const TKey& key) {
     std::lock_guard lock(data_mutex_);
@@ -67,57 +59,62 @@ class LruCache {
   void Clear() {
     std::lock_guard lock(data_mutex_);
     data_.clear();
-    freshness_list_.clear();
+    freshness_.clear();
   }
 
+  // Returns a map with copies of all key-value pairs in cache.
   absl::flat_hash_map<TKey, TVal> GetAll() {
     std::lock_guard lock(data_mutex_);
-
     absl::flat_hash_map<TKey, TVal> result;
-
-    for (auto& kv : data_) {
-      result[kv.first] = std::get<1>(kv.second);
+    for (const auto& [key, value] : data_) {
+      result[key] = value.cached_value;
     }
-
     return result;
   }
 
  private:
   const size_t capacity_;
-  absl::flat_hash_map<TKey,
-                      std::tuple<typename std::list<TKey>::iterator, TVal>>
-      data_;
   /**
-   * @brief List to keep the order of access. Fresh items will be at the
-   * beginning, and stale items at the end. The last item is what would be
-   * removed if the cache reaches capacity.
+   * @brief The order of access. Fresh items will be at the beginning, and stale
+   * items at the end. The last item is what would be removed if the cache
+   * reaches capacity.
    *
    */
-  std::list<TKey> freshness_list_;
+  std::deque<TKey> freshness_;
+
+  struct ValueAndIterator {
+    // Value being cached.
+    TVal cached_value;
+    // Pointer to corresponding entry in freshness.
+    typename decltype(freshness_)::iterator freshness_it;
+  };
+
+  absl::flat_hash_map<TKey, ValueAndIterator> data_;
   std::mutex data_mutex_;
 
-  void InternalSet(const TKey& key, const TVal& value) {
-    if (!data_.contains(key) && data_.size() == capacity_) {
-      // If the element is not in the cache and we reached capacity, let's
-      // remove the LRU element. We look at the list of freshness to determine
-      // which element is the LRU, and use the key from it to remove the data
-      // from the data map.
-      auto end_iterator = freshness_list_.end();
-      auto element_to_evict_iterator = --end_iterator;
-      data_.erase(*element_to_evict_iterator);
-      freshness_list_.pop_back();
-    }
+  TVal& InternalGet(const TKey& key) {
+    if (const auto it = data_.find(key); it != data_.end()) {
+      // If this is an existing element remove from freshness before reentry.
+      freshness_.erase(it->second.freshness_it);
+      freshness_.push_front(key);
+      it->second.freshness_it = freshness_.begin();
+      return it->second.cached_value;
+    } else {
+      if (data_.size() == capacity_) {
+        // If the element is not in the cache and we reached capacity, let's
+        // remove the LRU element. We look at the freshness to determine which
+        // element is the LRU, and use the key from it to remove the data from
+        // the data map.
+        data_.erase(freshness_.back());
+        freshness_.pop_back();
+      }
+      freshness_.push_front(key);
 
-    if (data_.contains(key)) {
-      // If this is an existing element, let's remove it from the freshness
-      // list.
-      auto existing_element = data_[key];
-      freshness_list_.erase(std::get<0>(existing_element));
+      // This second lookup is to insert a default value.
+      ValueAndIterator& value = data_[key];
+      value.freshness_it = freshness_.begin();
+      return value.cached_value;
     }
-
-    freshness_list_.push_front(key);
-    auto front_iterator = freshness_list_.begin();
-    data_[key] = std::move(std::make_tuple(front_iterator, value));
   }
 };
 }  // namespace google::scp::core::common
