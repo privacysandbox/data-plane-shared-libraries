@@ -83,12 +83,20 @@ ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
 
 ExecutionResult Dispatcher::ReloadCachedCodeObjects(
     worker_api::WorkerApi& worker) {
-  auto all_cached_code_objects = code_object_cache_.GetAll();
+  absl::flat_hash_map<uint64_t, CodeObject> all_cached_code_objects = [&] {
+    absl::MutexLock l(&cache_mu_);
+    return code_object_cache_.GetAll();
+  }();
 
-  pending_requests_ += all_cached_code_objects.size();
+  {
+    absl::MutexLock l(&pending_requests_mu_);
+    pending_requests_ += all_cached_code_objects.size();
+  }
 
   for (auto& kv : all_cached_code_objects) {
     auto& cached_code = kv.second;
+
+    // TODO(gathuru): Remove creation of unique_ptr over stack object.
     std::unique_ptr<CodeObject> ptr_cached_code;
     ptr_cached_code.reset(&cached_code);
     auto request_type = ptr_cached_code->js.empty()
@@ -103,7 +111,10 @@ ExecutionResult Dispatcher::ReloadCachedCodeObjects(
 
     if (!run_code_request_or.result().Successful()) {
       ptr_cached_code.release();
-      pending_requests_ -= all_cached_code_objects.size();
+      {
+        absl::MutexLock l(&pending_requests_mu_);
+        pending_requests_ -= all_cached_code_objects.size();
+      }
       return run_code_request_or.result();
     }
 
@@ -111,14 +122,20 @@ ExecutionResult Dispatcher::ReloadCachedCodeObjects(
     auto run_code_result_or = worker.RunCode(*run_code_request_or);
     if (!run_code_result_or.result().Successful()) {
       ptr_cached_code.release();
-      pending_requests_ -= all_cached_code_objects.size();
+      {
+        absl::MutexLock l(&pending_requests_mu_);
+        pending_requests_ -= all_cached_code_objects.size();
+      }
       return run_code_result_or.result();
     }
 
     ptr_cached_code.release();
   }
 
-  pending_requests_ -= all_cached_code_objects.size();
+  {
+    absl::MutexLock l(&pending_requests_mu_);
+    pending_requests_ -= all_cached_code_objects.size();
+  }
 
   return SuccessExecutionResult();
 }

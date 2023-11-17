@@ -26,7 +26,7 @@
 
 namespace google::scp::core::common {
 /**
- * @brief Least Recently Used (LRU) cache
+ * @brief Non-threadsafe least recently Used (LRU) cache
  *
  * @tparam TKey: a copyable type
  * @tparam TVal: a copyable type
@@ -40,59 +40,6 @@ class LruCache {
 
   // Gets key from cache, inserting an entry if it doesn't exist.
   TVal& Get(const TKey& key) {
-    std::lock_guard lock(data_mutex_);
-    return InternalGet(key);
-  }
-
-  size_t Size() {
-    std::lock_guard lock(data_mutex_);
-    return data_.size();
-  }
-
-  size_t Capacity() const { return capacity_; }
-
-  bool Contains(const TKey& key) {
-    std::lock_guard lock(data_mutex_);
-    return data_.contains(key);
-  }
-
-  void Clear() {
-    std::lock_guard lock(data_mutex_);
-    data_.clear();
-    freshness_.clear();
-  }
-
-  // Returns a map with copies of all key-value pairs in cache.
-  absl::flat_hash_map<TKey, TVal> GetAll() {
-    std::lock_guard lock(data_mutex_);
-    absl::flat_hash_map<TKey, TVal> result;
-    for (const auto& [key, value] : data_) {
-      result[key] = value.cached_value;
-    }
-    return result;
-  }
-
- private:
-  const size_t capacity_;
-  /**
-   * @brief The order of access. Fresh items will be at the beginning, and stale
-   * items at the end. The last item is what would be removed if the cache
-   * reaches capacity.
-   *
-   */
-  std::deque<TKey> freshness_;
-
-  struct ValueAndIterator {
-    // Value being cached.
-    TVal cached_value;
-    // Pointer to corresponding entry in freshness.
-    typename decltype(freshness_)::iterator freshness_it;
-  };
-
-  absl::flat_hash_map<TKey, ValueAndIterator> data_;
-  std::mutex data_mutex_;
-
-  TVal& InternalGet(const TKey& key) {
     if (const auto it = data_.find(key); it != data_.end()) {
       // If this is an existing element remove from freshness before reentry.
       freshness_.erase(it->second.freshness_it);
@@ -116,6 +63,46 @@ class LruCache {
       return value.cached_value;
     }
   }
+
+  size_t Size() const { return data_.size(); }
+
+  size_t Capacity() const { return capacity_; }
+
+  bool Contains(const TKey& key) const { return data_.contains(key); }
+
+  void Clear() {
+    data_.clear();
+    freshness_.clear();
+  }
+
+  // Returns a map with copies of all key-value pairs in cache.
+  absl::flat_hash_map<TKey, TVal> GetAll() const {
+    absl::flat_hash_map<TKey, TVal> result;
+    for (const auto& [key, value] : data_) {
+      result[key] = value.cached_value;
+    }
+    return result;
+  }
+
+ private:
+  const size_t capacity_;
+
+  /**
+   * @brief The order of access. Fresh items will be at the beginning, and stale
+   * items at the end. The last item is what would be removed if the cache
+   * reaches capacity.
+   *
+   */
+  std::deque<TKey> freshness_;
+
+  struct ValueAndIterator {
+    // Value being cached.
+    TVal cached_value;
+    // Pointer to corresponding entry in freshness.
+    typename decltype(freshness_)::iterator freshness_it;
+  };
+
+  absl::flat_hash_map<TKey, ValueAndIterator> data_;
 };
 }  // namespace google::scp::core::common
 

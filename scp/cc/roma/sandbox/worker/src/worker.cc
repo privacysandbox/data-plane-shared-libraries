@@ -94,6 +94,7 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
   std::string handler_name = "";
   auto handler_name_or =
       WorkerUtils::GetValueFromMetadata(metadata, kHandlerName);
+
   // If we read the handler name successfully, let's store it.
   // Else if we didn't read it and the request is not a load request,
   // then return the failure.
@@ -106,18 +107,22 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
   ROMA_VLOG(2) << "Worker executing request with handler name " << handler_name;
 
   RomaJsEngineCompilationContext context;
+
   // Only reuse the context if this is not a load request.
   // A load request for an existing version should overwrite the given version.
   const std::string code_version(*code_version_or);
-  if (*action_or != kRequestActionLoad &&
-      compilation_contexts_.Contains(code_version)) {
-    context = compilation_contexts_.Get(code_version);
-  } else if (require_preload_ && *action_or != kRequestActionLoad) {
-    // If we require preloads and we couldn't find a context and this is not a
-    // load request, then bail out. This is an execution without a previous
-    // load.
-    return FailureExecutionResult(
-        SC_ROMA_WORKER_MISSING_CONTEXT_WHEN_EXECUTING);
+  if (*action_or != kRequestActionLoad) {
+    // To support `require_preload_` we must perform a double lookup.
+    absl::MutexLock l(&cache_mu_);
+    if (require_preload_ && !compilation_contexts_.Contains(code_version)) {
+      // If we require preloads and we couldn't find a context and this is not a
+      // load request, then bail out. This is an execution without a previous
+      // load.
+      return FailureExecutionResult(
+          SC_ROMA_WORKER_MISSING_CONTEXT_WHEN_EXECUTING);
+    } else {
+      context = compilation_contexts_.Get(code_version);
+    }
   }
 
   core::ExecutionResultOr<JsEngineExecutionResponse> response_or;
@@ -144,6 +149,7 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
   }
 
   if (*action_or == kRequestActionLoad && response_or->compilation_context) {
+    absl::MutexLock l(&cache_mu_);
     compilation_contexts_.Set(code_version, response_or->compilation_context);
     ROMA_VLOG(1) << "caching compilation context for version " << code_version;
   }

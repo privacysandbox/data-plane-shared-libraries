@@ -22,9 +22,11 @@
 #include <string>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
 #include "absl/strings/string_view.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
 #include "core/common/lru_cache/src/lru_cache.h"
 #include "core/interface/service_interface.h"
@@ -60,7 +62,7 @@ class Worker {
   virtual core::ExecutionResultOr<js_engine::ExecutionResponse> RunCode(
       const std::string& code, const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
-      absl::Span<const uint8_t> wasm);
+      absl::Span<const uint8_t> wasm) ABSL_LOCKS_EXCLUDED(cache_mu_);
 
  private:
   std::unique_ptr<js_engine::JsEngine> js_engine_;
@@ -69,8 +71,9 @@ class Worker {
    * @brief Used to keep track of compilation contexts
    *
    */
+  absl::Mutex cache_mu_;
   core::common::LruCache<std::string, js_engine::RomaJsEngineCompilationContext>
-      compilation_contexts_;
+      compilation_contexts_ ABSL_GUARDED_BY(cache_mu_);
 };
 }  // namespace google::scp::roma::sandbox::worker
 

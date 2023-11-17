@@ -17,16 +17,17 @@
 #ifndef ROMA_SANDBOX_DISPATCHER_SRC_DISPATCHER_H_
 #define ROMA_SANDBOX_DISPATCHER_SRC_DISPATCHER_H_
 
-#include <atomic>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/synchronization/mutex.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/common/lru_cache/src/lru_cache.h"
 #include "core/interface/service_interface.h"
@@ -129,8 +130,10 @@ class Dispatcher {
   template <typename RequestT>
   core::ExecutionResult Dispatch(std::unique_ptr<RequestT> request,
                                  Callback callback,
-                                 int32_t worker_index = -1) noexcept {
-    if (pending_requests_.load() >= max_pending_requests_) {
+                                 int32_t worker_index = -1) noexcept
+      ABSL_LOCKS_EXCLUDED(pending_requests_mu_, worker_index_mu_, cache_mu_) {
+    if (absl::MutexLock l(&pending_requests_mu_);
+        pending_requests_ >= max_pending_requests_) {
       return core::FailureExecutionResult(
           core::errors::SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_DUE_TO_CAPACITY);
     }
@@ -151,12 +154,13 @@ class Dispatcher {
     if (worker_index != -1) {
       index = worker_index;
     } else {
-      auto num_workers = worker_pool_->GetPoolSize();
-      index = worker_index_.fetch_add(1) % num_workers;
-      worker_index_ = worker_index_.load() % num_workers;
+      absl::MutexLock l(&worker_index_mu_);
+      index = worker_index_;
+      worker_index_ = (worker_index_ + 1) % worker_pool_->GetPoolSize();
     }
 
     if constexpr (std::is_same<RequestT, CodeObject>::value) {
+      absl::MutexLock l(&cache_mu_);
       code_object_cache_.Set(request->version_num, *request);
     }
 
@@ -173,26 +177,37 @@ class Dispatcher {
                              core::errors::GetErrorMessage(
                                  worker_or.result().status_code)));
             callback(std::move(response_or));
+            absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
             return;
           }
 
+          std::string request_type;
+          cache_mu_.Lock();
           if (!code_object_cache_.Contains(request->version_num)) {
+            cache_mu_.Unlock();
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
                 absl::Status(absl::StatusCode::kInternal,
                              "Could not find code version in cache."));
             callback(std::move(response_or));
+            absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
             return;
-          }
+          } else {
+            // Double lookup necessary to support above not found error.
+            const CodeObject& code_object =
+                code_object_cache_.Get(request->version_num);
 
-          auto request_type =
-              code_object_cache_.Get(request->version_num).js.empty()
-                  ? constants::kRequestTypeWasm
-                  : constants::kRequestTypeJavascript;
-          if (!code_object_cache_.Get(request->version_num).wasm_bin.empty()) {
-            request_type = constants::kRequestTypeJavascriptWithWasm;
+            // TODO(gathuru): Verify this is WAI.
+            if (!code_object.wasm_bin.empty()) {
+              request_type = constants::kRequestTypeJavascriptWithWasm;
+            } else if (code_object.js.empty()) {
+              request_type = constants::kRequestTypeWasm;
+            } else {
+              request_type = constants::kRequestTypeJavascript;
+            }
           }
+          cache_mu_.Unlock();
 
           auto run_code_request_or =
               request_converter::RequestConverter<RequestT>::FromUserProvided(
@@ -203,6 +218,7 @@ class Dispatcher {
                              core::errors::GetErrorMessage(
                                  run_code_request_or.result().status_code)));
             callback(std::move(response_or));
+            absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
             return;
           }
@@ -233,6 +249,7 @@ class Dispatcher {
             }
 
             callback(std::move(response_or));
+            absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
             return;
           }
@@ -247,6 +264,7 @@ class Dispatcher {
             response_or->value().metrics[kv.first] = kv.second;
           }
           callback(std::move(response_or));
+          absl::MutexLock l(&pending_requests_mu_);
           pending_requests_--;
         },
         core::AsyncPriority::Normal);
@@ -254,6 +272,7 @@ class Dispatcher {
     if (schedule_result.Successful()) {
       ROMA_VLOG(1) << "Successfully schedule the execution for request "
                    << request_id << " in worker " << index;
+      absl::MutexLock l(&pending_requests_mu_);
       pending_requests_++;
     }
 
@@ -265,10 +284,15 @@ class Dispatcher {
 
   core::AsyncExecutor* async_executor_;
   worker_pool::WorkerPool* worker_pool_;
-  std::atomic<size_t> worker_index_;
-  std::atomic<size_t> pending_requests_;
+  absl::Mutex worker_index_mu_;
+  // The next worker index for Dispatch calls with `worker_index == -1`
+  int worker_index_ ABSL_GUARDED_BY(worker_index_mu_);
+  absl::Mutex pending_requests_mu_;
+  int pending_requests_ ABSL_GUARDED_BY(pending_requests_mu_);
   const size_t max_pending_requests_;
-  core::common::LruCache<uint64_t, CodeObject> code_object_cache_;
+  absl::Mutex cache_mu_;
+  core::common::LruCache<uint64_t, CodeObject> code_object_cache_
+      ABSL_GUARDED_BY(cache_mu_);
 };
 }  // namespace google::scp::roma::sandbox::dispatcher
 

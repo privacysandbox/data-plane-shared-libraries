@@ -59,5 +59,6 @@ cc_library(
         "//scp/cc/roma/sandbox/worker/src:roma_worker_utils_lib",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/synchronization",
     ],
 )
