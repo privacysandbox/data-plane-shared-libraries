@@ -421,13 +421,13 @@ index b96824dd..1d5ab925 100644
 +++ b/src/asio_client_session_impl.cc
 @@ -577,7 +577,7 @@ const request *session_impl::submit(boost::system::error_code &ec,
  }
- 
+
  void session_impl::shutdown() {
 -  if (stopped_) {
 +  if (session_ == nullptr || stopped_) {
      return;
    }
- 
+
 diff --git a/src/asio_io_service_pool.cc b/src/asio_io_service_pool.cc
 index 01483664..22ab8eca 100644
 --- a/src/asio_io_service_pool.cc
@@ -451,14 +451,14 @@ index 01483664..22ab8eca 100644
 +                                    return 0UL;
 +                                  }));
    }
- 
+
    if (!asynchronous) {
 diff --git a/src/asio_server.cc b/src/asio_server.cc
 index 74c92276..6d262336 100644
 --- a/src/asio_server.cc
 +++ b/src/asio_server.cc
 @@ -188,7 +188,13 @@ void server::start_accept(tcp::acceptor &acceptor, serve_mux &mux) {
- 
+
  void server::stop() {
    for (auto &acceptor : acceptors_) {
 -    acceptor.close();
@@ -481,7 +481,7 @@ index a9489658..7756848c 100644
    void start() {
      boost::system::error_code ec;
 +    std::weak_ptr<connection> weak_self = this->shared_from_this();
- 
+
      handler_ = std::make_shared<http2_handler>(
          GET_IO_SERVICE(socket_), socket_.lowest_layer().remote_endpoint(ec),
 -        [this]() { do_write(); }, mux_);
@@ -500,9 +500,9 @@ index c1fc195f..f050256f 100644
 @@ -298,7 +298,7 @@ int http2_handler::start() {
      return -1;
    }
- 
+
 -  nghttp2_settings_entry ent{NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 100};
 +  nghttp2_settings_entry ent{NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS, 10000};
    nghttp2_submit_settings(session_, NGHTTP2_FLAG_NONE, &ent, 1);
- 
+
    return 0;

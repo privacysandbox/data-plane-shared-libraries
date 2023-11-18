@@ -50,7 +50,7 @@ created and used following this pattern:
    Enclave.
 6. [scp/cc/public/cpio/adapters](adapters), [cc/public/cpio/core](core/), [cc/cpio](/cc/cpio) and
    [scp/cc/core](/cc/core): implementations. The targets there are not public visible.
-7. [scp/build_defs/cc](/build_defs/cc), [WORKSPACE](/WORKSPACE): external dependencies.
+7. [build_defs/cc](/build_defs/cc), [WORKSPACE](/WORKSPACE): external dependencies.
 8. [scp/cc/public/cpio/build_deps](build_deps): scripts to help build reproducible targets inside
    container.
 9. [scp/cc/public/cpio/utils](utils): abstract some common functionalities above clients to help the

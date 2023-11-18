@@ -19,7 +19,7 @@ def cc_utils():
     maybe(
         http_archive,
         name = "nlohmann_json",
-        build_file = Label("//scp/build_defs/cc/shared/build_targets:nlohmann.BUILD"),
+        build_file = Label("//build_defs/cc/shared/build_targets:nlohmann.BUILD"),
         sha256 = "e5c7a9f49a16814be27e4ed0ee900ecd0092bfb7dbfca65b5a421b774dccaaed",
         urls = [
             "https://github.com/nlohmann/json/releases/download/v3.11.2/include.zip",
@@ -38,7 +38,7 @@ def cc_utils():
     maybe(
         http_archive,
         name = "curl",
-        build_file = Label("//scp/build_defs/cc/shared/build_targets:curl.BUILD"),
+        build_file = Label("//build_defs/cc/shared/build_targets:curl.BUILD"),
         sha256 = "ff3e80c1ca6a068428726cd7dd19037a47cc538ce58ef61c59587191039b2ca6",
         strip_prefix = "curl-7.49.1",
         urls = [

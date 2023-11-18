@@ -64,7 +64,7 @@ def import_tink_git():
     maybe(
         http_archive,
         name = "rapidjson",
-        build_file = Label("//scp/build_defs/cc/shared/build_targets:rapidjson.BUILD"),
+        build_file = Label("//build_defs/cc/shared/build_targets:rapidjson.BUILD"),
         sha256 = "30bd2c428216e50400d493b38ca33a25efb1dd65f79dfc614ab0c957a3ac2c28",
         strip_prefix = "rapidjson-418331e99f859f00bdc8306f69eba67e8693c55e",
         urls = [

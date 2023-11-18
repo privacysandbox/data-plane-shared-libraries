@@ -31,6 +31,9 @@ repos:
   - id: fix-byte-order-marker
   - id: mixed-line-ending
   - id: trailing-whitespace
+    exclude: (?x)^(
+      build_defs/.*\.patch
+      )$
   - id: check-case-conflict
   - id: check-merge-conflict
   - id: check-yaml
@@ -51,7 +54,7 @@ repos:
   - id: require-ascii
   - id: shellcheck
     exclude: (?x)^(
-      scp/build_defs/aws/.*|
+      build_defs/aws/.*|
       scp/cc/public/cpio/build_deps/.*|
       scp/cc/public/tools/.*|
       scp/cc/tools/.*|

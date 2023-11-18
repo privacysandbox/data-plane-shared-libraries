@@ -15,7 +15,7 @@
 """Initialize the shared control plane dependencies."""
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@google_privacysandbox_servers_common//scp/build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies = "sdk_dependencies")
+load("@google_privacysandbox_servers_common//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies = "sdk_dependencies")
 
 def deps1():
     http_archive(

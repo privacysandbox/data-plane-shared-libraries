@@ -35,10 +35,10 @@ index 0000000000..7cdf6c74c3
 +@@ -272,6 +272,9 @@ _proto_gen = rule(
 +     implementation = _proto_gen_impl,
 + )
-+ 
++
 ++# tensorflow still depends directly on proto_gen this as of mid-July 2023
 ++proto_gen = _proto_gen
 ++
 + def _internal_gen_well_known_protos_java_impl(ctx):
 +     args = ctx.actions.args()
-+ 
++

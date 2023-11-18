@@ -8,7 +8,7 @@ index 51f47a8..04c139f 100644
  )
 -load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain", "use_cpp_toolchain")
 +load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "find_cpp_toolchain")
- 
+
  # Reexport symbols
  sapi_proto_library = _sapi_proto_library
 @@ -229,7 +229,6 @@ sapi_interface = rule(
@@ -17,15 +17,15 @@ index 51f47a8..04c139f 100644
      output_to_genfiles = True,
 -    toolchains = use_cpp_toolchain(),
  )
- 
+
  def sapi_library(
 @@ -323,7 +322,7 @@ def sapi_library(
      else:
          lib_hdrs += [generated_header]
- 
+
 -    default_deps = ["//sandboxed_api/sandbox2"]
 +    default_deps = ["@com_google_sandboxed_api//sandboxed_api/sandbox2"]
- 
+
      # Library that contains generated interface and sandboxed binary as a data
      # dependency. Add this as a dependency instead of original library.
 @@ -339,9 +338,9 @@ def sapi_library(
@@ -75,7 +75,7 @@ index 9e0ade3..32d6d4a 100644
 +        "@com_google_absl//absl/strings",
      ],
  )
- 
+
 diff --git a/sandboxed_api/sandbox2/examples/crc4/BUILD.bazel b/sandboxed_api/sandbox2/examples/crc4/BUILD.bazel
 index cb4913f..1eb7346 100644
 --- a/sandboxed_api/sandbox2/examples/crc4/BUILD.bazel
@@ -97,7 +97,7 @@ index cb4913f..1eb7346 100644
 +        "@com_google_absl//absl/strings",
      ],
  )
- 
+
 diff --git a/sandboxed_api/sandbox2/examples/network/BUILD.bazel b/sandboxed_api/sandbox2/examples/network/BUILD.bazel
 index 11baced..43e697b 100644
 --- a/sandboxed_api/sandbox2/examples/network/BUILD.bazel
@@ -132,7 +132,7 @@ index 7f94437..3873b70 100644
 +        "@com_google_absl//absl/strings",
      ],
  )
- 
+
 diff --git a/sandboxed_api/sandbox2/examples/zlib/BUILD.bazel b/sandboxed_api/sandbox2/examples/zlib/BUILD.bazel
 index cfd71e1..2b40a33 100644
 --- a/sandboxed_api/sandbox2/examples/zlib/BUILD.bazel

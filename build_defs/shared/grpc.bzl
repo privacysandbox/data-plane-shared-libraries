@@ -25,7 +25,7 @@ def grpc():
         name = "com_github_grpc_grpc",
         patch_args = ["-p1"],
         patches = [
-            Label("//scp/build_defs/shared:grpc.patch"),
+            Label("//build_defs/shared:grpc.patch"),
         ],
         sha256 = "7fa38089fd87e83ed17287276b0f0fda49099a8907df2131b89999ad774bfe33",
         strip_prefix = "grpc-1.58.1",

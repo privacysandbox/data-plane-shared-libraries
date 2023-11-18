@@ -19,7 +19,7 @@ def aws_c_common():
     maybe(
         http_archive,
         name = "aws_c_common",
-        build_file = Label("//scp/build_defs/cc/aws:aws_c_common_source_code.BUILD"),
+        build_file = Label("//build_defs/cc/aws:aws_c_common_source_code.BUILD"),
         sha256 = "462dc0189a83aeb3973002d17586eb19a4dde7d8a4cb541be3113d6a885d64b4",
         strip_prefix = "aws-c-common-0.8.16",
         urls = [

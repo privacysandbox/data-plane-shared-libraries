@@ -25,7 +25,7 @@ def import_v8():
         remote = "https://chromium.googlesource.com/v8/v8.git",
         shallow_since = "1677006717 +0000",
         patch_args = ["-p1"],
-        patches = [Label("//scp/build_defs/cc:v8.patch")],
+        patches = [Label("//build_defs/cc:v8.patch")],
     )
 
     pip_parse(

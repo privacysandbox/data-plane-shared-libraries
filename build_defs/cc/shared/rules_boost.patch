@@ -10,7 +10,7 @@ index 93e03f9..0fe10e7 100644
 +        "@boringssl//:ssl",
      ],
  )
- 
+
 diff --git a/boost/boost.bzl b/boost/boost.bzl
 index ff1630f..c483268 100644
 --- a/boost/boost.bzl
@@ -18,7 +18,7 @@ index ff1630f..c483268 100644
 @@ -219,10 +219,3 @@ def boost_deps():
          ],
      )
- 
+
 -    maybe(
 -        http_archive,
 -        name = "openssl",

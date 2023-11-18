@@ -65,14 +65,14 @@ index d6bbe80..b14eb41 100644
 @@ -12,6 +12,8 @@
  # See the License for the specific language governing permissions and
  # limitations under the License.
- 
+
 +load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 +
  LIBUNWIND_COPTS = [
      "-DHAVE_CONFIG_H",
      "-D_GNU_SOURCE",
 @@ -22,7 +24,25 @@ LIBUNWIND_COPTS = [
- 
+
  filegroup(
      name = "internal_headers",
 -    srcs = [
@@ -121,9 +121,9 @@ index d6bbe80..b14eb41 100644
 -        "src/x86_64/unwind_i.h",
      ],
  )
- 
+
 @@ -67,7 +80,31 @@ cc_library(
- 
+
  filegroup(
      name = "sources_common",
 -    srcs = [
@@ -172,7 +172,7 @@ index d6bbe80..b14eb41 100644
          ":internal_headers",
      ],
  )
- 
+
  filegroup(
      name = "sources_ptrace",
 -    srcs = ["src/x86_64/Ginit_remote.c"],
@@ -181,5 +181,5 @@ index d6bbe80..b14eb41 100644
 +        "@platforms//cpu:arm64": ["src/aarch64/Ginit_remote.c"],
 +    }),
  )
- 
+
  cc_library(

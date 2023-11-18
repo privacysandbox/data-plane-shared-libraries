@@ -22,7 +22,7 @@ def import_aws_sdk_cpp():
     maybe(
         http_archive,
         name = "aws_checksums",
-        build_file = Label("//scp/build_defs/cc/aws:aws_checksums.BUILD"),
+        build_file = Label("//build_defs/cc/aws:aws_checksums.BUILD"),
         sha256 = "6e6bed6f75cf54006b6bafb01b3b96df19605572131a2260fddaf0e87949ced0",
         strip_prefix = "aws-checksums-0.1.5",
         urls = [
@@ -33,7 +33,7 @@ def import_aws_sdk_cpp():
     maybe(
         http_archive,
         name = "aws_c_event_stream",
-        build_file = Label("//scp/build_defs/cc/aws:aws_c_event_stream.BUILD"),
+        build_file = Label("//build_defs/cc/aws:aws_c_event_stream.BUILD"),
         sha256 = "f1b423a487b5d6dca118bfc0d0c6cc596dc476b282258a3228e73a8f730422d4",
         strip_prefix = "aws-c-event-stream-0.1.5",
         urls = [
@@ -44,7 +44,7 @@ def import_aws_sdk_cpp():
     maybe(
         http_archive,
         name = "aws_sdk_cpp",
-        build_file = Label("//scp/build_defs/cc/aws:aws_sdk_cpp_source_code.BUILD"),
+        build_file = Label("//build_defs/cc/aws:aws_sdk_cpp_source_code.BUILD"),
         patch_cmds = [
             """sed -i.bak 's/UUID::RandomUUID/Aws::Utils::UUID::RandomUUID/g' aws-cpp-sdk-core/source/client/AWSClient.cpp""",
             # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3

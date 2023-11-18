@@ -20,7 +20,7 @@ def import_google_cloud_cpp():
     maybe(
         http_archive,
         name = "com_google_googleapis",
-        build_file = Label("//scp/build_defs/cc/shared/build_targets:googleapis.BUILD"),
+        build_file = Label("//build_defs/cc/shared/build_targets:googleapis.BUILD"),
         sha256 = "8e85caaee7e1238ff2dbdb6807ee3fbf44a41d712614a6fa61fa6df6ed8bb20b",
         strip_prefix = "googleapis-cd747534b861c84ea7577e17cccb30b19a24b467",
         urls = [
@@ -31,7 +31,7 @@ def import_google_cloud_cpp():
         http_archive,
         name = "com_github_googleapis_google_cloud_cpp",
         patch_args = ["-p1"],
-        patches = [Label("//scp/build_defs/cc/shared:google_cloud_cpp.patch")],
+        patches = [Label("//build_defs/cc/shared:google_cloud_cpp.patch")],
         repo_mapping = {
             "@com_github_nlohmann_json": "@nlohmann_json",
         },

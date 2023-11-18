@@ -1,4 +1,4 @@
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,17 +15,17 @@
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-# Boost
-# latest as of 2022-06-09
-RULES_BOOST_COMMIT = "789a047e61c0292c3b989514f5ca18a9945b0029"
-
-def boost():
+def sandboxed_api():
     maybe(
         git_repository,
-        name = "com_github_nelhage_rules_boost",
-        commit = RULES_BOOST_COMMIT,
+        name = "com_google_sandboxed_api",
+        # main as of 11-17-2023
+        commit = "a0ba1c520f0bb72e8d9a8bf17580c074e666960e",
+        remote = "https://github.com/google/sandboxed-api.git",
         patch_args = ["-p1"],
-        patches = [Label("//scp/build_defs/cc/shared:rules_boost.patch")],
-        remote = "https://github.com/nelhage/rules_boost.git",
-        shallow_since = "1652895814 -0700",
+        patches = [
+            Label("//build_defs/cc/shared:sandboxed_api.patch"),
+            Label("//build_defs/cc/shared:sandboxed_libunwind.patch"),
+        ],
+        shallow_since = "1689611482 -0700",
     )
