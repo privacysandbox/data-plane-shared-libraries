@@ -15,19 +15,18 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <atomic>
 #include <string>
 #include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/blob_storage_provider/src/common/error_codes.h"
 #include "core/blob_storage_provider/src/gcp/gcp_cloud_storage.h"
 #include "core/config_provider/mock/mock_config_provider.h"
 #include "core/interface/blob_storage_provider_interface.h"
-#include "core/test/utils/conditional_wait.h"
 #include "core/utils/src/base64.h"
 #include "core/utils/src/hashing.h"
 #include "google/cloud/status.h"
@@ -206,7 +205,7 @@ MATCHER_P(BytesBufferEqual, expected_buffer, "") {
 }
 
 TEST_F(GcpCloudStorageClientAsyncTests, SimpleGetTest) {
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
   get_blob_context.request = std::make_shared<GetBlobRequest>(
       GetBlobRequest{std::make_shared<std::string>(kBucketName),
@@ -222,12 +221,12 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimpleGetTest) {
     expected_buffer.length = expected_str.length();
 
     EXPECT_THAT(response->buffer, Pointee(BytesBufferEqual(expected_buffer)));
-    finished = true;
+    finished.Notify();
   };
 
   EXPECT_SUCCESS(gcp_cloud_storage_client_->GetBlob(get_blob_context));
 
-  WaitUntil([&finished]() -> bool { return finished; });
+  finished.WaitForNotification();
 }
 
 MATCHER_P(BlobsEqual, expected, "") {
@@ -266,87 +265,91 @@ TEST_F(GcpCloudStorageClientAsyncTests, ListBlobsTest) {
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.request = std::make_shared<ListBlobsRequest>(
       ListBlobsRequest{{std::make_shared<std::string>(kBucketName)}});
-  std::atomic_bool finished(false);
-
   std::shared_ptr<std::string> next_marker;
-  list_blobs_context.callback = [&finished, &next_marker,
-                                 kPageSize](auto& context) {
-    EXPECT_SUCCESS(context.result);
+  {
+    absl::Notification finished;
 
-    EXPECT_THAT(context.response, NotNull());
+    list_blobs_context.callback = [&finished, &next_marker,
+                                   kPageSize](auto& context) {
+      EXPECT_SUCCESS(context.result);
 
-    // We must add all blobs including the additional that won't be present so
-    // we can sort them lexicographically.
-    std::vector<Blob> expected_blobs;
-    expected_blobs.reserve(kPageSize + kAdditionalBlobCount);
-    for (auto i = 1; i <= (kPageSize + kAdditionalBlobCount); i++) {
-      expected_blobs.push_back(
-          Blob{std::make_shared<std::string>(kBucketName),
-               std::make_shared<std::string>(absl::StrCat("blob_", i))});
-    }
-    std::sort(expected_blobs.begin(), expected_blobs.end(),
-              [](const Blob& l, const Blob& r) {
-                return *l.blob_name < *r.blob_name;
-              });
-    // Remove the last additional elements from the list as they are not
-    // included in the first page.
-    expected_blobs.erase(expected_blobs.end() - kAdditionalBlobCount,
-                         expected_blobs.end());
+      EXPECT_THAT(context.response, NotNull());
 
-    EXPECT_THAT(context.response->blobs,
-                Pointee(Pointwise(BlobsEqual(), expected_blobs)));
-    if (context.response->blobs) {
-      // Sanity checks.
-      EXPECT_THAT(context.response->blobs->back().blob_name,
-                  Pointee(Eq("blob_994")));
-      EXPECT_EQ(expected_blobs.size(), kPageSize);
-      EXPECT_EQ(context.response->blobs->size(), expected_blobs.size());
-    }
-    EXPECT_THAT(
-        context.response->next_marker,
-        Pointee(FieldsAre(Pointee(Eq(kBucketName)), Pointee(Eq("blob_994")))));
+      // We must add all blobs including the additional that won't be present so
+      // we can sort them lexicographically.
+      std::vector<Blob> expected_blobs;
+      expected_blobs.reserve(kPageSize + kAdditionalBlobCount);
+      for (auto i = 1; i <= (kPageSize + kAdditionalBlobCount); i++) {
+        expected_blobs.push_back(
+            Blob{std::make_shared<std::string>(kBucketName),
+                 std::make_shared<std::string>(absl::StrCat("blob_", i))});
+      }
+      std::sort(expected_blobs.begin(), expected_blobs.end(),
+                [](const Blob& l, const Blob& r) {
+                  return *l.blob_name < *r.blob_name;
+                });
+      // Remove the last additional elements from the list as they are not
+      // included in the first page.
+      expected_blobs.erase(expected_blobs.end() - kAdditionalBlobCount,
+                           expected_blobs.end());
 
-    next_marker = context.response->next_marker->blob_name;
-    finished = true;
-  };
+      EXPECT_THAT(context.response->blobs,
+                  Pointee(Pointwise(BlobsEqual(), expected_blobs)));
+      if (context.response->blobs) {
+        // Sanity checks.
+        EXPECT_THAT(context.response->blobs->back().blob_name,
+                    Pointee(Eq("blob_994")));
+        EXPECT_EQ(expected_blobs.size(), kPageSize);
+        EXPECT_EQ(context.response->blobs->size(), expected_blobs.size());
+      }
+      EXPECT_THAT(context.response->next_marker,
+                  Pointee(FieldsAre(Pointee(Eq(kBucketName)),
+                                    Pointee(Eq("blob_994")))));
 
-  ASSERT_THAT(gcp_cloud_storage_client_->ListBlobs(list_blobs_context),
-              IsSuccessful());
+      next_marker = context.response->next_marker->blob_name;
+      finished.Notify();
+    };
 
-  WaitUntil([&finished]() -> bool { return finished.load(); });
+    ASSERT_THAT(gcp_cloud_storage_client_->ListBlobs(list_blobs_context),
+                IsSuccessful());
 
-  finished = false;
+    finished.WaitForNotification();
+  }
 
-  // Inherit the next_marker from the response to test that chained calls work
-  // correctly.
-  list_blobs_context.request->marker = next_marker;
-  list_blobs_context.callback = [&finished](auto& context) {
-    EXPECT_SUCCESS(context.result);
+  {
+    absl::Notification finished;
 
-    EXPECT_THAT(context.response, NotNull());
+    // Inherit the next_marker from the response to test that chained calls work
+    // correctly.
+    list_blobs_context.request->marker = next_marker;
+    list_blobs_context.callback = [&finished](auto& context) {
+      EXPECT_SUCCESS(context.result);
 
-    std::vector<Blob> expected_blobs;
-    // We expect to find blobs 995->999 if sorting lexicographically.
-    for (auto i = kPageSize - kAdditionalBlobCount; i < kPageSize; i++) {
-      expected_blobs.push_back(
-          Blob{std::make_shared<std::string>(kBucketName),
-               std::make_shared<std::string>(absl::StrCat("blob_", i))});
-    }
+      EXPECT_THAT(context.response, NotNull());
 
-    EXPECT_THAT(context.response->blobs,
-                Pointee(Pointwise(BlobsEqual(), expected_blobs)));
-    EXPECT_THAT(context.response->next_marker, IsNull());
-    finished = true;
-  };
+      std::vector<Blob> expected_blobs;
+      // We expect to find blobs 995->999 if sorting lexicographically.
+      for (auto i = kPageSize - kAdditionalBlobCount; i < kPageSize; i++) {
+        expected_blobs.push_back(
+            Blob{std::make_shared<std::string>(kBucketName),
+                 std::make_shared<std::string>(absl::StrCat("blob_", i))});
+      }
 
-  ASSERT_THAT(gcp_cloud_storage_client_->ListBlobs(list_blobs_context),
-              IsSuccessful());
+      EXPECT_THAT(context.response->blobs,
+                  Pointee(Pointwise(BlobsEqual(), expected_blobs)));
+      EXPECT_THAT(context.response->next_marker, IsNull());
+      finished.Notify();
+    };
 
-  WaitUntil([&finished]() -> bool { return finished.load(); });
+    ASSERT_THAT(gcp_cloud_storage_client_->ListBlobs(list_blobs_context),
+                IsSuccessful());
+
+    finished.WaitForNotification();
+  }
 }
 
 TEST_F(GcpCloudStorageClientAsyncTests, SimplePutTest) {
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   std::string new_blob_val("some new value");
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
   put_blob_context.request = std::make_shared<PutBlobRequest>(
@@ -366,16 +369,16 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimplePutTest) {
     buffer.length = buffer.capacity;
     object_read_stream.read(buffer.bytes->data(), *object_read_stream.size());
     EXPECT_THAT(buffer, BytesBufferEqual(*context.request->buffer));
-    finished = true;
+    finished.Notify();
   };
 
   EXPECT_SUCCESS(gcp_cloud_storage_client_->PutBlob(put_blob_context));
 
-  WaitUntil([&finished]() -> bool { return finished; });
+  finished.WaitForNotification();
 }
 
 TEST_F(GcpCloudStorageClientAsyncTests, SimpleDeleteTest) {
-  std::atomic_bool finished(false);
+  absl::Notification finished;
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context;
   delete_blob_context.request = std::make_shared<DeleteBlobRequest>(
       DeleteBlobRequest{std::make_shared<std::string>(kBucketName),
@@ -384,12 +387,12 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimpleDeleteTest) {
   delete_blob_context.callback = [&finished](auto) {
     auto objects_reader = client_->ListObjects(kBucketName);
     ASSERT_EQ(objects_reader.begin(), objects_reader.end());
-    finished = true;
+    finished.Notify();
   };
 
   EXPECT_SUCCESS(gcp_cloud_storage_client_->DeleteBlob(delete_blob_context));
 
-  WaitUntil([&finished]() -> bool { return finished; });
+  finished.WaitForNotification();
 
   // Test.
 }
