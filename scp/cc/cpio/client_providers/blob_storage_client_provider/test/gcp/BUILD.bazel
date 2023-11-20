@@ -31,6 +31,7 @@ cc_test(
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/third_party/cloud_cpp/google/cloud/storage/testing:mock_client",
         "@com_github_googleapis_google_cloud_cpp//:storage",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -54,6 +55,7 @@ cc_test(
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/third_party/cloud_cpp/google/cloud/storage/testing:mock_client",
         "@com_github_googleapis_google_cloud_cpp//:storage",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

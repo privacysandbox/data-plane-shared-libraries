@@ -23,9 +23,10 @@
 #include <aws/autoscaling/AutoScalingClient.h>
 #include <aws/core/Aws.h>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/auto_scaling_client_provider/mock/aws/mock_auto_scaling_client.h"
 #include "cpio/client_providers/auto_scaling_client_provider/src/aws/error_codes.h"
 #include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
@@ -75,7 +76,6 @@ using google::scp::core::errors::SC_AWS_SERVICE_UNAVAILABLE;
 using google::scp::core::errors::SC_AWS_VALIDATION_FAILED;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AutoScalingClientFactory;
 using google::scp::cpio::client_providers::mock::MockAutoScalingClient;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
@@ -161,7 +161,8 @@ class AwsAutoScalingClientProviderTest : public ::testing::Test {
 
   // We check that this gets flipped after every call to ensure the context's
   // Finish() is called.
-  std::atomic_bool finish_called_{false};
+  absl::Mutex finish_called_mu_;
+  bool finish_called_ ABSL_GUARDED_BY(finish_called_mu_) = false;
 };
 
 TEST_F(AwsAutoScalingClientProviderTest,
@@ -187,6 +188,7 @@ TEST_F(AwsAutoScalingClientProviderTest, MissingInstanceResourceId) {
         auto failure = FailureExecutionResult(
             SC_AWS_AUTO_SCALING_CLIENT_PROVIDER_INSTANCE_RESOURCE_ID_REQUIRED);
         EXPECT_THAT(context.result, ResultIs(failure));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -198,7 +200,9 @@ TEST_F(AwsAutoScalingClientProviderTest, MissingInstanceResourceId) {
           try_termination_context_),
       ResultIs(FailureExecutionResult(
           SC_AWS_AUTO_SCALING_CLIENT_PROVIDER_INSTANCE_RESOURCE_ID_REQUIRED)));
-  WaitUntil([this]() { return finish_called_.load(); });
+
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsAutoScalingClientProviderTest, MissingLifecycleHookName) {
@@ -214,6 +218,7 @@ TEST_F(AwsAutoScalingClientProviderTest, MissingLifecycleHookName) {
         context.result,
         ResultIs(FailureExecutionResult(
             SC_AWS_AUTO_SCALING_CLIENT_PROVIDER_LIFECYCLE_HOOK_NAME_REQUIRED)));
+    absl::MutexLock l(&finish_called_mu_);
     finish_called_ = true;
   };
 
@@ -226,7 +231,9 @@ TEST_F(AwsAutoScalingClientProviderTest, MissingLifecycleHookName) {
           try_termination_context_),
       ResultIs(FailureExecutionResult(
           SC_AWS_AUTO_SCALING_CLIENT_PROVIDER_LIFECYCLE_HOOK_NAME_REQUIRED)));
-  WaitUntil([this]() { return finish_called_.load(); });
+
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 MATCHER_P(InstanceIdMatches, instance_id, "") {
@@ -244,6 +251,7 @@ TEST_F(AwsAutoScalingClientProviderTest, DescribeAutoScalingInstancesFailed) {
         EXPECT_THAT(
             context.result,
             ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -261,7 +269,9 @@ TEST_F(AwsAutoScalingClientProviderTest, DescribeAutoScalingInstancesFailed) {
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(
                   try_termination_context_),
               IsSuccessful());
-  WaitUntil([this]() { return finish_called_.load(); });
+
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsAutoScalingClientProviderTest, InstanceAlreadyTerminated) {
@@ -273,6 +283,7 @@ TEST_F(AwsAutoScalingClientProviderTest, InstanceAlreadyTerminated) {
                           TryFinishInstanceTerminationResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_TRUE(context.response->termination_scheduled());
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -292,7 +303,9 @@ TEST_F(AwsAutoScalingClientProviderTest, InstanceAlreadyTerminated) {
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(
                   try_termination_context_),
               IsSuccessful());
-  WaitUntil([this]() { return finish_called_.load(); });
+
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsAutoScalingClientProviderTest, NotInTerminatingWaitState) {
@@ -304,6 +317,7 @@ TEST_F(AwsAutoScalingClientProviderTest, NotInTerminatingWaitState) {
                           TryFinishInstanceTerminationResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_FALSE(context.response->termination_scheduled());
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -323,7 +337,9 @@ TEST_F(AwsAutoScalingClientProviderTest, NotInTerminatingWaitState) {
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(
                   try_termination_context_),
               IsSuccessful());
-  WaitUntil([this]() { return finish_called_.load(); });
+
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 MATCHER_P4(CompleteLifecycleActionRequestMatches, instance_id, group_name,
@@ -348,6 +364,7 @@ TEST_F(AwsAutoScalingClientProviderTest, CompleteLifecycleActionFailed) {
         EXPECT_THAT(
             context.result,
             ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -382,7 +399,9 @@ TEST_F(AwsAutoScalingClientProviderTest, CompleteLifecycleActionFailed) {
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(
                   try_termination_context_),
               IsSuccessful());
-  WaitUntil([this]() { return finish_called_.load(); });
+
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsAutoScalingClientProviderTest, ScheduleTerminationSuccessfully) {
@@ -394,6 +413,7 @@ TEST_F(AwsAutoScalingClientProviderTest, ScheduleTerminationSuccessfully) {
                           TryFinishInstanceTerminationResponse>& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_TRUE(context.response->termination_scheduled());
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -429,6 +449,8 @@ TEST_F(AwsAutoScalingClientProviderTest, ScheduleTerminationSuccessfully) {
   EXPECT_THAT(auto_scaling_client_provider_->TryFinishInstanceTermination(
                   try_termination_context_),
               IsSuccessful());
-  WaitUntil([this]() { return finish_called_.load(); });
+
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 }  // namespace google::scp::cpio::client_providers::test

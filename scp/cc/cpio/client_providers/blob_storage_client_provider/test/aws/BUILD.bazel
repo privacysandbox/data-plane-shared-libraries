@@ -37,6 +37,7 @@ cc_test(
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

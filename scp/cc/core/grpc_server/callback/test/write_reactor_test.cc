@@ -17,11 +17,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <atomic>
 #include <memory>
 #include <thread>
 #include <utility>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/grpc_server/callback/test/callback_server.pb.h"
 #include "core/test/utils/conditional_wait.h"
 #include "public/core/test/interface/execution_result_matchers.h"
@@ -40,8 +41,9 @@ using testing::Not;
 using testing::Return;
 
 namespace {
-std::atomic_bool finished = false;
-}
+ABSL_CONST_INIT absl::Mutex finished_mu(absl::kConstInit);
+bool finished ABSL_GUARDED_BY(finished_mu) = false;
+}  // namespace
 
 namespace google::scp::core::test {
 
@@ -97,6 +99,7 @@ class WriteReactorTest : public testing::Test {
   WriteReactorTest()
       : reactor_(new TestWriteReactor()),
         writer_(static_cast<ServerWriteReactor<SomeResponse>*>(reactor_)) {
+    absl::MutexLock l(&finished_mu);
     finished = false;
   }
 
@@ -136,6 +139,7 @@ TEST_F(WriteReactorTest, BasicSequenceWorks) {
       context.MarkDone();
       context.result = SuccessExecutionResult();
       context.Finish();
+      absl::MutexLock l(&finished_mu);
       finished = true;
     });
     return SuccessExecutionResult();
@@ -154,7 +158,10 @@ TEST_F(WriteReactorTest, BasicSequenceWorks) {
 
   reactor_->Start(req_);
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   writer_.CallOnDone();
   async_thread.join();
 }
@@ -164,7 +171,10 @@ TEST_F(WriteReactorTest, FailureOnInitiationWorks) {
     context.MarkDone();
     context.result = FailureExecutionResult(SC_UNKNOWN);
     context.Finish();
-    finished = true;
+    {
+      absl::MutexLock l(&finished_mu);
+      finished = true;
+    }
     return FailureExecutionResult(SC_UNKNOWN);
   };
   EXPECT_CALL(
@@ -174,7 +184,10 @@ TEST_F(WriteReactorTest, FailureOnInitiationWorks) {
 
   reactor_->Start(req_);
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   writer_.CallOnDone();
 }
 
@@ -190,6 +203,7 @@ TEST_F(WriteReactorTest, FailureOnAsyncOperationWorks) {
       context.MarkDone();
       context.result = FailureExecutionResult(SC_UNKNOWN);
       context.Finish();
+      absl::MutexLock l(&finished_mu);
       finished = true;
     });
     return SuccessExecutionResult();
@@ -207,7 +221,10 @@ TEST_F(WriteReactorTest, FailureOnAsyncOperationWorks) {
 
   reactor_->Start(req_);
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   writer_.CallOnDone();
   async_thread.join();
 }
@@ -237,6 +254,7 @@ TEST_F(WriteReactorTest, CapturesExecutionResultWhenCalledOutOfOrder) {
       context.ProcessNextMessage();
       context.ProcessNextMessage();
       context.ProcessNextMessage();
+      absl::MutexLock l(&finished_mu);
       finished = true;
     });
     return SuccessExecutionResult();
@@ -250,7 +268,10 @@ TEST_F(WriteReactorTest, CapturesExecutionResultWhenCalledOutOfOrder) {
 
   reactor_->Start(req_);
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   writer_.CallOnDone();
   async_thread.join();
 }
@@ -267,6 +288,7 @@ TEST_F(WriteReactorTest, FailureOnWriteWorks) {
       context.MarkDone();
       context.result = SuccessExecutionResult();
       context.Finish();
+      absl::MutexLock l(&finished_mu);
       finished = true;
     });
     return SuccessExecutionResult();
@@ -281,7 +303,10 @@ TEST_F(WriteReactorTest, FailureOnWriteWorks) {
 
   reactor_->Start(req_);
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   writer_.CallOnDone();
   async_thread.join();
 }
@@ -301,6 +326,7 @@ TEST_F(WriteReactorTest, CancellationWorks) {
       context.MarkDone();
       context.result = FailureExecutionResult(SC_UNKNOWN);
       context.Finish();
+      absl::MutexLock l(&finished_mu);
       finished = true;
     });
     return SuccessExecutionResult();
@@ -320,7 +346,10 @@ TEST_F(WriteReactorTest, CancellationWorks) {
 
   reactor_->Start(req_);
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   writer_.CallOnDone();
   async_thread.join();
 }

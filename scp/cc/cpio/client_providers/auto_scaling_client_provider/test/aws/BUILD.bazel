@@ -51,6 +51,7 @@ cc_test(
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/public/cpio/proto/auto_scaling_service/v1:auto_scaling_service_cc_proto",
         "@aws_sdk_cpp//:autoscaling",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

@@ -48,6 +48,7 @@ cc_test(
         "//scp/cc/cpio/client_providers/queue_client_provider/src/aws:aws_queue_client_provider_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

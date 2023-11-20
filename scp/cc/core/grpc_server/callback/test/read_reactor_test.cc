@@ -17,13 +17,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <atomic>
 #include <memory>
 #include <thread>
 #include <utility>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/grpc_server/callback/test/callback_server.pb.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using grpc::ServerCallbackReader;
@@ -39,8 +39,9 @@ using testing::Return;
 using testing::Sequence;
 
 namespace {
-std::atomic_bool finished = false;
-}
+ABSL_CONST_INIT absl::Mutex finished_mu(absl::kConstInit);
+bool finished ABSL_GUARDED_BY(finished_mu) = false;
+}  // namespace
 
 namespace google::scp::core::test {
 
@@ -101,6 +102,7 @@ class ReadReactorTest : public testing::Test {
   ReadReactorTest()
       : reactor_(new TestReadReactor(&resp_)),
         reader_(static_cast<ServerReadReactor<SomeRequest>*>(reactor_)) {
+    absl::MutexLock l(&finished_mu);
     finished = false;
   }
 
@@ -129,6 +131,7 @@ TEST_F(ReadReactorTest, BasicSequenceWorks) {
       context.result = SuccessExecutionResult();
       context.response = std::make_shared<SomeResponse>();
       context.Finish();
+      absl::MutexLock l(&finished_mu);
       finished = true;
     });
     return SuccessExecutionResult();
@@ -153,7 +156,10 @@ TEST_F(ReadReactorTest, BasicSequenceWorks) {
   EXPECT_CALL(reader_, Finish(StatusCodeIs(grpc::StatusCode::OK)));
   reactor_->Start();
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   reader_.CallOnDone();
   finisher_thread.join();
   EXPECT_SUCCESS(ExecutionResult(resp_.result()));
@@ -165,6 +171,7 @@ TEST_F(ReadReactorTest, FailureOnInitiationWorks) {
     finisher_thread = std::thread([context]() mutable {
       context.result = FailureExecutionResult(SC_UNKNOWN);
       context.Finish();
+      absl::MutexLock l(&finished_mu);
       finished = true;
     });
     return FailureExecutionResult(SC_UNKNOWN);
@@ -180,7 +187,10 @@ TEST_F(ReadReactorTest, FailureOnInitiationWorks) {
   EXPECT_CALL(reader_, Finish(StatusCodeIs(grpc::StatusCode::OK)));
   reactor_->Start();
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   reader_.CallOnDone();
   finisher_thread.join();
   EXPECT_THAT(ExecutionResult(resp_.result()),
@@ -198,11 +208,13 @@ TEST_F(ReadReactorTest, FailureOnInitialReadWorks) {
   reactor_->Start();
 
   reader_.CallOnDone();
+  absl::MutexLock l(&finished_mu);
   EXPECT_EQ(finished, false);
 }
 
 TEST_F(ReadReactorTest, MakesNewResponseOnFailure) {
-  std::atomic_int read_count = 0;
+  absl::Mutex read_count_mu;
+  int read_count ABSL_GUARDED_BY(read_count_mu) = 0;
   std::thread finisher_thread;
   reactor_->initiate_call_function = [&finisher_thread,
                                       &read_count](auto context) {
@@ -216,6 +228,7 @@ TEST_F(ReadReactorTest, MakesNewResponseOnFailure) {
           context.result = FailureExecutionResult(SC_UNKNOWN);
           context.MarkDone();
           context.Finish();
+          absl::MutexLock l(&finished_mu);
           finished = true;
         });
     return SuccessExecutionResult();
@@ -239,7 +252,10 @@ TEST_F(ReadReactorTest, MakesNewResponseOnFailure) {
       .InSequence(s1);
   reactor_->Start();
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   reader_.CallOnDone();
   finisher_thread.join();
   EXPECT_THAT(ExecutionResult(resp_.result()),
@@ -264,6 +280,7 @@ TEST_F(ReadReactorTest, CancellationWorks) {
       context.result = SuccessExecutionResult();
       context.response = std::make_shared<SomeResponse>();
       context.Finish();
+      absl::MutexLock l(&finished_mu);
       finished = true;
     });
     return SuccessExecutionResult();
@@ -280,7 +297,10 @@ TEST_F(ReadReactorTest, CancellationWorks) {
   EXPECT_CALL(reader_, Finish(StatusCodeIs(grpc::StatusCode::OK)));
   reactor_->Start();
 
-  WaitUntil([]() { return finished.load(); });
+  {
+    absl::MutexLock l(&finished_mu);
+    finished_mu.Await(absl::Condition(&finished));
+  }
   reader_.CallOnDone();
   finisher_thread.join();
   EXPECT_SUCCESS(ExecutionResult(resp_.result()));

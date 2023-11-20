@@ -22,7 +22,6 @@
 #include <google/pubsub/v1/pubsub.grpc.pb.h>
 
 #include "core/async_executor/mock/mock_async_executor.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "cpio/client_providers/interface/queue_client_provider_interface.h"
 #include "cpio/client_providers/queue_client_provider/mock/gcp/mock_pubsub_stubs.h"
@@ -69,7 +68,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_GCP_QUEUE_CLIENT_PROVIDER_SUBSCRIBER_REQUIRED;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockPublisherStub;
 using google::scp::cpio::client_providers::mock::MockSubscriberStub;
@@ -134,19 +132,29 @@ class GcpQueueClientProviderTest : public ::testing::Test {
 
     enqueue_message_context_.request =
         std::make_shared<EnqueueMessageRequest>();
-    enqueue_message_context_.callback = [this](auto) { finish_called_ = true; };
+    enqueue_message_context_.callback = [this](auto) {
+      absl::MutexLock l(&finish_called_mu_);
+      finish_called_ = true;
+    };
 
     get_top_message_context_.request = std::make_shared<GetTopMessageRequest>();
-    get_top_message_context_.callback = [this](auto) { finish_called_ = true; };
+    get_top_message_context_.callback = [this](auto) {
+      absl::MutexLock l(&finish_called_mu_);
+      finish_called_ = true;
+    };
 
     update_message_visibility_timeout_context_.request =
         std::make_shared<UpdateMessageVisibilityTimeoutRequest>();
     update_message_visibility_timeout_context_.callback = [this](auto) {
+      absl::MutexLock l(&finish_called_mu_);
       finish_called_ = true;
     };
 
     delete_message_context_.request = std::make_shared<DeleteMessageRequest>();
-    delete_message_context_.callback = [this](auto) { finish_called_ = true; };
+    delete_message_context_.callback = [this](auto) {
+      absl::MutexLock l(&finish_called_mu_);
+      finish_called_ = true;
+    };
   }
 
   void TearDown() override { EXPECT_SUCCESS(queue_client_provider_->Stop()); }
@@ -173,7 +181,8 @@ class GcpQueueClientProviderTest : public ::testing::Test {
 
   // We check that this gets flipped after every call to ensure the context's
   // Finish() is called.
-  std::atomic_bool finish_called_{false};
+  absl::Mutex finish_called_mu_;
+  bool finish_called_ ABSL_GUARDED_BY(finish_called_mu_) = false;
 };
 
 TEST_F(GcpQueueClientProviderTest, InitWithNullQueueClientOptions) {
@@ -258,13 +267,15 @@ TEST_F(GcpQueueClientProviderTest, EnqueueMessageSuccess) {
         EXPECT_SUCCESS(enqueue_message_context.result);
 
         EXPECT_EQ(enqueue_message_context.response->message_id(), kMessageId);
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(
       queue_client_provider_->EnqueueMessage(enqueue_message_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest, EnqueueMessageFailureWithEmptyMessageBody) {
@@ -279,6 +290,7 @@ TEST_F(GcpQueueClientProviderTest, EnqueueMessageFailureWithEmptyMessageBody) {
                     ResultIs(FailureExecutionResult(
                         SC_GCP_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE)));
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -286,7 +298,8 @@ TEST_F(GcpQueueClientProviderTest, EnqueueMessageFailureWithEmptyMessageBody) {
               ResultIs(FailureExecutionResult(
                   SC_GCP_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE)));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest, EnqueueMessageFailureWithPubSubError) {
@@ -304,13 +317,15 @@ TEST_F(GcpQueueClientProviderTest, EnqueueMessageFailureWithPubSubError) {
         EXPECT_THAT(enqueue_message_context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_PERMISSION_DENIED)));
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(
       queue_client_provider_->EnqueueMessage(enqueue_message_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 MATCHER_P2(HasPullParams, subscription_name, max_messages, "") {
@@ -348,13 +363,15 @@ TEST_F(GcpQueueClientProviderTest, GetTopMessageSuccess) {
         EXPECT_EQ(get_top_message_context.response->receipt_info(),
                   kReceiptInfo);
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(
       queue_client_provider_->GetTopMessage(get_top_message_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest, GetTopMessageWithNoMessagesReturns) {
@@ -375,13 +392,15 @@ TEST_F(GcpQueueClientProviderTest, GetTopMessageWithNoMessagesReturns) {
                  get_top_message_context) {
         EXPECT_SUCCESS(get_top_message_context.result);
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(
       queue_client_provider_->GetTopMessage(get_top_message_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest, GetTopMessageFailureWithPubSubError) {
@@ -401,13 +420,15 @@ TEST_F(GcpQueueClientProviderTest, GetTopMessageFailureWithPubSubError) {
         EXPECT_THAT(get_top_message_context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_ABORTED)));
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(
       queue_client_provider_->GetTopMessage(get_top_message_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest,
@@ -434,13 +455,15 @@ TEST_F(GcpQueueClientProviderTest,
             ResultIs(FailureExecutionResult(
                 SC_GCP_QUEUE_CLIENT_PROVIDER_MESSAGES_NUMBER_EXCEEDED)));
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(
       queue_client_provider_->GetTopMessage(get_top_message_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 MATCHER_P3(HasModifyAckDeadlineParams, subscription_name, ack_id,
@@ -476,13 +499,15 @@ TEST_F(GcpQueueClientProviderTest, UpdateMessageVisibilityTimeoutSuccess) {
                  update_message_visibility_timeout_context) {
         EXPECT_SUCCESS(update_message_visibility_timeout_context.result);
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(queue_client_provider_->UpdateMessageVisibilityTimeout(
       update_message_visibility_timeout_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest,
@@ -499,6 +524,7 @@ TEST_F(GcpQueueClientProviderTest,
                     ResultIs(FailureExecutionResult(
                         SC_GCP_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE)));
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -507,7 +533,8 @@ TEST_F(GcpQueueClientProviderTest,
               ResultIs(FailureExecutionResult(
                   SC_GCP_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE)));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest,
@@ -529,6 +556,7 @@ TEST_F(GcpQueueClientProviderTest,
             ResultIs(FailureExecutionResult(
                 SC_GCP_QUEUE_CLIENT_PROVIDER_INVALID_VISIBILITY_TIMEOUT)));
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -537,7 +565,8 @@ TEST_F(GcpQueueClientProviderTest,
               ResultIs(FailureExecutionResult(
                   SC_GCP_QUEUE_CLIENT_PROVIDER_INVALID_VISIBILITY_TIMEOUT)));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest,
@@ -566,13 +595,15 @@ TEST_F(GcpQueueClientProviderTest,
             update_message_visibility_timeout_context.result,
             ResultIs(FailureExecutionResult(SC_GCP_FAILED_PRECONDITION)));
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(queue_client_provider_->UpdateMessageVisibilityTimeout(
       update_message_visibility_timeout_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 MATCHER_P2(HasAcknowledgeParams, subscription_name, ack_id, "") {
@@ -598,13 +629,15 @@ TEST_F(GcpQueueClientProviderTest, DeleteMessageSuccess) {
                  delete_message_context) {
         EXPECT_SUCCESS(delete_message_context.result);
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(
       queue_client_provider_->DeleteMessage(delete_message_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest, DeleteMessageFailureWithEmptyReceiptInfo) {
@@ -619,6 +652,7 @@ TEST_F(GcpQueueClientProviderTest, DeleteMessageFailureWithEmptyReceiptInfo) {
                     ResultIs(FailureExecutionResult(
                         SC_GCP_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE)));
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -626,7 +660,8 @@ TEST_F(GcpQueueClientProviderTest, DeleteMessageFailureWithEmptyReceiptInfo) {
               ResultIs(FailureExecutionResult(
                   SC_GCP_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE)));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(GcpQueueClientProviderTest, DeleteMessageFailureWithPubSubError) {
@@ -646,13 +681,15 @@ TEST_F(GcpQueueClientProviderTest, DeleteMessageFailureWithPubSubError) {
         EXPECT_THAT(delete_message_context.result,
                     ResultIs(FailureExecutionResult(SC_GCP_DATA_LOSS)));
 
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
   EXPECT_SUCCESS(
       queue_client_provider_->DeleteMessage(delete_message_context_));
 
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 }  // namespace google::scp::cpio::client_providers::gcp_queue_client::test

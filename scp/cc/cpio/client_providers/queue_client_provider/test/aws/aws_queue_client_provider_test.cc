@@ -22,9 +22,10 @@
 #include <aws/core/Aws.h>
 #include <aws/sqs/SQSClient.h>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.h"
 #include "cpio/client_providers/queue_client_provider/mock/aws/mock_sqs_client.h"
@@ -89,7 +90,6 @@ using google::scp::core::errors::SC_AWS_REQUEST_LIMIT_REACHED;
 using google::scp::core::errors::SC_AWS_SERVICE_UNAVAILABLE;
 using google::scp::core::errors::SC_AWS_VALIDATION_FAILED;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsSqsClientFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockSqsClient;
@@ -156,19 +156,29 @@ class AwsQueueClientProviderTest : public ::testing::Test {
 
     enqueue_message_context_.request =
         std::make_shared<EnqueueMessageRequest>();
-    enqueue_message_context_.callback = [this](auto) { finish_called_ = true; };
+    enqueue_message_context_.callback = [this](auto) {
+      absl::MutexLock l(&finish_called_mu_);
+      finish_called_ = true;
+    };
 
     get_top_message_context_.request = std::make_shared<GetTopMessageRequest>();
-    get_top_message_context_.callback = [this](auto) { finish_called_ = true; };
+    get_top_message_context_.callback = [this](auto) {
+      absl::MutexLock l(&finish_called_mu_);
+      finish_called_ = true;
+    };
 
     update_message_visibility_timeout_context_.request =
         std::make_shared<UpdateMessageVisibilityTimeoutRequest>();
     update_message_visibility_timeout_context_.callback = [this](auto) {
+      absl::MutexLock l(&finish_called_mu_);
       finish_called_ = true;
     };
 
     delete_message_context_.request = std::make_shared<DeleteMessageRequest>();
-    delete_message_context_.callback = [this](auto) { finish_called_ = true; };
+    delete_message_context_.callback = [this](auto) {
+      absl::MutexLock l(&finish_called_mu_);
+      finish_called_ = true;
+    };
 
     queue_client_provider_ = std::make_unique<AwsQueueClientProvider>(
         queue_client_options_, mock_instance_client_,
@@ -196,7 +206,8 @@ class AwsQueueClientProviderTest : public ::testing::Test {
 
   // We check that this gets flipped after every call to ensure the context's
   // Finish() is called.
-  std::atomic_bool finish_called_{false};
+  absl::Mutex finish_called_mu_;
+  bool finish_called_ ABSL_GUARDED_BY(finish_called_mu_) = false;
 };
 
 TEST_F(AwsQueueClientProviderTest, RunWithNullQueueClientOptions) {
@@ -283,6 +294,7 @@ TEST_F(AwsQueueClientProviderTest, EnqueueMessageSuccess) {
 
         EXPECT_THAT(enqueue_message_context.response->message_id(),
                     StrEq(kMessageId));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -300,7 +312,8 @@ TEST_F(AwsQueueClientProviderTest, EnqueueMessageSuccess) {
 
   EXPECT_SUCCESS(
       queue_client_provider_->EnqueueMessage(enqueue_message_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsQueueClientProviderTest, EnqueueMessageCallbackFailed) {
@@ -314,6 +327,7 @@ TEST_F(AwsQueueClientProviderTest, EnqueueMessageCallbackFailed) {
         EXPECT_THAT(
             enqueue_message_context.result,
             ResultIs(FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS)));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -331,7 +345,8 @@ TEST_F(AwsQueueClientProviderTest, EnqueueMessageCallbackFailed) {
 
   EXPECT_SUCCESS(
       queue_client_provider_->EnqueueMessage(enqueue_message_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 MATCHER_P3(HasReceiveMessageRequestParams, queue_url, max_number_of_messages,
@@ -359,6 +374,7 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageSuccess) {
                     StrEq(kMessageBody));
         EXPECT_THAT(get_top_message_context.response->receipt_info(),
                     StrEq(kReceiptInfo));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -386,7 +402,8 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageSuccess) {
 
   EXPECT_SUCCESS(
       queue_client_provider_->GetTopMessage(get_top_message_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsQueueClientProviderTest, GetTopMessageCallbackFailed) {
@@ -398,6 +415,7 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageCallbackFailed) {
                  get_top_message_context) {
         EXPECT_THAT(get_top_message_context.result,
                     ResultIs(FailureExecutionResult(SC_AWS_VALIDATION_FAILED)));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -417,7 +435,8 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageCallbackFailed) {
 
   EXPECT_SUCCESS(
       queue_client_provider_->GetTopMessage(get_top_message_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsQueueClientProviderTest, GotTopMessageCallbackWithNoMessage) {
@@ -430,6 +449,7 @@ TEST_F(AwsQueueClientProviderTest, GotTopMessageCallbackWithNoMessage) {
         EXPECT_SUCCESS(get_top_message_context.result);
         // Returns empty response.
         EXPECT_TRUE(get_top_message_context.response->message_id().empty());
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -447,7 +467,8 @@ TEST_F(AwsQueueClientProviderTest, GotTopMessageCallbackWithNoMessage) {
 
   EXPECT_SUCCESS(
       queue_client_provider_->GetTopMessage(get_top_message_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsQueueClientProviderTest, GetTopMessageCallbackWithMultipleMessages) {
@@ -461,6 +482,7 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageCallbackWithMultipleMessages) {
             get_top_message_context.result,
             ResultIs(FailureExecutionResult(
                 SC_AWS_QUEUE_CLIENT_PROVIDER_MESSAGES_NUMBER_EXCEEDED)));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -488,7 +510,8 @@ TEST_F(AwsQueueClientProviderTest, GetTopMessageCallbackWithMultipleMessages) {
 
   EXPECT_SUCCESS(
       queue_client_provider_->GetTopMessage(get_top_message_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 MATCHER_P3(HasChangeVisibilityRequestParams, queue_url, visibility_timeout,
@@ -515,6 +538,7 @@ TEST_F(AwsQueueClientProviderTest, UpdateMessageVisibilityTimeoutSuccess) {
                           UpdateMessageVisibilityTimeoutResponse>&
                  update_message_visibility_timeout_context) {
         EXPECT_SUCCESS(update_message_visibility_timeout_context.result);
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -534,7 +558,8 @@ TEST_F(AwsQueueClientProviderTest, UpdateMessageVisibilityTimeoutSuccess) {
 
   EXPECT_SUCCESS(queue_client_provider_->UpdateMessageVisibilityTimeout(
       update_message_visibility_timeout_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsQueueClientProviderTest,
@@ -552,7 +577,8 @@ TEST_F(AwsQueueClientProviderTest,
                   update_message_visibility_timeout_context_),
               ResultIs(FailureExecutionResult(
                   SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_RECEIPT_INFO)));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsQueueClientProviderTest,
@@ -570,7 +596,8 @@ TEST_F(AwsQueueClientProviderTest,
                   update_message_visibility_timeout_context_),
               ResultIs(FailureExecutionResult(
                   SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_VISIBILITY_TIMEOUT)));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsQueueClientProviderTest,
@@ -589,6 +616,7 @@ TEST_F(AwsQueueClientProviderTest,
                  update_message_visibility_timeout_context) {
         EXPECT_THAT(update_message_visibility_timeout_context.result,
                     ResultIs(FailureExecutionResult(SC_AWS_INVALID_REQUEST)));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -608,7 +636,8 @@ TEST_F(AwsQueueClientProviderTest,
 
   EXPECT_SUCCESS(queue_client_provider_->UpdateMessageVisibilityTimeout(
       update_message_visibility_timeout_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 MATCHER_P2(HasDeleteMessageRequestParams, queue_url, receipt_handle, "") {
@@ -627,6 +656,7 @@ TEST_F(AwsQueueClientProviderTest, DeleteMessageSuccess) {
       [this](AsyncContext<DeleteMessageRequest, DeleteMessageResponse>&
                  delete_message_context) {
         EXPECT_SUCCESS(delete_message_context.result);
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -643,7 +673,8 @@ TEST_F(AwsQueueClientProviderTest, DeleteMessageSuccess) {
 
   EXPECT_SUCCESS(
       queue_client_provider_->DeleteMessage(delete_message_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 TEST_F(AwsQueueClientProviderTest, DeleteMessageCallbackFailed) {
@@ -657,6 +688,7 @@ TEST_F(AwsQueueClientProviderTest, DeleteMessageCallbackFailed) {
         EXPECT_THAT(delete_message_context.result,
                     ResultIs(FailureExecutionResult(
                         SC_AWS_QUEUE_CLIENT_PROVIDER_MESSAGE_NOT_IN_FLIGHT)));
+        absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -673,7 +705,8 @@ TEST_F(AwsQueueClientProviderTest, DeleteMessageCallbackFailed) {
 
   EXPECT_SUCCESS(
       queue_client_provider_->DeleteMessage(delete_message_context_));
-  WaitUntil([this]() { return finish_called_.load(); });
+  absl::MutexLock l(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
 }  // namespace google::scp::cpio::client_providers::test
