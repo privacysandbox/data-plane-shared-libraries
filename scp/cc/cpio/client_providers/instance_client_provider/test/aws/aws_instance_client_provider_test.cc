@@ -27,6 +27,7 @@
 #include <aws/ec2/model/DescribeTagsRequest.h>
 
 #include "absl/strings/str_format.h"
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/curl_client/mock/mock_curl_client.h"
 #include "core/test/utils/conditional_wait.h"
@@ -227,7 +228,7 @@ TEST_F(AwsInstanceClientProviderTest, GetCurrentInstanceResourceNameSuccess) {
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> condition{false};
+  absl::Notification condition;
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -239,12 +240,12 @@ TEST_F(AwsInstanceClientProviderTest, GetCurrentInstanceResourceNameSuccess) {
                         StrEq(absl::StrFormat(kAwsInstanceResourceNameFormat,
                                               "us-east-1", "123456789",
                                               "i-1234567890")));
-            condition.store(true);
+            condition.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(AwsInstanceClientProviderTest,
@@ -386,7 +387,7 @@ TEST_F(AwsInstanceClientProviderTest,
 
   auto malformed_failure = FailureExecutionResult(
       SC_AWS_INSTANCE_CLIENT_INSTANCE_RESOURCE_NAME_RESPONSE_MALFORMED);
-  std::atomic<bool> condition{false};
+  absl::Notification condition;
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -394,12 +395,12 @@ TEST_F(AwsInstanceClientProviderTest,
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result, ResultIs(malformed_failure));
-            condition.store(true);
+            condition.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(AwsInstanceClientProviderTest,
@@ -415,7 +416,7 @@ TEST_F(AwsInstanceClientProviderTest,
 
   EXPECT_CALL(*http_client_, PerformRequest).Times(0);
 
-  std::atomic<bool> condition{false};
+  absl::Notification condition;
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -424,12 +425,12 @@ TEST_F(AwsInstanceClientProviderTest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
                         ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            condition.store(true);
+            condition.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(AwsInstanceClientProviderTest,
@@ -458,7 +459,7 @@ TEST_F(AwsInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  std::atomic<bool> condition{false};
+  absl::Notification condition;
   AsyncContext<GetCurrentInstanceResourceNameRequest,
                GetCurrentInstanceResourceNameResponse>
       context(
@@ -467,12 +468,12 @@ TEST_F(AwsInstanceClientProviderTest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             EXPECT_THAT(context.result,
                         ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            condition.store(true);
+            condition.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 MATCHER_P(InstanceIdMatches, instance_id, "") {
@@ -556,7 +557,7 @@ TEST_F(AwsInstanceClientProviderTest, GetInstanceDetailsByResourceName) {
   auto request = std::make_shared<GetInstanceDetailsByResourceNameRequest>();
   request->set_instance_resource_name(kAwsInstanceResourceNameMock);
 
-  std::atomic<bool> condition{false};
+  absl::Notification condition;
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -570,12 +571,12 @@ TEST_F(AwsInstanceClientProviderTest, GetInstanceDetailsByResourceName) {
                         StrEq(kPublicIpMock));
             EXPECT_THAT(details.networks(0).private_ipv4_address(),
                         StrEq(kPrivateIpMock));
-            condition.store(true);
+            condition.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(AwsInstanceClientProviderTest,
@@ -592,7 +593,7 @@ TEST_F(AwsInstanceClientProviderTest,
   auto request = std::make_shared<GetInstanceDetailsByResourceNameRequest>();
   request->set_instance_resource_name(kAwsInstanceResourceNameMock);
 
-  std::atomic<bool> condition{false};
+  absl::Notification condition;
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -601,12 +602,12 @@ TEST_F(AwsInstanceClientProviderTest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(
                                             SC_AWS_INTERNAL_SERVICE_ERROR)));
-            condition.store(true);
+            condition.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(AwsInstanceClientProviderTest,
@@ -627,7 +628,7 @@ TEST_F(AwsInstanceClientProviderTest,
 
   auto failure = FailureExecutionResult(
       SC_AWS_INSTANCE_CLIENT_PROVIDER_DESCRIBE_INSTANCES_RESPONSE_MALFORMED);
-  std::atomic<bool> condition{false};
+  absl::Notification condition;
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
                GetInstanceDetailsByResourceNameResponse>
       context(
@@ -635,12 +636,12 @@ TEST_F(AwsInstanceClientProviderTest,
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             EXPECT_THAT(context.result, ResultIs(failure));
-            condition.store(true);
+            condition.Notify();
           });
 
   EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 MATCHER_P(FilterResourceIdMatches, resource_name, "") {
@@ -669,7 +670,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameSucceed) {
   auto request = std::make_shared<GetTagsByResourceNameRequest>();
   request->set_resource_name(kAwsInstanceResourceNameMock);
 
-  std::atomic<bool> condition{false};
+  absl::Notification condition;
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(request),
               [&](AsyncContext<GetTagsByResourceNameRequest,
@@ -680,12 +681,12 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameSucceed) {
                     UnorderedElementsAre(
                         Pair(std::string(kTagName1), std::string(kTagValue1)),
                         Pair(std::string(kTagName2), std::string(kTagValue2))));
-                condition.store(true);
+                condition.Notify();
               });
 
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(AwsInstanceClientProviderTest,
@@ -702,7 +703,7 @@ TEST_F(AwsInstanceClientProviderTest,
   auto request = std::make_shared<GetTagsByResourceNameRequest>();
   request->set_resource_name(kAwsInstanceResourceNameMock);
 
-  std::atomic<bool> condition{false};
+  absl::Notification condition;
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::move(request),
               [&](AsyncContext<GetTagsByResourceNameRequest,
@@ -710,12 +711,12 @@ TEST_F(AwsInstanceClientProviderTest,
                 EXPECT_THAT(context.result,
                             ResultIs(FailureExecutionResult(
                                 SC_AWS_INTERNAL_SERVICE_ERROR)));
-                condition.store(true);
+                condition.Notify();
               });
 
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load(); });
+  condition.WaitForNotification();
 }
 
 TEST_F(AwsInstanceClientProviderTest,

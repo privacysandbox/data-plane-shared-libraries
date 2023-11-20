@@ -54,6 +54,7 @@ cc_binary(
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface:cpio",
         "//scp/cc/public/cpio/interface/metric_client",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -67,6 +68,7 @@ cc_binary(
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface/metric_client",
         "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -80,6 +82,7 @@ cc_binary(
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface:cpio",
         "//scp/cc/public/cpio/interface/public_key_client",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -93,6 +96,7 @@ cc_binary(
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface:cpio",
         "//scp/cc/public/cpio/interface/kms_client",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -107,6 +111,7 @@ cc_binary(
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface/private_key_client",
         "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -120,6 +125,7 @@ cc_binary(
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface:cpio",
         "//scp/cc/public/cpio/interface/private_key_client",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -133,6 +139,7 @@ cc_binary(
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface:cpio",
         "//scp/cc/public/cpio/interface/crypto_client",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -147,6 +154,7 @@ cc_binary(
         "//scp/cc/public/cpio/interface:cpio",
         "//scp/cc/public/cpio/interface/parameter_client",
         "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -161,6 +169,7 @@ cc_binary(
         "//scp/cc/public/cpio/interface/parameter_client",
         "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
         "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -175,6 +184,7 @@ cc_binary(
         "//scp/cc/public/cpio/interface:cpio",
         "//scp/cc/public/cpio/interface/instance_client",
         "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -189,5 +199,6 @@ cc_binary(
         "//scp/cc/public/cpio/interface/instance_client",
         "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_google_absl//absl/synchronization",
     ],
 )

@@ -24,6 +24,7 @@
 #include <thread>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor_with_internals.h"
 #include "core/async_executor/src/error_codes.h"
 #include "core/async_executor/src/typedef.h"
@@ -678,7 +679,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     EXPECT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
-    std::atomic<bool> done(false);
+    absl::Notification done;
     std::vector<std::shared_ptr<SingleThreadAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
@@ -695,10 +696,10 @@ class AsyncExecutorAccessor : public AsyncExecutor {
           // thread.
           EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
                       IsSuccessfulAndHolds(std::this_thread::get_id()));
-          done = true;
+          done.Notify();
         },
         AsyncPriority::Normal);
-    WaitUntil([&done]() { return done.load(); });
+    done.WaitForNotification();
     EXPECT_SUCCESS(Stop());
   }
 
@@ -707,7 +708,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     EXPECT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
-    std::atomic<bool> done(false);
+    absl::Notification done;
     std::vector<std::shared_ptr<SingleThreadPriorityAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
@@ -724,10 +725,10 @@ class AsyncExecutorAccessor : public AsyncExecutor {
           const auto& [normal_executor, urgent_executor] =
               this->thread_id_to_executor_map_[std::this_thread::get_id()];
           EXPECT_EQ(urgent_executor, *chosen_task_executor_or);
-          done = true;
+          done.Notify();
         },
         AsyncPriority::Normal);
-    WaitUntil([&done]() { return done.load(); });
+    done.WaitForNotification();
     EXPECT_SUCCESS(Stop());
   }
 
@@ -736,7 +737,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     EXPECT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
-    std::atomic<bool> done(false);
+    absl::Notification done;
     std::vector<std::shared_ptr<SingleThreadPriorityAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
@@ -753,10 +754,10 @@ class AsyncExecutorAccessor : public AsyncExecutor {
           // thread.
           EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
                       IsSuccessfulAndHolds(std::this_thread::get_id()));
-          done = true;
+          done.Notify();
         },
         123456);
-    WaitUntil([&done]() { return done.load(); });
+    done.WaitForNotification();
     EXPECT_SUCCESS(Stop());
   }
 
@@ -765,7 +766,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     EXPECT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
-    std::atomic<bool> done(false);
+    absl::Notification done;
     std::vector<std::shared_ptr<SingleThreadAsyncExecutor>>
         task_executor_pool;  // unused.
     // Schedule arbitrary work to be done. Using the chosen thread of this work,
@@ -782,10 +783,10 @@ class AsyncExecutorAccessor : public AsyncExecutor {
           const auto& [normal_executor, urgent_executor] =
               this->thread_id_to_executor_map_[std::this_thread::get_id()];
           EXPECT_EQ(normal_executor, *chosen_task_executor_or);
-          done = true;
+          done.Notify();
         },
         123456);
-    WaitUntil([&done]() { return done.load(); });
+    done.WaitForNotification();
     EXPECT_SUCCESS(Stop());
   }
 };

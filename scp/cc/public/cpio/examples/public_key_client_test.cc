@@ -17,8 +17,8 @@
 #include <memory>
 #include <string>
 
+#include "absl/synchronization/notification.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/cpio.h"
@@ -33,7 +33,6 @@ using google::cmrt::sdk::public_key_service::v1::PublicKey;
 using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::Cpio;
 using google::scp::cpio::CpioOptions;
 using google::scp::cpio::LogOption;
@@ -73,7 +72,7 @@ int main(int argc, char* argv[]) {
   std::cout << "Run public key client successfully!" << std::endl;
 
   ListPublicKeysRequest request;
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   result = public_key_client->ListPublicKeys(
       std::move(request),
       [&](const ExecutionResult result, ListPublicKeysResponse response) {
@@ -84,14 +83,13 @@ int main(int argc, char* argv[]) {
           std::cout << "ListPublicKeys succeeded. The key count is: "
                     << response.public_keys_size() << std::endl;
         }
-        finished = true;
+        finished.Notify();
       });
   if (!result.Successful()) {
     std::cout << "ListPublicKeys failed immediately: "
               << GetErrorMessage(result.status_code) << std::endl;
   }
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::milliseconds(100000));
+  finished.WaitForNotificationWithTimeout(absl::Seconds(100));
 
   result = public_key_client->Stop();
   if (!result.Successful()) {

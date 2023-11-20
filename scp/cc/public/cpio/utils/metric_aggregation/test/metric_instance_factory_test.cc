@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/config_provider/mock/mock_config_provider.h"
 #include "core/interface/async_context.h"
@@ -103,17 +104,17 @@ TEST_F(MetricInstanceFactoryTest, ConstructSimpleMetricInstance) {
   AutoInitRunStop to_handle_simple_metric(*simple_metric);
   {
     Metric metric_received;
-    bool schedule_is_called = false;
+    absl::Notification schedule_is_called;
     EXPECT_CALL(*mock_metric_client_, PutMetrics).WillOnce([&](auto context) {
       metric_received.CopyFrom(context.request->metrics(0));
-      schedule_is_called = true;
+      schedule_is_called.Notify();
       context.result = SuccessExecutionResult();
       context.Finish();
       return context.result;
     });
 
     simple_metric->Push(kMetricValue);
-    WaitUntil([&]() { return schedule_is_called; });
+    schedule_is_called.WaitForNotification();
 
     EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
     EXPECT_EQ(metric_received.unit(),
@@ -125,17 +126,17 @@ TEST_F(MetricInstanceFactoryTest, ConstructSimpleMetricInstance) {
     auto metric_info_override = MetricDefinition(
         kMetricNameUpdate, MetricUnit::kMilliseconds, kNamespace);
     Metric metric_received;
-    bool schedule_is_called = false;
+    absl::Notification schedule_is_called;
     EXPECT_CALL(*mock_metric_client_, PutMetrics).WillOnce([&](auto context) {
       metric_received.CopyFrom(context.request->metrics(0));
-      schedule_is_called = true;
+      schedule_is_called.Notify();
       context.result = SuccessExecutionResult();
       context.Finish();
       return context.result;
     });
 
     simple_metric->Push(kMetricValue, metric_info_override);
-    WaitUntil([&]() { return schedule_is_called; });
+    schedule_is_called.WaitForNotification();
 
     EXPECT_THAT(metric_received.name(), StrEq(kMetricNameUpdate));
     EXPECT_EQ(
@@ -156,17 +157,17 @@ TEST_F(MetricInstanceFactoryTest, ConstructAggregateMetricInstance) {
 
   {
     Metric metric_received;
-    bool schedule_is_called = false;
+    absl::Notification schedule_is_called;
     EXPECT_CALL(*mock_metric_client_, PutMetrics).WillOnce([&](auto context) {
       metric_received.CopyFrom(context.request->metrics(0));
-      schedule_is_called = true;
+      schedule_is_called.Notify();
       context.result = SuccessExecutionResult();
       context.Finish();
       return context.result;
     });
 
     aggregate_metric->Increment();
-    WaitUntil([&]() { return schedule_is_called; });
+    schedule_is_called.WaitForNotification();
 
     EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
     EXPECT_EQ(metric_received.unit(),
@@ -176,17 +177,17 @@ TEST_F(MetricInstanceFactoryTest, ConstructAggregateMetricInstance) {
 
   {
     Metric metric_received;
-    bool schedule_is_called = false;
+    absl::Notification schedule_is_called;
     EXPECT_CALL(*mock_metric_client_, PutMetrics).WillOnce([&](auto context) {
       metric_received.CopyFrom(context.request->metrics(0));
-      schedule_is_called = true;
+      schedule_is_called.Notify();
       context.result = SuccessExecutionResult();
       context.Finish();
       return context.result;
     });
 
     aggregate_metric->IncrementBy(std::stoi(kMetricValue));
-    WaitUntil([&]() { return schedule_is_called; });
+    schedule_is_called.WaitForNotification();
 
     EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
     EXPECT_EQ(metric_received.unit(),

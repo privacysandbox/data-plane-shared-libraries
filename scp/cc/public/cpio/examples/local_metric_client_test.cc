@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 
-#include "core/test/utils/conditional_wait.h"
+#include "absl/synchronization/notification.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/metric_client/metric_client_interface.h"
@@ -33,7 +33,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::LogOption;
 using google::scp::cpio::MetricClientFactory;
 using google::scp::cpio::MetricClientInterface;
@@ -78,7 +77,7 @@ int main(int argc, char* argv[]) {
   auto& labels = *metric->mutable_labels();
   labels[std::string("label_key")] = std::string("label_value");
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto context = AsyncContext<PutMetricsRequest, PutMetricsResponse>(
       std::move(request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse> context) {
@@ -88,15 +87,14 @@ int main(int argc, char* argv[]) {
         } else {
           std::cout << "PutMetrics succeeded." << std::endl;
         }
-        finished = true;
+        finished.Notify();
       });
   result = metric_client->PutMetrics(context);
   if (!result.Successful()) {
     std::cout << "PutMetrics failed immediately: "
               << GetErrorMessage(result.status_code) << std::endl;
   }
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::milliseconds(100000));
+  finished.WaitForNotificationWithTimeout(absl::Seconds(100));
 
   result = metric_client->Stop();
   if (!result.Successful()) {

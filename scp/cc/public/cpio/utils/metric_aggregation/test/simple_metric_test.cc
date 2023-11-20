@@ -25,12 +25,12 @@
 #include <string>
 #include <vector>
 
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_context.h"
 #include "core/message_router/src/error_codes.h"
 #include "core/message_router/src/message_router.h"
 #include "core/test/utils/auto_init_run_stop.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "public/cpio/mock/metric_client/mock_metric_client.h"
@@ -48,7 +48,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::test::AutoInitRunStop;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
 using ::testing::StrEq;
@@ -82,9 +81,9 @@ class SimpleMetricTest : public testing::Test {
 
 TEST_F(SimpleMetricTest, Push) {
   Metric metric_received;
-  bool schedule_is_called = false;
+  absl::Notification schedule_is_called;
   EXPECT_CALL(*mock_metric_client_, PutMetrics).WillOnce([&](auto context) {
-    schedule_is_called = true;
+    schedule_is_called.Notify();
     metric_received.CopyFrom(context.request->metrics()[0]);
     context.result = FailureExecutionResult(123);
     context.Finish();
@@ -92,7 +91,7 @@ TEST_F(SimpleMetricTest, Push) {
   });
 
   simple_metric_->Push(kMetricValue);
-  WaitUntil([&]() { return schedule_is_called; });
+  schedule_is_called.WaitForNotification();
 
   EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
   EXPECT_EQ(metric_received.unit(),
@@ -102,9 +101,9 @@ TEST_F(SimpleMetricTest, Push) {
 
 TEST_F(SimpleMetricTest, PushWithMetricInfo) {
   Metric metric_received;
-  bool schedule_is_called = false;
+  absl::Notification schedule_is_called;
   EXPECT_CALL(*mock_metric_client_, PutMetrics).WillOnce([&](auto context) {
-    schedule_is_called = true;
+    schedule_is_called.Notify();
     metric_received.CopyFrom(context.request->metrics()[0]);
     context.result = FailureExecutionResult(123);
     context.Finish();
@@ -114,7 +113,7 @@ TEST_F(SimpleMetricTest, PushWithMetricInfo) {
   auto metric_info_updated = MetricDefinition(
       kMetricNameUpdate, MetricUnit::kMilliseconds, kNamespace);
   simple_metric_->Push(kMetricValue, metric_info_updated);
-  WaitUntil([&]() { return schedule_is_called; });
+  schedule_is_called.WaitForNotification();
 
   EXPECT_THAT(metric_received.name(), StrEq(kMetricNameUpdate));
   EXPECT_EQ(

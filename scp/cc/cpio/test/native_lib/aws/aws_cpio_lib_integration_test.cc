@@ -22,6 +22,7 @@
 #include <thread>
 #include <vector>
 
+#include "absl/synchronization/notification.h"
 #include "core/test/utils/aws_helper/aws_helper.h"
 #include "core/test/utils/conditional_wait.h"
 #include "core/test/utils/docker_helper/docker_helper.h"
@@ -251,7 +252,7 @@ TEST_F(CpioIntegrationTest, MetricClientPutMetricsSuccessfully) {
 TEST_F(CpioIntegrationTest, ParameterClientGetParameterSuccessfully) {
   CreateParameterClientAndSetupData();
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   GetParameterRequest request;
   request.set_parameter_name(kParameterName);
   EXPECT_EQ(
@@ -260,17 +261,16 @@ TEST_F(CpioIntegrationTest, ParameterClientGetParameterSuccessfully) {
           [&](const ExecutionResult result, GetParameterResponse response) {
             EXPECT_SUCCESS(result);
             EXPECT_EQ(response.parameter_value(), kParameterValue);
-            finished = true;
+            finished.Notify();
           }),
       SuccessExecutionResult());
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::seconds(60));
+  finished.WaitForNotificationWithTimeout(absl::Minutes(1));
 }
 
 TEST_F(CpioIntegrationTest, BlobStorageClientPutBlobSuccessfully) {
   CreateBlobStorageClientAndSetupData();
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto request = std::make_shared<PutBlobRequest>();
   request->mutable_blob()->mutable_metadata()->set_bucket_name(kBucketName);
   request->mutable_blob()->mutable_metadata()->set_blob_name(kBlobName);
@@ -279,12 +279,11 @@ TEST_F(CpioIntegrationTest, BlobStorageClientPutBlobSuccessfully) {
   auto put_blob_context = AsyncContext<PutBlobRequest, PutBlobResponse>(
       std::move(request), [&](auto& context) {
         EXPECT_SUCCESS(context.result);
-        finished = true;
+        finished.Notify();
       });
 
   EXPECT_SUCCESS(blob_storage_client->PutBlob(put_blob_context));
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::seconds(60));
+  finished.WaitForNotificationWithTimeout(absl::Minutes(1));
 }
 
 TEST_F(CpioIntegrationTest, KmsClientDecryptSuccessfully) {
@@ -292,7 +291,7 @@ TEST_F(CpioIntegrationTest, KmsClientDecryptSuccessfully) {
   std::string ciphertext;
   CreateKmsClientAndSetupData(key_resource_name, ciphertext);
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   auto request = std::make_shared<DecryptRequest>();
   request->set_ciphertext(ciphertext);
   request->set_kms_region("us-east-1");
@@ -304,11 +303,10 @@ TEST_F(CpioIntegrationTest, KmsClientDecryptSuccessfully) {
       std::move(request), [&](auto& context) {
         EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->plaintext(), kPlaintext);
-        finished = true;
+        finished.Notify();
       });
 
   EXPECT_SUCCESS(kms_client->Decrypt(decrypt_context));
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::seconds(60));
+  finished.WaitForNotificationWithTimeout(absl::Minutes(1));
 }
 }  // namespace google::scp::cpio::test

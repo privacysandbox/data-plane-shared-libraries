@@ -21,7 +21,7 @@
 #include <string>
 
 #include "absl/functional/bind_front.h"
-#include "core/test/utils/conditional_wait.h"
+#include "absl/synchronization/notification.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/cpio.h"
@@ -41,7 +41,6 @@ using google::cmrt::sdk::crypto_service::v1::HpkeEncryptResponse;
 using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::Cpio;
 using google::scp::cpio::CpioOptions;
 using google::scp::cpio::CryptoClientFactory;
@@ -57,9 +56,9 @@ constexpr char kResponsePayload[] = "hijklmn";
 
 std::unique_ptr<CryptoClientInterface> crypto_client;
 
-void AeadDecryptCallback(std::atomic<bool>& finished, ExecutionResult result,
+void AeadDecryptCallback(absl::Notification& finished, ExecutionResult result,
                          AeadDecryptResponse aead_decrypt_response) {
-  finished = true;
+  finished.Notify();
   if (result.Successful()) {
     std::cout << "Aead decrypt success! Decrypted response payload: "
               << aead_decrypt_response.payload() << std::endl;
@@ -69,7 +68,7 @@ void AeadDecryptCallback(std::atomic<bool>& finished, ExecutionResult result,
   }
 }
 
-void AeadEncryptCallback(std::atomic<bool>& finished, std::string& secret,
+void AeadEncryptCallback(absl::Notification& finished, std::string& secret,
                          ExecutionResult result,
                          AeadEncryptResponse aead_encrypt_response) {
   if (result.Successful()) {
@@ -83,13 +82,13 @@ void AeadEncryptCallback(std::atomic<bool>& finished, std::string& secret,
         std::move(aead_decrypt_request),
         absl::bind_front(AeadDecryptCallback, std::ref(finished)));
   } else {
-    finished = true;
+    finished.Notify();
     std::cout << "Aead encrypt failure!" << GetErrorMessage(result.status_code)
               << std::endl;
   }
 }
 
-void HpkeDecryptCallback(bool is_bidirectional, std::atomic<bool>& finished,
+void HpkeDecryptCallback(bool is_bidirectional, absl::Notification& finished,
                          ExecutionResult result,
                          HpkeDecryptResponse hpke_decrypt_response) {
   if (result.Successful()) {
@@ -107,16 +106,16 @@ void HpkeDecryptCallback(bool is_bidirectional, std::atomic<bool>& finished,
           std::move(aead_encrypt_request),
           absl::bind_front(AeadEncryptCallback, std::ref(finished), secret));
     } else {
-      finished = true;
+      finished.Notify();
     }
   } else {
-    finished = true;
+    finished.Notify();
     std::cout << "Hpke decrypt failure! " << GetErrorMessage(result.status_code)
               << std::endl;
   }
 }
 
-void HpkeEncryptCallback(bool is_bidirectional, std::atomic<bool>& finished,
+void HpkeEncryptCallback(bool is_bidirectional, absl::Notification& finished,
                          ExecutionResult result,
                          HpkeEncryptResponse hpke_encrypt_response) {
   if (result.Successful()) {
@@ -171,7 +170,7 @@ int main(int argc, char* argv[]) {
 
   std::cout << "Run crypto client successfully!" << std::endl;
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   HpkeEncryptRequest hpke_encrypt_request;
   hpke_encrypt_request.mutable_public_key()->set_public_key(
       std::string(kPublicKey));
@@ -182,8 +181,7 @@ int main(int argc, char* argv[]) {
       std::move(hpke_encrypt_request),
       absl::bind_front(HpkeEncryptCallback, is_bidirectional,
                        std::ref(finished)));
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::milliseconds(3000));
+  finished.WaitForNotificationWithTimeout(absl::Seconds(3));
 
   result = crypto_client->Stop();
   if (!result.Successful()) {

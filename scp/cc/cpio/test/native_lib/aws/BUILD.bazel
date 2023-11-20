@@ -39,6 +39,7 @@ cc_test(
         "//scp/cc/public/cpio/test/metric_client:test_aws_metric_client",
         "//scp/cc/public/cpio/test/parameter_client:test_aws_parameter_client",
         "//scp/cc/public/cpio/test/parameter_client:test_aws_parameter_client_options",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

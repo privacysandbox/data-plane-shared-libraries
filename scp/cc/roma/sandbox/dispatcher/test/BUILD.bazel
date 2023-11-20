@@ -33,6 +33,7 @@ cc_test(
         "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_sapi_lib",
         "//scp/cc/roma/sandbox/worker_pool/src:roma_worker_pool_lib",
         "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )

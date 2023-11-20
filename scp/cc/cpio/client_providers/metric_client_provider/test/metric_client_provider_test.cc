@@ -25,6 +25,7 @@
 
 #include <aws/core/Aws.h>
 
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_context.h"
 #include "core/test/utils/conditional_wait.h"
@@ -200,17 +201,17 @@ TEST_F(MetricClientProviderTest, LaunchScheduleMetricsBatchPushWithRun) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
       mock_async_executor_, CreateMetricBatchingOptions(true));
 
-  bool schedule_for_is_called = false;
+  absl::Notification schedule_for_is_called;
   mock_async_executor_->schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
           std::function<bool()>& cancellation_callback) {
-        schedule_for_is_called = true;
+        schedule_for_is_called.Notify();
         return FailureExecutionResult(SC_UNKNOWN);
       };
 
   EXPECT_SUCCESS(client->Init());
   EXPECT_THAT(client->Run(), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-  WaitUntil([&]() { return schedule_for_is_called; });
+  schedule_for_is_called.WaitForNotification();
 }
 
 TEST_F(MetricClientProviderTest, RecordMetricWithoutBatch) {
@@ -245,11 +246,11 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
       mock_async_executor_, CreateMetricBatchingOptions(true));
 
-  std::atomic<bool> schedule_for_is_called = false;
+  absl::Notification schedule_for_is_called;
   mock_async_executor_->schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
           std::function<bool()>& cancellation_callback) {
-        schedule_for_is_called = true;
+        schedule_for_is_called.Notify();
         return SuccessExecutionResult();
       };
 
@@ -257,13 +258,13 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
       CreatePutMetricsRequest(),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  std::atomic<bool> batch_push_called = false;
+  absl::Notification batch_push_called;
   client->metrics_batch_push_mock =
       [&](const std::shared_ptr<std::vector<core::AsyncContext<
               cmrt::sdk::metric_service::v1::PutMetricsRequest,
               cmrt::sdk::metric_service::v1::PutMetricsResponse>>>&
               metric_requests_vector) noexcept {
-        batch_push_called.store(true);
+        batch_push_called.Notify();
         EXPECT_EQ(metric_requests_vector->size(), kMetricsBatchSize);
         return SuccessExecutionResult();
       };
@@ -275,9 +276,9 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
     EXPECT_SUCCESS(client->PutMetrics(context));
   }
 
-  WaitUntil([&]() { return schedule_for_is_called.load(); });
+  schedule_for_is_called.WaitForNotification();
 
-  WaitUntil([&]() { return batch_push_called.load(); });
+  batch_push_called.WaitForNotification();
 }
 
 TEST_F(MetricClientProviderTest, RunMetricsBatchPush) {

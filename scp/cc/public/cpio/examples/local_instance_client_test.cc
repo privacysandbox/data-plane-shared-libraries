@@ -19,7 +19,7 @@
 #include <string>
 
 #include "absl/functional/bind_front.h"
-#include "core/test/utils/conditional_wait.h"
+#include "absl/synchronization/notification.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/cpio.h"
@@ -36,7 +36,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::InstanceClientFactory;
 using google::scp::cpio::InstanceClientInterface;
 using google::scp::cpio::InstanceClientOptions;
@@ -50,7 +49,7 @@ static constexpr char kInstanceId[] = "i-1234";
 std::unique_ptr<InstanceClientInterface> instance_client;
 
 void GetCurrentInstanceResourceNameCallback(
-    std::atomic<bool>& finished, ExecutionResult result,
+    absl::Notification& finished, ExecutionResult result,
     GetCurrentInstanceResourceNameResponse get_resource_name_response) {
   if (!result.Successful()) {
     std::cout << "Hpke encrypt failure!" << GetErrorMessage(result.status_code)
@@ -90,7 +89,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   result = instance_client->GetCurrentInstanceResourceName(
       GetCurrentInstanceResourceNameRequest(),
       absl::bind_front(GetCurrentInstanceResourceNameCallback,
@@ -100,8 +99,7 @@ int main(int argc, char* argv[]) {
     std::cout << "GetCurrentInstanceResourceName failed immediately: "
               << GetErrorMessage(result.status_code) << std::endl;
   }
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::milliseconds(3000));
+  finished.WaitForNotificationWithTimeout(absl::Seconds(3));
 
   result = instance_client->Stop();
   if (!result.Successful()) {

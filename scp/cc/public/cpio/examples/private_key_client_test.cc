@@ -17,8 +17,8 @@
 #include <memory>
 #include <string>
 
+#include "absl/synchronization/notification.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/cpio.h"
@@ -31,7 +31,6 @@ using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse;
 using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::Cpio;
 using google::scp::cpio::CpioOptions;
 using google::scp::cpio::LogOption;
@@ -91,7 +90,7 @@ int main(int argc, char* argv[]) {
 
   ListPrivateKeysRequest request;
   request.add_key_ids(kKeyId1);
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   result = private_key_client->ListPrivateKeys(
       std::move(request),
       [&](const ExecutionResult result, ListPrivateKeysResponse response) {
@@ -101,14 +100,13 @@ int main(int argc, char* argv[]) {
         } else {
           std::cout << "ListPrivateKeys succeeded." << std::endl;
         }
-        finished = true;
+        finished.Notify();
       });
   if (!result.Successful()) {
     std::cout << "ListPrivateKeys failed immediately: "
               << GetErrorMessage(result.status_code) << std::endl;
   }
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::milliseconds(100000));
+  finished.WaitForNotificationWithTimeout(absl::Seconds(100));
 
   result = private_key_client->Stop();
   if (!result.Successful()) {

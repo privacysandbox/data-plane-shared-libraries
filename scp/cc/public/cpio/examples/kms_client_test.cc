@@ -18,8 +18,8 @@
 #include <string>
 
 #include "absl/strings/strip.h"
+#include "absl/synchronization/notification.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/cpio.h"
@@ -34,7 +34,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::Cpio;
 using google::scp::cpio::CpioOptions;
 using google::scp::cpio::KmsClientFactory;
@@ -76,7 +75,7 @@ int main(int argc, char* argv[]) {
   request->set_ciphertext(kCiphertext);
   request->set_key_resource_name(kKeyResourceName);
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   AsyncContext<DecryptRequest, DecryptResponse> decrypt_context(
       std::move(request), [&finished](auto& context) {
         if (!context.result.Successful()) {
@@ -85,15 +84,14 @@ int main(int argc, char* argv[]) {
         } else {
           std::cout << "Decrypt succeeded." << std::endl;
         }
-        finished = true;
+        finished.Notify();
       });
   result = kms_client->Decrypt(decrypt_context);
   if (!result.Successful()) {
     std::cout << "Decrypt failed immediately: "
               << GetErrorMessage(result.status_code) << std::endl;
   }
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::milliseconds(100000));
+  finished.WaitForNotificationWithTimeout(absl::Seconds(100));
 
   result = kms_client->Stop();
   if (!result.Successful()) {

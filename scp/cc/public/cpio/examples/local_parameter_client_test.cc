@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 
-#include "core/test/utils/conditional_wait.h"
+#include "absl/synchronization/notification.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/parameter_client/parameter_client_interface.h"
@@ -31,7 +31,6 @@ using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::LogOption;
 using google::scp::cpio::ParameterClientFactory;
 using google::scp::cpio::ParameterClientInterface;
@@ -68,7 +67,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  std::atomic<bool> finished = false;
+  absl::Notification finished;
   GetParameterRequest get_parameter_request;
   get_parameter_request.set_parameter_name(kTestParameterName);
   result = parameter_client->GetParameter(
@@ -81,14 +80,13 @@ int main(int argc, char* argv[]) {
           std::cout << "GetParameter succeeded, and parameter is: "
                     << response.parameter_value() << std::endl;
         }
-        finished = true;
+        finished.Notify();
       });
   if (!result.Successful()) {
     std::cout << "GetParameter failed immediately: "
               << GetErrorMessage(result.status_code) << std::endl;
   }
-  WaitUntil([&finished]() { return finished.load(); },
-            std::chrono::milliseconds(10000));
+  finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   result = parameter_client->Stop();
   if (!result.Successful()) {
