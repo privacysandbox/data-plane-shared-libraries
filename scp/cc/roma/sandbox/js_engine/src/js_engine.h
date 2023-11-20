@@ -69,6 +69,9 @@ struct JsEngineExecutionResponse {
  */
 class JsEngine {
  public:
+  // Destructor must be virtual to avoid memory leaks.
+  virtual ~JsEngine() = default;
+
   virtual core::ExecutionResult Init() noexcept = 0;
   virtual core::ExecutionResult Run() noexcept = 0;
   virtual core::ExecutionResult Stop() noexcept = 0;
