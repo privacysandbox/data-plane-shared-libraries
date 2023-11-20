@@ -142,8 +142,6 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
                << " for the buffer of the sapi sandbox";
 
   ::worker_api::WorkerInitParamsProto worker_init_params;
-  worker_init_params.set_worker_factory_js_engine(
-      static_cast<int>(worker_engine_));
   worker_init_params.set_require_code_preload_for_execution(require_preload_);
   worker_init_params.set_compilation_context_cache_size(
       compilation_context_cache_size_);

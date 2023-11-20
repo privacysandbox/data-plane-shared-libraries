@@ -29,7 +29,10 @@
 #include "roma/config/src/config.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/worker_factory/src/worker_factory.h"
+#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
+#include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
+#include "roma/sandbox/native_function_binding/src/native_function_invoker_sapi_ipc.h"
+#include "roma/sandbox/worker/src/worker.h"
 #include "src/cpp/util/duration.h"
 #include "src/cpp/util/protoutil.h"
 
@@ -52,8 +55,13 @@ using google::scp::roma::JsEngineResourceConstraints;
 using google::scp::roma::sandbox::constants::kBadFd;
 using google::scp::roma::sandbox::constants::
     kExecutionMetricJsEngineCallDuration;
+using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
+using google::scp::roma::sandbox::js_engine::v8_js_engine::
+    V8IsolateFunctionBinding;
+using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
+using google::scp::roma::sandbox::native_function_binding::
+    NativeFunctionInvokerSapiIpc;
 using google::scp::roma::sandbox::worker::Worker;
-using google::scp::roma::sandbox::worker::WorkerFactory;
 using sandbox2::Buffer;
 
 namespace {
@@ -64,47 +72,55 @@ size_t request_and_response_data_buffer_size_bytes_{0};
 
 std::unique_ptr<Worker> worker_{nullptr};
 
+absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
+    const V8WorkerEngineParams& params) {
+  return {{kJsEngineOneTimeSetupWasmPagesKey,
+           std::to_string(params.max_wasm_memory_number_of_pages)}};
+}
+
+std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
+  auto native_function_invoker = std::make_unique<NativeFunctionInvokerSapiIpc>(
+      params.native_js_function_comms_fd);
+
+  auto isolate_function_binding = std::make_unique<V8IsolateFunctionBinding>(
+      params.native_js_function_names, std::move(native_function_invoker));
+
+  auto v8_engine = std::make_unique<V8JsEngine>(
+      std::move(isolate_function_binding), params.resource_constraints);
+
+  auto one_time_setup = GetEngineOneTimeSetup(params);
+  v8_engine->OneTimeSetup(one_time_setup);
+
+  return std::make_unique<Worker>(std::move(v8_engine), params.require_preload,
+                                  params.compilation_context_cache_size);
+}
+
 StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   if (worker_) {
     Stop();
   }
 
-  auto worker_engine = static_cast<WorkerFactory::WorkerEngine>(
-      init_params->worker_factory_js_engine());
+  std::vector<std::string> native_js_function_names(
+      init_params->native_js_function_names().begin(),
+      init_params->native_js_function_names().end());
 
-  WorkerFactory::FactoryParams factory_params;
-  factory_params.engine = worker_engine;
-  factory_params.require_preload =
-      init_params->require_code_preload_for_execution();
-  factory_params.compilation_context_cache_size =
-      init_params->compilation_context_cache_size();
+  JsEngineResourceConstraints resource_constraints;
+  resource_constraints.initial_heap_size_in_mb =
+      static_cast<size_t>(init_params->js_engine_initial_heap_size_mb());
+  resource_constraints.maximum_heap_size_in_mb =
+      static_cast<size_t>(init_params->js_engine_maximum_heap_size_mb());
 
-  if (worker_engine == WorkerFactory::WorkerEngine::v8) {
-    std::vector<std::string> native_js_function_names(
-        init_params->native_js_function_names().begin(),
-        init_params->native_js_function_names().end());
+  V8WorkerEngineParams v8_params{
+      .native_js_function_comms_fd = init_params->native_js_function_comms_fd(),
+      .native_js_function_names = native_js_function_names,
+      .resource_constraints = resource_constraints,
+      .max_wasm_memory_number_of_pages = static_cast<size_t>(
+          init_params->js_engine_max_wasm_memory_number_of_pages()),
+      .require_preload = init_params->require_code_preload_for_execution(),
+      .compilation_context_cache_size =
+          static_cast<size_t>(init_params->compilation_context_cache_size())};
 
-    JsEngineResourceConstraints resource_constraints;
-    resource_constraints.initial_heap_size_in_mb =
-        static_cast<size_t>(init_params->js_engine_initial_heap_size_mb());
-    resource_constraints.maximum_heap_size_in_mb =
-        static_cast<size_t>(init_params->js_engine_maximum_heap_size_mb());
-
-    WorkerFactory::V8WorkerEngineParams v8_params{
-        .native_js_function_comms_fd =
-            init_params->native_js_function_comms_fd(),
-        .native_js_function_names = native_js_function_names,
-        .resource_constraints = resource_constraints,
-        .max_wasm_memory_number_of_pages = static_cast<size_t>(
-            init_params->js_engine_max_wasm_memory_number_of_pages())};
-
-    factory_params.v8_worker_engine_params = v8_params;
-  }
-
-  auto worker_or = WorkerFactory::Create(factory_params);
-  if (!worker_or.result().Successful()) {
-    return worker_or.result().status_code;
-  }
+  worker_ = CreateWorker(v8_params);
 
   if (init_params->request_and_response_data_buffer_fd() == kBadFd) {
     return SC_ROMA_WORKER_API_VALID_SANDBOX_BUFFER_REQUIRED;
@@ -120,7 +136,6 @@ StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   request_and_response_data_buffer_size_bytes_ =
       init_params->request_and_response_data_buffer_size_bytes();
 
-  worker_ = std::move(*worker_or);
   ROMA_VLOG(1) << "Worker wrapper successfully created the worker";
   return worker_->Init().status_code;
 }

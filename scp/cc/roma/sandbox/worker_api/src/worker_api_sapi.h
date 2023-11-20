@@ -25,14 +25,12 @@
 #include "absl/synchronization/mutex.h"
 #include "roma/config/src/config.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
-#include "roma/sandbox/worker_factory/src/worker_factory.h"
 
 #include "worker_api.h"
 
 namespace google::scp::roma::sandbox::worker_api {
 
 struct WorkerApiSapiConfig {
-  worker::WorkerFactory::WorkerEngine worker_js_engine;
   bool js_engine_require_code_preload;
   size_t compilation_context_cache_size;
   int native_js_function_comms_fd;

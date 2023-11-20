@@ -35,7 +35,6 @@ cc_test(
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_sandbox_api_lib",
-        "//scp/cc/roma/sandbox/worker_factory/src:roma_worker_factory_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -52,7 +51,6 @@ cc_test(
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_wrapper_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:worker_init_params_cc_proto",
-        "//scp/cc/roma/sandbox/worker_factory/src:roma_worker_factory_lib",
         "@com_google_googletest//:gtest_main",
         "@google_benchmark//:benchmark",
     ],
@@ -68,7 +66,6 @@ cc_test(
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_wrapper_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:worker_init_params_cc_proto",
-        "//scp/cc/roma/sandbox/worker_factory/src:roma_worker_factory_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )

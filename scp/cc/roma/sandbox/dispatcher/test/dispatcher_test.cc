@@ -43,7 +43,6 @@ using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::WaitUntil;
-using google::scp::roma::sandbox::worker::WorkerFactory;
 using google::scp::roma::sandbox::worker_api::WorkerApi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
@@ -54,7 +53,6 @@ using ::testing::StrEq;
 namespace {
 WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
   WorkerApiSapiConfig config;
-  config.worker_js_engine = WorkerFactory::WorkerEngine::v8;
   config.js_engine_require_code_preload = true;
   config.compilation_context_cache_size = 5;
   config.native_js_function_comms_fd = -1;

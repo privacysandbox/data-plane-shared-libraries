@@ -25,7 +25,6 @@
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_wrapper.h"
-#include "roma/sandbox/worker_factory/src/worker_factory.h"
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 
@@ -36,7 +35,6 @@ using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestId;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
-using google::scp::roma::sandbox::worker::WorkerFactory;
 using ::testing::StrEq;
 
 namespace {
@@ -45,8 +43,6 @@ constexpr size_t kBufferSize = 1 * 1024 * 1024 /* 1Mib */;
 
 ::worker_api::WorkerInitParamsProto GetDefaultInitParams(int fd) {
   ::worker_api::WorkerInitParamsProto init_params;
-  init_params.set_worker_factory_js_engine(
-      static_cast<int>(WorkerFactory::WorkerEngine::v8));
   init_params.set_require_code_preload_for_execution(false);
   init_params.set_compilation_context_cache_size(5);
   init_params.set_native_js_function_comms_fd(-1);

@@ -27,7 +27,6 @@
 
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/worker_factory/src/worker_factory.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 using google::scp::roma::proto::RpcWrapper;
@@ -37,14 +36,13 @@ using google::scp::roma::sandbox::constants::kRequestAction;
 using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
-using google::scp::roma::sandbox::worker::WorkerFactory;
 using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::worker_api::test {
 TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
   WorkerSandboxApi sandbox_api(
-      WorkerFactory::WorkerEngine::v8, false /*require_preload*/,
-      5 /*compilation_context_cache_size*/, -1 /*native_js_function_comms_fd*/,
+      false /*require_preload*/, 5 /*compilation_context_cache_size*/,
+      -1 /*native_js_function_comms_fd*/,
       std::vector<std::string>() /*native_js_function_names*/, 0, 0, 0, 0, 0,
       false);
 
@@ -77,8 +75,8 @@ TEST(WorkerSandboxApiTest,
   // no other limitations, this limit needs to be pretty high for V8 to properly
   // start. We set a limit of 100MB which causes a failure in this case.
   WorkerSandboxApi sandbox_api(
-      WorkerFactory::WorkerEngine::v8, false /*require_preload*/,
-      5 /*compilation_context_cache_size*/, -1 /*native_js_function_comms_fd*/,
+      false /*require_preload*/, 5 /*compilation_context_cache_size*/,
+      -1 /*native_js_function_comms_fd*/,
       std::vector<std::string>() /*native_js_function_names*/,
       100 /*max_worker_virtual_memory_mb*/, 0, 0, 0, 0, false);
 
@@ -95,8 +93,7 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   int fds[2];
   EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds), 0);
 
-  WorkerSandboxApi sandbox_api(WorkerFactory::WorkerEngine::v8,
-                               false /*require_preload*/,
+  WorkerSandboxApi sandbox_api(false /*require_preload*/,
                                5 /*compilation_context_cache_size*/,
                                fds[1] /*native_js_function_comms_fd*/,
                                {"my_great_func"}, 0, 0, 0, 0, 0, false);
@@ -143,20 +140,17 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
 class WorkerSandboxApiForTests : public WorkerSandboxApi {
  public:
   WorkerSandboxApiForTests(
-      const worker::WorkerFactory::WorkerEngine& worker_engine,
       bool require_preload, int native_js_function_comms_fd,
       const std::vector<std::string>& native_js_function_names)
-      : WorkerSandboxApi(worker_engine, require_preload, 5,
-                         native_js_function_comms_fd, native_js_function_names,
-                         0, 0, 0, 0, 0, false) {}
+      : WorkerSandboxApi(require_preload, 5, native_js_function_comms_fd,
+                         native_js_function_names, 0, 0, 0, 0, 0, false) {}
 
   ::sapi::Sandbox* GetUnderlyingSandbox() { return worker_sapi_sandbox_.get(); }
 };
 
 TEST(WorkerSandboxApiTest, SandboxShouldComeBackUpIfItDies) {
   WorkerSandboxApiForTests sandbox_api(
-      WorkerFactory::WorkerEngine::v8, false /*require_preload*/,
-      -1 /*native_js_function_comms_fd*/,
+      false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
       std::vector<std::string>() /*native_js_function_names*/);
 
   auto result = sandbox_api.Init();
@@ -199,8 +193,7 @@ TEST(WorkerSandboxApiTest,
   EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds), 0);
 
   WorkerSandboxApiForTests sandbox_api(
-      WorkerFactory::WorkerEngine::v8, false /*require_preload*/,
-      fds[1] /*native_js_function_comms_fd*/,
+      false /*require_preload*/, fds[1] /*native_js_function_comms_fd*/,
       {"my_great_func"} /*native_js_function_names*/);
 
   auto result = sandbox_api.Init();

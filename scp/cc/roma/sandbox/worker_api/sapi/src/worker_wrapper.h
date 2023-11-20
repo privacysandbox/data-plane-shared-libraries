@@ -22,7 +22,11 @@
 #ifndef ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_WRAPPER_H_
 #define ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_WRAPPER_H_
 
+#include <string>
+#include <vector>
+
 #include "public/core/interface/execution_result.h"
+#include "roma/config/src/config.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
 #include "sandboxed_api/lenval_core.h"
@@ -30,6 +34,15 @@
 #include "sandboxed_api/var_int.h"
 
 #include "error_codes.h"
+
+struct V8WorkerEngineParams {
+  int native_js_function_comms_fd;
+  std::vector<std::string> native_js_function_names;
+  google::scp::roma::JsEngineResourceConstraints resource_constraints;
+  size_t max_wasm_memory_number_of_pages;
+  bool require_preload = true;
+  size_t compilation_context_cache_size;
+};
 
 extern "C" google::scp::core::StatusCode InitFromSerializedData(
     sapi::LenValStruct* data);

@@ -26,7 +26,6 @@
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
-#include "roma/sandbox/worker_factory/src/worker_factory.h"
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 
@@ -38,7 +37,6 @@ using google::scp::roma::sandbox::constants::kRequestAction;
 using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
-using google::scp::roma::sandbox::worker::WorkerFactory;
 using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::worker_api::test {
@@ -52,8 +50,6 @@ static ::worker_api::WorkerInitParamsProto GetDefaultInitParams() {
   buffer_ptr_ = std::move(buffer).value();
 
   ::worker_api::WorkerInitParamsProto init_params;
-  init_params.set_worker_factory_js_engine(
-      static_cast<int>(worker::WorkerFactory::WorkerEngine::v8));
   init_params.set_require_code_preload_for_execution(false);
   init_params.set_compilation_context_cache_size(5);
   init_params.set_native_js_function_comms_fd(-1);
@@ -312,8 +308,6 @@ TEST(WorkerWrapperTest,
 TEST(WorkerWrapperTest, FailsToRunCodeWhenPreloadIsRequiredAndExecuteIsSent) {
   auto init_params = GetDefaultInitParams();
   init_params.set_require_code_preload_for_execution(true);
-  init_params.set_worker_factory_js_engine(
-      static_cast<int>(worker::WorkerFactory::WorkerEngine::v8));
   init_params.set_require_code_preload_for_execution(true);
 
   std::string serialized_init_params;

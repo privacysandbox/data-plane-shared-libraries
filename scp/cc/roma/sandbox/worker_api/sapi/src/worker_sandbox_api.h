@@ -29,10 +29,10 @@
 
 #include "absl/strings/str_cat.h"
 #include "core/interface/service_interface.h"
+#include "roma/config/src/config.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/worker_api/sapi/src/roma_worker_wrapper_lib-sapi.sapi.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
-#include "roma/sandbox/worker_factory/src/worker_factory.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/sandbox2/policy.h"
 #include "sandboxed_api/sandbox2/policybuilder.h"
@@ -73,7 +73,6 @@ class WorkerSandboxApi {
    * the default value of 1MB will be used.
    */
   WorkerSandboxApi(
-      const worker::WorkerFactory::WorkerEngine& worker_engine,
       bool require_preload, size_t compilation_context_cache_size,
       int native_js_function_comms_fd,
       const std::vector<std::string>& native_js_function_names,
@@ -83,8 +82,7 @@ class WorkerSandboxApi {
       size_t js_engine_max_wasm_memory_number_of_pages,
       size_t sandbox_request_response_shared_buffer_size_mb,
       bool enable_sandbox_sharing_request_response_with_buffer_only)
-      : worker_engine_(worker_engine),
-        require_preload_(require_preload),
+      : require_preload_(require_preload),
         compilation_context_cache_size_(compilation_context_cache_size),
         native_js_function_comms_fd_(native_js_function_comms_fd),
         native_js_function_names_(native_js_function_names),
@@ -257,7 +255,6 @@ class WorkerSandboxApi {
   // See BUILD file for named library "WorkerWrapper" in the
   // sapi_library roma_worker_wrapper_lib-sapi target.
   std::unique_ptr<WorkerWrapperApi> worker_wrapper_api_;
-  worker::WorkerFactory::WorkerEngine worker_engine_;
 
   bool require_preload_;
   size_t compilation_context_cache_size_;

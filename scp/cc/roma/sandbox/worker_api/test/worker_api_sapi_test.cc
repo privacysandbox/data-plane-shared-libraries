@@ -39,7 +39,6 @@ namespace google::scp::roma::sandbox::worker_api::test {
 
 static WorkerApiSapiConfig GetDefaultConfig() {
   WorkerApiSapiConfig config;
-  config.worker_js_engine = worker::WorkerFactory::WorkerEngine::v8;
   config.js_engine_require_code_preload = false;
   config.compilation_context_cache_size = 5;
   config.native_js_function_comms_fd = -1;

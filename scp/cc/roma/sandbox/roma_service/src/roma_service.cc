@@ -190,7 +190,6 @@ ExecutionResult RomaService::SetupWorkers(
 
   for (const int remote_fd : remote_fds) {
     WorkerApiSapiConfig worker_api_sapi_config{
-        .worker_js_engine = worker::WorkerFactory::WorkerEngine::v8,
         .js_engine_require_code_preload = true,
         .compilation_context_cache_size = config_.code_version_cache_size,
         .native_js_function_comms_fd = remote_fd,

@@ -17,9 +17,9 @@ syntax = "proto3";
 package worker_api;
 
 message WorkerInitParamsProto {
-  // The worker factory JS engine type. This maps to an enum in the worker
-  // factory.
-  int32 worker_factory_js_engine = 1;
+  // DEPRECATED. The worker factory JS engine type. The only currently supported
+  // JS engine type is V8.
+  int32 worker_factory_js_engine = 1 [deprecated = true];
   // Whether code preloading is required for execution.
   bool require_code_preload_for_execution = 2;
   // The number of code compilation contexts to cache.

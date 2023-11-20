@@ -45,7 +45,6 @@ using google::scp::roma::CodeObject;
 using google::scp::roma::InvocationRequestStrInput;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::sandbox::dispatcher::Dispatcher;
-using google::scp::roma::sandbox::worker::WorkerFactory;
 using google::scp::roma::sandbox::worker_api::WorkerApi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
@@ -54,7 +53,6 @@ using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
 
 WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
   return WorkerApiSapiConfig{
-      .worker_js_engine = WorkerFactory::WorkerEngine::v8,
       .js_engine_require_code_preload = true,
       .compilation_context_cache_size = 5,
       .native_js_function_comms_fd = -1,
