@@ -68,8 +68,9 @@ struct CodeObject {
  * with the pre-loaded untrusted code. Here, the input is a vector of string or
  * shared pointers to string.
  *
- * @tparam InputType the data type of input vector. Only can be std::string or
- * std::shared_ptr<std::string>.
+ * @tparam InputType the data type of input vector. Only can be std::string,
+ * std::string_view, or std::shared_ptr<std::string>.
+ * std::shared_ptr<std::string> is being deprecated.
  */
 template <typename InputType>
 struct InvocationRequest {
