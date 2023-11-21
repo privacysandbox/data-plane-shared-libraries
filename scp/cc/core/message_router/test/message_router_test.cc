@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <memory>
 
+#include "absl/synchronization/mutex.h"
+#include "absl/synchronization/notification.h"
 #include "core/common/concurrent_queue/src/concurrent_queue.h"
 #include "core/interface/async_context.h"
 #include "core/message_router/src/error_codes.h"
@@ -43,7 +45,7 @@ class MessageRouterTest : public ::testing::Test {
     EXPECT_SUCCESS(router_.Run());
 
     running_ = true;
-    thread_ = std::thread([this]() {
+    thread_ = std::thread([this] {
       while (running_) {
         std::shared_ptr<AsyncContext<Any, Any>> context;
         auto dequeue_result = queue_->TryDequeue(context);
@@ -78,19 +80,18 @@ class MessageRouterTest : public ::testing::Test {
 };
 
 TEST_F(MessageRouterTest, RequestNotSubscribed) {
-  std::atomic<int> count(0);
+  absl::Notification count;
   auto request = std::make_shared<Any>(any_request_1_);
   auto context = std::make_shared<AsyncContext<Any, Any>>(
       request, [&](AsyncContext<Any, Any>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(
                         errors::SC_MESSAGE_ROUTER_REQUEST_NOT_SUBSCRIBED)));
-        count++;
+        count.Notify();
       });
   queue_->TryEnqueue(context);
 
-  WaitUntil([&]() { return count == 1; });
-  EXPECT_EQ(count, 1);
+  count.WaitForNotification();
 }
 
 TEST_F(MessageRouterTest, SubscriptionConflict) {
@@ -118,7 +119,7 @@ TEST_F(MessageRouterTest, SingleMessage) {
       request, [&](AsyncContext<Any, Any>& context) {});
   queue_->TryEnqueue(context);
 
-  WaitUntil([&]() { return context->response != nullptr; });
+  WaitUntil([&] { return context->response != nullptr; });
   TestStringResponse response;
   context->response->UnpackTo(&response);
   EXPECT_EQ(response.response(), "test_response");
@@ -142,7 +143,7 @@ TEST_F(MessageRouterTest, MultipleMessagesSingleSubscription) {
   queue_->TryEnqueue(context_1);
   queue_->TryEnqueue(context_2);
 
-  WaitUntil([&]() {
+  WaitUntil([&] {
     return context_1->response != nullptr && context_2->response != nullptr;
   });
   TestStringResponse response_1;
@@ -154,16 +155,23 @@ TEST_F(MessageRouterTest, MultipleMessagesSingleSubscription) {
 }
 
 TEST_F(MessageRouterTest, MultipleSubscriptions) {
-  std::atomic<int> count_1(0);
+  absl::Mutex count_mu;
+  int count_1 = 0;
   router_.Subscribe(any_request_1_.type_url(),
-                    [&](AsyncContext<Any, Any>& context) { count_1++; });
+                    [&](AsyncContext<Any, Any>& context) {
+                      absl::MutexLock l(&count_mu);
+                      count_1++;
+                    });
   auto request_1 = std::make_shared<Any>(any_request_1_);
   auto context_1 = std::make_shared<AsyncContext<Any, Any>>(
       request_1, [&](AsyncContext<Any, Any>& context) {});
 
-  std::atomic<int> count_2(0);
+  int count_2 = 0;
   router_.Subscribe(any_request_2_.type_url(),
-                    [&](AsyncContext<Any, Any>& context) { count_2++; });
+                    [&](AsyncContext<Any, Any>& context) {
+                      absl::MutexLock l(&count_mu);
+                      count_2++;
+                    });
   auto request_2 = std::make_shared<Any>(any_request_2_);
   auto context_2 = std::make_shared<AsyncContext<Any, Any>>(
       request_2, [&](AsyncContext<Any, Any>& context) {});
@@ -171,8 +179,13 @@ TEST_F(MessageRouterTest, MultipleSubscriptions) {
   queue_->TryEnqueue(context_1);
   queue_->TryEnqueue(context_2);
 
-  WaitUntil([&]() { return count_1 == 1 && count_2 == 1; });
-  EXPECT_EQ(count_1, 1);
-  EXPECT_EQ(count_2, 1);
+  {
+    absl::MutexLock l(&count_mu);
+    auto condition_fn = [&] {
+      count_mu.AssertReaderHeld();
+      return count_1 == 1 && count_2 == 1;
+    };
+    count_mu.Await(absl::Condition(&condition_fn));
+  }
 }
 }  // namespace google::scp::core::test

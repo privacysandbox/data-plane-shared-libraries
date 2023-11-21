@@ -25,10 +25,10 @@
 
 #include <aws/core/Aws.h>
 
+#include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/metric_client_provider/mock/mock_metric_client_provider_with_overrides.h"
 #include "cpio/client_providers/metric_client_provider/src/error_codes.h"
 #include "cpio/common/src/aws/error_codes.h"
@@ -56,7 +56,6 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_METRIC_NOT_SET;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::mock::MockMetricClientWithOverrides;
 
 namespace {
@@ -116,14 +115,14 @@ TEST_F(MetricClientProviderTest, EmptyAsyncExecutorIsOKWithoutBatchRecording) {
       CreatePutMetricsRequest(kMetricNamespace),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  int64_t batch_push_called_count = 0;
+  absl::BlockingCounter batch_push_called_count(2);
   client->metrics_batch_push_mock =
       [&](const std::shared_ptr<std::vector<core::AsyncContext<
               cmrt::sdk::metric_service::v1::PutMetricsRequest,
               cmrt::sdk::metric_service::v1::PutMetricsResponse>>>&
               metric_requests_vector) noexcept {
         EXPECT_EQ(metric_requests_vector->size(), 1);
-        batch_push_called_count += 1;
+        batch_push_called_count.DecrementCount();
         return SuccessExecutionResult();
       };
 
@@ -133,7 +132,7 @@ TEST_F(MetricClientProviderTest, EmptyAsyncExecutorIsOKWithoutBatchRecording) {
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
   EXPECT_SUCCESS(client->PutMetrics(context));
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
-  WaitUntil([&]() { return batch_push_called_count == 2; });
+  batch_push_called_count.Wait();
 }
 
 TEST_F(MetricClientProviderTest,
@@ -222,14 +221,14 @@ TEST_F(MetricClientProviderTest, RecordMetricWithoutBatch) {
       CreatePutMetricsRequest(kMetricNamespace),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  int64_t batch_push_called_count = 0;
+  absl::BlockingCounter batch_push_called_count(2);
   client->metrics_batch_push_mock =
       [&](const std::shared_ptr<std::vector<core::AsyncContext<
               cmrt::sdk::metric_service::v1::PutMetricsRequest,
               cmrt::sdk::metric_service::v1::PutMetricsResponse>>>&
               metric_requests_vector) noexcept {
         EXPECT_EQ(metric_requests_vector->size(), 1);
-        batch_push_called_count += 1;
+        batch_push_called_count.DecrementCount();
         return SuccessExecutionResult();
       };
 
@@ -239,7 +238,7 @@ TEST_F(MetricClientProviderTest, RecordMetricWithoutBatch) {
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
   EXPECT_SUCCESS(client->PutMetrics(context));
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
-  WaitUntil([&]() { return batch_push_called_count == 2; });
+  batch_push_called_count.Wait();
 }
 
 TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
@@ -289,20 +288,20 @@ TEST_F(MetricClientProviderTest, RunMetricsBatchPush) {
       CreatePutMetricsRequest(),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  int64_t schedule_metric_push_count = 0;
-  client->schedule_metric_push_mock = [&]() {
-    schedule_metric_push_count += 1;
+  absl::Notification schedule_metric_push;
+  client->schedule_metric_push_mock = [&] {
+    schedule_metric_push.Notify();
     return SuccessExecutionResult();
   };
 
-  int64_t batch_push_called_count = 0;
+  absl::Notification batch_push_called_count;
   client->metrics_batch_push_mock =
       [&](const std::shared_ptr<std::vector<core::AsyncContext<
               cmrt::sdk::metric_service::v1::PutMetricsRequest,
               cmrt::sdk::metric_service::v1::PutMetricsResponse>>>&
               metric_requests_vector) noexcept {
         EXPECT_EQ(metric_requests_vector->size(), 2);
-        batch_push_called_count += 1;
+        batch_push_called_count.Notify();
         return SuccessExecutionResult();
       };
 
@@ -314,8 +313,8 @@ TEST_F(MetricClientProviderTest, RunMetricsBatchPush) {
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 2);
   client->RunMetricsBatchPush();
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
-  WaitUntil([&]() { return batch_push_called_count == 1; });
-  WaitUntil([&]() { return schedule_metric_push_count == 1; });
+  batch_push_called_count.WaitForNotification();
+  schedule_metric_push.WaitForNotification();
 }
 
 TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
@@ -328,19 +327,18 @@ TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
       std::move(request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  std::atomic<int> batch_push_called_count = 0;
+  absl::BlockingCounter batch_push_called_count(100);
   client->metrics_batch_push_mock =
       [&](const std::shared_ptr<
           std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>&
               metric_requests_vector) noexcept {
         EXPECT_EQ(metric_requests_vector->size(), 1);
-        batch_push_called_count++;
+        batch_push_called_count.DecrementCount();
         return SuccessExecutionResult();
       };
   std::vector<std::thread> threads;
   for (auto i = 0; i < 100; ++i) {
-    threads.push_back(
-        std::thread([&]() { EXPECT_SUCCESS(client->PutMetrics(context)); }));
+    threads.emplace_back([&] { EXPECT_SUCCESS(client->PutMetrics(context)); });
   }
 
   for (auto& thread : threads) {
@@ -348,7 +346,7 @@ TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
   }
 
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
-  WaitUntil([&]() { return batch_push_called_count.load() == 100; });
+  batch_push_called_count.Wait();
   EXPECT_SUCCESS(client->Stop());
 }
 

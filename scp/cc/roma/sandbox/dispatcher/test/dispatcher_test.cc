@@ -27,10 +27,10 @@
 #include "absl/container/flat_hash_set.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/test/utils/auto_init_run_stop.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/interface/roma.h"
 #include "roma/sandbox/worker_api/src/worker_api.h"
@@ -42,7 +42,6 @@ using google::scp::core::AsyncExecutor;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::test::AutoInitRunStop;
-using google::scp::core::test::WaitUntil;
 using google::scp::roma::sandbox::worker_api::WorkerApi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
@@ -233,11 +232,11 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
 }
 
 TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
-  const size_t number_of_workers = 5;
-  AsyncExecutor async_executor(number_of_workers, 100);
+  constexpr size_t kNumberOfWorkers = 5;
+  AsyncExecutor async_executor(kNumberOfWorkers, 100);
 
   std::vector<WorkerApiSapiConfig> configs;
-  for (int i = 0; i < number_of_workers; i++) {
+  for (int i = 0; i < kNumberOfWorkers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
@@ -263,12 +262,13 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   EXPECT_SUCCESS(result);
   done_loading.WaitForNotification();
 
-  std::atomic<int> execution_count(0);
+  absl::Mutex execution_count_mu;
+  int execution_count = 0;
   // More than the number of workers to make sure the requests can indeed run in
   // all workers.
-  int requests_sent = number_of_workers * 3;
+  constexpr int kRequestSent = kNumberOfWorkers * 3;
 
-  for (int i = 0; i < requests_sent; i++) {
+  for (int i = 0; i < kRequestSent; i++) {
     auto execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = absl::StrCat("some_id", i);
     execute_request->version_num = 1;
@@ -277,28 +277,33 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
     result = dispatcher.Dispatch(
         std::move(execute_request),
-        [&execution_count,
-         i](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        [&, i](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           EXPECT_TRUE(resp->ok());
           EXPECT_THAT((*resp)->resp,
                       absl::StrCat(R"("Hello)", i, R"( Some string")"));
+          absl::MutexLock l(&execution_count_mu);
           execution_count++;
         });
 
     EXPECT_SUCCESS(result);
   }
 
-  WaitUntil([&execution_count, requests_sent]() {
-    return execution_count.load() >= requests_sent;
-  });
+  {
+    absl::MutexLock l(&execution_count_mu);
+    auto condition_fn = [&] {
+      execution_count_mu.AssertReaderHeld();
+      return execution_count >= kRequestSent;
+    };
+    execution_count_mu.Await(absl::Condition(&condition_fn));
+  }
 }
 
 TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
-  const size_t number_of_workers = 5;
-  AsyncExecutor async_executor(number_of_workers, 100);
+  constexpr size_t kNumberOfWorkers = 5;
+  AsyncExecutor async_executor(kNumberOfWorkers, 100);
 
   std::vector<WorkerApiSapiConfig> configs;
-  for (int i = 0; i < number_of_workers; i++) {
+  for (int i = 0; i < kNumberOfWorkers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
@@ -328,11 +333,11 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
 }
 
 TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
-  const size_t number_of_workers = 5;
-  AsyncExecutor async_executor(number_of_workers, 100);
+  constexpr size_t kNumberOfWorkers = 5;
+  AsyncExecutor async_executor(kNumberOfWorkers, 100);
 
   std::vector<WorkerApiSapiConfig> configs;
-  for (int i = 0; i < number_of_workers; i++) {
+  for (int i = 0; i < kNumberOfWorkers; i++) {
     configs.push_back(CreateWorkerApiSapiConfig());
   }
 
@@ -362,12 +367,12 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
 
   // More than the number of workers to make sure the requests can indeed run in
   // all workers.
-  int requests_sent = number_of_workers * 3;
+  constexpr int kRequestSent = kNumberOfWorkers * 3;
 
   std::vector<InvocationRequestStrInput> batch;
   absl::flat_hash_set<std::string> request_ids;
 
-  for (int i = 0; i < requests_sent; i++) {
+  for (int i = 0; i < kRequestSent; i++) {
     auto execute_request = InvocationRequestStrInput();
     execute_request.id = absl::StrCat("some_id", i);
     execute_request.version_num = 1;
@@ -407,8 +412,8 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
 
 TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   // One worker with a one-item queue so that the queue takes long to empty out
-  const size_t number_of_workers = 1;
-  AsyncExecutor async_executor(number_of_workers /*thread_count*/,
+  constexpr size_t kNumberOfWorkers = 1;
+  AsyncExecutor async_executor(kNumberOfWorkers /*thread_count*/,
                                1 /*queue_cap*/);
 
   std::vector<WorkerApiSapiConfig> configs = {CreateWorkerApiSapiConfig()};

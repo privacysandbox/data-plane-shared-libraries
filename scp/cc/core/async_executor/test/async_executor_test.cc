@@ -24,6 +24,8 @@
 #include <thread>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/synchronization/blocking_counter.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor_with_internals.h"
 #include "core/async_executor/src/error_codes.h"
@@ -31,7 +33,6 @@
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
 #include "core/test/test_config.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
@@ -89,10 +90,10 @@ TEST(AsyncExecutorTests, CannotStopTwice) {
 TEST(AsyncExecutorTests, CannotScheduleWorkBeforeInit) {
   AsyncExecutor executor(1, 10);
   EXPECT_THAT(
-      executor.Schedule([]() {}, AsyncPriority::Normal),
+      executor.Schedule([] {}, AsyncPriority::Normal),
       ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
   EXPECT_THAT(
-      executor.ScheduleFor([]() {}, 10000),
+      executor.ScheduleFor([] {}, 10000),
       ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
 }
 
@@ -100,10 +101,10 @@ TEST(AsyncExecutorTests, CannotScheduleWorkBeforeRun) {
   AsyncExecutor executor(1, 10);
   EXPECT_SUCCESS(executor.Init());
   EXPECT_THAT(
-      executor.Schedule([]() {}, AsyncPriority::Normal),
+      executor.Schedule([] {}, AsyncPriority::Normal),
       ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
   EXPECT_THAT(
-      executor.ScheduleFor([]() {}, 1000),
+      executor.ScheduleFor([] {}, 1000),
       ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
 }
 
@@ -122,21 +123,21 @@ TEST(AsyncExecutorTests, CannotStopBeforeRun) {
 }
 
 TEST(AsyncExecutorTests, ExceedingQueueCapSchedule) {
-  int queue_cap = 1;
-  MockAsyncExecutorWithInternals executor(1, queue_cap);
+  constexpr int kQueueCap = 1;
+  MockAsyncExecutorWithInternals executor(1, kQueueCap);
   executor.Init();
   executor.Run();
 
   {
     // Blocking queue with enough work
     executor.Schedule(
-        [&]() { std::this_thread::sleep_for(std::chrono::seconds(5)); },
+        [&] { std::this_thread::sleep_for(std::chrono::seconds(5)); },
         AsyncPriority::Normal);
 
     // try to push more than the queue can handle
     auto start_time = std::chrono::high_resolution_clock::now();
     while (true) {
-      auto result = executor.Schedule([&]() {}, AsyncPriority::Normal);
+      auto result = executor.Schedule([&] {}, AsyncPriority::Normal);
 
       if (result ==
           RetryExecutionResult(errors::SC_ASYNC_EXECUTOR_EXCEEDING_QUEUE_CAP)) {
@@ -158,8 +159,8 @@ TEST(AsyncExecutorTests, ExceedingQueueCapSchedule) {
                            .count();
 
     auto schedule_for_timestamp = task.GetExecutionTimestamp() + two_seconds;
-    executor.ScheduleFor([&]() {}, schedule_for_timestamp);
-    auto result = executor.ScheduleFor([&]() {}, task.GetExecutionTimestamp());
+    executor.ScheduleFor([&] {}, schedule_for_timestamp);
+    auto result = executor.ScheduleFor([&] {}, task.GetExecutionTimestamp());
     EXPECT_THAT(result, ResultIs(RetryExecutionResult(
                             errors::SC_ASYNC_EXECUTOR_EXCEEDING_QUEUE_CAP)));
   }
@@ -168,49 +169,47 @@ TEST(AsyncExecutorTests, ExceedingQueueCapSchedule) {
 }
 
 TEST(AsyncExecutorTests, CountWorkSingleThread) {
-  int queue_cap = 10;
-  AsyncExecutor executor(1, queue_cap);
+  constexpr int kQueueCap = 10;
+  AsyncExecutor executor(1, kQueueCap);
   executor.Init();
   executor.Run();
   {
-    std::atomic<int> count(0);
-    for (int i = 0; i < queue_cap; i++) {
-      executor.Schedule([&]() { count++; }, AsyncPriority::Normal);
+    absl::BlockingCounter count(kQueueCap);
+    for (int i = 0; i < kQueueCap; i++) {
+      executor.Schedule([&] { count.DecrementCount(); }, AsyncPriority::Normal);
     }
     // Waits some time to finish the work.
-    WaitUntil([&]() { return count == queue_cap; });
-    EXPECT_EQ(count, queue_cap);
+    count.Wait();
   }
   {
-    std::atomic<int> count(0);
-    for (int i = 0; i < queue_cap; i++) {
-      executor.ScheduleFor([&]() { count++; }, 123456);
+    absl::BlockingCounter count(kQueueCap);
+    for (int i = 0; i < kQueueCap; i++) {
+      executor.ScheduleFor([&] { count.DecrementCount(); }, 123456);
     }
     // Waits some time to finish the work.
-    WaitUntil([&]() { return count == queue_cap; });
-    EXPECT_EQ(count, queue_cap);
+    count.Wait();
   }
   executor.Stop();
 }
 
 TEST(AsyncExecutorTests, CountWorkSingleThreadWithAffinity) {
-  int queue_cap = 10;
-  AsyncExecutor executor(1, queue_cap);
+  constexpr int kQueueCap = 10;
+  AsyncExecutor executor(1, kQueueCap);
   executor.Init();
   executor.Run();
-  std::atomic<int> count(0);
-  for (int i = 0; i < queue_cap / 2; i++) {
+  absl::BlockingCounter count(kQueueCap);
+  for (int i = 0; i < kQueueCap / 2; i++) {
     executor.Schedule(
-        [&]() {
+        [&] {
           auto thread_id = std::this_thread::get_id();
-          count++;
+          count.DecrementCount();
           // Schedule another increment - test the affinitized path with
           // matching thread IDs.
           executor.Schedule(
-              [&count, thread_id = thread_id]() {
+              [&count, thread_id = thread_id] {
                 // The chosen thread ID should be the same as the calling one.
                 EXPECT_EQ(std::this_thread::get_id(), thread_id);
-                count++;
+                count.DecrementCount();
               },
               AsyncPriority::Normal,
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor);
@@ -219,29 +218,28 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadWithAffinity) {
         AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor);
   }
   // Waits some time to finish the work.
-  WaitUntil([&]() { return count == queue_cap; });
-  EXPECT_EQ(count, queue_cap);
+  count.Wait();
   executor.Stop();
 }
 
 TEST(AsyncExecutorTests, CountWorkSingleThreadScheduleForWithAffinity) {
-  int queue_cap = 10;
-  AsyncExecutor executor(1, queue_cap);
+  constexpr int kQueueCap = 10;
+  AsyncExecutor executor(1, kQueueCap);
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
-  std::atomic<int> count(0);
-  for (int i = 0; i < queue_cap / 2; i++) {
+  absl::BlockingCounter count(kQueueCap);
+  for (int i = 0; i < kQueueCap / 2; i++) {
     executor.ScheduleFor(
-        [&]() {
+        [&] {
           auto thread_id = std::this_thread::get_id();
-          count++;
+          count.DecrementCount();
           // Schedule another incrementation - test the affinitized path with
           // matching thread IDs.
           executor.ScheduleFor(
-              [&count, thread_id = thread_id]() {
+              [&count, thread_id = thread_id] {
                 // The chosen thread ID should be the same as the calling one.
                 EXPECT_EQ(std::this_thread::get_id(), thread_id);
-                count++;
+                count.DecrementCount();
               },
               123456,
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor);
@@ -250,76 +248,71 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadScheduleForWithAffinity) {
         AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor);
   }
   // Waits some time to finish the work.
-  WaitUntil([&]() { return count == queue_cap; });
-  EXPECT_EQ(count, queue_cap);
+  count.Wait();
   executor.Stop();
 }
 
 TEST(AsyncExecutorTests, CountWorkSingleThreadNormalToUrgent) {
-  int queue_cap = 10;
-  AsyncExecutor executor(1, queue_cap);
+  constexpr int kQueueCap = 10;
+  AsyncExecutor executor(1, kQueueCap);
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
-  std::atomic<int> count(0);
-  for (int i = 0; i < queue_cap / 2; i++) {
+  absl::BlockingCounter count(kQueueCap);
+  for (int i = 0; i < kQueueCap / 2; i++) {
     executor.Schedule(
-        [&]() {
-          count++;
+        [&] {
+          count.DecrementCount();
           // Schedule another incrementation - test the affinitized path with
           // matching thread IDs.
           executor.ScheduleFor(
-              [&]() { count++; }, 123456,
+              [&] { count.DecrementCount(); }, 123456,
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor);
         },
         AsyncPriority::Normal,
         AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor);
   }
   // Waits some time to finish the work.
-  WaitUntil([&]() { return count == queue_cap; });
-  EXPECT_EQ(count, queue_cap);
+  count.Wait();
   executor.Stop();
 }
 
 TEST(AsyncExecutorTests, CountWorkSingleThreadUrgentToNormal) {
-  int queue_cap = 10;
-  AsyncExecutor executor(1, queue_cap);
+  constexpr int kQueueCap = 10;
+  AsyncExecutor executor(1, kQueueCap);
   EXPECT_SUCCESS(executor.Init());
   EXPECT_SUCCESS(executor.Run());
-  std::atomic<int> count(0);
-  for (int i = 0; i < queue_cap / 2; i++) {
+  absl::BlockingCounter count(kQueueCap);
+  for (int i = 0; i < kQueueCap / 2; i++) {
     executor.ScheduleFor(
-        [&]() {
-          count++;
+        [&] {
+          count.DecrementCount();
           // Schedule another incrementation - test the affinitized path with
           // matching thread IDs.
           executor.Schedule(
-              [&]() { count++; }, AsyncPriority::Normal,
+              [&] { count.DecrementCount(); }, AsyncPriority::Normal,
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor);
         },
         123456,
         AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor);
   }
   // Waits some time to finish the work.
-  WaitUntil([&]() { return count == queue_cap; });
-  EXPECT_EQ(count, queue_cap);
+  count.Wait();
   executor.Stop();
 }
 
 TEST(AsyncExecutorTests, CountWorkMultipleThread) {
-  int queue_cap = 50;
-  AsyncExecutor executor(10, queue_cap);
+  constexpr int kQueueCap = 50;
+  AsyncExecutor executor(10, kQueueCap);
   executor.Init();
   executor.Run();
 
-  std::atomic<int> count(0);
-  for (int i = 0; i < queue_cap; i++) {
-    executor.Schedule([&]() { count++; }, AsyncPriority::Normal);
+  absl::BlockingCounter count(kQueueCap);
+  for (int i = 0; i < kQueueCap; i++) {
+    executor.Schedule([&] { count.DecrementCount(); }, AsyncPriority::Normal);
   }
   // Waits some time to finish the work.
-  WaitUntil([&]() { return count == queue_cap; });
+  count.Wait();
   executor.Stop();
-
-  EXPECT_EQ(count, queue_cap);
 }
 
 TEST(AsyncExecutorTests, AsyncContextCallback) {
@@ -328,16 +321,15 @@ TEST(AsyncExecutorTests, AsyncContextCallback) {
   executor.Run();
 
   {
-    // Atomic is not used here because we just reserve one thread in the
-    size_t callback_count = 0;
+    absl::Notification callback_count;
     auto request = std::make_shared<std::string>("request");
     auto callback = [&](AsyncContext<std::string, std::string>& context) {
-      callback_count++;
+      callback_count.Notify();
     };
     auto context = AsyncContext<std::string, std::string>(request, callback);
 
     executor.Schedule(
-        [&]() {
+        [&] {
           context.response = std::make_shared<std::string>("response");
           context.result = SuccessExecutionResult();
           context.Finish();
@@ -345,26 +337,24 @@ TEST(AsyncExecutorTests, AsyncContextCallback) {
         AsyncPriority::Normal);
 
     // Waits some time to finish the work.
-    WaitUntil([&]() { return callback_count == 1; });
+    callback_count.WaitForNotification();
 
     // Verifies the work is executed.
     EXPECT_EQ(*(context.response), "response");
     EXPECT_SUCCESS(context.result);
-    // Verifies the callback is executed.
-    EXPECT_EQ(callback_count, 1);
   }
 
   {
     // Atomic is not used here because we just reserve one thread in the
-    size_t callback_count = 0;
+    absl::Notification callback_count;
     auto request = std::make_shared<std::string>("request");
     auto callback = [&](AsyncContext<std::string, std::string>& context) {
-      callback_count++;
+      callback_count.Notify();
     };
     auto context = AsyncContext<std::string, std::string>(request, callback);
 
     executor.ScheduleFor(
-        [&]() {
+        [&] {
           context.response = std::make_shared<std::string>("response");
           context.result = SuccessExecutionResult();
           context.Finish();
@@ -372,39 +362,44 @@ TEST(AsyncExecutorTests, AsyncContextCallback) {
         12345);
 
     // Waits some time to finish the work.
-    WaitUntil([&]() { return callback_count == 1; });
+    callback_count.WaitForNotification();
 
     // Verifies the work is executed.
     EXPECT_EQ(*(context.response), "response");
     EXPECT_SUCCESS(context.result);
-    // Verifies the callback is executed.
-    EXPECT_EQ(callback_count, 1);
   }
 
   executor.Stop();
 }
 
 TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
-  int queue_cap = 5;
-  AsyncExecutor executor(2, queue_cap);
+  constexpr int kQueueCap = 5;
+  AsyncExecutor executor(2, kQueueCap);
   executor.Init();
   executor.Run();
 
-  std::atomic<int> normal_count(0);
-  for (int i = 0; i < queue_cap; i++) {
+  absl::Mutex count_mu;
+  int normal_count = 0;
+  for (int i = 0; i < kQueueCap; i++) {
     executor.Schedule(
-        [&]() {
-          normal_count++;
+        [&] {
+          {
+            absl::MutexLock l(&count_mu);
+            normal_count++;
+          }
           std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
         },
         AsyncPriority::Normal);
   }
 
-  std::atomic<int> urgent_count(0);
-  for (int i = 0; i < queue_cap; i++) {
+  int urgent_count = 0;
+  for (int i = 0; i < kQueueCap; i++) {
     executor.Schedule(
-        [&]() {
-          urgent_count++;
+        [&] {
+          {
+            absl::MutexLock l(&count_mu);
+            urgent_count++;
+          }
           std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
         },
         AsyncPriority::Urgent);
@@ -412,11 +407,17 @@ TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
   executor.Stop();
 
   // Waits some time to finish the work.
-  WaitUntil(
-      [&]() { return urgent_count == queue_cap && normal_count == queue_cap; });
+  {
+    absl::MutexLock l(&count_mu);
+    auto condition_fn = [&] {
+      count_mu.AssertReaderHeld();
+      return urgent_count == kQueueCap && normal_count == kQueueCap;
+    };
+    count_mu.Await(absl::Condition(&condition_fn));
+  }
 
-  EXPECT_EQ(urgent_count, queue_cap);
-  EXPECT_EQ(normal_count, queue_cap);
+  EXPECT_EQ(urgent_count, kQueueCap);
+  EXPECT_EQ(normal_count, kQueueCap);
 }
 
 class AsyncExecutorAccessor : public AsyncExecutor {
@@ -506,7 +507,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     }
 
     // A different thread picks round robin as well.
-    std::thread thread([&]() {
+    std::thread thread([&] {
       for (int i = 0; i < num_executors; i++) {
         auto task_executor_or = PickTaskExecutor(
             AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
@@ -686,7 +687,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // ensure that picking another executor with affinity chooses this same
     // thread.
     Schedule(
-        [this, &done, &task_executor_pool]() {
+        [this, &done, &task_executor_pool] {
           auto chosen_task_executor_or = PickTaskExecutor(
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
               task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
@@ -715,7 +716,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // ensure that picking another executor with affinity chooses this same
     // thread.
     Schedule(
-        [this, &done, &task_executor_pool]() {
+        [this, &done, &task_executor_pool] {
           auto chosen_task_executor_or = PickTaskExecutor(
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
               task_executor_pool, TaskExecutorPoolType::UrgentPool,
@@ -744,7 +745,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // ensure that picking another executor with affinity chooses this same
     // thread.
     ScheduleFor(
-        [this, &done, &task_executor_pool]() {
+        [this, &done, &task_executor_pool] {
           auto chosen_task_executor_or = PickTaskExecutor(
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
               task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
@@ -773,7 +774,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // ensure that picking another executor with affinity chooses this same
     // thread.
     ScheduleFor(
-        [this, &done, &task_executor_pool]() {
+        [this, &done, &task_executor_pool] {
           auto chosen_task_executor_or = PickTaskExecutor(
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
               task_executor_pool, TaskExecutorPoolType::NotUrgentPool,

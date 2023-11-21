@@ -26,8 +26,8 @@
 #include <google/protobuf/util/time_util.h>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/synchronization/notification.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "core/test/utils/proto_test_utils.h"
 #include "core/test/utils/timestamp_test_utils.h"
 #include "core/utils/src/base64.h"
@@ -61,7 +61,6 @@ using google::scp::core::test::EqualsProto;
 using google::scp::core::test::ExpectTimestampEquals;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::mock::MockKmsClientProvider;
 using google::scp::cpio::client_providers::mock::
@@ -377,7 +376,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -386,12 +385,12 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
         EXPECT_THAT(context.response->private_keys(),
                     UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByAgeSuccess) {
@@ -406,7 +405,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByAgeSuccess) {
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -415,12 +414,12 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByAgeSuccess) {
         EXPECT_THAT(context.response->private_keys(),
                     UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, KeyListIsEmpty) {
@@ -436,19 +435,19 @@ TEST_F(PrivateKeyClientProviderTest, KeyListIsEmpty) {
 
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.response->private_keys().size(), 0);
         EXPECT_SUCCESS(context.result);
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, LastEndpointReturnEmptyList) {
@@ -472,19 +471,19 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointReturnEmptyList) {
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
 
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.response->private_keys().size(), 0);
         EXPECT_SUCCESS(context.result);
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
@@ -513,7 +512,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -524,12 +523,12 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
         EXPECT_THAT(context.response->private_keys(),
                     UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
@@ -558,7 +557,7 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -569,12 +568,12 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
         EXPECT_THAT(context.response->private_keys(),
                     UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest,
@@ -605,7 +604,7 @@ TEST_F(PrivateKeyClientProviderTest,
 
   std::string encoded_private_key;
   Base64Encode(kTestPrivateKey, encoded_private_key);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -616,12 +615,12 @@ TEST_F(PrivateKeyClientProviderTest,
         EXPECT_THAT(context.response->private_keys(),
                     UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, FetchingPrivateKeysFailed) {
@@ -653,19 +652,19 @@ TEST_F(PrivateKeyClientProviderTest, FetchingPrivateKeysFailed) {
   request.add_key_ids(kTestKeyIds[0]);
   request.add_key_ids(kTestKeyIdBad);
 
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, KeyDataNotFound) {
@@ -682,18 +681,18 @@ TEST_F(PrivateKeyClientProviderTest, KeyDataNotFound) {
 
   auto expected_result =
       FailureExecutionResult(SC_PRIVATE_KEY_CLIENT_PROVIDER_KEY_DATA_NOT_FOUND);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.result, ResultIs(expected_result));
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest,
@@ -718,18 +717,18 @@ TEST_F(PrivateKeyClientProviderTest,
 
   auto expected_result = FailureExecutionResult(
       SC_PRIVATE_KEY_CLIENT_PROVIDER_UNMATCHED_ENDPOINTS_SPLITS);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.result, ResultIs(expected_result));
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, FailedWithDecryptPrivateKey) {
@@ -744,18 +743,18 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithDecryptPrivateKey) {
   request.add_key_ids(kTestKeyIds[1]);
   request.add_key_ids(kTestKeyIds[2]);
 
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.result, ResultIs(mock_result));
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, FailedWithDecrypt) {
@@ -770,18 +769,18 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithDecrypt) {
   request.add_key_ids(kTestKeyIds[1]);
   request.add_key_ids(kTestKeyIds[2]);
 
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.result, ResultIs(mock_result));
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderTest, FailedWithOneKmsDecryptContext) {
@@ -814,18 +813,18 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithOneKmsDecryptContext) {
   request.add_key_ids(kTestKeyIds[0]);
   request.add_key_ids(kTestKeyIdBad);
 
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         EXPECT_THAT(context.result, ResultIs(mock_result));
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
@@ -960,7 +959,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest, ListSinglePartyKeysSuccess) {
 
   std::string encoded_private_key;
   Base64Encode(kDecryptedSinglePartyKey, encoded_private_key);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -969,12 +968,12 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest, ListSinglePartyKeysSuccess) {
         EXPECT_THAT(context.response->private_keys(),
                     UnorderedPointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider_->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
@@ -1026,7 +1025,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
                          xor_secret.size());
   std::string encoded_multi_party_private_key;
   Base64Encode(key_string, encoded_multi_party_private_key);
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -1046,12 +1045,12 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
         EXPECT_THAT(context.response->private_keys(),
                     Pointwise(EqualsProto(), expected_keys));
         EXPECT_SUCCESS(context.result);
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider_->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientProviderSinglePartyKeyTest, ListSinglePartyKeysFailure) {
@@ -1060,7 +1059,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest, ListSinglePartyKeysFailure) {
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(kTestCreationTime);
 
-  std::atomic<size_t> response_count = 0;
+  absl::Notification response_count;
   AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse> context(
       std::make_shared<ListPrivateKeysRequest>(request),
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -1069,11 +1068,11 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest, ListSinglePartyKeysFailure) {
             context.result,
             ResultIs(FailureExecutionResult(
                 SC_PRIVATE_KEY_CLIENT_PROVIDER_INVALID_KEY_DATA_COUNT)));
-        response_count.fetch_add(1);
+        response_count.Notify();
       });
 
   auto result = private_key_client_provider_->ListPrivateKeys(context);
   EXPECT_SUCCESS(result);
-  WaitUntil([&]() { return response_count.load() == 1; });
+  response_count.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

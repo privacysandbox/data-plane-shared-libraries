@@ -27,10 +27,10 @@
 #include <utility>
 #include <vector>
 
+#include "absl/synchronization/blocking_counter.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "public/cpio/mock/metric_client/mock_metric_client.h"
@@ -55,7 +55,6 @@ using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::errors::SC_CUSTOMIZED_METRIC_NOT_RUNNING;
 using google::scp::core::errors::SC_CUSTOMIZED_METRIC_PUSH_CANNOT_SCHEDULE;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricDefinition;
 using google::scp::cpio::MetricUnit;
 using ::testing::StrEq;
@@ -97,16 +96,16 @@ TEST_F(AggregateMetricTest, Run) {
         async_executor_, mock_metric_client_, CreateMetricDefinition(),
         aggregation_time_duration_in_ms_);
 
-    aggregate_metric.schedule_metric_push_mock = [&]() { return result; };
+    aggregate_metric.schedule_metric_push_mock = [&] { return result; };
     EXPECT_THAT(aggregate_metric.Run(), ResultIs(result));
   }
 }
 
 TEST_F(AggregateMetricTest, ScheduleMetricPush) {
-  std::atomic<int> schedule_for_is_called = 0;
+  absl::BlockingCounter schedule_for_is_called(2);
   mock_async_executor_->schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp, std::function<bool()>&) {
-        schedule_for_is_called++;
+        schedule_for_is_called.DecrementCount();
         return SuccessExecutionResult();
       };
 
@@ -119,7 +118,7 @@ TEST_F(AggregateMetricTest, ScheduleMetricPush) {
 
   EXPECT_SUCCESS(aggregate_metric.Run());
   EXPECT_SUCCESS(aggregate_metric.ScheduleMetricPush());
-  WaitUntil([&]() { return schedule_for_is_called.load() == 2; });
+  schedule_for_is_called.Wait();
 }
 
 TEST_F(AggregateMetricTest, RunMetricPush) {
@@ -163,12 +162,12 @@ TEST_F(AggregateMetricTest, RunMetricPushHandler) {
       std::static_pointer_cast<AsyncExecutorInterface>(mock_async_executor);
 
   Metric metric_received;
-  int metric_push_is_called = 0;
+  absl::BlockingCounter metric_push_is_called(3);
 
   EXPECT_CALL(*mock_metric_client, PutMetrics)
       .Times(3)
       .WillRepeatedly([&](auto context) {
-        metric_push_is_called += 1;
+        metric_push_is_called.DecrementCount();
         metric_received.CopyFrom(context.request->metrics()[0]);
         context.result = FailureExecutionResult(123);
         context.Finish();
@@ -194,7 +193,7 @@ TEST_F(AggregateMetricTest, RunMetricPushHandler) {
   EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
   EXPECT_EQ(metric_received.labels().size(), 0);
   EXPECT_THAT(metric_received.value(), StrEq(std::to_string(counter_value)));
-  WaitUntil([&]() { return metric_push_is_called == 3; });
+  metric_push_is_called.Wait();
 }
 
 TEST_F(AggregateMetricTest, Increment) {
@@ -236,7 +235,7 @@ TEST_F(AggregateMetricTest, IncrementByMultipleThreads) {
   std::vector<std::thread> threads;
 
   for (auto i = 0; i < num_threads; ++i) {
-    threads.push_back(std::thread([&]() {
+    threads.push_back(std::thread([&] {
       for (auto j = 0; j < num_calls; j++) {
         for (const auto& code : kEventList) {
           EXPECT_SUCCESS(aggregate_metric.IncrementBy(value, code));

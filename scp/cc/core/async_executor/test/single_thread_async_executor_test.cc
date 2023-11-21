@@ -21,6 +21,8 @@
 #include <string>
 #include <thread>
 
+#include "absl/synchronization/blocking_counter.h"
+#include "absl/synchronization/mutex.h"
 #include "core/async_executor/mock/mock_async_executor_with_internals.h"
 #include "core/async_executor/src/error_codes.h"
 #include "core/async_executor/src/typedef.h"
@@ -28,7 +30,6 @@
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
 #include "core/test/test_config.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
@@ -72,7 +73,7 @@ TEST(SingleThreadAsyncExecutorTests, CannotStopTwice) {
 TEST(SingleThreadAsyncExecutorTests, CannotScheduleWorkBeforeInit) {
   SingleThreadAsyncExecutor executor(10);
   EXPECT_THAT(
-      executor.Schedule([]() {}, AsyncPriority::Normal),
+      executor.Schedule([] {}, AsyncPriority::Normal),
       ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
 }
 
@@ -80,7 +81,7 @@ TEST(SingleThreadAsyncExecutorTests, CannotScheduleWorkBeforeRun) {
   SingleThreadAsyncExecutor executor(10);
   EXPECT_SUCCESS(executor.Init());
   EXPECT_THAT(
-      executor.Schedule([]() {}, AsyncPriority::Normal),
+      executor.Schedule([] {}, AsyncPriority::Normal),
       ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
 }
 
@@ -99,21 +100,21 @@ TEST(SingleThreadAsyncExecutorTests, CannotStopBeforeRun) {
 }
 
 TEST(SingleThreadAsyncExecutorTests, ExceedingQueueCapSchedule) {
-  int queue_cap = 1;
-  SingleThreadAsyncExecutor executor(queue_cap);
+  constexpr int kQueueCap = 1;
+  SingleThreadAsyncExecutor executor(kQueueCap);
   executor.Init();
   executor.Run();
 
   {
     // Blocking queue with enough work
     executor.Schedule(
-        [&]() { std::this_thread::sleep_for(std::chrono::seconds(5)); },
+        [&] { std::this_thread::sleep_for(std::chrono::seconds(5)); },
         AsyncPriority::Normal);
 
     // try to push more than the queue can handle
     auto start_time = std::chrono::high_resolution_clock::now();
     while (true) {
-      auto result = executor.Schedule([&]() {}, AsyncPriority::Normal);
+      auto result = executor.Schedule([&] {}, AsyncPriority::Normal);
 
       if (result ==
           RetryExecutionResult(errors::SC_ASYNC_EXECUTOR_EXCEEDING_QUEUE_CAP)) {
@@ -132,19 +133,18 @@ TEST(SingleThreadAsyncExecutorTests, ExceedingQueueCapSchedule) {
 }
 
 TEST(SingleThreadAsyncExecutorTests, CountWorkSingleThread) {
-  int queue_cap = 10;
-  SingleThreadAsyncExecutor executor(queue_cap);
+  constexpr int kQueueCap = 10;
+  SingleThreadAsyncExecutor executor(kQueueCap);
   executor.Init();
   executor.Run();
   {
-    std::atomic<int> count(0);
-    for (int i = 0; i < queue_cap / 2; i++) {
-      executor.Schedule([&]() { count++; }, AsyncPriority::Normal);
-      executor.Schedule([&]() { count++; }, AsyncPriority::High);
+    absl::BlockingCounter count(kQueueCap);
+    for (int i = 0; i < kQueueCap / 2; i++) {
+      executor.Schedule([&] { count.DecrementCount(); }, AsyncPriority::Normal);
+      executor.Schedule([&] { count.DecrementCount(); }, AsyncPriority::High);
     }
     // Waits some time to finish the work.
-    WaitUntil([&]() { return count == queue_cap; });
-    EXPECT_EQ(count, queue_cap);
+    count.Wait();
   }
   executor.Stop();
 }
@@ -155,29 +155,28 @@ class AffinityTest : public testing::TestWithParam<size_t> {
 };
 
 TEST_P(AffinityTest, CountWorkSingleThreadWithAffinity) {
-  int queue_cap = 10;
-  SingleThreadAsyncExecutor executor(queue_cap, GetCpu());
+  constexpr int kQueueCap = 10;
+  SingleThreadAsyncExecutor executor(kQueueCap, GetCpu());
   executor.Init();
   executor.Run();
   {
-    std::atomic<int> count(0);
-    for (int i = 0; i < queue_cap / 2; i++) {
+    absl::BlockingCounter count(kQueueCap);
+    for (int i = 0; i < kQueueCap / 2; i++) {
       executor.Schedule(
-          [&]() {
+          [&] {
             cpu_set_t cpuset;
             CPU_ZERO(&cpuset);
             pthread_getaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
             if (GetCpu() < std::thread::hardware_concurrency()) {
               EXPECT_NE(CPU_ISSET(GetCpu(), &cpuset), 0);
             }
-            count++;
+            count.DecrementCount();
           },
           AsyncPriority::Normal);
-      executor.Schedule([&]() { count++; }, AsyncPriority::High);
+      executor.Schedule([&] { count.DecrementCount(); }, AsyncPriority::High);
     }
     // Waits some time to finish the work.
-    WaitUntil([&]() { return count == queue_cap; });
-    EXPECT_EQ(count, queue_cap);
+    count.Wait();
   }
   executor.Stop();
 }
@@ -188,33 +187,31 @@ INSTANTIATE_TEST_SUITE_P(SingleThreadAsyncExecutorTests, AffinityTest,
                                 std::thread::hardware_concurrency()));
 
 TEST(SingleThreadAsyncExecutorTests, CannotScheduleHiPri) {
-  int queue_cap = 50;
-  SingleThreadAsyncExecutor executor(queue_cap);
+  constexpr int kQueueCap = 50;
+  SingleThreadAsyncExecutor executor(kQueueCap);
   executor.Init();
   executor.Run();
 
-  EXPECT_THAT(executor.Schedule([&]() {}, AsyncPriority::Urgent),
+  EXPECT_THAT(executor.Schedule([&] {}, AsyncPriority::Urgent),
               ResultIs(FailureExecutionResult(
                   errors::SC_ASYNC_EXECUTOR_INVALID_PRIORITY_TYPE)));
   executor.Stop();
 }
 
 TEST(SingleThreadAsyncExecutorTests, CountWorkMultipleThread) {
-  int queue_cap = 50;
-  SingleThreadAsyncExecutor executor(queue_cap);
+  constexpr int kQueueCap = 50;
+  SingleThreadAsyncExecutor executor(kQueueCap);
   executor.Init();
   executor.Run();
 
-  std::atomic<int> count(0);
-  for (int i = 0; i < queue_cap / 2; i++) {
-    executor.Schedule([&]() { count++; }, AsyncPriority::Normal);
-    executor.Schedule([&]() { count++; }, AsyncPriority::High);
+  absl::BlockingCounter count(kQueueCap);
+  for (int i = 0; i < kQueueCap / 2; i++) {
+    executor.Schedule([&] { count.DecrementCount(); }, AsyncPriority::Normal);
+    executor.Schedule([&] { count.DecrementCount(); }, AsyncPriority::High);
   }
   // Waits some time to finish the work.
-  WaitUntil([&]() { return count == queue_cap; });
+  count.Wait();
   executor.Stop();
-
-  EXPECT_EQ(count, queue_cap);
 }
 
 TEST(SingleThreadAsyncExecutorTests, AsyncContextCallback) {
@@ -223,73 +220,94 @@ TEST(SingleThreadAsyncExecutorTests, AsyncContextCallback) {
   executor.Run();
 
   {
-    // Atomic is not used here because we just reserve one thread in the
+    absl::Mutex callback_count_mu;
     size_t callback_count = 0;
     auto request = std::make_shared<std::string>("request");
     auto callback = [&](AsyncContext<std::string, std::string>& context) {
+      absl::MutexLock l(&callback_count_mu);
       callback_count++;
     };
     auto context = AsyncContext<std::string, std::string>(request, callback);
 
     executor.Schedule(
-        [&]() {
+        [&] {
           context.response = std::make_shared<std::string>("response");
           context.result = SuccessExecutionResult();
           context.Finish();
         },
         AsyncPriority::Normal);
-
-    // Waits some time to finish the work.
-    WaitUntil([&]() { return callback_count == 1; });
+    {
+      absl::MutexLock l(&callback_count_mu);
+      auto condition_fn = [&] {
+        callback_count_mu.AssertReaderHeld();
+        return callback_count == 1;
+      };
+      callback_count_mu.Await(absl::Condition(&condition_fn));
+    }
 
     executor.Schedule(
-        [&]() {
+        [&] {
           context.response = std::make_shared<std::string>("response");
           context.result = SuccessExecutionResult();
           context.Finish();
         },
         AsyncPriority::High);
-    WaitUntil([&]() { return callback_count == 2; });
+    {
+      absl::MutexLock l(&callback_count_mu);
+      auto condition_fn = [&] {
+        callback_count_mu.AssertReaderHeld();
+        return callback_count == 2;
+      };
+      callback_count_mu.Await(absl::Condition(&condition_fn));
+    }
 
     // Verifies the work is executed.
     EXPECT_EQ(*(context.response), "response");
     EXPECT_SUCCESS(context.result);
-    // Verifies the callback is executed.
-    EXPECT_EQ(callback_count, 2);
   }
 
   executor.Stop();
 }
 
 TEST(SingleThreadAsyncExecutorTests, FinishWorkWhenStopInMiddle) {
-  int queue_cap = 6;
-  SingleThreadAsyncExecutor executor(queue_cap);
+  constexpr int kQueueCap = 6;
+  SingleThreadAsyncExecutor executor(kQueueCap);
   executor.Init();
   executor.Run();
 
-  std::atomic<int> normal_count(0);
-  std::atomic<int> medium_count(0);
-  for (int i = 0; i < queue_cap / 2; i++) {
+  absl::Mutex count_mu;
+  int normal_count = 0;
+  int medium_count = 0;
+  for (int i = 0; i < kQueueCap / 2; i++) {
     executor.Schedule(
-        [&]() {
-          normal_count++;
+        [&] {
+          {
+            absl::MutexLock l(&count_mu);
+            normal_count++;
+          }
           std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
         },
         AsyncPriority::Normal);
 
     executor.Schedule(
-        [&]() {
-          medium_count++;
+        [&] {
+          {
+            absl::MutexLock l(&count_mu);
+            medium_count++;
+          }
           std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
         },
         AsyncPriority::High);
   }
 
   executor.Stop();
-
-  // Waits some time to finish the work.
-  WaitUntil([&]() { return medium_count + normal_count == queue_cap; });
-
-  EXPECT_EQ(medium_count + normal_count, queue_cap);
+  {
+    absl::MutexLock l(&count_mu);
+    auto condition_fn = [&] {
+      count_mu.AssertReaderHeld();
+      return medium_count + normal_count == kQueueCap;
+    };
+    count_mu.Await(absl::Condition(&condition_fn));
+  }
 }
 }  // namespace google::scp::core::test

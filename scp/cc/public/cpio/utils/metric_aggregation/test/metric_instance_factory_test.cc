@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/config_provider/mock/mock_config_provider.h"
@@ -32,7 +33,6 @@
 #include "core/message_router/src/error_codes.h"
 #include "core/message_router/src/message_router.h"
 #include "core/test/utils/auto_init_run_stop.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "public/cpio/mock/metric_client/mock_metric_client.h"
@@ -50,7 +50,6 @@ using google::scp::core::kDefaultAggregatedMetricIntervalMs;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::config_provider::mock::MockConfigProvider;
 using google::scp::core::test::AutoInitRunStop;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::MetricUnit;
 using google::scp::cpio::MockMetricClient;
 using ::testing::Contains;
@@ -208,7 +207,7 @@ TEST_F(MetricInstanceFactoryTest,
   AutoInitRunStop to_handle_aggregate_metric(*aggregate_metric);
 
   {
-    std::atomic<int> schedule_is_called = 0;
+    absl::BlockingCounter schedule_is_called(3);
     EXPECT_CALL(*mock_metric_client_, PutMetrics)
         .WillRepeatedly([&](auto context) {
           EXPECT_THAT(context.request->metrics(0).name(), StrEq(kMetricName));
@@ -216,7 +215,7 @@ TEST_F(MetricInstanceFactoryTest,
               context.request->metrics(0).unit(),
               cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_COUNT);
           EXPECT_THAT(context.request->metrics(0).value(), StrEq(kOneIncrease));
-          schedule_is_called++;
+          schedule_is_called.DecrementCount();
           context.result = SuccessExecutionResult();
           context.Finish();
           return context.result;
@@ -226,11 +225,11 @@ TEST_F(MetricInstanceFactoryTest,
       aggregate_metric->Increment(event_code);
     }
 
-    WaitUntil([&]() { return schedule_is_called == 3; });
+    schedule_is_called.Wait();
   }
 
   {
-    std::atomic<int> schedule_is_called = 0;
+    absl::BlockingCounter schedule_is_called(3);
     EXPECT_CALL(*mock_metric_client_, PutMetrics)
         .WillRepeatedly([&](auto context) {
           EXPECT_THAT(context.request->metrics(0).name(), StrEq(kMetricName));
@@ -240,7 +239,7 @@ TEST_F(MetricInstanceFactoryTest,
           EXPECT_THAT(context.request->metrics(0).value(), StrEq(kMetricValue));
           EXPECT_THAT(context.request->metrics(0).labels(),
                       Contains(Key(kEventCodeKey)));
-          schedule_is_called++;
+          schedule_is_called.DecrementCount();
           context.result = SuccessExecutionResult();
           context.Finish();
           return context.result;
@@ -250,7 +249,7 @@ TEST_F(MetricInstanceFactoryTest,
       aggregate_metric->IncrementBy(std::stoi(kMetricValue), event_code);
     }
 
-    WaitUntil([&]() { return schedule_is_called == 3; });
+    schedule_is_called.Wait();
   }
 }
 

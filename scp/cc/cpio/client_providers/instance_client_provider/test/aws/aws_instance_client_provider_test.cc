@@ -27,10 +27,10 @@
 #include <aws/ec2/model/DescribeTagsRequest.h>
 
 #include "absl/strings/str_format.h"
+#include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/curl_client/mock/mock_curl_client.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "cpio/client_providers/instance_client_provider/mock/aws/mock_ec2_client.h"
 #include "cpio/client_providers/instance_client_provider/src/aws/error_codes.h"
@@ -87,7 +87,6 @@ using google::scp::core::errors::SC_AWS_INTERNAL_SERVICE_ERROR;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::GetSessionTokenRequest;
 using google::scp::cpio::client_providers::GetSessionTokenResponse;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
@@ -775,7 +774,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
   EXPECT_CALL(*ec2_factory_, CreateClient(RegionMatched(kRegionUsWest1), _))
       .WillOnce(Return(ec2_client_));
 
-  std::atomic<int> condition{0};
+  absl::BlockingCounter condition(4);
   auto request_empty_region = std::make_shared<GetTagsByResourceNameRequest>();
   request_empty_region->set_resource_name(kAwsInstanceResourceNameMock);
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
@@ -784,7 +783,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
           [&](AsyncContext<GetTagsByResourceNameRequest,
                            GetTagsByResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
-            condition++;
+            condition.DecrementCount();
           });
 
   auto request_us_west = std::make_shared<GetTagsByResourceNameRequest>();
@@ -795,7 +794,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
           [&](AsyncContext<GetTagsByResourceNameRequest,
                            GetTagsByResourceNameResponse>& context) {
             EXPECT_SUCCESS(context.result);
-            condition++;
+            condition.DecrementCount();
           });
 
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context_empty_region),
@@ -806,7 +805,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
               IsSuccessful());
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context_us_west),
               IsSuccessful());
-  WaitUntil([&]() { return condition.load() == 4; });
+  condition.Wait();
 }
 
 }  // namespace google::scp::cpio::client_providers::test

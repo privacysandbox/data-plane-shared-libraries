@@ -21,9 +21,10 @@
 #include <memory>
 #include <string>
 
+#include "absl/synchronization/blocking_counter.h"
+#include "absl/synchronization/notification.h"
 #include "core/http2_client/mock/mock_http_client.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
@@ -49,7 +50,6 @@ using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS;
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using ::testing::StrEq;
 
 static constexpr char kPublicKeyHeaderDate[] = "date";
@@ -134,11 +134,11 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
 };
 
 TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
-  std::atomic<int> perform_calls(0);
+  absl::BlockingCounter perform_calls(2);
   auto success_response = GetValidHttpResponse();
   http_client_->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
-        perform_calls++;
+        perform_calls.DecrementCount();
         http_context.response =
             std::make_shared<HttpResponse>(success_response);
         http_context.result = SuccessExecutionResult();
@@ -148,7 +148,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
 
   auto request = std::make_shared<ListPublicKeysRequest>();
 
-  std::atomic<int> success_callback(0);
+  absl::Notification success_callback;
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
@@ -161,26 +161,26 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
                     StrEq("hijklmn"));
         EXPECT_EQ(context.response->expiration_time().seconds(),
                   kExpectedExpiredTimeInSeconds);
-        success_callback++;
+        success_callback.Notify();
       });
 
   EXPECT_SUCCESS(public_key_client_->ListPublicKeys(context));
   // ListPublicKeys context callback will only run once even all uri get
   // success.
-  WaitUntil([&]() { return success_callback.load() == 1; });
+  success_callback.WaitForNotification();
   // Http client PerformRequest() has being called twice. All uris in
   // public_key_client_options will being called.
-  WaitUntil([&]() { return perform_calls.load() == 2; });
+  perform_calls.Wait();
 }
 
 TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
   ExecutionResult failed_result = FailureExecutionResult(SC_UNKNOWN);
 
-  std::atomic<int> perform_calls(0);
+  absl::BlockingCounter perform_calls(2);
   auto success_response = GetValidHttpResponse();
   http_client_->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
-        perform_calls++;
+        perform_calls.DecrementCount();
 
         http_context.result = failed_result;
         http_context.Finish();
@@ -189,29 +189,29 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
 
   auto request = std::make_shared<ListPublicKeysRequest>();
 
-  std::atomic<int> failure_callback(0);
+  absl::Notification failure_callback;
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
         EXPECT_THAT(context.result,
                     ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-        failure_callback++;
+        failure_callback.Notify();
       });
 
   EXPECT_SUCCESS(public_key_client_->ListPublicKeys(context));
 
   // ListPublicKeys context callback will only run once even all uri get
   // fail.
-  WaitUntil([&]() { return failure_callback.load() == 1; });
-  WaitUntil([&]() { return perform_calls.load() == 2; });
+  failure_callback.WaitForNotification();
+  perform_calls.Wait();
 }
 
 TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
-  std::atomic<int> perform_calls(0);
+  absl::BlockingCounter perform_calls(2);
   auto success_response = GetValidHttpResponse();
   http_client_->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
-        perform_calls++;
+        perform_calls.DecrementCount();
         return FailureExecutionResult(SC_UNKNOWN);
       };
 
@@ -220,12 +220,12 @@ TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
   auto cpio_failure = FailureExecutionResult(
       SC_PUBLIC_KEY_CLIENT_PROVIDER_ALL_URIS_REQUEST_PERFORM_FAILED);
 
-  std::atomic<int> failure_callback(0);
+  absl::Notification failure_callback;
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
         EXPECT_THAT(context.result, ResultIs(cpio_failure));
-        failure_callback++;
+        failure_callback.Notify();
       });
 
   EXPECT_THAT(public_key_client_->ListPublicKeys(context),
@@ -233,17 +233,17 @@ TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
 
   // ListPublicKeys context callback will only run once even all uri get
   // fail.
-  WaitUntil([&]() { return failure_callback.load() == 1; });
-  WaitUntil([&]() { return perform_calls.load() == 2; });
+  failure_callback.WaitForNotification();
+  perform_calls.Wait();
 }
 
 TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
   ExecutionResult failed_result = FailureExecutionResult(SC_UNKNOWN);
-  std::atomic<int> perform_calls(0);
+  absl::BlockingCounter perform_calls(2);
   auto success_response = GetValidHttpResponse();
   http_client_->perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
-        perform_calls++;
+        perform_calls.DecrementCount();
         if (*http_context.request->path == kPrivateKeyBaseUri2) {
           http_context.response =
               std::make_shared<HttpResponse>(success_response);
@@ -259,18 +259,18 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
       };
 
   auto request = std::make_shared<ListPublicKeysRequest>();
-  std::atomic<int> success_callback(0);
+  absl::Notification success_callback;
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
         EXPECT_SUCCESS(context.result);
-        success_callback++;
+        success_callback.Notify();
       });
 
   EXPECT_SUCCESS(public_key_client_->ListPublicKeys(context));
   // ListPublicKeys success with partial uris got success response.
-  WaitUntil([&]() { return success_callback.load() == 1; });
-  WaitUntil([&]() { return perform_calls.load() == 2; });
+  success_callback.WaitForNotification();
+  perform_calls.Wait();
 }
 
 }  // namespace google::scp::cpio::client_providers::test

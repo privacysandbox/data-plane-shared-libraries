@@ -26,9 +26,10 @@
 #include <aws/monitoring/model/PutMetricDataRequest.h>
 #include <google/protobuf/util/time_util.h>
 
+#include "absl/synchronization/blocking_counter.h"
+#include "absl/synchronization/mutex.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/metric_client_provider/mock/aws/mock_aws_metric_client_provider_with_overrides.h"
 #include "cpio/client_providers/metric_client_provider/mock/aws/mock_cloud_watch_client.h"
 #include "cpio/client_providers/metric_client_provider/src/aws/aws_metric_client_utils.h"
@@ -59,7 +60,6 @@ using google::scp::core::errors::SC_AWS_INTERNAL_SERVICE_ERROR;
 using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_SHOULD_ENABLE_BATCH_RECORDING;
 using google::scp::core::test::ResultIs;
-using google::scp::core::test::WaitUntil;
 using google::scp::cpio::client_providers::AwsMetricClientUtils;
 using google::scp::cpio::client_providers::mock::
     MockAwsMetricClientProviderOverrides;
@@ -149,14 +149,14 @@ TEST_F(AwsMetricClientProviderTest, SplitsOversizeRequestsVector) {
   client->GetCloudWatchClient()->put_metric_data_outcome_mock =
       PutMetricDataOutcome(result);
 
-  size_t put_metric_data_request_count = 0;
+  absl::BlockingCounter put_metric_data_request_count(10);
   client->GetCloudWatchClient()->put_metric_data_async_mock =
       [&](const Aws::CloudWatch::Model::PutMetricDataRequest& request,
           const Aws::CloudWatch::PutMetricDataResponseReceivedHandler& handler,
           const std::shared_ptr<const Aws::Client::AsyncCallerContext>&
               context) {
         EXPECT_THAT(request.GetNamespace(), StrEq(kNamespace));
-        put_metric_data_request_count += 1;
+        put_metric_data_request_count.DecrementCount();
         return;
       };
 
@@ -173,7 +173,7 @@ TEST_F(AwsMetricClientProviderTest, SplitsOversizeRequestsVector) {
   }
 
   EXPECT_SUCCESS(client->MetricsBatchPush(requests_vector));
-  WaitUntil([&]() { return put_metric_data_request_count == 10; });
+  put_metric_data_request_count.Wait();
 
   // Cannot stop the client because the AWS callback is mocked.
 }
@@ -190,17 +190,18 @@ TEST_F(AwsMetricClientProviderTest, KeepMetricsInTheSameRequest) {
   client->GetCloudWatchClient()->put_metric_data_outcome_mock =
       PutMetricDataOutcome(result);
 
-  std::atomic<int> put_metric_data_request_count = 0;
-  std::atomic<int> number_datums_received = 0;
+  absl::BlockingCounter put_metric_data_request_count(3);
+  absl::Mutex number_datums_received_mu;
+  int number_datums_received = 0;
   client->GetCloudWatchClient()->put_metric_data_async_mock =
       [&](const Aws::CloudWatch::Model::PutMetricDataRequest& request,
           const Aws::CloudWatch::PutMetricDataResponseReceivedHandler& handler,
           const std::shared_ptr<const Aws::Client::AsyncCallerContext>&
               context) {
         EXPECT_THAT(request.GetNamespace(), StrEq(kNamespace));
-        put_metric_data_request_count += 1;
-        number_datums_received.fetch_add((request.GetMetricData().size()));
-        return;
+        put_metric_data_request_count.DecrementCount();
+        absl::MutexLock l(&number_datums_received_mu);
+        number_datums_received += request.GetMetricData().size();
       };
 
   auto requests_vector = std::make_shared<
@@ -215,8 +216,15 @@ TEST_F(AwsMetricClientProviderTest, KeepMetricsInTheSameRequest) {
     requests_vector->push_back(context);
   }
   EXPECT_SUCCESS(client->MetricsBatchPush(requests_vector));
-  WaitUntil([&]() { return put_metric_data_request_count.load() == 3; });
-  WaitUntil([&]() { return number_datums_received.load() == 2000; });
+  put_metric_data_request_count.Wait();
+  {
+    absl::MutexLock l(&number_datums_received_mu);
+    auto condition_fn = [&] {
+      number_datums_received_mu.AssertReaderHeld();
+      return number_datums_received == 2000;
+    };
+    number_datums_received_mu.Await(absl::Condition(&condition_fn));
+  }
 
   // Cannot stop the client because the AWS callback is mocked.
 }
@@ -235,11 +243,11 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithError) {
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
-  std::atomic<int64_t> context_finish_count = 0;
+  absl::BlockingCounter context_finish_count(3);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
-        context_finish_count += 1;
+        context_finish_count.DecrementCount();
         EXPECT_THAT(
             context.result,
             ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
@@ -250,7 +258,7 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithError) {
   requests_vector->push_back(context);
   requests_vector->push_back(context);
   EXPECT_SUCCESS(client->MetricsBatchPush(requests_vector));
-  WaitUntil([&]() { return context_finish_count == 3; });
+  context_finish_count.Wait();
 
   // Cannot stop the client because the AWS callback is mocked.
 }
@@ -269,11 +277,11 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithSuccess) {
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
-  std::atomic<int64_t> context_finish_count = 0;
+  absl::BlockingCounter context_finish_count(3);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::make_shared<PutMetricsRequest>(record_metric_request),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
-        context_finish_count += 1;
+        context_finish_count.DecrementCount();
         EXPECT_SUCCESS(context.result);
       });
   auto requests_vector = std::make_shared<
@@ -282,7 +290,7 @@ TEST_F(AwsMetricClientProviderTest, OnPutMetricDataAsyncCallbackWithSuccess) {
   requests_vector->push_back(context);
   requests_vector->push_back(context);
   EXPECT_SUCCESS(client->MetricsBatchPush(requests_vector));
-  WaitUntil([&]() { return context_finish_count == 3; });
+  context_finish_count.Wait();
 
   // Cannot stop the client because the AWS callback is mocked.
 }
@@ -333,14 +341,12 @@ TEST_F(AwsMetricClientProviderTest, OneMetricWithoutBatchRecordingSucceed) {
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request, kValue, 100);
 
-  std::atomic<bool> finished = false;
-  AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      std::make_shared<PutMetricsRequest>(record_metric_request),
-      [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
-        EXPECT_SUCCESS(context.result);
-        finished = true;
-      });
-  requests_vector->push_back(context);
+  requests_vector->push_back(
+      AsyncContext<PutMetricsRequest, PutMetricsResponse>(
+          std::make_shared<PutMetricsRequest>(record_metric_request),
+          [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
+            EXPECT_SUCCESS(context.result);
+          }));
 
   EXPECT_SUCCESS(client->MetricsBatchPush(requests_vector));
   EXPECT_SUCCESS(client->Stop());
