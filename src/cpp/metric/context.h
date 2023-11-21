@@ -64,7 +64,8 @@ thread-safe metric_router implementing following 2 templated methods:
                          T value,
                          absl::string_view partition);
 */
-template <const absl::Span<const DefinitionName* const>& L, typename U>
+template <const absl::Span<const DefinitionName* const>& L, typename U,
+          bool safe_metric_only = false>
 class Context {
  public:
   // Constructed here only, `is_debug`=true will log everything as safe.
@@ -232,9 +233,11 @@ class Context {
   absl::Status AssertLoggable(const DefinitionName& definition)
       ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
-    if (!logged_metric_.insert(&definition).second) {
-      return absl::AlreadyExistsError(
-          absl::StrCat(definition.name_, " can only log once for a request."));
+    if constexpr (!safe_metric_only) {
+      if (!logged_metric_.insert(&definition).second) {
+        return absl::AlreadyExistsError(absl::StrCat(
+            definition.name_, " can only log once for a request."));
+      }
     }
     return metric_router_->metric_config()
         .GetMetricConfig(definition.name_)
@@ -251,6 +254,9 @@ class Context {
         std::is_same_v<DefinitionType, Definition<T, definition.type_privacy,
                                                   definition.type_instrument>>);
     static_assert(IsInList(definition, L));
+    if constexpr (safe_metric_only) {
+      static_assert(definition.type_privacy == Privacy::kNonImpacting);
+    }
   }
 
   template <const auto& definition, typename T>

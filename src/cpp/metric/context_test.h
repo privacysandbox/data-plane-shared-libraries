@@ -151,6 +151,20 @@ class BaseTest : public ::testing::Test {
   std::unique_ptr<Context<metric_list_span, MockMetricRouter>> context_;
 };
 
+class SafeMetricOnlyTest : public BaseTest {
+ protected:
+  void SetUp() override {
+    InitConfig(telemetry::TelemetryConfig::PROD);
+    safe_only_context_ =
+        Context<metric_list_span, MockMetricRouter,
+                /*safe_metric_only=*/true>::GetContext(&mock_metric_router_);
+  }
+
+  std::unique_ptr<
+      Context<metric_list_span, MockMetricRouter, /*safe_metric_only=*/true>>
+      safe_only_context_;
+};
+
 class ContextTest : public BaseTest {
  protected:
   void LogUnSafeForApproximate() {

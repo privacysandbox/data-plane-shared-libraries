@@ -262,4 +262,58 @@ TEST_F(MetricConfigTest, ConfigMetricList) {
   EXPECT_TRUE(absl::IsNotFound(s));
 }
 
+TEST_F(BaseTest, LogMultiTimesReturnError) {
+  EXPECT_CALL(mock_metric_router_,
+              LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)),
+                      Eq(1), _, _))
+      .WillOnce(Return(absl::OkStatus()));
+  CHECK_OK(context_->LogUpDownCounter<kIntExactCounter>(1));
+  EXPECT_EQ(context_->LogUpDownCounter<kIntExactCounter>(1).code(),
+            absl::StatusCode::kAlreadyExists);
+}
+
+TEST_F(BaseTest, LogMultiTimesDeferredReturnError) {
+  CHECK_OK(context_->LogUpDownCounterDeferred<kIntExactCounter>(
+      []() mutable { return 2; }));
+  EXPECT_EQ(context_
+                ->LogUpDownCounterDeferred<kIntExactCounter>(
+                    []() mutable { return 2; })
+                .code(),
+            absl::StatusCode::kAlreadyExists);
+  EXPECT_CALL(mock_metric_router_,
+              LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)),
+                      Eq(2), _, _))
+      .WillOnce(Return(absl::OkStatus()));
+}
+
+TEST_F(SafeMetricOnlyTest, LogMultiTimes) {
+  constexpr int n = 10;
+  EXPECT_CALL(mock_metric_router_,
+              LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)),
+                      Eq(1), _, _))
+      .Times(Exactly(n))
+      .WillRepeatedly(Return(absl::OkStatus()));
+  for (int i = 0; i < n; ++i) {
+    CHECK_OK(safe_only_context_->LogUpDownCounter<kIntExactCounter>(1));
+  }
+  // compile error:
+  // safe_only_context_->LogUpDownCounter<kIntApproximateCounter>(1);
+}
+
+TEST_F(SafeMetricOnlyTest, LogMultiTimesDeferred) {
+  constexpr int n = 10;
+  for (int i = 0; i < n; ++i) {
+    CHECK_OK(safe_only_context_->LogUpDownCounterDeferred<kIntExactCounter>(
+        []() mutable { return 2; }));
+  }
+  EXPECT_CALL(mock_metric_router_,
+              LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)),
+                      Eq(2), _, _))
+      .Times(Exactly(n))
+      .WillRepeatedly(Return(absl::OkStatus()));
+  // compile error:
+  // safe_only_context_->LogUpDownCounterDeferred<kIntApproximateCounter>(
+  //     []() mutable { return 2; });
+}
+
 }  // namespace privacy_sandbox::server_common::metrics

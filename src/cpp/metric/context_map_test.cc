@@ -101,6 +101,13 @@ TEST_F(ContextMapTest, CheckListOrderHistogram) {
                HasSubstr("kHistogram histogram"));
 }
 
+TEST_F(ContextMapTest, OnlyCreateOneSafeMetric) {
+  using TestContextMap = ContextMap<Foo, metric_list_span, TestMetricRouter>;
+  TestContextMap context_map(std::make_unique<TestMetricRouter>());
+  TestContextMap::SafeContextT& safe_context = context_map.SafeMetric();
+  EXPECT_EQ(&safe_context, &context_map.SafeMetric());
+}
+
 constexpr Definition<int, Privacy::kImpacting, Instrument::kUpDownCounter>
     kUnsafe1("kUnsafe1", "", 0, 0);
 constexpr Definition<int, Privacy::kImpacting, Instrument::kUpDownCounter>

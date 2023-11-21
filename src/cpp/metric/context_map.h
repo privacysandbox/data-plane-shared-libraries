@@ -38,9 +38,11 @@ template <typename T, const absl::Span<const DefinitionName* const>& L,
 class ContextMap {
  public:
   using ContextT = Context<L, U>;
+  using SafeContextT = Context<L, U, /*safe_metric_only=*/true>;
 
   explicit ContextMap(std::unique_ptr<U> metric_router)
-      : metric_router_(std::move(metric_router)) {
+      : metric_router_(std::move(metric_router)),
+        safe_metric_(SafeContextT::GetContext(metric_router_.get())) {
     CHECK_OK(CheckListOrder());
   }
   ~ContextMap() = default;
@@ -102,11 +104,14 @@ class ContextMap {
     return absl::OkStatus();
   }
 
+  SafeContextT& SafeMetric() { return *safe_metric_; }
+
  private:
   std::unique_ptr<U> metric_router_;
   absl::Mutex mutex_;
   absl::flat_hash_map<T*, std::unique_ptr<ContextT>> context_
       ABSL_GUARDED_BY(mutex_);
+  std::unique_ptr<SafeContextT> safe_metric_;
 };
 
 // Get singleton `ContextMap` for T. First call will initialize.
