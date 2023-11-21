@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_CPP_ENCRYPTION_KEY_FETCHER_PUBLIC_KEY_FETCHER_INTERFACE_H_
-#define SRC_CPP_ENCRYPTION_KEY_FETCHER_PUBLIC_KEY_FETCHER_INTERFACE_H_
+#ifndef SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PUBLIC_KEY_FETCHER_INTERFACE_H_
+#define SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PUBLIC_KEY_FETCHER_INTERFACE_H_
 
 #include <memory>
 #include <vector>
@@ -24,17 +24,9 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
+#include "src/cpp/public/core/interface/cloud_platform.h"
 
 namespace privacy_sandbox::server_common {
-
-// Need to update key refresh monitoring code in src/cpp/metric/key_fetch.h when
-// adding a new cloud platform. CloudPlatform::LOCAL is not needed for
-// monitoring's purpose.
-enum class CloudPlatform {
-  LOCAL,
-  GCP,
-  AWS,
-};
 
 // Interface responsible for fetching and caching public keys.
 class PublicKeyFetcherInterface {
@@ -67,4 +59,4 @@ class PublicKeyFetcherFactory {
 
 }  // namespace privacy_sandbox::server_common
 
-#endif  // SRC_CPP_ENCRYPTION_KEY_FETCHER_PUBLIC_KEY_FETCHER_INTERFACE_H_
+#endif  // SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PUBLIC_KEY_FETCHER_INTERFACE_H_

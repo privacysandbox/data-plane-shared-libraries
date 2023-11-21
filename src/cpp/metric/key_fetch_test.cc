@@ -53,13 +53,13 @@ TEST(KeyFetchResultInstrumentation, GetNumKeysParsedOnRecentFetch) {
       UnorderedElementsAre(Pair("public key GCP", 0), Pair("public key AWS", 0),
                            Pair("private key", 0)));
 
-  KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(CloudPlatform::GCP,
-                                                             5);
-  KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(CloudPlatform::AWS,
-                                                             4);
+  KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(
+      CloudPlatform::kGcp, 5);
+  KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(
+      CloudPlatform::kAws, 4);
   // Should do nothing.
   KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(
-      CloudPlatform::LOCAL, 5);
+      CloudPlatform::kLocal, 5);
   EXPECT_THAT(
       KeyFetchResultCounter::GetNumKeysParsedOnRecentFetch(),
       UnorderedElementsAre(Pair("public key GCP", 5), Pair("public key AWS", 4),
@@ -79,12 +79,12 @@ TEST(KeyFetchResultInstrumentation, GetNumKeysCachedAfterRecentFetch) {
                            Pair("private key", 0)));
 
   KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
-      CloudPlatform::GCP, 5);
+      CloudPlatform::kGcp, 5);
   KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
-      CloudPlatform::AWS, 4);
+      CloudPlatform::kAws, 4);
   // Should do nothing.
   KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
-      CloudPlatform::LOCAL, 5);
+      CloudPlatform::kLocal, 5);
   EXPECT_THAT(
       KeyFetchResultCounter::GetNumKeysCachedAfterRecentFetch(),
       UnorderedElementsAre(Pair("public key GCP", 5), Pair("public key AWS", 4),

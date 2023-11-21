@@ -175,7 +175,7 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/cpp/encryption/key_fetcher/interface:public_key_fetcher_interface",
+        "//src/cpp/public/core/interface:cloud_platform",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/synchronization",
     ],

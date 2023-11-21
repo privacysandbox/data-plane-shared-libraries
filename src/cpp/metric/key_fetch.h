@@ -19,7 +19,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/synchronization/mutex.h"
-#include "src/cpp/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
+#include "src/cpp/public/core/interface/cloud_platform.h"
 
 // Defines instruments for key fetching from the coordinator.
 namespace privacy_sandbox::server_common {
@@ -46,9 +46,9 @@ class KeyFetchResultCounter {
     absl::MutexLock lock(&mu_);
     return absl::flat_hash_map<std::string, double>{
         {"public key GCP",
-         num_public_keys_parsed_recent_fetch_[CloudPlatform::GCP]},
+         num_public_keys_parsed_recent_fetch_[CloudPlatform::kGcp]},
         {"public key AWS",
-         num_public_keys_parsed_recent_fetch_[CloudPlatform::AWS]},
+         num_public_keys_parsed_recent_fetch_[CloudPlatform::kAws]},
         {"private key", num_private_keys_parsed_recent_fetch_},
     };
   }
@@ -57,9 +57,9 @@ class KeyFetchResultCounter {
     absl::MutexLock lock(&mu_);
     return absl::flat_hash_map<std::string, double>{
         {"public key GCP",
-         num_public_keys_cached_recent_fetch_[CloudPlatform::GCP]},
+         num_public_keys_cached_recent_fetch_[CloudPlatform::kGcp]},
         {"public key AWS",
-         num_public_keys_cached_recent_fetch_[CloudPlatform::AWS]},
+         num_public_keys_cached_recent_fetch_[CloudPlatform::kAws]},
         {"private key", num_private_keys_cached_recent_fetch_},
     };
   }
@@ -119,13 +119,13 @@ class KeyFetchResultCounter {
 
   static inline absl::flat_hash_map<CloudPlatform, int>
       num_public_keys_parsed_recent_fetch_ ABSL_GUARDED_BY(mu_){
-          {CloudPlatform::GCP, 0}, {CloudPlatform::AWS, 0}};
+          {CloudPlatform::kGcp, 0}, {CloudPlatform::kAws, 0}};
   static inline int num_private_keys_parsed_recent_fetch_ ABSL_GUARDED_BY(mu_){
       0};
 
   static inline absl::flat_hash_map<CloudPlatform, int>
       num_public_keys_cached_recent_fetch_ ABSL_GUARDED_BY(mu_){
-          {CloudPlatform::GCP, 0}, {CloudPlatform::AWS, 0}};
+          {CloudPlatform::kGcp, 0}, {CloudPlatform::kAws, 0}};
   static inline int num_private_keys_cached_recent_fetch_ ABSL_GUARDED_BY(mu_){
       0};
 };

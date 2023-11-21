@@ -94,9 +94,9 @@ TEST(PublicKeyFetcherTest, SuccessfulRefresh) {
       CloudPlatform,
       std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
       public_key_clients;
-  public_key_clients[CloudPlatform::GCP] =
+  public_key_clients[CloudPlatform::kGcp] =
       std::move(mock_public_key_client_gcp);
-  public_key_clients[CloudPlatform::AWS] =
+  public_key_clients[CloudPlatform::kAws] =
       std::move(mock_public_key_client_aws);
 
   PublicKeyFetcher fetcher(std::move(public_key_clients));
@@ -105,7 +105,7 @@ TEST(PublicKeyFetcherTest, SuccessfulRefresh) {
 
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
   key_pair_ids.push_back(ToOhttpKeyId(response.public_keys().at(0).key_id()));
-  EXPECT_EQ(fetcher.GetKeyIds(CloudPlatform::GCP), key_pair_ids);
+  EXPECT_EQ(fetcher.GetKeyIds(CloudPlatform::kGcp), key_pair_ids);
 }
 
 TEST(PublicKeyFetcherTest, SyncReturnsIfExecutionFailsSinglePlatform) {
@@ -122,7 +122,7 @@ TEST(PublicKeyFetcherTest, SyncReturnsIfExecutionFailsSinglePlatform) {
       CloudPlatform,
       std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
       public_key_clients;
-  public_key_clients[CloudPlatform::GCP] = std::move(mock_public_key_client);
+  public_key_clients[CloudPlatform::kGcp] = std::move(mock_public_key_client);
 
   PublicKeyFetcher fetcher(std::move(public_key_clients));
   absl::Status result_status = fetcher.Refresh();
@@ -163,9 +163,9 @@ TEST(PublicKeyFetcherTest, SyncReturnsIfExecutionFailsMultiPlatform) {
       CloudPlatform,
       std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
       public_key_clients;
-  public_key_clients[CloudPlatform::GCP] =
+  public_key_clients[CloudPlatform::kGcp] =
       std::move(mock_public_key_client_gcp);
-  public_key_clients[CloudPlatform::AWS] =
+  public_key_clients[CloudPlatform::kAws] =
       std::move(mock_public_key_client_aws);
 
   PublicKeyFetcher fetcher(std::move(public_key_clients));
@@ -174,7 +174,7 @@ TEST(PublicKeyFetcherTest, SyncReturnsIfExecutionFailsMultiPlatform) {
 
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
   key_pair_ids.push_back(ToOhttpKeyId(response.public_keys().at(0).key_id()));
-  EXPECT_EQ(fetcher.GetKeyIds(CloudPlatform::AWS), key_pair_ids);
+  EXPECT_EQ(fetcher.GetKeyIds(CloudPlatform::kAws), key_pair_ids);
 }
 
 TEST(PublicKeyFetcherTest, FailedAsyncListPublicKeysCall) {
@@ -211,17 +211,17 @@ TEST(PublicKeyFetcherTest, FailedAsyncListPublicKeysCall) {
       CloudPlatform,
       std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
       public_key_clients;
-  public_key_clients[CloudPlatform::GCP] =
+  public_key_clients[CloudPlatform::kGcp] =
       std::move(mock_public_key_client_gcp);
-  public_key_clients[CloudPlatform::AWS] =
+  public_key_clients[CloudPlatform::kAws] =
       std::move(mock_public_key_client_aws);
 
   PublicKeyFetcher fetcher(std::move(public_key_clients));
   absl::Status result_status = fetcher.Refresh();
   // GetKeyIds() should return an empty list since the public_keys_ field
   // shouldn't be set in the callback in Refresh().
-  EXPECT_THAT(fetcher.GetKeyIds(CloudPlatform::GCP), IsEmpty());
-  EXPECT_THAT(fetcher.GetKeyIds(CloudPlatform::AWS), IsEmpty());
+  EXPECT_THAT(fetcher.GetKeyIds(CloudPlatform::kGcp), IsEmpty());
+  EXPECT_THAT(fetcher.GetKeyIds(CloudPlatform::kAws), IsEmpty());
 }
 
 TEST(PublicKeyFetcherTest, VerifyGetKeyReturnsRandomKey) {
@@ -253,15 +253,15 @@ TEST(PublicKeyFetcherTest, VerifyGetKeyReturnsRandomKey) {
       CloudPlatform,
       std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
       public_key_clients;
-  public_key_clients[CloudPlatform::GCP] = std::move(mock_public_key_client);
+  public_key_clients[CloudPlatform::kGcp] = std::move(mock_public_key_client);
 
   PublicKeyFetcher fetcher(std::move(public_key_clients));
   absl::Status result_status = fetcher.Refresh();
 
   // Call GetKey() and validate the result isn't equal to another GetKey() call.
-  PublicKey key = *fetcher.GetKey(CloudPlatform::GCP);
+  PublicKey key = *fetcher.GetKey(CloudPlatform::kGcp);
   for (int i = 0; i < 100; i++) {
-    if (key.key_id() != fetcher.GetKey(CloudPlatform::GCP)->key_id()) {
+    if (key.key_id() != fetcher.GetKey(CloudPlatform::kGcp)->key_id()) {
       SUCCEED();
       return;
     }
