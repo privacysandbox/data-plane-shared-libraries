@@ -12,36 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
-
-# Flag to determine which platform the system will be built and run on.
-# Example:
-# bazel build target --//scp/cc/public/cpio/interface:platform=aws
-string_flag(
-    name = "platform",
-    build_setting_default = "aws",
-    values = [
-        "aws",
-        "gcp",
-    ],
-)
-
-config_setting(
-    name = "aws_cpio_lib",
-    flag_values = {
-        ":platform": "aws",
-    },
-)
-
-config_setting(
-    name = "gcp_cpio_lib",
-    flag_values = {
-        ":platform": "gcp",
-    },
-)
 
 # Flag to determine if we run code inside TEE.
 bool_flag(
@@ -52,7 +26,7 @@ bool_flag(
 config_setting(
     name = "aws_cpio_lib_inside_tee",
     flag_values = {
-        ":platform": "aws",
+        "//:platform": "aws",
         ":run_inside_tee": "True",
     },
 )
@@ -60,7 +34,7 @@ config_setting(
 config_setting(
     name = "gcp_cpio_lib_inside_tee",
     flag_values = {
-        ":platform": "gcp",
+        "//:platform": "gcp",
         ":run_inside_tee": "True",
     },
 )
@@ -68,7 +42,7 @@ config_setting(
 config_setting(
     name = "aws_cpio_lib_outside_tee",
     flag_values = {
-        ":platform": "aws",
+        "//:platform": "aws",
         ":run_inside_tee": "False",
     },
 )
@@ -76,7 +50,7 @@ config_setting(
 config_setting(
     name = "gcp_cpio_lib_outside_tee",
     flag_values = {
-        ":platform": "gcp",
+        "//:platform": "gcp",
         ":run_inside_tee": "False",
     },
 )

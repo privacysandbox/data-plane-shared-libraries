@@ -18,7 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 # To run this test:
 #  builders/tools/bazel-debian build \
-#  --//scp/cc/public/cpio/interface:platform=gcp \
+#  --//:platform=gcp \
 #  //scp/cc/cpio/test/server/local:local_server_integration_test
 # Then run the binary, replacing the flag values:
 #  bazel-bin/scp/cc/cpio/test/server/local/local_server_integration_test \

@@ -59,7 +59,7 @@ cc_library(
 )
 
 # To run this test:
-# cc_test "--//scp/cc/public/cpio/interface:platform=aws \
+# cc_test "--//:platform=aws \
 #  --//scp/cc/cpio/server/interface:is_test_server=True \
 #  --//scp/cc/public/cpio/interface:run_inside_tee=False \
 #  scp/cc/cpio/test/server/aws:aws_sdk_server_integration_test"

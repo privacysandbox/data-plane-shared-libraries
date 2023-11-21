@@ -12,14 +12,13 @@ build, this project needs to be built inside container.
 
 ## Building the project
 
-A flag is defined to choose cloud platform at building time:
-`//scp/cc/public/cpio/interface:platform`. Supported values are "aws" and "gcp" currently. A flag is
-defined to choose running the code inside TEE or not:
+A flag is defined to choose cloud platform at building time: `//:platform`. Supported values are
+"aws" and "gcp" currently. A flag is defined to choose running the code inside TEE or not:
 `//scp/cc/public/cpio/interface:run_inside_tee`. Supported values are "True" and "False".
 
 An example build command is as follows:
 
-        bazel build --//scp/cc/public/cpio/interface:platform=aws --//scp/cc/public/cpio/interface:run_inside_tee=True scp/cc/public/cpio/...
+        bazel build --//:platform=aws --//scp/cc/public/cpio/interface:run_inside_tee=True scp/cc/public/cpio/...
 
 ## Running tests
 

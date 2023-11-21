@@ -112,13 +112,10 @@ build:instance_gcp --//:instance=gcp
 build:instance_aws --//:instance=aws
 
 build:platform_local --//:platform=local
-build:platform_local --//scp/cc/public/cpio/interface:platform=local
 
 build:platform_aws --//:platform=aws
-build:platform_aws --//scp/cc/public/cpio/interface:platform=aws
 
 build:platform_gcp --//:platform=gcp
-build:platform_gcp --//scp/cc/public/cpio/interface:platform=gcp
 
 build:local_aws --config=instance_local
 build:local_aws --config=platform_aws

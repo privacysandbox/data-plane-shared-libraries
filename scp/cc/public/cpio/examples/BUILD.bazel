@@ -26,7 +26,7 @@ cc_binary(
     name = "blob_storage_client_test",
     srcs = ["blob_storage_client_test.cc"],
     copts = select({
-        "//scp/cc/public/cpio/interface:gcp_cpio_lib": [
+        "//:gcp_platform": [
             "-DGCP_CPIO=1",
         ],
         "//conditions:default": [

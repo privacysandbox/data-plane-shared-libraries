@@ -23,6 +23,7 @@ string_flag(
         "gcp",
         "local",
     ],
+    visibility = ["//scp/cc:__subpackages__"],
 )
 
 config_setting(
@@ -30,7 +31,7 @@ config_setting(
     flag_values = {
         ":platform": "aws",
     },
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -38,7 +39,7 @@ config_setting(
     flag_values = {
         ":platform": "gcp",
     },
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
 )
 
 config_setting(
@@ -46,7 +47,7 @@ config_setting(
     flag_values = {
         ":platform": "local",
     },
-    visibility = ["//visibility:private"],
+    visibility = ["//visibility:public"],
 )
 
 string_flag(
@@ -57,6 +58,7 @@ string_flag(
         "gcp",
         "local",
     ],
+    visibility = ["//scp/cc:__subpackages__"],
 )
 
 config_setting(
@@ -90,6 +92,7 @@ string_flag(
         "prod",
         "non_prod",
     ],
+    visibility = ["//visibility:public"],
 )
 
 config_setting(

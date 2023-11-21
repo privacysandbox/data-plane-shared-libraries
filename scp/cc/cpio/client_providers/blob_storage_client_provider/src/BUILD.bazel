@@ -20,10 +20,10 @@ cc_library(
     name = "blob_storage_client_provider_select_lib",
     deps = select(
         {
-            "//scp/cc/public/cpio/interface:aws_cpio_lib": [
+            "//:aws_platform": [
                 "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/aws:aws_blob_storage_client_provider_lib",
             ],
-            "//scp/cc/public/cpio/interface:gcp_cpio_lib": [
+            "//:gcp_platform": [
                 "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",
             ],
         },

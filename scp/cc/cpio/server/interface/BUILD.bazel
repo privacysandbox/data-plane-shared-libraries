@@ -26,7 +26,7 @@ bool_flag(
 config_setting(
     name = "aws_server",
     flag_values = {
-        "//scp/cc/public/cpio/interface:platform": "aws",
+        "//:platform": "aws",
         ":is_test_server": "False",
     },
 )
@@ -34,7 +34,7 @@ config_setting(
 config_setting(
     name = "aws_server_inside_tee",
     flag_values = {
-        "//scp/cc/public/cpio/interface:platform": "aws",
+        "//:platform": "aws",
         "//scp/cc/public/cpio/interface:run_inside_tee": "True",
         ":is_test_server": "False",
     },
@@ -43,7 +43,7 @@ config_setting(
 config_setting(
     name = "aws_server_outside_tee",
     flag_values = {
-        "//scp/cc/public/cpio/interface:platform": "aws",
+        "//:platform": "aws",
         "//scp/cc/public/cpio/interface:run_inside_tee": "False",
         ":is_test_server": "False",
     },
@@ -52,7 +52,7 @@ config_setting(
 config_setting(
     name = "gcp_server",
     flag_values = {
-        "//scp/cc/public/cpio/interface:platform": "gcp",
+        "//:platform": "gcp",
         ":is_test_server": "False",
     },
 )
@@ -60,7 +60,7 @@ config_setting(
 config_setting(
     name = "gcp_server_inside_tee",
     flag_values = {
-        "//scp/cc/public/cpio/interface:platform": "gcp",
+        "//:platform": "gcp",
         "//scp/cc/public/cpio/interface:run_inside_tee": "True",
         ":is_test_server": "False",
     },
@@ -69,7 +69,7 @@ config_setting(
 config_setting(
     name = "gcp_server_outside_tee",
     flag_values = {
-        "//scp/cc/public/cpio/interface:platform": "gcp",
+        "//:platform": "gcp",
         "//scp/cc/public/cpio/interface:run_inside_tee": "False",
         ":is_test_server": "False",
     },
@@ -78,7 +78,7 @@ config_setting(
 config_setting(
     name = "test_aws_server",
     flag_values = {
-        "//scp/cc/public/cpio/interface:platform": "aws",
+        "//:platform": "aws",
         ":is_test_server": "True",
     },
 )
@@ -86,7 +86,7 @@ config_setting(
 config_setting(
     name = "test_gcp_server",
     flag_values = {
-        "//scp/cc/public/cpio/interface:platform": "gcp",
+        "//:platform": "gcp",
         ":is_test_server": "True",
     },
 )

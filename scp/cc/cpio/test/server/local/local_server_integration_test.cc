@@ -88,7 +88,6 @@ int main(int argc, char* argv[]) {
   status = parameter_client->GetParameter(
       std::move(get_parameter_request),
       [&](const ExecutionResult result, GetParameterResponse response) {
-        EXPECT_TRUE(result.Successful());
         if (!result.Successful()) {
           LOG(FATAL) << "GetParameter failed: "
                      << GetErrorMessage(result.status_code);
