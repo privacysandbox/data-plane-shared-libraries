@@ -25,8 +25,8 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
-#include "absl/synchronization/notification.h"
 #include "glog/logging.h"
 #include "scp/cc/core/interface/errors.h"
 #include "scp/cc/public/core/interface/execution_result.h"
@@ -71,17 +71,20 @@ PublicKeyFetcher::~PublicKeyFetcher() {
 }
 
 /**
- * Makes a blocking call to fetch the public keys using the public key client.
- * UnavailableError status will be returned in case of failure.
+ * Makes a blocking call to fetch the public keys using public key clients
+ * for each provided platform.
+ *
+ * Errors will be logged but an OkStatus will always be returned after
+ * attempting to fetch keys from each platform.
  */
 absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   VLOG(3) << "Refreshing public keys...";
-  absl::Notification public_key_fetch_notification;
+  absl::BlockingCounter all_fetches_done(public_key_clients_.size());
 
   for (const auto& [cloud_platform, public_key_client] : public_key_clients_) {
     ExecutionResult result = public_key_client->ListPublicKeys(
         ListPublicKeysRequest(),
-        [this, &public_key_fetch_notification, platform = cloud_platform](
+        [this, &all_fetches_done, platform = cloud_platform](
             ExecutionResult execution_result, ListPublicKeysResponse response) {
           VLOG(3) << "List public keys call finished.";
 
@@ -123,18 +126,17 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                 GetErrorMessage(execution_result.status_code));
           }
 
-          public_key_fetch_notification.Notify();
+          all_fetches_done.DecrementCount();
         });
 
     if (!result.Successful()) {
-      std::string error = absl::StrFormat(kKeyFetchFailMessage,
-                                          GetErrorMessage(result.status_code));
-      VLOG(1) << error;
-      return absl::UnavailableError(error);
+      VLOG(1) << absl::StrFormat(kKeyFetchFailMessage,
+                                 GetErrorMessage(result.status_code));
+      all_fetches_done.DecrementCount();
     }
   }
 
-  public_key_fetch_notification.WaitForNotification();
+  all_fetches_done.Wait();
   return absl::OkStatus();
 }
 
