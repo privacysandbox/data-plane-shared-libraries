@@ -104,3 +104,36 @@ build:otel --@io_opentelemetry_cpp//api:with_abseil
 # Required to build OpenTelemtry with logs API.
 # TODO(b/287675870): Delete the following when the feature is no longer experimental.
 build:otel --copt=-DENABLE_LOGS_PREVIEW
+
+build:instance_local --//:instance=local
+
+build:instance_gcp --//:instance=gcp
+
+build:instance_aws --//:instance=aws
+
+build:platform_local --//:platform=local
+build:platform_local --//scp/cc/public/cpio/interface:platform=local
+
+build:platform_aws --//:platform=aws
+build:platform_aws --//scp/cc/public/cpio/interface:platform=aws
+
+build:platform_gcp --//:platform=gcp
+build:platform_gcp --//scp/cc/public/cpio/interface:platform=gcp
+
+build:local_aws --config=instance_local
+build:local_aws --config=platform_aws
+
+build:local_gcp --config=instance_local
+build:local_gcp --config=platform_gcp
+
+build:gcp_gcp --config=instance_gcp
+build:gcp_gcp --config=platform_gcp
+
+build:local_local --config=instance_local
+build:local_local --config=platform_local
+
+build:aws_aws --config=instance_aws
+build:aws_aws --config=platform_aws
+
+build:non_prod --//:build_flavor=non_prod
+build:prod --//:build_flavor=prod
