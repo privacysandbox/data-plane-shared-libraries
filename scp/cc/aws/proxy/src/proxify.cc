@@ -113,10 +113,12 @@ int main(int argc, char* argv[]) {
     // If the kResolvOverrideConfPath file does not exist, write to
     // kResolvConfPath. Else, create a symlink kResolvOverrideConfPath ->
     // kResolvConfPath overriding the kResolvConfPath contents.
-    if (access(kResolvOverrideConfPath.data(), F_OK) != 0 &&
-        write(f, kResolvConfContent.data(), kResolvConfContent.size()) == -1) {
-      std::cerr << "ERROR: cannot fully write /etc/resolv.conf." << std::endl;
-      return -1;
+    if (access(kResolvOverrideConfPath.data(), F_OK) != 0) {
+      if (write(f, kResolvConfContent.data(), kResolvConfContent.size()) ==
+          -1) {
+        std::cerr << "ERROR: cannot write /etc/resolv.conf." << std::endl;
+        return -1;
+      }
     } else if (remove(kResolvConfPath.data()) < 0) {
       std::cerr << "ERROR: could not remove /etc/resolv.conf." << std::endl;
       return -1;
