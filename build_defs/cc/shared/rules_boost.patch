@@ -10,15 +10,24 @@ index 93e03f9..0fe10e7 100644
 +        "@boringssl//:ssl",
      ],
  )
-
+ 
 diff --git a/boost/boost.bzl b/boost/boost.bzl
-index ff1630f..c483268 100644
+index ff1630f..e6c3f43 100644
 --- a/boost/boost.bzl
 +++ b/boost/boost.bzl
+@@ -179,7 +179,7 @@ def boost_deps():
+         build_file = "@com_github_nelhage_rules_boost//:BUILD.bzip2",
+         sha256 = "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269",
+         strip_prefix = "bzip2-1.0.8",
+-        url = "https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz",
++        url = "https://mirror.bazel.build/sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz",
+     )
+ 
+     maybe(
 @@ -219,10 +219,3 @@ def boost_deps():
          ],
      )
-
+ 
 -    maybe(
 -        http_archive,
 -        name = "openssl",
