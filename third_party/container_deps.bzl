@@ -40,6 +40,7 @@ def container_deps():
             # Ubuntu 20.04
             "arch_hashes": {
                 "amd64": "218bb51abbd1864df8be26166f847547b3851a89999ca7bfceb85ca9b5d2e95d",
+                "arm64": "a80d11b67ef30474bcccab048020ee25aee659c4caaca70794867deba5d392b6",
             },
             "registry": "docker.io",
             "repository": "library/ubuntu",

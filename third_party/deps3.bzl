@@ -14,6 +14,7 @@
 
 """Further initialization of shared control plane dependencies."""
 
+load("@com_github_google_rpmpack//:deps.bzl", "rpmpack_dependencies")
 load("@com_github_googleapis_google_cloud_cpp//bazel:google_cloud_cpp_deps.bzl", "google_cloud_cpp_deps")
 load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
@@ -35,6 +36,7 @@ def deps3():
     llvm_disable_optional_support_deps()
     sapi_deps()
     bazel_rules_closure()
+    rpmpack_dependencies()
 
     # This sets up some common toolchains for building targets. For more details, please see
     # https://bazelbuild.github.io/rules_foreign_cc/0.9.0/flatten.html#rules_foreign_cc_dependencies

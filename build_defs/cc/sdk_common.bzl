@@ -25,7 +25,6 @@ load("//build_defs/shared:bazel_rules_pkg.bzl", "bazel_rules_pkg")
 load("//build_defs/shared:enclaves_kmstools.bzl", "enclaves_kmstools_libraries")
 load("//build_defs/shared:golang.bzl", "go_deps")
 load("//build_defs/shared:grpc.bzl", "grpc")
-load("//build_defs/shared:rpm.bzl", "rpm")
 load("//build_defs/tink:tink_defs.bzl", "import_tink_git")
 
 def sdk_common():
@@ -43,4 +42,3 @@ def sdk_common():
     nghttp2()
     import_google_cloud_cpp()
     import_tink_git()
-    rpm()

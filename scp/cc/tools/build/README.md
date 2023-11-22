@@ -42,10 +42,10 @@ tmp directory. e.g. `--bazel_output_directory=$(mktemp -d)`
 
 ### Another example
 
-To build and run all the tests (except targets under scp/cc/tools/build/) within the container:
+To run all the tests (except targets under scp/cc/tools/build/) within the container:
 
 ```sh
-scp/cc/tools/build/run_within_container.sh --bazel_command="bazel build //scp/cc/... && bazel test //scp/cc/..." --bazel_output_directory=/tmp/my_output_dir
+scp/cc/tools/build/run_within_container.sh --bazel_command="bazel test //..." --bazel_output_directory=/tmp/my_output_dir
 ```
 
 #
