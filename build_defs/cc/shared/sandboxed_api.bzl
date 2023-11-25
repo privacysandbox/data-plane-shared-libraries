@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def sandboxed_api():
+    # main as of 11-17-2023
     maybe(
-        git_repository,
+        http_archive,
         name = "com_google_sandboxed_api",
-        # main as of 11-17-2023
-        commit = "a0ba1c520f0bb72e8d9a8bf17580c074e666960e",
-        remote = "https://github.com/google/sandboxed-api.git",
         patch_args = ["-p1"],
         patches = [
             Label("//build_defs/cc/shared:sandboxed_api.patch"),
             Label("//build_defs/cc/shared:sandboxed_libunwind.patch"),
         ],
-        shallow_since = "1689611482 -0700",
+        sha256 = "ba8943fcb40bc4c5c5135f7df125fc3bf6a4a4b5bf15a0a56edf421700557479",
+        strip_prefix = "sandboxed-api-a0ba1c520f0bb72e8d9a8bf17580c074e666960e",
+        urls = ["https://github.com/google/sandboxed-api/archive/a0ba1c520f0bb72e8d9a8bf17580c074e666960e.zip"],
     )
