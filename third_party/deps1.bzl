@@ -15,10 +15,19 @@
 """Initialize the shared control plane dependencies."""
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@google_privacysandbox_servers_common//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies = "sdk_dependencies")
 
 def deps1():
-    http_archive(
+    maybe(
+        http_archive,
+        name = "com_google_absl",
+        sha256 = "497ebdc3a4885d9209b9bd416e8c3f71e7a1fb8af249f6c2a80b7cbeefcd7e21",
+        strip_prefix = "abseil-cpp-20230802.1",
+        urls = ["https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.zip"],
+    )
+    maybe(
+        http_archive,
         name = "rules_rust",
         sha256 = "6357de5982dd32526e02278221bb8d6aa45717ba9bbacf43686b130aa2c72e1e",
         urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.30.0/rules_rust-v0.30.0.tar.gz"],

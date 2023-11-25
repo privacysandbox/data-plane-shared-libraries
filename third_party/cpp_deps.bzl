@@ -22,6 +22,15 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 def cpp_dependencies():
     maybe(
         http_archive,
+        name = "bazel_skylib",
+        sha256 = "cd55a062e763b9349921f0f5db8c3933288dc8ba4f76dd9416aac68acee3cb94",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-1.5.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.5.0/bazel-skylib-1.5.0.tar.gz",
+        ],
+    )
+    maybe(
+        http_archive,
         name = "curl",
         build_file = Label("//third_party:curl.BUILD"),
         sha256 = "cdb38b72e36bc5d33d5b8810f8018ece1baa29a8f215b4495e495ded82bbf3c7",
