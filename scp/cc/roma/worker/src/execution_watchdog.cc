@@ -27,10 +27,6 @@ using google::scp::core::SuccessExecutionResult;
 
 namespace google::scp::roma::worker {
 
-ExecutionResult ExecutionWatchDog::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult ExecutionWatchDog::Run() noexcept {
   absl::MutexLock lock(&mutex_);
   execution_watchdog_thread_ =

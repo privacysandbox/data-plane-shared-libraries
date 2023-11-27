@@ -27,7 +27,6 @@
 #include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 #include "roma/sandbox/native_function_binding/src/native_function_invoker.h"
 
-using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::
     V8IsolateFunctionBinding;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
@@ -89,7 +88,7 @@ TEST_F(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
       function_names, std::move(function_invoker));
 
   V8JsEngine engine(std::move(visitor));
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code = R"JS_CODE(
     function Handler(input1, input2, input3) {
@@ -115,5 +114,6 @@ TEST_F(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
   EXPECT_THAT(response_string, testing::StrEq(R"("Hello World")"));
 
   log.StopCapturingLogs();
+  engine.Stop();
 }
 }  // namespace google::scp::roma::test

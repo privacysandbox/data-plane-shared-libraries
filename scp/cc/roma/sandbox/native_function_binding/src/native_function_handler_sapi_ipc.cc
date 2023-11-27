@@ -49,10 +49,6 @@ NativeFunctionHandlerSapiIpc::NativeFunctionHandlerSapiIpc(
   }
 }
 
-ExecutionResult NativeFunctionHandlerSapiIpc::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult NativeFunctionHandlerSapiIpc::Run() noexcept {
   for (int i = 0; i < ipc_comms_.size(); i++) {
     function_handler_threads_.emplace_back([this, i] {

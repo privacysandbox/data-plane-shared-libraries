@@ -33,7 +33,6 @@
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::proto::RpcWrapper;
 
 using ::testing::_;
@@ -67,13 +66,14 @@ TEST_F(V8IsolateFunctionBindingTest, FunctionBecomesAvailableInJavascript) {
       function_names, std::move(function_invoker));
 
   js_engine::v8_js_engine::V8JsEngine js_engine(std::move(visitor));
-  AutoInitRunStop to_handle_engine(js_engine);
+  js_engine.Run();
 
   auto result_or = js_engine.CompileAndRunJs(
       R"(function func() { cool_func(); return ""; })", "func", {}, {});
   EXPECT_SUCCESS(result_or.result());
   const auto& response_string = result_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq(R"("")"));
+  js_engine.Stop();
 }
 
 }  // namespace google::scp::roma::sandbox::js_engine::test

@@ -31,7 +31,6 @@
 #include "roma/sandbox/constants/constants.h"
 #include "sandboxed_api/sandbox2/comms.h"
 
-using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
 using ::testing::StrEq;

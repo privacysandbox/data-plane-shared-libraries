@@ -48,7 +48,6 @@ class ExecutionWatchDog {
 
   ~ExecutionWatchDog() { Stop(); }
 
-  core::ExecutionResult Init() noexcept;
   // Run returns after the watchdog thread is up and running.
   core::ExecutionResult Run() noexcept;
   core::ExecutionResult Stop() noexcept;

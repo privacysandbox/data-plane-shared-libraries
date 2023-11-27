@@ -44,8 +44,6 @@ class Worker {
                   bool require_preload = true,
                   size_t compilation_context_cache_size = 5);
 
-  core::ExecutionResult Init() noexcept;
-
   core::ExecutionResult Run() noexcept;
 
   core::ExecutionResult Stop() noexcept;

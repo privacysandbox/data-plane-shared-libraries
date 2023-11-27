@@ -60,8 +60,6 @@ class V8JsEngine : public JsEngine {
     external_references_.push_back(0);
   }
 
-  core::ExecutionResult Init() noexcept override;
-
   core::ExecutionResult Run() noexcept override;
 
   core::ExecutionResult Stop() noexcept override;
@@ -204,13 +202,6 @@ class V8JsEngine : public JsEngine {
   core::ExecutionResult CompileWasmCodeArray(
       v8::Isolate* isolate, absl::Span<const std::uint8_t> wasm,
       std::string& err_msg) noexcept;
-
-  /**
-   * @brief Initialize and run a execution watchdog for current v8_isolate.
-   *
-   * @return core::ExecutionResult
-   */
-  core::ExecutionResult InitAndRunWatchdog() noexcept;
 
   std::unique_ptr<V8IsolateWrapper> isolate_wrapper_;
   std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding_;

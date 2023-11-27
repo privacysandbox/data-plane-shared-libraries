@@ -169,7 +169,6 @@ RomaService::SetupNativeFunctionHandler(size_t concurrency) {
   native_function_binding_handler_ =
       std::make_unique<NativeFunctionHandlerSapiIpc>(
           &native_function_binding_table_, local_fds, remote_fds);
-  RETURN_IF_FAILURE(native_function_binding_handler_->Init());
 
   NativeFunctionBindingSetup setup{
       .remote_file_descriptors = std::move(remote_fds),

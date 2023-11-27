@@ -137,7 +137,7 @@ StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       init_params->request_and_response_data_buffer_size_bytes();
 
   ROMA_VLOG(1) << "Worker wrapper successfully created the worker";
-  return worker_->Init().status_code;
+  return SC_OK;
 }
 
 StatusCode RunCode(worker_api::WorkerParamsProto* params) {

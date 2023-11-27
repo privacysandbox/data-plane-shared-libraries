@@ -31,7 +31,6 @@
 #include "roma/sandbox/worker/src/worker.h"
 #include "roma/wasm/test/testing_utils.h"
 
-using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::sandbox::constants::kCodeVersion;
 using google::scp::roma::sandbox::constants::kHandlerName;
@@ -66,7 +65,7 @@ class V8EngineWorkerTest : public ::testing::Test {
 TEST_F(V8EngineWorkerTest, CanRunJsCode) {
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), false /*require_preload*/);
-  AutoInitRunStop to_handle_worker(worker);
+  worker.Run();
 
   constexpr std::string_view js_code =
       R"(function hello_js() { return "Hello World!"; })";
@@ -84,12 +83,13 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
   EXPECT_SUCCESS(response_or.result());
 
   EXPECT_THAT(response_or->response, StrEq(R"("Hello World!")"));
+  worker.Stop();
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), true /*require_preload*/);
-  AutoInitRunStop to_handle_worker(worker);
+  worker.Run();
 
   // Load v1
   std::string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
@@ -142,12 +142,13 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
   EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 2!")"));
+  worker.Stop();
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), true /*require_preload*/);
-  AutoInitRunStop to_handle_worker(worker);
+  worker.Run();
 
   // Load v1
   std::string js_code = R"""(
@@ -230,13 +231,14 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
     EXPECT_SUCCESS(response_or.result());
     EXPECT_THAT(response_or->response, StrEq("12"));
   }
+  worker.Stop();
 }
 
 TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), true /*require_preload*/,
                 1 /*compilation_context_cache_size*/);
-  AutoInitRunStop to_handle_worker(worker);
+  worker.Run();
 
   std::string js_code = R"(function hello_js() { return "Hello World!"; })";
   std::vector<absl::string_view> input;
@@ -286,12 +288,13 @@ TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
   response_or = worker.RunCode("", input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
   EXPECT_THAT(response_or->response, StrEq(R"("Hello World!")"));
+  worker.Stop();
 }
 
 TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), true /*require_preload*/);
-  AutoInitRunStop to_handle_worker(worker);
+  worker.Run();
 
   // Load v1
   std::string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
@@ -382,6 +385,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
   EXPECT_SUCCESS(response_or.result());
   EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 1!")"));
+  worker.Stop();
 }
 
 TEST_F(V8EngineWorkerTest, ShouldFailIfCompilationContextCacheSizeIsZero) {
@@ -397,7 +401,7 @@ TEST_F(V8EngineWorkerTest, ShouldFailIfCompilationContextCacheSizeIsZero) {
 TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), false /*require_preload*/);
-  AutoInitRunStop to_handle_worker(worker);
+  worker.Run();
 
   auto js_code = R"""(
           const module = new WebAssembly.Module(addModule);
@@ -420,12 +424,13 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
 
   EXPECT_SUCCESS(response_or.result());
   EXPECT_THAT(response_or->response, StrEq("3"));
+  worker.Stop();
 }
 
 TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), true /*require_preload*/);
-  AutoInitRunStop to_handle_worker(worker);
+  worker.Run();
   std::vector<absl::string_view> input;
 
   // Load v1
@@ -506,6 +511,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   response_or = worker.RunCode(js_code, input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
   EXPECT_THAT(response_or->response, StrEq("0"));
+  worker.Stop();
 }
 
 TEST_F(V8EngineWorkerTest,
@@ -513,7 +519,7 @@ TEST_F(V8EngineWorkerTest,
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), true /*require_preload*/,
                 1 /*compilation_context_cache_size*/);
-  AutoInitRunStop to_handle_worker(worker);
+  worker.Run();
 
   auto wasm = absl::Span<const uint8_t>(kWasmBin);
   auto js_code = R"""(
@@ -570,5 +576,6 @@ TEST_F(V8EngineWorkerTest,
   response_or = worker.RunCode("", input, metadata, wasm);
   EXPECT_SUCCESS(response_or.result());
   EXPECT_THAT(response_or->response, StrEq("3"));
+  worker.Stop();
 }
 }  // namespace google::scp::roma::sandbox::worker::test

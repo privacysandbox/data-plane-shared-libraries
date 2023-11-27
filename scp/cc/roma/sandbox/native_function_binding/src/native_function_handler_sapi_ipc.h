@@ -46,8 +46,6 @@ class NativeFunctionHandlerSapiIpc {
                                const std::vector<int>&,
                                std::vector<int> remote_fds);
 
-  core::ExecutionResult Init() noexcept;
-
   core::ExecutionResult Run() noexcept;
 
   core::ExecutionResult Stop() noexcept;

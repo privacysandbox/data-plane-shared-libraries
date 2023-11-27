@@ -35,7 +35,6 @@ using google::scp::core::errors::SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT;
 using google::scp::core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE;
 using google::scp::core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE;
 using google::scp::core::errors::SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE;
-using google::scp::core::test::AutoInitRunStop;
 using google::scp::core::test::ResultIs;
 using google::scp::roma::kDefaultExecutionTimeout;
 using google::scp::roma::kTimeoutDurationTag;
@@ -57,7 +56,7 @@ class V8JsEngineTest : public ::testing::Test {
 
 TEST_F(V8JsEngineTest, CanRunJsCode) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code =
       R"(
@@ -76,11 +75,12 @@ TEST_F(V8JsEngineTest, CanRunJsCode) {
   const std::string& response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string,
               StrEq(R"("Hello World! vec input 1 vec input 2")"));
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseExplicitly) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code = R"JS_CODE(
       function sleep(milliseconds) {
@@ -108,11 +108,12 @@ TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseExplicitly) {
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq(R"("some cool string")"));
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseImplicitly) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code = R"JS_CODE(
       function sleep(milliseconds) {
@@ -141,11 +142,12 @@ TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseImplicitly) {
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq(R"("some cool string")"));
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, CanHandlePromiseRejectionInAsyncJs) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code = R"JS_CODE(
       function sleep(milliseconds) {
@@ -172,11 +174,12 @@ TEST_F(V8JsEngineTest, CanHandlePromiseRejectionInAsyncJs) {
       engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
 
   EXPECT_FALSE(response_or.result().Successful());
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, CanHandleCompilationFailures) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code = "function hello_js(input1, input2) {";
   std::vector<absl::string_view> input = {
@@ -189,11 +192,12 @@ TEST_F(V8JsEngineTest, CanHandleCompilationFailures) {
   EXPECT_THAT(
       response_or.result(),
       ResultIs(FailureExecutionResult(SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE)));
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, CanRunCodeRequestWithJsonInput) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code =
       R"(
@@ -211,11 +215,12 @@ TEST_F(V8JsEngineTest, CanRunCodeRequestWithJsonInput) {
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq("3"));
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, ShouldFailIfInputIsBadJsonInput) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code =
       R"(
@@ -233,11 +238,12 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputIsBadJsonInput) {
   EXPECT_THAT(response_or.result(),
               ResultIs(FailureExecutionResult(
                   SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT)));
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, ShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code =
       R"(
@@ -257,11 +263,12 @@ TEST_F(V8JsEngineTest, ShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, IsEmpty());
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, ShouldFailIfInputCannotBeParsed) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code =
       R"(
@@ -281,11 +288,12 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputCannotBeParsed) {
   EXPECT_THAT(response_or.result(),
               ResultIs(FailureExecutionResult(
                   SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT)));
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, ShouldFailIfHandlerIsNotFound) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code =
       R"(
@@ -302,11 +310,12 @@ TEST_F(V8JsEngineTest, ShouldFailIfHandlerIsNotFound) {
       engine.CompileAndRunJs(js_code, "not_found", input, {} /*metadata*/);
 
   EXPECT_FALSE(response_or.result());
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, CanRunWasmCode) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   auto wasm_bin = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/cpp_wasm_string_in_string_out_example/"
@@ -323,11 +332,12 @@ TEST_F(V8JsEngineTest, CanRunWasmCode) {
   const std::string& response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string,
               StrEq(R"("Some input string Hello World from WASM")"));
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   auto wasm_bin = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/cpp_wasm_string_in_string_out_example/"
@@ -344,11 +354,12 @@ TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
   EXPECT_SUCCESS(response_or.result());
   const std::string& response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, IsEmpty());
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, WasmShouldFailIfInputCannotBeParsed) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   auto wasm_bin = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/cpp_wasm_string_in_string_out_example/"
@@ -363,11 +374,12 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfInputCannotBeParsed) {
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
 
   EXPECT_FALSE(response_or.result().Successful());
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, WasmShouldFailIfBadWasm) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   // Modified wasm so it doesn't compile
   char wasm_bin[] = {
@@ -385,11 +397,12 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfBadWasm) {
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
 
   EXPECT_FALSE(response_or.result().Successful());
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, CanTimeoutExecutionWithDefaultTimeoutValue) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   constexpr auto js_code = R"""(
     function hello_js() {
@@ -406,11 +419,12 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithDefaultTimeoutValue) {
   EXPECT_THAT(
       response_or.result(),
       ResultIs(FailureExecutionResult(SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT)));
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, CanTimeoutExecutionWithCustomTimeoutTag) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   // This code will execute more than 200 milliseconds.
   constexpr auto js_code = R"""(
@@ -448,11 +462,12 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithCustomTimeoutTag) {
     auto response_or = engine.CompileAndRunJs(js_code, "hello_js", input, {});
     EXPECT_SUCCESS(response_or.result());
   }
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   // JS code mixed with global WebAssembly variables.
   constexpr auto js_code = R"""(
@@ -491,11 +506,12 @@ TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
         response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("7"));
   }
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   // JS code mixed with local WebAssembly variables.
   constexpr auto js_code = R"""(
@@ -534,11 +550,12 @@ TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
         response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("7"));
   }
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   // JS code mixed with local WebAssembly variables.
   constexpr auto js_code = R"""(
@@ -587,11 +604,12 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
         response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("7"));
   }
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteFailWithInvalidWasm) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   // JS code mixed with local WebAssembly variables.
   constexpr auto js_code = R"""(
@@ -629,11 +647,12 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteFailWithInvalidWasm) {
                 ResultIs(FailureExecutionResult(
                     SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE)));
   }
+  engine.Stop();
 }
 
 TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
   V8JsEngine engine;
-  AutoInitRunStop to_handle_engine(engine);
+  engine.Run();
 
   // JS code with wasm imports.
   constexpr auto js_code = R"""(
@@ -689,5 +708,6 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
         response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("1"));
   }
+  engine.Stop();
 }
 }  // namespace google::scp::roma::sandbox::js_engine::test

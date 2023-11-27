@@ -121,10 +121,6 @@ ExecutionResult GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
-ExecutionResult V8JsEngine::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult V8JsEngine::Run() noexcept {
   return execution_watchdog_->Run();
 }
