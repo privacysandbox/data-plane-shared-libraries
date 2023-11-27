@@ -35,9 +35,9 @@ namespace {
 
 using google::scp::roma::Config;
 using google::scp::roma::FunctionBindingObjectV2;
+using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::benchmark::CodeConfig;
 using google::scp::roma::benchmark::FakeKvServer;
-using google::scp::roma::proto::FunctionBindingIoProto;
 
 void LoadCodeBenchmark(std::string_view code, std::string_view handler_name,
                        benchmark::State& state) {
