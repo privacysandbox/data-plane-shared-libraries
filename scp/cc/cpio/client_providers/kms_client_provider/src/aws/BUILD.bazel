@@ -12,17 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@aws_nsm_crate_index//:defs.bzl", aws_nsm_aliases = "aliases", aws_nsm_crate_deps = "all_crate_deps")
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("@rules_rust//rust:defs.bzl", "rust_shared_library")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
-
-alias(
-    name = "libnsm_so",
-    actual = ":nsm",
-    visibility = ["//visibility:public"],
-)
 
 alias(
     name = "kms_cli",
@@ -30,25 +22,10 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-rust_shared_library(
-    name = "nsm",
-    srcs = [
-        "@aws-nitro-enclaves-nsm-api//:nsm-lib/src/lib.rs",
-        "@aws-nitro-enclaves-nsm-api//:src/api/mod.rs",
-        "@aws-nitro-enclaves-nsm-api//:src/driver/mod.rs",
-        "@aws-nitro-enclaves-nsm-api//:src/lib.rs",
-    ],
-    aliases = aws_nsm_aliases(
-        package_name = "",
-    ),
-    proc_macro_deps = aws_nsm_crate_deps(
-        package_name = "",
-        proc_macro = True,
-    ),
-    deps = aws_nsm_crate_deps(
-        package_name = "",
-        normal = True,
-    ),
+alias(
+    name = "libnsm_so",
+    actual = "@aws-nitro-enclaves-nsm-api//:nsm",
+    visibility = ["//visibility:public"],
 )
 
 cc_library(

@@ -53,8 +53,9 @@ def deps3():
         grpc = True,
     )
     opentelemetry_cpp_deps()
+    rules_fuzzing_init()
 
-    # repin deps using:
+    # repin aws-nsm deps using:
     #   EXTRA_DOCKER_RUN_ARGS="--env=CARGO_BAZEL_REPIN=1" builders/tools/bazel-debian sync --only=aws_nsm_crate_index
     crates_repository(
         name = "aws_nsm_crate_index",
@@ -66,4 +67,3 @@ def deps3():
             "@aws-nitro-enclaves-nsm-api//:nsm-test/Cargo.toml",
         ],
     )
-    rules_fuzzing_init()

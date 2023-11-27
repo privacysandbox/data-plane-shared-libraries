@@ -15,14 +15,34 @@
 # Description:
 #   AWS Nitro Secure Module for Nitro Enclaves with attestation capability.
 
-package(default_visibility = ["//visibility:public"])
+load("@aws_nsm_crate_index//:defs.bzl", "all_crate_deps")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_shared_library")
+
+package(default_visibility = ["//visibility:private"])
 
 licenses(["notice"])  # Apache 2.0
 
 exports_files(["LICENSE"])
 
-exports_files(glob([
-    "nsm-lib/**/*",
-    "src/**/*.rs",
-    "Cargo.toml",
-]))
+rust_library(
+    name = "nsm_src_lib",
+    srcs = [
+        "src/api/mod.rs",
+        "src/driver/mod.rs",
+        "src/lib.rs",
+    ],
+    crate_features = ["nix"],
+    crate_name = "aws_nitro_enclaves_nsm_api",
+    deps = all_crate_deps(),
+)
+
+rust_shared_library(
+    name = "nsm",
+    srcs = [
+        "nsm-lib/src/lib.rs",
+    ],
+    visibility = ["//visibility:public"],
+    deps = all_crate_deps() + [
+        ":nsm_src_lib",
+    ],
+)
