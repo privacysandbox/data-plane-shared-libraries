@@ -26,6 +26,7 @@
 #include <aws/core/Aws.h>
 
 #include "absl/synchronization/blocking_counter.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "core/async_executor/mock/mock_async_executor.h"
 #include "core/interface/async_context.h"
@@ -245,11 +246,15 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
       mock_async_executor_, CreateMetricBatchingOptions(true));
 
-  absl::Notification schedule_for_is_called;
+  absl::Mutex schedule_for_is_called_mu;
+  bool schedule_for_is_called = false;
   mock_async_executor_->schedule_for_mock =
       [&](AsyncOperation work, Timestamp timestamp,
           std::function<bool()>& cancellation_callback) {
-        schedule_for_is_called.Notify();
+        {
+          absl::MutexLock l(&schedule_for_is_called_mu);
+          schedule_for_is_called = true;
+        }
         return SuccessExecutionResult();
       };
 
@@ -257,13 +262,17 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
       CreatePutMetricsRequest(),
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
-  absl::Notification batch_push_called;
+  absl::Mutex batch_push_called_mu;
+  bool batch_push_called = false;
   client->metrics_batch_push_mock =
       [&](const std::shared_ptr<std::vector<core::AsyncContext<
               cmrt::sdk::metric_service::v1::PutMetricsRequest,
               cmrt::sdk::metric_service::v1::PutMetricsResponse>>>&
               metric_requests_vector) noexcept {
-        batch_push_called.Notify();
+        {
+          absl::MutexLock l(&batch_push_called_mu);
+          batch_push_called = true;
+        }
         EXPECT_EQ(metric_requests_vector->size(), kMetricsBatchSize);
         return SuccessExecutionResult();
       };
@@ -275,9 +284,13 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
     EXPECT_SUCCESS(client->PutMetrics(context));
   }
 
-  schedule_for_is_called.WaitForNotification();
+  {
+    absl::MutexLock l(&schedule_for_is_called_mu);
+    schedule_for_is_called_mu.Await(absl::Condition(&schedule_for_is_called));
+  }
 
-  batch_push_called.WaitForNotification();
+  absl::MutexLock l(&batch_push_called_mu);
+  batch_push_called_mu.Await(absl::Condition(&batch_push_called));
 }
 
 TEST_F(MetricClientProviderTest, RunMetricsBatchPush) {
