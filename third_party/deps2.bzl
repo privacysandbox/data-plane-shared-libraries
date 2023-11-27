@@ -93,7 +93,7 @@ def deps2(
     rust_register_toolchains(
         edition = "2018",
         versions = [
-            "1.73.0",
+            "1.74.0",
         ],
     )
     crate_universe_dependencies()
