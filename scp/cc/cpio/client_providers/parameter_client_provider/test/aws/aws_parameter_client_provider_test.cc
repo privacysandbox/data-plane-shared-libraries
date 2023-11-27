@@ -36,17 +36,15 @@
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "public/cpio/test/global_cpio/test_cpio_options.h"
+#include "public/cpio/test/global_cpio/test_lib_cpio.h"
 
-using Aws::InitAPI;
-using Aws::SDKOptions;
-using Aws::ShutdownAPI;
 using Aws::Client::AWSError;
 using Aws::SSM::SSMErrors;
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;
 using google::scp::core::AsyncContext;
 using google::scp::core::AsyncExecutorInterface;
-using google::scp::core::ExecutionStatus;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::errors::SC_AWS_INTERNAL_SERVICE_ERROR;
@@ -55,17 +53,20 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND;
 using google::scp::core::test::ResultIs;
+using google::scp::cpio::TestCpioOptions;
+using google::scp::cpio::TestLibCpio;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockSSMClient;
-using ::testing::NiceMock;
-using ::testing::Return;
-using ::testing::StrEq;
+using testing::NiceMock;
+using testing::Return;
+using testing::StrEq;
 
 namespace {
 constexpr char kResourceNameMock[] =
     "arn:aws:ec2:us-east-1:123456789012:instance/i-0e9801d129EXAMPLE";
 constexpr char kParameterName[] = "name";
 constexpr char kParameterValue[] = "value";
+constexpr char kRegionMock[] = "us-test-east-1";
 }  // namespace
 
 namespace google::scp::cpio::client_providers::test {
@@ -80,33 +81,28 @@ class MockSSMClientFactory : public SSMClientFactory {
 
 class AwsParameterClientProviderTest : public ::testing::Test {
  protected:
-  static void SetUpTestSuite() {
-    SDKOptions options;
-    InitAPI(options);
-  }
-
-  static void TearDownTestSuite() {
-    SDKOptions options;
-    ShutdownAPI(options);
-  }
-
   void SetUp() override {
-    mock_instance_client_ = std::make_shared<MockInstanceClientProvider>();
-    mock_instance_client_->instance_resource_name = kResourceNameMock;
+    cpio_options_.log_option = LogOption::kConsoleLog;
+    cpio_options_.region = kRegionMock;
+    EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options_));
+
+    auto io_async_executor_mock = std::make_shared<MockAsyncExecutor>();
+
+    auto instance_client_mock = std::make_shared<MockInstanceClientProvider>();
+    instance_client_mock->instance_resource_name = kResourceNameMock;
 
     mock_ssm_client_ = std::make_shared<MockSSMClient>();
-    mock_ssm_client_factory_ =
+    auto ssm_client_factory_mock =
         std::make_shared<NiceMock<MockSSMClientFactory>>();
-    ON_CALL(*mock_ssm_client_factory_, CreateSSMClient)
+    ON_CALL(*ssm_client_factory_mock, CreateSSMClient)
         .WillByDefault(Return(mock_ssm_client_));
 
-    MockAsyncExecutor mock_io_async_executor;
-    std::shared_ptr<AsyncExecutorInterface> io_async_executor =
-        std::make_shared<MockAsyncExecutor>(std::move(mock_io_async_executor));
-
     client_ = std::make_unique<AwsParameterClientProvider>(
-        std::make_shared<ParameterClientOptions>(), mock_instance_client_,
-        io_async_executor, mock_ssm_client_factory_);
+        std::make_shared<ParameterClientOptions>(), instance_client_mock,
+        io_async_executor_mock, ssm_client_factory_mock);
+
+    EXPECT_SUCCESS(client_->Init());
+    EXPECT_SUCCESS(client_->Run());
   }
 
   void MockParameter() {
@@ -125,27 +121,17 @@ class AwsParameterClientProviderTest : public ::testing::Test {
     mock_ssm_client_->get_parameter_outcome_mock = get_parameter_outcome;
   }
 
-  void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
+  void TearDown() override {
+    EXPECT_SUCCESS(client_->Stop());
+    EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options_));
+  }
 
-  std::shared_ptr<MockInstanceClientProvider> mock_instance_client_;
   std::shared_ptr<MockSSMClient> mock_ssm_client_;
-  std::shared_ptr<MockSSMClientFactory> mock_ssm_client_factory_;
-  std::shared_ptr<MockAsyncExecutor> mock_io_async_executor_;
   std::unique_ptr<AwsParameterClientProvider> client_;
+  TestCpioOptions cpio_options_;
 };
 
-TEST_F(AwsParameterClientProviderTest, FailedToFetchRegion) {
-  auto failure = FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR);
-  mock_instance_client_->get_instance_resource_name_mock = failure;
-
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_THAT(client_->Run(), ResultIs(failure));
-}
-
 TEST_F(AwsParameterClientProviderTest, FailedToFetchParameter) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
   MockParameter();
   AWSError<SSMErrors> error(SSMErrors::INTERNAL_FAILURE,
                             /* isRetryable=*/false);
@@ -155,6 +141,7 @@ TEST_F(AwsParameterClientProviderTest, FailedToFetchParameter) {
   absl::Notification done;
   auto request = std::make_shared<GetParameterRequest>();
   request->set_parameter_name(kParameterName);
+
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
@@ -168,9 +155,6 @@ TEST_F(AwsParameterClientProviderTest, FailedToFetchParameter) {
 }
 
 TEST_F(AwsParameterClientProviderTest, InvalidParameterName) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
   absl::Notification done;
   auto request = std::make_shared<GetParameterRequest>();
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
@@ -189,9 +173,6 @@ TEST_F(AwsParameterClientProviderTest, InvalidParameterName) {
 }
 
 TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
   const std::string invalid_parameter_name("invalid_parameter");
 
   // Mocks Aws::SSM::Model::GetParameterRequest with invalid_parameter.
@@ -221,8 +202,6 @@ TEST_F(AwsParameterClientProviderTest, ParameterNotFound) {
 }
 
 TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
   MockParameter();
 
   absl::Notification done;
@@ -239,4 +218,35 @@ TEST_F(AwsParameterClientProviderTest, SucceedToFetchParameter) {
   EXPECT_SUCCESS(client_->GetParameter(context1));
   done.WaitForNotification();
 }
+
+TEST(AwsParameterClientProviderTestII, FailedToFetchRegion) {
+  // Set up AWS Parameter Client with different CPIO options.
+  // Set up everything again to not use SetUp().
+  TestCpioOptions cpio_options_no_region;
+  EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options_no_region));
+
+  auto io_async_executor_mock = std::make_shared<MockAsyncExecutor>();
+
+  auto instance_client_mock = std::make_shared<MockInstanceClientProvider>();
+  instance_client_mock->instance_resource_name = kResourceNameMock;
+
+  auto mock_ssm_client_ = std::make_shared<MockSSMClient>();
+  auto ssm_client_factory_mock =
+      std::make_shared<NiceMock<MockSSMClientFactory>>();
+  ON_CALL(*ssm_client_factory_mock, CreateSSMClient)
+      .WillByDefault(Return(mock_ssm_client_));
+
+  auto client_ = std::make_unique<AwsParameterClientProvider>(
+      std::make_shared<ParameterClientOptions>(), instance_client_mock,
+      io_async_executor_mock, ssm_client_factory_mock);
+
+  auto failure = FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR);
+  instance_client_mock->get_instance_resource_name_mock = failure;
+
+  EXPECT_THAT(client_->Init(), ResultIs(failure));
+  EXPECT_SUCCESS(client_->Run());
+
+  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options_no_region));
+}
+
 }  // namespace google::scp::cpio::client_providers::test

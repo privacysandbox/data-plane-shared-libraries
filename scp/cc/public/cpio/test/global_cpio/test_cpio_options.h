@@ -25,8 +25,6 @@ namespace google::scp::cpio {
 struct TestCpioOptions : public CpioOptions {
   /// Cloud zone.
   std::string zone;
-  /// Cloud region.
-  std::string region;
   /// Instance ID.
   std::string instance_id;
   /// Public IP address.

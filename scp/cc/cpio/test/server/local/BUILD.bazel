@@ -16,13 +16,24 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
-# To run this test:
+# To run this test for platform=gcp:
 #  builders/tools/bazel-debian build \
-#  --//:platform=gcp \
+#  --config=instance_local \
+#  --config=platform_gcp \
 #  //scp/cc/cpio/test/server/local:local_server_integration_test
 # Then run the binary, replacing the flag values:
 #  bazel-bin/scp/cc/cpio/test/server/local/local_server_integration_test \
 #  --project_id=$TEST_PROJECT_ID \
+#  --parameter_name=$TEST_PARAMETER_NAME \
+#  --parameter_value=$TEST_PARAMETER_VALUE
+# To run this test for platform=aws:
+#  builders/tools/bazel-debian build \
+#  --config=instance_local \
+#  --config=platform_aws \
+#  //scp/cc/cpio/test/server/local:local_server_integration_test
+# Then run the binary, replacing the flag values:
+#  bazel-bin/scp/cc/cpio/test/server/local/local_server_integration_test \
+#  --region=$TEST_REGION_CODE \
 #  --parameter_name=$TEST_PARAMETER_NAME \
 #  --parameter_value=$TEST_PARAMETER_VALUE
 cc_binary(

@@ -28,6 +28,7 @@
 #include "absl/functional/bind_front.h"
 #include "core/async_executor/src/aws/aws_async_executor.h"
 #include "core/interface/async_context.h"
+#include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
 #include "cpio/common/src/aws/aws_utils.h"
 #include "public/core/interface/execution_result.h"
@@ -52,6 +53,7 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
+using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::common::CreateClientConfiguration;
 
 /// Filename for logging errors
@@ -68,21 +70,28 @@ AwsParameterClientProvider::CreateClientConfiguration(
 }
 
 ExecutionResult AwsParameterClientProvider::Init() noexcept {
+  // Try to get region code from Global Cpio Options, otherwise get region code
+  // from running instance_client.
+  if (const std::string& region_code = GlobalCpio::GetGlobalCpio()->GetRegion();
+      !region_code.empty()) {
+    ssm_client_ = ssm_client_factory_->CreateSSMClient(
+        *CreateClientConfiguration(region_code), io_async_executor_);
+  } else {
+    auto region_code_or =
+        AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_provider_);
+    if (!region_code_or.Successful()) {
+      SCP_ERROR(kAwsParameterClientProvider, kZeroUuid, region_code_or.result(),
+                "Failed to get region code for current instance");
+      return region_code_or.result();
+    }
+    ssm_client_ = ssm_client_factory_->CreateSSMClient(
+        *CreateClientConfiguration(*region_code_or), io_async_executor_);
+  }
+
   return SuccessExecutionResult();
 }
 
 ExecutionResult AwsParameterClientProvider::Run() noexcept {
-  auto region_code_or =
-      AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_provider_);
-  if (!region_code_or.Successful()) {
-    SCP_ERROR(kAwsParameterClientProvider, kZeroUuid, region_code_or.result(),
-              "Failed to get region code for current instance");
-    return region_code_or.result();
-  }
-
-  ssm_client_ = ssm_client_factory_->CreateSSMClient(
-      *CreateClientConfiguration(*region_code_or), io_async_executor_);
-
   return SuccessExecutionResult();
 }
 

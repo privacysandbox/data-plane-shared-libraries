@@ -91,6 +91,8 @@ class LibCpioProvider : public CpioProviderInterface {
 
   const std::string& GetProjectId() noexcept override;
 
+  const std::string& GetRegion() noexcept override;
+
  protected:
   /// Global CPIO options.
   std::shared_ptr<CpioOptions> cpio_options_;

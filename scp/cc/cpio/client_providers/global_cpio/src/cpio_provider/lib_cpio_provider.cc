@@ -478,6 +478,10 @@ const std::string& LibCpioProvider::GetProjectId() noexcept {
   return cpio_options_->project_id;
 }
 
+const std::string& LibCpioProvider::GetRegion() noexcept {
+  return cpio_options_->region;
+}
+
 #ifndef TEST_CPIO
 std::unique_ptr<CpioProviderInterface> CpioProviderFactory::Create(
     const std::shared_ptr<CpioOptions>& options) {

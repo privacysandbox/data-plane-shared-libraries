@@ -125,12 +125,20 @@ class CpioProviderInterface : public core::ServiceInterface {
   virtual core::ExecutionResult GetAuthTokenProvider(
       std::shared_ptr<AuthTokenProviderInterface>&
           auth_token_provider) noexcept = 0;
+
   /**
    * @brief Gets the Project ID from CpioOptions if originally provided.
    *
    * @return const std::string& of Cloud Project ID.
    */
   virtual const std::string& GetProjectId() noexcept = 0;
+
+  /**
+   * @brief Gets the Region from CpioOptions if originally provided.
+   *
+   * @return const std::string& of Cloud Region.
+   */
+  virtual const std::string& GetRegion() noexcept = 0;
 };
 
 /// Factory to create CpioProvider.

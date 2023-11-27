@@ -73,6 +73,11 @@ struct CpioOptions {
   /// through the instance client. Not implemented for all services yet,
   /// implemented for Parameter client only.
   std::string project_id;
+
+  /// Cloud region. Location ID for GCP, region code for AWS. If not set,
+  /// attempted to be found through the instance client. Not implemented for all
+  /// services yet, implemented for Parameter client only.
+  std::string region;
 };
 
 template <typename TResponse>

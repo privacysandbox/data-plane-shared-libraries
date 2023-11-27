@@ -46,6 +46,8 @@ using google::scp::cpio::ParameterClientOptions;
 using google::scp::cpio::client_providers::GlobalCpio;
 
 ABSL_FLAG(std::string, project_id, "test-project", "GCP Project ID");
+ABSL_FLAG(std::string, region, "test-region-1",
+          "AWS region code or GCP location ID");
 ABSL_FLAG(std::string, parameter_name, "test_parameter_name",
           "The name of the parameter to be retrieved");
 ABSL_FLAG(std::string, parameter_value, "test_parameter_value",
@@ -59,6 +61,7 @@ int main(int argc, char* argv[]) {
   CpioOptions cpio_options = {};
   cpio_options.log_option = LogOption::kConsoleLog;
   cpio_options.project_id = absl::GetFlag(FLAGS_project_id);
+  cpio_options.region = absl::GetFlag(FLAGS_region);
   auto status = Cpio::InitCpio(cpio_options);
   if (!status.Successful()) {
     LOG(FATAL) << "Failed to initialize CPIO. "
