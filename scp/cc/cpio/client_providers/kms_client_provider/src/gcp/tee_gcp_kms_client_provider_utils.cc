@@ -16,14 +16,16 @@
 
 #include "tee_gcp_kms_client_provider_utils.h"
 
+#include <string_view>
+
 #include <nlohmann/json.hpp>
 
 #include "absl/strings/str_format.h"
 
 namespace {
 
-constexpr char kAudience[] = "//iam.googleapis.com/%s";
-constexpr char kImpersonationUrl[] =
+constexpr std::string_view kAudience = "//iam.googleapis.com/%s";
+constexpr std::string_view kImpersonationUrl =
     "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/"
     "%s:generateAccessToken";
 }  // namespace

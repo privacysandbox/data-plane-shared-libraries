@@ -42,7 +42,7 @@ namespace {
 
 constexpr int64_t kTrueAsLong = 1L;
 constexpr int64_t kCurlOptTimeout = 60L;
-constexpr char kHttp1CurlWrapper[] = "Http1CurlWrapper";
+constexpr std::string_view kHttp1CurlWrapper = "Http1CurlWrapper";
 
 ExecutionResult GetExecutionResultFromCurlError(const std::string& err_buffer) {
   std::regex error_code_regex("([0-9]{3})");

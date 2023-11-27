@@ -29,9 +29,11 @@
 
 using google::scp::core::common::Uuid;
 
+namespace {
 // Default values are empty to save characters on each log on the wire.
-static constexpr char kDefaultMachineName[] = "";
-static constexpr char kDefaultClusterName[] = "";
+constexpr std::string_view kDefaultMachineName = "";
+constexpr std::string_view kDefaultClusterName = "";
+}  // namespace
 
 namespace google::scp::core::logger {
 

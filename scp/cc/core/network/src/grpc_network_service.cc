@@ -20,6 +20,7 @@
 #include <functional>
 #include <mutex>
 #include <string>
+#include <string_view>
 
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
@@ -36,7 +37,9 @@ using grpc::InsecureServerCredentials;
 using grpc::ResourceQuota;
 using grpc::ServerBuilder;
 
-static constexpr char kGrpcNetworkService[] = "GrpcNetworkService";
+namespace {
+constexpr std::string_view kGrpcNetworkService = "GrpcNetworkService";
+}  // namespace
 
 namespace google::scp::core {
 ExecutionResult GrpcNetworkService::Init() noexcept {

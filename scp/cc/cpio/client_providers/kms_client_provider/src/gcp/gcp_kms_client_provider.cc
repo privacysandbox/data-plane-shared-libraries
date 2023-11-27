@@ -17,6 +17,7 @@
 #include "gcp_kms_client_provider.h"
 
 #include <memory>
+#include <string_view>
 #include <utility>
 
 #include <tink/aead.h>
@@ -48,8 +49,10 @@ using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED;
 using google::scp::core::errors::SC_GCP_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
 
+namespace {
 /// Filename for logging errors
-static constexpr char kGcpKmsClientProvider[] = "GcpKmsClientProvider";
+constexpr std::string_view kGcpKmsClientProvider = "GcpKmsClientProvider";
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 

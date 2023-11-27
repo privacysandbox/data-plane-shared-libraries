@@ -17,6 +17,7 @@
 #include "test_aws_instance_client_provider.h"
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "absl/strings/str_format.h"
@@ -27,7 +28,8 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
 namespace {
-constexpr char kAwsResourceNameFormat[] = R"(arn:aws:ec2:%s:%s:instance/%s)";
+constexpr std::string_view kAwsResourceNameFormat =
+    R"(arn:aws:ec2:%s:%s:instance/%s)";
 }  // namespace
 
 namespace google::scp::cpio::client_providers {

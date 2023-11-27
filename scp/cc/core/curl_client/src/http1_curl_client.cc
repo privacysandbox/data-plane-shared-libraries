@@ -15,6 +15,7 @@
  */
 #include "http1_curl_client.h"
 
+#include <string_view>
 #include <utility>
 
 #include "http1_curl_wrapper.h"
@@ -23,7 +24,7 @@ using google::scp::core::common::RetryStrategy;
 using google::scp::core::common::RetryStrategyType;
 
 namespace {
-constexpr char kHttp1CurlClient[] = "Http1CurlClient";
+constexpr std::string_view kHttp1CurlClient = "Http1CurlClient";
 }
 
 namespace google::scp::core {

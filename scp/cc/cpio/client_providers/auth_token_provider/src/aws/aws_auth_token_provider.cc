@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "absl/functional/bind_front.h"
@@ -39,13 +40,14 @@ using google::scp::core::errors::
     SC_AWS_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED;
 
 namespace {
-constexpr char kAwsAuthTokenProvider[] = "AwsAuthTokenProvider";
+constexpr std::string_view kAwsAuthTokenProvider = "AwsAuthTokenProvider";
 
 /// Use IMDSv2. The IPv4 address of the IMDSv2 is 169.254.169.254.
 /// For more information, see
 /// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
-constexpr char kTokenServerPath[] = "http://169.254.169.254/latest/api/token";
-constexpr char kTokenTtlInSecondHeader[] =
+constexpr std::string_view kTokenServerPath =
+    "http://169.254.169.254/latest/api/token";
+constexpr std::string_view kTokenTtlInSecondHeader =
     "X-aws-ec2-metadata-token-ttl-seconds";
 constexpr int kTokenTtlInSecondHeaderValue = 21600;
 

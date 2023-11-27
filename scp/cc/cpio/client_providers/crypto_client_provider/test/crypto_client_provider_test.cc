@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <tink/hybrid/internal/hpke_context.h>
@@ -67,19 +68,19 @@ using google::scp::core::test::ScpTestBase;
 using google::scp::core::utils::Base64Encode;
 
 namespace google::scp::cpio::client_providers::test {
-constexpr char kKeyId[] = "key_id";
-constexpr char kSharedInfo[] = "shared_info";
-constexpr char kPayload[] = "payload";
-constexpr char kSecret128[] = "000102030405060708090a0b0c0d0e0f";
-constexpr char kSecret256[] =
+constexpr std::string_view kKeyId = "key_id";
+constexpr std::string_view kSharedInfo = "shared_info";
+constexpr std::string_view kPayload = "payload";
+constexpr std::string_view kSecret128 = "000102030405060708090a0b0c0d0e0f";
+constexpr std::string_view kSecret256 =
     "000102030405060708090a0b0c0d0e0f000102030405060708090a0b0c0d0e0f";
-constexpr char kPublicKeyForChacha20[] =
+constexpr std::string_view kPublicKeyForChacha20 =
     "4310ee97d88cc1f088a5576c77ab0cf5c3ac797f3d95139c6c84b5429c59662a";
-constexpr char kPublicKeyForAes128Gcm[] =
+constexpr std::string_view kPublicKeyForAes128Gcm =
     "3948cfe0ad1ddb695d780e59077195da6c56506b027329794ab02bca80815c4d";
-constexpr char kDecryptedPrivateKeyForChacha20[] =
+constexpr std::string_view kDecryptedPrivateKeyForChacha20 =
     "8057991eef8f1f1af18f4a9491d16a1ce333f695d4db8e38da75975c4478e0fb";
-constexpr char kDecryptedPrivateKeyForAes128Gcm[] =
+constexpr std::string_view kDecryptedPrivateKeyForAes128Gcm =
     "4612c550263fc8ad58375df3f557aac531d26850903e55a9f23f21d8534e8ac8";
 
 class CryptoClientProviderTest : public ScpTestBase {

@@ -30,11 +30,13 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/substitute.h"
 
+namespace {
 // localstack version is pinned so that tests are repeatable
-static constexpr char kLocalstackImage[] = "localstack/localstack:1.0.3";
+constexpr std::string_view kLocalstackImage = "localstack/localstack:1.0.3";
 // gcloud SDK tool version is pinned so that tests are repeatable
-static constexpr char kGcpImage[] =
+constexpr std::string_view kGcpImage =
     "gcr.io/google.com/cloudsdktool/google-cloud-cli:380.0.0-emulators";
+}  // namespace
 
 namespace google::scp::core::test {
 std::string PortMapToSelf(std::string_view port) {

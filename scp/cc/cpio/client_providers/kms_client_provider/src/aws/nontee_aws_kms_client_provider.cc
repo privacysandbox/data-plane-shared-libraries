@@ -17,6 +17,7 @@
 #include "nontee_aws_kms_client_provider.h"
 
 #include <memory>
+#include <string_view>
 #include <utility>
 
 #include <aws/core/auth/AWSCredentialsProvider.h>
@@ -57,9 +58,11 @@ using google::scp::core::errors::SC_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND;
 using google::scp::core::utils::Base64Decode;
 using google::scp::cpio::common::CreateClientConfiguration;
 
+namespace {
 /// Filename for logging errors
-static constexpr char kNonteeAwsKmsClientProvider[] =
+constexpr std::string_view kNonteeAwsKmsClientProvider =
     "NonteeAwsKmsClientProvider";
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 

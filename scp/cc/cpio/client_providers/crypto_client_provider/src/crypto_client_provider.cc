@@ -23,6 +23,7 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include <tink/aead.h>
@@ -101,8 +102,8 @@ namespace tink = ::crypto::tink::internal;
 
 namespace {
 /// Filename for logging errors
-constexpr char kCryptoClientProvider[] = "CryptoClientProvider";
-constexpr char kDefaultExporterContext[] = "aead key";
+constexpr std::string_view kCryptoClientProvider = "CryptoClientProvider";
+constexpr std::string_view kDefaultExporterContext = "aead key";
 
 /// Default HpkeParams if it is not configured or specified from the request.
 const tink::HpkeParams kDefaultHpkeParams = {tink::HpkeKem::kX25519HkdfSha256,

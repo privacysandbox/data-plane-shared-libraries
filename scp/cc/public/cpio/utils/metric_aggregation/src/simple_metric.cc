@@ -20,6 +20,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <string_view>
 #include <utility>
 
 #include "absl/strings/str_join.h"
@@ -43,7 +44,9 @@ using google::scp::core::common::TimeProvider;
 using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricValue;
 
-static constexpr char kSimpleMetric[] = "SimpleMetric";
+namespace {
+constexpr std::string_view kSimpleMetric = "SimpleMetric";
+}  // namespace
 
 namespace google::scp::cpio {
 ExecutionResult SimpleMetric::Init() noexcept {

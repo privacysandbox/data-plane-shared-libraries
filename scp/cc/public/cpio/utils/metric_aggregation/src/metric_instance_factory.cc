@@ -20,6 +20,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -34,7 +35,9 @@ using google::scp::core::kAggregatedMetricIntervalMs;
 using google::scp::core::kDefaultAggregatedMetricIntervalMs;
 using google::scp::core::common::kZeroUuid;
 
-static constexpr char kMetricInstanceFactory[] = "MetricInstanceFactory";
+namespace {
+constexpr std::string_view kMetricInstanceFactory = "MetricInstanceFactory";
+}  // namespace
 
 namespace google::scp::cpio {
 MetricInstanceFactory::MetricInstanceFactory(

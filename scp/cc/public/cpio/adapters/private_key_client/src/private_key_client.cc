@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "absl/functional/bind_front.h"
@@ -52,7 +53,9 @@ using google::scp::cpio::client_providers::PrivateKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PrivateKeyClientProviderInterface;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 
-static constexpr char kPrivateKeyClient[] = "PrivateKeyClient";
+namespace {
+constexpr std::string_view kPrivateKeyClient = "PrivateKeyClient";
+}  // namespace
 
 namespace google::scp::cpio {
 ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {

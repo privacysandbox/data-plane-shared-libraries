@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "absl/functional/bind_front.h"
@@ -55,7 +56,9 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderFactory;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 
-static constexpr char kInstanceClient[] = "InstanceClient";
+namespace {
+constexpr std::string_view kInstanceClient = "InstanceClient";
+}  // namespace
 
 namespace google::scp::cpio {
 ExecutionResult InstanceClient::CreateInstanceClientProvider() noexcept {

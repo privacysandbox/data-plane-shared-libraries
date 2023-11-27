@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -58,8 +59,10 @@ using google::scp::core::async_executor::aws::AwsAsyncExecutor;
 using google::scp::core::blob_storage_provider::AwsS3Utils;
 using google::scp::core::utils::Base64Encode;
 
-static constexpr char kAwsS3Provider[] = "AwsS3Provider";
-static constexpr size_t kMaxConcurrentConnections = 1000;
+namespace {
+constexpr std::string_view kAwsS3Provider = "AwsS3Provider";
+constexpr size_t kMaxConcurrentConnections = 1000;
+}  // namespace
 
 namespace google::scp::core::blob_storage_provider {
 ExecutionResult AwsS3Provider::CreateClientConfig() noexcept {

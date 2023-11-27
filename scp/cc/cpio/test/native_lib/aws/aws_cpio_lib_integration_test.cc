@@ -19,6 +19,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -76,16 +77,17 @@ using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
 
 namespace {
-constexpr char kLocalHost[] = "http://127.0.0.1";
-constexpr char kLocalstackContainerName[] = "cpio_integration_test_localstack";
+constexpr std::string_view kLocalHost = "http://127.0.0.1";
+constexpr std::string_view kLocalstackContainerName =
+    "cpio_integration_test_localstack";
 // TODO(b/241857324): pick available ports randomly.
-constexpr char kLocalstackPort[] = "8888";
-constexpr char kParameterName[] = "test_parameter_name";
-constexpr char kParameterValue[] = "test_parameter_value";
-constexpr char kBucketName[] = "blob-storage-service-test-bucket";
-constexpr char kBlobName[] = "blob_name";
-constexpr char kBlobData[] = "some sample data";
-constexpr char kPlaintext[] = "plaintext";
+constexpr std::string_view kLocalstackPort = "8888";
+constexpr std::string_view kParameterName = "test_parameter_name";
+constexpr std::string_view kParameterValue = "test_parameter_value";
+constexpr std::string_view kBucketName = "blob-storage-service-test-bucket";
+constexpr std::string_view kBlobName = "blob_name";
+constexpr std::string_view kBlobData = "some sample data";
+constexpr std::string_view kPlaintext = "plaintext";
 }  // namespace
 
 namespace google::scp::cpio::test {

@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -53,10 +54,12 @@ using google::scp::cpio::MetricLabels;
 using google::scp::cpio::MetricName;
 using google::scp::cpio::MetricValue;
 
-static constexpr char kAggregateMetric[] = "AggregateMetric";
+namespace {
+constexpr std::string_view kAggregateMetric = "AggregateMetric";
 
-static constexpr std::chrono::milliseconds kStopWaitSleepDuration =
+constexpr std::chrono::milliseconds kStopWaitSleepDuration =
     std::chrono::milliseconds(500);
+}  // namespace
 
 namespace google::scp::cpio {
 AggregateMetric::AggregateMetric(

@@ -16,11 +16,12 @@
 
 #include "metric_utils.h"
 
+#include <string_view>
 #include <utility>
 
 namespace {
-constexpr char kMethodName[] = "MethodName";
-constexpr char kComponentName[] = "ComponentName";
+constexpr std::string_view kMethodName = "MethodName";
+constexpr std::string_view kComponentName = "ComponentName";
 }  // namespace
 
 namespace google::scp::cpio {

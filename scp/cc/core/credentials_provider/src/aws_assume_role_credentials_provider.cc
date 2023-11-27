@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <aws/sts/model/AssumeRoleRequest.h>
 
@@ -37,8 +38,10 @@ using Aws::STS::Model::AssumeRoleRequest;
 using google::scp::core::async_executor::aws::AwsAsyncExecutor;
 using google::scp::core::common::TimeProvider;
 
-static constexpr char kAwsAssumeRoleCredentialsProvider[] =
+namespace {
+constexpr std::string_view kAwsAssumeRoleCredentialsProvider =
     "AwsAssumeRoleCredentialsProvider";
+}  // namespace
 
 namespace google::scp::core {
 ExecutionResult AwsAssumeRoleCredentialsProvider::Init() noexcept {

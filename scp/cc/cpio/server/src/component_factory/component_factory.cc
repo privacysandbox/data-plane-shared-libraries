@@ -17,6 +17,7 @@
 #include "component_factory.h"
 
 #include <memory>
+#include <string_view>
 #include <utility>
 
 #include "core/common/global_logger/src/global_logger.h"
@@ -31,7 +32,7 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
 
 namespace {
-constexpr char kComponentFactory[] = "ComponentFactory";
+constexpr std::string_view kComponentFactory = "ComponentFactory";
 }  // namespace
 
 namespace google::scp::cpio {

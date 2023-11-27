@@ -17,6 +17,7 @@
 #include "kms_client.h"
 
 #include <memory>
+#include <string_view>
 #include <utility>
 
 #include "core/common/global_logger/src/global_logger.h"
@@ -39,7 +40,7 @@ using google::scp::cpio::client_providers::KmsClientProviderFactory;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 
 namespace {
-constexpr char kKmsClient[] = "KmsClient";
+constexpr std::string_view kKmsClient = "KmsClient";
 }  // namespace
 
 namespace google::scp::cpio {

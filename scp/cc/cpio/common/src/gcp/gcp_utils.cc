@@ -16,6 +16,8 @@
 
 #include "gcp_utils.h"
 
+#include <string_view>
+
 #include "core/common/global_logger/src/global_logger.h"
 
 #include "error_codes.h"
@@ -41,8 +43,10 @@ using google::scp::core::errors::SC_GCP_UNAVAILABLE;
 using google::scp::core::errors::SC_GCP_UNIMPLEMENTED;
 using google::scp::core::errors::SC_GCP_UNKNOWN;
 
+namespace {
 // Filename for logging errors
-static constexpr char kGcpErrorConverter[] = "GcpErrorConverter";
+constexpr std::string_view kGcpErrorConverter = "GcpErrorConverter";
+}  // namespace
 
 namespace google::scp::cpio::common {
 

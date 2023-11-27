@@ -17,6 +17,7 @@
 #include "blob_storage_client.h"
 
 #include <memory>
+#include <string_view>
 #include <utility>
 
 #include "core/common/global_logger/src/global_logger.h"
@@ -51,7 +52,7 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 
 namespace {
-constexpr char kBlobStorageClient[] = "BlobStorageClient";
+constexpr std::string_view kBlobStorageClient = "BlobStorageClient";
 }  // namespace
 
 namespace google::scp::cpio {

@@ -17,6 +17,7 @@
 #include "tee_aws_kms_client_provider.h"
 
 #include <cstdio>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -54,7 +55,7 @@ namespace google::scp::cpio::client_providers {
 namespace {
 
 /// Filename for logging errors
-constexpr char kTeeAwsKmsClientProvider[] = "TeeAwsKmsClientProvider";
+constexpr std::string_view kTeeAwsKmsClientProvider = "TeeAwsKmsClientProvider";
 
 std::vector<std::string> BuildDecryptArgs(std::string region,
                                           std::string ciphertext,

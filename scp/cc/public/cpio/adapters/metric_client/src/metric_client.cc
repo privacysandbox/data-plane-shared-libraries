@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include <google/protobuf/util/time_util.h>
@@ -54,7 +55,9 @@ using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::MetricClientProviderFactory;
 using google::scp::cpio::client_providers::MetricClientUtils;
 
-static constexpr char kMetricClient[] = "MetricClient";
+namespace {
+constexpr std::string_view kMetricClient = "MetricClient";
+}  // namespace
 
 namespace google::scp::cpio {
 ExecutionResult MetricClient::CreateMetricClientProvider() noexcept {

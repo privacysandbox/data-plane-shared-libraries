@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <memory>
+#include <string_view>
 
 #include "absl/functional/bind_front.h"
 #include "core/common/global_logger/src/global_logger.h"
@@ -46,7 +47,7 @@ using google::scp::cpio::client_providers::CryptoClientProvider;
 using google::scp::cpio::client_providers::CryptoClientProviderInterface;
 
 namespace {
-constexpr char kCryptoClient[] = "CryptoClient";
+constexpr std::string_view kCryptoClient = "CryptoClient";
 }
 
 namespace google::scp::cpio {

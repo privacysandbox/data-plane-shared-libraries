@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -73,7 +74,7 @@ using google::scp::core::errors::SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB;
 using google::scp::core::errors::SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS;
 using google::scp::core::utils::Base64Encode;
 
-constexpr char kGcpCloudStorageProvider[] = "GcpCloudStorageProvider";
+constexpr std::string_view kGcpCloudStorageProvider = "GcpCloudStorageProvider";
 // TODO: Find ideal max concurrent connections and retry limit for operations
 constexpr size_t kMaxConcurrentConnections = 1000;
 constexpr size_t kRetryLimit = 3;
