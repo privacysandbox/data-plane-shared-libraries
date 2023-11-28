@@ -23,9 +23,9 @@
 #include <thread>
 #include <vector>
 
+#include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
 #include "core/test/utils/aws_helper/aws_helper.h"
-#include "core/test/utils/conditional_wait.h"
 #include "core/test/utils/docker_helper/docker_helper.h"
 #include "core/utils/src/base64.h"
 #include "public/core/interface/execution_result.h"
@@ -64,7 +64,6 @@ using google::scp::core::test::GetParameter;
 using google::scp::core::test::PutParameter;
 using google::scp::core::test::StartLocalStackContainer;
 using google::scp::core::test::StopContainer;
-using google::scp::core::test::WaitUntil;
 using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::TestAwsBlobStorageClientOptions;
 using google::scp::cpio::TestAwsKmsClient;
@@ -227,27 +226,31 @@ class CpioIntegrationTest : public ::testing::Test {
 TEST_F(CpioIntegrationTest, MetricClientPutMetricsSuccessfully) {
   CreateMetricClient();
 
+  absl::BlockingCounter counter(10);
+  constexpr int kNumThreads = 2;
   std::vector<std::thread> threads;
-  for (auto i = 0; i < 2; ++i) {
-    threads.push_back(std::thread([&]() {
-      for (auto j = 0; j < 5; j++) {
-        std::atomic<bool> finished = false;
-        auto context = AsyncContext<PutMetricsRequest, PutMetricsResponse>(
-            CreatePutMetricsRequest(),
-            [&](AsyncContext<PutMetricsRequest, PutMetricsResponse> context) {
-              EXPECT_SUCCESS(context.result);
-              finished = true;
-            });
-        EXPECT_SUCCESS(metric_client->PutMetrics(context));
-        WaitUntil([&finished]() { return finished.load(); },
-                  std::chrono::seconds(60));
+  threads.reserve(kNumThreads);
+  for (int i = 0; i < kNumThreads; ++i) {
+    threads.emplace_back([&] {
+      for (int j = 0; j < 5; ++j) {
+        EXPECT_SUCCESS(metric_client->PutMetrics(
+            AsyncContext<PutMetricsRequest, PutMetricsResponse>(
+                CreatePutMetricsRequest(),
+                [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>
+                        context) {
+                  EXPECT_SUCCESS(context.result);
+                  counter.DecrementCount();
+                })));
       }
-    }));
+    });
   }
 
-  for (auto& thread : threads) {
-    thread.join();
+  // These threads complete nearly instantly because they only launch async
+  // work.
+  for (std::thread t : threads) {
+    t.join();
   }
+  counter.Wait();
 }
 
 // GetInstanceId and GetTag cannot be tested in Localstack.
