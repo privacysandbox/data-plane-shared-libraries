@@ -31,7 +31,8 @@ cc_test(
     ],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/sandbox/roma_service/src:roma_service_lib",
         "//scp/cc/roma/wasm/test:roma_wasm_testing_lib",
         "//src/cpp/util:duration",
         "@com_google_absl//absl/log:scoped_mock_log",

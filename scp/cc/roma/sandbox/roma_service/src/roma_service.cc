@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "core/os/src/linux/system_resource_info_provider_linux.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker_api/src/worker_api_sapi.h"
@@ -34,7 +35,9 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
+using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::errors::SC_ROMA_SERVICE_COULD_NOT_CREATE_FD_PAIR;
+using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
 using google::scp::roma::FunctionBindingObjectV2;
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::sandbox::constants::kRequestUuid;
@@ -47,12 +50,14 @@ using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
 
 namespace google::scp::roma::sandbox::roma_service {
-
-absl::Mutex RomaService::instance_mu_;
-RomaService* RomaService::instance_;
 constexpr int kWorkerQueueMax = 100;
 
 namespace {
+// This value does not account for runtime memory usage and is only a generic
+// estimate based on the memory needed by roma and the steady-state memory
+// needed by v8.
+constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
+
 absl::LogSeverity GetSeverity(std::string_view severity) {
   if (severity == "ROMA_LOG") {
     return absl::LogSeverity::kInfo;
@@ -63,6 +68,39 @@ absl::LogSeverity GetSeverity(std::string_view severity) {
   }
 }
 
+static bool RomaHasEnoughMemoryForStartup(const Config& config) {
+  if (!config.enable_startup_memory_check) {
+    return true;
+  }
+
+  SystemResourceInfoProviderLinux mem_info;
+  auto available_memory_or = mem_info.GetAvailableMemoryKb();
+  ROMA_VLOG(1) << "Available memory is " << available_memory_or.value()
+               << " Kb";
+  if (!available_memory_or.result().Successful()) {
+    // Failing to read the meminfo file should not stop startup.
+    // This mem check is a best-effort check.
+    return true;
+  }
+
+  if (config.GetStartupMemoryCheckMinimumNeededValueKb) {
+    return config.GetStartupMemoryCheckMinimumNeededValueKb() <
+           *available_memory_or;
+  }
+
+  const auto cpu_count = std::thread::hardware_concurrency();
+  const auto num_processes =
+      (config.number_of_workers > 0 && config.number_of_workers <= cpu_count)
+          ? config.number_of_workers
+          : cpu_count;
+
+  ROMA_VLOG(1) << "Number of workers is " << num_processes;
+
+  const auto minimum_memory_needed =
+      num_processes * kDefaultMinStartupMemoryNeededPerWorkerKb;
+
+  return minimum_memory_needed < *available_memory_or;
+}
 }  // namespace
 
 void RomaService::RegisterLogBindings() noexcept {
@@ -82,7 +120,110 @@ void RomaService::RegisterLogBindings() noexcept {
   }
 }
 
-ExecutionResult RomaService::Init() noexcept {
+absl::Status RomaService::Init() {
+  if (!RomaHasEnoughMemoryForStartup(config_)) {
+    return absl::Status(
+        absl::StatusCode::kInternal,
+        "Roma startup failed due to insufficient system memory.");
+  }
+
+  auto result = InitInternal();
+  if (!result.Successful()) {
+    return absl::Status(
+        absl::StatusCode::kInternal,
+        absl::StrCat("Roma initialization failed due to internal error: ",
+                     GetErrorMessage(result.status_code)));
+  }
+
+  result = RunInternal();
+  if (!result.Successful()) {
+    return absl::Status(absl::StatusCode::kInternal,
+                        "Roma startup failed due to internal error: " +
+                            std::string(GetErrorMessage(result.status_code)));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status RomaService::LoadCodeObj(std::unique_ptr<CodeObject> code_object,
+                                      Callback callback) {
+  if (code_object->version_num == 0) {
+    return absl::Status(absl::StatusCode::kInternal,
+                        "Roma LoadCodeObj failed due to invalid version.");
+  }
+  if (code_object->js.empty() && code_object->wasm.empty()) {
+    return absl::Status(absl::StatusCode::kInternal,
+                        "Roma LoadCodeObj failed due to empty code content.");
+  }
+  if (!code_object->wasm.empty() && !code_object->wasm_bin.empty()) {
+    return absl::Status(
+        absl::StatusCode::kInternal,
+        "Roma LoadCodeObj failed due to wasm code and wasm code "
+        "array conflict.");
+  }
+  if (!code_object->wasm_bin.empty() !=
+      code_object->tags.contains(kWasmCodeArrayName)) {
+    return absl::Status(absl::StatusCode::kInternal,
+                        "Roma LoadCodeObj failed due to empty wasm_bin or "
+                        "missing wasm code array name tag.");
+  }
+
+  auto result =
+      dispatcher_->Broadcast(std::move(code_object), std::move(callback));
+  if (!result.Successful()) {
+    return absl::Status(absl::StatusCode::kInternal,
+                        absl::StrCat("Roma LoadCodeObj failed with: ",
+                                     GetErrorMessage(result.status_code)));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status RomaService::Stop() {
+  auto result = StopInternal();
+  if (!result.Successful()) {
+    return absl::Status(absl::StatusCode::kInternal,
+                        "Roma stop failed due to internal error: " +
+                            std::string(GetErrorMessage(result.status_code)));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status RomaService::Execute(
+    std::unique_ptr<InvocationRequestStrInput> invocation_req,
+    Callback callback) {
+  return ExecuteInternal(std::move(invocation_req), std::move(callback));
+}
+
+absl::Status RomaService::Execute(
+    std::unique_ptr<InvocationRequestSharedInput> invocation_req,
+    Callback callback) {
+  return ExecuteInternal(std::move(invocation_req), std::move(callback));
+}
+
+absl::Status RomaService::Execute(
+    std::unique_ptr<InvocationRequestStrViewInput> invocation_req,
+    Callback callback) {
+  return ExecuteInternal(std::move(invocation_req), std::move(callback));
+}
+
+absl::Status RomaService::BatchExecute(
+    std::vector<InvocationRequestStrInput>& batch,
+    BatchCallback batch_callback) {
+  return BatchExecuteInternal(batch, std::move(batch_callback));
+}
+
+absl::Status RomaService::BatchExecute(
+    std::vector<InvocationRequestSharedInput>& batch,
+    BatchCallback batch_callback) {
+  return BatchExecuteInternal(batch, std::move(batch_callback));
+}
+
+absl::Status RomaService::BatchExecute(
+    std::vector<InvocationRequestStrViewInput>& batch,
+    BatchCallback batch_callback) {
+  return BatchExecuteInternal(batch, std::move(batch_callback));
+}
+
+ExecutionResult RomaService::InitInternal() noexcept {
   size_t concurrency = config_.number_of_workers;
   if (concurrency == 0) {
     concurrency = std::thread::hardware_concurrency();
@@ -115,7 +256,7 @@ ExecutionResult RomaService::Init() noexcept {
   return SuccessExecutionResult();
 }
 
-ExecutionResult RomaService::Run() noexcept {
+ExecutionResult RomaService::RunInternal() noexcept {
   RETURN_IF_FAILURE(native_function_binding_handler_->Run());
   RETURN_IF_FAILURE(async_executor_->Run());
   RETURN_IF_FAILURE(worker_pool_->Run());
@@ -129,7 +270,7 @@ ExecutionResult RomaService::RegisterMetadata(std::string uuid,
   return SuccessExecutionResult();
 }
 
-ExecutionResult RomaService::Stop() noexcept {
+ExecutionResult RomaService::StopInternal() noexcept {
   if (native_function_binding_handler_) {
     RETURN_IF_FAILURE(native_function_binding_handler_->Stop());
   }

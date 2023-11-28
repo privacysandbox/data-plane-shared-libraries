@@ -22,6 +22,7 @@
 #include "absl/time/time.h"
 #include "roma/interface/roma.h"
 #include "roma/sandbox/constants/constants.h"
+#include "roma/sandbox/roma_service/src/roma_service.h"
 #include "src/cpp/util/duration.h"
 
 namespace google::scp::roma::benchmark {
@@ -128,7 +129,9 @@ struct BenchmarkMetrics {
  * @param code_string the string of JS source code.
  * @return Status
  */
-absl::Status LoadCodeObject(const std::string& code_string);
+absl::Status LoadCodeObject(
+    google::scp::roma::sandbox::roma_service::RomaService& roma_service,
+    const std::string& code_string);
 
 class RomaBenchmark {
  public:
@@ -142,11 +145,13 @@ class RomaBenchmark {
    * @param threads number of threads used to send request.
    * @param requests_per_thread number of requests sent by each thread.
    */
-  explicit RomaBenchmark(const InvocationRequestSharedInput& test_request,
-                         size_t batch_size, size_t threads,
-                         size_t requests_per_thread);
+  explicit RomaBenchmark(
+      std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService>
+          roma_service,
+      const InvocationRequestSharedInput& test_request, size_t batch_size,
+      size_t threads, size_t requests_per_thread);
 
-  RomaBenchmark() = delete;
+  ~RomaBenchmark();
 
   /**
    * @brief Run the benchmark test. This is blocking call, and the function only
@@ -185,5 +190,7 @@ class RomaBenchmark {
   std::atomic<uint64_t> metric_index_{0};
   std::vector<BenchmarkMetrics> latency_metrics_;
   absl::Duration elapsed_time_;
+  std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService>
+      roma_service_;
 };
 }  // namespace google::scp::roma::benchmark

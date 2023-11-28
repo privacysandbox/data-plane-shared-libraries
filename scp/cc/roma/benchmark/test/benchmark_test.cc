@@ -32,13 +32,16 @@
 #include "absl/synchronization/notification.h"
 #include "roma/config/src/config.h"
 #include "roma/interface/roma.h"
+#include "roma/sandbox/roma_service/src/roma_service.h"
 #include "src/cpp/util/duration.h"
 
+using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::StrEq;
 
 namespace google::scp::roma::test {
 
-static void LoadCode(size_t code_bloat_size = 1000) {
+static void LoadCode(std::unique_ptr<RomaService>& roma_service,
+                     size_t code_bloat_size = 1000) {
   auto code_obj = std::make_unique<CodeObject>();
   code_obj->id = "foo";
   code_obj->version_num = 1;
@@ -53,18 +56,19 @@ static void LoadCode(size_t code_bloat_size = 1000) {
 
   absl::Notification load_finished;
 
-  auto status =
-      LoadCodeObj(std::move(code_obj),
-                  [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    EXPECT_TRUE(resp->ok());
-                    load_finished.Notify();
-                  });
+  auto status = roma_service->LoadCodeObj(
+      std::move(code_obj),
+      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        EXPECT_TRUE(resp->ok());
+        load_finished.Notify();
+      });
   EXPECT_TRUE(status.ok());
 
   load_finished.WaitForNotification();
 }
 
-static void ExecuteCode(const std::shared_ptr<std::string>& input) {
+static void ExecuteCode(std::unique_ptr<RomaService>& roma_service,
+                        const std::shared_ptr<std::string>& input) {
   auto code_obj = std::make_unique<InvocationRequestSharedInput>();
   code_obj->id = "foo";
   code_obj->version_num = 1;
@@ -74,16 +78,16 @@ static void ExecuteCode(const std::shared_ptr<std::string>& input) {
   absl::Notification execute_finished;
   std::string result = "";
 
-  auto status =
-      Execute(std::move(code_obj),
-              [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                EXPECT_TRUE(resp->ok());
-                if (resp->ok()) {
-                  auto& code_resp = **resp;
-                  result = code_resp.resp;
-                }
-                execute_finished.Notify();
-              });
+  auto status = roma_service->Execute(
+      std::move(code_obj),
+      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        EXPECT_TRUE(resp->ok());
+        if (resp->ok()) {
+          auto& code_resp = **resp;
+          result = code_resp.resp;
+        }
+        execute_finished.Notify();
+      });
 
   execute_finished.WaitForNotification();
 
@@ -91,7 +95,8 @@ static void ExecuteCode(const std::shared_ptr<std::string>& input) {
   EXPECT_THAT(result, StrEq(R"("Hello, World!")"));
 }
 
-static void RunLoad(const size_t number_of_requests,
+static void RunLoad(std::unique_ptr<RomaService>& roma_service,
+                    const size_t number_of_requests,
                     const size_t number_of_threads, const size_t input_size,
                     std::vector<std::vector<uint64_t>>* exec_times) {
   auto requests_per_thread = number_of_requests / number_of_threads;
@@ -108,8 +113,8 @@ static void RunLoad(const size_t number_of_requests,
   threads.reserve(number_of_threads);
 
   for (int i = 0; i < number_of_threads; i++) {
-    threads.push_back(std::thread([i, input, requests_per_thread,
-                                   &exec_times]() {
+    threads.push_back(std::thread([i, input, requests_per_thread, &exec_times,
+                                   &roma_service]() {
       auto& time = exec_times->at(i);
       auto requests_left = requests_per_thread;
       privacy_sandbox::server_common::Stopwatch stopwatch;
@@ -117,7 +122,7 @@ static void RunLoad(const size_t number_of_requests,
       while (requests_left-- > 0) {
         stopwatch.Reset();
 
-        ExecuteCode(input);
+        ExecuteCode(roma_service, input);
 
         time.push_back(absl::ToInt64Nanoseconds(stopwatch.GetElapsedTime()));
       }
@@ -158,13 +163,15 @@ static void DumpStats(std::vector<int> percentiles,
   }
 }
 
-static void RunLoadAndDumpStats(const size_t number_of_threads,
+static void RunLoadAndDumpStats(std::unique_ptr<RomaService>& roma_service,
+                                const size_t number_of_threads,
                                 const size_t number_of_requests,
                                 const size_t input_size) {
   auto exec_times = std::vector<std::vector<uint64_t>>(number_of_threads);
 
   privacy_sandbox::server_common::Stopwatch timer;
-  RunLoad(number_of_requests, number_of_threads, input_size, &exec_times);
+  RunLoad(roma_service, number_of_requests, number_of_threads, input_size,
+          &exec_times);
   auto elapsed_time_sec = absl::ToInt64Seconds(timer.GetElapsedTime());
   if (elapsed_time_sec == 0) {
     elapsed_time_sec = 1;
@@ -178,20 +185,22 @@ static void RunLoadAndDumpStats(const size_t number_of_threads,
 static void RunTest(size_t num_workers_and_threads) {
   Config config;
   config.number_of_workers = num_workers_and_threads;
-  auto status = RomaInit(config);
+  auto roma_service = std::make_unique<RomaService>(config);
+  auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
-  LoadCode();
+  LoadCode(roma_service);
 
   for (size_t input_size = 0; input_size <= 1000000; input_size += 100000) {
     std::cout << "Run with " << num_workers_and_threads << " worker(s),"
               << num_workers_and_threads
               << " thread(s) sending requests, and input size " << input_size
               << " bytes" << std::endl;
-    RunLoadAndDumpStats(num_workers_and_threads /*number_of_threads*/,
+    RunLoadAndDumpStats(roma_service,
+                        num_workers_and_threads /*number_of_threads*/,
                         10000 /*number_of_requests*/, input_size);
   }
 
-  status = RomaStop();
+  status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
 }
 

@@ -122,49 +122,10 @@ struct ResponseObject {
 using Callback =
     absl::AnyInvocable<void(std::unique_ptr<absl::StatusOr<ResponseObject>>)>;
 
-// Async API.
-// Execute single invocation request. Can only be called when a valid
-// code object has been loaded.
-absl::Status Execute(
-    std::unique_ptr<InvocationRequestStrInput> invocation_request,
-    Callback callback);
-
-absl::Status Execute(
-    std::unique_ptr<InvocationRequestSharedInput> invocation_request,
-    Callback callback);
-
-absl::Status Execute(
-    std::unique_ptr<InvocationRequestStrViewInput> invocation_request,
-    Callback callback);
-
 // Batch API
 // void Callback(const vector<ResponseObject>&);
 using BatchCallback = absl::AnyInvocable<void(
     const std::vector<absl::StatusOr<ResponseObject>>&)>;
-
-// Async & Batch API.
-// Batch execute a batch of invocation requests. Can only be called when a valid
-// code object has been loaded.
-absl::Status BatchExecute(std::vector<InvocationRequestStrInput>& batch,
-                          BatchCallback batch_callback);
-
-absl::Status BatchExecute(std::vector<InvocationRequestSharedInput>& batch,
-                          BatchCallback batch_callback);
-
-absl::Status BatchExecute(std::vector<InvocationRequestStrViewInput>& batch,
-                          BatchCallback batch_callback);
-
-// Async API.
-// Load code object to all Roma Workers.
-absl::Status LoadCodeObj(std::unique_ptr<CodeObject> code_object,
-                         Callback callback);
-
-// Initialize Roma. This will internally call fork() to fork the workers.
-absl::Status RomaInit(const Config& config = Config());
-
-// Stop roma service, which will internally kill all workers and fail all
-// outstanding requests at best effort.
-absl::Status RomaStop();
 }  // namespace google::scp::roma
 
 #endif  // ROMA_INTERFACE_ROMA_H_

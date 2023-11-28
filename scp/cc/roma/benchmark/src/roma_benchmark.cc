@@ -34,15 +34,10 @@
 #include "core/common/time_provider/src/time_provider.h"
 
 using google::scp::core::ExecutionResult;
-using google::scp::roma::BatchExecute;
 using google::scp::roma::CodeObject;
 using google::scp::roma::Config;
-using google::scp::roma::Execute;
 using google::scp::roma::InvocationRequestSharedInput;
-using google::scp::roma::LoadCodeObj;
 using google::scp::roma::ResponseObject;
-using google::scp::roma::RomaInit;
-using google::scp::roma::RomaStop;
 using google::scp::roma::benchmark::BenchmarkMetrics;
 using google::scp::roma::benchmark::InputsType;
 using google::scp::roma::sandbox::constants::
@@ -52,6 +47,7 @@ using google::scp::roma::sandbox::constants::
 using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
 using google::scp::roma::sandbox::constants::
     kInputParsingMetricJsEngineDuration;
+using google::scp::roma::sandbox::roma_service::RomaService;
 
 namespace {
 
@@ -165,9 +161,11 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
   config.number_of_workers = test_configuration.workers;
   config.worker_queue_max_items = test_configuration.queue_size;
   config.sandbox_request_response_shared_buffer_size_mb = 16;
-  auto status = RomaInit(config);
+  auto roma_service = std::make_unique<RomaService>(config);
+  auto status = roma_service->Init();
   if (!status.ok()) {
-    std::cout << "RomaInit failed due to " << status.message() << std::endl;
+    std::cout << "Initializing Roma failed due to " << status.message()
+              << std::endl;
     return;
   }
 
@@ -179,7 +177,7 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
             << test_configuration.requests_per_thread
             << "\n\tBatch size: " << test_configuration.batch_size << std::endl;
 
-  status = LoadCodeObject(test_configuration.js_source_code);
+  status = LoadCodeObject(*roma_service, test_configuration.js_source_code);
   if (!status.ok()) {
     std::cout << "LoadCodeObject failed due to " << status.message()
               << std::endl;
@@ -190,7 +188,7 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
       test_configuration.inputs_type, test_configuration.input_payload_in_byte,
       test_configuration.input_json_nested_depth);
 
-  RomaBenchmark roma_benchmark(test_execute_request,
+  RomaBenchmark roma_benchmark(std::move(roma_service), test_execute_request,
                                test_configuration.batch_size,
                                test_configuration.request_threads,
                                test_configuration.requests_per_thread);
@@ -198,11 +196,6 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
   roma_benchmark.RunTest();
 
   roma_benchmark.ConsoleTestMetrics();
-
-  status = RomaStop();
-  if (!status.ok()) {
-    std::cout << "RomaStop failed due to " << status.message() << std::endl;
-  }
 }
 
 BenchmarkMetrics BenchmarkMetrics::GetMeanMetrics(
@@ -226,22 +219,23 @@ BenchmarkMetrics BenchmarkMetrics::GetMeanMetrics(
   return mean_metric;
 }
 
-absl::Status LoadCodeObject(const std::string& code_string) {
+absl::Status LoadCodeObject(RomaService& roma_service,
+                            const std::string& code_string) {
   // Loads code object to Roma workers.
   auto code_obj = CreateCodeObj(code_string);
   std::promise<void> done;
   std::atomic_bool load_success{false};
-  auto status =
-      LoadCodeObj(std::make_unique<CodeObject>(code_obj),
-                  [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    if (resp->ok()) {
-                      load_success = true;
-                    } else {
-                      std::cout << "LoadCodeObj failed with "
-                                << resp->status().message() << std::endl;
-                    }
-                    done.set_value();
-                  });
+  auto status = roma_service.LoadCodeObj(
+      std::make_unique<CodeObject>(code_obj),
+      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        if (resp->ok()) {
+          load_success = true;
+        } else {
+          std::cout << "LoadCodeObj failed with " << resp->status().message()
+                    << std::endl;
+        }
+        done.set_value();
+      });
 
   if (!status.ok()) {
     return status;
@@ -256,14 +250,24 @@ absl::Status LoadCodeObject(const std::string& code_string) {
   }
 }
 
-RomaBenchmark::RomaBenchmark(const InvocationRequestSharedInput& test_request,
-                             size_t batch_size, size_t threads,
-                             size_t requests_per_thread)
+RomaBenchmark::RomaBenchmark(
+    std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService>
+        roma_service,
+    const InvocationRequestSharedInput& test_request, size_t batch_size,
+    size_t threads, size_t requests_per_thread)
     : code_obj_(test_request),
+      roma_service_(std::move(roma_service)),
       threads_(threads),
       batch_size_(batch_size),
       requests_per_thread_(requests_per_thread),
       latency_metrics_(threads * requests_per_thread, BenchmarkMetrics()) {}
+
+RomaBenchmark::~RomaBenchmark() {
+  if (auto status = roma_service_->Stop(); !status.ok()) {
+    std::cout << "Stopping Roma failed due to " << status.message()
+              << std::endl;
+  }
+}
 
 void RomaBenchmark::RunTest() {
   privacy_sandbox::server_common::Stopwatch stopwatch;
@@ -409,10 +413,12 @@ void RomaBenchmark::SendRequestBatch() {
   }
   std::atomic<size_t> sent_request = 0;
   while (sent_request < requests_per_thread_) {
-    while (!BatchExecute(requests,
-                         std::bind(&RomaBenchmark::CallbackBatch, this,
-                                   std::placeholders::_1,
-                                   privacy_sandbox::server_common::Stopwatch()))
+    while (!roma_service_
+                ->BatchExecute(
+                    requests,
+                    std::bind(&RomaBenchmark::CallbackBatch, this,
+                              std::placeholders::_1,
+                              privacy_sandbox::server_common::Stopwatch()))
                 .ok()) {}
     sent_request++;
   }
@@ -424,11 +430,13 @@ void RomaBenchmark::SendRequest() {
     auto code_object =
         std::make_unique<InvocationRequestSharedInput>(code_obj_);
     // Retry Execute to dispatch code_obj until success.
-    while (!Execute(
-                move(code_object),
-                std::bind(&RomaBenchmark::Callback, this, std::placeholders::_1,
-                          privacy_sandbox::server_common::Stopwatch()))
-                .ok()) {
+    while (
+        !roma_service_
+             ->Execute(std::move(code_object),
+                       std::bind(&RomaBenchmark::Callback, this,
+                                 std::placeholders::_1,
+                                 privacy_sandbox::server_common::Stopwatch()))
+             .ok()) {
       // Recreate code_object and update start_time when request send failed.
       code_object = std::make_unique<InvocationRequestSharedInput>(code_obj_);
     }

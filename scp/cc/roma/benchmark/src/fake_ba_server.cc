@@ -38,11 +38,14 @@ constexpr absl::Duration kExecuteCodeTimeout = absl::Seconds(10);
 }  // namespace
 
 FakeBaServer::FakeBaServer(DispatchConfig config) {
-  CHECK_OK(RomaInit(config));
+  roma_service_ =
+      std::make_unique<google::scp::roma::sandbox::roma_service::RomaService>(
+          config);
+  CHECK(roma_service_->Init().ok());
 }
 
 FakeBaServer::~FakeBaServer() {
-  CHECK_OK(RomaStop());
+  CHECK_OK(roma_service_->Stop());
 }
 
 void FakeBaServer::LoadSync(int version, absl::string_view js) const {
@@ -53,7 +56,7 @@ void FakeBaServer::LoadSync(int version, absl::string_view js) const {
   // what B&A uses.
   absl::BlockingCounter is_loading(1);
 
-  absl::Status try_load = google::scp::roma::LoadCodeObj(
+  absl::Status try_load = roma_service_->LoadCodeObj(
       std::make_unique<LoadRequest>(request),
       [&is_loading](std::unique_ptr<absl::StatusOr<LoadResponse>> res) {
         CHECK_OK(*res);
@@ -75,7 +78,7 @@ void FakeBaServer::BatchExecute(std::vector<DispatchRequest>& batch) const {
       };
 
   // This call schedules the code to be executed:
-  CHECK_OK(google::scp::roma::BatchExecute(batch, std::move(batch_callback)));
+  CHECK_OK(roma_service_->BatchExecute(batch, std::move(batch_callback)));
   notification.WaitForNotificationWithTimeout(kExecuteCodeTimeout);
   CHECK(notification.HasBeenNotified()) << "Timed out waiting for UDF result.";
 }

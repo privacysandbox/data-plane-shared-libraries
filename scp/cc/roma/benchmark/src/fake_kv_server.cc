@@ -39,11 +39,14 @@ constexpr int kVersionNum = 1;
 }  // namespace
 
 FakeKvServer::FakeKvServer(const Config& config) {
-  CHECK(RomaInit(config).ok());
+  roma_service_ =
+      std::make_unique<google::scp::roma::sandbox::roma_service::RomaService>(
+          config);
+  CHECK(roma_service_->Init().ok());
 }
 
 FakeKvServer::~FakeKvServer() {
-  CHECK(RomaStop().ok());
+  CHECK(roma_service_->Stop().ok());
 }
 
 std::string FakeKvServer::ExecuteCode(const std::vector<std::string> keys) {
@@ -62,18 +65,18 @@ std::string FakeKvServer::ExecuteCode(const std::vector<std::string> keys) {
       .input = std::move(keys),
   };
 
-  const auto status =
-      Execute(std::make_unique<InvocationRequestStrInput>(invocation_request),
-              [notification, response_status, result](
-                  std::unique_ptr<absl::StatusOr<ResponseObject>> response) {
-                if (response->ok()) {
-                  auto& code_response = **response;
-                  *result = std::move(code_response.resp);
-                } else {
-                  response_status->Update(std::move(response->status()));
-                }
-                notification->Notify();
-              });
+  const auto status = roma_service_->Execute(
+      std::make_unique<InvocationRequestStrInput>(invocation_request),
+      [notification, response_status,
+       result](std::unique_ptr<absl::StatusOr<ResponseObject>> response) {
+        if (response->ok()) {
+          auto& code_response = **response;
+          *result = std::move(code_response.resp);
+        } else {
+          response_status->Update(std::move(response->status()));
+        }
+        notification->Notify();
+      });
   CHECK(status.ok()) << status;
   notification->WaitForNotificationWithTimeout(kExecuteCodeTimeout);
   CHECK(notification->HasBeenNotified()) << "Timed out waiting for UDF result.";
@@ -93,15 +96,15 @@ void FakeKvServer::SetCodeObject(CodeConfig code_config) {
       .wasm = std::move(code_config.wasm),
   };
 
-  absl::Status load_status =
-      LoadCodeObj(std::make_unique<CodeObject>(code_object),
-                  [notification, response_status](
-                      std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    if (!resp->ok()) {
-                      response_status->Update(std::move(resp->status()));
-                    }
-                    notification->Notify();
-                  });
+  absl::Status load_status = roma_service_->LoadCodeObj(
+      std::make_unique<CodeObject>(code_object),
+      [notification,
+       response_status](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        if (!resp->ok()) {
+          response_status->Update(std::move(resp->status()));
+        }
+        notification->Notify();
+      });
 
   CHECK(load_status.ok()) << load_status;
   notification->WaitForNotificationWithTimeout(kCodeUpdateTimeout);

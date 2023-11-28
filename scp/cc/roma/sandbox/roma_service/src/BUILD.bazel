@@ -28,6 +28,7 @@ cc_library(
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
+        "//scp/cc/core/os/src/linux:system_resource_info_provider_linux_lib",
         "//scp/cc/public/core/interface:execution_result",
         "//scp/cc/roma/logging/src:roma_logging_lib",
         "//scp/cc/roma/sandbox/dispatcher/src:roma_dispatcher_lib",

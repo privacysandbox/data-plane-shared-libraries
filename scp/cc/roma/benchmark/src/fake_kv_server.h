@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "roma/config/src/config.h"
 #include "roma/interface/roma.h"
 #include "roma/sandbox/constants/constants.h"
+#include "roma/sandbox/roma_service/src/roma_service.h"
 
 namespace google::scp::roma::benchmark {
 
@@ -61,6 +63,8 @@ class FakeKvServer {
 
  private:
   std::string handler_name_;
+  std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService>
+      roma_service_;
 };
 
 }  // namespace google::scp::roma::benchmark

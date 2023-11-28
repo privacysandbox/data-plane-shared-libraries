@@ -27,8 +27,9 @@ cc_test(
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/benchmark/src:roma_benchmark_lib",
-        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/sandbox/roma_service/src:roma_service_lib",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -40,7 +41,8 @@ cc_test(
     tags = ["manual"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/sandbox/roma_service/src:roma_service_lib",
         "//src/cpp/util:duration",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
@@ -72,7 +74,8 @@ cc_test(
     deps = [
         ":test_code",
         "//scp/cc/roma/benchmark/src:fake_kv_server",
-        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/sandbox/roma_service/src:roma_service_lib",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -86,7 +89,8 @@ cc_test(
     deps = [
         ":test_code",
         "//scp/cc/roma/benchmark/src:fake_ba_server",
-        "//scp/cc/roma/roma_service/src:roma_service_lib",
+        "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/sandbox/roma_service/src:roma_service_lib",
         "@google_benchmark//:benchmark",
     ],
 )

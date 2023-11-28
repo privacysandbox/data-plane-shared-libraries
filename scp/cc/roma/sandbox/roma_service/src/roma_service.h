@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "absl/base/thread_annotations.h"
@@ -34,48 +35,62 @@
 
 #include "error_codes.h"
 
+using google::scp::core::errors::GetErrorMessage;
+
 namespace google::scp::roma::sandbox::roma_service {
 class RomaService {
  public:
-  core::ExecutionResult Init() noexcept;
-  core::ExecutionResult Run() noexcept;
-  core::ExecutionResult Stop() noexcept;
+  absl::Status Init();
 
-  /// The the instance of the roma service. This function is thread-unsafe when
-  /// instance_ is null.
-  static RomaService* Instance(const Config& config = Config())
-      ABSL_LOCKS_EXCLUDED(instance_mu_) {
-    absl::MutexLock lock(&instance_mu_);
-    if (instance_ == nullptr) {
-      instance_ = new RomaService(config);
-    }
-    return instance_;
-  }
+  absl::Status LoadCodeObj(std::unique_ptr<CodeObject> code_object,
+                           Callback callback);
 
-  static void Delete() ABSL_LOCKS_EXCLUDED(instance_mu_) {
-    absl::MutexLock lock(&instance_mu_);
-    if (instance_ != nullptr) {
-      delete instance_;
-      instance_ = nullptr;
-    }
-  }
+  // Async API.
+  // Execute single invocation request. Can only be called when a valid
+  // code object has been loaded.
+  absl::Status Execute(
+      std::unique_ptr<InvocationRequestStrInput> invocation_request,
+      Callback callback);
+
+  absl::Status Execute(
+      std::unique_ptr<InvocationRequestSharedInput> invocation_request,
+      Callback callback);
+
+  absl::Status Execute(
+      std::unique_ptr<InvocationRequestStrViewInput> invocation_request,
+      Callback callback);
+
+  // Async & Batch API.
+  // Batch execute a batch of invocation requests. Can only be called when a
+  // valid code object has been loaded.
+  absl::Status BatchExecute(std::vector<InvocationRequestStrInput>& batch,
+                            BatchCallback batch_callback);
+
+  absl::Status BatchExecute(std::vector<InvocationRequestSharedInput>& batch,
+                            BatchCallback batch_callback);
+
+  absl::Status BatchExecute(std::vector<InvocationRequestStrViewInput>& batch,
+                            BatchCallback batch_callback);
+
+  absl::Status Stop();
+
+  RomaService(const RomaService&) = delete;
+
+  explicit RomaService(const Config config = Config())
+      : config_(std::move(config)) {}
+
+ private:
+  core::ExecutionResult InitInternal() noexcept;
+  core::ExecutionResult RunInternal() noexcept;
+  core::ExecutionResult StopInternal() noexcept;
 
   core::ExecutionResult RegisterMetadata(std::string uuid, TMetadata metadata);
 
-  /// Return the dispatcher
-  dispatcher::Dispatcher& Dispatcher() { return *dispatcher_; }
-
-  RomaService(const RomaService&) = delete;
-  RomaService() = default;
-
- private:
   struct NativeFunctionBindingSetup {
     std::vector<int> remote_file_descriptors;
     std::vector<int> local_file_descriptors;
     std::vector<std::string> js_function_names;
   };
-
-  explicit RomaService(const Config& config = Config()) { config_ = config; }
 
   /**
    * @brief Setup the handler, create the socket pairs and return the sockets
@@ -91,6 +106,68 @@ class RomaService {
 
   core::ExecutionResult SetupWorkers(
       const NativeFunctionBindingSetup& native_binding_setup);
+
+  template <typename RequestT>
+  absl::Status ExecutionObjectValidation(const std::string& function_name,
+                                         const RequestT& invocation_req) {
+    if (invocation_req->version_num == 0) {
+      return absl::Status(
+          absl::StatusCode::kInvalidArgument,
+          "Roma " + function_name + " failed due to invalid version.");
+    }
+
+    if (invocation_req->handler_name.empty()) {
+      return absl::Status(
+          absl::StatusCode::kInvalidArgument,
+          "Roma " + function_name + " failed due to empty handler name.");
+    }
+
+    return absl::OkStatus();
+  }
+
+  template <typename RequestT>
+  absl::Status ExecuteInternal(std::unique_ptr<RequestT> invocation_req,
+                               Callback callback) {
+    auto validation =
+        ExecutionObjectValidation("Execute", invocation_req.get());
+    if (!validation.ok()) {
+      return validation;
+    }
+
+    auto request_unique_id = google::scp::core::common::Uuid::GenerateUuid();
+    auto it_pair = invocation_req->tags.emplace(
+        google::scp::roma::sandbox::constants::kRequestUuid,
+        google::scp::core::common::ToString(request_unique_id));
+    RegisterMetadata(it_pair.first->second, invocation_req->metadata);
+
+    const auto result =
+        dispatcher_->Dispatch(std::move(invocation_req), std::move(callback));
+    if (!result.Successful()) {
+      return absl::Status(absl::StatusCode::kInternal,
+                          "Roma Execute failed due to: " +
+                              std::string(GetErrorMessage(result.status_code)));
+    }
+    return absl::OkStatus();
+  }
+
+  template <typename RequestT>
+  absl::Status BatchExecuteInternal(std::vector<RequestT>& batch,
+                                    BatchCallback batch_callback) {
+    for (auto& request : batch) {
+      auto validation = ExecutionObjectValidation("BatchExecute", &request);
+      if (!validation.ok()) {
+        return validation;
+      }
+    }
+
+    auto result = dispatcher_->DispatchBatch(batch, std::move(batch_callback));
+    if (!result.Successful()) {
+      return absl::Status(absl::StatusCode::kInternal,
+                          "Roma Batch Execute failed due to dispatch error: " +
+                              std::string(GetErrorMessage(result.status_code)));
+    }
+    return absl::OkStatus();
+  }
 
   static absl::Mutex instance_mu_;
   static RomaService* instance_ ABSL_GUARDED_BY(instance_mu_);

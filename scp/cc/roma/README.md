@@ -200,7 +200,8 @@ converters for every odd type in Roma. Here is an example of how to use this fea
                                                 15 /*maximum_heap_size_in_mb*/);
 
     // Init Roma with above config.
-    auto status = Roma::RomaInit(config);
+    auto roma_service = std::make_unique<RomaService>(config);
+    auto status = roma_service->Init();
     ```
 
 1. Roma needs the code object to be loaded before it can process an invocation request. Roma caches
@@ -218,7 +219,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
     }
     )JS_CODE";
 
-    status = Roma::LoadCodeObj(
+    status = roma_service->LoadCodeObj(
         move(code_obj), [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           // define a callback function for response handling.
         });
@@ -235,7 +236,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
-    status = Roma::Execute(move(execution_obj),
+    status = roma_service->Execute(move(execution_obj),
                           [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                             // define a callback function for response handling.
                           });
@@ -250,7 +251,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
     // Here we use the same execution object, but these could be different objects
     // with different inputs, for example.
     vector<InvocationRequestStrInput> batch(5 /*batch size*/, execution_obj);
-    status = Roma::BatchExecute(
+    status = roma_service->BatchExecute(
         batch, [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
           // define a callback function for response handling.
         });
@@ -259,7 +260,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
 1. Stop Roma
 
     ```cpp
-    status = Roma::RomaStop();
+    status = roma_service->Stop();
     ```
 
 For more information on how to get started with Roma, see the examples in the
