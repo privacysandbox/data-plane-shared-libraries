@@ -18,13 +18,11 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_worker_utils_lib",
-    srcs = glob(
-        [
-            "worker_utils.cc",
-            "worker_utils.h",
-            "error_codes.h",
-        ],
-    ),
+    srcs = [
+        "error_codes.h",
+        "worker_utils.cc",
+        "worker_utils.h",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
@@ -39,13 +37,11 @@ cc_library(
 
 cc_library(
     name = "roma_worker_lib",
-    srcs = glob(
-        [
-            "error_codes.h",
-            "worker.cc",
-            "worker.h",
-        ],
-    ),
+    srcs = [
+        "error_codes.h",
+        "worker.cc",
+        "worker.h",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/lru_cache/src:lru_cache_lib",

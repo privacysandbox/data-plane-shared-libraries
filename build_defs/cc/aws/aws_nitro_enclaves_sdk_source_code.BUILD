@@ -22,21 +22,21 @@ exports_files(["LICENSE"])
 
 cc_library(
     name = "aws_nitro_enclaves_sdk",
-    srcs = glob([
+    srcs = [
         "source/attestation.c",
         "source/cms.c",
         "source/kms.c",
         "source/nitro_enclaves.c",
         "source/rest.c",
-    ]),
-    hdrs = glob([
+    ],
+    hdrs = [
         "include/aws/nitro_enclaves/attestation.h",
         "include/aws/nitro_enclaves/exports.h",
+        "include/aws/nitro_enclaves/internal/cms.h",
         "include/aws/nitro_enclaves/kms.h",
         "include/aws/nitro_enclaves/nitro_enclaves.h",
         "include/aws/nitro_enclaves/rest.h",
-        "include/aws/nitro_enclaves/internal/cms.h",
-    ]),
+    ],
     defines = [
     ],
     includes = [
