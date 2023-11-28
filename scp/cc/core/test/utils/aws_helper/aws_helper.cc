@@ -17,6 +17,7 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -63,7 +64,7 @@ constexpr int kReadWriteCapacity = 10;
 
 namespace google::scp::core::test {
 std::shared_ptr<ClientConfiguration> CreateClientConfiguration(
-    const std::string& endpoint, const std::string& region) {
+    std::string_view endpoint, std::string_view region) {
   auto config = std::make_shared<ClientConfiguration>();
   config->region = region;
   config->scheme = Aws::Http::Scheme::HTTP;
@@ -73,18 +74,18 @@ std::shared_ptr<ClientConfiguration> CreateClientConfiguration(
   return config;
 }
 
-std::shared_ptr<DynamoDBClient> CreateDynamoDbClient(
-    const std::string& endpoint, const std::string& region) {
+std::shared_ptr<DynamoDBClient> CreateDynamoDbClient(std::string_view endpoint,
+                                                     std::string_view region) {
   return std::make_shared<DynamoDBClient>(
       *CreateClientConfiguration(endpoint, region));
 }
 
 void CreateTable(const std::shared_ptr<DynamoDBClient>& dynamo_db_client,
-                 const std::string& table_name,
+                 std::string_view table_name,
                  const std::vector<AttributeDefinition>& attributes,
                  const std::vector<KeySchemaElement>& schemas) {
   CreateTableRequest request;
-  request.SetTableName(table_name.c_str());
+  request.SetTableName(table_name.data());
 
   for (auto attribute : attributes) {
     request.AddAttributeDefinitions(attribute);
@@ -108,8 +109,8 @@ void CreateTable(const std::shared_ptr<DynamoDBClient>& dynamo_db_client,
   }
 }
 
-std::shared_ptr<S3Client> CreateS3Client(const std::string& endpoint,
-                                         const std::string& region) {
+std::shared_ptr<S3Client> CreateS3Client(std::string_view endpoint,
+                                         std::string_view region) {
   // Should disable virtual host, otherwise, our path-style url will not work.
   return std::make_shared<S3Client>(
       *CreateClientConfiguration(endpoint, region),
@@ -118,9 +119,9 @@ std::shared_ptr<S3Client> CreateS3Client(const std::string& endpoint,
 }
 
 void CreateBucket(const std::shared_ptr<S3Client>& s3_client,
-                  const std::string& bucket_name) {
+                  std::string_view bucket_name) {
   CreateBucketRequest request;
-  request.SetBucket(bucket_name.c_str());
+  request.SetBucket(bucket_name.data());
   request.SetACL(BucketCannedACL::public_read_write);
 
   auto outcome = s3_client->CreateBucket(request);
@@ -132,18 +133,18 @@ void CreateBucket(const std::shared_ptr<S3Client>& s3_client,
   }
 }
 
-std::shared_ptr<SSMClient> CreateSSMClient(const std::string& endpoint,
-                                           const std::string& region) {
+std::shared_ptr<SSMClient> CreateSSMClient(std::string_view endpoint,
+                                           std::string_view region) {
   return std::make_shared<SSMClient>(
       *CreateClientConfiguration(endpoint, region));
 }
 
 void PutParameter(const std::shared_ptr<SSMClient>& ssm_client,
-                  const std::string& parameter_name,
-                  const std::string& parameter_value) {
+                  std::string_view parameter_name,
+                  std::string_view parameter_value) {
   PutParameterRequest request;
-  request.SetName(parameter_name.c_str());
-  request.SetValue(parameter_value.c_str());
+  request.SetName(parameter_name.data());
+  request.SetValue(parameter_value.data());
 
   auto outcome = ssm_client->PutParameter(request);
   if (!outcome.IsSuccess()) {
@@ -155,9 +156,9 @@ void PutParameter(const std::shared_ptr<SSMClient>& ssm_client,
 }
 
 std::string GetParameter(const std::shared_ptr<SSMClient>& ssm_client,
-                         const std::string& parameter_name) {
+                         std::string_view parameter_name) {
   GetParameterRequest request;
-  request.SetName(parameter_name.c_str());
+  request.SetName(parameter_name.data());
 
   auto outcome = ssm_client->GetParameter(request);
   if (!outcome.IsSuccess()) {
@@ -170,8 +171,8 @@ std::string GetParameter(const std::shared_ptr<SSMClient>& ssm_client,
   return outcome.GetResult().GetParameter().GetValue();
 }
 
-std::shared_ptr<KMSClient> CreateKMSClient(const std::string& endpoint,
-                                           const std::string& region) {
+std::shared_ptr<KMSClient> CreateKMSClient(std::string_view endpoint,
+                                           std::string_view region) {
   return std::make_shared<KMSClient>(
       *CreateClientConfiguration(endpoint, region));
 }
@@ -199,9 +200,9 @@ void CreateKey(const std::shared_ptr<KMSClient>& kms_client,
 }
 
 std::string Encrypt(const std::shared_ptr<KMSClient>& kms_client,
-                    const std::string& key_id, const std::string& plaintext) {
+                    std::string_view key_id, std::string_view plaintext) {
   EncryptRequest request;
-  request.SetKeyId(key_id);
+  request.SetKeyId(key_id.data());
   Aws::Utils::ByteBuffer plaintext_buffer(
       reinterpret_cast<const unsigned char*>(plaintext.data()),
       plaintext.length());
