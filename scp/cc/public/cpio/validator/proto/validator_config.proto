@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+syntax = "proto3";
+
+package google.scp.cpio.validator.proto;
+
 message ValidatorConfig {
   optional BlobStorageConfig blob_storage_config = 1;
 }
@@ -22,10 +26,10 @@ message BlobStorageConfig {
 }
 
 message GetBlobConfig {
-  required string bucket_name = 1;
-  required string blob_name = 2;
+  string bucket_name = 1;
+  string blob_name = 2;
 }
 
 message ListBlobsMetadataConfig {
-  required string bucket_name = 1;
+  string bucket_name = 1;
 }

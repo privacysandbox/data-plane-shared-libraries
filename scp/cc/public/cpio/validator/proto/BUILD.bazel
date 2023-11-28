@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
@@ -23,7 +24,14 @@ proto_library(
 )
 
 cc_proto_library(
-    name = "cc_validator_config_proto",
+    name = "validator_config_proto_lib",
     visibility = ["//visibility:public"],
     deps = [":validator_config_proto"],
+)
+
+buf_lint_test(
+    name = "validator_config_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":validator_config_proto"],
 )

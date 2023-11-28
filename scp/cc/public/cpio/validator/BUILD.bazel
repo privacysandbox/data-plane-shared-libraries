@@ -62,7 +62,7 @@ cc_binary(
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface:cpio",
         "//scp/cc/public/cpio/interface/blob_storage_client",
-        "//scp/cc/public/cpio/validator/proto:cc_validator_config_proto",
+        "//scp/cc/public/cpio/validator/proto:validator_config_proto_lib",
         "@com_google_absl//absl/synchronization",
         "@com_google_protobuf//:protobuf",
     ],
