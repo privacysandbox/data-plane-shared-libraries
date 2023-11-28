@@ -101,10 +101,10 @@ def import_aws_nitro_enclaves_sdk():
         http_archive,
         name = "json_c",
         build_file = Label("//build_defs/cc/aws:json_c.BUILD"),
-        sha256 = "3ecaeedffd99a60b1262819f9e60d7d983844073abc74e495cb822b251904185",
-        strip_prefix = "json-c-json-c-0.16-20220414",
+        sha256 = "471e9eb1dad4fd2e4fec571d8415993e66a89f23a5b052f1ba11b54db90252de",
+        strip_prefix = "json-c-json-c-0.17-20230812",
         urls = [
-            "https://github.com/json-c/json-c/archive/refs/tags/json-c-0.16-20220414.tar.gz",
+            "https://github.com/json-c/json-c/archive/refs/tags/json-c-0.17-20230812.zip",
         ],
     )
 
