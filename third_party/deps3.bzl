@@ -23,7 +23,6 @@ load("@com_google_sandboxed_api//sandboxed_api/bazel:sapi_deps.bzl", "sapi_deps"
 load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
 load("@io_opentelemetry_cpp//bazel:repository.bzl", "opentelemetry_cpp_deps")
 load("@rules_buf//buf:repositories.bzl", "rules_buf_dependencies", "rules_buf_toolchains")
-load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 load("@rules_fuzzing//fuzzing:init.bzl", "rules_fuzzing_init")
 load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
 load("@tink_cc//:tink_cc_deps.bzl", "tink_cc_deps")
@@ -37,12 +36,7 @@ def deps3():
     sapi_deps()
     bazel_rules_closure()
     rpmpack_dependencies()
-
-    # This sets up some common toolchains for building targets. For more details, please see
-    # https://bazelbuild.github.io/rules_foreign_cc/0.9.0/flatten.html#rules_foreign_cc_dependencies
-    rules_foreign_cc_dependencies()
     install_v8_python_deps()
-
     rules_buf_dependencies()
     rules_buf_toolchains(version = "v1.27.1")
     tink_cc_deps()
