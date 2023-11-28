@@ -14,6 +14,8 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
+package(default_visibility = ["//visibility:private"])
+
 cc_library(
     name = "duration",
     srcs = ["duration.cc"],
@@ -54,6 +56,7 @@ cc_library(
     name = "read_system",
     srcs = ["read_system.cc"],
     hdrs = ["read_system.h"],
+    visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log:absl_log",
