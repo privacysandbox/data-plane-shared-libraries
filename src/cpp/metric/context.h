@@ -90,19 +90,42 @@ class Context {
     }
   }
 
+  void SetCustomState(absl::string_view key, absl::string_view value)
+      ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    request_state_.custom[key] = value;
+  }
+
+  absl::StatusOr<absl::string_view> CustomState(absl::string_view key)
+      ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    auto iter = request_state_.custom.find(key);
+    if (iter == request_state_.custom.end()) {
+      return absl::NotFoundError(key);
+    }
+    return iter->second;
+  }
+
   // Sets once request is decrypted
-  void SetDecrypted() { is_decrypted_ = true; }
+  void SetDecrypted() ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    request_state_.is_decrypted = true;
+  }
 
-  bool is_decrypted() const { return is_decrypted_; }
+  bool is_decrypted() ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    return request_state_.is_decrypted;
+  }
 
-  // Set once request is successful
-  void SetRequestSuccessful() { is_request_successful_ = true; }
+  void SetRequestResult(absl::Status s) ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    request_state_.result = std::move(s);
+  }
 
-  bool is_request_successful() const { return is_request_successful_; }
-
-  void SetRequestStatus(absl::Status s) { request_result_ = std::move(s); }
-
-  const absl::Status& request_result() const { return request_result_; }
+  const absl::Status& request_result() ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    return request_state_.result;
+  }
 
   // Logs metric for a UpDownCounter
   // Example: LogUpDownCounter<kCounterDefinition>(1);
@@ -219,15 +242,15 @@ class Context {
   explicit Context(U* metric_router) : metric_router_(metric_router) {}
 
   template <Privacy privacy>
-  absl::StatusOr<bool> ShouldLogSafe() const {
+  absl::StatusOr<bool> ShouldLogSafe() {
     if (!metric_router_->metric_config().MetricAllowed()) {
       return absl::PermissionDeniedError("metric is OFF");
     }
-    if (is_decrypted_ && privacy == Privacy::kNonImpacting)
+    if (is_decrypted() && privacy == Privacy::kNonImpacting)
       return absl::FailedPreconditionError(
           "cannot log safe after request being decrypted");
     if (metric_router_->metric_config().IsDebug()) return true;
-    return !is_decrypted_ && privacy == Privacy::kNonImpacting;
+    return !is_decrypted() && privacy == Privacy::kNonImpacting;
   }
 
   absl::Status AssertLoggable(const DefinitionName& definition)
@@ -439,14 +462,18 @@ class Context {
   }
 
   U* metric_router_;
-  bool is_decrypted_ = false;
-  bool is_request_successful_ = false;
-  absl::Status request_result_ = absl::OkStatus();
   absl::Mutex mutex_;
   std::vector<absl::AnyInvocable<absl::Status() &&>> callbacks_
       ABSL_GUARDED_BY(mutex_);
   absl::flat_hash_set<const DefinitionName*> logged_metric_
       ABSL_GUARDED_BY(mutex_);
+
+  struct RequestState {
+    bool is_decrypted = false;
+    absl::Status result = absl::OkStatus();
+    absl::flat_hash_map<std::string, std::string> custom;
+  };
+  RequestState request_state_ ABSL_GUARDED_BY(mutex_);
 
   struct Accumulator {
     using PartitionedValue = absl::flat_hash_map<std::string, double>;

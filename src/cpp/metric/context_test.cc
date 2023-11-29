@@ -18,8 +18,17 @@ namespace privacy_sandbox::server_common::metrics {
 
 TEST_F(BaseTest, RequestStatus) {
   absl::Status err = absl::UnknownError("xyz");
-  context_->SetRequestStatus(err);
+  context_->SetRequestResult(err);
   EXPECT_EQ(context_->request_result(), err);
+}
+
+TEST_F(BaseTest, RequestCustomState) {
+  context_->SetCustomState("xyz_key", "foo_val");
+  auto ret = context_->CustomState("xyz_key");
+  CHECK_OK(ret);
+  EXPECT_EQ(*ret, "foo_val");
+  EXPECT_EQ(context_->CustomState("not exist").status().code(),
+            absl::StatusCode::kNotFound);
 }
 
 TEST_F(BaseTest, BoundPartitionsContributed) {
