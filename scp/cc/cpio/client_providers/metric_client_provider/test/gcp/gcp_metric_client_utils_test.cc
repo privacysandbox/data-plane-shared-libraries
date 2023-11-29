@@ -24,7 +24,6 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/numbers.h"
 #include "core/interface/async_context.h"
-#include "core/test/utils/conditional_wait.h"
 #include "cpio/client_providers/metric_client_provider/src/gcp/error_codes.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"

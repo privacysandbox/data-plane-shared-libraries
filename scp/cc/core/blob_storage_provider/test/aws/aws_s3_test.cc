@@ -32,7 +32,6 @@
 #include "core/blob_storage_provider/mock/aws/mock_aws_s3_client.h"
 #include "core/blob_storage_provider/mock/aws/mock_s3_client.h"
 #include "core/blob_storage_provider/src/common/error_codes.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using Aws::InitAPI;

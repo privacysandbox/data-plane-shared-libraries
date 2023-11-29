@@ -19,13 +19,13 @@
 #include <algorithm>
 #include <memory>
 
+#include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "core/common/concurrent_queue/src/concurrent_queue.h"
 #include "core/interface/async_context.h"
 #include "core/message_router/src/error_codes.h"
 #include "core/message_router/test/test.pb.h"
-#include "core/test/utils/conditional_wait.h"
 #include "google/protobuf/any.pb.h"
 #include "public/core/interface/execution_result.h"
 #include "public/core/test/interface/execution_result_matchers.h"
@@ -36,6 +36,7 @@ using core::message_router::test::TestStringRequest;
 using core::message_router::test::TestStringResponse;
 using google::protobuf::Any;
 using google::scp::core::common::ConcurrentQueue;
+using testing::NotNull;
 
 namespace google::scp::core::test {
 class MessageRouterTest : public ::testing::Test {
@@ -107,6 +108,7 @@ TEST_F(MessageRouterTest, SubscriptionConflict) {
 
 TEST_F(MessageRouterTest, SingleMessage) {
   auto request = std::make_shared<Any>(any_request_1_);
+  absl::Notification done;
   router_.Subscribe(any_request_1_.type_url(),
                     [&](AsyncContext<Any, Any>& context) {
                       TestStringResponse response;
@@ -114,18 +116,21 @@ TEST_F(MessageRouterTest, SingleMessage) {
                       Any any_response;
                       any_response.PackFrom(response);
                       context.response = std::make_shared<Any>(any_response);
+                      done.Notify();
                     });
   auto context = std::make_shared<AsyncContext<Any, Any>>(
       request, [&](AsyncContext<Any, Any>& context) {});
   queue_->TryEnqueue(context);
 
-  WaitUntil([&] { return context->response != nullptr; });
+  ASSERT_TRUE(done.WaitForNotificationWithTimeout(absl::Seconds(5)));
+  ASSERT_THAT(context->response, NotNull());
   TestStringResponse response;
   context->response->UnpackTo(&response);
   EXPECT_EQ(response.response(), "test_response");
 }
 
 TEST_F(MessageRouterTest, MultipleMessagesSingleSubscription) {
+  absl::BlockingCounter counter(2);
   router_.Subscribe(any_request_1_.type_url(),
                     [&](AsyncContext<Any, Any>& context) {
                       TestStringResponse response;
@@ -133,6 +138,7 @@ TEST_F(MessageRouterTest, MultipleMessagesSingleSubscription) {
                       Any any_response;
                       any_response.PackFrom(response);
                       context.response = std::make_shared<Any>(any_response);
+                      counter.DecrementCount();
                     });
   auto request_1 = std::make_shared<Any>(any_request_1_);
   auto context_1 = std::make_shared<AsyncContext<Any, Any>>(
@@ -143,9 +149,9 @@ TEST_F(MessageRouterTest, MultipleMessagesSingleSubscription) {
   queue_->TryEnqueue(context_1);
   queue_->TryEnqueue(context_2);
 
-  WaitUntil([&] {
-    return context_1->response != nullptr && context_2->response != nullptr;
-  });
+  counter.Wait();
+  ASSERT_THAT(context_1->response, NotNull());
+  ASSERT_THAT(context_2->response, NotNull());
   TestStringResponse response_1;
   context_1->response->UnpackTo(&response_1);
   EXPECT_EQ(response_1.response(), "test_response");

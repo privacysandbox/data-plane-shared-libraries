@@ -30,7 +30,6 @@
 #include <vector>
 
 #include "core/test/utils/auto_init_run_stop.h"
-#include "core/test/utils/conditional_wait.h"
 #include "include/libplatform/libplatform.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/wasm/src/deserializer.h"

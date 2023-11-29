@@ -24,13 +24,14 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
 #include "core/grpc_server/callback/test/callback_server.pb.h"
-#include "core/test/utils/conditional_wait.h"
 #include "public/core/test/interface/execution_result_matchers.h"
+#include "src/cpp/util/duration.h"
 
 using google::scp::core::common::ConcurrentQueue;
 using grpc::ServerCallbackWriter;
 using grpc::ServerWriteReactor;
 using grpc::internal::ServerReactor;
+using privacy_sandbox::server_common::ExpiringFlag;
 using testing::_;
 using testing::Eq;
 using testing::ExplainMatchResult;
@@ -322,7 +323,13 @@ TEST_F(WriteReactorTest, CancellationWorks) {
       context.ProcessNextMessage();
       context.TryPushResponse(std::move(resp));
       context.ProcessNextMessage();
-      WaitUntil([&context]() { return context.IsCancelled(); });
+      {
+        ExpiringFlag expiring_flag;
+        expiring_flag.Set(absl::Seconds(5));
+        while (!context.IsCancelled() && !expiring_flag.Get()) {}
+      }
+      ASSERT_TRUE(context.IsCancelled())
+          << "Context was cancelled, or exceeded timeout.";
       context.MarkDone();
       context.result = FailureExecutionResult(SC_UNKNOWN);
       context.Finish();
