@@ -36,7 +36,8 @@ class SocketVendorServer {
       : acceptor_(io_context_),
         sock_path_(std::move(sock_path)),
         proxy_endpoint_(proxy_endpoint),
-        concurrency_(concurrency) {}
+        concurrency_(concurrency > 0 ? concurrency
+                                     : std::thread::hardware_concurrency()) {}
 
   bool Init();
   void Run();

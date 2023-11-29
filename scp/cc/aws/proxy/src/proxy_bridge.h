@@ -37,10 +37,11 @@ namespace google::scp::proxy {
 // class is normally thread safe, as we added asio::strand to ensure
 // thread-safety with asio handlers in multi-thread environments.
 class ProxyBridge : public std::enable_shared_from_this<ProxyBridge> {
- public:
+ private:
   static constexpr size_t kMaxBufferSize = 1024 * 1024;
   static constexpr size_t kReadSize = 64 * 1024;
 
+ public:
   // Construct a ProxyBridge with a connected client socket. SocketType can be
   // any stream socket implementation of boost::asio.
   template <typename SocketType>

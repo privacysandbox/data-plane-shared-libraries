@@ -192,7 +192,7 @@ EXPORT int connect(int sockfd, const struct sockaddr* addr, socklen_t addrlen) {
   }
   // Set blocking
   fcntl(sockfd, F_SETFL, (fl & ~O_NONBLOCK));
-  sockaddr_vm vsock_addr = GetProxyVsockAddr();
+  sockaddr_vm vsock_addr = google::scp::proxy::GetProxyVsockAddr();
   if (libc_connect(sockfd, reinterpret_cast<sockaddr*>(&vsock_addr),
                    sizeof(vsock_addr)) < 0) {
     fcntl(sockfd, F_SETFL, fl);
@@ -315,7 +315,7 @@ int socks5_client_connect(int sockfd, const struct sockaddr* addr) {
   //      request RSV ---------------------------------
 
   size_t out_idx = 6;
-  size_t copied = FillAddrPort(&buffer[out_idx], addr);
+  size_t copied = google::scp::proxy::FillAddrPort(&buffer[out_idx], addr);
   if (copied == 0) {
     return -1;
   }
@@ -466,8 +466,8 @@ EXPORT int bind(int sockfd, const struct sockaddr* addr,
   sockaddr_un uds_addr;
   memset(&uds_addr, 0, sizeof(uds_addr));
   uds_addr.sun_family = AF_UNIX;
-  memcpy(uds_addr.sun_path, kSocketVendorUdsPath.data(),
-         kSocketVendorUdsPath.size());
+  memcpy(uds_addr.sun_path, google::scp::proxy::kSocketVendorUdsPath.data(),
+         google::scp::proxy::kSocketVendorUdsPath.size());
   if (libc_connect(sockfd, reinterpret_cast<sockaddr*>(&uds_addr),
                    sizeof(uds_addr)) < 0) {
     return -1;

@@ -67,13 +67,10 @@ bool SocketVendorServer::Init() {
 }
 
 void SocketVendorServer::Run() {
-  if (concurrency_ == 0) {
-    concurrency_ = std::thread::hardware_concurrency();
-  }
   for (size_t i = 0; i < concurrency_; ++i) {
     workers_.emplace_back([this]() { io_context_.run(); });
   }
-  for (auto& w : workers_) {
+  for (std::thread& w : workers_) {
     w.join();
   }
 }
@@ -86,10 +83,9 @@ void SocketVendorServer::StartAsyncAccept() {
   acceptor_.async_accept([this](boost::system::error_code ec, Socket socket) {
     StartAsyncAccept();
     if (!ec) {
-      auto pool = std::make_shared<ClientSessionPool>(std::move(socket),
-                                                      proxy_endpoint_);
-      if (!pool->Start()) {
-        pool->Stop();
+      ClientSessionPool pool(std::move(socket), proxy_endpoint_);
+      if (!pool.Start()) {
+        pool.Stop();
       }
     }
   });

@@ -23,12 +23,9 @@
 
 #include <string_view>
 
-static constexpr std::string_view kParentCidEnv = "PROXY_PARENT_CID";
-static constexpr std::string_view kParentPortEnv = "PROXY_PARENT_PORT";
-static constexpr unsigned int kDefaultParentCid = 3;
-static constexpr unsigned int kDefaultParentPort = 8888;
+namespace google::scp::proxy {
 
-static constexpr std::string_view kSocketVendorUdsPath =
+inline constexpr std::string_view kSocketVendorUdsPath =
     "/tmp/socket_vendor.sock";
 
 // Given a request/response, fill the address and port. Returns the number of
@@ -39,8 +36,6 @@ size_t FillAddrPort(void* msg, const sockaddr* addr);
 // default if env not set.
 sockaddr_vm GetProxyVsockAddr();
 
-// Get value from environment and convert to unsigned int. val is overwritten if
-// everything succeeds, otherwise untouched.
-void EnvGetVal(std::string_view env_name, unsigned int& val);
+}  // namespace google::scp::proxy
 
 #endif  // PROXY_SRC_PROTOCOL_H_

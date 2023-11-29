@@ -21,32 +21,37 @@
 #include <string.h>
 #include <sys/socket.h>
 
+namespace google::scp::proxy {
+
 TEST(ProtocolTest, FillAddrPortV4) {
-  static const char ipv4_addr[] = "12.34.56.78";
-  static const uint16_t port = 0x1234;
-  static const uint8_t expected[] = {0x01, 12, 34, 56, 78, 0x12, 0x34};
+  constexpr char kIpv4Addr[] = "12.34.56.78";
+  constexpr uint16_t kPort = 0x1234;
+  constexpr uint8_t kExpected[] = {0x01, 12, 34, 56, 78, 0x12, 0x34};
   sockaddr_in v4addr;
   v4addr.sin_family = AF_INET;
-  v4addr.sin_port = htons(port);
-  inet_aton(ipv4_addr, &v4addr.sin_addr);
+  v4addr.sin_port = htons(kPort);
+  inet_aton(kIpv4Addr, &v4addr.sin_addr);
   uint8_t buffer[64];
   EXPECT_EQ(FillAddrPort(buffer, reinterpret_cast<sockaddr*>(&v4addr)),
-            sizeof(expected));
-  EXPECT_EQ(memcmp(buffer, expected, sizeof(expected)), 0);
+            sizeof(kExpected));
+  EXPECT_EQ(memcmp(buffer, kExpected, sizeof(kExpected)), 0);
 }
 
 TEST(ProtocolTest, FillAddrPortV6) {
-  static const char ipv6_addr[] = "1234:5678:90ab:cdef:1234:5678:90ab:cdef";
-  static const uint16_t port = 0x1234;
-  static const uint8_t expected[] = {0x04, 0x12, 0x34, 0x56, 0x78, 0x90, 0xab,
-                                     0xcd, 0xef, 0x12, 0x34, 0x56, 0x78, 0x90,
-                                     0xab, 0xcd, 0xef, 0x12, 0x34};
+  constexpr char kIpv6Addr[] = "1234:5678:90ab:cdef:1234:5678:90ab:cdef";
+  constexpr uint16_t kPort = 0x1234;
+  constexpr uint8_t kExpected[] = {
+      0x04, 0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef, 0x12,
+      0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef, 0x12, 0x34,
+  };
   sockaddr_in6 v6addr;
   v6addr.sin6_family = AF_INET6;
-  v6addr.sin6_port = htons(port);
-  inet_pton(AF_INET6, ipv6_addr, &v6addr.sin6_addr);
+  v6addr.sin6_port = htons(kPort);
+  inet_pton(AF_INET6, kIpv6Addr, &v6addr.sin6_addr);
   uint8_t buffer[64];
   EXPECT_EQ(FillAddrPort(buffer, reinterpret_cast<sockaddr*>(&v6addr)),
-            sizeof(expected));
-  EXPECT_EQ(memcmp(buffer, expected, sizeof(expected)), 0);
+            sizeof(kExpected));
+  EXPECT_EQ(memcmp(buffer, kExpected, sizeof(kExpected)), 0);
 }
+
+}  // namespace google::scp::proxy

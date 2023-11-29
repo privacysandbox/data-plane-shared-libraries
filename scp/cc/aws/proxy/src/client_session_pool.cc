@@ -65,12 +65,13 @@ bool ClientSessionPool::Start() {
   }
 
   uint16_t port = htons(bind_req.port);
-  static constexpr uint8_t bind_req_template[] = {
+  static constexpr uint8_t kBindReqTemplate[] = {
       0x05, 0x01, 0x00,        // <- Greeting
       0x05, 0x02, 0x00, 0x01,  // <- request header
       0x00, 0x00, 0x00, 0x00,  // <- addr = 0.0.0.0
-      0x00, 0x00};             // <- port, to be assigned
-  memcpy(proxy_bind_request_, bind_req_template, sizeof(proxy_bind_request_));
+      0x00, 0x00,              // <- port, to be assigned
+  };
+  memcpy(proxy_bind_request_, kBindReqTemplate, sizeof(proxy_bind_request_));
   // Fill in the port
   memcpy(proxy_bind_request_ + sizeof(proxy_bind_request_) - 2, &port, 2);
   asio::write(first_socket,

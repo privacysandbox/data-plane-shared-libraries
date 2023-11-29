@@ -37,7 +37,8 @@ int main(int argc, char* argv[]) {
   absl::InitializeLog();
   std::cout << "Nitro Enclave Proxy Socket Vendor (c) Google 2022." << std::endl
             << std::flush;
-  const auto lockfile = absl::StrCat(kSocketVendorUdsPath, ".lock");
+  const auto lockfile =
+      absl::StrCat(google::scp::proxy::kSocketVendorUdsPath, ".lock");
   const int lock_fd =
       open(lockfile.c_str(), O_CLOEXEC | O_CREAT | O_RDWR, S_IRWXU | S_IRGRP);
   if (lock_fd < 0) {
@@ -68,10 +69,11 @@ int main(int argc, char* argv[]) {
     sigaction(SIGPIPE, &act, nullptr);
   }
 
-  auto addr = GetProxyVsockAddr();
+  auto addr = google::scp::proxy::GetProxyVsockAddr();
   Endpoint ep(&addr, sizeof(addr));
 
-  SocketVendorServer server(std::string(kSocketVendorUdsPath), ep, 4);
+  SocketVendorServer server(
+      std::string(google::scp::proxy::kSocketVendorUdsPath), ep, 4);
   if (!server.Init()) {
     return 1;
   }
