@@ -27,6 +27,7 @@
 #include <string>
 #include <string_view>
 
+#include "absl/flags/parse.h"
 #include "absl/strings/str_cat.h"
 
 namespace {
@@ -50,8 +51,9 @@ nameserver 10.0.0.2)resolv";
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  if (argc < 2) {
-    std::cerr << "Usage: proxify <app_to_execute>" << std::endl;
+  std::vector<char*> positional_args = absl::ParseCommandLine(argc, argv);
+  if (positional_args.size() < 2) {
+    std::cerr << "Usage: proxify -- <app> [<app flag>...]" << std::endl;
     return -1;
   }
 
@@ -130,11 +132,14 @@ int main(int argc, char* argv[]) {
     close(f);
   }
 
+  // The second arg to `execvp` must be null terminated.
+  positional_args.push_back(nullptr);
+
   // Execute!
-  execvp(argv[1], &argv[1]);
+  execvp(positional_args[1], &positional_args[1]);
 
   // If execution reaches here, above call has failed.
-  std::cerr << "ERROR: cannot execute " << argv[1] << ": " << strerror(errno)
-            << std::endl;
+  std::cerr << "ERROR: cannot execute " << positional_args[1] << ": "
+            << strerror(errno) << std::endl;
   return -1;
 }
