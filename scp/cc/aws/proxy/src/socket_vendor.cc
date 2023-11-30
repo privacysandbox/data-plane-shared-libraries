@@ -35,8 +35,8 @@ using google::scp::proxy::SocketVendorServer;
 int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
-  std::cout << "Nitro Enclave Proxy Socket Vendor (c) Google 2022." << std::endl
-            << std::flush;
+  std::cout << "Nitro Enclave Proxy Socket Vendor (c) Google 2022."
+            << std::endl;
   const auto lockfile =
       absl::StrCat(google::scp::proxy::kSocketVendorUdsPath, ".lock");
   const int lock_fd =

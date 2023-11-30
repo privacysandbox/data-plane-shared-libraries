@@ -52,8 +52,7 @@ int main(int argc, char* argv[]) {
   // TODO(b/296559189): Writing to stdout rather than using GLog is necessary
   // here because socks5_test.py reads the TCP port that the test server is
   // running on from stdout.  Find a way to remove that dependency.
-  std::cout << "Nitro Enclave Proxy (c) Google 2022." << std::endl
-            << std::flush;
+  std::cout << "Nitro Enclave Proxy (c) Google 2022." << std::endl;
 
   {
     // Ignore SIGPIPE.
@@ -80,8 +79,7 @@ int main(int argc, char* argv[]) {
   // here because socks5_test.py reads the TCP port that the test server is
   // running on from stdout.  Find a way to remove that dependency.
   std::cout << "Running on " << (config.vsock ? "VSOCK" : "TCP") << " port "
-            << server.Port() << std::endl
-            << std::flush;
+            << server.Port() << std::endl;
   server.Run();
 
   LOG(FATAL) << "ERROR: A fatal error has occurred, terminating proxy instance";
