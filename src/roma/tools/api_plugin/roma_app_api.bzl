@@ -88,11 +88,12 @@ _expand_template_file = rule(
     },
 )
 
-def roma_app_api(proto_basename, protos):
+def roma_app_api(*, cc_protos, proto_basename, protos):
     """
     Creates struct for a the Roma App API as an entity.
 
     Args:
+        cc_protos: list of proto_cc_library targets
         proto_basename: basename of the protobuf source file
         protos: list of proto_library targets
 
@@ -100,6 +101,7 @@ def roma_app_api(proto_basename, protos):
         struct of Roma App-related info
     """
     return struct(
+        cc_protos = cc_protos,
         proto_basename = proto_basename,
         protos = protos,
     )
@@ -291,7 +293,11 @@ def roma_client_cc_library(name, roma_app_api, roma_service_js_library, **kwargs
             ":{}_cc_hdrs".format(name),
         ],
         includes = ["."],
-        deps = kwargs.get("deps", []),
+        deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
+            "//src/roma/roma_service:romav8_app_service",
+            "@com_google_absl//absl/status",
+            "@com_google_absl//absl/strings",
+        ],
         alwayslink = kwargs.get("alwayslink"),
         copts = kwargs.get("copts"),
         defines = kwargs.get("defines"),
