@@ -47,7 +47,7 @@ struct RequestValidator<CodeObject> {
       return core::FailureExecutionResult(SC_UNKNOWN);
     }
 
-    if (request->version_num == 0) {
+    if (request->version_string.empty()) {
       return core::FailureExecutionResult(SC_UNKNOWN);
     }
 
@@ -72,7 +72,7 @@ static core::ExecutionResult InvocationRequestCommon(const RequestT& request) {
     return core::FailureExecutionResult(SC_UNKNOWN);
   }
 
-  if (request->version_num == 0) {
+  if (request->version_string.empty()) {
     return core::FailureExecutionResult(SC_UNKNOWN);
   }
 

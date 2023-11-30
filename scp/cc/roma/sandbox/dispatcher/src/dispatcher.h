@@ -161,7 +161,7 @@ class Dispatcher {
 
     if constexpr (std::is_same<RequestT, CodeObject>::value) {
       absl::MutexLock l(&cache_mu_);
-      code_object_cache_.Set(request->version_num, *request);
+      code_object_cache_.Set(request->version_string, *request);
     }
 
     const auto& request_id = request->id;
@@ -184,7 +184,7 @@ class Dispatcher {
 
           std::string request_type;
           cache_mu_.Lock();
-          if (!code_object_cache_.Contains(request->version_num)) {
+          if (!code_object_cache_.Contains(request->version_string)) {
             cache_mu_.Unlock();
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
                 absl::Status(absl::StatusCode::kInternal,
@@ -196,7 +196,7 @@ class Dispatcher {
           } else {
             // Double lookup necessary to support above not found error.
             const CodeObject& code_object =
-                code_object_cache_.Get(request->version_num);
+                code_object_cache_.Get(request->version_string);
 
             // TODO(gathuru): Verify this is WAI.
             if (!code_object.wasm_bin.empty()) {
@@ -291,7 +291,7 @@ class Dispatcher {
   int pending_requests_ ABSL_GUARDED_BY(pending_requests_mu_);
   const size_t max_pending_requests_;
   absl::Mutex cache_mu_;
-  core::common::LruCache<uint64_t, CodeObject> code_object_cache_
+  core::common::LruCache<std::string, CodeObject> code_object_cache_
       ABSL_GUARDED_BY(cache_mu_);
 };
 }  // namespace google::scp::roma::sandbox::dispatcher

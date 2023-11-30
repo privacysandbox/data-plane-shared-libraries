@@ -146,7 +146,7 @@ absl::Status RomaService::Init() {
 
 absl::Status RomaService::LoadCodeObj(std::unique_ptr<CodeObject> code_object,
                                       Callback callback) {
-  if (code_object->version_num == 0) {
+  if (code_object->version_string.empty()) {
     return absl::Status(absl::StatusCode::kInternal,
                         "Roma LoadCodeObj failed due to invalid version.");
   }

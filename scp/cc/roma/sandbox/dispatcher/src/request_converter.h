@@ -38,7 +38,7 @@ static void RunRequestFromInputRequestCommon(
     const RequestT& request) {
   run_code_request
       .metadata[google::scp::roma::sandbox::constants::kCodeVersion] =
-      std::to_string(request->version_num);
+      request->version_string;
   run_code_request.metadata[google::scp::roma::sandbox::constants::kRequestId] =
       request->id;
 

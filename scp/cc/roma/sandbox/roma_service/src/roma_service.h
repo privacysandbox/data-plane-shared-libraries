@@ -110,7 +110,7 @@ class RomaService {
   template <typename RequestT>
   absl::Status ExecutionObjectValidation(const std::string& function_name,
                                          const RequestT& invocation_req) {
-    if (invocation_req->version_num == 0) {
+    if (invocation_req->version_string.empty()) {
       return absl::Status(
           absl::StatusCode::kInvalidArgument,
           "Roma " + function_name + " failed due to invalid version.");

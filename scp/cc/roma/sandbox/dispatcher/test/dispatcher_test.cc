@@ -79,7 +79,7 @@ TEST(DispatcherTest, CanRunCode) {
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
-  load_request->version_num = 1;
+  load_request->version_string = "v1";
   load_request->js =
       "function test(input) { return input + \" Some string\"; }";
 
@@ -97,7 +97,7 @@ TEST(DispatcherTest, CanRunCode) {
 
   auto execute_request = std::make_unique<InvocationRequestStrInput>();
   execute_request->id = "some_id";
-  execute_request->version_num = 1;
+  execute_request->version_string = "v1";
   execute_request->handler_name = "test";
   execute_request->input.push_back(R"("Hello")");
 
@@ -130,7 +130,7 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
-  load_request->version_num = 1;
+  load_request->version_string = "v1";
   load_request->js =
       "function test(input) { return input + \" Some string\"; }";
 
@@ -150,7 +150,7 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
   auto execute_request = std::make_unique<InvocationRequestStrViewInput>(
       InvocationRequestStrViewInput{
           .id = "some_id",
-          .version_num = 1,
+          .version_string = "v1",
           .handler_name = "test",
           .input = {input_str_view},
       });
@@ -184,7 +184,7 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
-  load_request->version_num = 1;
+  load_request->version_string = "v1";
   // Bad JS
   load_request->js = "function test(input) { ";
 
@@ -215,7 +215,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
 
   auto execute_request = std::make_unique<InvocationRequestStrInput>();
   execute_request->id = "some_id";
-  execute_request->version_num = 1;
+  execute_request->version_string = "v1";
   execute_request->handler_name = "test";
   execute_request->input.push_back(R"("Hello")");
 
@@ -248,7 +248,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
-  load_request->version_num = 1;
+  load_request->version_string = "v1";
   load_request->js = R"(test = (s) => s + " Some string";)";
 
   absl::Notification done_loading;
@@ -271,7 +271,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   for (int i = 0; i < kRequestSent; i++) {
     auto execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = absl::StrCat("some_id", i);
-    execute_request->version_num = 1;
+    execute_request->version_string = "v1";
     execute_request->handler_name = "test";
     execute_request->input.push_back(absl::StrCat(R"("Hello)", i, "\""));
 
@@ -315,7 +315,7 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
-  load_request->version_num = 1;
+  load_request->version_string = "v1";
   // Bad syntax
   load_request->js = "function test(s) { return";
 
@@ -350,7 +350,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   {
     auto load_request = std::make_unique<CodeObject>();
     load_request->id = "some_id";
-    load_request->version_num = 1;
+    load_request->version_string = "v1";
     load_request->js = R"(test = (s) => s + " Some string";)";
 
     absl::Notification done_loading;
@@ -375,7 +375,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   for (int i = 0; i < kRequestSent; i++) {
     auto execute_request = InvocationRequestStrInput();
     execute_request.id = absl::StrCat("some_id", i);
-    execute_request.version_num = 1;
+    execute_request.version_string = "v1";
     execute_request.handler_name = "test";
     execute_request.input.push_back(absl::StrCat(R"("Hello)", i, "\""));
 
@@ -426,7 +426,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
 
   auto load_request = std::make_unique<CodeObject>();
   load_request->id = "some_id";
-  load_request->version_num = 1;
+  load_request->version_string = "v1";
   // Function that takes long so that queues will have items in it
   load_request->js = R"""(
     function sleep(milliseconds) {
@@ -459,7 +459,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   for (int i = 0; i < 2; i++) {
     auto execute_request = InvocationRequestStrInput();
     execute_request.id = absl::StrCat("some_id", i);
-    execute_request.version_num = 1;
+    execute_request.version_string = "v1";
     execute_request.handler_name = "takes_long";
     batch.push_back(execute_request);
   }
@@ -507,7 +507,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   {
     auto load_request = std::make_unique<CodeObject>();
     load_request->id = "some_id";
-    load_request->version_num = 1;
+    load_request->version_string = "v1";
     load_request->js = R"(test = (s) => s + " Some string";)";
 
     absl::Notification done_loading;
@@ -525,7 +525,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   {
     auto execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = "some_id";
-    execute_request->version_num = 1;
+    execute_request->version_string = "v1";
     execute_request->handler_name = "test";
     execute_request->input.push_back(R"("Hello")");
 
@@ -554,7 +554,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   {
     auto execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = "some_id";
-    execute_request->version_num = 1;
+    execute_request->version_string = "v1";
     execute_request->handler_name = "test";
     execute_request->input.push_back(R"("Hello")");
 
@@ -576,7 +576,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   {
     auto execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = "some_id";
-    execute_request->version_num = 1;
+    execute_request->version_string = "v1";
     execute_request->handler_name = "test";
     execute_request->input.push_back(R"JS("Hello after restart :)")JS");
 
@@ -612,7 +612,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   {
     auto load_request = std::make_unique<CodeObject>();
     load_request->id = "some_id";
-    load_request->version_num = 1;
+    load_request->version_string = "v1";
     load_request->js = R"(test = (s) => s + " Some string 1";)";
 
     absl::Notification done_loading;
@@ -630,7 +630,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   {
     auto load_request = std::make_unique<CodeObject>();
     load_request->id = "some_id_2";
-    load_request->version_num = 2;
+    load_request->version_string = "v2";
     load_request->js = R"(test = (s) => s + " Some string 2";)";
 
     absl::Notification done_loading;
@@ -654,7 +654,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   {
     auto execute_request = std::make_unique<InvocationRequestStrInput>();
     execute_request->id = "some_id";
-    execute_request->version_num = 1;
+    execute_request->version_string = "v1";
     execute_request->handler_name = "test";
     execute_request->input.push_back(R"("Hello")");
 
@@ -679,7 +679,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
     {
       auto execute_request = std::make_unique<InvocationRequestStrInput>();
       execute_request->id = "some_id";
-      execute_request->version_num = 1;
+      execute_request->version_string = "v1";
       execute_request->handler_name = "test";
       execute_request->input.push_back(R"("Hello 1")");
 
@@ -699,7 +699,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
     {
       auto execute_request = std::make_unique<InvocationRequestStrInput>();
       execute_request->id = "some_id_2";
-      execute_request->version_num = 2;
+      execute_request->version_string = "v2";
       execute_request->handler_name = "test";
       execute_request->input.push_back(R"("Hello 2")");
 
@@ -735,7 +735,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   {
     auto load_request = std::make_unique<CodeObject>();
     load_request->id = "some_id";
-    load_request->version_num = 1;
+    load_request->version_string = "v1";
     load_request->js = R"(test = (s) => s + " Some string 1";)";
 
     absl::Notification done_loading;
@@ -754,7 +754,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   {
     auto load_request = std::make_unique<CodeObject>();
     load_request->id = "some_id_2";
-    load_request->version_num = 2;
+    load_request->version_string = "v2";
     load_request->js = R"(test = (s) => s + " Some string 2";)";
 
     absl::Notification done_loading;
@@ -779,7 +779,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
     // The first load should fail as the worker had died
     auto load_request = std::make_unique<CodeObject>();
     load_request->id = "some_id_3";
-    load_request->version_num = 3;
+    load_request->version_string = "v3";
     load_request->js = R"(test = (s) => s + " Some string 3";)";
 
     absl::Notification done_loading;
@@ -806,7 +806,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
     {
       auto execute_request = std::make_unique<InvocationRequestStrInput>();
       execute_request->id = "some_id";
-      execute_request->version_num = 1;
+      execute_request->version_string = "v1";
       execute_request->handler_name = "test";
       execute_request->input.push_back("\"Hello 1\"");
 
@@ -826,7 +826,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
     {
       auto execute_request = std::make_unique<InvocationRequestStrInput>();
       execute_request->id = "some_id_2";
-      execute_request->version_num = 2;
+      execute_request->version_string = "v2";
       execute_request->handler_name = "test";
       execute_request->input.push_back("\"Hello 2\"");
 
@@ -846,7 +846,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
     {
       auto execute_request = std::make_unique<InvocationRequestStrInput>();
       execute_request->id = "some_id_3";
-      execute_request->version_num = 3;
+      execute_request->version_string = "v3";
       execute_request->handler_name = "test";
       execute_request->input.push_back("\"Hello 3\"");
 

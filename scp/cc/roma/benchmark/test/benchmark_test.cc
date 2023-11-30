@@ -44,7 +44,7 @@ static void LoadCode(std::unique_ptr<RomaService>& roma_service,
                      size_t code_bloat_size = 1000) {
   auto code_obj = std::make_unique<CodeObject>();
   code_obj->id = "foo";
-  code_obj->version_num = 1;
+  code_obj->version_string = "v1";
   code_obj->js = R"JS_CODE(
     function Handler(input) {
       return "Hello, World!";
@@ -71,7 +71,7 @@ static void ExecuteCode(std::unique_ptr<RomaService>& roma_service,
                         const std::shared_ptr<std::string>& input) {
   auto code_obj = std::make_unique<InvocationRequestSharedInput>();
   code_obj->id = "foo";
-  code_obj->version_num = 1;
+  code_obj->version_string = "v1";
   code_obj->handler_name = "Handler";
   code_obj->input.push_back(input);
 

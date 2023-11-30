@@ -56,7 +56,7 @@ const std::list<float> kPercentiles = {50, 90, 99, 99.99};
 CodeObject CreateCodeObj(const std::string& code_string) {
   CodeObject code_obj;
   code_obj.id = "foo";
-  code_obj.version_num = 1;
+  code_obj.version_string = "v1";
   if (!code_string.empty()) {
     code_obj.js = code_string;
   } else {
@@ -109,7 +109,7 @@ InvocationRequestSharedInput CreateExecutionObj(InputsType type,
                                                 size_t json_depth) {
   InvocationRequestSharedInput code_obj;
   code_obj.id = "foo";
-  code_obj.version_num = 1;
+  code_obj.version_string = "v1";
   code_obj.handler_name = "Handler";
 
   if (type == InputsType::kNestedJsonString) {

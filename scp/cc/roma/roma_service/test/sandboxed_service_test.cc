@@ -96,7 +96,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -114,7 +114,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -152,7 +152,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
   {
     auto load_code_obj_request = std::make_unique<CodeObject>(CodeObject{
         .id = "foo",
-        .version_num = 1,
+        .version_string = "v1",
         .js = R"JS_CODE(
             function Handler(input) { return "Hello world! " + JSON.stringify(input);
           }
@@ -173,7 +173,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
     auto execute_request = std::make_unique<InvocationRequestStrViewInput>(
         InvocationRequestStrViewInput{
             .id = "foo",
-            .version_num = 1,
+            .version_string = "v1",
             .handler_name = "Handler",
             .input = {input_str_view},
         });
@@ -227,7 +227,7 @@ TEST(SandboxedServiceTest, ExecuteNativeLogFunctions) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) {
       roma.n_log(input);
@@ -249,7 +249,7 @@ TEST(SandboxedServiceTest, ExecuteNativeLogFunctions) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(input);
 
@@ -312,7 +312,7 @@ TEST(SandboxedServiceTest, InvocationReqTagsVisibleInNativeFunctions) {
   {
     auto code_obj = std::make_unique<CodeObject>(CodeObject{
         .id = "foo",
-        .version_num = 1,
+        .version_string = "v1",
         .js = "var Handler = () => log_metadata();",
     });
 
@@ -329,7 +329,7 @@ TEST(SandboxedServiceTest, InvocationReqTagsVisibleInNativeFunctions) {
     auto execution_obj =
         std::make_unique<InvocationRequestStrInput>(InvocationRequestStrInput{
             .id = "foo",
-            .version_num = 1,
+            .version_string = "v1",
             .handler_name = "Handler",
         });
     execution_obj->metadata.insert(metadata_pair);
@@ -379,7 +379,7 @@ TEST(SandboxedServiceTest, ContextAssociatedWithEachNativeFunction) {
   {
     auto code_obj = std::make_unique<CodeObject>(CodeObject{
         .id = "foo",
-        .version_num = 1,
+        .version_string = "v1",
         .js = "var Handler = () => log_metadata();",
     });
 
@@ -397,7 +397,7 @@ TEST(SandboxedServiceTest, ContextAssociatedWithEachNativeFunction) {
       auto code_obj =
           std::make_unique<InvocationRequestStrInput>(InvocationRequestStrInput{
               .id = "foo",
-              .version_num = 1,
+              .version_string = "v1",
               .handler_name = "Handler",
           });
       code_obj->metadata.insert(
@@ -445,7 +445,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -463,7 +463,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -483,7 +483,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "WrongHandler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -521,7 +521,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
 
   {
     auto code_obj = std::make_unique<CodeObject>();
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -538,7 +538,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
 
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -576,7 +576,7 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(arg1, arg2) { return arg1; }
   )JS_CODE";
@@ -593,7 +593,7 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
 
     status = roma_service->Execute(
@@ -631,7 +631,7 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
     code_obj->id = "my_cool_id";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -650,7 +650,7 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -688,7 +688,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -723,7 +723,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
       function sleep(milliseconds) {
         const date = Date.now();
@@ -768,7 +768,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
 
     status = roma_service->Execute(
@@ -805,7 +805,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -823,7 +823,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
   {
     auto execution_obj = InvocationRequestStrInput();
     execution_obj.id = "foo";
-    execution_obj.version_num = 1;
+    execution_obj.version_string = "v1";
     execution_obj.handler_name = "Handler";
     execution_obj.input.push_back(R"("Foobar")");
 
@@ -869,7 +869,7 @@ TEST(SandboxedServiceTest,
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -887,7 +887,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = InvocationRequestStrInput();
     execution_obj.id = "foo";
-    execution_obj.version_num = 1;
+    execution_obj.version_string = "v1";
     execution_obj.handler_name = "Handler";
     execution_obj.input.push_back(R"("Foobar")");
 
@@ -928,7 +928,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -956,7 +956,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
       absl::Notification local_execute;
       InvocationRequestStrInput execution_obj{};
       execution_obj.id = "foo";
-      execution_obj.version_num = 1;
+      execution_obj.version_string = "v1";
       execution_obj.handler_name = "Handler";
       execution_obj.input.push_back(absl::StrCat(R"(")", "Foobar", i, R"(")"));
 
@@ -1013,7 +1013,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -1032,7 +1032,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
     for (auto i = 0u; i < total_runs; ++i) {
       auto code_obj = std::make_unique<InvocationRequestSharedInput>();
       code_obj->id = "foo";
-      code_obj->version_num = 1;
+      code_obj->version_string = "v1";
       code_obj->handler_name = "Handler";
       code_obj->input.push_back(std::make_shared<std::string>(
           R"("Foobar)" + std::to_string(i) + R"(")"));
@@ -1090,7 +1090,7 @@ TEST(SandboxedServiceTest,
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return cool_function(input);}
     )JS_CODE";
@@ -1107,7 +1107,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -1161,7 +1161,7 @@ TEST(
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler() { some_array = ["str 1", "str 2", "str 3"]; return cool_function(some_array);}
     )JS_CODE";
@@ -1178,7 +1178,7 @@ TEST(
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
 
     status = roma_service->Execute(
@@ -1240,7 +1240,7 @@ TEST(SandboxedServiceTest,
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler() {
       some_map = [["key-a","value-a"], ["key-b","value-b"]];
@@ -1262,7 +1262,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
 
     status = roma_service->Execute(
@@ -1318,7 +1318,7 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler() { return cool_function();}
     )JS_CODE";
@@ -1335,7 +1335,7 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
 
     status = roma_service->Execute(
@@ -1379,7 +1379,7 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->wasm = wasm_code;
 
     status = roma_service->LoadCodeObj(
@@ -1394,7 +1394,7 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -1434,7 +1434,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"""(
     function sleep(milliseconds) {
       const date = Date.now();
@@ -1466,7 +1466,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
     execution_obj->tags[kTimeoutDurationTag] = "100ms";
 
@@ -1487,7 +1487,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
 
     status = roma_service->Execute(
@@ -1505,7 +1505,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
     execution_obj->input.push_back(R"("0")");
     execution_obj->tags[kTimeoutDurationTag] = "300ms";
@@ -1557,7 +1557,7 @@ TEST(SandboxedServiceTest,
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     // Dummy code to allocate memory based on input
     code_obj->js = R"(
         function Handler(input) {
@@ -1587,7 +1587,7 @@ TEST(SandboxedServiceTest,
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo2";
-    code_obj->version_num = 2;
+    code_obj->version_string = "v2";
     // Dummy code to exercise binding
     code_obj->js = R"(
         function Handler(input) {
@@ -1609,7 +1609,7 @@ TEST(SandboxedServiceTest,
     absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     // Large input which should fail
     execution_obj->input.push_back(R"("10")");
@@ -1633,7 +1633,7 @@ TEST(SandboxedServiceTest,
 
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     // Small input which should work
     execution_obj->input.push_back(R"("1")");
@@ -1661,7 +1661,7 @@ TEST(SandboxedServiceTest,
 
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 2;
+    execution_obj->version_string = "v2";
     execution_obj->handler_name = "Handler";
     // Small input which should work
     execution_obj->input.push_back(R"("Hello, World!")");
@@ -1709,7 +1709,7 @@ TEST(SandboxedServiceTest,
     {
       auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
-      code_obj->version_num = 1;
+      code_obj->version_string = "v1";
       code_obj->js = "";
       code_obj->wasm.assign(reinterpret_cast<char*>(wasm_bin.data()),
                             wasm_bin.size());
@@ -1756,7 +1756,7 @@ TEST(SandboxedServiceTest,
     {
       auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
-      code_obj->version_num = 1;
+      code_obj->version_string = "v1";
       code_obj->js = "";
       code_obj->wasm.assign(reinterpret_cast<char*>(wasm_bin.data()),
                             wasm_bin.size());
@@ -1792,7 +1792,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -1810,7 +1810,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -1868,7 +1868,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
     {
       auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
-      code_obj->version_num = 1;
+      code_obj->version_string = "v1";
       code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world1! " + JSON.stringify(input);
     }
@@ -1888,7 +1888,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
       absl::Notification execute_finished;
       auto execution_obj = std::make_unique<InvocationRequestStrInput>();
       execution_obj->id = "foo";
-      execution_obj->version_num = 1;
+      execution_obj->version_string = "v1";
       execution_obj->handler_name = "Handler";
       execution_obj->input.push_back(R"("Foobar")");
 
@@ -1914,7 +1914,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 2;
+    code_obj->version_string = "v2";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world2! " + JSON.stringify(input);
     }
@@ -1936,7 +1936,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
     absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -1958,7 +1958,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
     absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 2;
+    execution_obj->version_string = "v2";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -1997,7 +1997,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world1! " + JSON.stringify(input);
     }
@@ -2021,7 +2021,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
       for (int i = 0; i < 50; i++) {
         InvocationRequestStrInput req;
         req.id = "foo";
-        req.version_num = 1;
+        req.version_string = "v1";
         req.handler_name = "Handler";
         req.input.push_back(R"("Foobar")");
         batch.push_back(req);
@@ -2045,7 +2045,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
     {
       auto code_obj = std::make_unique<CodeObject>();
       code_obj->id = "foo";
-      code_obj->version_num = 2;
+      code_obj->version_string = "v2";
       code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world2! " + JSON.stringify(input);
     }
@@ -2082,7 +2082,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     // Code to sleep for the number of milliseconds passed as input
     code_obj->js = R"JS_CODE(
     function sleep(milliseconds) {
@@ -2117,7 +2117,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     // sec.
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("9000")");
     execution_obj->tags[kTimeoutDurationTag] = "10000ms";
@@ -2152,7 +2152,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     // sec timeout.
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("11000")");
     execution_obj->tags[kTimeoutDurationTag] = "10000ms";
@@ -2191,7 +2191,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     // Bad JS code.
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
@@ -2228,7 +2228,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
       function Handler(input) {
         if (input === "0") {
@@ -2250,7 +2250,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("9000");
 
@@ -2268,7 +2268,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("0")");
 
@@ -2305,7 +2305,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
       let x;
       function Handler(input) {
@@ -2328,7 +2328,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("9000");
 
@@ -2346,7 +2346,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("0")");
 
@@ -2383,7 +2383,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(arg1, arg2) {
       return arg1 + arg2;
@@ -2402,7 +2402,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar1")");
     execution_obj->input.push_back(R"(" Barfoo2")");
@@ -2441,7 +2441,7 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) {
       return input;
@@ -2460,7 +2460,7 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     // Not a JSON string
     execution_obj->input.push_back("Foobar1");
@@ -2497,7 +2497,7 @@ TEST(SandboxedServiceTest,
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     // Bad syntax so load should fail
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "123
@@ -2518,7 +2518,7 @@ TEST(SandboxedServiceTest,
     absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -2542,7 +2542,7 @@ TEST(SandboxedServiceTest,
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler() { return "Hello there";}
     )JS_CODE";
@@ -2562,7 +2562,7 @@ TEST(SandboxedServiceTest,
     absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
 
     status = roma_service->Execute(
@@ -2605,7 +2605,7 @@ TEST(SandboxedServiceTest,
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler() {
       bytes = get_some_bytes();
@@ -2630,7 +2630,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
 
     status = roma_service->Execute(
@@ -2666,7 +2666,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "version 1"; }
     )JS_CODE";
@@ -2686,7 +2686,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
     absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
@@ -2706,7 +2706,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler() { return "version 1 but updated";}
     )JS_CODE";
@@ -2726,7 +2726,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
     absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
 
     status = roma_service->Execute(
@@ -2777,7 +2777,7 @@ TEST(SandboxedServiceTest,
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler() {
       bytes =  new Uint8Array(5);
@@ -2804,7 +2804,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
 
     status = roma_service->Execute(
@@ -2841,7 +2841,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
     absl::flat_hash_map<std::string, std::string> tags;
 
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
           const module = new WebAssembly.Module(addModule);
           const instance = new WebAssembly.Instance(module);
@@ -2866,7 +2866,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
     execution_obj->input.push_back("1");
     execution_obj->input.push_back("2");
@@ -2914,7 +2914,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = js_code;
 
     code_obj->wasm_bin = kWasmBin;
@@ -2935,7 +2935,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->wasm_bin = kWasmBin;
     code_obj->tags = tags;
 
@@ -2953,7 +2953,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->js = js_code;
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->wasm_bin = kWasmBin;
 
     status = roma_service->LoadCodeObj(
@@ -2971,7 +2971,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->js = js_code;
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->tags = tags;
 
     status = roma_service->LoadCodeObj(
@@ -2989,7 +2989,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->js = js_code;
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->wasm_bin = kWasmBin;
     tags[kWasmCodeArrayName] = "wrongName";
     code_obj->tags = tags;
@@ -3012,7 +3012,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->js = js_code;
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->wasm_bin = invalid_wasm_bin;
     tags[kWasmCodeArrayName] = "addModule";
     code_obj->tags = tags;
@@ -3047,7 +3047,7 @@ TEST(SandboxedServiceTest, DISABLED_CanExecuteJSWithWasmCodeWithStandaloneJS) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
           function hello_js(a, b) {
             return a + b;
@@ -3071,7 +3071,7 @@ TEST(SandboxedServiceTest, DISABLED_CanExecuteJSWithWasmCodeWithStandaloneJS) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
     execution_obj->input.push_back("1");
     execution_obj->input.push_back("2");
@@ -3133,7 +3133,7 @@ TEST(SandboxedServiceTest,
 
   {
     auto code_obj = std::make_unique<CodeObject>();
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = js_code;
     code_obj->id = "foo";
     code_obj->wasm_bin = kWasmBin;
@@ -3153,7 +3153,7 @@ TEST(SandboxedServiceTest,
     absl::Notification execute_finished;
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     // Large input which should fail
     execution_obj->input.push_back("1");
@@ -3179,7 +3179,7 @@ TEST(SandboxedServiceTest,
 
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     // Small input which should work
     execution_obj->input.push_back("1");
@@ -3225,7 +3225,7 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     // The js payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
     std::string dummy_js_string(payload_size, 'a');
@@ -3246,7 +3246,7 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
@@ -3287,7 +3287,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -3305,7 +3305,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     // The input payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
@@ -3347,7 +3347,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     // Will generate a response with input size.
     code_obj->js = R"JS_CODE(
     function Handler(input) {
@@ -3370,7 +3370,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     // The response payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
@@ -3412,7 +3412,7 @@ TEST(SandboxedServiceTest,
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     // The js payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
     std::string dummy_js_string(payload_size, 'A');
@@ -3458,7 +3458,7 @@ TEST(SandboxedServiceTest,
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -3477,7 +3477,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
@@ -3496,7 +3496,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     // The input payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
@@ -3519,7 +3519,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
@@ -3566,7 +3566,7 @@ TEST(SandboxedServiceTest,
   {
     auto code_obj = std::make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     // Will generate a response with input size.
     code_obj->js = R"JS_CODE(
     function Handler(input) {
@@ -3588,7 +3588,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"1024\"");
 
@@ -3606,7 +3606,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     // The response payload size is larger than the Buffer capacity.
     auto payload_size = 1024 * 1024 * 1.2;
@@ -3629,7 +3629,7 @@ TEST(SandboxedServiceTest,
   {
     auto execution_obj = std::make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     auto payload_size = 1024 * 800;
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");

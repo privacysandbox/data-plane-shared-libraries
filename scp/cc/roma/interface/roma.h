@@ -51,8 +51,8 @@ static constexpr char kWasmCodeArrayName[] = "roma.request.wasm_array_name";
 struct CodeObject {
   // The id of the code object.
   std::string id;
-  // The version number of the code object.
-  uint64_t version_num;
+  // The version string of the code object.
+  std::string version_string;
   // The javascript code to execute. If empty, this code object is wasm only.
   std::string js;
   // The wasm code to be executed in standalone mode.
@@ -83,9 +83,9 @@ struct InvocationRequest {
 
   // The id of the invocation request.
   std::string id;
-  // The version number of the untrusted code that performs the execution
+  // The version string of the untrusted code that performs the execution
   // object.
-  uint64_t version_num{0};
+  std::string version_string;
   // The signature of the handler function to invoke.
   std::string handler_name;
 

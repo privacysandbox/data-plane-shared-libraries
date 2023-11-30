@@ -37,7 +37,7 @@ using google::scp::roma::FunctionBindingObjectV2;
 using google::scp::roma::benchmark::DispatchRequest;
 using google::scp::roma::benchmark::FakeBaServer;
 
-constexpr int kVersionNumber = 1;
+constexpr std::string_view kVersionString = "v1";
 
 void LoadCodeBenchmark(std::string code, benchmark::State& state) {
   const Config config;
@@ -57,7 +57,7 @@ void LoadCodeBenchmark(std::string code, benchmark::State& state) {
   const int number_of_loads = state.range(0);
   for (auto _ : state) {
     for (int i = 0; i < number_of_loads; ++i) {
-      server.LoadSync(kVersionNumber, code);
+      server.LoadSync(kVersionString, code);
     }
   }
   state.SetItemsProcessed(number_of_loads);
@@ -68,12 +68,14 @@ void ExecuteCodeBenchmark(std::string code, std::string handler_name,
                           benchmark::State& state) {
   const Config config;
   FakeBaServer server(config);
-  server.LoadSync(kVersionNumber, code);
+  server.LoadSync(kVersionString, code);
 
   // The same request will be used multiple times: the batch will be full of
   // identical code to run.
   DispatchRequest request = {
-      .id = "id", .version_num = kVersionNumber, .handler_name = handler_name,
+      .id = "id",
+      .version_string = kVersionString,
+      .handler_name = handler_name,
       // TODO(b/305957393): Right now no input is passed to these calls, add
       // this!
       // .input = { std::make_shared(my_input_value_one) },

@@ -88,7 +88,7 @@ void BM_Dispatch(benchmark::State& state) {
     for (int i = 0; i < number_of_calls; ++i) {
       auto load_request = std::make_unique<CodeObject>();
       load_request->id = "id";
-      load_request->version_num = 1;
+      load_request->version_string = "v1";
       load_request->js = R"(function test() { return 'Hello World'; })";
 
       auto result = dispatcher.Dispatch(

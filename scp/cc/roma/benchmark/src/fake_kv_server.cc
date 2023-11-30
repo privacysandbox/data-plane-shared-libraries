@@ -34,7 +34,7 @@ constexpr char kCodeObjectId[] = "id";  // Unused but required.
 constexpr absl::Duration kCodeUpdateTimeout = absl::Seconds(1);
 constexpr absl::Duration kExecuteCodeTimeout = absl::Seconds(10);
 constexpr char kInvocationRequestId[] = "id";  // Unused but required.
-constexpr int kVersionNum = 1;
+constexpr char kVersionString[] = "v1";
 
 }  // namespace
 
@@ -60,7 +60,7 @@ std::string FakeKvServer::ExecuteCode(const std::vector<std::string> keys) {
       std::make_shared<absl::Notification>();
   InvocationRequestStrInput invocation_request = {
       .id = kInvocationRequestId,
-      .version_num = kVersionNum,
+      .version_string = kVersionString,
       .handler_name = handler_name_,
       .input = std::move(keys),
   };
@@ -91,7 +91,7 @@ void FakeKvServer::SetCodeObject(CodeConfig code_config) {
       std::make_shared<absl::Notification>();
   CodeObject code_object = {
       .id = kCodeObjectId,
-      .version_num = kVersionNum,
+      .version_string = kVersionString,
       .js = std::move(code_config.js),
       .wasm = std::move(code_config.wasm),
   };

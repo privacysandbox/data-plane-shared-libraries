@@ -38,13 +38,13 @@ the rest of the system.
 The ROMA interface provides three public static functions for interacting with Roma:
 
 -   **Roma::LoadCodeObj():** This function loads a code object into Roma. Once loaded, the code
-    object is cached with its version number for future invocations. There are two layers of code
-    caches inside Roma:
+    object is cached with its version for future invocations. There are two layers of code caches
+    inside Roma:
     [Source Code Cache and Compilation Persistence](#source-code-cache-and-compilation-persistence).
 -   **Roma::Execute():** This function executes a single invocation request. The invocation request
     contains only the parameters needed to call the code object, but not the code object itself.
     When the request is sent to the sandbox, the sandbox will retrieve the compiled context or
-    source code by its version number and run the invocation request with inputs. Refer to
+    source code by its version and run the invocation request with inputs. Refer to
     [Compilation Persistence](#source-code-cache-and-compilation-persistence) for more details.
 -   **Roma::BatchExecute():** This function executes a batch of invocation requests. Invocation
     requests in a batch are like invocation requests from `Roma::Execute()`, except that the
@@ -133,7 +133,7 @@ V8::Context with the compiled code can be recreated for each execution.
 
 For JavaScript code loading, an isolate created by the startup data is cached in the Roma
 Compilation caches. When executing a call request, you only need to obtain the compilation context
-through the version number, enter the isolate and create a new V8::Context to make function calls.
+through the version string, enter the isolate and create a new V8::Context to make function calls.
 
 #### JavaScript mixed with WASM code
 
@@ -213,7 +213,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
     ```cpp
     auto code_obj = make_unique<CodeObject>();
     code_obj->id = "foo";
-    code_obj->version_num = 1;
+    code_obj->version_string = "v1";
     code_obj->js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
@@ -232,7 +232,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
     // Create an invocation request.
     auto execution_obj = make_unique<InvocationRequestStrInput>();
     execution_obj->id = "foo";
-    execution_obj->version_num = 1;
+    execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
@@ -244,7 +244,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
     // Create a batch request and do batch execution.
     auto execution_obj = InvocationRequestStrInput();
     execution_obj.id = "foo";
-    execution_obj.version_num = 1;
+    execution_obj.version_string = "v1";
     execution_obj.handler_name = "Handler";
     execution_obj.input.push_back("\"Foobar\"");
 

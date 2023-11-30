@@ -74,9 +74,9 @@ DEFINE_ERROR_CODE(SC_ROMA_V8_WORKER_FAILED_TO_PARSE_TIMEOUT_TAG,
                   "Failed to parse timeout value from tags.",
                   HttpStatusCode::BAD_REQUEST)
 
-DEFINE_ERROR_CODE(SC_ROMA_V8_WORKER_UNMATCHED_CODE_VERSION_NUM,
+DEFINE_ERROR_CODE(SC_ROMA_V8_WORKER_UNMATCHED_CODE_VERSION_STRING,
                   SC_ROMA_V8_WORKER, 0x0011,
-                  "Failed due to unmatched version number.",
+                  "Failed due to unmatched version string.",
                   HttpStatusCode::BAD_REQUEST)
 DEFINE_ERROR_CODE(SC_ROMA_V8_WORKER_UNKNOWN_WASM_RETURN_TYPE, SC_ROMA_V8_WORKER,
                   0x0012, "Failed due to unknown wasm return type.",

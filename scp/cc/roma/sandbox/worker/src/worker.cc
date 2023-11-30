@@ -79,7 +79,7 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
       WorkerUtils::GetValueFromMetadata(metadata, kCodeVersion);
   RETURN_IF_FAILURE(code_version_or.result());
 
-  ROMA_VLOG(2) << "Worker executing request with code version number of "
+  ROMA_VLOG(2) << "Worker executing request with code version of "
                << *code_version_or;
 
   auto action_or = WorkerUtils::GetValueFromMetadata(metadata, kRequestAction);

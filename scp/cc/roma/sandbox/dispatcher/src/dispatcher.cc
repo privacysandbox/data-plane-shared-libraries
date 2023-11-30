@@ -83,7 +83,7 @@ ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
 
 ExecutionResult Dispatcher::ReloadCachedCodeObjects(
     worker_api::WorkerApi& worker) {
-  absl::flat_hash_map<uint64_t, CodeObject> all_cached_code_objects = [&] {
+  absl::flat_hash_map<std::string, CodeObject> all_cached_code_objects = [&] {
     absl::MutexLock l(&cache_mu_);
     return code_object_cache_.GetAll();
   }();

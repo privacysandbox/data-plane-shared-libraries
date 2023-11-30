@@ -48,9 +48,10 @@ FakeBaServer::~FakeBaServer() {
   CHECK_OK(roma_service_->Stop());
 }
 
-void FakeBaServer::LoadSync(int version, absl::string_view js) const {
+void FakeBaServer::LoadSync(absl::string_view version,
+                            absl::string_view js) const {
   LoadRequest request;
-  request.version_num = version;
+  request.version_string = version;
   request.js = js;
   // Note: This is a BlockingCounter rather than a Notificaiton because that's
   // what B&A uses.
