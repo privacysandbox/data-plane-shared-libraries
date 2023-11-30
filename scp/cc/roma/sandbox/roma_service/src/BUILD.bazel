@@ -21,6 +21,8 @@ cc_library(
     srcs = [
         "error_codes.h",
         "roma_service.cc",
+    ],
+    hdrs = [
         "roma_service.h",
     ],
     deps = [
