@@ -169,8 +169,6 @@ class RomaService {
     return absl::OkStatus();
   }
 
-  static absl::Mutex instance_mu_;
-  static RomaService* instance_ ABSL_GUARDED_BY(instance_mu_);
   Config config_;
   std::unique_ptr<dispatcher::Dispatcher> dispatcher_;
   std::unique_ptr<worker_pool::WorkerPool> worker_pool_;
