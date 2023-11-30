@@ -32,18 +32,85 @@
 
 #include "absl/functional/bind_front.h"
 #include "include/v8.h"
-#include "roma/config/src/function_binding_object.h"
+#include "roma/config/src/function_binding_object_v2.h"
 #include "roma/config/src/type_converter.h"
 
 using ::testing::StrEq;
 
 namespace google::scp::roma::config::test {
+namespace {
+bool V8TypesToProto(const v8::FunctionCallbackInfo<v8::Value>& info,
+                    proto::FunctionBindingIoProto& proto) {
+  if (info.Length() == 0) {
+    // No arguments were passed to function
+    return true;
+  }
+
+  auto isolate = info.GetIsolate();
+  const auto& function_parameter = info[0];
+
+  using StrVec = std::vector<std::string>;
+  using StrMap = absl::flat_hash_map<std::string, std::string>;
+
+  // Try to convert to one of the supported types
+  if (std::string string_native; TypeConverter<std::string>::FromV8(
+          isolate, function_parameter, &string_native)) {
+    proto.set_input_string(std::move(string_native));
+  } else if (StrVec vector_of_string_native; TypeConverter<StrVec>::FromV8(
+                 isolate, function_parameter, &vector_of_string_native)) {
+    proto.mutable_input_list_of_string()->mutable_data()->Reserve(
+        vector_of_string_native.size());
+    for (auto&& native : vector_of_string_native) {
+      proto.mutable_input_list_of_string()->mutable_data()->Add(
+          std::move(native));
+    }
+  } else if (StrMap map_of_string_native; TypeConverter<StrMap>::FromV8(
+                 isolate, function_parameter, &map_of_string_native)) {
+    for (auto&& [key, value] : map_of_string_native) {
+      (*proto.mutable_input_map_of_string()->mutable_data())[std::move(key)] =
+          std::move(value);
+    }
+  } else if (function_parameter->IsUint8Array()) {
+    const auto array = function_parameter.As<v8::Uint8Array>();
+    const auto data_len = array->Length();
+    std::string native_data;
+    native_data.resize(data_len);
+    if (!TypeConverter<uint8_t*>::FromV8(isolate, function_parameter,
+                                         native_data)) {
+      return false;
+    }
+    *proto.mutable_input_bytes() = std::move(native_data);
+  } else {
+    // Unknown type
+    return false;
+  }
+
+  return true;
+}
+
+v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
+                                   const proto::FunctionBindingIoProto& proto) {
+  if (proto.has_output_string()) {
+    return TypeConverter<std::string>::ToV8(isolate, proto.output_string());
+  } else if (proto.has_output_list_of_string()) {
+    return TypeConverter<std::vector<std::string>>::ToV8(
+        isolate, proto.output_list_of_string().data());
+  } else if (proto.has_output_map_of_string()) {
+    return TypeConverter<absl::flat_hash_map<std::string, std::string>>::ToV8(
+        isolate, proto.output_map_of_string().data());
+  } else if (proto.has_output_bytes()) {
+    return TypeConverter<uint8_t*>::ToV8(isolate, proto.output_bytes());
+  }
+
+  return v8::Undefined(isolate);
+}
+}  // namespace
+
 class FunctionBindingTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
     const int my_pid = getpid();
-    const std::string proc_exe_path =
-        std::string("/proc/") + std::to_string(my_pid) + "/exe";
+    const std::string proc_exe_path = absl::StrCat("/proc/", my_pid, "/exe");
     auto my_path = std::make_unique<char[]>(PATH_MAX);
     ssize_t sz = readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
     ASSERT_GT(sz, 0);
@@ -83,13 +150,37 @@ static void GlobalV8FunctionCallback(
   v8::Local<v8::External> data_object =
       v8::Local<v8::External>::Cast(info.Data());
   auto user_function =
-      reinterpret_cast<FunctionBindingObjectBase*>(data_object->Value());
+      reinterpret_cast<FunctionBindingObjectV2<>*>(data_object->Value());
 
-  user_function->InvokeInternalHandler(info);
+  if (info.Length() != 1) {
+    isolate->ThrowError(
+        TypeConverter<std::string>::ToV8(
+            isolate, absl::StrCat("(", user_function->function_name,
+                                  ") Unexpected number of inputs"))
+            .As<v8::String>());
+    return;
+  }
+
+  proto::FunctionBindingIoProto io_proto;
+
+  if (!V8TypesToProto(info, io_proto)) {
+    isolate->ThrowError(
+        TypeConverter<std::string>::ToV8(
+            isolate, absl::StrCat("(", user_function->function_name,
+                                  ") Error encountered while converting types"))
+            .As<v8::String>());
+    return;
+  }
+
+  FunctionBindingPayload<> wrapper{io_proto, {}};
+
+  user_function->function(wrapper);
+  const auto& returned_value = ProtoToV8Type(isolate, io_proto);
+  info.GetReturnValue().Set(returned_value);
 }
 
 static std::string RunV8Function(v8::Isolate* isolate, std::string source_js,
-                                 FunctionBindingObjectBase& function_binding) {
+                                 FunctionBindingObjectV2<>& function_binding) {
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
 
@@ -98,9 +189,9 @@ static std::string RunV8Function(v8::Isolate* isolate, std::string source_js,
 
   global_object_template->SetInternalFieldCount(1);
 
-  auto function_name = TypeConverter<std::string>::ToV8(
-                           isolate, function_binding.GetFunctionName())
-                           .As<v8::String>();
+  auto function_name =
+      TypeConverter<std::string>::ToV8(isolate, function_binding.function_name)
+          .As<v8::String>();
 
   // Allow retrieving the user-provided function from the
   // v8::FunctionCallbackInfo when the C++ callback is invoked so that it can be
@@ -148,21 +239,22 @@ static std::string RunV8Function(v8::Isolate* isolate, std::string source_js,
 }
 
 // User provided JS function
-static std::string StringInputStringOutput(std::tuple<std::string>& input) {
-  return std::get<0>(input) + " " +
-         "Value added within user-provided function call";
+void StringInputStringOutput(FunctionBindingPayload<>& payload) {
+  payload.io_proto.set_output_string(
+      absl::StrCat(payload.io_proto.input_string(), " ",
+                   "Value added within user-provided function call"));
 }
 
 TEST_F(FunctionBindingTest, FunctionBindingByNameStringInputAndStringOutput) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "str_in_str_out";
+  obj.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
-  func.function = StringInputStringOutput;
+  obj.function = StringInputStringOutput;
 
   auto result =
-      RunV8Function(isolate_, "str_in_str_out('Hello from JS!');", func);
+      RunV8Function(isolate_, "str_in_str_out('Hello from JS!');", obj);
 
   EXPECT_THAT(
       result,
@@ -172,46 +264,29 @@ TEST_F(FunctionBindingTest, FunctionBindingByNameStringInputAndStringOutput) {
 TEST_F(FunctionBindingTest,
        FunctionBindingByNameStringInputAndStringOutputInvalidTypeInputInt) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "str_in_str_out";
+  obj.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
-  func.function = StringInputStringOutput;
+  obj.function = StringInputStringOutput;
 
-  auto result = RunV8Function(isolate_, "str_in_str_out(1);", func);
+  auto result = RunV8Function(isolate_, "str_in_str_out(1);", obj);
 
-  EXPECT_THAT(result,
-              StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
-                    "converting types"));
+  EXPECT_THAT(result, StrEq("Uncaught Error: (str_in_str_out) Error "
+                            "encountered while converting types"));
 }
 
 TEST_F(
     FunctionBindingTest,
     FunctionBindingByNameStringInputAndStringOutputInvalidTypeInputListOfInt) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "str_in_str_out";
+  obj.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
-  func.function = StringInputStringOutput;
+  obj.function = StringInputStringOutput;
 
-  auto result = RunV8Function(isolate_, "str_in_str_out([1,2,3]);", func);
-
-  EXPECT_THAT(result,
-              StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
-                    "converting types"));
-}
-
-TEST_F(FunctionBindingTest,
-       StringInputAndStringOutputInvalidTypeInputListOfString) {
-  // Function that returns a string and takes in a string as input
-  FunctionBindingObject<std::string, std::string> func;
-  // Set the name by which the function will be called in JS
-  func.function_name = "str_in_str_out";
-  // Set the C++ callback for the JS function
-  func.function = StringInputStringOutput;
-
-  auto result = RunV8Function(isolate_, "str_in_str_out(['Hel', 'lo']);", func);
+  auto result = RunV8Function(isolate_, "str_in_str_out([1,2,3]);", obj);
 
   EXPECT_THAT(result,
               StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
@@ -221,13 +296,13 @@ TEST_F(FunctionBindingTest,
 TEST_F(FunctionBindingTest,
        FunctionBindingByNameStringInputAndStringOutputInvalidTypeInputObject) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "str_in_str_out";
+  obj.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
-  func.function = StringInputStringOutput;
+  obj.function = StringInputStringOutput;
 
-  auto result = RunV8Function(isolate_, "obj = {}; str_in_str_out(obj);", func);
+  auto result = RunV8Function(isolate_, "obj = {}; str_in_str_out(obj);", obj);
 
   EXPECT_THAT(result,
               StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
@@ -236,13 +311,13 @@ TEST_F(FunctionBindingTest,
 
 TEST_F(FunctionBindingTest, PassingLessArgumentsThanExpected) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "str_in_str_out";
+  obj.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
-  func.function = StringInputStringOutput;
+  obj.function = StringInputStringOutput;
 
-  auto result = RunV8Function(isolate_, "str_in_str_out();", func);
+  auto result = RunV8Function(isolate_, "str_in_str_out();", obj);
 
   EXPECT_THAT(
       result,
@@ -251,14 +326,14 @@ TEST_F(FunctionBindingTest, PassingLessArgumentsThanExpected) {
 
 TEST_F(FunctionBindingTest, PassingMoreArgumentsThanExpected) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "str_in_str_out";
+  obj.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
-  func.function = StringInputStringOutput;
+  obj.function = StringInputStringOutput;
 
-  auto result = RunV8Function(
-      isolate_, "str_in_str_out('All good', 'Unexpected');", func);
+  auto result =
+      RunV8Function(isolate_, "str_in_str_out('All good', 'Unexpected');", obj);
 
   EXPECT_THAT(
       result,
@@ -267,14 +342,14 @@ TEST_F(FunctionBindingTest, PassingMoreArgumentsThanExpected) {
 
 TEST_F(FunctionBindingTest, PassingUndefinedValueToFunction) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "str_in_str_out";
+  obj.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
-  func.function = StringInputStringOutput;
+  obj.function = StringInputStringOutput;
 
   auto result =
-      RunV8Function(isolate_, "a = undefined; str_in_str_out(a);", func);
+      RunV8Function(isolate_, "a = undefined; str_in_str_out(a);", obj);
 
   EXPECT_THAT(result,
               StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
@@ -283,89 +358,44 @@ TEST_F(FunctionBindingTest, PassingUndefinedValueToFunction) {
 
 TEST_F(FunctionBindingTest, PassingNullValueToFunction) {
   // Function that returns a string and takes in a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "str_in_str_out";
+  obj.function_name = "str_in_str_out";
   // Set the C++ callback for the JS function
-  func.function = StringInputStringOutput;
+  obj.function = StringInputStringOutput;
 
-  auto result = RunV8Function(isolate_, "a = null; str_in_str_out(a);", func);
+  auto result = RunV8Function(isolate_, "a = null; str_in_str_out(a);", obj);
 
   EXPECT_THAT(result,
               StrEq("Uncaught Error: (str_in_str_out) Error encountered while "
                     "converting types"));
 }
 
-// User provided JS function
-static std::vector<std::string> StringInputVectorOfStringOutput(
-    std::tuple<std::string>& input) {
-  std::vector<std::string> output;
-  output.push_back(std::get<0>(input));
-  output.push_back("And some added stuff");
-  return output;
-}
-
-// User provided JS function
-static std::vector<std::string> VectorOfStringInputVectorOfStringOutput(
-    std::tuple<std::vector<std::string>>& input) {
-  auto input_vec = std::get<0>(input);
-
-  std::vector<std::string> output;
-  // Reverse the input
-  for (int i = input_vec.size() - 1; i >= 0; i--) {
-    output.push_back(input_vec.at(i));
-  }
-  return output;
-}
-
-static std::string ConcatenateVector(std::vector<std::string>& vec) {
-  std::string ret;
-  for (const auto& str : vec) {
-    ret += str;
-  }
-  return ret;
-}
-
-// User provided JS function
-static std::vector<std::string> MixedInputAndVectorOfStringOutput(
-    std::tuple<std::vector<std::string>, std::string, std::vector<std::string>,
-               std::string>& input) {
-  auto input_one = std::get<0>(input);
-  auto input_two = std::get<1>(input);
-  auto input_three = std::get<2>(input);
-  auto input_four = std::get<3>(input);
-
-  std::vector<std::string> output;
-  output.push_back(ConcatenateVector(input_one));
-  output.push_back(input_two);
-  output.push_back(ConcatenateVector(input_three));
-  output.push_back(input_four);
-  return output;
-}
-
 TEST_F(FunctionBindingTest, ShouldAllowInlineHandler) {
   // Function that returns a string and takes a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "func_that_calls_lambda";
+  obj.function_name = "func_that_calls_lambda";
   // Set the C++ callback for the JS function
-  func.function = [](std::tuple<std::string>& input) -> std::string {
-    return std::get<0>(input) + "-From lambda";
+  obj.function = [](FunctionBindingPayload<>& payload) -> void {
+    payload.io_proto.set_output_string(
+        absl::StrCat(payload.io_proto.input_string(), "-From lambda"));
   };
 
   auto js_source =
       "result = func_that_calls_lambda('From JS');"
       "result;";
 
-  auto result = RunV8Function(isolate_, js_source, func);
+  auto result = RunV8Function(isolate_, js_source, obj);
 
   EXPECT_THAT(result, StrEq("From JS-From lambda"));
 }
 
 class MyHandler {
  public:
-  std::string HookHandler(std::tuple<std::string>& input) {
-    return std::get<0>(input) + "-From member function";
+  void HookHandler(FunctionBindingPayload<>& payload) {
+    payload.io_proto.set_output_string(
+        absl::StrCat(payload.io_proto.input_string(), "-From member function"));
   }
 };
 
@@ -374,17 +404,17 @@ TEST_F(FunctionBindingTest, ShouldAllowMemberFunctionAsHandler) {
   MyHandler my_handler;
 
   // Function that returns a string and takes a string as input
-  FunctionBindingObject<std::string, std::string> func;
+  FunctionBindingObjectV2 obj;
   // Set the name by which the function will be called in JS
-  func.function_name = "func_that_calls_member_func";
+  obj.function_name = "func_that_calls_member_func";
   // Set the C++ callback for the JS function
-  func.function = absl::bind_front(&MyHandler::HookHandler, my_handler);
+  obj.function = absl::bind_front(&MyHandler::HookHandler, my_handler);
 
   auto js_source =
       "result = func_that_calls_member_func('From JS');"
       "result;";
 
-  auto result = RunV8Function(isolate_, js_source, func);
+  auto result = RunV8Function(isolate_, js_source, obj);
 
   EXPECT_THAT(result, StrEq("From JS-From member function"));
 }

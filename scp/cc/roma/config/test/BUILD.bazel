@@ -17,8 +17,8 @@ load("@rules_cc//cc:defs.bzl", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_test(
-    name = "function_binding_test",
-    srcs = ["function_binding_test.cc"],
+    name = "function_binding_v2_test",
+    srcs = ["function_binding_v2_test.cc"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",

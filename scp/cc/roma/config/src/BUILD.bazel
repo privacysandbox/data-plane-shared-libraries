@@ -20,7 +20,6 @@ cc_library(
     name = "roma_config_lib",
     srcs = [
         "config.h",
-        "function_binding_object.h",
         "function_binding_object_v2.h",
         "type_converter.h",
     ],

@@ -29,7 +29,6 @@
 #include "roma/benchmark/src/fake_kv_server.h"
 #include "roma/benchmark/test/test_code.h"
 #include "roma/config/src/config.h"
-#include "roma/config/src/function_binding_object.h"
 
 namespace {
 

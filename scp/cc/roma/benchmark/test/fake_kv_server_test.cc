@@ -20,7 +20,6 @@
 #include <gtest/gtest.h>
 
 #include "roma/config/src/config.h"
-#include "roma/config/src/function_binding_object.h"
 
 using google::scp::roma::proto::FunctionBindingIoProto;
 using ::testing::StrEq;

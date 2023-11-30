@@ -264,9 +264,7 @@ class RomaService {
    */
   core::ExecutionResultOr<NativeFunctionBindingSetup>
   SetupNativeFunctionHandler(size_t concurrency) {
-    std::vector<std::shared_ptr<FunctionBindingObjectV2<TMetadata>>>
-        function_bindings;
-    config_.GetFunctionBindings(function_bindings);
+    auto function_bindings = config_.GetFunctionBindings();
 
     std::vector<std::string> function_names;
     for (auto& binding : function_bindings) {
