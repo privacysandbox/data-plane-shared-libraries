@@ -293,32 +293,33 @@ class ExecutionResultOr : public std::variant<ExecutionResult, T> {
   // Returns true if this contains a value.
   bool has_value() const { return !HasExecutionResult(); }
 
-  // clang-format off
-
   // Returns the value held by this.
   // Should be guarded by has_value() calls - otherwise the behavior is
   // undefined.
   const T& value() const& { return std::get<T>(*this); }
+
   // lvalue reference overload - indicated by "...() &".
   T& value() & { return std::get<T>(*this); }
+
   // rvalue reference overload - indicated by "...() &&".
   T&& value() && { return std::move(this->value()); }
 
   const T& operator*() const& { return this->value(); }
+
   // lvalue reference overload - indicated by "...() &".
   T& operator*() & { return this->value(); }
+
   // rvalue reference overload - indicated by "...() &&".
   T&& operator*() && { return std::move(this->value()); }
 
   // Returns a pointer to the value held by this.
   // Returns nullptr if no value is contained.
   const T* operator->() const { return std::get_if<T>(this); }
+
   T* operator->() { return std::get_if<T>(this); }
 
   // alias for value() && but no call to std::move() is necessary.
   T&& release() { return std::move(this->value()); }
-
-  // clang-format on
 
  private:
   bool HasExecutionResult() const {
