@@ -57,7 +57,7 @@ def cc_utils():
     maybe(
         http_archive,
         name = "com_google_tcmalloc",
-        # Versions of TCMalloc after this one seem to have crashing problems.
-        strip_prefix = "tcmalloc-58c40a3b4bcf583d2993bc1b003279709c05f1d2",
-        urls = ["https://github.com/google/tcmalloc/archive/58c40a3b4bcf583d2993bc1b003279709c05f1d2.zip"],
+        sha256 = "d4bef5f15eb54cf481d6da96ffa6616a090009e94b336385445ee09427d8e512",
+        strip_prefix = "tcmalloc-cda5074afb75ab02cf4d621986308ab7421dbbf8",
+        urls = ["https://github.com/google/tcmalloc/archive/cda5074afb75ab02cf4d621986308ab7421dbbf8.zip"],
     )
