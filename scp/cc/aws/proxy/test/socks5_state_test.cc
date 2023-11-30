@@ -22,7 +22,6 @@
 #include <unistd.h>
 
 #include "proxy/src/buffer.h"
-#include "proxy/src/proxy_bridge.h"
 
 namespace google::scp::proxy::test {
 using BufferUnitType = uint8_t;

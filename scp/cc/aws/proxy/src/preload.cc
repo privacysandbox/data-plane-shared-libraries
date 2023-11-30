@@ -16,8 +16,6 @@
 
 #include <errno.h>
 
-#include <memory>
-
 #include "protocol.h"
 #include "socket_vendor_protocol.h"
 

@@ -19,7 +19,6 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include <memory>
 #include <thread>
 #include <utility>
 

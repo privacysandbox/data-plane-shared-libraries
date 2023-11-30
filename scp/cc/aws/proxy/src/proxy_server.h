@@ -19,15 +19,10 @@
 
 #include <stdint.h>
 
-#include <map>
-#include <memory>
-#include <shared_mutex>
-
 #include <boost/asio.hpp>
 
 #include "acceptor_pool.h"
 #include "config.h"
-#include "proxy_bridge.h"
 #include "socket_types.h"
 
 namespace google::scp::proxy {

@@ -18,7 +18,6 @@
 #define PROXY_SRC_CLIENT_SESSION_POOL_H_
 
 #include <atomic>
-#include <memory>
 #include <utility>
 #include <vector>
 

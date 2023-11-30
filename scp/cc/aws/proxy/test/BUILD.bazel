@@ -23,7 +23,6 @@ cc_test(
     srcs = ["socks5_state_test.cc"],
     deps = [
         "//scp/cc/aws/proxy/src:buffer",
-        "//scp/cc/aws/proxy/src:proxy_bridge",
         "//scp/cc/aws/proxy/src:socks5_state",
         "@com_google_googletest//:gtest_main",
     ],

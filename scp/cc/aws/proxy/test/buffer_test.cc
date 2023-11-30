@@ -19,9 +19,6 @@
 #include <gtest/gtest.h>
 
 #include <memory>
-#include <thread>
-#include <unordered_set>
-#include <vector>
 
 namespace google::scp::proxy {
 

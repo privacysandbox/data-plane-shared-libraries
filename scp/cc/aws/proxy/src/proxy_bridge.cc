@@ -16,7 +16,6 @@
 
 #include "proxy_bridge.h"
 
-#include <functional>
 #include <utility>
 
 #include <boost/asio.hpp>

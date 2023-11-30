@@ -21,9 +21,7 @@
 #include <stdint.h>
 #include <sys/socket.h>
 
-#include <atomic>
 #include <functional>
-#include <memory>
 #include <utility>
 #include <vector>
 
