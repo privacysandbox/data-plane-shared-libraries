@@ -58,14 +58,14 @@ TEST(FakeKvServerTest, ExecuteCodeWithKeyData) {
               StrEq(R"("Hello world! \"ECHO\"")"));
 }
 
-static void HelloWorldCallback(FunctionBindingPayload& wrapper) {
+static void HelloWorldCallback(FunctionBindingPayload<>& wrapper) {
   wrapper.io_proto.set_output_string("I am a callback!");
 }
 
 TEST(FakeKvServerTest, ExecuteCodeWithCallback) {
   Config config;
   {
-    auto function_object = std::make_unique<FunctionBindingObjectV2>();
+    auto function_object = std::make_unique<FunctionBindingObjectV2<>>();
     function_object->function_name = "callback";
     function_object->function = HelloWorldCallback;
     config.RegisterFunctionBinding(std::move(function_object));

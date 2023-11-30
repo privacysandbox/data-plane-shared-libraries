@@ -73,17 +73,19 @@ template <typename T>
 struct RequestConverter {};
 
 /**
- * @brief Template specialization for InvocationRequestStrInput. This converts a
- * InvocationRequestStrInput into a RunCodeRequest.
+ * @brief Template specialization for InvocationStrRequest. This converts a
+ * InvocationStrRequest into a RunCodeRequest.
  */
-template <>
-struct RequestConverter<InvocationRequestStrInput> {
+template <typename TMetadata>
+struct RequestConverter<InvocationStrRequest<TMetadata>> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(const std::unique_ptr<InvocationRequestStrInput>& request,
-                   const std::string& request_type) {
+  FromUserProvided(
+      const std::unique_ptr<InvocationStrRequest<TMetadata>>& request,
+      const std::string& request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     RunRequestFromInputRequestCommon<
-        std::unique_ptr<InvocationRequestStrInput>>(run_code_request, request);
+        std::unique_ptr<InvocationStrRequest<TMetadata>>>(run_code_request,
+                                                          request);
     run_code_request.input.reserve(request->input.size());
     for (auto& i : request->input) {
       run_code_request.input.push_back(i);
@@ -95,18 +97,19 @@ struct RequestConverter<InvocationRequestStrInput> {
 };
 
 /**
- * @brief Template specialization for InvocationRequestSharedInput. This
- * converts a InvocationRequestSharedInput into a RunCodeRequest.
+ * @brief Template specialization for InvocationSharedRequest. This
+ * converts a InvocationSharedRequest into a RunCodeRequest.
  */
-template <>
-struct RequestConverter<InvocationRequestSharedInput> {
+template <typename TMetadata>
+struct RequestConverter<InvocationSharedRequest<TMetadata>> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(const std::unique_ptr<InvocationRequestSharedInput>& request,
-                   const std::string& request_type) {
+  FromUserProvided(
+      const std::unique_ptr<InvocationSharedRequest<TMetadata>>& request,
+      const std::string& request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     RunRequestFromInputRequestCommon<
-        std::unique_ptr<InvocationRequestSharedInput>>(run_code_request,
-                                                       request);
+        std::unique_ptr<InvocationSharedRequest<TMetadata>>>(run_code_request,
+                                                             request);
     run_code_request.input.reserve(request->input.size());
     for (auto& i : request->input) {
       run_code_request.input.push_back(*i);
@@ -118,19 +121,19 @@ struct RequestConverter<InvocationRequestSharedInput> {
 };
 
 /**
- * @brief Template specialization for InvocationRequestStrViewInput. This
- * converts a InvocationRequestStrViewInput into a RunCodeRequest.
+ * @brief Template specialization for InvocationStrViewRequest. This
+ * converts a InvocationStrViewRequest into a RunCodeRequest.
  */
-template <>
-struct RequestConverter<InvocationRequestStrViewInput> {
+template <typename TMetadata>
+struct RequestConverter<InvocationStrViewRequest<TMetadata>> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
   FromUserProvided(
-      const std::unique_ptr<InvocationRequestStrViewInput>& request,
+      const std::unique_ptr<InvocationStrViewRequest<TMetadata>>& request,
       const std::string& request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     RunRequestFromInputRequestCommon<
-        std::unique_ptr<InvocationRequestStrViewInput>>(run_code_request,
-                                                        request);
+        std::unique_ptr<InvocationStrViewRequest<TMetadata>>>(run_code_request,
+                                                              request);
     run_code_request.input.reserve(request->input.size());
     for (auto& i : request->input) {
       run_code_request.input.push_back(i);

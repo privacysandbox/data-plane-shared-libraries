@@ -40,6 +40,8 @@ using ::testing::SizeIs;
 using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::native_function_binding::test {
+static constexpr char kRequestUuid[] = "foo";
+
 TEST(NativeFunctionHandlerSapiIpcTest, IninRunStop) {
   int fd_pair[2];
   EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
@@ -54,7 +56,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, IninRunStop) {
 
 static bool g_called_registered_function;
 
-void FunctionToBeCalled(FunctionBindingPayload& wrapper) {
+void FunctionToBeCalled(FunctionBindingPayload<>& wrapper) {
   g_called_registered_function = true;
   wrapper.io_proto.set_output_string("I'm an output standalone string");
 }
@@ -67,14 +69,15 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   NativeFunctionTable function_table;
   function_table.Register("cool_function_name", FunctionToBeCalled);
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
-  handler.Run();
-
+  EXPECT_SUCCESS(handler.Run());
+  handler.StoreMetadata(kRequestUuid, {});
   g_called_registered_function = false;
 
   auto remote_fd = remote_fds.at(0);
   sandbox2::Comms comms(remote_fd);
   proto::RpcWrapper rpc_proto;
   rpc_proto.set_function_name("cool_function_name");
+  rpc_proto.set_request_uuid(kRequestUuid);
   // Send the request over so that it's handled and the registered function
   // can be called
   EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
@@ -84,7 +87,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   EXPECT_TRUE(g_called_registered_function);
   EXPECT_THAT(rpc_proto.io_proto().output_string(),
               StrEq("I'm an output standalone string"));
-  handler.Stop();
+  EXPECT_SUCCESS(handler.Stop());
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest,
@@ -96,7 +99,8 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   NativeFunctionTable function_table;
   // We don't register any functions with the function table
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
-  handler.Run();
+  EXPECT_SUCCESS(handler.Run());
+  handler.StoreMetadata(kRequestUuid, {});
 
   g_called_registered_function = false;
 
@@ -104,6 +108,7 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   sandbox2::Comms comms(remote_fd);
   proto::RpcWrapper rpc_proto;
   rpc_proto.set_function_name("cool_function_name");
+  rpc_proto.set_request_uuid(kRequestUuid);
   // Send the request over so that it's handled and the registered function
   // can be called
   EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
@@ -117,7 +122,7 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   EXPECT_GE(rpc_proto.io_proto().errors().size(), 0);
   EXPECT_THAT(rpc_proto.io_proto().errors(0),
               StrEq("ROMA: Failed to execute the C++ function."));
-  handler.Stop();
+  EXPECT_SUCCESS(handler.Stop());
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest,
@@ -129,7 +134,7 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   NativeFunctionTable function_table;
   // We don't register any functions with the function table
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
-  handler.Run();
+  EXPECT_SUCCESS(handler.Run());
 
   g_called_registered_function = false;
 
@@ -149,18 +154,18 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   EXPECT_GE(rpc_proto.io_proto().errors().size(), 0);
   EXPECT_THAT(rpc_proto.io_proto().errors(0),
               StrEq("ROMA: Could not find C++ function by name."));
-  handler.Stop();
+  EXPECT_SUCCESS(handler.Stop());
 }
 
 static bool g_called_registered_function_one;
 static bool g_called_registered_function_two;
 
-void FunctionOne(FunctionBindingPayload& wrapper) {
+void FunctionOne(FunctionBindingPayload<>& wrapper) {
   g_called_registered_function_one = true;
   wrapper.io_proto.set_output_string("From function one");
 }
 
-void FunctionTwo(FunctionBindingPayload& wrapper) {
+void FunctionTwo(FunctionBindingPayload<>& wrapper) {
   g_called_registered_function_two = true;
   wrapper.io_proto.set_output_string("From function two");
 }
@@ -174,7 +179,8 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   function_table.Register("cool_function_name_one", FunctionOne);
   function_table.Register("cool_function_name_two", FunctionTwo);
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
-  handler.Run();
+  EXPECT_SUCCESS(handler.Run());
+  handler.StoreMetadata(kRequestUuid, {});
 
   g_called_registered_function_one = false;
   g_called_registered_function_two = false;
@@ -183,6 +189,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   sandbox2::Comms comms(remote_fd);
   proto::RpcWrapper rpc_proto;
   rpc_proto.set_function_name("cool_function_name_one");
+  rpc_proto.set_request_uuid(kRequestUuid);
   // Send the request over so that it's handled and the registered function
   // can be called
   EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
@@ -195,6 +202,8 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
 
   rpc_proto.Clear();
   rpc_proto.set_function_name("cool_function_name_two");
+  rpc_proto.set_request_uuid(kRequestUuid);
+  handler.StoreMetadata(kRequestUuid, {});
   // Send the request over so that it's handled and the registered function
   // can be called
   EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
@@ -204,6 +213,6 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   EXPECT_TRUE(g_called_registered_function_two);
   EXPECT_EQ(rpc_proto.io_proto().errors().size(), 0);
   EXPECT_THAT(rpc_proto.io_proto().output_string(), StrEq("From function two"));
-  handler.Stop();
+  EXPECT_SUCCESS(handler.Stop());
 }
 }  // namespace google::scp::roma::sandbox::native_function_binding::test

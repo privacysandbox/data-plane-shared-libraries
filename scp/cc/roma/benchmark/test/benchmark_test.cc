@@ -40,7 +40,7 @@ using ::testing::StrEq;
 
 namespace google::scp::roma::test {
 
-static void LoadCode(std::unique_ptr<RomaService>& roma_service,
+static void LoadCode(std::unique_ptr<RomaService<>>& roma_service,
                      size_t code_bloat_size = 1000) {
   auto code_obj = std::make_unique<CodeObject>();
   code_obj->id = "foo";
@@ -67,9 +67,9 @@ static void LoadCode(std::unique_ptr<RomaService>& roma_service,
   load_finished.WaitForNotification();
 }
 
-static void ExecuteCode(std::unique_ptr<RomaService>& roma_service,
+static void ExecuteCode(std::unique_ptr<RomaService<>>& roma_service,
                         const std::shared_ptr<std::string>& input) {
-  auto code_obj = std::make_unique<InvocationRequestSharedInput>();
+  auto code_obj = std::make_unique<InvocationSharedRequest<>>();
   code_obj->id = "foo";
   code_obj->version_string = "v1";
   code_obj->handler_name = "Handler";
@@ -95,7 +95,7 @@ static void ExecuteCode(std::unique_ptr<RomaService>& roma_service,
   EXPECT_THAT(result, StrEq(R"("Hello, World!")"));
 }
 
-static void RunLoad(std::unique_ptr<RomaService>& roma_service,
+static void RunLoad(std::unique_ptr<RomaService<>>& roma_service,
                     const size_t number_of_requests,
                     const size_t number_of_threads, const size_t input_size,
                     std::vector<std::vector<uint64_t>>* exec_times) {
@@ -163,7 +163,7 @@ static void DumpStats(std::vector<int> percentiles,
   }
 }
 
-static void RunLoadAndDumpStats(std::unique_ptr<RomaService>& roma_service,
+static void RunLoadAndDumpStats(std::unique_ptr<RomaService<>>& roma_service,
                                 const size_t number_of_threads,
                                 const size_t number_of_requests,
                                 const size_t input_size) {
@@ -185,7 +185,7 @@ static void RunLoadAndDumpStats(std::unique_ptr<RomaService>& roma_service,
 static void RunTest(size_t num_workers_and_threads) {
   Config config;
   config.number_of_workers = num_workers_and_threads;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
   LoadCode(roma_service);

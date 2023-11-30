@@ -24,8 +24,10 @@
 //
 // C++ Code:
 // void CoolFunction(
-// google::scp::roma::proto::FunctionBindingPayload& wrapper) {
-//  wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() + "Hello");
+// google::scp::roma::proto::FunctionBindingPayload<absl::flat_hash_map<std::string,
+// std::string>>& wrapper) {
+//  wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() +
+//  "Hello");
 // }
 //
 

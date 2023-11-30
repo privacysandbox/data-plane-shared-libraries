@@ -38,9 +38,9 @@ constexpr char kVersionString[] = "v1";
 
 }  // namespace
 
-FakeKvServer::FakeKvServer(const Config& config) {
+FakeKvServer::FakeKvServer(const Config<>& config) {
   roma_service_ =
-      std::make_unique<google::scp::roma::sandbox::roma_service::RomaService>(
+      std::make_unique<google::scp::roma::sandbox::roma_service::RomaService<>>(
           config);
   CHECK(roma_service_->Init().ok());
 }
@@ -58,7 +58,7 @@ std::string FakeKvServer::ExecuteCode(const std::vector<std::string> keys) {
   std::shared_ptr<std::string> result = std::make_shared<std::string>();
   std::shared_ptr<absl::Notification> notification =
       std::make_shared<absl::Notification>();
-  InvocationRequestStrInput invocation_request = {
+  InvocationStrRequest<> invocation_request = {
       .id = kInvocationRequestId,
       .version_string = kVersionString,
       .handler_name = handler_name_,
@@ -66,7 +66,7 @@ std::string FakeKvServer::ExecuteCode(const std::vector<std::string> keys) {
   };
 
   const auto status = roma_service_->Execute(
-      std::make_unique<InvocationRequestStrInput>(invocation_request),
+      std::make_unique<InvocationStrRequest<>>(invocation_request),
       [notification, response_status,
        result](std::unique_ptr<absl::StatusOr<ResponseObject>> response) {
         if (response->ok()) {

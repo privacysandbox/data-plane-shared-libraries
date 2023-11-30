@@ -24,9 +24,8 @@
 #include "roma/sandbox/roma_service/src/roma_service.h"
 
 namespace google::scp::roma::benchmark {
-
-using DispatchConfig = google::scp::roma::Config;
-using DispatchRequest = google::scp::roma::InvocationRequestSharedInput;
+using DispatchConfig = google::scp::roma::Config<>;
+using DispatchRequest = google::scp::roma::InvocationSharedRequest<>;
 
 // This class is used for benchmarking the way that the FLEDGE Bidding and
 // Auction Services use the ROMA library.
@@ -55,7 +54,7 @@ class FakeBaServer {
   void BatchExecute(std::vector<DispatchRequest>& batch) const;
 
  private:
-  std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService>
+  std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService<>>
       roma_service_;
 };
 

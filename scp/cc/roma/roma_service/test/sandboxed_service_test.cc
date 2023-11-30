@@ -58,7 +58,7 @@ static const std::vector<uint8_t> kWasmBin = {
 
 // TODO(b/311435456): Reenable when cause of flakiness found.
 TEST(SandboxedServiceTest, DISABLED_InitStop) {
-  auto roma_service = std::make_unique<RomaService>();
+  auto roma_service = std::make_unique<RomaService<>>();
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
   status = roma_service->Stop();
@@ -70,7 +70,7 @@ TEST(SandboxedServiceTest,
   Config config;
   config.max_worker_virtual_memory_mb = 10;
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_FALSE(status.ok());
   EXPECT_THAT(status.message(),
@@ -85,7 +85,7 @@ TEST(SandboxedServiceTest,
 TEST(SandboxedServiceTest, ExecuteCode) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -112,7 +112,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -141,7 +141,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
 TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -170,8 +170,8 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
 
   {
     std::string_view input_str_view{R"("Foobar")"};
-    auto execute_request = std::make_unique<InvocationRequestStrViewInput>(
-        InvocationRequestStrViewInput{
+    auto execute_request =
+        std::make_unique<InvocationStrViewRequest<>>(InvocationStrViewRequest<>{
             .id = "foo",
             .version_string = "v1",
             .handler_name = "Handler",
@@ -202,7 +202,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
 TEST(SandboxedServiceTest, ExecuteNativeLogFunctions) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -247,7 +247,7 @@ TEST(SandboxedServiceTest, ExecuteNativeLogFunctions) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -277,24 +277,35 @@ TEST(SandboxedServiceTest, ExecuteNativeLogFunctions) {
   log.StopCapturingLogs();
 }
 
-void LogMetadataFunction(FunctionBindingPayload& wrapper) {
+void LogMetadataFunction(FunctionBindingPayload<>& wrapper) {
   for (const auto& [key, val] : wrapper.metadata) {
     LOG(INFO) << key << ": " << val;
   }
 }
 
-std::unique_ptr<FunctionBindingObjectV2> CreateLogFunctionBindingObject() {
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
-  function_binding_object->function = LogMetadataFunction;
-  function_binding_object->function_name = "log_metadata";
+template <typename T>
+std::unique_ptr<FunctionBindingObjectV2<T>> CreateFunctionBindingObject(
+    std::function<void(FunctionBindingPayload<T>&)> func,
+    std::string_view name) {
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<T>>();
+  function_binding_object->function = func;
+  function_binding_object->function_name = name;
   return function_binding_object;
 }
 
-TEST(SandboxedServiceTest, InvocationReqTagsVisibleInNativeFunctions) {
+std::unique_ptr<
+    FunctionBindingObjectV2<absl::flat_hash_map<std::string, std::string>>>
+CreateLogFunctionBindingObject() {
+  return CreateFunctionBindingObject<
+      absl::flat_hash_map<std::string, std::string>>(LogMetadataFunction,
+                                                     "log_metadata");
+}
+
+TEST(SandboxedServiceTest, InvocationReqMetadataVisibleInNativeFunctions) {
   Config config;
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -327,7 +338,7 @@ TEST(SandboxedServiceTest, InvocationReqTagsVisibleInNativeFunctions) {
 
   {
     auto execution_obj =
-        std::make_unique<InvocationRequestStrInput>(InvocationRequestStrInput{
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
             .id = "foo",
             .version_string = "v1",
             .handler_name = "Handler",
@@ -355,11 +366,11 @@ TEST(SandboxedServiceTest, InvocationReqTagsVisibleInNativeFunctions) {
   log.StopCapturingLogs();
 }
 
-TEST(SandboxedServiceTest, ContextAssociatedWithEachNativeFunction) {
+TEST(SandboxedServiceTest, MetadataAssociatedWithEachNativeFunction) {
   Config config;
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -395,7 +406,7 @@ TEST(SandboxedServiceTest, ContextAssociatedWithEachNativeFunction) {
   {
     for (auto i = 0u; i < total_runs; ++i) {
       auto code_obj =
-          std::make_unique<InvocationRequestStrInput>(InvocationRequestStrInput{
+          std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
               .id = "foo",
               .version_string = "v1",
               .handler_name = "Handler",
@@ -430,10 +441,349 @@ TEST(SandboxedServiceTest, ContextAssociatedWithEachNativeFunction) {
   log.StopCapturingLogs();
 }
 
+TEST(SandboxedServiceTest, MetadataAssociatedWithBatchedFunctions) {
+  Config config;
+  config.worker_queue_max_items = 1;
+  config.number_of_workers = 10;
+  config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
+  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto status = roma_service->Init();
+  EXPECT_TRUE(status.ok());
+
+  absl::Notification load_finished;
+  constexpr int kNumThreads = 10;
+  constexpr size_t kBatchSize = 100;
+  const auto& metadata_tag = "Working";
+
+  absl::ScopedMockLog log;
+  for (auto i = 0u; i < kNumThreads; i++) {
+    EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
+                         absl::StrCat("key", i, ": ", metadata_tag, i)))
+        .Times(kBatchSize);
+  }
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = "var Handler = () => log_metadata();",
+    });
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  load_finished.WaitForNotification();
+  absl::Mutex res_count_mu;
+  int res_count ABSL_GUARDED_BY(res_count_mu) = 0;
+
+  std::vector<std::thread> threads;
+  threads.reserve(kNumThreads);
+
+  for (int i = 0; i < kNumThreads; i++) {
+    threads.emplace_back([&, i]() {
+      absl::Notification local_execute;
+      InvocationStrRequest<> execution_obj{
+          .id = "foo",
+          .version_string = "v1",
+          .handler_name = "Handler",
+      };
+      execution_obj.metadata.insert(
+          {absl::StrCat("key", i), absl::StrCat(metadata_tag, i)});
+
+      std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
+
+      auto batch_callback =
+          [&,
+           i](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
+            for (auto resp : batch_resp) {
+              if (resp.ok()) {
+                EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
+              } else {
+                ADD_FAILURE() << "resp is NOT OK.";
+              }
+            }
+            {
+              absl::MutexLock l(&res_count_mu);
+              res_count += batch_resp.size();
+            }
+            local_execute.Notify();
+          };
+      while (!roma_service->BatchExecute(batch, batch_callback).ok()) {}
+
+      // Thread cannot join until batch_callback is called.
+      local_execute.WaitForNotification();
+    });
+  }
+
+  for (auto& t : threads) {
+    t.join();
+  }
+  {
+    absl::MutexLock l(&res_count_mu);
+    EXPECT_EQ(res_count, kBatchSize * kNumThreads);
+  }
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
+
+  log.StopCapturingLogs();
+}
+
+void LogMetadataStringFunction(FunctionBindingPayload<std::string>& wrapper) {
+  LOG(INFO) << wrapper.metadata;
+}
+
+TEST(SandboxedServiceTest, StringMetadataVisibleInNativeFunctions) {
+  Config<std::string> config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(CreateFunctionBindingObject<std::string>(
+      LogMetadataStringFunction, "log_metadata"));
+  auto roma_service = std::make_unique<RomaService<std::string>>(config);
+  auto status = roma_service->Init();
+  EXPECT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+  const auto& metadata_tag = "Working";
+
+  absl::ScopedMockLog log;
+  EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, metadata_tag));
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = "var Handler = () => log_metadata();",
+    });
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj = std::make_unique<InvocationStrRequest<std::string>>(
+        InvocationStrRequest<std::string>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .metadata = metadata_tag,
+        });
+
+    status = roma_service->Execute(
+        std::move(execution_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          if (resp->ok()) {
+            auto& code_resp = **resp;
+            result = code_resp.resp;
+          }
+          execute_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_THAT(result, testing::StrEq("undefined"));
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
+  log.StopCapturingLogs();
+}
+
+void LogMetadataVectorFunction(
+    FunctionBindingPayload<std::vector<std::string>>& wrapper) {
+  for (const auto& metadata : wrapper.metadata) {
+    LOG(INFO) << metadata;
+  }
+}
+
+TEST(SandboxedServiceTest, VectorMetadataVisibleInNativeFunctions) {
+  Config<std::vector<std::string>> config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(
+      CreateFunctionBindingObject<std::vector<std::string>>(
+          LogMetadataVectorFunction, "log_metadata"));
+  auto roma_service =
+      std::make_unique<RomaService<std::vector<std::string>>>(config);
+  auto status = roma_service->Init();
+  EXPECT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+  std::vector<std::string> metadata_list(5, "Working");
+
+  absl::ScopedMockLog log;
+  EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, metadata_list[0]))
+      .Times(metadata_list.size());
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = "var Handler = () => log_metadata();",
+    });
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<std::vector<std::string>>>(
+            InvocationStrRequest<std::vector<std::string>>{
+                .id = "foo",
+                .version_string = "v1",
+                .handler_name = "Handler",
+                .metadata = metadata_list,
+            });
+
+    status = roma_service->Execute(
+        std::move(execution_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          if (resp->ok()) {
+            auto& code_resp = **resp;
+            result = code_resp.resp;
+          }
+          execute_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_THAT(result, testing::StrEq("undefined"));
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
+  log.StopCapturingLogs();
+}
+
+struct Metadata {
+  std::string name;
+  std::string description;
+  std::vector<std::string> tags;
+};
+
+void LogMetadataStructFunction(
+    FunctionBindingPayload<std::vector<Metadata>>& wrapper) {
+  for (const auto& metadata : wrapper.metadata) {
+    LOG(INFO) << metadata.name;
+    LOG(INFO) << metadata.description;
+    for (const auto& tag : metadata.tags) {
+      LOG(INFO) << tag;
+    }
+  }
+}
+
+TEST(SandboxedServiceTest, CustomMetadataTypeVisibleInNativeFunctions) {
+  Config<std::vector<Metadata>> config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(
+      CreateFunctionBindingObject<std::vector<Metadata>>(
+          LogMetadataStructFunction, "log_metadata"));
+  auto roma_service =
+      std::make_unique<RomaService<std::vector<Metadata>>>(config);
+  auto status = roma_service->Init();
+  EXPECT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  const auto& metadata_factory = [](int i) {
+    Metadata metadata = {absl::StrCat("foo", i), absl::StrCat("bar", i), {}};
+    for (int j = 0; j < 10; j++) {
+      metadata.tags.push_back(absl::StrCat("hello", i, "world", j));
+    }
+    return metadata;
+  };
+  std::vector<Metadata> metadata_list;
+  for (int i = 0; i < 10; i++) {
+    metadata_list.push_back(metadata_factory(i));
+  }
+
+  absl::ScopedMockLog log;
+  for (const auto& metadata : metadata_list) {
+    EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, metadata.name));
+    EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, metadata.description));
+    for (const auto& tag : metadata.tags) {
+      EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, tag));
+    }
+  }
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = "var Handler = () => log_metadata();",
+    });
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<std::vector<Metadata>>>(
+            InvocationStrRequest<std::vector<Metadata>>{
+                .id = "foo",
+                .version_string = "v1",
+                .handler_name = "Handler",
+                .metadata = metadata_list,
+            });
+
+    status = roma_service->Execute(
+        std::move(execution_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          if (resp->ok()) {
+            auto& code_resp = **resp;
+            result = code_resp.resp;
+          }
+          execute_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_THAT(result, testing::StrEq("undefined"));
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
+  log.StopCapturingLogs();
+}
+
 TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -461,7 +811,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -481,7 +831,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "WrongHandler";
@@ -511,7 +861,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
 TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -537,7 +887,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
@@ -565,7 +915,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
 TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -591,7 +941,7 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -619,7 +969,7 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
 TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -648,7 +998,7 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -678,7 +1028,7 @@ TEST(SandboxedServiceTest,
      ShouldReturnWithVersionNotFoundWhenExecutingAVersionThatHasNotBeenLoaded) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -686,7 +1036,7 @@ TEST(SandboxedServiceTest,
   absl::Notification execute_finished;
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -712,7 +1062,7 @@ TEST(SandboxedServiceTest,
 TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -766,7 +1116,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -794,7 +1144,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
 TEST(SandboxedServiceTest, BatchExecute) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -821,13 +1171,13 @@ TEST(SandboxedServiceTest, BatchExecute) {
   }
 
   {
-    auto execution_obj = InvocationRequestStrInput();
+    auto execution_obj = InvocationStrRequest<>();
     execution_obj.id = "foo";
     execution_obj.version_string = "v1";
     execution_obj.handler_name = "Handler";
     execution_obj.input.push_back(R"("Foobar")");
 
-    std::vector<InvocationRequestStrInput> batch(kBatchSize, execution_obj);
+    std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
     status = roma_service->BatchExecute(
         batch,
         [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
@@ -856,7 +1206,7 @@ TEST(SandboxedServiceTest,
   // workers are busy and can't pick up items.
   config.worker_queue_max_items = 1;
   config.number_of_workers = 10;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -885,13 +1235,13 @@ TEST(SandboxedServiceTest,
   }
 
   {
-    auto execution_obj = InvocationRequestStrInput();
+    auto execution_obj = InvocationStrRequest<>();
     execution_obj.id = "foo";
     execution_obj.version_string = "v1";
     execution_obj.handler_name = "Handler";
     execution_obj.input.push_back(R"("Foobar")");
 
-    std::vector<InvocationRequestStrInput> batch(kBatchSize, execution_obj);
+    std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
 
     status = absl::Status(absl::StatusCode::kInternal, "fail");
     while (!status.ok()) {
@@ -921,7 +1271,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   Config config;
   config.worker_queue_max_items = 1;
   config.number_of_workers = 10;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
   {
@@ -954,13 +1304,13 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   for (int i = 0; i < kNumThreads; i++) {
     threads.emplace_back([&, i]() {
       absl::Notification local_execute;
-      InvocationRequestStrInput execution_obj{};
+      InvocationStrRequest<> execution_obj{};
       execution_obj.id = "foo";
       execution_obj.version_string = "v1";
       execution_obj.handler_name = "Handler";
       execution_obj.input.push_back(absl::StrCat(R"(")", "Foobar", i, R"(")"));
 
-      std::vector<InvocationRequestStrInput> batch(kBatchSize, execution_obj);
+      std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
 
       auto batch_callback =
           [&,
@@ -1002,7 +1352,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
 TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1030,7 +1380,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
 
   {
     for (auto i = 0u; i < total_runs; ++i) {
-      auto code_obj = std::make_unique<InvocationRequestSharedInput>();
+      auto code_obj = std::make_unique<InvocationSharedRequest<>>();
       code_obj->id = "foo";
       code_obj->version_string = "v1";
       code_obj->handler_name = "Handler";
@@ -1065,7 +1415,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   EXPECT_TRUE(status.ok());
 }
 
-void StringInStringOutFunction(FunctionBindingPayload& wrapper) {
+void StringInStringOutFunction(FunctionBindingPayload<>& wrapper) {
   wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() +
                                      " String from C++");
 }
@@ -1074,12 +1424,12 @@ TEST(SandboxedServiceTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputString) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
   function_binding_object->function = StringInStringOutFunction;
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1105,7 +1455,7 @@ TEST(SandboxedServiceTest,
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -1131,7 +1481,7 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 }
 
-void ListOfStringInListOfStringOutFunction(FunctionBindingPayload& wrapper) {
+void ListOfStringInListOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
   int i = 1;
 
   for (auto& str : wrapper.io_proto.input_list_of_string().data()) {
@@ -1145,12 +1495,12 @@ TEST(
     CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputListOfString) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
   function_binding_object->function = ListOfStringInListOfStringOutFunction;
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1176,7 +1526,7 @@ TEST(
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -1204,7 +1554,7 @@ TEST(
   EXPECT_TRUE(status.ok());
 }
 
-void MapOfStringInMapOfStringOutFunction(FunctionBindingPayload& wrapper) {
+void MapOfStringInMapOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
   for (auto& [key, value] : wrapper.io_proto.input_map_of_string().data()) {
     std::string new_key;
     std::string new_val;
@@ -1224,12 +1574,12 @@ TEST(SandboxedServiceTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputMapOfString) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
   function_binding_object->function = MapOfStringInMapOfStringOutFunction;
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1260,7 +1610,7 @@ TEST(SandboxedServiceTest,
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -1289,7 +1639,7 @@ TEST(SandboxedServiceTest,
 }
 
 void StringInStringOutFunctionWithNoInputParams(
-    FunctionBindingPayload& wrapper) {
+    FunctionBindingPayload<>& wrapper) {
   // Params are all empty
   EXPECT_FALSE(wrapper.io_proto.has_input_string());
   EXPECT_FALSE(wrapper.io_proto.has_input_list_of_string());
@@ -1301,13 +1651,13 @@ void StringInStringOutFunctionWithNoInputParams(
 TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
   function_binding_object->function =
       StringInStringOutFunctionWithNoInputParams;
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1333,7 +1683,7 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -1362,7 +1712,7 @@ TEST(SandboxedServiceTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
 TEST(SandboxedServiceTest, CanExecuteWasmCode) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1392,7 +1742,7 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -1421,7 +1771,7 @@ TEST(SandboxedServiceTest, CanExecuteWasmCode) {
 TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   Config config;
   config.number_of_workers = 1;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1464,7 +1814,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
 
   // The execution should timeout as the kTimeoutDurationTag value is too small.
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
@@ -1485,7 +1835,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   // The execution should return invoking error as it try to get value from
   // undefined var.
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
@@ -1503,7 +1853,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
 
   // The execution should success.
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
@@ -1530,7 +1880,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   EXPECT_TRUE(status.ok());
 }
 
-void EchoFunction(FunctionBindingPayload& wrapper) {
+void EchoFunction(FunctionBindingPayload<>& wrapper) {
   wrapper.io_proto.set_output_string(wrapper.io_proto.input_string());
 }
 
@@ -1545,11 +1895,11 @@ TEST(SandboxedServiceTest,
                                               15 /*maximum_heap_size_in_mb*/);
   // We register a hook to make sure it continues to work when the worker is
   // restarted
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
   function_binding_object->function = EchoFunction;
   function_binding_object->function_name = "echo_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1607,7 +1957,7 @@ TEST(SandboxedServiceTest,
 
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -1631,7 +1981,7 @@ TEST(SandboxedServiceTest,
     absl::Notification execute_finished;
     std::string result;
 
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -1659,7 +2009,7 @@ TEST(SandboxedServiceTest,
     absl::Notification execute_finished;
     std::string result;
 
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v2";
     execution_obj->handler_name = "Handler";
@@ -1697,7 +2047,7 @@ TEST(SandboxedServiceTest,
     config.max_wasm_memory_number_of_pages = 150;
     config.number_of_workers = 1;
 
-    auto roma_service = std::make_unique<RomaService>(config);
+    auto roma_service = std::make_unique<RomaService<>>(config);
     auto status = roma_service->Init();
     EXPECT_TRUE(status.ok());
 
@@ -1744,7 +2094,7 @@ TEST(SandboxedServiceTest,
     config.max_wasm_memory_number_of_pages = 160;
     config.number_of_workers = 1;
 
-    auto roma_service = std::make_unique<RomaService>(config);
+    auto roma_service = std::make_unique<RomaService<>>(config);
     auto status = roma_service->Init();
     EXPECT_TRUE(status.ok());
 
@@ -1781,7 +2131,7 @@ TEST(SandboxedServiceTest,
 TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1808,7 +2158,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -1856,7 +2206,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   config.number_of_workers = 2;
   // Only one version
   config.code_version_cache_size = 1;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -1886,7 +2236,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
     // Execute version 1
     {
       absl::Notification execute_finished;
-      auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+      auto execution_obj = std::make_unique<InvocationStrRequest<>>();
       execution_obj->id = "foo";
       execution_obj->version_string = "v1";
       execution_obj->handler_name = "Handler";
@@ -1934,7 +2284,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   // loaded a new version.
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -1956,7 +2306,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   // Execute version 2
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v2";
     execution_obj->handler_name = "Handler";
@@ -1986,7 +2336,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   config.number_of_workers = 2;
   // Up to 2 code versions at a time.
   config.code_version_cache_size = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2017,9 +2367,9 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   {
     absl::Notification execute_finished;
     {
-      std::vector<InvocationRequestStrInput> batch;
+      std::vector<InvocationStrRequest<>> batch;
       for (int i = 0; i < 50; i++) {
-        InvocationRequestStrInput req;
+        InvocationStrRequest<> req;
         req.id = "foo";
         req.version_string = "v1";
         req.handler_name = "Handler";
@@ -2072,7 +2422,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
 TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   Config config;
   config.number_of_workers = 1;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2115,7 +2465,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     absl::Notification execute_finished;
     // Should not timeout since we only sleep for 9 sec but the timeout is 10
     // sec.
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2150,7 +2500,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     absl::Notification execute_finished;
     // Should time out since we sleep for 11 which is longer than the 10
     // sec timeout.
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2182,7 +2532,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
 TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2217,7 +2567,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
 TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2248,7 +2598,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2266,7 +2616,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2294,7 +2644,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
 TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2326,7 +2676,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2344,7 +2694,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2372,7 +2722,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
 TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2400,7 +2750,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2430,7 +2780,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
 TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2458,7 +2808,7 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2487,7 +2837,7 @@ TEST(SandboxedServiceTest,
      ShouldGetErrorIfLoadFailsButExecutionIsSentForVersion) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2516,7 +2866,7 @@ TEST(SandboxedServiceTest,
 
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2560,7 +2910,7 @@ TEST(SandboxedServiceTest,
   // Execution should work now
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2580,7 +2930,7 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 }
 
-void ByteOutFunction(FunctionBindingPayload& wrapper) {
+void ByteOutFunction(FunctionBindingPayload<>& wrapper) {
   const std::vector<uint8_t> data = {1, 2, 3, 4, 4, 3, 2, 1};
   wrapper.io_proto.set_output_bytes(data.data(), data.size());
 }
@@ -2589,12 +2939,12 @@ TEST(SandboxedServiceTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithOutputBytes) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
   function_binding_object->function = ByteOutFunction;
   function_binding_object->function_name = "get_some_bytes";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2628,7 +2978,7 @@ TEST(SandboxedServiceTest,
   load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2655,7 +3005,7 @@ TEST(SandboxedServiceTest,
 TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2684,7 +3034,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   // Execute version 1
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2724,7 +3074,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   // Execution should run the new version of the code
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2744,7 +3094,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   EXPECT_TRUE(status.ok());
 }
 
-void ByteInFunction(FunctionBindingPayload& wrapper) {
+void ByteInFunction(FunctionBindingPayload<>& wrapper) {
   auto data_len = wrapper.io_proto.input_bytes().size();
   EXPECT_EQ(5, data_len);
   auto byte_data = wrapper.io_proto.input_bytes().data();
@@ -2761,12 +3111,12 @@ TEST(SandboxedServiceTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputBytes) {
   Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2>();
+  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
   function_binding_object->function = ByteInFunction;
   function_binding_object->function_name = "set_some_bytes";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2802,7 +3152,7 @@ TEST(SandboxedServiceTest,
   load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -2828,7 +3178,7 @@ TEST(SandboxedServiceTest,
 TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -2864,7 +3214,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
@@ -2894,7 +3244,7 @@ TEST(SandboxedServiceTest, CanExecuteJSWithWasmCode) {
 TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -3036,7 +3386,7 @@ TEST(SandboxedServiceTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 TEST(SandboxedServiceTest, DISABLED_CanExecuteJSWithWasmCodeWithStandaloneJS) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -3069,7 +3419,7 @@ TEST(SandboxedServiceTest, DISABLED_CanExecuteJSWithWasmCodeWithStandaloneJS) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "hello_js";
@@ -3105,7 +3455,7 @@ TEST(SandboxedServiceTest,
   // since we're giving it a max of 15 MB of heap for JS execution.
   config.ConfigureJsEngineResourceConstraints(1 /*initial_heap_size_in_mb*/,
                                               15 /*maximum_heap_size_in_mb*/);
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -3151,7 +3501,7 @@ TEST(SandboxedServiceTest,
 
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3177,7 +3527,7 @@ TEST(SandboxedServiceTest,
     absl::Notification execute_finished;
     std::string result;
 
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3214,7 +3564,7 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -3244,7 +3594,7 @@ TEST(SandboxedServiceTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3276,7 +3626,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -3303,7 +3653,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3337,7 +3687,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -3368,7 +3718,7 @@ TEST(SandboxedServiceTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   // execute success when the response payload size is larger than buffer
   // capacity.
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3402,7 +3752,7 @@ TEST(SandboxedServiceTest,
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = true;
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -3444,7 +3794,7 @@ TEST(SandboxedServiceTest,
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = true;
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -3475,7 +3825,7 @@ TEST(SandboxedServiceTest,
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3494,7 +3844,7 @@ TEST(SandboxedServiceTest,
 
   // Failure in execution as oversize input.
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3517,7 +3867,7 @@ TEST(SandboxedServiceTest,
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3554,7 +3904,7 @@ TEST(SandboxedServiceTest,
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = true;
 
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
 
@@ -3586,7 +3936,7 @@ TEST(SandboxedServiceTest,
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3604,7 +3954,7 @@ TEST(SandboxedServiceTest,
   // execute failed as the response payload size is larger than buffer
   // capacity.
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -3627,7 +3977,7 @@ TEST(SandboxedServiceTest,
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationRequestStrInput>();
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";

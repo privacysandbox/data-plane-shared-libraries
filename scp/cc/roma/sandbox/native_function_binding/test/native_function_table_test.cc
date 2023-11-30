@@ -24,7 +24,7 @@
 
 namespace google::scp::roma::sandbox::native_function_binding::test {
 
-void ExampleFunction(FunctionBindingPayload& payload) {}
+void ExampleFunction(FunctionBindingPayload<>& payload) {}
 
 TEST(NativeFunctionTableTest, RegisterPasses) {
   NativeFunctionTable table;
@@ -48,14 +48,14 @@ TEST(NativeFunctionTableTest, CallRegisteredFunction) {
   NativeFunctionTable table;
   EXPECT_SUCCESS(table.Register("example", ExampleFunction));
   proto::FunctionBindingIoProto input;
-  FunctionBindingPayload payload{input, {}};
+  FunctionBindingPayload<> payload{input, {}};
   EXPECT_SUCCESS(table.Call("example", payload));
 }
 
 TEST(NativeFunctionTableTest, CallUnregisteredFunction) {
   NativeFunctionTable table;
   proto::FunctionBindingIoProto input;
-  FunctionBindingPayload payload{input, {}};
+  FunctionBindingPayload<> payload{input, {}};
   EXPECT_FALSE(table.Call("example", payload).Successful());
 }
 

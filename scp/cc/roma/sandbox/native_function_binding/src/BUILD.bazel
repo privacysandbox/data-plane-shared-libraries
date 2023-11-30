@@ -63,9 +63,7 @@ cc_library(
     name = "roma_native_function_handler_sapi_ipc_lib",
     srcs = [
         "error_codes.h",
-        "native_function_handler_sapi_ipc.cc",
         "native_function_handler_sapi_ipc.h",
-        "native_function_table.cc",
         "native_function_table.h",
     ],
     deps = [

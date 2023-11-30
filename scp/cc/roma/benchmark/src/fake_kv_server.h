@@ -24,7 +24,6 @@
 #include "roma/sandbox/roma_service/src/roma_service.h"
 
 namespace google::scp::roma::benchmark {
-
 // From:
 // https://github.com/privacysandbox/fledge-key-value-service/blob/main/components/udf/code_config.h
 struct CodeConfig {
@@ -46,7 +45,7 @@ struct CodeConfig {
 // * Some config (e.g. timeouts) is hardcoded.
 class FakeKvServer {
  public:
-  explicit FakeKvServer(const Config& config);
+  explicit FakeKvServer(const Config<>& config);
 
   ~FakeKvServer();
 
@@ -63,7 +62,7 @@ class FakeKvServer {
 
  private:
   std::string handler_name_;
-  std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService>
+  std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService<>>
       roma_service_;
 };
 

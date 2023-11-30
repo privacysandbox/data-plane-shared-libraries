@@ -39,7 +39,7 @@ constexpr absl::Duration kExecuteCodeTimeout = absl::Seconds(10);
 
 FakeBaServer::FakeBaServer(DispatchConfig config) {
   roma_service_ =
-      std::make_unique<google::scp::roma::sandbox::roma_service::RomaService>(
+      std::make_unique<google::scp::roma::sandbox::roma_service::RomaService<>>(
           config);
   CHECK(roma_service_->Init().ok());
 }

@@ -36,7 +36,7 @@
 using google::scp::core::ExecutionResult;
 using google::scp::roma::CodeObject;
 using google::scp::roma::Config;
-using google::scp::roma::InvocationRequestSharedInput;
+using google::scp::roma::InvocationSharedRequest;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::benchmark::BenchmarkMetrics;
 using google::scp::roma::benchmark::InputsType;
@@ -104,10 +104,10 @@ std::string GenerateRandomJsonString(size_t depth, size_t wide) {
   return output;
 }
 
-InvocationRequestSharedInput CreateExecutionObj(InputsType type,
-                                                size_t payload_size,
-                                                size_t json_depth) {
-  InvocationRequestSharedInput code_obj;
+InvocationSharedRequest<> CreateExecutionObj(InputsType type,
+                                             size_t payload_size,
+                                             size_t json_depth) {
+  InvocationSharedRequest<> code_obj;
   code_obj.id = "foo";
   code_obj.version_string = "v1";
   code_obj.handler_name = "Handler";
@@ -161,7 +161,7 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
   config.number_of_workers = test_configuration.workers;
   config.worker_queue_max_items = test_configuration.queue_size;
   config.sandbox_request_response_shared_buffer_size_mb = 16;
-  auto roma_service = std::make_unique<RomaService>(config);
+  auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
   if (!status.ok()) {
     std::cout << "Initializing Roma failed due to " << status.message()
@@ -219,7 +219,7 @@ BenchmarkMetrics BenchmarkMetrics::GetMeanMetrics(
   return mean_metric;
 }
 
-absl::Status LoadCodeObject(RomaService& roma_service,
+absl::Status LoadCodeObject(RomaService<>& roma_service,
                             const std::string& code_string) {
   // Loads code object to Roma workers.
   auto code_obj = CreateCodeObj(code_string);
@@ -251,9 +251,9 @@ absl::Status LoadCodeObject(RomaService& roma_service,
 }
 
 RomaBenchmark::RomaBenchmark(
-    std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService>
+    std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService<>>
         roma_service,
-    const InvocationRequestSharedInput& test_request, size_t batch_size,
+    const InvocationSharedRequest<>& test_request, size_t batch_size,
     size_t threads, size_t requests_per_thread)
     : code_obj_(test_request),
       roma_service_(std::move(roma_service)),
@@ -407,7 +407,7 @@ void RomaBenchmark::ConsoleTestMetrics() {
 }
 
 void RomaBenchmark::SendRequestBatch() {
-  std::vector<InvocationRequestSharedInput> requests;
+  std::vector<InvocationSharedRequest<>> requests;
   for (auto i = 0; i < batch_size_; i++) {
     requests.push_back(code_obj_);
   }
@@ -427,8 +427,7 @@ void RomaBenchmark::SendRequestBatch() {
 void RomaBenchmark::SendRequest() {
   std::atomic<size_t> sent_request = 0;
   while (sent_request < requests_per_thread_) {
-    auto code_object =
-        std::make_unique<InvocationRequestSharedInput>(code_obj_);
+    auto code_object = std::make_unique<InvocationSharedRequest<>>(code_obj_);
     // Retry Execute to dispatch code_obj until success.
     while (
         !roma_service_
@@ -438,7 +437,7 @@ void RomaBenchmark::SendRequest() {
                                  privacy_sandbox::server_common::Stopwatch()))
              .ok()) {
       // Recreate code_object and update start_time when request send failed.
-      code_object = std::make_unique<InvocationRequestSharedInput>(code_obj_);
+      code_object = std::make_unique<InvocationSharedRequest<>>(code_obj_);
     }
     sent_request++;
   }

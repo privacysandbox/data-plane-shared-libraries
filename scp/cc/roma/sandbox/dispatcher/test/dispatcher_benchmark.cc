@@ -42,7 +42,7 @@ using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::CodeObject;
-using google::scp::roma::InvocationRequestStrInput;
+using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::sandbox::dispatcher::Dispatcher;
 using google::scp::roma::sandbox::worker_api::WorkerApi;

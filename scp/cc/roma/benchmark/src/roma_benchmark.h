@@ -26,7 +26,6 @@
 #include "src/cpp/util/duration.h"
 
 namespace google::scp::roma::benchmark {
-
 enum InputsType {
   // If the input type is simple string, a dummy string input of the set length
   // is generated.
@@ -130,7 +129,7 @@ struct BenchmarkMetrics {
  * @return Status
  */
 absl::Status LoadCodeObject(
-    google::scp::roma::sandbox::roma_service::RomaService& roma_service,
+    google::scp::roma::sandbox::roma_service::RomaService<>& roma_service,
     const std::string& code_string);
 
 class RomaBenchmark {
@@ -146,9 +145,9 @@ class RomaBenchmark {
    * @param requests_per_thread number of requests sent by each thread.
    */
   explicit RomaBenchmark(
-      std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService>
+      std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService<>>
           roma_service,
-      const InvocationRequestSharedInput& test_request, size_t batch_size,
+      const InvocationSharedRequest<>& test_request, size_t batch_size,
       size_t threads, size_t requests_per_thread);
 
   ~RomaBenchmark();
@@ -179,7 +178,7 @@ class RomaBenchmark {
   void Callback(std::unique_ptr<absl::StatusOr<ResponseObject>> resp,
                 privacy_sandbox::server_common::Stopwatch stopwatch);
 
-  InvocationRequestSharedInput code_obj_;
+  InvocationSharedRequest<> code_obj_;
 
   size_t threads_{0};
   size_t batch_size_{0};
@@ -190,7 +189,7 @@ class RomaBenchmark {
   std::atomic<uint64_t> metric_index_{0};
   std::vector<BenchmarkMetrics> latency_metrics_;
   absl::Duration elapsed_time_;
-  std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService>
+  std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService<>>
       roma_service_;
 };
 }  // namespace google::scp::roma::benchmark

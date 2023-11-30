@@ -95,7 +95,7 @@ TEST(DispatcherTest, CanRunCode) {
 
   done_loading.WaitForNotification();
 
-  auto execute_request = std::make_unique<InvocationRequestStrInput>();
+  auto execute_request = std::make_unique<InvocationStrRequest<>>();
   execute_request->id = "some_id";
   execute_request->version_string = "v1";
   execute_request->handler_name = "test";
@@ -147,8 +147,8 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
   done_loading.WaitForNotification();
 
   std::string_view input_str_view{R"("Hello")"};
-  auto execute_request = std::make_unique<InvocationRequestStrViewInput>(
-      InvocationRequestStrViewInput{
+  auto execute_request =
+      std::make_unique<InvocationStrViewRequest<>>(InvocationStrViewRequest<>{
           .id = "some_id",
           .version_string = "v1",
           .handler_name = "test",
@@ -213,7 +213,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
 
-  auto execute_request = std::make_unique<InvocationRequestStrInput>();
+  auto execute_request = std::make_unique<InvocationStrRequest<>>();
   execute_request->id = "some_id";
   execute_request->version_string = "v1";
   execute_request->handler_name = "test";
@@ -269,7 +269,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   constexpr int kRequestSent = kNumberOfWorkers * 3;
 
   for (int i = 0; i < kRequestSent; i++) {
-    auto execute_request = std::make_unique<InvocationRequestStrInput>();
+    auto execute_request = std::make_unique<InvocationStrRequest<>>();
     execute_request->id = absl::StrCat("some_id", i);
     execute_request->version_string = "v1";
     execute_request->handler_name = "test";
@@ -369,11 +369,11 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   // all workers.
   constexpr int kRequestSent = kNumberOfWorkers * 3;
 
-  std::vector<InvocationRequestStrInput> batch;
+  std::vector<InvocationStrRequest<>> batch;
   absl::flat_hash_set<std::string> request_ids;
 
   for (int i = 0; i < kRequestSent; i++) {
-    auto execute_request = InvocationRequestStrInput();
+    auto execute_request = InvocationStrRequest<>();
     execute_request.id = absl::StrCat("some_id", i);
     execute_request.version_string = "v1";
     execute_request.handler_name = "test";
@@ -455,9 +455,9 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
 
   done_loading.WaitForNotification();
 
-  std::vector<InvocationRequestStrInput> batch;
+  std::vector<InvocationStrRequest<>> batch;
   for (int i = 0; i < 2; i++) {
-    auto execute_request = InvocationRequestStrInput();
+    auto execute_request = InvocationStrRequest<>();
     execute_request.id = absl::StrCat("some_id", i);
     execute_request.version_string = "v1";
     execute_request.handler_name = "takes_long";
@@ -523,7 +523,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   }
 
   {
-    auto execute_request = std::make_unique<InvocationRequestStrInput>();
+    auto execute_request = std::make_unique<InvocationStrRequest<>>();
     execute_request->id = "some_id";
     execute_request->version_string = "v1";
     execute_request->handler_name = "test";
@@ -552,7 +552,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   // the execution flow should cause it to be restarted.
 
   {
-    auto execute_request = std::make_unique<InvocationRequestStrInput>();
+    auto execute_request = std::make_unique<InvocationStrRequest<>>();
     execute_request->id = "some_id";
     execute_request->version_string = "v1";
     execute_request->handler_name = "test";
@@ -574,7 +574,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   // Now we execute again an this time around we expect it to work
   {
-    auto execute_request = std::make_unique<InvocationRequestStrInput>();
+    auto execute_request = std::make_unique<InvocationStrRequest<>>();
     execute_request->id = "some_id";
     execute_request->version_string = "v1";
     execute_request->handler_name = "test";
@@ -652,7 +652,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   (*worker)->Terminate();
 
   {
-    auto execute_request = std::make_unique<InvocationRequestStrInput>();
+    auto execute_request = std::make_unique<InvocationStrRequest<>>();
     execute_request->id = "some_id";
     execute_request->version_string = "v1";
     execute_request->handler_name = "test";
@@ -677,7 +677,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   for (int i = 0; i < 10; i++) {
     {
-      auto execute_request = std::make_unique<InvocationRequestStrInput>();
+      auto execute_request = std::make_unique<InvocationStrRequest<>>();
       execute_request->id = "some_id";
       execute_request->version_string = "v1";
       execute_request->handler_name = "test";
@@ -697,7 +697,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
       done_executing.WaitForNotification();
     }
     {
-      auto execute_request = std::make_unique<InvocationRequestStrInput>();
+      auto execute_request = std::make_unique<InvocationStrRequest<>>();
       execute_request->id = "some_id_2";
       execute_request->version_string = "v2";
       execute_request->handler_name = "test";
@@ -804,7 +804,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   // Execute all versions, those loaded before and after the worker crash
   for (int i = 0; i < 10; i++) {
     {
-      auto execute_request = std::make_unique<InvocationRequestStrInput>();
+      auto execute_request = std::make_unique<InvocationStrRequest<>>();
       execute_request->id = "some_id";
       execute_request->version_string = "v1";
       execute_request->handler_name = "test";
@@ -824,7 +824,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
       done_executing.WaitForNotification();
     }
     {
-      auto execute_request = std::make_unique<InvocationRequestStrInput>();
+      auto execute_request = std::make_unique<InvocationStrRequest<>>();
       execute_request->id = "some_id_2";
       execute_request->version_string = "v2";
       execute_request->handler_name = "test";
@@ -844,7 +844,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
       done_executing.WaitForNotification();
     }
     {
-      auto execute_request = std::make_unique<InvocationRequestStrInput>();
+      auto execute_request = std::make_unique<InvocationStrRequest<>>();
       execute_request->id = "some_id_3";
       execute_request->version_string = "v3";
       execute_request->handler_name = "test";

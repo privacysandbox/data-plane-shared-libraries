@@ -18,11 +18,8 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_service_lib",
-    srcs = [
-        "error_codes.h",
-        "roma_service.cc",
-    ],
     hdrs = [
+        "error_codes.h",
         "roma_service.h",
     ],
     deps = [

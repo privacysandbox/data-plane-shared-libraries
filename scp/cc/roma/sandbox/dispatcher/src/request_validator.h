@@ -84,34 +84,34 @@ static core::ExecutionResult InvocationRequestCommon(const RequestT& request) {
 }
 
 /**
- * @brief Template specialization to validate a InvocationRequestStrInput.
+ * @brief Template specialization to validate a InvocationStrRequest.
  */
-template <>
-struct RequestValidator<InvocationRequestStrInput> {
+template <typename TMetadata>
+struct RequestValidator<InvocationStrRequest<TMetadata>> {
   static core::ExecutionResult Validate(
-      const std::unique_ptr<InvocationRequestStrInput>& request) {
+      const std::unique_ptr<InvocationStrRequest<TMetadata>>& request) {
     return InvocationRequestCommon(request);
   }
 };
 
 /**
- * @brief Template specialization to validate a InvocationRequestSharedInput.
+ * @brief Template specialization to validate a InvocationSharedRequest.
  */
-template <>
-struct RequestValidator<InvocationRequestSharedInput> {
+template <typename TMetadata>
+struct RequestValidator<InvocationSharedRequest<TMetadata>> {
   static core::ExecutionResult Validate(
-      const std::unique_ptr<InvocationRequestSharedInput>& request) {
+      const std::unique_ptr<InvocationSharedRequest<TMetadata>>& request) {
     return InvocationRequestCommon(request);
   }
 };
 
 /**
- * @brief Template specialization to validate a InvocationRequestStrViewInput.
+ * @brief Template specialization to validate a InvocationStrViewRequest.
  */
-template <>
-struct RequestValidator<InvocationRequestStrViewInput> {
+template <typename TMetadata>
+struct RequestValidator<InvocationStrViewRequest<TMetadata>> {
   static core::ExecutionResult Validate(
-      const std::unique_ptr<InvocationRequestStrViewInput>& request) {
+      const std::unique_ptr<InvocationStrViewRequest<TMetadata>>& request) {
     return InvocationRequestCommon(request);
   }
 };

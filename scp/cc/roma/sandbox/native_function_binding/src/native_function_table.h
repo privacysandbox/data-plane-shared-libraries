@@ -30,11 +30,16 @@
 
 #include "error_codes.h"
 
+using google::scp::core::errors::
+    SC_ROMA_FUNCTION_TABLE_COULD_NOT_FIND_FUNCTION_NAME;
+using google::scp::core::errors::SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED;
+
 namespace google::scp::roma::sandbox::native_function_binding {
+template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
 class NativeFunctionTable {
  public:
   using NativeBinding =
-      std::function<void(FunctionBindingPayload& binding_wrapper)>;
+      std::function<void(FunctionBindingPayload<TMetadata>& binding_wrapper)>;
 
   /**
    * @brief Register a function binding in the table.
@@ -45,7 +50,17 @@ class NativeFunctionTable {
    */
   core::ExecutionResult Register(absl::string_view function_name,
                                  NativeBinding binding)
-      ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_);
+      ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_) {
+    absl::MutexLock lock(&native_functions_map_mutex_);
+    const auto [_, was_inserted] =
+        native_functions_.insert({std::string(function_name), binding});
+
+    if (!was_inserted) {
+      return core::FailureExecutionResult(
+          SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED);
+    }
+    return core::SuccessExecutionResult();
+  }
 
   /**
    * @brief Call a function that has been previously registered.
@@ -54,12 +69,29 @@ class NativeFunctionTable {
    * @param function_binding_proto The function parameters.
    * @return core::ExecutionResult
    */
-  core::ExecutionResult Call(absl::string_view function_name,
-                             FunctionBindingPayload& function_binding_wrapper)
-      ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_);
+  core::ExecutionResult Call(
+      absl::string_view function_name,
+      FunctionBindingPayload<TMetadata>& function_binding_wrapper)
+      ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_) {
+    NativeBinding func;
+    {
+      absl::MutexLock lock(&native_functions_map_mutex_);
+      auto fn_it = native_functions_.find(function_name);
+      if (fn_it == native_functions_.end()) {
+        return core::FailureExecutionResult(
+            SC_ROMA_FUNCTION_TABLE_COULD_NOT_FIND_FUNCTION_NAME);
+      }
+      func = fn_it->second;
+    }
+    func(function_binding_wrapper);
+    return core::SuccessExecutionResult();
+  }
 
   // Remove all of the functions from the table.
-  void Clear() ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_);
+  void Clear() ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_) {
+    absl::MutexLock lock(&native_functions_map_mutex_);
+    native_functions_.clear();
+  }
 
  private:
   absl::flat_hash_map<std::string, NativeBinding> native_functions_

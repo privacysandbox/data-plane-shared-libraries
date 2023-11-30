@@ -75,8 +75,6 @@ class ExecutionUtilsTest : public ::testing::Test {
   }
 
   void SetUp() override {
-    config.number_of_workers = 1;
-
     create_params_.array_buffer_allocator =
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
     isolate_ = v8::Isolate::New(create_params_);
@@ -185,7 +183,6 @@ class ExecutionUtilsTest : public ::testing::Test {
     return SuccessExecutionResult();
   }
 
-  Config config;
   v8::Isolate::CreateParams create_params_;
   static v8::Platform* platform_;
   v8::Isolate* isolate_{nullptr};

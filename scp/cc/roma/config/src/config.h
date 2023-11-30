@@ -21,6 +21,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "function_binding_object.h"
@@ -53,6 +54,7 @@ struct JsEngineResourceConstraints {
   size_t maximum_heap_size_in_mb = 0;
 };
 
+template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
 class Config {
  public:
   /**
@@ -134,6 +136,9 @@ class Config {
    */
   bool enable_sandbox_sharing_request_response_with_buffer_only = false;
 
+  using FunctionBindingObjectPtr =
+      std::shared_ptr<FunctionBindingObjectV2<TMetadata>>;
+
   /**
    * @brief Register a function binding object
    *
@@ -156,7 +161,7 @@ class Config {
    * @param function_binding
    */
   void RegisterFunctionBinding(
-      std::unique_ptr<FunctionBindingObjectV2> function_binding) {
+      std::unique_ptr<FunctionBindingObjectV2<TMetadata>> function_binding) {
     function_bindings_v2_.emplace_back(function_binding.get());
     function_binding.release();
   }
@@ -174,9 +179,8 @@ class Config {
   }
 
   void GetFunctionBindings(
-      std::vector<std::shared_ptr<FunctionBindingObjectV2>>& function_bindings)
-      const {
-    function_bindings = std::vector<std::shared_ptr<FunctionBindingObjectV2>>(
+      std::vector<FunctionBindingObjectPtr>& function_bindings) const {
+    function_bindings = std::vector<FunctionBindingObjectPtr>(
         function_bindings_v2_.begin(), function_bindings_v2_.end());
   }
 
@@ -215,7 +219,7 @@ class Config {
   /**
    * @brief User-registered function JS/C++ function bindings
    */
-  std::vector<std::shared_ptr<FunctionBindingObjectV2>> function_bindings_v2_;
+  std::vector<FunctionBindingObjectPtr> function_bindings_v2_;
 
   /// v8 heap resource constraints.
   JsEngineResourceConstraints js_engine_resource_constraints_;

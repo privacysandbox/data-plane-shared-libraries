@@ -169,9 +169,9 @@ converters for every odd type in Roma. Here is an example of how to use this fea
    how to configure Roma, see the file config.h in the
    [roma/config](/scp/cc/roma/config/src/config.h) directory.
 
-    ```javascript
+    ```cpp
     // an example of UDF
-    void StringInStringOutFunction(proto::FunctionBindingPayload& wrapper) {
+    void StringInStringOutFunction(proto::FunctionBindingPayload<>& wrapper) {
       wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() + " String from C++");
     }
     ```
@@ -189,7 +189,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
     config.number_of_workers = 2;
 
     // Register UDF objects in Config
-    auto function_binding_object = make_unique<FunctionBindingObjectV2>();
+    auto function_binding_object = make_unique<FunctionBindingObjectV2<>>();
     // Binding the `StringInStringOutFunction`
     function_binding_object->function = StringInStringOutFunction;
     function_binding_object->function_name = "cool_function";
@@ -200,7 +200,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
                                                 15 /*maximum_heap_size_in_mb*/);
 
     // Init Roma with above config.
-    auto roma_service = std::make_unique<RomaService>(config);
+    auto roma_service = std::make_unique<RomaService<>>(config);
     auto status = roma_service->Init();
     ```
 
@@ -230,7 +230,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
 
     ```cpp
     // Create an invocation request.
-    auto execution_obj = make_unique<InvocationRequestStrInput>();
+    auto execution_obj = make_unique<InvocationStrRequest<>>();
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
@@ -242,7 +242,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
                           });
 
     // Create a batch request and do batch execution.
-    auto execution_obj = InvocationRequestStrInput();
+    auto execution_obj = InvocationStrRequest();
     execution_obj.id = "foo";
     execution_obj.version_string = "v1";
     execution_obj.handler_name = "Handler";
@@ -250,7 +250,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
 
     // Here we use the same execution object, but these could be different objects
     // with different inputs, for example.
-    vector<InvocationRequestStrInput> batch(5 /*batch size*/, execution_obj);
+    vector<InvocationStrRequest<>> batch(5 /*batch size*/, execution_obj);
     status = roma_service->BatchExecute(
         batch, [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
           // define a callback function for response handling.
