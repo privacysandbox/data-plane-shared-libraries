@@ -312,13 +312,18 @@ def roma_client_cc_library(name, roma_app_api, roma_service_js_library, **kwargs
         name = name + "_rpc_cc_test",
         size = "small",
         srcs = [":{}_cc_test_srcs".format(name)],
-        deps = [
+        deps = kwargs.get("deps", []) + [
             ":{}".format(name),
             "@com_google_absl//absl/log:scoped_mock_log",
             "@com_google_absl//absl/strings",
             "@com_google_absl//absl/synchronization",
             "@com_google_googletest//:gtest_main",
         ],
+        **{
+            k: v
+            for (k, v) in kwargs.items()
+            if k in bazel_build_rule_common_attrs
+        }  # forward common bazel args
     )
 
     pkg_files(

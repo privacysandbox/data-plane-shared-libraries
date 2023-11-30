@@ -92,6 +92,9 @@ sapi_library(
     lib = ":worker_wrapper",
     lib_name = "WorkerWrapper",
     namespace = "google::scp::roma::sandbox::worker_api",
+    tags = [
+        "noasan",
+    ],
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",

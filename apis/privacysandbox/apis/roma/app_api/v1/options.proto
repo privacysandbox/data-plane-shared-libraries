@@ -36,6 +36,18 @@ extend google.protobuf.FieldOptions {
   RomaFieldAnnotation roma_field_annotation = 50002;
 }
 
+extend google.protobuf.MessageOptions {
+  RomaMessageAnnotation roma_mesg_annotation = 50003;
+}
+
+extend google.protobuf.EnumOptions {
+  RomaFieldAnnotation roma_enum_annotation = 50004;
+}
+
+extend google.protobuf.EnumValueOptions {
+  RomaFieldAnnotation roma_enumval_annotation = 50005;
+}
+
 message RomaServiceAnnotation {
   string name = 1;
   string code_id = 2;
@@ -46,9 +58,20 @@ message RomaServiceAnnotation {
 
 message RomaFunctionAnnotation {
   string description = 1;
-  string js_function_name = 2;
 }
 
 message RomaFieldAnnotation {
+  string description = 1;
+}
+
+message RomaMessageAnnotation {
+  string description = 1;
+}
+
+message RomaEnumAnnotation {
+  string description = 1;
+}
+
+message RomaEnumValueAnnotation {
   string description = 1;
 }

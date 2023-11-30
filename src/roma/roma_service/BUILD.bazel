@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:private"])
 
 cc_library(
     name = "roma_service",
     hdrs = [
         "roma_service.h",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         "//src/core/async_executor",
         "//src/core/interface",
@@ -132,6 +134,43 @@ cc_test(
         "//src/roma/wasm:wasm_testing",
         "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/synchronization",
-        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+proto_library(
+    name = "helloworld_proto",
+    srcs = ["helloworld.proto"],
+)
+
+cc_proto_library(
+    name = "helloworld_cc_proto",
+    deps = [":helloworld_proto"],
+)
+
+cc_library(
+    name = "romav8_app_service",
+    srcs = ["romav8_app_service.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":roma_service",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_test(
+    name = "romav8_app_service_test",
+    size = "small",
+    srcs = ["romav8_app_service_test.cc"],
+    tags = [
+        "noasan",
+    ],
+    deps = [
+        ":helloworld_cc_proto",
+        ":romav8_app_service",
+        "//src/core/test/utils",
+        "//src/logger:request_context_logger",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest",
     ],
 )
