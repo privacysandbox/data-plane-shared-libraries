@@ -19,9 +19,9 @@ def google_benchmark():
     maybe(
         http_archive,
         name = "google_benchmark",
-        sha256 = "2aab2980d0376137f969d92848fbb68216abb07633034534fc8c65cc4e7a0e93",
-        strip_prefix = "benchmark-1.8.2",
+        sha256 = "abfc22e33e3594d0edf8eaddaf4d84a2ffc491ad74b6a7edc6e7a608f690e691",
+        strip_prefix = "benchmark-1.8.3",
         urls = [
-            "https://github.com/google/benchmark/archive/refs/tags/v1.8.2.tar.gz",
+            "https://github.com/google/benchmark/archive/refs/tags/v1.8.3.zip",
         ],
     )
