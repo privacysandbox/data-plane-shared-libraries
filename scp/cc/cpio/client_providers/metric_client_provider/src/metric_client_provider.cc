@@ -78,17 +78,15 @@ ExecutionResult MetricClientProvider::Init() noexcept {
 }
 
 ExecutionResult MetricClientProvider::Run() noexcept {
-  sync_mutex_.lock();
-  if (is_running_) {
+  if (absl::MutexLock l(&sync_mutex_); is_running_) {
     auto execution_result =
         FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_ALREADY_RUNNING);
     SCP_ERROR(kMetricClientProvider, kZeroUuid, execution_result,
               "Failed to run MetricClientProvider.");
     return execution_result;
+  } else {
+    is_running_ = true;
   }
-
-  is_running_ = true;
-  sync_mutex_.unlock();
 
   if (is_batch_recording_enable) {
     return ScheduleMetricsBatchPush();
@@ -97,14 +95,15 @@ ExecutionResult MetricClientProvider::Run() noexcept {
 }
 
 ExecutionResult MetricClientProvider::Stop() noexcept {
-  sync_mutex_.lock();
-  is_running_ = false;
-  if (is_batch_recording_enable) {
-    current_cancellation_callback_();
-    // To push the remaining metrics in the vector.
-    RunMetricsBatchPush();
+  {
+    absl::MutexLock l(&sync_mutex_);
+    is_running_ = false;
+    if (is_batch_recording_enable) {
+      current_cancellation_callback_();
+      // To push the remaining metrics in the vector.
+      RunMetricsBatchPush();
+    }
   }
-  sync_mutex_.unlock();
 
   while (active_push_count_ > 0) {
     std::this_thread::sleep_for(
@@ -117,6 +116,7 @@ ExecutionResult MetricClientProvider::Stop() noexcept {
 ExecutionResult MetricClientProvider::PutMetrics(
     AsyncContext<PutMetricsRequest, PutMetricsResponse>
         record_metric_context) noexcept {
+  absl::MutexLock l(&sync_mutex_);
   if (!is_running_) {
     auto execution_result =
         FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING);
@@ -143,10 +143,9 @@ ExecutionResult MetricClientProvider::PutMetrics(
   //    RunMetricsBatchPush() swaps metric_requests_vector_ for a vector being
   //    pushed to the cloud.
   // The above two actions should be atomic, so the mutex is protecting them.
-  sync_mutex_.lock();
   metric_requests_vector_.push_back(record_metric_context);
-  auto request_size = record_metric_context.request->metrics().size();
-  number_metrics_in_vector_.fetch_add(request_size);
+  number_metrics_in_vector_ += record_metric_context.request->metrics().size();
+
   /**
    * @brief Metrics pushed when batch disable or the number of metrics is over
    * kMetricsBatchSize. When batch enabled, kMetricsBatchSize is used to avoid
@@ -154,11 +153,9 @@ ExecutionResult MetricClientProvider::PutMetrics(
    * batch schedule time duration is too large.
    */
   if (!is_batch_recording_enable ||
-      number_metrics_in_vector_.load() >= kMetricsBatchSize) {
+      number_metrics_in_vector_ >= kMetricsBatchSize) {
     RunMetricsBatchPush();
   }
-  sync_mutex_.unlock();
-
   return SuccessExecutionResult();
 }
 
@@ -166,7 +163,7 @@ void MetricClientProvider::RunMetricsBatchPush() noexcept {
   auto requests_vector_copy = std::make_shared<
       std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>>();
   metric_requests_vector_.swap(*requests_vector_copy);
-  number_metrics_in_vector_.exchange(0);
+  number_metrics_in_vector_ = 0;
 
   if (requests_vector_copy->empty()) {
     return;
@@ -180,13 +177,14 @@ void MetricClientProvider::RunMetricsBatchPush() noexcept {
 }
 
 ExecutionResult MetricClientProvider::ScheduleMetricsBatchPush() noexcept {
-  if (!is_running_) {
+  if (absl::MutexLock l(&sync_mutex_); !is_running_) {
     auto execution_result =
         FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING);
     SCP_ERROR(kMetricClientProvider, kZeroUuid, execution_result,
               "Failed to schedule metric batch push.");
     return execution_result;
   }
+
   auto next_push_time =
       (TimeProvider::GetSteadyTimestampInNanoseconds() +
        metric_batching_options_->batch_recording_time_duration)
@@ -195,9 +193,8 @@ ExecutionResult MetricClientProvider::ScheduleMetricsBatchPush() noexcept {
       [this]() {
         ScheduleMetricsBatchPush();
 
-        sync_mutex_.lock();
+        absl::MutexLock l(&sync_mutex_);
         RunMetricsBatchPush();
-        sync_mutex_.unlock();
       },
       next_push_time, current_cancellation_callback_);
   if (!execution_result.Successful()) {

@@ -19,10 +19,11 @@
 #define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_METRIC_CLIENT_PROVIDER_H_
 
 #include <memory>
-#include <mutex>
 #include <string>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
 #include "cpio/client_providers/interface/instance_client_provider_interface.h"
@@ -57,14 +58,17 @@ class MetricClientProvider : public MetricClientInterface {
 
   core::ExecutionResult Init() noexcept override;
 
-  core::ExecutionResult Run() noexcept override;
+  core::ExecutionResult Run() noexcept override
+      ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
-  core::ExecutionResult Stop() noexcept override;
+  core::ExecutionResult Stop() noexcept override
+      ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
   core::ExecutionResult PutMetrics(
       core::AsyncContext<cmrt::sdk::metric_service::v1::PutMetricsRequest,
                          cmrt::sdk::metric_service::v1::PutMetricsResponse>
-          record_metric_context) noexcept override;
+          record_metric_context) noexcept override
+      ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
  protected:
   /**
@@ -96,14 +100,16 @@ class MetricClientProvider : public MetricClientInterface {
    *
    * @return core::ExecutionResult
    */
-  virtual core::ExecutionResult ScheduleMetricsBatchPush() noexcept;
+  virtual core::ExecutionResult ScheduleMetricsBatchPush() noexcept
+      ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
   /**
    * @brief The helper function for ScheduleMetricsBatchPush to do the actual
    * metrics batching and pushing.
    *
    */
-  virtual void RunMetricsBatchPush() noexcept;
+  virtual void RunMetricsBatchPush() noexcept
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(sync_mutex_);
 
   /// An instance to the async executor.
   std::shared_ptr<core::AsyncExecutorInterface> async_executor_;
@@ -124,20 +130,20 @@ class MetricClientProvider : public MetricClientInterface {
   std::vector<
       core::AsyncContext<cmrt::sdk::metric_service::v1::PutMetricsRequest,
                          cmrt::sdk::metric_service::v1::PutMetricsResponse>>
-      metric_requests_vector_;
+      metric_requests_vector_ ABSL_GUARDED_BY(sync_mutex_);
 
   /// Indicates whther the component stopped
-  bool is_running_;
+  bool is_running_ ABSL_GUARDED_BY(sync_mutex_);
   /// Number of active metric push.
   std::atomic<size_t> active_push_count_;
   /// Number of metrics received in metric_requests_vector_.
-  std::atomic<uint64_t> number_metrics_in_vector_;
+  uint64_t number_metrics_in_vector_ ABSL_GUARDED_BY(sync_mutex_);
 
   /// The cancellation callback.
   std::function<bool()> current_cancellation_callback_;
 
   /// Sync mutex.
-  std::mutex sync_mutex_;
+  absl::Mutex sync_mutex_;
 };
 }  // namespace google::scp::cpio::client_providers
 
