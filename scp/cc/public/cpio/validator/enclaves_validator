@@ -30,4 +30,4 @@ run_curl $(/proxify -- curl -o /dev/null -s -w "%{http_code}\n" https://www.goog
 run_curl $(/proxify -- curl -o /dev/null -s -w "%{http_code}\n" -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600") \
   "SUCCESS. Accessed AWS resource." \
   "FAILURE. Could not access AWS resource. Check if proxy is running."
-/proxify -- /server/bin/validation_test
+/proxify -- /server/bin/validation
