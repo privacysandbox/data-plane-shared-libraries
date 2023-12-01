@@ -13,9 +13,10 @@
 // limitations under the License.
 
 #include <memory>
-#include <mutex>
 #include <utility>
 
+#include "absl/strings/str_cat.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "core/common/operation_dispatcher/src/operation_dispatcher.h"
 #include "cpio/client_providers/global_cpio/src/global_cpio.h"
@@ -269,7 +270,6 @@ int main(int argc, char* argv[]) {
   }
   {
     // GetBlobStream - callback version.
-    std::mutex log_mutex;
     absl::Notification finished;
     auto get_blob_stream_request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_request->mutable_blob_metadata()->set_bucket_name(
@@ -281,7 +281,7 @@ int main(int argc, char* argv[]) {
     get_blob_stream_context.request = std::move(get_blob_stream_request);
 
     get_blob_stream_context.process_callback =
-        [&result, &finished, &log_mutex](auto& context, bool is_finish) {
+        [&result, &finished](auto& context, bool is_finish) {
           if (is_finish) {
             result = context.result;
           }
@@ -289,13 +289,13 @@ int main(int argc, char* argv[]) {
           if (resp == nullptr) {
             // If dequeueing is unsuccessful, then context should be done.
             if (!context.IsMarkedDone()) {
-              std::scoped_lock lock(log_mutex);
-              std::cerr << "This should never happen" << std::endl;
+              std::cerr << "This should never happen\n" << std::flush;
             }
             finished.Notify();
           } else {
-            std::scoped_lock lock(log_mutex);
-            std::cout << "Got blob portion: " << resp->DebugString();
+            std::cout << absl::StrCat("Got blob portion: ", resp->DebugString(),
+                                      "\n")
+                      << std::flush;
           }
         };
 

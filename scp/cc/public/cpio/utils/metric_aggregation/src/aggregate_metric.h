@@ -19,12 +19,13 @@
 
 #include <atomic>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/node_hash_map.h"
+#include "absl/synchronization/mutex.h"
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
 #include "cpio/client_providers/interface/metric_client_provider_interface.h"
@@ -59,7 +60,8 @@ class AggregateMetric : public AggregateMetricInterface {
 
   core::ExecutionResult Run() noexcept override;
 
-  core::ExecutionResult Stop() noexcept override;
+  core::ExecutionResult Stop() noexcept override
+      ABSL_LOCKS_EXCLUDED(task_schedule_mutex_);
 
   core::ExecutionResult Increment(
       const std::string& event_code = std::string()) noexcept override;
@@ -92,7 +94,8 @@ class AggregateMetric : public AggregateMetricInterface {
    *
    * @return core::ExecutionResult
    */
-  virtual core::ExecutionResult ScheduleMetricPush() noexcept;
+  virtual core::ExecutionResult ScheduleMetricPush() noexcept
+      ABSL_LOCKS_EXCLUDED(task_schedule_mutex_);
 
   /// The map contains the event codes paired with its counter. The
   /// event_counter is associated with the event_code.
@@ -133,7 +136,7 @@ class AggregateMetric : public AggregateMetricInterface {
   const core::common::Uuid object_activity_id_;
 
   /// @brief mutex to protect scheduling new tasks while stopping the component
-  std::mutex task_schedule_mutex_;
+  absl::Mutex task_schedule_mutex_;
 };
 }  // namespace google::scp::cpio
 

@@ -23,6 +23,8 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/common/time_provider/src/time_provider.h"
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
@@ -57,31 +59,27 @@ class AsyncTask {
   Timestamp GetExecutionTimestamp() const { return execution_timestamp_; }
 
   /// Calls the current task to be executed.
-  void Execute() {
-    cancellation_mutex_.lock();
+  void Execute() ABSL_LOCKS_EXCLUDED(cancellation_mutex_) {
+    absl::MutexLock l(&cancellation_mutex_);
     if (is_cancelled_) {
-      cancellation_mutex_.unlock();
       return;
     }
     async_operation_();
-    cancellation_mutex_.unlock();
   }
 
   /// Calls the current task to be cancelled.
-  bool Cancel() {
-    cancellation_mutex_.lock();
+  bool Cancel() ABSL_LOCKS_EXCLUDED(cancellation_mutex_) {
+    absl::MutexLock l(&cancellation_mutex_);
     if (is_cancelled_) {
-      cancellation_mutex_.unlock();
       return false;
     }
 
     is_cancelled_ = true;
-    cancellation_mutex_.unlock();
     return true;
   }
 
-  bool IsCancelled() {
-    std::unique_lock lock(cancellation_mutex_);
+  bool IsCancelled() ABSL_LOCKS_EXCLUDED(cancellation_mutex_) {
+    absl::MutexLock lock(&cancellation_mutex_);
     return is_cancelled_;
   }
 
@@ -96,10 +94,10 @@ class AsyncTask {
   Timestamp execution_timestamp_;
 
   /// Cancellation mutex
-  std::mutex cancellation_mutex_;
+  absl::Mutex cancellation_mutex_;
 
   /// Indicates whether a task was cancelled.
-  bool is_cancelled_;
+  bool is_cancelled_ ABSL_GUARDED_BY(cancellation_mutex_);
 };
 
 /// Comparer class for the AsyncTasks

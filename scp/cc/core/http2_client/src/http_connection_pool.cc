@@ -20,7 +20,6 @@
 #include <csignal>
 #include <functional>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -192,7 +191,7 @@ ExecutionResult HttpConnectionPool::GetConnection(
 
 void HttpConnectionPool::RecycleConnection(
     std::shared_ptr<HttpConnection>& connection) noexcept {
-  std::lock_guard lock(connection_lock_);
+  absl::MutexLock lock(&connection_lock_);
 
   if (!connection->IsDropped()) {
     return;

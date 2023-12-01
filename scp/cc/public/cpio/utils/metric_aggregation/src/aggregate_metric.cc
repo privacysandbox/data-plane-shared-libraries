@@ -18,7 +18,6 @@
 
 #include <chrono>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -143,9 +142,10 @@ ExecutionResult AggregateMetric::Stop() noexcept {
 
   // Take the schedule mutex to disallow new tasks to be scheduled while
   // stopping
-  task_schedule_mutex_.lock();
-  is_running_ = false;
-  task_schedule_mutex_.unlock();
+  {
+    absl::MutexLock lock(&task_schedule_mutex_);
+    is_running_ = false;
+  }
 
   // At this point no more tasks can be scheduled, so it is safe to access this
   // 'current_cancellation_callback_' member, i.e. in other words, there is no
@@ -237,7 +237,7 @@ void AggregateMetric::RunMetricPush() noexcept {
 }
 
 ExecutionResult AggregateMetric::ScheduleMetricPush() noexcept {
-  std::unique_lock lock(task_schedule_mutex_);
+  absl::MutexLock lock(&task_schedule_mutex_);
 
   if (!is_running_) {
     return FailureExecutionResult(

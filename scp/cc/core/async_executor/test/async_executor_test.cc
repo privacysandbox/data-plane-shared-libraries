@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <chrono>
 #include <functional>
-#include <mutex>
 #include <string>
 #include <thread>
 
@@ -562,7 +561,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // Run picking executors
     absl::flat_hash_map<std::shared_ptr<SingleThreadAsyncExecutor>, int>
         task_executor_pool_picked_counts;
-    std::mutex mutex;
+    absl::Mutex mutex;
 
     auto picking_function = [&](int pick_times) {
       for (int i = 0; i < pick_times; i++) {
@@ -572,7 +571,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
             TaskLoadBalancingScheme::RoundRobinPerThread);
         EXPECT_SUCCESS(task_executor_or);
         {
-          std::unique_lock lock(mutex);
+          absl::MutexLock lock(&mutex);
           task_executor_pool_picked_counts[*task_executor_or] += 1;
         }
       }
@@ -614,7 +613,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     // Run picking executors
     absl::flat_hash_map<std::shared_ptr<SingleThreadAsyncExecutor>, int>
         task_executor_pool_picked_counts;
-    std::mutex mutex;
+    absl::Mutex mutex;
 
     auto picking_function = [&](int pick_times) {
       for (int i = 0; i < pick_times; i++) {
@@ -624,7 +623,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
             TaskLoadBalancingScheme::RoundRobinGlobal);
         EXPECT_SUCCESS(task_executor_or);
         {
-          std::unique_lock lock(mutex);
+          absl::MutexLock lock(&mutex);
           task_executor_pool_picked_counts[*task_executor_or] += 1;
         }
       }

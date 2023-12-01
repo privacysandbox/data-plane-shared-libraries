@@ -37,5 +37,6 @@ cc_library(
         "@com_github_nghttp2_nghttp2//:nghttp2_asio",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
     ],
 )

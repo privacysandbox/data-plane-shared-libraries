@@ -19,13 +19,14 @@
 #define CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_POOL_H_
 
 #include <memory>
-#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
 
 #include <nghttp2/asio_http2_client.h>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/common/concurrent_map/src/concurrent_map.h"
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/async_context.h"
@@ -110,7 +111,8 @@ class HttpConnectionPool : public ServiceInterface {
    * @param connection The connection to be recycled.
    */
   virtual void RecycleConnection(
-      std::shared_ptr<HttpConnection>& connection) noexcept;
+      std::shared_ptr<HttpConnection>& connection) noexcept
+      ABSL_LOCKS_EXCLUDED(connection_lock_);
 
   /// Instance of the async executor.
   const std::shared_ptr<AsyncExecutorInterface> async_executor_;
@@ -129,7 +131,7 @@ class HttpConnectionPool : public ServiceInterface {
   /// Indicates whether the connection pool is running.
   std::atomic<bool> is_running_;
   /// Mutex for recycling connection
-  std::mutex connection_lock_;
+  absl::Mutex connection_lock_;
 };
 }  // namespace google::scp::core
 
