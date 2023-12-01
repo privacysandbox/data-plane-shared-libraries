@@ -26,8 +26,8 @@ cc_library(
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/roma_service:roma_service_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
-        "//scp/cc/roma/sandbox/roma_service/src:roma_service_lib",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
@@ -44,8 +44,8 @@ cc_library(
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/roma_service:roma_service_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
-        "//scp/cc/roma/sandbox/roma_service/src:roma_service_lib",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
@@ -59,8 +59,8 @@ cc_library(
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/roma_service:roma_service_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
-        "//scp/cc/roma/sandbox/roma_service/src:roma_service_lib",
         "@google_benchmark//:benchmark",
     ],
 )

@@ -32,7 +32,7 @@
 #include "absl/synchronization/notification.h"
 #include "roma/config/src/config.h"
 #include "roma/interface/roma.h"
-#include "roma/sandbox/roma_service/src/roma_service.h"
+#include "roma/roma_service/roma_service.h"
 #include "src/cpp/util/duration.h"
 
 using google::scp::roma::sandbox::roma_service::RomaService;

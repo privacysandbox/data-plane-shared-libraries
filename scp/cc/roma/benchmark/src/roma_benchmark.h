@@ -21,8 +21,8 @@
 
 #include "absl/time/time.h"
 #include "roma/interface/roma.h"
+#include "roma/roma_service/roma_service.h"
 #include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/roma_service/src/roma_service.h"
 #include "src/cpp/util/duration.h"
 
 namespace google::scp::roma::benchmark {

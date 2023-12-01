@@ -20,8 +20,8 @@
 
 #include "roma/config/src/config.h"
 #include "roma/interface/roma.h"
+#include "roma/roma_service/roma_service.h"
 #include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/roma_service/src/roma_service.h"
 
 namespace google::scp::roma::benchmark {
 using DispatchConfig = google::scp::roma::Config<>;
