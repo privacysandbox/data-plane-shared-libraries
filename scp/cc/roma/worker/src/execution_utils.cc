@@ -344,7 +344,8 @@ v8::Local<v8::Value> ExecutionUtils::GetWasmMemoryObject(
 }
 
 v8::Local<v8::Array> ExecutionUtils::InputToLocalArgv(
-    const std::vector<std::string_view>& input, bool is_wasm) noexcept {
+    const std::vector<std::string_view>& input, bool is_wasm,
+    bool is_byte_str) noexcept {
   auto isolate = v8::Isolate::GetCurrent();
   auto context = isolate->GetCurrentContext();
 
@@ -352,7 +353,7 @@ v8::Local<v8::Array> ExecutionUtils::InputToLocalArgv(
     return ExecutionUtils::ParseAsWasmInput(isolate, context, input);
   }
 
-  return ExecutionUtils::ParseAsJsInput(input);
+  return ExecutionUtils::ParseAsJsInput(input, is_byte_str);
 }
 
 std::string ExecutionUtils::ExtractMessage(
@@ -373,7 +374,7 @@ std::string ExecutionUtils::ExtractMessage(
 }
 
 v8::Local<v8::Array> ExecutionUtils::ParseAsJsInput(
-    const std::vector<std::string_view>& input) {
+    const std::vector<std::string_view>& input, bool is_byte_str) {
   auto isolate = v8::Isolate::GetCurrent();
   auto context = isolate->GetCurrentContext();
 
@@ -387,13 +388,19 @@ v8::Local<v8::Array> ExecutionUtils::ParseAsJsInput(
                                 static_cast<uint32_t>(input[i].length()))
             .ToLocalChecked();
 
-    v8::Local<v8::Value> arg = v8::Undefined(isolate);
-    if (arg_str->Length() > 0 &&
-        !v8::JSON::Parse(context, arg_str).ToLocal(&arg)) {
-      return v8::Local<v8::Array>();
-    }
-    if (!argv->Set(context, i, arg).ToChecked()) {
-      return v8::Local<v8::Array>();
+    if (is_byte_str) {
+      if (!argv->Set(context, i, arg_str).ToChecked()) {
+        return v8::Local<v8::Array>();
+      }
+    } else {
+      v8::Local<v8::Value> arg = v8::Undefined(isolate);
+      if (arg_str->Length() > 0 &&
+          !v8::JSON::Parse(context, arg_str).ToLocal(&arg)) {
+        return v8::Local<v8::Array>();
+      }
+      if (!argv->Set(context, i, arg).ToChecked()) {
+        return v8::Local<v8::Array>();
+      }
     }
   }
 

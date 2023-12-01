@@ -80,6 +80,12 @@ static core::ExecutionResult InvocationRequestCommon(const RequestT& request) {
     return core::FailureExecutionResult(SC_UNKNOWN);
   }
 
+  if (request->treat_input_as_byte_str && request->input.size() > 1) {
+    return core::FailureExecutionResult(
+        core::errors::
+            SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_MULTIPLE_BYTE_STR_INPUTS);
+  }
+
   return core::SuccessExecutionResult();
 }
 

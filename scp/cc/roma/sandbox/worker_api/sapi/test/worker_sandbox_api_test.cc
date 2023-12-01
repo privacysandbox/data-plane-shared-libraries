@@ -124,7 +124,7 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   (*params_proto.mutable_metadata())[kHandlerName] = "cool_func";
   (*params_proto.mutable_metadata())[kCodeVersion] = "1";
   (*params_proto.mutable_metadata())[kRequestAction] = kRequestActionExecute;
-  params_proto.mutable_input()->Add(R"("from JS")");
+  params_proto.mutable_input_strings()->mutable_inputs()->Add(R"("from JS")");
 
   result = sandbox_api.RunCode(params_proto);
 
@@ -224,7 +224,7 @@ TEST(WorkerSandboxApiTest,
   (*params_proto.mutable_metadata())[kHandlerName] = "cool_func";
   (*params_proto.mutable_metadata())[kCodeVersion] = "1";
   (*params_proto.mutable_metadata())[kRequestAction] = kRequestActionExecute;
-  params_proto.mutable_input()->Add(R"("from JS")");
+  params_proto.mutable_input_strings()->mutable_inputs()->Add(R"("from JS")");
 
   int sandbox_pid = sandbox_api.GetUnderlyingSandbox()->pid();
   EXPECT_EQ(kill(sandbox_pid, SIGKILL), 0);

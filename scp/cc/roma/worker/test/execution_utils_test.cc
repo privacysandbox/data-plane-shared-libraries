@@ -191,29 +191,30 @@ class ExecutionUtilsTest : public ::testing::Test {
 v8::Platform* ExecutionUtilsTest::platform_{nullptr};
 
 TEST_F(ExecutionUtilsTest, InputToLocalArgv) {
-  std::vector<std::string> list = {"1", "2", "3"};
+  const auto input_list = std::vector<std::string_view>({"1", "2", "3"});
   {
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
     v8::Local<v8::Context> context = v8::Context::New(isolate_);
     v8::Context::Scope context_scope(context);
-    std::vector<std::string_view> input(list.begin(), list.end());
-    v8::Local<v8::Array> local_list = ExecutionUtils::InputToLocalArgv(input);
-    for (size_t idx = 0; idx < list.size(); ++idx) {
+
+    v8::Local<v8::Array> local_list =
+        ExecutionUtils::InputToLocalArgv(input_list);
+    for (size_t idx = 0; idx < input_list.size(); ++idx) {
       v8::String::Utf8Value output(
           isolate_,
           local_list->Get(context, idx).ToLocalChecked().As<v8::String>());
-      auto expected = list.at(idx);
-      EXPECT_STREQ(*output, expected.c_str());
+      auto expected = input_list.at(idx);
+      EXPECT_EQ(*output, expected);
     }
   }
 }
 
 TEST_F(ExecutionUtilsTest, InputToLocalArgvJsonInput) {
-  std::vector<std::string> list = {
+  const auto list = std::vector<std::string_view>({
       R"({"value":1})",
       R"({"value":2})",
-  };
+  });
   {
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
@@ -224,57 +225,73 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvJsonInput) {
     v8::Local<v8::Array> local_list = ExecutionUtils::InputToLocalArgv(input);
 
     for (size_t idx = 0; idx < list.size(); ++idx) {
-      auto expected = list.at(idx);
+      auto expected = std::string(list.at(idx));
       auto json_value = local_list->Get(context, idx).ToLocalChecked();
       v8::String::Utf8Value output(
           isolate_, v8::JSON::Stringify(context, json_value).ToLocalChecked());
-      EXPECT_STREQ(*output, expected.c_str());
+      EXPECT_EQ(*output, expected);
     }
   }
 }
 
 TEST_F(ExecutionUtilsTest, InputToLocalArgvInvalidJsonInput) {
-  std::vector<std::string> list = {
+  const auto input_list = std::vector<std::string_view>({
       R"({favoriteFruit: "apple"})",
       R"({"value":2})",
-  };
+  });
   {
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
     v8::Local<v8::Context> context = v8::Context::New(isolate_);
     v8::Context::Scope context_scope(context);
 
-    std::vector<std::string_view> input(list.begin(), list.end());
-    auto v8_array = ExecutionUtils::ExecutionUtils::InputToLocalArgv(input);
+    auto v8_array =
+        ExecutionUtils::ExecutionUtils::InputToLocalArgv(input_list);
+
     EXPECT_TRUE(v8_array.IsEmpty());
   }
 }
 
-TEST_F(ExecutionUtilsTest, InputToLocalArgvInputWithEmptyString) {
-  std::vector<std::string> list = {
-      "",
-      R"({"value":2})",
-      "{}",
-  };
-  std::vector<std::string> expected_list = {
-      "undefined",
-      R"({"value":2})",
-      "{}",
-  };
+TEST_F(ExecutionUtilsTest, InputToLocalArgvByteStringInput) {
+  const auto input_list = std::vector<std::string_view>(
+      {"value_1", "value_2", "", R"({"json_value":123})"});
   {
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
     v8::Local<v8::Context> context = v8::Context::New(isolate_);
     v8::Context::Scope context_scope(context);
 
-    std::vector<std::string_view> input(list.begin(), list.end());
-    auto v8_array = ExecutionUtils::ExecutionUtils::InputToLocalArgv(input);
+    v8::Local<v8::Array> local_list = ExecutionUtils::InputToLocalArgv(
+        input_list, /*is_wasm=*/false, /*is_byte_str=*/true);
+
+    for (size_t idx = 0; idx < input_list.size(); ++idx) {
+      auto expected = input_list.at(idx);
+      auto str_value = local_list->Get(context, idx).ToLocalChecked();
+      v8::String::Utf8Value output(isolate_, str_value);
+      EXPECT_EQ(*output, expected);
+    }
+  }
+}
+
+TEST_F(ExecutionUtilsTest, InputToLocalArgvInputWithEmptyString) {
+  const auto input_list =
+      std::vector<std::string_view>({"", R"({"value":2})", "{}"});
+  const auto expected_list =
+      std::vector<std::string_view>({"undefined", R"({"value":2})", "{}"});
+  {
+    v8::Isolate::Scope isolate_scope(isolate_);
+    v8::HandleScope handle_scope(isolate_);
+    v8::Local<v8::Context> context = v8::Context::New(isolate_);
+    v8::Context::Scope context_scope(context);
+
+    auto v8_array =
+        ExecutionUtils::ExecutionUtils::InputToLocalArgv(input_list);
     for (size_t idx = 0; idx < v8_array->Length(); ++idx) {
       auto expected = expected_list.at(idx);
       auto json_value = v8_array->Get(context, idx).ToLocalChecked();
       v8::String::Utf8Value output(
           isolate_, v8::JSON::Stringify(context, json_value).ToLocalChecked());
-      EXPECT_STREQ(*output, expected.c_str());
+      EXPECT_EQ(*output, expected);
     }
   }
 }

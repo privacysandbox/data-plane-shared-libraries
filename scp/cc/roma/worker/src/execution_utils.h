@@ -95,12 +95,14 @@ class ExecutionUtils {
    * @brief Converts string vector to v8 Array.
    *
    * @param input The object of std::vector<std::string>.
-   * @param is_wasm Whether this is targeted towards a wasm handler.
+   * @param is_wasm Whether this is targeted towards a WASM handler.
+   * @param is_byte_str On the JS handler, whether the input string should be
+   * processed as a byte string.
    * @return v8::Local<v8::String> The output of v8 Value.
    */
   static v8::Local<v8::Array> InputToLocalArgv(
-      const std::vector<std::string_view>& input,
-      bool is_wasm = false) noexcept;
+      const std::vector<std::string_view>& input, bool is_wasm = false,
+      bool is_byte_str = false) noexcept;
 
   /**
    * @brief Read a value from WASM memory
@@ -125,13 +127,15 @@ class ExecutionUtils {
                                     v8::Local<v8::Message> message) noexcept;
 
   /**
-   * @brief Parse the input using JSON::Parse to turn it into the right JS types
+   * @brief Parse the input string directly to turn it into a v8::String type.
    *
    * @param input
-   * @return Local<Array> The array of parsed values
+   * @param is_byte_str Whether the input string should be processed as a byte
+   * string.
+   * @return Local<Array> The array of parsed values.
    */
   static v8::Local<v8::Array> ParseAsJsInput(
-      const std::vector<std::string_view>& input);
+      const std::vector<std::string_view>& input, bool is_byte_str = false);
 
   /**
    * @brief Parse the handler input to be provided to a WASM handler.

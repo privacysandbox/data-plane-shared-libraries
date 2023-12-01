@@ -29,8 +29,6 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::errors::SC_ROMA_WORKER_API_INVALID_DURATION;
-using google::scp::roma::sandbox::constants::
-    kExecutionMetricSandboxedJsEngineCallDuration;
 
 namespace google::scp::roma::sandbox::worker_api {
 WorkerApiSapi::WorkerApiSapi(const WorkerApiSapiConfig& config)
@@ -64,7 +62,16 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
     const WorkerApi::RunCodeRequest& request) noexcept {
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(std::string(request.code));
-  params_proto.mutable_input()->Add(request.input.begin(), request.input.end());
+  auto input_type =
+      request.metadata.find(google::scp::roma::sandbox::constants::kInputType);
+  if (input_type != request.metadata.end() &&
+      input_type->second ==
+          google::scp::roma::sandbox::constants::kInputTypeBytes) {
+    params_proto.set_input_bytes(request.input.at(0));
+  } else {
+    params_proto.mutable_input_strings()->mutable_inputs()->Add(
+        request.input.begin(), request.input.end());
+  }
   params_proto.set_wasm(std::string(request.wasm.begin(), request.wasm.end()));
   for (auto&& kv : request.metadata) {
     (*params_proto.mutable_metadata())[kv.first] = kv.second;
@@ -84,7 +91,8 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
   }
 
   WorkerApi::RunCodeResponse code_response;
-  code_response.metrics[kExecutionMetricSandboxedJsEngineCallDuration] =
+  code_response.metrics[roma::sandbox::constants::
+                            kExecutionMetricSandboxedJsEngineCallDuration] =
       stopwatch.GetElapsedTime();
   for (auto& kv : params_proto.metrics()) {
     auto duration =

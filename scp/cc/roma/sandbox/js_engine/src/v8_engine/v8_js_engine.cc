@@ -472,10 +472,21 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   privacy_sandbox::server_common::Stopwatch stopwatch;
   {
     v8::Local<v8::Function> handler_func = handler.As<v8::Function>();
-
     stopwatch.Reset();
-    auto argc = input.size();
-    v8::Local<v8::Array> argv_array = ExecutionUtils::ParseAsJsInput(input);
+
+    const size_t argc = input.size();
+    v8::Local<v8::Array> argv_array;
+
+    auto input_type =
+        metadata.find(google::scp::roma::sandbox::constants::kInputType);
+    const bool uses_input_type = (input_type != metadata.end());
+    const bool uses_input_type_bytes =
+        (uses_input_type &&
+         input_type->second ==
+             google::scp::roma::sandbox::constants::kInputTypeBytes);
+
+    argv_array = ExecutionUtils::ParseAsJsInput(input, uses_input_type_bytes);
+
     // If argv_array size doesn't match with input. Input conversion failed.
     if (argv_array.IsEmpty() || argv_array->Length() != argc) {
       LOG(ERROR) << "Could not parse the inputs";
@@ -510,16 +521,19 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     execution_response.metrics[kHandlerCallMetricJsEngineDuration] =
         stopwatch.GetElapsedTime();
 
-    auto result_json_maybe = v8::JSON::Stringify(v8_context, result);
-    v8::Local<v8::String> result_json;
-    if (!result_json_maybe.ToLocal(&result_json)) {
-      LOG(ERROR) << "Failed to convert the V8 JSON result to Local string";
-      return GetError(v8_isolate, try_catch,
-                      SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_JSON);
+    // Treat as JSON escaped string if there is no input_type in the metadata or
+    // the metadata of input type is not for a byte string.
+    if (!(uses_input_type && uses_input_type_bytes)) {
+      v8::Local<v8::String> result_string;
+      auto result_json_maybe = v8::JSON::Stringify(v8_context, result);
+      if (!result_json_maybe.ToLocal(&result)) {
+        LOG(ERROR) << "Failed to convert the V8 JSON result to Local string";
+        return GetError(v8_isolate, try_catch,
+                        SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_JSON);
+      }
     }
-
     auto conversion_worked = TypeConverter<std::string>::FromV8(
-        v8_isolate, result_json, &execution_response.response);
+        v8_isolate, result, &execution_response.response);
     if (!conversion_worked) {
       LOG(ERROR) << "Failed to convert the V8 Local string to std::string";
       return GetError(v8_isolate, try_catch,

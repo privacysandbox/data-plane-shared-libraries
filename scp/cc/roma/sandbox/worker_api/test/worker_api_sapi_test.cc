@@ -29,6 +29,8 @@ using google::scp::roma::sandbox::constants::kCodeVersion;
 using google::scp::roma::sandbox::constants::
     kExecutionMetricSandboxedJsEngineCallDuration;
 using google::scp::roma::sandbox::constants::kHandlerName;
+using google::scp::roma::sandbox::constants::kInputType;
+using google::scp::roma::sandbox::constants::kInputTypeBytes;
 using google::scp::roma::sandbox::constants::kRequestAction;
 using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
@@ -100,6 +102,61 @@ TEST(WorkerApiSapiTest, WorkerWithInputsWorksThroughSandbox) {
 
   EXPECT_SUCCESS(response_or.result());
   EXPECT_THAT(*response_or->response, StrEq(R"("pos0 string pos1 string")"));
+}
+
+TEST(WorkerApiSapiTest, WorkerWithByteStringInputsWorksThroughSandbox) {
+  auto config = GetDefaultConfig();
+  WorkerApiSapi worker_api(config);
+
+  auto result = worker_api.Init();
+  EXPECT_SUCCESS(result);
+
+  result = worker_api.Run();
+  EXPECT_SUCCESS(result);
+
+  WorkerApi::RunCodeRequest request = {
+      .code = R"(function func(input1) { return input1 })",
+      .input = {"pos0 string"},
+      .metadata = {
+          {std::string(kRequestType), std::string(kRequestTypeJavascript)},
+          {std::string(kHandlerName), "func"},
+          {std::string(kCodeVersion), "1"},
+          {std::string(kRequestAction), std::string(kRequestActionExecute)},
+          {std::string(kInputType), std::string(kInputTypeBytes)}}};
+
+  auto response_or = worker_api.RunCode(request);
+
+  EXPECT_SUCCESS(response_or.result());
+  EXPECT_THAT(*response_or->response, StrEq("pos0 string"));
+}
+
+TEST(WorkerApiSapiTest,
+     WorkerWithMultipleByteStringInputsOnlyTakesOneInputThroughSandbox) {
+  auto config = GetDefaultConfig();
+  WorkerApiSapi worker_api(config);
+
+  auto result = worker_api.Init();
+  EXPECT_SUCCESS(result);
+
+  result = worker_api.Run();
+  EXPECT_SUCCESS(result);
+
+  WorkerApi::RunCodeRequest request = {
+      .code = R"(function func(input1) { return input1 })",
+      .input = {R"("pos0 string")", R"("pos1 string")", "pos2 string"},
+      .metadata = {
+          {std::string(kRequestType), std::string(kRequestTypeJavascript)},
+          {std::string(kHandlerName), "func"},
+          {std::string(kCodeVersion), "1"},
+          {std::string(kRequestAction), std::string(kRequestActionExecute)},
+          {std::string(kInputType), std::string(kInputTypeBytes)}}};
+
+  auto response_or = worker_api.RunCode(request);
+
+  EXPECT_SUCCESS(response_or.result());
+  // Arguments pos1 and pos2 are ignored because kInputTypeBytes only takes the
+  // first argument.
+  EXPECT_THAT(*response_or->response, StrEq("\"pos0 string\""));
 }
 
 TEST(WorkerApiSapiTest, ShouldGetExecutionMetrics) {

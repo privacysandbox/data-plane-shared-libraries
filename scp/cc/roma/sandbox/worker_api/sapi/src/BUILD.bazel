@@ -62,6 +62,7 @@ cc_library(
         "//scp/cc/roma/sandbox/worker/src:roma_worker_lib",
         "//src/cpp/util:protoutil",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/flags:flag",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],
 )

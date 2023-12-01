@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/strings/escaping.h"
 #include "core/interface/errors.h"
 #include "roma/config/src/config.h"
 #include "roma/logging/src/logging.h"
@@ -146,14 +147,24 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
   }
 
   const auto& code = params->code();
+
+  // WorkerParamsProto one of for `input_strings` or `input_bytes` or neither.
   std::vector<absl::string_view> input;
-  for (int i = 0; i < params->input_size(); i++) {
-    input.push_back(params->input().at(i));
+  auto input_type = params->metadata().find(
+      google::scp::roma::sandbox::constants::kInputType);
+  if (input_type != params->metadata().end() &&
+      input_type->second ==
+          google::scp::roma::sandbox::constants::kInputTypeBytes) {
+    input.push_back(params->input_bytes());
+  } else {
+    input.reserve(params->input_strings().inputs_size());
+    for (int i = 0; i < params->input_strings().inputs_size(); i++) {
+      input.push_back(params->input_strings().inputs().at(i));
+    }
   }
-  absl::flat_hash_map<std::string_view, std::string_view> metadata;
-  for (const auto& element : params->metadata()) {
-    metadata[element.first] = element.second;
-  }
+
+  const absl::flat_hash_map<std::string_view, std::string_view> metadata(
+      params->metadata().begin(), params->metadata().end());
   auto wasm_bin = reinterpret_cast<const uint8_t*>(params->wasm().c_str());
   absl::Span<const uint8_t> wasm =
       absl::MakeConstSpan(wasm_bin, params->wasm().length());
@@ -213,6 +224,12 @@ StatusCode Stop() {
   return result.status_code;
 }
 
+inline void ClearInputFields(worker_api::WorkerParamsProto& params) {
+  params.clear_code();
+  params.clear_input_strings();
+  params.clear_input_bytes();
+}
+
 StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
                                      int input_serialized_size,
                                      size_t* output_serialized_size) {
@@ -246,9 +263,8 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
     return result;
   }
 
-  // Don't return the input or code
-  params.clear_code();
-  params.clear_input();
+  // Don't return the input or code.
+  ClearInputFields(params);
 
   const size_t serialized_size = params.ByteSizeLong();
   if (serialized_size < request_and_response_data_buffer_size_bytes_) {
@@ -324,9 +340,8 @@ StatusCode RunCodeFromBuffer(int input_serialized_size,
     return result;
   }
 
-  // Don't return the input or code
-  params.clear_code();
-  params.clear_input();
+  // Don't return the input or code.
+  ClearInputFields(params);
 
   auto serialized_size = params.ByteSizeLong();
   if (serialized_size > request_and_response_data_buffer_size_bytes_) {

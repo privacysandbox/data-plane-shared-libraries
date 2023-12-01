@@ -33,6 +33,13 @@ DEFINE_ERROR_CODE(SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_DUE_TO_CAPACITY,
                   "Dispatch is disallowed since the number of unfinished "
                   "requests is at capacity.",
                   HttpStatusCode::BAD_REQUEST)
+
+DEFINE_ERROR_CODE(
+    SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_MULTIPLE_BYTE_STR_INPUTS,
+    SC_ROMA_DISPATCHER, 0x0003,
+    "Dispatch is disallowed since there is more than one input when "
+    "InvocationRequest.treat_input_as_byte_str is true.",
+    HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
 
 #endif  // ROMA_SANDBOX_DISPATCHER_SRC_ERROR_CODES_H_

@@ -18,10 +18,19 @@ package worker_api;
 import "google/protobuf/duration.proto";
 
 message WorkerParamsProto {
-  reserved 6;
+  reserved 2, 6;
+
+  message InputStrings {
+    repeated string inputs = 1;
+  }
+
   // Input
   bytes code = 1;
-  repeated string input = 2;
+  oneof input_type {
+    InputStrings input_strings = 8;
+    // Used when InvocationRequest.treat_input_as_byte_str is true.
+    bytes input_bytes = 9;
+  }
   map<string, string> metadata = 3;
   optional bytes wasm = 4;
 

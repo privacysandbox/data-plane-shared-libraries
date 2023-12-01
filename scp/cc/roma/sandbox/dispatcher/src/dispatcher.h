@@ -118,7 +118,8 @@ class Dispatcher {
                                   Callback broadcast_callback) noexcept;
 
   /**
-   * @brief Enqueues a request to be handled by the workers.
+   * @brief Enqueues a request to be handled by the workers. Can return failure
+   * before scheduling the callback function.
    *
    * @tparam RequestT The type of the request.
    * @param request The request.

@@ -96,9 +96,16 @@ struct InvocationRequest {
       "type will be string.")]] WasmDataType wasm_return_type;
   // Any key-value pair tags associated with this code object.
   absl::flat_hash_map<std::string, std::string> tags;
+
   // The input arguments to invoke the handler function. The InputType string is
   // in a format that can be parsed as JSON.
   std::vector<InputType> input;
+
+  // Treat the first element in `input` as a string containing bytes instead of
+  // a JSON escaped string. Input must be of length 1. This field is temporary
+  // to allow for byte string inputs to ROMA.
+  bool treat_input_as_byte_str = false;
+
   // Any server-side metadata associated with this code object. This metadata is
   // passed into native functions without entering SAPI Sandbox and v8.
   TMetadata metadata;

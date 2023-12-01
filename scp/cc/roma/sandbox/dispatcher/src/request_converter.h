@@ -67,6 +67,11 @@ static void InvocationRequestCommon(
   run_code_request
       .metadata[google::scp::roma::sandbox::constants::kRequestType] =
       request_type;
+  if (request->treat_input_as_byte_str) {
+    run_code_request
+        .metadata[google::scp::roma::sandbox::constants::kInputType] =
+        google::scp::roma::sandbox::constants::kInputTypeBytes;
+  }
 }
 
 template <typename T>

@@ -33,6 +33,7 @@
 #include "core/test/utils/auto_init_run_stop.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/interface/roma.h"
+#include "roma/sandbox/dispatcher/src/error_codes.h"
 #include "roma/sandbox/worker_api/src/worker_api.h"
 #include "roma/sandbox/worker_api/src/worker_api_sapi.h"
 #include "roma/sandbox/worker_pool/src/worker_pool.h"
@@ -41,6 +42,8 @@
 using google::scp::core::AsyncExecutor;
 using google::scp::core::ExecutionResultOr;
 using google::scp::core::FailureExecutionResult;
+using google::scp::core::errors::
+    SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_MULTIPLE_BYTE_STR_INPUTS;
 using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::sandbox::worker_api::WorkerApi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
@@ -886,5 +889,111 @@ TEST(DispatcherTest, ShouldFailIfMaxPendingRequestsIsZero) {
   EXPECT_DEATH(Dispatcher(&async_executor, &worker_pool, max_pending_requests,
                           code_version_cache_size),
                "max_pending_requests cannot be zero");
+}
+
+TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
+  AsyncExecutor async_executor(1, 10);
+
+  std::vector<WorkerApiSapiConfig> configs = {CreateWorkerApiSapiConfig()};
+
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
+
+  Dispatcher dispatcher(&async_executor, &worker_pool,
+                        /*max_pending_requests=*/10,
+                        /*code_version_cache_size=*/5);
+
+  auto load_request = std::make_unique<CodeObject>(CodeObject{
+      .id = "some_id",
+      .version_string = "v1",
+      .js = "function test(input) { return input + \" Some string\"; }",
+  });
+
+  absl::Notification done_loading;
+
+  auto result = dispatcher.Dispatch(
+      std::move(load_request),
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        EXPECT_TRUE(resp->ok());
+        done_loading.Notify();
+      });
+  EXPECT_SUCCESS(result);
+
+  done_loading.WaitForNotification();
+
+  auto execute_request =
+      std::make_unique<InvocationStrViewRequest<>>(InvocationStrViewRequest<>{
+          .id = "some_id",
+          .version_string = "v1",
+          .handler_name = "test",
+          .input = {R"("Hello")"},
+          .treat_input_as_byte_str = true,
+      });
+
+  absl::Notification done_executing;
+
+  result = dispatcher.Dispatch(
+      std::move(execute_request),
+      [&done_executing](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        EXPECT_TRUE(resp->ok());
+        EXPECT_THAT((*resp)->resp, StrEq(R"("Hello" Some string)"));
+        done_executing.Notify();
+      });
+
+  EXPECT_SUCCESS(result);
+
+  done_executing.WaitForNotification();
+}
+
+TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
+  AsyncExecutor async_executor(1, 10);
+
+  std::vector<WorkerApiSapiConfig> configs;
+  configs.push_back(CreateWorkerApiSapiConfig());
+
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStop for_worker_pool(worker_pool);
+
+  Dispatcher dispatcher(&async_executor, &worker_pool, 1, 5);
+
+  auto load_request = std::make_unique<CodeObject>(CodeObject{
+      .id = "some_id",
+      .version_string = "v1",
+      .js = "function test(input, input2) { return input + input2 + \" Some "
+            "string\"; }",
+  });
+
+  absl::Notification done_loading;
+
+  auto result = dispatcher.Dispatch(
+      std::move(load_request),
+      [&done_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        EXPECT_TRUE(resp->ok());
+        done_loading.Notify();
+      });
+  EXPECT_SUCCESS(result);
+
+  done_loading.WaitForNotification();
+
+  // Multiple inputs with treat_input_as_byte_str as true.
+  auto execute_request =
+      std::make_unique<InvocationStrViewRequest<>>(InvocationStrViewRequest<>{
+          .id = "some_id",
+          .version_string = "v1",
+          .handler_name = "test",
+          .input = {R"("Hello")", R"("Hello 2")"},
+          .treat_input_as_byte_str = true,
+      });
+
+  result = dispatcher.Dispatch(
+      std::move(execute_request),
+      [](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
+
+  EXPECT_THAT(
+      result,
+      core::test::ResultIs(FailureExecutionResult(
+          SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_MULTIPLE_BYTE_STR_INPUTS)));
 }
 }  // namespace google::scp::roma::sandbox::dispatcher::test
