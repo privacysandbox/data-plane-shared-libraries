@@ -23,7 +23,11 @@
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
 namespace google::scp::roma {
-template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+
+// The default metadata type.
+using DefaultMetadata = absl::flat_hash_map<std::string, std::string>;
+
+template <typename TMetadata = DefaultMetadata>
 struct FunctionBindingPayload {
   /**
    * @brief The two-way proto used to receive input from the JS function,
@@ -38,7 +42,7 @@ struct FunctionBindingPayload {
   const TMetadata metadata;
 };
 
-template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+template <typename TMetadata = DefaultMetadata>
 class FunctionBindingObjectV2 {
  public:
   /**
@@ -51,6 +55,7 @@ class FunctionBindingObjectV2 {
    */
   std::function<void(FunctionBindingPayload<TMetadata>&)> function;
 };
+
 }  // namespace google::scp::roma
 
 #endif  // ROMA_CONFIG_SRC_FUNCTION_BINDING_OBJECT_V2_H_

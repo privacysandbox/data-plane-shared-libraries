@@ -22,15 +22,17 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "function_binding_object_v2.h"
 
 namespace google::scp::roma {
-static constexpr size_t kKB = 1024u;
-static constexpr size_t kMB = kKB * 1024;
-static constexpr const char* kRomaVlogLevel = "ROMA_VLOG_LEVEL";
-static constexpr size_t kDefaultBufferSizeInMb = 1;
+
+inline constexpr size_t kKB = 1024u;
+inline constexpr size_t kMB = kKB * 1024;
+inline constexpr std::string_view kRomaVlogLevel = "ROMA_VLOG_LEVEL";
+inline constexpr size_t kDefaultBufferSizeInMb = 1;
 
 struct JsEngineResourceConstraints {
   /**
@@ -53,7 +55,7 @@ struct JsEngineResourceConstraints {
   size_t maximum_heap_size_in_mb = 0;
 };
 
-template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+template <typename TMetadata = DefaultMetadata>
 class Config {
  public:
   /**

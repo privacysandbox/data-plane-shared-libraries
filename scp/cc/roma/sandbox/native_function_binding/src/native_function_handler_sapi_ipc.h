@@ -36,13 +36,14 @@
 using google::scp::roma::sandbox::constants::kRequestId;
 using google::scp::roma::sandbox::constants::kRequestUuid;
 
-static constexpr char kFailedNativeHandlerExecution[] =
+inline constexpr std::string_view kFailedNativeHandlerExecution =
     "ROMA: Failed to execute the C++ function.";
-static constexpr char kCouldNotFindFunctionName[] =
+inline constexpr std::string_view kCouldNotFindFunctionName =
     "ROMA: Could not find C++ function by name.";
 
 namespace google::scp::roma::sandbox::native_function_binding {
-template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+
+template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class NativeFunctionHandlerSapiIpc {
  public:
   /**
@@ -93,11 +94,13 @@ class NativeFunctionHandlerSapiIpc {
                     *io_proto, std::move(GetMetadata(invocation_req_uuid))};
                 !function_table_->Call(function_name, wrapper).Successful()) {
               // If execution failed, add errors to the proto to return
-              io_proto->mutable_errors()->Add(kFailedNativeHandlerExecution);
+              io_proto->mutable_errors()->Add(
+                  std::string(kFailedNativeHandlerExecution));
             }
           } else {
             // If we can't find the function, add errors to the proto to return
-            io_proto->mutable_errors()->Add(kCouldNotFindFunctionName);
+            io_proto->mutable_errors()->Add(
+                std::string(kCouldNotFindFunctionName));
           }
           if (!comms.SendProtoBuf(wrapper_proto)) {
             continue;
@@ -163,6 +166,7 @@ class NativeFunctionHandlerSapiIpc {
       ABSL_GUARDED_BY(metadata_map_mutex_);
   absl::Mutex metadata_map_mutex_;
 };
+
 }  // namespace google::scp::roma::sandbox::native_function_binding
 
 #endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_HANDLER_SAPI_IPC_H_

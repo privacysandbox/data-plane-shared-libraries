@@ -68,7 +68,7 @@ constexpr int kWorkerQueueMax = 100;
 // needed by v8.
 constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
 
-template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService {
  public:
   absl::Status Init() {

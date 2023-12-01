@@ -27,7 +27,7 @@ namespace google::scp::roma::logging {
 int GetVlogVerboseLevel() {
   static const int external_verbose_level = [] {
     int lvl = std::numeric_limits<int>::min();
-    const char* env_var = getenv(kRomaVlogLevel);
+    const char* env_var = getenv(kRomaVlogLevel.data());
     if (env_var == nullptr) {
       return lvl;
     }

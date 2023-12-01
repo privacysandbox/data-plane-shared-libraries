@@ -72,8 +72,7 @@ struct CodeObject {
  * std::string_view, or std::shared_ptr<std::string>.
  * std::shared_ptr<std::string> is being deprecated.
  */
-template <typename InputType,
-          typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+template <typename InputType, typename TMetadata = DefaultMetadata>
 struct InvocationRequest {
   static_assert(
       std::is_same<InputType, std::string>::value ||
@@ -105,12 +104,12 @@ struct InvocationRequest {
   TMetadata metadata;
 };
 
-template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+template <typename TMetadata = DefaultMetadata>
 using InvocationStrRequest = InvocationRequest<std::string, TMetadata>;
-template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+template <typename TMetadata = DefaultMetadata>
 using InvocationSharedRequest =
     InvocationRequest<std::shared_ptr<std::string>, TMetadata>;
-template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+template <typename TMetadata = DefaultMetadata>
 using InvocationStrViewRequest = InvocationRequest<std::string_view, TMetadata>;
 
 // The response as result of execution of the code object or invocation request.

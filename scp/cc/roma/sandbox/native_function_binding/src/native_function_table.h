@@ -25,17 +25,15 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/config/src/function_binding_object_v2.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
 #include "error_codes.h"
 
-using google::scp::core::errors::
-    SC_ROMA_FUNCTION_TABLE_COULD_NOT_FIND_FUNCTION_NAME;
-using google::scp::core::errors::SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED;
-
 namespace google::scp::roma::sandbox::native_function_binding {
-template <typename TMetadata = absl::flat_hash_map<std::string, std::string>>
+
+template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class NativeFunctionTable {
  public:
   using NativeBinding =
@@ -57,7 +55,8 @@ class NativeFunctionTable {
 
     if (!was_inserted) {
       return core::FailureExecutionResult(
-          SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED);
+          google::scp::core::errors::
+              SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED);
     }
     return core::SuccessExecutionResult();
   }
@@ -79,7 +78,8 @@ class NativeFunctionTable {
       auto fn_it = native_functions_.find(function_name);
       if (fn_it == native_functions_.end()) {
         return core::FailureExecutionResult(
-            SC_ROMA_FUNCTION_TABLE_COULD_NOT_FIND_FUNCTION_NAME);
+            google::scp::core::errors::
+                SC_ROMA_FUNCTION_TABLE_COULD_NOT_FIND_FUNCTION_NAME);
       }
       func = fn_it->second;
     }
@@ -98,6 +98,7 @@ class NativeFunctionTable {
       ABSL_GUARDED_BY(native_functions_map_mutex_);
   absl::Mutex native_functions_map_mutex_;
 };
+
 }  // namespace google::scp::roma::sandbox::native_function_binding
 
 #endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_TABLE_H_
