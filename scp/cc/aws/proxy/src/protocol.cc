@@ -21,8 +21,6 @@
 
 #include <string_view>
 
-#include "absl/strings/numbers.h"
-
 // For both request and response the ATYP is byte 3, followed by the address and
 // port.
 // Request:
@@ -88,6 +86,9 @@ bool EnvGetInt(std::string_view env_name, uint32_t* out) {
   if (str_val == nullptr) {
     return false;
   }
+
+  // Reset `errno` value so we can check `strtoul` error in isolation.
+  errno = 0;
   const uint64_t val = strtoul(str_val, nullptr, /*base=*/10);
   if (errno != 0 || val >= UINT_MAX) {
     return false;
@@ -105,7 +106,7 @@ sockaddr_vm GetProxyVsockAddr() {
     cid = kDefaultParentCid;
   }
   uint32_t port;
-  if (!EnvGetInt(kParentCidEnv, &port)) {
+  if (!EnvGetInt(kParentPortEnv, &port)) {
     port = kDefaultParentPort;
   }
 

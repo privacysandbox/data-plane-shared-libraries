@@ -87,7 +87,6 @@ cc_library(
     hdrs = ["protocol.h"],
     deps = [
         "//scp/cc/aws:include_dir",
-        "@com_google_absl//absl/strings",
     ],
 )
 

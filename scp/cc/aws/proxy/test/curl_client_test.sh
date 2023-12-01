@@ -52,7 +52,7 @@ if [[ $google_com_len -lt 4096 ]]; then
 fi
 
 # Test proxify
-google_com_len=$($proxify_path curl -s https://www.google.com | wc -c)
+google_com_len=$($proxify_path -- curl -s https://www.google.com | wc -c)
 kill $proxy_pid
 if [[ $google_com_len -lt 4096 ]]; then
   echo "Proxify: google.com returned less than 4KiB"
