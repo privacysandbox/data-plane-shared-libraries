@@ -122,11 +122,13 @@ function install_docker() {
   apt-get --quiet install -y --no-install-recommends docker-ce docker-ce-cli containerd.io
 }
 
-function clean_debian() {
+function cleanup() {
   apt-get --quiet autoremove -y
   apt-get autoclean
   apt-get clean
   rm -rf /var/lib/apt/lists
+  cd /
+  go clean -cache
 }
 
 if [[ ${VERBOSE} -eq 1 ]]; then
@@ -140,4 +142,4 @@ install_clang
 install_golang "${BUILD_ARCH}"
 install_docker "${BUILD_ARCH}"
 install_python # should run after other install_*
-clean_debian
+cleanup

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.51.0 (2023-11-30)
+
+
+### Bug Fixes
+
+* Clean go build cache at the end of image build script
+
+
+### Dependencies
+
+* **deps:** Upgrade bazelisk to 1.19.0
+
 ## 0.50.0 (2023-11-06)
 
 
