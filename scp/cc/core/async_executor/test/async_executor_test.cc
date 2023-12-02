@@ -88,12 +88,12 @@ TEST(AsyncExecutorTests, CannotStopTwice) {
 
 TEST(AsyncExecutorTests, CannotScheduleWorkBeforeInit) {
   AsyncExecutor executor(1, 10);
-  EXPECT_THAT(
-      executor.Schedule([] {}, AsyncPriority::Normal),
-      ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
-  EXPECT_THAT(
-      executor.ScheduleFor([] {}, 10000),
-      ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
+  EXPECT_THAT(executor.Schedule([] {}, AsyncPriority::Normal),
+              ResultIs(FailureExecutionResult(
+                  errors::SC_ASYNC_EXECUTOR_NOT_INITIALIZED)));
+  EXPECT_THAT(executor.ScheduleFor([] {}, 10000),
+              ResultIs(FailureExecutionResult(
+                  errors::SC_ASYNC_EXECUTOR_NOT_INITIALIZED)));
 }
 
 TEST(AsyncExecutorTests, CannotScheduleWorkBeforeRun) {
@@ -560,9 +560,9 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     }
 
     // Run picking executors
+    absl::Mutex task_executor_pool_picked_counts_mu;
     absl::flat_hash_map<SingleThreadAsyncExecutor*, int>
         task_executor_pool_picked_counts;
-    absl::Mutex mutex;
 
     auto picking_function = [&](int pick_times) {
       for (int i = 0; i < pick_times; i++) {
@@ -571,10 +571,8 @@ class AsyncExecutorAccessor : public AsyncExecutor {
             TaskExecutorPoolType::NotUrgentPool,
             TaskLoadBalancingScheme::RoundRobinPerThread);
         ASSERT_SUCCESS(task_executor_or);
-        {
-          absl::MutexLock lock(&mutex);
-          task_executor_pool_picked_counts[*task_executor_or] += 1;
-        }
+        absl::MutexLock l(&task_executor_pool_picked_counts_mu);
+        task_executor_pool_picked_counts[*task_executor_or] += 1;
       }
     };
 
@@ -612,9 +610,9 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     }
 
     // Run picking executors
+    absl::Mutex task_executor_pool_picked_counts_mu;
     absl::flat_hash_map<SingleThreadAsyncExecutor*, int>
         task_executor_pool_picked_counts;
-    absl::Mutex mutex;
 
     auto picking_function = [&](int pick_times) {
       for (int i = 0; i < pick_times; i++) {
@@ -623,10 +621,8 @@ class AsyncExecutorAccessor : public AsyncExecutor {
             TaskExecutorPoolType::NotUrgentPool,
             TaskLoadBalancingScheme::RoundRobinGlobal);
         ASSERT_SUCCESS(task_executor_or);
-        {
-          absl::MutexLock lock(&mutex);
-          task_executor_pool_picked_counts[*task_executor_or] += 1;
-        }
+        absl::MutexLock l(&task_executor_pool_picked_counts_mu);
+        task_executor_pool_picked_counts[*task_executor_or] += 1;
       }
     };
 
@@ -661,17 +657,16 @@ class AsyncExecutorAccessor : public AsyncExecutor {
     EXPECT_SUCCESS(executor->Init());
     EXPECT_SUCCESS(executor->Run());
     const auto expected_id = *executor->GetThreadId();
-
     auto chosen_task_executor_or = PickTaskExecutor(
         AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
         task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
         TaskLoadBalancingScheme::Random);
 
     EXPECT_SUCCESS(chosen_task_executor_or);
+
     // Picking an executor should result in a random executor being chosen.
     EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
                 IsSuccessfulAndHolds(expected_id));
-
     EXPECT_SUCCESS(executor->Stop());
     EXPECT_SUCCESS(Stop());
   }

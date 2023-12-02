@@ -250,6 +250,8 @@ ExecutionResult AggregateMetric::ScheduleMetricPush() noexcept {
           .count();
   auto execution_result = async_executor_->ScheduleFor(
       [this]() {
+        // TODO(b/316383890): Task captures `this` which may be destroyed before
+        // this call happens.
         RunMetricPush();
         if (auto execution_result = ScheduleMetricPush();
             !execution_result.Successful()) {

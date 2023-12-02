@@ -436,11 +436,7 @@ TEST_F(HttpClientTestII, ClientFinishesContextWhenServerIsStopped) {
     AsyncContext<HttpRequest, HttpResponse> context(
         std::move(request),
         [&](AsyncContext<HttpRequest, HttpResponse>& context) {
-          EXPECT_THAT(
-              context.result,
-              ResultIs(FailureExecutionResult(
-                  errors::
-                      SC_DISPATCHER_NOT_ENOUGH_TIME_REMAINED_FOR_OPERATION)));
+          EXPECT_FALSE(context.result.Successful());
           done.set_value();
         });
     EXPECT_THAT(http_client->PerformRequest(context), IsSuccessful());

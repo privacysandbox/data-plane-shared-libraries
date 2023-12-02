@@ -14,8 +14,6 @@
 
 #include "async_executor.h"
 
-#include <chrono>
-#include <functional>
 #include <memory>
 #include <random>
 #include <thread>
@@ -63,10 +61,6 @@ ExecutionResult AsyncExecutor::Init() noexcept {
 }
 
 ExecutionResult AsyncExecutor::Run() noexcept {
-  if (running_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_ALREADY_RUNNING);
-  }
-
   if (urgent_task_executor_pool_.size() < thread_count_ ||
       normal_task_executor_pool_.size() < thread_count_) {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_INITIALIZED);
@@ -85,6 +79,7 @@ ExecutionResult AsyncExecutor::Run() noexcept {
     }
     ASSIGN_OR_RETURN(auto normal_thread_id, normal_executor->GetThreadId());
     ASSIGN_OR_RETURN(auto urgent_thread_id, urgent_executor->GetThreadId());
+
     // We map both thread IDs to the same executors because we can maintain
     // affinity when migrating from normal -> urgent or vice versa. The
     // executors at the same index share the same affinity.
@@ -93,19 +88,10 @@ ExecutionResult AsyncExecutor::Run() noexcept {
     thread_id_to_executor_map_[urgent_thread_id] = {normal_executor,
                                                     urgent_executor};
   }
-
-  running_ = true;
-
   return SuccessExecutionResult();
 }
 
 ExecutionResult AsyncExecutor::Stop() noexcept {
-  if (!running_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
-  }
-
-  running_ = false;
-
   // Ensures all of thread are waited to finish.
   for (size_t i = 0; i < thread_count_; ++i) {
     auto execution_result = urgent_task_executor_pool_.at(i)->Stop();
@@ -117,7 +103,6 @@ ExecutionResult AsyncExecutor::Stop() noexcept {
       return execution_result;
     }
   }
-
   return SuccessExecutionResult();
 }
 
@@ -126,7 +111,8 @@ ExecutionResultOr<TaskExecutorType*> AsyncExecutor::PickTaskExecutor(
     AsyncExecutorAffinitySetting affinity,
     const std::vector<std::unique_ptr<TaskExecutorType>>& task_executor_pool,
     TaskExecutorPoolType task_executor_pool_type,
-    TaskLoadBalancingScheme task_load_balancing_scheme) {
+    TaskLoadBalancingScheme task_load_balancing_scheme) const {
+  // TODO(b/315843659) Remove race conditions from twister use.
   static std::random_device random_device_local;
   static std::mt19937 random_generator(random_device_local());
   static std::uniform_int_distribution<uint64_t> distribution;
@@ -214,12 +200,12 @@ ExecutionResult AsyncExecutor::Schedule(AsyncOperation work,
 ExecutionResult AsyncExecutor::Schedule(
     AsyncOperation work, AsyncPriority priority,
     AsyncExecutorAffinitySetting affinity) noexcept {
-  if (!running_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
+  if (urgent_task_executor_pool_.size() < thread_count_ ||
+      normal_task_executor_pool_.size() < thread_count_) {
+    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_INITIALIZED);
   }
-
   if (priority == AsyncPriority::Urgent) {
-    ASSIGN_OR_RETURN(auto* task_executor,
+    ASSIGN_OR_RETURN(UrgentTaskExecutor * task_executor,
                      PickTaskExecutor(affinity, urgent_task_executor_pool_,
                                       TaskExecutorPoolType::UrgentPool,
                                       task_load_balancing_scheme_));
@@ -227,16 +213,13 @@ ExecutionResult AsyncExecutor::Schedule(
         std::move(work),
         common::TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());
   }
-
   if (priority == AsyncPriority::Normal || priority == AsyncPriority::High) {
-    ASSIGN_OR_RETURN(auto* task_executor,
+    ASSIGN_OR_RETURN(NormalTaskExecutor * task_executor,
                      PickTaskExecutor(affinity, normal_task_executor_pool_,
                                       TaskExecutorPoolType::NotUrgentPool,
                                       task_load_balancing_scheme_));
-
     return task_executor->Schedule(std::move(work), priority);
   }
-
   return FailureExecutionResult(
       errors::SC_ASYNC_EXECUTOR_INVALID_PRIORITY_TYPE);
 }
@@ -266,11 +249,10 @@ ExecutionResult AsyncExecutor::ScheduleFor(
     AsyncOperation work, Timestamp timestamp,
     TaskCancellationLambda& cancellation_callback,
     AsyncExecutorAffinitySetting affinity) noexcept {
-  if (!running_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
+  if (urgent_task_executor_pool_.size() < thread_count_) {
+    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_INITIALIZED);
   }
-
-  ASSIGN_OR_RETURN(auto* task_executor,
+  ASSIGN_OR_RETURN(UrgentTaskExecutor * task_executor,
                    PickTaskExecutor(affinity, urgent_task_executor_pool_,
                                     TaskExecutorPoolType::UrgentPool,
                                     task_load_balancing_scheme_));

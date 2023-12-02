@@ -15,12 +15,7 @@
 #ifndef CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_H_
 #define CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_H_
 
-#include <atomic>
-#include <condition_variable>
-#include <functional>
 #include <memory>
-#include <mutex>
-#include <queue>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -83,8 +78,7 @@ class AsyncExecutor : public AsyncExecutorInterface {
   AsyncExecutor(size_t thread_count, size_t queue_cap,
                 TaskLoadBalancingScheme task_load_balancing_scheme =
                     TaskLoadBalancingScheme::RoundRobinGlobal)
-      : running_(false),
-        thread_count_(thread_count),
+      : thread_count_(thread_count),
         queue_cap_(queue_cap),
         task_load_balancing_scheme_(task_load_balancing_scheme) {}
 
@@ -127,14 +121,8 @@ class AsyncExecutor : public AsyncExecutorInterface {
       AsyncExecutorAffinitySetting affinity,
       const std::vector<std::unique_ptr<TaskExecutorType>>& task_executor_pool,
       TaskExecutorPoolType task_executor_pool_type,
-      TaskLoadBalancingScheme task_load_balancing_scheme);
+      TaskLoadBalancingScheme task_load_balancing_scheme) const;
 
-  /**
-   * @brief While it is true, the thread pool will keep listening and
-   * picking out work from work queue. While it is false, the thread pool
-   * will stop listening to the work queue.
-   */
-  std::atomic<bool> running_;
   /// Number of threads in the thread pool.
   size_t thread_count_;
   /// The maximum length of the work queue.

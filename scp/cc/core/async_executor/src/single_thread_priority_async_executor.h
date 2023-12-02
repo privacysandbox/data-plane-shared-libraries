@@ -15,15 +15,14 @@
 #ifndef CORE_ASYNC_EXECUTOR_SRC_SINGLE_THREAD_PRIORITY_ASYNC_EXECUTOR_H_
 #define CORE_ASYNC_EXECUTOR_SRC_SINGLE_THREAD_PRIORITY_ASYNC_EXECUTOR_H_
 
-#include <atomic>
-#include <condition_variable>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <queue>
 #include <thread>
 #include <vector>
 
+#include "absl/base/thread_annotations.h"
+#include "absl/synchronization/mutex.h"
 #include "core/interface/async_executor_interface.h"
 
 #include "async_task.h"
@@ -46,11 +45,11 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
         queue_cap_(queue_cap),
         affinity_cpu_number_(affinity_cpu_number) {}
 
-  ExecutionResult Init() noexcept override;
+  ExecutionResult Init() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
 
-  ExecutionResult Run() noexcept override;
+  ExecutionResult Run() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
 
-  ExecutionResult Stop() noexcept override;
+  ExecutionResult Stop() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
 
   /**
    * @brief Schedules a task to be executed at a certain time.
@@ -60,8 +59,8 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
    * @return ExecutionResult The result of the execution with possible error
    * code.
    */
-  ExecutionResult ScheduleFor(AsyncOperation work,
-                              Timestamp timestamp) noexcept;
+  ExecutionResult ScheduleFor(AsyncOperation work, Timestamp timestamp) noexcept
+      ABSL_LOCKS_EXCLUDED(mutex_);
 
   /**
    * @brief Schedules a task to be executed at a certain time.
@@ -74,35 +73,37 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
    */
   ExecutionResult ScheduleFor(
       AsyncOperation work, Timestamp timestamp,
-      std::function<bool()>& cancellation_callback) noexcept;
+      std::function<bool()>& cancellation_callback) noexcept
+      ABSL_LOCKS_EXCLUDED(mutex_);
 
   /**
    * @brief Returns the ID of the spawned thread object to enable looking it up
    * via thread IDs later. Will only be populated after Run() is called.
    */
-  ExecutionResultOr<std::thread::id> GetThreadId() const;
+  ExecutionResultOr<std::thread::id> GetThreadId() const
+      ABSL_LOCKS_EXCLUDED(mutex_);
 
  private:
   /// Starts the internal worker thread.
-  void StartWorker() noexcept;
+  void StartWorker() noexcept ABSL_LOCKS_EXCLUDED(mutex_);
 
   /**
    * @brief While it is true, the running thread will keep listening and
    * picking out work from work queue. While it is false, the thread will try to
    * finish all the remaining tasks in the queue and then stop.
    */
-  std::atomic<bool> is_running_;
+  bool is_running_ ABSL_GUARDED_BY(mutex_);
   /// Indicates whether the worker thread started.
-  std::atomic<bool> worker_thread_started_;
+  bool worker_thread_started_ ABSL_GUARDED_BY(mutex_);
   /// Indicates whether the worker thread stopped.
-  std::atomic<bool> worker_thread_stopped_;
+  bool worker_thread_stopped_ ABSL_GUARDED_BY(mutex_);
   /// Indicates whether the wait time needs to be updated.
-  std::atomic<bool> update_wait_time_;
+  bool update_wait_time_ ABSL_GUARDED_BY(mutex_);
   /**
    * @brief The next scheduled task timestamp. This value helps with signaling
    * the thread at the next time of execution and prevents spin waiting.
    */
-  std::atomic<Timestamp> next_scheduled_task_timestamp_;
+  Timestamp next_scheduled_task_timestamp_ ABSL_GUARDED_BY(mutex_);
   /// The maximum length of the work queue.
   size_t queue_cap_;
   /// An optional CPU to have an affinity for.
@@ -117,17 +118,12 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
   std::optional<std::priority_queue<std::shared_ptr<AsyncTask>,
                                     std::vector<std::shared_ptr<AsyncTask>>,
                                     AsyncTaskCompareGreater>>
-      queue_;
+      queue_ ABSL_GUARDED_BY(mutex_);
   /**
-   * @brief Used in combination with the condition variable for signaling the
-   * thread that an element is pushed to the queue.
+   * @brief Used for signaling the thread that an element is pushed to the
+   * queue.
    */
-  std::mutex mutex_;
-  /**
-   * @brief Used in combination with the mutex for signaling the thread that an
-   * element is pushed to the queue.
-   */
-  std::condition_variable condition_variable_;
+  mutable absl::Mutex mutex_;
 };
 }  // namespace google::scp::core
 
