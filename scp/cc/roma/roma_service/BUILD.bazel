@@ -48,9 +48,9 @@ cc_test(
         "noubsan",  # TODO(b/307540489) - Fix UBSAN errors in this test.
     ],
     deps = [
+        ":roma_service_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
@@ -66,9 +66,9 @@ cc_test(
         "noubsan",  # TODO(b/307540489) - Fix UBSAN errors in this test.
     ],
     deps = [
+        ":roma_service_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
         "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
@@ -86,9 +86,9 @@ cc_test(
         "noubsan",  # TODO(b/307540489) - Fix UBSAN errors in this test.
     ],
     deps = [
+        ":roma_service_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
         "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
@@ -106,9 +106,9 @@ cc_test(
         "noubsan",  # TODO(b/307540489) - Fix UBSAN errors in this test.
     ],
     deps = [
+        ":roma_service_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
         "//src/cpp/util:duration",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
@@ -130,9 +130,9 @@ cc_test(
         "noubsan",  # TODO(b/307540489) - Fix UBSAN errors in this test.
     ],
     deps = [
+        ":roma_service_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
         "//scp/cc/roma/wasm/test:roma_wasm_testing_lib",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
