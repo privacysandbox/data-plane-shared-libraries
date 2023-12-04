@@ -99,11 +99,13 @@ ExecutionResult Dispatcher::ReloadCachedCodeObjects(
     // TODO(gathuru): Remove creation of unique_ptr over stack object.
     std::unique_ptr<CodeObject> ptr_cached_code;
     ptr_cached_code.reset(&cached_code);
-    auto request_type = ptr_cached_code->js.empty()
-                            ? constants::kRequestTypeWasm
-                            : constants::kRequestTypeJavascript;
+    std::string request_type;
     if (!ptr_cached_code->wasm_bin.empty()) {
-      request_type = constants::kRequestTypeJavascriptWithWasm;
+      request_type = std::string(constants::kRequestTypeJavascriptWithWasm);
+    } else if (ptr_cached_code->js.empty()) {
+      request_type = std::string(constants::kRequestTypeWasm);
+    } else {
+      request_type = std::string(constants::kRequestTypeJavascript);
     }
     auto run_code_request_or =
         request_converter::RequestConverter<CodeObject>::FromUserProvided(

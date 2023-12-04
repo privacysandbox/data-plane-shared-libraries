@@ -51,7 +51,6 @@ using google::scp::core::errors::SC_ROMA_SERVICE_COULD_NOT_CREATE_FD_PAIR;
 using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
 using google::scp::roma::FunctionBindingObjectV2;
 using google::scp::roma::proto::FunctionBindingIoProto;
-using google::scp::roma::sandbox::constants::kRequestUuid;
 using google::scp::roma::sandbox::dispatcher::Dispatcher;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;
@@ -375,7 +374,8 @@ class RomaService {
     std::string uuid_str =
         google::scp::core::common::ToString(request_unique_id);
     invocation_req->tags.insert(
-        {google::scp::roma::sandbox::constants::kRequestUuid, uuid_str});
+        {std::string(google::scp::roma::sandbox::constants::kRequestUuid),
+         uuid_str});
     RegisterMetadata(std::move(uuid_str), invocation_req->metadata);
 
     const auto result =
@@ -401,7 +401,8 @@ class RomaService {
       std::string uuid_str =
           google::scp::core::common::ToString(request_unique_id);
       request.tags.insert(
-          {google::scp::roma::sandbox::constants::kRequestUuid, uuid_str});
+          {std::string(google::scp::roma::sandbox::constants::kRequestUuid),
+           uuid_str});
       RegisterMetadata(std::move(uuid_str), request.metadata);
     }
 

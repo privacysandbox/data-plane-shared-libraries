@@ -64,10 +64,11 @@ TEST(WorkerApiSapiTest, WorkerWorksThroughSandbox) {
 
   WorkerApi::RunCodeRequest request = {
       .code = R"(function hello_world() { return "World. Hello!" })",
-      .metadata = {{kRequestType, kRequestTypeJavascript},
-                   {kHandlerName, "hello_world"},
-                   {kCodeVersion, "1"},
-                   {kRequestAction, kRequestActionExecute}}};
+      .metadata = {
+          {std::string(kRequestType), std::string(kRequestTypeJavascript)},
+          {std::string(kHandlerName), "hello_world"},
+          {std::string(kCodeVersion), "1"},
+          {std::string(kRequestAction), std::string(kRequestActionExecute)}}};
 
   auto response_or = worker_api.RunCode(request);
 
@@ -89,10 +90,11 @@ TEST(WorkerApiSapiTest, WorkerWithInputsWorksThroughSandbox) {
       .code =
           R"(function func(input1, input2) { return input1 + " " + input2 })",
       .input = {R"("pos0 string")", R"("pos1 string")"},
-      .metadata = {{kRequestType, kRequestTypeJavascript},
-                   {kHandlerName, "func"},
-                   {kCodeVersion, "1"},
-                   {kRequestAction, kRequestActionExecute}}};
+      .metadata = {
+          {std::string(kRequestType), std::string(kRequestTypeJavascript)},
+          {std::string(kHandlerName), "func"},
+          {std::string(kCodeVersion), "1"},
+          {std::string(kRequestAction), std::string(kRequestActionExecute)}}};
 
   auto response_or = worker_api.RunCode(request);
 
@@ -114,10 +116,11 @@ TEST(WorkerApiSapiTest, ShouldGetExecutionMetrics) {
       .code =
           R"(function func(input1, input2) { return input1 + " " + input2 })",
       .input = {R"("pos0 string")", R"("pos1 string")"},
-      .metadata = {{kRequestType, kRequestTypeJavascript},
-                   {kHandlerName, "func"},
-                   {kCodeVersion, "1"},
-                   {kRequestAction, kRequestActionExecute}}};
+      .metadata = {
+          {std::string(kRequestType), std::string(kRequestTypeJavascript)},
+          {std::string(kHandlerName), "func"},
+          {std::string(kCodeVersion), "1"},
+          {std::string(kRequestAction), std::string(kRequestActionExecute)}}};
 
   auto response_or = worker_api.RunCode(request);
 

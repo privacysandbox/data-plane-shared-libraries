@@ -74,7 +74,7 @@ std::unique_ptr<Worker> worker_{nullptr};
 
 absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
     const V8WorkerEngineParams& params) {
-  return {{kJsEngineOneTimeSetupWasmPagesKey,
+  return {{std::string(kJsEngineOneTimeSetupWasmPagesKey),
            std::to_string(params.max_wasm_memory_number_of_pages)}};
 }
 
