@@ -67,12 +67,47 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "instance_client_validator",
+    srcs = ["instance_client_validator.cc"],
+    hdrs = ["instance_client_validator.h"],
+    deps = [
+        "//scp/cc/public/core/interface:errors",
+        "//scp/cc/public/core/interface:execution_result",
+        "//scp/cc/public/cpio/interface/instance_client",
+        "//scp/cc/public/cpio/interface/instance_client:type_def",
+        "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "parameter_client_validator",
+    srcs = ["parameter_client_validator.cc"],
+    hdrs = ["parameter_client_validator.h"],
+    deps = [
+        "//scp/cc/public/core/interface:errors",
+        "//scp/cc/public/core/interface:execution_result",
+        "//scp/cc/public/cpio/interface/parameter_client",
+        "//scp/cc/public/cpio/interface/parameter_client:type_def",
+        "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//scp/cc/public/cpio/validator/proto:validator_config_proto_lib",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
 cc_binary(
     name = "validation",
     srcs = ["validation.cc"],
     linkopts = LINK_OPTS,
     deps = [
         ":blob_storage_client_validator",
+        ":instance_client_validator",
+        ":parameter_client_validator",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface:cpio",

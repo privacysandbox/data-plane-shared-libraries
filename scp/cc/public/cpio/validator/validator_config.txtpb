@@ -14,3 +14,9 @@ blob_storage_client_config {
     bucket_name: "cpio-validator-test-bucket"
   }
 }
+skip_instance_client_validation: false
+parameter_client_config {
+  get_parameter_config {
+    parameter_name: "cpio-validator-test-parameter"
+  }
+}

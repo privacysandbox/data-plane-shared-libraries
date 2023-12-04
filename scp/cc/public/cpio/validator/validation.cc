@@ -33,12 +33,16 @@
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/cpio.h"
 #include "scp/cc/public/cpio/validator/blob_storage_client_validator.h"
+#include "scp/cc/public/cpio/validator/instance_client_validator.h"
+#include "scp/cc/public/cpio/validator/parameter_client_validator.h"
 #include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace {
 
 using google::scp::core::errors::GetErrorMessage;
 using google::scp::cpio::validator::BlobStorageClientValidator;
+using google::scp::cpio::validator::InstanceClientValidator;
+using google::scp::cpio::validator::ParameterClientValidator;
 using google::scp::cpio::validator::proto::ValidatorConfig;
 
 constexpr char kValidatorConfigPath[] = "/etc/validator_config.txtpb";
@@ -83,6 +87,14 @@ int main(int argc, char* argv[]) {
               << GetErrorMessage(result.status_code) << std::endl;
     std::cout << GetValidatorFailedToRunMsg() << std::endl;
     return -1;
+  }
+  if (!validator_config.skip_instance_client_validation()) {
+    InstanceClientValidator instance_client_validator;
+    instance_client_validator.Run();
+  }
+  if (validator_config.has_parameter_client_config()) {
+    ParameterClientValidator parameter_client_validator;
+    parameter_client_validator.Run(validator_config.parameter_client_config());
   }
   if (validator_config.has_blob_storage_client_config()) {
     BlobStorageClientValidator blob_storage_client_validator;

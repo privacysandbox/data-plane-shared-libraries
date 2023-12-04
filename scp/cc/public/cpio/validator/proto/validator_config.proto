@@ -18,6 +18,8 @@ package google.scp.cpio.validator.proto;
 
 message ValidatorConfig {
   optional BlobStorageClientConfig blob_storage_client_config = 1;
+  bool skip_instance_client_validation = 2;
+  optional ParameterClientConfig parameter_client_config = 3;
 }
 
 message BlobStorageClientConfig {
@@ -32,4 +34,12 @@ message GetBlobConfig {
 
 message ListBlobsMetadataConfig {
   string bucket_name = 1;
+}
+
+message ParameterClientConfig {
+  repeated GetParameterConfig get_parameter_config = 1;
+}
+
+message GetParameterConfig {
+  string parameter_name = 1;
 }
