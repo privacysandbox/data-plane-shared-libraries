@@ -23,6 +23,9 @@
 
 #include <google/protobuf/text_format.h>
 
+#include "absl/flags/parse.h"
+#include "absl/log/initialize.h"
+#include "absl/log/log.h"
 #include "absl/synchronization/notification.h"
 #include "core/common/operation_dispatcher/src/operation_dispatcher.h"
 #include "cpio/client_providers/global_cpio/src/global_cpio.h"
@@ -55,13 +58,13 @@ void RunBlobStorageGetBlobValidation(
     google::scp::cpio::BlobStorageClientInterface& blob_storage_client,
     const GetBlobConfig& get_blob_config) {
   if (get_blob_config.bucket_name().empty()) {
-    std::cout << "FAILURE. Getting blob failed. No bucket_name provided.";
+    std::cout << "FAILURE. GetBlob failed. No bucket_name provided."
+              << std::endl;
     return;
   }
   if (get_blob_config.blob_name().empty()) {
-    std::cout
-        << "FAILURE. Getting blob failed. No blob_name provided for bucket "
-        << get_blob_config.bucket_name() << ".";
+    std::cout << "FAILURE. GetBlob failed. No blob_name provided. Bucket: "
+              << get_blob_config.bucket_name() << std::endl;
     return;
   }
   absl::Notification finished;
@@ -71,27 +74,31 @@ void RunBlobStorageGetBlobValidation(
   metadata->set_bucket_name(get_blob_config.bucket_name());
   metadata->set_blob_name(get_blob_config.blob_name());
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
-      std::move(get_blob_request), [&result, &finished](auto& context) {
+      std::move(get_blob_request),
+      [&result, &finished, &get_blob_config](auto& context) {
         result = context.result;
         if (result.Successful()) {
-          std::cout << "SUCCESS. Got blob: " << context.response->DebugString();
+          std::cout << "SUCCESS. GetBlob succeed. Bucket: "
+                    << get_blob_config.bucket_name()
+                    << " Blob: " << get_blob_config.blob_name() << std::endl;
+          LOG(INFO) << context.response->DebugString();
         }
         finished.Notify();
       });
 
   if (auto get_blob_result = blob_storage_client.GetBlob(get_blob_context);
       !get_blob_result.Successful()) {
-    std::cout << "FAILURE. Getting blob failed for bucket "
-              << get_blob_config.bucket_name() << " blob "
-              << get_blob_config.blob_name() << ": "
+    std::cout << "FAILURE. GetBlob failed. Bucket: "
+              << get_blob_config.bucket_name()
+              << " Blob: " << get_blob_config.blob_name() << " "
               << GetErrorMessage(get_blob_result.status_code) << std::endl;
     return;
   }
   finished.WaitForNotification();
   if (!result.Successful()) {
-    std::cout << "FAILURE. Getting blob failed asynchronously for bucket "
-              << get_blob_config.bucket_name() << " blob "
-              << get_blob_config.blob_name() << ": "
+    std::cout << "FAILURE. GetBlob failed. Bucket: "
+              << get_blob_config.bucket_name()
+              << " Blob: " << get_blob_config.blob_name() << " "
               << GetErrorMessage(result.status_code) << std::endl;
     return;
   }
@@ -101,7 +108,8 @@ void RunBlobStoragListBlobsMetadataValidation(
     google::scp::cpio::BlobStorageClientInterface& blob_storage_client,
     const ListBlobsMetadataConfig& list_blobs_metadata_config) {
   if (list_blobs_metadata_config.bucket_name().empty()) {
-    std::cout << "FAILURE. Listing blobs failed. No bucket name provided.";
+    std::cout << "FAILURE. ListBlobsMetadata failed. No bucket name provided."
+              << std::endl;
     return;
   }
   // ListBlobsMetadata.
@@ -112,29 +120,31 @@ void RunBlobStoragListBlobsMetadataValidation(
   list_blobs_metadata_request->mutable_blob_metadata()->set_bucket_name(
       list_blobs_metadata_config.bucket_name());
   AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>
-      list_blobs_metadata_context(std::move(list_blobs_metadata_request),
-                                  [&result, &finished](auto& context) {
-                                    result = context.result;
-                                    if (result.Successful()) {
-                                      std::cout
-                                          << "SUCCESS. Listed blobs: "
-                                          << context.response->DebugString();
-                                    }
-                                    finished.Notify();
-                                  });
+      list_blobs_metadata_context(
+          std::move(list_blobs_metadata_request),
+          [&result, &finished, &list_blobs_metadata_config](auto& context) {
+            result = context.result;
+            if (result.Successful()) {
+              std::cout << "SUCCESS. ListBlobsMetadata succeeded. Bucket: "
+                        << list_blobs_metadata_config.bucket_name()
+                        << std::endl;
+              LOG(INFO) << context.response->DebugString() << std::endl;
+            }
+            finished.Notify();
+          });
   if (auto list_blobs_metadata_result =
           blob_storage_client.ListBlobsMetadata(list_blobs_metadata_context);
       !list_blobs_metadata_result.Successful()) {
-    std::cout << "FAILURE. Listing blobs failed for bucket "
-              << list_blobs_metadata_config.bucket_name() << ": "
+    std::cout << "FAILURE. ListBlobsMetadata failed. Bucket: "
+              << list_blobs_metadata_config.bucket_name() << " "
               << GetErrorMessage(list_blobs_metadata_result.status_code)
               << std::endl;
     return;
   }
   finished.WaitForNotification();
   if (!result.Successful()) {
-    std::cout << "FAILURE. Listing blobs failed asynchronously for bucket "
-              << list_blobs_metadata_config.bucket_name() << ": "
+    std::cout << "FAILURE. ListBlobsMetadata failed. Bucket: "
+              << list_blobs_metadata_config.bucket_name() << " "
               << GetErrorMessage(result.status_code) << std::endl;
     return;
   }
@@ -145,13 +155,13 @@ void RunBlobStorageValidation(const BlobStorageConfig& blob_storage_config) {
       google::scp::cpio::BlobStorageClientFactory::Create();
   google::scp::core::ExecutionResult result = blob_storage_client->Init();
   if (!result.Successful()) {
-    std::cout << "FAILURE. Failed to Init BlobStorageClient: "
+    std::cout << "FAILURE. Failed to Init BlobStorageClient. "
               << GetErrorMessage(result.status_code) << std::endl;
     return;
   }
   result = blob_storage_client->Run();
   if (!result.Successful()) {
-    std::cout << "FAILURE. Failed to Run BlobStorageClient: "
+    std::cout << "FAILURE. Failed to Run BlobStorageClient. "
               << GetErrorMessage(result.status_code) << std::endl;
     return;
   }
@@ -166,7 +176,11 @@ void RunBlobStorageValidation(const BlobStorageConfig& blob_storage_config) {
   }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+  // Process command line parameters
+  absl::ParseCommandLine(argc, argv);
+  absl::InitializeLog();
+
   ValidatorConfig validator_config;
   int fd = open(kValidatorConfigPath, O_RDONLY);
   if (fd < 0) {
@@ -185,7 +199,7 @@ int main() {
     return -1;
   }
   google::scp::cpio::CpioOptions cpio_options;
-  cpio_options.log_option = google::scp::cpio::LogOption::kConsoleLog;
+  cpio_options.log_option = google::scp::cpio::LogOption::kNoLog;
 
   if (google::scp::core::ExecutionResult result =
           google::scp::cpio::Cpio::InitCpio(cpio_options);

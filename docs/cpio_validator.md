@@ -56,28 +56,15 @@
 ```txt
 SUCCESS. Connected to outside world.
 SUCCESS. Accessed AWS resource.
-SUCCESS. Got blob: blob {
-  metadata {
-    bucket_name: "cpio-validator-test-bucket"
-    blob_name: "blob_name_1"
-  }
-  data: "test file\n"
-}
-SUCCESS. Got blob: blob {
-  metadata {
-    bucket_name: "cpio-validator-test-bucket"
-    blob_name: "blob_name_2"
-  }
-  data: "test file\n"
-}
-SUCCESS. Listed blobs: blob_metadatas {
-  bucket_name: "cpio-validator-test-bucket"
-  blob_name: "blob_name_1"
-}
-blob_metadatas {
-  bucket_name: "cpio-validator-test-bucket"
-  blob_name: "blob_name_2"
-}
-next_page_token: ""
+SUCCESS. GetBlob succeed. Bucket: cpio-validator-test-bucket Blob: blob_name_1
+FAILURE. GetBlob failed. Bucket: cpio-validator-test-bucket Blob: blob_name AWS entity not found
+FAILURE. GetBlob failed. No bucket_name provided.
+FAILURE. GetBlob failed. No blob_name provided. Bucket: cpio-validator-test-bucket
+FAILURE. GetBlob failed. No bucket_name provided.
+FAILURE. GetBlob failed. Bucket: cpio-validator-test Blob: blob_name_1 Internal AWS server error
+SUCCESS. GetBlob succeed. Bucket: cpio-validator-test-bucket Blob: blob_name_2
+SUCCESS. ListBlobsMetadata succeeded. Bucket: cpio-validator-test-bucket
+FAILURE. ListBlobsMetadata failed. Bucket: cpio-validator-test Internal AWS server error
+FAILURE. ListBlobsMetadata failed. No bucket name provided.
 SUCCESS. Ran all validation tests. For individual statuses, see above.
 ```
