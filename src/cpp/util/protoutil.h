@@ -21,10 +21,13 @@
 // google::protobuf::Timestamp, including conversions back and forth from
 // absl::Duration and absl::Time.
 
+#include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "absl/time/time.h"
 #include "google/protobuf/duration.pb.h"
+#include "google/protobuf/text_format.h"
 #include "google/protobuf/timestamp.pb.h"
 
 namespace privacy_sandbox::server_common {
@@ -134,6 +137,13 @@ inline google::protobuf::Timestamp MakeGoogleApiTimestampProtoMin() {
 // google::protobuf::Timestamp.
 inline absl::Time MakeGoogleApiTimeMin() {
   return absl::UnixEpoch() + absl::Seconds(-62135596800);
+}
+
+template <typename T>
+T ParseTextOrDie(absl::string_view text) {
+  T message;
+  CHECK(google::protobuf::TextFormat::ParseFromString(text.data(), &message));
+  return message;
 }
 
 }  // namespace privacy_sandbox::server_common

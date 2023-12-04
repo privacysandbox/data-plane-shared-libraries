@@ -1,0 +1,42 @@
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package privacy_sandbox.server_common;
+
+// Consented debugging configuration.
+// Example:
+// The Chrome browser can set the following two fields:
+// 'consentedDebugConfig': {'isConsented': 'true', 'token': 'xxx'}
+message ConsentedDebugConfiguration {
+  // Whether the request is consented for debugging.
+  bool is_consented = 1;
+
+  // The debug token embedded in the request.
+  string token = 2;
+
+  // Whether save debug logs in response (only in non_prod)
+  bool is_debug_info_in_response = 3;
+}
+
+message DebugInfo {
+  string server_name = 1;
+
+  // Debug logs for current server
+  repeated string logs = 2;
+
+  // DebugInfo for downstream servers that receive requests from current server
+  repeated DebugInfo downstream_servers = 3;
+}
