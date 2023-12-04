@@ -1,7 +1,7 @@
 # proto-file: scp/cc/public/cpio/validator/proto/validator_config.proto
 # proto-message: ValidatorConfig
 
-blob_storage_config {
+blob_storage_client_config {
   get_blob_config {
     bucket_name: "cpio-validator-test-bucket"
     blob_name: "blob_name_1"

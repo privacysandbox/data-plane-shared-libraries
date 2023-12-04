@@ -15,7 +15,7 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer")
 load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
@@ -51,22 +51,37 @@ container_layer(
     ],
 )
 
+cc_library(
+    name = "blob_storage_client_validator",
+    srcs = ["blob_storage_client_validator.cc"],
+    hdrs = ["blob_storage_client_validator.h"],
+    deps = [
+        "//scp/cc/core/interface:async_context_lib",
+        "//scp/cc/public/core/interface:errors",
+        "//scp/cc/public/core/interface:execution_result",
+        "//scp/cc/public/cpio/interface/blob_storage_client",
+        "//scp/cc/public/cpio/proto/blob_storage_service/v1:blob_storage_service_cc_proto",
+        "//scp/cc/public/cpio/validator/proto:validator_config_proto_lib",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
 cc_binary(
     name = "validation",
     srcs = ["validation.cc"],
     linkopts = LINK_OPTS,
     deps = [
+        ":blob_storage_client_validator",
         "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface:cpio",
-        "//scp/cc/public/cpio/interface/blob_storage_client",
         "//scp/cc/public/cpio/validator/proto:validator_config_proto_lib",
+        "@com_google_absl//absl/base:log_severity",
         "@com_google_absl//absl/flags:parse",
-        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:flags",
+        "@com_google_absl//absl/log:globals",
         "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/synchronization",
         "@com_google_protobuf//:protobuf",
     ],
 )

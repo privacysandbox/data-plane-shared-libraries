@@ -17,10 +17,10 @@ syntax = "proto3";
 package google.scp.cpio.validator.proto;
 
 message ValidatorConfig {
-  optional BlobStorageConfig blob_storage_config = 1;
+  optional BlobStorageClientConfig blob_storage_client_config = 1;
 }
 
-message BlobStorageConfig {
+message BlobStorageClientConfig {
   repeated GetBlobConfig get_blob_config = 1;
   repeated ListBlobsMetadataConfig list_blobs_metadata_config = 2;
 }
