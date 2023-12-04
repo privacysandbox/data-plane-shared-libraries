@@ -142,9 +142,6 @@ void AwsParameterClientProvider::OnGetParameterCallback(
   get_parameter_context.response = std::make_shared<GetParameterResponse>();
   get_parameter_context.response->set_parameter_value(
       outcome.GetResult().GetParameter().GetValue().c_str());
-  std::cout << "received parameter is: "
-            << outcome.GetResult().GetParameter().GetValue().c_str()
-            << std::endl;
   get_parameter_context.result = SuccessExecutionResult();
   get_parameter_context.Finish();
 }
