@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <memory>
 #include <thread>
 #include <utility>
 
@@ -82,9 +83,10 @@ void SocketVendorServer::StartAsyncAccept() {
   acceptor_.async_accept([this](boost::system::error_code ec, Socket socket) {
     StartAsyncAccept();
     if (!ec) {
-      ClientSessionPool pool(std::move(socket), proxy_endpoint_);
-      if (!pool.Start()) {
-        pool.Stop();
+      auto pool = std::make_shared<ClientSessionPool>(std::move(socket),
+                                                      proxy_endpoint_);
+      if (!pool->Start()) {
+        pool->Stop();
       }
     }
   });
