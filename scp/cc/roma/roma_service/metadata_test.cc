@@ -245,7 +245,7 @@ TEST(MetadataTest, MetadataAssociatedWithBatchedFunctions) {
 
   load_finished.WaitForNotification();
   absl::Mutex res_count_mu;
-  int res_count ABSL_GUARDED_BY(res_count_mu) = 0;
+  int res_count = 0;
 
   std::vector<std::thread> threads;
   threads.reserve(kNumThreads);

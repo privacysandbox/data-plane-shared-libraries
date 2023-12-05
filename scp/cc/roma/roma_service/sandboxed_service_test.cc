@@ -710,7 +710,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   }
 
   absl::Mutex res_count_mu;
-  int res_count ABSL_GUARDED_BY(res_count_mu) = 0;
+  int res_count = 0;
 
   constexpr int kNumThreads = 10;
   constexpr size_t kBatchSize = 100;
