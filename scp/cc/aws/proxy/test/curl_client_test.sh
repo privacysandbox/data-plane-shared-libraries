@@ -16,45 +16,49 @@
 # This file, simulates what an application would do inside enclave. Here we use
 # curl to access www.google.com, though preloaded library and proxy.
 
-set -euo pipefail
+set -o errexit
+set -o nounset
+set -o pipefail
 
-proxy_path=$1
-preload_path=$2
-proxify_path=$3
+readonly proxy_path="$1"
+readonly preload_path="$2"
+readonly proxify_path="$3"
 
-if [[ ! -x $proxy_path ]]; then
-  echo "Proxy: ${proxy_path} is not accessible"
+if [[ ! -x ${proxy_path} ]]; then
+  printf "Proxy: %s is not accessible\n" "${proxy_path}"
   exit 1
 fi
 
-if [[ ! -f $preload_path ]]; then
-  echo "Preload lib: ${preload_path} is not accessible"
+if [[ ! -f ${preload_path} ]]; then
+  printf "Preload lib: %s is not accessible" "${preload_path}"
   exit 1
 fi
 
-export PROXY_PARENT_PORT=8888
+declare -r -i -x PROXY_PARENT_PORT=8888
+declare -r -x RES_OPTIONS="use-vc"
+# Use loopback address 1 as proxy address
+declare -r -i -x PROXY_PARENT_CID=1
 
 # Run the proxy, get pid.
-$proxy_path --port $PROXY_PARENT_PORT &
-proxy_pid=$!
+"${proxy_path}" --port ${PROXY_PARENT_PORT} &
+declare -i -r proxy_pid=$!
 sleep 1
 
-export RES_OPTIONS="use-vc"
-# Use loopback address 1 as proxy address.
-export PROXY_PARENT_CID=1
 
 # TODO: change this to not depend on google.com
-google_com_len=$(LD_PRELOAD="$preload_path" curl -s https://www.google.com | wc -c)
-if [[ $google_com_len -lt 4096 ]]; then
-  echo "Preload lib: google.com returned less than 4KiB"
-  kill $proxy_pid
+google_com_len1=$(LD_PRELOAD="${preload_path}" curl -s https://www.google.com | wc -c)
+readonly google_com_len1
+if [[ ${google_com_len1} -lt 4096 ]]; then
+  printf "Preload lib: google.com returned less than 4KiB\n"
+  kill ${proxy_pid}
   exit 1
 fi
 
 # Test proxify
-google_com_len=$($proxify_path -- curl -s https://www.google.com | wc -c)
-kill $proxy_pid
-if [[ $google_com_len -lt 4096 ]]; then
-  echo "Proxify: google.com returned less than 4KiB"
+google_com_len2=$("${proxify_path}" -- curl -s https://www.google.com | wc -c)
+readonly google_com_len2
+kill ${proxy_pid}
+if [[ ${google_com_len2} -lt 4096 ]]; then
+  printf "Proxify: google.com returned less than 4KiB\n"
   exit 1
 fi
