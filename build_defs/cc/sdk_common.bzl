@@ -24,7 +24,7 @@ load("//build_defs/shared:bazel_rules_pkg.bzl", "bazel_rules_pkg")
 load("//build_defs/shared:enclaves_kmstools.bzl", "enclaves_kmstools_libraries")
 load("//build_defs/shared:golang.bzl", "go_deps")
 load("//build_defs/shared:grpc.bzl", "grpc")
-load("//build_defs/tink:tink_defs.bzl", "import_tink_git")
+load("//build_defs/tink:tink_defs.bzl", "tink_dependencies")
 
 def sdk_common():
     bazel_docker_rules()
@@ -39,4 +39,4 @@ def sdk_common():
     grpc()
     nghttp2()
     import_google_cloud_cpp()
-    import_tink_git()
+    tink_dependencies()

@@ -22,12 +22,25 @@ index 9f02b3f8e3..fd8e5424eb 100644
              ],
              patch_args = ["-p1"],
          )
+diff --git a/examples/cpp/helloworld/BUILD b/examples/cpp/helloworld/BUILD
+index 463dd6f495..94e2f02ca5 100644
+--- a/examples/cpp/helloworld/BUILD
++++ b/examples/cpp/helloworld/BUILD
+@@ -12,6 +12,8 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
++package(default_visibility = ["//visibility:public"])
++
+ licenses(["notice"])
+ 
+ cc_binary(
 diff --git a/third_party/protobuf_tensorflow.patch b/third_party/protobuf_tensorflow.patch
 new file mode 100644
-index 0000000000..7cdf6c74c3
+index 0000000000..255c0599f4
 --- /dev/null
 +++ b/third_party/protobuf_tensorflow.patch
-@@ -0,0 +1,14 @@
+@@ -0,0 +1,50 @@
 +diff --git a/protobuf.bzl b/protobuf.bzl
 +index d96eeb4c9..188637b0c 100644
 +--- a/protobuf.bzl
@@ -35,25 +48,46 @@ index 0000000000..7cdf6c74c3
 +@@ -272,6 +272,9 @@ _proto_gen = rule(
 +     implementation = _proto_gen_impl,
 + )
-+
++ 
 ++# tensorflow still depends directly on proto_gen this as of mid-July 2023
 ++proto_gen = _proto_gen
 ++
 + def _internal_gen_well_known_protos_java_impl(ctx):
 +     args = ctx.actions.args()
-+
-diff --git a/examples/cpp/helloworld/BUILD b/examples/cpp/helloworld/BUILD
-index eb0d57e5d0..273070aa52 100644
---- a/examples/cpp/helloworld/BUILD
-+++ b/examples/cpp/helloworld/BUILD
-@@ -12,6 +12,8 @@
- # See the License for the specific language governing permissions and
- # limitations under the License.
-
-+package(default_visibility = ["//visibility:public"])
-+
- licenses(["notice"])
-
- cc_binary(
-  name = "greeter_client",
-  srcs = ["greeter_client.cc"],
++ 
++diff --git a/src/google/protobuf/arena.cc b/src/google/protobuf/arena.cc
++index 6577a3669..015a1667f 100644
++--- a/src/google/protobuf/arena.cc
+++++ b/src/google/protobuf/arena.cc
++@@ -40,6 +40,7 @@
++ #include <vector>
++ 
++ #include "absl/base/attributes.h"
+++#include "absl/container/internal/layout.h"
++ #include "absl/synchronization/mutex.h"
++ #include "google/protobuf/arena_allocation_policy.h"
++ #include "google/protobuf/arenaz_sampler.h"
++diff --git a/src/google/protobuf/io/BUILD.bazel b/src/google/protobuf/io/BUILD.bazel
++index 8f39625c2..0e8b185be 100644
++--- a/src/google/protobuf/io/BUILD.bazel
+++++ b/src/google/protobuf/io/BUILD.bazel
++@@ -30,6 +30,7 @@ cc_library(
++         "//src/google/protobuf/stubs:lite",
++         "@com_google_absl//absl/log:absl_check",
++         "@com_google_absl//absl/log:absl_log",
+++        "@com_google_absl//absl/strings",
++         "@com_google_absl//absl/strings:internal",
++     ],
++ )
++diff --git a/src/google/protobuf/io/printer.h b/src/google/protobuf/io/printer.h
++index 2e59ba05f..ea90f8ead 100644
++--- a/src/google/protobuf/io/printer.h
+++++ b/src/google/protobuf/io/printer.h
++@@ -50,6 +50,7 @@
++ #include "absl/functional/function_ref.h"
++ #include "absl/log/absl_check.h"
++ #include "absl/meta/type_traits.h"
+++#include "absl/strings/str_cat.h"
++ #include "absl/strings/str_format.h"
++ #include "absl/strings/string_view.h"
++ #include "absl/types/optional.h"

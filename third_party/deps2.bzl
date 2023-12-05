@@ -26,7 +26,6 @@ load("@google_privacysandbox_servers_common//build_defs/cc:sdk_source_code.bzl",
 load("@google_privacysandbox_servers_common//build_defs/cc:v8.bzl", "import_v8")
 load("@google_privacysandbox_servers_common//build_defs/cc/shared:sandboxed_api.bzl", "sandboxed_api")
 load("@google_privacysandbox_servers_common//build_defs/shared:rpm.bzl", "rpm")
-load("@google_privacysandbox_servers_common//build_defs/tink:tink_defs.bzl", "import_tink_git")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
@@ -49,11 +48,11 @@ def quiche_dependencies():
     maybe(
         http_archive,
         name = "com_github_google_quiche",
+        patch_args = ["-p1"],
+        patches = [Label("//third_party:quiche.patch")],
         sha256 = "563cbc483a006d4999e2e9b1114fec02cdc904fcdafa29721e4e6d816c8d648a",
         strip_prefix = "quiche-cc0614c8ab209e297f7b17ab3d04618fee327a4f",
         urls = ["https://github.com/google/quiche/archive/cc0614c8ab209e297f7b17ab3d04618fee327a4f.tar.gz"],
-        patch_args = ["-p1"],
-        patches = [Label("//third_party:quiche.patch")],
     )
     maybe(
         http_archive,
@@ -84,7 +83,6 @@ def deps2(
     import_v8()
     sandboxed_api()
     google_benchmark()
-    import_tink_git()
     swift_rules_dependencies()
     quiche_dependencies()
     buf_dependencies()
