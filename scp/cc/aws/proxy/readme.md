@@ -66,7 +66,7 @@ If you'd like to try out this proxy with your own application, follow these step
 1. Run proxy in background on the EC2 instance.
 1. Add `proxify`, `libproxy_preload.so` and `socket_vendor` to the docker image under the same
    directory.
-1. Put CMD/ENTRYPOINT as `["/path/to/proxify", "your_app", "one_arg", "more_args"]`
+1. Put CMD as `["/path/to/proxify", "--", "your_app", "one_arg", "more_args"]`.
 1. Build and run the enclave image.
 
 ## Notes
