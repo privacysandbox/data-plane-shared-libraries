@@ -14,25 +14,38 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:private"])
 
 cc_library(
     name = "interface_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-        exclude = [
-            "errors.cc",
-            "errors.h",
-            "async_context.h",
-            "streaming_context.h",
-            "type_def.h",
-            "logger_interface.h",
-            "service_interface.h",
-        ],
-    ),
+    hdrs = [
+        "async_executor_interface.h",
+        "authorization_proxy_interface.h",
+        "authorization_service_interface.h",
+        "blob_storage_provider_interface.h",
+        "config_provider_interface.h",
+        "configuration_keys.h",
+        "credentials_provider_interface.h",
+        "dependency_injection_service_interface.h",
+        "http_client_interface.h",
+        "http_request_response_auth_interceptor_interface.h",
+        "http_request_route_resolver_interface.h",
+        "http_request_router_interface.h",
+        "http_server_interface.h",
+        "http_types.h",
+        "initializable_interface.h",
+        "message_router_interface.h",
+        "network_service_interface.h",
+        "partition_interface.h",
+        "partition_lease_manager_interface.h",
+        "partition_manager_interface.h",
+        "partition_namespace_interface.h",
+        "partition_types.h",
+        "rpc_service_context_interface.h",
+        "token_fetcher_interface.h",
+        "traffic_forwarder_interface.h",
+    ],
+    visibility = ["//scp/cc:scp_internal_pkg"],
     deps = [
         ":async_context_lib",
         ":service_interface_lib",
@@ -50,7 +63,7 @@ cc_library(
 
 cc_library(
     name = "service_interface_lib",
-    srcs = [
+    hdrs = [
         "service_interface.h",
     ],
     deps = [
@@ -60,10 +73,10 @@ cc_library(
 
 cc_library(
     name = "logger_interface",
-    srcs =
-        [
-            "logger_interface.h",
-        ],
+    hdrs = [
+        "logger_interface.h",
+    ],
+    visibility = ["//scp/cc:scp_internal_pkg"],
     deps = [
         ":service_interface_lib",
         "//scp/cc:cc_base_include_dir",
@@ -73,10 +86,10 @@ cc_library(
 
 cc_library(
     name = "async_context_lib",
-    srcs =
-        [
-            "async_context.h",
-        ],
+    hdrs = [
+        "async_context.h",
+    ],
+    visibility = ["//scp/cc:scp_internal_pkg"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/global_logger/src:global_logger_lib",
@@ -86,10 +99,9 @@ cc_library(
 
 cc_library(
     name = "streaming_context_lib",
-    srcs =
-        [
-            "streaming_context.h",
-        ],
+    hdrs = [
+        "streaming_context.h",
+    ],
     deps = [
         ":async_context_lib",
         "//scp/cc:cc_base_include_dir",
@@ -101,10 +113,10 @@ cc_library(
 
 cc_library(
     name = "type_def_lib",
-    srcs =
-        [
-            "type_def.h",
-        ],
+    hdrs = [
+        "type_def.h",
+    ],
+    visibility = ["//scp/cc:scp_internal_pkg"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/proto:core_common_proto_lib",
@@ -113,11 +125,13 @@ cc_library(
 
 cc_library(
     name = "errors_lib",
-    srcs =
-        [
-            "errors.cc",
-            "errors.h",
-        ],
+    srcs = [
+        "errors.cc",
+    ],
+    hdrs = [
+        "errors.h",
+    ],
+    visibility = ["//scp/cc:scp_internal_pkg"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/public/core/interface:execution_result",
