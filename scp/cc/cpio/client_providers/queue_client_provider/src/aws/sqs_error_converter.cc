@@ -18,8 +18,6 @@
 
 #include "cpio/common/src/aws/error_codes.h"
 
-#include "error_codes.h"
-
 using Aws::SQS::SQSErrors;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::errors::SC_AWS_INTERNAL_SERVICE_ERROR;

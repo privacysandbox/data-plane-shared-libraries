@@ -34,7 +34,6 @@
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/proto/queue_service/v1/queue_service.pb.h"
 
-#include "error_codes.h"
 #include "sqs_error_converter.h"
 
 using Aws::Client::AsyncCallerContext;
