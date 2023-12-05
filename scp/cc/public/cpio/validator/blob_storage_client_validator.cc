@@ -22,8 +22,6 @@
 #include "scp/cc/core/interface/async_context.h"
 #include "scp/cc/public/core/interface/errors.h"
 #include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
-#include "scp/cc/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
 #include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {
