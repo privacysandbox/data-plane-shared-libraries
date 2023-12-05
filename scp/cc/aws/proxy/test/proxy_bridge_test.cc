@@ -44,8 +44,8 @@ TEST(ProxyBridge, EmptyConnection) {
   int client_sock_fd = client_sock1.native_handle();
   int dest_sock_fd = dest_sock1.native_handle();
   {
-    auto bridge = std::make_shared<ProxyBridge>(std::move(client_sock1),
-                                                std::move(dest_sock1));
+    std::shared_ptr<ProxyBridge> bridge =
+        ProxyBridge::Create(std::move(client_sock1), std::move(dest_sock1));
     bridge->ForwardTraffic();
   }
 
@@ -78,8 +78,8 @@ TEST(ProxyBridge, HalfClosure) {
   int client_sock_fd = client_sock1.native_handle();
   int dest_sock_fd = dest_sock1.native_handle();
   {
-    auto bridge = std::make_shared<ProxyBridge>(std::move(client_sock1),
-                                                std::move(dest_sock1));
+    std::shared_ptr<ProxyBridge> bridge =
+        ProxyBridge::Create(std::move(client_sock1), std::move(dest_sock1));
     bridge->ForwardTraffic();
   }
 
@@ -121,8 +121,8 @@ TEST(ProxyBridge, ForwardTraffic) {
   int dest_sock_fd = dest_sock1.native_handle();
 
   {
-    auto bridge = std::make_shared<ProxyBridge>(std::move(client_sock1),
-                                                std::move(dest_sock1));
+    std::shared_ptr<ProxyBridge> bridge =
+        ProxyBridge::Create(std::move(client_sock1), std::move(dest_sock1));
     bridge->ForwardTraffic();
   }
 
@@ -174,8 +174,8 @@ TEST(ProxyBridge, InboundConnection) {
   AcceptorPool acceptor_pool;
 
   {
-    auto bridge =
-        std::make_shared<ProxyBridge>(std::move(client_sock1), &acceptor_pool);
+    std::shared_ptr<ProxyBridge> bridge =
+        ProxyBridge::Create(std::move(client_sock1), &acceptor_pool);
     bridge->PerformSocks5Handshake();
   }
 

@@ -83,8 +83,8 @@ void SocketVendorServer::StartAsyncAccept() {
   acceptor_.async_accept([this](boost::system::error_code ec, Socket socket) {
     StartAsyncAccept();
     if (!ec) {
-      auto pool = std::make_shared<ClientSessionPool>(std::move(socket),
-                                                      proxy_endpoint_);
+      std::shared_ptr<ClientSessionPool> pool =
+          ClientSessionPool::Create(std::move(socket), proxy_endpoint_);
       if (!pool->Start()) {
         pool->Stop();
       }

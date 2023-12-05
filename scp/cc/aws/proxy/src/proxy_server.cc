@@ -89,8 +89,8 @@ void ProxyServer::StartAsyncAccept() {
     StartAsyncAccept();
     if (!ec) {
       LOG(INFO) << "Socket received connection. Initiating handshake.";
-      auto bridge =
-          std::make_shared<ProxyBridge>(std::move(socket), &acceptor_pool_);
+      std::shared_ptr<ProxyBridge> bridge =
+          ProxyBridge::Create(std::move(socket), &acceptor_pool_);
       bridge->PerformSocks5Handshake();
     }
   });

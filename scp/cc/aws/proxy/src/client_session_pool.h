@@ -18,6 +18,7 @@
 #define PROXY_SRC_CLIENT_SESSION_POOL_H_
 
 #include <atomic>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -33,10 +34,23 @@ namespace google::scp::proxy {
 // the proxy, for inbound traffic support.
 class ClientSessionPool
     : public std::enable_shared_from_this<ClientSessionPool> {
+ private:
+  struct PrivateTag {};
+
  public:
   // Construct a ClientSessionPool to serve a socket vendor client connection.
   template <typename SocketType>
-  ClientSessionPool(SocketType client_sock, const Endpoint& proxy_endpoint)
+  static std::shared_ptr<ClientSessionPool> Create(
+      SocketType client_sock, const Endpoint& proxy_endpoint) {
+    return std::make_shared<ClientSessionPool>(
+        PrivateTag{}, std::move(client_sock), proxy_endpoint);
+  }
+
+  // Constructor uses private tag because `ClientSessionPool` manages its own
+  // lifetime.
+  template <typename SocketType>
+  ClientSessionPool(PrivateTag, SocketType client_sock,
+                    const Endpoint& proxy_endpoint)
       : client_sock_(std::move(client_sock)),
         proxy_endpoint_(proxy_endpoint),
         client_strand_(client_sock_.get_executor()) {}

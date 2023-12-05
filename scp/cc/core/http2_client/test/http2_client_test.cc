@@ -61,8 +61,19 @@ static constexpr TimeDuration kHttp2ReadTimeoutInSeconds = 10;
 namespace google::scp::core {
 
 class RandomGenHandler : std::enable_shared_from_this<RandomGenHandler> {
+ private:
+  struct PrivateTag {};
+
  public:
-  explicit RandomGenHandler(size_t length) : remaining_len_(length) {
+  static std::shared_ptr<RandomGenHandler> Create(size_t length) {
+    auto handler = std::make_shared<RandomGenHandler>(PrivateTag{}, length);
+    return handler;
+  }
+
+  // Constructor uses private tag because `RandomGenHandler` manages its own
+  // lifetime.
+  explicit RandomGenHandler(PrivateTag, size_t length)
+      : remaining_len_(length) {
     SHA256_Init(&sha256_ctx_);
   }
 
@@ -140,7 +151,8 @@ class HttpServer {
       res.write_head(
           200u, {{std::string("content-length"),
                   {std::to_string(length + SHA256_DIGEST_LENGTH), false}}});
-      auto handler = std::make_shared<RandomGenHandler>(length);
+      std::shared_ptr<RandomGenHandler> handler =
+          RandomGenHandler::Create(length);
       res.end(absl::bind_front(&RandomGenHandler::handle, handler));
     });
 

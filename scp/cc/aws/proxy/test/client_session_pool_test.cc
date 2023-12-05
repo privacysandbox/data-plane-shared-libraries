@@ -55,8 +55,8 @@ TEST(ClientSessionPoolTest, TestBind) {
 
   Endpoint local_ep(acceptor.local_endpoint());
 
-  auto pool =
-      std::make_shared<ClientSessionPool>(std::move(client_sock1), local_ep);
+  std::shared_ptr<ClientSessionPool> pool =
+      ClientSessionPool::Create(std::move(client_sock1), local_ep);
   std::thread initiator([pool]() { EXPECT_TRUE(pool->Start()); });
 
   auto work = asio::make_work_guard(io_context);

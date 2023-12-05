@@ -38,6 +38,8 @@ namespace google::scp::proxy {
 // thread-safety with asio handlers in multi-thread environments.
 class ProxyBridge : public std::enable_shared_from_this<ProxyBridge> {
  private:
+  struct PrivateTag {};
+
   static constexpr size_t kMaxBufferSize = 1024 * 1024;
   static constexpr size_t kReadSize = 64 * 1024;
 
@@ -45,9 +47,35 @@ class ProxyBridge : public std::enable_shared_from_this<ProxyBridge> {
   // Construct a ProxyBridge with a connected client socket. SocketType can be
   // any stream socket implementation of boost::asio.
   template <typename SocketType>
-  explicit ProxyBridge(
+  static std::shared_ptr<ProxyBridge> Create(
       SocketType client_sock, AcceptorPool* acceptor_pool = nullptr,
-      const std::shared_ptr<Freelist<Buffer::Block>>& freelist = nullptr)
+      const std::shared_ptr<Freelist<Buffer::Block>>& freelist = nullptr) {
+    auto proxy_bridge = std::make_shared<ProxyBridge>(
+        PrivateTag{}, std::move(client_sock), acceptor_pool, freelist);
+    proxy_bridge->SetSocks5StateCallbacks();
+    return proxy_bridge;
+  }
+
+  // Construct a ProxyBridge with sockets on two sides already open. SocketType
+  // can be any stream socket implementation of boost::asio.
+  template <typename SocketType1, typename SocketType2>
+  static std::shared_ptr<ProxyBridge> Create(
+      SocketType1 client_sock, SocketType2 dest_sock,
+      AcceptorPool* acceptor_pool = nullptr,
+      const std::shared_ptr<Freelist<Buffer::Block>>& freelist = nullptr) {
+    auto proxy_bridge = std::make_shared<ProxyBridge>(
+        PrivateTag{}, std::move(client_sock), std::move(dest_sock),
+        acceptor_pool, freelist);
+    proxy_bridge->SetSocks5StateCallbacks();
+    return proxy_bridge;
+  }
+
+  // Constructors use private tag because `ProxyBridge` manages its own
+  // lifetime.
+  template <typename SocketType>
+  explicit ProxyBridge(PrivateTag, SocketType client_sock,
+                       AcceptorPool* acceptor_pool,
+                       const std::shared_ptr<Freelist<Buffer::Block>>& freelist)
       : connection_id_(connection_id_counter.fetch_add(1)),
         strand_(client_sock.get_executor()),
         client_sock_(std::move(client_sock)),
@@ -56,17 +84,12 @@ class ProxyBridge : public std::enable_shared_from_this<ProxyBridge> {
         downstream_buff_(freelist),
         upstream_size_(0ul),
         downstream_size_(0ul),
-        acceptor_pool_(acceptor_pool) {
-    SetSocks5StateCallbacks();
-  }
+        acceptor_pool_(acceptor_pool) {}
 
-  // Construct a ProxyBridge with sockets on two sides already open. SocketType
-  // can be any stream socket implementation of boost::asio.
   template <typename SocketType1, typename SocketType2>
-  ProxyBridge(
-      SocketType1 client_sock, SocketType2 dest_sock,
-      AcceptorPool* acceptor_pool = nullptr,
-      const std::shared_ptr<Freelist<Buffer::Block>>& freelist = nullptr)
+  ProxyBridge(PrivateTag, SocketType1 client_sock, SocketType2 dest_sock,
+              AcceptorPool* acceptor_pool,
+              const std::shared_ptr<Freelist<Buffer::Block>>& freelist)
       : connection_id_(connection_id_counter.fetch_add(1)),
         strand_(client_sock.get_executor()),
         client_sock_(std::move(client_sock)),
@@ -75,9 +98,7 @@ class ProxyBridge : public std::enable_shared_from_this<ProxyBridge> {
         downstream_buff_(freelist),
         upstream_size_(0ul),
         downstream_size_(0ul),
-        acceptor_pool_(acceptor_pool) {
-    SetSocks5StateCallbacks();
-  }
+        acceptor_pool_(acceptor_pool) {}
 
   ~ProxyBridge();
 
