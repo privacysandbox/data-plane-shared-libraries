@@ -144,6 +144,7 @@ cc_test(
     name = "client_session_pool_test",
     size = "small",
     srcs = ["client_session_pool_test.cc"],
+    tags = ["noasan"],  # TODO(b/315002386) - Fix ASAN errors in this test.
     deps = [
         "//scp/cc/aws/proxy/src:client_session_pool",
         "//scp/cc/aws/proxy/src:socket_vendor_protocol",
