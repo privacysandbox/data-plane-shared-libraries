@@ -74,7 +74,7 @@ void ExecuteCodeBenchmark(std::string code, std::string handler_name,
   // identical code to run.
   DispatchRequest request = {
       .id = "id",
-      .version_string = kVersionString,
+      .version_string = std::string(kVersionString),
       .handler_name = handler_name,
       // TODO(b/305957393): Right now no input is passed to these calls, add
       // this!
