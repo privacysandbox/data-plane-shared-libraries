@@ -361,7 +361,7 @@ TEST_F(ThreadTest, DpAggregator) {
       return absl::OkStatus();
     }));
   }
-  auto f_read = std::async(std::launch::async, [&]() {
+  auto f_read = std::async(std::launch::async, [&] {
     start.WaitForNotification();
     int ret = 0;
     bool read_after_notify = false;
@@ -374,7 +374,10 @@ TEST_F(ThreadTest, DpAggregator) {
       for (const differential_privacy::Output& t : *output) {
         ret += differential_privacy::GetValue<int>(t);
       }
-      done.WaitForNotificationWithTimeout(absl::Milliseconds(1));
+      if (!done.WaitForNotificationWithTimeout(absl::Milliseconds(1))) {
+        ADD_FAILURE() << "Wait timeout.";
+        return ret;
+      }
     }
     return ret;
   });

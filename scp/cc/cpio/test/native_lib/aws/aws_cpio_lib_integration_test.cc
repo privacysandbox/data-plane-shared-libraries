@@ -269,7 +269,7 @@ TEST_F(CpioIntegrationTest, ParameterClientGetParameterSuccessfully) {
             finished.Notify();
           }),
       SuccessExecutionResult());
-  finished.WaitForNotificationWithTimeout(absl::Minutes(1));
+  ASSERT_TRUE(finished.WaitForNotificationWithTimeout(absl::Minutes(1)));
 }
 
 TEST_F(CpioIntegrationTest, BlobStorageClientPutBlobSuccessfully) {
@@ -288,7 +288,7 @@ TEST_F(CpioIntegrationTest, BlobStorageClientPutBlobSuccessfully) {
       });
 
   EXPECT_SUCCESS(blob_storage_client->PutBlob(put_blob_context));
-  finished.WaitForNotificationWithTimeout(absl::Minutes(1));
+  ASSERT_TRUE(finished.WaitForNotificationWithTimeout(absl::Minutes(1)));
 }
 
 TEST_F(CpioIntegrationTest, KmsClientDecryptSuccessfully) {
@@ -312,6 +312,6 @@ TEST_F(CpioIntegrationTest, KmsClientDecryptSuccessfully) {
       });
 
   EXPECT_SUCCESS(kms_client->Decrypt(decrypt_context));
-  finished.WaitForNotificationWithTimeout(absl::Minutes(1));
+  ASSERT_TRUE(finished.WaitForNotificationWithTimeout(absl::Minutes(1)));
 }
 }  // namespace google::scp::cpio::test

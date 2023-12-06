@@ -121,8 +121,9 @@ TEST(MetadataTest, InvocationReqMetadataVisibleInNativeFunctions) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
   status = roma_service->Stop();
@@ -192,7 +193,7 @@ TEST(MetadataTest, MetadataAssociatedWithEachNativeFunction) {
     }
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   for (auto i = 0u; i < total_runs; ++i) {
     finished[i].WaitForNotificationWithTimeout(absl::Seconds(30));
@@ -359,8 +360,9 @@ TEST(MetadataTest, StringMetadataVisibleInNativeFunctions) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
   status = roma_service->Stop();
@@ -434,8 +436,9 @@ TEST(MetadataTest, VectorMetadataVisibleInNativeFunctions) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
   status = roma_service->Stop();
@@ -535,8 +538,9 @@ TEST(MetadataTest, CustomMetadataTypeVisibleInNativeFunctions) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
   status = roma_service->Stop();

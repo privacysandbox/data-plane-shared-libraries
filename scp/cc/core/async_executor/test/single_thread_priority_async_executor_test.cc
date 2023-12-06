@@ -215,8 +215,8 @@ TEST(SingleThreadPriorityAsyncExecutorTests, OrderedTasksExecution) {
       counter_mu.AssertReaderHeld();
       return counter == 3;
     };
-    counter_mu.AwaitWithTimeout(absl::Condition(&condition_fn),
-                                absl::Seconds(30));
+    ASSERT_TRUE(counter_mu.AwaitWithTimeout(absl::Condition(&condition_fn),
+                                            absl::Seconds(30)));
   }
   EXPECT_SUCCESS(executor.Stop());
 }
@@ -243,7 +243,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, AsyncContextCallback) {
       12345));
 
   // Waits some time to finish the work.
-  callback_count.WaitForNotificationWithTimeout(absl::Seconds(30));
+  ASSERT_TRUE(callback_count.WaitForNotificationWithTimeout(absl::Seconds(30)));
 
   // Verifies the work is executed.
   EXPECT_EQ(*(context.response), "response");

@@ -106,8 +106,9 @@ TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result,
               testing::StrEq(absl::StrCat(R"("Hello world! )",
                                           trim_first_last_char(input), "\"")));
@@ -176,8 +177,9 @@ TEST(FunctionBindingTest,
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Foobar String from C++")"));
 
   status = roma_service->Stop();
@@ -246,8 +248,9 @@ TEST(
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(
       result,
       StrEq(
@@ -330,8 +333,9 @@ TEST(FunctionBindingTest,
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   // Since the map makes it over the wire, we can't guarantee the order of the
   // keys so we assert that the expected key-value pairs are present.
   EXPECT_THAT(result, HasSubstr(R"(["key-a1","value-a1"])"));
@@ -403,8 +407,9 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   EXPECT_THAT(result, StrEq(R"("String from C++")"));
 
@@ -457,7 +462,7 @@ TEST(FunctionBindingTest,
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   {
     auto execution_obj = std::make_unique<InvocationStrRequest<>>();
@@ -475,7 +480,8 @@ TEST(FunctionBindingTest,
         });
     EXPECT_TRUE(status.ok());
   }
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   EXPECT_THAT(result,
               StrEq(R"({"0":1,"1":2,"2":3,"3":4,"4":4,"5":3,"6":2,"7":1})"));
@@ -539,7 +545,7 @@ TEST(FunctionBindingTest,
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   {
     auto execution_obj = std::make_unique<InvocationStrRequest<>>();
@@ -557,7 +563,8 @@ TEST(FunctionBindingTest,
         });
     EXPECT_TRUE(status.ok());
   }
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   EXPECT_THAT(result, StrEq(R"str("Hello there :)")str"));
 

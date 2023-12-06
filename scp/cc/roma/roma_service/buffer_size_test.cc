@@ -86,8 +86,9 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  success_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(success_execute_finished.WaitForNotificationWithTimeout(
+      absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Hello world! ")"));
 
   status = roma_service->Stop();
@@ -148,8 +149,9 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  oversize_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(oversize_execute_finished.WaitForNotificationWithTimeout(
+      absl::Seconds(10)));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
@@ -212,8 +214,9 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  oversize_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(oversize_execute_finished.WaitForNotificationWithTimeout(
+      absl::Seconds(10)));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
@@ -255,7 +258,7 @@ TEST(BufferSizeTest,
     ASSERT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
@@ -359,9 +362,11 @@ TEST(BufferSizeTest,
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  success_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  failed_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(success_execute_finished.WaitForNotificationWithTimeout(
+      absl::Seconds(10)));
+  ASSERT_TRUE(failed_execute_finished.WaitForNotificationWithTimeout(
+      absl::Seconds(10)));
   retry_success_execute_finished.WaitForNotificationWithTimeout(
       absl::Seconds(10));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
@@ -468,9 +473,11 @@ TEST(BufferSizeTest,
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  success_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  failed_execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(success_execute_finished.WaitForNotificationWithTimeout(
+      absl::Seconds(10)));
+  ASSERT_TRUE(failed_execute_finished.WaitForNotificationWithTimeout(
+      absl::Seconds(10)));
   retry_success_execute_finished.WaitForNotificationWithTimeout(
       absl::Seconds(10));
 

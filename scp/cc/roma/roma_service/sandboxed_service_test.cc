@@ -126,8 +126,9 @@ TEST(SandboxedServiceTest, ExecuteCode) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = roma_service->Stop();
@@ -187,8 +188,9 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = roma_service->Stop();
@@ -264,9 +266,11 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  failed_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      failed_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = roma_service->Stop();
@@ -319,8 +323,9 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = roma_service->Stop();
@@ -373,8 +378,9 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq("undefined"));
 
   status = roma_service->Stop();
@@ -431,8 +437,9 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = roma_service->Stop();
@@ -468,7 +475,8 @@ TEST(SandboxedServiceTest,
         });
     EXPECT_TRUE(status.ok());
   }
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
@@ -548,8 +556,9 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("some cool string1 string2")"));
 
   status = roma_service->Stop();
@@ -816,7 +825,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
     }
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   for (auto i = 0u; i < total_runs; ++i) {
     finished[i].WaitForNotificationWithTimeout(absl::Seconds(30));
@@ -933,10 +942,12 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_timeout.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_success.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_timeout.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_success.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
@@ -992,7 +1003,8 @@ TEST(SandboxedServiceTest,
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   {
@@ -1014,7 +1026,8 @@ TEST(SandboxedServiceTest,
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   {
@@ -1036,7 +1049,8 @@ TEST(SandboxedServiceTest,
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   {
@@ -1062,7 +1076,8 @@ TEST(SandboxedServiceTest,
         });
     EXPECT_TRUE(status.ok());
 
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
     EXPECT_THAT(result, StrEq("233"));
   }
@@ -1090,7 +1105,8 @@ TEST(SandboxedServiceTest,
         });
     EXPECT_TRUE(status.ok());
 
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
     EXPECT_THAT(result, StrEq(R"("Hello, World!")"));
   }
@@ -1164,8 +1180,9 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
 
   status = roma_service->Stop();
@@ -1224,8 +1241,10 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
             execute_finished.Notify();
           });
       EXPECT_TRUE(status.ok());
-      load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+      ASSERT_TRUE(
+          load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+      ASSERT_TRUE(
+          execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
     }
   }
   EXPECT_THAT(result, StrEq(R"("Hello world1! \"Foobar\"")"));
@@ -1248,7 +1267,8 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   // Execute version 1 - Should fail since the cache has one spot, and we
@@ -1269,7 +1289,8 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   result = "";
@@ -1294,7 +1315,8 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
   EXPECT_THAT(result, StrEq(R"("Hello world2! \"Foobar\"")"));
 
@@ -1331,7 +1353,8 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   // Start a batch execution
@@ -1380,8 +1403,10 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
           });
       EXPECT_TRUE(status.ok());
     }
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   EXPECT_THAT(result, StrEq(R"("Hello world1! \"Foobar\"")"));
@@ -1427,7 +1452,8 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   privacy_sandbox::server_common::Stopwatch timer;
@@ -1454,7 +1480,8 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30)));
   }
 
   auto elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
@@ -1485,7 +1512,8 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30)));
   }
 
   elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
@@ -1529,7 +1557,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
@@ -1604,9 +1632,10 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
@@ -1682,9 +1711,10 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
     EXPECT_TRUE(status.ok());
   }
 
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
@@ -1740,8 +1770,9 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Foobar1 Barfoo2")"));
 
   status = roma_service->Stop();
@@ -1797,8 +1828,9 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
         });
     EXPECT_TRUE(status.ok());
   }
-  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
@@ -1832,7 +1864,8 @@ TEST(SandboxedServiceTest,
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   {
@@ -1855,7 +1888,8 @@ TEST(SandboxedServiceTest,
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   // Should be able to load same version
@@ -1875,7 +1909,8 @@ TEST(SandboxedServiceTest,
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   // Execution should work now
@@ -1894,7 +1929,8 @@ TEST(SandboxedServiceTest,
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   status = roma_service->Stop();
@@ -1927,7 +1963,8 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   // Execute version 1
@@ -1947,7 +1984,8 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   // Should be able to load same version
@@ -1967,7 +2005,8 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   // Execution should run the new version of the code
@@ -1986,7 +2025,8 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
-    execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
   status = roma_service->Stop();
