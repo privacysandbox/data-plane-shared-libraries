@@ -109,6 +109,7 @@ cc_binary(
         ":instance_client_validator",
         ":parameter_client_validator",
         "//scp/cc:cc_base_include_dir",
+        "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
         "//scp/cc/public/core/interface:errors",
         "//scp/cc/public/cpio/interface:cpio",
         "//scp/cc/public/cpio/validator/proto:validator_config_proto_lib",
@@ -124,7 +125,6 @@ cc_binary(
 pkg_files(
     name = "enclaves_validator_execs",
     srcs = [
-        ":enclaves_validator",
         ":validation",
     ],
     attributes = pkg_attributes(mode = "0555"),
@@ -187,10 +187,10 @@ container_layer(
 container_run_and_commit_layer(
     name = "curl_layer",
     commands = [
-        # Install CA certificates and curl.
+        # Install CA certificates.
         """
 apt-get update
-apt-get install -y ca-certificates curl
+apt-get install -y ca-certificates
 """,
     ],
     image = select({
@@ -210,7 +210,11 @@ container_image(
         "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64//image",
         "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64//image",
     }),
-    cmd = ["/server/bin/enclaves_validator"],
+    cmd = [
+        "/proxify",
+        "--",
+        "/server/bin/validation",
+    ],
     entrypoint = ["/bin/bash"],
     layers = [
         "//scp/cc/aws/proxy/src:proxify_layer",

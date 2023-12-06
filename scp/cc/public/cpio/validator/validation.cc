@@ -29,6 +29,8 @@
 #include "absl/log/flags.h"
 #include "absl/log/globals.h"
 #include "absl/log/initialize.h"
+#include "core/common/time_provider/src/time_provider.h"
+#include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "public/core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/cpio.h"
@@ -39,17 +41,83 @@
 
 namespace {
 
+using google::scp::core::AsyncContext;
+using google::scp::core::HttpRequest;
+using google::scp::core::HttpResponse;
 using google::scp::core::errors::GetErrorMessage;
+using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::validator::BlobStorageClientValidator;
 using google::scp::cpio::validator::InstanceClientValidator;
 using google::scp::cpio::validator::ParameterClientValidator;
 using google::scp::cpio::validator::proto::ValidatorConfig;
 
-constexpr char kValidatorConfigPath[] = "/etc/validator_config.txtpb";
+constexpr std::string_view kRequestTimeout = "10";
+const char kValidatorConfigPath[] = "/etc/validator_config.txtpb";
 }  // namespace
 
 std::string_view GetValidatorFailedToRunMsg() {
   return "FAILURE. Could not run all validation tests. For details, see above.";
+}
+
+google::scp::core::ExecutionResult MakeRequest(
+    google::scp::core::HttpClientInterface& http_client,
+    google::scp::core::HttpMethod method, const std::string& url,
+    const absl::btree_multimap<std::string, std::string>& headers = {}) {
+  auto request = std::make_shared<HttpRequest>();
+  request->method = method;
+  request->path = std::make_shared<std::string>(url);
+  if (!headers.empty()) {
+    request->headers =
+        std::make_shared<google::scp::core::HttpHeaders>(headers);
+    request->headers->insert({"Request-Timeout", std::string(kRequestTimeout)});
+  }
+  google::scp::core::ExecutionResult context_result;
+  absl::Notification finished;
+  AsyncContext<HttpRequest, HttpResponse> context(
+      std::move(request),
+      [&](AsyncContext<HttpRequest, HttpResponse>& context) {
+        context_result = context.result;
+        finished.Notify();
+      });
+
+  if (auto result = http_client.PerformRequest(context); !result) {
+    return result;
+  }
+  finished.WaitForNotification();
+  return context_result;
+}
+
+void CheckProxy() {
+  std::shared_ptr<google::scp::core::HttpClientInterface> http_client;
+  auto res = GlobalCpio::GetGlobalCpio()->GetHttp1Client(http_client);
+  if (!res) {
+    std::cout << "FAILURE. Unable to get Http Client." << std::endl;
+    return;
+  }
+
+  http_client->Init();
+  http_client->Run();
+
+  if (!MakeRequest(*http_client, google::scp::core::HttpMethod::GET,
+                   "https://www.google.com/")) {
+    std::cout << "FAILURE. Could not connect to outside world. Check if proxy "
+                 "is running."
+              << std::endl;
+  } else {
+    std::cout << "SUCCESS. Connected to outside world." << std::endl;
+  }
+
+  if (!MakeRequest(*http_client, google::scp::core::HttpMethod::PUT,
+                   "http://169.254.169.254/latest/api/token",
+                   {{"X-aws-ec2-metadata-token-ttl-seconds", "21600"}})) {
+    std::cout
+        << "FAILURE. Could not access AWS resource. Check if proxy is running."
+        << std::endl;
+  } else {
+    std::cout << "SUCCESS. Accessed AWS resource." << std::endl;
+  }
+
+  http_client->Stop();
 }
 
 int main(int argc, char* argv[]) {
@@ -88,6 +156,7 @@ int main(int argc, char* argv[]) {
     std::cout << GetValidatorFailedToRunMsg() << std::endl;
     return -1;
   }
+  CheckProxy();
   if (!validator_config.skip_instance_client_validation()) {
     InstanceClientValidator instance_client_validator;
     instance_client_validator.Run();

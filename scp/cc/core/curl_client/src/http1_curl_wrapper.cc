@@ -308,6 +308,7 @@ ExecutionResultOr<HttpResponse> Http1CurlWrapper::PerformRequest(
   // Add the handler indicating what to do with the returned HTTP response.
   curl_easy_setopt(curl_.get(), CURLOPT_WRITEFUNCTION, ResponsePayloadHandler);
   curl_easy_setopt(curl_.get(), CURLOPT_WRITEDATA, &response.body);
+  // TODO (b/315165156) Make timeout configurable, defaulting to kCurlOptTimeout
   curl_easy_setopt(curl_.get(), CURLOPT_TIMEOUT, kCurlOptTimeout);
   curl_easy_setopt(curl_.get(), CURLOPT_FAILONERROR, kTrueAsLong);
   // Create a buffer to place any error messages in.
