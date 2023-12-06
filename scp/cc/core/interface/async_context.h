@@ -20,6 +20,7 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <utility>
 
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/time_provider/src/time_provider.h"
@@ -139,6 +140,12 @@ struct AsyncContext {
       }
       callback(*this);
     }
+  }
+
+  /// Sets `result` and finishes the async operation by calling the callback.
+  void Finish(ExecutionResult result) noexcept {
+    result = std::move(result);
+    Finish();
   }
 
   /// The parent id of the current context.

@@ -122,8 +122,7 @@ ExecutionResult MetricClientProvider::PutMetrics(
         FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING);
     SCP_ERROR_CONTEXT(kMetricClientProvider, record_metric_context,
                       execution_result, "Failed to record metric.");
-    record_metric_context.result = execution_result;
-    record_metric_context.Finish();
+    record_metric_context.Finish(execution_result);
     return execution_result;
   }
 
