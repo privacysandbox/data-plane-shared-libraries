@@ -46,8 +46,13 @@ class MockCurlWrapperProvider : public NiceMock<Http1CurlWrapperProvider> {
 
 class MockCurlWrapper : public NiceMock<Http1CurlWrapper> {
  public:
+  ExecutionResultOr<HttpResponse> PerformRequest(
+      const HttpRequest& request, const absl::Duration& timeout) noexcept {
+    return PerformRequest(request);
+  }
+
   MOCK_METHOD(ExecutionResultOr<HttpResponse>, PerformRequest,
-              (const HttpRequest&), (override));
+              (const HttpRequest&));
 };
 
 class Http1CurlClientTest : public ::testing::Test {

@@ -245,7 +245,8 @@ bool HttpConnection::IsReady() noexcept {
 }
 
 ExecutionResult HttpConnection::Execute(
-    AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept {
+    AsyncContext<HttpRequest, HttpResponse>& http_context,
+    const absl::Duration& timeout) noexcept {
   if (!is_ready_) {
     auto failure =
         RetryExecutionResult(errors::SC_HTTP2_CLIENT_NO_CONNECTION_ESTABLISHED);
@@ -263,9 +264,12 @@ ExecutionResult HttpConnection::Execute(
     return execution_result;
   }
 
-  post(*io_service_, [this, http_context, request_id]() mutable {
+  post(*io_service_, [this, &timeout, http_context, request_id]() mutable {
+    session_->read_timeout(seconds(absl::ToInt64Seconds(timeout)));
     SendHttpRequest(request_id, http_context);
+    session_->read_timeout(seconds(http2_read_timeout_in_sec_));
   });
+
   return SuccessExecutionResult();
 }
 

@@ -26,6 +26,7 @@
 #include "type_def.h"
 
 namespace google::scp::core {
+inline constexpr absl::Duration kHttpRequestTimeout = absl::Seconds(60L);
 
 /// Provides methods for interactions with HTTP servers.
 class HttpClientInterface : public ServiceInterface {
@@ -40,6 +41,10 @@ class HttpClientInterface : public ServiceInterface {
    */
   virtual ExecutionResult PerformRequest(
       AsyncContext<HttpRequest, HttpResponse>& context) noexcept = 0;
+
+  virtual ExecutionResult PerformRequest(
+      AsyncContext<HttpRequest, HttpResponse>& context,
+      const absl::Duration& timeout) noexcept = 0;
 };
 }  // namespace google::scp::core
 

@@ -77,6 +77,10 @@ class HttpClient : public HttpClientInterface {
   ExecutionResult PerformRequest(
       AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept override;
 
+  ExecutionResult PerformRequest(
+      AsyncContext<HttpRequest, HttpResponse>& http_context,
+      const absl::Duration& timeout) noexcept override;
+
  private:
   /// An instance of the connection pool that is used by the http client.
   std::unique_ptr<HttpConnectionPool> http_connection_pool_;

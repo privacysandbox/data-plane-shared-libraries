@@ -32,6 +32,12 @@ class MockHttpClient : public HttpClientInterface {
 
   ExecutionResult PerformRequest(
       AsyncContext<HttpRequest, HttpResponse>& context) noexcept {
+    return PerformRequest(context, kHttpRequestTimeout);
+  }
+
+  ExecutionResult PerformRequest(
+      AsyncContext<HttpRequest, HttpResponse>& context,
+      const absl::Duration& timeout) noexcept {
     if (perform_request_mock) {
       return perform_request_mock(context);
     }

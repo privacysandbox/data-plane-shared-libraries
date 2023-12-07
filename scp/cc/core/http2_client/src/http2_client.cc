@@ -47,9 +47,16 @@ ExecutionResult HttpClient::Stop() noexcept {
 
 ExecutionResult HttpClient::PerformRequest(
     AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept {
+  return PerformRequest(http_context, google::scp::core::kHttpRequestTimeout);
+}
+
+ExecutionResult HttpClient::PerformRequest(
+    AsyncContext<HttpRequest, HttpResponse>& http_context,
+    const absl::Duration& timeout) noexcept {
   operation_dispatcher_.Dispatch<AsyncContext<HttpRequest, HttpResponse>>(
       http_context,
-      [this](AsyncContext<HttpRequest, HttpResponse>& http_context) mutable {
+      [this, &timeout](
+          AsyncContext<HttpRequest, HttpResponse>& http_context) mutable {
         std::shared_ptr<HttpConnection> http_connection;
         auto execution_result = http_connection_pool_->GetConnection(
             http_context.request->path, http_connection);
@@ -62,7 +69,7 @@ ExecutionResult HttpClient::PerformRequest(
             "Executing request on connection %p. Retry count: %lld",
             http_connection.get(), http_context.retry_count);
 
-        return http_connection->Execute(http_context);
+        return http_connection->Execute(http_context, timeout);
       });
 
   return SuccessExecutionResult();

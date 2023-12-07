@@ -63,8 +63,9 @@ class HttpConnection : public ServiceInterface {
    * @param http_context The context of the http operation.
    * @return ExecutionResult The execution result of the operation.
    */
-  ExecutionResult Execute(
-      AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept;
+  ExecutionResult Execute(AsyncContext<HttpRequest, HttpResponse>& http_context,
+                          const absl::Duration& timeout =
+                              google::scp::core::kHttpRequestTimeout) noexcept;
 
   /**
    * @brief Indicates whether the connection to the remote server is dropped.

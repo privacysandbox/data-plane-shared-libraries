@@ -31,6 +31,12 @@ class MockCurlClient : public HttpClientInterface {
   MOCK_METHOD(ExecutionResult, Run, (), (override, noexcept));
   MOCK_METHOD(ExecutionResult, Stop, (), (override, noexcept));
 
+  ExecutionResult PerformRequest(
+      AsyncContext<HttpRequest, HttpResponse>& context,
+      const absl::Duration& timeout) noexcept {
+    return PerformRequest(context);
+  }
+
   MOCK_METHOD(ExecutionResult, PerformRequest,
               ((AsyncContext<HttpRequest, HttpResponse>&)),
               (override, noexcept));

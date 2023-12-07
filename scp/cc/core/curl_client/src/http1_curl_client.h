@@ -61,6 +61,10 @@ class Http1CurlClient : public HttpClientInterface {
   ExecutionResult PerformRequest(
       AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept override;
 
+  ExecutionResult PerformRequest(
+      AsyncContext<HttpRequest, HttpResponse>& http_context,
+      const absl::Duration& timeout) noexcept override;
+
  private:
   std::shared_ptr<Http1CurlWrapperProvider> curl_wrapper_provider_;
 

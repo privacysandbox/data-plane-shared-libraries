@@ -52,7 +52,7 @@ using google::scp::cpio::validator::ParameterClientValidator;
 using google::scp::cpio::validator::proto::TestCase;
 using google::scp::cpio::validator::proto::ValidatorConfig;
 
-constexpr std::string_view kRequestTimeout = "10";
+constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
 const char kValidatorConfigPath[] = "/etc/validator_config.txtpb";
 }  // namespace
 
@@ -71,7 +71,6 @@ google::scp::core::ExecutionResult MakeRequest(
   if (!headers.empty()) {
     request->headers =
         std::make_shared<google::scp::core::HttpHeaders>(headers);
-    request->headers->insert({"Request-Timeout", std::string(kRequestTimeout)});
   }
   google::scp::core::ExecutionResult context_result;
   absl::Notification finished;
@@ -82,7 +81,8 @@ google::scp::core::ExecutionResult MakeRequest(
         finished.Notify();
       });
 
-  if (auto result = http_client.PerformRequest(context); !result) {
+  if (auto result = http_client.PerformRequest(context, kRequestTimeout);
+      !result) {
     return result;
   }
   finished.WaitForNotification();

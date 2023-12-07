@@ -41,7 +41,6 @@ namespace google::scp::core {
 namespace {
 
 constexpr int64_t kTrueAsLong = 1L;
-constexpr int64_t kCurlOptTimeout = 60L;
 constexpr std::string_view kHttp1CurlWrapper = "Http1CurlWrapper";
 
 ExecutionResult GetExecutionResultFromCurlError(const std::string& err_buffer) {
@@ -270,7 +269,7 @@ void Http1CurlWrapper::SetUpPutData(const BytesBuffer& body) {
 // of the request. If the request was successful, response_ will now hold the
 // body of the response.
 ExecutionResultOr<HttpResponse> Http1CurlWrapper::PerformRequest(
-    const HttpRequest& request) {
+    const HttpRequest& request, const absl::Duration& timeout) {
   if (!request.path || request.path->empty()) {
     return FailureExecutionResult(errors::SC_CURL_CLIENT_NO_PATH_SUPPLIED);
   }
@@ -308,8 +307,7 @@ ExecutionResultOr<HttpResponse> Http1CurlWrapper::PerformRequest(
   // Add the handler indicating what to do with the returned HTTP response.
   curl_easy_setopt(curl_.get(), CURLOPT_WRITEFUNCTION, ResponsePayloadHandler);
   curl_easy_setopt(curl_.get(), CURLOPT_WRITEDATA, &response.body);
-  // TODO (b/315165156) Make timeout configurable, defaulting to kCurlOptTimeout
-  curl_easy_setopt(curl_.get(), CURLOPT_TIMEOUT, kCurlOptTimeout);
+  curl_easy_setopt(curl_.get(), CURLOPT_TIMEOUT, absl::ToInt64Seconds(timeout));
   curl_easy_setopt(curl_.get(), CURLOPT_FAILONERROR, kTrueAsLong);
   // Create a buffer to place any error messages in.
   std::string err_str(CURL_ERROR_SIZE, '\0');

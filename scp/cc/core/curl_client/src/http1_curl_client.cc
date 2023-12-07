@@ -54,11 +54,19 @@ ExecutionResult Http1CurlClient::Stop() noexcept {
 
 ExecutionResult Http1CurlClient::PerformRequest(
     AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept {
+  return PerformRequest(http_context, google::scp::core::kHttpRequestTimeout);
+}
+
+ExecutionResult Http1CurlClient::PerformRequest(
+    AsyncContext<HttpRequest, HttpResponse>& http_context,
+    const absl::Duration& timeout) noexcept {
   auto wrapper_or = curl_wrapper_provider_->MakeWrapper();
   RETURN_IF_FAILURE(wrapper_or.result());
   operation_dispatcher_.Dispatch<AsyncContext<HttpRequest, HttpResponse>>(
-      http_context, [this, wrapper = *wrapper_or](auto& http_context) {
-        auto response_or = wrapper->PerformRequest(*http_context.request);
+      http_context,
+      [this, &timeout, wrapper = *wrapper_or](auto& http_context) {
+        auto response_or =
+            wrapper->PerformRequest(*http_context.request, timeout);
         if (!response_or.Successful()) {
           http_context.result = response_or.result();
           SCP_ERROR_CONTEXT(kHttp1CurlClient, http_context, http_context.result,

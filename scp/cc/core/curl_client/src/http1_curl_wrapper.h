@@ -24,9 +24,9 @@
 
 #include "core/interface/http_types.h"
 #include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/http_client_interface.h"
 
 namespace google::scp::core {
-
 // Custom deleters for wrapping the raw pointers used in libcurl in unique_ptrs.
 struct CurlHandleDeleter {
   void operator()(CURL* ptr) { curl_easy_cleanup(ptr); }
@@ -47,7 +47,8 @@ class Http1CurlWrapper {
   // Performs the request. Logs any error that occurs and returns the status of
   // the request if it failed or an HttpResponse.
   virtual ExecutionResultOr<HttpResponse> PerformRequest(
-      const HttpRequest& request);
+      const HttpRequest& request,
+      const absl::Duration& timeout = google::scp::core::kHttpRequestTimeout);
 
   virtual ~Http1CurlWrapper() = default;
 
