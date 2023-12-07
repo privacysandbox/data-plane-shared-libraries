@@ -27,6 +27,7 @@
 
 #include "absl/log/check.h"
 #include "core/interface/service_interface.h"
+#include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
 #include "sandboxed_api/sandbox2/comms.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
@@ -69,6 +70,7 @@ class NativeFunctionHandlerSapiIpc {
   }
 
   core::ExecutionResult Run() noexcept {
+    ROMA_VLOG(9) << "Calling native function handler";
     for (int i = 0; i < ipc_comms_.size(); i++) {
       function_handler_threads_.emplace_back([this, i] {
         while (true) {
@@ -96,11 +98,13 @@ class NativeFunctionHandlerSapiIpc {
               // If execution failed, add errors to the proto to return
               io_proto->mutable_errors()->Add(
                   std::string(kFailedNativeHandlerExecution));
+              ROMA_VLOG(1) << kFailedNativeHandlerExecution;
             }
           } else {
             // If we can't find the function, add errors to the proto to return
             io_proto->mutable_errors()->Add(
                 std::string(kCouldNotFindFunctionName));
+            ROMA_VLOG(1) << kCouldNotFindFunctionName;
           }
           if (!comms.SendProtoBuf(wrapper_proto)) {
             continue;

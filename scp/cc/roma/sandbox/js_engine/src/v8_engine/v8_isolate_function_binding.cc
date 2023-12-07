@@ -210,12 +210,14 @@ bool V8IsolateFunctionBinding::NativeFieldsToProto(
 
 void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
     const v8::FunctionCallbackInfo<v8::Value>& info) {
+  ROMA_VLOG(9) << "Calling V8 function callback";
   auto isolate = info.GetIsolate();
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
   auto data = info.Data();
   if (data.IsEmpty()) {
     isolate->ThrowError(kUnexpectedDataInBindingCallback);
+    ROMA_VLOG(1) << kUnexpectedDataInBindingCallback;
     return;
   }
   auto binding_info_pair_external = v8::Local<v8::External>::Cast(data);
@@ -224,6 +226,7 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
   FunctionBindingIoProto function_invocation_proto;
   if (!V8TypesToProto(info, function_invocation_proto)) {
     isolate->ThrowError(kCouldNotConvertJsFunctionInputToNative);
+    ROMA_VLOG(1) << kCouldNotConvertJsFunctionInputToNative;
     return;
   }
 
@@ -231,16 +234,19 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
   if (!NativeFieldsToProto(*binding_info_pair, function_invocation_proto,
                            rpc_proto)) {
     isolate->ThrowError(kCouldNotRunFunctionBinding);
+    ROMA_VLOG(1) << kCouldNotRunFunctionBinding;
   }
 
   const auto result =
       binding_info_pair->second->function_invoker_->Invoke(rpc_proto);
   if (!result.Successful()) {
     isolate->ThrowError(kCouldNotRunFunctionBinding);
+    ROMA_VLOG(1) << kCouldNotRunFunctionBinding;
     return;
   }
   if (!rpc_proto.io_proto().errors().empty()) {
     isolate->ThrowError(kErrorInFunctionBindingInvocation);
+    ROMA_VLOG(1) << kErrorInFunctionBindingInvocation;
     return;
   }
   const auto& returned_value = ProtoToV8Type(isolate, rpc_proto.io_proto());

@@ -73,6 +73,7 @@ cc_library(
         "//scp/cc/public/core/interface:execution_result",
         "//scp/cc/roma/config/src:roma_config_lib",
         "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
+        "//scp/cc/roma/logging/src:roma_logging_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/synchronization",
