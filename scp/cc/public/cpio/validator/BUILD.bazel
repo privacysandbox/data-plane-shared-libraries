@@ -184,6 +184,30 @@ container_layer(
     ],
 )
 
+pkg_files(
+    name = "kmstool_enclave_execs",
+    srcs = [
+        "//scp/cc/cpio/client_providers/kms_client_provider/src/aws:kms_cli",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "kmstool_enclave_tar",
+    srcs = [
+        ":kmstool_enclave_execs",
+    ],
+)
+
+container_layer(
+    name = "kmstool_enclave_layer",
+    directory = "/",
+    tars = [
+        ":kmstool_enclave_tar",
+    ],
+)
+
 container_run_and_commit_layer(
     name = "curl_layer",
     commands = [
@@ -219,6 +243,7 @@ container_image(
     layers = [
         "//scp/cc/aws/proxy/src:proxify_layer",
         ":curl_layer",
+        ":kmstool_enclave_layer",
         ":resolv_conf_layer",
         ":validator_config_layer",
         ":enclaves_validator_layer",
