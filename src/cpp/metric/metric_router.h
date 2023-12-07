@@ -92,11 +92,11 @@ class MetricRouter {
                         const internal::Histogram& histogram);
 
   template <typename T>
-  auto* GetHistogramInstrument(absl::string_view metric_name, T value,
+  auto* GetHistogramInstrument(const DefinitionName& definition, T value,
                                const internal::Histogram& histogram);
 
   template <typename T>
-  auto* GetCounterInstrument(absl::string_view metric_name, T value);
+  auto* GetCounterInstrument(const DefinitionName& definition, T value);
 
   template <typename T>
   T* GetInstrument(absl::string_view metric_name,
@@ -123,43 +123,45 @@ inline constexpr bool dependent_false_v = false;
 
 template <typename T>
 auto* MetricRouter::GetHistogramInstrument(
-    absl::string_view metric_name, T value,
+    const DefinitionName& definition, T value,
     const internal::Histogram& histogram) {
   namespace api = ::opentelemetry::metrics;
   if constexpr (std::is_same_v<int, T>) {
     using U = api::Histogram<uint64_t>;
-    return GetInstrument<U>(metric_name, [metric_name, this, &histogram]() {
-      AddHistogramView(metric_name, histogram);
-      return std::unique_ptr<U>(
-          meter_->CreateUInt64Histogram(metric_name.data()));
-    });
+    return GetInstrument<U>(
+        definition.name_, [&definition, this, &histogram]() {
+          AddHistogramView(definition.name_, histogram);
+          return std::unique_ptr<U>(meter_->CreateUInt64Histogram(
+              definition.name_.data(), definition.description_.data()));
+        });
   } else if constexpr (std::is_same_v<double, T>) {
     using U = api::Histogram<double>;
-    return GetInstrument<U>(metric_name, [metric_name, this, &histogram]() {
-      AddHistogramView(metric_name, histogram);
-      return std::unique_ptr<U>(
-          meter_->CreateDoubleHistogram(metric_name.data()));
-    });
+    return GetInstrument<U>(
+        definition.name_, [&definition, this, &histogram]() {
+          AddHistogramView(definition.name_, histogram);
+          return std::unique_ptr<U>(meter_->CreateDoubleHistogram(
+              definition.name_.data(), definition.description_.data()));
+        });
   } else {
     static_assert(dependent_false_v<T>);
   }
 }
 
 template <typename T>
-auto* MetricRouter::GetCounterInstrument(absl::string_view metric_name,
+auto* MetricRouter::GetCounterInstrument(const DefinitionName& definition,
                                          T value) {
   namespace api = ::opentelemetry::metrics;
   if constexpr (std::is_same_v<int, T>) {
     using U = api::UpDownCounter<int64_t>;
-    return GetInstrument<U>(metric_name, [metric_name, this]() {
-      return std::unique_ptr<U>(
-          meter_->CreateInt64UpDownCounter(metric_name.data()));
+    return GetInstrument<U>(definition.name_, [&definition, this]() {
+      return std::unique_ptr<U>(meter_->CreateInt64UpDownCounter(
+          definition.name_.data(), definition.description_.data()));
     });
   } else if constexpr (std::is_same_v<double, T>) {
     using U = api::UpDownCounter<double>;
-    return GetInstrument<U>(metric_name, [metric_name, this]() {
-      return std::unique_ptr<U>(
-          meter_->CreateDoubleUpDownCounter(metric_name.data()));
+    return GetInstrument<U>(definition.name_, [&definition, this]() {
+      return std::unique_ptr<U>(meter_->CreateDoubleUpDownCounter(
+          definition.name_.data(), definition.description_.data()));
     });
   } else {
     static_assert(dependent_false_v<T>);
@@ -184,16 +186,15 @@ absl::Status MetricRouter::LogSafe(
     const Definition<T, privacy, instrument>& definition, T value,
     absl::string_view partition,
     absl::flat_hash_map<std::string, std::string> attribute) {
-  absl::string_view metric_name = definition.name_;
   if constexpr (instrument == Instrument::kHistogram) {
-    GetHistogramInstrument(metric_name, value, definition)
+    GetHistogramInstrument(definition, value, definition)
         ->Record(value, opentelemetry::common::KeyValueIterableView(attribute),
                  opentelemetry::context::Context());
   } else if constexpr (instrument == Instrument::kUpDownCounter) {
-    GetCounterInstrument(metric_name, value)->Add(value, attribute);
+    GetCounterInstrument(definition, value)->Add(value, attribute);
   } else if constexpr (instrument == Instrument::kPartitionedCounter) {
     attribute.emplace(definition.partition_type_, partition);
-    GetCounterInstrument(metric_name, value)->Add(value, attribute);
+    GetCounterInstrument(definition, value)->Add(value, attribute);
   } else if constexpr (instrument == Instrument::kGauge) {
     return absl::UnimplementedError("gauge not done");
   } else {
@@ -235,7 +236,8 @@ absl::Status MetricRouter::AddObserverable(
   static_assert(privacy == Privacy::kNonImpacting);
   observerable_
       .emplace(definition.name_,
-               meter_->CreateDoubleObservableGauge(definition.name_.data()))
+               meter_->CreateDoubleObservableGauge(
+                   definition.name_.data(), definition.description_.data()))
       .first->second->AddCallback(fetch, (void*)callback);
   return absl::OkStatus();
 }
