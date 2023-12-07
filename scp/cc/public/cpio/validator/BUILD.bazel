@@ -77,6 +77,7 @@ cc_library(
         "//scp/cc/public/cpio/interface/instance_client",
         "//scp/cc/public/cpio/interface/instance_client:type_def",
         "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//scp/cc/public/cpio/validator/proto:validator_config_proto_lib",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/synchronization",

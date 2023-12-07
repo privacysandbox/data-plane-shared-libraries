@@ -54,17 +54,10 @@
 ### Sample validation report
 
 ```txt
-SUCCESS. Connected to outside world.
-SUCCESS. Accessed AWS resource.
-SUCCESS. GetBlob succeed. Bucket: cpio-validator-test-bucket Blob: blob_name_1
-FAILURE. GetBlob failed. Bucket: cpio-validator-test-bucket Blob: blob_name AWS entity not found
-FAILURE. GetBlob failed. No bucket_name provided.
-FAILURE. GetBlob failed. No blob_name provided. Bucket: cpio-validator-test-bucket
-FAILURE. GetBlob failed. No bucket_name provided.
-FAILURE. GetBlob failed. Bucket: cpio-validator-test Blob: blob_name_1 Internal AWS server error
-SUCCESS. GetBlob succeed. Bucket: cpio-validator-test-bucket Blob: blob_name_2
-SUCCESS. ListBlobsMetadata succeeded. Bucket: cpio-validator-test-bucket
-FAILURE. ListBlobsMetadata failed. Bucket: cpio-validator-test Internal AWS server error
-FAILURE. ListBlobsMetadata failed. No bucket name provided.
-SUCCESS. Ran all validation tests. For individual statuses, see above.
+[ SUCCESS ] GetBlobConfig.CpioValidatorTestBucket.BlobName1
+[ SUCCESS ] GetBlobConfig.CpioValidatorTestBucket.BlobName2
+[ FAILURE ] GetBlobConfig.CpioValidatorTestBucket.BlobName10 AWS entity not found
+[ SUCCESS ] ListBlobsMetadataConfig.CpioValidatorTestBucket
+[ FAILURE ] ListBlobsMetadataConfig.CpioValidatorTestBucket1 Internal AWS server error
+[ SUCCESS ] Ran all validation tests. For individual statuses, see above.
 ```

@@ -1,22 +1,59 @@
 # proto-file: scp/cc/public/cpio/validator/proto/validator_config.proto
 # proto-message: ValidatorConfig
 
-blob_storage_client_config {
+test_cases {
+  name: "GetBlobConfig.CpioValidatorTestBucket.BlobName1"
   get_blob_config {
     bucket_name: "cpio-validator-test-bucket"
     blob_name: "blob_name_1"
   }
+}
+test_cases {
+  name: "GetBlobConfig.CpioValidatorTestBucket.BlobName2"
   get_blob_config {
     bucket_name: "cpio-validator-test-bucket"
     blob_name: "blob_name_2"
   }
+}
+test_cases {
+  name: "GetBlobConfig.CpioValidatorTestBucket.BlobName10"
+  get_blob_config {
+    bucket_name: "cpio-validator-test-bucket"
+    blob_name: "blob_name_10"
+  }
+}
+test_cases {
+  name: "ListBlobsMetadataConfig.CpioValidatorTestBucket"
   list_blobs_metadata_config {
     bucket_name: "cpio-validator-test-bucket"
   }
 }
-skip_instance_client_validation: false
-parameter_client_config {
+test_cases {
+  name: "ListBlobsMetadataConfig.CpioValidatorTestBucket1"
+  list_blobs_metadata_config {
+    bucket_name: "cpio-validator-test-bucket-1"
+  }
+}
+test_cases {
+  name: "GetParameterConfig.CpioValidatorTestParameter"
   get_parameter_config {
     parameter_name: "cpio-validator-test-parameter"
+  }
+}
+test_cases {
+  name: "GetParameterConfig.CpioValidatorTestParameter10"
+  get_parameter_config {
+    parameter_name: "cpio-validator-test-parameter-10"
+  }
+}
+test_cases {
+  name: "GetTagsByResourceNameConfig"
+  get_tags_by_resource_name_config {
+    resource_name: "arn:aws:ec2:us-east-1:031246179129:instance/i-0a2074b040c741cf1"
+  }
+}
+test_cases {
+  name: "GetCurrentInstanceResourceNameConfig"
+  get_current_instance_resource_name_config {
   }
 }

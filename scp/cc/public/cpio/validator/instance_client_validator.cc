@@ -25,11 +25,11 @@
 #include "scp/cc/public/cpio/interface/instance_client/instance_client_interface.h"
 #include "scp/cc/public/cpio/interface/instance_client/type_def.h"
 #include "scp/cc/public/cpio/proto/instance_service/v1/instance_service.pb.h"
+#include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {
 
 namespace {
-
 using google::cmrt::sdk::instance_service::v1::
     GetCurrentInstanceResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::
@@ -37,62 +37,125 @@ using google::cmrt::sdk::instance_service::v1::
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
 using google::scp::cpio::InstanceClientFactory;
+using google::scp::cpio::validator::proto::GetTagsByResourceNameConfig;
 }  // namespace
 
-InstanceClientValidator::InstanceClientValidator() {
+void InstanceClientValidator::RunGetTagsByResourceNameValidator(
+    std::string_view name,
+    const GetTagsByResourceNameConfig& get_tags_by_resource_name_config) {
+  if (get_tags_by_resource_name_config.resource_name().empty()) {
+    std::cout << "[ FAILURE ] " << name << " No resource_name provided."
+              << std::endl;
+  }
   google::scp::cpio::InstanceClientOptions instance_client_options;
-  instance_client_ = InstanceClientFactory::Create(instance_client_options);
-}
-
-void InstanceClientValidator::Run() {
-  if (google::scp::core::ExecutionResult result = instance_client_->Init();
+  auto instance_client = InstanceClientFactory::Create(instance_client_options);
+  if (google::scp::core::ExecutionResult result = instance_client->Init();
       !result.Successful()) {
-    std::cout << "FAILURE. Could not Init instance_client_. "
+    std::cout << "[ FAILURE ] " << name << " "
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
     return;
   }
-
-  if (google::scp::core::ExecutionResult result = instance_client_->Run();
+  if (google::scp::core::ExecutionResult result = instance_client->Run();
       !result.Successful()) {
-    std::cout << "FAILURE. Could not Run instance_client_. "
+    std::cout << "[ FAILURE ] " << name << " "
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
     return;
   }
 
   absl::Notification finished;
+  GetTagsByResourceNameRequest get_tags_request;
+  get_tags_request.set_resource_name(
+      get_tags_by_resource_name_config.resource_name());
   google::scp::core::ExecutionResult result =
-      instance_client_->GetCurrentInstanceResourceName(
-          GetCurrentInstanceResourceNameRequest(),
+      instance_client->GetTagsByResourceName(
+          std::move(get_tags_request),
           absl::bind_front(
-              &InstanceClientValidator::GetCurrentInstanceResourceNameCallback,
-              this, std::ref(finished)));
-
+              &InstanceClientValidator::GetTagsByResourceNameCallback, this,
+              name, std::ref(finished)));
   if (!result.Successful()) {
-    std::cout << "FAILURE. GetCurrentInstanceResourceName failed. "
+    std::cout << "[ FAILURE ] " << name << " "
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(3));
 
-  if (google::scp::core::ExecutionResult result = instance_client_->Stop();
+  if (google::scp::core::ExecutionResult result = instance_client->Stop();
       !result.Successful()) {
-    std::cout << "FAILURE. Could not Stop instance_client_. "
+    std::cout << "[ FAILURE ] " << name << " "
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
   }
 }
 
-void InstanceClientValidator::GetTagsByResourceNameCallback(
-    absl::Notification& finished, google::scp::core::ExecutionResult result,
-    GetTagsByResourceNameResponse get_tags_response) {
+void InstanceClientValidator::RunGetCurrentInstanceResourceNameValidator(
+    std::string_view name) {
+  google::scp::cpio::InstanceClientOptions instance_client_options;
+  auto instance_client = InstanceClientFactory::Create(instance_client_options);
+  if (google::scp::core::ExecutionResult result = instance_client->Init();
+      !result.Successful()) {
+    std::cout << "[ FAILURE ] " << name << " "
+              << google::scp::core::GetErrorMessage(result.status_code)
+              << std::endl;
+    return;
+  }
+  if (google::scp::core::ExecutionResult result = instance_client->Run();
+      !result.Successful()) {
+    std::cout << "[ FAILURE ] " << name << " "
+              << google::scp::core::GetErrorMessage(result.status_code)
+              << std::endl;
+    return;
+  }
+  absl::Notification finished;
+  google::scp::core::ExecutionResult result =
+      instance_client->GetCurrentInstanceResourceName(
+          GetCurrentInstanceResourceNameRequest(),
+          absl::bind_front(
+              &InstanceClientValidator::GetCurrentInstanceResourceNameCallback,
+              this, name, std::ref(finished)));
+
   if (!result.Successful()) {
-    std::cout << "FAILURE. GetTagsByResourceName failed. "
+    std::cout << "[ FAILURE ] " << name << " "
+              << google::scp::core::GetErrorMessage(result.status_code)
+              << std::endl;
+  }
+  finished.WaitForNotificationWithTimeout(absl::Seconds(3));
+
+  if (google::scp::core::ExecutionResult result = instance_client->Stop();
+      !result.Successful()) {
+    std::cout << "[ FAILURE ] " << name << " "
+              << google::scp::core::GetErrorMessage(result.status_code)
+              << std::endl;
+  }
+}
+
+void InstanceClientValidator::GetCurrentInstanceResourceNameCallback(
+    std::string_view name, absl::Notification& finished,
+    google::scp::core::ExecutionResult result,
+    GetCurrentInstanceResourceNameResponse get_resource_name_response) {
+  if (!result.Successful()) {
+    std::cout << "[ FAILURE ] " << name << " "
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
   } else {
-    std::cout << "SUCCESS. GetTagsByResourceName succeeded." << std::endl;
+    std::cout << "[ SUCCESS ] " << name << " " << std::endl;
+    LOG(INFO) << "GetCurrentInstanceResourceName. Instance resource name: "
+              << get_resource_name_response.instance_resource_name();
+  }
+  finished.Notify();
+}
+
+void InstanceClientValidator::GetTagsByResourceNameCallback(
+    std::string_view name, absl::Notification& finished,
+    google::scp::core::ExecutionResult result,
+    GetTagsByResourceNameResponse get_tags_response) {
+  if (!result.Successful()) {
+    std::cout << "[ FAILURE ] " << name << " "
+              << google::scp::core::GetErrorMessage(result.status_code)
+              << std::endl;
+  } else {
+    std::cout << "[ SUCCESS ] " << name << " " << std::endl;
     LOG(INFO) << "GetTagsByResourceName. Tags: ";
     for (const auto& tag : get_tags_response.tags()) {
       LOG(INFO) << tag.first << " : " << tag.second;
@@ -101,32 +164,4 @@ void InstanceClientValidator::GetTagsByResourceNameCallback(
   finished.Notify();
 }
 
-void InstanceClientValidator::GetCurrentInstanceResourceNameCallback(
-    absl::Notification& finished, google::scp::core::ExecutionResult result,
-    GetCurrentInstanceResourceNameResponse get_resource_name_response) {
-  if (!result.Successful()) {
-    std::cout << "FAILURE. Hpke encrypt failed. "
-              << google::scp::core::GetErrorMessage(result.status_code)
-              << std::endl;
-    return;
-  }
-
-  std::cout << "SUCCESS. GetCurrentInstanceResourceName succeeded."
-            << std::endl;
-  LOG(INFO) << "GetCurrentInstanceResourceName. Instance resource name: "
-            << get_resource_name_response.instance_resource_name();
-
-  GetTagsByResourceNameRequest get_tags_request;
-  get_tags_request.set_resource_name(
-      get_resource_name_response.instance_resource_name());
-  result = instance_client_->GetTagsByResourceName(
-      std::move(get_tags_request),
-      absl::bind_front(&InstanceClientValidator::GetTagsByResourceNameCallback,
-                       this, std::ref(finished)));
-  if (!result.Successful()) {
-    std::cout << "FAILURE. GetTagsByResourceName failed. "
-              << google::scp::core::GetErrorMessage(result.status_code)
-              << std::endl;
-  }
-}
 };  // namespace google::scp::cpio::validator

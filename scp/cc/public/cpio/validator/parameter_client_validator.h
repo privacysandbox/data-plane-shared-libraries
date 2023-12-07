@@ -27,12 +27,9 @@ namespace google::scp::cpio::validator {
 class ParameterClientValidator {
  public:
   ParameterClientValidator() = default;
-  void Run(const google::scp::cpio::validator::proto::ParameterClientConfig&
-               parameter_client_config);
 
- private:
   void RunGetParameterValidator(
-      google::scp::cpio::ParameterClientInterface& parameter_client,
+      std::string_view name,
       const google::scp::cpio::validator::proto::GetParameterConfig&
           get_parameter_config);
 };

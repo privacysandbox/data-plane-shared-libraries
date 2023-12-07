@@ -49,6 +49,7 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::validator::BlobStorageClientValidator;
 using google::scp::cpio::validator::InstanceClientValidator;
 using google::scp::cpio::validator::ParameterClientValidator;
+using google::scp::cpio::validator::proto::TestCase;
 using google::scp::cpio::validator::proto::ValidatorConfig;
 
 constexpr std::string_view kRequestTimeout = "10";
@@ -56,7 +57,8 @@ const char kValidatorConfigPath[] = "/etc/validator_config.txtpb";
 }  // namespace
 
 std::string_view GetValidatorFailedToRunMsg() {
-  return "FAILURE. Could not run all validation tests. For details, see above.";
+  return "[ FAILURE ] Could not run all validation tests. For details, see "
+         "above.";
 }
 
 google::scp::core::ExecutionResult MakeRequest(
@@ -91,7 +93,7 @@ void CheckProxy() {
   std::shared_ptr<google::scp::core::HttpClientInterface> http_client;
   auto res = GlobalCpio::GetGlobalCpio()->GetHttp1Client(http_client);
   if (!res) {
-    std::cout << "FAILURE. Unable to get Http Client." << std::endl;
+    std::cout << "[ FAILURE ] Unable to get Http Client." << std::endl;
     return;
   }
 
@@ -100,21 +102,22 @@ void CheckProxy() {
 
   if (!MakeRequest(*http_client, google::scp::core::HttpMethod::GET,
                    "https://www.google.com/")) {
-    std::cout << "FAILURE. Could not connect to outside world. Check if proxy "
-                 "is running."
-              << std::endl;
+    std::cout
+        << "[ FAILURE ] Could not connect to outside world. Check if proxy "
+           "is running."
+        << std::endl;
   } else {
-    std::cout << "SUCCESS. Connected to outside world." << std::endl;
+    std::cout << "[ SUCCESS ] Connected to outside world." << std::endl;
   }
 
   if (!MakeRequest(*http_client, google::scp::core::HttpMethod::PUT,
                    "http://169.254.169.254/latest/api/token",
                    {{"X-aws-ec2-metadata-token-ttl-seconds", "21600"}})) {
-    std::cout
-        << "FAILURE. Could not access AWS resource. Check if proxy is running."
-        << std::endl;
+    std::cout << "[ FAILURE ] Could not access AWS resource. Check if proxy is "
+                 "running."
+              << std::endl;
   } else {
-    std::cout << "SUCCESS. Accessed AWS resource." << std::endl;
+    std::cout << "[ SUCCESS ] Accessed AWS resource." << std::endl;
   }
 
   http_client->Stop();
@@ -128,7 +131,8 @@ int main(int argc, char* argv[]) {
   ValidatorConfig validator_config;
   int fd = open(kValidatorConfigPath, O_RDONLY);
   if (fd < 0) {
-    std::cout << "FAILURE. Unable to open validator config file." << std::endl;
+    std::cout << "[ FAILURE ] Unable to open validator config file."
+              << std::endl;
     std::cout << GetValidatorFailedToRunMsg() << std::endl;
     return -1;
   }
@@ -138,7 +142,8 @@ int main(int argc, char* argv[]) {
   if (!google::protobuf::TextFormat::Parse(&file_input_stream,
                                            &validator_config)) {
     std::cout << std::endl
-              << "FAILURE. Unable to parse validator config file." << std::endl;
+              << "[ FAILURE ] Unable to parse validator config file."
+              << std::endl;
     std::cout << GetValidatorFailedToRunMsg() << std::endl;
     return -1;
   }
@@ -151,26 +156,43 @@ int main(int argc, char* argv[]) {
   if (google::scp::core::ExecutionResult result =
           google::scp::cpio::Cpio::InitCpio(cpio_options);
       !result.Successful()) {
-    std::cout << "FAILURE. Unable to initialize CPIO: "
+    std::cout << "[ FAILURE ] Unable to initialize CPIO: "
               << GetErrorMessage(result.status_code) << std::endl;
     std::cout << GetValidatorFailedToRunMsg() << std::endl;
     return -1;
   }
   CheckProxy();
-  if (!validator_config.skip_instance_client_validation()) {
-    InstanceClientValidator instance_client_validator;
-    instance_client_validator.Run();
+  BlobStorageClientValidator blob_storage_client_validator;
+  InstanceClientValidator instance_client_validator;
+  ParameterClientValidator parameter_client_validator;
+  for (auto test_case : validator_config.test_cases()) {
+    switch (test_case.client_config_case()) {
+      case TestCase::ClientConfigCase::kGetTagsByResourceNameConfig:
+        instance_client_validator.RunGetTagsByResourceNameValidator(
+            test_case.name(), test_case.get_tags_by_resource_name_config());
+        break;
+      case TestCase::ClientConfigCase::kGetCurrentInstanceResourceNameConfig:
+        instance_client_validator.RunGetCurrentInstanceResourceNameValidator(
+            test_case.name());
+        break;
+      case TestCase::ClientConfigCase::kGetBlobConfig:
+        blob_storage_client_validator.RunGetBlobValidator(
+            test_case.name(), test_case.get_blob_config());
+        break;
+      case TestCase::ClientConfigCase::kListBlobsMetadataConfig:
+        blob_storage_client_validator.RunListBlobsMetadataValidator(
+            test_case.name(), test_case.list_blobs_metadata_config());
+        break;
+      case TestCase::ClientConfigCase::kGetParameterConfig:
+        parameter_client_validator.RunGetParameterValidator(
+            test_case.name(), test_case.get_parameter_config());
+        break;
+      default:
+        std::cout << "[ FAILURE ] UNEXPECTED INPUT" << std::endl;
+        break;
+    }
   }
-  if (validator_config.has_parameter_client_config()) {
-    ParameterClientValidator parameter_client_validator;
-    parameter_client_validator.Run(validator_config.parameter_client_config());
-  }
-  if (validator_config.has_blob_storage_client_config()) {
-    BlobStorageClientValidator blob_storage_client_validator;
-    blob_storage_client_validator.Run(
-        validator_config.blob_storage_client_config());
-  }
-  std::cout << "SUCCESS. Ran all validation tests. For individual statuses, "
+  std::cout << "[ SUCCESS ] Ran all validation tests. For individual statuses, "
                "see above."
             << std::endl;
   return 0;

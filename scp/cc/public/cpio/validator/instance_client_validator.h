@@ -22,24 +22,30 @@
 #include "absl/synchronization/notification.h"
 #include "scp/cc/public/cpio/interface/instance_client/instance_client_interface.h"
 #include "scp/cc/public/cpio/proto/instance_service/v1/instance_service.pb.h"
+#include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {
 
 class InstanceClientValidator {
  public:
-  InstanceClientValidator();
-  void Run();
+  InstanceClientValidator() = default;
+  void RunGetCurrentInstanceResourceNameValidator(std::string_view name);
+
+  void RunGetTagsByResourceNameValidator(
+      std::string_view name,
+      const google::scp::cpio::validator::proto::GetTagsByResourceNameConfig&
+          get_tags_by_resource_name_config);
 
  private:
-  std::unique_ptr<google::scp::cpio::InstanceClientInterface> instance_client_;
-
   void GetCurrentInstanceResourceNameCallback(
-      absl::Notification& finished, google::scp::core::ExecutionResult result,
+      std::string_view name, absl::Notification& finished,
+      google::scp::core::ExecutionResult result,
       google::cmrt::sdk::instance_service::v1::
           GetCurrentInstanceResourceNameResponse get_resource_name_response);
 
   void GetTagsByResourceNameCallback(
-      absl::Notification& finished, google::scp::core::ExecutionResult result,
+      std::string_view name, absl::Notification& finished,
+      google::scp::core::ExecutionResult result,
       google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse
           get_tags_response);
 };

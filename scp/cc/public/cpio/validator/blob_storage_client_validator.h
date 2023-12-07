@@ -26,17 +26,13 @@ class BlobStorageClientValidator {
  public:
   BlobStorageClientValidator() = default;
 
-  void Run(const google::scp::cpio::validator::proto::BlobStorageClientConfig&
-               blob_storage_config);
-
- private:
   void RunGetBlobValidator(
-      google::scp::cpio::BlobStorageClientInterface& blob_storage_client,
+      std::string_view name,
       const google::scp::cpio::validator::proto::GetBlobConfig&
           get_blob_config);
 
   void RunListBlobsMetadataValidator(
-      google::scp::cpio::BlobStorageClientInterface& blob_storage_client,
+      std::string_view name,
       const google::scp::cpio::validator::proto::ListBlobsMetadataConfig&
           list_blobs_metadata_config);
 };
