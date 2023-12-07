@@ -72,7 +72,7 @@ class MetricRouterTest : public ::testing::Test {
         std::make_unique<metric_sdk::PeriodicExportingMetricReader>(
             std::make_unique<
                 opentelemetry::exporter::metrics::OStreamMetricExporter>(
-                GetSs(), metric_sdk::AggregationTemporality::kDelta),
+                GetSs(), metric_sdk::AggregationTemporality::kCumulative),
             metric_sdk::PeriodicExportingMetricReaderOptions{
                 /*export_interval_millis*/ std::chrono::milliseconds(
                     kExportIntervalMillis),
@@ -217,7 +217,7 @@ class MetricRouterDpNoNoiseTest : public MetricRouterTest {
 constexpr Definition<int, Privacy::kImpacting, Instrument::kPartitionedCounter>
     kUnsafePartitioned(/*name*/ "kUnsafePartitioned", "",
                        /*partition_type*/ "buyer_name",
-                       /*max_partitions_contributed*/ 2,
+                       /*max_partitions_contributed*/ 3,
                        /*public_partitions*/ buyer_public_partitions,
                        /*upper_bound*/ 2,
                        /*lower_bound*/ 0);
@@ -259,7 +259,7 @@ class MetricRouterDpNoiseTest : public MetricRouterTest {
  protected:
   void SetUp() override {
     test_instance_ = std::make_unique<MetricRouter>(init(), "not used name",
-                                                    "0.0.1", PrivacyBudget{1},
+                                                    "0.0.1", PrivacyBudget{0.5},
                                                     InitConfig(kDpInterval));
   }
   absl::Duration kDpInterval = 5 * absl::Milliseconds(kExportIntervalMillis);
@@ -267,18 +267,21 @@ class MetricRouterDpNoiseTest : public MetricRouterTest {
 
 TEST_F(MetricRouterDpNoiseTest, LogPartitioned) {
   for (int i = 0; i < 100; ++i) {
-    CHECK_OK(test_instance_->LogUnSafe(kUnsafePartitioned, 111, "buyer_1"));
-    CHECK_OK(test_instance_->LogUnSafe(kUnsafePartitioned, 22, "buyer_2"));
-    CHECK_OK(test_instance_->LogUnSafe(kUnsafePartitioned, 22, "buyer_3"));
+    // kUnsafePartitioned bounded to [0, 2]
+    for (absl::string_view buyer : buyer_public_partitions) {
+      CHECK_OK(test_instance_->LogUnSafe(kUnsafePartitioned, 111, buyer));
+    }
   }
 
   absl::SleepFor(kDpInterval);
   std::string output = ReadSs();
   EXPECT_THAT(output,
               ContainsRegex("instrument name[ \t]*:[ \t]*kUnsafePartitioned"));
-  EXPECT_THAT(output, ContainsRegex("buyer_name[ \t]*:[ \t]*buyer_1"));
-  EXPECT_THAT(output, ContainsRegex("buyer_name[ \t]*:[ \t]*buyer_2"));
-  EXPECT_THAT(output, ContainsRegex("buyer_name[ \t]*:[ \t]*buyer_3"));
+
+  for (absl::string_view buyer : buyer_public_partitions) {
+    EXPECT_THAT(output,
+                ContainsRegex(absl::StrCat("buyer_name[ \t]*:[ \t]*", buyer)));
+  }
 
   std::regex r("value[ \t]*:[ \t]*([0-9]+)");
   std::smatch sm;
@@ -286,7 +289,7 @@ TEST_F(MetricRouterDpNoiseTest, LogPartitioned) {
   for (int i = 0; i < 3; ++i) {
     regex_search(output, sm, r);
     results.push_back(stoi(sm[1]));
-    EXPECT_THAT((double)results.back(), testing::DoubleNear(200, 50));
+    EXPECT_THAT((double)results.back(), testing::DoubleNear(200, 150));
     output = sm.suffix();
   }
   bool at_least_one_not_200 = false;

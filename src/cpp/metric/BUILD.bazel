@@ -67,7 +67,6 @@ cc_test(
     name = "metric_router_test",
     timeout = "short",
     srcs = ["metric_router_test.cc"],
-    tags = ["manual"],  # TODO(b/315309322): Reenable once tests are unflaky.
     deps = [
         ":metric_router",
         "@com_google_absl//absl/container:flat_hash_set",
