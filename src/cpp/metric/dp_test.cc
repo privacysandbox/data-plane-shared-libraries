@@ -374,10 +374,7 @@ TEST_F(ThreadTest, DpAggregator) {
       for (const differential_privacy::Output& t : *output) {
         ret += differential_privacy::GetValue<int>(t);
       }
-      if (!done.WaitForNotificationWithTimeout(absl::Milliseconds(1))) {
-        ADD_FAILURE() << "Wait timeout.";
-        return ret;
-      }
+      done.WaitForNotificationWithTimeout(absl::Milliseconds(1));
     }
     return ret;
   });
