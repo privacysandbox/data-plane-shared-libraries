@@ -66,8 +66,8 @@ done
 : "${VALIDATOR_CONFIG_PATH?"--validator-conf not specified"}"
 
 if ! [[ -f ${VALIDATOR_CONFIG_PATH} ]]; then
-	echo "Validator config text proto not found!"
-	usage 0
+  echo "Validator config text proto not found!"
+  usage 0
 fi
 
 VALIDATOR_HASH=$({ cat "${VALIDATOR_CONFIG_PATH}"; } | sha256sum | cut --delimiter=" " --fields=1)
@@ -102,6 +102,6 @@ if ! nitro-cli run-enclave --cpu-count 2 --memory 1708 --eif-path "${ENCLAVE_NAM
   printf "error: Unable to run enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr
 fi
 
-if ! nitro-cli console --enclave-name "${ENCLAVE_NAME}" | grep -E '^\[\ (SUCCESS|FAILURE)'; then
+if ! nitro-cli console --enclave-name "${ENCLAVE_NAME}" | grep -E '^\[ (SUCCESS|FAILURE)'; then
   printf "error: Unable to read from console of enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr
 fi
