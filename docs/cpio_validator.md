@@ -2,62 +2,63 @@
 
 ## Using CPIO Validator for AWS
 
-### Building Proxy
+### Prerequisites for EC2
 
-1. Use `scripts/build_proxy` to build proxy. This will create a `dist/aws` directory with proxy
-   binaries for different Linux distributions.
-1. Look for the `proxy` file for your distribution. Unzip and upload it to your EC2 instance.
-
-### Configuring and building CPIO Validator
-
-1. Take a look at
-   [validator_config.proto](./../scp/cc/public/cpio/validator/proto/validator_config.proto).
-1. Modify [validator_config.txtpb](./../scp/cc/public/cpio/validator/validator_config.txtpb)
-   according to the configuration you will be using on your matchine.
-1. Build the docker image -
+1. Install Docker CLI tool. Availability can be checked using -
 
     ```shell
-    builders/tools/bazel-debian build \
-      //scp/cc/public/cpio/validator:aws_nitro_enclaves_validator_image.tar
+    docker --version
     ```
 
-1. Convert it to an EIF using `builders/tools/convert-docker-to-nitro`. Example -
+1. Install Nitro CLI tool. Availability can be checked using -
 
     ```shell
-    builders/tools/convert-docker-to-nitro \
-      --docker-image-tar bazel-bin/scp/cc/public/cpio/validator/aws_nitro_enclaves_validator_image.tar \
-      --docker-image-tag aws_nitro_enclaves_validator_image \
-      --outdir scp/cc/public/cpio/validator/ \
-      --eif-name cpio_validator \
-      --docker-image-uri bazel/scp/cc/public/cpio/validator
+    nitro-cli --version
     ```
 
-1. Upload the CPIO validator to your EC2 instance.
+1. Upload the
+   [build_and_run_validator_enclave](../scp/cc/public/cpio/validator/build_and_run_validator_enclave)
+   script to your EC2 instance.
 
-### Running the validator
+### Building the validator
 
-1. Log into your EC2 instance and run proxy.
-1. With proxy running, run the validator in debug mode. Example -
+1. Build and create a tar archive for the base Docker image.
 
     ```shell
-    nitro-cli run-enclave --cpu-count 2 --memory 1708 --eif-path cpio_validator.eif --enclave-cid 10 --debug-mode
+    builders/tools/bazel-debian build //scp/cc/public/cpio/validator:aws_nitro_enclaves_validator_image.tar
     ```
 
-1. Check the console for result. Example -
+    Upload it to an EC2 instance and load the image. To load the image -
 
     ```shell
-    nitro-cli console --enclave-name cpio_validator
+    DOCKER_IMAGE_TAR="docker image tarball with path"
+    docker load -i "${DOCKER_IMAGE_TAR}"
     ```
 
-1. Debug errors (if any).
+### Building and Running the Enclave on EC2
 
-### Sample validation report
+1. Make sure the [prerequisites](#prerequisites-for-ec2) are available.
+1. Create a text proto ([example](../scp/cc/public/cpio/validator/validator_config.txtpb)) with
+   [validator_config](../scp/cc/public/cpio/validator/proto/validator_config.proto) you would like
+   to test.
+1. Run the validator using the script. Example -
+
+    ```shell
+    ./build_and_run_validator_enclave --docker-image-uri bazel/scp/cc/public/cpio/validator:aws_nitro_enclaves_validator_image --validator-conf ./validator_config.txtpb
+    ```
+
+#### Sample validation report
 
 ```txt
+[ SUCCESS ] Connected to outside world.
+[ SUCCESS ] Accessed AWS resource.
 [ SUCCESS ] GetBlobConfig.CpioValidatorTestBucket.BlobName1
 [ SUCCESS ] GetBlobConfig.CpioValidatorTestBucket.BlobName2
 [ FAILURE ] GetBlobConfig.CpioValidatorTestBucket.BlobName10 AWS entity not found
 [ SUCCESS ] ListBlobsMetadataConfig.CpioValidatorTestBucket
 [ FAILURE ] ListBlobsMetadataConfig.CpioValidatorTestBucket1 Internal AWS server error
-[ SUCCESS ] Ran all validation tests. For individual statuses, see above.
+[ SUCCESS ] GetParameterConfig.CpioValidatorTestParameter
+[ FAILURE ] GetParameterConfig.CpioValidatorTestParameter10 Entity not found
+[ SUCCESS ] GetTagsByResourceNameConfig
+[ SUCCESS ] GetCurrentInstanceResourceNameConfig
 ```
