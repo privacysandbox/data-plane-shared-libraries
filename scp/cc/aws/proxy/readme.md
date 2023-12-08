@@ -78,7 +78,9 @@ If you'd like to try out this proxy with your own application, follow these step
    unlinks it and creates a new one with pre-defined content that defines the nameservers to 8.8.8.8
    and 1.1.1.1. This will make the enclave application talk to these servers during DNS resolution.
    It may not work in a private VPC without internet access. You may need to override the
-   `/etc/resolv.conf` inside the enclave with your desired private DNS settings.
+   `/etc/resolv.conf` inside the enclave with your desired private DNS settings. To use the host DNS
+   settings within the enclave, run `./resolv_conf_getter_server &` on the host outside the enclave;
+   Then run `/proxify /resolv_conf_getter_client` inside the enclave.
 1. AmazonLinux2 (AL2) uses an old version of glibc. Newer compilers with newer glibc on your build
    machine may generate binary that's not runnable on AL2. That's why we created
    `//scp/cc/aws/proxy:reproducible_proxy_outputs` target to generate binaries that's guaranteed

@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+readonly client_path="$1"
+readonly server_path="$2"
+
+if ! [[ -x ${client_path} ]]; then
+  printf "client: %s is not accessible\n" "${client_path}" &> /dev/stderr
+  exit 1
+fi
+
+if ! [[ -x ${server_path} ]]; then
+  printf "server: %s is not accessible\n" "${server_path}" &> /dev/stderr
+  exit 1
+fi
+
+# Run the server, get pid.
+"${server_path}" &
+declare -i -r server_pid=$!
+function _cleanup() {
+  local -r -i STATUS=$?
+  if [[ -v server_pid ]]; then
+    kill ${server_pid}
+  fi
+  exit ${STATUS}
+}
+trap _cleanup EXIT
+sleep 1
+
+"${client_path}"
+declare -i NS_COUNT
+NS_COUNT=$(grep -cw ^nameserver /etc/resolv.conf)
+if [[ ${NS_COUNT} -eq 0 ]]; then
+  printf "resolv.conf contains no nameserver entries\n"
+  exit 1
+fi

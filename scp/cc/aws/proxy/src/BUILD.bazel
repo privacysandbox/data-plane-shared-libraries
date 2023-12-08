@@ -21,12 +21,61 @@
     doesn't have std::filesystem, instead it's in std::experimental
 """
 
+load("@com_github_grpc_grpc//bazel:grpc_build_system.bzl", "grpc_proto_library")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:pkg.bzl", "pkg_tar")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//scp/cc/aws/proxy/test:__subpackages__"])
+
+cc_binary(
+    name = "resolv_conf_getter_client",
+    srcs = ["resolv_conf_getter_client.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":resolv_conf_getter_grpc",
+        "//scp/cc:cc_base_include_dir",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_binary(
+    name = "resolv_conf_getter_server",
+    srcs = ["resolv_conf_getter_server.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":resolv_conf_getter_grpc",
+        "//scp/cc:cc_base_include_dir",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+proto_library(
+    name = "resolv_conf_getter_proto",
+    srcs = ["resolv_conf_getter.proto"],
+)
+
+grpc_proto_library(
+    name = "resolv_conf_getter_grpc",
+    srcs = ["resolv_conf_getter.proto"],
+)
+
+buf_lint_test(
+    name = "resolv_conf_getter_proto_lint",
+    size = "small",
+    config = "//scp:buf.yaml",
+    targets = [":resolv_conf_getter_proto"],
+)
 
 cc_library(
     name = "acceptor_pool",
@@ -297,6 +346,7 @@ pkg_files(
     name = "proxify_executables",
     srcs = [
         "//scp/cc/aws/proxy/src:proxify",
+        "//scp/cc/aws/proxy/src:resolv_conf_getter_client",
         "//scp/cc/aws/proxy/src:socket_vendor",
     ],
     attributes = pkg_attributes(mode = "0555"),

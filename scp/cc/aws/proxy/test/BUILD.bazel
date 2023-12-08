@@ -91,6 +91,20 @@ sh_test(
 )
 
 sh_test(
+    name = "resolv_conf_getter_test",
+    size = "small",
+    srcs = ["resolv_conf_getter_test_app"],
+    args = [
+        "$(location //scp/cc/aws/proxy/src:resolv_conf_getter_client)",
+        "$(location //scp/cc/aws/proxy/src:resolv_conf_getter_server)",
+    ],
+    data = [
+        "//scp/cc/aws/proxy/src:resolv_conf_getter_client",
+        "//scp/cc/aws/proxy/src:resolv_conf_getter_server",
+    ],
+)
+
+sh_test(
     name = "preload_exported_symbols_test",
     size = "small",
     srcs = ["preload_exported_symbols.sh"],
