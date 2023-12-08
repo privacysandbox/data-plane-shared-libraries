@@ -16,7 +16,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def sandboxed_api():
-    # main as of 11-17-2023
+    # main as of 12-07-2023
     maybe(
         http_archive,
         name = "com_google_sandboxed_api",
@@ -25,7 +25,7 @@ def sandboxed_api():
             Label("//build_defs/cc/shared:sandboxed_api.patch"),
             Label("//build_defs/cc/shared:sandboxed_libunwind.patch"),
         ],
-        sha256 = "ba8943fcb40bc4c5c5135f7df125fc3bf6a4a4b5bf15a0a56edf421700557479",
-        strip_prefix = "sandboxed-api-a0ba1c520f0bb72e8d9a8bf17580c074e666960e",
-        urls = ["https://github.com/google/sandboxed-api/archive/a0ba1c520f0bb72e8d9a8bf17580c074e666960e.zip"],
+        sha256 = "e9cd4fbc9f3b05fdd12e608f23acce0cadcef51a9a3b3ec0e7f6c98f7a4b24c0",
+        strip_prefix = "sandboxed-api-19d8f4729a4af6c9f7966f43c3f2f5b7807aceec",
+        urls = ["https://github.com/google/sandboxed-api/archive/19d8f4729a4af6c9f7966f43c3f2f5b7807aceec.zip"],
     )
