@@ -13,6 +13,9 @@
 // limitations under the License.
 
 #include <fcntl.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 #include <fstream>
 #include <iostream>
@@ -29,6 +32,7 @@
 #include "absl/log/flags.h"
 #include "absl/log/globals.h"
 #include "absl/log/initialize.h"
+#include "absl/log/log.h"
 #include "core/common/time_provider/src/time_provider.h"
 #include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "public/core/interface/errors.h"
@@ -54,11 +58,38 @@ using google::scp::cpio::validator::proto::ValidatorConfig;
 
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
 const char kValidatorConfigPath[] = "/etc/validator_config.txtpb";
+const char kHostName[] = "www.google.com";
 }  // namespace
 
 std::string_view GetValidatorFailedToRunMsg() {
   return "[ FAILURE ] Could not run all validation tests. For details, see "
          "above.";
+}
+
+void RunDnsLookupValidator() {
+  const struct addrinfo hints = {
+      .ai_family = AF_INET,
+      .ai_socktype = SOCK_STREAM,
+  };
+  struct addrinfo* addr_infos;
+  if (int err_code = getaddrinfo(kHostName, "80", &hints, &addr_infos);
+      err_code != 0) {
+    std::cout << "[ FAILURE ] getaddrinfo: " << gai_strerror(err_code)
+              << ". Check /etc/resolv.conf. Verify if proxy is running."
+              << std::endl;
+    return;
+  }
+  std::cout << "[ SUCCESS ] DNS lookup succeeded for host " << kHostName
+            << std::endl;
+  for (auto rp = addr_infos; rp != NULL; rp = rp->ai_next) {
+    char host[NI_MAXHOST];
+    char service[NI_MAXSERV];
+
+    getnameinfo(rp->ai_addr, rp->ai_addrlen, host, NI_MAXHOST, service,
+                NI_MAXSERV, NI_NUMERICHOST);
+    LOG(INFO) << "host: " << host << "\t\t service: " << service;
+  }
+  freeaddrinfo(addr_infos);
 }
 
 google::scp::core::ExecutionResult MakeRequest(
@@ -127,6 +158,8 @@ int main(int argc, char* argv[]) {
   // Process command line parameters
   absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
+
+  RunDnsLookupValidator();
 
   ValidatorConfig validator_config;
   int fd = open(kValidatorConfigPath, O_RDONLY);
