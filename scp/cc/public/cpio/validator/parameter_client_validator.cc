@@ -85,13 +85,12 @@ void ParameterClientValidator::RunGetParameterValidator(
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
   }
-  finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  finished.WaitForNotification();
   if (google::scp::core::ExecutionResult result = parameter_client->Stop();
       !result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
-    return;
   }
 }
 };  // namespace google::scp::cpio::validator

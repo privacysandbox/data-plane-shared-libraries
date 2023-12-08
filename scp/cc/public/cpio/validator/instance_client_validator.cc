@@ -46,6 +46,7 @@ void InstanceClientValidator::RunGetTagsByResourceNameValidator(
   if (get_tags_by_resource_name_config.resource_name().empty()) {
     std::cout << "[ FAILURE ] " << name << " No resource_name provided."
               << std::endl;
+    return;
   }
   google::scp::cpio::InstanceClientOptions instance_client_options;
   auto instance_client = InstanceClientFactory::Create(instance_client_options);
@@ -79,7 +80,7 @@ void InstanceClientValidator::RunGetTagsByResourceNameValidator(
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
   }
-  finished.WaitForNotificationWithTimeout(absl::Seconds(3));
+  finished.WaitForNotification();
 
   if (google::scp::core::ExecutionResult result = instance_client->Stop();
       !result.Successful()) {
@@ -120,7 +121,7 @@ void InstanceClientValidator::RunGetCurrentInstanceResourceNameValidator(
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
   }
-  finished.WaitForNotificationWithTimeout(absl::Seconds(3));
+  finished.WaitForNotification();
 
   if (google::scp::core::ExecutionResult result = instance_client->Stop();
       !result.Successful()) {

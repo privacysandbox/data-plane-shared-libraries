@@ -494,6 +494,7 @@ ExecutionResult AwsBlobStorageClientProvider::ListBlobsMetadata(
         kAwsS3Provider, list_blobs_context, list_blobs_context.result,
         "List blobs metadata request failed. Max page size cannot be "
         "greater than 1000.");
+    list_blobs_context.Finish();
     return list_blobs_context.result;
   }
   String bucket_name(list_blobs_context.request->blob_metadata().bucket_name());

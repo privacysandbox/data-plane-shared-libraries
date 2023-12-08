@@ -162,12 +162,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   CheckProxy();
-  BlobStorageClientValidator blob_storage_client_validator;
-  InstanceClientValidator instance_client_validator;
-  ParameterClientValidator parameter_client_validator;
   for (auto test_case : validator_config.test_cases()) {
     switch (test_case.client_config_case()) {
       case TestCase::ClientConfigCase::kGetTagsByResourceNameConfig:
+        InstanceClientValidator instance_client_validator;
         instance_client_validator.RunGetTagsByResourceNameValidator(
             test_case.name(), test_case.get_tags_by_resource_name_config());
         break;
@@ -176,6 +174,7 @@ int main(int argc, char* argv[]) {
             test_case.name());
         break;
       case TestCase::ClientConfigCase::kGetBlobConfig:
+        BlobStorageClientValidator blob_storage_client_validator;
         blob_storage_client_validator.RunGetBlobValidator(
             test_case.name(), test_case.get_blob_config());
         break;
@@ -184,6 +183,7 @@ int main(int argc, char* argv[]) {
             test_case.name(), test_case.list_blobs_metadata_config());
         break;
       case TestCase::ClientConfigCase::kGetParameterConfig:
+        ParameterClientValidator parameter_client_validator;
         parameter_client_validator.RunGetParameterValidator(
             test_case.name(), test_case.get_parameter_config());
         break;

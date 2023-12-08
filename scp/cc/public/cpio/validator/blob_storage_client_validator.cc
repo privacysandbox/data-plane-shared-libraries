@@ -83,13 +83,15 @@ void BlobStorageClientValidator::RunListBlobsMetadataValidator(
               << core::errors::GetErrorMessage(
                      list_blobs_metadata_result.status_code)
               << std::endl;
-    return;
   }
   finished.WaitForNotification();
   if (!result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
-    return;
+  }
+  if (auto result = blob_storage_client->Stop(); !result.Successful()) {
+    std::cout << " [ FAILURE ] " << name << " "
+              << core::errors::GetErrorMessage(result.status_code) << std::endl;
   }
 }
 
@@ -140,13 +142,15 @@ void BlobStorageClientValidator::RunGetBlobValidator(
     std::cout << "[ FAILURE ]  " << name << " "
               << core::errors::GetErrorMessage(get_blob_result.status_code)
               << std::endl;
-    return;
   }
   finished.WaitForNotification();
   if (!result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
-    return;
+  }
+  if (auto result = blob_storage_client->Stop(); !result.Successful()) {
+    std::cout << " [ FAILURE ] " << name << " "
+              << core::errors::GetErrorMessage(result.status_code) << std::endl;
   }
 }
 }  // namespace google::scp::cpio::validator
