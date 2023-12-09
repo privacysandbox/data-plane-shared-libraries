@@ -18,10 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "fake_ba_server",
-    testonly = 1,
-    srcs = [
-        "fake_ba_server.cc",
-    ],
+    srcs = ["fake_ba_server.cc"],
     hdrs = ["fake_ba_server.h"],
     deps = [
         "//scp/cc:cc_base_include_dir",
@@ -36,10 +33,7 @@ cc_library(
 
 cc_library(
     name = "fake_kv_server",
-    testonly = 1,
-    srcs = [
-        "fake_kv_server.cc",
-    ],
+    srcs = ["fake_kv_server.cc"],
     hdrs = ["fake_kv_server.h"],
     deps = [
         "//scp/cc:cc_base_include_dir",

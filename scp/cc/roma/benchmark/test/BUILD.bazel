@@ -12,18 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 cc_library(
     name = "test_code",
     hdrs = ["test_code.h"],
 )
 
-cc_test(
+cc_binary(
     name = "benchmark_suite_test",
-    timeout = "eternal",
     srcs = ["benchmark_suite_test.cc"],
-    tags = ["manual"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/benchmark/src:roma_benchmark_lib",
@@ -65,12 +63,10 @@ cc_test(
     ],
 )
 
-cc_test(
+cc_binary(
     name = "kv_server_udf_benchmark_test",
-    timeout = "eternal",
     srcs = ["kv_server_udf_benchmark.cc"],
     malloc = "@com_google_tcmalloc//tcmalloc",
-    tags = ["manual"],
     deps = [
         ":test_code",
         "//scp/cc/roma/benchmark/src:fake_kv_server",
@@ -80,12 +76,10 @@ cc_test(
     ],
 )
 
-cc_test(
+cc_binary(
     name = "ba_server_benchmark",
-    timeout = "eternal",
     srcs = ["ba_server_benchmark.cc"],
     malloc = "@com_google_tcmalloc//tcmalloc",
-    tags = ["manual"],
     deps = [
         ":test_code",
         "//scp/cc/roma/benchmark/src:fake_ba_server",

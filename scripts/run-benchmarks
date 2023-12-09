@@ -25,15 +25,15 @@ readonly TOOLS_DIR="${SCRIPT_DIR}"/../builders/tools
 source "${TOOLS_DIR}"/builder.sh
 
 declare -a -r targets=(
-  //scp/cc/aws/proxy/test:benchmark_test
+  //scp/cc/aws/proxy/test:proxy_server_benchmark
   //scp/cc/core/common/uuid/test:uuid_benchmark
   //scp/cc/roma/benchmark/test:ba_server_benchmark
-  //scp/cc/roma/benchmark/test:kv_server_udf_benchmark_test
+  //scp/cc/roma/benchmark/test:kv_server_udf_benchmark
   //scp/cc/roma/config/test:type_converter_benchmark
   //scp/cc/roma/sandbox/dispatcher/test:dispatcher_benchmark
   //scp/cc/roma/sandbox/worker_api/sapi/test:worker_wrapper_benchmark
   # TODO: b/303250465 - Turn this back on once the segfault is fixed.
-  # //scp/cc/roma/benchmark/test:benchmark_suite_test
+  # //scp/cc/roma/benchmark/test:roma_benchmark
 )
 
 mkdir -p "${WORKSPACE}"/dist/benchmarks
