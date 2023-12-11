@@ -18,8 +18,44 @@ load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_la
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+
+alias(
+    name = "greeter_server",
+    actual = "@com_github_grpc_grpc//examples/cpp/helloworld:greeter_server",
+)
+
+proto_descriptor_set(
+    name = "helloworld_descriptor_set",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_grpc_grpc//examples/protos:helloworld_proto"],
+)
+
+pkg_files(
+    name = "greeter_server_execs",
+    srcs = [
+        ":greeter_server",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "greeter_server_tar",
+    srcs = [
+        ":greeter_server_execs",
+    ],
+)
+
+container_layer(
+    name = "greeter_server_layer",
+    directory = "/",
+    tars = [
+        ":greeter_server_tar",
+    ],
+)
 
 LINK_OPTS = [
     # Tell LD to look in the working directory of the executable for SO
@@ -249,5 +285,6 @@ container_image(
         ":resolv_conf_layer",
         ":validator_config_layer",
         ":enclaves_validator_layer",
+        ":greeter_server_layer",
     ],
 )

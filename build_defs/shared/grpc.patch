@@ -42,3 +42,18 @@ index 0000000000..7cdf6c74c3
 + def _internal_gen_well_known_protos_java_impl(ctx):
 +     args = ctx.actions.args()
 +
+diff --git a/examples/cpp/helloworld/BUILD b/examples/cpp/helloworld/BUILD
+index eb0d57e5d0..273070aa52 100644
+--- a/examples/cpp/helloworld/BUILD
++++ b/examples/cpp/helloworld/BUILD
+@@ -12,6 +12,8 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+
++package(default_visibility = ["//visibility:public"])
++
+ licenses(["notice"])
+
+ cc_binary(
+  name = "greeter_client",
+  srcs = ["greeter_client.cc"],
