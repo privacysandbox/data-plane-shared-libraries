@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load(
     "@io_bazel_rules_docker//container:container.bzl",
     "container_layer",
@@ -33,10 +34,44 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+# copy kms_cli target's output as an opaque executable, simulating a binary
+# that's not built from source
+copy_file(
+    name = "kms_cli_exe",
+    src = ":kms_cli",
+    out = "kms_cli.exe",
+    is_executable = True,
+    visibility = ["//visibility:private"],
+)
+
 alias(
     name = "libnsm_so",
     actual = "@aws-nitro-enclaves-nsm-api//:nsm",
     visibility = ["//visibility:public"],
+)
+
+copy_file(
+    name = "libnsm_so_lib",
+    src = ":libnsm_so",
+    out = "libnsm.so",
+    is_executable = False,
+    visibility = ["//visibility:private"],
+)
+
+sh_test(
+    name = "kms_cli_exe_test",
+    size = "small",
+    srcs = [":kms_cli.exe"],
+    args = [
+        "decrypt",
+        "--help",
+    ],
+    data = [":libnsm.so"],
+    env = {"LD_LIBRARY_PATH": "."},
+    tags = [
+        "local",  # local precludes remote caching
+        "noasan",
+    ],
 )
 
 pkg_files(
