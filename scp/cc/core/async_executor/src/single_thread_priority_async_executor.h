@@ -21,6 +21,7 @@
 #include <mutex>
 #include <optional>
 #include <queue>
+#include <thread>
 #include <vector>
 
 #include "core/interface/async_executor_interface.h"

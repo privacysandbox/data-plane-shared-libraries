@@ -15,13 +15,8 @@
 #ifndef CORE_ASYNC_EXECUTOR_SRC_ASYNC_TASK_H_
 #define CORE_ASYNC_EXECUTOR_SRC_ASYNC_TASK_H_
 
-#include <chrono>
 #include <memory>
-#include <mutex>
-#include <queue>
-#include <thread>
 #include <utility>
-#include <vector>
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
