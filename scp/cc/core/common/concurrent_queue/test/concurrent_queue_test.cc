@@ -29,6 +29,7 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::common::ConcurrentQueue;
 using google::scp::core::test::ResultIs;
 using google::scp::core::test::ScpTestBase;
+using ::testing::Pointee;
 
 namespace google::scp::core::common::test {
 
@@ -58,6 +59,15 @@ TEST_F(ConcurrentQueueTests, ErrorOnNoElement) {
 
   EXPECT_THAT(result, ResultIs(FailureExecutionResult(
                           errors::SC_CONCURRENT_QUEUE_CANNOT_DEQUEUE)));
+}
+
+TEST_F(ConcurrentQueueTests, MoveOnlyItems) {
+  ConcurrentQueue<std::unique_ptr<int>> queue(1);
+  constexpr int kQueueVal = 3728;
+  EXPECT_SUCCESS(queue.TryEnqueue(std::make_unique<int>(kQueueVal)));
+  std::unique_ptr<int> output;
+  EXPECT_SUCCESS(queue.TryDequeue(output));
+  EXPECT_THAT(output, Pointee(kQueueVal));
 }
 
 TEST_F(ConcurrentQueueTests, MultiThreadedEnqueue) {

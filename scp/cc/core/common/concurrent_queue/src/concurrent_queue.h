@@ -17,6 +17,8 @@
 #ifndef CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_
 #define CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_
 
+#include <utility>
+
 #include "oneapi/tbb/concurrent_queue.h"
 
 #include "error_codes.h"
@@ -42,6 +44,18 @@ class ConcurrentQueue {
    */
   ExecutionResult TryEnqueue(const T& element) noexcept {
     if (!queue_.try_push(element)) {
+      return FailureExecutionResult(errors::SC_CONCURRENT_QUEUE_CANNOT_ENQUEUE);
+    }
+    return SuccessExecutionResult();
+  }
+
+  /**
+   * @brief Enqueues an element into the queue if possible. This function is
+   * thread-safe.
+   * @param element the element to be queued.
+   */
+  ExecutionResult TryEnqueue(T&& element) noexcept {
+    if (!queue_.try_push(std::move(element))) {
       return FailureExecutionResult(errors::SC_CONCURRENT_QUEUE_CANNOT_ENQUEUE);
     }
     return SuccessExecutionResult();
