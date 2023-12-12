@@ -17,9 +17,6 @@
 #ifndef CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_
 #define CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_
 
-#include <atomic>
-#include <memory>
-
 #include "oneapi/tbb/concurrent_queue.h"
 
 #include "error_codes.h"
@@ -36,12 +33,7 @@ class ConcurrentQueue {
    * @brief Construct a new Concurrent Queue object
    * @param max_size Maximum size of the queue
    */
-  explicit ConcurrentQueue(size_t max_size)
-      : queue_(std::make_unique<tbb::concurrent_bounded_queue<T>>()) {
-    queue_->set_capacity(max_size);
-  }
-
-  ConcurrentQueue() = delete;
+  explicit ConcurrentQueue(size_t max_size) { queue_.set_capacity(max_size); }
 
   /**
    * @brief Enqueues an element into the queue if possible. This function is
@@ -49,7 +41,7 @@ class ConcurrentQueue {
    * @param element the element to be queued.
    */
   ExecutionResult TryEnqueue(const T& element) noexcept {
-    if (!queue_->try_push(element)) {
+    if (!queue_.try_push(element)) {
       return FailureExecutionResult(errors::SC_CONCURRENT_QUEUE_CANNOT_ENQUEUE);
     }
     return SuccessExecutionResult();
@@ -62,7 +54,7 @@ class ConcurrentQueue {
    * @return ExecutionResult result of the operation.
    */
   ExecutionResult TryDequeue(T& element) noexcept {
-    if (!queue_->try_pop(element)) {
+    if (!queue_.try_pop(element)) {
       return FailureExecutionResult(errors::SC_CONCURRENT_QUEUE_CANNOT_DEQUEUE);
     }
     return SuccessExecutionResult();
@@ -73,11 +65,11 @@ class ConcurrentQueue {
    * the concurrent queue, this value will be approximate.
    * @return size_t number of elements in the queue.
    */
-  size_t Size() noexcept { return queue_->size(); }
+  size_t Size() noexcept { return queue_.size(); }
 
  private:
   /// queue implementation.
-  std::unique_ptr<tbb::concurrent_bounded_queue<T>> queue_;
+  tbb::concurrent_bounded_queue<T> queue_;
 };
 }  // namespace google::scp::core::common
 
