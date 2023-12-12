@@ -22,9 +22,38 @@ load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
+pkg_files(
+    name = "init_server_enclave_execs",
+    srcs = [
+        ":init_server_enclave",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "init_server_enclave_tar",
+    srcs = [
+        ":init_server_enclave_execs",
+    ],
+)
+
+container_layer(
+    name = "init_server_enclave_layer",
+    directory = "/",
+    tars = [
+        ":init_server_enclave_tar",
+    ],
+)
+
 alias(
     name = "greeter_server",
     actual = "@com_github_grpc_grpc//examples/cpp/helloworld:greeter_server",
+)
+
+alias(
+    name = "greeter_client",
+    actual = "@com_github_grpc_grpc//examples/cpp/helloworld:greeter_client",
 )
 
 proto_descriptor_set(
@@ -36,6 +65,7 @@ proto_descriptor_set(
 pkg_files(
     name = "greeter_server_execs",
     srcs = [
+        ":greeter_client",
         ":greeter_server",
     ],
     attributes = pkg_attributes(mode = "0555"),
@@ -273,12 +303,11 @@ container_image(
         "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64//image",
     }),
     cmd = [
-        "/proxify",
-        "--",
-        "/server/bin/validation",
+        "/server/bin/init_server_enclave",
     ],
     entrypoint = ["/bin/bash"],
     layers = [
+        ":init_server_enclave_layer",
         "//scp/cc/aws/proxy/src:proxify_layer",
         ":curl_layer",
         ":kmstool_enclave_layer",
