@@ -121,10 +121,11 @@ class AsyncExecutor : public AsyncExecutorInterface {
   using UrgentTaskExecutor = SingleThreadPriorityAsyncExecutor;
   using NormalTaskExecutor = SingleThreadAsyncExecutor;
 
+  // Pointer is non-null if status is ok.
   template <class TaskExecutorType>
-  ExecutionResultOr<std::shared_ptr<TaskExecutorType>> PickTaskExecutor(
+  ExecutionResultOr<TaskExecutorType*> PickTaskExecutor(
       AsyncExecutorAffinitySetting affinity,
-      const std::vector<std::shared_ptr<TaskExecutorType>>& task_executor_pool,
+      const std::vector<std::unique_ptr<TaskExecutorType>>& task_executor_pool,
       TaskExecutorPoolType task_executor_pool_type,
       TaskLoadBalancingScheme task_load_balancing_scheme);
 
@@ -139,15 +140,14 @@ class AsyncExecutor : public AsyncExecutorInterface {
   /// The maximum length of the work queue.
   size_t queue_cap_;
   /// Executor pool for urgent work.
-  std::vector<std::shared_ptr<UrgentTaskExecutor>> urgent_task_executor_pool_;
+  std::vector<std::unique_ptr<UrgentTaskExecutor>> urgent_task_executor_pool_;
   /// Executor pool for normal work.
-  std::vector<std::shared_ptr<NormalTaskExecutor>> normal_task_executor_pool_;
+  std::vector<std::unique_ptr<NormalTaskExecutor>> normal_task_executor_pool_;
   /// A map of (normal executor and urgent executor) thread IDs and their
   /// corresponding executors (the normal executor and then the urgent executor
   /// with the same affinity).
   absl::flat_hash_map<std::thread::id,
-                      std::pair<std::shared_ptr<NormalTaskExecutor>,
-                                std::shared_ptr<UrgentTaskExecutor>>>
+                      std::pair<NormalTaskExecutor*, UrgentTaskExecutor*>>
       thread_id_to_executor_map_;
   /// Load balancing scheme to distribute incoming tasks on to the thread pool
   /// threads.

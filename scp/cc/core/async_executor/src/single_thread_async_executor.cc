@@ -36,10 +36,8 @@ ExecutionResult SingleThreadAsyncExecutor::Init() noexcept {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_INVALID_QUEUE_CAP);
   }
 
-  normal_pri_queue_ =
-      std::make_shared<ConcurrentQueue<std::shared_ptr<AsyncTask>>>(queue_cap_);
-  high_pri_queue_ =
-      std::make_shared<ConcurrentQueue<std::shared_ptr<AsyncTask>>>(queue_cap_);
+  normal_pri_queue_.emplace(queue_cap_);
+  high_pri_queue_.emplace(queue_cap_);
   return SuccessExecutionResult();
 };
 
@@ -53,7 +51,7 @@ ExecutionResult SingleThreadAsyncExecutor::Run() noexcept {
   }
 
   is_running_ = true;
-  working_thread_ = std::make_unique<std::thread>(
+  working_thread_.emplace(
       [affinity_cpu_number =
            affinity_cpu_number_](SingleThreadAsyncExecutor* ptr) {
         if (affinity_cpu_number.has_value()) {
@@ -89,7 +87,7 @@ void SingleThreadAsyncExecutor::StartWorker() noexcept {
       continue;
     }
 
-    std::shared_ptr<AsyncTask> task;
+    std::unique_ptr<AsyncTask> task;
     // The priority is with the high pri tasks.
     if (!high_pri_queue_->TryDequeue(task).Successful() &&
         !normal_pri_queue_->TryDequeue(task).Successful()) {
@@ -135,12 +133,12 @@ ExecutionResult SingleThreadAsyncExecutor::Schedule(
         errors::SC_ASYNC_EXECUTOR_INVALID_PRIORITY_TYPE);
   }
 
-  auto task = std::make_shared<AsyncTask>(std::move(work));
+  auto task = std::make_unique<AsyncTask>(std::move(work));
   ExecutionResult execution_result;
   if (priority == AsyncPriority::Normal) {
-    execution_result = normal_pri_queue_->TryEnqueue(task);
+    execution_result = normal_pri_queue_->TryEnqueue(std::move(task));
   } else {
-    execution_result = high_pri_queue_->TryEnqueue(task);
+    execution_result = high_pri_queue_->TryEnqueue(std::move(task));
   }
 
   if (!execution_result.Successful()) {

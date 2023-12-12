@@ -44,14 +44,14 @@ ExecutionResult AsyncExecutor::Init() noexcept {
     // up. Should we instead randomly assign the CPUs?
     size_t cpu_affinity_number = i % std::thread::hardware_concurrency();
     urgent_task_executor_pool_.push_back(
-        std::make_shared<SingleThreadPriorityAsyncExecutor>(
+        std::make_unique<SingleThreadPriorityAsyncExecutor>(
             queue_cap_, cpu_affinity_number));
     auto execution_result = urgent_task_executor_pool_.back()->Init();
     if (!execution_result.Successful()) {
       return execution_result;
     }
     normal_task_executor_pool_.push_back(
-        std::make_shared<SingleThreadAsyncExecutor>(queue_cap_,
+        std::make_unique<SingleThreadAsyncExecutor>(queue_cap_,
                                                     cpu_affinity_number));
     execution_result = normal_task_executor_pool_.back()->Init();
     if (!execution_result.Successful()) {
@@ -73,12 +73,12 @@ ExecutionResult AsyncExecutor::Run() noexcept {
   }
 
   for (size_t i = 0; i < thread_count_; ++i) {
-    auto& urgent_executor = urgent_task_executor_pool_.at(i);
+    auto* urgent_executor = urgent_task_executor_pool_.at(i).get();
     auto execution_result = urgent_executor->Run();
     if (!execution_result.Successful()) {
       return execution_result;
     }
-    auto& normal_executor = normal_task_executor_pool_.at(i);
+    auto* normal_executor = normal_task_executor_pool_.at(i).get();
     execution_result = normal_executor->Run();
     if (!execution_result.Successful()) {
       return execution_result;
@@ -122,10 +122,9 @@ ExecutionResult AsyncExecutor::Stop() noexcept {
 }
 
 template <class TaskExecutorType>
-ExecutionResultOr<std::shared_ptr<TaskExecutorType>>
-AsyncExecutor::PickTaskExecutor(
+ExecutionResultOr<TaskExecutorType*> AsyncExecutor::PickTaskExecutor(
     AsyncExecutorAffinitySetting affinity,
-    const std::vector<std::shared_ptr<TaskExecutorType>>& task_executor_pool,
+    const std::vector<std::unique_ptr<TaskExecutorType>>& task_executor_pool,
     TaskExecutorPoolType task_executor_pool_type,
     TaskLoadBalancingScheme task_load_balancing_scheme) {
   static std::random_device random_device_local;
@@ -169,12 +168,12 @@ AsyncExecutor::PickTaskExecutor(
       auto picked_index = task_counter_urgent_thread_local.fetch_add(
                               1, std::memory_order_relaxed) %
                           task_executor_pool.size();
-      return task_executor_pool.at(picked_index);
+      return task_executor_pool.at(picked_index).get();
     } else if (task_executor_pool_type == TaskExecutorPoolType::NotUrgentPool) {
       auto picked_index = task_counter_not_urgent_thread_local.fetch_add(
                               1, std::memory_order_relaxed) %
                           task_executor_pool.size();
-      return task_executor_pool.at(picked_index);
+      return task_executor_pool.at(picked_index).get();
     } else {
       return FailureExecutionResult(
           errors::SC_ASYNC_EXECUTOR_INVALID_TASK_POOL_TYPE);
@@ -184,18 +183,18 @@ AsyncExecutor::PickTaskExecutor(
   if (task_load_balancing_scheme == TaskLoadBalancingScheme::Random) {
     auto picked_index =
         distribution(random_generator) % task_executor_pool.size();
-    return task_executor_pool.at(picked_index);
+    return task_executor_pool.at(picked_index).get();
   }
 
   if (task_load_balancing_scheme == TaskLoadBalancingScheme::RoundRobinGlobal) {
     if (task_executor_pool_type == TaskExecutorPoolType::UrgentPool) {
       auto picked_index =
           task_counter_urgent.fetch_add(1) % task_executor_pool.size();
-      return task_executor_pool.at(picked_index);
+      return task_executor_pool.at(picked_index).get();
     } else if (task_executor_pool_type == TaskExecutorPoolType::NotUrgentPool) {
       auto picked_index =
           task_counter_not_urgent.fetch_add(1) % task_executor_pool.size();
-      return task_executor_pool.at(picked_index);
+      return task_executor_pool.at(picked_index).get();
     } else {
       return FailureExecutionResult(
           errors::SC_ASYNC_EXECUTOR_INVALID_TASK_POOL_TYPE);
@@ -220,7 +219,7 @@ ExecutionResult AsyncExecutor::Schedule(
   }
 
   if (priority == AsyncPriority::Urgent) {
-    ASSIGN_OR_RETURN(auto task_executor,
+    ASSIGN_OR_RETURN(auto* task_executor,
                      PickTaskExecutor(affinity, urgent_task_executor_pool_,
                                       TaskExecutorPoolType::UrgentPool,
                                       task_load_balancing_scheme_));
@@ -230,7 +229,7 @@ ExecutionResult AsyncExecutor::Schedule(
   }
 
   if (priority == AsyncPriority::Normal || priority == AsyncPriority::High) {
-    ASSIGN_OR_RETURN(auto task_executor,
+    ASSIGN_OR_RETURN(auto* task_executor,
                      PickTaskExecutor(affinity, normal_task_executor_pool_,
                                       TaskExecutorPoolType::NotUrgentPool,
                                       task_load_balancing_scheme_));
@@ -271,7 +270,7 @@ ExecutionResult AsyncExecutor::ScheduleFor(
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
   }
 
-  ASSIGN_OR_RETURN(auto task_executor,
+  ASSIGN_OR_RETURN(auto* task_executor,
                    PickTaskExecutor(affinity, urgent_task_executor_pool_,
                                     TaskExecutorPoolType::UrgentPool,
                                     task_load_balancing_scheme_));

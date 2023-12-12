@@ -38,9 +38,7 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::Init() noexcept {
     return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_INVALID_QUEUE_CAP);
   }
 
-  queue_ = std::make_shared<std::priority_queue<
-      std::shared_ptr<AsyncTask>, std::vector<std::shared_ptr<AsyncTask>>,
-      AsyncTaskCompareGreater>>();
+  queue_.emplace();
   return SuccessExecutionResult();
 };
 
@@ -54,7 +52,7 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::Run() noexcept {
   }
 
   is_running_ = true;
-  working_thread_ = std::make_unique<std::thread>(
+  working_thread_.emplace(
       [affinity_cpu_number =
            affinity_cpu_number_](SingleThreadPriorityAsyncExecutor* ptr) {
         if (affinity_cpu_number.has_value()) {

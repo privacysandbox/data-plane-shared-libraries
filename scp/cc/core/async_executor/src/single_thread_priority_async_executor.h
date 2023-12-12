@@ -107,13 +107,15 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
   /// An optional CPU to have an affinity for.
   std::optional<size_t> affinity_cpu_number_;
   /// A unique pointer to the working thread.
-  std::unique_ptr<std::thread> working_thread_;
+  std::optional<std::thread> working_thread_;
   /// The ID of the working_thread_.
   std::thread::id working_thread_id_;
   /// Queue for accepting the incoming tasks.
-  std::shared_ptr<std::priority_queue<std::shared_ptr<AsyncTask>,
-                                      std::vector<std::shared_ptr<AsyncTask>>,
-                                      AsyncTaskCompareGreater>>
+  /// TODO(b/315140459): Replace `priority_queue`. `shared_ptr` is necessary
+  /// since `top` returns a const reference, necessitating a copy.
+  std::optional<std::priority_queue<std::shared_ptr<AsyncTask>,
+                                    std::vector<std::shared_ptr<AsyncTask>>,
+                                    AsyncTaskCompareGreater>>
       queue_;
   /**
    * @brief Used in combination with the condition variable for signaling the

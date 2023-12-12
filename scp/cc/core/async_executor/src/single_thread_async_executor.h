@@ -83,13 +83,13 @@ class SingleThreadAsyncExecutor : ServiceInterface {
   /// An optional CPU to have an affinity for.
   std::optional<size_t> affinity_cpu_number_;
   /// Queue for accepting the incoming normal priority tasks.
-  std::shared_ptr<common::ConcurrentQueue<std::shared_ptr<AsyncTask>>>
+  std::optional<common::ConcurrentQueue<std::unique_ptr<AsyncTask>>>
       normal_pri_queue_;
   /// Queue for accepting the incoming high priority tasks.
-  std::shared_ptr<common::ConcurrentQueue<std::shared_ptr<AsyncTask>>>
+  std::optional<common::ConcurrentQueue<std::unique_ptr<AsyncTask>>>
       high_pri_queue_;
   /// A unique pointer to the working thread.
-  std::unique_ptr<std::thread> working_thread_;
+  std::optional<std::thread> working_thread_;
   /// The ID of the working_thread_.
   std::thread::id working_thread_id_;
   /**
