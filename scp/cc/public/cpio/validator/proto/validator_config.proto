@@ -30,6 +30,8 @@ message TestCase {
     GetBlobConfig get_blob_config = 4;
     ListBlobsMetadataConfig list_blobs_metadata_config = 5;
     GetParameterConfig get_parameter_config = 6;
+    EnqueueMessageConfig enqueue_message_config = 7;
+    GetTopMessageConfig get_top_message_config = 8;
   }
 }
 
@@ -51,3 +53,9 @@ message ListBlobsMetadataConfig {
 message GetParameterConfig {
   string parameter_name = 1;
 }
+
+message EnqueueMessageConfig {
+  string message_body = 1;
+}
+
+message GetTopMessageConfig {}

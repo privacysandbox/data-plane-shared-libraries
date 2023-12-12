@@ -42,6 +42,7 @@
 #include "scp/cc/public/cpio/validator/instance_client_validator.h"
 #include "scp/cc/public/cpio/validator/parameter_client_validator.h"
 #include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
+#include "scp/cc/public/cpio/validator/queue_client_validator.h"
 
 namespace {
 
@@ -215,6 +216,14 @@ int main(int argc, char* argv[]) {
       case TestCase::ClientConfigCase::kGetParameterConfig:
         google::scp::cpio::validator::RunGetParameterValidator(
             test_case.name(), test_case.get_parameter_config());
+        break;
+      case TestCase::ClientConfigCase::kEnqueueMessageConfig:
+        google::scp::cpio::validator::RunEnqueueMessageValidator(
+            test_case.name(), test_case.enqueue_message_config());
+        break;
+      case TestCase::ClientConfigCase::kGetTopMessageConfig:
+        google::scp::cpio::validator::RunGetTopMessageValidator(
+            test_case.name());
         break;
       default:
         std::cout << "[ FAILURE ] UNEXPECTED INPUT" << std::endl;

@@ -57,3 +57,14 @@ test_cases {
   get_current_instance_resource_name_config {
   }
 }
+test_cases {
+  name: "EnqueueMessageConfig.CpioValidatorTestMessage"
+  enqueue_message_config {
+    message_body: "cpio-validator-test-message"
+  }
+}
+test_cases {
+  name: "GetTopMessageConfig"
+  get_top_message_config {
+  }
+}
