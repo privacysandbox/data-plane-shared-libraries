@@ -97,10 +97,31 @@ if ! [[ -f ${ENCLAVE_NAME}.eif ]]; then
   nitro-cli build-enclave --docker-uri "${DOCKER_IMAGE_URI}" --output-file "${ENCLAVE_NAME}".eif >/dev/null
 fi
 
-if ! nitro-cli run-enclave --cpu-count 2 --memory 1708 --eif-path "${ENCLAVE_NAME}".eif \
+if ! nitro-cli run-enclave --cpu-count 2 --memory 2148 --eif-path "${ENCLAVE_NAME}".eif \
   --enclave-name "${ENCLAVE_NAME}" --enclave-cid 10 --debug-mode >/dev/null; then
   printf "error: Unable to run enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr
 fi
+
+# Wait for greeter server to start up inside the enclave
+sleep 2
+
+# Download gRPC cURL and check the response.
+GRPC_CURL_DIR="$(mktemp -d)"
+readonly GRPC_CURL_DIR
+wget -q -O - https://github.com/fullstorydev/grpcurl/releases/download/v1.8.9/grpcurl_1.8.9_linux_x86_64.tar.gz \
+  | tar xz --directory="${GRPC_CURL_DIR}"
+chmod +x "${GRPC_CURL_DIR}"/grpcurl
+GRPC_OUTPUT="$("${GRPC_CURL_DIR}"/grpcurl -plaintext -d '{"name": "world"}' 127.0.0.1:50051 helloworld.Greeter/SayHello)"
+EXPECTED_GRPC_OUTPUT='{
+  "message": "Hello world"
+}'
+declare -r GREETER_TEST="Greeter server test outside TEE."
+if [[ ${GRPC_OUTPUT} == "${EXPECTED_GRPC_OUTPUT}" ]]; then
+  printf "[ %s ] %s\n" SUCCESS "${GREETER_TEST}"
+else
+  printf "[ %s ] %s\n" FAILURE "${GREETER_TEST}"
+fi;
+rm -r "${GRPC_CURL_DIR}"
 
 if ! nitro-cli console --enclave-name "${ENCLAVE_NAME}" | grep -E '^\[ (SUCCESS|FAILURE)'; then
   printf "error: Unable to read from console of enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr

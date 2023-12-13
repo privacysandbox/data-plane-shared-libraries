@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+trap cleanup EXIT
+function cleanup() {
+  if ! [[ -z ${server_pid+x} ]]; then
+    kill ${server_pid}
+  fi;
+}
+
 /proxify -- /server/bin/greeter_server --port 50051 &
 declare -i -r server_pid=$!
 sleep 1
@@ -23,5 +30,5 @@ if [[ ${greeting_output} == "Greeter received: Hello world" ]]; then
 else
   printf "[ %s ] %s\n" FAILURE "${greeter_test}"
 fi;
-kill ${server_pid}
+sleep 5
 /proxify -- /server/bin/validation
