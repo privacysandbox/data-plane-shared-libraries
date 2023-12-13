@@ -65,6 +65,7 @@ class GrpcNetworkService : public NetworkServiceInterface {
       const std::string& uri,
       const RPCServiceContextInterface::RpcHandler& handler) override;
 
+ private:
   /// The worker of this service. They are spawned as threads in \a pollers_.
   /// @param index The index of the completion queue in \a completion_queues_ to
   /// use. Each worker will keep working exclusively on its own queue to avoid
@@ -74,7 +75,6 @@ class GrpcNetworkService : public NetworkServiceInterface {
   /// parent thread to proceed.
   void Worker(size_t index, std::mutex& mutex, std::condition_variable& cv);
 
- private:
   /// The type of the address, i.e. host:port or socket_path or... See
   /// AddressType for details.
   const AddressType addr_type_;
