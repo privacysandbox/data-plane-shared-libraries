@@ -16,7 +16,8 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("@google_privacysandbox_servers_common//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies = "sdk_dependencies")
+load("//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies = "sdk_dependencies")
+load("//third_party:emscripten_deps1.bzl", "emscripten_deps1")
 
 def _absl_deps():
     maybe(
@@ -52,3 +53,4 @@ def deps1():
     _absl_deps()
     _rust_deps()
     scp_sdk_dependencies()
+    emscripten_deps1()

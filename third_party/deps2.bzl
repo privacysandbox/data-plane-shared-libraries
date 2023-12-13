@@ -31,6 +31,7 @@ load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
 load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
 load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
+load("//third_party:emscripten_deps2.bzl", "emscripten_deps2")
 
 GO_TOOLCHAINS_VERSION = "1.21.1"
 
@@ -96,3 +97,4 @@ def deps2(
     )
     crate_universe_dependencies()
     rules_fuzzing_dependencies()
+    emscripten_deps2()

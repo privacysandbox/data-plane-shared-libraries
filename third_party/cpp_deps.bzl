@@ -19,6 +19,8 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 """Initialize the shared control plane repository."""
 
+EMSCRIPTEN_VER = "3.1.44"
+
 def cpp_dependencies():
     maybe(
         http_archive,
@@ -113,4 +115,11 @@ def cpp_dependencies():
         sha256 = "161ae3676b7c75bb948a58c81bc982e5be4922f4ca7438237d8439857c42c640",
         strip_prefix = "differential-privacy-2.1.0/cc",
         urls = ["https://github.com/google/differential-privacy/archive/refs/tags/v2.1.0.zip"],
+    )
+    maybe(
+        http_archive,
+        name = "emsdk",
+        sha256 = "48c0dd06539011a62ec1069a6c69e283731dabdb20454c45fb344dede421b5ad",
+        strip_prefix = "emsdk-{ver}/bazel".format(ver = EMSCRIPTEN_VER),
+        url = "https://github.com/emscripten-core/emsdk/archive/refs/tags/{ver}.zip".format(ver = EMSCRIPTEN_VER),
     )
