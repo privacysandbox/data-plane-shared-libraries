@@ -89,7 +89,7 @@ cc_library(
     hdrs = [
         "async_context.h",
     ],
-    visibility = ["//scp/cc:scp_internal_pkg"],
+    visibility = ["//visibility:public"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/global_logger/src:global_logger_lib",
