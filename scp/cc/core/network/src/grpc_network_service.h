@@ -17,9 +17,7 @@
 #ifndef CORE_NETWORK_SRC_GRPC_NETWORK_SERVICE_H_
 #define CORE_NETWORK_SRC_GRPC_NETWORK_SERVICE_H_
 
-#include <atomic>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -30,6 +28,7 @@
 #include <grpcpp/server_builder.h>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/synchronization/notification.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/interface/network_service_interface.h"
 #include "public/core/interface/execution_result.h"
@@ -70,10 +69,9 @@ class GrpcNetworkService : public NetworkServiceInterface {
   /// @param index The index of the completion queue in \a completion_queues_ to
   /// use. Each worker will keep working exclusively on its own queue to avoid
   /// contention.
-  /// @param mutex The mutex to lock/unlock when notifying \a cv
-  /// @param cv The conditional variable to notify when it is safe for the
-  /// parent thread to proceed.
-  void Worker(size_t index, std::mutex& mutex, std::condition_variable& cv);
+  /// @param ready The Notification used to message the parent thread that the
+  /// setup is complete.
+  void Worker(size_t index, absl::Notification& ready);
 
   /// The type of the address, i.e. host:port or socket_path or... See
   /// AddressType for details.

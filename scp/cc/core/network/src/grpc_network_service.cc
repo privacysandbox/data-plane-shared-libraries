@@ -94,12 +94,10 @@ ExecutionResult GrpcNetworkService::Run() noexcept {
     return execution_result;
   }
   for (size_t i = 0; i < completion_queues_.size(); ++i) {
-    std::mutex mtx;
-    std::unique_lock<std::mutex> lock(mtx);
-    std::condition_variable cv;
-    pollers_.emplace_back(std::thread(&GrpcNetworkService::Worker, this, i,
-                                      std::ref(mtx), std::ref(cv)));
-    cv.wait(lock);
+    absl::Notification ready;
+    pollers_.emplace_back(&GrpcNetworkService::Worker, this, i,
+                          std::ref(ready));
+    ready.WaitForNotification();
   }
   return SuccessExecutionResult();
 }
@@ -117,16 +115,12 @@ ExecutionResult GrpcNetworkService::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-void GrpcNetworkService::Worker(size_t index, std::mutex& mtx,
-                                std::condition_variable& cv) {
+void GrpcNetworkService::Worker(size_t index, absl::Notification& ready) {
   auto queue = completion_queues_[index];
   GrpcTagManager<GrpcGenericContext> tag_manager;
   tag_manager.Allocate(queue, service_);
   // Unblock parent thread
-  {
-    std::scoped_lock<std::mutex> lock(mtx);
-    cv.notify_one();
-  }
+  ready.Notify();
   while (true) {
     bool ok = false;
     void* tag = nullptr;
