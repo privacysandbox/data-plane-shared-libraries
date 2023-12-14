@@ -68,3 +68,12 @@ test_cases {
   get_top_message_config {
   }
 }
+test_cases {
+  name: "FetchPrivateKeyConfig"
+  fetch_private_key_config {
+    key_id: "2400000000000000"
+    private_key_vending_service_endpoint: "https://privatekeyservice-a.pa-1.aws.privacysandboxservices.com/v1alpha/encryptionKeys"
+    service_region: "us-east-1"
+    account_identity: "arn:aws:iam::221820322062:role/mp-primary-staging_031246179129_coordinator_assume_role"
+  }
+}

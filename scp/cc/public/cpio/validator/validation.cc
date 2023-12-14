@@ -41,6 +41,7 @@
 #include "public/cpio/interface/cpio.h"
 #include "scp/cc/public/cpio/validator/blob_storage_client_validator.h"
 #include "scp/cc/public/cpio/validator/instance_client_validator.h"
+#include "scp/cc/public/cpio/validator/key_fetcher_validator.h"
 #include "scp/cc/public/cpio/validator/parameter_client_validator.h"
 #include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
 #include "scp/cc/public/cpio/validator/queue_client_validator.h"
@@ -241,6 +242,10 @@ int main(int argc, char* argv[]) {
       case TestCase::ClientConfigCase::kGetTopMessageConfig:
         google::scp::cpio::validator::RunGetTopMessageValidator(
             test_case.name());
+        break;
+      case TestCase::ClientConfigCase::kFetchPrivateKeyConfig:
+        google::scp::cpio::validator::RunFetchPrivateKeyValidator(
+            test_case.name(), test_case.fetch_private_key_config());
         break;
       default:
         std::cout << "[ FAILURE ] UNEXPECTED INPUT" << std::endl;

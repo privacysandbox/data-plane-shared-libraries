@@ -32,6 +32,7 @@ message TestCase {
     GetParameterConfig get_parameter_config = 6;
     EnqueueMessageConfig enqueue_message_config = 7;
     GetTopMessageConfig get_top_message_config = 8;
+    FetchPrivateKeyConfig fetch_private_key_config = 9;
   }
 }
 
@@ -59,3 +60,10 @@ message EnqueueMessageConfig {
 }
 
 message GetTopMessageConfig {}
+
+message FetchPrivateKeyConfig {
+  string key_id = 1;
+  string private_key_vending_service_endpoint = 2;
+  string service_region = 3;
+  string account_identity = 4;
+}
