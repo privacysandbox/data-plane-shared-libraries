@@ -201,11 +201,12 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgv) {
     v8::Local<v8::Array> local_list =
         ExecutionUtils::InputToLocalArgv(input_list);
     for (size_t idx = 0; idx < input_list.size(); ++idx) {
-      v8::String::Utf8Value output(
-          isolate_,
-          local_list->Get(context, idx).ToLocalChecked().As<v8::String>());
-      auto expected = input_list.at(idx);
-      EXPECT_EQ(*output, expected);
+      v8::MaybeLocal<v8::Value> maybe = local_list->Get(context, idx);
+      ASSERT_FALSE(maybe.IsEmpty());
+      const v8::Local<v8::Value>& value = maybe.ToLocalChecked();
+      ASSERT_TRUE(value->IsNumber());
+      const v8::String::Utf8Value output(isolate_, value.As<v8::Number>());
+      EXPECT_EQ(*output, input_list.at(idx));
     }
   }
 }
