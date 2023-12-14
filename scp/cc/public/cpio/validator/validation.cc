@@ -113,17 +113,17 @@ google::scp::core::ExecutionResult MakeRequest(
       });
 
   if (auto result = http_client.PerformRequest(context, kRequestTimeout);
-      !result) {
+      !result.Successful()) {
     return result;
   }
   finished.WaitForNotification();
   return context_result;
 }
 
-void CheckProxy() {
+void RunProxyValidator() {
   std::shared_ptr<google::scp::core::HttpClientInterface> http_client;
-  auto res = GlobalCpio::GetGlobalCpio()->GetHttp1Client(http_client);
-  if (!res) {
+  if (auto result = GlobalCpio::GetGlobalCpio()->GetHttp1Client(http_client);
+      !result.Successful()) {
     std::cout << "[ FAILURE ] Unable to get Http Client." << std::endl;
     return;
   }
@@ -132,7 +132,8 @@ void CheckProxy() {
   http_client->Run();
 
   if (!MakeRequest(*http_client, google::scp::core::HttpMethod::GET,
-                   "https://www.google.com/")) {
+                   "https://www.google.com/")
+           .Successful()) {
     std::cout
         << "[ FAILURE ] Could not connect to outside world. Check if proxy "
            "is running."
@@ -143,7 +144,8 @@ void CheckProxy() {
 
   if (!MakeRequest(*http_client, google::scp::core::HttpMethod::PUT,
                    "http://169.254.169.254/latest/api/token",
-                   {{"X-aws-ec2-metadata-token-ttl-seconds", "21600"}})) {
+                   {{"X-aws-ec2-metadata-token-ttl-seconds", "21600"}})
+           .Successful()) {
     std::cout << "[ FAILURE ] Could not access AWS resource. Check if proxy is "
                  "running."
               << std::endl;
@@ -194,7 +196,7 @@ int main(int argc, char* argv[]) {
     std::cout << GetValidatorFailedToRunMsg() << std::endl;
     return -1;
   }
-  CheckProxy();
+  RunProxyValidator();
   for (auto test_case : validator_config.test_cases()) {
     switch (test_case.client_config_case()) {
       case TestCase::ClientConfigCase::kGetTagsByResourceNameConfig:
@@ -225,7 +227,7 @@ int main(int argc, char* argv[]) {
         break;
     }
   }
-  std::cout << "[ SUCCESS ] Ran all validation tests. For individual statuses, "
+  std::cout << "Ran all validation tests. For individual statuses, "
                "see above."
             << std::endl;
   return 0;
