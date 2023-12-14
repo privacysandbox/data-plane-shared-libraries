@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <memory>
 
+#include "absl/base/thread_annotations.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
@@ -45,9 +46,16 @@ class MessageRouterTest : public ::testing::Test {
     EXPECT_SUCCESS(router_.Init());
     EXPECT_SUCCESS(router_.Run());
 
-    running_ = true;
+    {
+      absl::MutexLock l(&running_mu_);
+      running_ = true;
+    }
     thread_ = std::thread([this] {
-      while (running_) {
+      auto is_running = [this] {
+        absl::MutexLock l(&running_mu_);
+        return running_;
+      };
+      while (is_running()) {
         std::shared_ptr<AsyncContext<Any, Any>> context;
         auto dequeue_result = queue_->TryDequeue(context);
         if (dequeue_result.Successful()) {
@@ -65,7 +73,10 @@ class MessageRouterTest : public ::testing::Test {
   }
 
   void TearDown() override {
-    running_ = false;
+    {
+      absl::MutexLock l(&running_mu_);
+      running_ = false;
+    }
     thread_.join();
     EXPECT_SUCCESS(router_.Stop());
   }
@@ -77,7 +88,8 @@ class MessageRouterTest : public ::testing::Test {
   Any any_request_1_;
   Any any_request_2_;
   std::thread thread_;
-  bool running_;
+  absl::Mutex running_mu_;
+  bool running_ ABSL_GUARDED_BY(running_mu_);
 };
 
 TEST_F(MessageRouterTest, RequestNotSubscribed) {
