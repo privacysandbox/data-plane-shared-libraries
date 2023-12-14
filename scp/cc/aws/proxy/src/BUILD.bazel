@@ -77,6 +77,50 @@ buf_lint_test(
     targets = [":resolv_conf_getter_proto"],
 )
 
+pkg_files(
+    name = "resolv_conf_getter_server_bin",
+    srcs = [
+        ":resolv_conf_getter_server",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/opt/google/",
+)
+
+pkg_tar(
+    name = "resolv_conf_getter_server_tar",
+    srcs = [
+        ":resolv_conf_getter_server_bin",
+    ],
+)
+
+container_layer(
+    name = "resolv_conf_getter_server_layer",
+    directory = "/",
+    tars = [
+        ":resolv_conf_getter_server_tar",
+    ],
+)
+
+container_image(
+    name = "resolv_conf_getter_server_debian_image",
+    architecture = select({
+        "@platforms//cpu:aarch64": "arm64",
+        "@platforms//cpu:x86_64": "amd64",
+    }),
+    base = select({
+        "@platforms//cpu:aarch64": "@runtime-debian-debug-nonroot-arm64//image",
+        "@platforms//cpu:x86_64": "@runtime-debian-debug-nonroot-amd64//image",
+    }),
+    entrypoint = ["/opt/google/resolv_conf_getter_server"],
+    layers = [
+        ":resolv_conf_getter_server_layer",
+    ],
+    ports = ["1600"],
+    visibility = [
+        "//production/packaging/aws:__subpackages__",
+    ],
+)
+
 cc_library(
     name = "acceptor_pool",
     hdrs = ["acceptor_pool.h"],
