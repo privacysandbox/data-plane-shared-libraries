@@ -26,28 +26,12 @@
 
 namespace google::scp::cpio::validator {
 
-class InstanceClientValidator {
- public:
-  InstanceClientValidator() = default;
-  void RunGetCurrentInstanceResourceNameValidator(std::string_view name);
+void RunGetCurrentInstanceResourceNameValidator(std::string_view name);
 
-  void RunGetTagsByResourceNameValidator(
-      std::string_view name,
-      const google::scp::cpio::validator::proto::GetTagsByResourceNameConfig&
-          get_tags_by_resource_name_config);
+void RunGetTagsByResourceNameValidator(
+    std::string_view name,
+    const google::scp::cpio::validator::proto::GetTagsByResourceNameConfig&
+        get_tags_by_resource_name_config);
 
- private:
-  void GetCurrentInstanceResourceNameCallback(
-      std::string_view name, absl::Notification& finished,
-      google::scp::core::ExecutionResult result,
-      google::cmrt::sdk::instance_service::v1::
-          GetCurrentInstanceResourceNameResponse get_resource_name_response);
-
-  void GetTagsByResourceNameCallback(
-      std::string_view name, absl::Notification& finished,
-      google::scp::core::ExecutionResult result,
-      google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse
-          get_tags_response);
-};
 };      // namespace google::scp::cpio::validator
 #endif  // PUBLIC_CPIO_VALIDATOR_INSTANCE_CLIENT_VALIDATOR_H_

@@ -22,20 +22,14 @@
 
 namespace google::scp::cpio::validator {
 
-class BlobStorageClientValidator {
- public:
-  BlobStorageClientValidator() = default;
+void RunGetBlobValidator(
+    std::string_view name,
+    const google::scp::cpio::validator::proto::GetBlobConfig& get_blob_config);
 
-  void RunGetBlobValidator(
-      std::string_view name,
-      const google::scp::cpio::validator::proto::GetBlobConfig&
-          get_blob_config);
+void RunListBlobsMetadataValidator(
+    std::string_view name,
+    const google::scp::cpio::validator::proto::ListBlobsMetadataConfig&
+        list_blobs_metadata_config);
 
-  void RunListBlobsMetadataValidator(
-      std::string_view name,
-      const google::scp::cpio::validator::proto::ListBlobsMetadataConfig&
-          list_blobs_metadata_config);
-};
-}  // namespace google::scp::cpio::validator
-
+};      // namespace google::scp::cpio::validator
 #endif  // PUBLIC_CPIO_VALIDATOR_BLOB_STORAGE_CLIENT_VALIDATOR_H_

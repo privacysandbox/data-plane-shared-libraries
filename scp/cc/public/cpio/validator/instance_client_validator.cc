@@ -38,9 +38,43 @@ using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
 using google::scp::cpio::InstanceClientFactory;
 using google::scp::cpio::validator::proto::GetTagsByResourceNameConfig;
+
+void GetCurrentInstanceResourceNameCallback(
+    std::string_view name, absl::Notification& finished,
+    google::scp::core::ExecutionResult result,
+    GetCurrentInstanceResourceNameResponse get_resource_name_response) {
+  if (!result.Successful()) {
+    std::cout << "[ FAILURE ] " << name << " "
+              << google::scp::core::GetErrorMessage(result.status_code)
+              << std::endl;
+  } else {
+    std::cout << "[ SUCCESS ] " << name << " " << std::endl;
+    LOG(INFO) << "GetCurrentInstanceResourceName. Instance resource name: "
+              << get_resource_name_response.instance_resource_name();
+  }
+  finished.Notify();
+}
+
+void GetTagsByResourceNameCallback(
+    std::string_view name, absl::Notification& finished,
+    google::scp::core::ExecutionResult result,
+    GetTagsByResourceNameResponse get_tags_response) {
+  if (!result.Successful()) {
+    std::cout << "[ FAILURE ] " << name << " "
+              << google::scp::core::GetErrorMessage(result.status_code)
+              << std::endl;
+  } else {
+    std::cout << "[ SUCCESS ] " << name << " " << std::endl;
+    LOG(INFO) << "GetTagsByResourceName. Tags: ";
+    for (const auto& tag : get_tags_response.tags()) {
+      LOG(INFO) << tag.first << " : " << tag.second;
+    }
+  }
+  finished.Notify();
+}
 }  // namespace
 
-void InstanceClientValidator::RunGetTagsByResourceNameValidator(
+void RunGetTagsByResourceNameValidator(
     std::string_view name,
     const GetTagsByResourceNameConfig& get_tags_by_resource_name_config) {
   if (get_tags_by_resource_name_config.resource_name().empty()) {
@@ -72,9 +106,8 @@ void InstanceClientValidator::RunGetTagsByResourceNameValidator(
   google::scp::core::ExecutionResult result =
       instance_client->GetTagsByResourceName(
           std::move(get_tags_request),
-          absl::bind_front(
-              &InstanceClientValidator::GetTagsByResourceNameCallback, this,
-              name, std::ref(finished)));
+          absl::bind_front(&GetTagsByResourceNameCallback, name,
+                           std::ref(finished)));
   if (!result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "
               << google::scp::core::GetErrorMessage(result.status_code)
@@ -90,8 +123,7 @@ void InstanceClientValidator::RunGetTagsByResourceNameValidator(
   }
 }
 
-void InstanceClientValidator::RunGetCurrentInstanceResourceNameValidator(
-    std::string_view name) {
+void RunGetCurrentInstanceResourceNameValidator(std::string_view name) {
   google::scp::cpio::InstanceClientOptions instance_client_options;
   auto instance_client = InstanceClientFactory::Create(instance_client_options);
   if (google::scp::core::ExecutionResult result = instance_client->Init();
@@ -112,9 +144,8 @@ void InstanceClientValidator::RunGetCurrentInstanceResourceNameValidator(
   google::scp::core::ExecutionResult result =
       instance_client->GetCurrentInstanceResourceName(
           GetCurrentInstanceResourceNameRequest(),
-          absl::bind_front(
-              &InstanceClientValidator::GetCurrentInstanceResourceNameCallback,
-              this, name, std::ref(finished)));
+          absl::bind_front(&GetCurrentInstanceResourceNameCallback, name,
+                           std::ref(finished)));
 
   if (!result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "
@@ -129,40 +160,6 @@ void InstanceClientValidator::RunGetCurrentInstanceResourceNameValidator(
               << google::scp::core::GetErrorMessage(result.status_code)
               << std::endl;
   }
-}
-
-void InstanceClientValidator::GetCurrentInstanceResourceNameCallback(
-    std::string_view name, absl::Notification& finished,
-    google::scp::core::ExecutionResult result,
-    GetCurrentInstanceResourceNameResponse get_resource_name_response) {
-  if (!result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << google::scp::core::GetErrorMessage(result.status_code)
-              << std::endl;
-  } else {
-    std::cout << "[ SUCCESS ] " << name << " " << std::endl;
-    LOG(INFO) << "GetCurrentInstanceResourceName. Instance resource name: "
-              << get_resource_name_response.instance_resource_name();
-  }
-  finished.Notify();
-}
-
-void InstanceClientValidator::GetTagsByResourceNameCallback(
-    std::string_view name, absl::Notification& finished,
-    google::scp::core::ExecutionResult result,
-    GetTagsByResourceNameResponse get_tags_response) {
-  if (!result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << google::scp::core::GetErrorMessage(result.status_code)
-              << std::endl;
-  } else {
-    std::cout << "[ SUCCESS ] " << name << " " << std::endl;
-    LOG(INFO) << "GetTagsByResourceName. Tags: ";
-    for (const auto& tag : get_tags_response.tags()) {
-      LOG(INFO) << tag.first << " : " << tag.second;
-    }
-  }
-  finished.Notify();
 }
 
 };  // namespace google::scp::cpio::validator

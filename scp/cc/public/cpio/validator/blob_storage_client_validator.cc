@@ -36,7 +36,7 @@ using google::scp::cpio::validator::proto::GetBlobConfig;
 using google::scp::cpio::validator::proto::ListBlobsMetadataConfig;
 }  // namespace
 
-void BlobStorageClientValidator::RunListBlobsMetadataValidator(
+void RunListBlobsMetadataValidator(
     std::string_view name,
     const ListBlobsMetadataConfig& list_blobs_metadata_config) {
   if (list_blobs_metadata_config.bucket_name().empty()) {
@@ -95,8 +95,8 @@ void BlobStorageClientValidator::RunListBlobsMetadataValidator(
   }
 }
 
-void BlobStorageClientValidator::RunGetBlobValidator(
-    std::string_view name, const GetBlobConfig& get_blob_config) {
+void RunGetBlobValidator(std::string_view name,
+                         const GetBlobConfig& get_blob_config) {
   if (get_blob_config.bucket_name().empty()) {
     std::cout << "[ FAILURE ] " << name << " No bucket_name provided."
               << std::endl;

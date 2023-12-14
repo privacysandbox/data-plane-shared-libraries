@@ -37,8 +37,8 @@ using google::scp::cpio::ParameterClientFactory;
 using google::scp::cpio::validator::proto::GetParameterConfig;
 }  // namespace
 
-void ParameterClientValidator::RunGetParameterValidator(
-    std::string_view name, const GetParameterConfig& get_parameter_config) {
+void RunGetParameterValidator(std::string_view name,
+                              const GetParameterConfig& get_parameter_config) {
   if (get_parameter_config.parameter_name().empty()) {
     std::cout << "[ FAILURE ] " << name << " No parameter name provided.";
     return;
