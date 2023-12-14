@@ -23,7 +23,6 @@ cc_test(
     srcs = [
         "http2_client_test.cc",
     ],
-    tags = ["notsan"],  # TODO(b/307540489) - Fix TSAN errors in this test.
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",

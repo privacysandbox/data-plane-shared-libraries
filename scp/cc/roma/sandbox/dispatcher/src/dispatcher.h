@@ -169,6 +169,8 @@ class Dispatcher {
     auto schedule_result = async_executor_->Schedule(
         [this, index, request = std::move(request),
          callback = std::move(callback)]() mutable {
+          // TODO(b/316381107): This callback references `this` but may be
+          // executed after this object is destroyed.
           std::unique_ptr<absl::StatusOr<ResponseObject>> response_or;
 
           auto worker_or = worker_pool_->GetWorker(index);

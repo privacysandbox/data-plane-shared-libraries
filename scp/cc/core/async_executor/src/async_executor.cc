@@ -112,10 +112,10 @@ ExecutionResultOr<TaskExecutorType*> AsyncExecutor::PickTaskExecutor(
     const std::vector<std::unique_ptr<TaskExecutorType>>& task_executor_pool,
     TaskExecutorPoolType task_executor_pool_type,
     TaskLoadBalancingScheme task_load_balancing_scheme) const {
-  // TODO(b/315843659) Remove race conditions from twister use.
-  static std::random_device random_device_local;
-  static std::mt19937 random_generator(random_device_local());
-  static std::uniform_int_distribution<uint64_t> distribution;
+  // TODO(b/316372841): Use abseil random library instead.
+  static thread_local std::random_device random_device_local;
+  static thread_local std::mt19937 random_generator(random_device_local());
+  static thread_local std::uniform_int_distribution<uint64_t> distribution;
 
   // Thread local task counters, initial value of the task counter with a random
   // value so that all the caller threads do not pick the same executor to start

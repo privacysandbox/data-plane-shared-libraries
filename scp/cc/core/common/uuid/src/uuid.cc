@@ -32,11 +32,13 @@
 namespace google::scp::core::common {
 
 Uuid Uuid::GenerateUuid() noexcept {
+  // TODO(b/316599538): Remove use of atomic.
   static std::atomic<Timestamp> current_clock =
       TimeProvider::GetWallTimestampInNanosecondsAsClockTicks();
-  static std::random_device random_device_local;
-  static std::mt19937 random_generator(random_device_local());
 
+  // TODO(b/316372841): Use abseil random library instead.
+  static thread_local std::random_device random_device_local;
+  static thread_local std::mt19937 random_generator(random_device_local());
   std::uniform_int_distribution<uint64_t> distribution;
   return Uuid{
       .high = current_clock.fetch_add(1),

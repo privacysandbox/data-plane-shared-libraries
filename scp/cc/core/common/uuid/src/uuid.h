@@ -51,7 +51,7 @@ struct Uuid {
 
   bool operator<(const Uuid& other) const { return high < other.high; }
 
-  /// Generates a random Uuid.
+  /// Generates a random Uuid. Threadsafe.
   static Uuid GenerateUuid() noexcept;
 };
 

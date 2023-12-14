@@ -44,8 +44,6 @@ cc_test(
     srcs = ["buffer_size_test.cc"],
     tags = [
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
-        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
-        "noubsan",  # TODO(b/307540489) - Fix UBSAN errors in this test.
     ],
     deps = [
         ":roma_service_lib",
@@ -62,7 +60,6 @@ cc_test(
     srcs = ["function_binding_test.cc"],
     tags = [
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
-        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
         "noubsan",  # TODO(b/307540489) - Fix UBSAN errors in this test.
     ],
     deps = [
@@ -82,8 +79,6 @@ cc_test(
     srcs = ["metadata_test.cc"],
     tags = [
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
-        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
-        "noubsan",  # TODO(b/307540489) - Fix UBSAN errors in this test.
     ],
     deps = [
         ":roma_service_lib",
@@ -128,7 +123,6 @@ cc_test(
     tags = [
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
         "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
-        "noubsan",  # TODO(b/307540489) - Fix UBSAN errors in this test.
     ],
     deps = [
         ":roma_service_lib",
