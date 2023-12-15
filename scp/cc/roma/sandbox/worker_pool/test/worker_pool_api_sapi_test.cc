@@ -29,27 +29,21 @@ using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 
 namespace {
-WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
-  WorkerApiSapiConfig config;
-  config.js_engine_require_code_preload = true;
-  config.compilation_context_cache_size = 5;
-  config.native_js_function_comms_fd = -1;
-  config.native_js_function_names = std::vector<std::string>();
-  config.max_worker_virtual_memory_mb = 0;
-  config.sandbox_request_response_shared_buffer_size_mb = 0;
-  config.enable_sandbox_sharing_request_response_with_buffer_only = false;
-  return config;
-}
+const WorkerApiSapiConfig worker_config = {
+    .js_engine_require_code_preload = true,
+    .compilation_context_cache_size = 5,
+    .native_js_function_comms_fd = -1,
+    .native_js_function_names = {},
+    .max_worker_virtual_memory_mb = 0,
+    .sandbox_request_response_shared_buffer_size_mb = 0,
+    .enable_sandbox_sharing_request_response_with_buffer_only = false,
+};
 }  // namespace
 
 namespace google::scp::roma::sandbox::worker_pool::test {
 TEST(WorkerPoolTest, CanInitRunAndStop) {
-  int num_workers = 4;
-  std::vector<WorkerApiSapiConfig> configs;
-  for (int i = 0; i < num_workers; i++) {
-    configs.push_back(CreateWorkerApiSapiConfig());
-  }
-
+  constexpr int num_workers = 4;
+  std::vector<WorkerApiSapiConfig> configs(num_workers, worker_config);
   auto pool = WorkerPoolApiSapi(configs);
 
   auto result = pool.Init();
@@ -63,12 +57,8 @@ TEST(WorkerPoolTest, CanInitRunAndStop) {
 }
 
 TEST(WorkerPoolTest, CanGetPoolCount) {
-  int num_workers = 2;
-  std::vector<WorkerApiSapiConfig> configs;
-  for (int i = 0; i < num_workers; i++) {
-    configs.push_back(CreateWorkerApiSapiConfig());
-  }
-
+  constexpr int num_workers = 2;
+  std::vector<WorkerApiSapiConfig> configs(num_workers, worker_config);
   auto pool = WorkerPoolApiSapi(configs);
 
   auto result = pool.Init();
@@ -77,7 +67,7 @@ TEST(WorkerPoolTest, CanGetPoolCount) {
   result = pool.Run();
   EXPECT_SUCCESS(result);
 
-  EXPECT_EQ(pool.GetPoolSize(), 2);
+  EXPECT_EQ(pool.GetPoolSize(), num_workers);
 
   result = pool.Stop();
   EXPECT_SUCCESS(result);
@@ -87,7 +77,7 @@ TEST(WorkerPoolTest, CanGetWorker) {
   int num_workers = 2;
   std::vector<WorkerApiSapiConfig> configs;
   for (int i = 0; i < num_workers; i++) {
-    configs.push_back(CreateWorkerApiSapiConfig());
+    configs.push_back(worker_config);
   }
 
   auto pool = WorkerPoolApiSapi(configs);
