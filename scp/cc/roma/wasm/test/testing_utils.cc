@@ -34,4 +34,12 @@ std::vector<char> WasmTestingUtils::LoadWasmFile(const std::string& file_path) {
 
   return file_contents;
 }
+
+std::string WasmTestingUtils::LoadJsWithWasmFile(const std::string& file_path) {
+  std::ifstream input_file(file_path);
+  CHECK(input_file.good()) << "File: " + file_path + " does not exist.";
+  std::stringstream buffer;
+  buffer << input_file.rdbuf();
+  return buffer.str();
+}
 }  // namespace google::scp::roma::wasm::testing

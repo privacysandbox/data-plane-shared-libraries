@@ -214,6 +214,7 @@ class ExecutionUtils {
 
   static core::ExecutionResult CreatePerformanceNow(v8::Isolate* isolate);
   static core::ExecutionResult CreateNativeLogFunctions(v8::Isolate* isolate);
+  static core::ExecutionResult CreateWasmLogFunctions(v8::Isolate* isolate);
 };
 }  // namespace google::scp::roma::worker
 

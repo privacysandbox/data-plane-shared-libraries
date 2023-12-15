@@ -25,6 +25,8 @@ namespace google::scp::roma::wasm::testing {
 class WasmTestingUtils {
  public:
   static std::vector<char> LoadWasmFile(const std::string& file_path);
+
+  static std::string LoadJsWithWasmFile(const std::string& file_path);
 };
 }  // namespace google::scp::roma::wasm::testing
 

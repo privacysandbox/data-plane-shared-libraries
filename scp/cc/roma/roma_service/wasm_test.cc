@@ -22,6 +22,8 @@
 #include <utility>
 #include <vector>
 
+#include "absl/log/log.h"
+#include "absl/log/scoped_mock_log.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "roma/config/src/config.h"
@@ -99,6 +101,88 @@ TEST(WasmTest, CanExecuteWasmCode) {
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
+}
+
+TEST(WasmTest, CanLogFromInlineWasmCode) {
+  Config config;
+  config.number_of_workers = 2;
+  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto status = roma_service->Init();
+  EXPECT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  absl::ScopedMockLog log;
+  EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, testing::_, "LOG_STRING"));
+  EXPECT_CALL(log, Log(absl::LogSeverity::kError, testing::_, "ERR_STRING"));
+  log.StartCapturingLogs();
+  {
+    const std::string inline_wasm_js = WasmTestingUtils::LoadJsWithWasmFile(
+        "./scp/cc/roma/testing/cpp_wasm_hello_world_example/"
+        "hello_world_udf_generated.js");
+
+    const std::string udf = R"(
+      async function HandleRequest(input, log_input, err_input) {
+        roma.n_log("JS HandleRequest START");
+        const module = await getModule();
+        roma.n_log("WASM loaded");
+
+        const result = module.HelloClass.SayHello(input, log_input,
+        err_input);
+        roma.n_log("C++ result: " + result);
+        return result;
+      }
+    )";
+
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = absl::StrCat(inline_wasm_js, udf),
+    });
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "HandleRequest",
+        });
+    execution_obj->input.push_back(R"("Foobar")");
+    execution_obj->input.push_back(R"("LOG_STRING")");
+    execution_obj->input.push_back(R"("ERR_STRING")");
+
+    status = roma_service->Execute(
+        std::move(execution_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          if (resp->ok()) {
+            auto& code_resp = **resp;
+            result = code_resp.resp;
+          }
+          execute_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_THAT(result, StrEq(R"("Hello from C++! Input: Foobar")"));
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
+
+  log.StopCapturingLogs();
 }
 
 TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {

@@ -19,7 +19,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 """Initialize the shared control plane repository."""
 
-EMSCRIPTEN_VER = "3.1.44"
+EMSCRIPTEN_VER = "3.1.41"
 
 def cpp_dependencies():
     maybe(
@@ -119,7 +119,7 @@ def cpp_dependencies():
     maybe(
         http_archive,
         name = "emsdk",
-        sha256 = "48c0dd06539011a62ec1069a6c69e283731dabdb20454c45fb344dede421b5ad",
+        sha256 = "293eb67df598f44b23a07e247fc81107029eff7cd3b38d4ff531e32bf8a951eb",
         strip_prefix = "emsdk-{ver}/bazel".format(ver = EMSCRIPTEN_VER),
         url = "https://github.com/emscripten-core/emsdk/archive/refs/tags/{ver}.zip".format(ver = EMSCRIPTEN_VER),
     )

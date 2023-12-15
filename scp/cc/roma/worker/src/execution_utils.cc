@@ -98,6 +98,33 @@ ExecutionResult ExecutionUtils::CreateNativeLogFunctions(v8::Isolate* isolate) {
   return core::SuccessExecutionResult();
 }
 
+ExecutionResult ExecutionUtils::CreateWasmLogFunctions(v8::Isolate* isolate) {
+  v8::Local<v8::Context> context(isolate->GetCurrentContext());
+
+  constexpr auto js_code = R"(
+    if (typeof(ROMA_LOG) !== 'undefined') {
+      print = ROMA_LOG;
+      printErr = ROMA_ERROR;
+    }
+  )";
+  v8::Local<v8::String> source =
+      v8::String::NewFromUtf8(isolate, js_code).ToLocalChecked();
+
+  v8::Local<v8::Script> script;
+  if (!v8::Script::Compile(context, source).ToLocal(&script)) {
+    return core::FailureExecutionResult(
+        core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE);
+  }
+
+  v8::Local<v8::Value> script_result;
+  if (!script->Run(context).ToLocal(&script_result)) {
+    return core::FailureExecutionResult(
+        core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE);
+  }
+
+  return core::SuccessExecutionResult();
+}
+
 ExecutionResult ExecutionUtils::CompileRunJS(
     const std::string& js, std::string& err_msg,
     v8::Local<v8::UnboundScript>* unbound_script) noexcept {
@@ -111,6 +138,11 @@ ExecutionResult ExecutionUtils::CompileRunJS(
   }
 
   if (auto result = CreateNativeLogFunctions(isolate); !result.Successful()) {
+    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
+    return result;
+  }
+
+  if (auto result = CreateWasmLogFunctions(isolate); !result.Successful()) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
     return result;
   }
