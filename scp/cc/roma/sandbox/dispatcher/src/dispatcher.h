@@ -58,6 +58,16 @@ class Dispatcher {
         << "code_version_cache_size cannot be zero";
   }
 
+  // Block until scheduled requests are complete.
+  ~Dispatcher() {
+    auto fn = [this] {
+      pending_requests_mu_.AssertReaderHeld();
+      return pending_requests_ == 0;
+    };
+    absl::MutexLock l(&pending_requests_mu_);
+    pending_requests_mu_.Await(absl::Condition(&fn));
+  }
+
   /**
    * @brief Dispatch a set of requests. This function will block until all the
    * requests have been dispatched. This uses Dispatch.
@@ -165,12 +175,14 @@ class Dispatcher {
       code_object_cache_.Set(request->version_string, *request);
     }
 
+    {
+      absl::MutexLock l(&pending_requests_mu_);
+      pending_requests_++;
+    }
     const auto& request_id = request->id;
     auto schedule_result = async_executor_->Schedule(
         [this, index, request = std::move(request),
          callback = std::move(callback)]() mutable {
-          // TODO(b/316381107): This callback references `this` but may be
-          // executed after this object is destroyed.
           std::unique_ptr<absl::StatusOr<ResponseObject>> response_or;
 
           auto worker_or = worker_pool_->GetWorker(index);
@@ -275,8 +287,9 @@ class Dispatcher {
     if (schedule_result.Successful()) {
       ROMA_VLOG(1) << "Successfully schedule the execution for request "
                    << request_id << " in worker " << index;
+    } else {
       absl::MutexLock l(&pending_requests_mu_);
-      pending_requests_++;
+      pending_requests_--;
     }
 
     return schedule_result;
