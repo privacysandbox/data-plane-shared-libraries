@@ -17,14 +17,12 @@
 #ifndef PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_AGGREGATE_METRIC_H_
 #define PUBLIC_CPIO_UTILS_METRIC_AGGREGATION_SRC_AGGREGATE_METRIC_H_
 
-#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
-#include "absl/container/node_hash_map.h"
 #include "absl/synchronization/mutex.h"
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
@@ -58,17 +56,20 @@ class AggregateMetric : public AggregateMetricInterface {
 
   core::ExecutionResult Init() noexcept override;
 
-  core::ExecutionResult Run() noexcept override;
+  core::ExecutionResult Run() noexcept override
+      ABSL_LOCKS_EXCLUDED(task_schedule_mutex_);
 
   core::ExecutionResult Stop() noexcept override
       ABSL_LOCKS_EXCLUDED(task_schedule_mutex_);
 
   core::ExecutionResult Increment(
-      const std::string& event_code = std::string()) noexcept override;
+      const std::string& event_code = std::string()) noexcept override
+      ABSL_LOCKS_EXCLUDED(task_schedule_mutex_);
 
   core::ExecutionResult IncrementBy(
       uint64_t value,
-      const std::string& event_code = std::string()) noexcept override;
+      const std::string& event_code = std::string()) noexcept override
+      ABSL_LOCKS_EXCLUDED(task_schedule_mutex_);
 
  protected:
   /**
@@ -87,7 +88,8 @@ class AggregateMetric : public AggregateMetricInterface {
    * avoid memory increases overtime. In the case of errors an alert must be
    * raised.
    */
-  virtual void RunMetricPush() noexcept;
+  virtual void RunMetricPush() noexcept
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(task_schedule_mutex_);
 
   /**
    * @brief Schedules a round of metric push in the next time_duration_.
@@ -95,12 +97,13 @@ class AggregateMetric : public AggregateMetricInterface {
    * @return core::ExecutionResult
    */
   virtual core::ExecutionResult ScheduleMetricPush() noexcept
-      ABSL_LOCKS_EXCLUDED(task_schedule_mutex_);
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(task_schedule_mutex_);
 
   /// The map contains the event codes paired with its counter. The
   /// event_counter is associated with the event_code.
   /// Use `node_hash_map` because value type is not movable.
-  absl::node_hash_map<std::string, std::atomic<size_t>> event_counters_;
+  absl::flat_hash_map<std::string, size_t> event_counters_
+      ABSL_GUARDED_BY(task_schedule_mutex_);
 
   /// The map contains the event codes paired with its metric definition.
   absl::flat_hash_map<std::string, const MetricDefinition> event_metric_infos_;
@@ -119,21 +122,26 @@ class AggregateMetric : public AggregateMetricInterface {
   /// event_code or metric_tag, and it defined by metric_info_ only. When
   /// construct AggregateMetric without event_code_labels_list, this is the only
   /// default counter in AggregateMetric.
-  std::atomic<size_t> counter_;
+  size_t counter_ ABSL_GUARDED_BY(task_schedule_mutex_);
 
   /// The cancellation callback.
   std::function<bool()> current_cancellation_callback_;
 
   /// Indicates whether the component stopped
-  std::atomic<bool> is_running_;
+  bool is_running_ ABSL_GUARDED_BY(task_schedule_mutex_);
 
-  /// Indicates whether the component can take metric increments
-  std::atomic<bool> can_accept_incoming_increments_;
+  /// Indicates whether the component can take metric increments. Exclusively
+  /// used for mocking.
+  bool can_accept_incoming_increments_;
 
   static constexpr char kEventCodeLabelKey[] = "EventCode";
 
   /// @brief activity ID for the lifetime of the object
   const core::common::Uuid object_activity_id_;
+
+  /// Number of pending requests. Used to ensure no callbacks are scheduled with
+  /// dangling pointers to this object.
+  int num_pending_requests_ ABSL_GUARDED_BY(task_schedule_mutex_) = 0;
 
   /// @brief mutex to protect scheduling new tasks while stopping the component
   absl::Mutex task_schedule_mutex_;

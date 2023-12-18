@@ -107,50 +107,46 @@ ExecutionResult AggregateMetric::Init() noexcept {
 }
 
 ExecutionResult AggregateMetric::Run() noexcept {
+  absl::MutexLock l(&task_schedule_mutex_);
   if (is_running_) {
     return FailureExecutionResult(
         core::errors::SC_CUSTOMIZED_METRIC_ALREADY_RUNNING);
+  } else {
+    is_running_ = true;
+    can_accept_incoming_increments_ = true;
   }
-  is_running_ = true;
-  can_accept_incoming_increments_ = true;
   return ScheduleMetricPush();
 }
 
 ExecutionResult AggregateMetric::Stop() noexcept {
-  if (!is_running_) {
-    return FailureExecutionResult(
-        core::errors::SC_CUSTOMIZED_METRIC_NOT_RUNNING);
-  }
-
-  can_accept_incoming_increments_ = false;
-
-  // Wait until all of the event counters are flushed.
-  while (counter_.load() > 0) {
-    SCP_DEBUG(kAggregateMetric, object_activity_id_,
-              "Waiting for the counter to be flushed. Current value '%llu'",
-              counter_.load());
-    std::this_thread::sleep_for(kStopWaitSleepDuration);
-  }
-  for (auto& [_, event_counter] : event_counters_) {
-    while (event_counter.load() > 0) {
-      SCP_DEBUG(kAggregateMetric, object_activity_id_,
-                "Waiting for the counter to be flushed. Current value '%llu'",
-                event_counter.load());
-      std::this_thread::sleep_for(kStopWaitSleepDuration);
-    }
-  }
-
-  // Take the schedule mutex to disallow new tasks to be scheduled while
-  // stopping
   {
     absl::MutexLock lock(&task_schedule_mutex_);
+    if (!is_running_) {
+      return FailureExecutionResult(
+          core::errors::SC_CUSTOMIZED_METRIC_NOT_RUNNING);
+    }
     is_running_ = false;
+    can_accept_incoming_increments_ = false;
+
+    // Wait until all of the event counters are flushed and there are no pending
+    // requests.
+    SCP_DEBUG(kAggregateMetric, object_activity_id_,
+              "Waiting for the counter to be flushed.");
+    auto fn = [this] {
+      task_schedule_mutex_.AssertReaderHeld();
+      for (const auto& [_, event_counter] : event_counters_) {
+        if (event_counter > 0) {
+          return false;
+        }
+      }
+      return counter_ == 0 && num_pending_requests_ == 0;
+    };
+    task_schedule_mutex_.Await(absl::Condition(&fn));
   }
 
   // At this point no more tasks can be scheduled, so it is safe to access this
   // 'current_cancellation_callback_' member, i.e. in other words, there is no
   // concurrent write on this while we are accessing it.
-
   if (current_cancellation_callback_) {
     current_cancellation_callback_();
   }
@@ -164,6 +160,7 @@ ExecutionResult AggregateMetric::Increment(
 
 core::ExecutionResult AggregateMetric::IncrementBy(
     uint64_t value, const std::string& event_code) noexcept {
+  absl::MutexLock l(&task_schedule_mutex_);
   if (!can_accept_incoming_increments_) {
     return FailureExecutionResult(
         core::errors::SC_CUSTOMIZED_METRIC_CANNOT_INCREMENT_WHEN_NOT_RUNNING);
@@ -194,14 +191,15 @@ void AggregateMetric::MetricPushHandler(
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
         if (!context.result.Successful()) {
           std::vector<std::string> metric_names;
-          for (auto& metric : context.request->metrics()) {
+          metric_names.reserve(context.request->metrics_size());
+          for (const auto& metric : context.request->metrics()) {
             metric_names.push_back(metric.name());
           }
           // TODO: Create an alert or reschedule
           SCP_CRITICAL(kAggregateMetric, object_activity_id_, context.result,
                        "PutMetrics returned a failure for '%llu' metrics. The "
                        "metrics are: '%s'",
-                       context.request->metrics().size(),
+                       context.request->metrics_size(),
                        absl::StrJoin(metric_names, ", ").c_str());
         }
       },
@@ -217,41 +215,34 @@ void AggregateMetric::MetricPushHandler(
         "Cannot schedule PutMetrics on AsyncExecutor for '%llu' metrics",
         metrics_count)
   }
-  return;
 }
 
 void AggregateMetric::RunMetricPush() noexcept {
-  auto value = counter_.exchange(0);
-  if (value > 0) {
-    MetricPushHandler(value, metric_info_);
+  if (counter_ > 0) {
+    MetricPushHandler(counter_, metric_info_);
   }
-
-  for (auto event = event_counters_.begin(); event != event_counters_.end();
-       ++event) {
-    auto value = event->second.exchange(0);
-    if (value > 0) {
-      MetricPushHandler(value, event_metric_infos_.at(event->first));
+  counter_ = 0;
+  for (auto& [event, counter] : event_counters_) {
+    if (counter > 0) {
+      MetricPushHandler(counter, event_metric_infos_.at(event));
     }
+    counter = 0;
   }
-  return;
 }
 
 ExecutionResult AggregateMetric::ScheduleMetricPush() noexcept {
-  absl::MutexLock lock(&task_schedule_mutex_);
-
   if (!is_running_) {
     return FailureExecutionResult(
         core::errors::SC_CUSTOMIZED_METRIC_NOT_RUNNING);
   }
-
   Timestamp next_push_time =
       (TimeProvider::GetSteadyTimestampInNanoseconds() +
        std::chrono::milliseconds(push_interval_duration_in_ms_))
           .count();
+  num_pending_requests_++;
   auto execution_result = async_executor_->ScheduleFor(
-      [this]() {
-        // TODO(b/316383890): Task captures `this` which may be destroyed before
-        // this call happens.
+      [this] {
+        absl::MutexLock l(&task_schedule_mutex_);
         RunMetricPush();
         if (auto execution_result = ScheduleMetricPush();
             !execution_result.Successful()) {
@@ -261,12 +252,13 @@ ExecutionResult AggregateMetric::ScheduleMetricPush() noexcept {
                         "will be a metrics loss after this since no more "
                         "pushes will be done.");
         }
+        num_pending_requests_--;
       },
       next_push_time, current_cancellation_callback_);
   if (!execution_result.Successful()) {
+    num_pending_requests_--;
     return FailureExecutionResult(SC_CUSTOMIZED_METRIC_PUSH_CANNOT_SCHEDULE);
   }
-
   return SuccessExecutionResult();
 }
 }  // namespace google::scp::cpio

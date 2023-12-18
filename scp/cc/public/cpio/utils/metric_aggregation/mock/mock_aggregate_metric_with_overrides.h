@@ -56,12 +56,12 @@ class MockAggregateMetricOverrides : public AggregateMetric {
 
   size_t GetCounter(const std::string& event_code = std::string()) {
     if (event_code.empty()) {
-      return AggregateMetric::counter_.load();
+      return AggregateMetric::counter_;
     }
 
     auto event = event_counters_.find(event_code);
     if (event != event_counters_.end()) {
-      return event->second.load();
+      return event->second;
     }
     return 0;
   }

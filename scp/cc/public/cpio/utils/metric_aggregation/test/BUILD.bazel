@@ -84,14 +84,6 @@ cc_test(
     name = "metric_instance_factory_test",
     size = "small",
     srcs = ["metric_instance_factory_test.cc"],
-    copts = [
-        "-std=c++17",
-    ],
-    tags = [
-        # TODO(b/316383890): Fix RunMetricPush call to dangling AggregateMetric.
-        "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
-        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
-    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
