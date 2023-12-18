@@ -22,6 +22,7 @@
 #include <memory>
 #include <mutex>
 #include <string_view>
+#include <thread>
 #include <utility>
 
 #include <google/protobuf/text_format.h>
@@ -64,7 +65,7 @@ std::string_view GetValidatorFailedToRunMsg() {
          "above.";
 }
 
-void RunDnsLookupValidator() {
+void RunDnsLookupValidator(absl::Notification& finished, bool& successful) {
   const struct addrinfo hints = {
       .ai_family = AF_INET,
       .ai_socktype = SOCK_STREAM,
@@ -75,11 +76,13 @@ void RunDnsLookupValidator() {
     std::cout << "[ FAILURE ] getaddrinfo: " << gai_strerror(err_code)
               << ". Check /etc/resolv.conf. Verify if proxy is running."
               << std::endl;
+    successful = false;
+    finished.Notify();
     return;
   }
   std::cout << "[ SUCCESS ] DNS lookup succeeded for host " << kHostName
             << std::endl;
-  for (auto rp = addr_infos; rp != NULL; rp = rp->ai_next) {
+  for (auto rp = addr_infos; rp != nullptr; rp = rp->ai_next) {
     char host[NI_MAXHOST];
     char service[NI_MAXSERV];
 
@@ -88,6 +91,8 @@ void RunDnsLookupValidator() {
     LOG(INFO) << "host: " << host << "\t\t service: " << service;
   }
   freeaddrinfo(addr_infos);
+  successful = true;
+  finished.Notify();
 }
 
 google::scp::core::ExecutionResult MakeRequest(
@@ -159,7 +164,19 @@ int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
 
-  RunDnsLookupValidator();
+  absl::Notification finished;
+  bool successful;
+  std::thread dns_lookup_thread(&RunDnsLookupValidator, std::ref(finished),
+                                std::ref(successful));
+  dns_lookup_thread.detach();
+  if (!finished.WaitForNotificationWithTimeout(kRequestTimeout)) {
+    std::cout << "[ FAILURE ] DNS lookup timed out." << std::endl;
+    successful = false;
+  }
+  if (!successful) {
+    GetValidatorFailedToRunMsg();
+    return -1;
+  }
 
   ValidatorConfig validator_config;
   int fd = open(kValidatorConfigPath, O_RDONLY);
