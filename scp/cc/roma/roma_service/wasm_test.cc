@@ -121,7 +121,7 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
   {
     const std::string inline_wasm_js = WasmTestingUtils::LoadJsWithWasmFile(
         "./scp/cc/roma/testing/cpp_wasm_hello_world_example/"
-        "hello_world_udf_generated.js");
+        "cpp_wasm_hello_world_example_generated.js");
 
     const std::string udf = R"(
       async function HandleRequest(input, log_input, err_input) {

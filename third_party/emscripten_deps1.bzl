@@ -31,5 +31,14 @@ EMSCRIPTEN_LINKOPTS = [
     "-s ENVIRONMENT=shell",
 ]
 
+STANDALONE_WASM_LINKOPTS = [
+    "-Oz",
+    "-DNDEBUG",
+    "-sEXPORTED_FUNCTIONS=\"['_Handler']\"",
+    "-Wl",
+    "--no-entry",
+    "-s STANDALONE_WASM",
+]
+
 def emscripten_deps1():
     emsdk_deps()

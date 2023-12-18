@@ -12,9 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:public"])
+load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
+load("@google_privacysandbox_servers_common//third_party:emscripten_deps1.bzl", "STANDALONE_WASM_LINKOPTS")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 
-filegroup(
+package(default_visibility = ["//visibility:private"])
+
+cc_binary(
+    name = "wasi_dep",
+    srcs = ["wasi_dependency.cc"],
+    linkopts = STANDALONE_WASM_LINKOPTS,
+    # This target won't build successfully on its own because of missing emscripten
+    # headers etc. Therefore, we hide it from wildcards.
+    tags = ["manual"],
+)
+
+wasm_cc_binary(
     name = "cpp_wasi_dependency_example",
-    srcs = ["wasi_dependency.wasm"],
+    cc_target = ":wasi_dep",
+    outputs = [
+        "wasi_dependency.wasm",
+    ],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
 )
