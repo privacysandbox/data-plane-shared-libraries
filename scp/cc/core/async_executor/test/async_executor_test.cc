@@ -443,7 +443,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
           PickTaskExecutor(AsyncExecutorAffinitySetting::NonAffinitized,
                            task_executor_pool, TaskExecutorPoolType::UrgentPool,
                            TaskLoadBalancingScheme::RoundRobinGlobal);
-      EXPECT_SUCCESS(task_executor_or);
+      ASSERT_SUCCESS(task_executor_or);
       task_executor_pool_picked_counts[*task_executor_or] += 1;
     }
 
@@ -469,7 +469,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
           AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
           TaskExecutorPoolType::NotUrgentPool,
           TaskLoadBalancingScheme::RoundRobinGlobal);
-      EXPECT_SUCCESS(task_executor_or);
+      ASSERT_SUCCESS(task_executor_or);
       task_executor_pool_picked_counts[*task_executor_or] += 1;
     }
 
@@ -497,7 +497,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
           PickTaskExecutor(AsyncExecutorAffinitySetting::NonAffinitized,
                            task_executor_pool, TaskExecutorPoolType::UrgentPool,
                            TaskLoadBalancingScheme::RoundRobinPerThread);
-      EXPECT_SUCCESS(task_executor_or);
+      ASSERT_SUCCESS(task_executor_or);
       task_executor_pool_picked_counts[*task_executor_or] += 1;
     }
 
@@ -513,7 +513,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
             AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
             TaskExecutorPoolType::UrgentPool,
             TaskLoadBalancingScheme::RoundRobinPerThread);
-        EXPECT_SUCCESS(task_executor_or);
+        ASSERT_SUCCESS(task_executor_or);
         task_executor_pool_picked_counts[*task_executor_or] += 1;
       }
 
@@ -541,7 +541,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
           AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
           TaskExecutorPoolType::NotUrgentPool,
           TaskLoadBalancingScheme::RoundRobinPerThread);
-      EXPECT_SUCCESS(task_executor_or);
+      ASSERT_SUCCESS(task_executor_or);
       task_executor_pool_picked_counts[*task_executor_or] += 1;
     }
 
@@ -570,7 +570,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
             AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
             TaskExecutorPoolType::NotUrgentPool,
             TaskLoadBalancingScheme::RoundRobinPerThread);
-        EXPECT_SUCCESS(task_executor_or);
+        ASSERT_SUCCESS(task_executor_or);
         {
           absl::MutexLock lock(&mutex);
           task_executor_pool_picked_counts[*task_executor_or] += 1;
@@ -622,7 +622,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
             AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
             TaskExecutorPoolType::NotUrgentPool,
             TaskLoadBalancingScheme::RoundRobinGlobal);
-        EXPECT_SUCCESS(task_executor_or);
+        ASSERT_SUCCESS(task_executor_or);
         {
           absl::MutexLock lock(&mutex);
           task_executor_pool_picked_counts[*task_executor_or] += 1;

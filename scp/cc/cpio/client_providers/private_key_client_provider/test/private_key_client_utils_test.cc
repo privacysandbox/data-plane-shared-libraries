@@ -239,7 +239,7 @@ TEST(PrivateKeyClientUtilsTest, ConsturctPrivateKeySuccess) {
 
   auto private_key_or =
       PrivateKeyClientUtils::ConstructPrivateKey(decrypt_results);
-  EXPECT_SUCCESS(private_key_or);
+  ASSERT_SUCCESS(private_key_or);
   auto private_key = *private_key_or;
   EXPECT_EQ(private_key.key_id(), "name_test");
   EXPECT_EQ(private_key.public_key(), kTestPublicKeyMaterial);

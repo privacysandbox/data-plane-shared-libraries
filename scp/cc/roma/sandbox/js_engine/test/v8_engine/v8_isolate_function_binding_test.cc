@@ -70,7 +70,7 @@ TEST_F(V8IsolateFunctionBindingTest, FunctionBecomesAvailableInJavascript) {
 
   auto result_or = js_engine.CompileAndRunJs(
       R"(function func() { cool_func(); return ""; })", "func", {}, {});
-  EXPECT_SUCCESS(result_or.result());
+  ASSERT_SUCCESS(result_or.result());
   const auto& response_string = result_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq(R"("")"));
   js_engine.Stop();

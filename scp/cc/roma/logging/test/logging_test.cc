@@ -109,7 +109,7 @@ TEST_F(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
       std::vector<absl::string_view>(outputs.begin(), outputs.end()),
       {} /*metadata*/);
 
-  EXPECT_SUCCESS(response_or.result());
+  ASSERT_SUCCESS(response_or.result());
   auto response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, testing::StrEq(R"("Hello World")"));
 

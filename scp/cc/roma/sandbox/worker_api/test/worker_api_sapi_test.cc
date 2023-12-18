@@ -74,7 +74,7 @@ TEST(WorkerApiSapiTest, WorkerWorksThroughSandbox) {
 
   auto response_or = worker_api.RunCode(request);
 
-  EXPECT_SUCCESS(response_or.result());
+  ASSERT_SUCCESS(response_or.result());
   EXPECT_THAT(*response_or->response, StrEq(R"("World. Hello!")"));
 }
 
@@ -100,7 +100,7 @@ TEST(WorkerApiSapiTest, WorkerWithInputsWorksThroughSandbox) {
 
   auto response_or = worker_api.RunCode(request);
 
-  EXPECT_SUCCESS(response_or.result());
+  ASSERT_SUCCESS(response_or.result());
   EXPECT_THAT(*response_or->response, StrEq(R"("pos0 string pos1 string")"));
 }
 
@@ -126,7 +126,7 @@ TEST(WorkerApiSapiTest, WorkerWithByteStringInputsWorksThroughSandbox) {
 
   auto response_or = worker_api.RunCode(request);
 
-  EXPECT_SUCCESS(response_or.result());
+  ASSERT_SUCCESS(response_or.result());
   EXPECT_THAT(*response_or->response, StrEq("pos0 string"));
 }
 
@@ -153,7 +153,7 @@ TEST(WorkerApiSapiTest,
 
   auto response_or = worker_api.RunCode(request);
 
-  EXPECT_SUCCESS(response_or.result());
+  ASSERT_SUCCESS(response_or.result());
   // Arguments pos1 and pos2 are ignored because kInputTypeBytes only takes the
   // first argument.
   EXPECT_THAT(*response_or->response, StrEq("\"pos0 string\""));
@@ -181,7 +181,7 @@ TEST(WorkerApiSapiTest, ShouldGetExecutionMetrics) {
 
   auto response_or = worker_api.RunCode(request);
 
-  EXPECT_SUCCESS(response_or.result());
+  ASSERT_SUCCESS(response_or.result());
   EXPECT_THAT(*response_or->response, StrEq(R"("pos0 string pos1 string")"));
 
   EXPECT_GT(
