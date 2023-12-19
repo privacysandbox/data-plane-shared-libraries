@@ -12,28 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
-load("@google_privacysandbox_servers_common//third_party:emscripten_deps1.bzl", "STANDALONE_WASM_LINKOPTS")
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("//scp/cc/roma/testing:wasm.bzl", "inline_wasm_cc_binary")
 
 package(default_visibility = ["//visibility:private"])
 
-cc_binary(
-    name = "return_bad_pointer",
+inline_wasm_cc_binary(
+    name = "cpp_wasm_return_bad_pointer",
     srcs = ["return_bad_pointer.cc"],
     #Set the memory size to be 10MB
-    linkopts = STANDALONE_WASM_LINKOPTS + ["-sINITIAL_MEMORY=10mb"],
-    # This target won't build successfully on its own because of missing emscripten
-    # headers etc. Therefore, we hide it from wildcards.
-    tags = ["manual"],
-)
-
-wasm_cc_binary(
-    name = "cpp_wasm_return_bad_pointer",
-    cc_target = ":return_bad_pointer",
+    linkopts = ["-sINITIAL_MEMORY=10mb"],
     outputs = [
         "return_bad_pointer.wasm",
     ],
-    tags = ["manual"],
-    visibility = ["//visibility:public"],
+    standalone = True,
 )

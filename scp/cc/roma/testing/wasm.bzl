@@ -13,6 +13,82 @@
 # limitations under the License.
 
 load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+_EMSCRIPTEN_LINKOPTS = [
+    # Enable embind
+    "--bind",
+    # no main function
+    "--no-entry",
+    # optimization
+    "-O3",
+    # Do not use closure. We probably want to use closure eventually.
+    "--closure=0",
+    "-s MODULARIZE=1",
+    "-s EXPORT_NAME=wasmModule",
+    # Disable the filesystem.
+    "-s FILESYSTEM=0",
+    # Use environment with fewer "extra" features.
+    "-s ENVIRONMENT=shell",
+]
+
+_STANDALONE_WASM_LINKOPTS = [
+    "-Oz",
+    "-DNDEBUG",
+    "-sEXPORTED_FUNCTIONS=\"['_Handler']\"",
+    "-Wl",
+    "--no-entry",
+    "-s STANDALONE_WASM",
+]
+
+def inline_wasm_cc_binary(
+        name,
+        srcs,
+        outputs,
+        tags = [],
+        linkopts = [],
+        standalone = False):
+    """Exposes a wasm_cc_binary target of the specified `name`.
+
+    This wasm_cc_binary is generated from a cc_binary with the specified `srcs`.
+
+    Example usage:
+        inline_wasm_cc_binary(
+            name = "cpp_wasm_hello_world_example",
+            srcs = ["hello_world.cc"],
+            outputs = [
+                "hello_world.wasm",
+            ],
+            standalone = True,
+        )
+
+    Args:
+        name: BUILD target name
+        srcs: Names of the files that will be compiled to WASM
+        outputs: Names of the files that wasm_cc_binary will output
+        tags: tags to propagate to rules
+        standalone: Boolean for if inline or standalone wasm should be generated.
+        linkopts: Additional linkopts for the cc_target
+    """
+
+    cc_binary(
+        name = "{}_cc".format(name),
+        srcs = srcs,
+        linkopts = linkopts + (_STANDALONE_WASM_LINKOPTS if standalone else _EMSCRIPTEN_LINKOPTS),
+        # This target won't build successfully on its own because of missing emscripten
+        # headers etc. Therefore, we hide it from wildcards.
+        tags = ["manual"],
+        visibility = ["//visibility:private"],
+    )
+
+    # Generate WASM + JS using emscripten
+    wasm_cc_binary(
+        name = name,
+        cc_target = "{}_cc".format(name),
+        outputs = outputs,
+        visibility = ["//visibility:public"],
+        tags = tags,
+    )
 
 def inline_wasm_udf_js(
         name,
@@ -73,7 +149,7 @@ EOF""".format(
 
 def cc_inline_wasm_udf_js(
         name,
-        cc_target,
+        srcs,
         tags = ["manual"]):
     """Generate a JS file containing inline WASM and glue JS file.
 
@@ -90,19 +166,18 @@ def cc_inline_wasm_udf_js(
 
     Args:
         name: BUILD target name
-        cc_target: Name of the cc_target that will be compiled to WASM
+        srcs: Names of the files that will be compiled to WASM
         tags: tags to propagate to rules
     """
 
     # Generate WASM + JS using emscripten
-    wasm_cc_binary(
+    inline_wasm_cc_binary(
         name = "{}_wasm_js_emscripten".format(name),
-        cc_target = cc_target,
+        srcs = srcs,
         outputs = [
             "{}_wasm_bin.wasm".format(name),
             "{}_glue.js".format(name),
         ],
-        visibility = ["//visibility:private"],
         tags = tags,
     )
 

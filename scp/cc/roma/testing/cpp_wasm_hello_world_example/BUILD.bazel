@@ -12,34 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
-load("@google_privacysandbox_servers_common//third_party:emscripten_deps1.bzl", "EMSCRIPTEN_LINKOPTS")
-load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("//scp/cc/roma/testing:wasm.bzl", "cc_inline_wasm_udf_js")
 
 package(default_visibility = ["//visibility:private"])
 
-cc_binary(
-    name = "hello_world_cc",
-    srcs = ["hello_world.cc"],
-    linkopts = EMSCRIPTEN_LINKOPTS,
-    # This target won't build successfully on its own because of missing emscripten
-    # headers etc. Therefore, we hide it from wildcards.
-    tags = ["manual"],
-)
-
-wasm_cc_binary(
-    name = "hello_world_em",
-    cc_target = ":hello_world",
-    outputs = [
-        "hello_world.wasm",
-        "hello_world.js",
-    ],
-    tags = ["manual"],
-    visibility = ["//visibility:private"],
-)
-
 cc_inline_wasm_udf_js(
     name = "cpp_wasm_hello_world_example",
-    cc_target = ":hello_world_cc",
+    srcs = ["hello_world.cc"],
 )
