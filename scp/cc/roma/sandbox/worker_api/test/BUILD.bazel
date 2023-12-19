@@ -24,7 +24,6 @@ cc_test(
         # This test has a translation unit too big for the debug ASAN build,
         # run it in optimized mode:
         "asanopt",
-        "noasan",
     ],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
