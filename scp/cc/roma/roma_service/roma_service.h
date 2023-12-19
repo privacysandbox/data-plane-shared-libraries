@@ -51,6 +51,7 @@ using google::scp::core::errors::SC_ROMA_SERVICE_COULD_NOT_CREATE_FD_PAIR;
 using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
 using google::scp::roma::FunctionBindingObjectV2;
 using google::scp::roma::proto::FunctionBindingIoProto;
+using google::scp::roma::sandbox::constants::kRequestUuid;
 using google::scp::roma::sandbox::dispatcher::Dispatcher;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;
@@ -248,6 +249,11 @@ class RomaService {
     return SuccessExecutionResult();
   }
 
+  core::ExecutionResult DeleteMetadata(std::string_view uuid) {
+    native_function_binding_handler_->DeleteMetadata(uuid);
+    return SuccessExecutionResult();
+  }
+
   struct NativeFunctionBindingSetup {
     std::vector<int> remote_file_descriptors;
     std::vector<int> local_file_descriptors;
@@ -376,10 +382,20 @@ class RomaService {
     invocation_req->tags.insert(
         {std::string(google::scp::roma::sandbox::constants::kRequestUuid),
          uuid_str});
+
+    auto callback_ptr = std::make_unique<Callback>(std::move(callback));
+    Callback callback_wrapper =
+        [&, uuid_str, callback_ptr = std::move(callback_ptr)](
+            std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          (*callback_ptr)(std::move(resp));
+          DeleteMetadata(uuid_str);
+        };
+
     RegisterMetadata(std::move(uuid_str), invocation_req->metadata);
 
-    const auto result =
-        dispatcher_->Dispatch(std::move(invocation_req), std::move(callback));
+    const auto result = dispatcher_->Dispatch(std::move(invocation_req),
+                                              std::move(callback_wrapper));
+
     if (!result.Successful()) {
       return absl::Status(absl::StatusCode::kInternal,
                           absl::StrCat("Roma Execute failed due to: ",
@@ -391,6 +407,9 @@ class RomaService {
   template <typename RequestT>
   absl::Status BatchExecuteInternal(std::vector<RequestT>& batch,
                                     BatchCallback batch_callback) {
+    std::vector<std::string> uuids;
+    uuids.reserve(batch.size());
+
     for (auto& request : batch) {
       auto validation = ExecutionObjectValidation("BatchExecute", &request);
       if (!validation.ok()) {
@@ -400,13 +419,27 @@ class RomaService {
       auto request_unique_id = google::scp::core::common::Uuid::GenerateUuid();
       std::string uuid_str =
           google::scp::core::common::ToString(request_unique_id);
+      // Save uuids for later removal in callback_wrapper
+      uuids.push_back(uuid_str);
       request.tags.insert(
           {std::string(google::scp::roma::sandbox::constants::kRequestUuid),
            uuid_str});
       RegisterMetadata(std::move(uuid_str), request.metadata);
     }
 
-    auto result = dispatcher_->DispatchBatch(batch, std::move(batch_callback));
+    auto callback_ptr =
+        std::make_unique<BatchCallback>(std::move(batch_callback));
+    BatchCallback callback_wrapper =
+        [&, uuids = std::move(uuids), callback_ptr = std::move(callback_ptr)](
+            const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
+          (*callback_ptr)(batch_resp);
+          for (auto& uuid : uuids) {
+            DeleteMetadata(uuid);
+          }
+        };
+
+    auto result =
+        dispatcher_->DispatchBatch(batch, std::move(callback_wrapper));
     if (!result.Successful()) {
       return absl::Status(
           absl::StatusCode::kInternal,

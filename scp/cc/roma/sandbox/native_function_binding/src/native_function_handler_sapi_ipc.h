@@ -147,6 +147,13 @@ class NativeFunctionHandlerSapiIpc {
     return core::SuccessExecutionResult();
   }
 
+  core::ExecutionResult DeleteMetadata(std::string_view uuid) noexcept
+      ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
+    absl::MutexLock lock(&metadata_map_mutex_);
+    metadata_.erase(uuid);
+    return core::SuccessExecutionResult();
+  }
+
  private:
   std::atomic<bool> stop_;
 
