@@ -52,13 +52,10 @@ static const std::vector<uint8_t> kWasmBin = {
     0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b,
 };
 
-// TODO(b/311435456): Reenable when cause of flakiness found.
-TEST(SandboxedServiceTest, DISABLED_InitStop) {
-  auto roma_service = std::make_unique<RomaService<>>();
-  auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+TEST(SandboxedServiceTest, InitStop) {
+  RomaService roma_service;
+  ASSERT_TRUE(roma_service.Init().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
 }
 
 TEST(SandboxedServiceTest,
