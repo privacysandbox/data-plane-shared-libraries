@@ -483,8 +483,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   EXPECT_TRUE(status.ok());
 }
 
-// TODO(b/311435456): Reenable when cause of flakiness found.
-TEST(WasmTest, DISABLED_CanExecuteJSWithWasmCodeWithStandaloneJS) {
+TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
   Config config;
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
