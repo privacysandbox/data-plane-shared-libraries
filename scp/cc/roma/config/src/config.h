@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "function_binding_object_v2.h"
@@ -140,6 +141,9 @@ class Config {
   using FunctionBindingObjectPtr =
       std::shared_ptr<FunctionBindingObjectV2<TMetadata>>;
 
+  using LogFunctionPtr =
+      std::function<void(absl::LogSeverity, TMetadata, const std::string&)>;
+
   /**
    * @brief Register a function binding v2 object. Only supported with the
    * sandboxed service.
@@ -156,6 +160,12 @@ class Config {
     return std::vector<FunctionBindingObjectPtr>(function_bindings_v2_.begin(),
                                                  function_bindings_v2_.end());
   }
+
+  void SetLoggingFunction(LogFunctionPtr logging_func) {
+    logging_func_ = std::move(logging_func);
+  }
+
+  const LogFunctionPtr& GetLoggingFunction() const { return logging_func_; }
 
   /**
    * Configures the constraints with reasonable default values based on the
@@ -188,6 +198,11 @@ class Config {
    * @brief User-registered function JS/C++ function bindings
    */
   std::vector<FunctionBindingObjectPtr> function_bindings_v2_;
+
+  // default no-op logging implementation
+  LogFunctionPtr logging_func_ = [](absl::LogSeverity severity,
+                                    TMetadata metadata,
+                                    const std::string& msg) {};
 
   /// v8 heap resource constraints.
   JsEngineResourceConstraints js_engine_resource_constraints_;

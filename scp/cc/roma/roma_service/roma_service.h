@@ -326,8 +326,10 @@ class RomaService {
       function_binding_object->function_name = function_name;
       const auto severity = GetSeverity(function_name);
       function_binding_object->function =
-          [severity](FunctionBindingPayload<TMetadata>& wrapper) {
-            LOG(LEVEL(severity)) << wrapper.io_proto.input_string();
+          [severity, this](FunctionBindingPayload<TMetadata>& wrapper) {
+            auto logging_func = config_.GetLoggingFunction();
+            logging_func(severity, wrapper.metadata,
+                         wrapper.io_proto.input_string());
             wrapper.io_proto.set_output_string("");
           };
       return function_binding_object;

@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -40,7 +41,7 @@ using ::testing::StrEq;
 
 namespace google::scp::roma::test {
 
-TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
+TEST(FunctionBindingTest, DefaultLoggingIsNoOp) {
   Config config;
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
@@ -51,9 +52,98 @@ TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
-  const std::string kInput = R"("Foobar")";
-  const auto trim_first_last_char = [](const std::string& str) {
-    return str.substr(1, str.length() - 2);
+  constexpr std::string_view kInput = R"("Foobar")";
+  const auto trim_first_last_char = [](std::string_view str) {
+    return std::string{str.substr(1, str.length() - 2)};
+  };
+
+  absl::ScopedMockLog log;
+  EXPECT_CALL(log,
+              Log(absl::LogSeverity::kInfo, _, trim_first_last_char(kInput)))
+      .Times(0);
+  EXPECT_CALL(log,
+              Log(absl::LogSeverity::kWarning, _, trim_first_last_char(kInput)))
+      .Times(0);
+  EXPECT_CALL(log,
+              Log(absl::LogSeverity::kError, _, trim_first_last_char(kInput)))
+      .Times(0);
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>();
+    code_obj->id = "foo";
+    code_obj->version_string = "v1";
+    code_obj->js = R"JS_CODE(
+    function Handler(input) {
+      roma.n_log(input);
+      roma.n_warn(input);
+      roma.n_error(input);
+      return `Hello world! ${input}`;
+    }
+  )JS_CODE";
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
+    execution_obj->id = "foo";
+    execution_obj->version_string = "v1";
+    execution_obj->handler_name = "Handler";
+    execution_obj->input.emplace_back(kInput);
+
+    status = roma_service->Execute(
+        std::move(execution_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          if (resp->ok()) {
+            auto& code_resp = **resp;
+            result = code_resp.resp;
+          }
+          execute_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_THAT(result,
+              testing::StrEq(absl::StrCat(R"("Hello world! )",
+                                          trim_first_last_char(kInput), "\"")));
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
+
+  log.StopCapturingLogs();
+}
+
+void LoggingFunction(absl::LogSeverity severity,
+                     absl::flat_hash_map<std::string, std::string> metadata,
+                     const std::string& msg) {
+  LOG(LEVEL(severity)) << msg;
+}
+
+TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
+  Config config;
+  config.number_of_workers = 2;
+  config.SetLoggingFunction(&LoggingFunction);
+  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto status = roma_service->Init();
+  ASSERT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  constexpr std::string_view kInput = R"("Foobar")";
+  const auto trim_first_last_char = [](std::string_view str) {
+    return std::string{str.substr(1, str.length() - 2)};
   };
 
   absl::ScopedMockLog log;

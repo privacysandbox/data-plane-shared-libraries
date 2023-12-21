@@ -109,9 +109,16 @@ TEST(WasmTest, CanExecuteWasmCode) {
   EXPECT_TRUE(roma_service->Stop().ok());
 }
 
+void LoggingFunction(absl::LogSeverity severity,
+                     absl::flat_hash_map<std::string, std::string> metadata,
+                     const std::string& msg) {
+  LOG(LEVEL(severity)) << msg;
+}
+
 TEST(WasmTest, CanLogFromInlineWasmCode) {
   Config config;
   config.number_of_workers = 2;
+  config.SetLoggingFunction(&LoggingFunction);
   auto roma_service = std::make_unique<RomaService<>>(config);
   ASSERT_TRUE(roma_service->Init().ok());
 
