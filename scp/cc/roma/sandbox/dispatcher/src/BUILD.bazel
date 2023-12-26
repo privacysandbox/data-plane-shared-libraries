@@ -14,17 +14,17 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:private"])
 
 cc_library(
     name = "roma_dispatcher_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = ["dispatcher.cc"],
+    hdrs = ["dispatcher.h"],
+    visibility = ["//visibility:public"],
     deps = [
+        ":error_codes",
+        ":request_converter",
+        ":request_validator",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
         "//scp/cc/core/common/lru_cache/src:lru_cache_lib",
@@ -40,5 +40,35 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "error_codes",
+    hdrs = ["error_codes.h"],
+    deps = [
+        "//scp/cc/core/interface:errors_lib",
+        "//scp/cc/public/core/interface:execution_result",
+    ],
+)
+
+cc_library(
+    name = "request_converter",
+    hdrs = ["request_converter.h"],
+    deps = [
+        "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_lib",
+    ],
+)
+
+cc_library(
+    name = "request_validator",
+    hdrs = ["request_validator.h"],
+    deps = [
+        "//scp/cc/public/core/interface:execution_result",
+        "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_lib",
     ],
 )
