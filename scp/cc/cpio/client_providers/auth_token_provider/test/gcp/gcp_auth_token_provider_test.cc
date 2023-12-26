@@ -136,7 +136,7 @@ TEST_F(GcpAuthTokenProviderTest,
 
   absl::Notification finished;
   fetch_token_context_.callback = [&finished](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
     if (!context.response) {
       ADD_FAILURE();
     } else {
@@ -241,7 +241,7 @@ TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
   absl::Notification finished;
   fetch_token_for_target_audience_context_.callback =
       [&finished](auto& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response->session_token, kBase64EncodedResponse);
         EXPECT_EQ(context.response->token_lifetime_in_seconds,
                   kTokenLifetimeForTargetAudience);

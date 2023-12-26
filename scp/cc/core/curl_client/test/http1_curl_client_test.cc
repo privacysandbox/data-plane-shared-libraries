@@ -121,7 +121,7 @@ TEST_F(Http1CurlClientTest, IssuesPerformRequestOnWrapper) {
 
   absl::Notification finished;
   http_context.callback = [&response, &finished](auto& http_context) {
-    EXPECT_SUCCESS(http_context.result);
+    ASSERT_SUCCESS(http_context.result);
     EXPECT_THAT(http_context.response, Pointee(ResponseEquals(response)));
     finished.Notify();
   };
@@ -154,7 +154,7 @@ TEST_F(Http1CurlClientTest, RetriesWork) {
 
   absl::Notification finished;
   http_context.callback = [&response, &finished](auto& http_context) {
-    EXPECT_SUCCESS(http_context.result);
+    ASSERT_SUCCESS(http_context.result);
     EXPECT_THAT(http_context.response, Pointee(ResponseEquals(response)));
     finished.Notify();
   };

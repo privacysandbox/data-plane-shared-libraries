@@ -79,29 +79,21 @@ TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
   putenv(bool_list);
 
   // string
-  auto ret = config.Get("key-for-string-value", out_string);
-  EXPECT_SUCCESS(ret);
+  EXPECT_SUCCESS(config.Get("key-for-string-value", out_string));
   // bool
-  config.Get("key-for-bool-value", out_bool);
-  EXPECT_SUCCESS(ret);
+  EXPECT_SUCCESS(config.Get("key-for-bool-value", out_bool));
   // size_t
-  config.Get("key-for-sizet-value", out_size_t);
-  EXPECT_SUCCESS(ret);
+  EXPECT_SUCCESS(config.Get("key-for-sizet-value", out_size_t));
   // int32_t
-  config.Get("key-for-int32t-value", out_int32_t);
-  EXPECT_SUCCESS(ret);
+  EXPECT_SUCCESS(config.Get("key-for-int32t-value", out_int32_t));
   // string list
-  config.Get("key-for-string-list", out_string_list);
-  EXPECT_SUCCESS(ret);
+  EXPECT_SUCCESS(config.Get("key-for-string-list", out_string_list));
   // int32_t list
-  config.Get("key-for-int32t-list", out_int32_t_list);
-  EXPECT_SUCCESS(ret);
+  EXPECT_SUCCESS(config.Get("key-for-int32t-list", out_int32_t_list));
   // size_t list
-  config.Get("key-for-sizet-list", out_size_t_list);
-  EXPECT_SUCCESS(ret);
+  EXPECT_SUCCESS(config.Get("key-for-sizet-list", out_size_t_list));
   // bool list
-  config.Get("key-for-bool-list", out_bool_list);
-  EXPECT_SUCCESS(ret);
+  EXPECT_SUCCESS(config.Get("key-for-bool-list", out_bool_list));
 
   EXPECT_THAT(out_string, StrEq("10.10.10.20"));
   EXPECT_THAT(out_size_t, Eq(5000));

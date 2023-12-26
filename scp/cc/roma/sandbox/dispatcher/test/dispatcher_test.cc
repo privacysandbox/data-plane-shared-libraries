@@ -94,7 +94,7 @@ TEST(DispatcherTest, CanRunCode) {
         EXPECT_TRUE(resp->ok());
         done_loading.Notify();
       });
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
 
   done_loading.WaitForNotification();
 
@@ -114,7 +114,7 @@ TEST(DispatcherTest, CanRunCode) {
         done_executing.Notify();
       });
 
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
 
   done_executing.WaitForNotification();
 }
@@ -145,7 +145,7 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
         EXPECT_TRUE(resp->ok());
         done_loading.Notify();
       });
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
 
   done_loading.WaitForNotification();
 
@@ -168,7 +168,7 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
         done_executing.Notify();
       });
 
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
 
   done_executing.WaitForNotification();
 }
@@ -200,7 +200,7 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
         done_loading.Notify();
       });
 
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   done_loading.WaitForNotification();
 }
 
@@ -230,7 +230,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
         done_executing.Notify();
       });
 
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   done_executing.WaitForNotification();
 }
 
@@ -262,7 +262,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
         done_loading.Notify();
       });
 
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   done_loading.WaitForNotification();
 
   absl::Mutex execution_count_mu;
@@ -288,7 +288,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
           execution_count++;
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
   }
 
   {
@@ -331,7 +331,7 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
         done_loading.Notify();
       });
 
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   done_loading.WaitForNotification();
 }
 
@@ -364,7 +364,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
           done_loading.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_loading.WaitForNotification();
   }
 
@@ -454,7 +454,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
         EXPECT_TRUE(resp->ok());
         done_loading.Notify();
       });
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
 
   done_loading.WaitForNotification();
 
@@ -480,7 +480,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
       });
 
   // This dispatch batch should work as queues were empty
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
 
   result = dispatcher.DispatchBatch(
       batch,
@@ -521,7 +521,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
           done_loading.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_loading.WaitForNotification();
   }
 
@@ -542,13 +542,13 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
           done_executing.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_executing.WaitForNotification();
   }
 
   // We loaded and executed successfully, so now we kill the one worker
   auto worker = worker_pool.GetWorker(0);
-  EXPECT_SUCCESS(worker.result());
+  ASSERT_SUCCESS(worker.result());
   (*worker)->Terminate();
 
   // This coming execution we expect will fail since the worker has died. But
@@ -571,7 +571,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
           done_executing.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_executing.WaitForNotification();
   }
 
@@ -594,7 +594,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
           done_executing.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_executing.WaitForNotification();
   }
 }
@@ -626,7 +626,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
           done_loading.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_loading.WaitForNotification();
   }
 
@@ -645,13 +645,13 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
           done_loading.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_loading.WaitForNotification();
   }
 
   // We kill the worker so we expect the first request right after to fail
   auto worker = worker_pool.GetWorker(0);
-  EXPECT_SUCCESS(worker.result());
+  ASSERT_SUCCESS(worker.result());
   (*worker)->Terminate();
 
   {
@@ -672,7 +672,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
           done_executing.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_executing.WaitForNotification();
   }
 
@@ -696,7 +696,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
             done_executing.Notify();
           });
 
-      EXPECT_SUCCESS(result);
+      ASSERT_SUCCESS(result);
       done_executing.WaitForNotification();
     }
     {
@@ -716,7 +716,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
             done_executing.Notify();
           });
 
-      EXPECT_SUCCESS(result);
+      ASSERT_SUCCESS(result);
       done_executing.WaitForNotification();
     }
   }
@@ -749,7 +749,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
           EXPECT_TRUE(resp->ok());
           done_loading.Notify();
         });
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
 
     done_loading.WaitForNotification();
   }
@@ -769,13 +769,13 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
           done_loading.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_loading.WaitForNotification();
   }
 
   // We kill the worker so we expect the first request right after to fail
   auto worker = worker_pool.GetWorker(0);
-  EXPECT_SUCCESS(worker.result());
+  ASSERT_SUCCESS(worker.result());
   (*worker)->Terminate();
 
   for (int i = 0; i < 2; i++) {
@@ -800,7 +800,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
           done_loading.Notify();
         });
 
-    EXPECT_SUCCESS(result);
+    ASSERT_SUCCESS(result);
     done_loading.WaitForNotification();
   }
 
@@ -823,7 +823,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
             done_executing.Notify();
           });
 
-      EXPECT_SUCCESS(result);
+      ASSERT_SUCCESS(result);
       done_executing.WaitForNotification();
     }
     {
@@ -843,7 +843,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
             done_executing.Notify();
           });
 
-      EXPECT_SUCCESS(result);
+      ASSERT_SUCCESS(result);
       done_executing.WaitForNotification();
     }
     {
@@ -863,7 +863,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
             done_executing.Notify();
           });
 
-      EXPECT_SUCCESS(result);
+      ASSERT_SUCCESS(result);
       done_executing.WaitForNotification();
     }
   }
@@ -918,7 +918,7 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
         EXPECT_TRUE(resp->ok());
         done_loading.Notify();
       });
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
 
   done_loading.WaitForNotification();
 
@@ -941,7 +941,7 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
         done_executing.Notify();
       });
 
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
 
   done_executing.WaitForNotification();
 }
@@ -973,7 +973,7 @@ TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
         EXPECT_TRUE(resp->ok());
         done_loading.Notify();
       });
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
 
   done_loading.WaitForNotification();
 

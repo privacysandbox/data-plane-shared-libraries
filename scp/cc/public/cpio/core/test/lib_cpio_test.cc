@@ -51,7 +51,7 @@ TEST(LibCpioTest, NoLogTest) {
   TestCpioOptions options;
   options.log_option = LogOption::kNoLog;
   options.region = kRegion;
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
+  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   EXPECT_THAT(GlobalLogger::GetGlobalLogger(), IsNull());
   EXPECT_THAT(GlobalCpio::GetGlobalCpio(), NotNull());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
@@ -61,7 +61,7 @@ TEST(LibCpioTest, ConsoleLogTest) {
   TestCpioOptions options;
   options.log_option = LogOption::kConsoleLog;
   options.region = kRegion;
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
+  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   EXPECT_THAT(GlobalLogger::GetGlobalLogger(), NotNull());
   EXPECT_THAT(GlobalCpio::GetGlobalCpio(), NotNull());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
@@ -71,7 +71,7 @@ TEST(LibCpioTest, SysLogTest) {
   TestCpioOptions options;
   options.log_option = LogOption::kSysLog;
   options.region = kRegion;
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
+  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   EXPECT_THAT(GlobalLogger::GetGlobalLogger(), NotNull());
   EXPECT_THAT(GlobalCpio::GetGlobalCpio(), NotNull());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
@@ -81,12 +81,12 @@ TEST(LibCpioTest, StopSuccessfully) {
   TestCpioOptions options;
   options.log_option = LogOption::kSysLog;
   options.region = kRegion;
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
+  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   EXPECT_EQ(
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor),
       SuccessExecutionResult());
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  ASSERT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 
   // AsyncExecutor already stopped in ShutdownCpio, and the second stop will
   // fail.
@@ -101,11 +101,11 @@ TEST(LibCpioTest, SetExternalCpuAsyncExecutor) {
 
   std::shared_ptr<AsyncExecutorInterface> external_async_executor =
       std::make_shared<AsyncExecutor>(1, 2);
-  EXPECT_SUCCESS(external_async_executor->Init());
-  EXPECT_SUCCESS(external_async_executor->Run());
+  ASSERT_SUCCESS(external_async_executor->Init());
+  ASSERT_SUCCESS(external_async_executor->Run());
   options.cpu_async_executor = external_async_executor;
 
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
+  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   EXPECT_EQ(
       GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor),
@@ -123,11 +123,11 @@ TEST(LibCpioTest, SetExternalIoAsyncExecutor) {
 
   std::shared_ptr<AsyncExecutorInterface> external_async_executor =
       std::make_shared<AsyncExecutor>(1, 2);
-  EXPECT_SUCCESS(external_async_executor->Init());
-  EXPECT_SUCCESS(external_async_executor->Run());
+  ASSERT_SUCCESS(external_async_executor->Init());
+  ASSERT_SUCCESS(external_async_executor->Run());
   options.io_async_executor = external_async_executor;
 
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
+  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
   EXPECT_EQ(GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor),
             SuccessExecutionResult());
@@ -146,8 +146,8 @@ TEST(LibCpioTest, InitializedCpioSucceedsTest) {
   std::unique_ptr<MetricClientInterface> metric_client =
       MetricClientFactory::Create(std::move(metric_client_options));
 
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_SUCCESS(metric_client->Init());
+  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
+  ASSERT_SUCCESS(metric_client->Init());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }
 
@@ -176,8 +176,8 @@ TEST(LibCpioDeathTest, InitAndShutdownThenInitCpioSucceedsTest) {
       "Cpio must be initialized with Cpio::InitCpio before client use";
   ASSERT_DEATH(metric_client->Init(), expected_uninit_cpio_error_message);
 
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_SUCCESS(metric_client->Init());
+  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
+  ASSERT_SUCCESS(metric_client->Init());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 
   ASSERT_DEATH(metric_client->Init(), expected_uninit_cpio_error_message);

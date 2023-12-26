@@ -236,7 +236,7 @@ TEST_F(GcpCloudStorageClientTest, GetBlob) {
       .WillOnce(Return(ByMove(BuildReadResponseFromBuffer(expected_buffer))));
 
   get_blob_context_.callback = [this, &expected_buffer](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     EXPECT_THAT(context.response,
                 Pointee(FieldsAre(Pointee(BytesBufferEqual(expected_buffer)))));
@@ -378,7 +378,7 @@ TEST_F(GcpCloudStorageClientTest, ListBlobsNoPrefix) {
                           kBlobName1, kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
     EXPECT_THAT(context.response->blobs,
@@ -451,7 +451,7 @@ TEST_F(GcpCloudStorageClientTest, ListBlobsWithPrefix) {
                           kBlobName1, kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
     EXPECT_THAT(context.response->blobs,
@@ -521,7 +521,7 @@ TEST_F(GcpCloudStorageClientTest, ListBlobsWithMarker) {
                                                                 kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
     EXPECT_THAT(context.response->blobs,
@@ -562,7 +562,7 @@ TEST_F(GcpCloudStorageClientTest, ListBlobsWithMarkerSkipsFirstObject) {
                           kBlobName1, kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
     EXPECT_THAT(context.response->blobs,
@@ -610,7 +610,7 @@ TEST_F(GcpCloudStorageClientTest, ListBlobsReturnsMarkerAndEnforcesPageSize) {
           absl::StrFormat(R"""({"items": [%s]})""", items_str)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
 

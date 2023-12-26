@@ -58,11 +58,9 @@ TEST(WorkerApiSapiTest, WorkerWorksThroughSandbox) {
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  auto result = worker_api.Init();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Init());
 
-  result = worker_api.Run();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Run());
 
   WorkerApi::RunCodeRequest request = {
       .code = R"(function hello_world() { return "World. Hello!" })",
@@ -82,11 +80,9 @@ TEST(WorkerApiSapiTest, WorkerWithInputsWorksThroughSandbox) {
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  auto result = worker_api.Init();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Init());
 
-  result = worker_api.Run();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Run());
 
   WorkerApi::RunCodeRequest request = {
       .code =
@@ -108,11 +104,9 @@ TEST(WorkerApiSapiTest, WorkerWithByteStringInputsWorksThroughSandbox) {
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  auto result = worker_api.Init();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Init());
 
-  result = worker_api.Run();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Run());
 
   WorkerApi::RunCodeRequest request = {
       .code = R"(function func(input1) { return input1 })",
@@ -135,11 +129,9 @@ TEST(WorkerApiSapiTest,
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  auto result = worker_api.Init();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Init());
 
-  result = worker_api.Run();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Run());
 
   WorkerApi::RunCodeRequest request = {
       .code = R"(function func(input1) { return input1 })",
@@ -163,11 +155,9 @@ TEST(WorkerApiSapiTest, ShouldGetExecutionMetrics) {
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  auto result = worker_api.Init();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Init());
 
-  result = worker_api.Run();
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(worker_api.Run());
 
   WorkerApi::RunCodeRequest request = {
       .code =

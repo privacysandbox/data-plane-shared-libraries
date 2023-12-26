@@ -86,7 +86,7 @@ TEST(ConfigProviderTest, GetConfigsFailed) {
   ConfigProvider config(full_path);
   config.Init();
   std::string out_string;
-  EXPECT_SUCCESS(config.Init());
+  ASSERT_SUCCESS(config.Init());
   EXPECT_THAT(config.Get("server-name", out_string),
               ResultIs(FailureExecutionResult(
                   errors::SC_CONFIG_PROVIDER_KEY_NOT_FOUND)));

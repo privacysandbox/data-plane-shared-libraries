@@ -60,7 +60,7 @@ TEST(PublicKeyClientUtilsTest, ParseExpiredTimeFromHeadersSuccess) {
   uint64_t expired_time;
   auto result =
       PublicKeyClientUtils::ParseExpiredTimeFromHeaders(headers, expired_time);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_EQ(expired_time, kExpectedExpiredTimeSecs);
 
   // CDNs may add a 'public' response directive.
@@ -72,7 +72,7 @@ TEST(PublicKeyClientUtilsTest, ParseExpiredTimeFromHeadersSuccess) {
 
   result =
       PublicKeyClientUtils::ParseExpiredTimeFromHeaders(headers, expired_time);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_EQ(expired_time, kExpectedExpiredTimeSecs);
 
   headers.clear();
@@ -82,7 +82,7 @@ TEST(PublicKeyClientUtilsTest, ParseExpiredTimeFromHeadersSuccess) {
 
   result =
       PublicKeyClientUtils::ParseExpiredTimeFromHeaders(headers, expired_time);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_EQ(expired_time, kExpectedExpiredTimeSecs);
 }
 
@@ -149,7 +149,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodySuccess) {
   auto result =
       PublicKeyClientUtils::ParsePublicKeysFromBody(bytes, public_keys);
 
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_EQ(public_keys.size(), 2);
   EXPECT_THAT(public_keys[0].key_id(), StrEq("1234"));
   EXPECT_THAT(public_keys[0].public_key(), StrEq("abcdefg"));

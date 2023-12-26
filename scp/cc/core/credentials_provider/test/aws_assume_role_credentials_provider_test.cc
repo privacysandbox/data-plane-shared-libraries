@@ -160,7 +160,7 @@ TEST(AwsAssumeRoleCredentialsProviderTest, OnGetCredentialsCallbackSuccess) {
           std::make_shared<GetCredentialsRequest>(),
           [&](AsyncContext<GetCredentialsRequest, GetCredentialsResponse>&
                   context) {
-            EXPECT_SUCCESS(context.result);
+            ASSERT_SUCCESS(context.result);
             EXPECT_EQ(*context.response->access_key_id, "access_key");
             EXPECT_EQ(*context.response->access_key_secret, "secret_key");
             EXPECT_EQ(*context.response->security_token, "token");

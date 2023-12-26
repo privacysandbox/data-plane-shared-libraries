@@ -35,12 +35,12 @@ using ::testing::NotNull;
 namespace google::scp::cpio::test {
 TEST(LibCpioProviderTest, InstanceClientProviderNotCreatedInInt) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  EXPECT_SUCCESS(lib_cpio_provider->Init());
-  EXPECT_SUCCESS(lib_cpio_provider->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->Init());
+  ASSERT_SUCCESS(lib_cpio_provider->Run());
   EXPECT_THAT(lib_cpio_provider->GetInstanceClientProviderMember(), IsNull());
 
   std::shared_ptr<InstanceClientProviderInterface> instance_client_provider;
-  EXPECT_SUCCESS(
+  ASSERT_SUCCESS(
       lib_cpio_provider->GetInstanceClientProvider(instance_client_provider));
   EXPECT_THAT(instance_client_provider, NotNull());
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
@@ -48,12 +48,12 @@ TEST(LibCpioProviderTest, InstanceClientProviderNotCreatedInInt) {
 
 TEST(LibCpioProviderTest, AsyncExecutorNotCreatedInInit) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  EXPECT_SUCCESS(lib_cpio_provider->Init());
-  EXPECT_SUCCESS(lib_cpio_provider->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->Init());
+  ASSERT_SUCCESS(lib_cpio_provider->Run());
   EXPECT_THAT(lib_cpio_provider->GetCpuAsyncExecutorMember(), IsNull());
 
   std::shared_ptr<AsyncExecutorInterface> async_executor;
-  EXPECT_SUCCESS(lib_cpio_provider->GetCpuAsyncExecutor(async_executor));
+  ASSERT_SUCCESS(lib_cpio_provider->GetCpuAsyncExecutor(async_executor));
   EXPECT_THAT(async_executor, NotNull());
 
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
@@ -61,12 +61,12 @@ TEST(LibCpioProviderTest, AsyncExecutorNotCreatedInInit) {
 
 TEST(LibCpioProviderTest, IOAsyncExecutorNotCreatedInInit) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  EXPECT_SUCCESS(lib_cpio_provider->Init());
-  EXPECT_SUCCESS(lib_cpio_provider->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->Init());
+  ASSERT_SUCCESS(lib_cpio_provider->Run());
   EXPECT_THAT(lib_cpio_provider->GetIoAsyncExecutorMember(), IsNull());
 
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  EXPECT_SUCCESS(lib_cpio_provider->GetIoAsyncExecutor(io_async_executor));
+  ASSERT_SUCCESS(lib_cpio_provider->GetIoAsyncExecutor(io_async_executor));
   EXPECT_THAT(io_async_executor, NotNull());
 
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
@@ -74,12 +74,12 @@ TEST(LibCpioProviderTest, IOAsyncExecutorNotCreatedInInit) {
 
 TEST(LibCpioProviderTest, Http2ClientNotCreatedInInit) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  EXPECT_SUCCESS(lib_cpio_provider->Init());
-  EXPECT_SUCCESS(lib_cpio_provider->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->Init());
+  ASSERT_SUCCESS(lib_cpio_provider->Run());
   EXPECT_THAT(lib_cpio_provider->GetHttp2ClientMember(), IsNull());
 
   std::shared_ptr<HttpClientInterface> http2_client;
-  EXPECT_SUCCESS(lib_cpio_provider->GetHttpClient(http2_client));
+  ASSERT_SUCCESS(lib_cpio_provider->GetHttpClient(http2_client));
   EXPECT_THAT(http2_client, NotNull());
 
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
@@ -87,12 +87,12 @@ TEST(LibCpioProviderTest, Http2ClientNotCreatedInInit) {
 
 TEST(LibCpioProviderTest, Http1ClientNotCreatedInInit) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  EXPECT_SUCCESS(lib_cpio_provider->Init());
-  EXPECT_SUCCESS(lib_cpio_provider->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->Init());
+  ASSERT_SUCCESS(lib_cpio_provider->Run());
   EXPECT_THAT(lib_cpio_provider->GetHttp1ClientMember(), IsNull());
 
   std::shared_ptr<HttpClientInterface> http1_client;
-  EXPECT_SUCCESS(lib_cpio_provider->GetHttp1Client(http1_client));
+  ASSERT_SUCCESS(lib_cpio_provider->GetHttp1Client(http1_client));
   EXPECT_THAT(http1_client, NotNull());
 
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
@@ -100,12 +100,12 @@ TEST(LibCpioProviderTest, Http1ClientNotCreatedInInit) {
 
 TEST(LibCpioProviderTest, RoleCredentialsProviderNotCreatedInInit) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  EXPECT_SUCCESS(lib_cpio_provider->Init());
-  EXPECT_SUCCESS(lib_cpio_provider->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->Init());
+  ASSERT_SUCCESS(lib_cpio_provider->Run());
   EXPECT_THAT(lib_cpio_provider->GetRoleCredentialsProviderMember(), IsNull());
 
   std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
-  EXPECT_SUCCESS(
+  ASSERT_SUCCESS(
       lib_cpio_provider->GetRoleCredentialsProvider(role_credentials_provider));
   EXPECT_THAT(role_credentials_provider, NotNull());
 
@@ -114,12 +114,12 @@ TEST(LibCpioProviderTest, RoleCredentialsProviderNotCreatedInInit) {
 
 TEST(LibCpioProviderTest, AuthTokenProviderNotCreatedInInit) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  EXPECT_SUCCESS(lib_cpio_provider->Init());
-  EXPECT_SUCCESS(lib_cpio_provider->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->Init());
+  ASSERT_SUCCESS(lib_cpio_provider->Run());
   EXPECT_THAT(lib_cpio_provider->GetAuthTokenProviderMember(), IsNull());
 
   std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
-  EXPECT_SUCCESS(lib_cpio_provider->GetAuthTokenProvider(auth_token_provider));
+  ASSERT_SUCCESS(lib_cpio_provider->GetAuthTokenProvider(auth_token_provider));
   EXPECT_THAT(auth_token_provider, NotNull());
 
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
@@ -127,15 +127,15 @@ TEST(LibCpioProviderTest, AuthTokenProviderNotCreatedInInit) {
 
 TEST(LibCpioProviderTest, SetCpuAsyncExecutor) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  EXPECT_SUCCESS(lib_cpio_provider->Init());
-  EXPECT_SUCCESS(lib_cpio_provider->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->Init());
+  ASSERT_SUCCESS(lib_cpio_provider->Run());
   EXPECT_THAT(lib_cpio_provider->GetCpuAsyncExecutorMember(), IsNull());
 
   std::shared_ptr<AsyncExecutorInterface> async_executor =
       std::make_shared<AsyncExecutor>(1, 2);
-  EXPECT_SUCCESS(async_executor->Init());
-  EXPECT_SUCCESS(async_executor->Run());
-  EXPECT_SUCCESS(lib_cpio_provider->SetCpuAsyncExecutor(async_executor));
+  ASSERT_SUCCESS(async_executor->Init());
+  ASSERT_SUCCESS(async_executor->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->SetCpuAsyncExecutor(async_executor));
   EXPECT_THAT(lib_cpio_provider->GetCpuAsyncExecutorMember(), NotNull());
 
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
@@ -145,15 +145,15 @@ TEST(LibCpioProviderTest, SetCpuAsyncExecutor) {
 
 TEST(LibCpioProviderTest, SetIoAsyncExecutor) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  EXPECT_SUCCESS(lib_cpio_provider->Init());
-  EXPECT_SUCCESS(lib_cpio_provider->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->Init());
+  ASSERT_SUCCESS(lib_cpio_provider->Run());
   EXPECT_THAT(lib_cpio_provider->GetIoAsyncExecutorMember(), IsNull());
 
   std::shared_ptr<AsyncExecutorInterface> async_executor =
       std::make_shared<AsyncExecutor>(1, 2);
-  EXPECT_SUCCESS(async_executor->Init());
-  EXPECT_SUCCESS(async_executor->Run());
-  EXPECT_SUCCESS(lib_cpio_provider->SetIoAsyncExecutor(async_executor));
+  ASSERT_SUCCESS(async_executor->Init());
+  ASSERT_SUCCESS(async_executor->Run());
+  ASSERT_SUCCESS(lib_cpio_provider->SetIoAsyncExecutor(async_executor));
   EXPECT_THAT(lib_cpio_provider->GetIoAsyncExecutorMember(), NotNull());
 
   EXPECT_SUCCESS(lib_cpio_provider->Stop());

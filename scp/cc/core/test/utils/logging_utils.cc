@@ -34,16 +34,16 @@ namespace google::scp::core::test {
 void TestLoggingUtils::EnableLogOutputToConsole() {
   std::unique_ptr<LoggerInterface> logger_ptr =
       std::make_unique<Logger>(std::make_unique<ConsoleLogProvider>());
-  EXPECT_SUCCESS(logger_ptr->Init());
-  EXPECT_SUCCESS(logger_ptr->Run());
+  ASSERT_SUCCESS(logger_ptr->Init());
+  ASSERT_SUCCESS(logger_ptr->Run());
   GlobalLogger::SetGlobalLogger(std::move(logger_ptr));
 }
 
 void TestLoggingUtils::EnableLogOutputToSyslog() {
   std::unique_ptr<LoggerInterface> logger_ptr =
       std::make_unique<Logger>(std::make_unique<SyslogLogProvider>());
-  EXPECT_SUCCESS(logger_ptr->Init());
-  EXPECT_SUCCESS(logger_ptr->Run());
+  ASSERT_SUCCESS(logger_ptr->Init());
+  ASSERT_SUCCESS(logger_ptr->Run());
   GlobalLogger::SetGlobalLogger(std::move(logger_ptr));
 }
 

@@ -71,8 +71,8 @@ TEST(HttpConnectionTest, SimpleRequest) {
   MockHttpConnection connection(async_executor, "localhost",
                                 std::to_string(server.ports()[0]), false);
 
-  EXPECT_SUCCESS(connection.Init());
-  EXPECT_SUCCESS(connection.Run());
+  ASSERT_SUCCESS(connection.Init());
+  ASSERT_SUCCESS(connection.Run());
 
   std::vector<Uuid> keys;
   connection.GetPendingNetworkCallbacks().Keys(keys);
@@ -95,7 +95,7 @@ TEST(HttpConnectionTest, SimpleRequest) {
     usleep(1000);
   }
 
-  EXPECT_SUCCESS(execution_result);
+  ASSERT_SUCCESS(execution_result);
 
   while (keys.size() == 0) {
     connection.GetPendingNetworkCallbacks().Keys(keys);
@@ -131,8 +131,8 @@ TEST(HttpConnectionTest, CancelCallbacks) {
   MockHttpConnection connection(async_executor, "localhost",
                                 std::to_string(server.ports()[0]), false);
 
-  EXPECT_SUCCESS(connection.Init());
-  EXPECT_SUCCESS(connection.Run());
+  ASSERT_SUCCESS(connection.Init());
+  ASSERT_SUCCESS(connection.Run());
 
   std::vector<Uuid> keys;
   connection.GetPendingNetworkCallbacks().Keys(keys);
@@ -160,7 +160,7 @@ TEST(HttpConnectionTest, CancelCallbacks) {
     usleep(1000);
   }
 
-  EXPECT_SUCCESS(execution_result);
+  ASSERT_SUCCESS(execution_result);
 
   while (keys.size() == 0) {
     connection.GetPendingNetworkCallbacks().Keys(keys);
@@ -196,8 +196,8 @@ TEST(HttpConnectionTest, StopRemovesCallback) {
   MockHttpConnection connection(async_executor, "localhost",
                                 std::to_string(server.ports()[0]), false);
 
-  EXPECT_SUCCESS(connection.Init());
-  EXPECT_SUCCESS(connection.Run());
+  ASSERT_SUCCESS(connection.Init());
+  ASSERT_SUCCESS(connection.Run());
 
   std::vector<Uuid> keys;
   connection.GetPendingNetworkCallbacks().Keys(keys);
@@ -225,7 +225,7 @@ TEST(HttpConnectionTest, StopRemovesCallback) {
     usleep(1000);
   }
 
-  EXPECT_SUCCESS(execution_result);
+  ASSERT_SUCCESS(execution_result);
 
   while (keys.size() == 0) {
     connection.GetPendingNetworkCallbacks().Keys(keys);

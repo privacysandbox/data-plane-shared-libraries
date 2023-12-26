@@ -109,7 +109,7 @@ TEST_F(GcpMetricClientUtilsTest, ParseRequestToTimeSeries) {
   auto time_series = time_series_list[0];
   double value = 0.0;
   EXPECT_TRUE(absl::SimpleAtod(std::string_view(kValue), &value));
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_EQ(time_series.metric().type(), expected_type);
   EXPECT_EQ(time_series.unit(), "");
   EXPECT_EQ(time_series.metric().labels().size(), 3);

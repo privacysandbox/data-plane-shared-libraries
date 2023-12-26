@@ -64,9 +64,9 @@ TEST_F(ConcurrentQueueTests, ErrorOnNoElement) {
 TEST_F(ConcurrentQueueTests, MoveOnlyItems) {
   ConcurrentQueue<std::unique_ptr<int>> queue(1);
   constexpr int kQueueVal = 3728;
-  EXPECT_SUCCESS(queue.TryEnqueue(std::make_unique<int>(kQueueVal)));
+  ASSERT_SUCCESS(queue.TryEnqueue(std::make_unique<int>(kQueueVal)));
   std::unique_ptr<int> output;
-  EXPECT_SUCCESS(queue.TryDequeue(output));
+  ASSERT_SUCCESS(queue.TryDequeue(output));
   EXPECT_THAT(output, Pointee(kQueueVal));
 }
 

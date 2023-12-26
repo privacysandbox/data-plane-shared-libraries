@@ -58,7 +58,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldMakeCallOnFd) {
   });
 
   proto::RpcWrapper rpc_proto;
-  EXPECT_SUCCESS(invoker.Invoke(rpc_proto));
+  ASSERT_SUCCESS(invoker.Invoke(rpc_proto));
 
   to_handle_message.join();
 

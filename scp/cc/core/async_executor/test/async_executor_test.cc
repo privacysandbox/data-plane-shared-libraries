@@ -62,15 +62,15 @@ TEST(AsyncExecutorTests, CannotInitWithTooBigQueueCap) {
 
 TEST(AsyncExecutorTests, EmptyWorkQueue) {
   AsyncExecutor executor(1, 10);
-  EXPECT_SUCCESS(executor.Init());
-  EXPECT_SUCCESS(executor.Run());
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
   EXPECT_SUCCESS(executor.Stop());
 }
 
 TEST(AsyncExecutorTests, CannotRunTwice) {
   AsyncExecutor executor(1, 10);
-  EXPECT_SUCCESS(executor.Init());
-  EXPECT_SUCCESS(executor.Run());
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
   EXPECT_THAT(executor.Run(), ResultIs(FailureExecutionResult(
                                   errors::SC_ASYNC_EXECUTOR_ALREADY_RUNNING)));
   EXPECT_SUCCESS(executor.Stop());
@@ -78,9 +78,9 @@ TEST(AsyncExecutorTests, CannotRunTwice) {
 
 TEST(AsyncExecutorTests, CannotStopTwice) {
   AsyncExecutor executor(1, 10);
-  EXPECT_SUCCESS(executor.Init());
-  EXPECT_SUCCESS(executor.Run());
-  EXPECT_SUCCESS(executor.Stop());
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
+  ASSERT_SUCCESS(executor.Stop());
   EXPECT_THAT(
       executor.Stop(),
       ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
@@ -98,7 +98,7 @@ TEST(AsyncExecutorTests, CannotScheduleWorkBeforeInit) {
 
 TEST(AsyncExecutorTests, CannotScheduleWorkBeforeRun) {
   AsyncExecutor executor(1, 10);
-  EXPECT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Init());
   EXPECT_THAT(
       executor.Schedule([] {}, AsyncPriority::Normal),
       ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
@@ -115,7 +115,7 @@ TEST(AsyncExecutorTests, CannotRunBeforeInit) {
 
 TEST(AsyncExecutorTests, CannotStopBeforeRun) {
   AsyncExecutor executor(1, 10);
-  EXPECT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Init());
   EXPECT_THAT(
       executor.Stop(),
       ResultIs(FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING)));
@@ -224,8 +224,8 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadWithAffinity) {
 TEST(AsyncExecutorTests, CountWorkSingleThreadScheduleForWithAffinity) {
   constexpr int kQueueCap = 10;
   AsyncExecutor executor(1, kQueueCap);
-  EXPECT_SUCCESS(executor.Init());
-  EXPECT_SUCCESS(executor.Run());
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
   absl::BlockingCounter count(kQueueCap);
   for (int i = 0; i < kQueueCap / 2; i++) {
     executor.ScheduleFor(
@@ -254,8 +254,8 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadScheduleForWithAffinity) {
 TEST(AsyncExecutorTests, CountWorkSingleThreadNormalToUrgent) {
   constexpr int kQueueCap = 10;
   AsyncExecutor executor(1, kQueueCap);
-  EXPECT_SUCCESS(executor.Init());
-  EXPECT_SUCCESS(executor.Run());
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
   absl::BlockingCounter count(kQueueCap);
   for (int i = 0; i < kQueueCap / 2; i++) {
     executor.Schedule(
@@ -278,8 +278,8 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadNormalToUrgent) {
 TEST(AsyncExecutorTests, CountWorkSingleThreadUrgentToNormal) {
   constexpr int kQueueCap = 10;
   AsyncExecutor executor(1, kQueueCap);
-  EXPECT_SUCCESS(executor.Init());
-  EXPECT_SUCCESS(executor.Run());
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
   absl::BlockingCounter count(kQueueCap);
   for (int i = 0; i < kQueueCap / 2; i++) {
     executor.ScheduleFor(
@@ -339,8 +339,8 @@ TEST(AsyncExecutorTests, AsyncContextCallback) {
     callback_count.WaitForNotification();
 
     // Verifies the work is executed.
+    ASSERT_SUCCESS(context.result);
     EXPECT_EQ(*(context.response), "response");
-    EXPECT_SUCCESS(context.result);
   }
 
   {
@@ -364,8 +364,8 @@ TEST(AsyncExecutorTests, AsyncContextCallback) {
     callback_count.WaitForNotification();
 
     // Verifies the work is executed.
+    ASSERT_SUCCESS(context.result);
     EXPECT_EQ(*(context.response), "response");
-    EXPECT_SUCCESS(context.result);
   }
 
   executor.Stop();
@@ -648,21 +648,21 @@ class AsyncExecutorAccessor : public AsyncExecutor {
   }
 
   void TestPickRandomTaskExecutorWithAffinity() {
-    EXPECT_SUCCESS(Init());
-    EXPECT_SUCCESS(Run());
+    ASSERT_SUCCESS(Init());
+    ASSERT_SUCCESS(Run());
     std::vector<std::unique_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
     task_executor_pool.push_back(
         std::make_unique<SingleThreadAsyncExecutor>(100 /* queue cap */));
     auto& executor = task_executor_pool.back();
-    EXPECT_SUCCESS(executor->Init());
-    EXPECT_SUCCESS(executor->Run());
+    ASSERT_SUCCESS(executor->Init());
+    ASSERT_SUCCESS(executor->Run());
     const auto expected_id = *executor->GetThreadId();
     auto chosen_task_executor_or = PickTaskExecutor(
         AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
         task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
         TaskLoadBalancingScheme::Random);
 
-    EXPECT_SUCCESS(chosen_task_executor_or);
+    ASSERT_SUCCESS(chosen_task_executor_or);
 
     // Picking an executor should result in a random executor being chosen.
     EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
@@ -672,8 +672,8 @@ class AsyncExecutorAccessor : public AsyncExecutor {
   }
 
   void TestPickNonUrgentToNonUrgentTaskExecutorWithAffinity() {
-    EXPECT_SUCCESS(Init());
-    EXPECT_SUCCESS(Run());
+    ASSERT_SUCCESS(Init());
+    ASSERT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
     absl::Notification done;
@@ -688,7 +688,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
               task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
               TaskLoadBalancingScheme::Random);
-          EXPECT_SUCCESS(chosen_task_executor_or);
+          ASSERT_SUCCESS(chosen_task_executor_or);
           // Picking an executor should choose the executor owning the current
           // thread.
           EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
@@ -701,8 +701,8 @@ class AsyncExecutorAccessor : public AsyncExecutor {
   }
 
   void TestPickNonUrgentToUrgentTaskExecutorWithAffinity() {
-    EXPECT_SUCCESS(Init());
-    EXPECT_SUCCESS(Run());
+    ASSERT_SUCCESS(Init());
+    ASSERT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
     absl::Notification done;
@@ -717,7 +717,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
               task_executor_pool, TaskExecutorPoolType::UrgentPool,
               TaskLoadBalancingScheme::Random);
-          EXPECT_SUCCESS(chosen_task_executor_or);
+          ASSERT_SUCCESS(chosen_task_executor_or);
           // Lookup the corresponding threads in the map.
           const auto& [normal_executor, urgent_executor] =
               this->thread_id_to_executor_map_[std::this_thread::get_id()];
@@ -730,8 +730,8 @@ class AsyncExecutorAccessor : public AsyncExecutor {
   }
 
   void TestPickUrgentToUrgentTaskExecutorWithAffinity() {
-    EXPECT_SUCCESS(Init());
-    EXPECT_SUCCESS(Run());
+    ASSERT_SUCCESS(Init());
+    ASSERT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
     absl::Notification done;
@@ -746,7 +746,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
               task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
               TaskLoadBalancingScheme::Random);
-          EXPECT_SUCCESS(chosen_task_executor_or);
+          ASSERT_SUCCESS(chosen_task_executor_or);
           // Picking an executor should choose the executor owning the current
           // thread.
           EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
@@ -759,8 +759,8 @@ class AsyncExecutorAccessor : public AsyncExecutor {
   }
 
   void TestPickUrgentToNonUrgentTaskExecutorWithAffinity() {
-    EXPECT_SUCCESS(Init());
-    EXPECT_SUCCESS(Run());
+    ASSERT_SUCCESS(Init());
+    ASSERT_SUCCESS(Run());
     // Scheduling another task with affinity should result in using the same
     // thread.
     absl::Notification done;
@@ -775,7 +775,7 @@ class AsyncExecutorAccessor : public AsyncExecutor {
               AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
               task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
               TaskLoadBalancingScheme::Random);
-          EXPECT_SUCCESS(chosen_task_executor_or);
+          ASSERT_SUCCESS(chosen_task_executor_or);
           // Lookup the corresponding threads in the map.
           const auto& [normal_executor, urgent_executor] =
               this->thread_id_to_executor_map_[std::this_thread::get_id()];

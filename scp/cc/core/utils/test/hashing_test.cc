@@ -14,6 +14,7 @@
 
 #include "core/utils/src/hashing.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -27,6 +28,7 @@ using google::scp::core::Byte;
 using google::scp::core::BytesBuffer;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
+using ::testing::StrEq;
 
 namespace google::scp::core::utils::test {
 TEST(HashingTest, InvalidMD5Hash) {
@@ -58,8 +60,9 @@ TEST(HashingTest, ValidMD5HashOLD) {
   bytes_buffer.length = value.length();
 
   std::string md5_hash;
-  EXPECT_SUCCESS(CalculateMd5Hash(bytes_buffer, md5_hash));
-  EXPECT_EQ(md5_hash, "!\x87\x9D\x8C\x7Fy\x93j\xCD\xB6\xE2\x86&\xEA\x1B\xD8");
+  ASSERT_SUCCESS(CalculateMd5Hash(bytes_buffer, md5_hash));
+  EXPECT_THAT(md5_hash,
+              StrEq("!\x87\x9D\x8C\x7Fy\x93j\xCD\xB6\xE2\x86&\xEA\x1B\xD8"));
 }
 
 TEST(HashingTest, InvalidMD5HashString) {
@@ -82,8 +85,9 @@ TEST(HashingTest, ValidMD5HashStringOLD) {
   std::string value("this_is_a_test_string");
 
   std::string md5_hash;
-  EXPECT_SUCCESS(CalculateMd5Hash(value, md5_hash));
-  EXPECT_EQ(md5_hash, "!\x87\x9D\x8C\x7Fy\x93j\xCD\xB6\xE2\x86&\xEA\x1B\xD8");
+  ASSERT_SUCCESS(CalculateMd5Hash(value, md5_hash));
+  EXPECT_THAT(md5_hash,
+              StrEq("!\x87\x9D\x8C\x7Fy\x93j\xCD\xB6\xE2\x86&\xEA\x1B\xD8"));
 }
 
 }  // namespace google::scp::core::utils::test

@@ -334,7 +334,7 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInput) {
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq("3"));
 }
 
@@ -353,7 +353,7 @@ TEST_F(ExecutionUtilsTest, PerformanceNowDeclaredInJs) {
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq("true"));
 }
 
@@ -365,7 +365,7 @@ TEST_F(ExecutionUtilsTest, JsPredicateMatchesTrueOutput) {
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq("true"));
 }
 
@@ -377,7 +377,7 @@ TEST_F(ExecutionUtilsTest, JsPredicateMatchesFalseOutput) {
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq("false"));
 }
 
@@ -389,7 +389,7 @@ TEST_F(ExecutionUtilsTest, JsFunctionOutput) {
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq("3"));
 }
 
@@ -447,7 +447,7 @@ TEST_F(ExecutionUtilsTest, RunCodeObjRunWithLessArgs) {
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq("null"));
 }
 
@@ -586,7 +586,7 @@ TEST_F(ExecutionUtilsTest, CppWasmWithStringInputAndStringOutput) {
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq(R"("Input String :) Hello World from WASM")"));
 }
 
@@ -607,7 +607,7 @@ TEST_F(ExecutionUtilsTest, RustWasmWithStringInputAndStringOutput) {
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq(R"("Input String :) Hello from rust!")"));
 }
 
@@ -633,7 +633,7 @@ TEST_F(ExecutionUtilsTest, JsEmbeddedGlobalWasmCompileRunExecute) {
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq(std::to_string(3).c_str()));
 }
 }  // namespace google::scp::roma::worker::test

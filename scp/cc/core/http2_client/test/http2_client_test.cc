@@ -202,7 +202,7 @@ TEST(HttpClientTest, FailedToConnect) {
         finished.Notify();
       });
 
-  EXPECT_SUCCESS(http_client.PerformRequest(context));
+  ASSERT_SUCCESS(http_client.PerformRequest(context));
   finished.WaitForNotification();
   http_client.Stop();
   async_executor->Stop();
@@ -224,12 +224,12 @@ class HttpClientTestII : public ::testing::Test {
         kDefaultMaxConnectionsPerHost, kHttp2ReadTimeoutInSeconds);
 
     http_client = std::make_shared<HttpClient>(async_executor, options);
-    EXPECT_SUCCESS(http_client->Init());
-    EXPECT_SUCCESS(http_client->Run());
+    ASSERT_SUCCESS(http_client->Init());
+    ASSERT_SUCCESS(http_client->Run());
   }
 
   void TearDown() override {
-    EXPECT_SUCCESS(http_client->Stop());
+    ASSERT_SUCCESS(http_client->Stop());
     async_executor->Stop();
     server->Stop();
   }
@@ -248,14 +248,14 @@ TEST_F(HttpClientTestII, Success) {
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         const auto& bytes = *context.response->body.bytes;
         EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
                     StrEq("hello, world\n"));
         done.set_value();
       });
 
-  EXPECT_SUCCESS(http_client->PerformRequest(context));
+  ASSERT_SUCCESS(http_client->PerformRequest(context));
 
   done.get_future().get();
 }
@@ -272,14 +272,14 @@ TEST_F(HttpClientTestII, SingleQueryIsEscaped) {
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         auto query_param_it = context.response->headers->find("query_param");
         EXPECT_NE(query_param_it, context.response->headers->end());
         EXPECT_THAT(query_param_it->second, StrEq("foo=%21%40%23%24"));
         finished.Notify();
       });
 
-  EXPECT_SUCCESS(http_client->PerformRequest(context));
+  ASSERT_SUCCESS(http_client->PerformRequest(context));
   finished.WaitForNotification();
 }
 
@@ -295,7 +295,7 @@ TEST_F(HttpClientTestII, MultiQueryIsEscaped) {
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         auto query_param_it = context.response->headers->find("query_param");
         EXPECT_NE(query_param_it, context.response->headers->end());
         EXPECT_THAT(query_param_it->second,
@@ -303,7 +303,7 @@ TEST_F(HttpClientTestII, MultiQueryIsEscaped) {
         finished.Notify();
       });
 
-  EXPECT_SUCCESS(http_client->PerformRequest(context));
+  ASSERT_SUCCESS(http_client->PerformRequest(context));
   finished.WaitForNotification();
 }
 
@@ -322,7 +322,7 @@ TEST_F(HttpClientTestII, FailedToGetResponse) {
         done.set_value();
       });
 
-  EXPECT_SUCCESS(http_client->PerformRequest(context));
+  ASSERT_SUCCESS(http_client->PerformRequest(context));
   done.get_future().get();
 }
 
@@ -337,13 +337,13 @@ TEST_F(HttpClientTestII, SequentialReuse) {
     AsyncContext<HttpRequest, HttpResponse> context(
         std::move(request),
         [&](AsyncContext<HttpRequest, HttpResponse>& context) {
-          EXPECT_SUCCESS(context.result);
+          ASSERT_SUCCESS(context.result);
           const auto& bytes = *context.response->body.bytes;
           EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
                       StrEq("hello, world\n"));
           done.set_value();
         });
-    EXPECT_SUCCESS(http_client->PerformRequest(context));
+    ASSERT_SUCCESS(http_client->PerformRequest(context));
     done.get_future().get();
   }
 }
@@ -363,13 +363,13 @@ TEST_F(HttpClientTestII, ConcurrentReuse) {
     AsyncContext<HttpRequest, HttpResponse> context(
         std::move(request),
         [&, i](AsyncContext<HttpRequest, HttpResponse>& context) {
-          EXPECT_SUCCESS(context.result);
+          ASSERT_SUCCESS(context.result);
           const auto& bytes = *context.response->body.bytes;
           EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
                       StrEq("hello, world\n"));
           done[i].set_value();
         });
-    EXPECT_SUCCESS(http_client->PerformRequest(context));
+    ASSERT_SUCCESS(http_client->PerformRequest(context));
   }
   for (auto& p : done) {
     p.get_future().get();
@@ -388,7 +388,7 @@ TEST_F(HttpClientTestII, LargeData) {
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(context.response->body.length,
                   1048576 + SHA256_DIGEST_LENGTH);
         uint8_t hash[SHA256_DIGEST_LENGTH];
@@ -400,7 +400,7 @@ TEST_F(HttpClientTestII, LargeData) {
         finished.Notify();
       });
 
-  EXPECT_SUCCESS(http_client->PerformRequest(context));
+  ASSERT_SUCCESS(http_client->PerformRequest(context));
   finished.WaitForNotification();
 }
 
