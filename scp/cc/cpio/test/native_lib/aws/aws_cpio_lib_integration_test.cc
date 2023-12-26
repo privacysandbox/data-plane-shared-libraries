@@ -247,7 +247,7 @@ TEST_F(CpioIntegrationTest, MetricClientPutMetricsSuccessfully) {
 
   // These threads complete nearly instantly because they only launch async
   // work.
-  for (std::thread t : threads) {
+  for (std::thread& t : threads) {
     t.join();
   }
   counter.Wait();
