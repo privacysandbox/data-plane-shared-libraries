@@ -181,7 +181,7 @@ TEST_F(AggregateMetricTest, RunMetricPushHandler) {
 
   for (const auto& code : kEventList) {
     auto info = aggregate_metric.GetMetricInfo(code);
-    EXPECT_SUCCESS(info.result());
+    ASSERT_SUCCESS(info.result());
     aggregate_metric.MetricPushHandler(counter_value, info.value());
     EXPECT_THAT(metric_received.name(), StrEq(kMetricName));
     EXPECT_THAT(metric_received.labels().find("EventCode")->second,

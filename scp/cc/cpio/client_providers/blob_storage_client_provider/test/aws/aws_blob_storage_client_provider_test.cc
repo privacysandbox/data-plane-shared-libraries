@@ -68,6 +68,7 @@ using google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataResponse;
 using google::cmrt::sdk::blob_storage_service::v1::PutBlobRequest;
 using google::cmrt::sdk::blob_storage_service::v1::PutBlobResponse;
 using google::scp::core::AsyncContext;
+using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::errors::SC_AWS_INTERNAL_SERVICE_ERROR;
@@ -75,12 +76,13 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
-using testing::_;
-using testing::ElementsAre;
-using testing::Eq;
-using testing::ExplainMatchResult;
-using testing::NiceMock;
-using testing::Return;
+using ::testing::_;
+using ::testing::ElementsAre;
+using ::testing::Eq;
+using ::testing::ExplainMatchResult;
+using ::testing::NiceMock;
+using ::testing::Return;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -171,7 +173,7 @@ MATCHER_P2(HasBucketAndKey, bucket, key, "") {
 
 TEST_F(AwsBlobStorageClientProviderTest,
        RunWithCreateClientConfigurationFailed) {
-  auto failure_result = FailureExecutionResult(SC_UNKNOWN);
+  ExecutionResult failure_result = FailureExecutionResult(SC_UNKNOWN);
   instance_client_->get_instance_resource_name_mock = failure_result;
 
   EXPECT_SUCCESS(provider_.Init());
@@ -179,8 +181,8 @@ TEST_F(AwsBlobStorageClientProviderTest,
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {
-  auto bucket_name = "bucket_name";
-  auto blob_name = "blob_name";
+  std::string_view bucket_name = "bucket_name";
+  std::string_view blob_name = "blob_name";
   get_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
       bucket_name);
   get_blob_context_.request->mutable_blob_metadata()->set_blob_name(blob_name);
@@ -210,8 +212,8 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, GetBlobSuccess) {
-  auto bucket_name = "bucket_name";
-  auto blob_name = "blob_name";
+  std::string_view bucket_name = "bucket_name";
+  std::string_view blob_name = "blob_name";
   std::string blob_data("Hello world!");
   get_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
       bucket_name);
@@ -219,12 +221,12 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobSuccess) {
   get_blob_context_.callback =
       [this, &bucket_name, &blob_name, &blob_data](
           AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) {
-        EXPECT_SUCCESS(get_blob_context.result);
-        EXPECT_EQ(get_blob_context.response->blob().metadata().bucket_name(),
-                  bucket_name);
-        EXPECT_EQ(get_blob_context.response->blob().metadata().blob_name(),
-                  blob_name);
-        EXPECT_EQ(get_blob_context.response->blob().data(), blob_data);
+        ASSERT_SUCCESS(get_blob_context.result);
+        EXPECT_THAT(get_blob_context.response->blob().metadata().bucket_name(),
+                    StrEq(bucket_name));
+        EXPECT_THAT(get_blob_context.response->blob().metadata().blob_name(),
+                    StrEq(blob_name));
+        EXPECT_THAT(get_blob_context.response->blob().data(), StrEq(blob_data));
 
         absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
@@ -235,7 +237,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobSuccess) {
       .WillOnce([&blob_data](auto, auto callback, auto) {
         GetObjectRequest get_object_request;
         GetObjectResult get_object_result;
-        auto input_data = new StringStream("");
+        StringStream* input_data = new StringStream("");
         *input_data << blob_data;
 
         get_object_result.ReplaceBody(input_data);
@@ -258,8 +260,8 @@ MATCHER_P3(HasBucketKeyAndRange, bucket, key, range, "") {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, GetBlobWithByteRange) {
-  auto bucket_name = "bucket_name";
-  auto blob_name = "blob_name";
+  std::string_view bucket_name = "bucket_name";
+  std::string_view blob_name = "blob_name";
   std::string blob_data("Hello world!");
   get_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
       bucket_name);
@@ -269,12 +271,12 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobWithByteRange) {
   get_blob_context_.callback =
       [this, &bucket_name, &blob_name, &blob_data](
           AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) {
-        EXPECT_SUCCESS(get_blob_context.result);
-        EXPECT_EQ(get_blob_context.response->blob().metadata().bucket_name(),
-                  bucket_name);
-        EXPECT_EQ(get_blob_context.response->blob().metadata().blob_name(),
-                  blob_name);
-        EXPECT_EQ(get_blob_context.response->blob().data(), blob_data);
+        ASSERT_SUCCESS(get_blob_context.result);
+        EXPECT_THAT(get_blob_context.response->blob().metadata().bucket_name(),
+                    StrEq(bucket_name));
+        EXPECT_THAT(get_blob_context.response->blob().metadata().blob_name(),
+                    StrEq(blob_name));
+        EXPECT_THAT(get_blob_context.response->blob().data(), StrEq(blob_data));
 
         absl::MutexLock l(&finish_called_mu_);
         finish_called_ = true;
@@ -287,7 +289,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobWithByteRange) {
       .WillOnce([&blob_data](auto, auto callback, auto) {
         GetObjectRequest get_object_request;
         GetObjectResult get_object_result;
-        auto input_data = new StringStream("");
+        StringStream* input_data = new StringStream("");
         *input_data << blob_data;
 
         get_object_result.ReplaceBody(input_data);
@@ -310,8 +312,8 @@ MATCHER_P3(HasBucketPrefixAndMarker, bucket, prefix, marker, "") {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, ListBlobsWithPrefix) {
-  auto bucket_name = "bucket_name";
-  auto blob_name = "blob_name";
+  std::string_view bucket_name = "bucket_name";
+  std::string_view blob_name = "blob_name";
 
   list_blobs_metadata_context_.request->mutable_blob_metadata()
       ->set_bucket_name(bucket_name);
@@ -327,9 +329,9 @@ TEST_F(AwsBlobStorageClientProviderTest, ListBlobsWithPrefix) {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, ListBlobsWithMarker) {
-  auto bucket_name = "bucket_name";
-  auto blob_name = "blob_name";
-  auto marker = "marker";
+  std::string_view bucket_name = "bucket_name";
+  std::string_view blob_name = "blob_name";
+  std::string_view marker = "marker";
 
   list_blobs_metadata_context_.request->mutable_blob_metadata()
       ->set_bucket_name(bucket_name);
@@ -351,8 +353,8 @@ MATCHER_P2(HasBucketAndMaxKeys, bucket, max_keys, "") {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, ListBlobsWithMaxPageSize) {
-  auto bucket_name = "bucket_name";
-  auto page_size = 500;
+  std::string_view bucket_name = "bucket_name";
+  int page_size = 500;
 
   list_blobs_metadata_context_.request->mutable_blob_metadata()
       ->set_bucket_name(bucket_name);
@@ -367,7 +369,7 @@ TEST_F(AwsBlobStorageClientProviderTest, ListBlobsWithMaxPageSize) {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, ListBlobsFailure) {
-  auto bucket_name = "bucket_name";
+  std::string_view bucket_name = "bucket_name";
   list_blobs_metadata_context_.request->mutable_blob_metadata()
       ->set_bucket_name(bucket_name);
   list_blobs_metadata_context_.callback =
@@ -405,14 +407,14 @@ MATCHER_P2(BlobHasBucketAndName, bucket_name, blob_name, "") {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, ListBlobsSuccess) {
-  auto bucket_name = "bucket_name";
+  std::string_view bucket_name = "bucket_name";
   list_blobs_metadata_context_.request->mutable_blob_metadata()
       ->set_bucket_name(bucket_name);
   list_blobs_metadata_context_.callback =
       [this, &bucket_name](
           AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>&
               list_blobs_metadata_context) {
-        EXPECT_SUCCESS(list_blobs_metadata_context.result);
+        ASSERT_SUCCESS(list_blobs_metadata_context.result);
         EXPECT_THAT(list_blobs_metadata_context.response->blob_metadatas(),
                     ElementsAre(BlobHasBucketAndName(bucket_name, "object_1"),
                                 BlobHasBucketAndName(bucket_name, "object_2")));
@@ -451,8 +453,8 @@ MATCHER_P3(HasBucketKeyAndBody, bucket_name, key, body, "") {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, PutBlobFailure) {
-  auto bucket_name = "bucket_name";
-  auto blob_name = "blob_name";
+  std::string_view bucket_name = "bucket_name";
+  std::string_view blob_name = "blob_name";
 
   put_blob_context_.request->mutable_blob()
       ->mutable_metadata()
@@ -489,8 +491,8 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobFailure) {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, PutBlobSuccess) {
-  auto bucket_name = "bucket_name";
-  auto blob_name = "blob_name";
+  std::string_view bucket_name = "bucket_name";
+  std::string_view blob_name = "blob_name";
 
   put_blob_context_.request->mutable_blob()
       ->mutable_metadata()
@@ -525,8 +527,8 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobSuccess) {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, DeleteBlobFailure) {
-  auto bucket_name = "bucket_name";
-  auto blob_name = "blob_name";
+  std::string_view bucket_name = "bucket_name";
+  std::string_view blob_name = "blob_name";
 
   delete_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
       bucket_name);
@@ -559,8 +561,8 @@ TEST_F(AwsBlobStorageClientProviderTest, DeleteBlobFailure) {
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, DeleteBlobSuccess) {
-  auto bucket_name = "bucket_name";
-  auto blob_name = "blob_name";
+  std::string_view bucket_name = "bucket_name";
+  std::string_view blob_name = "blob_name";
 
   delete_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
       bucket_name);

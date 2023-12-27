@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <thread>
@@ -30,6 +31,7 @@
 using helloworld::GreeterService;
 using helloworld::SayHelloRequest;
 using helloworld::SayHelloResponse;
+using ::testing::StrEq;
 
 namespace google::scp::core {
 TEST(GRPCServerTest, StartStop) {
@@ -84,7 +86,7 @@ TEST(GRPCServerTest, SingleCall) {
   grpc::ClientContext ctx;
   auto status = stub->SayHello(&ctx, request, &reply);
   EXPECT_TRUE(status.ok());
-  EXPECT_EQ(reply.message(), "Foo");
+  EXPECT_THAT(reply.message(), StrEq("Foo"));
 
   server.Stop();
 }
@@ -118,7 +120,7 @@ TEST(GRPCServerTest, ConcurrentCalls) {
         grpc::ClientContext ctx;
         auto status = stub->SayHello(&ctx, request, &reply);
         EXPECT_TRUE(status.ok());
-        EXPECT_EQ(reply.message(), "Foo");
+        EXPECT_THAT(reply.message(), StrEq("Foo"));
       }
     }));
   }

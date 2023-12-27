@@ -19,6 +19,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+using ::testing::NotNull;
 using ::testing::StrEq;
 
 namespace google::scp::core::test {
@@ -33,7 +34,7 @@ TEST(TypeDefTest, BytesBufferStringConstructor) {
   EXPECT_EQ(buffer.capacity, str_len);
   EXPECT_EQ(buffer.length, str_len);
 
-  ASSERT_NE(buffer.bytes, nullptr);
+  ASSERT_THAT(buffer.bytes, NotNull());
 
   ASSERT_EQ(buffer.bytes->size(), str_len);
   EXPECT_THAT(std::string(buffer.bytes->begin(), buffer.bytes->end()),

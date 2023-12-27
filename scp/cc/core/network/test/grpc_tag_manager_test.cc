@@ -16,7 +16,10 @@
 #define DEBUG_GRPC_TAG_MANAGER
 #include "core/network/src/grpc_tag_manager.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+using ::testing::NotNull;
 
 namespace google::scp::core {
 
@@ -32,12 +35,12 @@ struct DestructorCounter {
 TEST(GrpcTagManagerTest, Alloc) {
   GrpcTagManager<int> mgr;
   auto* p = mgr.Allocate(10);
-  ASSERT_NE(p, nullptr);
+  ASSERT_THAT(p, NotNull());
   EXPECT_EQ(*p, 10);
   EXPECT_EQ(mgr.Size(), 1UL);
 
   p = mgr.Allocate(30);
-  ASSERT_NE(p, nullptr);
+  ASSERT_THAT(p, NotNull());
   EXPECT_EQ(*p, 30);
   EXPECT_EQ(mgr.Size(), 2UL);
 }
@@ -46,7 +49,7 @@ TEST(GrpcTagManagerTest, Dealloc) {
   size_t counter = 0;
   GrpcTagManager<DestructorCounter> mgr;
   auto* p = mgr.Allocate(counter);
-  ASSERT_NE(p, nullptr);
+  ASSERT_THAT(p, NotNull());
   EXPECT_EQ(mgr.Size(), 1UL);
   mgr.Deallocate(p);
   EXPECT_EQ(mgr.Size(), 0UL);

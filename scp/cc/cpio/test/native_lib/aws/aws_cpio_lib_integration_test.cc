@@ -74,6 +74,7 @@ using google::scp::cpio::TestAwsParameterClient;
 using google::scp::cpio::TestAwsParameterClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
+using ::testing::StrEq;
 
 namespace {
 constexpr std::string_view kLocalHost = "http://127.0.0.1";
@@ -306,8 +307,8 @@ TEST_F(CpioIntegrationTest, KmsClientDecryptSuccessfully) {
 
   auto decrypt_context = AsyncContext<DecryptRequest, DecryptResponse>(
       std::move(request), [&](auto& context) {
-        EXPECT_SUCCESS(context.result);
-        EXPECT_EQ(context.response->plaintext(), kPlaintext);
+        ASSERT_SUCCESS(context.result);
+        EXPECT_THAT(context.response->plaintext(), StrEq(kPlaintext));
         finished.Notify();
       });
 

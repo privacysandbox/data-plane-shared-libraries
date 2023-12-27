@@ -266,7 +266,7 @@ TEST_F(GcpBlobStorageClientProviderTest, GetBlob) {
       .WillOnce(Return(ByMove(BuildReadResponseFromString(bytes_str))));
 
   get_blob_context_.callback = [this, &bytes_str](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     Blob expected_blob;
     expected_blob.mutable_metadata()->set_bucket_name(kBucketName);
@@ -322,7 +322,7 @@ TEST_P(GcpBlobStorageClientProviderTest, GetBlobWithByteRange) {
 
   get_blob_context_.callback = [this,
                                 expected_str = expected_str](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     Blob expected_blob;
     expected_blob.mutable_metadata()->set_bucket_name(kBucketName);
@@ -481,7 +481,7 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsNoPrefix) {
                           kBlobName1, kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
 
@@ -562,7 +562,7 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithPrefix) {
                           kBlobName1, kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
 
@@ -639,7 +639,7 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithMarker) {
                                                                 kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
 
@@ -685,7 +685,7 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithMarkerSkipsFirstObject) {
                           kBlobName1, kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
 
@@ -742,7 +742,7 @@ TEST_F(GcpBlobStorageClientProviderTest,
           absl::StrFormat(R"""({"items": [%s]})""", items_str)))));
 
   list_blobs_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
 
     ASSERT_THAT(context.response, NotNull());
 

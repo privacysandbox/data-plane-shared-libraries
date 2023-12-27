@@ -382,9 +382,9 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
       [&](AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
               context) {
         auto expected_keys = BuildExpectedPrivateKeys(encoded_private_key);
+        ASSERT_SUCCESS(context.result);
         EXPECT_THAT(context.response->private_keys(),
                     UnorderedPointwise(EqualsProto(), expected_keys));
-        EXPECT_SUCCESS(context.result);
         response_count.Notify();
       });
 

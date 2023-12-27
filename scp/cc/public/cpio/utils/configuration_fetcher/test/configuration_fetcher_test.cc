@@ -59,6 +59,7 @@ using google::scp::core::errors::
     SC_CONFIGURATION_FETCHER_ENVIRONMENT_NAME_NOT_FOUND;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
+using ::testing::StrEq;
 
 namespace {
 constexpr char kInstanceResourceName[] =
@@ -153,7 +154,7 @@ TEST_F(ConfigurationFetcherTest, GetParameterByNameAsyncSucceeded) {
       std::make_shared<std::string>(kQueueClientQueueName),
       [&finished](AsyncContext<std::string, std::string> context) {
         ASSERT_SUCCESS(context.result);
-        EXPECT_EQ(*context.response, kTestQueue);
+        EXPECT_THAT(*context.response, StrEq(kTestQueue));
         finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetParameterByNameAsync(get_context));
@@ -355,7 +356,7 @@ TEST_F(ConfigurationFetcherTest, GetQueueClientQueueNameAsyncSucceeded) {
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
         ASSERT_SUCCESS(context.result);
-        EXPECT_EQ(*context.response, kTestQueue);
+        EXPECT_THAT(*context.response, StrEq(kTestQueue));
         finished.Notify();
       });
   EXPECT_SUCCESS(fetcher_->GetQueueClientQueueNameAsync(get_context));

@@ -89,15 +89,16 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
-using testing::_;
-using testing::ElementsAre;
-using testing::Eq;
-using testing::ExplainMatchResult;
-using testing::InSequence;
-using testing::NiceMock;
-using testing::Pointwise;
-using testing::Return;
-using testing::UnorderedPointwise;
+using ::testing::_;
+using ::testing::ElementsAre;
+using ::testing::Eq;
+using ::testing::ExplainMatchResult;
+using ::testing::InSequence;
+using ::testing::NiceMock;
+using ::testing::NotNull;
+using ::testing::Pointwise;
+using ::testing::Return;
+using ::testing::UnorderedPointwise;
 
 namespace {
 constexpr char kResourceNameMock[] =
@@ -227,8 +228,8 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, PutBlobStream) {
   put_blob_stream_context_.MarkDone();
 
   put_blob_stream_context_.callback = [this](auto& context) {
-    EXPECT_SUCCESS(context.result);
-    EXPECT_NE(context.response, nullptr);
+    ASSERT_SUCCESS(context.result);
+    EXPECT_THAT(context.response, NotNull());
 
     absl::MutexLock l(&finish_called_mu_);
     finish_called_ = true;

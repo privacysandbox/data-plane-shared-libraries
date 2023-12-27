@@ -19,7 +19,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_test(
     name = "aws_cpio_lib_integration_test",
     size = "small",
-    timeout = "long",
+    timeout = "short",
     srcs = ["aws_cpio_lib_integration_test.cc"],
     tags = ["manual"],
     deps = [
