@@ -95,10 +95,10 @@ bool WasmSerializer::WriteRawString(void* mem_ptr, size_t mem_size,
 
 uint32_t WasmSerializer::WriteCustomString(void* mem_ptr, size_t mem_size,
                                            size_t offset,
-                                           const std::string& str) {
+                                           std::string_view str) {
   auto str_data_ptr = offset;
-  auto worked = WriteRawString(mem_ptr, mem_size, str_data_ptr, str.c_str(),
-                               str.length());
+  auto worked =
+      WriteRawString(mem_ptr, mem_size, str_data_ptr, str.data(), str.length());
   if (!worked) {
     return UINT32_MAX;
   }

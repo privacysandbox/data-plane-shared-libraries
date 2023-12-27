@@ -53,7 +53,7 @@ class ExecutionUtils {
    * @return core::ExecutionResult
    */
   static core::ExecutionResult CompileRunJS(
-      const std::string& js, std::string& err_msg,
+      std::string_view js, std::string& err_msg,
       v8::Local<v8::UnboundScript>* unbound_script = nullptr) noexcept;
 
   /**
@@ -64,7 +64,7 @@ class ExecutionUtils {
    * @param err_msg the error message to output.
    * @return core::ExecutionResult
    */
-  static core::ExecutionResult GetJsHandler(const std::string& handler_name,
+  static core::ExecutionResult GetJsHandler(std::string_view handler_name,
                                             v8::Local<v8::Value>& handler,
                                             std::string& err_msg) noexcept;
 
@@ -76,7 +76,7 @@ class ExecutionUtils {
    * @return core::ExecutionResult the execution result of JavaScript code
    * object compile and run.
    */
-  static core::ExecutionResult CompileRunWASM(const std::string& wasm,
+  static core::ExecutionResult CompileRunWASM(std::string_view wasm,
                                               std::string& err_msg) noexcept;
 
   /**
@@ -87,7 +87,7 @@ class ExecutionUtils {
    * @param err_msg the error message to output.
    * @return core::ExecutionResult
    */
-  static core::ExecutionResult GetWasmHandler(const std::string& handler_name,
+  static core::ExecutionResult GetWasmHandler(std::string_view handler_name,
                                               v8::Local<v8::Value>& handler,
                                               std::string& err_msg) noexcept;
 
@@ -171,7 +171,7 @@ class ExecutionUtils {
    */
   static core::ExecutionResult CreateUnboundScript(
       v8::Global<v8::UnboundScript>& unbound_script, v8::Isolate* isolate,
-      const std::string& js, std::string& err_msg) noexcept;
+      std::string_view js, std::string& err_msg) noexcept;
 
   /**
    * @brief Bind UnboundScript to current context and run it.

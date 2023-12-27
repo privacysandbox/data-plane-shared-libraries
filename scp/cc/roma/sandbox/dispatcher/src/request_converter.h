@@ -57,7 +57,7 @@ static void RunRequestFromInputRequestCommon(
 template <typename RequestT>
 static void InvocationRequestCommon(
     worker_api::WorkerApi::RunCodeRequest& run_code_request,
-    const RequestT& request, const std::string& request_type) {
+    const RequestT& request, std::string_view request_type) {
   run_code_request
       .metadata[google::scp::roma::sandbox::constants::kRequestAction] =
       google::scp::roma::sandbox::constants::kRequestActionExecute;
@@ -86,7 +86,7 @@ struct RequestConverter<InvocationStrRequest<TMetadata>> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
   FromUserProvided(
       const std::unique_ptr<InvocationStrRequest<TMetadata>>& request,
-      const std::string& request_type) {
+      std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     RunRequestFromInputRequestCommon<
         std::unique_ptr<InvocationStrRequest<TMetadata>>>(run_code_request,
@@ -110,7 +110,7 @@ struct RequestConverter<InvocationSharedRequest<TMetadata>> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
   FromUserProvided(
       const std::unique_ptr<InvocationSharedRequest<TMetadata>>& request,
-      const std::string& request_type) {
+      std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     RunRequestFromInputRequestCommon<
         std::unique_ptr<InvocationSharedRequest<TMetadata>>>(run_code_request,
@@ -134,7 +134,7 @@ struct RequestConverter<InvocationStrViewRequest<TMetadata>> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
   FromUserProvided(
       const std::unique_ptr<InvocationStrViewRequest<TMetadata>>& request,
-      const std::string& request_type) {
+      std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     RunRequestFromInputRequestCommon<
         std::unique_ptr<InvocationStrViewRequest<TMetadata>>>(run_code_request,
@@ -157,7 +157,7 @@ template <>
 struct RequestConverter<CodeObject> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
   FromUserProvided(const std::unique_ptr<CodeObject>& request,
-                   const std::string& request_type) {
+                   std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     RunRequestFromInputRequestCommon<std::unique_ptr<CodeObject>>(
         run_code_request, request);

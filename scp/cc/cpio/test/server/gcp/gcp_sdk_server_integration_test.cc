@@ -71,7 +71,7 @@ constexpr char kSdkServerImageName[] =
 }  // namespace
 
 namespace google::scp::cpio::test {
-static std::string GetRandomString(const std::string& prefix) {
+static std::string GetRandomString(std::string_view prefix) {
   // Bucket name can only be lower case.
   std::string str("abcdefghijklmnopqrstuvwxyz");
   static random_device random_device_local;

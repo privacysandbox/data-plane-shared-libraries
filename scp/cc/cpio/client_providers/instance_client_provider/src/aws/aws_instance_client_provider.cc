@@ -134,7 +134,7 @@ ExecutionResult AwsInstanceClientProvider::Stop() noexcept {
 
 ExecutionResultOr<std::shared_ptr<EC2Client>>
 AwsInstanceClientProvider::GetEC2ClientByRegion(
-    const std::string& region) noexcept {
+    std::string_view region) noexcept {
   // Available Regions. Refers to
   // https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
   // Static duration map is heap allocated to avoid destructor call.
@@ -147,7 +147,12 @@ AwsInstanceClientProvider::GetEC2ClientByRegion(
       "eu-west-3",      "eu-south-2",     "eu-north-1",     "eu-central-2",
       "me-south-1",     "me-central-1",   "sa-east-1",
   };
-  auto target_region = region.empty() ? kDefaultRegionCode : region;
+  std::string target_region;
+  if (region.empty()) {
+    target_region = kDefaultRegionCode;
+  } else {
+    target_region = std::string{region};
+  }
   auto it = kAwsRegionCodes.find(target_region);
   if (it == kAwsRegionCodes.end()) {
     return FailureExecutionResult(SC_AWS_INSTANCE_CLIENT_INVALID_REGION_CODE);
@@ -163,7 +168,7 @@ AwsInstanceClientProvider::GetEC2ClientByRegion(
   RETURN_IF_FAILURE(ec2_client_or.result());
 
   ec2_client = std::move(*ec2_client_or);
-  ec2_clients_list_.Insert(std::make_pair(target_region, ec2_client),
+  ec2_clients_list_.Insert(std::make_pair(std::move(target_region), ec2_client),
                            ec2_client);
 
   return ec2_client;
@@ -322,7 +327,7 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
 }
 
 ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
-    const std::string& resource_name,
+    std::string_view resource_name,
     InstanceDetails& instance_details) noexcept {
   GetInstanceDetailsByResourceNameRequest request;
   request.set_instance_resource_name(resource_name);
@@ -534,7 +539,7 @@ ExecutionResult AwsInstanceClientProvider::ListInstanceDetailsByEnvironment(
 }
 
 ExecutionResultOr<std::shared_ptr<EC2Client>> AwsEC2ClientFactory::CreateClient(
-    const std::string& region,
+    std::string_view region,
     const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
   auto client_config =
       common::CreateClientConfiguration(std::make_shared<std::string>(region));

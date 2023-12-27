@@ -64,14 +64,14 @@ void MetricUtils::GetPutMetricsRequest(
 std::shared_ptr<SimpleMetricInterface> MetricUtils::RegisterSimpleMetric(
     const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
     const std::shared_ptr<MetricClientInterface>& metric_client,
-    const std::string& metric_name, const std::string& metric_label_component,
-    const std::string& metric_label_method,
+    std::string_view metric_name, std::string_view metric_label_component,
+    std::string_view metric_label_method,
     MetricUnit metric_unit_type) noexcept {
   auto metric_labels = MetricUtils::CreateMetricLabelsWithComponentSignature(
-      metric_label_component, metric_label_method);
+      std::string{metric_label_component}, std::string{metric_label_method});
   auto metric_info =
-      MetricDefinition(metric_name, metric_unit_type, kDefaultMetricNamespace,
-                       std::move(metric_labels));
+      MetricDefinition(std::string{metric_name}, metric_unit_type,
+                       kDefaultMetricNamespace, std::move(metric_labels));
   return std::make_shared<SimpleMetric>(async_executor, metric_client,
                                         std::move(metric_info));
 }
@@ -92,15 +92,15 @@ std::shared_ptr<SimpleMetricInterface> MetricUtils::RegisterSimpleMetric(
 std::shared_ptr<AggregateMetricInterface> MetricUtils::RegisterAggregateMetric(
     const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
     const std::shared_ptr<MetricClientInterface>& metric_client,
-    const std::string& metric_name, const std::string& metric_label_component,
-    const std::string& metric_label_method, MetricUnit metric_unit_type,
+    std::string_view metric_name, std::string_view metric_label_component,
+    std::string_view metric_label_method, MetricUnit metric_unit_type,
     std::vector<std::string> metric_event_labels,
     size_t aggregated_metric_interval_ms) noexcept {
   auto metric_labels = MetricUtils::CreateMetricLabelsWithComponentSignature(
-      metric_label_component, metric_label_method);
+      std::string{metric_label_component}, std::string{metric_label_method});
   auto metric_info =
-      MetricDefinition(metric_name, metric_unit_type, kDefaultMetricNamespace,
-                       std::move(metric_labels));
+      MetricDefinition(std::string{metric_name}, metric_unit_type,
+                       kDefaultMetricNamespace, std::move(metric_labels));
   return std::make_shared<AggregateMetric>(
       async_executor, metric_client, std::move(metric_info),
       aggregated_metric_interval_ms, metric_event_labels);

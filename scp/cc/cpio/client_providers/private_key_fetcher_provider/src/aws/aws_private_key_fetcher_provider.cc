@@ -135,15 +135,15 @@ void AwsPrivateKeyFetcherProvider::
 }
 
 ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
-    std::shared_ptr<HttpRequest>& http_request, const std::string& access_key,
-    const std::string& secret_key, const std::string& security_token,
-    const std::string& region) noexcept {
-  auto credentials = AWSCredentials(access_key.c_str(), secret_key.c_str(),
-                                    security_token.c_str());
+    std::shared_ptr<HttpRequest>& http_request, std::string_view access_key,
+    std::string_view secret_key, std::string_view security_token,
+    std::string_view region) noexcept {
+  auto credentials = AWSCredentials(access_key.data(), secret_key.data(),
+                                    security_token.data());
   auto credentials_provider =
       std::make_shared<SimpleAWSCredentialsProvider>(std::move(credentials));
   auto signer = AWSAuthV4Signer(std::move(credentials_provider), kServiceName,
-                                region.c_str());
+                                region.data());
 
   auto path_with_query = GetEscapedUriWithQuery(*http_request);
   if (!path_with_query.Successful()) {

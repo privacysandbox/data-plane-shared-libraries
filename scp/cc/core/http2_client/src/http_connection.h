@@ -48,8 +48,7 @@ class HttpConnection : public ServiceInterface {
    * @param http2_read_timeout_in_sec nghttp2 read timeout in second.
    */
   HttpConnection(const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-                 const std::string& host, const std::string& service,
-                 bool is_https,
+                 std::string host, std::string service, bool is_https,
                  TimeDuration http2_read_timeout_in_sec =
                      kDefaultHttp2ReadTimeoutInSeconds);
 

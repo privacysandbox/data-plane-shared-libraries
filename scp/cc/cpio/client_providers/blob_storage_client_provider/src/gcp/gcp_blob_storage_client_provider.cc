@@ -867,9 +867,9 @@ void GcpBlobStorageClientProvider::DeleteBlobInternal(
 
 Options GcpCloudStorageFactory::CreateClientOptions(
     std::shared_ptr<BlobStorageClientOptions> options,
-    const std::string& project_id) noexcept {
+    std::string_view project_id) noexcept {
   Options client_options;
-  client_options.set<ProjectIdOption>(project_id);
+  client_options.set<ProjectIdOption>(std::string{project_id});
   client_options.set<ConnectionPoolSizeOption>(kMaxConcurrentConnections);
   client_options.set<RetryPolicyOption>(
       LimitedErrorCountRetryPolicy(options->retry_limit).clone());
@@ -883,7 +883,7 @@ Options GcpCloudStorageFactory::CreateClientOptions(
 core::ExecutionResultOr<std::shared_ptr<Client>>
 GcpCloudStorageFactory::CreateClient(
     std::shared_ptr<BlobStorageClientOptions> options,
-    const std::string& project_id) noexcept {
+    std::string_view project_id) noexcept {
   return std::make_shared<Client>(CreateClientOptions(options, project_id));
 }
 

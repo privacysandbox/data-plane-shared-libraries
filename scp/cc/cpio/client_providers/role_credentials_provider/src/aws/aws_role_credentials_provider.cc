@@ -57,7 +57,7 @@ static constexpr char kAwsRoleCredentialsProvider[] =
 namespace google::scp::cpio::client_providers {
 std::shared_ptr<ClientConfiguration>
 AwsRoleCredentialsProvider::CreateClientConfiguration(
-    const std::string& region) noexcept {
+    std::string_view region) noexcept {
   return common::CreateClientConfiguration(
 
       std::make_shared<std::string>(std::move(region)));

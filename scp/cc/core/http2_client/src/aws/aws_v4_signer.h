@@ -29,10 +29,9 @@ namespace google::scp::core {
  */
 class AwsV4Signer {
  public:
-  AwsV4Signer(const std::string& aws_access_key,
-              const std::string& aws_secret_key,
-              const std::string& aws_security_token,
-              const std::string& service_name, const std::string& aws_region);
+  AwsV4Signer(std::string aws_access_key, std::string aws_secret_key,
+              std::string aws_security_token, std::string service_name,
+              std::string aws_region);
 
   /**
    * @brief Sign the request based on \a headers_to_sign, which stores the
@@ -57,7 +56,7 @@ class AwsV4Signer {
    * valid. Otherwise failure.
    */
   ExecutionResult SignRequest(HttpRequest& http_request,
-                              const std::string& headers_to_sign) noexcept;
+                              std::string_view headers_to_sign) noexcept;
 
   /**
    * @brief Sign the request based on \a header_begin and \a header_end, which
@@ -89,7 +88,7 @@ class AwsV4Signer {
    */
   ExecutionResult SignRequestWithSignature(
       HttpRequest& http_request, std::vector<std::string>& headers_to_sign,
-      const std::string& x_amz_date, const std::string& signature) noexcept;
+      std::string_view x_amz_date, std::string_view signature) noexcept;
 
   /**
    * @brief Calculate the signature of a request. Return the parts useful for
@@ -132,9 +131,9 @@ class AwsV4Signer {
    */
   static std::string GetSigningTime();
 
-  static inline std::string DateFromTimestamp(const std::string x_amz_date) {
+  static inline std::string DateFromTimestamp(std::string_view x_amz_date) {
     constexpr size_t date_len = sizeof("YYYYMMdd") - 1;
-    return x_amz_date.substr(0, date_len);
+    return std::string(x_amz_date.substr(0, date_len));
   }
 
   /**
@@ -142,8 +141,8 @@ class AwsV4Signer {
    *
    * @return std::string The signature in hex string form.
    */
-  std::string CalculateSignature(const std::string& string_to_sign,
-                                 const std::string& date) noexcept;
+  std::string CalculateSignature(std::string_view string_to_sign,
+                                 std::string_view date) noexcept;
 
   /**
    * @brief Produce a signature header and add to the request.
@@ -153,8 +152,7 @@ class AwsV4Signer {
    */
   void AddSignatureHeader(HttpRequest& http_request,
                           const std::vector<std::string>& headers_to_sign,
-                          const std::string& date,
-                          const std::string& signature);
+                          std::string_view date, std::string_view signature);
 
   const std::string aws_access_key_;
   const std::string aws_secret_key_;

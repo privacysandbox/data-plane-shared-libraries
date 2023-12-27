@@ -56,7 +56,7 @@ struct BytesBuffer {
    *
    * @param buffer_string
    */
-  explicit BytesBuffer(const std::string& buffer_string)
+  explicit BytesBuffer(std::string_view buffer_string)
       : BytesBuffer(buffer_string.size()) {
     bytes->assign(buffer_string.begin(), buffer_string.end());
     length = bytes->size();

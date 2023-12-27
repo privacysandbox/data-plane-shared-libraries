@@ -26,11 +26,11 @@ namespace google::scp::core::logger {
 /// Returns a string representation for LogLevel
 std::string ToString(const LogLevel& level);
 
-LogLevel FromString(const std::string& level);
+LogLevel FromString(std::string_view level);
 
-std::string operator+(const LogLevel& level, const std::string& text);
+std::string operator+(const LogLevel& level, std::string_view text);
 
-std::string operator+(const std::string& text, const LogLevel& level);
+std::string operator+(std::string_view text, const LogLevel& level);
 
 }  // namespace google::scp::core::logger
 

@@ -80,7 +80,7 @@ class AwsRoleCredentialsProvider : public RoleCredentialsProviderInterface {
    * configuration.
    */
   virtual std::shared_ptr<Aws::Client::ClientConfiguration>
-  CreateClientConfiguration(const std::string& region) noexcept;
+  CreateClientConfiguration(std::string_view region) noexcept;
 
   /// Instance client provider to fetch cloud metadata.
   std::shared_ptr<InstanceClientProviderInterface> instance_client_provider_;

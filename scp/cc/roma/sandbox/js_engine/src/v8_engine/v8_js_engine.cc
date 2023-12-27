@@ -171,7 +171,7 @@ ExecutionResult V8JsEngine::OneTimeSetup(
 }
 
 core::ExecutionResult V8JsEngine::CreateSnapshot(
-    v8::StartupData& startup_data, const std::string& js_code,
+    v8::StartupData& startup_data, std::string_view js_code,
     std::string& err_msg) noexcept {
   v8::SnapshotCreator creator(external_references_.data());
   v8::Isolate* isolate = creator.GetIsolate();
@@ -311,7 +311,7 @@ void V8JsEngine::StopWatchdogTimer() noexcept {
 
 ExecutionResultOr<RomaJsEngineCompilationContext>
 V8JsEngine::CreateCompilationContext(
-    const std::string& code, absl::Span<const uint8_t> wasm,
+    std::string_view code, absl::Span<const uint8_t> wasm,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     std::string& err_msg) noexcept {
   if (code.empty()) {
@@ -429,8 +429,7 @@ core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
 core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     const std::shared_ptr<SnapshotCompilationContext>&
         current_compilation_context,
-    const std::string& function_name,
-    const std::vector<absl::string_view>& input,
+    std::string_view function_name, const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>&
         metadata) noexcept {
   ExecutionResponse execution_response;
@@ -545,7 +544,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
 }
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
-    const std::string& code, const std::string& function_name,
+    std::string_view code, std::string_view function_name,
     const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
@@ -554,7 +553,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
 }
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
-    const std::string& code, const std::string& function_name,
+    std::string_view code, std::string_view function_name,
     const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
@@ -672,9 +671,8 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
 ExecutionResultOr<JsEngineExecutionResponse>
 V8JsEngine::CompileAndRunJsWithWasm(
-    const std::string& code, absl::Span<const uint8_t> wasm,
-    const std::string& function_name,
-    const std::vector<absl::string_view>& input,
+    std::string_view code, absl::Span<const uint8_t> wasm,
+    std::string_view function_name, const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   std::string err_msg;

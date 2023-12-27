@@ -131,7 +131,7 @@ constexpr std::chrono::seconds kPutBlobRescanTime = std::chrono::seconds(5);
 
 template <typename Context, typename Request>
 ExecutionResult SetContentMd5(Context& context, Request& request,
-                              const std::string& body) {
+                              std::string_view body) {
   ASSIGN_OR_LOG_AND_RETURN_CONTEXT(std::string md5_checksum,
                                    CalculateMd5Hash(body), kAwsS3Provider,
                                    context, "MD5 Hash generation failed");
@@ -195,7 +195,7 @@ GetObjectRequest MakeGetObjectRequest(const ProtoRequest& proto_request,
 namespace google::scp::cpio::client_providers {
 std::shared_ptr<ClientConfiguration>
 AwsBlobStorageClientProvider::CreateClientConfiguration(
-    const std::string& region) noexcept {
+    std::string_view region) noexcept {
   return common::CreateClientConfiguration(
 
       std::make_shared<std::string>(std::move(region)));

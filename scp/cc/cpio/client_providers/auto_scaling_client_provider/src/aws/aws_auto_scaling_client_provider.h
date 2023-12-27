@@ -117,7 +117,7 @@ class AwsAutoScalingClientProvider : public AutoScalingClientProviderInterface {
    * configuration.
    */
   virtual std::shared_ptr<Aws::Client::ClientConfiguration>
-  CreateClientConfiguration(const std::string& region) noexcept;
+  CreateClientConfiguration(std::string_view region) noexcept;
 
   std::shared_ptr<AutoScalingClientOptions> options_;
   /// InstanceClientProvider.

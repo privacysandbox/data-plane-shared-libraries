@@ -43,7 +43,7 @@ class TestAwsAutoScalingClientProvider : public AwsAutoScalingClientProvider {
 
  private:
   std::shared_ptr<Aws::Client::ClientConfiguration> CreateClientConfiguration(
-      const std::string& region) noexcept override;
+      std::string_view region) noexcept override;
 
   std::shared_ptr<TestAwsAutoScalingClientOptions> test_options_;
 };

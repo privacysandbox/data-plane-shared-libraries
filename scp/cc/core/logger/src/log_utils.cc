@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "absl/strings/str_cat.h"
 #include "core/logger/interface/log_provider_interface.h"
 
 namespace google::scp::core::logger {
@@ -43,7 +44,7 @@ std::string ToString(const LogLevel& level) {
   return "Unknown";
 }
 
-LogLevel FromString(const std::string& level) {
+LogLevel FromString(std::string_view level) {
   if (level == "Emergency") {
     return LogLevel::kEmergency;
   }
@@ -69,12 +70,12 @@ LogLevel FromString(const std::string& level) {
   return LogLevel::kNone;
 }
 
-std::string operator+(const LogLevel& level, const std::string& text) {
-  return ToString(level) + text;
+std::string operator+(const LogLevel& level, std::string_view text) {
+  return absl::StrCat(ToString(level), text);
 }
 
-std::string operator+(const std::string& text, const LogLevel& level) {
-  return text + ToString(level);
+std::string operator+(std::string_view text, const LogLevel& level) {
+  return absl::StrCat(text, ToString(level));
 }
 
 }  // namespace google::scp::core::logger

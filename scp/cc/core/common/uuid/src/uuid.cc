@@ -22,6 +22,7 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
@@ -48,8 +49,8 @@ Uuid Uuid::GenerateUuid() noexcept {
 
 namespace {
 
-uint64_t ReadHex(const std::string& string_to_read, const int offset) {
-  const std::string digits = string_to_read.substr(offset, 2);
+uint64_t ReadHex(std::string_view string_to_read, const int offset) {
+  const std::string digits(string_to_read.substr(offset, 2));
   std::istringstream istrstream(digits);
   int byte = 0;
   istrstream >> std::hex >> byte;
@@ -73,8 +74,7 @@ std::string ToString(const Uuid& uuid) noexcept {
   return uuid_str;
 }
 
-ExecutionResult FromString(const std::string& uuid_string,
-                           Uuid& uuid) noexcept {
+ExecutionResult FromString(std::string_view uuid_string, Uuid& uuid) noexcept {
   if (uuid_string.length() != 36) {
     return FailureExecutionResult(errors::SC_UUID_INVALID_STRING);
   }

@@ -42,7 +42,7 @@ ExecutionResultOr<std::string> CalculateMd5Hash(const BytesBuffer& buffer) {
   return std::string(reinterpret_cast<char*>(digest_length), MD5_DIGEST_LENGTH);
 }
 
-ExecutionResultOr<std::string> CalculateMd5Hash(const std::string& buffer) {
+ExecutionResultOr<std::string> CalculateMd5Hash(std::string_view buffer) {
   if (buffer.length() == 0) {
     return FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT);
   }
@@ -50,7 +50,7 @@ ExecutionResultOr<std::string> CalculateMd5Hash(const std::string& buffer) {
   unsigned char digest_length[MD5_DIGEST_LENGTH];
   MD5_CTX md5_context;
   MD5_Init(&md5_context);
-  MD5_Update(&md5_context, buffer.c_str(), buffer.length());
+  MD5_Update(&md5_context, buffer.data(), buffer.length());
 
   MD5_Final(digest_length, &md5_context);
 
@@ -63,7 +63,7 @@ ExecutionResult CalculateMd5Hash(const BytesBuffer& buffer,
   return SuccessExecutionResult();
 }
 
-ExecutionResult CalculateMd5Hash(const std::string& buffer,
+ExecutionResult CalculateMd5Hash(std::string_view buffer,
                                  std::string& checksum) {
   ASSIGN_OR_RETURN(checksum, CalculateMd5Hash(buffer));
   return SuccessExecutionResult();

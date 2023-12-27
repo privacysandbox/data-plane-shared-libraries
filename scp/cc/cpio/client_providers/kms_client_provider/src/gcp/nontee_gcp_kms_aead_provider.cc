@@ -27,8 +27,8 @@ namespace google::scp::cpio::client_providers {
 
 std::shared_ptr<KeyManagementServiceClient>
 GcpKmsAeadProvider::CreateKeyManagementServiceClient(
-    const std::string& wip_provider,
-    const std::string& service_account_to_impersonate) noexcept {
+    std::string_view wip_provider,
+    std::string_view service_account_to_impersonate) noexcept {
   return std::make_shared<KeyManagementServiceClient>(
       MakeKeyManagementServiceConnection());
 }

@@ -69,7 +69,7 @@ class V8JsEngine : public JsEngine {
           absl::flat_hash_map<std::string, std::string>()) noexcept override;
 
   core::ExecutionResultOr<js_engine::JsEngineExecutionResponse> CompileAndRunJs(
-      const std::string& code, const std::string& function_name,
+      std::string_view code, std::string_view function_name,
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
@@ -77,8 +77,8 @@ class V8JsEngine : public JsEngine {
 
   core::ExecutionResultOr<js_engine::JsEngineExecutionResponse>
   CompileAndRunJsWithWasm(
-      const std::string& code, absl::Span<const std::uint8_t> wasm,
-      const std::string& function_name,
+      std::string_view code, absl::Span<const std::uint8_t> wasm,
+      std::string_view function_name,
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
@@ -86,7 +86,7 @@ class V8JsEngine : public JsEngine {
 
   core::ExecutionResultOr<js_engine::JsEngineExecutionResponse>
   CompileAndRunWasm(
-      const std::string& code, const std::string& function_name,
+      std::string_view code, std::string_view function_name,
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
@@ -113,7 +113,7 @@ class V8JsEngine : public JsEngine {
    * @return core::ExecutionResult
    */
   core::ExecutionResult CreateSnapshot(v8::StartupData& startup_data,
-                                       const std::string& js_code,
+                                       std::string_view js_code,
                                        std::string& err_msg) noexcept;
   /**
    * @brief Create a Snapshot object with start up data containing global
@@ -142,7 +142,7 @@ class V8JsEngine : public JsEngine {
    */
   core::ExecutionResultOr<js_engine::RomaJsEngineCompilationContext>
   CreateCompilationContext(
-      const std::string& code, absl::Span<const std::uint8_t> wasm,
+      std::string_view code, absl::Span<const std::uint8_t> wasm,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       std::string& err_msg) noexcept;
 
@@ -186,7 +186,7 @@ class V8JsEngine : public JsEngine {
   core::ExecutionResultOr<ExecutionResponse> ExecuteJs(
       const std::shared_ptr<SnapshotCompilationContext>&
           current_compilation_context,
-      const std::string& function_name,
+      std::string_view function_name,
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>&
           metadata) noexcept;

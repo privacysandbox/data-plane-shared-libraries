@@ -44,7 +44,7 @@ class TestAwsBlobStorageClientProvider : public AwsBlobStorageClientProvider {
 
  protected:
   std::shared_ptr<Aws::Client::ClientConfiguration> CreateClientConfiguration(
-      const std::string& region) noexcept override;
+      std::string_view region) noexcept override;
 
   std::shared_ptr<TestAwsBlobStorageClientOptions> test_options_;
 };

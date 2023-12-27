@@ -80,7 +80,7 @@ ExecutionResultOr<std::string> AwsInstanceClientUtils::GetCurrentRegionCode(
 
 ExecutionResultOr<std::string>
 AwsInstanceClientUtils::ParseRegionFromResourceName(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   AwsResourceNameDetails details;
   auto result = GetResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
@@ -89,7 +89,7 @@ AwsInstanceClientUtils::ParseRegionFromResourceName(
 
 ExecutionResultOr<std::string>
 AwsInstanceClientUtils::ParseAccountIdFromResourceName(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   AwsResourceNameDetails details;
   auto result = GetResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
@@ -98,7 +98,7 @@ AwsInstanceClientUtils::ParseAccountIdFromResourceName(
 
 ExecutionResultOr<std::string>
 AwsInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   AwsResourceNameDetails details;
   auto result = GetResourceNameDetails(resource_name, details);
   RETURN_IF_FAILURE(result);
@@ -106,9 +106,9 @@ AwsInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
 }
 
 ExecutionResult AwsInstanceClientUtils::ValidateResourceNameFormat(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   static std::regex re(kResourceNameRegex);
-  if (!std::regex_match(resource_name, re)) {
+  if (!std::regex_match(std::string{resource_name}, re)) {
     return FailureExecutionResult(
         SC_AWS_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME);
   }
@@ -117,7 +117,7 @@ ExecutionResult AwsInstanceClientUtils::ValidateResourceNameFormat(
 }
 
 ExecutionResult AwsInstanceClientUtils::GetResourceNameDetails(
-    const std::string& resource_name, AwsResourceNameDetails& detail) noexcept {
+    std::string_view resource_name, AwsResourceNameDetails& detail) noexcept {
   auto result = ValidateResourceNameFormat(resource_name);
   RETURN_IF_FAILURE(result);
 

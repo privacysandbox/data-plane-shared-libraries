@@ -76,7 +76,7 @@ class PrivateKeyClientUtils {
    * @param str the given string.
    * @return vector<byte> vector of byte.
    */
-  static std::vector<std::byte> StrToBytes(const std::string& str) noexcept;
+  static std::vector<std::byte> StrToBytes(std::string_view str) noexcept;
 
   /**
    * @brief XOR operation for two vectors of byte.

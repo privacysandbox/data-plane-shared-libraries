@@ -25,6 +25,7 @@
 #include <google/protobuf/util/time_util.h>
 
 #include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "core/interface/async_context.h"
 #include "google/cloud/future.h"
 #include "google/cloud/monitoring/metric_client.h"
@@ -73,7 +74,7 @@ namespace google::scp::cpio::client_providers {
 
 ExecutionResult GcpMetricClientUtils::ParseRequestToTimeSeries(
     AsyncContext<PutMetricsRequest, PutMetricsResponse>& record_metric_context,
-    const std::string& name_space,
+    std::string_view name_space,
     std::vector<TimeSeries>& time_series_list) noexcept {
   for (auto i = 0; i < record_metric_context.request->metrics().size(); ++i) {
     auto& time_series = time_series_list.emplace_back();
@@ -110,9 +111,8 @@ ExecutionResult GcpMetricClientUtils::ParseRequestToTimeSeries(
 
     time_series.mutable_metric()->mutable_labels()->insert(
         metric.labels().begin(), metric.labels().end());
-    time_series.mutable_metric()->set_type(
-        std::string(kCustomMetricTypePrefix) + "/" + name_space + "/" +
-        metric.name());
+    time_series.mutable_metric()->set_type(absl::StrCat(
+        kCustomMetricTypePrefix, "/", name_space, "/", metric.name()));
 
     auto* point = time_series.add_points();
 
@@ -129,20 +129,20 @@ ExecutionResult GcpMetricClientUtils::ParseRequestToTimeSeries(
 }
 
 std::string GcpMetricClientUtils::ConstructProjectName(
-    const std::string& project_id) {
-  return std::string(kProjectNamePrefix) + project_id;
+    std::string_view project_id) {
+  return absl::StrCat(kProjectNamePrefix, project_id);
 }
 
 void GcpMetricClientUtils::AddResourceToTimeSeries(
-    const std::string& project_id, const std::string& instance_id,
-    const std::string& instance_zone,
+    std::string_view project_id, std::string_view instance_id,
+    std::string_view instance_zone,
     std::vector<TimeSeries>& time_series_list) noexcept {
   MonitoredResource resource;
   resource.set_type(kResourceType);
   auto& labels = *resource.mutable_labels();
-  labels[std::string(kProjectIdKey)] = project_id;
-  labels[std::string(kInstanceIdKey)] = instance_id;
-  labels[std::string(kInstanceZoneKey)] = instance_zone;
+  labels[std::string(kProjectIdKey)] = std::string{project_id};
+  labels[std::string(kInstanceIdKey)] = std::string{instance_id};
+  labels[std::string(kInstanceZoneKey)] = std::string{instance_zone};
 
   for (auto& time_series : time_series_list) {
     time_series.mutable_resource()->CopyFrom(resource);

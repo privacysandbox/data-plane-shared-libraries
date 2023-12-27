@@ -101,8 +101,8 @@ class AwsMetricClientProviderTest : public ::testing::Test {
   }
 
   void SetPutMetricsRequest(
-      PutMetricsRequest& record_metric_request,
-      const std::string& value = kValue, int metrics_num = 1,
+      PutMetricsRequest& record_metric_request, std::string_view value = kValue,
+      int metrics_num = 1,
       const int64_t& timestamp_in_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(
               std::chrono::system_clock::now().time_since_epoch())

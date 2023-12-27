@@ -67,11 +67,11 @@ static constexpr char kHttpMethodPostTag[] = "POST";
 namespace google::scp::core {
 HttpConnection::HttpConnection(
     const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-    const std::string& host, const std::string& service, bool is_https,
+    std::string host, std::string service, bool is_https,
     TimeDuration http2_read_timeout_in_sec)
     : async_executor_(async_executor),
-      host_(host),
-      service_(service),
+      host_(std::move(host)),
+      service_(std::move(service)),
       is_https_(is_https),
       http2_read_timeout_in_sec_(http2_read_timeout_in_sec),
       tls_context_(context::sslv23),

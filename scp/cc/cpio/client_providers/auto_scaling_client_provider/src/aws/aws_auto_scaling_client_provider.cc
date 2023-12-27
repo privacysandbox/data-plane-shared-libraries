@@ -80,7 +80,7 @@ static constexpr char kLifecycleActionResultContinue[] = "CONTINUE";
 namespace google::scp::cpio::client_providers {
 std::shared_ptr<ClientConfiguration>
 AwsAutoScalingClientProvider::CreateClientConfiguration(
-    const std::string& region) noexcept {
+    std::string_view region) noexcept {
   return common::CreateClientConfiguration(
 
       std::make_shared<std::string>(std::move(region)));

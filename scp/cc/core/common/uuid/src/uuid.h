@@ -92,7 +92,7 @@ std::string ToString(const Uuid& uuid) noexcept;
  * @param uuid The output uuid.
  * @return ExecutionResult The execution result of the operation.
  */
-ExecutionResult FromString(const std::string& uuid_string, Uuid& uuid) noexcept;
+ExecutionResult FromString(std::string_view uuid_string, Uuid& uuid) noexcept;
 
 static constexpr Uuid kZeroUuid{0ULL, 0ULL};
 

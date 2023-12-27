@@ -41,7 +41,7 @@ static constexpr char kEC2ErrorConverter[] = "EC2ErrorConverter";
 
 namespace google::scp::cpio::client_providers {
 FailureExecutionResult EC2ErrorConverter::ConvertEC2Error(
-    const EC2Errors& error, const std::string& error_message) {
+    const EC2Errors& error, std::string_view error_message) {
   auto failure = FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR);
   switch (error) {
     case EC2Errors::VALIDATION:
@@ -68,7 +68,7 @@ FailureExecutionResult EC2ErrorConverter::ConvertEC2Error(
   }
   SCP_ERROR(kEC2ErrorConverter, kZeroUuid, failure,
             "AWS cloud service error: code is %d, and error message is %s.",
-            error, error_message.c_str());
+            error, error_message.data());
   return failure;
 }
 }  // namespace google::scp::cpio::client_providers

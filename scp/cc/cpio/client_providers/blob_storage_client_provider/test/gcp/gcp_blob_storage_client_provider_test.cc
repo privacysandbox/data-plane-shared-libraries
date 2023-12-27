@@ -108,7 +108,7 @@ namespace google::scp::cpio::client_providers::test {
 class MockGcpCloudStorageFactory : public GcpCloudStorageFactory {
  public:
   MOCK_METHOD(core::ExecutionResultOr<std::shared_ptr<Client>>, CreateClient,
-              (std::shared_ptr<BlobStorageClientOptions>, const std::string&),
+              (std::shared_ptr<BlobStorageClientOptions>, std::string_view),
               (noexcept, override));
 };
 

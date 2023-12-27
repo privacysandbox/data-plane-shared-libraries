@@ -84,9 +84,9 @@ constexpr char kMaxAgeSecondsQueryParameter[] = "maxAgeSeconds=";
 namespace google::scp::cpio::client_providers {
 
 ExecutionResultOr<std::string> PrivateKeyFetchingClientUtils::ExtractKeyId(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   if (resource_name.find(kEncryptionKeyPrefix) == 0) {
-    return resource_name.substr(strlen(kEncryptionKeyPrefix));
+    return std::string{resource_name.substr(strlen(kEncryptionKeyPrefix))};
   }
   return FailureExecutionResult(
       SC_PRIVATE_KEY_CLIENT_PROVIDER_INVALID_RESOURCE_NAME);
@@ -187,7 +187,7 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKey(
 }
 
 ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKeyType(
-    const nlohmann::json& json_response, const std::string& type_tag,
+    const nlohmann::json& json_response, std::string_view type_tag,
     EncryptionKeyType& key_type) noexcept {
   auto it = json_response.find(type_tag);
   if (it == json_response.end()) {
@@ -208,7 +208,7 @@ ExecutionResult PrivateKeyFetchingClientUtils::ParseEncryptionKeyType(
 }
 
 ExecutionResult PrivateKeyFetchingClientUtils::ParseKeyData(
-    const nlohmann::json& json_response, const std::string& key_data_tag,
+    const nlohmann::json& json_response, std::string_view key_data_tag,
     std::vector<std::shared_ptr<KeyData>>& key_data_list) noexcept {
   auto key_data_json = json_response.find(key_data_tag);
   if (key_data_json == json_response.end()) {

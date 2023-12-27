@@ -98,7 +98,7 @@ class CryptoClientProviderTest : public ScpTestBase {
   AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>
   CreateHpkeEncryptContext(bool is_bidirectional,
                            const ExecutionResult& decrypt_private_key_result,
-                           const std::string& exporter_context = "",
+                           std::string_view exporter_context = "",
                            HpkeParams hpke_params_from_request = HpkeParams(),
                            HpkeParams hpke_params_config = HpkeParams()) {
     auto request = std::make_shared<HpkeEncryptRequest>();
@@ -140,9 +140,9 @@ class CryptoClientProviderTest : public ScpTestBase {
 
   AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>
   CreateHpkeDecryptContext(std::string_view ciphertext, bool is_bidirectional,
-                           const std::string& secret,
+                           std::string_view secret,
                            const ExecutionResult& decrypt_private_key_result,
-                           const std::string& exporter_context,
+                           std::string_view exporter_context,
                            HpkeParams hpke_params_from_request,
                            HpkeParams hpke_params_from_config) {
     auto request = std::make_shared<HpkeDecryptRequest>();

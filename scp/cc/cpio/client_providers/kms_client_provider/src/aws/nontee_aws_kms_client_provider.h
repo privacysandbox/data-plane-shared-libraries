@@ -88,7 +88,7 @@ class NonteeAwsKmsClientProvider : public KmsClientProviderInterface {
    * configuration.
    */
   virtual std::shared_ptr<Aws::Client::ClientConfiguration>
-  CreateClientConfiguration(const std::string& region) noexcept;
+  CreateClientConfiguration(std::string_view region) noexcept;
 
   /**
    * @brief Creates a KMS Client object.

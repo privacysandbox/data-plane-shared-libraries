@@ -77,7 +77,7 @@ void ConsoleLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
   Print(output.str());
 }
 
-void ConsoleLogProvider::Print(const std::string& output) noexcept {
+void ConsoleLogProvider::Print(std::string_view output) noexcept {
   std::cout << output << std::endl;
 }
 }  // namespace google::scp::core::logger

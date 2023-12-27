@@ -104,7 +104,7 @@ class GcpParameterClientProviderTest : public ::testing::Test {
   }
 
   std::string GetSecretName(
-      const std::string& parameter_name = kParameterNameMock) {
+      std::string_view parameter_name = kParameterNameMock) {
     auto secret_name =
         absl::StrCat("projects/", kProjectIdValueMock, "/secrets/",
                      parameter_name, "/versions/latest");

@@ -29,8 +29,7 @@ namespace google::scp::core::utils {
  * @param delimiter The delimiter to split by.
  * @param out The output list containing the split parts.
  */
-void SplitStringByDelimiter(const std::string& str,
-                            const std::string& delimiter,
+void SplitStringByDelimiter(std::string_view str, std::string_view delimiter,
                             std::list<std::string>& out);
 }  // namespace google::scp::core::utils
 

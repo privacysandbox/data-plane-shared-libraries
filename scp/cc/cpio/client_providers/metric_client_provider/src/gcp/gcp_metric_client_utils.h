@@ -43,7 +43,7 @@ class GcpMetricClientUtils {
       core::AsyncContext<cmrt::sdk::metric_service::v1::PutMetricsRequest,
                          cmrt::sdk::metric_service::v1::PutMetricsResponse>&
           record_metric_context,
-      const std::string& name_space,
+      std::string_view name_space,
       std::vector<monitoring::v3::TimeSeries>& time_series_list) noexcept;
 
   /**
@@ -55,8 +55,8 @@ class GcpMetricClientUtils {
    * @param time_series_list the reference of time series vector.
    */
   static void AddResourceToTimeSeries(
-      const std::string& project_id, const std::string& instance_id,
-      const std::string& instance_zone,
+      std::string_view project_id, std::string_view instance_id,
+      std::string_view instance_zone,
       std::vector<monitoring::v3::TimeSeries>& time_series_list) noexcept;
 
   /**
@@ -65,6 +65,6 @@ class GcpMetricClientUtils {
    * @param project_id Gcp project id.
    * @return std::string Project name.
    */
-  static std::string ConstructProjectName(const std::string& project_id);
+  static std::string ConstructProjectName(std::string_view project_id);
 };
 }  // namespace google::scp::cpio::client_providers

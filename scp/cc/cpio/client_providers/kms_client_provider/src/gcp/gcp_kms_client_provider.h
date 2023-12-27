@@ -69,9 +69,9 @@ class GcpKmsAeadProvider {
    * creation result.
    */
   virtual core::ExecutionResultOr<std::shared_ptr<crypto::tink::Aead>>
-  CreateAead(const std::string& wip_provider,
-             const std::string& service_account_to_impersonate,
-             const std::string& key_name) noexcept;
+  CreateAead(std::string_view wip_provider,
+             std::string_view service_account_to_impersonate,
+             std::string_view key_name) noexcept;
 
  private:
   /**
@@ -85,8 +85,8 @@ class GcpKmsAeadProvider {
    */
   std::shared_ptr<cloud::kms::KeyManagementServiceClient>
   CreateKeyManagementServiceClient(
-      const std::string& wip_provider,
-      const std::string& service_account_to_impersonate) noexcept;
+      std::string_view wip_provider,
+      std::string_view service_account_to_impersonate) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

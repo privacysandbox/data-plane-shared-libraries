@@ -36,7 +36,7 @@ using google::scp::cpio::common::test::CreateTestClientConfiguration;
 namespace google::scp::cpio::client_providers {
 std::shared_ptr<ClientConfiguration>
 TestAwsKmsClientProvider::CreateClientConfiguration(
-    const std::string& region) noexcept {
+    std::string_view region) noexcept {
   return CreateTestClientConfiguration(test_options_->kms_endpoint_override,
                                        std::make_shared<std::string>(region));
 }

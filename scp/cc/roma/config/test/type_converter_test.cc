@@ -71,7 +71,7 @@ class TypeConverterTest : public ::testing::Test {
 v8::Platform* TypeConverterTest::platform_{nullptr};
 
 static void AssertStringEquality(v8::Isolate* isolate,
-                                 const std::string& native_str,
+                                 std::string_view native_str,
                                  const v8::Local<v8::String>& v8_str) {
   EXPECT_EQ(v8_str->Length(), native_str.size());
   EXPECT_THAT(*v8::String::Utf8Value(isolate, v8_str), StrEq(native_str));

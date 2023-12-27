@@ -65,7 +65,7 @@ ExecutionResult Worker::Stop() noexcept {
 }
 
 ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
-    const std::string& code, const std::vector<absl::string_view>& input,
+    std::string_view code, const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     absl::Span<const uint8_t> wasm) {
   auto request_type_or =

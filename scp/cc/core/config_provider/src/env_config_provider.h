@@ -131,7 +131,7 @@ class EnvConfigProvider : public ConfigProviderInterface {
    * @return ExecutionResult failure if the conversion failed.
    */
   template <typename T>
-  ExecutionResult StringToType(const std::string& str, T& out) {
+  ExecutionResult StringToType(std::string_view str, T& out) {
     std::stringstream string_stream;
     if (std::is_same<T, bool>::value) {
       string_stream << std::boolalpha << str;

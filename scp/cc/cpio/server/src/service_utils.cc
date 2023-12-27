@@ -57,7 +57,7 @@ using google::scp::cpio::client_providers::CloudInitializerInterface;
 
 namespace google::scp::cpio {
 void Init(const std::shared_ptr<ServiceInterface>& service,
-          const std::string& service_name) {
+          std::string_view service_name) {
   if (service) {
     auto execution_result = service->Init();
     if (!execution_result.Successful()) {
@@ -73,7 +73,7 @@ void Init(const std::shared_ptr<ServiceInterface>& service,
 }
 
 void Run(const std::shared_ptr<ServiceInterface>& service,
-         const std::string& service_name) {
+         std::string_view service_name) {
   if (service) {
     auto execution_result = service->Run();
     if (!execution_result.Successful()) {
@@ -89,7 +89,7 @@ void Run(const std::shared_ptr<ServiceInterface>& service,
 }
 
 void Stop(const std::shared_ptr<ServiceInterface>& service,
-          const std::string& service_name) {
+          std::string_view service_name) {
   if (service) {
     auto execution_result = service->Stop();
     if (!execution_result.Successful()) {
@@ -155,7 +155,7 @@ void StopLogger() {
 
 void InitializeCloud(
     std::shared_ptr<CloudInitializerInterface>& cloud_initializer,
-    const std::string& service_name) {
+    std::string_view service_name) {
   cloud_initializer = CloudInitializerFactory::Create();
   Init(cloud_initializer, service_name);
   Run(cloud_initializer, service_name);
@@ -164,14 +164,14 @@ void InitializeCloud(
 
 void ShutdownCloud(
     std::shared_ptr<CloudInitializerInterface>& cloud_initializer,
-    const std::string& service_name) {
+    std::string_view service_name) {
   cloud_initializer->ShutdownCloud();
   Stop(cloud_initializer, service_name);
 }
 
 void RunConfigProvider(
     std::shared_ptr<ConfigProviderInterface>& config_provider,
-    const std::string& service_name) {
+    std::string_view service_name) {
   config_provider = std::make_shared<EnvConfigProvider>();
   Init(config_provider, service_name);
   Run(config_provider, service_name);
@@ -179,10 +179,11 @@ void RunConfigProvider(
 
 void RunNetworkServer(
     std::shared_ptr<core::NetworkServiceInterface>& network_service,
-    int32_t network_concurrency, const std::string& service_name,
-    const std::string& server_uri) {
+    int32_t network_concurrency, std::string_view service_name,
+    std::string_view server_uri) {
   network_service = std::make_shared<GrpcNetworkService>(
-      GrpcNetworkService::AddressType::kUNIX, server_uri, network_concurrency);
+      GrpcNetworkService::AddressType::kUNIX, std::string{server_uri},
+      network_concurrency);
   Init(network_service, service_name);
   Run(network_service, service_name);
 }
@@ -200,9 +201,10 @@ void SignalSegmentationHandler(int signum) {
 
 std::string ReadConfigString(
     const std::shared_ptr<ConfigProviderInterface> config_provider,
-    const std::string& config_key) {
+    std::string_view config_key) {
   std::string config_value;
-  auto execution_result = config_provider->Get(config_key, config_value);
+  auto execution_result =
+      config_provider->Get(std::string{config_key}, config_value);
   if (!execution_result.Successful()) {
     throw std::runtime_error(
         absl::StrCat(config_key, " is not provided. ",
@@ -213,8 +215,9 @@ std::string ReadConfigString(
 
 void ReadConfigStringList(
     const std::shared_ptr<ConfigProviderInterface> config_provider,
-    const std::string& config_key, std::list<std::string>& config_values) {
-  auto execution_result = config_provider->Get(config_key, config_values);
+    std::string_view config_key, std::list<std::string>& config_values) {
+  auto execution_result =
+      config_provider->Get(std::string{config_key}, config_values);
   if (!execution_result.Successful()) {
     throw std::runtime_error(
         absl::StrCat(config_key, " is not provided. ",
@@ -224,8 +227,9 @@ void ReadConfigStringList(
 
 ExecutionResult TryReadConfigStringList(
     const std::shared_ptr<ConfigProviderInterface> config_provider,
-    const std::string& config_key, std::list<std::string>& config_values) {
-  auto execution_result = config_provider->Get(config_key, config_values);
+    std::string_view config_key, std::list<std::string>& config_values) {
+  auto execution_result =
+      config_provider->Get(std::string{config_key}, config_values);
   if (!execution_result.Successful()) {
     std::cout << "Optional " << config_key << " is not provided. "
               << GetErrorMessage(execution_result.status_code) << std::endl;
@@ -235,8 +239,9 @@ ExecutionResult TryReadConfigStringList(
 
 ExecutionResult TryReadConfigString(
     const std::shared_ptr<ConfigProviderInterface> config_provider,
-    const std::string& config_key, std::string& config_value) {
-  auto execution_result = config_provider->Get(config_key, config_value);
+    std::string_view config_key, std::string& config_value) {
+  auto execution_result =
+      config_provider->Get(std::string{config_key}, config_value);
   if (!execution_result.Successful()) {
     std::cout << "Optional " << config_key << " is not provided. "
               << GetErrorMessage(execution_result.status_code) << std::endl;
@@ -246,8 +251,9 @@ ExecutionResult TryReadConfigString(
 
 ExecutionResult TryReadConfigBool(
     const std::shared_ptr<ConfigProviderInterface> config_provider,
-    const std::string& config_key, bool& config_value) {
-  auto execution_result = config_provider->Get(config_key, config_value);
+    std::string_view config_key, bool& config_value) {
+  auto execution_result =
+      config_provider->Get(std::string{config_key}, config_value);
   if (!execution_result.Successful()) {
     std::cout << "Optional " << config_key << " is not provided. "
               << GetErrorMessage(execution_result.status_code) << std::endl;
@@ -257,9 +263,10 @@ ExecutionResult TryReadConfigBool(
 
 int32_t ReadConfigInt(
     const std::shared_ptr<ConfigProviderInterface> config_provider,
-    const std::string& config_key) {
+    std::string_view config_key) {
   int32_t config_value;
-  auto execution_result = config_provider->Get(config_key, config_value);
+  auto execution_result =
+      config_provider->Get(std::string{config_key}, config_value);
   if (!execution_result.Successful()) {
     throw std::runtime_error(
         absl::StrCat(config_key, " is not provided. ",
@@ -270,8 +277,9 @@ int32_t ReadConfigInt(
 
 ExecutionResult TryReadConfigInt(
     const std::shared_ptr<ConfigProviderInterface> config_provider,
-    const std::string& config_key, int32_t& config_value) {
-  auto execution_result = config_provider->Get(config_key, config_value);
+    std::string_view config_key, int32_t& config_value) {
+  auto execution_result =
+      config_provider->Get(std::string{config_key}, config_value);
   if (!execution_result.Successful()) {
     std::cout << "Optional " << config_key << " is not provided. "
               << GetErrorMessage(execution_result.status_code) << std::endl;

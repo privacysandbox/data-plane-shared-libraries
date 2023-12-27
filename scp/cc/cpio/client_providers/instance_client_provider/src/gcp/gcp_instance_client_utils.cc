@@ -85,64 +85,64 @@ ExecutionResultOr<std::string> GcpInstanceClientUtils::GetCurrentProjectId(
 
 ExecutionResultOr<std::string>
 GcpInstanceClientUtils::ParseProjectIdFromInstanceResourceName(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   GcpInstanceResourceNameDetails details;
   RETURN_AND_LOG_IF_FAILURE(
       GetInstanceResourceNameDetails(resource_name, details),
       kGcpInstanceClientUtils, kZeroUuid,
       "Failed to get instance resource name details for %s",
-      resource_name.c_str());
+      resource_name.data());
   return std::move(details.project_id);
 }
 
 ExecutionResultOr<std::string>
 GcpInstanceClientUtils::ParseZoneIdFromInstanceResourceName(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   GcpInstanceResourceNameDetails details;
   RETURN_AND_LOG_IF_FAILURE(
       GetInstanceResourceNameDetails(resource_name, details),
       kGcpInstanceClientUtils, kZeroUuid,
       "Failed to get instance resource name details for %s",
-      resource_name.c_str());
+      resource_name.data());
   return std::move(details.zone_id);
 }
 
 ExecutionResultOr<std::string>
 GcpInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   GcpInstanceResourceNameDetails details;
   RETURN_AND_LOG_IF_FAILURE(
       GetInstanceResourceNameDetails(resource_name, details),
       kGcpInstanceClientUtils, kZeroUuid,
       "Failed to get instance resource name details for %s",
-      resource_name.c_str());
+      resource_name.data());
   return std::move(details.instance_id);
 }
 
 ExecutionResult GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   std::regex re(kInstanceResourceNameRegex);
-  if (!std::regex_match(resource_name, re)) {
+  if (!std::regex_match(std::string{resource_name}, re)) {
     auto result = FailureExecutionResult(
         SC_GCP_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME);
     RETURN_AND_LOG_IF_FAILURE(
         result, kGcpInstanceClientUtils, kZeroUuid,
         "Resource name %s doesn't match the expected regex.",
-        resource_name.c_str());
+        resource_name.data());
   }
 
   return SuccessExecutionResult();
 }
 
 ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
-    const std::string& resource_name,
+    std::string_view resource_name,
     GcpInstanceResourceNameDetails& detail) noexcept {
   RETURN_AND_LOG_IF_FAILURE(ValidateInstanceResourceNameFormat(resource_name),
                             kGcpInstanceClientUtils, kZeroUuid,
                             "Resource name %s is invalid.",
-                            resource_name.c_str());
+                            resource_name.data());
 
-  std::string resource_id =
+  const std::string_view resource_id =
       resource_name.substr(std::strlen(kInstanceResourceNamePrefix));
   // Splits `projects/project_abc1/zones/us-west1/instances/12345678987654321`
   // to { projects,project_abc1,zones,us-west1,instances,12345678987654321 }
@@ -157,7 +157,7 @@ ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
 // TODO: Add a Resource name validation function
 
 std::string GcpInstanceClientUtils::CreateRMListTagsUrl(
-    const std::string& resource_name) noexcept {
+    std::string_view resource_name) noexcept {
   std::vector<std::string> splits = absl::StrSplit(resource_name, "/");
   auto i = 0;
   while (i < splits.size()) {

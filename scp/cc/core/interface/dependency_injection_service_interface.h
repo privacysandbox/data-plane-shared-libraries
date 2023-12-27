@@ -49,7 +49,7 @@ class DependencyInjectionServiceInterface : public ServiceInterface {
    * @return ExecutionResult
    */
   virtual ExecutionResult RegisterComponent(
-      const std::string& id, const std::vector<std::string>& dependencies,
+      std::string_view id, const std::vector<std::string>& dependencies,
       std::function<std::shared_ptr<ServiceInterface>(
           const absl::flat_hash_map<std::string,
                                     std::shared_ptr<ServiceInterface>>&)>

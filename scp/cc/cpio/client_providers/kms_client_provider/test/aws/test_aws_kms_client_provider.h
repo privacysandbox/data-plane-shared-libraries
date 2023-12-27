@@ -42,7 +42,7 @@ class TestAwsKmsClientProvider : public NonteeAwsKmsClientProvider {
 
  protected:
   std::shared_ptr<Aws::Client::ClientConfiguration> CreateClientConfiguration(
-      const std::string& region) noexcept override;
+      std::string_view region) noexcept override;
 
   std::shared_ptr<TestAwsKmsClientOptions> test_options_;
 };

@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <grpcpp/completion_queue.h>
@@ -47,7 +48,7 @@ class GrpcNetworkService : public NetworkServiceInterface {
   GrpcNetworkService(AddressType addr_type, Address addr,
                      size_t concurrency = 0UL)
       : addr_type_(addr_type),
-        addr_(addr),
+        addr_(std::move(addr)),
         concurrency_(concurrency == 0UL ? std::thread::hardware_concurrency()
                                         : concurrency) {}
 

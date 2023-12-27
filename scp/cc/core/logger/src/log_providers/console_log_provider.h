@@ -44,7 +44,7 @@ class ConsoleLogProvider : public LogProviderInterface {
            va_list args) noexcept override;
 
  protected:
-  virtual void Print(const std::string& output) noexcept;
+  virtual void Print(std::string_view output) noexcept;
 };
 }  // namespace google::scp::core::logger
 

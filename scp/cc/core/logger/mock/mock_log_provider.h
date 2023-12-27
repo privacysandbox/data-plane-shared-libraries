@@ -37,8 +37,8 @@ class MockLogProvider : public ConsoleLogProvider {
 
   ExecutionResult Stop() noexcept { return SuccessExecutionResult(); }
 
-  void Print(const std::string& output) noexcept override {
-    messages_.push_back(output);
+  void Print(std::string_view output) noexcept override {
+    messages_.emplace_back(output);
   }
 
   std::vector<std::string> messages_;

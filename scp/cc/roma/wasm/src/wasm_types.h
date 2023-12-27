@@ -42,7 +42,7 @@ struct RomaWasmStringRepresentation {
    * @param s The string
    * @return size_t
    */
-  static size_t ComputeMemorySizeFor(const std::string& s) {
+  static size_t ComputeMemorySizeFor(std::string_view s) {
     // 4 for the char pointer, and 4 for the size_t (size_t is 32 bits in WASM)
     return s.length() + 4 + 4;
   }

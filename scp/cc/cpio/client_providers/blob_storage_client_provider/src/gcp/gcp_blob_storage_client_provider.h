@@ -279,11 +279,11 @@ class GcpCloudStorageFactory {
   virtual core::ExecutionResultOr<
       std::shared_ptr<google::cloud::storage::Client>>
   CreateClient(std::shared_ptr<BlobStorageClientOptions> options,
-               const std::string& project_id) noexcept;
+               std::string_view project_id) noexcept;
 
   virtual cloud::Options CreateClientOptions(
       std::shared_ptr<BlobStorageClientOptions> options,
-      const std::string& project_id) noexcept;
+      std::string_view project_id) noexcept;
 
   virtual ~GcpCloudStorageFactory() = default;
 };

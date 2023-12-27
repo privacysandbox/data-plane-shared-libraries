@@ -19,6 +19,7 @@
 
 #include <list>
 #include <string>
+#include <utility>
 
 #include "absl/container/flat_hash_map.h"
 #include "public/core/interface/execution_result.h"
@@ -101,8 +102,8 @@ class MockConfigProvider : public ConfigProviderInterface {
     string_config_map_[key] = std::string(value);
   }
 
-  void Set(const ConfigKey& key, const std::string& value) {
-    string_config_map_[key] = value;
+  void Set(const ConfigKey& key, std::string value) {
+    string_config_map_[key] = std::move(value);
   }
 
   void SetInt(const ConfigKey& key, const size_t value) {

@@ -137,9 +137,9 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
 }
 
 ExecutionResultOr<std::shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
-    const std::string& wip_provider,
-    const std::string& service_account_to_impersonate,
-    const std::string& key_arn) noexcept {
+    std::string_view wip_provider,
+    std::string_view service_account_to_impersonate,
+    std::string_view key_arn) noexcept {
   auto key_management_service_client = CreateKeyManagementServiceClient(
       wip_provider, service_account_to_impersonate);
   auto gcp_key_management_service_client =

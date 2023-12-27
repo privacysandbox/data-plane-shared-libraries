@@ -73,7 +73,7 @@ class GcpInstanceClientProvider : public InstanceClientProviderInterface {
       std::string& resource_name) noexcept override;
 
   core::ExecutionResult GetInstanceDetailsByResourceNameSync(
-      const std::string& resource_name,
+      std::string_view resource_name,
       cmrt::sdk::instance_service::v1::InstanceDetails&
           instance_details) noexcept override;
 

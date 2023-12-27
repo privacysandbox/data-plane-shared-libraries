@@ -56,7 +56,7 @@ class GcpInstanceClientUtils {
    */
   static core::ExecutionResultOr<std::string>
   ParseProjectIdFromInstanceResourceName(
-      const std::string& resource_name) noexcept;
+      std::string_view resource_name) noexcept;
 
   /**
    * @brief Parse the project ID from the Instance Resource Name.
@@ -66,8 +66,7 @@ class GcpInstanceClientUtils {
    * @return core::ExecutionResultOr<std::string> zone ID if success.
    */
   static core::ExecutionResultOr<std::string>
-  ParseZoneIdFromInstanceResourceName(
-      const std::string& resource_name) noexcept;
+  ParseZoneIdFromInstanceResourceName(std::string_view resource_name) noexcept;
 
   /**
    * @brief Parse the instance ID from the Instance Resource Name.
@@ -78,7 +77,7 @@ class GcpInstanceClientUtils {
    */
   static core::ExecutionResultOr<std::string>
   ParseInstanceIdFromInstanceResourceName(
-      const std::string& resource_name) noexcept;
+      std::string_view resource_name) noexcept;
 
   /**
    * @brief Validate instance resource name.
@@ -87,7 +86,7 @@ class GcpInstanceClientUtils {
    * @return core::ExecutionResult
    */
   static core::ExecutionResult ValidateInstanceResourceNameFormat(
-      const std::string& resource_name) noexcept;
+      std::string_view resource_name) noexcept;
 
   /**
    * @brief Get the Instance Resource Id Details object
@@ -97,7 +96,7 @@ class GcpInstanceClientUtils {
    * @return core::ExecutionResult
    */
   static core::ExecutionResult GetInstanceResourceNameDetails(
-      const std::string& resource_name,
+      std::string_view resource_name,
       GcpInstanceResourceNameDetails& details) noexcept;
 
   /**
@@ -108,7 +107,7 @@ class GcpInstanceClientUtils {
    * @return std::string the url for listing all tags attached to a resource.
    */
   static std::string CreateRMListTagsUrl(
-      const std::string& resource_name) noexcept;
+      std::string_view resource_name) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

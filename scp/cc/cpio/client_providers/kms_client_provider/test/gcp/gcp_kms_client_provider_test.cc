@@ -64,7 +64,7 @@ namespace google::scp::cpio::client_providers::test {
 class MockGcpKmsAeadProvider : public GcpKmsAeadProvider {
  public:
   MOCK_METHOD(ExecutionResultOr<std::shared_ptr<Aead>>, CreateAead,
-              (const std::string&, const std::string&, const std::string&),
+              (std::string_view, std::string_view, std::string_view),
               (noexcept, override));
 };
 

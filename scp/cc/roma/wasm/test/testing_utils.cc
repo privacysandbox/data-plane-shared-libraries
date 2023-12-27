@@ -20,11 +20,11 @@
 #include "absl/log/check.h"
 
 namespace google::scp::roma::wasm::testing {
-std::vector<char> WasmTestingUtils::LoadWasmFile(const std::string& file_path) {
+std::vector<char> WasmTestingUtils::LoadWasmFile(std::string_view file_path) {
   std::vector<char> file_contents;
 
-  std::ifstream input_file(file_path);
-  CHECK(input_file.good()) << "File: " + file_path + " does not exist.";
+  std::ifstream input_file(std::string{file_path});
+  CHECK(input_file.good()) << "File: " << file_path << " does not exist.";
 
   input_file.seekg(0, std::ios::end);
   size_t filesize = input_file.tellg();
@@ -35,9 +35,9 @@ std::vector<char> WasmTestingUtils::LoadWasmFile(const std::string& file_path) {
   return file_contents;
 }
 
-std::string WasmTestingUtils::LoadJsWithWasmFile(const std::string& file_path) {
-  std::ifstream input_file(file_path);
-  CHECK(input_file.good()) << "File: " + file_path + " does not exist.";
+std::string WasmTestingUtils::LoadJsWithWasmFile(std::string_view file_path) {
+  std::ifstream input_file(std::string{file_path});
+  CHECK(input_file.good()) << "File: " << file_path << " does not exist.";
   std::stringstream buffer;
   buffer << input_file.rdbuf();
   return buffer.str();

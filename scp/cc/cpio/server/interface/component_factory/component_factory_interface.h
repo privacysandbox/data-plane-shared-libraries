@@ -32,7 +32,7 @@ struct ComponentCreator {
       std::function<
           core::ExecutionResultOr<std::shared_ptr<core::ServiceInterface>>()>
           input_creation_func,
-      const std::string& input_component_name)
+      std::string_view input_component_name)
       : creation_func(input_creation_func),
         component(nullptr),
         component_name(input_component_name) {}

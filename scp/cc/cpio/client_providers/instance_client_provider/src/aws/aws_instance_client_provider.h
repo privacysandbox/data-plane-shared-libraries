@@ -93,7 +93,7 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
       std::string& resource_name) noexcept override;
 
   core::ExecutionResult GetInstanceDetailsByResourceNameSync(
-      const std::string& resource_name,
+      std::string_view resource_name,
       cmrt::sdk::instance_service::v1::InstanceDetails&
           instance_details) noexcept override;
 
@@ -176,7 +176,7 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
    * client if success.
    */
   core::ExecutionResultOr<std::shared_ptr<Aws::EC2::EC2Client>>
-  GetEC2ClientByRegion(const std::string& region) noexcept;
+  GetEC2ClientByRegion(std::string_view region) noexcept;
 
   /// On-demand EC2 client for region codes.
   core::common::ConcurrentMap<std::string, std::shared_ptr<Aws::EC2::EC2Client>>
@@ -199,7 +199,7 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
 class AwsEC2ClientFactory {
  public:
   virtual core::ExecutionResultOr<std::shared_ptr<Aws::EC2::EC2Client>>
-  CreateClient(const std::string& region,
+  CreateClient(std::string_view region,
                const std::shared_ptr<core::AsyncExecutorInterface>&
                    io_async_executor) noexcept;
 

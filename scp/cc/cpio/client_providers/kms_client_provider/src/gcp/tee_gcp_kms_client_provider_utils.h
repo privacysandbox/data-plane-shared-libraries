@@ -30,8 +30,8 @@ class TeeGcpKmsClientProviderUtils {
    * @param[out] credential_json credentials in json format.
    */
   static void CreateAttestedCredentials(
-      const std::string& wip_provider,
-      const std::string& service_account_to_impersonate,
+      std::string_view wip_provider,
+      std::string_view service_account_to_impersonate,
       std::string& credential_json) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers

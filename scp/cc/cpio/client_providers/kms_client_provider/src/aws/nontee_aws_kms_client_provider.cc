@@ -265,7 +265,7 @@ void NonteeAwsKmsClientProvider::GetSessionCredentialsCallbackToCreateKms(
 
 std::shared_ptr<ClientConfiguration>
 NonteeAwsKmsClientProvider::CreateClientConfiguration(
-    const std::string& region) noexcept {
+    std::string_view region) noexcept {
   auto client_config =
       common::CreateClientConfiguration(std::make_shared<std::string>(region));
   client_config->executor =

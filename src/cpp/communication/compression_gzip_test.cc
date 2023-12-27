@@ -51,8 +51,8 @@ std::string BoostCompress(absl::string_view decompressed_string) {
   return compressed_string.str();
 }
 
-std::string BoostDecompress(const std::string& compressed_string) {
-  std::istringstream compressed(compressed_string);
+std::string BoostDecompress(std::string_view compressed_string) {
+  std::istringstream compressed(std::string{compressed_string});
 
   filtering_istreambuf buffer;
   buffer.push(gzip_decompressor());

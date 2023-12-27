@@ -369,7 +369,7 @@ class AwsBlobStorageClientProvider : public BlobStorageClientProviderInterface {
    * configuration.
    */
   virtual std::shared_ptr<Aws::Client::ClientConfiguration>
-  CreateClientConfiguration(const std::string& region) noexcept;
+  CreateClientConfiguration(std::string_view region) noexcept;
 
   std::shared_ptr<InstanceClientProviderInterface> instance_client_;
 

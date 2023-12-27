@@ -32,8 +32,8 @@ constexpr std::string_view kImpersonationUrl =
 
 namespace google::scp::cpio::client_providers {
 void TeeGcpKmsClientProviderUtils::CreateAttestedCredentials(
-    const std::string& wip_provider,
-    const std::string& service_account_to_impersonate,
+    std::string_view wip_provider,
+    std::string_view service_account_to_impersonate,
     std::string& credential_json) noexcept {
   const nlohmann::json configuration{
       {"type", "external_account"},

@@ -33,14 +33,14 @@ namespace google::scp::core::utils {
 ExecutionResultOr<std::string> CalculateMd5Hash(const BytesBuffer& buffer);
 
 // Same as above but accepts a string.
-ExecutionResultOr<std::string> CalculateMd5Hash(const std::string& buffer);
+ExecutionResultOr<std::string> CalculateMd5Hash(std::string_view buffer);
 
 // DEPRECATED, please use the above options.
 ExecutionResult CalculateMd5Hash(const BytesBuffer& buffer,
                                  std::string& checksum);
 
 // DEPRECATED, please use the above options.
-ExecutionResult CalculateMd5Hash(const std::string& buffer,
+ExecutionResult CalculateMd5Hash(std::string_view buffer,
                                  std::string& checksum);
 
 }  // namespace google::scp::core::utils

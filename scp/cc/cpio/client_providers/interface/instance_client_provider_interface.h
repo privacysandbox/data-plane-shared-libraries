@@ -102,7 +102,7 @@ class InstanceClientProviderInterface : public core::ServiceInterface {
    * @return core::ExecutionResult
    */
   virtual core::ExecutionResult GetInstanceDetailsByResourceNameSync(
-      const std::string& resource_name,
+      std::string_view resource_name,
       cmrt::sdk::instance_service::v1::InstanceDetails&
           instance_details) noexcept = 0;
 };

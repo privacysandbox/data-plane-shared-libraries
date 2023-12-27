@@ -96,7 +96,7 @@ class JsEngine {
    * which could be used to skip compilation of the same code.
    */
   virtual core::ExecutionResultOr<JsEngineExecutionResponse> CompileAndRunJs(
-      const std::string& code, const std::string& function_name,
+      std::string_view code, std::string_view function_name,
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const RomaJsEngineCompilationContext& context) noexcept = 0;
@@ -116,7 +116,7 @@ class JsEngine {
    * which could be used to skip compilation of the same code.
    */
   virtual core::ExecutionResultOr<JsEngineExecutionResponse> CompileAndRunWasm(
-      const std::string& code, const std::string& function_name,
+      std::string_view code, std::string_view function_name,
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const RomaJsEngineCompilationContext& context) noexcept = 0;
@@ -140,8 +140,8 @@ class JsEngine {
    */
   virtual core::ExecutionResultOr<JsEngineExecutionResponse>
   CompileAndRunJsWithWasm(
-      const std::string& code, absl::Span<const std::uint8_t> wasm,
-      const std::string& function_name,
+      std::string_view code, absl::Span<const std::uint8_t> wasm,
+      std::string_view function_name,
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const RomaJsEngineCompilationContext& context) noexcept = 0;

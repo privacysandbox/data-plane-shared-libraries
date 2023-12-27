@@ -136,7 +136,7 @@ class MockAwsEC2ClientFactory : public AwsEC2ClientFactory {
  public:
   MOCK_METHOD(core::ExecutionResultOr<std::shared_ptr<Aws::EC2::EC2Client>>,
               CreateClient,
-              (const std::string&,
+              (std::string_view,
                const std::shared_ptr<core::AsyncExecutorInterface>&),
               (noexcept, override));
 };

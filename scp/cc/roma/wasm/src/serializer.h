@@ -94,7 +94,7 @@ class WasmSerializer {
    * (offset) in the given memory segment
    */
   static uint32_t WriteCustomString(void* mem_ptr, size_t mem_size,
-                                    size_t offset, const std::string& str);
+                                    size_t offset, std::string_view str);
 
   /**
    * @brief Write a custom list of strings to memory.

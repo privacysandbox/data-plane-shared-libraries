@@ -20,20 +20,19 @@
 #include <string>
 
 namespace google::scp::core::utils {
-void SplitStringByDelimiter(const std::string& str,
-                            const std::string& delimiter,
+void SplitStringByDelimiter(std::string_view str, std::string_view delimiter,
                             std::list<std::string>& out) {
   auto start = 0U;
   auto end = str.find(delimiter);
 
   while (end != std::string::npos) {
     auto part = str.substr(start, end - start);
-    out.push_back(part);
+    out.emplace_back(part);
     start = end + delimiter.length();
     end = str.find(delimiter, start);
   }
 
   auto part = str.substr(start, end);
-  out.push_back(part);
+  out.emplace_back(part);
 }
 }  // namespace google::scp::core::utils

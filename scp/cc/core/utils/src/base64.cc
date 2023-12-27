@@ -18,13 +18,16 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <openssl/base64.h>
+
+#include "absl/strings/str_cat.h"
 
 #include "error_codes.h"
 
 namespace google::scp::core::utils {
-ExecutionResult Base64Decode(const std::string& encoded, std::string& decoded) {
+ExecutionResult Base64Decode(std::string_view encoded, std::string& decoded) {
   if ((encoded.length() % 4) != 0) {
     return FailureExecutionResult(
         errors::SC_CORE_UTILS_INVALID_BASE64_ENCODING_LENGTH);
@@ -36,17 +39,16 @@ ExecutionResult Base64Decode(const std::string& encoded, std::string& decoded) {
   auto buffer = std::make_unique<uint8_t[]>(required_len);
 
   size_t output_len = 0;
-  int ret = EVP_DecodeBase64(buffer.get(), &output_len, required_len,
-                             reinterpret_cast<const uint8_t*>(encoded.data()),
-                             encoded.length());
-  if (ret == 0) {
+  if (EVP_DecodeBase64(buffer.get(), &output_len, required_len,
+                       reinterpret_cast<const uint8_t*>(encoded.data()),
+                       encoded.length()) == 0) {
     return FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT);
   }
   decoded = std::string(reinterpret_cast<char*>(buffer.get()), output_len);
   return SuccessExecutionResult();
 }
 
-ExecutionResult Base64Encode(const std::string& decoded, std::string& encoded) {
+ExecutionResult Base64Encode(std::string_view decoded, std::string& encoded) {
   size_t required_len = 0;
   if (EVP_EncodedLength(&required_len, decoded.length()) == 0) {
     return FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT);
@@ -63,17 +65,17 @@ ExecutionResult Base64Encode(const std::string& decoded, std::string& encoded) {
   return SuccessExecutionResult();
 }
 
-ExecutionResultOr<std::string> PadBase64Encoding(const std::string& encoded) {
+ExecutionResultOr<std::string> PadBase64Encoding(std::string_view encoded) {
   ExecutionResultOr<std::string> ret_val;
   switch (encoded.length() % 4) {
     case 0:
       ret_val.emplace<std::string>(encoded);
       break;
     case 2:
-      ret_val.emplace<std::string>(encoded + "==");
+      ret_val.emplace<std::string>(absl::StrCat(encoded, "=="));
       break;
     case 3:
-      ret_val.emplace<std::string>(encoded + "=");
+      ret_val.emplace<std::string>(absl::StrCat(encoded, "="));
       break;
     case 1:
     default:

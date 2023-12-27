@@ -133,7 +133,7 @@ ExecutionResult PrivateKeyClientUtils::GetKmsDecryptRequest(
 }
 
 std::vector<std::byte> PrivateKeyClientUtils::StrToBytes(
-    const std::string& string) noexcept {
+    std::string_view string) noexcept {
   std::vector<std::byte> bytes;
   for (char c : string) {
     bytes.push_back(std::byte(c));

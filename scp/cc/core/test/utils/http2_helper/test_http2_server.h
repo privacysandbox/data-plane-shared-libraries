@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <utility>
 
 #include <nghttp2/asio_http2_server.h>
 
@@ -33,11 +34,12 @@ class TestHttp2Server {
   using Response = nghttp2::asio_http2::server::response;
   using RequestCallback = nghttp2::asio_http2::server::request_cb;
 
-  explicit TestHttp2Server(
-      const std::string& host = "localhost",
-      const std::string& port = "0" /* pick any available */,
-      int num_threads = 2)
-      : host_(host), port_(port), num_threads_(num_threads) {
+  explicit TestHttp2Server(std::string host = "localhost",
+                           std::string port = "0" /* pick any available */,
+                           int num_threads = 2)
+      : host_(std::move(host)),
+        port_(std::move(port)),
+        num_threads_(num_threads) {
     server_.num_threads(num_threads_);
   }
 

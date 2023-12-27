@@ -80,14 +80,15 @@ grpc::ServerUnaryReactor* ExecuteNetworkCall(
 }
 
 template <typename TService>
-void RunServer(TService& service, const std::string& service_address,
+void RunServer(TService& service, std::string_view service_address,
                size_t num_completion_queues, size_t min_pollers,
                size_t max_pollers) {
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
   grpc::ServerBuilder builder;
   // Listen on the given address without any authentication mechanism.
-  builder.AddListeningPort(service_address, grpc::InsecureServerCredentials());
+  builder.AddListeningPort(std::string{service_address},
+                           grpc::InsecureServerCredentials());
   // Register "service" as the instance through which we'll communicate with
   // clients. In this case it corresponds to an *synchronous* service.
   builder.RegisterService(&service);
@@ -115,11 +116,11 @@ void RunServer(TService& service, const std::string& service_address,
 }
 
 void Init(const std::shared_ptr<core::ServiceInterface>& service,
-          const std::string& service_name);
+          std::string_view service_name);
 void Run(const std::shared_ptr<core::ServiceInterface>& service,
-         const std::string& service_name);
+         std::string_view service_name);
 void Stop(const std::shared_ptr<core::ServiceInterface>& service,
-          const std::string& service_name);
+          std::string_view service_name);
 
 void SignalSegmentationHandler(int signum);
 
@@ -131,45 +132,45 @@ void StopLogger();
 void InitializeCloud(
     std::shared_ptr<client_providers::CloudInitializerInterface>&
         cloud_initializer,
-    const std::string& service_name);
+    std::string_view service_name);
 
 void ShutdownCloud(std::shared_ptr<client_providers::CloudInitializerInterface>&
                        cloud_initializer,
-                   const std::string& service_name);
+                   std::string_view service_name);
 
 void RunConfigProvider(std::shared_ptr<core::ConfigProviderInterface>&,
-                       const std::string&);
+                       std::string_view);
 
 void RunNetworkServer(std::shared_ptr<core::NetworkServiceInterface>&, int32_t,
-                      const std::string&, const std::string& server_uri);
+                      std::string_view, std::string_view server_uri);
 
 std::string ReadConfigString(
     const std::shared_ptr<core::ConfigProviderInterface> config_provider,
-    const std::string& config_key);
+    std::string_view config_key);
 
 void ReadConfigStringList(
     const std::shared_ptr<core::ConfigProviderInterface> config_provider,
-    const std::string& config_key, std::list<std::string>& config_values);
+    std::string_view config_key, std::list<std::string>& config_values);
 
 core::ExecutionResult TryReadConfigStringList(
     const std::shared_ptr<core::ConfigProviderInterface> config_provider,
-    const std::string& config_key, std::list<std::string>& config_values);
+    std::string_view config_key, std::list<std::string>& config_values);
 
 core::ExecutionResult TryReadConfigString(
     const std::shared_ptr<core::ConfigProviderInterface> config_provider,
-    const std::string& config_key, std::string& config_value);
+    std::string_view config_key, std::string& config_value);
 
 core::ExecutionResult TryReadConfigBool(
     const std::shared_ptr<core::ConfigProviderInterface> config_provider,
-    const std::string& config_key, bool& config_value);
+    std::string_view config_key, bool& config_value);
 
 int32_t ReadConfigInt(
     const std::shared_ptr<core::ConfigProviderInterface> config_provider,
-    const std::string& config_key);
+    std::string_view config_key);
 
 core::ExecutionResult TryReadConfigInt(
     const std::shared_ptr<core::ConfigProviderInterface> config_provider,
-    const std::string& config_key, int32_t& config_value);
+    std::string_view config_key, int32_t& config_value);
 
 }  // namespace google::scp::cpio
 

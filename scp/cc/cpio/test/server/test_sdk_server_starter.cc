@@ -36,7 +36,7 @@ using google::scp::core::test::StopContainer;
 
 namespace google::scp::cpio::test {
 void TestSdkServerStarter::RunSdkServer(
-    const std::string& image_location, const std::string& image_name,
+    std::string_view image_location, std::string_view image_name,
     const absl::btree_map<std::string, std::string>& env_overrides) {
   std::cout << "Loading SDK image" << std::endl;
   if (LoadImage(image_location) != 0) {

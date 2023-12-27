@@ -55,7 +55,7 @@ class AwsInstanceClientUtils {
    * @return core::ExecutionResultOr<std::string> region
    */
   static core::ExecutionResultOr<std::string> ParseRegionFromResourceName(
-      const std::string& resource_name) noexcept;
+      std::string_view resource_name) noexcept;
 
   /**
    * @brief Parse the project ID from the Instance Resource Name.
@@ -64,7 +64,7 @@ class AwsInstanceClientUtils {
    * @return core::ExecutionResultOr<std::string> account id.
    */
   static core::ExecutionResultOr<std::string> ParseAccountIdFromResourceName(
-      const std::string& resource_name) noexcept;
+      std::string_view resource_name) noexcept;
 
   /**
    * @brief Parse the instance ID from the Instance Resource Name.
@@ -74,7 +74,7 @@ class AwsInstanceClientUtils {
    */
   static core::ExecutionResultOr<std::string>
   ParseInstanceIdFromInstanceResourceName(
-      const std::string& resource_name) noexcept;
+      std::string_view resource_name) noexcept;
 
   /**
    * @brief Validate instance resource name.
@@ -83,7 +83,7 @@ class AwsInstanceClientUtils {
    * @return core::ExecutionResult
    */
   static core::ExecutionResult ValidateResourceNameFormat(
-      const std::string& resource_name) noexcept;
+      std::string_view resource_name) noexcept;
 
   /**
    * @brief Get the Instance Resource Id Details object
@@ -93,8 +93,7 @@ class AwsInstanceClientUtils {
    * @return core::ExecutionResult
    */
   static core::ExecutionResult GetResourceNameDetails(
-      const std::string& resource_name,
-      AwsResourceNameDetails& details) noexcept;
+      std::string_view resource_name, AwsResourceNameDetails& details) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

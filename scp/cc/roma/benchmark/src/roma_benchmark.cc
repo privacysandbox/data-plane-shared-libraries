@@ -53,7 +53,7 @@ namespace {
 
 const std::list<float> kPercentiles = {50, 90, 99, 99.99};
 
-CodeObject CreateCodeObj(const std::string& code_string) {
+CodeObject CreateCodeObj(std::string_view code_string) {
   CodeObject code_obj;
   code_obj.id = "foo";
   code_obj.version_string = "v1";
@@ -220,7 +220,7 @@ BenchmarkMetrics BenchmarkMetrics::GetMeanMetrics(
 }
 
 absl::Status LoadCodeObject(RomaService<>& roma_service,
-                            const std::string& code_string) {
+                            std::string_view code_string) {
   // Loads code object to Roma workers.
   auto code_obj = CreateCodeObj(code_string);
   std::promise<void> done;

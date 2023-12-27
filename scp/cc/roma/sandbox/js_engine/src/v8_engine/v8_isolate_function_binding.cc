@@ -196,7 +196,7 @@ void V8IsolateFunctionBinding::V8MetricsCallback(
 bool V8IsolateFunctionBinding::NativeFieldsToProto(
     const BindingPair& binding_pair, FunctionBindingIoProto& function_proto,
     RpcWrapper& rpc_proto) {
-  const std::string& native_function_name = binding_pair.first;
+  std::string_view native_function_name = binding_pair.first;
   if (native_function_name.empty()) {
     return false;
   }

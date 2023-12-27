@@ -39,7 +39,7 @@ class PrivateKeyFetchingClientUtils {
    * @return core::ExecutionResultOr<string> the extract result.
    */
   static core::ExecutionResultOr<std::string> ExtractKeyId(
-      const std::string& resource_name) noexcept;
+      std::string_view resource_name) noexcept;
 
   /**
    * @brief Parse PrivateKey from BytesBuffer.
@@ -74,7 +74,7 @@ class PrivateKeyFetchingClientUtils {
    */
   template <typename T>
   static core::ExecutionResult ParseJsonValue(
-      const nlohmann::json& json_response, const std::string& json_tag,
+      const nlohmann::json& json_response, std::string_view json_tag,
       T& json_value) noexcept {
     auto it = json_response.find(json_tag);
     if (it == json_response.end()) {
@@ -104,7 +104,7 @@ class PrivateKeyFetchingClientUtils {
    * @return core::ExecutionResult parse result.
    */
   static core::ExecutionResult ParseEncryptionKeyType(
-      const nlohmann::json& json_response, const std::string& type_tag,
+      const nlohmann::json& json_response, std::string_view type_tag,
       EncryptionKeyType& key_type) noexcept;
 
   /**
@@ -116,7 +116,7 @@ class PrivateKeyFetchingClientUtils {
    * @return core::ExecutionResult parse result.
    */
   static core::ExecutionResult ParseKeyData(
-      const nlohmann::json& json_response, const std::string& key_data_tag,
+      const nlohmann::json& json_response, std::string_view key_data_tag,
       std::vector<std::shared_ptr<KeyData>>& key_data) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers

@@ -67,9 +67,9 @@ class MetricUtils {
   static std::shared_ptr<SimpleMetricInterface> RegisterSimpleMetric(
       const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
       const std::shared_ptr<MetricClientInterface>& metric_client,
-      const std::string& metric_name_str,
-      const std::string& metric_label_component_str,
-      const std::string& metric_label_method_str,
+      std::string_view metric_name_str,
+      std::string_view metric_label_component_str,
+      std::string_view metric_label_method_str,
       MetricUnit metric_unit_type) noexcept;
 
   /**
@@ -88,9 +88,8 @@ class MetricUtils {
   static std::shared_ptr<AggregateMetricInterface> RegisterAggregateMetric(
       const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
       const std::shared_ptr<MetricClientInterface>& metric_client,
-      const std::string& metric_name_str,
-      const std::string& metric_label_component,
-      const std::string& metric_label_method, MetricUnit metric_unit_type,
+      std::string_view metric_name_str, std::string_view metric_label_component,
+      std::string_view metric_label_method, MetricUnit metric_unit_type,
       std::vector<std::string> metric_event_labels,
       size_t aggregated_metric_interval_ms) noexcept;
 

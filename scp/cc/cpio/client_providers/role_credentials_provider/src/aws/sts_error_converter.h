@@ -36,7 +36,7 @@ class STSErrorConverter {
    * @return core::FailureExecutionResult The converted result of the operation.
    */
   static core::FailureExecutionResult ConvertSTSError(
-      const Aws::STS::STSErrors& error, const std::string& error_message);
+      const Aws::STS::STSErrors& error, std::string_view error_message);
 };
 }  // namespace google::scp::cpio::client_providers
 

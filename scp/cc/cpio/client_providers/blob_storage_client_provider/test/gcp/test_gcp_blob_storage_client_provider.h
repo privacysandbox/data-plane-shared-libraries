@@ -30,7 +30,7 @@ class TestGcpCloudStorageFactory : public GcpCloudStorageFactory {
  public:
   cloud::Options CreateClientOptions(
       std::shared_ptr<BlobStorageClientOptions> options,
-      const std::string& project_id) noexcept override;
+      std::string_view project_id) noexcept override;
 
   virtual ~TestGcpCloudStorageFactory() = default;
 };

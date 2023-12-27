@@ -46,7 +46,7 @@ class TestSdkServerStarter {
   virtual void RunCloud() = 0;
 
   void RunSdkServer(
-      const std::string& image_location, const std::string& image_name,
+      std::string_view image_location, std::string_view image_name,
       const absl::btree_map<std::string, std::string>& env_overrides = {});
 
   void StopSdkServer();

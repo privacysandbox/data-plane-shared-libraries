@@ -29,7 +29,7 @@ namespace google::scp::core::utils {
  * @param[out] decoded output decoded string.
  * @return ExecutionResult The execution result of the operation.
  */
-ExecutionResult Base64Decode(const std::string& encoded, std::string& decoded);
+ExecutionResult Base64Decode(std::string_view encoded, std::string& decoded);
 
 /**
  * @brief Encodes values to base64.
@@ -38,7 +38,7 @@ ExecutionResult Base64Decode(const std::string& encoded, std::string& decoded);
  * @param encoded The output value.
  * @return ExecutionResult The execution result of the operation.
  */
-ExecutionResult Base64Encode(const std::string& decoded, std::string& encoded);
+ExecutionResult Base64Encode(std::string_view decoded, std::string& encoded);
 
 /**
  * @brief Append [0, 2] '=' to \a encoded and return the result. This is for use
@@ -50,7 +50,7 @@ ExecutionResult Base64Encode(const std::string& decoded, std::string& encoded);
  * @param encoded  The input value to be padded.
  * @return ExecutionResultOr<string> The padded value.
  */
-ExecutionResultOr<std::string> PadBase64Encoding(const std::string& encoded);
+ExecutionResultOr<std::string> PadBase64Encoding(std::string_view encoded);
 
 }  // namespace google::scp::core::utils
 

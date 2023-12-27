@@ -18,6 +18,7 @@
 #define CORE_INTERFACE_TRAFFIC_FORWARDER_INTERFACE_H_
 
 #include <string>
+#include <string_view>
 
 #include "core/interface/service_interface.h"
 
@@ -32,7 +33,7 @@ class TrafficForwarderInterface : public ServiceInterface {
   virtual ~TrafficForwarderInterface() = default;
 
   virtual ExecutionResult ResetForwardingAddress(
-      const std::string& forwarding_address) noexcept = 0;
+      std::string_view forwarding_address) noexcept = 0;
 };
 };  // namespace google::scp::core
 

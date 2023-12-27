@@ -78,8 +78,8 @@ class AwsPrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
    */
   virtual core::ExecutionResult SignHttpRequestUsingV4Signer(
       std::shared_ptr<core::HttpRequest>& http_request,
-      const std::string& access_key, const std::string& secret_key,
-      const std::string& security_token, const std::string& region) noexcept;
+      std::string_view access_key, std::string_view secret_key,
+      std::string_view security_token, std::string_view region) noexcept;
 
   /// Credential provider.
   std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider_;

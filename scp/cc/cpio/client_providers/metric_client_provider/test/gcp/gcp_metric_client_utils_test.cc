@@ -70,8 +70,7 @@ static constexpr char kInstanceZoneKey[] = "zone";
 class GcpMetricClientUtilsTest : public ::testing::Test {
  protected:
   void SetPutMetricsRequest(
-      PutMetricsRequest& record_metric_request,
-      const std::string& value = kValue,
+      PutMetricsRequest& record_metric_request, std::string_view value = kValue,
       const int64_t& timestamp_in_ms =
           std::chrono::duration_cast<std::chrono::milliseconds>(
               std::chrono::system_clock::now().time_since_epoch())

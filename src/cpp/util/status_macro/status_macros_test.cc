@@ -244,7 +244,7 @@ TEST(AssignOrReturn, WorksWithThirdArgumentAndCommas) {
               AllOf(HasSubstr("EXPECTED A"), HasSubstr("EXPECTED B")));
 }
 TEST(AssignOrReturn, WorksWithAppendIncludingLocals) {
-  auto func = [&](const std::string& str) -> absl::Status {
+  auto func = [&](std::string_view str) -> absl::Status {
     [[maybe_unused]] int value;
     PS_ASSIGN_OR_RETURN(value, ReturnStatusOrError("EXPECTED A"), _ << str);
     return ReturnOk();

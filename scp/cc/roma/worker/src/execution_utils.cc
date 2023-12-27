@@ -96,7 +96,7 @@ ExecutionResult ExecutionUtils::CreateWasmLogFunctions(v8::Isolate* isolate) {
 }
 
 ExecutionResult ExecutionUtils::CompileRunJS(
-    const std::string& js, std::string& err_msg,
+    std::string_view js, std::string& err_msg,
     v8::Local<v8::UnboundScript>* unbound_script) noexcept {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
@@ -142,7 +142,7 @@ ExecutionResult ExecutionUtils::CompileRunJS(
   return core::SuccessExecutionResult();
 }
 
-ExecutionResult ExecutionUtils::GetJsHandler(const std::string& handler_name,
+ExecutionResult ExecutionUtils::GetJsHandler(std::string_view handler_name,
                                              v8::Local<v8::Value>& handler,
                                              std::string& err_msg) noexcept {
   if (handler_name.empty()) {
@@ -171,7 +171,7 @@ ExecutionResult ExecutionUtils::GetJsHandler(const std::string& handler_name,
   return core::SuccessExecutionResult();
 }
 
-ExecutionResult ExecutionUtils::CompileRunWASM(const std::string& wasm,
+ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
                                                std::string& err_msg) noexcept {
   auto isolate = v8::Isolate::GetCurrent();
   v8::HandleScope handle_scope(isolate);
@@ -181,7 +181,7 @@ ExecutionResult ExecutionUtils::CompileRunWASM(const std::string& wasm,
   auto module_maybe = v8::WasmModuleObject::Compile(
       isolate,
       v8::MemorySpan<const uint8_t>(
-          reinterpret_cast<const unsigned char*>(wasm.c_str()), wasm.length()));
+          reinterpret_cast<const unsigned char*>(wasm.data()), wasm.length()));
   v8::Local<v8::WasmModuleObject> wasm_module;
   if (!module_maybe.ToLocal(&wasm_module)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
@@ -247,7 +247,7 @@ ExecutionResult ExecutionUtils::CompileRunWASM(const std::string& wasm,
   return core::SuccessExecutionResult();
 }
 
-ExecutionResult ExecutionUtils::GetWasmHandler(const std::string& handler_name,
+ExecutionResult ExecutionUtils::GetWasmHandler(std::string_view handler_name,
                                                v8::Local<v8::Value>& handler,
                                                std::string& err_msg) noexcept {
   auto isolate = v8::Isolate::GetCurrent();
@@ -267,7 +267,7 @@ ExecutionResult ExecutionUtils::GetWasmHandler(const std::string& handler_name,
   }
 
   // Fetch out the handler name from code object.
-  auto str = std::string(handler_name.c_str(), handler_name.size());
+  auto str = std::string(handler_name.data(), handler_name.size());
   v8::Local<v8::String> local_name =
       TypeConverter<std::string>::ToV8(isolate, str).As<v8::String>();
 
@@ -287,7 +287,7 @@ ExecutionResult ExecutionUtils::GetWasmHandler(const std::string& handler_name,
 
 ExecutionResult ExecutionUtils::CreateUnboundScript(
     v8::Global<v8::UnboundScript>& unbound_script, v8::Isolate* isolate,
-    const std::string& js, std::string& err_msg) noexcept {
+    std::string_view js, std::string& err_msg) noexcept {
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
 
@@ -540,7 +540,7 @@ static void WasiProcExit(const v8::FunctionCallbackInfo<v8::Value>& info) {
  */
 static void RegisterWasiFunction(
     v8::Isolate* isolate, v8::Local<v8::Object>& wasi_snapshot_preview_object,
-    const std::string& name, v8::FunctionCallback wasi_function) {
+    std::string_view name, v8::FunctionCallback wasi_function) {
   auto context = isolate->GetCurrentContext();
 
   auto func_name = TypeConverter<std::string>::ToV8(isolate, name);
@@ -579,7 +579,7 @@ static v8::Local<v8::Object> GenerateWasiObject(v8::Isolate* isolate) {
  */
 static void RegisterObjectInWasmImports(v8::Isolate* isolate,
                                         v8::Local<v8::Object>& imports_object,
-                                        const std::string& name,
+                                        std::string_view name,
                                         v8::Local<v8::Object>& new_object) {
   auto context = isolate->GetCurrentContext();
 

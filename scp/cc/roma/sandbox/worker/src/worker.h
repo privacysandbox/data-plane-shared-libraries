@@ -58,7 +58,7 @@ class Worker {
    * @return core::ExecutionResultOr<std::string>
    */
   virtual core::ExecutionResultOr<js_engine::ExecutionResponse> RunCode(
-      const std::string& code, const std::vector<absl::string_view>& input,
+      std::string_view code, const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       absl::Span<const uint8_t> wasm) ABSL_LOCKS_EXCLUDED(cache_mu_);
 

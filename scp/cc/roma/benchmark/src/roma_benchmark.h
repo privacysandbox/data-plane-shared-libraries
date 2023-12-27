@@ -130,7 +130,7 @@ struct BenchmarkMetrics {
  */
 absl::Status LoadCodeObject(
     google::scp::roma::sandbox::roma_service::RomaService<>& roma_service,
-    const std::string& code_string);
+    std::string_view code_string);
 
 class RomaBenchmark {
  public:

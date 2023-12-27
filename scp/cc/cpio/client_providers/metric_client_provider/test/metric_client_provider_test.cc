@@ -87,7 +87,7 @@ class MetricClientProviderTest : public ::testing::Test {
   }
 
   std::shared_ptr<PutMetricsRequest> CreatePutMetricsRequest(
-      const std::string& metric_namespace = "") {
+      std::string_view metric_namespace = "") {
     auto request = std::make_shared<PutMetricsRequest>();
     request->set_metric_namespace(metric_namespace);
     auto metric = request->add_metrics();

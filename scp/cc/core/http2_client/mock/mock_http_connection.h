@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "core/http2_client/src/http_connection.h"
 
@@ -27,8 +28,9 @@ class MockHttpConnection : public HttpConnection {
  public:
   MockHttpConnection(
       const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-      const std::string& host, const std::string& service, bool is_https)
-      : HttpConnection(async_executor, host, service, is_https) {}
+      std::string host, std::string service, bool is_https)
+      : HttpConnection(async_executor, std::move(host), std::move(service),
+                       is_https) {}
 
   void CancelPendingCallbacks() noexcept {
     HttpConnection::CancelPendingCallbacks();

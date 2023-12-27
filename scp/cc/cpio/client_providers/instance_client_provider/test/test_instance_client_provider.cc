@@ -62,7 +62,7 @@ ExecutionResult TestInstanceClientProvider::Stop() noexcept {
 
 ExecutionResult
 TestInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
-    const std::string& resource_name,
+    std::string_view resource_name,
     cmrt::sdk::instance_service::v1::InstanceDetails&
         instance_details) noexcept {
   instance_details.set_instance_id(test_options_->instance_id);

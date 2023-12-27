@@ -62,7 +62,7 @@ static std::string HexEncode(unsigned char data[], size_t size) {
   return result;
 }
 
-static std::string Sha256(const std::string& data) {
+static std::string Sha256(std::string_view data) {
   SHA256_CTX sha256;
   SHA256_Init(&sha256);
   SHA256_Update(&sha256, data.data(), data.size());
@@ -72,7 +72,7 @@ static std::string Sha256(const std::string& data) {
 }
 
 std::vector<unsigned char> HmacSha256(const std::vector<unsigned char>& key,
-                                      const std::string& data) {
+                                      std::string_view data) {
   unsigned char hmac[EVP_MAX_MD_SIZE];
   unsigned int size = 0;
   HMAC(EVP_sha256(), key.data(), key.size(),
@@ -81,19 +81,17 @@ std::vector<unsigned char> HmacSha256(const std::vector<unsigned char>& key,
   return std::vector(hmac, hmac + size);
 }
 
-AwsV4Signer::AwsV4Signer(const std::string& aws_access_key,
-                         const std::string& aws_secret_key,
-                         const std::string& aws_security_token,
-                         const std::string& service_name,
-                         const std::string& aws_region)
-    : aws_access_key_(aws_access_key),
-      aws_secret_key_(aws_secret_key),
-      aws_security_token_(aws_security_token),
-      service_name_(service_name),
-      aws_region_(aws_region) {}
+AwsV4Signer::AwsV4Signer(std::string aws_access_key, std::string aws_secret_key,
+                         std::string aws_security_token,
+                         std::string service_name, std::string aws_region)
+    : aws_access_key_(std::move(aws_access_key)),
+      aws_secret_key_(std::move(aws_secret_key)),
+      aws_security_token_(std::move(aws_security_token)),
+      service_name_(std::move(service_name)),
+      aws_region_(std::move(aws_region)) {}
 
 ExecutionResult AwsV4Signer::SignRequest(
-    HttpRequest& http_request, const std::string& headers_to_sign) noexcept {
+    HttpRequest& http_request, std::string_view headers_to_sign) noexcept {
   std::vector<std::string> headers;
   // split the string, compress adjacent delimiters
   split(headers, headers_to_sign, is_any_of(";, "), token_compress_on);
@@ -204,8 +202,8 @@ ExecutionResult AwsV4Signer::SignRequest(
   return SuccessExecutionResult();
 }
 
-std::string AwsV4Signer::CalculateSignature(const std::string& string_to_sign,
-                                            const std::string& date) noexcept {
+std::string AwsV4Signer::CalculateSignature(std::string_view string_to_sign,
+                                            std::string_view date) noexcept {
   std::string init_key_str = std::string("AWS4") + aws_secret_key_;
   std::vector<unsigned char> secret(init_key_str.begin(), init_key_str.end());
   auto hmac_date = HmacSha256(secret, date);
@@ -305,7 +303,7 @@ ExecutionResult AwsV4Signer::CreateCanonicalRequest(
 
 ExecutionResult AwsV4Signer::SignRequestWithSignature(
     HttpRequest& http_request, std::vector<std::string>& headers_to_sign,
-    const std::string& x_amz_date, const std::string& signature) noexcept {
+    std::string_view x_amz_date, std::string_view signature) noexcept {
   // Sort all headers in headers_to_sign by its all lower cases order.
   std::sort(headers_to_sign.begin(), headers_to_sign.end(),
             [](const std::string& a, const std::string& b) {
@@ -316,7 +314,8 @@ ExecutionResult AwsV4Signer::SignRequestWithSignature(
   }
   // Remove potentially existing X-Amz-Date header, insert designated one.
   http_request.headers->erase(std::string(kAmzDateHeader));
-  http_request.headers->insert({std::string(kAmzDateHeader), x_amz_date});
+  http_request.headers->insert(
+      {std::string(kAmzDateHeader), std::string(x_amz_date)});
   std::string date = DateFromTimestamp(x_amz_date);
   AddSignatureHeader(http_request, headers_to_sign, date, signature);
   return SuccessExecutionResult();
@@ -324,7 +323,7 @@ ExecutionResult AwsV4Signer::SignRequestWithSignature(
 
 void AwsV4Signer::AddSignatureHeader(
     HttpRequest& http_request, const std::vector<std::string>& headers_to_sign,
-    const std::string& date, const std::string& signature) {
+    std::string_view date, std::string_view signature) {
   auto& headers = http_request.headers;
   std::stringstream auth_header_value_builder;
   auth_header_value_builder
