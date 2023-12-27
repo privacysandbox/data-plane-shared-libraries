@@ -16,6 +16,7 @@ set -o pipefail
 set -o errexit
 
 declare -i SAVE_EIF=0
+declare -i DEBUG_MODE=0
 
 function usage() {
   declare -r -i exitval=${1-1}
@@ -26,6 +27,8 @@ usage:
     --validator-conf <file>       Validator config text proto file with path
     --save-eif                    Whether the created eif should be cached for
                                   subsequent use. Default: false
+    --debug                       Whether the validator should be run in debug
+                                  mode. Default: false
 USAGE
   # shellcheck disable=SC2086
   exit "${exitval}"
@@ -55,6 +58,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --save-eif)
       SAVE_EIF=1
+      shift
+      ;;
+    --debug)
+      DEBUG_MODE=1
       shift
       ;;
     -h | --help) usage 0 ;;
@@ -92,6 +99,16 @@ if ! [[ -f ${ENCLAVE_NAME}.eif ]]; then
   docker create --name "${CONTAINER_NAME}" "${DOCKER_IMAGE_URI}" >/dev/null
   docker cp "${VALIDATOR_CONFIG_PATH}" "${CONTAINER_NAME}":/etc/validator_config.txtpb
   docker cp "${RESOLV_CONF_TMPFILE}" "${CONTAINER_NAME}":/etc/resolv_override.conf
+  if [[ ${DEBUG_MODE} -eq 1 ]]; then
+    readonly INIT_SERVER_ENCLAVE_TMPFILE="$(mktemp)"
+    docker cp "${CONTAINER_NAME}":/server/bin/init_server_enclave \
+      "${INIT_SERVER_ENCLAVE_TMPFILE}"
+    sed -i \
+      's#/proxify -- /server/bin/validation#/proxify -- /server/bin/validation --stderrthreshold=0#g' \
+      "${INIT_SERVER_ENCLAVE_TMPFILE}"
+    docker cp "${INIT_SERVER_ENCLAVE_TMPFILE}" \
+      "${CONTAINER_NAME}":/server/bin/init_server_enclave
+  fi
   docker commit "${CONTAINER_NAME}" "${DOCKER_IMAGE_URI}" >/dev/null
   docker rm "${CONTAINER_NAME}" >/dev/null
   nitro-cli build-enclave --docker-uri "${DOCKER_IMAGE_URI}" --output-file "${ENCLAVE_NAME}".eif >/dev/null
@@ -123,6 +140,10 @@ else
 fi;
 rm -r "${GRPC_CURL_DIR}"
 
-if ! nitro-cli console --enclave-name "${ENCLAVE_NAME}" | grep -E '^\[ (SUCCESS|FAILURE)'; then
+if [[ ${DEBUG_MODE} -eq 1 ]]; then
+  if ! nitro-cli console --enclave-name "${ENCLAVE_NAME}"; then
+    printf "error: Unable to read from console of enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr
+  fi
+elif ! nitro-cli console --enclave-name "${ENCLAVE_NAME}" | grep -E '^\[ (SUCCESS|FAILURE)'; then
   printf "error: Unable to read from console of enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr
-fi
+fi;
