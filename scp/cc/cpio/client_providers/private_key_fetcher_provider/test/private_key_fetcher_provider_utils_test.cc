@@ -91,10 +91,8 @@ TEST(PrivateKeyFetchingClientUtilsTest, ParsePrivateKeySuccess) {
     })";
 
   PrivateKeyFetchingResponse response;
-  auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response);
-
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(PrivateKeyFetchingClientUtils::ParsePrivateKey(
+      BytesBuffer(bytes_str), response));
   EXPECT_EQ(response.encryption_keys.size(), 1);
   const auto& encryption_key = *response.encryption_keys.begin();
   EXPECT_THAT(*encryption_key->key_id, StrEq("123456"));
@@ -361,10 +359,8 @@ TEST(PrivateKeyFetchingClientUtilsTest, ParseMultiplePrivateKeysSuccess) {
                           key_2 + one_key_without_name + "]}";
 
   PrivateKeyFetchingResponse response;
-  auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response);
-
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(PrivateKeyFetchingClientUtils::ParsePrivateKey(
+      BytesBuffer(bytes_str), response));
   EXPECT_EQ(response.encryption_keys.size(), 2);
   EXPECT_THAT(*response.encryption_keys[0]->key_id, StrEq("111111"));
   EXPECT_THAT(*response.encryption_keys[1]->key_id, StrEq("222222"));

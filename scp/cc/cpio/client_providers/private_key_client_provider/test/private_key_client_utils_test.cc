@@ -120,9 +120,8 @@ std::shared_ptr<EncryptionKey> CreateEncryptionKey(
 TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestSuccess) {
   auto encryption_key = CreateEncryptionKey();
   DecryptRequest kms_decrypt_request;
-  auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
-      encryption_key, kms_decrypt_request);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(PrivateKeyClientUtils::GetKmsDecryptRequest(
+      encryption_key, kms_decrypt_request));
   EXPECT_THAT(kms_decrypt_request.ciphertext(), StrEq(kTestKeyMaterial));
   EXPECT_THAT(kms_decrypt_request.key_resource_name(),
               StrEq(kTestKeyEncryptionKeyUri));
@@ -176,9 +175,8 @@ std::shared_ptr<EncryptionKey> CreateSinglePartyEncryptionKey(
 TEST(PrivateKeyClientUtilsTest, GetKmsDecryptRequestForSinglePartySucceeded) {
   auto encryption_key = CreateSinglePartyEncryptionKey();
   DecryptRequest kms_decrypt_request;
-  auto result = PrivateKeyClientUtils::GetKmsDecryptRequest(
-      encryption_key, kms_decrypt_request);
-  EXPECT_SUCCESS(result);
+  ASSERT_SUCCESS(PrivateKeyClientUtils::GetKmsDecryptRequest(
+      encryption_key, kms_decrypt_request));
   // Fill the key with padding.
   std::string unescaped_key;
   absl::Base64Unescape("singlepartykey", &unescaped_key);

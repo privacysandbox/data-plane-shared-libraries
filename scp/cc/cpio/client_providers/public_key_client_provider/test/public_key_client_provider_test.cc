@@ -152,7 +152,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_THAT(context.response->public_keys()[0].key_id(), StrEq("1234"));
         EXPECT_THAT(context.response->public_keys()[0].public_key(),
                     StrEq("abcdefg"));

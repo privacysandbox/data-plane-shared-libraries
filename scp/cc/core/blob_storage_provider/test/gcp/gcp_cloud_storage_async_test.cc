@@ -271,7 +271,7 @@ TEST_F(GcpCloudStorageClientAsyncTests, ListBlobsTest) {
 
     list_blobs_context.callback = [&finished, &next_marker,
                                    kPageSize](auto& context) {
-      EXPECT_SUCCESS(context.result);
+      ASSERT_SUCCESS(context.result);
 
       EXPECT_THAT(context.response, NotNull());
 
@@ -323,7 +323,7 @@ TEST_F(GcpCloudStorageClientAsyncTests, ListBlobsTest) {
     // correctly.
     list_blobs_context.request->marker = next_marker;
     list_blobs_context.callback = [&finished](auto& context) {
-      EXPECT_SUCCESS(context.result);
+      ASSERT_SUCCESS(context.result);
 
       EXPECT_THAT(context.response, NotNull());
 

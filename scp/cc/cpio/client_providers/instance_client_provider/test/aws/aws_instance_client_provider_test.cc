@@ -234,7 +234,7 @@ TEST_F(AwsInstanceClientProviderTest, GetCurrentInstanceResourceNameSuccess) {
           std::make_shared<GetCurrentInstanceResourceNameRequest>(),
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
-            EXPECT_SUCCESS(context.result);
+            ASSERT_SUCCESS(context.result);
             EXPECT_THAT(context.response->instance_resource_name(),
                         StrEq(absl::StrFormat(kAwsInstanceResourceNameFormat,
                                               "us-east-1", "123456789",
@@ -563,8 +563,9 @@ TEST_F(AwsInstanceClientProviderTest, GetInstanceDetailsByResourceName) {
           std::move(request),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
-            EXPECT_SUCCESS(context.result);
-            const auto& details = context.response->instance_details();
+            ASSERT_SUCCESS(context.result);
+            const ::google::cmrt::sdk::instance_service::v1::InstanceDetails&
+                details = context.response->instance_details();
             EXPECT_THAT(details.instance_id(), StrEq(kInstanceIdMock));
             EXPECT_THAT(details.networks(0).public_ipv4_address(),
                         StrEq(kPublicIpMock));
@@ -674,7 +675,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameSucceed) {
       context(std::move(request),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
-                EXPECT_SUCCESS(context.result);
+                ASSERT_SUCCESS(context.result);
                 EXPECT_THAT(
                     context.response->tags(),
                     UnorderedElementsAre(
@@ -782,7 +783,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
           std::move(request_empty_region),
           [&](AsyncContext<GetTagsByResourceNameRequest,
                            GetTagsByResourceNameResponse>& context) {
-            EXPECT_SUCCESS(context.result);
+            ASSERT_SUCCESS(context.result);
             condition.DecrementCount();
           });
 
@@ -793,7 +794,7 @@ TEST_F(AwsInstanceClientProviderTest, GetTagsByResourceNameEC2ClientCached) {
           std::move(request_us_west),
           [&](AsyncContext<GetTagsByResourceNameRequest,
                            GetTagsByResourceNameResponse>& context) {
-            EXPECT_SUCCESS(context.result);
+            ASSERT_SUCCESS(context.result);
             condition.DecrementCount();
           });
 

@@ -23,7 +23,7 @@
 
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
-using testing::Eq;
+using ::testing::StrEq;
 
 namespace google::scp::core::utils::test {
 TEST(Base64Test, Base64EncodeInvalidValue) {
@@ -37,8 +37,8 @@ TEST(Base64Test, Base64EncodeInvalidValue) {
 TEST(Base64Test, Base64EncodeValidValue) {
   std::string decoded("test_test_test");
   std::string encoded;
-  EXPECT_SUCCESS(Base64Encode(decoded, encoded));
-  EXPECT_EQ(encoded, "dGVzdF90ZXN0X3Rlc3Q=");
+  ASSERT_SUCCESS(Base64Encode(decoded, encoded));
+  EXPECT_THAT(encoded, StrEq("dGVzdF90ZXN0X3Rlc3Q="));
 }
 
 TEST(Base64Test, Base64DecodeInvalidValue) {
@@ -53,11 +53,11 @@ TEST(Base64Test, Base64DecodeInvalidValue) {
 TEST(Base64Test, Base64DecodeValidValues) {
   std::string empty;
   std::string decoded;
-  EXPECT_SUCCESS(Base64Decode(empty, decoded));
+  ASSERT_SUCCESS(Base64Decode(empty, decoded));
 
   std::string encoded("dGVzdF90ZXN0X3Rlc3Q=");
-  EXPECT_SUCCESS(Base64Decode(encoded, decoded));
-  EXPECT_EQ(decoded, "test_test_test");
+  ASSERT_SUCCESS(Base64Decode(encoded, decoded));
+  EXPECT_THAT(decoded, StrEq("test_test_test"));
 }
 
 TEST(Base64Test, PadBase64EncodingTest) {

@@ -45,7 +45,7 @@ TEST(UuidTests, UuidToString) {
   EXPECT_THAT(uuid_string, StrEq(uuid_str));
 
   Uuid parsed_uuid;
-  EXPECT_SUCCESS(FromString(uuid_string, parsed_uuid));
+  ASSERT_SUCCESS(FromString(uuid_string, parsed_uuid));
   EXPECT_EQ(parsed_uuid, uuid);
 }
 

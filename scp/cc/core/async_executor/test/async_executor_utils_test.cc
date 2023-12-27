@@ -20,7 +20,7 @@
 
 namespace google::scp::core::test {
 TEST(AsyncExecutorUtilsTest, BasicTests) {
-  EXPECT_SUCCESS(AsyncExecutorUtils::SetAffinity(1));
+  ASSERT_SUCCESS(AsyncExecutorUtils::SetAffinity(1));
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
   pthread_getaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);

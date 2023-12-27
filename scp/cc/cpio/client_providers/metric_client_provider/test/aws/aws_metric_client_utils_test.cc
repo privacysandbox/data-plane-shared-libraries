@@ -105,7 +105,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumSuccess) {
         parse_request_to_datum_is_called = true;
       });
   std::vector<MetricDatum> datum_list;
-  EXPECT_SUCCESS(AwsMetricClientUtils::ParseRequestToDatum(
+  ASSERT_SUCCESS(AwsMetricClientUtils::ParseRequestToDatum(
       context, datum_list, kAwsMetricDatumSizeLimit));
   EXPECT_TRUE(!parse_request_to_datum_is_called);
   EXPECT_EQ(datum_list.size(), 10);

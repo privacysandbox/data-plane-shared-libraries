@@ -97,7 +97,7 @@ TEST_F(AwsAuthTokenProviderTest,
 
   absl::Notification finished;
   fetch_token_context_.callback = [&finished](auto& context) {
-    EXPECT_SUCCESS(context.result);
+    ASSERT_SUCCESS(context.result);
     ASSERT_TRUE(context.response);
     EXPECT_THAT(context.response->session_token,
                 Pointee(Eq(kHttpResponseMock)));

@@ -59,13 +59,14 @@ using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::GcpInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
-using testing::_;
-using testing::Eq;
-using testing::IsEmpty;
-using testing::Pair;
-using testing::Pointee;
-using testing::Return;
-using testing::UnorderedElementsAre;
+using ::testing::Eq;
+using ::testing::IsEmpty;
+using ::testing::Pair;
+using ::testing::Pointee;
+using ::testing::Return;
+using ::testing::SizeIs;
+using ::testing::StrEq;
+using ::testing::UnorderedElementsAre;
 
 namespace {
 constexpr char kURIForProjectId[] =
@@ -171,12 +172,11 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
 
   std::string resource_name;
 
-  EXPECT_THAT(
-      instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
-      IsSuccessful());
+  ASSERT_SUCCESS(
+      instance_provider_->GetCurrentInstanceResourceNameSync(resource_name));
 
-  EXPECT_EQ(resource_name,
-            absl::StrCat("//compute.googleapis.com/", kResourceId));
+  EXPECT_THAT(resource_name,
+              absl::StrCat("//compute.googleapis.com/", kResourceId));
 }
 
 TEST_F(GcpInstanceClientProviderTest,
@@ -200,7 +200,7 @@ TEST_F(GcpInstanceClientProviderTest,
       instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
 
-  EXPECT_EQ(resource_name, "");
+  EXPECT_THAT(resource_name, IsEmpty());
 }
 
 TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
@@ -242,9 +242,10 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
           std::make_shared<GetCurrentInstanceResourceNameRequest>(),
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
-            EXPECT_SUCCESS(context.result);
-            EXPECT_EQ(context.response->instance_resource_name(),
-                      absl::StrCat("//compute.googleapis.com/", kResourceId));
+            ASSERT_SUCCESS(context.result);
+            EXPECT_THAT(
+                context.response->instance_resource_name(),
+                StrEq(absl::StrCat("//compute.googleapis.com/", kResourceId)));
             done.Notify();
           });
 
@@ -625,13 +626,14 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
           std::move(get_details_request_),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
-            EXPECT_SUCCESS(context.result);
+            ASSERT_SUCCESS(context.result);
             const auto& details = context.response->instance_details();
-            EXPECT_EQ(details.instance_id(), "123456789");
-            EXPECT_EQ(details.networks().size(), 1);
-            EXPECT_EQ(details.networks(0).public_ipv4_address(),
-                      "255.255.255.01");
-            EXPECT_EQ(details.networks(0).private_ipv4_address(), "10.10.0.99");
+            EXPECT_THAT(details.instance_id(), StrEq("123456789"));
+            EXPECT_THAT(details.networks(), SizeIs(1));
+            EXPECT_THAT(details.networks(0).public_ipv4_address(),
+                        StrEq("255.255.255.01"));
+            EXPECT_THAT(details.networks(0).private_ipv4_address(),
+                        StrEq("10.10.0.99"));
             done.Notify();
           });
 
@@ -714,7 +716,7 @@ TEST_F(GcpInstanceClientProviderTest,
           std::move(get_details_request_),
           [&](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
-            EXPECT_SUCCESS(context.result);
+            ASSERT_SUCCESS(context.result);
             EXPECT_EQ(context.response->instance_details().instance_id(),
                       "123456789");
             EXPECT_THAT(context.response->instance_details()
@@ -951,7 +953,7 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
-                EXPECT_SUCCESS(context.result);
+                ASSERT_SUCCESS(context.result);
                 EXPECT_THAT(context.response->tags(),
                             UnorderedElementsAre(Pair("name_1", "value_1"),
                                                  Pair("name_2", "value_2"),
@@ -1136,7 +1138,7 @@ TEST_F(GcpInstanceClientProviderTest,
       context(std::move(get_tags_request_),
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {
-                EXPECT_SUCCESS(context.result);
+                ASSERT_SUCCESS(context.result);
                 EXPECT_THAT(context.response->tags(), IsEmpty());
                 done.Notify();
               });

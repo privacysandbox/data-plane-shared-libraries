@@ -51,7 +51,7 @@ TEST(MockBlobStorageProviderTest, GetBlob) {
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
       std::make_shared<GetBlobRequest>(),
       [&](AsyncContext<GetBlobRequest, GetBlobResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(context.response->buffer->length, 4);
         EXPECT_EQ(context.response->buffer->bytes->size(), bytes.size());
 
@@ -84,7 +84,7 @@ TEST(MockBlobStorageProviderTest, PutBlob) {
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context(
       std::make_shared<PutBlobRequest>(),
       [&](AsyncContext<PutBlobRequest, PutBlobResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
 
         std::ifstream input_stream("bucket_put/test_hash/1.txt",
                                    std::ios::ate | std::ios::binary);
@@ -134,7 +134,7 @@ TEST(MockBlobStorageProviderTest, DeleteBlob) {
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context(
       std::make_shared<DeleteBlobRequest>(),
       [&](AsyncContext<DeleteBlobRequest, DeleteBlobResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
 
         EXPECT_EQ(
             std::distance(std::filesystem::directory_iterator("bucket_delete"),
@@ -183,7 +183,7 @@ TEST(MockBlobStorageProviderTest, ListBlobs) {
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context(
       std::make_shared<ListBlobsRequest>(),
       [&](AsyncContext<ListBlobsRequest, ListBlobsResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
 
         constexpr int kNumValues = 7;
         absl::InlinedVector<std::string_view, kNumValues> expected = {

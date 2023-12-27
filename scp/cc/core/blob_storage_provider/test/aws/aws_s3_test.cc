@@ -159,7 +159,7 @@ TEST_F(AwsS3Tests, OnGetObjectCallback) {
         std::make_shared<std::string>("bucket_name");
     get_blob_context.callback =
         [](AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) {
-          EXPECT_SUCCESS(get_blob_context.result);
+          ASSERT_SUCCESS(get_blob_context.result);
           EXPECT_EQ(get_blob_context.response->buffer->length, 12);
           EXPECT_EQ(get_blob_context.response->buffer->capacity, 12);
           EXPECT_EQ(get_blob_context.response->buffer->bytes->size(), 12);

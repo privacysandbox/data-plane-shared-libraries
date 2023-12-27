@@ -152,7 +152,7 @@ TEST_F(ConfigurationFetcherTest, GetParameterByNameAsyncSucceeded) {
   auto get_context = AsyncContext<std::string, std::string>(
       std::make_shared<std::string>(kQueueClientQueueName),
       [&finished](AsyncContext<std::string, std::string> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestQueue);
         finished.Notify();
       });
@@ -178,7 +178,7 @@ TEST_F(ConfigurationFetcherTest, GetSharedLogOptionAsyncSucceeded) {
   auto get_context = AsyncContext<GetConfigurationRequest, LogOption>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, LogOption> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, LogOption::kConsoleLog);
         finished.Notify();
       });
@@ -204,7 +204,7 @@ TEST_F(ConfigurationFetcherTest, GetSharedCpuThreadCountAsyncSucceeded) {
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, 10);
         finished.Notify();
       });
@@ -274,7 +274,7 @@ TEST_F(ConfigurationFetcherTest, GetSharedCpuThreadPoolQueueCapAsyncSucceeded) {
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, 10000);
         finished.Notify();
       });
@@ -301,7 +301,7 @@ TEST_F(ConfigurationFetcherTest, GetSharedIoThreadCountAsyncSucceeded) {
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, 10);
         finished.Notify();
       });
@@ -327,7 +327,7 @@ TEST_F(ConfigurationFetcherTest, GetSharedIoThreadPoolQueueCapAsyncSucceeded) {
   auto get_context = AsyncContext<GetConfigurationRequest, size_t>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, size_t> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, 10000);
         finished.Notify();
       });
@@ -354,7 +354,7 @@ TEST_F(ConfigurationFetcherTest, GetQueueClientQueueNameAsyncSucceeded) {
   auto get_context = AsyncContext<GetConfigurationRequest, std::string>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, std::string> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, kTestQueue);
         finished.Notify();
       });
@@ -380,7 +380,7 @@ TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeKemAsyncSucceeded) {
   auto get_context = AsyncContext<GetConfigurationRequest, HpkeKem>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, HpkeKem> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, HpkeKem::DHKEM_X25519_HKDF_SHA256);
         finished.Notify();
       });
@@ -416,7 +416,7 @@ TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeKdfAsyncSucceeded) {
   auto get_context = AsyncContext<GetConfigurationRequest, HpkeKdf>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, HpkeKdf> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, HpkeKdf::HKDF_SHA256);
         finished.Notify();
       });
@@ -442,7 +442,7 @@ TEST_F(ConfigurationFetcherTest, GetCryptoClientHpkeAeadAsyncSucceeded) {
   auto get_context = AsyncContext<GetConfigurationRequest, HpkeAead>(
       nullptr,
       [&finished](AsyncContext<GetConfigurationRequest, HpkeAead> context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_EQ(*context.response, HpkeAead::CHACHA20_POLY1305);
         finished.Notify();
       });

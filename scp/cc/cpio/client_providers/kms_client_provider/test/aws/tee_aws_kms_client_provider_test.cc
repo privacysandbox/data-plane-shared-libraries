@@ -128,7 +128,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
-        EXPECT_SUCCESS(context.result);
+        ASSERT_SUCCESS(context.result);
         EXPECT_THAT(context.response->plaintext(), StrEq(expect_command));
         condition.Notify();
       });
