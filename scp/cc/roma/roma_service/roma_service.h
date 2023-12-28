@@ -300,7 +300,7 @@ class RomaService {
   }
 
   void RegisterLogBindings() noexcept {
-    const auto log_fn_factory = [&](const std::string& function_name) {
+    const auto log_fn_factory = [&](std::string_view function_name) {
       auto function_binding_object =
           std::make_unique<FunctionBindingObjectV2<TMetadata>>();
       function_binding_object->function_name = function_name;
@@ -349,7 +349,7 @@ class RomaService {
   }
 
   template <typename RequestT>
-  absl::Status ExecutionObjectValidation(const std::string& function_name,
+  absl::Status ExecutionObjectValidation(std::string_view function_name,
                                          const RequestT& invocation_req) {
     if (invocation_req->version_string.empty()) {
       return absl::InvalidArgumentError(absl::StrCat(

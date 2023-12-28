@@ -43,7 +43,7 @@ class TestAwsParameterClientProvider : public AwsParameterClientProvider {
 
  protected:
   std::shared_ptr<Aws::Client::ClientConfiguration> CreateClientConfiguration(
-      const std::string& region) noexcept override;
+      std::string_view region) noexcept override;
 
   std::shared_ptr<TestAwsParameterClientOptions> test_options_;
 };

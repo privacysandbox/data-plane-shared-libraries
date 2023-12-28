@@ -33,14 +33,14 @@ using grpc::StubOptions;
 
 namespace google::scp::core::test {
 std::unique_ptr<Publisher::StubInterface> CreatePublisherStub(
-    const std::string& endpoint) {
-  auto channel =
-      grpc::CreateChannel(endpoint, grpc::InsecureChannelCredentials());
+    std::string_view endpoint) {
+  auto channel = grpc::CreateChannel(std::string{endpoint},
+                                     grpc::InsecureChannelCredentials());
   return Publisher::NewStub(channel, StubOptions());
 }
 
-void CreateTopic(Publisher::StubInterface& stub, const std::string& project_id,
-                 const std::string& topic_id) {
+void CreateTopic(Publisher::StubInterface& stub, std::string_view project_id,
+                 std::string_view topic_id) {
   auto topic_name = absl::StrCat("projects/", project_id, "/topics/", topic_id);
   Topic topic;
   topic.set_name(topic_name);

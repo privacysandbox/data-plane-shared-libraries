@@ -53,33 +53,33 @@ class NativeFunctionInvokerMock : public NativeFunctionInvoker {
 };
 
 TEST_F(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
-  std::vector<std::string> outputs{
+  const std::vector<std::string> kOutputs{
       R"("str1")",
       R"("str2")",
       R"("str3")",
   };
 
-  const auto& trim_first_last_char = [](const std::string& str) {
+  const auto trim_first_last_char = [](const std::string& str) {
     return str.substr(1, str.length() - 2);
   };
 
   absl::ScopedMockLog log;
   EXPECT_CALL(
-      log, Log(absl::LogSeverity::kInfo, _, trim_first_last_char(outputs[0])));
+      log, Log(absl::LogSeverity::kInfo, _, trim_first_last_char(kOutputs[0])));
   EXPECT_CALL(log, Log(absl::LogSeverity::kWarning, _,
-                       trim_first_last_char(outputs[1])));
-  EXPECT_CALL(
-      log, Log(absl::LogSeverity::kError, _, trim_first_last_char(outputs[2])));
+                       trim_first_last_char(kOutputs[1])));
+  EXPECT_CALL(log, Log(absl::LogSeverity::kError, _,
+                       trim_first_last_char(kOutputs[2])));
 
   EXPECT_CALL(
       log, Log(absl::LogSeverity::kInfo, _,
-               absl::StrCat("metrics1: ", trim_first_last_char(outputs[0]))));
+               absl::StrCat("metrics1: ", trim_first_last_char(kOutputs[0]))));
   EXPECT_CALL(
       log, Log(absl::LogSeverity::kInfo, _,
-               absl::StrCat("metrics2: ", trim_first_last_char(outputs[1]))));
+               absl::StrCat("metrics2: ", trim_first_last_char(kOutputs[1]))));
   EXPECT_CALL(
       log, Log(absl::LogSeverity::kInfo, _,
-               absl::StrCat("metrics3: ", trim_first_last_char(outputs[2]))));
+               absl::StrCat("metrics3: ", trim_first_last_char(kOutputs[2]))));
   log.StartCapturingLogs();
 
   auto function_invoker = std::make_unique<NativeFunctionInvokerMock>();
@@ -106,7 +106,7 @@ TEST_F(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
 
   auto response_or = engine.CompileAndRunJs(
       js_code, "Handler",
-      std::vector<absl::string_view>(outputs.begin(), outputs.end()),
+      std::vector<absl::string_view>(kOutputs.begin(), kOutputs.end()),
       {} /*metadata*/);
 
   ASSERT_SUCCESS(response_or.result());

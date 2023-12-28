@@ -42,7 +42,7 @@ static constexpr char kCloudWatchErrorConverter[] = "CloudWatchErrorConverter";
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult CloudWatchErrorConverter::ConvertCloudWatchError(
-    CloudWatchErrors cloud_watch_error, const std::string& error_message) {
+    CloudWatchErrors cloud_watch_error, std::string_view error_message) {
   auto failure = FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR);
   switch (cloud_watch_error) {
     case CloudWatchErrors::ACCESS_DENIED:
@@ -75,7 +75,7 @@ ExecutionResult CloudWatchErrorConverter::ConvertCloudWatchError(
 
   SCP_ERROR(kCloudWatchErrorConverter, kZeroUuid, failure,
             "AWS cloud service error: code is %d, and error message is %s.",
-            cloud_watch_error, error_message.c_str());
+            cloud_watch_error, error_message.data());
   return failure;
 }
 }  // namespace google::scp::cpio::client_providers

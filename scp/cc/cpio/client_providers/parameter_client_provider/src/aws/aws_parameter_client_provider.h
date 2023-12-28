@@ -94,7 +94,7 @@ class AwsParameterClientProvider : public ParameterClientProviderInterface {
    * @return core::ExecutionResult creation result.
    */
   virtual std::shared_ptr<Aws::Client::ClientConfiguration>
-  CreateClientConfiguration(const std::string& region) noexcept;
+  CreateClientConfiguration(std::string_view region) noexcept;
 
   /// InstanceClientProvider.
   std::shared_ptr<InstanceClientProviderInterface> instance_client_provider_;

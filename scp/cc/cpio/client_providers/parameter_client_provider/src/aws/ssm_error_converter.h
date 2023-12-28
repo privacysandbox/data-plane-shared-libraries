@@ -36,7 +36,7 @@ class SSMErrorConverter {
    * @return core::FailureExecutionResult The converted result of the operation.
    */
   static core::FailureExecutionResult ConvertSSMError(
-      const Aws::SSM::SSMErrors& error, const std::string& error_message);
+      const Aws::SSM::SSMErrors& error, std::string_view error_message);
 };
 }  // namespace google::scp::cpio::client_providers
 

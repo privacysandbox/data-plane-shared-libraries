@@ -98,7 +98,7 @@ void RunDnsLookupValidator(absl::Notification& finished, bool& successful) {
 
 google::scp::core::ExecutionResult MakeRequest(
     google::scp::core::HttpClientInterface& http_client,
-    google::scp::core::HttpMethod method, const std::string& url,
+    google::scp::core::HttpMethod method, std::string_view url,
     const absl::btree_multimap<std::string, std::string>& headers = {}) {
   auto request = std::make_shared<HttpRequest>();
   request->method = method;

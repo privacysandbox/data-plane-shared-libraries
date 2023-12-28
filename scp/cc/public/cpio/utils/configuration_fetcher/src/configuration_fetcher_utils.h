@@ -68,14 +68,14 @@ class ConfigurationFetcherUtils {
   }
 
   template <typename UIntT>
-  static core::ExecutionResultOr<UIntT> StringToUInt(const std::string& value) {
+  static core::ExecutionResultOr<UIntT> StringToUInt(std::string_view value) {
     uint64_t int_value = 0;
-    if (!absl::SimpleAtoi(std::string_view(value), &int_value)) {
+    if (!absl::SimpleAtoi(value, &int_value)) {
       auto result = core::FailureExecutionResult(
           core::errors::SC_CONFIGURATION_FETCHER_CONVERSION_FAILED);
       SCP_ERROR(kConfigurationFetcherUtils, core::common::kZeroUuid, result,
                 "Could not convert parameter value to integer: %s",
-                value.c_str());
+                value.data());
       return static_cast<core::ExecutionResult>(result);
     }
 
@@ -84,14 +84,14 @@ class ConfigurationFetcherUtils {
 
   template <typename EnumT>
   static core::ExecutionResultOr<EnumT> StringToEnum(
-      const std::string& value,
+      std::string_view value,
       const absl::flat_hash_map<std::string, EnumT>& enum_map) {
     auto it = enum_map.find(value);
     if (it == enum_map.end()) {
       auto result = core::FailureExecutionResult(
           core::errors::SC_CONFIGURATION_FETCHER_CONVERSION_FAILED);
       SCP_ERROR(kConfigurationFetcherUtils, core::common::kZeroUuid, result,
-                "Could not convert %s to enum", value.c_str());
+                "Could not convert %s to enum", value.data());
       return static_cast<core::ExecutionResult>(result);
     }
     return it->second;

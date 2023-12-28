@@ -103,7 +103,7 @@ std::shared_ptr<EncryptionKey> CreateEncryptionKeyBase() {
 }
 
 std::shared_ptr<EncryptionKey> CreateEncryptionKey(
-    const std::string& key_resource_name = kTestKeyEncryptionKeyUriWithPrefix) {
+    std::string_view key_resource_name = kTestKeyEncryptionKeyUriWithPrefix) {
   auto encryption_key = CreateEncryptionKeyBase();
   encryption_key->encryption_key_type =
       EncryptionKeyType::kMultiPartyHybridEvenKeysplit;
@@ -156,7 +156,7 @@ TEST(PrivateKeyClientUtilsTest,
 
 std::shared_ptr<EncryptionKey> CreateSinglePartyEncryptionKey(
     int8_t key_data_count = 1,
-    const std::string& key_material = kSinglePartyKeyMaterialJson) {
+    std::string_view key_material = kSinglePartyKeyMaterialJson) {
   auto encryption_key = CreateEncryptionKeyBase();
   encryption_key->encryption_key_type =
       EncryptionKeyType::kSinglePartyHybridKey;

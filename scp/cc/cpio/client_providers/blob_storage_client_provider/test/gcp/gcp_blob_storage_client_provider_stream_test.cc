@@ -112,7 +112,7 @@ constexpr int64_t kStreamKeepAliveMicrosCount = 100;
 class MockGcpCloudStorageFactory : public GcpCloudStorageFactory {
  public:
   MOCK_METHOD(core::ExecutionResultOr<std::shared_ptr<Client>>, CreateClient,
-              (std::shared_ptr<BlobStorageClientOptions>, const std::string&),
+              (std::shared_ptr<BlobStorageClientOptions>, std::string_view),
               (noexcept, override));
 };
 
@@ -229,7 +229,7 @@ MATCHER_P2(ReadObjectRequestEqual, bucket_name, blob_name, "") {
 
 // Builds an ObjectReadSource that contains the bytes (copied) from bytes_str.
 StatusOr<std::unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
-    const std::string& bytes_str) {
+    std::string_view bytes_str) {
   // We want the following methods to be called in order, so make an InSequence.
   InSequence seq;
   auto mock_source = std::make_unique<MockObjectReadSource>();
@@ -506,7 +506,7 @@ MATCHER_P(UploadChunkEquals, expected, "") {
 // Note, string s is not copied or moved - it is referred to wherever this
 // buffer exists. Therefore, s must continue to be valid while this buffer
 // exists.
-ConstBufferSequence MakeBuffer(const std::string& s) {
+ConstBufferSequence MakeBuffer(std::string_view s) {
   return ConstBufferSequence{ConstBuffer(s.c_str(), s.length())};
 }
 
@@ -534,9 +534,8 @@ MATCHER_P(HasSessionUrl, url, "") {
  * @param expect_queries Whether or not to expect RestoreResumableUpload's
  * before *each* UploadChunk call.
  */
-void ExpectResumableUpload(MockClient& mock_client, const std::string& bucket,
-                           const std::string& blob,
-                           const std::string& initial_part,
+void ExpectResumableUpload(MockClient& mock_client, std::string_view bucket,
+                           std::string_view blob, std::string_view initial_part,
                            const std::vector<std::string>& other_parts,
                            bool expect_queries = false) {
   static int upload_count = 0;

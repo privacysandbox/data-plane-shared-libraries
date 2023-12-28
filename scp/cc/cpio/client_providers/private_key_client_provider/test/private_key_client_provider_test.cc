@@ -307,7 +307,7 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
   }
 
   std::vector<PrivateKey> BuildExpectedPrivateKeys(
-      const std::string& encoded_private_key, uint16_t start_index = 0,
+      std::string_view encoded_private_key, uint16_t start_index = 0,
       uint16_t end_index = 2) {
     std::vector<PrivateKey> expected_keys(end_index - start_index + 1);
     for (auto i = start_index; i <= end_index; ++i) {
@@ -931,7 +931,7 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
   }
 
   std::vector<PrivateKey> BuildExpectedPrivateKeys(
-      const std::string& encoded_private_key) {
+      std::string_view encoded_private_key) {
     std::vector<PrivateKey> expected_keys(1);
     expected_keys[0].set_key_id(kTestKeyIds[0]);
     expected_keys[0].set_public_key(kTestPublicKeyMaterial);

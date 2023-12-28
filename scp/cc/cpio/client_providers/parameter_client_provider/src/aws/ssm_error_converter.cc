@@ -41,7 +41,7 @@ static constexpr char kSSMErrorConverter[] = "SSMErrorConverter";
 
 namespace google::scp::cpio::client_providers {
 FailureExecutionResult SSMErrorConverter::ConvertSSMError(
-    const SSMErrors& error, const std::string& error_message) {
+    const SSMErrors& error, std::string_view error_message) {
   auto failure = FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR);
   switch (error) {
     case SSMErrors::VALIDATION:
@@ -73,7 +73,7 @@ FailureExecutionResult SSMErrorConverter::ConvertSSMError(
 
   SCP_ERROR(kSSMErrorConverter, kZeroUuid, failure,
             "AWS cloud service error: code is %d, and error message is %s.",
-            error, error_message.c_str());
+            error, error_message.data());
   return failure;
 }
 }  // namespace google::scp::cpio::client_providers

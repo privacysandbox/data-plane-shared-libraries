@@ -86,12 +86,12 @@ class PrivateKeyFetcherProviderTest : public ::testing::Test {
     }
   }
 
-  void MockRequest(const std::string& uri) {
+  void MockRequest(std::string_view uri) {
     http_client_->request_mock = HttpRequest();
     http_client_->request_mock.path = std::make_shared<std::string>(uri);
   }
 
-  void MockResponse(const std::string& str) {
+  void MockResponse(std::string_view str) {
     BytesBuffer bytes_buffer(sizeof(str));
     bytes_buffer.bytes =
         std::make_shared<std::vector<Byte>>(str.begin(), str.end());

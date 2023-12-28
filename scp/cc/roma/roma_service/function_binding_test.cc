@@ -51,18 +51,18 @@ TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
-  const auto& input = R"("Foobar")";
-  const auto& trim_first_last_char = [](const std::string& str) {
+  const std::string kInput = R"("Foobar")";
+  const auto trim_first_last_char = [](const std::string& str) {
     return str.substr(1, str.length() - 2);
   };
 
   absl::ScopedMockLog log;
   EXPECT_CALL(log,
-              Log(absl::LogSeverity::kInfo, _, trim_first_last_char(input)));
+              Log(absl::LogSeverity::kInfo, _, trim_first_last_char(kInput)));
+  EXPECT_CALL(
+      log, Log(absl::LogSeverity::kWarning, _, trim_first_last_char(kInput)));
   EXPECT_CALL(log,
-              Log(absl::LogSeverity::kWarning, _, trim_first_last_char(input)));
-  EXPECT_CALL(log,
-              Log(absl::LogSeverity::kError, _, trim_first_last_char(input)));
+              Log(absl::LogSeverity::kError, _, trim_first_last_char(kInput)));
   log.StartCapturingLogs();
 
   {
@@ -92,7 +92,7 @@ TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
     execution_obj->id = "foo";
     execution_obj->version_string = "v1";
     execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(input);
+    execution_obj->input.emplace_back(kInput);
 
     status = roma_service->Execute(
         std::move(execution_obj),
@@ -111,7 +111,7 @@ TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result,
               testing::StrEq(absl::StrCat(R"("Hello world! )",
-                                          trim_first_last_char(input), "\"")));
+                                          trim_first_last_char(kInput), "\"")));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());

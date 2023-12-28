@@ -29,7 +29,7 @@ namespace google::scp::core::test {
  * Publisher stub.
  */
 std::unique_ptr<pubsub::v1::Publisher::StubInterface> CreatePublisherStub(
-    const std::string& endpoint);
+    std::string_view endpoint);
 
 /**
  * @brief Create a Topic object in the given Publisher.
@@ -39,7 +39,7 @@ std::unique_ptr<pubsub::v1::Publisher::StubInterface> CreatePublisherStub(
  * @param topic_id the topic ID to be created.
  */
 void CreateTopic(pubsub::v1::Publisher::StubInterface& stub,
-                 const std::string& project_id, const std::string& topic_id);
+                 std::string_view project_id, std::string_view topic_id);
 }  // namespace google::scp::core::test
 
 #endif  // CORE_TEST_UTILS_GCP_HELPER_GCP_HELPER_H_

@@ -96,12 +96,12 @@ class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
     }
   }
 
-  void MockRequest(const std::string& uri) {
+  void MockRequest(std::string_view uri) {
     http_client_->request_mock = HttpRequest();
     http_client_->request_mock.path = std::make_shared<std::string>(uri);
   }
 
-  void MockResponse(const std::string& str) {
+  void MockResponse(std::string_view str) {
     http_client_->response_mock = HttpResponse();
     http_client_->response_mock.body = BytesBuffer(str);
   }

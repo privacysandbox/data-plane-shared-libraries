@@ -39,7 +39,7 @@ class CloudWatchErrorConverter {
    */
   static core::ExecutionResult ConvertCloudWatchError(
       Aws::CloudWatch::CloudWatchErrors cloud_watch_error,
-      const std::string& error_message);
+      std::string_view error_message);
 };
 }  // namespace google::scp::cpio::client_providers
 

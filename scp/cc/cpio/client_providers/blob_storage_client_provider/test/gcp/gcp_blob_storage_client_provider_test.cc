@@ -202,7 +202,7 @@ MATCHER_P(BlobEquals, expected_blob, "") {
 
 // Builds an ObjectReadSource that contains the bytes (copied) from bytes_str.
 StatusOr<std::unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
-    const std::string& bytes_str) {
+    std::string_view bytes_str) {
   // We want the following methods to be called in order, so make an InSequence.
   InSequence seq;
   auto mock_source = std::make_unique<MockObjectReadSource>();
