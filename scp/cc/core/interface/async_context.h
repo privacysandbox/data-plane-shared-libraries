@@ -143,8 +143,8 @@ struct AsyncContext {
   }
 
   /// Sets `result` and finishes the async operation by calling the callback.
-  void Finish(ExecutionResult result) noexcept {
-    result = std::move(result);
+  void Finish(ExecutionResult execution_result) noexcept {
+    result = std::move(execution_result);
     Finish();
   }
 
