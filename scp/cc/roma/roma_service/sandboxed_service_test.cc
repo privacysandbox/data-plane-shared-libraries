@@ -80,7 +80,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -137,7 +137,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -199,7 +199,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -279,7 +279,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -334,7 +334,7 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -389,7 +389,7 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -449,7 +449,7 @@ TEST(SandboxedServiceTest,
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   // We don't load any code, just try to execute some version
   absl::Notification execute_finished;
@@ -484,7 +484,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -567,7 +567,7 @@ TEST(SandboxedServiceTest, BatchExecute) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   int res_count = 0;
   constexpr size_t kBatchSize = 5;
@@ -629,7 +629,7 @@ TEST(SandboxedServiceTest,
   config.number_of_workers = 10;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Mutex mu;
   int res_count = 0;
@@ -694,7 +694,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   config.number_of_workers = 10;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
   {
     absl::Notification load_finished;
     auto code_obj = std::make_unique<CodeObject>();
@@ -775,7 +775,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
   size_t total_runs = 10;
@@ -841,7 +841,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   config.number_of_workers = 1;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -971,7 +971,7 @@ TEST(SandboxedServiceTest,
   config.RegisterFunctionBinding(std::move(function_binding_object));
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   {
     absl::Notification load_finished;
@@ -1117,7 +1117,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -1193,7 +1193,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   config.code_version_cache_size = 1;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
 
@@ -1328,7 +1328,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   config.code_version_cache_size = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
 
@@ -1417,7 +1417,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   config.number_of_workers = 1;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
 
@@ -1530,7 +1530,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
 
@@ -1565,7 +1565,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
   absl::Notification execute_finished;
@@ -1643,7 +1643,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
   absl::Notification execute_finished;
@@ -1722,7 +1722,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -1781,7 +1781,7 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -1839,7 +1839,7 @@ TEST(SandboxedServiceTest,
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
 
@@ -1939,7 +1939,7 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
 

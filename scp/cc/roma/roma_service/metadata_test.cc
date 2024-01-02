@@ -71,7 +71,7 @@ TEST(MetadataTest, InvocationReqMetadataVisibleInNativeFunctions) {
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -137,7 +137,7 @@ TEST(MetadataTest, MetadataAssociatedWithEachNativeFunction) {
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
   size_t total_runs = 10;
@@ -213,7 +213,7 @@ TEST(MetadataTest, MetadataAssociatedWithBatchedFunctions) {
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
   constexpr int kNumThreads = 10;
@@ -312,7 +312,7 @@ TEST(MetadataTest, StringMetadataVisibleInNativeFunctions) {
       LogMetadataStringFunction, "log_metadata"));
   auto roma_service = std::make_unique<RomaService<std::string>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -386,7 +386,7 @@ TEST(MetadataTest, VectorMetadataVisibleInNativeFunctions) {
   auto roma_service =
       std::make_unique<RomaService<std::vector<std::string>>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -472,7 +472,7 @@ TEST(MetadataTest, CustomMetadataTypeVisibleInNativeFunctions) {
   auto roma_service =
       std::make_unique<RomaService<std::vector<Metadata>>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;

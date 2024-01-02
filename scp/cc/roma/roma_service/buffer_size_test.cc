@@ -41,7 +41,7 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -104,7 +104,7 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -166,7 +166,7 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
   absl::Notification oversize_execute_finished;
@@ -232,7 +232,7 @@ TEST(BufferSizeTest,
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -274,7 +274,7 @@ TEST(BufferSizeTest,
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -386,7 +386,7 @@ TEST(BufferSizeTest,
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
   absl::Notification success_execute_finished;

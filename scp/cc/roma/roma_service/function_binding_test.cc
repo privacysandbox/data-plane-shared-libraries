@@ -45,7 +45,7 @@ TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -135,7 +135,7 @@ TEST(FunctionBindingTest,
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -207,7 +207,7 @@ TEST(
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -287,7 +287,7 @@ TEST(FunctionBindingTest,
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -366,7 +366,7 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -433,7 +433,7 @@ TEST(FunctionBindingTest,
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -514,7 +514,7 @@ TEST(FunctionBindingTest,
 
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;

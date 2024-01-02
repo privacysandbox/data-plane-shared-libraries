@@ -48,7 +48,7 @@ TEST(WasmTest, CanExecuteWasmCode) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -108,7 +108,7 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -196,7 +196,7 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
 
     auto roma_service = std::make_unique<RomaService<>>(config);
     auto status = roma_service->Init();
-    EXPECT_TRUE(status.ok());
+    ASSERT_TRUE(status.ok());
 
     auto wasm_bin = WasmTestingUtils::LoadWasmFile(
         "./scp/cc/roma/testing/"
@@ -243,7 +243,7 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
 
     auto roma_service = std::make_unique<RomaService<>>(config);
     auto status = roma_service->Init();
-    EXPECT_TRUE(status.ok());
+    ASSERT_TRUE(status.ok());
 
     auto wasm_bin = WasmTestingUtils::LoadWasmFile(
         "./scp/cc/roma/testing/"
@@ -280,7 +280,7 @@ TEST(WasmTest, CanExecuteJSWithWasmCode) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -347,7 +347,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished1;
   absl::Notification load_finished2;
@@ -488,7 +488,7 @@ TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -557,7 +557,7 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
                                               15 /*maximum_heap_size_in_mb*/);
   auto roma_service = std::make_unique<RomaService<>>(config);
   auto status = roma_service->Init();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
 
