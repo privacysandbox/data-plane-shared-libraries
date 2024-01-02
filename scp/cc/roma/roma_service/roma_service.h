@@ -264,17 +264,20 @@ class RomaService {
    */
   core::ExecutionResultOr<NativeFunctionBindingSetup>
   SetupNativeFunctionHandler(size_t concurrency) {
-    auto function_bindings = config_.GetFunctionBindings();
+    const auto function_bindings = config_.GetFunctionBindings();
 
     std::vector<std::string> function_names;
-    for (auto& binding : function_bindings) {
+    function_names.reserve(function_bindings.size());
+    for (const auto& binding : function_bindings) {
       RETURN_IF_FAILURE(native_function_binding_table_.Register(
           binding->function_name, binding->function));
       function_names.push_back(binding->function_name);
     }
 
     std::vector<int> local_fds;
+    local_fds.reserve(concurrency);
     std::vector<int> remote_fds;
+    remote_fds.reserve(concurrency);
     for (int i = 0; i < concurrency; i++) {
       int fd_pair[2];
       if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair) != 0) {
@@ -316,13 +319,14 @@ class RomaService {
 
   core::ExecutionResult SetupWorkers(
       const NativeFunctionBindingSetup& native_binding_setup) {
-    std::vector<WorkerApiSapiConfig> worker_configs;
     const auto& remote_fds = native_binding_setup.remote_file_descriptors;
     const auto& function_names = native_binding_setup.js_function_names;
 
     JsEngineResourceConstraints resource_constraints;
     config_.GetJsEngineResourceConstraints(resource_constraints);
 
+    std::vector<WorkerApiSapiConfig> worker_configs;
+    worker_configs.reserve(remote_fds.size());
     for (const int remote_fd : remote_fds) {
       WorkerApiSapiConfig worker_api_sapi_config{
           .js_engine_require_code_preload = true,
