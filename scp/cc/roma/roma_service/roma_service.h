@@ -73,23 +73,20 @@ class RomaService {
  public:
   absl::Status Init() {
     if (!RomaHasEnoughMemoryForStartup()) {
-      return absl::Status(
-          absl::StatusCode::kInternal,
+      return absl::InternalError(
           "Roma startup failed due to insufficient system memory.");
     }
 
     auto result = InitInternal();
     if (!result.Successful()) {
-      return absl::Status(
-          absl::StatusCode::kInternal,
+      return absl::InternalError(
           absl::StrCat("Roma initialization failed due to internal error: ",
                        GetErrorMessage(result.status_code)));
     }
 
     result = RunInternal();
     if (!result.Successful()) {
-      return absl::Status(
-          absl::StatusCode::kInternal,
+      return absl::InternalError(
           absl::StrCat("Roma startup failed due to internal error: ",
                        GetErrorMessage(result.status_code)));
     }
@@ -99,32 +96,31 @@ class RomaService {
   absl::Status LoadCodeObj(std::unique_ptr<CodeObject> code_object,
                            Callback callback) {
     if (code_object->version_string.empty()) {
-      return absl::Status(absl::StatusCode::kInternal,
-                          "Roma LoadCodeObj failed due to invalid version.");
+      return absl::InternalError(
+          "Roma LoadCodeObj failed due to invalid version.");
     }
     if (code_object->js.empty() && code_object->wasm.empty()) {
-      return absl::Status(absl::StatusCode::kInternal,
-                          "Roma LoadCodeObj failed due to empty code content.");
+      return absl::InternalError(
+          "Roma LoadCodeObj failed due to empty code content.");
     }
     if (!code_object->wasm.empty() && !code_object->wasm_bin.empty()) {
-      return absl::Status(
-          absl::StatusCode::kInternal,
-          "Roma LoadCodeObj failed due to wasm code and wasm code "
-          "array conflict.");
+      return absl::InternalError(
+          "Roma LoadCodeObj failed due to wasm code and wasm code array "
+          "conflict.");
     }
     if (!code_object->wasm_bin.empty() !=
         code_object->tags.contains(kWasmCodeArrayName)) {
-      return absl::Status(absl::StatusCode::kInternal,
-                          "Roma LoadCodeObj failed due to empty wasm_bin or "
-                          "missing wasm code array name tag.");
+      return absl::InternalError(
+          "Roma LoadCodeObj failed due to empty wasm_bin or missing wasm code "
+          "array name tag.");
     }
 
     auto result =
         dispatcher_->Broadcast(std::move(code_object), std::move(callback));
     if (!result.Successful()) {
-      return absl::Status(absl::StatusCode::kInternal,
-                          absl::StrCat("Roma LoadCodeObj failed with: ",
-                                       GetErrorMessage(result.status_code)));
+      return absl::InternalError(
+          absl::StrCat("Roma LoadCodeObj failed with: ",
+                       GetErrorMessage(result.status_code)));
     }
     return absl::OkStatus();
   }
@@ -171,8 +167,7 @@ class RomaService {
   absl::Status Stop() {
     auto result = StopInternal();
     if (!result.Successful()) {
-      return absl::Status(
-          absl::StatusCode::kInternal,
+      return absl::InternalError(
           absl::StrCat("Roma stop failed due to internal error: ",
                        GetErrorMessage(result.status_code)));
     }
@@ -353,15 +348,13 @@ class RomaService {
   absl::Status ExecutionObjectValidation(const std::string& function_name,
                                          const RequestT& invocation_req) {
     if (invocation_req->version_string.empty()) {
-      return absl::Status(absl::StatusCode::kInvalidArgument,
-                          absl::StrCat("Roma ", function_name,
-                                       " failed due to invalid version."));
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Roma ", function_name, " failed due to invalid version."));
     }
 
     if (invocation_req->handler_name.empty()) {
-      return absl::Status(absl::StatusCode::kInvalidArgument,
-                          absl::StrCat("Roma ", function_name,
-                                       " failed due to empty handler name."));
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Roma ", function_name, " failed due to empty handler name."));
     }
 
     return absl::OkStatus();
@@ -397,9 +390,8 @@ class RomaService {
                                               std::move(callback_wrapper));
 
     if (!result.Successful()) {
-      return absl::Status(absl::StatusCode::kInternal,
-                          absl::StrCat("Roma Execute failed due to: ",
-                                       GetErrorMessage(result.status_code)));
+      return absl::InternalError(absl::StrCat(
+          "Roma Execute failed due to: ", GetErrorMessage(result.status_code)));
     }
     return absl::OkStatus();
   }
@@ -441,8 +433,7 @@ class RomaService {
     auto result =
         dispatcher_->DispatchBatch(batch, std::move(callback_wrapper));
     if (!result.Successful()) {
-      return absl::Status(
-          absl::StatusCode::kInternal,
+      return absl::InternalError(
           absl::StrCat("Roma Batch Execute failed due to dispatch error: ",
                        GetErrorMessage(result.status_code)));
     }

@@ -245,8 +245,7 @@ absl::Status LoadCodeObject(RomaService<>& roma_service,
   if (load_success) {
     return absl::OkStatus();
   } else {
-    return absl::Status(absl::StatusCode::kInternal,
-                        "Roma failed to load code object ");
+    return absl::InternalError("Roma failed to load code object ");
   }
 }
 

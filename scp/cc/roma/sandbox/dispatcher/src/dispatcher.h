@@ -188,9 +188,8 @@ class Dispatcher {
           auto worker_or = worker_pool_->GetWorker(index);
           if (!worker_or.result().Successful()) {
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
-                absl::Status(absl::StatusCode::kInternal,
-                             core::errors::GetErrorMessage(
-                                 worker_or.result().status_code)));
+                absl::InternalError(core::errors::GetErrorMessage(
+                    worker_or.result().status_code)));
             callback(std::move(response_or));
             absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
@@ -202,8 +201,7 @@ class Dispatcher {
           if (!code_object_cache_.Contains(request->version_string)) {
             cache_mu_.Unlock();
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
-                absl::Status(absl::StatusCode::kInternal,
-                             "Could not find code version in cache."));
+                absl::InternalError("Could not find code version in cache."));
             callback(std::move(response_or));
             absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
@@ -229,9 +227,8 @@ class Dispatcher {
                   request, request_type);
           if (!run_code_request_or.result().Successful()) {
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
-                absl::Status(absl::StatusCode::kInternal,
-                             core::errors::GetErrorMessage(
-                                 run_code_request_or.result().status_code)));
+                absl::InternalError(core::errors::GetErrorMessage(
+                    run_code_request_or.result().status_code)));
             callback(std::move(response_or));
             absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
@@ -244,7 +241,7 @@ class Dispatcher {
             auto err_msg = core::errors::GetErrorMessage(
                 run_code_response_or.result().status_code);
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
-                absl::Status(absl::StatusCode::kInternal, err_msg));
+                absl::InternalError(err_msg));
             LOG(ERROR) << "The worker " << index
                        << " execute the request failed due to " << err_msg;
 

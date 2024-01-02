@@ -664,7 +664,7 @@ TEST(SandboxedServiceTest,
 
     std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
 
-    status = absl::Status(absl::StatusCode::kInternal, "fail");
+    status = absl::InternalError("fail");
     while (!status.ok()) {
       status = roma_service->BatchExecute(
           batch,

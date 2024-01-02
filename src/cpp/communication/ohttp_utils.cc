@@ -111,33 +111,31 @@ absl::StatusOr<quiche::ObliviousHttpRequest> DecryptEncapsulatedRequest(
     const PrivateKey& private_key, const EncapsulatedRequest& request) {
   const auto key_id = ToIntKeyId(private_key.key_id);
   if (!key_id.ok()) {
-    return absl::Status(absl::StatusCode::kInternal, key_id.status().message());
+    return absl::InternalError(key_id.status().message());
   }
 
   const auto key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
       key_id.value(), kX25519HkdfSha256KemId, kHkdfSha256Id, kAes256GcmAeadId);
   if (!key_config.ok()) {
-    const std::string error = absl::StrCat(
-        "Failed to build OHTTP header config: ", key_config.status().message());
-    return absl::Status(absl::StatusCode::kInternal, error);
+    return absl::InternalError(
+        absl::StrCat("Failed to build OHTTP header config: ",
+                     key_config.status().message()));
   }
 
   // Validate the encapsulated request matches the expected key config above.
   const auto payload_headers =
       key_config->ParseOhttpPayloadHeader(request.request_payload);
   if (!payload_headers.ok()) {
-    const std::string error = absl::StrCat(
+    return absl::InvalidArgumentError(absl::StrCat(
         "Unsupported HPKE primitive ID provided in encapsulated request: ",
-        payload_headers.message());
-    return absl::Status(absl::StatusCode::kInvalidArgument, error);
+        payload_headers.message()));
   }
 
   const absl::StatusOr<quiche::ObliviousHttpGateway> gateway =
       quiche::ObliviousHttpGateway::Create(private_key.private_key,
                                            *key_config);
   if (!gateway.ok()) {
-    return absl::Status(absl::StatusCode::kInternal,
-                        gateway.status().message());
+    return absl::InternalError(gateway.status().message());
   }
 
   absl::StatusOr<quiche::ObliviousHttpRequest> decrypted_req =
@@ -149,9 +147,8 @@ absl::StatusOr<quiche::ObliviousHttpRequest> DecryptEncapsulatedRequest(
       return decrypted_req;
     }
 
-    const std::string error = absl::StrCat("Unable to decrypt ciphertext: ",
-                                           decrypted_req.status().message());
-    return absl::Status(absl::StatusCode::kInternal, error);
+    return absl::InternalError(absl::StrCat("Unable to decrypt ciphertext: ",
+                                            decrypted_req.status().message()));
   }
 
   return decrypted_req;
@@ -163,22 +160,20 @@ absl::StatusOr<std::string> EncryptAndEncapsulateResponse(
     absl::string_view request_label) {
   const auto key_id = ToIntKeyId(private_key.key_id);
   if (!key_id.ok()) {
-    return absl::Status(absl::StatusCode::kInternal, key_id.status().message());
+    return absl::InternalError(key_id.status().message());
   }
 
   const auto config = quiche::ObliviousHttpHeaderKeyConfig::Create(
       key_id.value(), kX25519HkdfSha256KemId, kHkdfSha256Id, kAes256GcmAeadId);
   if (!config.ok()) {
-    const std::string error = absl::StrCat(
-        "Failed to build OHTTP header config: ", config.status().message());
-    return absl::Status(absl::StatusCode::kInternal, error);
+    return absl::InternalError(absl::StrCat(
+        "Failed to build OHTTP header config: ", config.status().message()));
   }
 
   const auto gateway =
       quiche::ObliviousHttpGateway::Create(private_key.private_key, *config);
   if (!gateway.ok()) {
-    return absl::Status(absl::StatusCode::kInternal,
-                        gateway.status().message());
+    return absl::InternalError(gateway.status().message());
   }
 
   // Based off of the request label, use the corresponding response label for
@@ -191,10 +186,9 @@ absl::StatusOr<std::string> EncryptAndEncapsulateResponse(
   const auto oblivious_response = gateway->CreateObliviousHttpResponse(
       std::move(plaintext_data), context, response_label);
   if (!oblivious_response.ok()) {
-    const std::string error =
+    return absl::InternalError(
         absl::StrCat("Failed to create OHTTP response: ",
-                     oblivious_response.status().message());
-    return absl::Status(absl::StatusCode::kInternal, error);
+                     oblivious_response.status().message()));
   }
 
   return oblivious_response.value().EncapsulateAndSerialize();

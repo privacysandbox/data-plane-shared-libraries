@@ -39,20 +39,20 @@ using ::testing::StrEq;
 absl::Status ReturnOk() { return absl::OkStatus(); }
 StatusBuilder ReturnOkBuilder() { return StatusBuilder(absl::OkStatus()); }
 absl::Status ReturnError(absl::string_view msg) {
-  return {absl::StatusCode::kUnknown, msg};
+  return absl::UnknownError(msg);
 }
 
 grpc::Status ReturnGrpcError(absl::string_view msg) {
   return {grpc::StatusCode::UNKNOWN, std::string(msg)};
 }
 StatusBuilder ReturnErrorBuilder(absl::string_view msg) {
-  return StatusBuilder(absl::Status(absl::StatusCode::kUnknown, msg));
+  return StatusBuilder(absl::UnknownError(msg));
 }
 
 absl::StatusOr<int> ReturnStatusOrValue(int v) { return v; }
 
 absl::StatusOr<int> ReturnStatusOrError(absl::string_view msg) {
-  return absl::Status(absl::StatusCode::kUnknown, msg);
+  return absl::UnknownError(msg);
 }
 
 template <class... Args>
@@ -63,7 +63,7 @@ absl::StatusOr<std::tuple<Args...>> ReturnStatusOrTupleValue(Args&&... v) {
 template <class... Args>
 absl::StatusOr<std::tuple<Args...>> ReturnStatusOrTupleError(
     absl::string_view msg) {
-  return absl::Status(absl::StatusCode::kUnknown, msg);
+  return absl::UnknownError(msg);
 }
 
 absl::StatusOr<std::unique_ptr<int>> ReturnStatusOrPtrValue(int v) {
