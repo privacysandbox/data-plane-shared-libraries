@@ -45,6 +45,7 @@ def inline_wasm_cc_binary(
         name,
         srcs,
         outputs,
+        deps = [],
         tags = [],
         linkopts = [],
         standalone = False):
@@ -59,6 +60,9 @@ def inline_wasm_cc_binary(
             outputs = [
                 "hello_world.wasm",
             ],
+            deps = [
+              "hello_world_deps.cc",
+            ],
             standalone = True,
         )
 
@@ -66,6 +70,7 @@ def inline_wasm_cc_binary(
         name: BUILD target name
         srcs: Names of the files that will be compiled to WASM
         outputs: Names of the files that wasm_cc_binary will output
+        deps: List of other libraries to be linked in to the cc_binary target
         tags: tags to propagate to rules
         standalone: Boolean for if inline or standalone wasm should be generated.
         linkopts: Additional linkopts for the cc_target
@@ -74,6 +79,7 @@ def inline_wasm_cc_binary(
     cc_binary(
         name = "{}_cc".format(name),
         srcs = srcs,
+        deps = deps,
         linkopts = linkopts + (_STANDALONE_WASM_LINKOPTS if standalone else _EMSCRIPTEN_LINKOPTS),
         # This target won't build successfully on its own because of missing emscripten
         # headers etc. Therefore, we hide it from wildcards.
