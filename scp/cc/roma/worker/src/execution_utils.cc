@@ -64,14 +64,10 @@ ExecutionResult RunJs(v8::Isolate* isolate, std::string_view js_code) {
   return core::SuccessExecutionResult();
 }
 
-}  // namespace
+constexpr std::string_view kPerformanceNowJs =
+    "const performance = { now: () => Date.now() };";
 
-ExecutionResult ExecutionUtils::CreatePerformanceNow(v8::Isolate* isolate) {
-  return RunJs(isolate, "const performance = { now: () => Date.now() };");
-}
-
-ExecutionResult ExecutionUtils::CreateNativeLogFunctions(v8::Isolate* isolate) {
-  constexpr std::string_view js_code = R"(
+constexpr std::string_view kNativeLogFunctionsJs = R"(
     if (typeof(roma) === 'undefined') {
       var roma = {};
     }
@@ -82,18 +78,15 @@ ExecutionResult ExecutionUtils::CreateNativeLogFunctions(v8::Isolate* isolate) {
       roma.n_error = ROMA_ERROR;
     }
   )";
-  return RunJs(isolate, js_code);
-}
 
-ExecutionResult ExecutionUtils::CreateWasmLogFunctions(v8::Isolate* isolate) {
-  constexpr std::string_view js_code = R"(
+constexpr std::string_view kWasmLogFunctionsJs = R"(
     if (typeof(ROMA_LOG) !== 'undefined') {
       print = ROMA_LOG;
       printErr = ROMA_ERROR;
     }
   )";
-  return RunJs(isolate, js_code);
-}
+
+}  // namespace
 
 ExecutionResult ExecutionUtils::CompileRunJS(
     std::string_view js, std::string& err_msg,
@@ -102,19 +95,12 @@ ExecutionResult ExecutionUtils::CompileRunJS(
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  if (auto result = CreatePerformanceNow(isolate); !result.Successful()) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return result;
-  }
-
-  if (auto result = CreateNativeLogFunctions(isolate); !result.Successful()) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return result;
-  }
-
-  if (auto result = CreateWasmLogFunctions(isolate); !result.Successful()) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return result;
+  for (auto src :
+       {kPerformanceNowJs, kNativeLogFunctionsJs, kWasmLogFunctionsJs}) {
+    if (auto result = RunJs(isolate, src); !result.Successful()) {
+      err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
+      return result;
+    }
   }
 
   v8::Local<v8::String> js_source =
