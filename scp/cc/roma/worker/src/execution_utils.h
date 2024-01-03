@@ -21,6 +21,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "include/v8.h"
@@ -159,6 +160,8 @@ class ExecutionUtils {
    * @return false
    */
   static bool CheckErrorWithWebAssembly(std::string& err_msg) noexcept {
+    constexpr std::string_view kJsWasmMixedError =
+        "ReferenceError: WebAssembly is not defined";
     return err_msg.find(kJsWasmMixedError) != std::string::npos;
   }
 
@@ -209,9 +212,6 @@ class ExecutionUtils {
                                                 std::string& err_msg);
 
  private:
-  static constexpr char kJsWasmMixedError[] =
-      "ReferenceError: WebAssembly is not defined";
-
   static core::ExecutionResult CreatePerformanceNow(v8::Isolate* isolate);
   static core::ExecutionResult CreateNativeLogFunctions(v8::Isolate* isolate);
   static core::ExecutionResult CreateWasmLogFunctions(v8::Isolate* isolate);
