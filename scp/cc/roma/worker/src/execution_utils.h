@@ -36,12 +36,6 @@
 
 namespace google::scp::roma::worker {
 
-static constexpr char kWebAssemblyTag[] = "WebAssembly";
-static constexpr char kInstanceTag[] = "Instance";
-static constexpr char kExportsTag[] = "exports";
-static constexpr char kRegisteredWasmExports[] = "RomaRegisteredWasmExports";
-static constexpr char kTimeoutErrorMsg[] = "execution timeout";
-
 class ExecutionUtils {
  public:
   /**

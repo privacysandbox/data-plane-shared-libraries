@@ -20,6 +20,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "absl/strings/str_format.h"
@@ -40,11 +41,19 @@ using google::scp::roma::wasm::WasmDeserializer;
 using google::scp::roma::wasm::WasmSerializer;
 
 namespace google::scp::roma::worker {
-static constexpr char kWasmMemory[] = "memory";
-static constexpr char kWasiSnapshotPreview[] = "wasi_snapshot_preview1";
-static constexpr char kWasiProcExitFunctionName[] = "proc_exit";
 
 namespace {
+
+static constexpr std::string_view kWasmMemory = "memory";
+static constexpr std::string_view kWasiSnapshotPreview =
+    "wasi_snapshot_preview1";
+static constexpr std::string_view kWasiProcExitFunctionName = "proc_exit";
+static constexpr std::string_view kExportsTag = "exports";
+static constexpr std::string_view kWebAssemblyTag = "WebAssembly";
+static constexpr std::string_view kInstanceTag = "Instance";
+static constexpr std::string_view kRegisteredWasmExports =
+    "RomaRegisteredWasmExports";
+static constexpr std::string_view kTimeoutErrorMsg = "execution timeout";
 
 ExecutionResult RunJs(v8::Isolate* isolate, std::string_view js_code) {
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
@@ -177,8 +186,11 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
 
   v8::Local<v8::Value> web_assembly;
   if (!context->Global()
-           ->Get(context, v8::String::NewFromUtf8(isolate, kWebAssemblyTag)
-                              .ToLocalChecked())
+           ->Get(context,
+                 v8::String::NewFromUtf8(isolate, kWebAssemblyTag.data(),
+                                         v8::NewStringType::kNormal,
+                                         kWebAssemblyTag.size())
+                     .ToLocalChecked())
            .ToLocal(&web_assembly)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
     return core::FailureExecutionResult(
@@ -187,9 +199,10 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
 
   v8::Local<v8::Value> wasm_instance;
   if (!web_assembly.As<v8::Object>()
-           ->Get(
-               context,
-               v8::String::NewFromUtf8(isolate, kInstanceTag).ToLocalChecked())
+           ->Get(context, v8::String::NewFromUtf8(isolate, kInstanceTag.data(),
+                                                  v8::NewStringType::kNormal,
+                                                  kInstanceTag.size())
+                              .ToLocalChecked())
            .ToLocal(&wasm_instance)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
     return core::FailureExecutionResult(
@@ -210,8 +223,10 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
 
   v8::Local<v8::Value> wasm_exports;
   if (!wasm_construct.As<v8::Object>()
-           ->Get(context,
-                 v8::String::NewFromUtf8(isolate, kExportsTag).ToLocalChecked())
+           ->Get(context, v8::String::NewFromUtf8(isolate, kExportsTag.data(),
+                                                  v8::NewStringType::kNormal,
+                                                  kExportsTag.size())
+                              .ToLocalChecked())
            .ToLocal(&wasm_exports)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
     return core::FailureExecutionResult(
@@ -221,7 +236,9 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
   // Register wasm_exports object in context.
   if (!context->Global()
            ->Set(context,
-                 v8::String::NewFromUtf8(isolate, kRegisteredWasmExports)
+                 v8::String::NewFromUtf8(isolate, kRegisteredWasmExports.data(),
+                                         v8::NewStringType::kNormal,
+                                         kRegisteredWasmExports.size())
                      .ToLocalChecked(),
                  wasm_exports)
            .ToChecked()) {
@@ -244,7 +261,9 @@ ExecutionResult ExecutionUtils::GetWasmHandler(std::string_view handler_name,
   v8::Local<v8::Value> wasm_exports;
   if (!context->Global()
            ->Get(context,
-                 v8::String::NewFromUtf8(isolate, kRegisteredWasmExports)
+                 v8::String::NewFromUtf8(isolate, kRegisteredWasmExports.data(),
+                                         v8::NewStringType::kNormal,
+                                         kRegisteredWasmExports.size())
                      .ToLocalChecked())
            .ToLocal(&wasm_exports)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
