@@ -209,4 +209,22 @@ TEST(LruCacheTest, ShouldBeAbleToGetAllItems) {
   EXPECT_THAT(all_items[key1], StrEq(value1));
   EXPECT_THAT(all_items[key2], StrEq(value2));
 }
+
+TEST(LruCacheTest, AccessMiddleRegressionTest) {
+  constexpr int kNumItems = 1000;
+  for (int i = 0; i < kNumItems; ++i) {
+    LruCache<int, int> cache(kNumItems);
+    for (int j = 0; j < kNumItems; ++j) {
+      cache.Set(j, j);
+    }
+
+    // Access middle before accessing the rest.
+    EXPECT_EQ(cache.Get(i), i);
+    for (int j = 0; j < kNumItems; ++j) {
+      if (j != i) {
+        EXPECT_EQ(cache.Get(j), j);
+      }
+    }
+  }
+}
 }  // namespace google::scp::core::common::test

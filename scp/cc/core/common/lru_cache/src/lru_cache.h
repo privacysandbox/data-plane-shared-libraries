@@ -17,7 +17,7 @@
 #ifndef CORE_COMMON_LRU_CACHE_SRC_LRU_CACHE_H_
 #define CORE_COMMON_LRU_CACHE_SRC_LRU_CACHE_H_
 
-#include <deque>
+#include <list>
 #include <mutex>
 #include <tuple>
 #include <utility>
@@ -93,7 +93,7 @@ class LruCache {
    * reaches capacity.
    *
    */
-  std::deque<TKey> freshness_;
+  std::list<TKey> freshness_;
 
   struct ValueAndIterator {
     // Value being cached.
