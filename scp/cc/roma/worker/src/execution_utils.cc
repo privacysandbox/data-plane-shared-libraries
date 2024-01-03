@@ -44,32 +44,34 @@ static constexpr char kWasmMemory[] = "memory";
 static constexpr char kWasiSnapshotPreview[] = "wasi_snapshot_preview1";
 static constexpr char kWasiProcExitFunctionName[] = "proc_exit";
 
-ExecutionResult ExecutionUtils::CreatePerformanceNow(v8::Isolate* isolate) {
-  v8::Local<v8::Context> context(isolate->GetCurrentContext());
-  v8::Local<v8::String> source =
-      v8::String::NewFromUtf8(isolate,
-                              "const performance = { now: () => Date.now() };")
-          .ToLocalChecked();
+namespace {
 
+ExecutionResult RunJs(v8::Isolate* isolate, std::string_view js_code) {
+  v8::Local<v8::Context> context(isolate->GetCurrentContext());
+  auto src = v8::String::NewFromUtf8(isolate, js_code.data(),
+                                     v8::NewStringType::kNormal, js_code.size())
+                 .ToLocalChecked();
   v8::Local<v8::Script> script;
-  if (!v8::Script::Compile(context, source).ToLocal(&script)) {
+  if (!v8::Script::Compile(context, src).ToLocal(&script)) {
     return core::FailureExecutionResult(
         core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE);
   }
-
   v8::Local<v8::Value> script_result;
   if (!script->Run(context).ToLocal(&script_result)) {
     return core::FailureExecutionResult(
         core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE);
   }
-
   return core::SuccessExecutionResult();
 }
 
-ExecutionResult ExecutionUtils::CreateNativeLogFunctions(v8::Isolate* isolate) {
-  v8::Local<v8::Context> context(isolate->GetCurrentContext());
+}  // namespace
 
-  constexpr auto js_code = R"(
+ExecutionResult ExecutionUtils::CreatePerformanceNow(v8::Isolate* isolate) {
+  return RunJs(isolate, "const performance = { now: () => Date.now() };");
+}
+
+ExecutionResult ExecutionUtils::CreateNativeLogFunctions(v8::Isolate* isolate) {
+  constexpr std::string_view js_code = R"(
     if (typeof(roma) === 'undefined') {
       var roma = {};
     }
@@ -80,49 +82,17 @@ ExecutionResult ExecutionUtils::CreateNativeLogFunctions(v8::Isolate* isolate) {
       roma.n_error = ROMA_ERROR;
     }
   )";
-  v8::Local<v8::String> source =
-      v8::String::NewFromUtf8(isolate, js_code).ToLocalChecked();
-
-  v8::Local<v8::Script> script;
-  if (!v8::Script::Compile(context, source).ToLocal(&script)) {
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE);
-  }
-
-  v8::Local<v8::Value> script_result;
-  if (!script->Run(context).ToLocal(&script_result)) {
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE);
-  }
-
-  return core::SuccessExecutionResult();
+  return RunJs(isolate, js_code);
 }
 
 ExecutionResult ExecutionUtils::CreateWasmLogFunctions(v8::Isolate* isolate) {
-  v8::Local<v8::Context> context(isolate->GetCurrentContext());
-
-  constexpr auto js_code = R"(
+  constexpr std::string_view js_code = R"(
     if (typeof(ROMA_LOG) !== 'undefined') {
       print = ROMA_LOG;
       printErr = ROMA_ERROR;
     }
   )";
-  v8::Local<v8::String> source =
-      v8::String::NewFromUtf8(isolate, js_code).ToLocalChecked();
-
-  v8::Local<v8::Script> script;
-  if (!v8::Script::Compile(context, source).ToLocal(&script)) {
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE);
-  }
-
-  v8::Local<v8::Value> script_result;
-  if (!script->Run(context).ToLocal(&script_result)) {
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE);
-  }
-
-  return core::SuccessExecutionResult();
+  return RunJs(isolate, js_code);
 }
 
 ExecutionResult ExecutionUtils::CompileRunJS(

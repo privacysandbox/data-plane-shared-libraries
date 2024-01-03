@@ -18,12 +18,13 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_execution_utils_lib",
-    srcs =
-        [
-            "error_codes.h",
-            "execution_utils.cc",
-            "execution_utils.h",
-        ],
+    srcs = [
+        "error_codes.h",
+        "execution_utils.cc",
+    ],
+    hdrs = [
+        "execution_utils.h",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
@@ -38,11 +39,12 @@ cc_library(
 
 cc_library(
     name = "execution_watchdog_lib",
-    srcs =
-        [
-            "execution_watchdog.cc",
-            "execution_watchdog.h",
-        ],
+    srcs = [
+        "execution_watchdog.cc",
+    ],
+    hdrs = [
+        "execution_watchdog.h",
+    ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
