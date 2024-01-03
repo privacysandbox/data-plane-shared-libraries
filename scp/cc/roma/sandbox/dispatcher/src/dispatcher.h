@@ -155,7 +155,7 @@ class Dispatcher {
     }
 
     auto validation_result =
-        request_validator::RequestValidator<RequestT>::Validate(request);
+        request_validator::RequestValidator<RequestT>::Validate(*request);
     if (!validation_result.Successful()) {
       return validation_result;
     }
@@ -211,7 +211,7 @@ class Dispatcher {
             const CodeObject& code_object =
                 code_object_cache_.Get(request->version_string);
 
-            // TODO(gathuru): Verify this is WAI.
+            // TODO(b/317791484): Verify this is WAI.
             if (!code_object.wasm_bin.empty()) {
               request_type = constants::kRequestTypeJavascriptWithWasm;
             } else if (code_object.js.empty()) {
@@ -224,7 +224,7 @@ class Dispatcher {
 
           auto run_code_request_or =
               request_converter::RequestConverter<RequestT>::FromUserProvided(
-                  request, request_type);
+                  *request, request_type);
           if (!run_code_request_or.result().Successful()) {
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
                 absl::InternalError(core::errors::GetErrorMessage(

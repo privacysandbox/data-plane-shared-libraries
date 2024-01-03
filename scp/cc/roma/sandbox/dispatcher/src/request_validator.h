@@ -33,25 +33,16 @@ struct RequestValidator {};
  */
 template <>
 struct RequestValidator<CodeObject> {
-  static core::ExecutionResult Validate(
-      const std::unique_ptr<CodeObject>& request) {
-    if (!request) {
+  static core::ExecutionResult Validate(const CodeObject& request) {
+    if (request.js.empty() && request.wasm.empty()) {
       return core::FailureExecutionResult(SC_UNKNOWN);
     }
 
-    if (request->js.empty() && request->wasm.empty()) {
+    if (!request.js.empty() && !request.wasm.empty()) {
       return core::FailureExecutionResult(SC_UNKNOWN);
     }
 
-    if (!request->js.empty() && !request->wasm.empty()) {
-      return core::FailureExecutionResult(SC_UNKNOWN);
-    }
-
-    if (request->version_string.empty()) {
-      return core::FailureExecutionResult(SC_UNKNOWN);
-    }
-
-    if (request->id.empty()) {
+    if (request.version_string.empty() || request.id.empty()) {
       return core::FailureExecutionResult(SC_UNKNOWN);
     }
 
@@ -64,23 +55,12 @@ struct RequestValidator<CodeObject> {
  */
 template <typename RequestT>
 static core::ExecutionResult InvocationRequestCommon(const RequestT& request) {
-  if (!request) {
+  if (request.handler_name.empty() || request.version_string.empty() ||
+      request.id.empty()) {
     return core::FailureExecutionResult(SC_UNKNOWN);
   }
 
-  if (request->handler_name.empty()) {
-    return core::FailureExecutionResult(SC_UNKNOWN);
-  }
-
-  if (request->version_string.empty()) {
-    return core::FailureExecutionResult(SC_UNKNOWN);
-  }
-
-  if (request->id.empty()) {
-    return core::FailureExecutionResult(SC_UNKNOWN);
-  }
-
-  if (request->treat_input_as_byte_str && request->input.size() > 1) {
+  if (request.treat_input_as_byte_str && request.input.size() > 1) {
     return core::FailureExecutionResult(
         core::errors::
             SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_MULTIPLE_BYTE_STR_INPUTS);
@@ -95,7 +75,7 @@ static core::ExecutionResult InvocationRequestCommon(const RequestT& request) {
 template <typename TMetadata>
 struct RequestValidator<InvocationStrRequest<TMetadata>> {
   static core::ExecutionResult Validate(
-      const std::unique_ptr<InvocationStrRequest<TMetadata>>& request) {
+      const InvocationStrRequest<TMetadata>& request) {
     return InvocationRequestCommon(request);
   }
 };
@@ -106,7 +86,7 @@ struct RequestValidator<InvocationStrRequest<TMetadata>> {
 template <typename TMetadata>
 struct RequestValidator<InvocationSharedRequest<TMetadata>> {
   static core::ExecutionResult Validate(
-      const std::unique_ptr<InvocationSharedRequest<TMetadata>>& request) {
+      const InvocationSharedRequest<TMetadata>& request) {
     return InvocationRequestCommon(request);
   }
 };
@@ -117,7 +97,7 @@ struct RequestValidator<InvocationSharedRequest<TMetadata>> {
 template <typename TMetadata>
 struct RequestValidator<InvocationStrViewRequest<TMetadata>> {
   static core::ExecutionResult Validate(
-      const std::unique_ptr<InvocationStrViewRequest<TMetadata>>& request) {
+      const InvocationStrViewRequest<TMetadata>& request) {
     return InvocationRequestCommon(request);
   }
 };

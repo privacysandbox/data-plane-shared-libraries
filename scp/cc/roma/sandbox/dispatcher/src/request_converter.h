@@ -17,7 +17,6 @@
 #ifndef ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_CONVERTER_H_
 #define ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_CONVERTER_H_
 
-#include <memory>
 #include <string>
 
 #include "roma/interface/roma.h"
@@ -38,11 +37,11 @@ static void RunRequestFromInputRequestCommon(
     const RequestT& request) {
   run_code_request
       .metadata[google::scp::roma::sandbox::constants::kCodeVersion] =
-      request->version_string;
+      request.version_string;
   run_code_request.metadata[google::scp::roma::sandbox::constants::kRequestId] =
-      request->id;
+      request.id;
 
-  for (auto& [key, val] : request->tags) {
+  for (const auto& [key, val] : request.tags) {
     run_code_request.metadata[key] = val;
   }
 }
@@ -63,11 +62,11 @@ static void InvocationRequestCommon(
       google::scp::roma::sandbox::constants::kRequestActionExecute;
   run_code_request
       .metadata[google::scp::roma::sandbox::constants::kHandlerName] =
-      request->handler_name;
+      request.handler_name;
   run_code_request
       .metadata[google::scp::roma::sandbox::constants::kRequestType] =
       request_type;
-  if (request->treat_input_as_byte_str) {
+  if (request.treat_input_as_byte_str) {
     run_code_request
         .metadata[google::scp::roma::sandbox::constants::kInputType] =
         google::scp::roma::sandbox::constants::kInputTypeBytes;
@@ -84,15 +83,13 @@ struct RequestConverter {};
 template <typename TMetadata>
 struct RequestConverter<InvocationStrRequest<TMetadata>> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(
-      const std::unique_ptr<InvocationStrRequest<TMetadata>>& request,
-      std::string_view request_type) {
+  FromUserProvided(const InvocationStrRequest<TMetadata>& request,
+                   std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
-    RunRequestFromInputRequestCommon<
-        std::unique_ptr<InvocationStrRequest<TMetadata>>>(run_code_request,
-                                                          request);
-    run_code_request.input.reserve(request->input.size());
-    for (auto& i : request->input) {
+    RunRequestFromInputRequestCommon<InvocationStrRequest<TMetadata>>(
+        run_code_request, request);
+    run_code_request.input.reserve(request.input.size());
+    for (const auto& i : request.input) {
       run_code_request.input.push_back(i);
     }
     InvocationRequestCommon(run_code_request, request, request_type);
@@ -108,15 +105,13 @@ struct RequestConverter<InvocationStrRequest<TMetadata>> {
 template <typename TMetadata>
 struct RequestConverter<InvocationSharedRequest<TMetadata>> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(
-      const std::unique_ptr<InvocationSharedRequest<TMetadata>>& request,
-      std::string_view request_type) {
+  FromUserProvided(const InvocationSharedRequest<TMetadata>& request,
+                   std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
-    RunRequestFromInputRequestCommon<
-        std::unique_ptr<InvocationSharedRequest<TMetadata>>>(run_code_request,
-                                                             request);
-    run_code_request.input.reserve(request->input.size());
-    for (auto& i : request->input) {
+    RunRequestFromInputRequestCommon<InvocationSharedRequest<TMetadata>>(
+        run_code_request, request);
+    run_code_request.input.reserve(request.input.size());
+    for (const auto& i : request.input) {
       run_code_request.input.push_back(*i);
     }
     InvocationRequestCommon(run_code_request, request, request_type);
@@ -132,15 +127,13 @@ struct RequestConverter<InvocationSharedRequest<TMetadata>> {
 template <typename TMetadata>
 struct RequestConverter<InvocationStrViewRequest<TMetadata>> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(
-      const std::unique_ptr<InvocationStrViewRequest<TMetadata>>& request,
-      std::string_view request_type) {
+  FromUserProvided(const InvocationStrViewRequest<TMetadata>& request,
+                   std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
-    RunRequestFromInputRequestCommon<
-        std::unique_ptr<InvocationStrViewRequest<TMetadata>>>(run_code_request,
-                                                              request);
-    run_code_request.input.reserve(request->input.size());
-    for (auto& i : request->input) {
+    RunRequestFromInputRequestCommon<InvocationStrViewRequest<TMetadata>>(
+        run_code_request, request);
+    run_code_request.input.reserve(request.input.size());
+    for (const auto& i : request.input) {
       run_code_request.input.push_back(i);
     }
     InvocationRequestCommon(run_code_request, request, request_type);
@@ -156,22 +149,20 @@ struct RequestConverter<InvocationStrViewRequest<TMetadata>> {
 template <>
 struct RequestConverter<CodeObject> {
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(const std::unique_ptr<CodeObject>& request,
-                   std::string_view request_type) {
+  FromUserProvided(const CodeObject& request, std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
-    RunRequestFromInputRequestCommon<std::unique_ptr<CodeObject>>(
-        run_code_request, request);
+    RunRequestFromInputRequestCommon<CodeObject>(run_code_request, request);
     run_code_request
         .metadata[google::scp::roma::sandbox::constants::kRequestAction] =
         google::scp::roma::sandbox::constants::kRequestActionLoad;
     run_code_request
         .metadata[google::scp::roma::sandbox::constants::kRequestType] =
         request_type;
-    run_code_request.code = request->js.empty() ? request->wasm : request->js;
-    run_code_request.wasm = request->wasm_bin;
+    run_code_request.code = request.js.empty() ? request.wasm : request.js;
+    run_code_request.wasm = request.wasm_bin;
     if (const auto it =
-            request->tags.find(google::scp::roma::kWasmCodeArrayName);
-        it != request->tags.end()) {
+            request.tags.find(google::scp::roma::kWasmCodeArrayName);
+        it != request.tags.end()) {
       run_code_request.metadata[google::scp::roma::kWasmCodeArrayName] =
           it->second;
     }

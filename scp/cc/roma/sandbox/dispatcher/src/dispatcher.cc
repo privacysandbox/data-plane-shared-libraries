@@ -83,55 +83,48 @@ ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
 
 ExecutionResult Dispatcher::ReloadCachedCodeObjects(
     worker_api::WorkerApi& worker) {
-  absl::flat_hash_map<std::string, CodeObject> all_cached_code_objects = [&] {
-    absl::MutexLock l(&cache_mu_);
-    return code_object_cache_.GetAll();
-  }();
+  const absl::flat_hash_map<std::string, CodeObject> all_cached_code_objects =
+      [&] {
+        absl::MutexLock l(&cache_mu_);
+        return code_object_cache_.GetAll();
+      }();
 
   {
     absl::MutexLock l(&pending_requests_mu_);
     pending_requests_ += all_cached_code_objects.size();
   }
 
-  for (auto& kv : all_cached_code_objects) {
-    auto& cached_code = kv.second;
-
-    // TODO(gathuru): Remove creation of unique_ptr over stack object.
-    std::unique_ptr<CodeObject> ptr_cached_code;
-    ptr_cached_code.reset(&cached_code);
+  for (const auto& [_, cached_code] : all_cached_code_objects) {
+    // TODO(b/317791484): Verify this is WAI.
     std::string request_type;
-    if (!ptr_cached_code->wasm_bin.empty()) {
+    if (!cached_code.wasm_bin.empty()) {
       request_type = std::string(constants::kRequestTypeJavascriptWithWasm);
-    } else if (ptr_cached_code->js.empty()) {
+    } else if (cached_code.js.empty()) {
       request_type = std::string(constants::kRequestTypeWasm);
     } else {
       request_type = std::string(constants::kRequestTypeJavascript);
     }
-    auto run_code_request_or =
+    const auto run_code_request =
         request_converter::RequestConverter<CodeObject>::FromUserProvided(
-            ptr_cached_code, request_type);
+            cached_code, request_type);
 
-    if (!run_code_request_or.result().Successful()) {
-      ptr_cached_code.release();
+    if (!run_code_request.result().Successful()) {
       {
         absl::MutexLock l(&pending_requests_mu_);
         pending_requests_ -= all_cached_code_objects.size();
       }
-      return run_code_request_or.result();
+      return run_code_request.result();
     }
 
     // Send the code objects to the worker again so it reloads its cache
-    auto run_code_result_or = worker.RunCode(*run_code_request_or);
-    if (!run_code_result_or.result().Successful()) {
-      ptr_cached_code.release();
+    const auto run_code_result = worker.RunCode(*run_code_request);
+    if (!run_code_result.result().Successful()) {
       {
         absl::MutexLock l(&pending_requests_mu_);
         pending_requests_ -= all_cached_code_objects.size();
       }
-      return run_code_result_or.result();
+      return run_code_result.result();
     }
-
-    ptr_cached_code.release();
   }
 
   {
