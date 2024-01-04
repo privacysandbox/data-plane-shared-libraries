@@ -23,6 +23,7 @@ cc_test(
     tags = [
         "asanopt",
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
+        "notsan-aarch64",  # TODO(b/307540489) - Fix TSAN errors in this test. Fails on aarch64.
     ],
     deps = [
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
