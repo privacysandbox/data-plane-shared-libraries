@@ -21,17 +21,14 @@
 
 namespace google::scp::roma::wasm::testing {
 std::vector<char> WasmTestingUtils::LoadWasmFile(std::string_view file_path) {
-  std::vector<char> file_contents;
-
   std::ifstream input_file(std::string{file_path});
   CHECK(input_file.good()) << "File: " << file_path << " does not exist.";
-
   input_file.seekg(0, std::ios::end);
-  size_t filesize = input_file.tellg();
+  const size_t filesize = input_file.tellg();
   input_file.seekg(0, std::ios::beg);
+  std::vector<char> file_contents;
   file_contents.resize(filesize / sizeof(uint8_t));
   input_file.read(file_contents.data(), filesize);
-
   return file_contents;
 }
 

@@ -18,6 +18,7 @@
 #define ROMA_WASM_TEST_TESTING_UTILS_H_
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace google::scp::roma::wasm::testing {
@@ -25,7 +26,6 @@ namespace google::scp::roma::wasm::testing {
 class WasmTestingUtils {
  public:
   static std::vector<char> LoadWasmFile(std::string_view file_path);
-
   static std::string LoadJsWithWasmFile(std::string_view file_path);
 };
 }  // namespace google::scp::roma::wasm::testing
