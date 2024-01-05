@@ -179,7 +179,6 @@ ExecutionResult V8JsEngine::OneTimeSetup(
     v8::V8::Initialize();
     return v8_platform.release();
   }();
-
   return SuccessExecutionResult();
 }
 
@@ -188,7 +187,6 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(
     std::string& err_msg) noexcept {
   v8::SnapshotCreator creator(external_references_.data());
   v8::Isolate* isolate = creator.GetIsolate();
-
   {
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
@@ -196,6 +194,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(
     auto execution_result = CreateV8Context(isolate, context);
     RETURN_IF_FAILURE(execution_result);
 
+    // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(context);
     //  Compile and run JavaScript code object.
     execution_result = ExecutionUtils::CompileRunJS(js_code, err_msg);
@@ -213,7 +212,6 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(
 core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     v8::StartupData& startup_data, absl::Span<const uint8_t> wasm,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
-
     std::string& err_msg) noexcept {
   v8::SnapshotCreator creator(external_references_.data());
   v8::Isolate* isolate = creator.GetIsolate();
@@ -225,21 +223,20 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     auto execution_result = CreateV8Context(isolate, context);
     RETURN_IF_FAILURE(execution_result);
 
+    // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(context);
     auto wasm_code_array_name_or =
         worker::WorkerUtils::GetValueFromMetadata(metadata, kWasmCodeArrayName);
     if (!wasm_code_array_name_or.result().Successful()) {
-      LOG(ERROR)
-          << std::string("Get wasm code array name from metadata with error ")
-          << GetErrorMessage(wasm_code_array_name_or.result().status_code);
+      LOG(ERROR) << "Get wasm code array name from metadata with error "
+                 << GetErrorMessage(
+                        wasm_code_array_name_or.result().status_code);
       return wasm_code_array_name_or.result();
     }
 
-    v8::Local<v8::String> name;
-    name = TypeConverter<std::string>::ToV8(isolate,
-                                            wasm_code_array_name_or.value())
-               .As<v8::String>();
-
+    v8::Local<v8::String> name = TypeConverter<std::string>::ToV8(
+                                     isolate, wasm_code_array_name_or.value())
+                                     .As<v8::String>();
     context->Global()->Set(
         context, name,
         TypeConverter<uint8_t*>::ToV8(isolate, wasm.data(), wasm.size()));
@@ -283,13 +280,10 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
   }
 
   auto isolate = v8::Isolate::New(params);
-
   if (!isolate) {
     return nullptr;
   }
-
   isolate->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
-
   return std::make_unique<V8IsolateWrapper>(isolate, std::move(allocator));
 }
 
@@ -336,7 +330,7 @@ V8JsEngine::CreateCompilationContext(
   // If wasm code array exists, a snapshot with global wasm code array will be
   // created. Otherwise, a normal snapshot containing compiled JS code will be
   // created.
-  bool js_with_wasm = !wasm.empty();
+  const bool js_with_wasm = !wasm.empty();
   auto execution_result =
       js_with_wasm
           ? CreateSnapshotWithGlobals(snapshot_context->startup_data, wasm,
@@ -408,11 +402,9 @@ V8JsEngine::CreateCompilationContext(
   // Snapshot the isolate with compilation context and also initialize a
   // execution watchdog inside the isolate.
   snapshot_context->isolate = std::move(isolate_or);
-
-  RomaJsEngineCompilationContext js_ctx{
+  return RomaJsEngineCompilationContext{
       .context = snapshot_context,
   };
-  return js_ctx;
 }
 
 core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
@@ -424,15 +416,16 @@ core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
   // Set up an exception handler before calling the Process function
   v8::TryCatch try_catch(isolate);
 
+  // Create a context scope, which has essential side-effects for compilation
   v8::Local<v8::Context> v8_context = v8::Context::New(isolate);
   v8::Context::Scope context_scope(v8_context);
 
   // Check whether wasm module can compile
-  auto module_maybe = v8::WasmModuleObject::Compile(
-      isolate,
-      v8::MemorySpan<const uint8_t>(
-          reinterpret_cast<const unsigned char*>(wasm.data()), wasm.size()));
-  if (module_maybe.IsEmpty()) {
+  if (const auto module_maybe = v8::WasmModuleObject::Compile(
+          isolate, v8::MemorySpan<const uint8_t>(
+                       reinterpret_cast<const unsigned char*>(wasm.data()),
+                       wasm.size()));
+      module_maybe.IsEmpty()) {
     return FailureExecutionResult(
         core::errors::SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE);
   }
@@ -445,8 +438,6 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     std::string_view function_name, const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>&
         metadata) noexcept {
-  ExecutionResponse execution_response;
-
   v8::Isolate* v8_isolate = current_compilation_context->isolate->isolate();
   v8::Isolate::Scope isolate_scope(v8_isolate);
   // Create a handle scope to keep the temporary object references.
@@ -454,6 +445,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   // Set up an exception handler before calling the Process function
   v8::TryCatch try_catch(v8_isolate);
 
+  // Create a context scope, which has essential side-effects for compilation
   v8::Local<v8::Context> v8_context = v8::Context::New(v8_isolate);
   v8::Context::Scope context_scope(v8_context);
 
@@ -461,9 +453,9 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   // Binding UnboundScript to current context when the compilation context is
   // kUnboundScript.
   if (current_compilation_context->cache_type == CacheType::kUnboundScript) {
-    auto result = ExecutionUtils::BindUnboundScript(
-        current_compilation_context->unbound_script, err_msg);
-    if (!result.Successful()) {
+    if (const auto result = ExecutionUtils::BindUnboundScript(
+            current_compilation_context->unbound_script, err_msg);
+        !result.Successful()) {
       LOG(ERROR) << "BindUnboundScript failed with "
                  << GetErrorMessage(result.status_code);
       DLOG(ERROR) << "BindUnboundScript failed with debug errors " << err_msg;
@@ -472,24 +464,22 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   }
 
   v8::Local<v8::Value> handler;
-  const auto result =
-      ExecutionUtils::GetJsHandler(function_name, handler, err_msg);
-  if (!result.Successful()) {
+  if (const auto result =
+          ExecutionUtils::GetJsHandler(function_name, handler, err_msg);
+      !result.Successful()) {
     LOG(ERROR) << "GetJsHandler failed with "
                << GetErrorMessage(result.status_code);
     DLOG(ERROR) << "GetJsHandler failed with debug errors " << err_msg;
     return result;
   }
 
+  ExecutionResponse execution_response;
   privacy_sandbox::server_common::Stopwatch stopwatch;
   {
     v8::Local<v8::Function> handler_func = handler.As<v8::Function>();
     stopwatch.Reset();
 
-    const size_t argc = input.size();
-    v8::Local<v8::Array> argv_array;
-
-    auto input_type =
+    const auto input_type =
         metadata.find(google::scp::roma::sandbox::constants::kInputType);
     const bool uses_input_type = (input_type != metadata.end());
     const bool uses_input_type_bytes =
@@ -497,8 +487,9 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
          input_type->second ==
              google::scp::roma::sandbox::constants::kInputTypeBytes);
 
-    argv_array = ExecutionUtils::ParseAsJsInput(input, uses_input_type_bytes);
-
+    v8::Local<v8::Array> argv_array =
+        ExecutionUtils::ParseAsJsInput(input, uses_input_type_bytes);
+    const size_t argc = input.size();
     // If argv_array size doesn't match with input. Input conversion failed.
     if (argv_array.IsEmpty() || argv_array->Length() != argc) {
       LOG(ERROR) << "Could not parse the inputs";
@@ -511,7 +502,6 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     }
     execution_response.metrics[kInputParsingMetricJsEngineDuration] =
         stopwatch.GetElapsedTime();
-
     stopwatch.Reset();
     v8::Local<v8::Value> result;
     if (!handler_func->Call(v8_context, v8_context->Global(), argc, argv)
@@ -520,39 +510,35 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
       return GetError(v8_isolate, try_catch,
                       SC_ROMA_V8_ENGINE_ERROR_INVOKING_HANDLER);
     }
-
     if (result->IsPromise()) {
       std::string error_msg;
-      auto execution_result =
-          ExecutionUtils::V8PromiseHandler(v8_isolate, result, error_msg);
-      if (!execution_result.Successful()) {
+      if (const auto execution_result =
+              ExecutionUtils::V8PromiseHandler(v8_isolate, result, error_msg);
+          !execution_result.Successful()) {
         DLOG(ERROR) << "V8 Promise execution failed" << error_msg;
         return GetError(v8_isolate, try_catch, execution_result.status_code);
       }
     }
     execution_response.metrics[kHandlerCallMetricJsEngineDuration] =
         stopwatch.GetElapsedTime();
-
     // Treat as JSON escaped string if there is no input_type in the metadata or
     // the metadata of input type is not for a byte string.
     if (!(uses_input_type && uses_input_type_bytes)) {
       v8::Local<v8::String> result_string;
-      auto result_json_maybe = v8::JSON::Stringify(v8_context, result);
-      if (!result_json_maybe.ToLocal(&result)) {
+      if (auto result_json_maybe = v8::JSON::Stringify(v8_context, result);
+          !result_json_maybe.ToLocal(&result)) {
         LOG(ERROR) << "Failed to convert the V8 JSON result to Local string";
         return GetError(v8_isolate, try_catch,
                         SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_JSON);
       }
     }
-    auto conversion_worked = TypeConverter<std::string>::FromV8(
-        v8_isolate, result, &execution_response.response);
-    if (!conversion_worked) {
+    if (!TypeConverter<std::string>::FromV8(v8_isolate, result,
+                                            &execution_response.response)) {
       LOG(ERROR) << "Failed to convert the V8 Local string to std::string";
       return GetError(v8_isolate, try_catch,
                       SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);
     }
   }
-
   return execution_response;
 }
 
@@ -605,15 +591,16 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
   v8::Local<v8::Context> v8_context;
 
   {
-    auto execution_result = CreateV8Context(isolate, v8_context);
+    const auto execution_result = CreateV8Context(isolate, v8_context);
     RETURN_IF_FAILURE(execution_result);
 
+    // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(v8_context);
     v8::Local<v8::Context> context(isolate->GetCurrentContext());
     v8::TryCatch try_catch(isolate);
 
     std::string errors;
-    if (auto result = ExecutionUtils::CompileRunWASM(input_code, errors);
+    if (const auto result = ExecutionUtils::CompileRunWASM(input_code, errors);
         !result.Successful()) {
       LOG(ERROR) << errors;
       return GetError(isolate_wrapper_->isolate(), try_catch,
@@ -630,7 +617,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
                         result.status_code);
       }
 
-      auto wasm_input_array = ExecutionUtils::ParseAsWasmInput(
+      const auto wasm_input_array = ExecutionUtils::ParseAsWasmInput(
           isolate_wrapper_->isolate(), context, input);
 
       if (wasm_input_array.IsEmpty() ||
@@ -655,10 +642,10 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
                         SC_ROMA_V8_ENGINE_ERROR_INVOKING_HANDLER);
       }
 
-      auto offset = wasm_result.As<v8::Int32>()->Value();
-      auto wasm_execution_output = ExecutionUtils::ReadFromWasmMemory(
+      const auto offset = wasm_result.As<v8::Int32>()->Value();
+      const auto wasm_execution_output = ExecutionUtils::ReadFromWasmMemory(
           isolate_wrapper_->isolate(), context, offset);
-      auto result_json_maybe =
+      const auto result_json_maybe =
           v8::JSON::Stringify(context, wasm_execution_output);
       v8::Local<v8::String> result_json;
       if (!result_json_maybe.ToLocal(&result_json)) {
@@ -666,19 +653,16 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
                         SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);
       }
 
-      if (auto conversion_worked = TypeConverter<std::string>::FromV8(
+      if (!TypeConverter<std::string>::FromV8(
               isolate, result_json,
-              &execution_response.execution_response.response);
-          !conversion_worked) {
+              &execution_response.execution_response.response)) {
         return GetError(isolate, try_catch,
                         SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);
       }
     }
   }
-
   // End execution_watchdog_ in case it terminate the standby isolate.
   StopWatchdogTimer();
-
   return execution_response;
 }
 
@@ -694,8 +678,7 @@ V8JsEngine::CompileAndRunJsWithWasm(
   if (!context) {
     auto context_or = CreateCompilationContext(code, wasm, metadata, err_msg);
     if (!context_or.result().Successful()) {
-      LOG(ERROR) << std::string("CreateCompilationContext failed with ")
-                 << err_msg;
+      LOG(ERROR) << "CreateCompilationContext failed with " << err_msg;
       return context_or.result();
     }
     execution_response.compilation_context = context_or.value();
@@ -704,26 +687,22 @@ V8JsEngine::CompileAndRunJsWithWasm(
   } else {
     curr_comp_ctx =
         std::static_pointer_cast<SnapshotCompilationContext>(context.context);
-
-    if (const auto &uuid_it = metadata.find(kRequestUuid),
+    if (const auto uuid_it = metadata.find(kRequestUuid),
         id_it = metadata.find(kRequestId);
         isolate_function_binding_ && uuid_it != metadata.end() &&
         id_it != metadata.end()) {
       isolate_function_binding_->AddIds(uuid_it->second, id_it->second);
     }
   }
-
   v8::Isolate* v8_isolate = curr_comp_ctx->isolate->isolate();
   if (v8_isolate == nullptr) {
     return FailureExecutionResult(SC_ROMA_V8_ENGINE_ISOLATE_NOT_INITIALIZED);
   }
-
   // No function_name just return execution_response which may contain
   // RomaJsEngineCompilationContext.
   if (function_name.empty()) {
     return execution_response;
   }
-
   StartWatchdogTimer(v8_isolate, metadata);
   const auto execution_result =
       ExecuteJs(curr_comp_ctx, function_name, input, metadata);
@@ -744,13 +723,11 @@ ExecutionResult V8JsEngine::CreateV8Context(v8::Isolate* isolate,
                                             v8::Local<v8::Context>& context) {
   v8::Local<v8::ObjectTemplate> global_object_template =
       v8::ObjectTemplate::New(isolate);
-
   if (isolate_function_binding_) {
-    auto result = isolate_function_binding_->BindFunctions(
+    const auto result = isolate_function_binding_->BindFunctions(
         isolate, global_object_template);
     RETURN_IF_FAILURE(result);
   }
-
   context = v8::Context::New(isolate, nullptr, global_object_template);
   return SuccessExecutionResult();
 }

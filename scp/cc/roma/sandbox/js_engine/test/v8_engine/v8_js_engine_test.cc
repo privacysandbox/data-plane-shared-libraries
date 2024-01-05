@@ -182,7 +182,7 @@ TEST_F(V8JsEngineTest, CanHandleCompilationFailures) {
   engine.Run();
 
   constexpr auto js_code = "function hello_js(input1, input2) {";
-  std::vector<absl::string_view> input = {
+  const std::vector<absl::string_view> input = {
       R"("vec input 1")",
       R"("vec input 2")",
   };
