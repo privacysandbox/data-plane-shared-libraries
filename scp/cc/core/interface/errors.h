@@ -175,29 +175,30 @@ constexpr uint64_t ExtractComponentCode(uint64_t error_code) {
  * @return std::string_view the message about the error code.
  */
 inline std::string_view GetErrorMessage(uint64_t error_code) {
-  static std::string_view kInvalidErrorCodeStr("InvalidErrorCode");
-  static std::string_view kUnknownErrorCodeStr("Unknown Error");
-  static std::string_view kSuccessErrorCodeStr("Success");
-  static std::string_view kUnknownComponentCodeStr("Unrecognized Component");
-
+  static constexpr std::string_view kInvalidErrorCodeStr = "InvalidErrorCode";
+  static constexpr std::string_view kUnknownErrorCodeStr = "Unknown Error";
+  static constexpr std::string_view kSuccessErrorCodeStr = "Success";
+  static constexpr std::string_view kUnknownComponentCodeStr =
+      "Unrecognized Component";
   switch (error_code) {
     case SC_OK:
-      return std::string_view(kSuccessErrorCodeStr);
+      return kSuccessErrorCodeStr;
     case SC_UNKNOWN:
-      return std::string_view(kUnknownErrorCodeStr);
+      return kUnknownErrorCodeStr;
     default:
       break;
   }
   const uint64_t component = ExtractComponentCode(error_code);
-  const auto comp_it = GetGlobalErrorCodes().find(component);
-  if (comp_it == GetGlobalErrorCodes().end()) {
-    return std::string_view(kUnknownComponentCodeStr);
+  const auto& global_err_codes = GetGlobalErrorCodes();
+  const auto comp_it = global_err_codes.find(component);
+  if (comp_it == global_err_codes.end()) {
+    return kUnknownComponentCodeStr;
   }
   const auto& comp_map = comp_it->second;
   if (const auto it = comp_map.find(error_code); it != comp_map.end()) {
     return std::string_view(it->second.error_message);
   }
-  return std::string_view(kInvalidErrorCodeStr);
+  return kInvalidErrorCodeStr;
 }
 
 /**
@@ -207,7 +208,7 @@ inline std::string_view GetErrorMessage(uint64_t error_code) {
  * @return HttpStatusCode The http status code associated with the error.
  */
 inline HttpStatusCode GetErrorHttpStatusCode(uint64_t error_code) {
-  uint64_t component = ExtractComponentCode(error_code);
+  const uint64_t component = ExtractComponentCode(error_code);
   return GetGlobalErrorCodes()[component]
       .find(error_code)
       ->second.error_http_status_code;
@@ -223,12 +224,12 @@ inline uint64_t GetPublicErrorCode(uint64_t error_code) {
   if (error_code == SC_OK) {
     return SC_OK;
   }
-  auto it = GetPublicErrorCodesMap().find(error_code);
-  if (it == GetPublicErrorCodesMap().end()) {
-    // Invalid error code.
-    return SC_UNKNOWN;
+  const auto& err_map = GetPublicErrorCodesMap();
+  if (const auto it = err_map.find(error_code); it != err_map.end()) {
+    return it->second;
   }
-  return it->second;
+  // Invalid error code.
+  return SC_UNKNOWN;
 }
 
 }  // namespace google::scp::core::errors
