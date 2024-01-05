@@ -32,21 +32,21 @@ build:sanitizers_common --cache_test_results=no
 build:sanitizers_common --build_tests_only
 
 # Common settings for the address sanitizer.
-build:asan_common--config=sanitizers_common
-build:asan_common--copt=-fsanitize=address
-build:asan_common--copt=-DADDRESS_SANITIZER
-build:asan_common--copt=-O1
-build:asan_common--copt=-fno-omit-frame-pointer
-build:asan_common--linkopt=-fsanitize=address
-build:asan_common--linkopt=-fuse-ld=lld
-build:asan_common--test_tag_filters=-noasan
+build:asan_common --config=sanitizers_common
+build:asan_common --copt=-fsanitize=address
+build:asan_common --copt=-DADDRESS_SANITIZER
+build:asan_common --copt=-O1
+build:asan_common --copt=-fno-omit-frame-pointer
+build:asan_common --linkopt=-fsanitize=address
+build:asan_common --linkopt=-fuse-ld=lld
+build:asan_common --test_tag_filters=-noasan
 # TODO(b/293876281): Re-enable ODR violation checking once it's fixed in the
 # ZLib library that we depend on.
 build:asan_common --action_env=ASAN_OPTIONS=detect_leaks=1:color=always:detect_odr_violation=0
 
 # Address sanitizer, set action_env to segregate cache entries
 build:asan --config=asan_common
-build:asan--action_env=PRIVACY_SANDBOX_SERVERS_ASAN=1
+build:asan --action_env=PRIVACY_SANDBOX_SERVERS_ASAN=1
 build:asan --strip=never
 build:asan --compilation_mode=dbg
 build:asan --copt=-g
@@ -58,7 +58,7 @@ build:asan --test_tag_filters=-noasan
 # config: this has worse debugging properties but it at least lets us run the
 # sanitizer.
 build:asanopt --config=asan_common
-build:asanopt--action_env=PRIVACY_SANDBOX_SERVERS_ASANOPT=1
+build:asanopt --action_env=PRIVACY_SANDBOX_SERVERS_ASANOPT=1
 build:asanopt --test_tag_filters=asanopt
 
 # Thread sanitizer
