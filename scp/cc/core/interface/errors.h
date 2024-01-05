@@ -209,9 +209,11 @@ inline std::string_view GetErrorMessage(uint64_t error_code) {
  */
 inline HttpStatusCode GetErrorHttpStatusCode(uint64_t error_code) {
   const uint64_t component = ExtractComponentCode(error_code);
-  return GetGlobalErrorCodes()[component]
-      .find(error_code)
-      ->second.error_http_status_code;
+  if (const auto it = GetGlobalErrorCodes().find(component);
+      it != GetGlobalErrorCodes().end()) {
+    return it->second.find(error_code)->second.error_http_status_code;
+  }
+  return HttpStatusCode::UNKNOWN;
 }
 
 /**

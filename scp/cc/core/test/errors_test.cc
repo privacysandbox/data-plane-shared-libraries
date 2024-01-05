@@ -17,7 +17,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <string_view>
+
 #include "core/common/concurrent_queue/src/concurrent_queue.h"
+#include "scp/cc/core/http2_client/src/error_codes.h"
 
 using ::testing::StrEq;
 
@@ -34,7 +37,6 @@ TEST(ERRORS, ErrorCodeDefined) {
 
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0x0001,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
-
   EXPECT_TRUE(initialized_COMPONENT_NAME0x0001);
 }
 
@@ -43,21 +45,20 @@ TEST(ERRORS, ErrorMessageReturn) {
 
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0xFFFF,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
-
   EXPECT_THAT(GetErrorMessage(COMPONENT_NAME_ERROR),
               StrEq("Component error message test"));
 }
 
 TEST(ERRORS, ErrorMessageSuccessErrorCode) {
-  EXPECT_STREQ(GetErrorMessage(SC_OK).data(), "Success");
+  EXPECT_THAT(GetErrorMessage(SC_OK).data(), StrEq("Success"));
 }
 
 TEST(ERRORS, ErrorMessageUnknownErrorCode) {
-  EXPECT_STREQ(GetErrorMessage(SC_UNKNOWN).data(), "Unknown Error");
+  EXPECT_THAT(GetErrorMessage(SC_UNKNOWN).data(), StrEq("Unknown Error"));
 }
 
 TEST(ERRORS, ErrorMessageUndefinedErrorCode) {
-  EXPECT_STREQ(GetErrorMessage(UINT64_MAX).data(), "InvalidErrorCode");
+  EXPECT_THAT(GetErrorMessage(UINT64_MAX).data(), StrEq("InvalidErrorCode"));
 }
 
 TEST(ERRORS, MapErrorCodePublic) {
@@ -69,8 +70,10 @@ TEST(ERRORS, MapErrorCodePublic) {
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0xFFFF,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
   MAP_TO_PUBLIC_ERROR_CODE(COMPONENT_NAME_ERROR, PUBLIC_COMPONENT_ERROR);
-  EXPECT_STREQ(GetErrorMessage(GetPublicErrorCode(COMPONENT_NAME_ERROR)).data(),
-               "Public error message test");
+  EXPECT_THAT(GetErrorMessage(GetPublicErrorCode(COMPONENT_NAME_ERROR)).data(),
+              StrEq("Public error message test"));
+  EXPECT_THAT(GetErrorMessage(GetPublicErrorCode(19204)).data(),
+              StrEq("Unknown Error"));
 }
 
 TEST(ERRORS, NoAssociatedPublicErrorCode) {
@@ -78,6 +81,24 @@ TEST(ERRORS, NoAssociatedPublicErrorCode) {
   DEFINE_ERROR_CODE(COMPONENT_NAME_ERROR, COMPONENT_NAME, 0xEFFF,
                     "Component error message test", HttpStatusCode::BAD_REQUEST)
   EXPECT_EQ(GetPublicErrorCode(COMPONENT_NAME_ERROR), SC_UNKNOWN);
+  EXPECT_EQ(GetPublicErrorCode(19203), SC_UNKNOWN);
+}
+
+TEST(ERRORS, ValidHttpStatusCode) {
+  EXPECT_EQ(GetErrorHttpStatusCode(errors::SC_HTTP2_CLIENT_AUTH_MISSING_HEADER),
+            HttpStatusCode::BAD_REQUEST);
+  EXPECT_EQ(
+      GetErrorHttpStatusCode(SC_HTTP2_CLIENT_HTTP_STATUS_MOVED_PERMANENTLY),
+      HttpStatusCode::MOVED_PERMANENTLY);
+  EXPECT_EQ(
+      GetErrorHttpStatusCode(SC_HTTP2_CLIENT_HTTP_STATUS_INTERNAL_SERVER_ERROR),
+      HttpStatusCode::INTERNAL_SERVER_ERROR);
+}
+
+TEST(ERRORS, InvalidHttpStatusCode) {
+  EXPECT_EQ(GetErrorHttpStatusCode(1), HttpStatusCode::UNKNOWN);
+  EXPECT_EQ(GetErrorHttpStatusCode(2), HttpStatusCode::UNKNOWN);
+  EXPECT_EQ(GetErrorHttpStatusCode(1000), HttpStatusCode::UNKNOWN);
 }
 
 }  // namespace google::scp::core::errors::test

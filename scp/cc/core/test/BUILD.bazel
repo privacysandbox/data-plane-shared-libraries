@@ -42,6 +42,7 @@ cc_test(
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/concurrent_queue/src:concurrent_queue_lib",
+        "//scp/cc/core/http2_client/src:errors_lib",
         "//scp/cc/core/interface:interface_lib",
         "@com_google_googletest//:gtest_main",
     ],

@@ -17,14 +17,26 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
+    name = "errors_lib",
+    hdrs = [
+        "error_codes.h",
+    ],
+    deps = [
+        "//scp/cc/core/interface:errors_lib",
+    ],
+)
+
+cc_library(
     name = "http2_client_lib",
     srcs = glob(
-        [
+        include = [
             "**/*.cc",
             "**/*.h",
         ],
+        exclude = ["error_codes.h"],
     ),
     deps = [
+        ":errors_lib",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/concurrent_map/src:concurrent_map_lib",
         "//scp/cc/core/common/operation_dispatcher/src:operation_dispatcher_lib",
