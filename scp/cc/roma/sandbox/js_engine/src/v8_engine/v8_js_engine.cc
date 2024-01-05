@@ -16,6 +16,9 @@
 
 #include "v8_js_engine.h"
 
+#include <errno.h>
+#include <string.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <memory>
@@ -133,6 +136,19 @@ ExecutionResult V8JsEngine::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
+namespace {
+std::string GetExePath() {
+  const pid_t my_pid = getpid();
+  const auto proc_exe_path = absl::StrCat("/proc/", my_pid, "/exe");
+  std::string my_path;
+  my_path.reserve(PATH_MAX);
+  if (readlink(proc_exe_path.c_str(), my_path.data(), PATH_MAX) < 0) {
+    LOG(ERROR) << "Unable to resolve prod pid exe path: " << strerror(errno);
+  }
+  return my_path;
+}
+}  // namespace
+
 ExecutionResult V8JsEngine::OneTimeSetup(
     const absl::flat_hash_map<std::string, std::string>& config) noexcept {
   size_t max_wasm_memory_number_of_pages = 0;
@@ -143,12 +159,9 @@ ExecutionResult V8JsEngine::OneTimeSetup(
     page_count_converter >> max_wasm_memory_number_of_pages;
   }
 
-  pid_t my_pid = getpid();
-  const auto proc_exe_path = absl::StrCat("/proc/", my_pid, "/exe");
-  auto my_path = std::make_unique<char[]>(PATH_MAX);
-  readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
-  v8::V8::InitializeICUDefaultLocation(my_path.get());
-  v8::V8::InitializeExternalStartupData(my_path.get());
+  const std::string my_path = GetExePath();
+  v8::V8::InitializeICUDefaultLocation(my_path.data());
+  v8::V8::InitializeExternalStartupData(my_path.data());
 
   // Set the max number of WASM memory pages
   if (max_wasm_memory_number_of_pages != 0) {
