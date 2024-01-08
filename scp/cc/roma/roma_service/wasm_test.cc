@@ -35,6 +35,10 @@ using google::scp::roma::sandbox::roma_service::RomaService;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using ::testing::StrEq;
 
+namespace {
+constexpr auto kTimeout = absl::Seconds(10);
+}
+
 namespace google::scp::roma::test {
 static const std::vector<uint8_t> kWasmBin = {
     0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
@@ -98,9 +102,8 @@ TEST(WasmTest, CanExecuteWasmCode) {
                 })
             .ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_THAT(result, StrEq(R"("Foobar Hello World from WASM")"));
 
   EXPECT_TRUE(roma_service->Stop().ok());
@@ -181,9 +184,8 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
                 })
             .ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_THAT(result, StrEq(R"("Hello from C++! Input: Foobar")"));
 
   EXPECT_TRUE(roma_service->Stop().ok());
@@ -341,9 +343,8 @@ TEST(WasmTest, CanExecuteJSWithWasmCode) {
             .ok());
   }
 
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_THAT(result, StrEq("3"));
 
   EXPECT_TRUE(roma_service->Stop().ok());
@@ -489,8 +490,8 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
             .ok());
   }
 
-  ASSERT_TRUE(load_finished1.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(load_finished2.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(load_finished1.WaitForNotificationWithTimeout(kTimeout));
+  ASSERT_TRUE(load_finished2.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_TRUE(roma_service->Stop().ok());
 }
 
@@ -546,9 +547,8 @@ TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
                 })
             .ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_THAT(result, StrEq("3"));
 
   EXPECT_TRUE(roma_service->Stop().ok());
@@ -604,7 +604,7 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
                 })
             .ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
 
   {
     absl::Notification execute_finished;
@@ -629,8 +629,7 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
                   execute_finished.Notify();
                 })
             .ok());
-    ASSERT_TRUE(
-        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   }
 
   {
@@ -659,8 +658,7 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
                 })
             .ok());
 
-    ASSERT_TRUE(
-        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
 
     EXPECT_THAT(result, StrEq("3"));
   }
