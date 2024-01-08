@@ -48,11 +48,15 @@ establishment, you'll probably get some garbage.
 
 ## Building the proxy
 
-    bazel build //scp/cc/aws/proxy/...
+```shell
+    scripts/build_proxy
+```
 
 ## Building and running tests
 
+```shell
     bazel test //scp/cc/aws/proxy/...
+```
 
 # Other useful tips
 
@@ -60,12 +64,10 @@ establishment, you'll probably get some garbage.
 
 If you'd like to try out this proxy with your own application, follow these steps:
 
-1. `bazel build //scp/cc/aws/proxy:reproducible_proxy_outputs`
-1. Under directory `bazel-bin/scp/cc/aws/proxy`, find the built binaries `proxy`, `proxify`,
-   `libproxy_preload.so`, `socket_vendor`, upload to your EC2 instance.
+1. Use `scripts/build_proxy` to build proxy.
+1. Look for `dist/aws/proxy-al2-amd64.zip`, unzip and upload it to your EC2 instance.
 1. Run proxy in background on the EC2 instance.
-1. Add `proxify`, `libproxy_preload.so` and `socket_vendor` to the docker image under the same
-   directory.
+1. Add the `//scp/cc/aws/proxy/src:proxify_layer` layer to the definition of your image.
 1. Put CMD as `["/path/to/proxify", "--", "your_app", "one_arg", "more_args"]`.
 1. Build and run the enclave image.
 
