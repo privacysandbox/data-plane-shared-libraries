@@ -47,8 +47,7 @@ TEST(WasmTest, CanExecuteWasmCode) {
   Config config;
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -58,57 +57,60 @@ TEST(WasmTest, CanExecuteWasmCode) {
       "./scp/cc/roma/testing/"
       "cpp_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
-  auto wasm_code =
-      std::string(reinterpret_cast<char*>(wasm_bin.data()), wasm_bin.size());
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->wasm = wasm_code;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .wasm = std::string(reinterpret_cast<char*>(wasm_bin.data()),
+                            wasm_bin.size()),
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    result = (*resp)->resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Foobar Hello World from WASM")"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 TEST(WasmTest, CanLogFromInlineWasmCode) {
   Config config;
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -129,8 +131,7 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
         const module = await getModule();
         roma.n_log("WASM loaded");
 
-        const result = module.HelloClass.SayHello(input, log_input,
-        err_input);
+        const result = module.HelloClass.SayHello(input, log_input, err_input);
         roma.n_log("C++ result: " + result);
         return result;
       }
@@ -142,46 +143,50 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
         .js = absl::StrCat(inline_wasm_js, udf),
     });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
+    const std::vector<std::string> inputs = {
+        R"("Foobar")",
+        R"("LOG_STRING")",
+        R"("ERR_STRING")",
+    };
     auto execution_obj =
         std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
             .id = "foo",
             .version_string = "v1",
             .handler_name = "HandleRequest",
+            .input = inputs,
         });
-    execution_obj->input.push_back(R"("Foobar")");
-    execution_obj->input.push_back(R"("LOG_STRING")");
-    execution_obj->input.push_back(R"("ERR_STRING")");
 
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    result = (*resp)->resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Hello from C++! Input: Foobar")"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
-
+  EXPECT_TRUE(roma_service->Stop().ok());
   log.StopCapturingLogs();
 }
 
@@ -195,8 +200,7 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
     config.number_of_workers = 1;
 
     auto roma_service = std::make_unique<RomaService<>>(config);
-    auto status = roma_service->Init();
-    ASSERT_TRUE(status.ok());
+    ASSERT_TRUE(roma_service->Init().ok());
 
     auto wasm_bin = WasmTestingUtils::LoadWasmFile(
         "./scp/cc/roma/testing/"
@@ -204,29 +208,31 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
 
     absl::Notification load_finished;
     {
-      auto code_obj = std::make_unique<CodeObject>();
-      code_obj->id = "foo";
-      code_obj->version_string = "v1";
-      code_obj->js = "";
-      code_obj->wasm.assign(reinterpret_cast<char*>(wasm_bin.data()),
-                            wasm_bin.size());
+      auto code_obj = std::make_unique<CodeObject>(CodeObject{
+          .id = "foo",
+          .version_string = "v1",
+          .js = "",
+          .wasm = std::string(reinterpret_cast<char*>(wasm_bin.data()),
+                              wasm_bin.size()),
+      });
 
-      status = roma_service->LoadCodeObj(
-          std::move(code_obj),
-          [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-            // Fails
-            EXPECT_FALSE(resp->ok());
-            EXPECT_THAT(resp->status().message(),
-                        StrEq("Failed to create wasm object."));
-            load_finished.Notify();
-          });
-      EXPECT_TRUE(status.ok());
+      EXPECT_TRUE(
+          roma_service
+              ->LoadCodeObj(
+                  std::move(code_obj),
+                  [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                    // Fails
+                    EXPECT_FALSE(resp->ok());
+                    EXPECT_THAT(resp->status().message(),
+                                StrEq("Failed to create wasm object."));
+                    load_finished.Notify();
+                  })
+              .ok());
     }
 
     load_finished.WaitForNotification();
 
-    status = roma_service->Stop();
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(roma_service->Stop().ok());
   }
 
   // We now load the same WASM but with the amount of memory it requires, and
@@ -242,8 +248,7 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
     config.number_of_workers = 1;
 
     auto roma_service = std::make_unique<RomaService<>>(config);
-    auto status = roma_service->Init();
-    ASSERT_TRUE(status.ok());
+    ASSERT_TRUE(roma_service->Init().ok());
 
     auto wasm_bin = WasmTestingUtils::LoadWasmFile(
         "./scp/cc/roma/testing/"
@@ -251,27 +256,29 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
 
     absl::Notification load_finished;
     {
-      auto code_obj = std::make_unique<CodeObject>();
-      code_obj->id = "foo";
-      code_obj->version_string = "v1";
-      code_obj->js = "";
-      code_obj->wasm.assign(reinterpret_cast<char*>(wasm_bin.data()),
-                            wasm_bin.size());
+      auto code_obj = std::make_unique<CodeObject>(CodeObject{
+          .id = "foo",
+          .version_string = "v1",
+          .js = "",
+          .wasm = std::string(reinterpret_cast<char*>(wasm_bin.data()),
+                              wasm_bin.size()),
+      });
 
-      status = roma_service->LoadCodeObj(
-          std::move(code_obj),
-          [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-            // Loading works
-            EXPECT_TRUE(resp->ok());
-            load_finished.Notify();
-          });
-      EXPECT_TRUE(status.ok());
+      EXPECT_TRUE(
+          roma_service
+              ->LoadCodeObj(
+                  std::move(code_obj),
+                  [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                    // Loading works
+                    EXPECT_TRUE(resp->ok());
+                    load_finished.Notify();
+                  })
+              .ok());
     }
 
     load_finished.WaitForNotification();
 
-    status = roma_service->Stop();
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(roma_service->Stop().ok());
   }
 }
 
@@ -279,82 +286,79 @@ TEST(WasmTest, CanExecuteJSWithWasmCode) {
   Config config;
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    absl::flat_hash_map<std::string, std::string> tags;
-
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
           const module = new WebAssembly.Module(addModule);
           const instance = new WebAssembly.Instance(module);
           function hello_js(a, b) {
             return instance.exports.add(a, b);
           }
-    )JS_CODE";
-    tags[kWasmCodeArrayName] = "addModule";
+    )JS_CODE",
+        .wasm_bin = kWasmBin,
+        .tags = {{kWasmCodeArrayName, "addModule"}},
+    });
 
-    code_obj->wasm_bin = kWasmBin;
-    code_obj->tags = tags;
-
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "hello_js";
-    execution_obj->input.push_back("1");
-    execution_obj->input.push_back("2");
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "hello_js",
+            .input = {"1", "2"},
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    result = (*resp)->resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
+
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq("3"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   Config config;
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   absl::Notification load_finished1;
   absl::Notification load_finished2;
 
-  absl::flat_hash_map<std::string, std::string> tags;
-  tags[kWasmCodeArrayName] = "addModule";
-  std::string js_code = R"JS_CODE(
+  constexpr std::string_view js_code = R"JS_CODE(
           const module = new WebAssembly.Module(addModule);
           const instance = new WebAssembly.Instance(module);
           function hello_js(a, b) {
@@ -363,16 +367,16 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
   )JS_CODE";
   // Passing both the wasm and wasm_bin
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = js_code;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = std::string(js_code),
+        .wasm = "test",
+        .wasm_bin = kWasmBin,
+        .tags = {{kWasmCodeArrayName, "addModule"}},
+    });
 
-    code_obj->wasm_bin = kWasmBin;
-    code_obj->tags = tags;
-    code_obj->wasm = "test";
-
-    status = roma_service->LoadCodeObj(
+    const auto status = roma_service->LoadCodeObj(
         std::move(code_obj),
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
@@ -384,13 +388,14 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 
   // Missing JS code
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->wasm_bin = kWasmBin;
-    code_obj->tags = tags;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .wasm_bin = kWasmBin,
+        .tags = {{kWasmCodeArrayName, "addModule"}},
+    });
 
-    status = roma_service->LoadCodeObj(
+    const auto status = roma_service->LoadCodeObj(
         std::move(code_obj),
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
@@ -401,13 +406,14 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 
   // Missing wasm code array name tag
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->js = js_code;
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->wasm_bin = kWasmBin;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = std::string(js_code),
+        .wasm_bin = kWasmBin,
+    });
 
-    status = roma_service->LoadCodeObj(
+    const auto status = roma_service->LoadCodeObj(
         std::move(code_obj),
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
@@ -419,13 +425,14 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 
   // Missing wasm_bin
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->js = js_code;
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->tags = tags;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = std::string(js_code),
+        .tags = {{kWasmCodeArrayName, "addModule"}},
+    });
 
-    status = roma_service->LoadCodeObj(
+    const auto status = roma_service->LoadCodeObj(
         std::move(code_obj),
         [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
     EXPECT_FALSE(status.ok());
@@ -437,114 +444,114 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
 
   // Wrong wasm array name tag
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->js = js_code;
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->wasm_bin = kWasmBin;
-    tags[kWasmCodeArrayName] = "wrongName";
-    code_obj->tags = tags;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = std::string(js_code),
+        .wasm_bin = kWasmBin,
+        .tags = {{kWasmCodeArrayName, "wrongName"}},
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_FALSE(resp->ok());
-          load_finished1.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_FALSE(resp->ok());
+                  load_finished1.Notify();
+                })
+            .ok());
   }
 
   // Invalid wasm code array
   {
-    std::vector<uint8_t> invalid_wasm_bin{
+    const std::vector<uint8_t> invalid_wasm_bin{
         0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07,
         0x01, 0x07, 0x01, 0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a,
-        0x09, 0x01, 0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b};
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->js = js_code;
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->wasm_bin = invalid_wasm_bin;
-    tags[kWasmCodeArrayName] = "addModule";
-    code_obj->tags = tags;
+        0x09, 0x01, 0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b,
+    };
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = std::string(js_code),
+        .wasm_bin = invalid_wasm_bin,
+        .tags = {{kWasmCodeArrayName, "addModule"}},
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_FALSE(resp->ok());
-          load_finished2.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_FALSE(resp->ok());
+                  load_finished2.Notify();
+                })
+            .ok());
   }
 
   ASSERT_TRUE(load_finished1.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(load_finished2.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
   Config config;
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-          function hello_js(a, b) {
-            return a + b;
-          }
-  )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = "hello_js = (a, b) => a + b;",
+        .wasm_bin = kWasmBin,
+        .tags = {{kWasmCodeArrayName, "addModule"}},
+    });
 
-    code_obj->wasm_bin = kWasmBin;
-    absl::flat_hash_map<std::string, std::string> tags;
-    tags[kWasmCodeArrayName] = "addModule";
-    code_obj->tags = tags;
-
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "hello_js";
-    execution_obj->input.push_back("1");
-    execution_obj->input.push_back("2");
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "hello_js",
+            .input = {"1", "2"},
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    result = (*resp)->resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq("3"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
@@ -556,70 +563,72 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
   config.ConfigureJsEngineResourceConstraints(1 /*initial_heap_size_in_mb*/,
                                               15 /*maximum_heap_size_in_mb*/);
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   absl::Notification load_finished;
 
   // dummy code that gets killed by the JS engine if it allocates too much
   // memory
-  std::string js_code = R"JS_CODE(
+  constexpr std::string_view js_code = R"JS_CODE(
           const module = new WebAssembly.Module(addModule);
           const instance = new WebAssembly.Instance(module);
           function Handler(a, b, c) {
-            const bigObject = [];
-            for (let i = 0; i < 1024*512*Number(c); i++) {
-              var person = {
+            const person = {
               name: 'test',
               age: 24,
-              };
+            };
+            const bigObject = [];
+            for (let i = 0; i < 1024*512*Number(c); i++) {
               bigObject.push(person);
             }
             return instance.exports.add(a, b);
           }
   )JS_CODE";
-  absl::flat_hash_map<std::string, std::string> tags;
-  tags[kWasmCodeArrayName] = "addModule";
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->version_string = "v1";
-    code_obj->js = js_code;
-    code_obj->id = "foo";
-    code_obj->wasm_bin = kWasmBin;
-    code_obj->tags = tags;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = std::string(js_code),
+        .wasm_bin = kWasmBin,
+        .tags = {{kWasmCodeArrayName, "addModule"}},
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    // Large input which should fail
-    execution_obj->input.push_back("1");
-    execution_obj->input.push_back("2");
-    execution_obj->input.push_back("10");
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_FALSE(resp->ok());
-          EXPECT_THAT(
-              resp->status().message(),
-              StrEq("Sandbox worker crashed during execution of request."));
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            // Large input which should fail
+            .input = {"1", "2", "10"},
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_FALSE(resp->ok());
+                  EXPECT_THAT(resp->status().message(),
+                              StrEq("Sandbox worker crashed during execution "
+                                    "of request."));
+                  execute_finished.Notify();
+                })
+            .ok());
     ASSERT_TRUE(
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
@@ -628,26 +637,27 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
     absl::Notification execute_finished;
     std::string result;
 
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    // Small input which should work
-    execution_obj->input.push_back("1");
-    execution_obj->input.push_back("2");
-    execution_obj->input.push_back("1");
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            // Small input which should work
+            .input = {"1", "2", "1"},
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    result = (*resp)->resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
 
     ASSERT_TRUE(
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -655,8 +665,7 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
     EXPECT_THAT(result, StrEq("3"));
   }
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 }  // namespace google::scp::roma::test
