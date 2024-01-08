@@ -39,15 +39,8 @@
 #include "roma/sandbox/worker_api/src/worker_api_sapi.h"
 #include "roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
 
-#include "error_codes.h"
-
 using google::scp::core::AsyncExecutor;
-using google::scp::core::ExecutionResult;
-using google::scp::core::ExecutionResultOr;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::GetErrorMessage;
-using google::scp::core::errors::SC_ROMA_SERVICE_COULD_NOT_CREATE_FD_PAIR;
 using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
 using google::scp::roma::FunctionBindingObjectV2;
 using google::scp::roma::proto::FunctionBindingIoProto;
@@ -77,18 +70,12 @@ class RomaService {
           "Roma startup failed due to insufficient system memory.");
     }
 
-    auto result = InitInternal();
-    if (!result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("Roma initialization failed due to internal error: ",
-                       GetErrorMessage(result.status_code)));
+    if (absl::Status result = InitInternal(); !result.ok()) {
+      return result;
     }
 
-    result = RunInternal();
-    if (!result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("Roma startup failed due to internal error: ",
-                       GetErrorMessage(result.status_code)));
+    if (absl::Status result = RunInternal(); !result.ok()) {
+      return result;
     }
     return absl::OkStatus();
   }
@@ -164,15 +151,7 @@ class RomaService {
     return BatchExecuteInternal(batch, std::move(batch_callback));
   }
 
-  absl::Status Stop() {
-    auto result = StopInternal();
-    if (!result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("Roma stop failed due to internal error: ",
-                       GetErrorMessage(result.status_code)));
-    }
-    return absl::OkStatus();
-  }
+  absl::Status Stop() { return StopInternal(); }
 
   RomaService(const RomaService&) = delete;
 
@@ -184,7 +163,7 @@ class RomaService {
       : config_(std::move(config)) {}
 
  private:
-  core::ExecutionResult InitInternal() noexcept {
+  absl::Status InitInternal() noexcept {
     size_t concurrency = config_.number_of_workers;
     if (concurrency == 0) {
       concurrency = std::thread::hardware_concurrency();
@@ -198,13 +177,24 @@ class RomaService {
     RegisterLogBindings();
     auto native_function_binding_info_or =
         SetupNativeFunctionHandler(concurrency);
-    RETURN_IF_FAILURE(native_function_binding_info_or.result());
+    if (!native_function_binding_info_or.ok()) {
+      return native_function_binding_info_or.status();
+    }
 
-    RETURN_IF_FAILURE(SetupWorkers(*native_function_binding_info_or));
+    if (absl::Status status =
+            SetupWorkers(native_function_binding_info_or.value());
+        !status.ok()) {
+      return status;
+    }
 
     async_executor_ =
         std::make_unique<AsyncExecutor>(concurrency, worker_queue_cap);
-    RETURN_IF_FAILURE(async_executor_->Init());
+    auto execution_result = async_executor_->Init();
+    if (!execution_result.Successful()) {
+      return absl::InternalError(
+          absl::StrCat("InitInternal failed due to internal error: ",
+                       GetErrorMessage(execution_result.status_code)));
+    }
 
     // TODO: Make max_pending_requests configurable
     dispatcher_ = std::make_unique<class Dispatcher>(
@@ -214,39 +204,67 @@ class RomaService {
     ROMA_VLOG(1) << "RomaService Init with " << config_.number_of_workers
                  << " workers. The capacity of code cache is "
                  << config_.code_version_cache_size;
-    return SuccessExecutionResult();
+    return absl::OkStatus();
   }
 
-  core::ExecutionResult RunInternal() noexcept {
-    RETURN_IF_FAILURE(native_function_binding_handler_->Run());
-    RETURN_IF_FAILURE(async_executor_->Run());
-    RETURN_IF_FAILURE(worker_pool_->Run());
-    return SuccessExecutionResult();
+  absl::Status RunInternal() noexcept {
+    if (auto execution_result = native_function_binding_handler_->Run();
+        !execution_result.Successful()) {
+      return absl::InternalError(
+          absl::StrCat("RunInternal failed due to internal error: ",
+                       GetErrorMessage(execution_result.status_code)));
+    }
+    if (auto execution_result = async_executor_->Run();
+        !execution_result.Successful()) {
+      return absl::InternalError(
+          absl::StrCat("RunInternal failed due to internal error: ",
+                       GetErrorMessage(execution_result.status_code)));
+    }
+    if (auto execution_result = worker_pool_->Run();
+        !execution_result.Successful()) {
+      return absl::InternalError(
+          absl::StrCat("RunInternal failed due to internal error: ",
+                       GetErrorMessage(execution_result.status_code)));
+    }
+    return absl::OkStatus();
   }
 
-  core::ExecutionResult StopInternal() noexcept {
+  absl::Status StopInternal() noexcept {
     if (native_function_binding_handler_) {
-      RETURN_IF_FAILURE(native_function_binding_handler_->Stop());
+      if (auto execution_result = native_function_binding_handler_->Stop();
+          !execution_result.Successful()) {
+        return absl::InternalError(
+            absl::StrCat("RunInternal failed due to internal error: ",
+                         GetErrorMessage(execution_result.status_code)));
+      }
     }
     native_function_binding_table_.Clear();
     if (worker_pool_) {
-      RETURN_IF_FAILURE(worker_pool_->Stop());
+      if (auto execution_result = worker_pool_->Stop();
+          !execution_result.Successful()) {
+        return absl::InternalError(
+            absl::StrCat("RunInternal failed due to internal error: ",
+                         GetErrorMessage(execution_result.status_code)));
+      }
     }
     if (async_executor_) {
-      RETURN_IF_FAILURE(async_executor_->Stop());
+      if (auto execution_result = async_executor_->Stop();
+          !execution_result.Successful()) {
+        return absl::InternalError(
+            absl::StrCat("RunInternal failed due to internal error: ",
+                         GetErrorMessage(execution_result.status_code)));
+      }
     }
-    return SuccessExecutionResult();
+    return absl::OkStatus();
   }
 
-  core::ExecutionResult RegisterMetadata(std::string uuid, TMetadata metadata) {
+  void RegisterMetadata(std::string uuid, TMetadata metadata) {
     native_function_binding_handler_->StoreMetadata(std::move(uuid),
                                                     std::move(metadata));
-    return SuccessExecutionResult();
   }
 
-  core::ExecutionResult DeleteMetadata(std::string_view uuid) {
+  void DeleteMetadata(std::string_view uuid) {
     native_function_binding_handler_->DeleteMetadata(uuid);
-    return SuccessExecutionResult();
   }
 
   struct NativeFunctionBindingSetup {
@@ -262,15 +280,21 @@ class RomaService {
    *
    * @return A struct containing the remote function binding information
    */
-  core::ExecutionResultOr<NativeFunctionBindingSetup>
-  SetupNativeFunctionHandler(size_t concurrency) {
+  absl::StatusOr<NativeFunctionBindingSetup> SetupNativeFunctionHandler(
+      size_t concurrency) {
     const auto function_bindings = config_.GetFunctionBindings();
 
     std::vector<std::string> function_names;
     function_names.reserve(function_bindings.size());
     for (const auto& binding : function_bindings) {
-      RETURN_IF_FAILURE(native_function_binding_table_.Register(
-          binding->function_name, binding->function));
+      auto execution_result = native_function_binding_table_.Register(
+          binding->function_name, binding->function);
+      if (!execution_result.Successful()) {
+        return absl::InternalError(absl::StrCat(
+            "SetupNativeFunctionHandler failed due to internal error: ",
+            GetErrorMessage(execution_result.status_code)));
+      }
+
       function_names.push_back(binding->function_name);
     }
 
@@ -281,7 +305,9 @@ class RomaService {
     for (int i = 0; i < concurrency; i++) {
       int fd_pair[2];
       if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair) != 0) {
-        return FailureExecutionResult(SC_ROMA_SERVICE_COULD_NOT_CREATE_FD_PAIR);
+        return absl::InternalError(
+            absl::StrCat("Failed to create socket for native function binding "
+                         "communication."));
       }
       local_fds.push_back(fd_pair[0]);
       remote_fds.push_back(fd_pair[1]);
@@ -317,7 +343,7 @@ class RomaService {
     }
   }
 
-  core::ExecutionResult SetupWorkers(
+  absl::Status SetupWorkers(
       const NativeFunctionBindingSetup& native_binding_setup) {
     const auto& remote_fds = native_binding_setup.remote_file_descriptors;
     const auto& function_names = native_binding_setup.js_function_names;
@@ -345,7 +371,14 @@ class RomaService {
       worker_configs.push_back(worker_api_sapi_config);
     }
     worker_pool_ = std::make_unique<WorkerPoolApiSapi>(worker_configs);
-    return worker_pool_->Init();
+    auto execution_result = worker_pool_->Init();
+    if (execution_result.Successful()) {
+      return absl::OkStatus();
+    } else {
+      return absl::InternalError(
+          absl::StrCat("Roma initialization failed due to internal error: ",
+                       GetErrorMessage(execution_result.status_code)));
+    }
   }
 
   template <typename RequestT>

@@ -19,7 +19,6 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "roma_service_lib",
     hdrs = [
-        "error_codes.h",
         "roma_service.h",
     ],
     deps = [
