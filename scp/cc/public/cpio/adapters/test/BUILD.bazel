@@ -32,7 +32,6 @@ cc_test(
         "//scp/cc/public/cpio/mock/parameter_client:parameter_client_mock",
         "//scp/cc/public/cpio/mock/private_key_client:private_key_client_mock",
         "//scp/cc/public/cpio/mock/public_key_client:public_key_client_mock",
-        "//scp/cc/public/cpio/utils/configuration_fetcher/mock:configuration_fetcher_mock",
         "@com_google_googletest//:gtest",
     ],
 )

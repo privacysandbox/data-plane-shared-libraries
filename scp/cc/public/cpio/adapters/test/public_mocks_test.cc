@@ -23,7 +23,6 @@
 #include "public/cpio/mock/parameter_client/mock_parameter_client.h"
 #include "public/cpio/mock/private_key_client/mock_private_key_client.h"
 #include "public/cpio/mock/public_key_client/mock_public_key_client.h"
-#include "public/cpio/utils/configuration_fetcher/mock/mock_configuration_fetcher.h"
 
 namespace google::scp::cpio {
 TEST(PublicMocksTest, CreateMocks) {
@@ -35,6 +34,5 @@ TEST(PublicMocksTest, CreateMocks) {
   MockParameterClient parameter_client;
   MockPrivateKeyClient private_key_client;
   MockPublicKeyClient public_key_client;
-  MockConfigurationFetcher configuration_fetcher;
 }
 }  // namespace google::scp::cpio

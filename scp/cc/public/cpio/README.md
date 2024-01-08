@@ -71,8 +71,6 @@ created and used following this pattern:
 There are several utility helpers above Clients to help the customers to use the clients more
 conveniently. Currently we have:
 
-1. [ConfigurationFetcher](utils/configuration_fetcher): help to fetch configurations through
-   ParameterClient.
-2. [MetricAggregation](utils/metric_aggregation): help to pre-aggregate metrics for high-qps
+1. [MetricAggregation](utils/metric_aggregation): help to pre-aggregate metrics for high-qps
    traffic.
-3. [SyncUtils](utils/sync_utils): to help converting async calls to sync calls.
+2. [SyncUtils](utils/sync_utils): to help converting async calls to sync calls.
