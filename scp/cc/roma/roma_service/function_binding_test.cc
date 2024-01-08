@@ -45,8 +45,7 @@ TEST(FunctionBindingTest, DefaultLoggingIsNoOp) {
   Config config;
   config.number_of_workers = 2;
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -70,45 +69,52 @@ TEST(FunctionBindingTest, DefaultLoggingIsNoOp) {
   log.StartCapturingLogs();
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler(input) {
-      roma.n_log(input);
-      roma.n_warn(input);
-      roma.n_error(input);
-      return `Hello world! ${input}`;
-    }
-  )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler(input) {
+            roma.n_log(input);
+            roma.n_warn(input);
+            roma.n_error(input);
+            return `Hello world! ${input}`;
+          }
+    )JS_CODE",
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.emplace_back(kInput);
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {std::string{kInput}},
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    auto& code_resp = **resp;
+                    result = code_resp.resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -117,8 +123,7 @@ TEST(FunctionBindingTest, DefaultLoggingIsNoOp) {
               testing::StrEq(absl::StrCat(R"("Hello world! )",
                                           trim_first_last_char(kInput), "\"")));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 
   log.StopCapturingLogs();
 }
@@ -134,8 +139,7 @@ TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
   config.number_of_workers = 2;
   config.SetLoggingFunction(&LoggingFunction);
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -156,45 +160,52 @@ TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
   log.StartCapturingLogs();
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler(input) {
-      roma.n_log(input);
-      roma.n_warn(input);
-      roma.n_error(input);
-      return `Hello world! ${input}`;
-    }
-  )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler(input) {
+            roma.n_log(input);
+            roma.n_warn(input);
+            roma.n_error(input);
+            return `Hello world! ${input}`;
+          }
+    )JS_CODE",
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.emplace_back(kInput);
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {std::string{kInput}},
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    auto& code_resp = **resp;
+                    result = code_resp.resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -203,8 +214,7 @@ TEST(FunctionBindingTest, ExecuteNativeLogFunctions) {
               testing::StrEq(absl::StrCat(R"("Hello world! )",
                                           trim_first_last_char(kInput), "\"")));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 
   log.StopCapturingLogs();
 }
@@ -224,56 +234,61 @@ TEST(FunctionBindingTest,
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler(input) { return cool_function(input);}
-    )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler(input) { return cool_function(input);}
+    )JS_CODE",
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    auto& code_resp = **resp;
+                    result = code_resp.resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Foobar String from C++")"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 void ListOfStringInListOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
@@ -296,47 +311,56 @@ TEST(
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler() { some_array = ["str 1", "str 2", "str 3"]; return cool_function(some_array);}
-    )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler() {
+            some_array = ["str 1", "str 2", "str 3"];
+            return cool_function(some_array);
+          }
+    )JS_CODE",
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    auto& code_resp = **resp;
+                    result = code_resp.resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -346,8 +370,7 @@ TEST(
       StrEq(
           R"(["str 1 Some other stuff 1","str 2 Some other stuff 2","str 3 Some other stuff 3"])"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 void MapOfStringInMapOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
@@ -376,52 +399,58 @@ TEST(FunctionBindingTest,
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler() {
-      some_map = [["key-a","value-a"], ["key-b","value-b"]];
-      // Since we can't stringify a Map, we build an array from the resulting map entries.
-      returned_map = cool_function(new Map(some_map));
-      return Array.from(returned_map.entries());
-    }
-    )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler() {
+            some_map = [["key-a","value-a"], ["key-b","value-b"]];
+            // Since we can't stringify a Map, we build an array from the resulting map entries.
+            returned_map = cool_function(new Map(some_map));
+            return Array.from(returned_map.entries());
+          }
+    )JS_CODE",
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    auto& code_resp = **resp;
+                    result = code_resp.resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -431,8 +460,7 @@ TEST(FunctionBindingTest,
   EXPECT_THAT(result, HasSubstr(R"(["key-a1","value-a1"])"));
   EXPECT_THAT(result, HasSubstr(R"(["key-b2","value-b2"])"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 void StringInStringOutFunctionWithNoInputParams(
@@ -455,47 +483,53 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler() { return cool_function();}
-    )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler() { return cool_function();}
+    )JS_CODE",
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          if (resp->ok()) {
-            auto& code_resp = **resp;
-            result = code_resp.resp;
-          }
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    auto& code_resp = **resp;
+                    result = code_resp.resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -503,8 +537,7 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
 
   EXPECT_THAT(result, StrEq(R"("String from C++")"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 void ByteOutFunction(FunctionBindingPayload<>& wrapper) {
@@ -522,53 +555,59 @@ TEST(FunctionBindingTest,
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler() {
-      bytes = get_some_bytes();
-      if (bytes instanceof Uint8Array) {
-        return bytes;
-      }
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler() {
+            bytes = get_some_bytes();
+            if (bytes instanceof Uint8Array) {
+              return bytes;
+            }
 
-      return "Didn't work :(";
-    }
-    )JS_CODE";
+            return "Didn't work :(";
+          }
+    )JS_CODE",
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          auto& code_resp = **resp;
-          result = code_resp.resp;
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  auto& code_resp = **resp;
+                  result = code_resp.resp;
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -576,8 +615,7 @@ TEST(FunctionBindingTest,
   EXPECT_THAT(result,
               StrEq(R"({"0":1,"1":2,"2":3,"3":4,"4":4,"5":3,"6":2,"7":1})"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 void ByteInFunction(FunctionBindingPayload<>& wrapper) {
@@ -603,63 +641,68 @@ TEST(FunctionBindingTest,
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
   auto roma_service = std::make_unique<RomaService<>>(config);
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
   absl::Notification load_finished;
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler() {
-      bytes =  new Uint8Array(5);
-      bytes[0] = 5;
-      bytes[1] = 4;
-      bytes[2] = 3;
-      bytes[3] = 2;
-      bytes[4] = 1;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler() {
+            bytes =  new Uint8Array(5);
+            bytes[0] = 5;
+            bytes[1] = 4;
+            bytes[2] = 3;
+            bytes[3] = 2;
+            bytes[4] = 1;
 
-      return set_some_bytes(bytes);
-    }
-    )JS_CODE";
+            return set_some_bytes(bytes);
+          }
+    )JS_CODE",
+    });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          auto& code_resp = **resp;
-          result = code_resp.resp;
-          execute_finished.Notify();
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
         });
-    EXPECT_TRUE(status.ok());
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  auto& code_resp = **resp;
+                  result = code_resp.resp;
+                  execute_finished.Notify();
+                })
+            .ok());
   }
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   EXPECT_THAT(result, StrEq(R"str("Hello there :)")str"));
 
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service->Stop().ok());
 }
 
 }  // namespace google::scp::roma::test
