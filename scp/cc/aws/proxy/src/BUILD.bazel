@@ -121,6 +121,22 @@ container_image(
     ],
 )
 
+genrule(
+    name = "copy_to_dist",
+    srcs = [
+        ":resolv_conf_getter_server_debian_image.tar",
+    ],
+    outs = ["copy_to_dist.bin"],
+    cmd_bash = """cat << EOF > '$@'
+readonly target_dir=dist/aws
+mkdir -p \\$${target_dir}
+cp $(execpath :resolv_conf_getter_server_debian_image.tar) "\\$${target_dir}"
+EOF""",
+    executable = True,
+    local = True,
+    message = "copying resolv_conf_getter_server to dist/aws/ directory",
+)
+
 cc_library(
     name = "acceptor_pool",
     hdrs = ["acceptor_pool.h"],
