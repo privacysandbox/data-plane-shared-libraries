@@ -116,7 +116,7 @@ cc_test(
 
 cc_test(
     name = "wasm_test",
-    size = "large",
+    size = "small",
     srcs = ["wasm_test.cc"],
     data = [
         "//scp/cc/roma/testing/cpp_wasm_allocate_memory",
