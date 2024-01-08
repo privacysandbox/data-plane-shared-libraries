@@ -184,7 +184,7 @@ TEST_F(V8JsEngineTest, CanHandleCompilationFailures) {
   const auto response_or =
       engine.CompileAndRunJs(invalid_js, "hello_js", input, {} /*metadata*/);
 
-  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
+  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInvalidArgument);
   engine.Stop();
 }
 
@@ -299,7 +299,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfHandlerIsNotFound) {
       engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/)
           .status()
           .code(),
-      absl::StatusCode::kInternal);
+      absl::StatusCode::kNotFound);
   engine.Stop();
 }
 
@@ -378,7 +378,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfBadWasm) {
   const auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
 
-  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
+  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInvalidArgument);
   engine.Stop();
 }
 

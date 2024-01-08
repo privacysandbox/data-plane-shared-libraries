@@ -29,6 +29,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/numbers.h"
+#include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "scp/cc/roma/config/src/type_converter.h"
@@ -39,16 +40,8 @@
 #include "src/cpp/util/status_macro/status_macros.h"
 #include "src/debug/debug-interface.h"
 
-#include "error_codes.h"
 #include "snapshot_compilation_context.h"
 
-using google::scp::core::errors::GetErrorMessage;
-using google::scp::core::errors::
-    SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_JSON;
-using google::scp::core::errors::
-    SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING;
-using google::scp::core::errors::SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT;
-using google::scp::core::errors::SC_ROMA_V8_ENGINE_ERROR_INVOKING_HANDLER;
 using google::scp::roma::kDefaultExecutionTimeout;
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::TypeConverter;
@@ -85,19 +78,11 @@ std::shared_ptr<std::string> GetCodeFromContext(
   return code;
 }
 
-std::string BuildErrorString(std::vector<std::string> errors) {
-  std::string err_str;
-  for (const auto& e : errors) {
-    absl::StrAppend(&err_str, "\n", e);
-  }
-  return err_str;
-}
-
 std::vector<std::string> GetErrors(v8::Isolate* isolate,
                                    v8::TryCatch& try_catch,
-                                   const uint64_t error_code) noexcept {
+                                   std::string_view top_level_error) noexcept {
   std::vector<std::string> errors = {
-      std::string(GetErrorMessage(error_code)),
+      std::string(top_level_error),
   };
   if (try_catch.HasCaught()) {
     if (std::string error_msg;
@@ -111,10 +96,10 @@ std::vector<std::string> GetErrors(v8::Isolate* isolate,
 }
 
 absl::Status GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
-                      const uint64_t error_code) noexcept {
+                      std::string_view top_level_error) noexcept {
   const std::string error_str =
-      BuildErrorString(GetErrors(isolate, try_catch, error_code));
-  LOG(ERROR) << error_str;
+      absl::StrJoin(GetErrors(isolate, try_catch, top_level_error), "\n");
+  LOG(ERROR) << top_level_error;
   return absl::InternalError(error_str);
 }
 
@@ -192,11 +177,7 @@ absl::Status V8JsEngine::CreateSnapshot(v8::StartupData& startup_data,
     // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(context);
     //  Compile and run JavaScript code object.
-    auto execution_result = ExecutionUtils::CompileRunJS(js_code, err_msg);
-    if (!execution_result.Successful()) {
-      return absl::InternalError(GetErrorMessage(execution_result.status_code));
-    }
-
+    PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(js_code, err_msg));
     // Set above context with compiled and run code as the default context for
     // the StartupData blob to create.
     creator.SetDefaultContext(context);
@@ -356,23 +337,21 @@ V8JsEngine::CreateCompilationContext(
     snapshot_context->cache_type = CacheType::kSnapshot;
 
     if (js_with_wasm) {
-      auto wasm_compile_result =
-          CompileWasmCodeArray(isolate_or->isolate(), wasm, err_msg);
-      if (!wasm_compile_result.ok()) {
+      if (auto wasm_compile_result =
+              CompileWasmCodeArray(isolate_or->isolate(), wasm, err_msg);
+          !wasm_compile_result.ok()) {
         LOG(ERROR) << "Compile wasm module failed with " << wasm_compile_result;
         DLOG(ERROR) << "Compile wasm module failed with debug error" << err_msg;
         return wasm_compile_result;
       }
-      auto execution_result = ExecutionUtils::CreateUnboundScript(
-          snapshot_context->unbound_script, isolate_or->isolate(), code,
-          err_msg);
-      if (!execution_result.Successful()) {
-        LOG(ERROR) << "CreateUnboundScript failed with "
-                   << GetErrorMessage(execution_result.status_code);
+      if (auto status = ExecutionUtils::CreateUnboundScript(
+              snapshot_context->unbound_script, isolate_or->isolate(), code,
+              err_msg);
+          !status.ok()) {
+        LOG(ERROR) << "CreateUnboundScript failed with " << status.message();
         DLOG(ERROR) << "CreateUnboundScript failed with debug errors "
                     << err_msg;
-        return absl::InternalError(
-            GetErrorMessage(execution_result.status_code));
+        return status;
       }
       snapshot_context->cache_type = CacheType::kUnboundScript;
     }
@@ -394,15 +373,15 @@ V8JsEngine::CreateCompilationContext(
 
     // TODO(b/298062607): deprecate err_msg, all exceptions should being caught
     // by GetError().
-    auto execution_result = ExecutionUtils::CreateUnboundScript(
-        snapshot_context->unbound_script, isolate_or->isolate(), code, err_msg);
-    if (!execution_result.Successful()) {
-      LOG(ERROR) << "CreateUnboundScript failed with "
-                 << GetErrorMessage(execution_result.status_code);
+    if (auto status = ExecutionUtils::CreateUnboundScript(
+            snapshot_context->unbound_script, isolate_or->isolate(), code,
+            err_msg);
+        !status.ok()) {
+      LOG(ERROR) << "CreateUnboundScript failed with " << status.message();
       // err_msg may contain confidential message which only shows in DEBUG
       // mode.
       DLOG(ERROR) << "CreateUnboundScript failed with debug errors " << err_msg;
-      return absl::InternalError(GetErrorMessage(execution_result.status_code));
+      return status;
     }
 
     snapshot_context->cache_type = CacheType::kUnboundScript;
@@ -472,13 +451,12 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   }
 
   v8::Local<v8::Value> handler;
-  if (const auto result =
+  if (const auto status =
           ExecutionUtils::GetJsHandler(function_name, handler, err_msg);
-      !result.Successful()) {
-    LOG(ERROR) << "GetJsHandler failed with "
-               << GetErrorMessage(result.status_code);
+      !status.ok()) {
+    LOG(ERROR) << "GetJsHandler failed with " << status.message();
     DLOG(ERROR) << "GetJsHandler failed with debug errors " << err_msg;
-    return absl::InternalError(GetErrorMessage(result.status_code));
+    return status;
   }
 
   ExecutionResponse execution_response;
@@ -502,7 +480,7 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     if (argv_array.IsEmpty() || argv_array->Length() != argc) {
       LOG(ERROR) << "Could not parse the inputs";
       return GetError(v8_isolate, try_catch,
-                      SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT);
+                      "Error parsing input as valid JSON.");
     }
     v8::Local<v8::Value> argv[argc];
     for (size_t i = 0; i < argc; ++i) {
@@ -516,14 +494,14 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
              .ToLocal(&result)) {
       LOG(ERROR) << "Handler function calling failed";
       return GetError(v8_isolate, try_catch,
-                      SC_ROMA_V8_ENGINE_ERROR_INVOKING_HANDLER);
+                      "Error when invoking the handler.");
     }
     if (result->IsPromise()) {
       std::string error_msg;
       if (!ExecutionUtils::V8PromiseHandler(v8_isolate, result, error_msg)) {
         DLOG(ERROR) << "V8 Promise execution failed" << error_msg;
         return GetError(v8_isolate, try_catch,
-                        core::errors::SC_ROMA_V8_WORKER_ASYNC_EXECUTION_FAILED);
+                        "The code object async function execution failed.");
       }
     }
     execution_response.metrics[kHandlerCallMetricJsEngineDuration] =
@@ -536,14 +514,14 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
           !result_json_maybe.ToLocal(&result)) {
         LOG(ERROR) << "Failed to convert the V8 JSON result to Local string";
         return GetError(v8_isolate, try_catch,
-                        SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_JSON);
+                        "Error converting output to JSON.");
       }
     }
     if (!TypeConverter<std::string>::FromV8(v8_isolate, result,
                                             &execution_response.response)) {
       LOG(ERROR) << "Failed to convert the V8 Local string to std::string";
       return GetError(v8_isolate, try_catch,
-                      SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);
+                      "Error converting output to JSON.");
     }
   }
   return execution_response;
@@ -607,21 +585,19 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
     v8::TryCatch try_catch(isolate);
 
     std::string errors;
-    if (const auto result = ExecutionUtils::CompileRunWASM(input_code, errors);
-        !result.Successful()) {
-      LOG(ERROR) << errors;
-      return GetError(isolate_wrapper_->isolate(), try_catch,
-                      result.status_code);
+    if (const auto status = ExecutionUtils::CompileRunWASM(input_code, errors);
+        !status.ok()) {
+      LOG(ERROR) << status.message();
+      return status;
     }
 
     if (!function_name.empty()) {
       v8::Local<v8::Value> wasm_handler;
-      if (auto result = ExecutionUtils::GetWasmHandler(function_name,
+      if (auto status = ExecutionUtils::GetWasmHandler(function_name,
                                                        wasm_handler, errors);
-          !result.Successful()) {
-        LOG(ERROR) << errors;
-        return GetError(isolate_wrapper_->isolate(), try_catch,
-                        result.status_code);
+          !status.ok()) {
+        LOG(ERROR) << status.message();
+        return status;
       }
 
       const auto wasm_input_array = ExecutionUtils::ParseAsWasmInput(
@@ -630,7 +606,7 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
       if (wasm_input_array.IsEmpty() ||
           wasm_input_array->Length() != input.size()) {
         return GetError(isolate, try_catch,
-                        SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT);
+                        "Error parsing input as valid JSON.");
       }
 
       auto input_length = wasm_input_array->Length();
@@ -646,7 +622,7 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
                ->Call(context, context->Global(), input_length, wasm_input)
                .ToLocal(&wasm_result)) {
         return GetError(isolate_wrapper_->isolate(), try_catch,
-                        SC_ROMA_V8_ENGINE_ERROR_INVOKING_HANDLER);
+                        "Error when invoking the handler.");
       }
 
       const auto offset = wasm_result.As<v8::Int32>()->Value();
@@ -657,14 +633,14 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
       v8::Local<v8::String> result_json;
       if (!result_json_maybe.ToLocal(&result_json)) {
         return GetError(isolate_wrapper_->isolate(), try_catch,
-                        SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);
+                        "Error converting output to native string.");
       }
 
       if (!TypeConverter<std::string>::FromV8(
               isolate, result_json,
               &execution_response.execution_response.response)) {
         return GetError(isolate, try_catch,
-                        SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING);
+                        "Error converting output to native string.");
       }
     }
   }
@@ -721,12 +697,12 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJsWithWasm(
     return execution_response;
   }
   StartWatchdogTimer(v8_isolate, metadata);
-  const auto execution_result =
+  const auto status_or_response =
       ExecuteJs(curr_comp_ctx, function_name, input, metadata);
   // End execution_watchdog_ in case it terminate the standby isolate.
   StopWatchdogTimer();
-  if (execution_result.ok()) {
-    execution_response.execution_response = execution_result.value();
+  if (status_or_response.ok()) {
+    execution_response.execution_response = status_or_response.value();
     return execution_response;
   }
   // Return timeout error if the watchdog called isolate terminate.
@@ -734,7 +710,7 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJsWithWasm(
     return absl::ResourceExhaustedError(
         "V8 execution terminated due to timeout.");
   }
-  return execution_result.status();
+  return status_or_response.status();
 }
 
 absl::Status V8JsEngine::CreateV8Context(v8::Isolate* isolate,

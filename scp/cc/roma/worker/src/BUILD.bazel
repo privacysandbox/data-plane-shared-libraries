@@ -18,18 +18,20 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_execution_utils_lib",
-    srcs = ["execution_utils.cc"],
+    srcs = [
+        "execution_utils.cc",
+    ],
     hdrs = [
-        "error_codes.h",
         "execution_utils.h",
     ],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
-        "//scp/cc/public/core/interface:execution_result",
         "//scp/cc/roma/config/src:roma_config_lib",
         "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/wasm/src:roma_wasm_lib",
+        "//src/cpp/util/status_macro:status_macros",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@v8//:v8_icu",
     ],

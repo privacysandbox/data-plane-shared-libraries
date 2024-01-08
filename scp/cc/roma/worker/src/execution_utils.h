@@ -24,6 +24,7 @@
 #include <string_view>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "include/v8.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/roma/config/src/type_converter.h"
@@ -31,8 +32,6 @@
 #include "scp/cc/roma/wasm/src/deserializer.h"
 #include "scp/cc/roma/wasm/src/serializer.h"
 #include "scp/cc/roma/wasm/src/wasm_types.h"
-
-#include "error_codes.h"
 
 namespace google::scp::roma::worker {
 
@@ -45,9 +44,9 @@ class ExecutionUtils {
    * @param err_msg
    * @param[out] unbound_script this is optional output. If unbound_script is
    * provided, a local UnboundScript will be assigned to unbound_script.
-   * @return core::ExecutionResult
+   * @return absl::Status
    */
-  static core::ExecutionResult CompileRunJS(
+  static absl::Status CompileRunJS(
       std::string_view js, std::string& err_msg,
       v8::Local<v8::UnboundScript>* unbound_script = nullptr) noexcept;
 
@@ -57,22 +56,22 @@ class ExecutionUtils {
    * @param handler_name the name of the handler.
    * @param handler the handler of the code object.
    * @param err_msg the error message to output.
-   * @return core::ExecutionResult
+   * @return absl::Status
    */
-  static core::ExecutionResult GetJsHandler(std::string_view handler_name,
-                                            v8::Local<v8::Value>& handler,
-                                            std::string& err_msg) noexcept;
+  static absl::Status GetJsHandler(std::string_view handler_name,
+                                   v8::Local<v8::Value>& handler,
+                                   std::string& err_msg) noexcept;
 
   /**
    * @brief Compiles and runs WASM code object.
    *
    * @param wasm the byte object of WASM code.
    * @param err_msg the error message to output.
-   * @return core::ExecutionResult the execution result of JavaScript code
+   * @return absl::Status the execution result of JavaScript code
    * object compile and run.
    */
-  static core::ExecutionResult CompileRunWASM(std::string_view wasm,
-                                              std::string& err_msg) noexcept;
+  static absl::Status CompileRunWASM(std::string_view wasm,
+                                     std::string& err_msg) noexcept;
 
   /**
    * @brief Get handler from WASM export object.
@@ -80,11 +79,11 @@ class ExecutionUtils {
    * @param handler_name the name of the handler.
    * @param handler the handler of the code object.
    * @param err_msg the error message to output.
-   * @return core::ExecutionResult
+   * @return absl::Status
    */
-  static core::ExecutionResult GetWasmHandler(std::string_view handler_name,
-                                              v8::Local<v8::Value>& handler,
-                                              std::string& err_msg) noexcept;
+  static absl::Status GetWasmHandler(std::string_view handler_name,
+                                     v8::Local<v8::Value>& handler,
+                                     std::string& err_msg) noexcept;
 
   /**
    * @brief Converts string vector to v8 Array.
@@ -164,9 +163,9 @@ class ExecutionUtils {
    *
    * @param js
    * @param err_msg
-   * @return core::ExecutionResult
+   * @return absl::Status
    */
-  static core::ExecutionResult CreateUnboundScript(
+  static absl::Status CreateUnboundScript(
       v8::Global<v8::UnboundScript>& unbound_script, v8::Isolate* isolate,
       std::string_view js, std::string& err_msg) noexcept;
 

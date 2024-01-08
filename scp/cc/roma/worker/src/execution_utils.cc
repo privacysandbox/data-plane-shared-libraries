@@ -24,17 +24,8 @@
 #include <vector>
 
 #include "absl/strings/str_split.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/cpp/util/status_macro/status_macros.h"
 
-#include "error_codes.h"
-
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::StatusCode;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::errors::SC_ROMA_V8_WORKER_BAD_HANDLER_NAME;
-using google::scp::core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE;
-using google::scp::core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE;
 using google::scp::roma::wasm::RomaWasmListOfStringRepresentation;
 using google::scp::roma::wasm::RomaWasmStringRepresentation;
 using google::scp::roma::wasm::WasmDeserializer;
@@ -54,29 +45,28 @@ static constexpr std::string_view kInstanceTag = "Instance";
 static constexpr std::string_view kRegisteredWasmExports =
     "RomaRegisteredWasmExports";
 
-ExecutionResult RunJs(v8::Isolate* isolate, std::string_view js_code) {
+absl::Status RunJs(v8::Isolate* isolate, std::string_view js_code) {
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
   auto src = v8::String::NewFromUtf8(isolate, js_code.data(),
                                      v8::NewStringType::kNormal, js_code.size())
                  .ToLocalChecked();
   v8::Local<v8::Script> script;
   if (!v8::Script::Compile(context, src).ToLocal(&script)) {
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE);
+    return absl::InvalidArgumentError(
+        "Failed to compile JavaScript code object.");
   }
   v8::Local<v8::Value> script_result;
   if (!script->Run(context).ToLocal(&script_result)) {
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE);
+    return absl::InvalidArgumentError("Failed to run JavaScript code object.");
   }
-  return core::SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 constexpr std::string_view kPerformanceNowJs =
     "const performance = { now: () => Date.now() };";
 }  // namespace
 
-ExecutionResult ExecutionUtils::CompileRunJS(
+absl::Status ExecutionUtils::CompileRunJS(
     std::string_view js, std::string& err_msg,
     v8::Local<v8::UnboundScript>* unbound_script) noexcept {
   auto isolate = v8::Isolate::GetCurrent();
@@ -84,7 +74,7 @@ ExecutionResult ExecutionUtils::CompileRunJS(
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
   for (auto src : {kPerformanceNowJs}) {
-    if (auto result = RunJs(isolate, src); !result.Successful()) {
+    if (auto result = RunJs(isolate, src); !result.ok()) {
       err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
       return result;
     }
@@ -97,8 +87,8 @@ ExecutionResult ExecutionUtils::CompileRunJS(
   v8::Local<v8::Script> script;
   if (!v8::Script::Compile(context, js_source).ToLocal(&script)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE);
+    return absl::InvalidArgumentError(
+        "Failed to compile JavaScript code object.");
   }
 
   if (unbound_script) {
@@ -108,19 +98,17 @@ ExecutionResult ExecutionUtils::CompileRunJS(
   v8::Local<v8::Value> script_result;
   if (!script->Run(context).ToLocal(&script_result)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE);
+    return absl::InvalidArgumentError("Failed to run JavaScript code object.");
   }
 
-  return core::SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult ExecutionUtils::GetJsHandler(std::string_view handler_name,
-                                             v8::Local<v8::Value>& handler,
-                                             std::string& err_msg) noexcept {
+absl::Status ExecutionUtils::GetJsHandler(std::string_view handler_name,
+                                          v8::Local<v8::Value>& handler,
+                                          std::string& err_msg) noexcept {
   if (handler_name.empty()) {
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_BAD_HANDLER_NAME);
+    return absl::InvalidArgumentError("Handler name cannot be empty");
   }
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
@@ -136,21 +124,20 @@ ExecutionResult ExecutionUtils::GetJsHandler(std::string_view handler_name,
     // bail out
     if (!ctx->Get(context, local_name).ToLocal(&handler)) {
       err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-      return core::FailureExecutionResult(
-          core::errors::SC_ROMA_V8_WORKER_HANDLER_INVALID_FUNCTION);
+      return absl::InvalidArgumentError("Invalid handler function");
     }
     (void)handler->ToObject(context).ToLocal(&ctx);
   }
   if (!handler->IsFunction()) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_HANDLER_INVALID_FUNCTION);
+    return absl::NotFoundError("Failed to get valid function handler.");
   }
-  return core::SuccessExecutionResult();
+
+  return absl::OkStatus();
 }
 
-ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
-                                               std::string& err_msg) noexcept {
+absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
+                                            std::string& err_msg) noexcept {
   auto isolate = v8::Isolate::GetCurrent();
   v8::HandleScope handle_scope(isolate);
   v8::TryCatch try_catch(isolate);
@@ -163,8 +150,7 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
   v8::Local<v8::WasmModuleObject> wasm_module;
   if (!module_maybe.ToLocal(&wasm_module)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE);
+    return absl::InvalidArgumentError("Failed to compile wasm object.");
   }
 
   v8::Local<v8::Value> web_assembly;
@@ -176,8 +162,7 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
                      .ToLocalChecked())
            .ToLocal(&web_assembly)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_WASM_OBJECT_CREATION_FAILURE);
+    return absl::InternalError("Failed to create wasm assembly.");
   }
 
   v8::Local<v8::Value> wasm_instance;
@@ -188,8 +173,7 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
                               .ToLocalChecked())
            .ToLocal(&wasm_instance)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_WASM_OBJECT_CREATION_FAILURE);
+    return absl::InternalError("Failed to create wasm instance.");
   }
 
   auto wasm_imports = ExecutionUtils::GenerateWasmImports(isolate);
@@ -200,8 +184,7 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
            ->CallAsConstructor(context, 2, instance_args)
            .ToLocal(&wasm_construct)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_WASM_OBJECT_CREATION_FAILURE);
+    return absl::InternalError("Failed to create wasm construct.");
   }
 
   v8::Local<v8::Value> wasm_exports;
@@ -212,8 +195,7 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
                               .ToLocalChecked())
            .ToLocal(&wasm_exports)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_WASM_OBJECT_CREATION_FAILURE);
+    return absl::InternalError("Failed to create wasm exports.");
   }
 
   // Register wasm_exports object in context.
@@ -226,16 +208,15 @@ ExecutionResult ExecutionUtils::CompileRunWASM(std::string_view wasm,
                  wasm_exports)
            .ToChecked()) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_WASM_OBJECT_CREATION_FAILURE);
+    return absl::InternalError("Failed to register wasm objects in context.");
   }
 
-  return core::SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult ExecutionUtils::GetWasmHandler(std::string_view handler_name,
-                                               v8::Local<v8::Value>& handler,
-                                               std::string& err_msg) noexcept {
+absl::Status ExecutionUtils::GetWasmHandler(std::string_view handler_name,
+                                            v8::Local<v8::Value>& handler,
+                                            std::string& err_msg) noexcept {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
@@ -250,8 +231,7 @@ ExecutionResult ExecutionUtils::GetWasmHandler(std::string_view handler_name,
                      .ToLocalChecked())
            .ToLocal(&wasm_exports)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_WASM_OBJECT_RETRIEVAL_FAILURE);
+    return absl::NotFoundError("Failed to retrieve wasm exports.");
   }
 
   // Fetch out the handler name from code object.
@@ -266,14 +246,13 @@ ExecutionResult ExecutionUtils::GetWasmHandler(std::string_view handler_name,
            .ToLocal(&handler) ||
       !handler->IsFunction()) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_HANDLER_INVALID_FUNCTION);
+    return absl::InvalidArgumentError("Failed to get valid function handler.");
   }
 
-  return core::SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult ExecutionUtils::CreateUnboundScript(
+absl::Status ExecutionUtils::CreateUnboundScript(
     v8::Global<v8::UnboundScript>& unbound_script, v8::Isolate* isolate,
     std::string_view js, std::string& err_msg) noexcept {
   v8::Isolate::Scope isolate_scope(isolate);
@@ -283,14 +262,13 @@ ExecutionResult ExecutionUtils::CreateUnboundScript(
   v8::Context::Scope context_scope(context);
 
   v8::Local<v8::UnboundScript> local_unbound_script;
-  auto execution_result =
-      ExecutionUtils::CompileRunJS(js, err_msg, &local_unbound_script);
-  RETURN_IF_FAILURE(execution_result);
+  PS_RETURN_IF_ERROR(
+      ExecutionUtils::CompileRunJS(js, err_msg, &local_unbound_script));
 
   // Store unbound_script_ in a Global handle in isolate.
   unbound_script.Reset(isolate, local_unbound_script);
 
-  return core::SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 bool ExecutionUtils::BindUnboundScript(
