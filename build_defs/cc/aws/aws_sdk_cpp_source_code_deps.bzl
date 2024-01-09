@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
@@ -42,17 +43,11 @@ def import_aws_sdk_cpp():
     )
 
     maybe(
-        http_archive,
+        git_repository,
         name = "aws_sdk_cpp",
         build_file = Label("//build_defs/cc/aws:aws_sdk_cpp_source_code.BUILD"),
-        patch_cmds = [
-            """sed -i.bak 's/UUID::RandomUUID/Aws::Utils::UUID::RandomUUID/g' aws-cpp-sdk-core/source/client/AWSClient.cpp""",
-            # Apply fix in https://github.com/aws/aws-sdk-cpp/commit/9669a1c1d9a96621cd0846679cbe973c648a64b3
-            """sed -i.bak 's/Tags\\.entry/Tag/g' aws-cpp-sdk-sqs/source/model/TagQueueRequest.cpp""",
-        ],
-        sha256 = "749322a8be4594472512df8a21d9338d7181c643a00e08a0ff12f07e831e3346",
-        strip_prefix = "aws-sdk-cpp-1.8.186",
-        urls = [
-            "https://github.com/aws/aws-sdk-cpp/archive/1.8.186.tar.gz",
-        ],
+        # 1.11.239 01-06-2024
+        commit = "eea1bbc05c5ca52a0779c3008eea2aa2ab237c17",
+        remote = "https://github.com/aws/aws-sdk-cpp.git",
+        recursive_init_submodules = True,
     )

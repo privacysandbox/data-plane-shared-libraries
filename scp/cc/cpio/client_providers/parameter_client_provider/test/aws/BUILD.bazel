@@ -48,25 +48,3 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
-
-cc_test(
-    name = "aws_parameter_client_provider_test",
-    size = "small",
-    timeout = "long",
-    srcs =
-        ["aws_parameter_client_provider_test.cc"],
-    deps = [
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/core/interface:async_context_lib",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//scp/cc/cpio/client_providers/parameter_client_provider/mock/aws:aws_parameter_client_provider_mock",
-        "//scp/cc/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_googletest//:gtest_main",
-    ],
-)

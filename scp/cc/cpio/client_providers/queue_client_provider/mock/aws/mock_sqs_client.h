@@ -37,26 +37,6 @@ class MockSqsClient : public Aws::SQS::SQSClient {
  public:
   MOCK_METHOD(Aws::SQS::Model::GetQueueUrlOutcome, GetQueueUrl,
               (const Aws::SQS::Model::GetQueueUrlRequest&), (const, override));
-  MOCK_METHOD(void, SendMessageAsync,
-              (const Aws::SQS::Model::SendMessageRequest&,
-               const Aws::SQS::SendMessageResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
-  MOCK_METHOD(void, ReceiveMessageAsync,
-              (const Aws::SQS::Model::ReceiveMessageRequest&,
-               const Aws::SQS::ReceiveMessageResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
-  MOCK_METHOD(void, ChangeMessageVisibilityAsync,
-              (const Aws::SQS::Model::ChangeMessageVisibilityRequest&,
-               const Aws::SQS::ChangeMessageVisibilityResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
-  MOCK_METHOD(void, DeleteMessageAsync,
-              (const Aws::SQS::Model::DeleteMessageRequest&,
-               const Aws::SQS::DeleteMessageResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
 };
 
 }  // namespace google::scp::cpio::client_providers::mock

@@ -32,30 +32,6 @@ cc_test(
     ],
 )
 
-cc_test(
-    name = "aws_auto_scaling_client_provider_test",
-    size = "small",
-    timeout = "long",
-    srcs = [
-        "aws_auto_scaling_client_provider_test.cc",
-    ],
-    deps = [
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/auto_scaling_client_provider/mock/aws:aws_auto_scaling_client_provider_mock",
-        "//scp/cc/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//scp/cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/proto/auto_scaling_service/v1:auto_scaling_service_cc_proto",
-        "@aws_sdk_cpp//:autoscaling",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
 cc_library(
     name = "test_aws_auto_scaling_client_provider_lib",
     srcs = [

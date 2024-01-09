@@ -22,9 +22,7 @@
 #include <vector>
 
 #include <aws/s3/S3Client.h>
-#include <aws/s3/model/DeleteObjectRequest.h>
 #include <aws/s3/model/GetObjectRequest.h>
-#include <aws/s3/model/ListObjectsRequest.h>
 #include <aws/s3/model/Object.h>
 #include <aws/s3/model/PutObjectRequest.h>
 
@@ -40,31 +38,19 @@ using Aws::InitAPI;
 using Aws::SDKOptions;
 using Aws::ShutdownAPI;
 using Aws::StringStream;
-using Aws::Vector;
 using Aws::Client::AWSError;
 using Aws::Client::ClientConfiguration;
 using Aws::S3::S3Errors;
-using Aws::S3::Model::DeleteObjectOutcome;
-using Aws::S3::Model::DeleteObjectRequest;
-using Aws::S3::Model::DeleteObjectResult;
 using Aws::S3::Model::GetObjectOutcome;
 using Aws::S3::Model::GetObjectRequest;
 using Aws::S3::Model::GetObjectResult;
-using Aws::S3::Model::ListObjectsOutcome;
-using Aws::S3::Model::ListObjectsRequest;
-using Aws::S3::Model::ListObjectsResult;
 using Aws::S3::Model::Object;
 using Aws::S3::Model::PutObjectOutcome;
 using Aws::S3::Model::PutObjectRequest;
 using Aws::S3::Model::PutObjectResult;
 using google::cmrt::sdk::blob_storage_service::v1::Blob;
-using google::cmrt::sdk::blob_storage_service::v1::BlobMetadata;
-using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest;
-using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobResponse;
 using google::cmrt::sdk::blob_storage_service::v1::GetBlobRequest;
 using google::cmrt::sdk::blob_storage_service::v1::GetBlobResponse;
-using google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataRequest;
-using google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataResponse;
 using google::cmrt::sdk::blob_storage_service::v1::PutBlobRequest;
 using google::cmrt::sdk::blob_storage_service::v1::PutBlobResponse;
 using google::scp::core::AsyncContext;
@@ -72,12 +58,10 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::errors::SC_AWS_INTERNAL_SERVICE_ERROR;
-using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
 using ::testing::_;
-using ::testing::ElementsAre;
 using ::testing::Eq;
 using ::testing::ExplainMatchResult;
 using ::testing::NiceMock;
@@ -120,21 +104,8 @@ class AwsBlobStorageClientProviderTest : public ::testing::Test {
       finish_called_ = true;
     };
 
-    list_blobs_metadata_context_.request =
-        std::make_shared<ListBlobsMetadataRequest>();
-    list_blobs_metadata_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
-      finish_called_ = true;
-    };
-
     put_blob_context_.request = std::make_shared<PutBlobRequest>();
     put_blob_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
-      finish_called_ = true;
-    };
-
-    delete_blob_context_.request = std::make_shared<DeleteBlobRequest>();
-    delete_blob_context_.callback = [this](auto) {
       absl::MutexLock l(&finish_called_mu_);
       finish_called_ = true;
     };
@@ -152,12 +123,8 @@ class AwsBlobStorageClientProviderTest : public ::testing::Test {
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context_;
 
-  AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>
-      list_blobs_metadata_context_;
-
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context_;
 
-  AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context_;
   // We check that this gets flipped after every call to ensure the context's
   // Finish() is called.
   absl::Mutex finish_called_mu_;
@@ -305,145 +272,6 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobWithByteRange) {
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
-MATCHER_P3(HasBucketPrefixAndMarker, bucket, prefix, marker, "") {
-  return ExplainMatchResult(Eq(bucket), arg.GetBucket(), result_listener) &&
-         ExplainMatchResult(Eq(prefix), arg.GetPrefix(), result_listener) &&
-         ExplainMatchResult(Eq(marker), arg.GetMarker(), result_listener);
-}
-
-TEST_F(AwsBlobStorageClientProviderTest, ListBlobsWithPrefix) {
-  std::string_view bucket_name = "bucket_name";
-  std::string_view blob_name = "blob_name";
-
-  list_blobs_metadata_context_.request->mutable_blob_metadata()
-      ->set_bucket_name(bucket_name);
-  list_blobs_metadata_context_.request->mutable_blob_metadata()->set_blob_name(
-      blob_name);
-
-  EXPECT_CALL(*s3_client_,
-              ListObjectsAsync(
-                  HasBucketPrefixAndMarker(bucket_name, blob_name, ""), _, _));
-
-  EXPECT_THAT(provider_.ListBlobsMetadata(list_blobs_metadata_context_),
-              IsSuccessful());
-}
-
-TEST_F(AwsBlobStorageClientProviderTest, ListBlobsWithMarker) {
-  std::string_view bucket_name = "bucket_name";
-  std::string_view blob_name = "blob_name";
-  std::string_view marker = "marker";
-
-  list_blobs_metadata_context_.request->mutable_blob_metadata()
-      ->set_bucket_name(bucket_name);
-  list_blobs_metadata_context_.request->mutable_blob_metadata()->set_blob_name(
-      blob_name);
-  list_blobs_metadata_context_.request->set_page_token(marker);
-
-  EXPECT_CALL(*s3_client_, ListObjectsAsync(HasBucketPrefixAndMarker(
-                                                bucket_name, blob_name, marker),
-                                            _, _));
-
-  EXPECT_THAT(provider_.ListBlobsMetadata(list_blobs_metadata_context_),
-              IsSuccessful());
-}
-
-MATCHER_P2(HasBucketAndMaxKeys, bucket, max_keys, "") {
-  return ExplainMatchResult(Eq(bucket), arg.GetBucket(), result_listener) &&
-         ExplainMatchResult(Eq(max_keys), arg.GetMaxKeys(), result_listener);
-}
-
-TEST_F(AwsBlobStorageClientProviderTest, ListBlobsWithMaxPageSize) {
-  std::string_view bucket_name = "bucket_name";
-  int page_size = 500;
-
-  list_blobs_metadata_context_.request->mutable_blob_metadata()
-      ->set_bucket_name(bucket_name);
-  list_blobs_metadata_context_.request->set_max_page_size(page_size);
-
-  EXPECT_CALL(
-      *s3_client_,
-      ListObjectsAsync(HasBucketAndMaxKeys(bucket_name, page_size), _, _));
-
-  EXPECT_THAT(provider_.ListBlobsMetadata(list_blobs_metadata_context_),
-              IsSuccessful());
-}
-
-TEST_F(AwsBlobStorageClientProviderTest, ListBlobsFailure) {
-  std::string_view bucket_name = "bucket_name";
-  list_blobs_metadata_context_.request->mutable_blob_metadata()
-      ->set_bucket_name(bucket_name);
-  list_blobs_metadata_context_.callback =
-      [this](AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>&
-                 list_blobs_metadata_context) {
-        EXPECT_THAT(
-            list_blobs_metadata_context.result,
-            ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
-        absl::MutexLock l(&finish_called_mu_);
-        finish_called_ = true;
-      };
-
-  EXPECT_CALL(
-      *s3_client_,
-      ListObjectsAsync(HasBucketPrefixAndMarker(bucket_name, "", ""), _, _))
-      .WillOnce([](auto, auto callback, auto) {
-        ListObjectsRequest list_objects_request;
-        AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
-        ListObjectsOutcome list_objects_outcome(s3_error);
-        callback(nullptr /*s3_client*/, list_objects_request,
-                 std::move(list_objects_outcome), nullptr /*async_context*/);
-      });
-
-  EXPECT_THAT(provider_.ListBlobsMetadata(list_blobs_metadata_context_),
-              IsSuccessful());
-
-  absl::MutexLock l(&finish_called_mu_);
-  finish_called_mu_.Await(absl::Condition(&finish_called_));
-}
-
-MATCHER_P2(BlobHasBucketAndName, bucket_name, blob_name, "") {
-  return ExplainMatchResult(Eq(bucket_name), arg.bucket_name(),
-                            result_listener) &&
-         ExplainMatchResult(Eq(blob_name), arg.blob_name(), result_listener);
-}
-
-TEST_F(AwsBlobStorageClientProviderTest, ListBlobsSuccess) {
-  std::string_view bucket_name = "bucket_name";
-  list_blobs_metadata_context_.request->mutable_blob_metadata()
-      ->set_bucket_name(bucket_name);
-  list_blobs_metadata_context_.callback =
-      [this, &bucket_name](
-          AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>&
-              list_blobs_metadata_context) {
-        ASSERT_SUCCESS(list_blobs_metadata_context.result);
-        EXPECT_THAT(list_blobs_metadata_context.response->blob_metadatas(),
-                    ElementsAre(BlobHasBucketAndName(bucket_name, "object_1"),
-                                BlobHasBucketAndName(bucket_name, "object_2")));
-        absl::MutexLock l(&finish_called_mu_);
-        finish_called_ = true;
-      };
-
-  EXPECT_CALL(
-      *s3_client_,
-      ListObjectsAsync(HasBucketPrefixAndMarker(bucket_name, "", ""), _, _))
-      .WillOnce([](auto, auto callback, auto) {
-        ListObjectsRequest list_objects_request;
-        ListObjectsResult result;
-        Object object1, object2;
-        object1.SetKey("object_1");
-        object2.SetKey("object_2");
-        result.AddContents(std::move(object1)).AddContents(std::move(object2));
-        ListObjectsOutcome list_objects_outcome(std::move(result));
-        callback(nullptr /*s3_client*/, list_objects_request,
-                 std::move(list_objects_outcome), nullptr /*async_context*/);
-      });
-
-  EXPECT_THAT(provider_.ListBlobsMetadata(list_blobs_metadata_context_),
-              IsSuccessful());
-
-  absl::MutexLock l(&finish_called_mu_);
-  finish_called_mu_.Await(absl::Condition(&finish_called_));
-}
-
 MATCHER_P3(HasBucketKeyAndBody, bucket_name, key, body, "") {
   std::string body_string(body.length(), 0);
   arg.GetBody()->read(body_string.data(), body_string.length());
@@ -521,72 +349,6 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobSuccess) {
       });
 
   EXPECT_SUCCESS(provider_.PutBlob(put_blob_context_));
-
-  absl::MutexLock l(&finish_called_mu_);
-  finish_called_mu_.Await(absl::Condition(&finish_called_));
-}
-
-TEST_F(AwsBlobStorageClientProviderTest, DeleteBlobFailure) {
-  std::string_view bucket_name = "bucket_name";
-  std::string_view blob_name = "blob_name";
-
-  delete_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
-      bucket_name);
-  delete_blob_context_.request->mutable_blob_metadata()->set_blob_name(
-      blob_name);
-  delete_blob_context_.callback =
-      [this](AsyncContext<DeleteBlobRequest, DeleteBlobResponse>&
-                 delete_blob_context) {
-        EXPECT_THAT(
-            delete_blob_context.result,
-            ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
-        absl::MutexLock l(&finish_called_mu_);
-        finish_called_ = true;
-      };
-
-  EXPECT_CALL(*s3_client_,
-              DeleteObjectAsync(HasBucketAndKey(bucket_name, blob_name), _, _))
-      .WillOnce([](auto, auto callback, auto) {
-        DeleteObjectRequest delete_object_request;
-        AWSError<S3Errors> s3_error(S3Errors::ACCESS_DENIED, false);
-        DeleteObjectOutcome delete_object_outcome(s3_error);
-        callback(nullptr /*s3_client*/, delete_object_request,
-                 std::move(delete_object_outcome), nullptr /*async_context*/);
-      });
-
-  EXPECT_SUCCESS(provider_.DeleteBlob(delete_blob_context_));
-
-  absl::MutexLock l(&finish_called_mu_);
-  finish_called_mu_.Await(absl::Condition(&finish_called_));
-}
-
-TEST_F(AwsBlobStorageClientProviderTest, DeleteBlobSuccess) {
-  std::string_view bucket_name = "bucket_name";
-  std::string_view blob_name = "blob_name";
-
-  delete_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
-      bucket_name);
-  delete_blob_context_.request->mutable_blob_metadata()->set_blob_name(
-      blob_name);
-  delete_blob_context_.callback =
-      [this](AsyncContext<DeleteBlobRequest, DeleteBlobResponse>&
-                 delete_blob_context) {
-        EXPECT_SUCCESS(delete_blob_context.result);
-        absl::MutexLock l(&finish_called_mu_);
-        finish_called_ = true;
-      };
-
-  EXPECT_CALL(*s3_client_,
-              DeleteObjectAsync(HasBucketAndKey(bucket_name, blob_name), _, _))
-      .WillOnce([](auto, auto callback, auto) {
-        DeleteObjectRequest delete_object_request;
-        DeleteObjectResult result;
-        DeleteObjectOutcome delete_object_outcome(std::move(result));
-        callback(nullptr /*s3_client*/, delete_object_request,
-                 std::move(delete_object_outcome), nullptr /*async_context*/);
-      });
-
-  EXPECT_SUCCESS(provider_.DeleteBlob(delete_blob_context_));
 
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));

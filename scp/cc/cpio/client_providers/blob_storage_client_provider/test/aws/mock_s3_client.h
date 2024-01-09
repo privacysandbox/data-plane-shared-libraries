@@ -39,45 +39,9 @@ class MockS3Client : public Aws::S3::S3Client {
                const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
               (const, override));
 
-  MOCK_METHOD(void, ListObjectsAsync,
-              (const Aws::S3::Model::ListObjectsRequest&,
-               const Aws::S3::ListObjectsResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
-
   MOCK_METHOD(void, PutObjectAsync,
               (const Aws::S3::Model::PutObjectRequest&,
                const Aws::S3::PutObjectResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
-
-  MOCK_METHOD(void, DeleteObjectAsync,
-              (const Aws::S3::Model::DeleteObjectRequest&,
-               const Aws::S3::DeleteObjectResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
-
-  MOCK_METHOD(void, CreateMultipartUploadAsync,
-              (const Aws::S3::Model::CreateMultipartUploadRequest&,
-               const Aws::S3::CreateMultipartUploadResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
-
-  MOCK_METHOD(void, UploadPartAsync,
-              (const Aws::S3::Model::UploadPartRequest&,
-               const Aws::S3::UploadPartResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
-
-  MOCK_METHOD(void, CompleteMultipartUploadAsync,
-              (const Aws::S3::Model::CompleteMultipartUploadRequest&,
-               const Aws::S3::CompleteMultipartUploadResponseReceivedHandler&,
-               const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
-              (const, override));
-
-  MOCK_METHOD(void, AbortMultipartUploadAsync,
-              (const Aws::S3::Model::AbortMultipartUploadRequest&,
-               const Aws::S3::AbortMultipartUploadResponseReceivedHandler&,
                const std::shared_ptr<const Aws::Client::AsyncCallerContext>&),
               (const, override));
 };

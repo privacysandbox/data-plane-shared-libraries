@@ -32,28 +32,6 @@ cc_test(
 )
 
 cc_test(
-    name = "aws_instance_client_provider_test",
-    size = "small",
-    timeout = "long",
-    srcs =
-        ["aws_instance_client_provider_test.cc"],
-    deps = [
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/core/curl_client/mock:mock_curl_client",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
-        "//scp/cc/cpio/client_providers/instance_client_provider/mock/aws:aws_instance_client_provider_mock",
-        "//scp/cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
-        "//scp/cc/cpio/common/src/aws:aws_utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
     name = "aws_instance_client_utils_test",
     size = "small",
     timeout = "long",

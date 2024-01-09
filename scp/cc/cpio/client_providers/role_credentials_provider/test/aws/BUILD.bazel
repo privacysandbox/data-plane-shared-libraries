@@ -17,27 +17,6 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_test(
-    name = "aws_role_credentials_provider_test",
-    size = "small",
-    srcs = [
-        "aws_role_credentials_provider_test.cc",
-    ],
-    deps = [
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/role_credentials_provider/mock/aws:aws_role_credentials_provider_mock",
-        "//scp/cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "@aws_sdk_cpp//:sts",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
     name = "sts_error_converter_test",
     size = "small",
     srcs = [

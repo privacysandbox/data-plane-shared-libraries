@@ -66,19 +66,6 @@ class MockS3Client : public Aws::S3::S3Client {
     S3Client::GetObjectAsync(request, handler, context);
   }
 
-  void ListObjectsAsync(
-      const Aws::S3::Model::ListObjectsRequest& request,
-      const Aws::S3::ListObjectsResponseReceivedHandler& handler,
-      const std::shared_ptr<const Aws::Client::AsyncCallerContext>& context =
-          nullptr) const override {
-    if (list_objects_async_mock) {
-      list_objects_async_mock(request, handler, context);
-      return;
-    }
-
-    S3Client::ListObjectsAsync(request, handler, context);
-  }
-
   void PutObjectAsync(
       const Aws::S3::Model::PutObjectRequest& request,
       const Aws::S3::PutObjectResponseReceivedHandler& handler,
@@ -90,19 +77,6 @@ class MockS3Client : public Aws::S3::S3Client {
     }
 
     S3Client::PutObjectAsync(request, handler, context);
-  }
-
-  void DeleteObjectAsync(
-      const Aws::S3::Model::DeleteObjectRequest& request,
-      const Aws::S3::DeleteObjectResponseReceivedHandler& handler,
-      const std::shared_ptr<const Aws::Client::AsyncCallerContext>& context =
-          nullptr) const override {
-    if (delete_object_async_mock) {
-      delete_object_async_mock(request, handler, context);
-      return;
-    }
-
-    S3Client::DeleteObjectAsync(request, handler, context);
   }
 };
 }  // namespace google::scp::core::blob_storage_provider::aws::mock

@@ -34,7 +34,7 @@ cc_test(
 cc_test(
     name = "aws_queue_client_provider_test",
     size = "small",
-    timeout = "long",
+    timeout = "short",
     srcs = [
         "aws_queue_client_provider_test.cc",
     ],
