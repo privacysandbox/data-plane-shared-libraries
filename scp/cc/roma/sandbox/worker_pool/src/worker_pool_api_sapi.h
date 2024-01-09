@@ -20,12 +20,12 @@
 #include <memory>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "core/interface/service_interface.h"
-#include "public/core/interface/execution_result.h"
 #include "roma/sandbox/worker_api/src/worker_api.h"
 #include "roma/sandbox/worker_api/src/worker_api_sapi.h"
 
-#include "error_codes.h"
 #include "worker_pool.h"
 
 namespace google::scp::roma::sandbox::worker_pool {
@@ -41,16 +41,15 @@ class WorkerPoolApiSapi : public WorkerPool {
   WorkerPoolApiSapi(
       const std::vector<worker_api::WorkerApiSapiConfig>& configs);
 
-  core::ExecutionResult Init() noexcept;
+  absl::Status Init() override;
 
-  core::ExecutionResult Run() noexcept;
+  absl::Status Run() override;
 
-  core::ExecutionResult Stop() noexcept;
+  absl::Status Stop() override;
 
-  size_t GetPoolSize() noexcept override;
+  size_t GetPoolSize() override;
 
-  core::ExecutionResultOr<worker_api::WorkerApi*> GetWorker(
-      size_t index) noexcept override;
+  absl::StatusOr<worker_api::WorkerApi*> GetWorker(size_t index) override;
 
  protected:
   std::vector<std::unique_ptr<worker_api::WorkerApi>> workers_;

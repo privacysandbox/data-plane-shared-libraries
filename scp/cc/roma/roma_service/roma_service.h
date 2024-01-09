@@ -220,11 +220,8 @@ class RomaService {
           absl::StrCat("RunInternal failed due to internal error: ",
                        GetErrorMessage(execution_result.status_code)));
     }
-    if (auto execution_result = worker_pool_->Run();
-        !execution_result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("RunInternal failed due to internal error: ",
-                       GetErrorMessage(execution_result.status_code)));
+    if (auto status = worker_pool_->Run(); !status.ok()) {
+      return status;
     }
     return absl::OkStatus();
   }
@@ -240,11 +237,8 @@ class RomaService {
     }
     native_function_binding_table_.Clear();
     if (worker_pool_) {
-      if (auto execution_result = worker_pool_->Stop();
-          !execution_result.Successful()) {
-        return absl::InternalError(
-            absl::StrCat("RunInternal failed due to internal error: ",
-                         GetErrorMessage(execution_result.status_code)));
+      if (auto status = worker_pool_->Stop(); !status.ok()) {
+        return status;
       }
     }
     if (async_executor_) {
@@ -371,14 +365,7 @@ class RomaService {
       worker_configs.push_back(worker_api_sapi_config);
     }
     worker_pool_ = std::make_unique<WorkerPoolApiSapi>(worker_configs);
-    auto execution_result = worker_pool_->Init();
-    if (execution_result.Successful()) {
-      return absl::OkStatus();
-    } else {
-      return absl::InternalError(
-          absl::StrCat("Roma initialization failed due to internal error: ",
-                       GetErrorMessage(execution_result.status_code)));
-    }
+    return worker_pool_->Init();
   }
 
   template <typename RequestT>

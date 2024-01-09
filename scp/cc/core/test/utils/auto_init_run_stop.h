@@ -30,4 +30,19 @@ struct AutoInitRunStop {
 
   Service& service_;
 };
+
+// Variant of AutoInitRunStop that works with absl::Status instead of
+// ExecutionResult.
+template <typename Service>
+struct AutoInitRunStopStatus {
+  explicit AutoInitRunStopStatus(Service& service) : service_(service) {
+    EXPECT_TRUE(service_.Init().ok());
+    EXPECT_TRUE(service_.Run().ok());
+  }
+
+  ~AutoInitRunStopStatus() { EXPECT_TRUE(service_.Stop().ok()); }
+
+  Service& service_;
+};
+
 }  // namespace google::scp::core::test

@@ -20,15 +20,10 @@
 
 #include "absl/log/check.h"
 
-#include "error_codes.h"
-
-using google::scp::core::ExecutionResult;
-using google::scp::core::ExecutionResultOr;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::errors::SC_ROMA_WORKER_POOL_WORKER_INDEX_OUT_OF_BOUNDS;
-
 namespace google::scp::roma::sandbox::worker_pool {
+
+using core::errors::GetErrorMessage;
+
 WorkerPoolApiSapi::WorkerPoolApiSapi(
     const std::vector<worker_api::WorkerApiSapiConfig>& configs) {
   for (auto config : configs) {
@@ -36,48 +31,54 @@ WorkerPoolApiSapi::WorkerPoolApiSapi(
   }
 }
 
-ExecutionResult WorkerPoolApiSapi::Init() noexcept {
+absl::Status WorkerPoolApiSapi::Init() {
   for (auto& w : workers_) {
     auto result = w->Init();
     if (!result.Successful()) {
-      return result;
+      return absl::InternalError(
+          absl::StrCat("Roma initialization failed due to internal error: ",
+                       GetErrorMessage(result.status_code)));
     }
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult WorkerPoolApiSapi::Run() noexcept {
+absl::Status WorkerPoolApiSapi::Run() {
   for (auto& w : workers_) {
     auto result = w->Run();
     if (!result.Successful()) {
-      return result;
+      return absl::InternalError(
+          absl::StrCat("Roma Run failed due to internal error: ",
+                       GetErrorMessage(result.status_code)));
     }
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult WorkerPoolApiSapi::Stop() noexcept {
+absl::Status WorkerPoolApiSapi::Stop() {
   for (auto& w : workers_) {
     auto result = w->Stop();
     if (!result.Successful()) {
-      return result;
+      return absl::InternalError(
+          absl::StrCat("Roma Stop failed due to internal error: ",
+                       GetErrorMessage(result.status_code)));
     }
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-size_t WorkerPoolApiSapi::GetPoolSize() noexcept {
+size_t WorkerPoolApiSapi::GetPoolSize() {
   return workers_.size();
 }
 
-ExecutionResultOr<worker_api::WorkerApi*> WorkerPoolApiSapi::GetWorker(
-    size_t index) noexcept {
+absl::StatusOr<worker_api::WorkerApi*> WorkerPoolApiSapi::GetWorker(
+    size_t index) {
   if (index >= workers_.size()) {
-    return FailureExecutionResult(
-        SC_ROMA_WORKER_POOL_WORKER_INDEX_OUT_OF_BOUNDS);
+    return absl::OutOfRangeError(
+        absl::StrCat("The worker index was out of bounds: ", index));
   }
 
   return workers_.at(index).get();

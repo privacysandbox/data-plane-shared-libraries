@@ -45,6 +45,7 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::errors::
     SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_MULTIPLE_BYTE_STR_INPUTS;
 using google::scp::core::test::AutoInitRunStop;
+using google::scp::core::test::AutoInitRunStopStatus;
 using google::scp::roma::sandbox::worker_api::WorkerApi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
@@ -76,7 +77,7 @@ TEST(DispatcherTest, CanRunCode) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
 
@@ -127,7 +128,7 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
 
@@ -181,7 +182,7 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
 
@@ -212,7 +213,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
 
@@ -245,7 +246,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
 
@@ -312,7 +313,7 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
 
@@ -346,7 +347,7 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
 
@@ -422,7 +423,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   std::vector<WorkerApiSapiConfig> configs = {CreateWorkerApiSapiConfig()};
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool,
                         100 /*max_pending_requests*/, 5 /*code_version_size*/);
@@ -503,7 +504,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   // Only one worker in the pool
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
 
@@ -548,7 +549,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
 
   // We loaded and executed successfully, so now we kill the one worker
   auto worker = worker_pool.GetWorker(0);
-  ASSERT_SUCCESS(worker.result());
+  ASSERT_TRUE(worker.status().ok());
   (*worker)->Terminate();
 
   // This coming execution we expect will fail since the worker has died. But
@@ -608,7 +609,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   // Only one worker in the pool
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
 
@@ -651,7 +652,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   // We kill the worker so we expect the first request right after to fail
   auto worker = worker_pool.GetWorker(0);
-  ASSERT_SUCCESS(worker.result());
+  ASSERT_TRUE(worker.status().ok());
   (*worker)->Terminate();
 
   {
@@ -731,7 +732,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   // Only one worker in the pool
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
 
@@ -775,7 +776,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
   // We kill the worker so we expect the first request right after to fail
   auto worker = worker_pool.GetWorker(0);
-  ASSERT_SUCCESS(worker.result());
+  ASSERT_TRUE(worker.status().ok());
   (*worker)->Terminate();
 
   for (int i = 0; i < 2; i++) {
@@ -898,7 +899,7 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool,
                         /*max_pending_requests=*/10,
@@ -954,7 +955,7 @@ TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 1, 5);
 

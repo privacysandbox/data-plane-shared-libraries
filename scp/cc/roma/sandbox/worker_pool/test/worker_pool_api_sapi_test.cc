@@ -46,9 +46,9 @@ TEST(WorkerPoolTest, CanInitRunAndStop) {
   std::vector<WorkerApiSapiConfig> configs(num_workers, worker_config);
   auto pool = WorkerPoolApiSapi(configs);
 
-  ASSERT_SUCCESS(pool.Init());
-  ASSERT_SUCCESS(pool.Run());
-  EXPECT_SUCCESS(pool.Stop());
+  ASSERT_TRUE(pool.Init().ok());
+  ASSERT_TRUE(pool.Run().ok());
+  EXPECT_TRUE(pool.Stop().ok());
 }
 
 TEST(WorkerPoolTest, CanGetPoolCount) {
@@ -56,10 +56,10 @@ TEST(WorkerPoolTest, CanGetPoolCount) {
   std::vector<WorkerApiSapiConfig> configs(num_workers, worker_config);
   auto pool = WorkerPoolApiSapi(configs);
 
-  ASSERT_SUCCESS(pool.Init());
-  ASSERT_SUCCESS(pool.Run());
+  ASSERT_TRUE(pool.Init().ok());
+  ASSERT_TRUE(pool.Run().ok());
   EXPECT_EQ(pool.GetPoolSize(), num_workers);
-  EXPECT_SUCCESS(pool.Stop());
+  EXPECT_TRUE(pool.Stop().ok());
 }
 
 TEST(WorkerPoolTest, CanGetWorker) {
@@ -71,16 +71,16 @@ TEST(WorkerPoolTest, CanGetWorker) {
 
   auto pool = WorkerPoolApiSapi(configs);
 
-  ASSERT_SUCCESS(pool.Init());
-  ASSERT_SUCCESS(pool.Run());
+  ASSERT_TRUE(pool.Init().ok());
+  ASSERT_TRUE(pool.Run().ok());
 
   auto worker1 = pool.GetWorker(0);
-  ASSERT_SUCCESS(worker1.result());
+  ASSERT_TRUE(worker1.ok());
   auto worker2 = pool.GetWorker(1);
-  ASSERT_SUCCESS(worker2.result());
+  ASSERT_TRUE(worker2.ok());
 
   EXPECT_NE(worker1, worker2);
-  EXPECT_SUCCESS(pool.Stop());
+  EXPECT_TRUE(pool.Stop().ok());
 }
 
 }  // namespace google::scp::roma::sandbox::worker_pool::test

@@ -19,8 +19,9 @@
 
 #include <memory>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "core/interface/service_interface.h"
-#include "public/core/interface/execution_result.h"
 #include "roma/sandbox/worker_api/src/worker_api.h"
 
 namespace google::scp::roma::sandbox::worker_pool {
@@ -31,23 +32,19 @@ class WorkerPool {
    *
    * @return size_t
    */
-  virtual core::ExecutionResult Init() noexcept = 0;
-  virtual core::ExecutionResult Run() noexcept = 0;
-  virtual core::ExecutionResult Stop() noexcept = 0;
+  virtual absl::Status Init() = 0;
+  virtual absl::Status Run() = 0;
+  virtual absl::Status Stop() = 0;
 
-  virtual size_t GetPoolSize() noexcept = 0;
+  virtual size_t GetPoolSize() = 0;
 
   /**
    * @brief Get a worker by index. Will return failure if bad index.
    *
    * @param index
-   * @return core::ExecutionResultOr<std::shared_ptr<worker_api::WorkerApi>>
+   * @return absl::StatusOr<worker_api::WorkerApi*>
    */
-  // TODO (b/305957393) - ExecutionResultOr doesn't support using references as
-  // values.  Once we switch to absl::StatusOr, remove the raw pointer and
-  // switch to references instead.
-  virtual core::ExecutionResultOr<worker_api::WorkerApi*> GetWorker(
-      size_t index) noexcept = 0;
+  virtual absl::StatusOr<worker_api::WorkerApi*> GetWorker(size_t index) = 0;
 };
 }  // namespace google::scp::roma::sandbox::worker_pool
 

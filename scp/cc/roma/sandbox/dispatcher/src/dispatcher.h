@@ -186,10 +186,9 @@ class Dispatcher {
           std::unique_ptr<absl::StatusOr<ResponseObject>> response_or;
 
           auto worker_or = worker_pool_->GetWorker(index);
-          if (!worker_or.result().Successful()) {
+          if (!worker_or.status().ok()) {
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
-                absl::InternalError(core::errors::GetErrorMessage(
-                    worker_or.result().status_code)));
+                worker_or.status());
             callback(std::move(response_or));
             absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;

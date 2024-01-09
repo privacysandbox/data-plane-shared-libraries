@@ -19,19 +19,21 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "roma_worker_pool_lib",
     srcs = [
-        "error_codes.h",
-        "worker_pool.h",
         "worker_pool_api_sapi.cc",
+    ],
+    hdrs = [
+        "worker_pool.h",
         "worker_pool_api_sapi.h",
     ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
-        "//scp/cc/public/core/interface:execution_result",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_lib",
         "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_sapi_lib",
         "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
     ],
 )
