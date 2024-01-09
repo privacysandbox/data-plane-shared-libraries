@@ -32,7 +32,7 @@ cc_library(
         "tls/*.c",
         "tls/*/*.c",
         "error/*.c",
-        "pq-crypto/*.cc",
+        "pq-crypto/*.c",
         "error/*.h",
         "tls/*/*.h",
         "crypto/*.h",
