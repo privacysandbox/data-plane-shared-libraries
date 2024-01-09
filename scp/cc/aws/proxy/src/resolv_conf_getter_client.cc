@@ -76,13 +76,13 @@ int main(int argc, char** argv) {
     return -1;
   }
   std::ofstream ofs("/etc/resolv.conf");
-  ofs << R"resolv(
-; BEGIN Enclave configuration.
+  ofs << R"resolv(; BEGIN Enclave configuration.
 ; These lines are added by `resolv_conf_getter_client`.
 ; use-vc forces use of TCP for DNS resolutions.
 ; See https://man7.org/linux/man-pages/man5/resolv.conf.5.html
 options use-vc timeout:2 attempts:5
 ; END Enclave configuration.
+
 )resolv";
   ofs << *content;
 }
