@@ -260,9 +260,7 @@ write_file(
 ; See https://man7.org/linux/man-pages/man5/resolv.conf.5.html
 options use-vc timeout:2 attempts:5
 search ec2.internal
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
+nameserver 10.0.0.2
 """],
 )
 
@@ -320,7 +318,12 @@ container_run_and_commit_layer(
         # Install CA certificates.
         """
 apt-get update
-apt-get install -y ca-certificates
+apt-get install -y ca-certificates wget
+wget -q -O - https://github.com/fullstorydev/grpcurl/releases/download/v1.8.9/grpcurl_1.8.9_linux_x86_64.tar.gz \
+  | tar xz --directory=/usr/bin
+chmod +x /usr/bin/grpcurl
+apt-get remove wget
+apt-get autoclean
 """,
     ],
     image = select({
