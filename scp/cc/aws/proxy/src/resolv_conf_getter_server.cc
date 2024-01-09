@@ -54,7 +54,7 @@ class ResolvConfGetterImpl final : public ResolvConfGetterService::Service {
 int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
   const std::string server_address =
-      absl::StrCat("localhost:", absl::GetFlag(FLAGS_port));
+      absl::StrCat("0.0.0.0:", absl::GetFlag(FLAGS_port));
   ResolvConfGetterImpl service;
 
   grpc::ServerBuilder builder;
