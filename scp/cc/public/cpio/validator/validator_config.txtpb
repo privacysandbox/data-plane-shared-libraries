@@ -2,6 +2,13 @@
 # proto-message: ValidatorConfig
 
 test_cases {
+  name: "CheckLocalDnsAndHttpAccess"
+  http_and_dns_config {
+    host: "192.168.0.1"
+    port: 80
+  }
+}
+test_cases {
   name: "GetBlobConfig.CpioValidatorTestBucket.BlobName1"
   get_blob_config {
     bucket_name: "cpio-validator-test-bucket"

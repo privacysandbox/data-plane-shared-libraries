@@ -58,7 +58,6 @@ using google::scp::cpio::validator::proto::ValidatorConfig;
 
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
 const char kValidatorConfigPath[] = "/etc/validator_config.txtpb";
-const char kHostName[] = "www.google.com";
 }  // namespace
 
 std::string_view GetValidatorFailedToRunMsg() {
@@ -66,23 +65,31 @@ std::string_view GetValidatorFailedToRunMsg() {
          "above.";
 }
 
-void RunDnsLookupValidator(absl::Notification& finished, bool& successful) {
+void RunDnsLookupValidator(
+    std::string_view name,
+    const google::scp::cpio::validator::proto::HttpAndDnsConfig&
+        http_and_dns_config,
+    absl::Notification& finished, bool& successful) {
   const struct addrinfo hints = {
       .ai_family = AF_INET,
       .ai_socktype = SOCK_STREAM,
   };
   struct addrinfo* addr_infos;
-  if (int err_code = getaddrinfo(kHostName, "80", &hints, &addr_infos);
+  if (int err_code =
+          getaddrinfo(http_and_dns_config.host().c_str(),
+                      std::to_string(http_and_dns_config.port()).c_str(),
+                      &hints, &addr_infos);
       err_code != 0) {
-    std::cout << "[ FAILURE ] getaddrinfo: " << gai_strerror(err_code)
+    std::cout << "[ FAILURE ] " << name
+              << " getaddrinfo: " << gai_strerror(err_code)
               << ". Check /etc/resolv.conf. Verify if proxy is running."
               << std::endl;
     successful = false;
     finished.Notify();
     return;
   }
-  std::cout << "[ SUCCESS ] DNS lookup succeeded for host " << kHostName
-            << std::endl;
+  std::cout << "[ SUCCESS ] " << name << " DNS lookup succeeded for host "
+            << http_and_dns_config.host() << std::endl;
   for (auto rp = addr_infos; rp != nullptr; rp = rp->ai_next) {
     char host[NI_MAXHOST];
     char service[NI_MAXSERV];
@@ -124,11 +131,15 @@ google::scp::core::ExecutionResult MakeRequest(
   return context_result;
 }
 
-void RunProxyValidator() {
+void RunHttpValidator(
+    std::string_view name,
+    const google::scp::cpio::validator::proto::HttpAndDnsConfig&
+        http_and_dns_config) {
   std::shared_ptr<google::scp::core::HttpClientInterface> http_client;
   if (auto result = GlobalCpio::GetGlobalCpio()->GetHttp1Client(http_client);
       !result.Successful()) {
-    std::cout << "[ FAILURE ] Unable to get Http Client." << std::endl;
+    std::cout << "[ FAILURE ] " << name << " Unable to get Http Client."
+              << std::endl;
     return;
   }
 
@@ -136,25 +147,29 @@ void RunProxyValidator() {
   http_client->Run();
 
   if (!MakeRequest(*http_client, google::scp::core::HttpMethod::GET,
-                   "https://www.google.com/")
+                   http_and_dns_config.host().c_str())
            .Successful()) {
-    std::cout
-        << "[ FAILURE ] Could not connect to outside world. Check if proxy "
-           "is running."
-        << std::endl;
+    std::cout << "[ FAILURE ] " << name
+              << " Could not connect to outside world. Check if proxy "
+                 "is running."
+              << std::endl;
   } else {
-    std::cout << "[ SUCCESS ] Connected to outside world." << std::endl;
+    std::cout << "[ SUCCESS ] " << name << " Connected to outside world."
+              << std::endl;
   }
 
+  // Only successful if on AWS EC2 instance.
   if (!MakeRequest(*http_client, google::scp::core::HttpMethod::PUT,
                    "http://169.254.169.254/latest/api/token",
                    {{"X-aws-ec2-metadata-token-ttl-seconds", "21600"}})
            .Successful()) {
-    std::cout << "[ FAILURE ] Could not access AWS resource. Check if proxy is "
+    std::cout << "[ FAILURE ] " << name
+              << " Could not access AWS resource. Check if proxy is "
                  "running."
               << std::endl;
   } else {
-    std::cout << "[ SUCCESS ] Accessed AWS resource." << std::endl;
+    std::cout << "[ SUCCESS ] " << name << " Accessed AWS resource."
+              << std::endl;
   }
 
   http_client->Stop();
@@ -164,20 +179,6 @@ int main(int argc, char* argv[]) {
   // Process command line parameters
   absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
-
-  absl::Notification finished;
-  bool successful;
-  std::thread dns_lookup_thread(&RunDnsLookupValidator, std::ref(finished),
-                                std::ref(successful));
-  dns_lookup_thread.detach();
-  if (!finished.WaitForNotificationWithTimeout(kRequestTimeout)) {
-    std::cout << "[ FAILURE ] DNS lookup timed out." << std::endl;
-    successful = false;
-  }
-  if (!successful) {
-    GetValidatorFailedToRunMsg();
-    return -1;
-  }
 
   ValidatorConfig validator_config;
   int fd = open(kValidatorConfigPath, O_RDONLY);
@@ -212,7 +213,35 @@ int main(int argc, char* argv[]) {
     std::cout << GetValidatorFailedToRunMsg() << std::endl;
     return -1;
   }
-  RunProxyValidator();
+
+  // Run test cases for DNS and HTTP Proxy first.
+  for (auto test_case : validator_config.test_cases()) {
+    switch (test_case.client_config_case()) {
+      case TestCase::ClientConfigCase::kHttpAndDnsConfig: {
+        absl::Notification finished;
+        bool successful;
+        std::thread dns_lookup_thread(&RunDnsLookupValidator, test_case.name(),
+                                      test_case.http_and_dns_config(),
+                                      std::ref(finished), std::ref(successful));
+        dns_lookup_thread.detach();
+        if (!finished.WaitForNotificationWithTimeout(kRequestTimeout)) {
+          std::cout << "[ FAILURE ] DNS lookup timed out." << std::endl;
+          successful = false;
+        }
+        if (!successful) {
+          GetValidatorFailedToRunMsg();
+        }
+
+        RunHttpValidator(test_case.name(), test_case.http_and_dns_config());
+
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  // Run test cases for CPIO components.
   for (auto test_case : validator_config.test_cases()) {
     switch (test_case.client_config_case()) {
       case TestCase::ClientConfigCase::kGetTagsByResourceNameConfig:
