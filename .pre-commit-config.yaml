@@ -106,6 +106,7 @@ repos:
     name: prettier markdown
     types_or:
     - markdown
+    - javascript
 
 - repo: https://github.com/DavidAnson/markdownlint-cli2
   rev: v0.11.0
