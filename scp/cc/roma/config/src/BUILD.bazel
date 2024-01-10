@@ -12,13 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
+config_log_h = "config_log.h"
+
+copy_file(
+    name = "copy_config_log",
+    src = select({
+        "//:non_prod_build": "config_log_nonprod.h",
+        "//conditions:default": "config_log_prod.h",
+    }),
+    out = config_log_h,
+)
+
 cc_library(
     name = "roma_config_lib",
     srcs = [
+        ":{}".format(config_log_h),
+    ],
+    hdrs = [
         "config.h",
         "function_binding_object_v2.h",
         "type_converter.h",
@@ -28,6 +43,7 @@ cc_library(
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
         "@v8//:v8_icu",
     ],

@@ -26,6 +26,8 @@
 #include <utility>
 #include <vector>
 
+#include "scp/cc/roma/config/src/config_log.h"
+
 #include "function_binding_object_v2.h"
 
 namespace google::scp::roma {
@@ -200,9 +202,7 @@ class Config {
   std::vector<FunctionBindingObjectPtr> function_bindings_v2_;
 
   // default no-op logging implementation
-  LogFunctionPtr logging_func_ = [](absl::LogSeverity severity,
-                                    TMetadata metadata,
-                                    const std::string& msg) {};
+  LogFunctionPtr logging_func_ = LogFunction<TMetadata>;
 
   /// v8 heap resource constraints.
   JsEngineResourceConstraints js_engine_resource_constraints_;
