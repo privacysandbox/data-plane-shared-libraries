@@ -27,7 +27,6 @@
 #include <vector>
 
 #include "core/test/utils/auto_init_run_stop.h"
-#include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/native_function_binding/src/native_function_table.h"
 #include "sandboxed_api/sandbox2/comms.h"
@@ -50,8 +49,8 @@ TEST(NativeFunctionHandlerSapiIpcTest, IninRunStop) {
   NativeFunctionTable function_table;
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
 
-  EXPECT_SUCCESS(handler.Run());
-  EXPECT_SUCCESS(handler.Stop());
+  handler.Run();
+  handler.Stop();
 }
 
 static bool g_called_registered_function;
@@ -69,7 +68,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   NativeFunctionTable function_table;
   function_table.Register("cool_function_name", FunctionToBeCalled);
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
-  EXPECT_SUCCESS(handler.Run());
+  handler.Run();
   handler.StoreMetadata(kRequestUuid, {});
   g_called_registered_function = false;
 
@@ -87,7 +86,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   EXPECT_TRUE(g_called_registered_function);
   EXPECT_THAT(rpc_proto.io_proto().output_string(),
               StrEq("I'm an output standalone string"));
-  EXPECT_SUCCESS(handler.Stop());
+  handler.Stop();
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest,
@@ -99,7 +98,7 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   NativeFunctionTable function_table;
   // We don't register any functions with the function table
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
-  EXPECT_SUCCESS(handler.Run());
+  handler.Run();
   handler.StoreMetadata(kRequestUuid, {});
 
   g_called_registered_function = false;
@@ -122,7 +121,7 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   EXPECT_GE(rpc_proto.io_proto().errors().size(), 0);
   EXPECT_THAT(rpc_proto.io_proto().errors(0),
               StrEq("ROMA: Failed to execute the C++ function."));
-  EXPECT_SUCCESS(handler.Stop());
+  handler.Stop();
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest,
@@ -134,7 +133,7 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   NativeFunctionTable function_table;
   // We don't register any functions with the function table
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
-  EXPECT_SUCCESS(handler.Run());
+  handler.Run();
 
   g_called_registered_function = false;
 
@@ -154,7 +153,7 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   EXPECT_GE(rpc_proto.io_proto().errors().size(), 0);
   EXPECT_THAT(rpc_proto.io_proto().errors(0),
               StrEq("ROMA: Could not find C++ function by name."));
-  EXPECT_SUCCESS(handler.Stop());
+  handler.Stop();
 }
 
 static bool g_called_registered_function_one;
@@ -179,7 +178,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   function_table.Register("cool_function_name_one", FunctionOne);
   function_table.Register("cool_function_name_two", FunctionTwo);
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
-  EXPECT_SUCCESS(handler.Run());
+  handler.Run();
   handler.StoreMetadata(kRequestUuid, {});
 
   g_called_registered_function_one = false;
@@ -213,6 +212,6 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   EXPECT_TRUE(g_called_registered_function_two);
   EXPECT_EQ(rpc_proto.io_proto().errors().size(), 0);
   EXPECT_THAT(rpc_proto.io_proto().output_string(), StrEq("From function two"));
-  EXPECT_SUCCESS(handler.Stop());
+  handler.Stop();
 }
 }  // namespace google::scp::roma::sandbox::native_function_binding::test

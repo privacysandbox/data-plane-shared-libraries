@@ -208,12 +208,7 @@ class RomaService {
   }
 
   absl::Status RunInternal() noexcept {
-    if (auto execution_result = native_function_binding_handler_->Run();
-        !execution_result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("RunInternal failed due to internal error: ",
-                       GetErrorMessage(execution_result.status_code)));
-    }
+    native_function_binding_handler_->Run();
     if (auto execution_result = async_executor_->Run();
         !execution_result.Successful()) {
       return absl::InternalError(
@@ -228,12 +223,7 @@ class RomaService {
 
   absl::Status StopInternal() noexcept {
     if (native_function_binding_handler_) {
-      if (auto execution_result = native_function_binding_handler_->Stop();
-          !execution_result.Successful()) {
-        return absl::InternalError(
-            absl::StrCat("RunInternal failed due to internal error: ",
-                         GetErrorMessage(execution_result.status_code)));
-      }
+      native_function_binding_handler_->Stop();
     }
     native_function_binding_table_.Clear();
     if (worker_pool_) {

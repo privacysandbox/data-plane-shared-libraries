@@ -40,14 +40,21 @@ cc_library(
 )
 
 cc_library(
-    name = "roma_native_function_invoker_sapi_ipc_lib",
+    name = "error_codes",
     srcs = [
         "error_codes.h",
+    ],
+)
+
+cc_library(
+    name = "roma_native_function_invoker_sapi_ipc_lib",
+    srcs = [
         "native_function_invoker_sapi_ipc.cc",
         "native_function_invoker_sapi_ipc.h",
     ],
     deps = [
         ":cc_roma_rpc_wrapper",
+        ":error_codes",
         ":roma_native_function_binding_lib",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
@@ -62,12 +69,12 @@ cc_library(
 cc_library(
     name = "roma_native_function_handler_sapi_ipc_lib",
     srcs = [
-        "error_codes.h",
         "native_function_handler_sapi_ipc.h",
         "native_function_table.h",
     ],
     deps = [
         ":cc_roma_rpc_wrapper",
+        ":error_codes",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/public/core/interface:execution_result",

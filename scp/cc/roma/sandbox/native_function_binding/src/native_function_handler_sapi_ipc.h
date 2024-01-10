@@ -26,7 +26,6 @@
 #include <vector>
 
 #include "absl/log/check.h"
-#include "core/interface/service_interface.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
 #include "sandboxed_api/sandbox2/comms.h"
@@ -69,7 +68,7 @@ class NativeFunctionHandlerSapiIpc {
     }
   }
 
-  core::ExecutionResult Run() noexcept {
+  void Run() {
     ROMA_VLOG(9) << "Calling native function handler";
     for (int i = 0; i < ipc_comms_.size(); i++) {
       function_handler_threads_.emplace_back([this, i] {
@@ -112,11 +111,9 @@ class NativeFunctionHandlerSapiIpc {
         }
       });
     }
-
-    return core::SuccessExecutionResult();
   }
 
-  core::ExecutionResult Stop() noexcept {
+  void Stop() {
     stop_.store(true);
 
     // We write to the comms object so that we can unblock the function binding
@@ -136,22 +133,18 @@ class NativeFunctionHandlerSapiIpc {
     for (sandbox2::Comms& c : ipc_comms_) {
       c.Terminate();
     }
-    return core::SuccessExecutionResult();
   }
 
-  core::ExecutionResult StoreMetadata(std::string uuid,
-                                      TMetadata metadata) noexcept
+  void StoreMetadata(std::string uuid, TMetadata metadata)
       ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
     absl::MutexLock lock(&metadata_map_mutex_);
     metadata_.emplace(std::move(uuid), std::move(metadata));
-    return core::SuccessExecutionResult();
   }
 
-  core::ExecutionResult DeleteMetadata(std::string_view uuid) noexcept
+  void DeleteMetadata(std::string_view uuid)
       ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
     absl::MutexLock lock(&metadata_map_mutex_);
     metadata_.erase(uuid);
-    return core::SuccessExecutionResult();
   }
 
  private:
@@ -163,7 +156,7 @@ class NativeFunctionHandlerSapiIpc {
   // We need the remote file descriptors to unblock the local ones when stopping
   std::vector<int> remote_fds_;
 
-  TMetadata GetMetadata(std::string_view uuid) noexcept
+  TMetadata GetMetadata(std::string_view uuid)
       ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
     absl::MutexLock lock(&metadata_map_mutex_);
 
