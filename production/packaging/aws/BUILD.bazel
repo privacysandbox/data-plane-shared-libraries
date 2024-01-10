@@ -22,9 +22,9 @@ pkg_zip(
     ],
 )
 
-# copy_to_dist expects two args, both optional:
-#   * output zip filename
+# copy_to_dist has two args, both optional:
 #   * linux distribution
+#   * file suffix
 # the linux distribution arg is used to ensure that only debian-compiled
 # binaries are used for the container image, which uses a debian base image
 genrule(
@@ -38,9 +38,9 @@ genrule(
 readonly target_dir=dist/aws
 mkdir -p \\$${target_dir}
 readonly file_prefix="\\$${target_dir}/proxy"
-cp $(execpath :aws_artifacts) "\\$${file_prefix}-\\$${1}-\\$${2}.zip"
-if [[ \\$${1} == debian ]]; then
-  cp $(execpath //scp/cc/aws/proxy/src:proxy_debian_image.tar) "\\$${file_prefix}-image-\\$${2}.tar"
+cp $(execpath :aws_artifacts) "\\$${file_prefix}-\\$$1-\\$$2.zip"
+if [[ \\$$1 == debian ]]; then
+  cp $(execpath //scp/cc/aws/proxy/src:proxy_debian_image.tar) "\\$${file_prefix}-image-\\$$2.tar"
 fi
 builders/tools/normalize-dist
 EOF""",
