@@ -152,7 +152,7 @@ class RomaService {
    * @brief The template parameter, TMetadata, needs to be default
    * assignable and movable.
    */
-  explicit RomaService(const Config<TMetadata> config = Config<TMetadata>())
+  explicit RomaService(Config<TMetadata>&& config = Config<TMetadata>())
       : config_(std::move(config)) {}
 
  private:
@@ -310,7 +310,7 @@ class RomaService {
       const auto severity = GetSeverity(function_name);
       function_binding_object->function =
           [severity, this](FunctionBindingPayload<TMetadata>& wrapper) {
-            auto logging_func = config_.GetLoggingFunction();
+            const auto& logging_func = config_.GetLoggingFunction();
             logging_func(severity, wrapper.metadata,
                          wrapper.io_proto.input_string());
             wrapper.io_proto.set_output_string("");

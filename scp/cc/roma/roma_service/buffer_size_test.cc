@@ -39,7 +39,7 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -102,7 +102,7 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -164,7 +164,7 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -230,7 +230,7 @@ TEST(BufferSizeTest,
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = true;
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -272,7 +272,7 @@ TEST(BufferSizeTest,
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = true;
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -384,7 +384,7 @@ TEST(BufferSizeTest,
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = true;
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 

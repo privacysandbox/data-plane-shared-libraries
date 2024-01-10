@@ -40,8 +40,7 @@ using google::scp::roma::benchmark::FakeBaServer;
 constexpr std::string_view kVersionString = "v1";
 
 void LoadCodeBenchmark(std::string code, benchmark::State& state) {
-  const Config config;
-  FakeBaServer server(config);
+  FakeBaServer server(Config{});
 
   // If the code is being padded with extra bytes then add a comment at the end
   // and fill it with extra zeroes.
@@ -66,8 +65,7 @@ void LoadCodeBenchmark(std::string code, benchmark::State& state) {
 
 void ExecuteCodeBenchmark(std::string code, std::string handler_name,
                           benchmark::State& state) {
-  const Config config;
-  FakeBaServer server(config);
+  FakeBaServer server(Config{});
   server.LoadSync(kVersionString, code);
 
   // The same request will be used multiple times: the batch will be full of

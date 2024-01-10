@@ -161,7 +161,7 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
   config.number_of_workers = test_configuration.workers;
   config.worker_queue_max_items = test_configuration.queue_size;
   config.sandbox_request_response_shared_buffer_size_mb = 16;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   if (!status.ok()) {
     std::cout << "Initializing Roma failed due to " << status.message()

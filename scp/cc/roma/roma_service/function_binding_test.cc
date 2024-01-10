@@ -55,7 +55,7 @@ TEST(FunctionBindingTest,
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
@@ -132,7 +132,7 @@ TEST(
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
@@ -220,7 +220,7 @@ TEST(FunctionBindingTest,
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
@@ -304,7 +304,7 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
@@ -376,7 +376,7 @@ TEST(FunctionBindingTest,
   function_binding_object->function_name = "get_some_bytes";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;
@@ -462,7 +462,7 @@ TEST(FunctionBindingTest,
   function_binding_object->function_name = "set_some_bytes";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   ASSERT_TRUE(roma_service->Init().ok());
 
   std::string result;

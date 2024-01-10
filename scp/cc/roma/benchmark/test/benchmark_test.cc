@@ -185,7 +185,7 @@ static void RunLoadAndDumpStats(std::unique_ptr<RomaService<>>& roma_service,
 static void RunTest(size_t num_workers_and_threads) {
   Config config;
   config.number_of_workers = num_workers_and_threads;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   EXPECT_TRUE(status.ok());
   LoadCode(roma_service);

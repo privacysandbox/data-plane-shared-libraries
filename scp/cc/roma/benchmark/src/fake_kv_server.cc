@@ -38,10 +38,10 @@ constexpr char kVersionString[] = "v1";
 
 }  // namespace
 
-FakeKvServer::FakeKvServer(const Config<>& config) {
+FakeKvServer::FakeKvServer(Config<> config) {
   roma_service_ =
       std::make_unique<google::scp::roma::sandbox::roma_service::RomaService<>>(
-          config);
+          std::move(config));
   CHECK(roma_service_->Init().ok());
 }
 

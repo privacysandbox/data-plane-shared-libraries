@@ -29,7 +29,7 @@ namespace google::scp::roma::test {
 
 void LoggingFunction(absl::LogSeverity severity,
                      absl::flat_hash_map<std::string, std::string> metadata,
-                     const std::string& msg) {
+                     std::string_view msg) {
   LOG(LEVEL(severity)) << msg;
 }
 

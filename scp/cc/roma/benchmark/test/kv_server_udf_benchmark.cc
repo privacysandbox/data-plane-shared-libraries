@@ -40,8 +40,8 @@ using google::scp::roma::benchmark::FakeKvServer;
 
 void LoadCodeBenchmark(std::string_view code, std::string_view handler_name,
                        benchmark::State& state) {
-  const Config config;
-  FakeKvServer server(config);
+  Config config;
+  FakeKvServer server(std::move(config));
 
   CodeConfig code_config;
   code_config.js = code;
@@ -71,8 +71,8 @@ void LoadCodeBenchmark(std::string_view code, std::string_view handler_name,
 void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
                           benchmark::State& state) {
   const int number_of_calls = state.range(0);
-  const Config config;
-  FakeKvServer server(config);
+  Config config;
+  FakeKvServer server(std::move(config));
 
   CodeConfig code_config;
   code_config.js = code;
@@ -103,7 +103,7 @@ void BM_ExecuteHelloWorldCallback(benchmark::State& state) {
     function_object->function = HelloWorldCallback;
     config.RegisterFunctionBinding(std::move(function_object));
   }
-  FakeKvServer server(config);
+  FakeKvServer server(std::move(config));
 
   CodeConfig code_config{
       .js = "hello = () => 'Hello world! ' + callback();",

@@ -69,7 +69,7 @@ TEST(MetadataTest, InvocationReqMetadataVisibleInNativeFunctions) {
   Config config;
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -135,7 +135,7 @@ TEST(MetadataTest, MetadataAssociatedWithEachNativeFunction) {
   Config config;
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -211,7 +211,7 @@ TEST(MetadataTest, MetadataAssociatedWithBatchedFunctions) {
   config.worker_queue_max_items = 1;
   config.number_of_workers = 10;
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -310,7 +310,8 @@ TEST(MetadataTest, StringMetadataVisibleInNativeFunctions) {
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(CreateFunctionBindingObject<std::string>(
       LogMetadataStringFunction, "log_metadata"));
-  auto roma_service = std::make_unique<RomaService<std::string>>(config);
+  auto roma_service =
+      std::make_unique<RomaService<std::string>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -383,8 +384,8 @@ TEST(MetadataTest, VectorMetadataVisibleInNativeFunctions) {
   config.RegisterFunctionBinding(
       CreateFunctionBindingObject<std::vector<std::string>>(
           LogMetadataVectorFunction, "log_metadata"));
-  auto roma_service =
-      std::make_unique<RomaService<std::vector<std::string>>>(config);
+  auto roma_service = std::make_unique<RomaService<std::vector<std::string>>>(
+      std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -470,7 +471,7 @@ TEST(MetadataTest, CustomMetadataTypeVisibleInNativeFunctions) {
       CreateFunctionBindingObject<std::vector<Metadata>>(
           LogMetadataStructFunction, "log_metadata"));
   auto roma_service =
-      std::make_unique<RomaService<std::vector<Metadata>>>(config);
+      std::make_unique<RomaService<std::vector<Metadata>>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 

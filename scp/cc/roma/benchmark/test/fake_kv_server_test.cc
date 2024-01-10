@@ -27,13 +27,13 @@ using ::testing::StrEq;
 namespace google::scp::roma::test {
 
 TEST(FakeKvServerTest, SmokeTest) {
-  const Config config;
-  benchmark::FakeKvServer server(config);
+  Config config;
+  benchmark::FakeKvServer server(std::move(config));
 }
 
 TEST(FakeKvServerTest, ExecuteCodeWithNoKeyData) {
-  const Config config;
-  benchmark::FakeKvServer server(config);
+  Config config;
+  benchmark::FakeKvServer server(std::move(config));
 
   benchmark::CodeConfig code_config;
   code_config.js = "hello = () => 'Hello world!';";
@@ -44,8 +44,8 @@ TEST(FakeKvServerTest, ExecuteCodeWithNoKeyData) {
 }
 
 TEST(FakeKvServerTest, ExecuteCodeWithKeyData) {
-  const Config config;
-  benchmark::FakeKvServer server(config);
+  Config config;
+  benchmark::FakeKvServer server(std::move(config));
 
   benchmark::CodeConfig code_config;
   code_config.js =
@@ -69,7 +69,7 @@ TEST(FakeKvServerTest, ExecuteCodeWithCallback) {
     function_object->function = HelloWorldCallback;
     config.RegisterFunctionBinding(std::move(function_object));
   }
-  benchmark::FakeKvServer server(config);
+  benchmark::FakeKvServer server(std::move(config));
 
   benchmark::CodeConfig code_config;
   code_config.js = "hello = () => 'Hello world! ' + callback();";

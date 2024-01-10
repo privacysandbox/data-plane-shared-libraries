@@ -200,7 +200,7 @@ converters for every odd type in Roma. Here is an example of how to use this fea
                                                 15 /*maximum_heap_size_in_mb*/);
 
     // Init Roma with above config.
-    auto roma_service = std::make_unique<RomaService<>>(config);
+    auto roma_service = std::make_unique<RomaService<>>(std::move(config));
     auto status = roma_service->Init();
     ```
 

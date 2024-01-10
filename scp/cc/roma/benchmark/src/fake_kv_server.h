@@ -45,7 +45,7 @@ struct CodeConfig {
 // * Some config (e.g. timeouts) is hardcoded.
 class FakeKvServer {
  public:
-  explicit FakeKvServer(const Config<>& config);
+  explicit FakeKvServer(Config<> config);
 
   ~FakeKvServer();
 

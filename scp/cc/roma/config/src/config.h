@@ -141,8 +141,8 @@ class Config {
   using FunctionBindingObjectPtr =
       std::shared_ptr<FunctionBindingObjectV2<TMetadata>>;
 
-  using LogFunctionPtr =
-      std::function<void(absl::LogSeverity, TMetadata, const std::string&)>;
+  using LogCallback = absl::AnyInvocable<void(absl::LogSeverity, TMetadata,
+                                              std::string_view) const>;
 
   /**
    * @brief Register a function binding v2 object. Only supported with the
@@ -161,11 +161,11 @@ class Config {
                                                  function_bindings_v2_.end());
   }
 
-  void SetLoggingFunction(LogFunctionPtr logging_func) {
+  void SetLoggingFunction(LogCallback logging_func) {
     logging_func_ = std::move(logging_func);
   }
 
-  const LogFunctionPtr& GetLoggingFunction() const { return logging_func_; }
+  const LogCallback& GetLoggingFunction() const { return logging_func_; }
 
   /**
    * Configures the constraints with reasonable default values based on the
@@ -200,9 +200,8 @@ class Config {
   std::vector<FunctionBindingObjectPtr> function_bindings_v2_;
 
   // default no-op logging implementation
-  LogFunctionPtr logging_func_ = [](absl::LogSeverity severity,
-                                    TMetadata metadata,
-                                    const std::string& msg) {};
+  LogCallback logging_func_ = [](absl::LogSeverity severity, TMetadata metadata,
+                                 std::string_view msg) {};
 
   /// v8 heap resource constraints.
   JsEngineResourceConstraints js_engine_resource_constraints_;

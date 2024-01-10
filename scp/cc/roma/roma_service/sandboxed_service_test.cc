@@ -63,7 +63,7 @@ TEST(SandboxedServiceTest,
   Config config;
   config.max_worker_virtual_memory_mb = 10;
 
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   EXPECT_FALSE(status.ok());
   EXPECT_THAT(status.message(),
@@ -78,7 +78,7 @@ TEST(SandboxedServiceTest,
 TEST(SandboxedServiceTest, ExecuteCode) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -135,7 +135,7 @@ TEST(SandboxedServiceTest, ExecuteCode) {
 TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -197,7 +197,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
 TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -277,7 +277,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
 TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -332,7 +332,7 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
 TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -387,7 +387,7 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
 TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -447,7 +447,7 @@ TEST(SandboxedServiceTest,
      ShouldReturnWithVersionNotFoundWhenExecutingAVersionThatHasNotBeenLoaded) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -482,7 +482,7 @@ TEST(SandboxedServiceTest,
 TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -565,7 +565,7 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
 TEST(SandboxedServiceTest, BatchExecute) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -627,7 +627,7 @@ TEST(SandboxedServiceTest,
   // workers are busy and can't pick up items.
   config.worker_queue_max_items = 1;
   config.number_of_workers = 10;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -692,7 +692,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   Config config;
   config.worker_queue_max_items = 1;
   config.number_of_workers = 10;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
   {
@@ -773,7 +773,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
 TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -839,7 +839,7 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
 TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   Config config;
   config.number_of_workers = 1;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -969,7 +969,7 @@ TEST(SandboxedServiceTest,
   function_binding_object->function = EchoFunction;
   function_binding_object->function_name = "echo_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1115,7 +1115,7 @@ TEST(SandboxedServiceTest,
 TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1191,7 +1191,7 @@ TEST(SandboxedServiceTest, ShouldRespectCodeObjectCacheSize) {
   config.number_of_workers = 2;
   // Only one version
   config.code_version_cache_size = 1;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1326,7 +1326,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   config.number_of_workers = 2;
   // Up to 2 code versions at a time.
   config.code_version_cache_size = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1415,7 +1415,7 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
 TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
   Config config;
   config.number_of_workers = 1;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1528,7 +1528,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
 TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1563,7 +1563,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
 TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1641,7 +1641,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
 TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1720,7 +1720,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
 TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1779,7 +1779,7 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
 TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1837,7 +1837,7 @@ TEST(SandboxedServiceTest,
      ShouldGetErrorIfLoadFailsButExecutionIsSentForVersion) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
@@ -1937,7 +1937,7 @@ TEST(SandboxedServiceTest,
 TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   Config config;
   config.number_of_workers = 2;
-  auto roma_service = std::make_unique<RomaService<>>(config);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   ASSERT_TRUE(status.ok());
 
