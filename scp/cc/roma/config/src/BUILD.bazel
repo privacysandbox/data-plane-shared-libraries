@@ -18,7 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_config_lib",
-    srcs = [
+    hdrs = [
         "config.h",
         "function_binding_object_v2.h",
         "type_converter.h",
