@@ -30,20 +30,6 @@ cc_test(
 )
 
 cc_test(
-    name = "config_log_test",
-    srcs = select({
-        "//:non_prod_build": ["config_log_nonprod_test.cc"],
-        "//conditions:default": ["config_log_prod_test.cc"],
-    }),
-    deps = [
-        "//scp/cc/roma/config/src:roma_config_lib",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:scoped_mock_log",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
     name = "type_converter_benchmark",
     timeout = "eternal",
     srcs = ["type_converter_benchmark.cc"],
