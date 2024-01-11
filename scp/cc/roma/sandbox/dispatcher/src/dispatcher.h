@@ -222,8 +222,7 @@ class Dispatcher {
           cache_mu_.Unlock();
 
           auto run_code_request_or =
-              request_converter::RequestConverter<RequestT>::FromUserProvided(
-                  *request, request_type);
+              RequestConverter::FromUserProvided(*request, request_type);
           if (!run_code_request_or.result().Successful()) {
             response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
                 absl::InternalError(core::errors::GetErrorMessage(

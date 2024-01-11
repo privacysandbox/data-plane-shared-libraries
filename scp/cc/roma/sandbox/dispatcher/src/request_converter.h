@@ -23,7 +23,8 @@
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker_api/src/worker_api.h"
 
-namespace google::scp::roma::sandbox::dispatcher::request_converter {
+namespace google::scp::roma::sandbox {
+namespace internal::request_converter {
 /**
  * @brief Converts fields that are common to all request types.
  *
@@ -32,7 +33,7 @@ namespace google::scp::roma::sandbox::dispatcher::request_converter {
  * @param request The input request.
  */
 template <typename RequestT>
-static void RunRequestFromInputRequestCommon(
+void RunRequestFromInputRequestCommon(
     worker_api::WorkerApi::RunCodeRequest& run_code_request,
     const RequestT& request) {
   run_code_request
@@ -54,7 +55,7 @@ static void RunRequestFromInputRequestCommon(
  * @param request The input request.
  */
 template <typename RequestT>
-static void InvocationRequestCommon(
+void InvocationRequestCommon(
     worker_api::WorkerApi::RunCodeRequest& run_code_request,
     const RequestT& request, std::string_view request_type) {
   run_code_request
@@ -72,86 +73,81 @@ static void InvocationRequestCommon(
         google::scp::roma::sandbox::constants::kInputTypeBytes;
   }
 }
+}  // namespace internal::request_converter
 
-template <typename T>
-struct RequestConverter {};
-
-/**
- * @brief Template specialization for InvocationStrRequest. This converts a
- * InvocationStrRequest into a RunCodeRequest.
- */
-template <typename TMetadata>
-struct RequestConverter<InvocationStrRequest<TMetadata>> {
+struct RequestConverter {
+  /**
+   * @brief Template specialization for InvocationStrRequest. This converts a
+   * InvocationStrRequest into a RunCodeRequest.
+   */
+  template <typename TMetadata>
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
   FromUserProvided(const InvocationStrRequest<TMetadata>& request,
                    std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
-    RunRequestFromInputRequestCommon<InvocationStrRequest<TMetadata>>(
+    internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
     run_code_request.input.reserve(request.input.size());
     for (const auto& i : request.input) {
       run_code_request.input.push_back(i);
     }
-    InvocationRequestCommon(run_code_request, request, request_type);
+    internal::request_converter::InvocationRequestCommon(run_code_request,
+                                                         request, request_type);
 
     return run_code_request;
   }
-};
 
-/**
- * @brief Template specialization for InvocationSharedRequest. This
- * converts a InvocationSharedRequest into a RunCodeRequest.
- */
-template <typename TMetadata>
-struct RequestConverter<InvocationSharedRequest<TMetadata>> {
+  /**
+   * @brief Template specialization for InvocationSharedRequest. This
+   * converts a InvocationSharedRequest into a RunCodeRequest.
+   */
+  template <typename TMetadata>
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
   FromUserProvided(const InvocationSharedRequest<TMetadata>& request,
                    std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
-    RunRequestFromInputRequestCommon<InvocationSharedRequest<TMetadata>>(
+    internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
     run_code_request.input.reserve(request.input.size());
     for (const auto& i : request.input) {
       run_code_request.input.push_back(*i);
     }
-    InvocationRequestCommon(run_code_request, request, request_type);
+    internal::request_converter::InvocationRequestCommon(run_code_request,
+                                                         request, request_type);
 
     return run_code_request;
   }
-};
 
-/**
- * @brief Template specialization for InvocationStrViewRequest. This
- * converts a InvocationStrViewRequest into a RunCodeRequest.
- */
-template <typename TMetadata>
-struct RequestConverter<InvocationStrViewRequest<TMetadata>> {
+  /**
+   * @brief Template specialization for InvocationStrViewRequest. This
+   * converts a InvocationStrViewRequest into a RunCodeRequest.
+   */
+  template <typename TMetadata>
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
   FromUserProvided(const InvocationStrViewRequest<TMetadata>& request,
                    std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
-    RunRequestFromInputRequestCommon<InvocationStrViewRequest<TMetadata>>(
+    internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
     run_code_request.input.reserve(request.input.size());
     for (const auto& i : request.input) {
       run_code_request.input.push_back(i);
     }
-    InvocationRequestCommon(run_code_request, request, request_type);
+    internal::request_converter::InvocationRequestCommon(run_code_request,
+                                                         request, request_type);
 
     return run_code_request;
   }
-};
 
-/**
- * @brief Template specialization for CodeObject. This converts a CodeObject
- * into a RunCodeRequest.
- */
-template <>
-struct RequestConverter<CodeObject> {
+  /**
+   * @brief Template specialization for CodeObject. This converts a CodeObject
+   * into a RunCodeRequest.
+   */
   static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
   FromUserProvided(const CodeObject& request, std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
-    RunRequestFromInputRequestCommon<CodeObject>(run_code_request, request);
+    internal::request_converter::RunRequestFromInputRequestCommon(
+        run_code_request, request);
     run_code_request
         .metadata[google::scp::roma::sandbox::constants::kRequestAction] =
         google::scp::roma::sandbox::constants::kRequestActionLoad;
@@ -169,6 +165,6 @@ struct RequestConverter<CodeObject> {
     return run_code_request;
   }
 };
-}  // namespace google::scp::roma::sandbox::dispatcher::request_converter
+}  // namespace google::scp::roma::sandbox
 
 #endif  // ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_CONVERTER_H_

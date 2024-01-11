@@ -105,8 +105,7 @@ ExecutionResult Dispatcher::ReloadCachedCodeObjects(
       request_type = std::string(constants::kRequestTypeJavascript);
     }
     const auto run_code_request =
-        request_converter::RequestConverter<CodeObject>::FromUserProvided(
-            cached_code, request_type);
+        RequestConverter::FromUserProvided(cached_code, request_type);
 
     if (!run_code_request.result().Successful()) {
       {
