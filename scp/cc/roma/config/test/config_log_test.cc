@@ -33,29 +33,33 @@ void LoggingFunction(absl::LogSeverity severity,
   LOG(LEVEL(severity)) << msg;
 }
 
-void TestLogFunction(int num_logs_expected, bool register_log_function) {
+void TestLogFunction(const int num_logs_expected,
+                     const bool register_log_function,
+                     absl::LogSeverity severity = absl::LogSeverity::kInfo) {
   Config<> config;
   if (register_log_function) {
     config.SetLoggingFunction(LoggingFunction);
   }
   const auto& logging_func = config.GetLoggingFunction();
-  constexpr std::string_view kLogMsg = "Hello World";
+  const std::string kLogMsg = "Hello World";
 
   absl::ScopedMockLog log;
   log.StartCapturingLogs();
-  EXPECT_CALL(log,
-              Log(absl::LogSeverity::kInfo, testing::_, std::string{kLogMsg}))
-      .Times(num_logs_expected);
-  logging_func(absl::LogSeverity::kInfo, {}, std::string{kLogMsg});
+  EXPECT_CALL(log, Log(severity, testing::_, kLogMsg)).Times(num_logs_expected);
+  logging_func(severity, {}, kLogMsg);
   log.StopCapturingLogs();
 }
 
 TEST(ConfigLogTest, DefaultLoggingIsNoOp) {
-  TestLogFunction(0 /* num_logs_expected */, false /* register_log_function */);
+  constexpr int num_logs_expected = 0;
+  constexpr bool register_log_function = false;
+  TestLogFunction(num_logs_expected, register_log_function);
 }
 
 TEST(ConfigLogTest, RegisteredLogFunctionIsCalled) {
-  TestLogFunction(1 /* num_logs_expected */, true /* register_log_function */);
+  constexpr int num_logs_expected = 1;
+  constexpr bool register_log_function = true;
+  TestLogFunction(num_logs_expected, register_log_function);
 }
 
 }  // namespace google::scp::roma::test
