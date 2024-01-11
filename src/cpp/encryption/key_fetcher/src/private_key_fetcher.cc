@@ -148,8 +148,7 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
         } else {
           KeyFetchResultCounter::IncrementPrivateKeyFetchAsyncFailureCount();
           KeyFetchResultCounter::SetNumPrivateKeysParsedOnRecentFetch(0);
-          static_cast<void>(
-              HandleFailure(request.key_ids(), result.status_code));
+          HandleFailure(request.key_ids(), result.status_code).IgnoreError();
         }
         private_key_fetch_notification.Notify();
       });

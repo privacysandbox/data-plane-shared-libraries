@@ -234,10 +234,6 @@ TEST(AssignOrReturn, WorksWithThirdArgumentAndCommas) {
     PS_ASSIGN_OR_RETURN((const auto& [t4, t5, t6]),
                         (ReturnStatusOrTupleError<int, int, int>("EXPECTED A")),
                         adaptor(_));
-    // Silence errors about the unused values.
-    static_cast<void>(t4);
-    static_cast<void>(t5);
-    static_cast<void>(t6);
     return ReturnOk();
   };
   EXPECT_THAT(func().message().data(),
