@@ -102,14 +102,7 @@ class RomaService {
           "array name tag.");
     }
 
-    auto result =
-        dispatcher_->Broadcast(std::move(code_object), std::move(callback));
-    if (!result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("Roma LoadCodeObj failed with: ",
-                       GetErrorMessage(result.status_code)));
-    }
-    return absl::OkStatus();
+    return dispatcher_->Broadcast(std::move(code_object), std::move(callback));
   }
 
   // Async API.
@@ -402,14 +395,8 @@ class RomaService {
 
     RegisterMetadata(std::move(uuid_str), invocation_req->metadata);
 
-    const auto result = dispatcher_->Dispatch(std::move(invocation_req),
-                                              std::move(callback_wrapper));
-
-    if (!result.Successful()) {
-      return absl::InternalError(absl::StrCat(
-          "Roma Execute failed due to: ", GetErrorMessage(result.status_code)));
-    }
-    return absl::OkStatus();
+    return dispatcher_->Dispatch(std::move(invocation_req),
+                                 std::move(callback_wrapper));
   }
 
   template <typename RequestT>
@@ -446,14 +433,7 @@ class RomaService {
           }
         };
 
-    auto result =
-        dispatcher_->DispatchBatch(batch, std::move(callback_wrapper));
-    if (!result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("Roma Batch Execute failed due to dispatch error: ",
-                       GetErrorMessage(result.status_code)));
-    }
-    return absl::OkStatus();
+    return dispatcher_->DispatchBatch(batch, std::move(callback_wrapper));
   }
 
   bool RomaHasEnoughMemoryForStartup() {

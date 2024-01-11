@@ -27,7 +27,6 @@
 #include "absl/synchronization/blocking_counter.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/test/utils/auto_init_run_stop.h"
-#include "public/core/test/interface/execution_result_matchers.h"
 #include "roma/interface/roma.h"
 #include "roma/sandbox/dispatcher/src/dispatcher.h"
 #include "roma/sandbox/worker_api/src/worker_api.h"
@@ -38,8 +37,6 @@
 namespace {
 
 using google::scp::core::AsyncExecutor;
-using google::scp::core::ExecutionResultOr;
-using google::scp::core::FailureExecutionResult;
 using google::scp::core::test::AutoInitRunStop;
 using google::scp::roma::CodeObject;
 using google::scp::roma::InvocationStrRequest;
@@ -91,13 +88,16 @@ void BM_Dispatch(benchmark::State& state) {
       load_request->version_string = "v1";
       load_request->js = R"(function test() { return 'Hello World'; })";
 
-      auto result = dispatcher.Dispatch(
-          std::move(load_request),
-          [&is_loading](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-            ASSERT_TRUE(resp->ok());
-            is_loading.DecrementCount();
-          });
-      ASSERT_SUCCESS(result);
+      ASSERT_TRUE(
+          dispatcher
+              .Dispatch(
+                  std::move(load_request),
+                  [&is_loading](
+                      std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                    ASSERT_TRUE(resp->ok());
+                    is_loading.DecrementCount();
+                  })
+              .ok());
     }
     is_loading.Wait();
   }

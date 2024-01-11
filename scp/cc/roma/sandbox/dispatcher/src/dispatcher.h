@@ -37,7 +37,6 @@
 #include "roma/sandbox/worker_api/src/worker_api.h"
 #include "roma/sandbox/worker_pool/src/worker_pool.h"
 
-#include "error_codes.h"
 #include "request_converter.h"
 #include "request_validator.h"
 
@@ -75,12 +74,12 @@ class Dispatcher {
    * @tparam RequestT The type of the request.
    * @param batch The input batch of request to enqueue.
    * @param batch_callback The callback to invoke once the batch is done.
-   * @return core::ExecutionResult Whether the dispatch batch operation
+   * @return absl::Status Whether the dispatch batch operation
    * succeeded or failed.
    */
   template <typename RequestT>
-  core::ExecutionResult DispatchBatch(std::vector<RequestT>& batch,
-                                      BatchCallback batch_callback) noexcept {
+  absl::Status DispatchBatch(std::vector<RequestT>& batch,
+                             BatchCallback batch_callback) noexcept {
     auto batch_size = batch.size();
     auto batch_response =
         std::make_shared<std::vector<absl::StatusOr<ResponseObject>>>(
@@ -101,9 +100,9 @@ class Dispatcher {
           };
 
       auto request = std::make_unique<RequestT>(batch[index]);
-      core::ExecutionResult result;
+      absl::Status result;
       while ((result = Dispatcher::Dispatch(std::move(request), callback)) !=
-             core::SuccessExecutionResult()) {
+             absl::OkStatus()) {
         // If the first request from the batch got a failure, return failure
         // without waiting.
         if (index == 0) {
@@ -113,7 +112,7 @@ class Dispatcher {
       }
     }
 
-    return core::SuccessExecutionResult();
+    return absl::OkStatus();
   }
 
   /**
@@ -122,10 +121,10 @@ class Dispatcher {
    * @param code_object The code object to load.
    * @param broadcast_callback The callback to invoke once the operation has
    * completed.
-   * @return core::ExecutionResult Whether the broadcast succeeded or failed.
+   * @return absl::Status Whether the broadcast succeeded or failed.
    */
-  core::ExecutionResult Broadcast(std::unique_ptr<CodeObject> code_object,
-                                  Callback broadcast_callback) noexcept;
+  absl::Status Broadcast(std::unique_ptr<CodeObject> code_object,
+                         Callback broadcast_callback) noexcept;
 
   /**
    * @brief Enqueues a request to be handled by the workers. Can return failure
@@ -135,18 +134,18 @@ class Dispatcher {
    * @param request The request.
    * @param callback The function to call once the request completes.
    * @param worker_index Specific worker to allocate request to.
-   * @return core::ExecutionResult Whether the enqueue operation succeeded or
+   * @return absl::Status Whether the enqueue operation succeeded or
    * not.
    */
   template <typename RequestT>
-  core::ExecutionResult Dispatch(std::unique_ptr<RequestT> request,
-                                 Callback callback,
-                                 int32_t worker_index = -1) noexcept
+  absl::Status Dispatch(std::unique_ptr<RequestT> request, Callback callback,
+                        int32_t worker_index = -1) noexcept
       ABSL_LOCKS_EXCLUDED(pending_requests_mu_, worker_index_mu_, cache_mu_) {
     if (absl::MutexLock l(&pending_requests_mu_);
         pending_requests_ >= max_pending_requests_) {
-      return core::FailureExecutionResult(
-          core::errors::SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_DUE_TO_CAPACITY);
+      return absl::ResourceExhaustedError(
+          "Dispatch is disallowed since the number of unfinished requests is "
+          "at capacity.");
     }
 
     // We accept empty request IDs, but we will replace them with a placeholder.
@@ -157,7 +156,10 @@ class Dispatcher {
     auto validation_result =
         request_validator::RequestValidator<RequestT>::Validate(*request);
     if (!validation_result.Successful()) {
-      return validation_result;
+      return absl::InvalidArgumentError(
+          absl::StrCat("Dispatcher validation failed due to: ",
+                       google::scp::core::errors::GetErrorMessage(
+                           validation_result.status_code)));
     }
 
     size_t index = 0;
@@ -247,11 +249,10 @@ class Dispatcher {
               // This means that the worker crashed and the request could be
               // retried, however, we need to reload the worker with the
               // cached code.
-              auto reload_result = ReloadCachedCodeObjects(**worker_or);
-              if (!reload_result.Successful()) {
+              if (auto reload_result = ReloadCachedCodeObjects(**worker_or);
+                  !reload_result.ok()) {
                 LOG(ERROR) << "Reloading the worker cache failed with "
-                           << core::errors::GetErrorMessage(
-                                  reload_result.status_code);
+                           << reload_result;
               }
               ROMA_VLOG(1)
                   << "Successfully reload all cached code objects to the worker"
@@ -282,16 +283,19 @@ class Dispatcher {
     if (schedule_result.Successful()) {
       ROMA_VLOG(1) << "Successfully schedule the execution for request "
                    << request_id << " in worker " << index;
+      return absl::OkStatus();
     } else {
       absl::MutexLock l(&pending_requests_mu_);
       pending_requests_--;
+      return absl::InternalError(
+          absl::StrCat("Dispatch failed due to: ",
+                       google::scp::core::errors::GetErrorMessage(
+                           schedule_result.status_code)));
     }
-
-    return schedule_result;
   }
 
  private:
-  core::ExecutionResult ReloadCachedCodeObjects(worker_api::WorkerApi& worker);
+  absl::Status ReloadCachedCodeObjects(worker_api::WorkerApi& worker);
 
   core::AsyncExecutor* async_executor_;
   worker_pool::WorkerPool* worker_pool_;

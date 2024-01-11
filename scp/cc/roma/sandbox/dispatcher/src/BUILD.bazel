@@ -22,7 +22,6 @@ cc_library(
     hdrs = ["dispatcher.h"],
     visibility = ["//visibility:public"],
     deps = [
-        ":error_codes",
         ":request_converter",
         ":request_validator",
         "//scp/cc:cc_base_include_dir",
@@ -66,6 +65,7 @@ cc_library(
     name = "request_validator",
     hdrs = ["request_validator.h"],
     deps = [
+        ":error_codes",
         "//scp/cc/public/core/interface:execution_result",
         "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",

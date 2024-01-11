@@ -24,6 +24,8 @@
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker_api/src/worker_api.h"
 
+#include "error_codes.h"
+
 namespace google::scp::roma::sandbox::dispatcher::request_validator {
 template <typename T>
 struct RequestValidator {};

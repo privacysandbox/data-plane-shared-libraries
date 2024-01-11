@@ -27,14 +27,11 @@
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
 
-using google::scp::core::ExecutionResult;
-using google::scp::core::ExecutionResultOr;
-using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::GetErrorMessage;
 
 namespace google::scp::roma::sandbox::dispatcher {
-ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
-                                      Callback broadcast_callback) noexcept {
+absl::Status Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
+                                   Callback broadcast_callback) noexcept {
   auto worker_count = worker_pool_->GetPoolSize();
   auto finished_counter = std::make_shared<std::atomic<size_t>>(0);
   auto responses_storage = std::make_shared<
@@ -66,22 +63,17 @@ ExecutionResult Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
         };
 
     auto code_object_copy = std::make_unique<CodeObject>(*code_object);
-
-    auto dispatch_result = Dispatch(std::move(code_object_copy),
-                                    std::move(callback), worker_index);
-
-    if (!dispatch_result.Successful()) {
-      LOG(ERROR) << "Broadcast failed at the " << worker_index
-                 << " worker with error "
-                 << GetErrorMessage(dispatch_result.status_code);
+    if (auto dispatch_result = Dispatch(std::move(code_object_copy),
+                                        std::move(callback), worker_index);
+        !dispatch_result.ok()) {
       return dispatch_result;
     }
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult Dispatcher::ReloadCachedCodeObjects(
+absl::Status Dispatcher::ReloadCachedCodeObjects(
     worker_api::WorkerApi& worker) {
   const absl::flat_hash_map<std::string, CodeObject> all_cached_code_objects =
       [&] {
@@ -112,7 +104,10 @@ ExecutionResult Dispatcher::ReloadCachedCodeObjects(
         absl::MutexLock l(&pending_requests_mu_);
         pending_requests_ -= all_cached_code_objects.size();
       }
-      return run_code_request.result();
+      return absl::InvalidArgumentError(
+          absl::StrCat("Dispatcher validation failed due to: ",
+                       google::scp::core::errors::GetErrorMessage(
+                           run_code_request.result().status_code)));
     }
 
     // Send the code objects to the worker again so it reloads its cache
@@ -122,7 +117,10 @@ ExecutionResult Dispatcher::ReloadCachedCodeObjects(
         absl::MutexLock l(&pending_requests_mu_);
         pending_requests_ -= all_cached_code_objects.size();
       }
-      return run_code_result.result();
+      return absl::InternalError(
+          absl::StrCat("Dispatcher validation failed due to: ",
+                       google::scp::core::errors::GetErrorMessage(
+                           run_code_request.result().status_code)));
     }
   }
 
@@ -131,6 +129,6 @@ ExecutionResult Dispatcher::ReloadCachedCodeObjects(
     pending_requests_ -= all_cached_code_objects.size();
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 }  // namespace google::scp::roma::sandbox::dispatcher
