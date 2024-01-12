@@ -188,16 +188,16 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
 
-  auto load_request = std::make_unique<CodeObject>();
-  load_request->id = "some_id";
-  load_request->version_string = "v1";
+  auto load_bad_js_request = std::make_unique<CodeObject>();
+  load_bad_js_request->id = "some_id";
+  load_bad_js_request->version_string = "v1";
   // Bad JS
-  load_request->js = "function test(input) { ";
+  load_bad_js_request->js = "function test(input) { ";
 
   absl::Notification done_loading;
   ASSERT_TRUE(
       dispatcher
-          .Dispatch(std::move(load_request),
+          .Dispatch(std::move(load_bad_js_request),
                     [&done_loading](
                         std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                       // That didn't work
@@ -323,16 +323,16 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
 
   Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
 
-  auto load_request = std::make_unique<CodeObject>();
-  load_request->id = "some_id";
-  load_request->version_string = "v1";
+  auto load_bad_js_request = std::make_unique<CodeObject>();
+  load_bad_js_request->id = "some_id";
+  load_bad_js_request->version_string = "v1";
   // Bad syntax
-  load_request->js = "function test(s) { return";
+  load_bad_js_request->js = "function test(s) { return";
 
   absl::Notification done_loading;
   ASSERT_TRUE(
       dispatcher
-          .Broadcast(std::move(load_request),
+          .Broadcast(std::move(load_bad_js_request),
                      [&done_loading](
                          std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
                        // That failed
