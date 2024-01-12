@@ -13,8 +13,8 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
@@ -34,14 +34,6 @@ pkg_tar(
     name = "init_server_enclave_tar",
     srcs = [
         ":init_server_enclave_execs",
-    ],
-)
-
-container_layer(
-    name = "init_server_enclave_layer",
-    directory = "/",
-    tars = [
-        ":init_server_enclave_tar",
     ],
 )
 
@@ -78,14 +70,6 @@ pkg_tar(
     ],
 )
 
-container_layer(
-    name = "greeter_server_layer",
-    directory = "/",
-    tars = [
-        ":greeter_server_tar",
-    ],
-)
-
 LINK_OPTS = [
     # Tell LD to look in the working directory of the executable for SO
     # files to link
@@ -105,14 +89,6 @@ pkg_tar(
     name = "validator_config_tar",
     srcs = [
         ":validator_config_files",
-    ],
-)
-
-container_layer(
-    name = "validator_config_layer",
-    directory = "/",
-    tars = [
-        ":validator_config_tar",
     ],
 )
 
@@ -242,14 +218,6 @@ pkg_tar(
     ],
 )
 
-container_layer(
-    name = "enclaves_validator_layer",
-    directory = "/",
-    tars = [
-        ":enclaves_validator_tar",
-    ],
-)
-
 write_file(
     name = "resolv_conf",
     out = "resolv_override.conf",
@@ -278,14 +246,6 @@ pkg_tar(
     ],
 )
 
-container_layer(
-    name = "resolv_conf_layer",
-    directory = "/",
-    tars = [
-        ":resolv_conf_tar",
-    ],
-)
-
 pkg_files(
     name = "kmstool_enclave_execs",
     srcs = [
@@ -299,14 +259,6 @@ pkg_tar(
     name = "kmstool_enclave_tar",
     srcs = [
         ":kmstool_enclave_execs",
-    ],
-)
-
-container_layer(
-    name = "kmstool_enclave_layer",
-    directory = "/",
-    tars = [
-        ":kmstool_enclave_tar",
     ],
 )
 
@@ -340,36 +292,30 @@ pkg_tar(
     ],
 )
 
-container_layer(
-    name = "grpcurl_layer",
-    directory = "/usr/bin",
-    tars = [
-        ":grpcurl_tar",
-    ],
-)
-
-container_image(
+oci_image(
     name = "aws_nitro_enclaves_validator_image",
-    architecture = select({
-        "@platforms//cpu:aarch64": "arm64",
-        "@platforms//cpu:x86_64": "amd64",
-    }),
     base = select({
-        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64//image",
-        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64//image",
+        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64",
+        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64",
     }),
     cmd = [
         "/server/bin/init_server_enclave",
     ],
     entrypoint = ["/bin/bash"],
-    layers = [
-        ":init_server_enclave_layer",
-        "//src/aws/proxy:proxify_layer",
-        ":grpcurl_layer",
-        ":kmstool_enclave_layer",
-        ":resolv_conf_layer",
-        ":validator_config_layer",
-        ":enclaves_validator_layer",
-        ":greeter_server_layer",
+    tars = [
+        ":init_server_enclave_tar",
+        "//src/aws/proxy:libnsm_and_proxify_tar",
+        ":grpcurl_tar",
+        ":kmstool_enclave_tar",
+        ":resolv_conf_tar",
+        ":validator_config_tar",
+        ":enclaves_validator_tar",
+        ":greeter_server_tar",
     ],
+)
+
+oci_tarball(
+    name = "aws_nitro_enclaves_validator_tarball",
+    image = ":aws_nitro_enclaves_validator_image",
+    repo_tags = ["bazel/src/public/cpio/validator:aws_nitro_enclaves_validator"],
 )

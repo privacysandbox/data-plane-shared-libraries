@@ -29,6 +29,8 @@ load("@google_privacysandbox_servers_common//build_defs/cc/shared:sandboxed_api.
 load("@google_privacysandbox_servers_common//build_defs/shared:rpm.bzl", "rpm")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
+load("@rules_oci//oci:dependencies.bzl", "rules_oci_dependencies")
+load("@rules_oci//oci:repositories.bzl", "LATEST_CRANE_VERSION", "oci_register_toolchains")
 load("@rules_pkg//pkg:deps.bzl", "rules_pkg_dependencies")
 load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
@@ -111,3 +113,8 @@ def deps2(
     crate_universe_dependencies()
     rules_fuzzing_dependencies()
     emscripten_deps2()
+    rules_oci_dependencies()
+    oci_register_toolchains(
+        name = "oci",
+        crane_version = LATEST_CRANE_VERSION,
+    )

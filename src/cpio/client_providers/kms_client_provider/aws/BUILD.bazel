@@ -13,10 +13,6 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load(
-    "@io_bazel_rules_docker//container:container.bzl",
-    "container_layer",
-)
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load(
     "@rules_pkg//pkg:mappings.bzl",
@@ -101,14 +97,6 @@ pkg_tar(
         ":cpio_kms_libs",
     ],
     package_dir = "/",
-)
-
-container_layer(
-    name = "cpio_kms_layer",
-    tars = [
-        ":cpio_kms_binaries",
-    ],
-    visibility = ["//visibility:public"],
 )
 
 cc_library(

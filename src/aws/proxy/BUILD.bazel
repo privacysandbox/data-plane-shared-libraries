@@ -22,9 +22,9 @@
 """
 
 load("@com_github_grpc_grpc//bazel:grpc_build_system.bzl", "grpc_proto_library")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:pkg.bzl", "pkg_tar")
 load("@rules_proto//proto:defs.bzl", "proto_library")
@@ -90,44 +90,38 @@ pkg_tar(
     ],
 )
 
-container_layer(
-    name = "resolv_conf_getter_server_layer",
-    directory = "/",
+oci_image(
+    name = "resolv_conf_getter_server_debian_image",
+    base = select({
+        "@platforms//cpu:aarch64": "@runtime-debian-debug-nonroot-arm64",
+        "@platforms//cpu:x86_64": "@runtime-debian-debug-nonroot-amd64",
+    }),
+    entrypoint = ["/opt/google/resolv_conf_getter_server"],
+    exposed_ports = ["1600"],
     tars = [
         ":resolv_conf_getter_server_tar",
     ],
-)
-
-container_image(
-    name = "resolv_conf_getter_server_debian_image",
-    architecture = select({
-        "@platforms//cpu:aarch64": "arm64",
-        "@platforms//cpu:x86_64": "amd64",
-    }),
-    base = select({
-        "@platforms//cpu:aarch64": "@runtime-debian-debug-nonroot-arm64//image",
-        "@platforms//cpu:x86_64": "@runtime-debian-debug-nonroot-amd64//image",
-    }),
-    entrypoint = ["/opt/google/resolv_conf_getter_server"],
-    layers = [
-        ":resolv_conf_getter_server_layer",
-    ],
-    ports = ["1600"],
     visibility = [
         "//production/packaging/aws:__subpackages__",
     ],
 )
 
+oci_tarball(
+    name = "resolv_conf_getter_server_debian_tarball",
+    image = ":resolv_conf_getter_server_debian_image",
+    repo_tags = ["src/aws/proxy:resolv_conf_getter_server_debian"],
+)
+
 genrule(
     name = "copy_to_dist",
     srcs = [
-        ":resolv_conf_getter_server_debian_image.tar",
+        ":resolv_conf_getter_server_debian_tarball",
     ],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat << EOF > '$@'
 readonly target_dir=dist/aws
 mkdir -p \\$${target_dir}
-cp $(execpath :resolv_conf_getter_server_debian_image.tar) "\\$${target_dir}"
+cp $(execpath :resolv_conf_getter_server_debian_tarball) "\\$${target_dir}"
 EOF""",
     executable = True,
     local = True,
@@ -353,35 +347,27 @@ pkg_tar(
     ],
 )
 
-container_layer(
-    name = "proxy_layer",
-    directory = "/",
-    tars = [
-        ":proxy_tar",
-    ],
-    visibility = [
-        "//src/aws:__subpackages__",
-    ],
-)
-
-container_image(
+oci_image(
     name = "proxy_debian_image",
-    architecture = select({
-        "@platforms//cpu:aarch64": "arm64",
-        "@platforms//cpu:x86_64": "amd64",
-    }),
     base = select({
-        "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64//image",
-        "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64//image",
+        "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
+        "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
     }),
     entrypoint = ["/bin/bash"],
-    layers = [
-        ":proxy_layer",
+    tars = [
+        ":proxy_tar",
     ],
     visibility = [
         "//production/packaging/aws:__subpackages__",
         "//src/public/cpio/validator:__subpackages__",
     ],
+)
+
+oci_tarball(
+    name = "proxy_debian_tarball",
+    image = ":proxy_debian_image",
+    repo_tags = ["src/aws/proxy:proxy_debian"],
+    visibility = ["//visibility:public"],
 )
 
 pkg_files(
@@ -429,10 +415,9 @@ pkg_tar(
     package_dir = "/",
 )
 
-container_layer(
-    name = "proxify_layer",
-    directory = "/",
-    tars = [
+pkg_tar(
+    name = "libnsm_and_proxify_tar",
+    srcs = [
         ":libnsm_tar",
         ":proxify_tar",
     ],
