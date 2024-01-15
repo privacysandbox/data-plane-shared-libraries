@@ -29,7 +29,6 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 alias(
     name = "kms_cli",
-    # actual = "@kmstool_enclave_cli//file",
     actual = "@nitrokmscli_aws_nitro_enclaves_sdk_c//:aws_nitro_enclaves_cli",
     visibility = ["//visibility:public"],
 )
