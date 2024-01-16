@@ -38,6 +38,7 @@ namespace {
 
 using google::scp::core::AsyncExecutor;
 using google::scp::core::test::AutoInitRunStop;
+using google::scp::core::test::AutoInitRunStopStatus;
 using google::scp::roma::CodeObject;
 using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::ResponseObject;
@@ -72,7 +73,7 @@ void BM_Dispatch(benchmark::State& state) {
 
   WorkerPoolApiSapi worker_pool(configs);
   AutoInitRunStop for_async_executor(async_executor);
-  AutoInitRunStop for_worker_pool(worker_pool);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
 
   // Note: max_pending_requests must be large enough to hold all of the queued
   // tasks for the benchmark.
