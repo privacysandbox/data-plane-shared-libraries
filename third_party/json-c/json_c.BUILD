@@ -26,19 +26,19 @@ exports_files(["LICENSE"])
 
 copy_file(
     name = "config_h",
-    src = "@google_privacysandbox_servers_common//build_defs/cc/aws:json_c.config.h",
+    src = "@google_privacysandbox_servers_common//third_party/json-c:json_c.config.h",
     out = "config.h",
 )
 
 copy_file(
     name = "json_config_h",
-    src = "@google_privacysandbox_servers_common//build_defs/cc/aws:json_c.json_config.h",
+    src = "@google_privacysandbox_servers_common//third_party/json-c:json_c.json_config.h",
     out = "json_config.h",
 )
 
 copy_file(
     name = "json_h",
-    src = "@google_privacysandbox_servers_common//build_defs/cc/aws:json_c.json.h",
+    src = "@google_privacysandbox_servers_common//third_party/json-c:json_c.json.h",
     out = "json.h",
     visibility = [
         "@nitrokmscli_aws_nitro_enclaves_sdk_c//:__pkg__",

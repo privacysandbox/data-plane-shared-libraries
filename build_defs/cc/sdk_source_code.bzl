@@ -13,7 +13,6 @@
 # limitations under the License.
 
 load("//build_defs/cc:sdk_common.bzl", "sdk_common")
-load("//build_defs/cc/aws:aws_nitro_enclaves_sdk_source_code_deps.bzl", "import_aws_nitro_enclaves_sdk")
 load("//build_defs/cc/aws:aws_sdk_cpp_source_code_deps.bzl", "import_aws_sdk_cpp")
 
 def sdk_dependencies():
@@ -21,4 +20,3 @@ def sdk_dependencies():
 
 def sdk_dependencies2():
     import_aws_sdk_cpp()
-    import_aws_nitro_enclaves_sdk()
