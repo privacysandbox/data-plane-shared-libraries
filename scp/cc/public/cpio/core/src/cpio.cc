@@ -46,6 +46,7 @@ using google::scp::cpio::client_providers::GlobalCpio;
 
 namespace google::scp::cpio {
 static ExecutionResult SetLogger(const CpioOptions& options) {
+  std::unique_ptr<Logger> logger_ptr;
   switch (options.log_option) {
     case LogOption::kNoLog:
       break;

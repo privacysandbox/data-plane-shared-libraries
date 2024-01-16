@@ -24,7 +24,6 @@
 #include "public/cpio/interface/type_def.h"
 
 namespace google::scp::cpio {
-static std::unique_ptr<core::LoggerInterface> logger_ptr;
 static std::unique_ptr<client_providers::CpioProviderInterface> cpio_ptr;
 
 /**
