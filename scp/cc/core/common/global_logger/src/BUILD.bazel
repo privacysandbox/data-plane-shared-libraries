@@ -14,16 +14,12 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//scp/cc:__subpackages__"])
 
 cc_library(
     name = "global_logger_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = ["global_logger.cc"],
+    hdrs = ["global_logger.h"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:errors_lib",
