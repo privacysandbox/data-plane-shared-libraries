@@ -114,7 +114,7 @@ ExecutionResult ExecutionUtils::CompileRunJS(
 
   v8::Local<v8::String> js_source =
       v8::String::NewFromUtf8(isolate, js.data(), v8::NewStringType::kNormal,
-                              static_cast<uint32_t>(js.length()))
+                              js.size())
           .ToLocalChecked();
   v8::Local<v8::Script> script;
   if (!v8::Script::Compile(context, js_source).ToLocal(&script)) {
@@ -150,8 +150,7 @@ ExecutionResult ExecutionUtils::GetJsHandler(std::string_view handler_name,
 
   v8::Local<v8::String> local_name =
       v8::String::NewFromUtf8(isolate, handler_name.data(),
-                              v8::NewStringType::kNormal,
-                              static_cast<uint32_t>(handler_name.length()))
+                              v8::NewStringType::kNormal, handler_name.size())
           .ToLocalChecked();
 
   // If there is no handler function, or if it is not a function,
@@ -391,8 +390,7 @@ v8::Local<v8::Array> ExecutionUtils::ParseAsJsInput(
   for (auto i = 0; i < argc; ++i) {
     v8::Local<v8::String> arg_str =
         v8::String::NewFromUtf8(isolate, input[i].data(),
-                                v8::NewStringType::kNormal,
-                                static_cast<uint32_t>(input[i].length()))
+                                v8::NewStringType::kNormal, input[i].size())
             .ToLocalChecked();
 
     if (is_byte_str) {
