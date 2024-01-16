@@ -40,18 +40,6 @@ DEFINE_ERROR_CODE(
     "Could not receive a response from the parent process.",
     HttpStatusCode::BAD_REQUEST)
 
-REGISTER_COMPONENT_CODE(SC_ROMA_FUNCTION_TABLE, 0x0CC0)
-
-DEFINE_ERROR_CODE(SC_ROMA_FUNCTION_TABLE_COULD_NOT_FIND_FUNCTION_NAME,
-                  SC_ROMA_FUNCTION_TABLE, 0x0001,
-                  "Could not find the function by name in the table.",
-                  HttpStatusCode::BAD_REQUEST)
-
-DEFINE_ERROR_CODE(
-    SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED, SC_ROMA_FUNCTION_TABLE,
-    0x0003,
-    "A function with this name has already been registered in the table.",
-    HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
 
 #endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_ERROR_CODES_H_

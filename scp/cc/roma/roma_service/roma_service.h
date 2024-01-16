@@ -264,12 +264,10 @@ class RomaService {
     std::vector<std::string> function_names;
     function_names.reserve(function_bindings.size());
     for (const auto& binding : function_bindings) {
-      auto execution_result = native_function_binding_table_.Register(
+      auto status = native_function_binding_table_.Register(
           binding->function_name, binding->function);
-      if (!execution_result.Successful()) {
-        return absl::InternalError(absl::StrCat(
-            "SetupNativeFunctionHandler failed due to internal error: ",
-            GetErrorMessage(execution_result.status_code)));
+      if (!status.ok()) {
+        return status;
       }
 
       function_names.push_back(binding->function_name);

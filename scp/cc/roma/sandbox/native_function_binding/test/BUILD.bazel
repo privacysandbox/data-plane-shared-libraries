@@ -49,6 +49,7 @@ cc_test(
     deps = [
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_handler_sapi_ipc_lib",
+        "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],
 )

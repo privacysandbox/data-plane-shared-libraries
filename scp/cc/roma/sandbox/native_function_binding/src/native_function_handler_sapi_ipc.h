@@ -93,7 +93,7 @@ class NativeFunctionHandlerSapiIpc {
               !function_name.empty()) {
             if (FunctionBindingPayload<TMetadata> wrapper{
                     *io_proto, std::move(GetMetadata(invocation_req_uuid))};
-                !function_table_->Call(function_name, wrapper).Successful()) {
+                !function_table_->Call(function_name, wrapper).ok()) {
               // If execution failed, add errors to the proto to return
               io_proto->mutable_errors()->Add(
                   std::string(kFailedNativeHandlerExecution));

@@ -22,14 +22,14 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/config/src/function_binding_object_v2.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
-
-#include "error_codes.h"
 
 namespace google::scp::roma::sandbox::native_function_binding {
 
@@ -44,21 +44,20 @@ class NativeFunctionTable {
    *
    * @param function_name The name of the function.
    * @param binding The actual function.
-   * @return core::ExecutionResult
+   * @return absl::Status
    */
-  core::ExecutionResult Register(absl::string_view function_name,
-                                 NativeBinding binding)
+  absl::Status Register(absl::string_view function_name, NativeBinding binding)
       ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_) {
     absl::MutexLock lock(&native_functions_map_mutex_);
     const auto [_, was_inserted] =
         native_functions_.insert({std::string(function_name), binding});
 
     if (!was_inserted) {
-      return core::FailureExecutionResult(
-          google::scp::core::errors::
-              SC_ROMA_FUNCTION_TABLE_NAME_ALREADY_REGISTERED);
+      return absl::InvalidArgumentError(
+          "A function with this name has already been registered in the "
+          "table.");
     }
-    return core::SuccessExecutionResult();
+    return absl::OkStatus();
   }
 
   /**
@@ -66,25 +65,24 @@ class NativeFunctionTable {
    *
    * @param function_name The function name.
    * @param function_binding_proto The function parameters.
-   * @return core::ExecutionResult
+   * @return absl::Status
    */
-  core::ExecutionResult Call(
-      absl::string_view function_name,
-      FunctionBindingPayload<TMetadata>& function_binding_wrapper)
+  absl::Status Call(absl::string_view function_name,
+                    FunctionBindingPayload<TMetadata>& function_binding_wrapper)
       ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_) {
     NativeBinding func;
     {
       absl::MutexLock lock(&native_functions_map_mutex_);
       auto fn_it = native_functions_.find(function_name);
       if (fn_it == native_functions_.end()) {
-        return core::FailureExecutionResult(
-            google::scp::core::errors::
-                SC_ROMA_FUNCTION_TABLE_COULD_NOT_FIND_FUNCTION_NAME);
+        return absl::InvalidArgumentError(
+            absl::StrCat("Could not find the function by name in the table: ",
+                         function_name));
       }
       func = fn_it->second;
     }
     func(function_binding_wrapper);
-    return core::SuccessExecutionResult();
+    return absl::OkStatus();
   }
 
   // Remove all of the functions from the table.

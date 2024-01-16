@@ -19,6 +19,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "absl/status/status.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
@@ -28,35 +29,35 @@ void ExampleFunction(FunctionBindingPayload<>& payload) {}
 
 TEST(NativeFunctionTableTest, RegisterPasses) {
   NativeFunctionTable table;
-  EXPECT_SUCCESS(table.Register("example", ExampleFunction));
+  EXPECT_TRUE(table.Register("example", ExampleFunction).ok());
 }
 
 TEST(NativeFunctionTableTest, RegisterTwiceFails) {
   NativeFunctionTable table;
-  EXPECT_SUCCESS(table.Register("example", ExampleFunction));
-  EXPECT_FALSE(table.Register("example", ExampleFunction).Successful());
+  EXPECT_TRUE(table.Register("example", ExampleFunction).ok());
+  EXPECT_FALSE(table.Register("example", ExampleFunction).ok());
 }
 
 TEST(NativeFunctionTableTest, RegisterClearRegisterPasses) {
   NativeFunctionTable table;
-  EXPECT_SUCCESS(table.Register("example", ExampleFunction));
+  EXPECT_TRUE(table.Register("example", ExampleFunction).ok());
   table.Clear();
-  EXPECT_SUCCESS(table.Register("example", ExampleFunction));
+  EXPECT_TRUE(table.Register("example", ExampleFunction).ok());
 }
 
 TEST(NativeFunctionTableTest, CallRegisteredFunction) {
   NativeFunctionTable table;
-  EXPECT_SUCCESS(table.Register("example", ExampleFunction));
+  EXPECT_TRUE(table.Register("example", ExampleFunction).ok());
   proto::FunctionBindingIoProto input;
   FunctionBindingPayload<> payload{input, {}};
-  EXPECT_SUCCESS(table.Call("example", payload));
+  EXPECT_TRUE(table.Call("example", payload).ok());
 }
 
 TEST(NativeFunctionTableTest, CallUnregisteredFunction) {
   NativeFunctionTable table;
   proto::FunctionBindingIoProto input;
   FunctionBindingPayload<> payload{input, {}};
-  EXPECT_FALSE(table.Call("example", payload).Successful());
+  EXPECT_FALSE(table.Call("example", payload).ok());
 }
 
 }  // namespace google::scp::roma::sandbox::native_function_binding::test
