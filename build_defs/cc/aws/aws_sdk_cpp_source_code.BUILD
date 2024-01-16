@@ -647,6 +647,23 @@ genrule(
 )
 
 cc_library(
+    name = "transfer",
+    srcs = glob([
+        "src/aws-cpp-sdk-transfer/source/transfer/*.cpp",  # TRANSFER_SOURCE
+    ]),
+    hdrs = glob([
+        "src/aws-cpp-sdk-transfer/include/aws/transfer/*.h",  # TRANSFER_HEADERS
+    ]),
+    includes = [
+        "src/aws-cpp-sdk-transfer/include/",
+    ],
+    deps = [
+        ":core",
+        ":s3",
+    ],
+)
+
+cc_library(
     name = "kinesis",
     srcs = glob([
         "generated/src/aws-cpp-sdk-kinesis/source/*.cpp",  # AWS_KINESIS_SOURCE
