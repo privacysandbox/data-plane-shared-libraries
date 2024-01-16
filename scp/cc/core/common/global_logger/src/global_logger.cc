@@ -19,26 +19,11 @@
 #include <memory>
 #include <utility>
 
-#include "absl/container/flat_hash_set.h"
-
 namespace google::scp::core::common {
 static std::unique_ptr<LoggerInterface> logger_instance_;
 
-// Static duration map is heap allocated to avoid destructor call.
-static absl::flat_hash_set<LogLevel>& enabled_log_levels_ =
-    *new absl::flat_hash_set<LogLevel>{
-        LogLevel::kAlert,     LogLevel::kCritical, LogLevel::kDebug,
-        LogLevel::kEmergency, LogLevel::kError,    LogLevel::kInfo,
-        LogLevel::kWarning,
-    };
-
 const std::unique_ptr<LoggerInterface>& GlobalLogger::GetGlobalLogger() {
   return logger_instance_;
-}
-
-void GlobalLogger::SetGlobalLogLevels(
-    absl::flat_hash_set<LogLevel> log_levels) {
-  enabled_log_levels_ = std::move(log_levels);
 }
 
 void GlobalLogger::SetGlobalLogger(std::unique_ptr<LoggerInterface> logger) {
@@ -47,9 +32,5 @@ void GlobalLogger::SetGlobalLogger(std::unique_ptr<LoggerInterface> logger) {
 
 void GlobalLogger::ShutdownGlobalLogger() {
   logger_instance_ = nullptr;
-}
-
-bool GlobalLogger::IsLogLevelEnabled(const LogLevel log_level) {
-  return enabled_log_levels_.contains(log_level);
 }
 }  // namespace google::scp::core::common

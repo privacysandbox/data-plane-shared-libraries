@@ -21,7 +21,6 @@
 #include <memory>
 #include <string>
 
-#include "absl/container/flat_hash_set.h"
 #include "absl/strings/str_cat.h"
 #include "core/interface/errors.h"
 #include "core/interface/logger_interface.h"
@@ -30,8 +29,6 @@ namespace google::scp::core::common {
 class GlobalLogger {
  public:
   static const std::unique_ptr<core::LoggerInterface>& GetGlobalLogger();
-  static bool IsLogLevelEnabled(const LogLevel log_level);
-  static void SetGlobalLogLevels(absl::flat_hash_set<LogLevel> log_levels);
   static void SetGlobalLogger(std::unique_ptr<core::LoggerInterface> logger);
   static void ShutdownGlobalLogger();
 };
@@ -51,9 +48,7 @@ class GlobalLogger {
 
 #define __SCP_INFO_LOG(component_name, correlation_id, parent_activity_id, \
                        activity_id, message, ...)                          \
-  if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&        \
-      google::scp::core::common::GlobalLogger::IsLogLevelEnabled(          \
-          google::scp::core::LogLevel::kInfo)) {                           \
+  if (google::scp::core::common::GlobalLogger::GetGlobalLogger()) {        \
     google::scp::core::common::GlobalLogger::GetGlobalLogger()->Info(      \
         component_name, correlation_id, parent_activity_id, activity_id,   \
         SCP_LOCATION, message, ##__VA_ARGS__);                             \
@@ -71,9 +66,7 @@ class GlobalLogger {
 
 #define __SCP_DEBUG_LOG(component_name, correlation_id, parent_activity_id, \
                         activity_id, message, ...)                          \
-  if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&         \
-      google::scp::core::common::GlobalLogger::IsLogLevelEnabled(           \
-          google::scp::core::LogLevel::kDebug)) {                           \
+  if (google::scp::core::common::GlobalLogger::GetGlobalLogger()) {         \
     google::scp::core::common::GlobalLogger::GetGlobalLogger()->Debug(      \
         component_name, correlation_id, parent_activity_id, activity_id,    \
         SCP_LOCATION, message, ##__VA_ARGS__);                              \
@@ -91,9 +84,7 @@ class GlobalLogger {
 
 #define __SCP_WARNING_LOG(component_name, correlation_id, parent_activity_id, \
                           activity_id, message, ...)                          \
-  if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&           \
-      google::scp::core::common::GlobalLogger::IsLogLevelEnabled(             \
-          google::scp::core::LogLevel::kWarning)) {                           \
+  if (google::scp::core::common::GlobalLogger::GetGlobalLogger()) {           \
     google::scp::core::common::GlobalLogger::GetGlobalLogger()->Warning(      \
         component_name, correlation_id, parent_activity_id, activity_id,      \
         SCP_LOCATION, message, ##__VA_ARGS__);                                \
@@ -112,9 +103,7 @@ class GlobalLogger {
 
 #define __SCP_ERROR_LOG(component_name, correlation_id, parent_activity_id, \
                         activity_id, execution_result, message, ...)        \
-  if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&         \
-      google::scp::core::common::GlobalLogger::IsLogLevelEnabled(           \
-          google::scp::core::LogLevel::kError)) {                           \
+  if (google::scp::core::common::GlobalLogger::GetGlobalLogger()) {         \
     const auto message_with_error =                                         \
         absl::StrCat(message, " Failed with: ",                             \
                      google::scp::core::errors::GetErrorMessage(            \
@@ -139,9 +128,7 @@ class GlobalLogger {
 
 #define __SCP_CRITICAL_LOG(component_name, correlation_id, parent_activity_id, \
                            activity_id, execution_result, message, ...)        \
-  if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&            \
-      google::scp::core::common::GlobalLogger::IsLogLevelEnabled(              \
-          google::scp::core::LogLevel::kCritical)) {                           \
+  if (google::scp::core::common::GlobalLogger::GetGlobalLogger()) {            \
     const auto message_with_error =                                            \
         absl::StrCat(message, " Failed with: ",                                \
                      google::scp::core::errors::GetErrorMessage(               \
@@ -164,9 +151,7 @@ class GlobalLogger {
 
 #define __SCP_ALERT_LOG(component_name, correlation_id, parent_activity_id, \
                         activity_id, execution_result, message, ...)        \
-  if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&         \
-      google::scp::core::common::GlobalLogger::IsLogLevelEnabled(           \
-          google::scp::core::LogLevel::kAlert)) {                           \
+  if (google::scp::core::common::GlobalLogger::GetGlobalLogger()) {         \
     const auto message_with_error =                                         \
         absl::StrCat(message, " Failed with: ",                             \
                      google::scp::core::errors::GetErrorMessage(            \
@@ -192,9 +177,7 @@ class GlobalLogger {
 #define __SCP_EMERGENCY_LOG(component_name, correlation_id,                    \
                             parent_activity_id, activity_id, execution_result, \
                             message, ...)                                      \
-  if (google::scp::core::common::GlobalLogger::GetGlobalLogger() &&            \
-      google::scp::core::common::GlobalLogger::IsLogLevelEnabled(              \
-          google::scp::core::LogLevel::kEmergency)) {                          \
+  if (google::scp::core::common::GlobalLogger::GetGlobalLogger()) {            \
     const auto message_with_error =                                            \
         absl::StrCat(message, " Failed with: ",                                \
                      google::scp::core::errors::GetErrorMessage(               \
