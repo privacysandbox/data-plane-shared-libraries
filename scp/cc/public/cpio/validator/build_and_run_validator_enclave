@@ -81,24 +81,10 @@ VALIDATOR_HASH=$({ cat "${VALIDATOR_CONFIG_PATH}"; } | sha256sum | cut --delimit
 readonly VALIDATOR_HASH
 declare -r ENCLAVE_NAME=cpio_validator_"${VALIDATOR_HASH}"
 
-
-RESOLV_CONF_TMPFILE="$(mktemp)"
-readonly RESOLV_CONF_TMPFILE
-cat <<EOF >"${RESOLV_CONF_TMPFILE}"
-; use-vc forces use of TCP for DNS resolutions.
-; See https://man7.org/linux/man-pages/man5/resolv.conf.5.html
-options use-vc timeout:2 attempts:5
-search ec2.internal
-nameserver 8.8.8.8
-nameserver 8.8.4.4
-nameserver 1.1.1.1
-EOF
-
 if ! [[ -f ${ENCLAVE_NAME}.eif ]]; then
   CONTAINER_NAME=$(mktemp --dry-run cpio-validator-XXX)
   docker create --name "${CONTAINER_NAME}" "${DOCKER_IMAGE_URI}" >/dev/null
   docker cp "${VALIDATOR_CONFIG_PATH}" "${CONTAINER_NAME}":/etc/validator_config.txtpb
-  docker cp "${RESOLV_CONF_TMPFILE}" "${CONTAINER_NAME}":/etc/resolv_override.conf
   if [[ ${DEBUG_MODE} -eq 1 ]]; then
     readonly INIT_SERVER_ENCLAVE_TMPFILE="$(mktemp)"
     docker cp "${CONTAINER_NAME}":/server/bin/init_server_enclave \
@@ -124,7 +110,22 @@ sleep 2
 
 # Check the response with grpcurl.
 set +o errexit
-GRPC_OUTPUT="$(docker run --rm -it --network=host --entrypoint /bin/grpcurl "${DOCKER_IMAGE_URI}" -plaintext -d '{"name": "world"}' 127.0.0.1:50051 helloworld.Greeter/SayHello | tr -d '[:space:]')"
+declare -a -r DOCKER_RUN_ARGS=(
+  --rm
+  --interactive
+  --tty
+  --network host
+  --entrypoint /bin/grpcurl
+)
+declare -a -r GRPCURL_ARGS=(
+  -plaintext
+  -d '{"name": "world"}'
+  127.0.0.1:50051
+  helloworld.Greeter/SayHello
+)
+GRPC_OUTPUT="$(docker run "${DOCKER_RUN_ARGS[@]}" "${DOCKER_IMAGE_URI}" "${GRPCURL_ARGS[@]}" \
+  | tr -d '[:space:]'
+)"
 readonly GRPC_OUTPUT
 set -o errexit
 declare -r EXPECTED_GRPC_OUTPUT='{"message":"Helloworld"}'
