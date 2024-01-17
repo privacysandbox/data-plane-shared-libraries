@@ -56,14 +56,6 @@ static ExecutionResult SetLogger(const CpioOptions& options) {
       break;
   }
   if (logger_ptr) {
-    auto execution_result = logger_ptr->Init();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
-    execution_result = logger_ptr->Run();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
     GlobalLogger::SetGlobalLogger(std::move(logger_ptr));
   }
 
@@ -94,10 +86,6 @@ ExecutionResult Cpio::InitCpio(CpioOptions options) {
 
 ExecutionResult Cpio::ShutdownCpio(CpioOptions options) {
   if (GlobalLogger::GetGlobalLogger()) {
-    auto execution_result = GlobalLogger::GetGlobalLogger()->Stop();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
     GlobalLogger::ShutdownGlobalLogger();
   }
   if (GlobalCpio::GetGlobalCpio()) {

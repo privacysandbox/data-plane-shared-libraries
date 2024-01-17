@@ -22,8 +22,6 @@
 #include "core/common/uuid/src/uuid.h"
 #include "core/logger/interface/log_provider_interface.h"
 
-#include "error_codes.h"
-
 namespace google::scp::core::logger::log_providers {
 /**
  * @brief A LogProvider that writes log messages to the syslog service.  The
@@ -34,19 +32,10 @@ namespace google::scp::core::logger::log_providers {
  */
 class SyslogLogProvider : public LogProviderInterface {
  public:
-  ExecutionResult Init() noexcept override;
-
-  ExecutionResult Run() noexcept override;
-
-  ExecutionResult Stop() noexcept override;
-
   void Log(const LogLevel& level, const common::Uuid& correlation_id,
            const common::Uuid& parent_activity_id,
            const common::Uuid& activity_id, std::string_view component_name,
            std::string_view location, std::string_view message,
            ...) noexcept override;
-
- private:
-  const char* log_channel = "scp-log";
 };
 }  // namespace google::scp::core::logger::log_providers

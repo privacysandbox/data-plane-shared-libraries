@@ -42,7 +42,7 @@ enum class LogLevel {
  * to a specific destination.
  *
  */
-class LogProviderInterface : public ServiceInterface {
+class LogProviderInterface {
  public:
   virtual ~LogProviderInterface() = default;
 

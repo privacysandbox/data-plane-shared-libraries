@@ -24,6 +24,7 @@ cc_test(
     ],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

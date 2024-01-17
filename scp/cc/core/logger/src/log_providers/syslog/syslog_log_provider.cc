@@ -29,37 +29,10 @@
 #include "absl/strings/str_join.h"
 #include "core/common/uuid/src/uuid.h"
 
-#include "error_codes.h"
-
 using google::scp::core::common::ToString;
 using google::scp::core::common::Uuid;
-using google::scp::core::errors::SC_SYSLOG_CLOSE_CONNECTION_ERROR;
-using google::scp::core::errors::SC_SYSLOG_OPEN_CONNECTION_ERROR;
 
 namespace google::scp::core::logger::log_providers {
-ExecutionResult SyslogLogProvider::Init() noexcept {
-  try {
-    openlog(log_channel, LOG_CONS | LOG_NDELAY, LOG_USER);
-  } catch (...) {
-    return FailureExecutionResult(SC_SYSLOG_OPEN_CONNECTION_ERROR);
-  }
-  return SuccessExecutionResult();
-}
-
-ExecutionResult SyslogLogProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult SyslogLogProvider::Stop() noexcept {
-  try {
-    closelog();
-  } catch (...) {
-    return FailureExecutionResult(SC_SYSLOG_CLOSE_CONNECTION_ERROR);
-  }
-
-  return SuccessExecutionResult();
-}
-
 void SyslogLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
                             const Uuid& parent_activity_id,
                             const Uuid& activity_id,
@@ -72,6 +45,13 @@ void SyslogLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
                                     ToString(activity_id), location, message),
                     "|");
 
+  try {
+    constexpr std::string_view kLogChannel = "scp-log";
+    openlog(kLogChannel.data(), LOG_CONS | LOG_NDELAY, LOG_USER);
+  } catch (...) {
+    std::cerr << "Error opening connection to syslog.";
+    return;
+  }
   va_list args;
   va_start(args, message);
   try {
@@ -106,5 +86,10 @@ void SyslogLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
     std::cerr << "Exception thrown while writing to syslog";
   }
   va_end(args);
+  try {
+    closelog();
+  } catch (...) {
+    std::cerr << "Error closing connection to syslog.";
+  }
 }
 }  // namespace google::scp::core::logger::log_providers

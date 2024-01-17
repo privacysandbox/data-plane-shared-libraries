@@ -29,21 +29,9 @@ using google::scp::core::common::TimeProvider;
 using google::scp::core::common::ToString;
 using google::scp::core::common::Uuid;
 
-constexpr size_t nano_seconds_multiplier = (1000 * 1000 * 1000);
+constexpr size_t kNanoSecondsMultiplier = (1000 * 1000 * 1000);
 
 namespace google::scp::core::logger {
-
-ExecutionResult ConsoleLogProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult ConsoleLogProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult ConsoleLogProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
 
 void ConsoleLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
                              const Uuid& parent_activity_id,
@@ -51,10 +39,12 @@ void ConsoleLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
                              std::string_view component_name,
                              std::string_view location,
                              std::string_view message, ...) noexcept {
-  auto current_timestamp =
+  const auto current_timestamp =
       TimeProvider::GetWallTimestampInNanosecondsAsClockTicks();
-  auto current_timestamp_seconds = current_timestamp / nano_seconds_multiplier;
-  auto remainder_nano_seconds = (current_timestamp % nano_seconds_multiplier);
+  const auto current_timestamp_seconds =
+      current_timestamp / kNanoSecondsMultiplier;
+  const auto remainder_nano_seconds =
+      (current_timestamp % kNanoSecondsMultiplier);
   std::stringstream output;
   output << current_timestamp_seconds << "." << remainder_nano_seconds << "|"
          << component_name << "|" << ToString(correlation_id) << "|"

@@ -21,7 +21,6 @@
 #include "core/logger/interface/log_provider_interface.h"
 #include "core/logger/src/log_providers/console_log_provider.h"
 #include "core/logger/src/log_providers/syslog/syslog_log_provider.h"
-#include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::common::GlobalLogger;
 using google::scp::core::logger::ConsoleLogProvider;
@@ -31,19 +30,11 @@ using google::scp::core::logger::log_providers::SyslogLogProvider;
 namespace google::scp::core::test {
 
 void TestLoggingUtils::EnableLogOutputToConsole() {
-  std::unique_ptr<LogProviderInterface> logger_ptr =
-      std::make_unique<ConsoleLogProvider>();
-  ASSERT_SUCCESS(logger_ptr->Init());
-  ASSERT_SUCCESS(logger_ptr->Run());
-  GlobalLogger::SetGlobalLogger(std::move(logger_ptr));
+  GlobalLogger::SetGlobalLogger(std::make_unique<ConsoleLogProvider>());
 }
 
 void TestLoggingUtils::EnableLogOutputToSyslog() {
-  std::unique_ptr<LogProviderInterface> logger_ptr =
-      std::make_unique<SyslogLogProvider>();
-  ASSERT_SUCCESS(logger_ptr->Init());
-  ASSERT_SUCCESS(logger_ptr->Run());
-  GlobalLogger::SetGlobalLogger(std::move(logger_ptr));
+  GlobalLogger::SetGlobalLogger(std::make_unique<SyslogLogProvider>());
 }
 
 };  // namespace google::scp::core::test

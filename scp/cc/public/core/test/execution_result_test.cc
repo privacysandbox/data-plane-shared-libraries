@@ -170,8 +170,6 @@ class MacroLogTest : public testing::Test {
     GlobalLogger::SetGlobalLogger(std::move(mock_logger));
   }
 
-  ~MacroLogTest() { GlobalLogger::GetGlobalLogger()->Stop(); }
-
   MockLogProvider* logger_;
 };
 

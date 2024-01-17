@@ -30,12 +30,6 @@ namespace google::scp::core::logger {
  */
 class ConsoleLogProvider : public LogProviderInterface {
  public:
-  ExecutionResult Init() noexcept override;
-
-  ExecutionResult Run() noexcept override;
-
-  ExecutionResult Stop() noexcept override;
-
   void Log(const LogLevel& level, const common::Uuid& correlation_id,
            const common::Uuid& parent_activity_id,
            const common::Uuid& activity_id, std::string_view component_name,
