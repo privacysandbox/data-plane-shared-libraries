@@ -19,6 +19,7 @@
 
 #include <utility>
 
+#include "absl/log/check.h"
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/proto/common.pb.h"
 #include "core/interface/async_context.h"
@@ -26,7 +27,9 @@
 #include "core/logger/src/log_providers/console_log_provider.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
-using google::scp::core::common::GlobalLogger;
+using google::scp::core::common::InitializeCpioLog;
+using google::scp::core::common::LogOption;
+using google::scp::core::common::internal::cpio_log::GetLogger;
 using google::scp::core::logger::mock::MockLogProvider;
 using testing::_;
 using testing::ElementsAre;
@@ -165,10 +168,12 @@ TEST(MacroTest, RETURN_IF_FAILURETest) {
 class MacroLogTest : public testing::Test {
  protected:
   MacroLogTest() {
-    auto mock_logger = std::make_unique<MockLogProvider>();
-    logger_ = mock_logger.get();
-    GlobalLogger::SetGlobalLogger(std::move(mock_logger));
+    InitializeCpioLog(LogOption::kMock);
+    logger_ = dynamic_cast<MockLogProvider*>(GetLogger());
+    CHECK(logger_);
   }
+
+  ~MacroLogTest() { logger_->Clear(); }
 
   MockLogProvider* logger_;
 };

@@ -39,6 +39,7 @@ cc_test(
         "//scp/cc/core/logger/mock:logger_mock",
         "//scp/cc/public/core/interface:execution_result",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/log:check",
         "@com_google_googletest//:gtest_main",
     ],
 )

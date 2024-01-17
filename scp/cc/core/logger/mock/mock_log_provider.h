@@ -31,17 +31,13 @@
 namespace google::scp::core::logger::mock {
 class MockLogProvider : public ConsoleLogProvider {
  public:
-  ExecutionResult Init() noexcept { return SuccessExecutionResult(); }
-
-  ExecutionResult Run() noexcept { return SuccessExecutionResult(); }
-
-  ExecutionResult Stop() noexcept { return SuccessExecutionResult(); }
-
   void Print(std::string_view output) noexcept override {
     messages_.emplace_back(output);
   }
 
   std::vector<std::string> GetMessages() const { return messages_; }
+
+  void Clear() { return messages_.clear(); }
 
  private:
   std::vector<std::string> messages_;

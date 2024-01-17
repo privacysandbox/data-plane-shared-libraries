@@ -24,6 +24,11 @@ cc_library(
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:errors_lib",
         "//scp/cc/core/logger/interface:logger_interface_lib",
+        "//scp/cc/core/logger/mock:logger_mock",
+        "//scp/cc/core/logger/src/log_providers:log_providers_lib",
+        "//scp/cc/core/logger/src/log_providers/syslog:syslog_lib",
+        "@com_google_absl//absl/base:no_destructor",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/strings",
     ],
 )

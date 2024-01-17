@@ -32,7 +32,6 @@
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::common::GlobalLogger;
 using google::scp::core::logger::ConsoleLogProvider;
 using google::scp::core::logger::LogProviderInterface;
 using google::scp::core::logger::log_providers::SyslogLogProvider;
@@ -43,25 +42,6 @@ using google::scp::cpio::client_providers::CpioProviderInterface;
 using google::scp::cpio::client_providers::GlobalCpio;
 
 namespace google::scp::cpio {
-static ExecutionResult SetLogger(const CpioOptions& options) {
-  std::unique_ptr<LogProviderInterface> logger_ptr;
-  switch (options.log_option) {
-    case LogOption::kNoLog:
-      break;
-    case LogOption::kConsoleLog:
-      logger_ptr = std::make_unique<ConsoleLogProvider>();
-      break;
-    case LogOption::kSysLog:
-      logger_ptr = std::make_unique<SyslogLogProvider>();
-      break;
-  }
-  if (logger_ptr) {
-    GlobalLogger::SetGlobalLogger(std::move(logger_ptr));
-  }
-
-  return SuccessExecutionResult();
-}
-
 static ExecutionResult SetGlobalCpio(const CpioOptions& options) {
   cpio_ptr =
       CpioProviderFactory::Create(std::make_shared<CpioOptions>(options));
@@ -71,10 +51,7 @@ static ExecutionResult SetGlobalCpio(const CpioOptions& options) {
 }
 
 ExecutionResult Cpio::InitCpio(CpioOptions options) {
-  auto execution_result = SetLogger(options);
-  if (!execution_result.Successful()) {
-    return execution_result;
-  }
+  InitializeCpioLog(options.log_option);
 #ifdef TEST_CPIO
   return SuccessExecutionResult();
 #else
@@ -83,9 +60,6 @@ ExecutionResult Cpio::InitCpio(CpioOptions options) {
 }
 
 ExecutionResult Cpio::ShutdownCpio(CpioOptions options) {
-  if (GlobalLogger::GetGlobalLogger()) {
-    GlobalLogger::ShutdownGlobalLogger();
-  }
   if (GlobalCpio::GetGlobalCpio()) {
     auto execution_result = GlobalCpio::GetGlobalCpio()->Stop();
     if (!execution_result.Successful()) {

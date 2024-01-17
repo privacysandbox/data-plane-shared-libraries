@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 
+#include "core/common/global_logger/src/global_logger.h"
 #include "core/interface/async_executor_interface.h"
 #include "public/core/interface/execution_result.h"
 
@@ -30,16 +31,7 @@ using Region = std::string;
 using PublicKeyValue = std::string;
 using PublicPrivateKeyPairId = std::string;
 using Timestamp = int64_t;
-
-/// Option for logging.
-enum class LogOption {
-  /// Doesn't produce logs in CPIO.
-  kNoLog = 1,
-  /// Produces logs to console.
-  kConsoleLog = 2,
-  /// Produces logs to SysLog.
-  kSysLog = 3,
-};
+using core::common::LogOption;
 
 /// Option for whether to initialize cloud in Cpio. Customers can configure it
 /// in case they need to do initialization and shutdown in their side. In AWS,

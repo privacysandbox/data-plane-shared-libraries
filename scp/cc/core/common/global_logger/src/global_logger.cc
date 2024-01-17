@@ -19,22 +19,42 @@
 #include <memory>
 #include <utility>
 
+#include "absl/base/no_destructor.h"
 #include "core/logger/interface/log_provider_interface.h"
+#include "core/logger/mock/mock_log_provider.h"
+#include "core/logger/src/log_providers/console_log_provider.h"
+#include "core/logger/src/log_providers/syslog/syslog_log_provider.h"
+
+using google::scp::core::logger::ConsoleLogProvider;
+using google::scp::core::logger::LogProviderInterface;
+using google::scp::core::logger::log_providers::SyslogLogProvider;
+using google::scp::core::logger::mock::MockLogProvider;
 
 namespace google::scp::core::common {
-using logger::LogProviderInterface;
-static std::unique_ptr<LogProviderInterface> logger_instance_;
+static LogOption log_option = LogOption::kNoLog;
 
-const std::unique_ptr<LogProviderInterface>& GlobalLogger::GetGlobalLogger() {
-  return logger_instance_;
+void InitializeCpioLog(LogOption option) {
+  log_option = option;
 }
 
-void GlobalLogger::SetGlobalLogger(
-    std::unique_ptr<LogProviderInterface> logger) {
-  logger_instance_ = std::move(logger);
+namespace internal::cpio_log {
+::absl::Nullable<LogProviderInterface*> GetLogger() {
+  switch (log_option) {
+    case LogOption::kMock: {
+      static absl::NoDestructor<MockLogProvider> provider;
+      return &*provider;
+    }
+    case LogOption::kConsoleLog: {
+      static absl::NoDestructor<ConsoleLogProvider> provider;
+      return &*provider;
+    }
+    case LogOption::kSysLog: {
+      static absl::NoDestructor<SyslogLogProvider> provider;
+      return &*provider;
+    }
+    default:
+      return nullptr;
+  }
 }
-
-void GlobalLogger::ShutdownGlobalLogger() {
-  logger_instance_ = nullptr;
-}
+}  // namespace internal::cpio_log
 }  // namespace google::scp::core::common

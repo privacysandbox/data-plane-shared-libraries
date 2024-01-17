@@ -21,18 +21,28 @@
 #include <memory>
 #include <string>
 
+#include "absl/base/nullability.h"
 #include "absl/strings/str_cat.h"
 #include "core/interface/errors.h"
 #include "core/logger/interface/log_provider_interface.h"
 
 namespace google::scp::core::common {
-class GlobalLogger {
- public:
-  static const std::unique_ptr<logger::LogProviderInterface>& GetGlobalLogger();
-  static void SetGlobalLogger(
-      std::unique_ptr<logger::LogProviderInterface> logger);
-  static void ShutdownGlobalLogger();
+enum class LogOption {
+  /// Logs into container for test purposes.
+  kMock = 0,
+  /// Doesn't produce logs in CPIO.
+  kNoLog = 1,
+  /// Produces logs to console.
+  kConsoleLog = 2,
+  /// Produces logs to SysLog.
+  kSysLog = 3,
 };
+
+void InitializeCpioLog(LogOption option);
+
+namespace internal::cpio_log {
+::absl::Nullable<logger::LogProviderInterface*> GetLogger();
+}  // namespace internal::cpio_log
 }  // namespace google::scp::core::common
 
 #define SCP_LOCATION absl::StrCat(__FILE__, ":", __func__, ":", __LINE__)
@@ -140,12 +150,13 @@ class GlobalLogger {
                                   execution_result.status_code)),              \
                  ##__VA_ARGS__);
 
-#define __SCP_LOG_IMPL(log_level, component_name, correlation_id,     \
-                       parent_activity_id, activity_id, message, ...) \
-  if (google::scp::core::common::GlobalLogger::GetGlobalLogger()) {   \
-    google::scp::core::common::GlobalLogger::GetGlobalLogger()->Log(  \
-        log_level, correlation_id, parent_activity_id, activity_id,   \
-        component_name, SCP_LOCATION, message, ##__VA_ARGS__);        \
+#define __SCP_LOG_IMPL(log_level, component_name, correlation_id,           \
+                       parent_activity_id, activity_id, message, ...)       \
+  if (auto* const logger =                                                  \
+          google::scp::core::common::internal::cpio_log::GetLogger();       \
+      logger != nullptr) {                                                  \
+    logger->Log(log_level, correlation_id, parent_activity_id, activity_id, \
+                component_name, SCP_LOCATION, message, ##__VA_ARGS__);      \
   }
 
 #endif  // CORE_COMMON_GLOBAL_LOGGER_SRC_GLOBAL_LOGGER_H_

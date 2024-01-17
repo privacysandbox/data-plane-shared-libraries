@@ -21,20 +21,22 @@
 #include "core/logger/interface/log_provider_interface.h"
 #include "core/logger/src/log_providers/console_log_provider.h"
 #include "core/logger/src/log_providers/syslog/syslog_log_provider.h"
+#include "public/cpio/interface/type_def.h"
 
-using google::scp::core::common::GlobalLogger;
+using google::scp::core::common::InitializeCpioLog;
 using google::scp::core::logger::ConsoleLogProvider;
 using google::scp::core::logger::LogProviderInterface;
 using google::scp::core::logger::log_providers::SyslogLogProvider;
+using google::scp::cpio::LogOption;
 
 namespace google::scp::core::test {
 
 void TestLoggingUtils::EnableLogOutputToConsole() {
-  GlobalLogger::SetGlobalLogger(std::make_unique<ConsoleLogProvider>());
+  InitializeCpioLog(LogOption::kConsoleLog);
 }
 
 void TestLoggingUtils::EnableLogOutputToSyslog() {
-  GlobalLogger::SetGlobalLogger(std::make_unique<SyslogLogProvider>());
+  InitializeCpioLog(LogOption::kSysLog);
 }
 
 };  // namespace google::scp::core::test
