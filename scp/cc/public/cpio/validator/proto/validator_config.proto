@@ -25,7 +25,8 @@ message TestCase {
   string name = 1;
 
   oneof client_config {
-    HttpAndDnsConfig http_and_dns_config = 10;
+    DnsConfig dns_config = 11;
+    HttpConfig http_config = 12;
     GetTagsByResourceNameConfig get_tags_by_resource_name_config = 2;
     GetCurrentInstanceResourceNameConfig get_current_instance_resource_name_config = 3;
     GetBlobConfig get_blob_config = 4;
@@ -35,14 +36,29 @@ message TestCase {
     GetTopMessageConfig get_top_message_config = 8;
     FetchPrivateKeyConfig fetch_private_key_config = 9;
   }
+
+  reserved 10;
 }
 
-message HttpAndDnsConfig {
-  // Host name to send an HTTP request to and check DNS configuration. (e.g.
-  // "192.168.0.1" or "google.com").
+message DnsConfig {
+  // Host name check DNS configuration. (e.g. "192.168.0.1").
   string host = 1;
   // Port to check for DNS configuration. (e.g. 80).
   uint32 port = 2;
+}
+
+message HttpConfig {
+  // The request method. Options: `"GET"`, `"POST"`, `"PUT"`.
+  string request_method = 1;
+
+  // The scheme (http, https), the host name, the path and the query
+  // portion of the URL that was requested.
+  // Example: `"http://example.com/some/info?color=red"` or `"http://google.com"`.
+  // Must be within the VPC environment to succeed.
+  string request_url = 2;
+
+  // Request headers to be added into the request.
+  map<string, string> request_headers = 3;
 }
 
 message GetTagsByResourceNameConfig {

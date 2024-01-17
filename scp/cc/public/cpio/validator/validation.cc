@@ -67,29 +67,24 @@ std::string_view GetValidatorFailedToRunMsg() {
 
 void RunDnsLookupValidator(
     std::string_view name,
-    const google::scp::cpio::validator::proto::HttpAndDnsConfig&
-        http_and_dns_config,
-    absl::Notification& finished, bool& successful) {
+    const google::scp::cpio::validator::proto::DnsConfig& dns_config) {
   const struct addrinfo hints = {
       .ai_family = AF_INET,
       .ai_socktype = SOCK_STREAM,
   };
   struct addrinfo* addr_infos;
-  if (int err_code =
-          getaddrinfo(http_and_dns_config.host().c_str(),
-                      std::to_string(http_and_dns_config.port()).c_str(),
-                      &hints, &addr_infos);
+  if (int err_code = getaddrinfo(dns_config.host().c_str(),
+                                 std::to_string(dns_config.port()).c_str(),
+                                 &hints, &addr_infos);
       err_code != 0) {
     std::cout << "[ FAILURE ] " << name
               << " getaddrinfo: " << gai_strerror(err_code)
               << ". Check /etc/resolv.conf. Verify if proxy is running."
               << std::endl;
-    successful = false;
-    finished.Notify();
     return;
   }
   std::cout << "[ SUCCESS ] " << name << " DNS lookup succeeded for host "
-            << http_and_dns_config.host() << std::endl;
+            << dns_config.host() << std::endl;
   for (auto rp = addr_infos; rp != nullptr; rp = rp->ai_next) {
     char host[NI_MAXHOST];
     char service[NI_MAXSERV];
@@ -99,20 +94,22 @@ void RunDnsLookupValidator(
     LOG(INFO) << "host: " << host << "\t\t service: " << service;
   }
   freeaddrinfo(addr_infos);
-  successful = true;
-  finished.Notify();
 }
 
 google::scp::core::ExecutionResult MakeRequest(
     google::scp::core::HttpClientInterface& http_client,
     google::scp::core::HttpMethod method, std::string_view url,
-    const absl::btree_multimap<std::string, std::string>& headers = {}) {
+    const google::protobuf::Map<std::string, std::string>& headers = {}) {
+  absl::btree_multimap<std::string, std::string> btree_headers;
+  for (const auto& entry : headers) {
+    btree_headers.insert({std::string(entry.first), std::string(entry.second)});
+  }
   auto request = std::make_shared<HttpRequest>();
   request->method = method;
   request->path = std::make_shared<std::string>(url);
   if (!headers.empty()) {
     request->headers =
-        std::make_shared<google::scp::core::HttpHeaders>(headers);
+        std::make_shared<google::scp::core::HttpHeaders>(btree_headers);
   }
   google::scp::core::ExecutionResult context_result;
   absl::Notification finished;
@@ -133,8 +130,7 @@ google::scp::core::ExecutionResult MakeRequest(
 
 void RunHttpValidator(
     std::string_view name,
-    const google::scp::cpio::validator::proto::HttpAndDnsConfig&
-        http_and_dns_config) {
+    const google::scp::cpio::validator::proto::HttpConfig& http_config) {
   std::shared_ptr<google::scp::core::HttpClientInterface> http_client;
   if (auto result = GlobalCpio::GetGlobalCpio()->GetHttp1Client(http_client);
       !result.Successful()) {
@@ -145,30 +141,26 @@ void RunHttpValidator(
 
   http_client->Init();
   http_client->Run();
+  absl::flat_hash_map<std::string, google::scp::core::HttpMethod>
+      http_method_map = {{"GET", google::scp::core::HttpMethod::GET},
+                         {"POST", google::scp::core::HttpMethod::POST},
+                         {"PUT", google::scp::core::HttpMethod::PUT}};
+  if (http_method_map.find(http_config.request_method()) ==
+      http_method_map.end()) {
+    std::cout << "[ FAILURE ] " << name
+              << " Http request method: " << http_config.request_method()
+              << " is invalid." << std::endl;
+  }
 
-  if (!MakeRequest(*http_client, google::scp::core::HttpMethod::GET,
-                   http_and_dns_config.host().c_str())
+  if (!MakeRequest(*http_client, http_method_map[http_config.request_method()],
+                   http_config.request_url(), http_config.request_headers())
            .Successful()) {
     std::cout << "[ FAILURE ] " << name
-              << " Could not connect to outside world. Check if proxy "
+              << " Could not connect to request URL. Check if proxy "
                  "is running."
               << std::endl;
   } else {
-    std::cout << "[ SUCCESS ] " << name << " Connected to outside world."
-              << std::endl;
-  }
-
-  // Only successful if on AWS EC2 instance.
-  if (!MakeRequest(*http_client, google::scp::core::HttpMethod::PUT,
-                   "http://169.254.169.254/latest/api/token",
-                   {{"X-aws-ec2-metadata-token-ttl-seconds", "21600"}})
-           .Successful()) {
-    std::cout << "[ FAILURE ] " << name
-              << " Could not access AWS resource. Check if proxy is "
-                 "running."
-              << std::endl;
-  } else {
-    std::cout << "[ SUCCESS ] " << name << " Accessed AWS resource."
+    std::cout << "[ SUCCESS ] " << name << " Connected to request URL."
               << std::endl;
   }
 
@@ -217,25 +209,12 @@ int main(int argc, char* argv[]) {
   // Run test cases for DNS and HTTP Proxy first.
   for (auto test_case : validator_config.test_cases()) {
     switch (test_case.client_config_case()) {
-      case TestCase::ClientConfigCase::kHttpAndDnsConfig: {
-        absl::Notification finished;
-        bool successful;
-        std::thread dns_lookup_thread(&RunDnsLookupValidator, test_case.name(),
-                                      test_case.http_and_dns_config(),
-                                      std::ref(finished), std::ref(successful));
-        dns_lookup_thread.detach();
-        if (!finished.WaitForNotificationWithTimeout(kRequestTimeout)) {
-          std::cout << "[ FAILURE ] DNS lookup timed out." << std::endl;
-          successful = false;
-        }
-        if (!successful) {
-          GetValidatorFailedToRunMsg();
-        }
-
-        RunHttpValidator(test_case.name(), test_case.http_and_dns_config());
-
+      case TestCase::ClientConfigCase::kDnsConfig:
+        RunDnsLookupValidator(test_case.name(), test_case.dns_config());
         break;
-      }
+      case TestCase::ClientConfigCase::kHttpConfig:
+        RunHttpValidator(test_case.name(), test_case.http_config());
+        break;
       default:
         break;
     }

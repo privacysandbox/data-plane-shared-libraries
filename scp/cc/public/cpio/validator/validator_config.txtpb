@@ -2,24 +2,28 @@
 # proto-message: ValidatorConfig
 
 test_cases {
-  name: "CheckLocalDnsAndHttpAccess"
-  http_and_dns_config {
-    host: "192.168.0.1"
+  name: "DnsConfig.LocalDnsAccess"
+  dns_config {
+    host: "127.0.0.1"
     port: 80
   }
 }
 test_cases {
-  name: "GetBlobConfig.CpioValidatorTestBucket.BlobName1"
-  get_blob_config {
-    bucket_name: "cpio-validator-test-bucket"
-    blob_name: "blob_name_1"
+  name: "HttpConfig.GoogleHttpAccess"
+  http_config {
+    request_method: "GET"
+    request_url: "http://www.google.com"
   }
 }
 test_cases {
-  name: "GetBlobConfig.CpioValidatorTestBucket.BlobName2"
-  get_blob_config {
-    bucket_name: "cpio-validator-test-bucket"
-    blob_name: "blob_name_2"
+  name: "HttpConfig.AwsMetadataHttpAccess"
+  http_config {
+    request_method: "PUT"
+    request_url: "http://169.254.169.254/latest/api/token"
+    request_headers {
+      key: "X-aws-ec2-metadata-token-ttl-seconds"
+      value: "21600"
+    }
   }
 }
 test_cases {
