@@ -28,7 +28,7 @@ cc_library(
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/time_provider/src:time_provider_lib",
         "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/interface:logger_interface",
+        "//scp/cc/core/logger/interface:logger_interface_lib",
         "//scp/cc/core/logger/src:logger_lib",
         "//scp/cc/core/logger/src/log_providers:log_providers_lib",
         "//scp/cc/core/logger/src/log_providers/syslog:syslog_lib",

@@ -66,21 +66,9 @@ cc_library(
     hdrs = [
         "service_interface.h",
     ],
-    deps = [
-        "//scp/cc:cc_base_include_dir",
-    ],
-)
-
-cc_library(
-    name = "logger_interface",
-    hdrs = [
-        "logger_interface.h",
-    ],
     visibility = ["//scp/cc:scp_internal_pkg"],
     deps = [
-        ":service_interface_lib",
         "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/common/uuid/src:uuid_lib",
     ],
 )
 

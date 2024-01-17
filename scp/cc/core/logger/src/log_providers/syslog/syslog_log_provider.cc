@@ -24,8 +24,9 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <tuple>
 
-#include "absl/strings/str_cat.h"
+#include "absl/strings/str_join.h"
 #include "core/common/uuid/src/uuid.h"
 
 #include "error_codes.h"
@@ -63,15 +64,16 @@ void SyslogLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
                             const Uuid& parent_activity_id,
                             const Uuid& activity_id,
                             std::string_view component_name,
-                            std::string_view machine_name,
-                            std::string_view cluster_name,
                             std::string_view location, std::string_view message,
-                            va_list args) noexcept {
-  auto formatted_message =
-      absl::StrCat(cluster_name, "|", machine_name, "|", component_name, "|",
-                   ToString(correlation_id), "|", ToString(parent_activity_id),
-                   "|", ToString(activity_id), "|", location, "|", message);
+                            ...) noexcept {
+  const std::string formatted_message =
+      absl::StrJoin(std::make_tuple(component_name, ToString(correlation_id),
+                                    ToString(parent_activity_id),
+                                    ToString(activity_id), location, message),
+                    "|");
 
+  va_list args;
+  va_start(args, message);
   try {
     switch (level) {
       case LogLevel::kDebug:
@@ -103,5 +105,6 @@ void SyslogLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
     // TODO: Add code to get exception message
     std::cerr << "Exception thrown while writing to syslog";
   }
+  va_end(args);
 }
 }  // namespace google::scp::core::logger::log_providers

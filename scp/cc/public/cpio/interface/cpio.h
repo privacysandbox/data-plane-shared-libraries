@@ -18,7 +18,6 @@
 
 #include <memory>
 
-#include "core/interface/logger_interface.h"
 #include "cpio/client_providers/interface/cpio_provider_interface.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/type_def.h"

@@ -66,7 +66,6 @@ using google::scp::core::GetBlobRequest;
 using google::scp::core::GetBlobResponse;
 using google::scp::core::ListBlobsRequest;
 using google::scp::core::ListBlobsResponse;
-using google::scp::core::LoggerInterface;
 using google::scp::core::PutBlobRequest;
 using google::scp::core::PutBlobResponse;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;

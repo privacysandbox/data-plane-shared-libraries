@@ -18,14 +18,11 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "logger_interface_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["log_provider_interface.h"],
     deps = [
         "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/interface:interface_lib",
+        "//scp/cc/core/common/uuid/src:uuid_lib",
+        "//scp/cc/core/interface:service_interface_lib",
+        "//scp/cc/public/core/interface:execution_result",
     ],
 )

@@ -41,6 +41,9 @@ class MockLogProvider : public ConsoleLogProvider {
     messages_.emplace_back(output);
   }
 
+  std::vector<std::string> GetMessages() const { return messages_; }
+
+ private:
   std::vector<std::string> messages_;
 };
 }  // namespace google::scp::core::logger::mock

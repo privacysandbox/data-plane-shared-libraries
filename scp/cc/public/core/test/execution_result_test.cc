@@ -22,12 +22,12 @@
 #include "core/common/global_logger/src/global_logger.h"
 #include "core/common/proto/common.pb.h"
 #include "core/interface/async_context.h"
-#include "core/logger/mock/mock_logger.h"
+#include "core/logger/mock/mock_log_provider.h"
 #include "core/logger/src/log_providers/console_log_provider.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::common::GlobalLogger;
-using google::scp::core::logger::mock::MockLogger;
+using google::scp::core::logger::mock::MockLogProvider;
 using testing::_;
 using testing::ElementsAre;
 using testing::Eq;
@@ -165,17 +165,14 @@ TEST(MacroTest, RETURN_IF_FAILURETest) {
 class MacroLogTest : public testing::Test {
  protected:
   MacroLogTest() {
-    auto mock_logger = std::make_unique<MockLogger>();
+    auto mock_logger = std::make_unique<MockLogProvider>();
     logger_ = mock_logger.get();
-    std::unique_ptr<LoggerInterface> logger = std::move(mock_logger);
-    logger->Init();
-    logger->Run();
-    GlobalLogger::SetGlobalLogger(std::move(logger));
+    GlobalLogger::SetGlobalLogger(std::move(mock_logger));
   }
 
   ~MacroLogTest() { GlobalLogger::GetGlobalLogger()->Stop(); }
 
-  MockLogger* logger_;
+  MockLogProvider* logger_;
 };
 
 TEST_F(MacroLogTest, RETURN_IF_FAILURELogTest) {

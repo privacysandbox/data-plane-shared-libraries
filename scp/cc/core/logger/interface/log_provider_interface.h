@@ -22,10 +22,21 @@
 
 #include "core/common/uuid/src/uuid.h"
 #include "public/core/interface/execution_result.h"
-#include "scp/cc/core/interface/logger_interface.h"
 #include "scp/cc/core/interface/service_interface.h"
 
 namespace google::scp::core::logger {
+
+enum class LogLevel {
+  kEmergency = 0,
+  kAlert = 1,
+  kCritical = 2,
+  kError = 4,
+  kWarning = 8,
+  kDebug = 16,
+  kInfo = 32,
+  kNone = 64
+};
+
 /**
  * @brief The LogProviderInterface is implemented by classes that log messages
  * to a specific destination.
@@ -55,10 +66,8 @@ class LogProviderInterface : public ServiceInterface {
                    const common::Uuid& parent_activity_id,
                    const common::Uuid& activity_id,
                    const common::Uuid& correlation_id,
-                   std::string_view component_name,
-                   std::string_view machine_name, std::string_view cluster_name,
-                   std::string_view location, std::string_view message,
-                   va_list args) noexcept = 0;
+                   std::string_view component_name, std::string_view location,
+                   std::string_view message, ...) noexcept = 0;
 };
 }  // namespace google::scp::core::logger
 

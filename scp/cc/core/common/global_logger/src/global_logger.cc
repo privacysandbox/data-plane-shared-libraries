@@ -19,14 +19,18 @@
 #include <memory>
 #include <utility>
 
-namespace google::scp::core::common {
-static std::unique_ptr<LoggerInterface> logger_instance_;
+#include "core/logger/interface/log_provider_interface.h"
 
-const std::unique_ptr<LoggerInterface>& GlobalLogger::GetGlobalLogger() {
+namespace google::scp::core::common {
+using logger::LogProviderInterface;
+static std::unique_ptr<LogProviderInterface> logger_instance_;
+
+const std::unique_ptr<LogProviderInterface>& GlobalLogger::GetGlobalLogger() {
   return logger_instance_;
 }
 
-void GlobalLogger::SetGlobalLogger(std::unique_ptr<LoggerInterface> logger) {
+void GlobalLogger::SetGlobalLogger(
+    std::unique_ptr<LogProviderInterface> logger) {
   logger_instance_ = std::move(logger);
 }
 

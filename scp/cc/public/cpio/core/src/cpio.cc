@@ -20,10 +20,9 @@
 #include <utility>
 
 #include "core/common/global_logger/src/global_logger.h"
-#include "core/interface/logger_interface.h"
+#include "core/logger/interface/log_provider_interface.h"
 #include "core/logger/src/log_providers/console_log_provider.h"
 #include "core/logger/src/log_providers/syslog/syslog_log_provider.h"
-#include "core/logger/src/logger.h"
 #include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "cpio/client_providers/interface/cpio_provider_interface.h"
 #include "public/core/interface/execution_result.h"
@@ -32,11 +31,10 @@
 #include "cpio_utils.h"
 
 using google::scp::core::ExecutionResult;
-using google::scp::core::LoggerInterface;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::GlobalLogger;
 using google::scp::core::logger::ConsoleLogProvider;
-using google::scp::core::logger::Logger;
+using google::scp::core::logger::LogProviderInterface;
 using google::scp::core::logger::log_providers::SyslogLogProvider;
 using google::scp::cpio::CpioOptions;
 using google::scp::cpio::LogOption;
@@ -46,17 +44,15 @@ using google::scp::cpio::client_providers::GlobalCpio;
 
 namespace google::scp::cpio {
 static ExecutionResult SetLogger(const CpioOptions& options) {
-  std::unique_ptr<Logger> logger_ptr;
+  std::unique_ptr<LogProviderInterface> logger_ptr;
   switch (options.log_option) {
     case LogOption::kNoLog:
       break;
     case LogOption::kConsoleLog:
-      logger_ptr =
-          std::make_unique<Logger>(std::make_unique<ConsoleLogProvider>());
+      logger_ptr = std::make_unique<ConsoleLogProvider>();
       break;
     case LogOption::kSysLog:
-      logger_ptr =
-          std::make_unique<Logger>(std::make_unique<SyslogLogProvider>());
+      logger_ptr = std::make_unique<SyslogLogProvider>();
       break;
   }
   if (logger_ptr) {

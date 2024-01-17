@@ -49,21 +49,20 @@ void ConsoleLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
                              const Uuid& parent_activity_id,
                              const Uuid& activity_id,
                              std::string_view component_name,
-                             std::string_view machine_name,
-                             std::string_view cluster_name,
                              std::string_view location,
-                             std::string_view message, va_list args) noexcept {
+                             std::string_view message, ...) noexcept {
   auto current_timestamp =
       TimeProvider::GetWallTimestampInNanosecondsAsClockTicks();
   auto current_timestamp_seconds = current_timestamp / nano_seconds_multiplier;
   auto remainder_nano_seconds = (current_timestamp % nano_seconds_multiplier);
   std::stringstream output;
   output << current_timestamp_seconds << "." << remainder_nano_seconds << "|"
-         << cluster_name << "|" << machine_name << "|" << component_name << "|"
-         << ToString(correlation_id) << "|" << ToString(parent_activity_id)
-         << "|" << ToString(activity_id) << "|" << location << "|"
-         << static_cast<int>(level) << ": ";
+         << component_name << "|" << ToString(correlation_id) << "|"
+         << ToString(parent_activity_id) << "|" << ToString(activity_id) << "|"
+         << location << "|" << static_cast<int>(level) << ": ";
 
+  va_list args;
+  va_start(args, message);
   va_list size_args;
   va_copy(size_args, args);
   const auto size = std::vsnprintf(nullptr, 0U, message.data(), size_args);
@@ -71,6 +70,7 @@ void ConsoleLogProvider::Log(const LogLevel& level, const Uuid& correlation_id,
   // vsnprintf adds a terminator at the end, so we need to specify size + 1
   // here.
   std::vsnprintf(&output_message[0], size + 1, message.data(), args);
+  va_end(args);
 
   output << std::string(output_message.data(), size);
 

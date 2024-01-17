@@ -18,15 +18,10 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "logger_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = ["log_utils.cc"],
+    hdrs = ["log_utils.h"],
     deps = [
         "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/logger/interface:logger_interface_lib",
         "@com_google_absl//absl/strings",
     ],

@@ -39,9 +39,8 @@ class ConsoleLogProvider : public LogProviderInterface {
   void Log(const LogLevel& level, const common::Uuid& correlation_id,
            const common::Uuid& parent_activity_id,
            const common::Uuid& activity_id, std::string_view component_name,
-           std::string_view machine_name, std::string_view cluster_name,
            std::string_view location, std::string_view message,
-           va_list args) noexcept override;
+           ...) noexcept override;
 
  protected:
   virtual void Print(std::string_view output) noexcept;
