@@ -391,7 +391,7 @@ class RomaService {
           DeleteMetadata(uuid_str);
         };
 
-    RegisterMetadata(std::move(uuid_str), invocation_req->metadata);
+    RegisterMetadata(std::move(uuid_str), std::move(invocation_req->metadata));
 
     return dispatcher_->Dispatch(std::move(invocation_req),
                                  std::move(callback_wrapper));
@@ -417,7 +417,7 @@ class RomaService {
       request.tags.insert(
           {std::string(google::scp::roma::sandbox::constants::kRequestUuid),
            uuid_str});
-      RegisterMetadata(std::move(uuid_str), request.metadata);
+      RegisterMetadata(std::move(uuid_str), std::move(request.metadata));
     }
 
     auto callback_ptr =
