@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include "cpio/client_providers/interface/cpio_provider_interface.h"
 #include "cpio/client_providers/interface/metric_client_provider_interface.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/metric_client/metric_client_interface.h"
@@ -51,6 +52,7 @@ class MetricClient : public MetricClientInterface {
   virtual core::ExecutionResult CreateMetricClientProvider() noexcept;
 
   std::shared_ptr<MetricClientOptions> options_;
+  client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
 

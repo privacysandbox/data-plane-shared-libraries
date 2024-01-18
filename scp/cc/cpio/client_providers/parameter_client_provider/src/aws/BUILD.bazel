@@ -25,6 +25,7 @@ cc_library(
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
         "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
         "//scp/cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
         "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//scp/cc/cpio/client_providers/interface:type_def",

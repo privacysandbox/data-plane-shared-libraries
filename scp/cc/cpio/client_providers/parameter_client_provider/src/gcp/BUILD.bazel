@@ -24,6 +24,7 @@ cc_library(
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
         "//scp/cc/cpio/client_providers/instance_client_provider/src/gcp:gcp_instance_client_provider_lib",
         "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//scp/cc/cpio/client_providers/interface:type_def",

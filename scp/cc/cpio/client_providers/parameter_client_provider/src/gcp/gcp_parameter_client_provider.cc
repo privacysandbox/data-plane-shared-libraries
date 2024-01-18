@@ -52,7 +52,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_GCP_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
-using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::common::GcpUtils;
 
 static constexpr char kGcpParameterClientProvider[] =
@@ -64,7 +63,8 @@ namespace google::scp::cpio::client_providers {
 ExecutionResult GcpParameterClientProvider::Init() noexcept {
   // Try to get project_id from Global Cpio Options, otherwise get project_id
   // from running instance_client.
-  project_id_ = GlobalCpio::GetGlobalCpio()->GetProjectId();
+  cpio_ = GlobalCpio::GetGlobalCpio().get();
+  project_id_ = cpio_->GetProjectId();
 
   if (project_id_.empty()) {
     auto project_id_or =

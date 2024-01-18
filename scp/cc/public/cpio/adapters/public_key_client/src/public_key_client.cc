@@ -52,9 +52,9 @@ constexpr std::string_view kPublicKeyClient = "PublicKeyClient";
 
 namespace google::scp::cpio {
 ExecutionResult PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
+  cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<HttpClientInterface> http_client;
-  auto execution_result =
-      GlobalCpio::GetGlobalCpio()->GetHttpClient(http_client);
+  auto execution_result = cpio_->GetHttpClient(http_client);
   if (!execution_result.Successful()) {
     SCP_ERROR(kPublicKeyClient, kZeroUuid, execution_result,
               "Failed to get http client.");

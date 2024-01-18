@@ -23,6 +23,7 @@
 
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
+#include "cpio/client_providers/interface/cpio_provider_interface.h"
 #include "cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "cpio/client_providers/interface/parameter_client_provider_interface.h"
 #include "google/cloud/secretmanager/secret_manager_client.h"
@@ -53,8 +54,6 @@ class GcpParameterClientProvider : public ParameterClientProviderInterface {
       : async_executor_(async_executor),
         io_async_executor_(io_async_executor),
         instance_client_provider_(instance_client_provider) {}
-
-  GcpParameterClientProvider() = delete;
 
   core::ExecutionResult Init() noexcept override;
 
@@ -110,6 +109,8 @@ class GcpParameterClientProvider : public ParameterClientProviderInterface {
   /// An instance of the GCP Secret Manager client.
   std::shared_ptr<const cloud::secretmanager::SecretManagerServiceClient>
       sm_client_shared_;
+
+  CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio::client_providers
 

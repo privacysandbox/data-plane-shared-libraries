@@ -46,18 +46,17 @@ constexpr std::string_view kKmsClient = "KmsClient";
 namespace google::scp::cpio {
 
 ExecutionResult KmsClient::Init() noexcept {
+  cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
   auto execution_result =
-      GlobalCpio::GetGlobalCpio()->GetRoleCredentialsProvider(
-          role_credentials_provider);
+      cpio_->GetRoleCredentialsProvider(role_credentials_provider);
   if (!execution_result.Successful()) {
     SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
               "Failed to get RoleCredentialsProvider.");
     return execution_result;
   }
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  execution_result =
-      GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor);
+  execution_result = cpio_->GetIoAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
     SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
               "Failed to get IOAsyncExecutor.");

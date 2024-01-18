@@ -59,33 +59,31 @@ constexpr std::string_view kPrivateKeyClient = "PrivateKeyClient";
 
 namespace google::scp::cpio {
 ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
+  cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<HttpClientInterface> http_client;
-  auto execution_result =
-      GlobalCpio::GetGlobalCpio()->GetHttpClient(http_client);
+  auto execution_result = cpio_->GetHttpClient(http_client);
   if (!execution_result.Successful()) {
     SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
               "Failed to get http client.");
     return execution_result;
   }
   std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
-  execution_result = GlobalCpio::GetGlobalCpio()->GetRoleCredentialsProvider(
-      role_credentials_provider);
+  execution_result =
+      cpio_->GetRoleCredentialsProvider(role_credentials_provider);
   if (!execution_result.Successful()) {
     SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
               "Failed to get role credentials provider.");
     return execution_result;
   }
   std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
-  execution_result =
-      GlobalCpio::GetGlobalCpio()->GetAuthTokenProvider(auth_token_provider);
+  execution_result = cpio_->GetAuthTokenProvider(auth_token_provider);
   if (!execution_result.Successful()) {
     SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
               "Failed to get role auth token provider.");
     return execution_result;
   }
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  execution_result =
-      GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor);
+  execution_result = cpio_->GetIoAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
     SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
               "Failed to get IOAsyncExecutor.");

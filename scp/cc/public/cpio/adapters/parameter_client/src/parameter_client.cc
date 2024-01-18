@@ -53,21 +53,21 @@ constexpr std::string_view kParameterClient = "ParameterClient";
 
 namespace google::scp::cpio {
 ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
+  cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<InstanceClientProviderInterface> instance_client_provider;
   RETURN_AND_LOG_IF_FAILURE(
-      GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(
-          instance_client_provider),
+      cpio_->GetInstanceClientProvider(instance_client_provider),
       kParameterClient, kZeroUuid, "Failed to get InstanceClientProvider.");
 
   std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
-  RETURN_AND_LOG_IF_FAILURE(
-      GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor),
-      kParameterClient, kZeroUuid, "Failed to get CpuAsyncExecutor.");
+  RETURN_AND_LOG_IF_FAILURE(cpio_->GetCpuAsyncExecutor(cpu_async_executor),
+                            kParameterClient, kZeroUuid,
+                            "Failed to get CpuAsyncExecutor.");
 
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  RETURN_AND_LOG_IF_FAILURE(
-      GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(io_async_executor),
-      kParameterClient, kZeroUuid, "Failed to get IoAsyncExecutor.");
+  RETURN_AND_LOG_IF_FAILURE(cpio_->GetCpuAsyncExecutor(io_async_executor),
+                            kParameterClient, kZeroUuid,
+                            "Failed to get IoAsyncExecutor.");
 
   parameter_client_provider_ = ParameterClientProviderFactory::Create(
       options_, instance_client_provider, cpu_async_executor,

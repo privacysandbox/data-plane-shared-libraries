@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include "cpio/client_providers/interface/cpio_provider_interface.h"
 #include "cpio/client_providers/interface/private_key_client_provider_interface.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/private_key_client/private_key_client_interface.h"
@@ -52,6 +53,7 @@ class PrivateKeyClient : public PrivateKeyClientInterface {
 
  private:
   std::shared_ptr<PrivateKeyClientOptions> options_;
+  client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
 

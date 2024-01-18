@@ -25,6 +25,7 @@
 #include <aws/ssm/SSMClient.h>
 
 #include "core/interface/async_context.h"
+#include "cpio/client_providers/interface/cpio_provider_interface.h"
 #include "cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "cpio/client_providers/interface/parameter_client_provider_interface.h"
 #include "google/protobuf/any.pb.h"
@@ -103,6 +104,9 @@ class AwsParameterClientProvider : public ParameterClientProviderInterface {
   /// SSMClient.
   std::shared_ptr<Aws::SSM::SSMClient> ssm_client_;
   std::shared_ptr<SSMClientFactory> ssm_client_factory_;
+
+ private:
+  CpioProviderInterface* cpio_;
 };
 
 /// Provides SSMClient.

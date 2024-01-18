@@ -23,6 +23,7 @@
 
 #include "core/common/concurrent_queue/src/concurrent_queue.h"
 #include "core/interface/async_context.h"
+#include "cpio/client_providers/interface/cpio_provider_interface.h"
 #include "cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/kms_client/kms_client_interface.h"
@@ -53,6 +54,7 @@ class KmsClient : public KmsClientInterface {
 
  private:
   std::shared_ptr<KmsClientOptions> options_;
+  client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
 

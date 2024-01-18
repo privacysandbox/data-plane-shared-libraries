@@ -58,9 +58,9 @@ constexpr std::string_view kBlobStorageClient = "BlobStorageClient";
 namespace google::scp::cpio {
 
 ExecutionResult BlobStorageClient::Init() noexcept {
+  cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
-  auto execution_result =
-      GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor);
+  auto execution_result = cpio_->GetCpuAsyncExecutor(cpu_async_executor);
   if (!execution_result.Successful()) {
     SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
               "Failed to get AsyncExecutor.");
@@ -68,8 +68,7 @@ ExecutionResult BlobStorageClient::Init() noexcept {
   }
 
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  execution_result =
-      GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor);
+  execution_result = cpio_->GetIoAsyncExecutor(io_async_executor);
   if (!execution_result.Successful()) {
     SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
               "Failed to get IOAsyncExecutor.");
@@ -77,8 +76,7 @@ ExecutionResult BlobStorageClient::Init() noexcept {
   }
 
   std::shared_ptr<InstanceClientProviderInterface> instance_client;
-  execution_result =
-      GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(instance_client);
+  execution_result = cpio_->GetInstanceClientProvider(instance_client);
   if (!execution_result.Successful()) {
     SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
               "Failed to get InstanceClientProvider.");

@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "cpio/client_providers/interface/cpio_provider_interface.h"
 #include "cpio/client_providers/interface/parameter_client_provider_interface.h"
 #include "public/core/interface/execution_result.h"
 #include "public/cpio/interface/parameter_client/parameter_client_interface.h"
@@ -52,6 +53,7 @@ class ParameterClient : public ParameterClientInterface {
 
  private:
   std::shared_ptr<ParameterClientOptions> options_;
+  client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
 

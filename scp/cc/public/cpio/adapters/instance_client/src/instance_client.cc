@@ -62,9 +62,9 @@ constexpr std::string_view kInstanceClient = "InstanceClient";
 
 namespace google::scp::cpio {
 ExecutionResult InstanceClient::CreateInstanceClientProvider() noexcept {
+  cpio_ = GlobalCpio::GetGlobalCpio().get();
   auto execution_result =
-      GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(
-          instance_client_provider_);
+      cpio_->GetInstanceClientProvider(instance_client_provider_);
   if (!execution_result.Successful()) {
     SCP_ERROR(kInstanceClient, kZeroUuid, execution_result,
               "Failed to get InstanceClientProvider.");

@@ -61,15 +61,13 @@ constexpr std::string_view kMetricClient = "MetricClient";
 
 namespace google::scp::cpio {
 ExecutionResult MetricClient::CreateMetricClientProvider() noexcept {
+  cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
-  RETURN_IF_FAILURE(
-      GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor));
+  RETURN_IF_FAILURE(cpio_->GetCpuAsyncExecutor(cpu_async_executor));
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  RETURN_IF_FAILURE(
-      GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor));
+  RETURN_IF_FAILURE(cpio_->GetIoAsyncExecutor(io_async_executor));
   std::shared_ptr<InstanceClientProviderInterface> instance_client_provider;
-  RETURN_IF_FAILURE(GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(
-      instance_client_provider));
+  RETURN_IF_FAILURE(cpio_->GetInstanceClientProvider(instance_client_provider));
   metric_client_provider_ = MetricClientProviderFactory::Create(
       options_, instance_client_provider, cpu_async_executor,
       io_async_executor);
