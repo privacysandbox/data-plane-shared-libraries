@@ -94,49 +94,6 @@ TEST(LibCpioTest, StopSuccessfully) {
             FailureExecutionResult(SC_ASYNC_EXECUTOR_NOT_RUNNING));
 }
 
-TEST(LibCpioTest, SetExternalCpuAsyncExecutor) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
-
-  std::shared_ptr<AsyncExecutorInterface> external_async_executor =
-      std::make_shared<AsyncExecutor>(1, 2);
-  ASSERT_SUCCESS(external_async_executor->Init());
-  ASSERT_SUCCESS(external_async_executor->Run());
-  options.cpu_async_executor = external_async_executor;
-
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
-  EXPECT_EQ(
-      GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor),
-      SuccessExecutionResult());
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
-
-  // Can stop CpuAsyncExecutor outside.
-  EXPECT_SUCCESS(cpu_async_executor->Stop());
-}
-
-TEST(LibCpioTest, SetExternalIoAsyncExecutor) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
-
-  std::shared_ptr<AsyncExecutorInterface> external_async_executor =
-      std::make_shared<AsyncExecutor>(1, 2);
-  ASSERT_SUCCESS(external_async_executor->Init());
-  ASSERT_SUCCESS(external_async_executor->Run());
-  options.io_async_executor = external_async_executor;
-
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  EXPECT_EQ(GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor),
-            SuccessExecutionResult());
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
-
-  // Can stop IoAsyncExecutor outside.
-  EXPECT_SUCCESS(io_async_executor->Stop());
-}
-
 TEST(LibCpioTest, InitializedCpioSucceedsTest) {
   TestCpioOptions options;
   options.log_option = LogOption::kSysLog;

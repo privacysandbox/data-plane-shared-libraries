@@ -32,17 +32,9 @@ using google::scp::cpio::client_providers::GlobalCpio;
 
 namespace google::scp::cpio {
 ExecutionResult CpioUtils::RunAndSetGlobalCpio(
-    std::unique_ptr<CpioProviderInterface> cpio_ptr,
-    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
+    std::unique_ptr<CpioProviderInterface> cpio_ptr) {
   RETURN_IF_FAILURE(cpio_ptr->Init());
   RETURN_IF_FAILURE(cpio_ptr->Run());
-  if (cpu_async_executor) {
-    RETURN_IF_FAILURE(cpio_ptr->SetCpuAsyncExecutor(cpu_async_executor));
-  }
-  if (io_async_executor) {
-    RETURN_IF_FAILURE(cpio_ptr->SetIoAsyncExecutor(io_async_executor));
-  }
   GlobalCpio::SetGlobalCpio(cpio_ptr);
 
   return SuccessExecutionResult();

@@ -36,8 +36,6 @@
 #include "google/protobuf/any.pb.h"
 #include "public/core/interface/execution_result.h"
 
-#include "error_codes.h"
-
 using google::scp::core::AsyncExecutor;
 using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
@@ -49,10 +47,6 @@ using google::scp::core::MessageRouter;
 using google::scp::core::MessageRouterInterface;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
-using google::scp::core::errors::
-    SC_LIB_CPIO_PROVIDER_CPU_ASYNC_EXECUTOR_ALREADY_EXISTS;
-using google::scp::core::errors::
-    SC_LIB_CPIO_PROVIDER_IO_ASYNC_EXECUTOR_ALREADY_EXISTS;
 
 static constexpr char kLibCpioProvider[] = "LibCpioProvider";
 static const size_t kThreadPoolThreadCount = 2;
@@ -124,7 +118,7 @@ core::ExecutionResult LibCpioProvider::Stop() noexcept {
     }
   }
 
-  if (!external_cpu_async_executor_is_set_ && cpu_async_executor_) {
+  if (cpu_async_executor_) {
     auto execution_result = cpu_async_executor_->Stop();
     if (!execution_result.Successful()) {
       SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -133,7 +127,7 @@ core::ExecutionResult LibCpioProvider::Stop() noexcept {
     }
   }
 
-  if (!external_io_async_executor_is_set_ && io_async_executor_) {
+  if (io_async_executor_) {
     auto execution_result = io_async_executor_->Stop();
     if (!execution_result.Successful()) {
       SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
@@ -229,31 +223,6 @@ ExecutionResult LibCpioProvider::GetHttp1Client(
     return execution_result;
   }
   http1_client = http1_client_;
-  return SuccessExecutionResult();
-}
-
-ExecutionResult LibCpioProvider::SetCpuAsyncExecutor(
-    const std::shared_ptr<AsyncExecutorInterface>&
-        cpu_async_executor) noexcept {
-  if (cpu_async_executor_) {
-    return FailureExecutionResult(
-        SC_LIB_CPIO_PROVIDER_CPU_ASYNC_EXECUTOR_ALREADY_EXISTS);
-  }
-  cpu_async_executor_ = cpu_async_executor;
-  external_cpu_async_executor_is_set_ = true;
-
-  return SuccessExecutionResult();
-}
-
-ExecutionResult LibCpioProvider::SetIoAsyncExecutor(
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  if (io_async_executor_) {
-    return FailureExecutionResult(
-        SC_LIB_CPIO_PROVIDER_IO_ASYNC_EXECUTOR_ALREADY_EXISTS);
-  }
-  io_async_executor_ = io_async_executor;
-  external_io_async_executor_is_set_ = true;
-
   return SuccessExecutionResult();
 }
 

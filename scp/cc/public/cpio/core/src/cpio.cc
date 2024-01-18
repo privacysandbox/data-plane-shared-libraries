@@ -65,9 +65,7 @@ static ExecutionResult SetLogger(const CpioOptions& options) {
 static ExecutionResult SetGlobalCpio(const CpioOptions& options) {
   cpio_ptr =
       CpioProviderFactory::Create(std::make_shared<CpioOptions>(options));
-  CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr),
-                                 options.cpu_async_executor,
-                                 options.io_async_executor);
+  CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr));
 
   return SuccessExecutionResult();
 }

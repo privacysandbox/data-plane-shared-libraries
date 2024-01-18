@@ -34,8 +34,6 @@ class CpioUtils {
    * @return core::ExecutionResult the operation result.
    */
   static core::ExecutionResult RunAndSetGlobalCpio(
-      std::unique_ptr<client_providers::CpioProviderInterface> cpio_ptr,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor);
+      std::unique_ptr<client_providers::CpioProviderInterface> cpio_ptr);
 };
 }  // namespace google::scp::cpio

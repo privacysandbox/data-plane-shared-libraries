@@ -124,40 +124,4 @@ TEST(LibCpioProviderTest, AuthTokenProviderNotCreatedInInit) {
 
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
-
-TEST(LibCpioProviderTest, SetCpuAsyncExecutor) {
-  auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  ASSERT_SUCCESS(lib_cpio_provider->Init());
-  ASSERT_SUCCESS(lib_cpio_provider->Run());
-  EXPECT_THAT(lib_cpio_provider->GetCpuAsyncExecutorMember(), IsNull());
-
-  std::shared_ptr<AsyncExecutorInterface> async_executor =
-      std::make_shared<AsyncExecutor>(1, 2);
-  ASSERT_SUCCESS(async_executor->Init());
-  ASSERT_SUCCESS(async_executor->Run());
-  ASSERT_SUCCESS(lib_cpio_provider->SetCpuAsyncExecutor(async_executor));
-  EXPECT_THAT(lib_cpio_provider->GetCpuAsyncExecutorMember(), NotNull());
-
-  EXPECT_SUCCESS(lib_cpio_provider->Stop());
-  // Can be stopped outside LibCpioProvider.
-  EXPECT_SUCCESS(async_executor->Stop());
-}
-
-TEST(LibCpioProviderTest, SetIoAsyncExecutor) {
-  auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  ASSERT_SUCCESS(lib_cpio_provider->Init());
-  ASSERT_SUCCESS(lib_cpio_provider->Run());
-  EXPECT_THAT(lib_cpio_provider->GetIoAsyncExecutorMember(), IsNull());
-
-  std::shared_ptr<AsyncExecutorInterface> async_executor =
-      std::make_shared<AsyncExecutor>(1, 2);
-  ASSERT_SUCCESS(async_executor->Init());
-  ASSERT_SUCCESS(async_executor->Run());
-  ASSERT_SUCCESS(lib_cpio_provider->SetIoAsyncExecutor(async_executor));
-  EXPECT_THAT(lib_cpio_provider->GetIoAsyncExecutorMember(), NotNull());
-
-  EXPECT_SUCCESS(lib_cpio_provider->Stop());
-  // Can be stopped outside LibCpioProvider.
-  EXPECT_SUCCESS(async_executor->Stop());
-}
 }  // namespace google::scp::cpio::test

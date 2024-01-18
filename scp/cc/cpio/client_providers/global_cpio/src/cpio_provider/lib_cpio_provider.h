@@ -33,8 +33,6 @@
 #include "google/protobuf/any.pb.h"
 #include "public/core/interface/execution_result.h"
 
-#include "error_codes.h"
-
 namespace google::scp::cpio::client_providers {
 /*! @copydoc CpioProviderInterface
  * Provides global objects for native library mode.
@@ -42,24 +40,13 @@ namespace google::scp::cpio::client_providers {
 class LibCpioProvider : public CpioProviderInterface {
  public:
   explicit LibCpioProvider(const std::shared_ptr<CpioOptions>& options)
-      : cpio_options_(options),
-        cloud_initializer_(nullptr),
-        external_cpu_async_executor_is_set_(false),
-        external_io_async_executor_is_set_(false) {}
+      : cpio_options_(options), cloud_initializer_(nullptr) {}
 
   core::ExecutionResult Init() noexcept override;
 
   core::ExecutionResult Run() noexcept override;
 
   core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult SetCpuAsyncExecutor(
-      const std::shared_ptr<core::AsyncExecutorInterface>&
-          cpu_async_executor) noexcept override;
-
-  core::ExecutionResult SetIoAsyncExecutor(
-      const std::shared_ptr<core::AsyncExecutorInterface>&
-          io_async_executor) noexcept override;
 
   core::ExecutionResult GetCpuAsyncExecutor(
       std::shared_ptr<core::AsyncExecutorInterface>&
@@ -118,9 +105,6 @@ class LibCpioProvider : public CpioProviderInterface {
       const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
       const std::shared_ptr<core::AsyncExecutorInterface>&
           io_async_executor) noexcept;
-
-  bool external_cpu_async_executor_is_set_;
-  bool external_io_async_executor_is_set_;
 };
 }  // namespace google::scp::cpio::client_providers
 

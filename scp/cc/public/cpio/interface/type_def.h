@@ -62,13 +62,6 @@ struct CpioOptions {
   /// Default is kInitInCpio.
   CloudInitOption cloud_init_option = CloudInitOption::kInitInCpio;
 
-  /// Optional CPU thread pool. If not set, an internal thread pool will be
-  /// used.
-  std::shared_ptr<core::AsyncExecutorInterface> cpu_async_executor;
-
-  /// Optional IO thread pool. If not set, an internal thread pool will be used.
-  std::shared_ptr<core::AsyncExecutorInterface> io_async_executor;
-
   /// Cloud Project ID. Project ID for GCP. If not set, attempted to be found
   /// through the instance client. Not implemented for all services yet,
   /// implemented for Parameter client only.
