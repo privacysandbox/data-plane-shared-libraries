@@ -73,7 +73,9 @@ build:tsan --copt=-O1
 build:tsan --copt=-fno-omit-frame-pointer
 build:tsan --linkopt=-fsanitize=thread
 build:tsan --test_tag_filters=-notsan
-test:tsan-aarch64 --test_tag_filters=-notsan-aarch64
+# Note that this flag *overwrites* others and so it needs to have both
+# exclusions in it.  (E.g. the setting in build:tsan is lost.)
+test:tsan-aarch64 --test_tag_filters=-notsan-aarch64,-notsan
 
 # Memory sanitizer
 build:msan --config=sanitizers_common
