@@ -162,7 +162,7 @@ class NativeFunctionHandlerSapiIpc {
 
     const auto metadata_it = metadata_.find(uuid);
     CHECK(metadata_it != metadata_.end()) << "Metadata could not be found";
-    return metadata_it->second;
+    return std::move(metadata_it->second);
   }
 
   // Map of invocation request uuid to associated metadata.

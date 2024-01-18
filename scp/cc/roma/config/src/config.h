@@ -141,8 +141,8 @@ class Config {
   using FunctionBindingObjectPtr =
       std::shared_ptr<FunctionBindingObjectV2<TMetadata>>;
 
-  using LogCallback = absl::AnyInvocable<void(absl::LogSeverity, TMetadata,
-                                              std::string_view) const>;
+  using LogCallback = absl::AnyInvocable<void(
+      absl::LogSeverity, const TMetadata&, std::string_view) const>;
 
   /**
    * @brief Register a function binding v2 object. Only supported with the
@@ -200,7 +200,8 @@ class Config {
   std::vector<FunctionBindingObjectPtr> function_bindings_v2_;
 
   // default no-op logging implementation
-  LogCallback logging_func_ = [](absl::LogSeverity severity, TMetadata metadata,
+  LogCallback logging_func_ = [](absl::LogSeverity severity,
+                                 const TMetadata& metadata,
                                  std::string_view msg) {};
 
   /// v8 heap resource constraints.
