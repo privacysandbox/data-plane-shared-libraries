@@ -20,27 +20,22 @@
 
 #include "absl/synchronization/blocking_counter.h"
 #include "include/v8.h"
-#include "public/core/interface/execution_result.h"
-
-using google::scp::core::ExecutionResult;
-using google::scp::core::SuccessExecutionResult;
 
 namespace google::scp::roma::worker {
 
-ExecutionResult ExecutionWatchDog::Run() noexcept {
+void ExecutionWatchDog::Run() {
   absl::MutexLock lock(&mutex_);
   execution_watchdog_thread_ =
       std::thread(&ExecutionWatchDog::WaitForTimeout, this);
   mutex_.Await(absl::Condition(
       +[](bool* b) { return *b; }, &is_running_));
-  return SuccessExecutionResult();
 }
 
-ExecutionResult ExecutionWatchDog::Stop() noexcept {
+void ExecutionWatchDog::Stop() {
   {
     absl::MutexLock lock(&mutex_);
     if (!is_running_) {
-      return SuccessExecutionResult();
+      return;
     }
     is_running_ = false;
     cv_.Signal();
@@ -48,8 +43,6 @@ ExecutionResult ExecutionWatchDog::Stop() noexcept {
   if (execution_watchdog_thread_.joinable()) {
     execution_watchdog_thread_.join();
   }
-
-  return SuccessExecutionResult();
 }
 
 bool ExecutionWatchDog::IsTerminateCalled() noexcept {

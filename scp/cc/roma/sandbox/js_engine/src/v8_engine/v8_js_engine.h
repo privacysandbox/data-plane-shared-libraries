@@ -60,9 +60,9 @@ class V8JsEngine : public JsEngine {
     external_references_.push_back(0);
   }
 
-  core::ExecutionResult Run() noexcept override;
+  void Run() override;
 
-  core::ExecutionResult Stop() noexcept override;
+  void Stop() override;
 
   void OneTimeSetup(
       const absl::flat_hash_map<std::string, std::string>& config =

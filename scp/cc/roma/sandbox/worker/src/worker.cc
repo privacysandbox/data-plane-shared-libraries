@@ -56,12 +56,12 @@ Worker::Worker(std::unique_ptr<js_engine::JsEngine> js_engine,
       << "compilation_context_cache_size cannot be zero";
 }
 
-ExecutionResult Worker::Run() noexcept {
-  return js_engine_->Run();
+void Worker::Run() {
+  js_engine_->Run();
 }
 
-ExecutionResult Worker::Stop() noexcept {
-  return js_engine_->Stop();
+void Worker::Stop() {
+  js_engine_->Stop();
 }
 
 ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(

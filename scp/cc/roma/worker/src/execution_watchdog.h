@@ -22,9 +22,7 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "core/interface/service_interface.h"
 #include "include/v8.h"
-#include "public/core/interface/execution_result.h"
 #include "src/cpp/util/duration.h"
 
 using privacy_sandbox::server_common::ExpiringFlag;
@@ -49,8 +47,8 @@ class ExecutionWatchDog {
   ~ExecutionWatchDog() { Stop(); }
 
   // Run returns after the watchdog thread is up and running.
-  core::ExecutionResult Run() noexcept;
-  core::ExecutionResult Stop() noexcept;
+  void Run();
+  void Stop();
 
   /**
    * @brief Start timing the execution in the input isolate. If the execution is

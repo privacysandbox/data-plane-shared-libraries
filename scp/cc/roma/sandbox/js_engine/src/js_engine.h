@@ -72,8 +72,8 @@ class JsEngine {
   // Destructor must be virtual to avoid memory leaks.
   virtual ~JsEngine() = default;
 
-  virtual core::ExecutionResult Run() noexcept = 0;
-  virtual core::ExecutionResult Stop() noexcept = 0;
+  virtual void Run() = 0;
+  virtual void Stop() = 0;
 
   /**
    * Function that is intended to be called one at the beginning for any

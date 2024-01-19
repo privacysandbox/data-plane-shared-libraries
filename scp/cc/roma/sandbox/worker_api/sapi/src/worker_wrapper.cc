@@ -212,16 +212,17 @@ StatusCode Run() {
   if (!worker_) {
     return SC_ROMA_WORKER_API_UNINITIALIZED_WORKER;
   }
-  return worker_->Run().status_code;
+  worker_->Run();
+  return SC_OK;
 }
 
 StatusCode Stop() {
   if (!worker_) {
     return SC_ROMA_WORKER_API_UNINITIALIZED_WORKER;
   }
-  const google::scp::core::ExecutionResult result = worker_->Stop();
+  worker_->Stop();
   worker_.reset();
-  return result.status_code;
+  return SC_OK;
 }
 
 inline void ClearInputFields(worker_api::WorkerParamsProto& params) {

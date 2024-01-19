@@ -44,9 +44,9 @@ class Worker {
                   bool require_preload = true,
                   size_t compilation_context_cache_size = 5);
 
-  core::ExecutionResult Run() noexcept;
+  void Run();
 
-  core::ExecutionResult Stop() noexcept;
+  void Stop();
 
   /**
    * @brief Run code object with an internal JS/WASM engine.
