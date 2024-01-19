@@ -57,32 +57,32 @@ class AutoCloseSocketPair {
 TEST_F(Socks5StateInputTest, GreetingHeaderBadVer) {
   BufferUnitType buffer[] = {0xab, 0x01};  // 1st byte should always be 0x05
   Socks5State state;
-  SetState(state, Socks5State::kGreetingHeader);
+  SetState(state, Socks5State::HandshakeState::kGreetingHeader);
   Buffer real_buff;
   real_buff.CopyIn(buffer, sizeof(buffer));
   EXPECT_FALSE(state.Proceed(real_buff));
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 TEST_F(Socks5StateInputTest, GreetingHeaderZeroMethods) {
   BufferUnitType buffer[] = {0x05, 0x00};
   Socks5State state;
-  SetState(state, Socks5State::kGreetingHeader);
+  SetState(state, Socks5State::HandshakeState::kGreetingHeader);
   Buffer real_buff;
   real_buff.CopyIn(buffer, sizeof(buffer));
   EXPECT_FALSE(state.Proceed(real_buff));
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 TEST_F(Socks5StateInputTest, GreetingMethodsNoValid) {
   BufferUnitType buffer[] = {0x01, 0x02, 0x03};
   Socks5State state;
-  SetState(state, Socks5State::kGreetingMethods);
+  SetState(state, Socks5State::HandshakeState::kGreetingMethods);
   SetRequiredSize(state, sizeof(buffer));
   Buffer real_buff;
   real_buff.CopyIn(buffer, sizeof(buffer));
   EXPECT_FALSE(state.Proceed(real_buff));
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 // The request is defined by RFC1928 as:
@@ -95,59 +95,60 @@ TEST_F(Socks5StateInputTest, GreetingMethodsNoValid) {
 TEST_F(Socks5StateInputTest, RequestHeaderBadVer) {
   BufferUnitType buffer[] = {0xef, 0x01, 0x00, 0x04};
   Socks5State state;
-  SetState(state, Socks5State::kRequestHeader);
+  SetState(state, Socks5State::HandshakeState::kRequestHeader);
   SetRequiredSize(state, sizeof(buffer));
   Buffer real_buff;
   real_buff.CopyIn(buffer, sizeof(buffer));
   EXPECT_FALSE(state.Proceed(real_buff));
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 TEST_F(Socks5StateInputTest, RequestHeaderBadCmd) {
   BufferUnitType buffer[] = {0x05, 0x06, 0x00, 0x04};
   Socks5State state;
-  SetState(state, Socks5State::kRequestHeader);
+  SetState(state, Socks5State::HandshakeState::kRequestHeader);
   SetRequiredSize(state, sizeof(buffer));
   Buffer real_buff;
   real_buff.CopyIn(buffer, sizeof(buffer));
   EXPECT_FALSE(state.Proceed(real_buff));
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 TEST_F(Socks5StateInputTest, RequestHeaderBadRsv) {
   BufferUnitType buffer[] = {0x05, 0x01, 0xcc, 0x04};
   Socks5State state;
-  SetState(state, Socks5State::kRequestHeader);
+  SetState(state, Socks5State::HandshakeState::kRequestHeader);
   SetRequiredSize(state, sizeof(buffer));
   Buffer real_buff;
   real_buff.CopyIn(buffer, sizeof(buffer));
   EXPECT_FALSE(state.Proceed(real_buff));
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 TEST_F(Socks5StateInputTest, RequestHeaderAtyp) {
   BufferUnitType buffer[] = {0x05, 0x01, 0x00, 0xdd};
   Socks5State state;
-  SetState(state, Socks5State::kRequestHeader);
+  SetState(state, Socks5State::HandshakeState::kRequestHeader);
   SetRequiredSize(state, sizeof(buffer));
   Buffer real_buff;
   real_buff.CopyIn(buffer, sizeof(buffer));
   EXPECT_FALSE(state.Proceed(real_buff));
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 TEST_F(Socks5StateInputTest, RequestAddrV4Refusal) {
   // IPv4 address: 127.0.0.9:2048
   BufferUnitType buffer[] = {127, 0, 0, 9, 8, 00};
   Socks5State state;
-  state.SetConnectCallback(
-      [](const sockaddr*, size_t) { return Socks5State::kStatusFail; });
-  SetState(state, Socks5State::kRequestAddrV4);
+  state.SetConnectCallback([](const sockaddr*, size_t) {
+    return Socks5State::CallbackStatus::kStatusFail;
+  });
+  SetState(state, Socks5State::HandshakeState::kRequestAddrV4);
   SetRequiredSize(state, sizeof(buffer));
   Buffer real_buff;
   real_buff.CopyIn(buffer, sizeof(buffer));
   EXPECT_FALSE(state.Proceed(real_buff));
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 TEST_F(Socks5StateInputTest, RequestAddrV6Refusal) {
@@ -156,13 +157,14 @@ TEST_F(Socks5StateInputTest, RequestAddrV6Refusal) {
                              0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
                              0x12, 0x34, 0x56, 0x78, 0x08, 0x00};
   Socks5State state;
-  state.SetConnectCallback(
-      [](const sockaddr*, size_t) { return Socks5State::kStatusFail; });
-  SetState(state, Socks5State::kRequestAddrV6);
+  state.SetConnectCallback([](const sockaddr*, size_t) {
+    return Socks5State::CallbackStatus::kStatusFail;
+  });
+  SetState(state, Socks5State::HandshakeState::kRequestAddrV6);
   SetRequiredSize(state, sizeof(buffer));
   Buffer real_buff;
   real_buff.CopyIn(buffer, sizeof(buffer));
   EXPECT_FALSE(state.Proceed(real_buff));
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 }  // namespace google::scp::proxy::test

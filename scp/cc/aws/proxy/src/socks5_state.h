@@ -37,7 +37,7 @@ class Socks5StateInputTest;
 class Socks5State {
  public:
   // The internal handshake state of socks5 protocol.
-  enum HandshakeState {
+  enum class HandshakeState {
     kGreetingHeader,
     kGreetingMethods,
     kRequestHeader,
@@ -52,7 +52,7 @@ class Socks5State {
   };
 
   // The return status of callbacks.
-  enum CallbackStatus {
+  enum class CallbackStatus {
     kStatusOK,          // The call succeeded.
     kStatusInProgress,  // No error yet but need more data or additional action
     kStatusFail         // There was an error
@@ -115,8 +115,8 @@ class Socks5State {
   }
 
   bool Failed() const {
-    return state_ < Socks5State::kGreetingHeader ||
-           state_ > Socks5State::kSuccess;
+    return state_ < HandshakeState::kGreetingHeader ||
+           state_ > HandshakeState::kSuccess;
   }
 
  private:

@@ -68,7 +68,7 @@ void ProxyBridge::Socks5HandshakeHandler(const error_code& ec,
     return;
   }
 
-  while (socks5_state_.state() != Socks5State::kSuccess &&
+  while (socks5_state_.state() != Socks5State::HandshakeState::kSuccess &&
          socks5_state_.Proceed(upstream_buff_)) {}
   // If we need to read more data to proceed, schedule reading.
   if (socks5_state_.InsufficientBuffer(upstream_buff_)) {
@@ -81,7 +81,7 @@ void ProxyBridge::Socks5HandshakeHandler(const error_code& ec,
     return;
   }
 
-  if (socks5_state_.state() == Socks5State::kSuccess) {
+  if (socks5_state_.state() == Socks5State::HandshakeState::kSuccess) {
     // TODO: implement
   }
 }
@@ -223,7 +223,7 @@ void ProxyBridge::SetSocks5StateCallbacks() {
         endpoint, bind_executor(strand_, bind(&ProxyBridge::ConnectHandler,
                                               this->shared_from_this(),
                                               placeholders::error)));
-    return Socks5State::kStatusInProgress;
+    return Socks5State::CallbackStatus::kStatusInProgress;
   });
 
   socks5_state_.SetResponseCallback([this](const void* data, size_t len) {
@@ -233,26 +233,22 @@ void ProxyBridge::SetSocks5StateCallbacks() {
     error_code ec;
     boost::asio::write(client_sock_, const_buffer(data, len), ec);
     if (ec.failed()) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
 
   socks5_state_.SetDestAddressCallback(
       [this](sockaddr* addr, size_t* len, bool remote) {
         error_code ec;
-        Endpoint ep;
-        if (remote) {
-          ep = dest_sock_.remote_endpoint(ec);
-        } else {
-          ep = dest_sock_.local_endpoint(ec);
-        }
+        Endpoint ep = remote ? dest_sock_.remote_endpoint(ec)
+                             : dest_sock_.local_endpoint(ec);
         if (ec.failed()) {
-          return Socks5State::kStatusFail;
+          return Socks5State::CallbackStatus::kStatusFail;
         }
         memcpy(addr, ep.data(), ep.size());
         *len = ep.size();
-        return Socks5State::kStatusOK;
+        return Socks5State::CallbackStatus::kStatusOK;
       });
 
   // In the bind callback, we basically just wait to accept a new connection. In
@@ -262,7 +258,7 @@ void ProxyBridge::SetSocks5StateCallbacks() {
     auto* acceptor =
         acceptor_pool_->GetAcceptor(client_sock_.get_executor(), port);
     if (acceptor == nullptr) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
     // Start to async accept a connection from the acceptor, with a
     // per-operation cancellation slot. This way, if the client connection
@@ -289,7 +285,7 @@ void ProxyBridge::SetSocks5StateCallbacks() {
                                 self->StopWaitingInbound();
                               }
                             }));
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
 }
 

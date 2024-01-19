@@ -46,7 +46,8 @@ std::vector<uint8_t> Socks5State::CreateResp(bool is_bind) {
   size_t resp_size = 3;  // First 3 bytes are fixed as defined above.
   sockaddr* addr = reinterpret_cast<sockaddr*>(&addr_storage);
   if (dest_address_callback_ &&
-      dest_address_callback_(addr, &addr_len, is_bind) == kStatusOK) {
+      dest_address_callback_(addr, &addr_len, is_bind) ==
+          CallbackStatus::kStatusOK) {
     // Successful. Return response.
     size_t addr_sz = FillAddrPort(&resp_storage[resp_size], addr);
     resp_size += addr_sz;
@@ -74,7 +75,7 @@ bool Socks5State::Proceed(Buffer& buffer) {
   }
   // TODO: refactor this long switch case to improve readability.
   switch (state_) {
-    case Socks5State::kGreetingHeader: {
+    case HandshakeState::kGreetingHeader: {
       // Per RFC1928 https://datatracker.ietf.org/doc/html/rfc1928
       //   +----+----------+----------+
       //   |VER | NMETHODS | METHODS  |
@@ -89,14 +90,14 @@ bool Socks5State::Proceed(Buffer& buffer) {
         char s[32] = {0};
         sprintf(s, "%#04x %#04x\n", greeting[0], greeting[1]);
         LOG(ERROR) << "Malformed client greeting: " << s;
-        state_ = Socks5State::kFail;
+        state_ = HandshakeState::kFail;
         break;
       }
       required_size_ = greeting[1];
-      state_ = Socks5State::kGreetingMethods;
+      state_ = HandshakeState::kGreetingMethods;
       break;
     }
-    case Socks5State::kGreetingMethods: {
+    case HandshakeState::kGreetingMethods: {
       size_t n_methods = required_size_;
       // TODO: handle bad_alloc
       std::unique_ptr<uint8_t[]> methods(new uint8_t[n_methods]);
@@ -104,26 +105,26 @@ bool Socks5State::Proceed(Buffer& buffer) {
       // We only support "no auth" here, which is represented by 0x00.
       if (memchr(methods.get(), 0x00, n_methods) == nullptr) {
         LOG(ERROR) << "Unsupported auth methods.";
-        state_ = Socks5State::kFail;
+        state_ = HandshakeState::kFail;
         break;
       }
       static const uint8_t kGreetingResp[2] = {0x05, 0x00};
       if (response_callback_) {
         // Our response is tiny, just 2 bytes. There's no chance for the send to
         // block and require us to poll. So for simplicity, we just check if
-        // return is kStatusOK.
+        // return is CallbackStatus::kStatusOK.
         auto ret = response_callback_(kGreetingResp, sizeof(kGreetingResp));
-        if (ret != kStatusOK) {
+        if (ret != CallbackStatus::kStatusOK) {
           LOG(ERROR) << "Handshake failure with client.";
-          state_ = Socks5State::kFail;
+          state_ = HandshakeState::kFail;
           break;
         }
       }
-      state_ = Socks5State::kRequestHeader;
+      state_ = HandshakeState::kRequestHeader;
       required_size_ = 4;
       break;
     }
-    case Socks5State::kRequestHeader: {
+    case HandshakeState::kRequestHeader: {
       // The request is defined by RFC1928 as:
       //   +----+-----+-------+------+----------+----------+
       //   |VER | CMD |  RSV  | ATYP | DST.ADDR | DST.PORT |
@@ -135,24 +136,24 @@ bool Socks5State::Proceed(Buffer& buffer) {
       if (header[0] != 0x05 || header[2] != 0x00) {
         LOG(ERROR) << "Malformed client request.";
         // TODO: return meaningful response to client.
-        state_ = Socks5State::kFail;
+        state_ = HandshakeState::kFail;
         break;
       }
       if (header[1] == 0x01) {  // CMD == CONNECT
         uint8_t atyp = header[3];
         if (atyp == 0x01) {
-          state_ = Socks5State::kRequestAddrV4;
+          state_ = HandshakeState::kRequestAddrV4;
           required_size_ = 6;  // 4-byte IPv4 address, 2-byte port
         } else if (atyp == 0x03) {
           LOG(ERROR) << "Unsupported ATYP: 0x03(fqdn)";
-          state_ = Socks5State::kFail;
+          state_ = HandshakeState::kFail;
           break;
         } else if (atyp == 0x04) {
-          state_ = Socks5State::kRequestAddrV6;
+          state_ = HandshakeState::kRequestAddrV6;
           required_size_ = 16 + 2;  // 16-byte IPv6 address, 2-byte port
         } else {
           LOG(ERROR) << "Malformed client request. ATYP = " << atyp;
-          state_ = Socks5State::kFail;
+          state_ = HandshakeState::kFail;
           break;
         }
       } else if (header[1] == 0x02) {  // CMD == BIND
@@ -161,29 +162,29 @@ bool Socks5State::Proceed(Buffer& buffer) {
           required_size_ = 6;  // 4-byte IPv4 address, 2-byte port
         } else if (atyp == 0x03) {
           LOG(ERROR) << "Unsupported ATYP: 0x03(fqdn)";
-          state_ = Socks5State::kFail;
+          state_ = HandshakeState::kFail;
           break;
         } else if (atyp == 0x04) {
           required_size_ = 16 + 2;  // 16-byte IPv6 address, 2-byte port
         } else {
           LOG(ERROR) << "Malformed client request. ATYP = " << atyp;
-          state_ = Socks5State::kFail;
+          state_ = HandshakeState::kFail;
           break;
         }
-        state_ = Socks5State::kRequestBind;
+        state_ = HandshakeState::kRequestBind;
         break;
       } else {
         LOG(ERROR) << "Malformed client request.";
         // TODO: return meaningful response to client.
-        state_ = Socks5State::kFail;
+        state_ = HandshakeState::kFail;
         break;
       }
       break;
     }
-    case Socks5State::kRequestAddrV4: {
-      struct sockaddr_in addr;
-      memset(&addr, 0, sizeof(addr));
-      addr.sin_family = AF_INET;
+    case HandshakeState::kRequestAddrV4: {
+      struct sockaddr_in addr = {
+          .sin_family = AF_INET,
+      };
       // The addr and port are already in network byte order, so just copy
       buffer.CopyOut(&addr.sin_addr, sizeof(addr.sin_addr));
       buffer.CopyOut(&addr.sin_port, sizeof(addr.sin_port));
@@ -191,52 +192,48 @@ bool Socks5State::Proceed(Buffer& buffer) {
       required_size_ = 0;
       if (!connect_callback_) {
         required_size_ = 0;
-        state_ = Socks5State::kWaitConnect;
+        state_ = HandshakeState::kWaitConnect;
         break;
       }
-      auto ret =
-          connect_callback_(reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
-      if (ret == kStatusOK) {
-        state_ = Socks5State::kResponse;
+      if (auto ret = connect_callback_(reinterpret_cast<sockaddr*>(&addr),
+                                       sizeof(addr));
+          ret == CallbackStatus::kStatusOK) {
+        state_ = HandshakeState::kResponse;
         break;
-      }
-      if (ret == kStatusInProgress) {
-        state_ = Socks5State::kWaitConnect;
+      } else if (ret == CallbackStatus::kStatusInProgress) {
+        state_ = HandshakeState::kWaitConnect;
         return false;
-        break;
       }
-      state_ = Socks5State::kFail;
+      state_ = HandshakeState::kFail;
       break;
     }
-    case Socks5State::kRequestAddrV6: {
+    case HandshakeState::kRequestAddrV6: {
       // Similar to kRequestAddrV4, except that it is a v6 address
-      struct sockaddr_in6 addr;
-      memset(&addr, 0, sizeof(addr));
-      addr.sin6_family = AF_INET6;
+      struct sockaddr_in6 addr = {
+          .sin6_family = AF_INET6,
+      };
       // The addr and port are already in network byte order, so just copy
       buffer.CopyOut(&addr.sin6_addr, sizeof(addr.sin6_addr));
       buffer.CopyOut(&addr.sin6_port, sizeof(addr.sin6_port));
       // No matter what, we require no more data from client.
       required_size_ = 0;
       if (!connect_callback_) {
-        state_ = Socks5State::kWaitConnect;
+        state_ = HandshakeState::kWaitConnect;
         break;
       }
-      auto ret =
-          connect_callback_(reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
-      if (ret == kStatusOK) {
-        state_ = Socks5State::kResponse;
+      if (auto ret = connect_callback_(reinterpret_cast<sockaddr*>(&addr),
+                                       sizeof(addr));
+          ret == CallbackStatus::kStatusOK) {
+        state_ = HandshakeState::kResponse;
         break;
-      }
-      if (ret == kStatusInProgress) {
-        state_ = Socks5State::kWaitConnect;
+      } else if (ret == CallbackStatus::kStatusInProgress) {
+        state_ = HandshakeState::kWaitConnect;
         return false;
-        break;
       }
-      state_ = Socks5State::kFail;
+      state_ = HandshakeState::kFail;
       break;
     }
-    case Socks5State::kRequestBind: {
+    case HandshakeState::kRequestBind: {
       uint16_t port = 0;
       // We don't care what address to bind, we'll bind to default [::] anyway.
       // So just discard the address field.
@@ -244,9 +241,8 @@ bool Socks5State::Proceed(Buffer& buffer) {
       buffer.CopyOut(&port, sizeof(port));
       port = ntohs(port);
       required_size_ = 0;
-      auto ret = bind_callback_(port);
-      if (ret == kStatusFail) {
-        state_ = Socks5State::kFail;
+      if (auto ret = bind_callback_(port); ret == CallbackStatus::kStatusFail) {
+        state_ = HandshakeState::kFail;
         break;
       }
       // We are using IPv4 ATYP for both IPv4 and IPv6 bind requests. This seems
@@ -258,75 +254,70 @@ bool Socks5State::Proceed(Buffer& buffer) {
       // Fill in the port field
       port = htons(port);
       memcpy(bind_resp + sizeof(bind_resp) - sizeof(port), &port, sizeof(port));
-      ret = response_callback_(bind_resp, sizeof(bind_resp));
-      if (ret == kStatusFail) {
-        state_ = Socks5State::kFail;
+      if (auto ret = response_callback_(bind_resp, sizeof(bind_resp));
+          ret == CallbackStatus::kStatusFail) {
+        state_ = HandshakeState::kFail;
         break;
       }
-      state_ = Socks5State::kWaitAccept;
+      state_ = HandshakeState::kWaitAccept;
       return false;
-      break;
     }
-    case Socks5State::kWaitConnect: {
+    case HandshakeState::kWaitConnect:
       // Always return false. The application is expected to call
       // ConnectionSucceed() upon successful connection establishment.
       return false;
-      break;
-    }
-    case Socks5State::kWaitAccept: {
+    case HandshakeState::kWaitAccept:
       // Always return false. The application is expected to call
       // ConnectionSucceed() upon successful connection establishment.
       return false;
-      break;
-    }
-    case Socks5State::kResponse: {
+    case HandshakeState::kResponse: {
       auto resp = CreateResp(false);
       // Again, like kGreetingMethods, our response is tiny. There's no chance
       // for the send to block and require us to poll. So for simplicity, we
-      // just check if return is kStatusOK.
-      auto ret = response_callback_(resp.data(), resp.size());
-      if (ret != kStatusOK) {
-        state_ = Socks5State::kFail;
+      // just check if return is CallbackStatus::kStatusOK.
+      if (auto ret = response_callback_(resp.data(), resp.size());
+          ret != CallbackStatus::kStatusOK) {
+        state_ = HandshakeState::kFail;
         break;
       }
-      state_ = Socks5State::kSuccess;
+      state_ = HandshakeState::kSuccess;
       required_size_ = 1;
       break;
     }
-    case Socks5State::kSuccess: {
+    case HandshakeState::kSuccess:
       return false;
-      break;
-    }
-    case Socks5State::kFail: {
+    case HandshakeState::kFail:
       required_size_ = 0;
       return false;
-    }
     default: {
       return false;
     }
   }  // switch
-  return state_ != Socks5State::kFail;
+  return state_ != HandshakeState::kFail;
 }
 
 bool Socks5State::ConnectionSucceed() {
   std::vector<uint8_t> resp;
-  if (state_ == kWaitConnect) {
-    resp = CreateResp(false /* is_bind */);
-  } else if (state_ == kWaitAccept) {
-    resp = CreateResp(true /* is_bind */);
-  } else {
-    state_ = kFail;
-    return false;
+  switch (state_) {
+    case HandshakeState::kWaitConnect:
+      resp = CreateResp(false /* is_bind */);
+      break;
+    case HandshakeState::kWaitAccept:
+      resp = CreateResp(true /* is_bind */);
+      break;
+    default:
+      state_ = HandshakeState::kFail;
+      return false;
   }
   // Again, like kGreetingMethods, our response is tiny. There's no chance
   // for the send to block and require us to poll. So for simplicity, we
-  // just check if return is kStatusOK.
-  auto ret = response_callback_(resp.data(), resp.size());
-  if (ret != kStatusOK) {
-    state_ = Socks5State::kFail;
+  // just check if return is CallbackStatus::kStatusOK.
+  if (auto ret = response_callback_(resp.data(), resp.size());
+      ret != CallbackStatus::kStatusOK) {
+    state_ = HandshakeState::kFail;
   }
-  state_ = Socks5State::kSuccess;
-  return state_ == Socks5State::kSuccess;
+  state_ = HandshakeState::kSuccess;
+  return state_ == HandshakeState::kSuccess;
 }
 
 }  // namespace google::scp::proxy

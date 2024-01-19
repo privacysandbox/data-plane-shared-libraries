@@ -52,18 +52,18 @@ void HappyGreeting(void* data, size_t sz) {
   Socks5State state;
   state.SetResponseCallback([sock = sockfd[0]](const void* data, size_t len) {
     if (send(sock, data, len, 0) != static_cast<ssize_t>(len)) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
 
   Buffer buffer;
   buffer.CopyIn(data, sz);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kGreetingMethods);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kGreetingMethods);
 
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestHeader);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestHeader);
   BufferUnitType resp[2];
   ssize_t ret_sz = recv(sockfd[1], resp, sizeof(resp), MSG_DONTWAIT);
   EXPECT_EQ(ret_sz, sizeof(resp));
@@ -78,18 +78,18 @@ void BadAuthMethod(void* data, size_t sz) {
   Socks5State state;
   state.SetResponseCallback([sock = sockfd[0]](const void* data, size_t len) {
     if (send(sock, data, len, 0) != static_cast<ssize_t>(len)) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
 
   Buffer buffer;
   buffer.CopyIn(data, sz);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kGreetingMethods);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kGreetingMethods);
 
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
   BufferUnitType resp[2];
   ssize_t ret_sz = recv(sockfd[1], resp, sizeof(resp), MSG_DONTWAIT);
   // We expect the proxy either send nothing, or send {0x05, 0xff}
@@ -116,7 +116,7 @@ TEST_F(Socks5StateTest, BadGreeting) {
   Buffer buffer;
   buffer.CopyIn(data, sizeof(data));
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 TEST_F(Socks5StateTest, MultipleAuthMethods) {
@@ -163,26 +163,28 @@ TEST_F(Socks5StateTest, RequestV4) {
   Socks5State state;
   state.SetResponseCallback([sock = sockfd[0]](const void* data, size_t len) {
     if (send(sock, data, len, 0) != static_cast<ssize_t>(len)) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
 
-  state.SetConnectCallback(
-      [](const sockaddr*, size_t len) { return Socks5State::kStatusOK; });
-  state.SetDestAddressCallback(
-      [](sockaddr*, size_t*, bool) { return Socks5State::kStatusOK; });
+  state.SetConnectCallback([](const sockaddr*, size_t len) {
+    return Socks5State::CallbackStatus::kStatusOK;
+  });
+  state.SetDestAddressCallback([](sockaddr*, size_t*, bool) {
+    return Socks5State::CallbackStatus::kStatusOK;
+  });
 
   Buffer buffer;
   buffer.CopyIn(data, sizeof(data));
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kGreetingMethods);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kGreetingMethods);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestHeader);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestHeader);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestAddrV4);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestAddrV4);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kResponse);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kResponse);
 }
 
 TEST_F(Socks5StateTest, RequestV6) {
@@ -196,25 +198,27 @@ TEST_F(Socks5StateTest, RequestV6) {
   Socks5State state;
   state.SetResponseCallback([sock = sockfd[0]](const void* data, size_t len) {
     if (send(sock, data, len, 0) != static_cast<ssize_t>(len)) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
-  state.SetConnectCallback(
-      [](const sockaddr*, size_t len) { return Socks5State::kStatusOK; });
-  state.SetDestAddressCallback(
-      [](sockaddr*, size_t*, bool) { return Socks5State::kStatusOK; });
+  state.SetConnectCallback([](const sockaddr*, size_t len) {
+    return Socks5State::CallbackStatus::kStatusOK;
+  });
+  state.SetDestAddressCallback([](sockaddr*, size_t*, bool) {
+    return Socks5State::CallbackStatus::kStatusOK;
+  });
 
   Buffer buffer;
   buffer.CopyIn(data, sizeof(data));
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kGreetingMethods);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kGreetingMethods);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestHeader);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestHeader);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestAddrV6);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestAddrV6);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kResponse);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kResponse);
 }
 
 TEST_F(Socks5StateTest, SlowClient) {
@@ -231,41 +235,43 @@ TEST_F(Socks5StateTest, SlowClient) {
   Socks5State state;
   state.SetResponseCallback([sock = sockfd[0]](const void* data, size_t len) {
     if (send(sock, data, len, 0) != static_cast<ssize_t>(len)) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
-  state.SetConnectCallback(
-      [](const sockaddr*, size_t len) { return Socks5State::kStatusOK; });
-  state.SetDestAddressCallback(
-      [](sockaddr*, size_t*, bool) { return Socks5State::kStatusOK; });
+  state.SetConnectCallback([](const sockaddr*, size_t len) {
+    return Socks5State::CallbackStatus::kStatusOK;
+  });
+  state.SetDestAddressCallback([](sockaddr*, size_t*, bool) {
+    return Socks5State::CallbackStatus::kStatusOK;
+  });
 
   int idx = 0;
   Buffer buffer;
   buffer.CopyIn(&data[idx++], 1);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kGreetingHeader);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kGreetingHeader);
   EXPECT_TRUE(state.InsufficientBuffer(buffer));
 
   buffer.CopyIn(&data[idx++], 1);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kGreetingMethods);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kGreetingMethods);
 
   buffer.CopyIn(&data[idx++], 1);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestHeader);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestHeader);
 
   // For the next 3 bytes, we should not be able to make state transitions.
   for (int i = 0; i < 3; ++i) {
     buffer.CopyIn(&data[idx++], 1);
     EXPECT_FALSE(state.Proceed(buffer));
     EXPECT_TRUE(state.InsufficientBuffer(buffer));
-    EXPECT_EQ(state.state(), Socks5State::kRequestHeader);
+    EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestHeader);
   }
 
   buffer.CopyIn(&data[idx++], 1);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestAddrV6);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestAddrV6);
 
   // Similarly, for the next 17 bytes, we should not be able to proceed, as IPv6
   // address + port is 18 bytes.
@@ -273,11 +279,11 @@ TEST_F(Socks5StateTest, SlowClient) {
     buffer.CopyIn(&data[idx++], 1);
     EXPECT_FALSE(state.Proceed(buffer));
     EXPECT_TRUE(state.InsufficientBuffer(buffer));
-    EXPECT_EQ(state.state(), Socks5State::kRequestAddrV6);
+    EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestAddrV6);
   }
   buffer.CopyIn(&data[idx++], 1);
   EXPECT_TRUE(state.Proceed(buffer));
-  EXPECT_EQ(state.state(), Socks5State::kResponse);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kResponse);
 }
 
 TEST_F(Socks5StateTest, ConnectFailure) {
@@ -289,22 +295,23 @@ TEST_F(Socks5StateTest, ConnectFailure) {
   Socks5State state;
   state.SetResponseCallback([sock = sockfd[0]](const void* data, size_t len) {
     if (send(sock, data, len, 0) != static_cast<ssize_t>(len)) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
 
-  state.SetConnectCallback(
-      [](const sockaddr*, size_t len) { return Socks5State::kStatusFail; });
+  state.SetConnectCallback([](const sockaddr*, size_t len) {
+    return Socks5State::CallbackStatus::kStatusFail;
+  });
 
   Buffer buffer;
   buffer.CopyIn(data, sizeof(data));
   state.Proceed(buffer);
   state.Proceed(buffer);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestAddrV4);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestAddrV4);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kFail);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kFail);
 }
 
 TEST_F(Socks5StateTest, ConnectInProgress) {
@@ -316,13 +323,13 @@ TEST_F(Socks5StateTest, ConnectInProgress) {
   Socks5State state;
   state.SetResponseCallback([sock = sockfd[0]](const void* data, size_t len) {
     if (send(sock, data, len, 0) != static_cast<ssize_t>(len)) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
 
   state.SetConnectCallback([](const sockaddr*, size_t len) {
-    return Socks5State::kStatusInProgress;
+    return Socks5State::CallbackStatus::kStatusInProgress;
   });
 
   Buffer buffer;
@@ -330,9 +337,9 @@ TEST_F(Socks5StateTest, ConnectInProgress) {
   state.Proceed(buffer);
   state.Proceed(buffer);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestAddrV4);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestAddrV4);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kWaitConnect);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kWaitConnect);
   EXPECT_TRUE(state.ConnectionSucceed());
 }
 
@@ -345,22 +352,23 @@ TEST_F(Socks5StateTest, Bind) {
   Socks5State state;
   state.SetResponseCallback([sock = sockfd[0]](const void* data, size_t len) {
     if (send(sock, data, len, 0) != static_cast<ssize_t>(len)) {
-      return Socks5State::kStatusFail;
+      return Socks5State::CallbackStatus::kStatusFail;
     }
-    return Socks5State::kStatusOK;
+    return Socks5State::CallbackStatus::kStatusOK;
   });
 
-  state.SetBindCallback(
-      [](uint16_t port) { return Socks5State::kStatusInProgress; });
+  state.SetBindCallback([](uint16_t port) {
+    return Socks5State::CallbackStatus::kStatusInProgress;
+  });
 
   Buffer buffer;
   buffer.CopyIn(data, sizeof(data));
   state.Proceed(buffer);
   state.Proceed(buffer);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kRequestBind);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kRequestBind);
   state.Proceed(buffer);
-  EXPECT_EQ(state.state(), Socks5State::kWaitAccept);
+  EXPECT_EQ(state.state(), Socks5State::HandshakeState::kWaitAccept);
   EXPECT_TRUE(state.ConnectionSucceed());
 }
 
