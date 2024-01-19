@@ -55,19 +55,35 @@ namespace google::scp::cpio {
 ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
   cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<InstanceClientProviderInterface> instance_client_provider;
-  RETURN_AND_LOG_IF_FAILURE(
-      cpio_->GetInstanceClientProvider(instance_client_provider),
-      kParameterClient, kZeroUuid, "Failed to get InstanceClientProvider.");
+  if (auto provider = cpio_->GetInstanceClientProvider(); provider.ok()) {
+    ExecutionResult execution_result;
+    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
+              "Failed to get InstanceClientProvider.");
+    return execution_result;
+  } else {
+    instance_client_provider = *std::move(provider);
+  }
 
   std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
-  RETURN_AND_LOG_IF_FAILURE(cpio_->GetCpuAsyncExecutor(cpu_async_executor),
-                            kParameterClient, kZeroUuid,
-                            "Failed to get CpuAsyncExecutor.");
+  if (auto executor = cpio_->GetCpuAsyncExecutor(); executor.ok()) {
+    ExecutionResult execution_result;
+    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
+              "Failed to get CpuAsyncExecutor.");
+    return execution_result;
+  } else {
+    cpu_async_executor = *std::move(executor);
+  }
 
+  // TODO(b/321117161): Replace CPU w/ IO executor.
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  RETURN_AND_LOG_IF_FAILURE(cpio_->GetCpuAsyncExecutor(io_async_executor),
-                            kParameterClient, kZeroUuid,
-                            "Failed to get IoAsyncExecutor.");
+  if (auto executor = cpio_->GetCpuAsyncExecutor(); executor.ok()) {
+    ExecutionResult execution_result;
+    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
+              "Failed to get IoAsyncExecutor.");
+    return execution_result;
+  } else {
+    io_async_executor = *std::move(executor);
+  }
 
   parameter_client_provider_ = ParameterClientProviderFactory::Create(
       options_, instance_client_provider, cpu_async_executor,

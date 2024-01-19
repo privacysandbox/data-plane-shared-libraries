@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/statusor.h"
 #include "core/interface/async_executor_interface.h"
 #include "core/interface/http_client_interface.h"
 #include "core/interface/message_router_interface.h"
@@ -41,70 +42,61 @@ namespace google::scp::cpio::client_providers {
  */
 class CpioProviderInterface : public core::ServiceInterface {
  public:
+  virtual ~CpioProviderInterface() = default;
+
   /**
    * @brief Gets the global Async Executor. Only create it when it is
    * needed.
    *
-   * @param cpu_async_executor the CPU Async Executor.
-   * @return core::ExecutionResult get result.
+   * @return cpu_async_executor the CPU Async Executor.
    */
-  virtual core::ExecutionResult GetCpuAsyncExecutor(
-      std::shared_ptr<core::AsyncExecutorInterface>&
-          cpu_async_executor) noexcept = 0;
+  virtual absl::StatusOr<std::shared_ptr<core::AsyncExecutorInterface>>
+  GetCpuAsyncExecutor() noexcept = 0;
 
   /**
    * @brief Gets the global IO Async Executor. Only create it when it is
    * needed.
    *
-   * @param io_async_executor the IO Async Executor.
-   * @return core::ExecutionResult get result.
+   * @return io_async_executor the IO Async Executor.
    */
-  virtual core::ExecutionResult GetIoAsyncExecutor(
-      std::shared_ptr<core::AsyncExecutorInterface>&
-          io_async_executor) noexcept = 0;
+  virtual absl::StatusOr<std::shared_ptr<core::AsyncExecutorInterface>>
+  GetIoAsyncExecutor() noexcept = 0;
 
   /**
    * @brief Get the Http2 Client object. Only create it when it is needed.
    * TODO: rename to GetHttp2Client.
    *
-   * @param http_client output Http2 Client
-   * @return core::ExecutionResult get result.
+   * @return http_client output Http2 Client
    */
-  virtual core::ExecutionResult GetHttpClient(
-      std::shared_ptr<core::HttpClientInterface>& http2_client) noexcept = 0;
+  virtual absl::StatusOr<std::shared_ptr<core::HttpClientInterface>>
+  GetHttpClient() noexcept = 0;
 
   /**
    * @brief Get the Http1 Client object. Only create it when it is needed.
    *
-   * @param http_client output Http1 Client
-   * @return core::ExecutionResult get result.
+   * @return http_client output Http1 Client
    */
-  virtual core::ExecutionResult GetHttp1Client(
-      std::shared_ptr<core::HttpClientInterface>& http1_client) noexcept = 0;
+  virtual absl::StatusOr<std::shared_ptr<core::HttpClientInterface>>
+  GetHttp1Client() noexcept = 0;
 
   /**
    * @brief Gets the InstanceClientProvider.
    *
-   * @param instance_client output InstanceClientProvider.
-   * @return core::ExecutionResult get result.
+   * @return instance_client output InstanceClientProvider.
    */
-  virtual core::ExecutionResult GetInstanceClientProvider(
-      std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client) noexcept = 0;
+  virtual absl::StatusOr<std::shared_ptr<InstanceClientProviderInterface>>
+  GetInstanceClientProvider() noexcept = 0;
 
   /**
    * @brief Gets the Role Credentials Provider object when it is needed.
    *
-   * @param credentials_provider output role credentials provider.
-   * @return core::ExecutionResult get result.
+   * @return credentials_provider output role credentials provider.
    */
-  virtual core::ExecutionResult GetRoleCredentialsProvider(
-      std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credentials_provider) noexcept = 0;
+  virtual absl::StatusOr<std::shared_ptr<RoleCredentialsProviderInterface>>
+  GetRoleCredentialsProvider() noexcept = 0;
 
-  virtual core::ExecutionResult GetAuthTokenProvider(
-      std::shared_ptr<AuthTokenProviderInterface>&
-          auth_token_provider) noexcept = 0;
+  virtual absl::StatusOr<std::shared_ptr<AuthTokenProviderInterface>>
+  GetAuthTokenProvider() noexcept = 0;
 
   /**
    * @brief Gets the Project ID from CpioOptions if originally provided.

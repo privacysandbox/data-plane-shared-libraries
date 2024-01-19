@@ -33,95 +33,64 @@ using ::testing::IsNull;
 using ::testing::NotNull;
 
 namespace google::scp::cpio::test {
-TEST(LibCpioProviderTest, InstanceClientProviderNotCreatedInInt) {
+TEST(LibCpioProviderTest, AsyncExecutorCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  EXPECT_THAT(lib_cpio_provider->GetInstanceClientProviderMember(), IsNull());
-
-  std::shared_ptr<InstanceClientProviderInterface> instance_client_provider;
-  ASSERT_SUCCESS(
-      lib_cpio_provider->GetInstanceClientProvider(instance_client_provider));
-  EXPECT_THAT(instance_client_provider, NotNull());
+  auto async_executor = lib_cpio_provider->GetCpuAsyncExecutor();
+  ASSERT_TRUE(async_executor.ok());
+  ASSERT_THAT(*async_executor, NotNull());
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 
-TEST(LibCpioProviderTest, AsyncExecutorNotCreatedInInit) {
+TEST(LibCpioProviderTest, IOAsyncExecutorCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  EXPECT_THAT(lib_cpio_provider->GetCpuAsyncExecutorMember(), IsNull());
-
-  std::shared_ptr<AsyncExecutorInterface> async_executor;
-  ASSERT_SUCCESS(lib_cpio_provider->GetCpuAsyncExecutor(async_executor));
-  EXPECT_THAT(async_executor, NotNull());
-
+  auto io_async_executor = lib_cpio_provider->GetIoAsyncExecutor();
+  ASSERT_TRUE(io_async_executor.ok());
+  ASSERT_THAT(*io_async_executor, NotNull());
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 
-TEST(LibCpioProviderTest, IOAsyncExecutorNotCreatedInInit) {
+TEST(LibCpioProviderTest, Http2ClientCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  EXPECT_THAT(lib_cpio_provider->GetIoAsyncExecutorMember(), IsNull());
-
-  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  ASSERT_SUCCESS(lib_cpio_provider->GetIoAsyncExecutor(io_async_executor));
-  EXPECT_THAT(io_async_executor, NotNull());
-
+  auto http2_client = lib_cpio_provider->GetHttpClient();
+  ASSERT_TRUE(http2_client.ok());
+  ASSERT_THAT(*http2_client, NotNull());
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 
-TEST(LibCpioProviderTest, Http2ClientNotCreatedInInit) {
+TEST(LibCpioProviderTest, Http1ClientCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  EXPECT_THAT(lib_cpio_provider->GetHttp2ClientMember(), IsNull());
-
-  std::shared_ptr<HttpClientInterface> http2_client;
-  ASSERT_SUCCESS(lib_cpio_provider->GetHttpClient(http2_client));
-  EXPECT_THAT(http2_client, NotNull());
-
+  auto http1_client = lib_cpio_provider->GetHttp1Client();
+  ASSERT_TRUE(http1_client.ok());
+  ASSERT_THAT(*http1_client, NotNull());
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 
-TEST(LibCpioProviderTest, Http1ClientNotCreatedInInit) {
+TEST(LibCpioProviderTest, RoleCredentialsProviderCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  EXPECT_THAT(lib_cpio_provider->GetHttp1ClientMember(), IsNull());
-
-  std::shared_ptr<HttpClientInterface> http1_client;
-  ASSERT_SUCCESS(lib_cpio_provider->GetHttp1Client(http1_client));
-  EXPECT_THAT(http1_client, NotNull());
-
+  auto role_credentials_provider =
+      lib_cpio_provider->GetRoleCredentialsProvider();
+  ASSERT_TRUE(role_credentials_provider.ok());
+  ASSERT_THAT(*role_credentials_provider, NotNull());
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 
-TEST(LibCpioProviderTest, RoleCredentialsProviderNotCreatedInInit) {
+TEST(LibCpioProviderTest, AuthTokenProviderCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  EXPECT_THAT(lib_cpio_provider->GetRoleCredentialsProviderMember(), IsNull());
-
-  std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
-  ASSERT_SUCCESS(
-      lib_cpio_provider->GetRoleCredentialsProvider(role_credentials_provider));
-  EXPECT_THAT(role_credentials_provider, NotNull());
-
-  EXPECT_SUCCESS(lib_cpio_provider->Stop());
-}
-
-TEST(LibCpioProviderTest, AuthTokenProviderNotCreatedInInit) {
-  auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
-  ASSERT_SUCCESS(lib_cpio_provider->Init());
-  ASSERT_SUCCESS(lib_cpio_provider->Run());
-  EXPECT_THAT(lib_cpio_provider->GetAuthTokenProviderMember(), IsNull());
-
-  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
-  ASSERT_SUCCESS(lib_cpio_provider->GetAuthTokenProvider(auth_token_provider));
-  EXPECT_THAT(auth_token_provider, NotNull());
-
+  auto auth_token_provider = lib_cpio_provider->GetAuthTokenProvider();
+  ASSERT_TRUE(auth_token_provider.ok());
+  ASSERT_THAT(*auth_token_provider, NotNull());
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 }  // namespace google::scp::cpio::test

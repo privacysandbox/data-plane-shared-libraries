@@ -20,6 +20,8 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "core/async_executor/src/async_executor.h"
 #include "core/interface/async_executor_interface.h"
 #include "core/interface/http_client_interface.h"
@@ -48,33 +50,26 @@ class LibCpioProvider : public CpioProviderInterface {
 
   core::ExecutionResult Stop() noexcept override;
 
-  core::ExecutionResult GetCpuAsyncExecutor(
-      std::shared_ptr<core::AsyncExecutorInterface>&
-          cpu_async_executor) noexcept override;
+  absl::StatusOr<std::shared_ptr<core::AsyncExecutorInterface>>
+  GetCpuAsyncExecutor() noexcept override;
 
-  core::ExecutionResult GetIoAsyncExecutor(
-      std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) noexcept
-      override;
+  absl::StatusOr<std::shared_ptr<core::AsyncExecutorInterface>>
+  GetIoAsyncExecutor() noexcept override;
 
-  core::ExecutionResult GetHttpClient(
-      std::shared_ptr<core::HttpClientInterface>& http_client) noexcept
-      override;
+  absl::StatusOr<std::shared_ptr<core::HttpClientInterface>>
+  GetHttpClient() noexcept override;
 
-  core::ExecutionResult GetHttp1Client(
-      std::shared_ptr<core::HttpClientInterface>& http1_client) noexcept
-      override;
+  absl::StatusOr<std::shared_ptr<core::HttpClientInterface>>
+  GetHttp1Client() noexcept override;
 
-  core::ExecutionResult GetInstanceClientProvider(
-      std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider) noexcept override;
+  absl::StatusOr<std::shared_ptr<InstanceClientProviderInterface>>
+  GetInstanceClientProvider() noexcept override;
 
-  core::ExecutionResult GetRoleCredentialsProvider(
-      std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credentials_provider) noexcept override;
+  absl::StatusOr<std::shared_ptr<RoleCredentialsProviderInterface>>
+  GetRoleCredentialsProvider() noexcept override;
 
-  core::ExecutionResult GetAuthTokenProvider(
-      std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider) noexcept
-      override;
+  absl::StatusOr<std::shared_ptr<AuthTokenProviderInterface>>
+  GetAuthTokenProvider() noexcept override;
 
   const std::string& GetProjectId() noexcept override;
 

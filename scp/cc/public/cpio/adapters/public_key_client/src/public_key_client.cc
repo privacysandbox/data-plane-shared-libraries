@@ -54,10 +54,12 @@ namespace google::scp::cpio {
 ExecutionResult PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
   cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<HttpClientInterface> http_client;
-  auto execution_result = cpio_->GetHttpClient(http_client);
-  if (!execution_result.Successful()) {
+  if (auto client = cpio_->GetHttpClient(); !client.ok()) {
+    ExecutionResult execution_result;
     SCP_ERROR(kPublicKeyClient, kZeroUuid, execution_result,
               "Failed to get http client.");
+  } else {
+    http_client = *std::move(client);
   }
   public_key_client_provider_ =
       PublicKeyClientProviderFactory::Create(options_, http_client);

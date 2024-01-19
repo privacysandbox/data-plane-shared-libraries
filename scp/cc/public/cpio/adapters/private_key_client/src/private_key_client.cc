@@ -61,33 +61,40 @@ namespace google::scp::cpio {
 ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
   cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<HttpClientInterface> http_client;
-  auto execution_result = cpio_->GetHttpClient(http_client);
-  if (!execution_result.Successful()) {
+  if (auto client = cpio_->GetHttpClient(); !client.ok()) {
+    ExecutionResult execution_result;
     SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
               "Failed to get http client.");
     return execution_result;
+  } else {
+    http_client = *std::move(client);
   }
   std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
-  execution_result =
-      cpio_->GetRoleCredentialsProvider(role_credentials_provider);
-  if (!execution_result.Successful()) {
+  if (auto provider = cpio_->GetRoleCredentialsProvider(); !provider.ok()) {
+    ExecutionResult execution_result;
     SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
               "Failed to get role credentials provider.");
     return execution_result;
+  } else {
+    role_credentials_provider = *std::move(provider);
   }
   std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
-  execution_result = cpio_->GetAuthTokenProvider(auth_token_provider);
-  if (!execution_result.Successful()) {
+  if (auto provider = cpio_->GetAuthTokenProvider(); !provider.ok()) {
+    ExecutionResult execution_result;
     SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
               "Failed to get role auth token provider.");
     return execution_result;
+  } else {
+    auth_token_provider = *std::move(provider);
   }
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  execution_result = cpio_->GetIoAsyncExecutor(io_async_executor);
-  if (!execution_result.Successful()) {
+  if (auto executor = cpio_->GetIoAsyncExecutor(); !executor.ok()) {
+    ExecutionResult execution_result;
     SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
               "Failed to get IOAsyncExecutor.");
     return execution_result;
+  } else {
+    io_async_executor = *std::move(executor);
   }
   private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
       options_, http_client, role_credentials_provider, auth_token_provider,

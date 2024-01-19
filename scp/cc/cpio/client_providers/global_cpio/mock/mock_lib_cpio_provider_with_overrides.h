@@ -20,6 +20,7 @@
 #include <functional>
 #include <memory>
 
+#include "absl/status/statusor.h"
 #include "cpio/client_providers/global_cpio/src/cpio_provider/lib_cpio_provider.h"
 #include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "cpio/client_providers/interface/role_credentials_provider_interface.h"
@@ -30,42 +31,10 @@ class MockLibCpioProviderWithOverrides : public LibCpioProvider {
   MockLibCpioProviderWithOverrides()
       : LibCpioProvider(std::make_shared<CpioOptions>()) {}
 
-  core::ExecutionResult GetInstanceClientProvider(
-      std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider) noexcept override {
+  absl::StatusOr<std::shared_ptr<InstanceClientProviderInterface>>
+  GetInstanceClientProvider() noexcept override {
     instance_client_provider_ = std::make_shared<MockInstanceClientProvider>();
-    instance_client_provider = instance_client_provider_;
-    return core::SuccessExecutionResult();
-  }
-
-  std::shared_ptr<core::AsyncExecutorInterface> GetCpuAsyncExecutorMember() {
-    return cpu_async_executor_;
-  }
-
-  std::shared_ptr<core::AsyncExecutorInterface> GetIoAsyncExecutorMember() {
-    return io_async_executor_;
-  }
-
-  std::shared_ptr<core::HttpClientInterface> GetHttp2ClientMember() {
-    return http2_client_;
-  }
-
-  std::shared_ptr<core::HttpClientInterface> GetHttp1ClientMember() {
-    return http1_client_;
-  }
-
-  std::shared_ptr<InstanceClientProviderInterface>
-  GetInstanceClientProviderMember() {
     return instance_client_provider_;
-  }
-
-  std::shared_ptr<RoleCredentialsProviderInterface>
-  GetRoleCredentialsProviderMember() {
-    return role_credentials_provider_;
-  }
-
-  std::shared_ptr<AuthTokenProviderInterface> GetAuthTokenProviderMember() {
-    return auth_token_provider_;
   }
 };
 }  // namespace google::scp::cpio::client_providers::mock

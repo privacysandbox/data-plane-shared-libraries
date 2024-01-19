@@ -37,6 +37,7 @@ cc_library(
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
         "//scp/cc/core/curl_client/src:http1_curl_client_lib",
         "//scp/cc/core/http2_client/src:http2_client_lib",
+        "//scp/cc/core/interface:errors_lib",
         "//scp/cc/core/logger/src:logger_lib",
         "//scp/cc/core/logger/src/log_providers:log_providers_lib",
         "//scp/cc/core/logger/src/log_providers/syslog:syslog_lib",
@@ -47,5 +48,7 @@ cc_library(
         "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//scp/cc/cpio/client_providers/role_credentials_provider/src:role_credentials_provider_select_lib",
         "//scp/cc/public/cpio/interface:type_def",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
     ],
 )

@@ -82,15 +82,13 @@ TEST(LibCpioTest, StopSuccessfully) {
   options.log_option = LogOption::kSysLog;
   options.region = kRegion;
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
-  EXPECT_EQ(
-      GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor),
-      SuccessExecutionResult());
+  auto cpu_async_executor = GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor();
+  ASSERT_TRUE(cpu_async_executor.ok());
   ASSERT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 
   // AsyncExecutor already stopped in ShutdownCpio, and the second stop will
   // fail.
-  EXPECT_EQ(cpu_async_executor->Stop(),
+  EXPECT_EQ((*cpu_async_executor)->Stop(),
             FailureExecutionResult(SC_ASYNC_EXECUTOR_NOT_RUNNING));
 }
 

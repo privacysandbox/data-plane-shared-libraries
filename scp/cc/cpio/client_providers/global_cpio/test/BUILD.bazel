@@ -64,6 +64,7 @@ cc_test(
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/cpio/client_providers/global_cpio/mock:global_cpio_mock",
+        "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/public/cpio/interface:cpio",
         "@com_google_googletest//:gtest_main",

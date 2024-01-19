@@ -55,26 +55,28 @@ void RunEnqueueMessageValidator(
   std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(
-          instance_client);
-      !res) {
+  if (auto res = GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider();
+      !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Instance Client Provider."
               << std::endl;
     return;
+  } else {
+    instance_client = *std::move(res);
   }
 
-  if (auto res =
-          GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor);
-      !res) {
+  if (auto res = GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor();
+      !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Cpu Async Executor." << std::endl;
     return;
+  } else {
+    cpu_async_executor = *std::move(res);
   }
 
-  if (auto res =
-          GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor);
-      !res) {
+  if (auto res = GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Io Async Executor." << std::endl;
     return;
+  } else {
+    io_async_executor = *std::move(res);
   }
 
   auto options = std::make_shared<QueueClientOptions>();
@@ -138,26 +140,28 @@ void RunGetTopMessageValidator(std::string_view name) {
   std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider(
-          instance_client);
-      !res) {
+  if (auto res = GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider();
+      !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Instance Client Provider."
               << std::endl;
     return;
+  } else {
+    instance_client = *std::move(res);
   }
 
-  if (auto res =
-          GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor(cpu_async_executor);
-      !res) {
+  if (auto res = GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor();
+      !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Cpu Async Executor." << std::endl;
     return;
+  } else {
+    cpu_async_executor = *std::move(res);
   }
 
-  if (auto res =
-          GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(io_async_executor);
-      !res) {
+  if (auto res = GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Io Async Executor." << std::endl;
     return;
+  } else {
+    io_async_executor = *std::move(res);
   }
 
   auto options = std::make_shared<QueueClientOptions>();
