@@ -47,13 +47,12 @@ void ProxyServer::BindListen() {
   if (vsock_) {
     Protocol protocol(AF_VSOCK, 0);
     acceptor_.open(protocol);
-    socket_base::reuse_address reuse_addr(true);
-    acceptor_.set_option(reuse_addr);
-    sockaddr_vm addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.svm_family = AF_VSOCK;
-    addr.svm_cid = VMADDR_CID_ANY;
-    addr.svm_port = port_;
+    acceptor_.set_option(socket_base::reuse_address(true));
+    struct sockaddr_vm addr = {
+        .svm_family = AF_VSOCK,
+        .svm_cid = VMADDR_CID_ANY,
+        .svm_port = port_,
+    };
     Endpoint endpoint(&addr, sizeof(addr));
     acceptor_.bind(endpoint);
     acceptor_.listen();
@@ -65,13 +64,12 @@ void ProxyServer::BindListen() {
   } else {
     Protocol protocol(AF_INET6, 0);
     acceptor_.open(protocol);
-    socket_base::reuse_address reuse_addr(true);
-    acceptor_.set_option(reuse_addr);
-    sockaddr_in6 addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.sin6_family = AF_INET6;
-    addr.sin6_addr = IN6ADDR_ANY_INIT;
-    addr.sin6_port = htons(port_);
+    acceptor_.set_option(socket_base::reuse_address(true));
+    struct sockaddr_in6 addr = {
+        .sin6_family = AF_INET6,
+        .sin6_addr = IN6ADDR_ANY_INIT,
+        .sin6_port = htons(port_),
+    };
     Endpoint endpoint(&addr, sizeof(addr));
     acceptor_.bind(endpoint);
     acceptor_.listen();

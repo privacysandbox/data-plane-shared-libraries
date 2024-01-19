@@ -15,6 +15,7 @@
 #include "preload.h"
 
 #include <errno.h>
+#include <sys/types.h>
 
 #include "protocol.h"
 #include "socket_vendor_protocol.h"
@@ -461,9 +462,9 @@ EXPORT int bind(int sockfd, const struct sockaddr* addr,
   if (dup2(uds_sock, sockfd) < 0) {
     return -1;
   }
-  sockaddr_un uds_addr;
-  memset(&uds_addr, 0, sizeof(uds_addr));
-  uds_addr.sun_family = AF_UNIX;
+  struct sockaddr_un uds_addr = {
+      .sun_family = AF_UNIX,
+  };
   memcpy(uds_addr.sun_path, google::scp::proxy::kSocketVendorUdsPath.data(),
          google::scp::proxy::kSocketVendorUdsPath.size());
   if (libc_connect(sockfd, reinterpret_cast<sockaddr*>(&uds_addr),
@@ -473,13 +474,15 @@ EXPORT int bind(int sockfd, const struct sockaddr* addr,
   // In the next few steps, perform socket vendor requests.
   socket_vendor::BindRequest bind_req;
   bind_req.port = port;
-  ssize_t num_bytes = send(sockfd, &bind_req, sizeof(bind_req), 0);
-  if (num_bytes != static_cast<ssize_t>(sizeof(bind_req))) {
+  const auto bind_req_len = sizeof(bind_req);
+  if (ssize_t num_bytes = send(sockfd, &bind_req, bind_req_len, 0);
+      num_bytes != static_cast<ssize_t>(bind_req_len)) {
     return -1;
   }
   socket_vendor::BindResponse bind_resp;
-  num_bytes = recv(sockfd, &bind_resp, sizeof(bind_resp), 0);
-  if (num_bytes != static_cast<ssize_t>(sizeof(bind_resp))) {
+  const auto bind_resp_len = sizeof(bind_resp);
+  if (ssize_t num_bytes = recv(sockfd, &bind_resp, bind_resp_len, 0);
+      num_bytes != static_cast<ssize_t>(bind_resp_len)) {
     return -1;
   }
   if (bind_resp.type != socket_vendor::MessageType::kBindResponse) {
@@ -502,24 +505,25 @@ EXPORT int listen(int sockfd, int backlog) throw() {
   }
   sockaddr_un uds_addr;
   socklen_t addr_len = sizeof(uds_addr);
-  int ret =
-      getpeername(sockfd, reinterpret_cast<sockaddr*>(&uds_addr), &addr_len);
-  if (ret < 0) {
+  if (int ret = getpeername(sockfd, reinterpret_cast<sockaddr*>(&uds_addr),
+                            &addr_len);
+      ret < 0) {
     return libc_listen(sockfd, backlog);
   }
   // TODO: we may add more strict check here
 
   socket_vendor::ListenRequest listen_req;
   listen_req.backlog = backlog;
-  ssize_t num_bytes = send(sockfd, &listen_req, sizeof(listen_req), 0);
-  if (num_bytes != sizeof(listen_req)) {
+  if (ssize_t num_bytes = send(sockfd, &listen_req, sizeof(listen_req), 0);
+      num_bytes != sizeof(listen_req)) {
     return -1;
   }
   int fl = fcntl(sockfd, F_GETFL);
   fcntl(sockfd, F_SETFL, fl & ~O_NONBLOCK);
   socket_vendor::ListenResponse listen_resp;
-  num_bytes = recv(sockfd, &listen_resp, sizeof(listen_resp), MSG_WAITALL);
-  if (num_bytes != sizeof(listen_resp)) {
+  if (ssize_t num_bytes =
+          recv(sockfd, &listen_resp, sizeof(listen_resp), MSG_WAITALL);
+      num_bytes != sizeof(listen_resp)) {
     return -1;
   }
   if (listen_resp.type != socket_vendor::MessageType::kListenResponse) {
@@ -547,18 +551,22 @@ EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addrlen,
   // logic turns out to be hurting performance.
   sockaddr_un uds_addr;
   socklen_t uds_addr_len = sizeof(uds_addr);
-  int ret = getpeername(sockfd, reinterpret_cast<sockaddr*>(&uds_addr),
-                        &uds_addr_len);
-  if (ret < 0) {
+  if (int ret = getpeername(sockfd, reinterpret_cast<sockaddr*>(&uds_addr),
+                            &uds_addr_len);
+      ret < 0) {
     return libc_accept4(sockfd, addr, addrlen, flags);
   }
 
   // Now prepare for accepting a file descriptor
   socket_vendor::NewConnectionResponse resp;
-  struct msghdr msg = {};
-  struct iovec iov = {&resp, sizeof(resp)};
-  msg.msg_iov = &iov;
-  msg.msg_iovlen = 1;
+  struct iovec iov = {
+      .iov_base = &resp,
+      .iov_len = sizeof(resp),
+  };
+  struct msghdr msg = {
+      .msg_iov = &iov,
+      .msg_iovlen = 1,
+  };
 
   union {
     struct cmsghdr align;
@@ -568,8 +576,7 @@ EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addrlen,
   msg.msg_control = cmsgu.buf;
   msg.msg_controllen = sizeof(cmsgu.buf);
 
-  ssize_t num_bytes = recvmsg(sockfd, &msg, 0);
-  if (num_bytes < 0) {
+  if (ssize_t num_bytes = recvmsg(sockfd, &msg, 0); num_bytes < 0) {
     // Note that this might be a benign failure when sockfd is made
     // non-blocking. recv() might return with EAGAIN/EWOULDBLOCK, which is also
     // expected errno for accept() calls.
@@ -604,16 +611,18 @@ EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addrlen,
   // From this point, we don't know if the original listener socket was created
   // as IPv6 or IPv4 socket. So we identify it by looking at socklen.
   if (*addrlen >= sizeof(sockaddr_in6)) {
-    sockaddr_in6 v6addr;
-    v6addr.sin6_family = AF_INET6;
+    struct sockaddr_in6 v6addr = {
+        .sin6_family = AF_INET6,
+        .sin6_port = resp.port,
+    };
     memcpy(&v6addr.sin6_addr, resp.addr, sizeof(resp.addr));
-    v6addr.sin6_port = resp.port;
     *addrlen = sizeof(v6addr);
     memcpy(addr, &v6addr, *addrlen);
   } else {
-    sockaddr_in v4addr;
-    memset(&v4addr, 0, sizeof(v4addr));
-    v4addr.sin_family = AF_INET;
+    struct sockaddr_in v4addr = {
+        .sin_family = AF_INET,
+        .sin_port = resp.port,
+    };
     // Determine if the address is convertible to IPv4. If so, convert it.
     uint32_t uint_addr[4];
     memcpy(uint_addr, resp.addr, sizeof(uint_addr));
@@ -626,7 +635,6 @@ EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addrlen,
       // IPv4-mapped address
       memcpy(&v4addr.sin_addr, &uint_addr[3], sizeof(v4addr.sin_addr));
     }
-    v4addr.sin_port = resp.port;
     *addrlen = *addrlen >= sizeof(v4addr) ? sizeof(v4addr) : *addrlen;
     memcpy(addr, &v4addr, *addrlen);
   }

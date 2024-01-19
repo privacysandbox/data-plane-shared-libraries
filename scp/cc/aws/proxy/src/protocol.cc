@@ -110,8 +110,7 @@ sockaddr_vm GetProxyVsockAddr() {
     port = kDefaultParentPort;
   }
 
-  // memset(&addr, 0, sizeof(addr));
-  sockaddr_vm addr = {
+  struct sockaddr_vm addr = {
       .svm_family = AF_VSOCK,
       .svm_port = port,
       .svm_cid = cid,
