@@ -44,15 +44,14 @@ std::vector<uint8_t> Socks5State::CreateResp(bool is_bind) {
   static constexpr size_t kRespBufSize = 32;
   uint8_t resp_storage[kRespBufSize] = {0x05, 0x00, 0x00};
   size_t resp_size = 3;  // First 3 bytes are fixed as defined above.
-  sockaddr* addr = reinterpret_cast<sockaddr*>(&addr_storage);
-  if (dest_address_callback_ &&
+  if (sockaddr* addr = reinterpret_cast<sockaddr*>(&addr_storage);
+      dest_address_callback_ &&
       dest_address_callback_(addr, &addr_len, is_bind) ==
           CallbackStatus::kStatusOK) {
     // Successful. Return response.
-    size_t addr_sz = FillAddrPort(&resp_storage[resp_size], addr);
+    const size_t addr_sz = FillAddrPort(&resp_storage[resp_size], addr);
     resp_size += addr_sz;
-    std::vector<uint8_t> resp(resp_storage, resp_storage + resp_size);
-    return resp;
+    return std::vector<uint8_t>(resp_storage, resp_storage + resp_size);
   }
   // Otherwise, we have an error.
   LOG(ERROR) << "ERROR: failed to get local address. errno=" << errno;
