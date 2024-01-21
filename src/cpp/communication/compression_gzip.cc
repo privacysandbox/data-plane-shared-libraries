@@ -33,17 +33,17 @@ namespace {
 // Responsible for compressing one compression group (see compression.h for the
 // compressed partition output format).
 absl::StatusOr<std::string> CompressOnePartition(absl::string_view partition) {
-  z_stream zs;
-  zs.zalloc = Z_NULL;
-  zs.zfree = Z_NULL;
-  zs.opaque = Z_NULL;
-  zs.avail_in = (uInt)partition.size();
-  zs.next_in = (Bytef*)partition.data();
-
-  int deflate_init_status =
-      deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, kGzipWindowBits | 16,
-                   kDefaultMemLevel, Z_DEFAULT_STRATEGY);
-  if (deflate_init_status != Z_OK) {
+  z_stream zs = {
+      .next_in = reinterpret_cast<Bytef*>(const_cast<char*>(partition.data())),
+      .avail_in = static_cast<uInt>(partition.size()),
+      .zalloc = Z_NULL,
+      .zfree = Z_NULL,
+      .opaque = Z_NULL,
+  };
+  if (const int deflate_init_status = deflateInit2(
+          &zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, kGzipWindowBits | 16,
+          kDefaultMemLevel, Z_DEFAULT_STRATEGY);
+      deflate_init_status != Z_OK) {
     return absl::InternalError(
         absl::StrFormat("Error initializing data for gzip compression (deflate "
                         "init status: %d)",
@@ -64,8 +64,8 @@ absl::StatusOr<std::string> CompressOnePartition(absl::string_view partition) {
   // manually after compressing the data.
   zs.next_out = (Bytef*)&partition_output_buffer[sizeof(uint32_t)];
 
-  const int deflate_status = deflate(&zs, Z_FINISH);
-  if (deflate_status != Z_STREAM_END) {
+  if (const int deflate_status = deflate(&zs, Z_FINISH);
+      deflate_status != Z_STREAM_END) {
     deflateEnd(&zs);
     return absl::InternalError(absl::StrFormat(
         "Error compressing data using gzip (deflate status: %d)",
@@ -73,8 +73,8 @@ absl::StatusOr<std::string> CompressOnePartition(absl::string_view partition) {
   }
 
   // Free all memory held by the z_stream object.
-  const int deflate_end_status = deflateEnd(&zs);
-  if (deflate_end_status != Z_OK) {
+  if (const int deflate_end_status = deflateEnd(&zs);
+      deflate_end_status != Z_OK) {
     return absl::InternalError(absl::StrFormat(
         "Error closing compression data stream (deflate end status: %d)",
         deflate_end_status));
@@ -92,13 +92,13 @@ absl::StatusOr<std::string> CompressOnePartition(absl::string_view partition) {
 
 absl::StatusOr<std::string> DecompressString(
     absl::string_view compressed_string) {
-  z_stream zs;
-  memset(&zs, 0, sizeof(zs));
-  zs.next_in = (Bytef*)compressed_string.data();
-  zs.avail_in = compressed_string.size();
-
-  const int inflate_init_status = inflateInit2(&zs, kGzipWindowBits | 16);
-  if (inflate_init_status != Z_OK) {
+  z_stream zs = {
+      .next_in =
+          reinterpret_cast<Bytef*>(const_cast<char*>(compressed_string.data())),
+      .avail_in = static_cast<uInt>(compressed_string.size()),
+  };
+  if (const int inflate_init_status = inflateInit2(&zs, kGzipWindowBits | 16);
+      inflate_init_status != Z_OK) {
     return absl::InternalError(
         absl::StrFormat("Error during gzip decompression initialization: "
                         "(inflate init status: %d)",
@@ -120,7 +120,6 @@ absl::StatusOr<std::string> DecompressString(
                                  zs.total_out - decompressed_string.size());
     }
   } while (inflate_status == Z_OK);
-
   if (inflate_status != Z_STREAM_END) {
     inflateEnd(&zs);
     return absl::DataLossError(absl::StrFormat(
@@ -128,13 +127,12 @@ absl::StatusOr<std::string> DecompressString(
         inflate_status));
   }
 
-  const int inflate_end_status = inflateEnd(&zs);
-  if (inflate_end_status != Z_OK) {
+  if (const int inflate_end_status = inflateEnd(&zs);
+      inflate_end_status != Z_OK) {
     return absl::InternalError(absl::StrFormat(
         "Error closing compression data stream (inflate end status: %d(",
         inflate_end_status));
   }
-
   return decompressed_string;
 }
 

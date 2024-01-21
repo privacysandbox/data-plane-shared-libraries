@@ -39,7 +39,7 @@ using ::boost::iostreams::gzip_params;
 using ::boost::iostreams::gzip::best_compression;
 using ::testing::StrEq;
 
-std::string BoostCompress(absl::string_view decompressed_string) {
+std::string BoostCompress(std::string_view decompressed_string) {
   std::istringstream origin(decompressed_string.data());
 
   filtering_istreambuf buffer;
@@ -80,10 +80,10 @@ TEST(GzipCompressionTests, CompressDecompress_EndToEnd) {
 TEST(GzipCompressionTests, CompressWithBoost) {
   // Verify that a gzip compressed string from another library can also be
   // decompressed successfully using zlib's decompressor.
-  std::string payload = "hello";
-  std::string compressed = BoostCompress(payload);
+  constexpr std::string_view payload = "hello";
+  const std::string compressed = BoostCompress(payload);
 
-  int partition_size = sizeof(uint32_t) + compressed.size();
+  const int partition_size = sizeof(uint32_t) + compressed.size();
   std::string partition(partition_size, '0');
 
   quiche::QuicheDataWriter data_writer(partition_size, partition.data());
