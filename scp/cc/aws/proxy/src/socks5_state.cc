@@ -43,24 +43,23 @@ std::vector<uint8_t> Socks5State::CreateResp(bool is_bind) {
   // respectively. So 32 should be large enough to contain them.
   static constexpr size_t kRespBufSize = 32;
   uint8_t resp_storage[kRespBufSize] = {0x05, 0x00, 0x00};
-  size_t resp_size = 3;  // First 3 bytes are fixed as defined above.
+  constexpr size_t resp_size = 3;  // First 3 bytes are fixed as defined above.
   if (sockaddr* addr = reinterpret_cast<sockaddr*>(&addr_storage);
       dest_address_callback_ &&
       dest_address_callback_(addr, &addr_len, is_bind) ==
           CallbackStatus::kStatusOK) {
     // Successful. Return response.
-    const size_t addr_sz = FillAddrPort(&resp_storage[resp_size], addr);
-    resp_size += addr_sz;
-    return std::vector<uint8_t>(resp_storage, resp_storage + resp_size);
+    const size_t addr_size = FillAddrPort(&resp_storage[resp_size], addr);
+    return std::vector<uint8_t>(resp_storage,
+                                resp_storage + resp_size + addr_size);
   }
   // Otherwise, we have an error.
   LOG(ERROR) << "ERROR: failed to get local address. errno=" << errno;
   // A template of error response, with REP = 0x01, and all address and port
   // bytes set to 0x00.
-  static const uint8_t err_resp_template[] = {0x05, 0x01, 0x00, 0x01, 0x00,
-                                              0x00, 0x00, 0x00, 0x00, 0x00};
-  return std::vector<uint8_t>(err_resp_template,
-                              err_resp_template + sizeof(err_resp_template));
+  return std::vector<uint8_t>{
+      0x05, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  };
 }
 
 Socks5State::~Socks5State() = default;
@@ -248,8 +247,9 @@ bool Socks5State::Proceed(Buffer& buffer) {
       // to be OK, as we are going to send all zeros in address anyway.
       // NOTE: if you change this, you'll also need to change the client side
       // (ClientSessionPool).
-      uint8_t bind_resp[] = {0x05, 0x00, 0x00, 0x01, 0x00,
-                             0x00, 0x00, 0x00, 0x00, 0x00};
+      uint8_t bind_resp[] = {
+          0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      };
       // Fill in the port field
       port = htons(port);
       memcpy(bind_resp + sizeof(bind_resp) - sizeof(port), &port, sizeof(port));
