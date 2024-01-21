@@ -22,98 +22,201 @@
 #include "absl/log/scoped_mock_log.h"
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "core/test/utils/auto_init_run_stop.h"
+#include "roma/config/src/function_binding_object_v2.h"
 #include "roma/interface/roma.h"
-#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
-#include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
-#include "roma/sandbox/native_function_binding/src/native_function_invoker.h"
+#include "roma/roma_service/roma_service.h"
 
-using google::scp::roma::sandbox::js_engine::v8_js_engine::
-    V8IsolateFunctionBinding;
-using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
-using google::scp::roma::sandbox::native_function_binding::
-    NativeFunctionInvoker;
-
+using google::scp::roma::FunctionBindingPayload;
+using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::_;
 
 namespace google::scp::roma::test {
-class LoggingTest : public ::testing::Test {
- public:
-  static void SetUpTestSuite() {
-    V8JsEngine engine;
-    engine.OneTimeSetup();
-  }
-};
+namespace {
+constexpr auto kTimeout = absl::Seconds(10);
+}
 
-class NativeFunctionInvokerMock : public NativeFunctionInvoker {
- public:
-  MOCK_METHOD(absl::Status, Invoke, (proto::RpcWrapper&), (noexcept, override));
+void LoggingFunction(absl::LogSeverity severity,
+                     absl::flat_hash_map<std::string, std::string> metadata,
+                     std::string_view msg) {
+  LOG(LEVEL(severity)) << msg;
+}
 
-  virtual ~NativeFunctionInvokerMock() = default;
-};
+TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
+  Config config;
+  config.number_of_workers = 2;
+  config.SetLoggingFunction(LoggingFunction);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
+  EXPECT_TRUE(roma_service->Init().ok());
 
-TEST_F(LoggingTest, ShouldCallRegisteredLogFunctionBindings) {
-  const std::vector<std::string> kOutputs{
-      R"("str1")",
-      R"("str2")",
-      R"("str3")",
-  };
-
-  const auto trim_first_last_char = [](const std::string& str) {
-    return str.substr(1, str.length() - 2);
-  };
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
 
   absl::ScopedMockLog log;
-  EXPECT_CALL(
-      log, Log(absl::LogSeverity::kInfo, _, trim_first_last_char(kOutputs[0])));
-  EXPECT_CALL(log, Log(absl::LogSeverity::kWarning, _,
-                       trim_first_last_char(kOutputs[1])));
-  EXPECT_CALL(log, Log(absl::LogSeverity::kError, _,
-                       trim_first_last_char(kOutputs[2])));
+  EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, testing::_, "Hello World"))
+      .Times(0);
+  EXPECT_CALL(log, Log(absl::LogSeverity::kWarning, testing::_, "Hello World"));
+  EXPECT_CALL(log, Log(absl::LogSeverity::kError, testing::_, "Hello World"));
+  log.StartCapturingLogs();
+  {
+    const std::string js = R"(
+      function Handler() {
+        console.log("Hello World");
+        console.warn("Hello World");
+        console.error("Hello World");
+      }
+    )";
 
-  EXPECT_CALL(
-      log, Log(absl::LogSeverity::kInfo, _,
-               absl::StrCat("metrics1: ", trim_first_last_char(kOutputs[0]))));
-  EXPECT_CALL(
-      log, Log(absl::LogSeverity::kInfo, _,
-               absl::StrCat("metrics2: ", trim_first_last_char(kOutputs[1]))));
-  EXPECT_CALL(
-      log, Log(absl::LogSeverity::kInfo, _,
-               absl::StrCat("metrics3: ", trim_first_last_char(kOutputs[2]))));
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = js,
+    });
+
+    EXPECT_TRUE(
+        roma_service
+            ->LoadCodeObj(
+                std::move(code_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  load_finished.Notify();
+                })
+            .ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .min_log_level = absl::LogSeverity::kWarning,
+        });
+
+    EXPECT_TRUE(
+        roma_service
+            ->Execute(
+                std::move(execution_obj),
+                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                  EXPECT_TRUE(resp->ok());
+                  if (resp->ok()) {
+                    result = (*resp)->resp;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
+  }
+  EXPECT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+  EXPECT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+
+  EXPECT_TRUE(roma_service->Stop().ok());
+  log.StopCapturingLogs();
+}
+
+void LogMetadataFunction(absl::LogSeverity severity,
+                         absl::flat_hash_map<std::string, std::string> metadata,
+                         std::string_view msg) {
+  for (const auto& [key, value] : metadata) {
+    LOG(LEVEL(severity)) << key << ": " << value;
+  }
+  LOG(LEVEL(severity)) << msg;
+}
+
+TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
+  Config config;
+  config.worker_queue_max_items = 1;
+  config.number_of_workers = 10;
+  config.SetLoggingFunction(LogMetadataFunction);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
+  auto status = roma_service->Init();
+  ASSERT_TRUE(status.ok());
+
+  absl::Notification load_finished;
+  constexpr int kNumThreads = 10;
+  constexpr size_t kBatchSize = 100;
+  const auto& metadata_tag = "Working";
+
+  absl::ScopedMockLog log;
+  for (auto i = 0u; i < kNumThreads; i++) {
+    EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
+                         absl::StrCat("key", i, ": ", metadata_tag, i)))
+        .Times(kBatchSize);
+  }
+  EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, metadata_tag))
+      .Times(kBatchSize * kNumThreads);
   log.StartCapturingLogs();
 
-  auto function_invoker = std::make_unique<NativeFunctionInvokerMock>();
-  std::vector<std::string> function_names = {};
-  auto visitor = std::make_unique<V8IsolateFunctionBinding>(
-      function_names, std::move(function_invoker));
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = "var Handler = (input) => console.log(input);",
+    });
 
-  V8JsEngine engine(std::move(visitor));
-  engine.Run();
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
 
-  constexpr auto js_code = R"JS_CODE(
-    function Handler(input1, input2, input3) {
-      roma.log(input1);
-      roma.warn(input2);
-      roma.error(input3);
-      roma.recordMetrics({
-        "metrics1": input1,
-        "metrics2": input2,
-        "metrics3": input3,
-      })
-      return "Hello World";
-    }
-  )JS_CODE";
+  load_finished.WaitForNotification();
+  absl::Mutex res_count_mu;
+  int res_count = 0;
 
-  auto response_or = engine.CompileAndRunJs(
-      js_code, "Handler",
-      std::vector<absl::string_view>(kOutputs.begin(), kOutputs.end()),
-      {} /*metadata*/);
+  std::vector<std::thread> threads;
+  threads.reserve(kNumThreads);
 
-  ASSERT_SUCCESS(response_or.result());
-  auto response_string = response_or->execution_response.response;
-  EXPECT_THAT(response_string, testing::StrEq(R"("Hello World")"));
+  for (int i = 0; i < kNumThreads; i++) {
+    threads.emplace_back([&, i]() {
+      absl::Notification local_execute;
+      InvocationStrRequest<> execution_obj{
+          .id = "foo",
+          .version_string = "v1",
+          .handler_name = "Handler",
+          .input = {absl::StrCat("\"", metadata_tag, "\"")},
+      };
+      execution_obj.metadata.insert(
+          {absl::StrCat("key", i), absl::StrCat(metadata_tag, i)});
+
+      std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
+
+      auto batch_callback =
+          [&,
+           i](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
+            for (auto resp : batch_resp) {
+              if (resp.ok()) {
+                EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
+              } else {
+                ADD_FAILURE() << "resp is NOT OK.";
+              }
+            }
+            {
+              absl::MutexLock l(&res_count_mu);
+              res_count += batch_resp.size();
+            }
+            local_execute.Notify();
+          };
+      while (!roma_service->BatchExecute(batch, batch_callback).ok()) {}
+
+      // Thread cannot join until batch_callback is called.
+      local_execute.WaitForNotification();
+    });
+  }
+
+  for (auto& t : threads) {
+    t.join();
+  }
+  {
+    absl::MutexLock l(&res_count_mu);
+    EXPECT_EQ(res_count, kBatchSize * kNumThreads);
+  }
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
 
   log.StopCapturingLogs();
-  engine.Stop();
 }
 }  // namespace google::scp::roma::test

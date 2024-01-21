@@ -118,69 +118,16 @@ v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
 }
 
 absl::LogSeverity GetSeverity(std::string_view severity) {
-  if (severity == "log") {
+  if (severity == "ROMA_LOG") {
     return absl::LogSeverity::kInfo;
-  } else if (severity == "warn") {
+  } else if (severity == "ROMA_WARN") {
     return absl::LogSeverity::kWarning;
   } else {
     return absl::LogSeverity::kError;
   }
 }
 
-v8::Local<v8::ObjectTemplate> CreateObjectAttribute(
-    v8::Isolate* isolate, v8::Local<v8::ObjectTemplate>& object_template,
-    std::string_view js_name) {
-  auto obj = v8::ObjectTemplate::New(isolate);
-  object_template->Set(isolate, js_name.data(), obj);
-  return obj;
-}
-
-v8::Local<v8::ObjectTemplate> InitObjectJsApi(
-    v8::Isolate* isolate, v8::Local<v8::ObjectTemplate>& object,
-    const absl::flat_hash_map<std::string_view, Callback>&
-        name_to_callback_map) {
-  for (const auto& [name, callback] : name_to_callback_map) {
-    auto binding_name =
-        TypeConverter<std::string>::ToV8(isolate, std::string(name))
-            .As<v8::String>();
-    auto function_template =
-        v8::FunctionTemplate::New(isolate, callback, binding_name);
-    // Convert the function binding name to a v8 type
-    object->Set(binding_name, function_template);
-  }
-  return object;
-}
-
 }  // namespace
-
-void V8IsolateFunctionBinding::V8LogCallback(
-    const v8::FunctionCallbackInfo<v8::Value>& info) {
-  v8::Isolate* isolate = info.GetIsolate();
-
-  const auto get_input = [&info, &isolate]() {
-    std::string input;
-    for (int i = 0; i < info.Length(); i++) {
-      absl::StrAppend(&input, *v8::String::Utf8Value(isolate, info[i]));
-    }
-    return input;
-  };
-
-  v8::String::Utf8Value severity(isolate, info.Data());
-  LOG(LEVEL(GetSeverity(*severity))) << get_input();
-}
-
-void V8IsolateFunctionBinding::V8MetricsCallback(
-    const v8::FunctionCallbackInfo<v8::Value>& info) {
-  using StrMap = absl::flat_hash_map<std::string, std::string>;
-  v8::Isolate* isolate = info.GetIsolate();
-
-  StrMap native_metrics;
-  if (TypeConverter<StrMap>::FromV8Object(isolate, info[0], &native_metrics)) {
-    for (const auto& metric : native_metrics) {
-      LOG(INFO) << metric.first << ": " << metric.second;
-    }
-  }
-}
 
 bool V8IsolateFunctionBinding::NativeFieldsToProto(
     const BindingPair& binding_pair, FunctionBindingIoProto& function_proto,
@@ -262,23 +209,7 @@ bool V8IsolateFunctionBinding::BindFunctions(
     global_object_template->Set(binding_name, function_template);
   }
 
-  CreateGlobalRomaObject(isolate, global_object_template);
   return true;
-}
-
-void V8IsolateFunctionBinding::CreateGlobalRomaObject(
-    v8::Isolate* isolate,
-    v8::Local<v8::ObjectTemplate>& global_object_template) const {
-  static auto roma =
-      CreateObjectAttribute(isolate, global_object_template, "roma");
-  [[maybe_unused]] static auto obj =
-      InitObjectJsApi(isolate, roma,
-                      absl::flat_hash_map<std::string_view, Callback>{
-                          {"recordMetrics", &V8MetricsCallback},
-                          {"log", &V8LogCallback},
-                          {"warn", &V8LogCallback},
-                          {"error", &V8LogCallback},
-                      });
 }
 
 void V8IsolateFunctionBinding::AddIds(std::string_view uuid,
@@ -298,8 +229,6 @@ void V8IsolateFunctionBinding::AddExternalReferences(
   }
   external_references.push_back(
       reinterpret_cast<intptr_t>(&GlobalV8FunctionCallback));
-  external_references.push_back(reinterpret_cast<intptr_t>(&V8LogCallback));
-  external_references.push_back(reinterpret_cast<intptr_t>(&V8MetricsCallback));
 }
 
 absl::Status V8IsolateFunctionBinding::InvokeRpc(RpcWrapper& rpc_proto) {

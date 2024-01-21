@@ -65,27 +65,6 @@ class V8IsolateFunctionBinding {
   std::string invocation_req_uuid_;
   std::string invocation_req_id_;
 
-  // Creates a v8::ObjectTemplate for Roma object based on `isolate` and adds
-  // it to `global_object_template`. This Roma object is populated with 3
-  // v8::FunctionTemplate's, log, warn, and error, allowing Roma clients to call
-  // roma.log(), roma.warn(), and roma.error() for logging functionality of
-  // differing severities.
-  //
-  // The roma ObjectTemplate is statically created, so subsequent calls to
-  // do not create additional ObjectTemplates.
-  void CreateGlobalRomaObject(
-      v8::Isolate* isolate,
-      v8::Local<v8::ObjectTemplate>& global_object_template) const;
-
-  void CreateGlobalPerformanceObject(
-      v8::Isolate* isolate,
-      v8::Local<v8::ObjectTemplate>& global_object_template) const;
-
-  static void V8PerformanceCallback(
-      const v8::FunctionCallbackInfo<v8::Value>& info);
-  static void V8LogCallback(const v8::FunctionCallbackInfo<v8::Value>& info);
-  static void V8MetricsCallback(
-      const v8::FunctionCallbackInfo<v8::Value>& info);
   static void GlobalV8FunctionCallback(
       const v8::FunctionCallbackInfo<v8::Value>& info);
 
