@@ -17,6 +17,8 @@
 #include <errno.h>
 #include <sys/types.h>
 
+#include <algorithm>
+
 #include "protocol.h"
 #include "socket_vendor_protocol.h"
 
@@ -154,7 +156,8 @@ EXPORT int epoll_ctl(int epfd, int op, int fd,
   return libc_epoll_ctl(epfd, op, fd, event);
 }
 
-EXPORT int connect(int sockfd, const struct sockaddr* addr, socklen_t addrlen) {
+EXPORT int connect(int sockfd, const struct sockaddr* addr,
+                   socklen_t addr_len) {
   // First of all, we only care about TCP sockets over IPv4 or IPv6. That is,
   // SOCK_STREAM type over AF_INET or AF_INET6. If any condition doesn't match
   // or even the getsockopt call fails, we fallback to libc_connect() so that
@@ -170,7 +173,7 @@ EXPORT int connect(int sockfd, const struct sockaddr* addr, socklen_t addrlen) {
   if (ret != 0 || libc_getsockopt(sockfd, SOL_SOCKET, SO_DOMAIN,
                                   static_cast<void*>(&sock_domain),
                                   &sock_domain_len) != 0) {
-    return libc_connect(sockfd, addr, addrlen);
+    return libc_connect(sockfd, addr, addr_len);
   }
   // If:
   //    * the sockfd type is not SOCK_STREAM, or
@@ -181,7 +184,7 @@ EXPORT int connect(int sockfd, const struct sockaddr* addr, socklen_t addrlen) {
       (sock_domain != AF_INET && sock_domain != AF_INET6 &&
        sock_domain != AF_VSOCK) ||
       (addr->sa_family != AF_INET && addr->sa_family != AF_INET6)) {
-    return libc_connect(sockfd, addr, addrlen);
+    return libc_connect(sockfd, addr, addr_len);
   }
   int fl = 0;
   if (sock_domain == AF_VSOCK) {
@@ -192,8 +195,9 @@ EXPORT int connect(int sockfd, const struct sockaddr* addr, socklen_t addrlen) {
   // Set blocking
   fcntl(sockfd, F_SETFL, (fl & ~O_NONBLOCK));
   sockaddr_vm vsock_addr = google::scp::proxy::GetProxyVsockAddr();
-  if (libc_connect(sockfd, reinterpret_cast<sockaddr*>(&vsock_addr),
-                   sizeof(vsock_addr)) < 0) {
+  if (constexpr auto vsock_addr_len = sizeof(vsock_addr);
+      libc_connect(sockfd, reinterpret_cast<sockaddr*>(&vsock_addr),
+                   vsock_addr_len) < 0) {
     fcntl(sockfd, F_SETFL, fl);
     return -1;
   }
@@ -350,9 +354,9 @@ int socks5_client_connect(int sockfd, const struct sockaddr* addr) {
   // Reuse buffer here. Recv 2 more bytes to reveal the ATYP byte, and
   // potentially the length byte if the bound address is a domain name (see
   // DST.ADDR definition from rfc1928).
-  ssize_t to_receive = sizeof(expected_reply) + 2;
-  ssize_t received = recv_all(sockfd, buffer, to_receive, 0);
-  if (received != to_receive) {
+  constexpr auto kExpectedReplySize = sizeof(expected_reply) + 2;
+  if (const ssize_t received = recv_all(sockfd, buffer, kExpectedReplySize, 0);
+      received != kExpectedReplySize) {
     // Not enough data received. No way to proceed.
     return -1;
   }
@@ -367,6 +371,7 @@ int socks5_client_connect(int sockfd, const struct sockaddr* addr) {
   }
   uint8_t atyp = buffer[sizeof(expected_reply)];
   uint8_t extra_byte = buffer[sizeof(expected_reply) + 1];
+  ssize_t to_receive = 0;
   if (atyp == 0x01) {
     // IPv4. 4-byte addr, 2-byte port, and we've already recv'd 1 byte extra.
     to_receive = 4 + 2 - 1;
@@ -391,7 +396,8 @@ int socks5_client_connect(int sockfd, const struct sockaddr* addr) {
   }
   addr_buf[0] = extra_byte;
   // Receive remaining bytes to drain the buffer.
-  received = recv_all(sockfd, &addr_buf[1], to_receive, MSG_TRUNC);
+  const ssize_t received =
+      recv_all(sockfd, &addr_buf[1], to_receive, MSG_TRUNC);
   // TODO: We may remove MSG_TRUNC and make good use of the returned address.
   if (addr_buf != buffer) {
     free(addr_buf);
@@ -404,9 +410,9 @@ int socks5_client_connect(int sockfd, const struct sockaddr* addr) {
 }
 
 EXPORT int bind(int sockfd, const struct sockaddr* addr,
-                socklen_t addrlen) throw() {
+                socklen_t addr_len) throw() {
   if (addr->sa_family != AF_INET && addr->sa_family != AF_INET6) {
-    return libc_bind(sockfd, addr, addrlen);
+    return libc_bind(sockfd, addr, addr_len);
   }
   // Check if it is STREAM socket, namely, TCP.
   int sock_type = 0;
@@ -414,7 +420,7 @@ EXPORT int bind(int sockfd, const struct sockaddr* addr,
   int ret = libc_getsockopt(sockfd, SOL_SOCKET, SO_TYPE,
                             static_cast<void*>(&sock_type), &sock_type_len);
   if (ret != 0 || sock_type != SOCK_STREAM) {
-    return libc_bind(sockfd, addr, addrlen);
+    return libc_bind(sockfd, addr, addr_len);
   }
   int sock_domain = 0;
   socklen_t sock_domain_len = sizeof(sock_domain);
@@ -425,14 +431,14 @@ EXPORT int bind(int sockfd, const struct sockaddr* addr,
   // fallback.
   if (ret != 0 || (sock_domain != AF_VSOCK && sock_domain != AF_INET &&
                    sock_domain != AF_INET6)) {
-    return libc_bind(sockfd, addr, addrlen);
+    return libc_bind(sockfd, addr, addr_len);
   }
   uint16_t port = 0;
   if (addr->sa_family == AF_INET) {
     // If the socket family does not match the address to bind, fallback and let
     // libc_bind handle it. It's OK if it is VSOCK.
     if (sock_domain != AF_INET && sock_domain != AF_VSOCK) {
-      return libc_bind(sockfd, addr, addrlen);
+      return libc_bind(sockfd, addr, addr_len);
     }
     const sockaddr_in* v4addr = reinterpret_cast<const sockaddr_in*>(addr);
     port = ntohs(v4addr->sin_port);
@@ -440,12 +446,12 @@ EXPORT int bind(int sockfd, const struct sockaddr* addr,
     // If the socket family does not match the address to bind, fallback and let
     // libc_bind handle it. It's OK if it is VSOCK.
     if (sock_domain != AF_INET6 && sock_domain != AF_VSOCK) {
-      return libc_bind(sockfd, addr, addrlen);
+      return libc_bind(sockfd, addr, addr_len);
     }
     const sockaddr_in6* v6addr = reinterpret_cast<const sockaddr_in6*>(addr);
     port = ntohs(v6addr->sin6_port);
   } else {
-    return libc_bind(sockfd, addr, addrlen);
+    return libc_bind(sockfd, addr, addr_len);
   }
   // In the next few steps, replace sockfd with a UNIX domain socket.
   int uds_sock = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -465,23 +471,24 @@ EXPORT int bind(int sockfd, const struct sockaddr* addr,
   struct sockaddr_un uds_addr = {
       .sun_family = AF_UNIX,
   };
+  constexpr auto uds_addr_len = sizeof(uds_addr);
   memcpy(uds_addr.sun_path, google::scp::proxy::kSocketVendorUdsPath.data(),
          google::scp::proxy::kSocketVendorUdsPath.size());
   if (libc_connect(sockfd, reinterpret_cast<sockaddr*>(&uds_addr),
-                   sizeof(uds_addr)) < 0) {
+                   uds_addr_len) < 0) {
     return -1;
   }
   // In the next few steps, perform socket vendor requests.
   socket_vendor::BindRequest bind_req;
   bind_req.port = port;
-  const auto bind_req_len = sizeof(bind_req);
-  if (ssize_t num_bytes = send(sockfd, &bind_req, bind_req_len, 0);
+  constexpr auto bind_req_len = sizeof(bind_req);
+  if (const ssize_t num_bytes = send(sockfd, &bind_req, bind_req_len, 0);
       num_bytes != static_cast<ssize_t>(bind_req_len)) {
     return -1;
   }
   socket_vendor::BindResponse bind_resp;
   const auto bind_resp_len = sizeof(bind_resp);
-  if (ssize_t num_bytes = recv(sockfd, &bind_resp, bind_resp_len, 0);
+  if (const ssize_t num_bytes = recv(sockfd, &bind_resp, bind_resp_len, 0);
       num_bytes != static_cast<ssize_t>(bind_resp_len)) {
     return -1;
   }
@@ -504,9 +511,9 @@ EXPORT int listen(int sockfd, int backlog) throw() {
     return libc_listen(sockfd, backlog);
   }
   sockaddr_un uds_addr;
-  socklen_t addr_len = sizeof(uds_addr);
+  socklen_t uds_addr_len = sizeof(uds_addr);
   if (int ret = getpeername(sockfd, reinterpret_cast<sockaddr*>(&uds_addr),
-                            &addr_len);
+                            &uds_addr_len);
       ret < 0) {
     return libc_listen(sockfd, backlog);
   }
@@ -514,35 +521,36 @@ EXPORT int listen(int sockfd, int backlog) throw() {
 
   socket_vendor::ListenRequest listen_req;
   listen_req.backlog = backlog;
-  if (ssize_t num_bytes = send(sockfd, &listen_req, sizeof(listen_req), 0);
-      num_bytes != sizeof(listen_req)) {
+  constexpr auto listen_req_len = sizeof(listen_req);
+  if (const ssize_t num_bytes = send(sockfd, &listen_req, listen_req_len, 0);
+      num_bytes != listen_req_len) {
     return -1;
   }
   int fl = fcntl(sockfd, F_GETFL);
   fcntl(sockfd, F_SETFL, fl & ~O_NONBLOCK);
   socket_vendor::ListenResponse listen_resp;
-  if (ssize_t num_bytes =
-          recv(sockfd, &listen_resp, sizeof(listen_resp), MSG_WAITALL);
-      num_bytes != sizeof(listen_resp)) {
+  constexpr auto listen_resp_len = sizeof(listen_resp);
+  if (const ssize_t num_bytes =
+          recv(sockfd, &listen_resp, listen_resp_len, MSG_WAITALL);
+      num_bytes != listen_resp_len) {
     return -1;
-  }
-  if (listen_resp.type != socket_vendor::MessageType::kListenResponse) {
+  } else if (listen_resp.type != socket_vendor::MessageType::kListenResponse) {
     return -1;
   }
   fcntl(sockfd, F_SETFL, fl);
   return 0;
 }
 
-EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addrlen,
+EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addr_len,
                    int flags) {
   int sock_domain = 0;
   socklen_t sock_domain_len = sizeof(sock_domain);
   if (libc_getsockopt(sockfd, SOL_SOCKET, SO_DOMAIN,
                       static_cast<void*>(&sock_domain), &sock_domain_len)) {
-    return libc_accept4(sockfd, addr, addrlen, flags);
+    return libc_accept4(sockfd, addr, addr_len, flags);
   }
   if (sock_domain != AF_UNIX) {
-    return libc_accept4(sockfd, addr, addrlen, flags);
+    return libc_accept4(sockfd, addr, addr_len, flags);
   }
   // There might be use cases that the application uses unix domain socket for
   // communication. Here we check if sockfd is in a connected state by calling
@@ -551,10 +559,10 @@ EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addrlen,
   // logic turns out to be hurting performance.
   sockaddr_un uds_addr;
   socklen_t uds_addr_len = sizeof(uds_addr);
-  if (int ret = getpeername(sockfd, reinterpret_cast<sockaddr*>(&uds_addr),
-                            &uds_addr_len);
+  if (const int ret = getpeername(
+          sockfd, reinterpret_cast<sockaddr*>(&uds_addr), &uds_addr_len);
       ret < 0) {
-    return libc_accept4(sockfd, addr, addrlen, flags);
+    return libc_accept4(sockfd, addr, addr_len, flags);
   }
 
   // Now prepare for accepting a file descriptor
@@ -563,18 +571,17 @@ EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addrlen,
       .iov_base = &resp,
       .iov_len = sizeof(resp),
   };
-  struct msghdr msg = {
-      .msg_iov = &iov,
-      .msg_iovlen = 1,
-  };
 
   union {
     struct cmsghdr align;
     char buf[CMSG_SPACE(sizeof(int))];
   } cmsgu;
-
-  msg.msg_control = cmsgu.buf;
-  msg.msg_controllen = sizeof(cmsgu.buf);
+  struct msghdr msg = {
+      .msg_iov = &iov,
+      .msg_iovlen = 1,
+      .msg_control = cmsgu.buf,
+      .msg_controllen = sizeof(cmsgu.buf),
+  };
 
   if (ssize_t num_bytes = recvmsg(sockfd, &msg, 0); num_bytes < 0) {
     // Note that this might be a benign failure when sockfd is made
@@ -610,19 +617,22 @@ EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addrlen,
   }
   // From this point, we don't know if the original listener socket was created
   // as IPv6 or IPv4 socket. So we identify it by looking at socklen.
-  if (*addrlen >= sizeof(sockaddr_in6)) {
+  constexpr auto kSockAddrIpv6Len =
+      static_cast<socklen_t>(sizeof(sockaddr_in6));
+  if (*addr_len >= kSockAddrIpv6Len) {
     struct sockaddr_in6 v6addr = {
         .sin6_family = AF_INET6,
         .sin6_port = resp.port,
     };
     memcpy(&v6addr.sin6_addr, resp.addr, sizeof(resp.addr));
-    *addrlen = sizeof(v6addr);
-    memcpy(addr, &v6addr, *addrlen);
+    memcpy(addr, &v6addr, kSockAddrIpv6Len);
   } else {
     struct sockaddr_in v4addr = {
         .sin_family = AF_INET,
         .sin_port = resp.port,
     };
+    constexpr auto kSockAddrIpv4Len =
+        static_cast<socklen_t>(sizeof(sockaddr_in));
     // Determine if the address is convertible to IPv4. If so, convert it.
     uint32_t uint_addr[4];
     memcpy(uint_addr, resp.addr, sizeof(uint_addr));
@@ -635,12 +645,12 @@ EXPORT int accept4(int sockfd, struct sockaddr* addr, socklen_t* addrlen,
       // IPv4-mapped address
       memcpy(&v4addr.sin_addr, &uint_addr[3], sizeof(v4addr.sin_addr));
     }
-    *addrlen = *addrlen >= sizeof(v4addr) ? sizeof(v4addr) : *addrlen;
-    memcpy(addr, &v4addr, *addrlen);
+    *addr_len = std::min(*addr_len, kSockAddrIpv4Len);
+    memcpy(addr, &v4addr, *addr_len);
   }
   return fd;
 }
 
-EXPORT int accept(int sockfd, struct sockaddr* addr, socklen_t* addrlen) {
-  return accept4(sockfd, addr, addrlen, 0);
+EXPORT int accept(int sockfd, struct sockaddr* addr, socklen_t* addr_len) {
+  return accept4(sockfd, addr, addr_len, 0);
 }
