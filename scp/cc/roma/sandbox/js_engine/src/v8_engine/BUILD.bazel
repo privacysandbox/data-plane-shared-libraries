@@ -48,6 +48,26 @@ cc_library(
 )
 
 cc_library(
+    name = "v8_console",
+    srcs = [
+        "v8_console.cc",
+    ],
+    hdrs = [
+        "v8_console.h",
+    ],
+    deps = [
+        "//scp/cc/public/core/interface:execution_result",
+        "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/logging/src:roma_logging_lib",
+        "//scp/cc/roma/sandbox/native_function_binding/src:cc_roma_rpc_wrapper",
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/strings",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
     name = "roma_v8_js_engine_lib",
     srcs = [
         "error_codes.h",
@@ -58,6 +78,7 @@ cc_library(
         "v8_js_engine.h",
     ],
     deps = [
+        ":v8_console",
         ":v8_isolate_function_binding",
         ":v8_isolate_wrapper",
         "//scp/cc:cc_base_include_dir",
@@ -76,6 +97,7 @@ cc_library(
         "//scp/cc/roma/worker/src:roma_execution_utils_lib",
         "//src/cpp/util:duration",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
         "@v8//:v8_icu",
     ],

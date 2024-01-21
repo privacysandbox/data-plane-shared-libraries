@@ -38,6 +38,7 @@
 #include "roma/sandbox/worker/src/worker_utils.h"
 #include "roma/worker/src/execution_utils.h"
 #include "src/cpp/util/duration.h"
+#include "src/debug/debug-interface.h"
 
 #include "error_codes.h"
 #include "snapshot_compilation_context.h"
@@ -282,7 +283,22 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
     return nullptr;
   }
   isolate->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
+  v8::debug::SetConsoleDelegate(isolate, console(isolate));
   return std::make_unique<V8IsolateWrapper>(isolate, std::move(allocator));
+}
+
+V8Console* V8JsEngine::console(v8::Isolate* isolate)
+    ABSL_LOCKS_EXCLUDED(console_mutex_) {
+  absl::MutexLock lock(&console_mutex_);
+  auto invoke_func = [this](google::scp::roma::proto::RpcWrapper& proto) {
+    if (isolate_function_binding_) {
+      return isolate_function_binding_->InvokeRpc(proto);
+    }
+    return absl::OkStatus();
+  };
+
+  if (!console_) console_ = std::make_unique<V8Console>(isolate, invoke_func);
+  return console_.get();
 }
 
 void V8JsEngine::DisposeIsolate() noexcept {
@@ -670,7 +686,8 @@ V8JsEngine::CompileAndRunJsWithWasm(
     std::string_view code, absl::Span<const uint8_t> wasm,
     std::string_view function_name, const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
-    const RomaJsEngineCompilationContext& context) noexcept {
+    const RomaJsEngineCompilationContext& context) noexcept
+    ABSL_LOCKS_EXCLUDED(console_mutex_) {
   std::string err_msg;
   JsEngineExecutionResponse execution_response;
   std::shared_ptr<SnapshotCompilationContext> curr_comp_ctx;
@@ -690,7 +707,9 @@ V8JsEngine::CompileAndRunJsWithWasm(
         id_it = metadata.find(kRequestId);
         isolate_function_binding_ && uuid_it != metadata.end() &&
         id_it != metadata.end()) {
+      absl::MutexLock lock(&console_mutex_);
       isolate_function_binding_->AddIds(uuid_it->second, id_it->second);
+      console_->SetIds(uuid_it->second, id_it->second);
     }
   }
   v8::Isolate* v8_isolate = curr_comp_ctx->isolate->isolate();

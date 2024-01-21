@@ -40,6 +40,18 @@ cc_test(
 )
 
 cc_test(
+    name = "v8_console_test",
+    size = "small",
+    srcs = ["v8_console_test.cc"],
+    deps = [
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "v8_isolate_function_binding_test",
     size = "small",
     srcs = ["v8_isolate_function_binding_test.cc"],

@@ -37,6 +37,7 @@
 
 #include "error_codes.h"
 #include "snapshot_compilation_context.h"
+#include "v8_console.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 /**
@@ -82,7 +83,8 @@ class V8JsEngine : public JsEngine {
       const std::vector<absl::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
-          RomaJsEngineCompilationContext()) noexcept override;
+          RomaJsEngineCompilationContext()) noexcept override
+      ABSL_LOCKS_EXCLUDED(console_mutex_);
 
   core::ExecutionResultOr<js_engine::JsEngineExecutionResponse>
   CompileAndRunWasm(
@@ -215,6 +217,10 @@ class V8JsEngine : public JsEngine {
   /// @brief A timer thread watches the code execution in v8 isolate and
   /// timeouts the execution in set time.
   std::unique_ptr<roma::worker::ExecutionWatchDog> execution_watchdog_{nullptr};
+
+  V8Console* console(v8::Isolate* isolate) ABSL_LOCKS_EXCLUDED(console_mutex_);
+  std::unique_ptr<V8Console> console_ ABSL_GUARDED_BY(console_mutex_);
+  absl::Mutex console_mutex_;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 

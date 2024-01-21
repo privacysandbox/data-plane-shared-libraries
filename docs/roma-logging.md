@@ -20,6 +20,28 @@ exposes the following logging functions:
     -   Logs an error message.
     -   Use this for critical issues that prevent your UDF from completing successfully.
 
+## Console support
+
+In addition to the global Roma object, the console can also be used to log from UDFs. Support within
+Roma has been provided for the following logging functions.
+
+-   `console.log()` - Console counterpart to `roma.n_log()`
+-   `console.warn()` - Console counterpart to `roma.n_warn()`
+-   `console.error()` - Console counterpart to `roma.n_error()`
+
+## Performance
+
+| Log Size (ch) | Logs Per Second (`roma.()`) | Logs Per Second (`console.()`) |
+| ------------- | --------------------------- | ------------------------------ |
+| 1             | 5912                        | 23134                          |
+| 10            | 5869                        | 22381                          |
+| 100           | 5648                        | 23673                          |
+| 1000          | 5581                        | 19082                          |
+| 10000         | 4973                        | 14347                          |
+| 100000        | 2570                        | 2648                           |
+
+Based on these performance stats, console.() is recommended for use over roma.n().
+
 ## Example
 
 ```js

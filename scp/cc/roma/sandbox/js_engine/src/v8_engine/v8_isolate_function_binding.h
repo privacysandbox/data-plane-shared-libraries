@@ -57,6 +57,8 @@ class V8IsolateFunctionBinding {
 
   void AddIds(std::string_view uuid, std::string_view id) noexcept;
 
+  absl::Status InvokeRpc(google::scp::roma::proto::RpcWrapper& rpc_proto);
+
  private:
   using BindingPair = std::pair<std::string, V8IsolateFunctionBinding*>;
   std::vector<BindingPair> binding_references_;

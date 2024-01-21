@@ -301,4 +301,8 @@ void V8IsolateFunctionBinding::AddExternalReferences(
   external_references.push_back(reinterpret_cast<intptr_t>(&V8LogCallback));
   external_references.push_back(reinterpret_cast<intptr_t>(&V8MetricsCallback));
 }
+
+absl::Status V8IsolateFunctionBinding::InvokeRpc(RpcWrapper& rpc_proto) {
+  return function_invoker_->Invoke(rpc_proto);
+}
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
