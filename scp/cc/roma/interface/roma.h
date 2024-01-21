@@ -106,6 +106,12 @@ struct InvocationRequest {
   // to allow for byte string inputs to ROMA.
   bool treat_input_as_byte_str = false;
 
+  // Minimum logging level for UDF logs associated with this InvocationRequest.
+  // All logs with severity < min_log_level will be no-ops in the sandbox,
+  // preventing the logging function registered on RomaService from being
+  // invoked.
+  absl::LogSeverity min_log_level = absl::LogSeverity::kInfo;
+
   // Any server-side metadata associated with this code object. This metadata is
   // passed into native functions without entering SAPI Sandbox and v8.
   TMetadata metadata;

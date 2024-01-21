@@ -30,6 +30,7 @@ inline constexpr std::string_view kHandlerName = "HandlerName";
 inline constexpr std::string_view kInputType = "InputType";
 inline constexpr std::string_view kInputTypeBytes = "InputTypeBytes";
 
+inline constexpr std::string_view kMinLogLevel = "MinLogLevel";
 inline constexpr std::string_view kRequestUuid = "RequestUuid";
 inline constexpr std::string_view kCodeVersion = "CodeVersion";
 inline constexpr std::string_view kRequestAction = "RequestAction";

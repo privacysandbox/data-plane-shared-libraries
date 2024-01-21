@@ -48,6 +48,7 @@ class V8Console : public v8::debug::ConsoleDelegate {
           invoke_rpc_func);
 
   void SetIds(std::string_view uuid, std::string_view id);
+  void SetMinLogLevel(absl::LogSeverity severity);
 
  private:
   void Log(const v8::debug::ConsoleCallArguments& args,
@@ -67,6 +68,7 @@ class V8Console : public v8::debug::ConsoleDelegate {
       invoke_rpc_func_;
   std::string invocation_req_uuid_;
   std::string invocation_req_id_;
+  absl::LogSeverity min_log_level_ = absl::LogSeverity::kInfo;
 };
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

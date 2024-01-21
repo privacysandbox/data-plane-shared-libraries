@@ -69,6 +69,7 @@ using google::scp::roma::sandbox::constants::
     kInputParsingMetricJsEngineDuration;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
 using google::scp::roma::sandbox::constants::kMaxNumberOfWasm32BitMemPages;
+using google::scp::roma::sandbox::constants::kMinLogLevel;
 using google::scp::roma::sandbox::constants::kRequestId;
 using google::scp::roma::sandbox::constants::kRequestUuid;
 using google::scp::roma::sandbox::constants::kWasmMemPagesV8PlatformFlag;
@@ -80,6 +81,13 @@ using google::scp::roma::sandbox::worker::WorkerUtils;
 using google::scp::roma::worker::ExecutionUtils;
 
 namespace {
+absl::LogSeverity GetLogLevel(std::string_view level) {
+  int severity;
+  if (!absl::SimpleAtoi(level, &severity)) {
+    return absl::LogSeverity::kInfo;
+  }
+  return static_cast<absl::LogSeverity>(severity);
+}
 
 std::shared_ptr<std::string> GetCodeFromContext(
     const RomaJsEngineCompilationContext& context) {
@@ -703,6 +711,12 @@ V8JsEngine::CompileAndRunJsWithWasm(
   } else {
     curr_comp_ctx =
         std::static_pointer_cast<SnapshotCompilationContext>(context.context);
+    if (const auto log_level_it = metadata.find(kMinLogLevel);
+        log_level_it != metadata.end()) {
+      absl::MutexLock lock(&console_mutex_);
+      console_->SetMinLogLevel(GetLogLevel(log_level_it->second));
+    }
+
     if (const auto uuid_it = metadata.find(kRequestUuid),
         id_it = metadata.find(kRequestId);
         isolate_function_binding_ && uuid_it != metadata.end() &&

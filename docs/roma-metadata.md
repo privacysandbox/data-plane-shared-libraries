@@ -33,3 +33,40 @@ This function will be invoked whenever the provided Roma logging functions are i
 (see [here](roma-logging.md) for more details).
 
 Logging is, by default, a no-op unless a logging function is set on the `Config<T>`.
+
+## Optimizing Logging
+
+To prevent the logging function from being invoked in the host process, Roma provides the ability to
+configure Roma's minimum logging level within a UDF on a per InvocationRequest basis.
+
+`execution_obj.min_log_level` can be set to prevent logs with severity < min_log_level from being
+invoked from the sandbox, avoiding the RPC with the host process.
+
+### Example
+
+```cpp
+void LoggingFunction(absl::LogSeverity verbosity, RequestContext context,
+                    std::string_view msg) {
+  PS_VLOG(verbosity, context) << msg;
+}
+```
+
+```cpp
+ Config<RequestContext> config;
+ config.SetLoggingFunction(LoggingFunction);
+ auto roma_service = std::make_unique<RomaService<RequestContext>>(std::move(config));
+
+ // Load UDF
+RequestContext context;
+auto execution_obj =
+  std::make_unique<InvocationStrRequest<RequestContext>>(InvocationStrRequest<RequestContext>{
+      .id = "foo",
+      .version_string = "v1",
+      .handler_name = "Handler",
+      .input = {R"("Foobar")"},
+      .metadata = context,
+       // Only roma.n_warn() and roma.n_error() will invoke LoggingFunction
+      .min_log_level = absl::LogSeverity::kWarning,
+  });
+
+```

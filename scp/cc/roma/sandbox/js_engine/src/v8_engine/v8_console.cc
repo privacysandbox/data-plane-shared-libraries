@@ -62,6 +62,15 @@ std::vector<std::string> GetLogMsg(
   return msgs;
 }
 
+absl::LogSeverity GetSeverity(std::string_view severity) {
+  if (severity == "ROMA_ERROR") {
+    return absl::LogSeverity::kError;
+  } else if (severity == "ROMA_WARN") {
+    return absl::LogSeverity::kWarning;
+  } else {
+    return absl::LogSeverity::kInfo;
+  }
+}
 }  // anonymous namespace
 
 V8Console::V8Console(
@@ -87,6 +96,10 @@ void V8Console::Error(const v8::debug::ConsoleCallArguments& args,
 
 void V8Console::HandleLog(const v8::debug::ConsoleCallArguments& args,
                           std::string_view function_name) {
+  if (GetSeverity(function_name) < min_log_level_) {
+    return;
+  }
+
   const auto msgs = GetLogMsg(isolate_, args);
   const std::string msg = absl::StrJoin(msgs, " ");
   auto rpc_proto = ConstructRpcWrapper(function_name, msg);
@@ -96,6 +109,10 @@ void V8Console::HandleLog(const v8::debug::ConsoleCallArguments& args,
 void V8Console::SetIds(std::string_view uuid, std::string_view id) {
   invocation_req_uuid_ = uuid;
   invocation_req_id_ = id;
+}
+
+void V8Console::SetMinLogLevel(absl::LogSeverity severity) {
+  min_log_level_ = severity;
 }
 
 RpcWrapper V8Console::ConstructRpcWrapper(std::string_view function_name,

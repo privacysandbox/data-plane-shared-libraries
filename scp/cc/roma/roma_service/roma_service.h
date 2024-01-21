@@ -358,6 +358,10 @@ class RomaService {
         {std::string(google::scp::roma::sandbox::constants::kRequestUuid),
          uuid_str});
 
+    invocation_req->tags.insert(
+        {std::string(google::scp::roma::sandbox::constants::kMinLogLevel),
+         absl::StrCat(invocation_req->min_log_level)});
+
     auto callback_ptr = std::make_unique<Callback>(std::move(callback));
     Callback callback_wrapper =
         [&, uuid_str, callback_ptr = std::move(callback_ptr)](
