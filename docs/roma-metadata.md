@@ -42,9 +42,26 @@ configure Roma's minimum logging level within a UDF on a per InvocationRequest b
 `execution_obj.min_log_level` can be set to prevent logs with severity < min_log_level from being
 invoked from the sandbox, avoiding the RPC with the host process.
 
-### Example
+See examples below for how to use `execution_obj.min_log_level`.
+
+## Use With Universal Logger (PS_VLOG)
+
+Integrators using Roma can implement a logging function that calls
+[PS_VLOG](/src/cpp/logger/request_context_logger.h) to conditionally log messages given verbosity
+and context. To do so, Config and RomaService can be templated either on `RequestContext` directly,
+or on some struct/class that maintains `RequestContext` as a member (henceforth referred to as
+`ContextWrapper`).
+
+This allows clients to construct `InvocationStrRequest<RequestContext>` or
+`InvocationRequest<ContextWrapper>` to pass the RequestContext associated with Roma execution into
+the UDF for passage into PS_VLOG without said RequestContext ever entering the SAPI sandbox,
+ensuring that it is privacy-safe.
+
+### Example 1: RequestContext
 
 ```cpp
+using privacy_sandbox::server_common::log::RequestContext;
+
 void LoggingFunction(absl::LogSeverity verbosity, RequestContext context,
                     std::string_view msg) {
   PS_VLOG(verbosity, context) << msg;
@@ -52,21 +69,60 @@ void LoggingFunction(absl::LogSeverity verbosity, RequestContext context,
 ```
 
 ```cpp
- Config<RequestContext> config;
- config.SetLoggingFunction(LoggingFunction);
- auto roma_service = std::make_unique<RomaService<RequestContext>>(std::move(config));
+Config<RequestContext> config;
+config.SetLoggingFunction(LoggingFunction);
+auto roma_service = std::make_unique<RomaService<RequestContext>>(std::move(config));
+```
 
- // Load UDF
+```cpp
 RequestContext context;
 auto execution_obj =
-  std::make_unique<InvocationStrRequest<RequestContext>>(InvocationStrRequest<RequestContext>{
-      .id = "foo",
-      .version_string = "v1",
-      .handler_name = "Handler",
-      .input = {R"("Foobar")"},
-      .metadata = context,
-       // Only roma.n_warn() and roma.n_error() will invoke LoggingFunction
-      .min_log_level = absl::LogSeverity::kWarning,
-  });
+        std::make_unique<InvocationStrRequest<RequestContext>>(
+            InvocationStrRequest<RequestContext>{
+              ...
+              .metadata = context,
+              // Only console.warn() and console.error() will invoke LoggingFunction
+              .min_log_level = absl::LogSeverity::kWarning,
+            });
 
+auto status = roma_service->Execute(std::move(execution_obj), ...);
+```
+
+### Example 2: Wrapper containing RequestContext
+
+```cpp
+using privacy_sandbox::server_common::log::RequestContext;
+
+void LoggingFunction(absl::LogSeverity verbosity, ContextWrapper wrapper,
+                    std::string_view msg) {
+  PS_VLOG(verbosity, wrapper.context) << msg;
+}
+```
+
+```cpp
+struct ContextWrapper {
+ ...
+ RequestContext context;
+}
+
+ Config<ContextWrapper> config;
+ config.SetLoggingFunction(LoggingFunction);
+ auto roma_service = std::make_unique<RomaService<ContextWrapper>>(std::move(config));
+```
+
+```cpp
+ContextWrapper wrapper = {
+  .context = context;
+};
+
+auto execution_obj =
+        std::make_unique<InvocationStrRequest<ContextWrapper>>(
+            InvocationStrRequest<ContextWrapper>{
+              ...
+              .metadata = wrapper,
+              // Only console.warn() and console.error() will invoke LoggingFunction
+              .min_log_level = absl::LogSeverity::kWarning,
+            });
+
+auto status = roma_service->Execute(std::move(execution_obj), ...);
 ```
