@@ -61,7 +61,7 @@ namespace google::scp::cpio::client_providers {
 ExecutionResult MetricClientProvider::Init() noexcept {
   // Metric namespace cannot be empty when enable batch recording.
   if (is_batch_recording_enable &&
-      metric_batching_options_->metric_namespace.empty()) {
+      metric_batching_options_.metric_namespace.empty()) {
     auto execution_result =
         FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET);
     SCP_ERROR(kMetricClientProvider, kZeroUuid, execution_result,
@@ -184,10 +184,9 @@ ExecutionResult MetricClientProvider::ScheduleMetricsBatchPush() noexcept {
     return execution_result;
   }
 
-  auto next_push_time =
-      (TimeProvider::GetSteadyTimestampInNanoseconds() +
-       metric_batching_options_->batch_recording_time_duration)
-          .count();
+  auto next_push_time = (TimeProvider::GetSteadyTimestampInNanoseconds() +
+                         metric_batching_options_.batch_recording_time_duration)
+                            .count();
   auto execution_result = async_executor_->ScheduleFor(
       [this]() {
         ScheduleMetricsBatchPush();

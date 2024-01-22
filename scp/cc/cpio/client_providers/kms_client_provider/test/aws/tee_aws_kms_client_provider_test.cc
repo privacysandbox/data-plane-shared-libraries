@@ -86,15 +86,15 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
 
   void SetUp() override {
     mock_credentials_provider_ =
-        std::make_shared<MockRoleCredentialsProvider>();
+        std::make_unique<MockRoleCredentialsProvider>();
     client_ = std::make_unique<MockTeeAwsKmsClientProviderWithOverrides>(
-        mock_credentials_provider_);
+        mock_credentials_provider_.get());
   }
 
   void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
 
   std::unique_ptr<MockTeeAwsKmsClientProviderWithOverrides> client_;
-  std::shared_ptr<RoleCredentialsProviderInterface> mock_credentials_provider_;
+  std::unique_ptr<RoleCredentialsProviderInterface> mock_credentials_provider_;
 };
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingCredentialsProvider) {

@@ -55,8 +55,8 @@ constexpr char kResourceManagerUriFormat[] =
 
 namespace google::scp::cpio::client_providers::test {
 TEST(GcpInstanceClientUtilsTest, GetCurrentProjectIdSuccess) {
-  auto instance_client = std::make_shared<MockInstanceClientProvider>();
-  instance_client->instance_resource_name = kResourceNameMock;
+  MockInstanceClientProvider instance_client;
+  instance_client.instance_resource_name = kResourceNameMock;
 
   auto project_id =
       GcpInstanceClientUtils::GetCurrentProjectId(instance_client);
@@ -64,8 +64,8 @@ TEST(GcpInstanceClientUtilsTest, GetCurrentProjectIdSuccess) {
 }
 
 TEST(GcpInstanceClientUtilsTest, GetCurrentProjectIdFailedWithResourceName) {
-  auto instance_client = std::make_shared<MockInstanceClientProvider>();
-  instance_client->get_instance_resource_name_mock =
+  MockInstanceClientProvider instance_client;
+  instance_client.get_instance_resource_name_mock =
       FailureExecutionResult(SC_UNKNOWN);
 
   auto project_id =
@@ -76,8 +76,8 @@ TEST(GcpInstanceClientUtilsTest, GetCurrentProjectIdFailedWithResourceName) {
 
 TEST(GcpInstanceClientUtilsTest,
      GetCurrentProjectIdFailedWithInvalidProjectId) {
-  auto instance_client = std::make_shared<MockInstanceClientProvider>();
-  instance_client->instance_resource_name =
+  MockInstanceClientProvider instance_client;
+  instance_client.instance_resource_name =
       R"(//compute.googleapis.com/projects//zones/us-central1-c/instances/987654321)";
 
   auto project_id =

@@ -30,9 +30,8 @@
 namespace google::scp::core::http2_client::mock {
 class MockHttpConnectionPool : public HttpConnectionPool {
  public:
-  MockHttpConnectionPool(
-      const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-      size_t max_connection_per_host)
+  MockHttpConnectionPool(AsyncExecutorInterface* async_executor,
+                         size_t max_connection_per_host)
       : HttpConnectionPool(async_executor, max_connection_per_host) {}
 
   std::shared_ptr<HttpConnection> CreateHttpConnection(

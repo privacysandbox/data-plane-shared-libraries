@@ -62,8 +62,8 @@ constexpr char kAccountIdMock[] = "123456789012";
 namespace google::scp::cpio::client_providers::test {
 
 TEST(AwsInstanceClientUtilsTest, GetCurrentRegionCodeSuccess) {
-  auto instance_client = std::make_shared<MockInstanceClientProvider>();
-  instance_client->instance_resource_name = kResourceNameMock;
+  MockInstanceClientProvider instance_client;
+  instance_client.instance_resource_name = kResourceNameMock;
 
   auto region_code =
       AwsInstanceClientUtils::GetCurrentRegionCode(instance_client);
@@ -71,8 +71,8 @@ TEST(AwsInstanceClientUtilsTest, GetCurrentRegionCodeSuccess) {
 }
 
 TEST(AwsInstanceClientUtilsTest, GetCurrentRegionCodeFailedWithResourceName) {
-  auto instance_client = std::make_shared<MockInstanceClientProvider>();
-  instance_client->get_instance_resource_name_mock =
+  MockInstanceClientProvider instance_client;
+  instance_client.get_instance_resource_name_mock =
       FailureExecutionResult(SC_UNKNOWN);
 
   auto region_code =

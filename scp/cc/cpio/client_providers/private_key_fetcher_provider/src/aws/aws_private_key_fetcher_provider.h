@@ -40,9 +40,8 @@ class AwsPrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
    * service.
    */
   AwsPrivateKeyFetcherProvider(
-      const std::shared_ptr<core::HttpClientInterface>& http_client,
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credentials_provider)
+      core::HttpClientInterface* http_client,
+      RoleCredentialsProviderInterface* role_credentials_provider)
       : PrivateKeyFetcherProvider(http_client),
         role_credentials_provider_(role_credentials_provider) {}
 
@@ -82,7 +81,7 @@ class AwsPrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
       std::string_view security_token, std::string_view region) noexcept;
 
   /// Credential provider.
-  std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider_;
+  RoleCredentialsProviderInterface* role_credentials_provider_;
 };
 }  // namespace google::scp::cpio::client_providers
 

@@ -45,8 +45,7 @@ namespace google::scp::cpio {
 
 #ifndef TEST_CPIO
 static ExecutionResult SetGlobalCpio(const CpioOptions& options) {
-  cpio_ptr =
-      CpioProviderFactory::Create(std::make_shared<CpioOptions>(options));
+  cpio_ptr = CpioProviderFactory::Create(options);
   CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr));
   return SuccessExecutionResult();
 }

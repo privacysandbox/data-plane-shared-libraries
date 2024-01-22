@@ -40,6 +40,7 @@ struct CurlListDeleter {
 class Http1CurlWrapper {
  public:
   // Makes a Http1CurlWrapper and sets up the necessary options for CURL.
+  // TODO(b/321792175): Update to return a unique_ptr
   static ExecutionResultOr<std::shared_ptr<Http1CurlWrapper>> MakeWrapper();
   explicit Http1CurlWrapper(CURL* curl);
   Http1CurlWrapper() = default;

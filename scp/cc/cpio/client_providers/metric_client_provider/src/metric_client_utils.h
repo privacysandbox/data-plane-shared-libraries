@@ -34,7 +34,7 @@ class MetricClientUtils {
 
   static core::ExecutionResult ValidateRequest(
       const cmrt::sdk::metric_service::v1::PutMetricsRequest& request,
-      const std::shared_ptr<MetricBatchingOptions>& options);
+      const MetricBatchingOptions& options);
 };
 }  // namespace google::scp::cpio::client_providers
 

@@ -31,10 +31,9 @@
 namespace google::scp::cpio::client_providers {
 class GcpInstanceClientProvider : public InstanceClientProviderInterface {
  public:
-  GcpInstanceClientProvider(
-      const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-      const std::shared_ptr<core::HttpClientInterface>& http1_client,
-      const std::shared_ptr<core::HttpClientInterface>& http2_client);
+  GcpInstanceClientProvider(AuthTokenProviderInterface* auth_token_provider,
+                            core::HttpClientInterface* http1_client,
+                            core::HttpClientInterface* http2_client);
 
   core::ExecutionResult Init() noexcept override;
 
@@ -233,11 +232,11 @@ class GcpInstanceClientProvider : public InstanceClientProviderInterface {
           http_client_context) noexcept;
 
   /// Instance of http1 client.
-  std::shared_ptr<core::HttpClientInterface> http1_client_;
+  core::HttpClientInterface* http1_client_;
   /// Instance of http2 client.
-  std::shared_ptr<core::HttpClientInterface> http2_client_;
+  core::HttpClientInterface* http2_client_;
   /// Instance of auth token provider.
-  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider_;
+  AuthTokenProviderInterface* auth_token_provider_;
 
   // Reuse shared_ptr strings across HTTP requests issued by this class
   std::shared_ptr<std::string> http_uri_instance_private_ipv4_;

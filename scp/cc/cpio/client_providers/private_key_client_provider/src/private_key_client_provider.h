@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/container/btree_set.h"
@@ -43,15 +44,13 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
   virtual ~PrivateKeyClientProvider() = default;
 
   explicit PrivateKeyClientProvider(
-      const std::shared_ptr<PrivateKeyClientOptions>&
-          private_key_client_options,
-      const std::shared_ptr<core::HttpClientInterface>& http_client,
-      const std::shared_ptr<PrivateKeyFetcherProviderInterface>&
-          private_key_fetcher,
-      const std::shared_ptr<KmsClientProviderInterface>& kms_client)
-      : private_key_client_options_(private_key_client_options),
-        private_key_fetcher_(private_key_fetcher),
-        kms_client_provider_(kms_client) {}
+      PrivateKeyClientOptions private_key_client_options,
+      core::HttpClientInterface* http_client,
+      std::unique_ptr<PrivateKeyFetcherProviderInterface> private_key_fetcher,
+      std::unique_ptr<KmsClientProviderInterface> kms_client)
+      : private_key_client_options_(std::move(private_key_client_options)),
+        private_key_fetcher_(std::move(private_key_fetcher)),
+        kms_client_provider_(std::move(kms_client)) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -142,13 +141,13 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
       std::shared_ptr<EncryptionKey> encryption_key, size_t uri_index) noexcept;
 
   /// Configurations for PrivateKeyClient.
-  std::shared_ptr<PrivateKeyClientOptions> private_key_client_options_;
+  PrivateKeyClientOptions private_key_client_options_;
 
   /// The private key fetching client instance.
-  std::shared_ptr<PrivateKeyFetcherProviderInterface> private_key_fetcher_;
+  std::unique_ptr<PrivateKeyFetcherProviderInterface> private_key_fetcher_;
 
   /// KMS client provider.
-  std::shared_ptr<KmsClientProviderInterface> kms_client_provider_;
+  std::unique_ptr<KmsClientProviderInterface> kms_client_provider_;
 
   // This is temp way to collect all endpoints in one vector. Maybe we should
   // change PrivateKeyClientOptions structure to make thing easy.

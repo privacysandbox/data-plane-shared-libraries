@@ -48,7 +48,7 @@ class ParameterClient : public ParameterClientInterface {
 
  protected:
   virtual core::ExecutionResult CreateParameterClientProvider() noexcept;
-  std::shared_ptr<client_providers::ParameterClientProviderInterface>
+  std::unique_ptr<client_providers::ParameterClientProviderInterface>
       parameter_client_provider_;
 
  private:

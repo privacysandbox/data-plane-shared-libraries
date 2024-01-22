@@ -48,7 +48,7 @@ void AwsInitializer::ShutdownCloud() noexcept {
   ShutdownAPI(options_);
 }
 
-std::shared_ptr<CloudInitializerInterface> CloudInitializerFactory::Create() {
-  return std::make_shared<AwsInitializer>();
+std::unique_ptr<CloudInitializerInterface> CloudInitializerFactory::Create() {
+  return std::make_unique<AwsInitializer>();
 }
 }  // namespace google::scp::cpio::client_providers

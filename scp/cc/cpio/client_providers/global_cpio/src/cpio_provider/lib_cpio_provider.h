@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -41,8 +42,8 @@ namespace google::scp::cpio::client_providers {
  */
 class LibCpioProvider : public CpioProviderInterface {
  public:
-  explicit LibCpioProvider(const std::shared_ptr<CpioOptions>& options)
-      : cpio_options_(options), cloud_initializer_(nullptr) {}
+  explicit LibCpioProvider(CpioOptions options)
+      : cpio_options_(std::move(options)), cloud_initializer_(nullptr) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -50,26 +51,24 @@ class LibCpioProvider : public CpioProviderInterface {
 
   core::ExecutionResult Stop() noexcept override;
 
-  absl::StatusOr<std::shared_ptr<core::AsyncExecutorInterface>>
-  GetCpuAsyncExecutor() noexcept override;
+  absl::StatusOr<core::AsyncExecutorInterface*> GetCpuAsyncExecutor() noexcept
+      override;
 
-  absl::StatusOr<std::shared_ptr<core::AsyncExecutorInterface>>
-  GetIoAsyncExecutor() noexcept override;
+  absl::StatusOr<core::AsyncExecutorInterface*> GetIoAsyncExecutor() noexcept
+      override;
 
-  absl::StatusOr<std::shared_ptr<core::HttpClientInterface>>
-  GetHttpClient() noexcept override;
+  absl::StatusOr<core::HttpClientInterface*> GetHttpClient() noexcept override;
 
-  absl::StatusOr<std::shared_ptr<core::HttpClientInterface>>
-  GetHttp1Client() noexcept override;
+  absl::StatusOr<core::HttpClientInterface*> GetHttp1Client() noexcept override;
 
-  absl::StatusOr<std::shared_ptr<InstanceClientProviderInterface>>
+  absl::StatusOr<InstanceClientProviderInterface*>
   GetInstanceClientProvider() noexcept override;
 
-  absl::StatusOr<std::shared_ptr<RoleCredentialsProviderInterface>>
+  absl::StatusOr<RoleCredentialsProviderInterface*>
   GetRoleCredentialsProvider() noexcept override;
 
-  absl::StatusOr<std::shared_ptr<AuthTokenProviderInterface>>
-  GetAuthTokenProvider() noexcept override;
+  absl::StatusOr<AuthTokenProviderInterface*> GetAuthTokenProvider() noexcept
+      override;
 
   const std::string& GetProjectId() noexcept override;
 
@@ -77,29 +76,27 @@ class LibCpioProvider : public CpioProviderInterface {
 
  protected:
   /// Global CPIO options.
-  std::shared_ptr<CpioOptions> cpio_options_;
+  CpioOptions cpio_options_;
   /// Global cloud initializer.
-  std::shared_ptr<CloudInitializerInterface> cloud_initializer_;
+  std::unique_ptr<CloudInitializerInterface> cloud_initializer_;
   /// Global async executors.
-  std::shared_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
+  std::unique_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
       io_async_executor_;
   /// Global http clients.
-  std::shared_ptr<core::HttpClientInterface> http1_client_, http2_client_;
+  std::unique_ptr<core::HttpClientInterface> http1_client_, http2_client_;
   /// Global instance client provider to fetch cloud metadata.
-  std::shared_ptr<InstanceClientProviderInterface> instance_client_provider_;
+  std::unique_ptr<InstanceClientProviderInterface> instance_client_provider_;
   /// Global role credential provider.
-  std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider_;
+  std::unique_ptr<RoleCredentialsProviderInterface> role_credentials_provider_;
   /// Global auth token provider.
-  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider_;
+  std::unique_ptr<AuthTokenProviderInterface> auth_token_provider_;
 
  private:
-  virtual std::shared_ptr<RoleCredentialsProviderInterface>
+  virtual std::unique_ptr<RoleCredentialsProviderInterface>
   CreateRoleCredentialsProvider(
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>&
-          io_async_executor) noexcept;
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

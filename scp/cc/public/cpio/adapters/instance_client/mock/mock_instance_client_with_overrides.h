@@ -34,19 +34,20 @@ class MockInstanceClientWithOverrides : public InstanceClient {
 
   core::ExecutionResult CreateInstanceClientProvider() noexcept override {
     if (create_instance_client_provider_result.Successful()) {
-      instance_client_provider_ = std::make_shared<
-          client_providers::mock::MockInstanceClientProvider>();
+      instance_client_provider_ = &mock_instance_client_provider_;
       return create_instance_client_provider_result;
     }
     return create_instance_client_provider_result;
   }
 
-  std::shared_ptr<client_providers::mock::MockInstanceClientProvider>
+  client_providers::mock::MockInstanceClientProvider&
   GetInstanceClientProvider() {
-    return std::dynamic_pointer_cast<
-        client_providers::mock::MockInstanceClientProvider>(
-        instance_client_provider_);
+    return mock_instance_client_provider_;
   }
+
+ private:
+  client_providers::mock::MockInstanceClientProvider
+      mock_instance_client_provider_;
 };
 }  // namespace google::scp::cpio::mock
 

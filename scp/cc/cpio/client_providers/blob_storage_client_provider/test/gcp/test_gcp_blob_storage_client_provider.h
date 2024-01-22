@@ -29,7 +29,7 @@ namespace google::scp::cpio::client_providers {
 class TestGcpCloudStorageFactory : public GcpCloudStorageFactory {
  public:
   cloud::Options CreateClientOptions(
-      std::shared_ptr<BlobStorageClientOptions> options,
+      BlobStorageClientOptions options,
       std::string_view project_id) noexcept override;
 
   virtual ~TestGcpCloudStorageFactory() = default;

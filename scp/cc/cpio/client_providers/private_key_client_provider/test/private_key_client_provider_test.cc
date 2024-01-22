@@ -205,21 +205,18 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
     endpoint_3.service_region = kTestRegion3;
     endpoint_3.private_key_vending_service_endpoint = kTestEndpoint3;
 
-    auto private_key_client_options =
-        std::make_shared<PrivateKeyClientOptions>();
-    private_key_client_options->primary_private_key_vending_endpoint =
+    PrivateKeyClientOptions private_key_client_options;
+    private_key_client_options.primary_private_key_vending_endpoint =
         endpoint_1;
-    private_key_client_options->secondary_private_key_vending_endpoints
+    private_key_client_options.secondary_private_key_vending_endpoints
         .emplace_back(endpoint_2);
-    private_key_client_options->secondary_private_key_vending_endpoints
+    private_key_client_options.secondary_private_key_vending_endpoints
         .emplace_back(endpoint_3);
 
-    private_key_client_provider =
-        std::make_shared<MockPrivateKeyClientProviderWithOverrides>(
-            private_key_client_options);
+    private_key_client_provider.emplace(std::move(private_key_client_options));
     mock_private_key_fetcher =
-        private_key_client_provider->GetPrivateKeyFetcherProvider();
-    mock_kms_client = private_key_client_provider->GetKmsClientProvider();
+        &private_key_client_provider->GetPrivateKeyFetcherProvider();
+    mock_kms_client = &private_key_client_provider->GetKmsClientProvider();
     EXPECT_SUCCESS(private_key_client_provider->Init());
     EXPECT_SUCCESS(private_key_client_provider->Run());
   }
@@ -323,10 +320,10 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
     return expected_keys;
   }
 
-  std::shared_ptr<MockPrivateKeyClientProviderWithOverrides>
+  std::optional<MockPrivateKeyClientProviderWithOverrides>
       private_key_client_provider;
-  std::shared_ptr<MockPrivateKeyFetcherProvider> mock_private_key_fetcher;
-  std::shared_ptr<MockKmsClientProvider> mock_kms_client;
+  MockPrivateKeyFetcherProvider* mock_private_key_fetcher;
+  MockKmsClientProvider* mock_kms_client;
 
   const absl::flat_hash_map<std::string, std::string> kPlaintextMap = {
       {kTestKeyMaterials[0], "\270G\005\364$\253\273\331\353\336\216>"},
@@ -836,16 +833,13 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
     endpoint_1.service_region = kTestRegion1;
     endpoint_1.private_key_vending_service_endpoint = kTestEndpoint1;
 
-    auto private_key_client_options =
-        std::make_shared<PrivateKeyClientOptions>();
-    private_key_client_options->primary_private_key_vending_endpoint =
+    PrivateKeyClientOptions private_key_client_options;
+    private_key_client_options.primary_private_key_vending_endpoint =
         endpoint_1;
-    private_key_client_provider_ =
-        std::make_shared<MockPrivateKeyClientProviderWithOverrides>(
-            private_key_client_options);
+    private_key_client_provider_.emplace(std::move(private_key_client_options));
     mock_private_key_fetcher_ =
-        private_key_client_provider_->GetPrivateKeyFetcherProvider();
-    mock_kms_client_ = private_key_client_provider_->GetKmsClientProvider();
+        &private_key_client_provider_->GetPrivateKeyFetcherProvider();
+    mock_kms_client_ = &private_key_client_provider_->GetKmsClientProvider();
     EXPECT_SUCCESS(private_key_client_provider_->Init());
     EXPECT_SUCCESS(private_key_client_provider_->Run());
   }
@@ -943,10 +937,10 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
     return expected_keys;
   }
 
-  std::shared_ptr<MockPrivateKeyClientProviderWithOverrides>
+  std::optional<MockPrivateKeyClientProviderWithOverrides>
       private_key_client_provider_;
-  std::shared_ptr<MockPrivateKeyFetcherProvider> mock_private_key_fetcher_;
-  std::shared_ptr<MockKmsClientProvider> mock_kms_client_;
+  MockPrivateKeyFetcherProvider* mock_private_key_fetcher_;
+  MockKmsClientProvider* mock_kms_client_;
 };
 
 TEST_F(PrivateKeyClientProviderSinglePartyKeyTest, ListSinglePartyKeysSuccess) {
@@ -991,17 +985,15 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
   endpoint_2.service_region = kTestRegion2;
   endpoint_2.private_key_vending_service_endpoint = kTestEndpoint2;
 
-  auto private_key_client_options = std::make_shared<PrivateKeyClientOptions>();
-  private_key_client_options->primary_private_key_vending_endpoint = endpoint_1;
-  private_key_client_options->secondary_private_key_vending_endpoints
+  PrivateKeyClientOptions private_key_client_options;
+  private_key_client_options.primary_private_key_vending_endpoint = endpoint_1;
+  private_key_client_options.secondary_private_key_vending_endpoints
       .emplace_back(endpoint_2);
 
-  private_key_client_provider_ =
-      std::make_shared<MockPrivateKeyClientProviderWithOverrides>(
-          private_key_client_options);
+  private_key_client_provider_.emplace(std::move(private_key_client_options));
   mock_private_key_fetcher_ =
-      private_key_client_provider_->GetPrivateKeyFetcherProvider();
-  mock_kms_client_ = private_key_client_provider_->GetKmsClientProvider();
+      &private_key_client_provider_->GetPrivateKeyFetcherProvider();
+  mock_kms_client_ = &private_key_client_provider_->GetKmsClientProvider();
   EXPECT_SUCCESS(private_key_client_provider_->Init());
   EXPECT_SUCCESS(private_key_client_provider_->Run());
 

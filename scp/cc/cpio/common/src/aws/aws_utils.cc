@@ -30,17 +30,17 @@ static constexpr int kConnectTimeoutMs = 3000;
 static constexpr int kRequestTimeoutMs = 6000;
 
 namespace google::scp::cpio::common {
-std::shared_ptr<ClientConfiguration> CreateClientConfiguration(
-    const std::shared_ptr<std::string>& region) noexcept {
-  auto config = std::make_shared<ClientConfiguration>();
+ClientConfiguration CreateClientConfiguration(
+    const std::string& region) noexcept {
+  ClientConfiguration config;
   // TODO: Check the region is valid AWS region.
-  if (region && !region->empty()) {
-    config->region = region->c_str();
+  if (!region.empty()) {
+    config.region = region.c_str();
   }
 
-  config->scheme = Aws::Http::Scheme::HTTPS;
-  config->connectTimeoutMs = kConnectTimeoutMs;
-  config->requestTimeoutMs = kRequestTimeoutMs;
+  config.scheme = Aws::Http::Scheme::HTTPS;
+  config.connectTimeoutMs = kConnectTimeoutMs;
+  config.requestTimeoutMs = kRequestTimeoutMs;
   return config;
 }
 }  // namespace google::scp::cpio::common

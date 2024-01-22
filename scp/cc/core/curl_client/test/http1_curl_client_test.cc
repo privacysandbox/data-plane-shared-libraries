@@ -26,6 +26,7 @@
 #include "public/core/test/interface/execution_result_matchers.h"
 
 using testing::AtLeast;
+using testing::ByMove;
 using testing::ExplainMatchResult;
 using testing::InSequence;
 using testing::IsSupersetOf;
@@ -58,41 +59,42 @@ class MockCurlWrapper : public NiceMock<Http1CurlWrapper> {
 class Http1CurlClientTest : public ::testing::Test {
  protected:
   Http1CurlClientTest()
-      : cpu_async_executor_(std::make_shared<AsyncExecutor>(/*thread_count=*/4,
-                                                            /*queue_cap=*/10)),
-        io_async_executor_(std::make_shared<AsyncExecutor>(/*thread_count=*/4,
-                                                           /*queue_cap=*/10)),
-        wrapper_(std::make_shared<MockCurlWrapper>()),
-        provider_(std::make_shared<MockCurlWrapperProvider>()),
-        subject_(cpu_async_executor_, io_async_executor_, provider_,
-                 common::RetryStrategyOptions(
-                     common::RetryStrategyType::Exponential,
-                     /*time_duration_ms=*/1UL, /*total_retries=*/10)) {
-    CHECK(cpu_async_executor_->Init().Successful())
+      : cpu_async_executor_(/*thread_count=*/4,
+                            /*queue_cap=*/10),
+        io_async_executor_(/*thread_count=*/4,
+                           /*queue_cap=*/10),
+        wrapper_(std::make_shared<MockCurlWrapper>()) {
+    auto provider = std::make_unique<MockCurlWrapperProvider>();
+    provider_ = provider.get();
+    subject_.emplace(
+        &cpu_async_executor_, &io_async_executor_, std::move(provider),
+        common::RetryStrategyOptions(common::RetryStrategyType::Exponential,
+                                     /*time_duration_ms=*/1UL,
+                                     /*total_retries=*/10));
+    CHECK(cpu_async_executor_.Init().Successful())
         << "cpu_async_executor_ initialization unsuccessful";
-    CHECK(io_async_executor_->Init().Successful())
+    CHECK(io_async_executor_.Init().Successful())
         << "io_async_executor_ initialization unsuccessful";
-    CHECK(cpu_async_executor_->Run().Successful())
+    CHECK(cpu_async_executor_.Run().Successful())
         << "cpu_async_executor_ run unsuccessful";
-    CHECK(io_async_executor_->Run().Successful())
+    CHECK(io_async_executor_.Run().Successful())
         << "io_async_executor_ run unsuccessful";
     ON_CALL(*provider_, MakeWrapper).WillByDefault(Return(wrapper_));
   }
 
   ~Http1CurlClientTest() {
-    CHECK(io_async_executor_->Stop().Successful())
+    CHECK(io_async_executor_.Stop().Successful())
         << "io_async_executor_ stop unsuccessful";
-    CHECK(cpu_async_executor_->Stop().Successful())
+    CHECK(cpu_async_executor_.Stop().Successful())
         << "cpu_async_executor_ stop unsuccessful";
   }
 
-  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor_,
-      io_async_executor_;
+  AsyncExecutor cpu_async_executor_, io_async_executor_;
 
   std::shared_ptr<MockCurlWrapper> wrapper_;
-  std::shared_ptr<MockCurlWrapperProvider> provider_;
+  MockCurlWrapperProvider* provider_;
 
-  Http1CurlClient subject_;
+  std::optional<Http1CurlClient> subject_;
 };
 
 // We only compare the body but we can add more checks if we want.
@@ -126,7 +128,7 @@ TEST_F(Http1CurlClientTest, IssuesPerformRequestOnWrapper) {
     finished.Notify();
   };
 
-  ASSERT_THAT(subject_.PerformRequest(http_context), IsSuccessful());
+  ASSERT_THAT(subject_->PerformRequest(http_context), IsSuccessful());
 
   finished.WaitForNotification();
 }
@@ -159,7 +161,7 @@ TEST_F(Http1CurlClientTest, RetriesWork) {
     finished.Notify();
   };
 
-  ASSERT_THAT(subject_.PerformRequest(http_context), IsSuccessful());
+  ASSERT_THAT(subject_->PerformRequest(http_context), IsSuccessful());
 
   finished.WaitForNotification();
 }
@@ -185,7 +187,7 @@ TEST_F(Http1CurlClientTest, FailureEnds) {
     finished.Notify();
   };
 
-  ASSERT_THAT(subject_.PerformRequest(http_context), IsSuccessful());
+  ASSERT_THAT(subject_->PerformRequest(http_context), IsSuccessful());
 
   finished.WaitForNotification();
 }

@@ -30,7 +30,7 @@ class MockPrivateKeyFetcherProviderWithOverrides
     : public PrivateKeyFetcherProvider {
  public:
   MockPrivateKeyFetcherProviderWithOverrides(
-      const std::shared_ptr<core::HttpClientInterface>& http_client)
+      core::HttpClientInterface* http_client)
       : PrivateKeyFetcherProvider(http_client) {}
 
   core::ExecutionResult sign_http_request_result_mock =

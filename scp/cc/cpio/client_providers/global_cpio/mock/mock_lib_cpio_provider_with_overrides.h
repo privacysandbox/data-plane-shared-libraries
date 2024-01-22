@@ -28,14 +28,15 @@
 namespace google::scp::cpio::client_providers::mock {
 class MockLibCpioProviderWithOverrides : public LibCpioProvider {
  public:
-  MockLibCpioProviderWithOverrides()
-      : LibCpioProvider(std::make_shared<CpioOptions>()) {}
+  MockLibCpioProviderWithOverrides() : LibCpioProvider(CpioOptions()) {}
 
-  absl::StatusOr<std::shared_ptr<InstanceClientProviderInterface>>
+  absl::StatusOr<InstanceClientProviderInterface*>
   GetInstanceClientProvider() noexcept override {
-    instance_client_provider_ = std::make_shared<MockInstanceClientProvider>();
-    return instance_client_provider_;
+    return &instance_client_provider_;
   }
+
+ private:
+  MockInstanceClientProvider instance_client_provider_;
 };
 }  // namespace google::scp::cpio::client_providers::mock
 

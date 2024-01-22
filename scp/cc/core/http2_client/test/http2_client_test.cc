@@ -183,11 +183,10 @@ TEST(HttpClientTest, FailedToConnect) {
   auto request = std::make_shared<HttpRequest>();
   request->method = HttpMethod::GET;
   request->path = std::make_shared<std::string>("http://localhost.failed:8000");
-  std::shared_ptr<AsyncExecutorInterface> async_executor =
-      std::make_shared<MockAsyncExecutor>();
-  HttpClient http_client(async_executor);
-  async_executor->Init();
-  async_executor->Run();
+  MockAsyncExecutor async_executor;
+  HttpClient http_client(&async_executor);
+  async_executor.Init();
+  async_executor.Run();
   http_client.Init();
   http_client.Run();
 
@@ -205,15 +204,15 @@ TEST(HttpClientTest, FailedToConnect) {
   ASSERT_SUCCESS(http_client.PerformRequest(context));
   finished.WaitForNotification();
   http_client.Stop();
-  async_executor->Stop();
+  async_executor.Stop();
 }
 
 class HttpClientTestII : public ::testing::Test {
  protected:
   void SetUp() override {
-    server = std::make_shared<HttpServer>("localhost", "0", 1);
+    server.emplace("localhost", "0", 1);
     server->Run();
-    async_executor = std::make_shared<AsyncExecutor>(2, 1000);
+    async_executor.emplace(2, 1000);
     async_executor->Init();
     async_executor->Run();
 
@@ -223,7 +222,7 @@ class HttpClientTestII : public ::testing::Test {
                              kDefaultRetryStrategyMaxRetries),
         kDefaultMaxConnectionsPerHost, kHttp2ReadTimeoutInSeconds);
 
-    http_client = std::make_shared<HttpClient>(async_executor, options);
+    http_client.emplace(&*async_executor, std::move(options));
     ASSERT_SUCCESS(http_client->Init());
     ASSERT_SUCCESS(http_client->Run());
   }
@@ -234,9 +233,9 @@ class HttpClientTestII : public ::testing::Test {
     server->Stop();
   }
 
-  std::shared_ptr<HttpServer> server;
-  std::shared_ptr<AsyncExecutorInterface> async_executor;
-  std::shared_ptr<HttpClient> http_client;
+  std::optional<HttpServer> server;
+  std::optional<AsyncExecutor> async_executor;
+  std::optional<HttpClient> http_client;
 };
 
 TEST_F(HttpClientTestII, Success) {
@@ -353,8 +352,6 @@ TEST_F(HttpClientTestII, ConcurrentReuse) {
   request->method = HttpMethod::GET;
   request->path = std::make_shared<std::string>(
       "http://localhost:" + std::to_string(server->PortInUse()) + "/test");
-  std::shared_ptr<AsyncExecutorInterface> async_executor =
-      std::make_shared<AsyncExecutor>(2, 1000);
 
   std::vector<std::promise<void>> done;
   done.reserve(10);

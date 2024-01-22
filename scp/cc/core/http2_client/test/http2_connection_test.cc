@@ -67,8 +67,8 @@ TEST(HttpConnectionTest, SimpleRequest) {
   });
   server.listen_and_serve(ec, "localhost", "0", true);
 
-  auto async_executor = std::make_shared<AsyncExecutor>(2, 20);
-  MockHttpConnection connection(async_executor, "localhost",
+  AsyncExecutor async_executor(2, 20);
+  MockHttpConnection connection(&async_executor, "localhost",
                                 std::to_string(server.ports()[0]), false);
 
   ASSERT_SUCCESS(connection.Init());
@@ -127,8 +127,8 @@ TEST(HttpConnectionTest, CancelCallbacks) {
   });
   server.listen_and_serve(ec, "localhost", "0", true);
 
-  auto async_executor = std::make_shared<AsyncExecutor>(2, 20);
-  MockHttpConnection connection(async_executor, "localhost",
+  AsyncExecutor async_executor(2, 20);
+  MockHttpConnection connection(&async_executor, "localhost",
                                 std::to_string(server.ports()[0]), false);
 
   ASSERT_SUCCESS(connection.Init());
@@ -192,8 +192,8 @@ TEST(HttpConnectionTest, StopRemovesCallback) {
   });
   server.listen_and_serve(ec, "localhost", "0", true);
 
-  auto async_executor = std::make_shared<AsyncExecutor>(2, 20);
-  MockHttpConnection connection(async_executor, "localhost",
+  AsyncExecutor async_executor(2, 20);
+  MockHttpConnection connection(&async_executor, "localhost",
                                 std::to_string(server.ports()[0]), false);
 
   ASSERT_SUCCESS(connection.Init());

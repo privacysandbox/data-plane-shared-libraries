@@ -96,15 +96,7 @@ namespace google::scp::cpio::client_providers {
 
 ExecutionResult GcpQueueClientProvider::Init() noexcept {
   ExecutionResult execution_result(SuccessExecutionResult());
-  if (!queue_client_options_) {
-    execution_result = FailureExecutionResult(
-        SC_GCP_QUEUE_CLIENT_PROVIDER_QUEUE_CLIENT_OPTIONS_REQUIRED);
-    SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, execution_result,
-              "Invalid queue client options.");
-    return execution_result;
-  }
-
-  if (queue_client_options_->queue_name.empty()) {
+  if (queue_client_options_.queue_name.empty()) {
     execution_result = FailureExecutionResult(
         SC_GCP_QUEUE_CLIENT_PROVIDER_QUEUE_NAME_REQUIRED);
     SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, execution_result,
@@ -117,7 +109,7 @@ ExecutionResult GcpQueueClientProvider::Init() noexcept {
 
 ExecutionResult GcpQueueClientProvider::Run() noexcept {
   auto project_id_or =
-      GcpInstanceClientUtils::GetCurrentProjectId(instance_client_provider_);
+      GcpInstanceClientUtils::GetCurrentProjectId(*instance_client_provider_);
   if (!project_id_or.Successful()) {
     SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, project_id_or.result(),
               "Failed to get project ID for current instance");
@@ -146,10 +138,10 @@ ExecutionResult GcpQueueClientProvider::Run() noexcept {
   }
 
   topic_name_ = absl::StrFormat(kGcpTopicFormatString, project_id_,
-                                queue_client_options_->queue_name);
+                                queue_client_options_.queue_name);
   subscription_name_ =
       absl::StrFormat(kGcpSubscriptionFormatString, project_id_,
-                      queue_client_options_->queue_name);
+                      queue_client_options_.queue_name);
 
   return SuccessExecutionResult();
 }
@@ -211,7 +203,7 @@ void GcpQueueClientProvider::EnqueueMessageAsync(
         "Failed to enqueue message due to GCP Pub/Sub service error. Topic: %s",
         topic_name_.c_str());
     FinishContext(execution_result, enqueue_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
@@ -226,7 +218,7 @@ void GcpQueueClientProvider::EnqueueMessageAsync(
         "not match the number of message in the request. Topic: %s",
         topic_name_.c_str());
     FinishContext(execution_result, enqueue_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
@@ -234,7 +226,7 @@ void GcpQueueClientProvider::EnqueueMessageAsync(
   response->set_message_id(publish_response.message_ids(0));
   enqueue_message_context.response = std::move(response);
   FinishContext(SuccessExecutionResult(), enqueue_message_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 ExecutionResult GcpQueueClientProvider::GetTopMessage(
@@ -277,7 +269,7 @@ void GcpQueueClientProvider::GetTopMessageAsync(
         "Subscription: %s",
         subscription_name_.c_str());
     FinishContext(execution_result, get_top_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
@@ -293,7 +285,7 @@ void GcpQueueClientProvider::GetTopMessageAsync(
         "than the maximum number. Subscription: %s",
         subscription_name_.c_str());
     FinishContext(execution_result, get_top_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
@@ -301,7 +293,7 @@ void GcpQueueClientProvider::GetTopMessageAsync(
     get_top_message_context.response =
         std::make_shared<GetTopMessageResponse>();
     FinishContext(SuccessExecutionResult(), get_top_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
@@ -313,7 +305,7 @@ void GcpQueueClientProvider::GetTopMessageAsync(
   get_top_message_context.response = std::move(response);
 
   FinishContext(SuccessExecutionResult(), get_top_message_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
@@ -400,14 +392,15 @@ void GcpQueueClientProvider::UpdateMessageVisibilityTimeoutAsync(
         "service error. Subscription: %s",
         subscription_name_.c_str());
     FinishContext(execution_result, update_message_visibility_timeout_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
   update_message_visibility_timeout_context.response =
       std::make_shared<UpdateMessageVisibilityTimeoutResponse>();
   FinishContext(SuccessExecutionResult(),
-                update_message_visibility_timeout_context, cpu_async_executor_);
+                update_message_visibility_timeout_context,
+                *cpu_async_executor_);
 }
 
 ExecutionResult GcpQueueClientProvider::DeleteMessage(
@@ -464,17 +457,17 @@ void GcpQueueClientProvider::DeleteMessageAsync(
                       "service error. Subscription: %s",
                       subscription_name_.c_str());
     FinishContext(execution_result, delete_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
   delete_message_context.response = std::make_shared<DeleteMessageResponse>();
   FinishContext(SuccessExecutionResult(), delete_message_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 std::shared_ptr<Channel> GcpPubSubStubFactory::GetPubSubChannel(
-    const std::shared_ptr<QueueClientOptions>& options) noexcept {
+    const QueueClientOptions& options) noexcept {
   if (!channel_) {
     ChannelArguments args;
     args.SetInt(GRPC_ARG_ENABLE_RETRIES, 1);  // enable
@@ -486,27 +479,28 @@ std::shared_ptr<Channel> GcpPubSubStubFactory::GetPubSubChannel(
 
 std::shared_ptr<Publisher::StubInterface>
 GcpPubSubStubFactory::CreatePublisherStub(
-    const std::shared_ptr<QueueClientOptions>& options) noexcept {
+    const QueueClientOptions& options) noexcept {
   return std::unique_ptr<Publisher::Stub>(
       Publisher::NewStub(GetPubSubChannel(options), StubOptions()));
 }
 
 std::shared_ptr<Subscriber::StubInterface>
 GcpPubSubStubFactory::CreateSubscriberStub(
-    const std::shared_ptr<QueueClientOptions>& options) noexcept {
+    const QueueClientOptions& options) noexcept {
   return std::unique_ptr<Subscriber::Stub>(
       Subscriber::NewStub(GetPubSubChannel(options), StubOptions()));
 }
 
 #ifndef TEST_CPIO
-std::shared_ptr<QueueClientProviderInterface>
+std::unique_ptr<QueueClientProviderInterface>
 QueueClientProviderFactory::Create(
-    const std::shared_ptr<QueueClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface> instance_client,
-    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  return std::make_shared<GcpQueueClientProvider>(
-      options, instance_client, cpu_async_executor, io_async_executor);
+    QueueClientOptions options,
+    InstanceClientProviderInterface* instance_client,
+    AsyncExecutorInterface* cpu_async_executor,
+    AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<GcpQueueClientProvider>(
+      std::move(options), instance_client, cpu_async_executor,
+      io_async_executor);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

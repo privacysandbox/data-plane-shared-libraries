@@ -78,12 +78,11 @@ static constexpr char kLifecycleStateTerminatingProceed[] =
 static constexpr char kLifecycleActionResultContinue[] = "CONTINUE";
 
 namespace google::scp::cpio::client_providers {
-std::shared_ptr<ClientConfiguration>
-AwsAutoScalingClientProvider::CreateClientConfiguration(
+ClientConfiguration AwsAutoScalingClientProvider::CreateClientConfiguration(
     std::string_view region) noexcept {
   return common::CreateClientConfiguration(
 
-      std::make_shared<std::string>(std::move(region)));
+      std::string(region));
 }
 
 ExecutionResult AwsAutoScalingClientProvider::Init() noexcept {
@@ -92,15 +91,15 @@ ExecutionResult AwsAutoScalingClientProvider::Init() noexcept {
 
 ExecutionResult AwsAutoScalingClientProvider::Run() noexcept {
   auto region_code_or =
-      AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_provider_);
+      AwsInstanceClientUtils::GetCurrentRegionCode(*instance_client_provider_);
   if (!region_code_or.Successful()) {
     SCP_ERROR(kAwsAutoScalingClientProvider, kZeroUuid, region_code_or.result(),
               "Failed to get region code for current instance");
     return region_code_or.result();
   }
 
-  auto_scaling_client_ = auto_scaling_client_factory_->CreateAutoScalingClient(
-      *CreateClientConfiguration(*region_code_or), io_async_executor_);
+  auto_scaling_client_ = auto_scaling_client_factory_.CreateAutoScalingClient(
+      CreateClientConfiguration(*region_code_or), io_async_executor_);
 
   return SuccessExecutionResult();
 }
@@ -249,24 +248,23 @@ void AwsAutoScalingClientProvider::OnCompleteLifecycleActionCallback(
   try_termination_context.Finish();
 }
 
-std::shared_ptr<AutoScalingClient>
+std::unique_ptr<AutoScalingClient>
 AutoScalingClientFactory::CreateAutoScalingClient(
-    ClientConfiguration& client_config,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+    ClientConfiguration client_config,
+    AsyncExecutorInterface* io_async_executor) noexcept {
   client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor);
-  return std::make_shared<AutoScalingClient>(client_config);
+  return std::make_unique<AutoScalingClient>(client_config);
 }
 
 #ifndef TEST_CPIO
-std::shared_ptr<AutoScalingClientProviderInterface>
+std::unique_ptr<AutoScalingClientProviderInterface>
 AutoScalingClientProviderFactory::Create(
-    const std::shared_ptr<AutoScalingClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<AwsAutoScalingClientProvider>(
-      options, instance_client_provider, io_async_executor);
+    AutoScalingClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<AwsAutoScalingClientProvider>(
+      std::move(options), instance_client_provider, io_async_executor);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

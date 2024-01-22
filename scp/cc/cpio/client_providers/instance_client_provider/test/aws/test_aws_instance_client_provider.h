@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "core/interface/service_interface.h"
@@ -33,9 +34,8 @@ namespace google::scp::cpio::client_providers {
  */
 class TestAwsInstanceClientProvider : public TestInstanceClientProvider {
  public:
-  explicit TestAwsInstanceClientProvider(
-      const std::shared_ptr<TestInstanceClientOptions>& test_options)
-      : TestInstanceClientProvider(test_options) {}
+  explicit TestAwsInstanceClientProvider(TestInstanceClientOptions test_options)
+      : TestInstanceClientProvider(std::move(test_options)) {}
 
   core::ExecutionResult GetCurrentInstanceResourceNameSync(
       std::string& resource_name) noexcept override;

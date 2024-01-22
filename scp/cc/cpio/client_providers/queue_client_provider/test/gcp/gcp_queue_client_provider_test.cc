@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 
 #include <google/pubsub/v1/pubsub.grpc.pb.h>
@@ -98,21 +99,16 @@ namespace google::scp::cpio::client_providers::gcp_queue_client::test {
 class MockGcpPubSubStubFactory : public GcpPubSubStubFactory {
  public:
   MOCK_METHOD(std::shared_ptr<Publisher::StubInterface>, CreatePublisherStub,
-              (const std::shared_ptr<QueueClientOptions>&),
-              (noexcept, override));
+              (const QueueClientOptions&), (noexcept, override));
   MOCK_METHOD(std::shared_ptr<Subscriber::StubInterface>, CreateSubscriberStub,
-              (const std::shared_ptr<QueueClientOptions>&),
-              (noexcept, override));
+              (const QueueClientOptions&), (noexcept, override));
 };
 
 class GcpQueueClientProviderTest : public ::testing::Test {
  protected:
   GcpQueueClientProviderTest() {
-    queue_client_options_ = std::make_shared<QueueClientOptions>();
-    queue_client_options_->queue_name = kQueueName;
-    mock_instance_client_provider_ =
-        std::make_shared<MockInstanceClientProvider>();
-    mock_instance_client_provider_->instance_resource_name =
+    queue_client_options_.queue_name = kQueueName;
+    mock_instance_client_provider_.instance_resource_name =
         kInstanceResourceName;
 
     mock_publisher_stub_ = std::make_shared<NiceMock<MockPublisherStub>>();
@@ -125,10 +121,9 @@ class GcpQueueClientProviderTest : public ::testing::Test {
     ON_CALL(*mock_pubsub_stub_factory_, CreateSubscriberStub)
         .WillByDefault(Return(mock_subscriber_stub_));
 
-    queue_client_provider_ = std::make_unique<GcpQueueClientProvider>(
-        queue_client_options_, mock_instance_client_provider_,
-        std::make_shared<MockAsyncExecutor>(),
-        std::make_shared<MockAsyncExecutor>(), mock_pubsub_stub_factory_);
+    queue_client_provider_.emplace(
+        queue_client_options_, &mock_instance_client_provider_,
+        &cpu_async_executor_, &io_async_executor_, mock_pubsub_stub_factory_);
 
     enqueue_message_context_.request =
         std::make_shared<EnqueueMessageRequest>();
@@ -159,12 +154,14 @@ class GcpQueueClientProviderTest : public ::testing::Test {
 
   void TearDown() override { EXPECT_SUCCESS(queue_client_provider_->Stop()); }
 
-  std::shared_ptr<QueueClientOptions> queue_client_options_;
-  std::shared_ptr<MockInstanceClientProvider> mock_instance_client_provider_;
+  QueueClientOptions queue_client_options_;
+  MockInstanceClientProvider mock_instance_client_provider_;
+  MockAsyncExecutor cpu_async_executor_;
+  MockAsyncExecutor io_async_executor_;
   std::shared_ptr<MockPublisherStub> mock_publisher_stub_;
   std::shared_ptr<MockSubscriberStub> mock_subscriber_stub_;
   std::shared_ptr<MockGcpPubSubStubFactory> mock_pubsub_stub_factory_;
-  std::unique_ptr<GcpQueueClientProvider> queue_client_provider_;
+  std::optional<GcpQueueClientProvider> queue_client_provider_;
 
   AsyncContext<EnqueueMessageRequest, EnqueueMessageResponse>
       enqueue_message_context_;
@@ -185,39 +182,30 @@ class GcpQueueClientProviderTest : public ::testing::Test {
   bool finish_called_ ABSL_GUARDED_BY(finish_called_mu_) = false;
 };
 
-TEST_F(GcpQueueClientProviderTest, InitWithNullQueueClientOptions) {
-  auto client = std::make_unique<GcpQueueClientProvider>(
-      nullptr, mock_instance_client_provider_,
-      std::make_shared<MockAsyncExecutor>(),
-      std::make_shared<MockAsyncExecutor>(), mock_pubsub_stub_factory_);
-
-  EXPECT_THAT(client->Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_QUEUE_CLIENT_PROVIDER_QUEUE_CLIENT_OPTIONS_REQUIRED)));
-}
-
 TEST_F(GcpQueueClientProviderTest, InitWithEmptyQueueName) {
-  queue_client_options_->queue_name = "";
-  auto client = std::make_unique<GcpQueueClientProvider>(
-      queue_client_options_, mock_instance_client_provider_,
-      std::make_shared<MockAsyncExecutor>(),
-      std::make_shared<MockAsyncExecutor>(), mock_pubsub_stub_factory_);
+  queue_client_options_.queue_name = "";
+  MockAsyncExecutor cpu_async_executor;
+  MockAsyncExecutor io_async_executor;
+  GcpQueueClientProvider client(
+      queue_client_options_, &mock_instance_client_provider_,
+      &cpu_async_executor, &io_async_executor, mock_pubsub_stub_factory_);
 
-  EXPECT_THAT(client->Init(),
+  EXPECT_THAT(client.Init(),
               ResultIs(FailureExecutionResult(
                   SC_GCP_QUEUE_CLIENT_PROVIDER_QUEUE_NAME_REQUIRED)));
 }
 
 TEST_F(GcpQueueClientProviderTest, InitWithGetProjectIdFailure) {
-  mock_instance_client_provider_->get_instance_resource_name_mock =
+  mock_instance_client_provider_.get_instance_resource_name_mock =
       FailureExecutionResult(123);
-  auto client = std::make_unique<GcpQueueClientProvider>(
-      queue_client_options_, mock_instance_client_provider_,
-      std::make_shared<MockAsyncExecutor>(),
-      std::make_shared<MockAsyncExecutor>(), mock_pubsub_stub_factory_);
+  MockAsyncExecutor cpu_async_executor;
+  MockAsyncExecutor io_async_executor;
+  GcpQueueClientProvider client(
+      queue_client_options_, &mock_instance_client_provider_,
+      &cpu_async_executor, &io_async_executor, mock_pubsub_stub_factory_);
 
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_THAT(client->Run(), ResultIs(FailureExecutionResult(123)));
+  EXPECT_THAT(client.Run(), ResultIs(FailureExecutionResult(123)));
 }
 
 TEST_F(GcpQueueClientProviderTest, InitWithPublisherCreationFailure) {

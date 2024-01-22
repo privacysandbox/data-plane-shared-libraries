@@ -40,18 +40,17 @@ class AwsQueueClientProvider : public QueueClientProviderInterface {
   virtual ~AwsQueueClientProvider() = default;
 
   explicit AwsQueueClientProvider(
-      const std::shared_ptr<QueueClientOptions>& queue_client_options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      const std::shared_ptr<AwsSqsClientFactory>& sqs_client_factory =
+      QueueClientOptions queue_client_options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor,
+      std::shared_ptr<AwsSqsClientFactory> sqs_client_factory =
           std::make_shared<AwsSqsClientFactory>())
-      : queue_client_options_(queue_client_options),
+      : queue_client_options_(std::move(queue_client_options)),
         instance_client_provider_(instance_client_provider),
         cpu_async_executor_(cpu_async_executor),
         io_async_executor_(io_async_executor),
-        sqs_client_factory_(sqs_client_factory) {}
+        sqs_client_factory_(std::move(sqs_client_factory)) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -84,10 +83,10 @@ class AwsQueueClientProvider : public QueueClientProviderInterface {
   /**
    * @brief Creates a Client Configuration object.
    *
-   * @return core::ExecutionResultOr<std::shared_ptr<ClientConfiguration>> the
-   * AWS client configuration.
+   * @return core::ExecutionResultOr<ClientConfiguration> the AWS client
+   * configuration.
    */
-  core::ExecutionResultOr<std::shared_ptr<Aws::Client::ClientConfiguration>>
+  core::ExecutionResultOr<Aws::Client::ClientConfiguration>
   CreateClientConfiguration() noexcept;
 
   /**
@@ -187,14 +186,14 @@ class AwsQueueClientProvider : public QueueClientProviderInterface {
           async_context) noexcept;
 
   /// The configuration for queue client.
-  std::shared_ptr<QueueClientOptions> queue_client_options_;
+  QueueClientOptions queue_client_options_;
 
   /// The instance client provider.
-  std::shared_ptr<InstanceClientProviderInterface> instance_client_provider_;
+  InstanceClientProviderInterface* instance_client_provider_;
 
   /// The instance of the async executor.
-  const std::shared_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
-      io_async_executor_;
+  core::AsyncExecutorInterface* cpu_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 
   /// Queue URL of the current queue.
   std::string queue_url_;
@@ -214,9 +213,9 @@ class AwsSqsClientFactory {
    *
    * @return std::shared_ptr<Aws::SQS::SQSClient> the creation result.
    */
+  // TODO(b/321783452): Update to return unique_ptr instead of shared_ptr.
   virtual std::shared_ptr<Aws::SQS::SQSClient> CreateSqsClient(
-      const std::shared_ptr<Aws::Client::ClientConfiguration>
-          client_config) noexcept;
+      const Aws::Client::ClientConfiguration& client_config) noexcept;
 
   virtual ~AwsSqsClientFactory() = default;
 };

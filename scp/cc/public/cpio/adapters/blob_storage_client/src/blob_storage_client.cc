@@ -59,37 +59,37 @@ namespace google::scp::cpio {
 
 ExecutionResult BlobStorageClient::Init() noexcept {
   cpio_ = GlobalCpio::GetGlobalCpio().get();
-  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  AsyncExecutorInterface* cpu_async_executor;
   if (auto executor = cpio_->GetCpuAsyncExecutor(); !executor.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
               "Failed to get AsyncExecutor.");
     return execution_result;
   } else {
-    cpu_async_executor = *std::move(executor);
+    cpu_async_executor = *executor;
   }
 
-  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
+  AsyncExecutorInterface* io_async_executor;
   if (auto executor = cpio_->GetIoAsyncExecutor(); !executor.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
               "Failed to get IOAsyncExecutor.");
     return execution_result;
   } else {
-    io_async_executor = *std::move(executor);
+    io_async_executor = *executor;
   }
 
-  std::shared_ptr<InstanceClientProviderInterface> instance_client;
+  InstanceClientProviderInterface* instance_client;
   if (auto client = cpio_->GetInstanceClientProvider(); !client.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
               "Failed to get InstanceClientProvider.");
     return execution_result;
   } else {
-    instance_client = *std::move(client);
+    instance_client = *client;
   }
   blob_storage_client_provider_ = BlobStorageClientProviderFactory::Create(
-      options_, instance_client, cpu_async_executor, io_async_executor);
+      *options_, instance_client, cpu_async_executor, io_async_executor);
   auto execution_result = blob_storage_client_provider_->Init();
   if (!execution_result.Successful()) {
     SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
@@ -157,6 +157,6 @@ ExecutionResult BlobStorageClient::PutBlobStream(
 std::unique_ptr<BlobStorageClientInterface> BlobStorageClientFactory::Create(
     BlobStorageClientOptions options) {
   return std::make_unique<BlobStorageClient>(
-      std::make_shared<BlobStorageClientOptions>(options));
+      std::make_shared<BlobStorageClientOptions>(std::move(options)));
 }
 }  // namespace google::scp::cpio

@@ -18,6 +18,7 @@
 #define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_MOCK_MOCK_METRIC_CLIENT_PROVIDER_WITH_OVERRIDES_H_
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "core/interface/async_context.h"
@@ -30,12 +31,11 @@ namespace google::scp::cpio::client_providers::mock {
 class MockMetricClientWithOverrides : public MetricClientProvider {
  public:
   explicit MockMetricClientWithOverrides(
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
-      const std::shared_ptr<MetricBatchingOptions>& metric_batching_options)
-      : MetricClientProvider(async_executor,
-                             std::make_shared<MetricClientOptions>(),
-                             std::make_shared<MockInstanceClientProvider>(),
-                             metric_batching_options) {}
+      core::AsyncExecutorInterface* async_executor,
+      MetricBatchingOptions metric_batching_options)
+      : MetricClientProvider(async_executor, MetricClientOptions(),
+                             &instance_client_provider_,
+                             std::move(metric_batching_options)) {}
 
   std::function<core::ExecutionResult(
       core::AsyncContext<cmrt::sdk::metric_service::v1::PutMetricsRequest,
@@ -101,6 +101,9 @@ class MockMetricClientWithOverrides : public MetricClientProvider {
     }
     return core::SuccessExecutionResult();
   }
+
+ private:
+  MockInstanceClientProvider instance_client_provider_;
 };
 }  // namespace google::scp::cpio::client_providers::mock
 

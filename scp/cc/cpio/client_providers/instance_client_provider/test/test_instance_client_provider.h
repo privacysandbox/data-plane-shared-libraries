@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "core/interface/service_interface.h"
@@ -59,9 +60,8 @@ struct TestInstanceClientOptions {
  */
 class TestInstanceClientProvider : public InstanceClientProviderInterface {
  public:
-  explicit TestInstanceClientProvider(
-      const std::shared_ptr<TestInstanceClientOptions>& test_options)
-      : test_options_(test_options) {}
+  explicit TestInstanceClientProvider(TestInstanceClientOptions test_options)
+      : test_options_(std::move(test_options)) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -105,7 +105,7 @@ class TestInstanceClientProvider : public InstanceClientProviderInterface {
           instance_details) noexcept override;
 
  protected:
-  std::shared_ptr<TestInstanceClientOptions> test_options_;
+  TestInstanceClientOptions test_options_;
 };
 }  // namespace google::scp::cpio::client_providers
 

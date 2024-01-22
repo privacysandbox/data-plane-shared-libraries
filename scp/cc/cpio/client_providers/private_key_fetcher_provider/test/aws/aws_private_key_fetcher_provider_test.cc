@@ -67,11 +67,8 @@ namespace google::scp::cpio::client_providers::test {
 class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   AwsPrivateKeyFetcherProviderTest()
-      : http_client_(std::make_shared<MockHttpClient>()),
-        credentials_provider_(std::make_shared<MockRoleCredentialsProvider>()),
-        aws_private_key_fetcher_provider_(
-            std::make_unique<AwsPrivateKeyFetcherProvider>(
-                http_client_, credentials_provider_)) {
+      : aws_private_key_fetcher_provider_(std::in_place_t{}, &http_client_,
+                                          &credentials_provider_) {
     SDKOptions options;
     InitAPI(options);
     EXPECT_SUCCESS(aws_private_key_fetcher_provider_->Init());
@@ -96,26 +93,23 @@ class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
   }
 
   void MockRequest(std::string_view uri) {
-    http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = std::make_shared<std::string>(uri);
+    http_client_.request_mock = HttpRequest();
+    http_client_.request_mock.path = std::make_shared<std::string>(uri);
   }
 
   void MockResponse(std::string_view str) {
-    http_client_->response_mock = HttpResponse();
-    http_client_->response_mock.body = BytesBuffer(str);
+    http_client_.response_mock = HttpResponse();
+    http_client_.response_mock.body = BytesBuffer(str);
   }
 
-  std::shared_ptr<MockHttpClient> http_client_;
-  std::shared_ptr<MockRoleCredentialsProvider> credentials_provider_;
-  std::unique_ptr<AwsPrivateKeyFetcherProvider>
-      aws_private_key_fetcher_provider_;
+  MockHttpClient http_client_;
+  MockRoleCredentialsProvider credentials_provider_;
+  std::optional<AwsPrivateKeyFetcherProvider> aws_private_key_fetcher_provider_;
   std::shared_ptr<PrivateKeyFetchingRequest> request_;
 };
 
 TEST_F(AwsPrivateKeyFetcherProviderTest, MissingHttpClient) {
-  aws_private_key_fetcher_provider_ =
-      std::make_unique<AwsPrivateKeyFetcherProvider>(nullptr,
-                                                     credentials_provider_);
+  aws_private_key_fetcher_provider_.emplace(nullptr, &credentials_provider_);
 
   EXPECT_THAT(aws_private_key_fetcher_provider_->Init(),
               ResultIs(FailureExecutionResult(
@@ -123,8 +117,7 @@ TEST_F(AwsPrivateKeyFetcherProviderTest, MissingHttpClient) {
 }
 
 TEST_F(AwsPrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
-  aws_private_key_fetcher_provider_ =
-      std::make_unique<AwsPrivateKeyFetcherProvider>(http_client_, nullptr);
+  aws_private_key_fetcher_provider_.emplace(&http_client_, nullptr);
 
   EXPECT_THAT(
       aws_private_key_fetcher_provider_->Init(),
@@ -149,7 +142,7 @@ TEST_F(AwsPrivateKeyFetcherProviderTest, SignHttpRequest) {
 }
 
 TEST_F(AwsPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
-  credentials_provider_->fail_credentials = true;
+  credentials_provider_.fail_credentials = true;
 
   absl::Notification condition;
 

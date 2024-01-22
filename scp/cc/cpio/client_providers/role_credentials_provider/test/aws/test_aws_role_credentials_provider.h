@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
@@ -47,20 +48,19 @@ struct TestAwsRoleCredentialsProviderOptions
 class TestAwsRoleCredentialsProvider : public AwsRoleCredentialsProvider {
  public:
   explicit TestAwsRoleCredentialsProvider(
-      const std::shared_ptr<TestAwsRoleCredentialsProviderOptions>& options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor)
+      TestAwsRoleCredentialsProviderOptions options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor)
       : AwsRoleCredentialsProvider(instance_client_provider, cpu_async_executor,
                                    io_async_executor),
-        test_options_(options) {}
+        test_options_(std::move(options)) {}
 
  protected:
-  std::shared_ptr<Aws::Client::ClientConfiguration> CreateClientConfiguration(
+  Aws::Client::ClientConfiguration CreateClientConfiguration(
       std::string_view region) noexcept override;
 
-  std::shared_ptr<TestAwsRoleCredentialsProviderOptions> test_options_;
+  TestAwsRoleCredentialsProviderOptions test_options_;
 };
 }  // namespace google::scp::cpio::client_providers
 

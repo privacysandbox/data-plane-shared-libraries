@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "cpio/client_providers/queue_client_provider/src/gcp/gcp_queue_client_provider.h"
 
@@ -29,8 +30,8 @@ struct TestGcpQueueClientOptions : public QueueClientOptions {
 
   TestGcpQueueClientOptions() = default;
 
-  explicit TestGcpQueueClientOptions(const QueueClientOptions& options)
-      : QueueClientOptions(options) {}
+  explicit TestGcpQueueClientOptions(QueueClientOptions options)
+      : QueueClientOptions(std::move(options)) {}
 
   // TODO: get rid of shared_ptr.
   std::shared_ptr<std::string> pubsub_client_endpoint_override =
@@ -44,7 +45,7 @@ struct TestGcpQueueClientOptions : public QueueClientOptions {
 class TestGcpPubSubStubFactory : public GcpPubSubStubFactory {
  private:
   std::shared_ptr<grpc::Channel> GetPubSubChannel(
-      const std::shared_ptr<QueueClientOptions>& options) noexcept override;
+      const QueueClientOptions& options) noexcept override;
 };
 
 /*! @copydoc GcpQueueClientProvider
@@ -52,14 +53,14 @@ class TestGcpPubSubStubFactory : public GcpPubSubStubFactory {
 class TestGcpQueueClientProvider : public GcpQueueClientProvider {
  public:
   explicit TestGcpQueueClientProvider(
-      const std::shared_ptr<TestGcpQueueClientOptions>& queue_client_options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor)
-      : GcpQueueClientProvider(queue_client_options, instance_client_provider,
-                               cpu_async_executor, io_async_executor,
-                               std::make_shared<TestGcpPubSubStubFactory>()) {}
+      TestGcpQueueClientOptions queue_client_options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor)
+      : GcpQueueClientProvider(std::move(queue_client_options),
+                               instance_client_provider, cpu_async_executor,
+                               io_async_executor,
+                               std::make_unique<TestGcpPubSubStubFactory>()) {}
 };
 }  // namespace google::scp::cpio::client_providers
 

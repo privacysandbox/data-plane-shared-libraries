@@ -20,6 +20,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
@@ -35,12 +36,11 @@ namespace google::scp::core::blob_storage_provider {
  */
 class AwsS3Client : public BlobStorageClientInterface {
  public:
-  explicit AwsS3Client(
-      const std::shared_ptr<Aws::S3::S3Client>& s3_client,
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
-      AsyncPriority async_execution_priority =
-          kDefaultAsyncPriorityForCallbackExecution)
-      : s3_client_(s3_client),
+  explicit AwsS3Client(std::shared_ptr<Aws::S3::S3Client> s3_client,
+                       core::AsyncExecutorInterface* async_executor,
+                       AsyncPriority async_execution_priority =
+                           kDefaultAsyncPriorityForCallbackExecution)
+      : s3_client_(std::move(s3_client)),
         async_executor_(async_executor),
         async_execution_priority_(async_execution_priority) {}
 
@@ -135,10 +135,10 @@ class AwsS3Client : public BlobStorageClientInterface {
   /// An instance of the AWS S3 client.
   std::shared_ptr<Aws::S3::S3Client> s3_client_;
   /// An instance of the async executor.
-  const std::shared_ptr<core::AsyncExecutorInterface> async_executor_;
+  core::AsyncExecutorInterface* async_executor_;
   /// Priority with which the tasks will be scheduled onto the async
   /// executor.
-  const AsyncPriority async_execution_priority_;
+  AsyncPriority async_execution_priority_;
 };
 
 /*! @copydoc BlobStorageProviderInterface
@@ -146,8 +146,8 @@ class AwsS3Client : public BlobStorageClientInterface {
 class AwsS3Provider : public BlobStorageProviderInterface {
  public:
   explicit AwsS3Provider(
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
+      core::AsyncExecutorInterface* async_executor,
+      core::AsyncExecutorInterface* io_async_executor,
       const std::shared_ptr<core::ConfigProviderInterface>& config_provider,
       AsyncPriority async_execution_priority,
       AsyncPriority io_async_execution_priority)
@@ -174,10 +174,10 @@ class AwsS3Provider : public BlobStorageProviderInterface {
   virtual void CreateS3() noexcept;
 
   /// An instance of the async executor. To execute call
-  const std::shared_ptr<core::AsyncExecutorInterface> async_executor_;
+  core::AsyncExecutorInterface* async_executor_;
 
   /// An instance of the IO async executor.
-  const std::shared_ptr<core::AsyncExecutorInterface> io_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 
   /// An instance of the AWS client configuration.
   std::shared_ptr<Aws::Client::ClientConfiguration> client_config_;

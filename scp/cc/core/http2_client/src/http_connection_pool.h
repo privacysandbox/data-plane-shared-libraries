@@ -67,7 +67,7 @@ class HttpConnectionPool : public ServiceInterface {
    * host.
    */
   explicit HttpConnectionPool(
-      const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+      AsyncExecutorInterface* async_executor,
       size_t max_connections_per_host = kDefaultMaxConnectionsPerHost,
       TimeDuration http2_read_timeout_in_sec =
           kDefaultHttp2ReadTimeoutInSeconds)
@@ -100,6 +100,7 @@ class HttpConnectionPool : public ServiceInterface {
    * @param is_https
    * @return shared_ptr<HttpConnection>
    */
+  // TODO(b/321777877): Change from shared_ptr to unique_ptr
   virtual std::shared_ptr<HttpConnection> CreateHttpConnection(
       std::string host, std::string service, bool is_https,
       TimeDuration http2_read_timeout_in_sec);
@@ -115,7 +116,7 @@ class HttpConnectionPool : public ServiceInterface {
       ABSL_LOCKS_EXCLUDED(connection_lock_);
 
   /// Instance of the async executor.
-  const std::shared_ptr<AsyncExecutorInterface> async_executor_;
+  AsyncExecutorInterface* async_executor_;
 
   /// Max number of connections per host.
   size_t max_connections_per_host_;

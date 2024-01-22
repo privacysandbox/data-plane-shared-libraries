@@ -76,14 +76,10 @@ namespace google::scp::cpio::test {
 class GcpParameterClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    auto async_executor_mock = std::make_shared<MockAsyncExecutor>();
-    auto io_async_executor_mock = std::make_shared<MockAsyncExecutor>();
+    instance_client_mock_.instance_resource_name = kInstanceResourceName;
 
-    auto instance_client_mock = std::make_shared<MockInstanceClientProvider>();
-    instance_client_mock->instance_resource_name = kInstanceResourceName;
-
-    client_ = std::make_unique<MockGcpParameterClientProviderOverrides>(
-        async_executor_mock, io_async_executor_mock, instance_client_mock);
+    client_.emplace(&async_executor_mock_, &io_async_executor_mock_,
+                    &instance_client_mock_);
 
     connection_ =
         std::make_shared<NiceMock<MockSecretManagerServiceConnection>>();
@@ -112,8 +108,11 @@ class GcpParameterClientProviderTest : public ::testing::Test {
     return secret_name;
   }
 
+  MockAsyncExecutor async_executor_mock_;
+  MockAsyncExecutor io_async_executor_mock_;
+  MockInstanceClientProvider instance_client_mock_;
   std::shared_ptr<MockSecretManagerServiceConnection> connection_;
-  std::unique_ptr<MockGcpParameterClientProviderOverrides> client_;
+  std::optional<MockGcpParameterClientProviderOverrides> client_;
   TestCpioOptions cpio_options;
 };
 
@@ -221,41 +220,41 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
 }
 
 TEST(GcpParameterClientProviderTestII, InitFailedToFetchProjectId) {
-  auto async_executor_mock = std::make_shared<MockAsyncExecutor>();
-  auto io_async_executor_mock = std::make_shared<MockAsyncExecutor>();
-  auto instance_client_mock = std::make_shared<MockInstanceClientProvider>();
-  instance_client_mock->get_instance_resource_name_mock =
+  MockAsyncExecutor async_executor_mock;
+  MockAsyncExecutor io_async_executor_mock;
+  MockInstanceClientProvider instance_client_mock;
+  instance_client_mock.get_instance_resource_name_mock =
       FailureExecutionResult(SC_UNKNOWN);
 
   auto connection =
       std::make_shared<NiceMock<MockSecretManagerServiceConnection>>();
   auto mock_sm_client =
-      std::make_shared<SecretManagerServiceClient>(connection);
+      std::make_unique<SecretManagerServiceClient>(connection);
 
-  auto client = std::make_unique<MockGcpParameterClientProviderOverrides>(
-      async_executor_mock, io_async_executor_mock, instance_client_mock);
+  MockGcpParameterClientProviderOverrides client(
+      &async_executor_mock, &io_async_executor_mock, &instance_client_mock);
 
   TestCpioOptions cpio_options;
   EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
 
-  EXPECT_THAT(client->Init(), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_THAT(client.Init(), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
 
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options));
 }
 
 TEST(GcpParameterClientProviderTestII, InitFailedToGetSMClient) {
-  auto async_executor_mock = std::make_shared<MockAsyncExecutor>();
-  auto io_async_executor_mock = std::make_shared<MockAsyncExecutor>();
-  auto instance_client_mock = std::make_shared<MockInstanceClientProvider>();
-  instance_client_mock->instance_resource_name = kInstanceResourceName;
+  MockAsyncExecutor async_executor_mock;
+  MockAsyncExecutor io_async_executor_mock;
+  MockInstanceClientProvider instance_client_mock;
+  instance_client_mock.instance_resource_name = kInstanceResourceName;
 
-  auto client = std::make_unique<MockGcpParameterClientProviderOverrides>(
-      async_executor_mock, io_async_executor_mock, instance_client_mock);
+  MockGcpParameterClientProviderOverrides client(
+      &async_executor_mock, &io_async_executor_mock, &instance_client_mock);
 
   TestCpioOptions cpio_options;
   EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
 
-  EXPECT_THAT(client->Init(),
+  EXPECT_THAT(client.Init(),
               ResultIs(FailureExecutionResult(
                   SC_GCP_PARAMETER_CLIENT_PROVIDER_CREATE_SM_CLIENT_FAILURE)));
 

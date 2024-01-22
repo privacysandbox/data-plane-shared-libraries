@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "cpio/client_providers/interface/auto_scaling_client_provider_interface.h"
 #include "cpio/common/test/aws/test_aws_utils.h"
@@ -26,22 +27,20 @@ using Aws::Client::ClientConfiguration;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
 
 namespace google::scp::cpio::client_providers {
-std::shared_ptr<ClientConfiguration>
-TestAwsAutoScalingClientProvider::CreateClientConfiguration(
+ClientConfiguration TestAwsAutoScalingClientProvider::CreateClientConfiguration(
     std::string_view region) noexcept {
   return CreateTestClientConfiguration(
-      test_options_->auto_scaling_client_endpoint_override,
-      std::make_shared<std::string>(region));
+      *test_options_.auto_scaling_client_endpoint_override,
+      std::string(region));
 }
 
-std::shared_ptr<AutoScalingClientProviderInterface>
+std::unique_ptr<AutoScalingClientProviderInterface>
 AutoScalingClientProviderFactory::Create(
-    const std::shared_ptr<AutoScalingClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<TestAwsAutoScalingClientProvider>(
-      std::dynamic_pointer_cast<TestAwsAutoScalingClientOptions>(options),
+    AutoScalingClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    core::AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<TestAwsAutoScalingClientProvider>(
+      std::move(dynamic_cast<TestAwsAutoScalingClientOptions&>(options)),
       instance_client_provider, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

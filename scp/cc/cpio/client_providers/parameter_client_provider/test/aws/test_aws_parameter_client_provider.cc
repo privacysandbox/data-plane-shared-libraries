@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
@@ -32,22 +33,20 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
 
 namespace google::scp::cpio::client_providers {
-std::shared_ptr<ClientConfiguration>
-TestAwsParameterClientProvider::CreateClientConfiguration(
-    std::string_view region) noexcept {
-  return CreateTestClientConfiguration(test_options_->ssm_endpoint_override,
-                                       std::make_shared<std::string>(region));
+ClientConfiguration TestAwsParameterClientProvider::CreateClientConfiguration(
+    const std::string& region) noexcept {
+  return CreateTestClientConfiguration(*test_options_.ssm_endpoint_override,
+                                       region);
 }
 
-std::shared_ptr<ParameterClientProviderInterface>
+std::unique_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
-    const std::shared_ptr<ParameterClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<TestAwsParameterClientProvider>(
-      std::dynamic_pointer_cast<TestAwsParameterClientOptions>(options),
+    ParameterClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    core::AsyncExecutorInterface* cpu_async_executor,
+    core::AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<TestAwsParameterClientProvider>(
+      std::move(dynamic_cast<TestAwsParameterClientOptions&>(options)),
       instance_client_provider, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

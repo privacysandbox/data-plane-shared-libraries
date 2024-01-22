@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/credentials.h>
@@ -33,19 +34,19 @@ using grpc::CreateCustomChannel;
 
 namespace google::scp::cpio::client_providers {
 std::shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(
-    const std::shared_ptr<QueueClientOptions>& options) noexcept {
+    const QueueClientOptions& options) noexcept {
   if (!channel_) {
     ChannelArguments args;
     args.SetInt(GRPC_ARG_ENABLE_RETRIES, 1);  // enable
-    auto test_options =
-        std::dynamic_pointer_cast<TestGcpQueueClientOptions>(options);
-    if (test_options->access_token.empty()) {
+    const auto& test_options =
+        dynamic_cast<const TestGcpQueueClientOptions&>(options);
+    if (test_options.access_token.empty()) {
       channel_ =
-          CreateCustomChannel(*test_options->pubsub_client_endpoint_override,
+          CreateCustomChannel(*test_options.pubsub_client_endpoint_override,
                               grpc::InsecureChannelCredentials(), args);
     } else {
       auto call_credentials =
-          grpc::AccessTokenCredentials(test_options->access_token);
+          grpc::AccessTokenCredentials(test_options.access_token);
       grpc::SslCredentialsOptions ssl_options;
       auto ssl_credentials = grpc::SslCredentials(ssl_options);
 
@@ -58,15 +59,14 @@ std::shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(
   return channel_;
 }
 
-std::shared_ptr<QueueClientProviderInterface>
+std::unique_ptr<QueueClientProviderInterface>
 QueueClientProviderFactory::Create(
-    const std::shared_ptr<QueueClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>
-        instance_client_provider,
-    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  return std::make_shared<TestGcpQueueClientProvider>(
-      std::dynamic_pointer_cast<TestGcpQueueClientOptions>(options),
+    QueueClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    AsyncExecutorInterface* cpu_async_executor,
+    AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<TestGcpQueueClientProvider>(
+      std::move(dynamic_cast<TestGcpQueueClientOptions&>(options)),
       instance_client_provider, cpu_async_executor, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

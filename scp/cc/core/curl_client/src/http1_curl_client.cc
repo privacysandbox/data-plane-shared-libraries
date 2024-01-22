@@ -30,11 +30,11 @@ constexpr std::string_view kHttp1CurlClient = "Http1CurlClient";
 namespace google::scp::core {
 
 Http1CurlClient::Http1CurlClient(
-    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor,
-    std::shared_ptr<Http1CurlWrapperProvider> curl_wrapper_provider,
+    AsyncExecutorInterface* cpu_async_executor,
+    AsyncExecutorInterface* io_async_executor,
+    std::unique_ptr<Http1CurlWrapperProvider> curl_wrapper_provider,
     common::RetryStrategyOptions retry_strategy_options)
-    : curl_wrapper_provider_(curl_wrapper_provider),
+    : curl_wrapper_provider_(std::move(curl_wrapper_provider)),
       cpu_async_executor_(cpu_async_executor),
       io_async_executor_(io_async_executor),
       operation_dispatcher_(io_async_executor,
@@ -64,7 +64,7 @@ ExecutionResult Http1CurlClient::PerformRequest(
   RETURN_IF_FAILURE(wrapper_or.result());
   operation_dispatcher_.Dispatch<AsyncContext<HttpRequest, HttpResponse>>(
       http_context,
-      [this, &timeout, wrapper = *wrapper_or](auto& http_context) {
+      [this, &timeout, wrapper = wrapper_or->get()](auto& http_context) {
         auto response_or =
             wrapper->PerformRequest(*http_context.request, timeout);
         if (!response_or.Successful()) {
@@ -78,7 +78,7 @@ ExecutionResult Http1CurlClient::PerformRequest(
             std::make_shared<HttpResponse>(std::move(*response_or));
 
         FinishContext(SuccessExecutionResult(), http_context,
-                      cpu_async_executor_);
+                      *cpu_async_executor_);
 
         return SuccessExecutionResult();
       });

@@ -30,21 +30,20 @@ static constexpr int kConnectTimeoutMs = 3000;
 static constexpr int kRequestTimeoutMs = 6000;
 
 namespace google::scp::cpio::common::test {
-std::shared_ptr<ClientConfiguration> CreateTestClientConfiguration(
-    const std::shared_ptr<std::string>& endpoint_override,
-    const std::shared_ptr<std::string>& region) noexcept {
-  auto config = std::make_shared<ClientConfiguration>();
-  if (endpoint_override && !endpoint_override->empty()) {
-    config->endpointOverride = *endpoint_override;
+ClientConfiguration CreateTestClientConfiguration(
+    const std::string& endpoint_override, const std::string& region) noexcept {
+  ClientConfiguration config;
+  if (!endpoint_override.empty()) {
+    config.endpointOverride = endpoint_override;
   }
 
-  if (region && !region->empty()) {
-    config->region = *region;
+  if (!region.empty()) {
+    config.region = region;
   }
 
-  config->scheme = Aws::Http::Scheme::HTTPS;
-  config->connectTimeoutMs = kConnectTimeoutMs;
-  config->requestTimeoutMs = kRequestTimeoutMs;
+  config.scheme = Aws::Http::Scheme::HTTPS;
+  config.connectTimeoutMs = kConnectTimeoutMs;
+  config.requestTimeoutMs = kRequestTimeoutMs;
   return config;
 }
 }  // namespace google::scp::cpio::common::test

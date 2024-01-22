@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <aws/kms/KMSClient.h>
@@ -32,13 +33,12 @@ class MockNonteeAwsKmsClientProviderWithOverrides
     : public NonteeAwsKmsClientProvider {
  public:
   MockNonteeAwsKmsClientProviderWithOverrides(
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credential_provider,
-      const std::shared_ptr<Aws::KMS::KMSClient> mock_kms_client,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor)
+      RoleCredentialsProviderInterface* role_credential_provider,
+      std::shared_ptr<Aws::KMS::KMSClient> mock_kms_client,
+      core::AsyncExecutorInterface* io_async_executor)
       : NonteeAwsKmsClientProvider(role_credential_provider,
                                    io_async_executor) {
-    kms_client_ = mock_kms_client;
+    kms_client_ = std::move(mock_kms_client);
   }
 
   std::shared_ptr<Aws::KMS::KMSClient> GetKmsClient(

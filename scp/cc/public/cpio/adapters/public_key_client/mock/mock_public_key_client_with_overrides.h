@@ -35,18 +35,17 @@ class MockPublicKeyClientWithOverrides : public PublicKeyClient {
 
   core::ExecutionResult CreatePublicKeyClientProvider() noexcept override {
     if (create_public_key_client_provider_result.Successful()) {
-      public_key_client_provider_ = std::make_shared<
+      public_key_client_provider_ = std::make_unique<
           client_providers::mock::MockPublicKeyClientProvider>();
       return create_public_key_client_provider_result;
     }
     return create_public_key_client_provider_result;
   }
 
-  std::shared_ptr<client_providers::mock::MockPublicKeyClientProvider>
+  client_providers::mock::MockPublicKeyClientProvider&
   GetPublicKeyClientProvider() {
-    return std::dynamic_pointer_cast<
-        client_providers::mock::MockPublicKeyClientProvider>(
-        public_key_client_provider_);
+    return dynamic_cast<client_providers::mock::MockPublicKeyClientProvider&>(
+        *public_key_client_provider_);
   }
 };
 }  // namespace google::scp::cpio::mock

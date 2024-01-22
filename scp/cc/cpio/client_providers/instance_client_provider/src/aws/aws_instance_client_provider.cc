@@ -164,7 +164,7 @@ AwsInstanceClientProvider::GetEC2ClientByRegion(
   }
 
   auto ec2_client_or =
-      ec2_factory_->CreateClient(target_region, io_async_executor_);
+      ec2_factory_.CreateClient(target_region, io_async_executor_);
   RETURN_IF_FAILURE(ec2_client_or.result());
 
   ec2_client = std::move(*ec2_client_or);
@@ -411,7 +411,7 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
         kAwsInstanceClientProvider, get_details_context, result,
         "Describe instances request failed for instance %s",
         get_details_context.request->instance_resource_name().c_str());
-    FinishContext(result, get_details_context, cpu_async_executor_);
+    FinishContext(result, get_details_context, *cpu_async_executor_);
     return;
   }
 
@@ -425,7 +425,7 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
         "one instance request for instance %s",
         get_details_context.request->instance_resource_name().c_str());
 
-    FinishContext(execution_result, get_details_context, cpu_async_executor_);
+    FinishContext(execution_result, get_details_context, *cpu_async_executor_);
     return;
   }
 
@@ -452,7 +452,7 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
   }
 
   FinishContext(SuccessExecutionResult(), get_details_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
@@ -510,7 +510,7 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
     SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_tags_context, result,
                       "Get tags request failed for resource %s",
                       get_tags_context.request->resource_name().c_str());
-    FinishContext(result, get_tags_context, cpu_async_executor_);
+    FinishContext(result, get_tags_context, *cpu_async_executor_);
     return;
   }
 
@@ -522,7 +522,7 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
   }
 
   FinishContext(SuccessExecutionResult(), get_tags_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 ExecutionResult AwsInstanceClientProvider::ListInstanceDetailsByEnvironment(
@@ -538,25 +538,23 @@ ExecutionResult AwsInstanceClientProvider::ListInstanceDetailsByEnvironment(
   return result;
 }
 
-ExecutionResultOr<std::shared_ptr<EC2Client>> AwsEC2ClientFactory::CreateClient(
+ExecutionResultOr<std::unique_ptr<EC2Client>> AwsEC2ClientFactory::CreateClient(
     std::string_view region,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  auto client_config =
-      common::CreateClientConfiguration(std::make_shared<std::string>(region));
-  client_config->maxConnections = kMaxConcurrentConnections;
-  client_config->executor =
+    AsyncExecutorInterface* io_async_executor) noexcept {
+  auto client_config = common::CreateClientConfiguration(std::string(region));
+  client_config.maxConnections = kMaxConcurrentConnections;
+  client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor);
-  return std::make_shared<EC2Client>(*client_config);
+  return std::make_unique<EC2Client>(std::move(client_config));
 }
 
-std::shared_ptr<InstanceClientProviderInterface>
+std::unique_ptr<InstanceClientProviderInterface>
 InstanceClientProviderFactory::Create(
-    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-    const std::shared_ptr<HttpClientInterface>& http1_client,
-    const std::shared_ptr<HttpClientInterface>& http2_client,
-    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<AwsInstanceClientProvider>(
+    AuthTokenProviderInterface* auth_token_provider,
+    HttpClientInterface* http1_client, HttpClientInterface* http2_client,
+    AsyncExecutorInterface* cpu_async_executor,
+    AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<AwsInstanceClientProvider>(
       auth_token_provider, http1_client, cpu_async_executor, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

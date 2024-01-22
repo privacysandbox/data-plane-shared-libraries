@@ -26,9 +26,8 @@
 namespace google::scp::core::http2_client::mock {
 class MockHttpConnection : public HttpConnection {
  public:
-  MockHttpConnection(
-      const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-      std::string host, std::string service, bool is_https)
+  MockHttpConnection(AsyncExecutorInterface* async_executor, std::string host,
+                     std::string service, bool is_https)
       : HttpConnection(async_executor, std::move(host), std::move(service),
                        is_https) {}
 

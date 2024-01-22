@@ -33,7 +33,15 @@
 
 namespace google::scp::cpio::client_providers {
 
-class AwsEC2ClientFactory;
+/// Creates Aws::EC2::EC2Client
+class AwsEC2ClientFactory {
+ public:
+  virtual core::ExecutionResultOr<std::unique_ptr<Aws::EC2::EC2Client>>
+  CreateClient(std::string_view region,
+               core::AsyncExecutorInterface* io_async_executor) noexcept;
+
+  virtual ~AwsEC2ClientFactory() = default;
+};
 
 /*! @copydoc InstanceClientProviderInterface
  */
@@ -41,17 +49,16 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
  public:
   /// Constructs a new Aws Instance Client Provider object
   AwsInstanceClientProvider(
-      const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-      const std::shared_ptr<core::HttpClientInterface>& http1_client,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      const std::shared_ptr<AwsEC2ClientFactory>& ec2_factory =
-          std::make_shared<AwsEC2ClientFactory>())
+      AuthTokenProviderInterface* auth_token_provider,
+      core::HttpClientInterface* http1_client,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor,
+      AwsEC2ClientFactory ec2_factory = AwsEC2ClientFactory())
       : auth_token_provider_(auth_token_provider),
         http1_client_(http1_client),
         cpu_async_executor_(cpu_async_executor),
         io_async_executor_(io_async_executor),
-        ec2_factory_(ec2_factory) {}
+        ec2_factory_(std::move(ec2_factory)) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -183,29 +190,17 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
       ec2_clients_list_;
 
   /// Instance of auth token provider.
-  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider_;
+  AuthTokenProviderInterface* auth_token_provider_;
   /// Instance of http client.
-  std::shared_ptr<core::HttpClientInterface> http1_client_;
+  core::HttpClientInterface* http1_client_;
   /// Instances of the async executor for local compute and blocking IO
   /// operations respectively.
-  const std::shared_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
-      io_async_executor_;
+  core::AsyncExecutorInterface* cpu_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 
   /// An instance of the factory for Aws::EC2::EC2Client.
-  std::shared_ptr<AwsEC2ClientFactory> ec2_factory_;
+  AwsEC2ClientFactory ec2_factory_;
 };
-
-/// Creates Aws::EC2::EC2Client
-class AwsEC2ClientFactory {
- public:
-  virtual core::ExecutionResultOr<std::shared_ptr<Aws::EC2::EC2Client>>
-  CreateClient(std::string_view region,
-               const std::shared_ptr<core::AsyncExecutorInterface>&
-                   io_async_executor) noexcept;
-
-  virtual ~AwsEC2ClientFactory() = default;
-};
-
 }  // namespace google::scp::cpio::client_providers
 
 #endif  // CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_

@@ -34,15 +34,13 @@ class MockGcpMetricClientProviderOverrides : public GcpMetricClientProvider {
   explicit MockGcpMetricClientProviderOverrides(
       std::shared_ptr<google::cloud::monitoring::MetricServiceClient>
           metric_service_client,
-      const std::shared_ptr<MetricBatchingOptions>& metric_batching_options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor =
-          nullptr)
-      : GcpMetricClientProvider(
-            metric_service_client, std::make_shared<MetricClientOptions>(),
-            instance_client_provider, async_executor, metric_batching_options) {
-  }
+      MetricBatchingOptions metric_batching_options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* async_executor = nullptr)
+      : GcpMetricClientProvider(std::move(metric_service_client),
+                                MetricClientOptions(), instance_client_provider,
+                                async_executor,
+                                std::move(metric_batching_options)) {}
 
   core::ExecutionResult MetricsBatchPush(
       const std::shared_ptr<std::vector<core::AsyncContext<

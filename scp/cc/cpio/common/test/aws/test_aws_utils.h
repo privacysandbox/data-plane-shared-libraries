@@ -29,7 +29,7 @@ namespace google::scp::cpio::common::test {
  * @return std::shared_ptr<Aws::Client::ClientConfiguration> created
  * ClientConfiguration.
  */
-std::shared_ptr<Aws::Client::ClientConfiguration> CreateTestClientConfiguration(
-    const std::shared_ptr<std::string>& endpoint_override,
-    const std::shared_ptr<std::string>& region = nullptr) noexcept;
+Aws::Client::ClientConfiguration CreateTestClientConfiguration(
+    const std::string& endpoint_override,
+    const std::string& region = "") noexcept;
 }  // namespace google::scp::cpio::common::test

@@ -34,10 +34,9 @@ namespace google::scp::core::async_executor::aws {
  */
 class AwsAsyncExecutor : public Aws::Utils::Threading::Executor {
  public:
-  AwsAsyncExecutor(
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      AsyncPriority io_async_execution_priority =
-          kDefaultAsyncPriorityForBlockingIOTaskExecution)
+  AwsAsyncExecutor(core::AsyncExecutorInterface* io_async_executor,
+                   AsyncPriority io_async_execution_priority =
+                       kDefaultAsyncPriorityForBlockingIOTaskExecution)
       : io_async_executor_(io_async_executor),
         io_async_execution_priority_(io_async_execution_priority) {}
 
@@ -52,9 +51,9 @@ class AwsAsyncExecutor : public Aws::Utils::Threading::Executor {
   }
 
  private:
-  const std::shared_ptr<core::AsyncExecutorInterface> io_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 
-  const AsyncPriority io_async_execution_priority_;
+  AsyncPriority io_async_execution_priority_;
 };
 }  // namespace google::scp::core::async_executor::aws
 

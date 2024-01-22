@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <optional>
 
 #include <aws/core/Aws.h>
 #include <aws/sqs/SQSClient.h>
@@ -75,6 +76,7 @@ using google::scp::cpio::client_providers::AwsSqsClientFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockSqsClient;
 using ::testing::_;
+using ::testing::ByMove;
 using ::testing::Eq;
 using ::testing::NiceMock;
 using ::testing::Return;
@@ -100,8 +102,7 @@ namespace google::scp::cpio::client_providers::test {
 class MockAwsSqsClientFactory : public AwsSqsClientFactory {
  public:
   MOCK_METHOD(std::shared_ptr<SQSClient>, CreateSqsClient,
-              (const std::shared_ptr<ClientConfiguration> client_config),
-              (noexcept, override));
+              (const ClientConfiguration& client_config), (noexcept, override));
 };
 
 class AwsQueueClientProviderTest : public ::testing::Test {
@@ -117,11 +118,9 @@ class AwsQueueClientProviderTest : public ::testing::Test {
   }
 
   AwsQueueClientProviderTest() {
-    queue_client_options_ = std::make_shared<QueueClientOptions>();
-    queue_client_options_->queue_name = kQueueName;
+    queue_client_options_.queue_name = kQueueName;
 
-    mock_instance_client_ = std::make_shared<MockInstanceClientProvider>();
-    mock_instance_client_->instance_resource_name = kResourceNameMock;
+    mock_instance_client_.instance_resource_name = kResourceNameMock;
     mock_sqs_client_ = std::make_shared<NiceMock<MockSqsClient>>();
 
     GetQueueUrlResult get_queue_url_result;
@@ -142,19 +141,20 @@ class AwsQueueClientProviderTest : public ::testing::Test {
       finish_called_ = true;
     };
 
-    queue_client_provider_ = std::make_unique<AwsQueueClientProvider>(
-        queue_client_options_, mock_instance_client_,
-        std::make_shared<MockAsyncExecutor>(),
-        std::make_shared<MockAsyncExecutor>(), mock_sqs_client_factory_);
+    queue_client_provider_.emplace(
+        queue_client_options_, &mock_instance_client_, &cpu_async_executor_,
+        &io_async_executor_, mock_sqs_client_factory_);
   }
 
   void TearDown() override { EXPECT_SUCCESS(queue_client_provider_->Stop()); }
 
-  std::shared_ptr<QueueClientOptions> queue_client_options_;
-  std::shared_ptr<MockInstanceClientProvider> mock_instance_client_;
+  QueueClientOptions queue_client_options_;
+  MockAsyncExecutor cpu_async_executor_;
+  MockAsyncExecutor io_async_executor_;
+  MockInstanceClientProvider mock_instance_client_;
   std::shared_ptr<MockSqsClient> mock_sqs_client_;
   std::shared_ptr<MockAwsSqsClientFactory> mock_sqs_client_factory_;
-  std::unique_ptr<AwsQueueClientProvider> queue_client_provider_;
+  std::optional<AwsQueueClientProvider> queue_client_provider_;
 
   AsyncContext<UpdateMessageVisibilityTimeoutRequest,
                UpdateMessageVisibilityTimeoutResponse>
@@ -166,40 +166,31 @@ class AwsQueueClientProviderTest : public ::testing::Test {
   bool finish_called_ ABSL_GUARDED_BY(finish_called_mu_) = false;
 };
 
-TEST_F(AwsQueueClientProviderTest, RunWithNullQueueClientOptions) {
-  auto client = std::make_unique<AwsQueueClientProvider>(
-      nullptr, mock_instance_client_, std::make_shared<MockAsyncExecutor>(),
-      std::make_shared<MockAsyncExecutor>(), mock_sqs_client_factory_);
-
-  EXPECT_SUCCESS(client->Init());
-  EXPECT_THAT(client->Run(),
-              ResultIs(FailureExecutionResult(
-                  SC_AWS_QUEUE_CLIENT_PROVIDER_QUEUE_CLIENT_OPTIONS_REQUIRED)));
-}
-
 TEST_F(AwsQueueClientProviderTest, RunWithEmptyQueueName) {
-  queue_client_options_->queue_name = "";
-  auto client = std::make_unique<AwsQueueClientProvider>(
-      queue_client_options_, mock_instance_client_,
-      std::make_shared<MockAsyncExecutor>(),
-      std::make_shared<MockAsyncExecutor>(), mock_sqs_client_factory_);
+  queue_client_options_.queue_name = "";
+  MockAsyncExecutor cpu_async_executor;
+  MockAsyncExecutor io_async_executor;
+  AwsQueueClientProvider client(queue_client_options_, &mock_instance_client_,
+                                &cpu_async_executor, &io_async_executor,
+                                mock_sqs_client_factory_);
 
-  EXPECT_SUCCESS(client->Init());
-  EXPECT_THAT(client->Run(),
+  EXPECT_SUCCESS(client.Init());
+  EXPECT_THAT(client.Run(),
               ResultIs(FailureExecutionResult(
                   SC_AWS_QUEUE_CLIENT_PROVIDER_QUEUE_NAME_REQUIRED)));
 }
 
 TEST_F(AwsQueueClientProviderTest, RunWithCreateClientConfigurationFailed) {
   auto failure_result = FailureExecutionResult(123);
-  mock_instance_client_->get_instance_resource_name_mock = failure_result;
-  auto client = std::make_unique<AwsQueueClientProvider>(
-      queue_client_options_, mock_instance_client_,
-      std::make_shared<MockAsyncExecutor>(),
-      std::make_shared<MockAsyncExecutor>(), mock_sqs_client_factory_);
+  mock_instance_client_.get_instance_resource_name_mock = failure_result;
+  MockAsyncExecutor cpu_async_executor;
+  MockAsyncExecutor io_async_executor;
+  AwsQueueClientProvider client(queue_client_options_, &mock_instance_client_,
+                                &cpu_async_executor, &io_async_executor,
+                                mock_sqs_client_factory_);
 
-  EXPECT_SUCCESS(client->Init());
-  EXPECT_THAT(client->Run(), ResultIs(failure_result));
+  EXPECT_SUCCESS(client.Init());
+  EXPECT_THAT(client.Run(), ResultIs(failure_result));
 }
 
 TEST_F(AwsQueueClientProviderTest, RunWithGetQueueUrlFailed) {

@@ -43,10 +43,10 @@ class CloudInitializerFactory {
   /**
    * @brief Factory to create CloudInitializer.
    *
-   * @return std::shared_ptr<CloudInitializerInterface> created
+   * @return std::unique_ptr<CloudInitializerInterface> created
    * CloudInitializer.
    */
-  static std::shared_ptr<CloudInitializerInterface> Create();
+  static std::unique_ptr<CloudInitializerInterface> Create();
 };
 }  // namespace google::scp::cpio::client_providers
 

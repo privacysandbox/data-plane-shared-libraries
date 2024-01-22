@@ -20,6 +20,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "absl/strings/str_cat.h"
@@ -71,11 +72,8 @@ namespace google::scp::cpio::client_providers::test {
 class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   GcpPrivateKeyFetcherProviderTest()
-      : http_client_(std::make_shared<MockHttpClient>()),
-        credentials_provider_(std::make_shared<MockAuthTokenProvider>()),
-        gcp_private_key_fetcher_provider_(
-            std::make_unique<GcpPrivateKeyFetcherProvider>(
-                http_client_, credentials_provider_)) {
+      : gcp_private_key_fetcher_provider_(std::in_place_t{}, &http_client_,
+                                          &credentials_provider_) {
     EXPECT_SUCCESS(gcp_private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(gcp_private_key_fetcher_provider_->Run());
 
@@ -97,26 +95,23 @@ class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
   }
 
   void MockRequest(std::string_view uri) {
-    http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = std::make_shared<std::string>(uri);
+    http_client_.request_mock = HttpRequest();
+    http_client_.request_mock.path = std::make_shared<std::string>(uri);
   }
 
   void MockResponse(std::string_view str) {
-    http_client_->response_mock = HttpResponse();
-    http_client_->response_mock.body = BytesBuffer(str);
+    http_client_.response_mock = HttpResponse();
+    http_client_.response_mock.body = BytesBuffer(str);
   }
 
-  std::shared_ptr<MockHttpClient> http_client_;
-  std::shared_ptr<MockAuthTokenProvider> credentials_provider_;
-  std::unique_ptr<GcpPrivateKeyFetcherProvider>
-      gcp_private_key_fetcher_provider_;
+  MockHttpClient http_client_;
+  MockAuthTokenProvider credentials_provider_;
+  std::optional<GcpPrivateKeyFetcherProvider> gcp_private_key_fetcher_provider_;
   std::shared_ptr<PrivateKeyFetchingRequest> request_;
 };
 
 TEST_F(GcpPrivateKeyFetcherProviderTest, MissingHttpClient) {
-  gcp_private_key_fetcher_provider_ =
-      std::make_unique<GcpPrivateKeyFetcherProvider>(nullptr,
-                                                     credentials_provider_);
+  gcp_private_key_fetcher_provider_.emplace(nullptr, &credentials_provider_);
 
   EXPECT_THAT(gcp_private_key_fetcher_provider_->Init(),
               ResultIs(FailureExecutionResult(
@@ -124,8 +119,7 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, MissingHttpClient) {
 }
 
 TEST_F(GcpPrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
-  gcp_private_key_fetcher_provider_ =
-      std::make_unique<GcpPrivateKeyFetcherProvider>(http_client_, nullptr);
+  gcp_private_key_fetcher_provider_.emplace(&http_client_, nullptr);
 
   EXPECT_THAT(
       gcp_private_key_fetcher_provider_->Init(),
@@ -141,7 +135,7 @@ MATCHER_P(TargetAudienceUriEquals, expected_target_audience_uri, "") {
 TEST_F(GcpPrivateKeyFetcherProviderTest, SignHttpRequest) {
   absl::Notification condition;
 
-  EXPECT_CALL(*credentials_provider_,
+  EXPECT_CALL(credentials_provider_,
               GetSessionTokenForTargetAudience(
                   TargetAudienceUriEquals(kPrivateKeyCloudfunctionUri)))
       .WillOnce([=](AsyncContext<GetSessionTokenForTargetAudienceRequest,
@@ -175,7 +169,7 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, SignHttpRequest) {
 }
 
 TEST_F(GcpPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
-  EXPECT_CALL(*credentials_provider_,
+  EXPECT_CALL(credentials_provider_,
               GetSessionTokenForTargetAudience(
                   TargetAudienceUriEquals(kPrivateKeyCloudfunctionUri)))
       .WillOnce([=](AsyncContext<GetSessionTokenForTargetAudienceRequest,

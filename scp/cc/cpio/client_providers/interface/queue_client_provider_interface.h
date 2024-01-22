@@ -102,15 +102,14 @@ class QueueClientProviderFactory {
    * @param instance_client Instance Client.
    * @param cpu_async_executor CPU Async Eexcutor.
    * @param io_async_executor IO Async Eexcutor.
-   * @return std::shared_ptr<QueueClientProviderInterface> created
+   * @return std::unique_ptr<QueueClientProviderInterface> created
    * QueueClientProviderProvider.
    */
-  static std::shared_ptr<QueueClientProviderInterface> Create(
-      const std::shared_ptr<QueueClientOptions>& options,
-      const std::shared_ptr<InstanceClientProviderInterface> instance_client,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>&
-          io_async_executor) noexcept;
+  static std::unique_ptr<QueueClientProviderInterface> Create(
+      QueueClientOptions options,
+      InstanceClientProviderInterface* instance_client,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

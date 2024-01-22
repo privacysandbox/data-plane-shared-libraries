@@ -67,7 +67,7 @@ class HttpClient : public HttpClientInterface {
    * @param total_retries total retry counts.
    * TODO: Params are outdated.
    */
-  explicit HttpClient(std::shared_ptr<AsyncExecutorInterface>& async_executor,
+  explicit HttpClient(AsyncExecutorInterface* async_executor,
                       HttpClientOptions options = HttpClientOptions());
 
   ExecutionResult Init() noexcept override;

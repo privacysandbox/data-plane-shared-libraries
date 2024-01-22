@@ -65,10 +65,10 @@ static constexpr char kHttpMethodGetTag[] = "GET";
 static constexpr char kHttpMethodPostTag[] = "POST";
 
 namespace google::scp::core {
-HttpConnection::HttpConnection(
-    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-    std::string host, std::string service, bool is_https,
-    TimeDuration http2_read_timeout_in_sec)
+HttpConnection::HttpConnection(AsyncExecutorInterface* async_executor,
+                               std::string host, std::string service,
+                               bool is_https,
+                               TimeDuration http2_read_timeout_in_sec)
     : async_executor_(async_executor),
       host_(std::move(host)),
       service_(std::move(service)),
@@ -290,7 +290,7 @@ void HttpConnection::SendHttpRequest(
         errors::SC_HTTP2_CLIENT_HTTP_METHOD_NOT_SUPPORTED);
     SCP_ERROR_CONTEXT(kHttp2Client, http_context, http_context.result,
                       "Failed as request method not supported.");
-    FinishContext(http_context.result, http_context, async_executor_);
+    FinishContext(http_context.result, http_context, *async_executor_);
     return;
   }
 
@@ -327,7 +327,7 @@ void HttpConnection::SendHttpRequest(
 
     SCP_ERROR_CONTEXT(kHttp2Client, http_context, uri.result(),
                       "Failed escaping URI.");
-    FinishContext(uri.result(), http_context, async_executor_);
+    FinishContext(uri.result(), http_context, *async_executor_);
     return;
   }
 
@@ -344,7 +344,7 @@ void HttpConnection::SendHttpRequest(
                       "Http request failed for the client with error code %s!",
                       ec.message().c_str());
 
-    FinishContext(http_context.result, http_context, async_executor_);
+    FinishContext(http_context.result, http_context, *async_executor_);
 
     OnConnectionError();
     return;
@@ -391,7 +391,7 @@ void HttpConnection::OnRequestResponseClosed(
         static_cast<int>(http_context.response->code));
   }
 
-  FinishContext(http_context.result, http_context, async_executor_);
+  FinishContext(http_context.result, http_context, *async_executor_);
 }
 
 void HttpConnection::OnResponseCallback(

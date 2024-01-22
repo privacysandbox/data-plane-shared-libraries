@@ -31,8 +31,7 @@ namespace google::scp::cpio::client_providers {
  */
 class GcpAuthTokenProvider : public AuthTokenProviderInterface {
  public:
-  GcpAuthTokenProvider(
-      const std::shared_ptr<core::HttpClientInterface>& http_client);
+  explicit GcpAuthTokenProvider(core::HttpClientInterface* http_client);
 
   core::ExecutionResult Init() noexcept override;
 
@@ -79,7 +78,7 @@ class GcpAuthTokenProvider : public AuthTokenProviderInterface {
           http_client_context) noexcept;
 
   /// HttpClient for issuing HTTP actions.
-  std::shared_ptr<core::HttpClientInterface> http_client_;
+  core::HttpClientInterface* http_client_;
 };
 }  // namespace google::scp::cpio::client_providers
 

@@ -47,9 +47,7 @@ namespace google::scp::cpio::test {
 class ParameterClientTest : public ::testing::Test {
  protected:
   ParameterClientTest() {
-    auto parameter_client_options = std::make_shared<ParameterClientOptions>();
-    client_ = std::make_unique<MockParameterClientWithOverrides>(
-        parameter_client_options);
+    client_.emplace(std::make_shared<ParameterClientOptions>());
 
     EXPECT_THAT(client_->Init(), IsSuccessful());
     EXPECT_THAT(client_->Run(), IsSuccessful());
@@ -57,11 +55,11 @@ class ParameterClientTest : public ::testing::Test {
 
   ~ParameterClientTest() { EXPECT_THAT(client_->Stop(), IsSuccessful()); }
 
-  std::unique_ptr<MockParameterClientWithOverrides> client_;
+  std::optional<MockParameterClientWithOverrides> client_;
 };
 
 TEST_F(ParameterClientTest, GetParameterSuccess) {
-  EXPECT_CALL(*client_->GetParameterClientProvider(), GetParameter)
+  EXPECT_CALL(client_->GetParameterClientProvider(), GetParameter)
       .WillOnce([=](AsyncContext<GetParameterRequest, GetParameterResponse>&
                         context) {
         context.response = std::make_shared<GetParameterResponse>();
@@ -82,7 +80,7 @@ TEST_F(ParameterClientTest, GetParameterSuccess) {
 }
 
 TEST_F(ParameterClientTest, GetParameterFailure) {
-  EXPECT_CALL(*client_->GetParameterClientProvider(), GetParameter)
+  EXPECT_CALL(client_->GetParameterClientProvider(), GetParameter)
       .WillOnce([=](AsyncContext<GetParameterRequest, GetParameterResponse>&
                         context) {
         context.result = FailureExecutionResult(SC_UNKNOWN);

@@ -113,14 +113,14 @@ class InstanceClientProviderFactory {
    * @brief Factory to create InstanceClientProvider.
    *
    * @param http_client instance of http_client.
-   * @return std::shared_ptr<InstanceClientProviderInterface>
+   * @return std::unique_ptr<InstanceClientProviderInterface>
    */
-  static std::shared_ptr<InstanceClientProviderInterface> Create(
-      const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-      const std::shared_ptr<core::HttpClientInterface>& http1_client,
-      const std::shared_ptr<core::HttpClientInterface>& http2_client,
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor);
+  static std::unique_ptr<InstanceClientProviderInterface> Create(
+      AuthTokenProviderInterface* auth_token_provider,
+      core::HttpClientInterface* http1_client,
+      core::HttpClientInterface* http2_client,
+      core::AsyncExecutorInterface* async_executor,
+      core::AsyncExecutorInterface* io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
 

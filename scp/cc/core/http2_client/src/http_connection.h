@@ -47,8 +47,8 @@ class HttpConnection : public ServiceInterface {
    * @param is_https If the connection is https, must be set to true.
    * @param http2_read_timeout_in_sec nghttp2 read timeout in second.
    */
-  HttpConnection(const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-                 std::string host, std::string service, bool is_https,
+  HttpConnection(AsyncExecutorInterface* async_executor, std::string host,
+                 std::string service, bool is_https,
                  TimeDuration http2_read_timeout_in_sec =
                      kDefaultHttp2ReadTimeoutInSeconds);
 
@@ -160,7 +160,7 @@ class HttpConnection : public ServiceInterface {
       const errors::HttpStatusCode http_status_code) noexcept;
 
   /// An instance of the async executor.
-  const std::shared_ptr<AsyncExecutorInterface> async_executor_;
+  AsyncExecutorInterface* async_executor_;
   /// The remote host to establish a connection.
   std::string host_;
   /// Indicates the port for connection.

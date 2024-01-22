@@ -119,8 +119,8 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
 
   // When batch recording is not enabled, expect the namespace to be set on the
   // request. context_vector won't be empty.
-  auto name_space = metric_batching_options_->enable_batch_recording
-                        ? metric_batching_options_->metric_namespace
+  auto name_space = metric_batching_options_.enable_batch_recording
+                        ? metric_batching_options_.metric_namespace
                         : context_vector->back().request->metric_namespace();
 
   while (!context_vector->empty()) {
@@ -188,13 +188,12 @@ void GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback(
   return;
 }
 
-std::shared_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
-    const std::shared_ptr<MetricClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<GcpMetricClientProvider>(
-      options, instance_client_provider, async_executor);
+std::unique_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
+    MetricClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    AsyncExecutorInterface* async_executor,
+    AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<GcpMetricClientProvider>(
+      std::move(options), instance_client_provider, async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

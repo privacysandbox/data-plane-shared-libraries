@@ -196,12 +196,9 @@ GetObjectRequest MakeGetObjectRequest(const ProtoRequest& proto_request,
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-std::shared_ptr<ClientConfiguration>
-AwsBlobStorageClientProvider::CreateClientConfiguration(
+ClientConfiguration AwsBlobStorageClientProvider::CreateClientConfiguration(
     std::string_view region) noexcept {
-  return common::CreateClientConfiguration(
-
-      std::make_shared<std::string>(std::move(region)));
+  return common::CreateClientConfiguration(std::string(region));
 }
 
 ExecutionResult AwsBlobStorageClientProvider::Init() noexcept {
@@ -210,7 +207,7 @@ ExecutionResult AwsBlobStorageClientProvider::Init() noexcept {
 
 ExecutionResult AwsBlobStorageClientProvider::Run() noexcept {
   auto region_code_or =
-      AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_);
+      AwsInstanceClientUtils::GetCurrentRegionCode(*instance_client_);
   if (!region_code_or.Successful()) {
     SCP_ERROR(kAwsS3Provider, kZeroUuid, region_code_or.result(),
               "Failed to get region code for current instance");
@@ -218,13 +215,13 @@ ExecutionResult AwsBlobStorageClientProvider::Run() noexcept {
   }
 
   auto client_or = s3_factory_->CreateClient(
-      *CreateClientConfiguration(*region_code_or), io_async_executor_);
+      CreateClientConfiguration(*region_code_or), io_async_executor_);
   if (!client_or.Successful()) {
     SCP_ERROR(kAwsS3Provider, kZeroUuid, client_or.result(),
               "Failed creating AWS S3 client.");
     return client_or.result();
   }
-  s3_client_ = std::move(*client_or);
+  s3_client_ = *std::move(client_or);
   return SuccessExecutionResult();
 }
 
@@ -269,7 +266,7 @@ void AwsBlobStorageClientProvider::OnGetObjectCallback(
                       get_object_outcome.GetError().GetResponseCode(),
                       get_object_outcome.GetError().GetMessage().c_str());
     FinishContext(get_blob_context.result, get_blob_context,
-                  cpu_async_executor_, AsyncPriority::High);
+                  *cpu_async_executor_, AsyncPriority::High);
     return;
   }
 
@@ -290,7 +287,7 @@ void AwsBlobStorageClientProvider::OnGetObjectCallback(
     get_blob_context.result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB);
   }
-  FinishContext(get_blob_context.result, get_blob_context, cpu_async_executor_,
+  FinishContext(get_blob_context.result, get_blob_context, *cpu_async_executor_,
                 AsyncPriority::High);
 }
 
@@ -357,7 +354,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
         get_object_outcome.GetError().GetResponseCode(),
         get_object_outcome.GetError().GetMessage().c_str());
     FinishStreamingContext(get_blob_stream_context.result,
-                           get_blob_stream_context, cpu_async_executor_,
+                           get_blob_stream_context, *cpu_async_executor_,
                            AsyncPriority::High);
     return;
   }
@@ -367,7 +364,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
     SCP_WARNING_CONTEXT(kAwsS3Provider, get_blob_stream_context,
                         "Get blob stream request was cancelled.");
     FinishStreamingContext(result, get_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
 
@@ -402,7 +399,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
                       get_blob_stream_context.result,
                       "Reading GetBlobStream body failed");
     FinishStreamingContext(get_blob_stream_context.result,
-                           get_blob_stream_context, cpu_async_executor_);
+                           get_blob_stream_context, *cpu_async_executor_);
     return;
   }
 
@@ -413,7 +410,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
     SCP_ERROR_CONTEXT(kAwsS3Provider, get_blob_stream_context, push_result,
                       "Failed to push new message.");
     FinishStreamingContext(push_result, get_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
   // Schedule processing the next message.
@@ -428,7 +425,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
         kAwsS3Provider, get_blob_stream_context, get_blob_stream_context.result,
         "Get blob stream process next message failed to be scheduled");
     FinishStreamingContext(schedule_result, get_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
   // ContentLength contains info only about the acquired contents,
@@ -447,7 +444,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
       tracker->last_end_byte_index == request.byte_range().end_byte_index();
   if (is_all_object_downloaded || is_end_index_reached) {
     FinishStreamingContext(SuccessExecutionResult(), get_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
 
@@ -545,7 +542,7 @@ void AwsBlobStorageClientProvider::OnListObjectsMetadataCallback(
                       list_objects_outcome.GetError().GetResponseCode(),
                       list_objects_outcome.GetError().GetMessage().c_str());
     FinishContext(list_blobs_metadata_context.result,
-                  list_blobs_metadata_context, cpu_async_executor_,
+                  list_blobs_metadata_context, *cpu_async_executor_,
                   AsyncPriority::High);
     return;
   }
@@ -568,7 +565,7 @@ void AwsBlobStorageClientProvider::OnListObjectsMetadataCallback(
 
   list_blobs_metadata_context.result = SuccessExecutionResult();
   FinishContext(list_blobs_metadata_context.result, list_blobs_metadata_context,
-                cpu_async_executor_, AsyncPriority::High);
+                *cpu_async_executor_, AsyncPriority::High);
 }
 
 ExecutionResult AwsBlobStorageClientProvider::PutBlob(
@@ -632,12 +629,12 @@ void AwsBlobStorageClientProvider::OnPutObjectCallback(
                       put_object_outcome.GetError().GetResponseCode(),
                       put_object_outcome.GetError().GetMessage().c_str());
     FinishContext(put_blob_context.result, put_blob_context,
-                  cpu_async_executor_, AsyncPriority::High);
+                  *cpu_async_executor_, AsyncPriority::High);
     return;
   }
   put_blob_context.response = std::make_shared<PutBlobResponse>();
   put_blob_context.result = SuccessExecutionResult();
-  FinishContext(put_blob_context.result, put_blob_context, cpu_async_executor_,
+  FinishContext(put_blob_context.result, put_blob_context, *cpu_async_executor_,
                 AsyncPriority::High);
 }
 
@@ -690,7 +687,7 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
         create_multipart_upload_outcome.GetError().GetResponseCode(),
         create_multipart_upload_outcome.GetError().GetMessage().c_str());
     FinishStreamingContext(put_blob_stream_context.result,
-                           put_blob_stream_context, cpu_async_executor_,
+                           put_blob_stream_context, *cpu_async_executor_,
                            AsyncPriority::High);
     return;
   }
@@ -712,7 +709,7 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
         "Supplied keepalive duration is greater than the maximum of "
         "10 minutes.");
     FinishStreamingContext(result, put_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
   tracker->expiry_time_ns =
@@ -749,7 +746,7 @@ void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
       !md5_result.Successful()) {
     put_blob_stream_context.result = md5_result;
     FinishStreamingContext(put_blob_stream_context.result,
-                           put_blob_stream_context, cpu_async_executor_);
+                           put_blob_stream_context, *cpu_async_executor_);
     return;
   }
 
@@ -781,7 +778,7 @@ void AwsBlobStorageClientProvider::ScheduleAnotherPutBlobStreamPoll(
                       put_blob_stream_context.result,
                       "Put blob stream request failed to be scheduled");
     FinishStreamingContext(schedule_result, put_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
   }
 }
 
@@ -879,7 +876,7 @@ void AwsBlobStorageClientProvider::OnUploadPartCallback(
                       "Enqueued message does not specify the same blob (bucket "
                       "name, blob name) as previously.");
     FinishStreamingContext(result, put_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
 
@@ -933,7 +930,7 @@ void AwsBlobStorageClientProvider::OnUploadPartCallback(
       !md5_result.Successful()) {
     put_blob_stream_context.result = md5_result;
     FinishStreamingContext(put_blob_stream_context.result,
-                           put_blob_stream_context, cpu_async_executor_);
+                           put_blob_stream_context, *cpu_async_executor_);
     return;
   }
 
@@ -968,7 +965,7 @@ void AwsBlobStorageClientProvider::CompleteUpload(
         !md5_result.Successful()) {
       put_blob_stream_context.result = md5_result;
       FinishStreamingContext(put_blob_stream_context.result,
-                             put_blob_stream_context, cpu_async_executor_);
+                             put_blob_stream_context, *cpu_async_executor_);
       return;
     }
 
@@ -1017,7 +1014,7 @@ void AwsBlobStorageClientProvider::OnCompleteMultipartUploadCallback(
   }
   put_blob_stream_context.response = std::make_shared<PutBlobStreamResponse>();
   FinishStreamingContext(put_blob_stream_context.result,
-                         put_blob_stream_context, cpu_async_executor_,
+                         put_blob_stream_context, *cpu_async_executor_,
                          AsyncPriority::High);
 }
 
@@ -1057,7 +1054,7 @@ void AwsBlobStorageClientProvider::OnAbortMultipartUploadCallback(
         abort_multipart_upload_outcome.GetError().GetMessage().c_str());
   }
   FinishStreamingContext(put_blob_stream_context.result,
-                         put_blob_stream_context, cpu_async_executor_,
+                         put_blob_stream_context, *cpu_async_executor_,
                          AsyncPriority::High);
 }
 
@@ -1107,34 +1104,33 @@ void AwsBlobStorageClientProvider::OnDeleteObjectCallback(
                       delete_object_outcome.GetError().GetResponseCode(),
                       delete_object_outcome.GetError().GetMessage().c_str());
     FinishContext(delete_blob_context.result, delete_blob_context,
-                  cpu_async_executor_, AsyncPriority::High);
+                  *cpu_async_executor_, AsyncPriority::High);
     return;
   }
   delete_blob_context.response = std::make_shared<DeleteBlobResponse>();
   delete_blob_context.result = SuccessExecutionResult();
   FinishContext(delete_blob_context.result, delete_blob_context,
-                cpu_async_executor_, AsyncPriority::High);
+                *cpu_async_executor_, AsyncPriority::High);
 }
 
 #ifndef TEST_CPIO
 ExecutionResultOr<std::shared_ptr<S3Client>> AwsS3Factory::CreateClient(
-    ClientConfiguration& client_config,
-    const std::shared_ptr<AsyncExecutorInterface>& async_executor) noexcept {
+    ClientConfiguration client_config,
+    AsyncExecutorInterface* async_executor) noexcept {
   client_config.maxConnections = kMaxConcurrentConnections;
   client_config.executor = std::make_shared<AwsAsyncExecutor>(async_executor);
-
-  return std::make_shared<S3Client>(client_config);
+  return std::make_shared<S3Client>(std::move(client_config));
 }
 
-std::shared_ptr<BlobStorageClientProviderInterface>
+std::unique_ptr<BlobStorageClientProviderInterface>
 BlobStorageClientProviderFactory::Create(
-    std::shared_ptr<BlobStorageClientOptions> options,
-    std::shared_ptr<InstanceClientProviderInterface> instance_client,
-    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<core::AsyncExecutorInterface>&
-        io_async_executor) noexcept {
-  return std::make_shared<AwsBlobStorageClientProvider>(
-      options, instance_client, cpu_async_executor, io_async_executor);
+    BlobStorageClientOptions options,
+    InstanceClientProviderInterface* instance_client,
+    core::AsyncExecutorInterface* cpu_async_executor,
+    core::AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<AwsBlobStorageClientProvider>(
+      std::move(options), instance_client, cpu_async_executor,
+      io_async_executor);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

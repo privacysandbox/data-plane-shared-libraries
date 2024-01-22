@@ -84,7 +84,7 @@ class BlobStorageClient : public BlobStorageClientInterface {
           put_blob_stream_context) noexcept override;
 
  protected:
-  std::shared_ptr<client_providers::BlobStorageClientProviderInterface>
+  std::unique_ptr<client_providers::BlobStorageClientProviderInterface>
       blob_storage_client_provider_;
 
  private:

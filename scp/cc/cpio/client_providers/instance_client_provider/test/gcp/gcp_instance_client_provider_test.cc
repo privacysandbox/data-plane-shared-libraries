@@ -102,12 +102,9 @@ constexpr char kPageSizeSetting[] = "pageSize=300";
 namespace google::scp::cpio::client_providers::test {
 class GcpInstanceClientProviderTest : public testing::Test {
  protected:
-  GcpInstanceClientProviderTest()
-      : http1_client_(std::make_shared<MockCurlClient>()),
-        http2_client_(std::make_shared<MockCurlClient>()),
-        authorizer_provider_(std::make_shared<MockAuthTokenProvider>()),
-        instance_provider_(std::make_unique<GcpInstanceClientProvider>(
-            authorizer_provider_, http1_client_, http2_client_)) {
+  GcpInstanceClientProviderTest() {
+    instance_provider_.emplace(&authorizer_provider_, &http1_client_,
+                               &http2_client_);
     EXPECT_SUCCESS(instance_provider_->Init());
     EXPECT_SUCCESS(instance_provider_->Run());
 
@@ -127,10 +124,10 @@ class GcpInstanceClientProviderTest : public testing::Test {
     EXPECT_SUCCESS(instance_provider_->Stop());
   }
 
-  std::shared_ptr<MockCurlClient> http1_client_;
-  std::shared_ptr<MockCurlClient> http2_client_;
-  std::shared_ptr<MockAuthTokenProvider> authorizer_provider_;
-  std::unique_ptr<GcpInstanceClientProvider> instance_provider_;
+  MockCurlClient http1_client_;
+  MockCurlClient http2_client_;
+  MockAuthTokenProvider authorizer_provider_;
+  std::optional<GcpInstanceClientProvider> instance_provider_;
 
   std::string get_details_path_mock_;
   std::shared_ptr<GetInstanceDetailsByResourceNameRequest> get_details_request_;
@@ -143,7 +140,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
   std::string zone_result = kZoneResult;
   std::string id_result = kInstanceIdResult;
 
-  EXPECT_CALL(*http1_client_, PerformRequest)
+  EXPECT_CALL(http1_client_, PerformRequest)
       .Times(3)
       .WillRepeatedly([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
@@ -181,7 +178,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
 
 TEST_F(GcpInstanceClientProviderTest,
        GetCurrentInstanceResourceNameSyncFailedWithHttpPerformRequest) {
-  EXPECT_CALL(*http1_client_, PerformRequest)
+  EXPECT_CALL(http1_client_, PerformRequest)
       .Times(3)
       .WillRepeatedly([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
@@ -208,7 +205,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
   std::string zone_result = kZoneResult;
   std::string id_result = kInstanceIdResult;
 
-  EXPECT_CALL(*http1_client_, PerformRequest)
+  EXPECT_CALL(http1_client_, PerformRequest)
       .Times(3)
       .WillRepeatedly([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
@@ -258,7 +255,7 @@ TEST_F(GcpInstanceClientProviderTest,
        FailedToGetCurrentInstanceResourceNameOnlyGotOneResult) {
   std::string id_result = kInstanceIdResult;
 
-  EXPECT_CALL(*http1_client_, PerformRequest)
+  EXPECT_CALL(http1_client_, PerformRequest)
       .Times(3)
       .WillRepeatedly([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
@@ -302,7 +299,7 @@ TEST_F(GcpInstanceClientProviderTest,
 }
 
 TEST_F(GcpInstanceClientProviderTest, FailedToGetCurrentInstanceResourceName) {
-  EXPECT_CALL(*http1_client_, PerformRequest)
+  EXPECT_CALL(http1_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
 
@@ -332,7 +329,7 @@ TEST_F(GcpInstanceClientProviderTest, FailedToGetCurrentInstanceResourceName) {
 }
 
 TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSyncSuccess) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -404,7 +401,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSyncSuccess) {
         }
       )""";
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
         EXPECT_EQ(request.method, HttpMethod::GET);
@@ -437,7 +434,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSyncSuccess) {
 }
 
 TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsAccessConfigLoop) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -493,7 +490,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsAccessConfigLoop) {
         }
       )""";
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
         EXPECT_EQ(request.method, HttpMethod::GET);
@@ -521,7 +518,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsAccessConfigLoop) {
 
 TEST_F(GcpInstanceClientProviderTest,
        GetInstanceDetailsSyncFailedWithHttpRequest) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -532,7 +529,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
         EXPECT_EQ(request.method, HttpMethod::GET);
@@ -553,7 +550,7 @@ TEST_F(GcpInstanceClientProviderTest,
 }
 
 TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -603,7 +600,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
         }
       )""";
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
         EXPECT_EQ(request.method, HttpMethod::GET);
@@ -644,7 +641,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
 
 TEST_F(GcpInstanceClientProviderTest,
        GetInstanceDetailsSuccessWithoutPublicIP) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -693,7 +690,7 @@ TEST_F(GcpInstanceClientProviderTest,
         }
       )""";
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
         EXPECT_EQ(request.method, HttpMethod::GET);
@@ -737,8 +734,8 @@ TEST_F(GcpInstanceClientProviderTest,
 
 TEST_F(GcpInstanceClientProviderTest,
        GetInstanceDetailsFailedWithInvalidInstanceResourceName) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken).Times(0);
-  EXPECT_CALL(*http2_client_, PerformRequest).Times(0);
+  EXPECT_CALL(authorizer_provider_, GetSessionToken).Times(0);
+  EXPECT_CALL(http2_client_, PerformRequest).Times(0);
 
   auto get_details_request_bad =
       std::make_shared<GetInstanceDetailsByResourceNameRequest>();
@@ -760,7 +757,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
 TEST_F(GcpInstanceClientProviderTest,
        GetInstanceDetailsFailedWithCredentialSigningFailure) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.result = FailureExecutionResult(SC_UNKNOWN);
@@ -768,7 +765,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  EXPECT_CALL(*http2_client_, PerformRequest).Times(0);
+  EXPECT_CALL(http2_client_, PerformRequest).Times(0);
 
   absl::Notification done;
   AsyncContext<GetInstanceDetailsByResourceNameRequest,
@@ -789,7 +786,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
 TEST_F(GcpInstanceClientProviderTest,
        GetInstanceDetailsFailedWithHttpPerformSignedRequest) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -800,7 +797,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         auto request = context.request;
         EXPECT_EQ(request->method, HttpMethod::GET);
@@ -829,7 +826,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
 TEST_F(GcpInstanceClientProviderTest,
        GetInstanceDetailsFailedMalformedHttpResponse) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -858,7 +855,7 @@ TEST_F(GcpInstanceClientProviderTest,
         }
       )""";
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
         EXPECT_EQ(request.method, HttpMethod::GET);
@@ -893,7 +890,7 @@ TEST_F(GcpInstanceClientProviderTest,
 }
 
 TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -929,7 +926,7 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
           }
         )""";
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
         EXPECT_EQ(request.method, HttpMethod::GET);
@@ -968,7 +965,7 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
 
 TEST_F(GcpInstanceClientProviderTest,
        GetTagsByResourceNameFailedWithCredentialSigningFailure) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.result = FailureExecutionResult(SC_UNKNOWN);
@@ -976,7 +973,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  EXPECT_CALL(*http2_client_, PerformRequest).Times(0);
+  EXPECT_CALL(http2_client_, PerformRequest).Times(0);
 
   absl::Notification done;
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
@@ -995,7 +992,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
 TEST_F(GcpInstanceClientProviderTest,
        GetTagsByResourceNameFailedWithHttpPerformSignedRequest) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -1006,7 +1003,7 @@ TEST_F(GcpInstanceClientProviderTest,
         return SuccessExecutionResult();
       });
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         auto request = context.request;
         EXPECT_EQ(request->method, HttpMethod::GET);
@@ -1033,7 +1030,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
 TEST_F(GcpInstanceClientProviderTest,
        GetTagsByResourceNameFailedMalformedHttpResponse) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -1067,7 +1064,7 @@ TEST_F(GcpInstanceClientProviderTest,
           }
         )""";
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
         EXPECT_EQ(request.method, HttpMethod::GET);
@@ -1103,7 +1100,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
 TEST_F(GcpInstanceClientProviderTest,
        GetTagsByResourceNameFailedWithEmptyHttpResponse) {
-  EXPECT_CALL(*authorizer_provider_, GetSessionToken)
+  EXPECT_CALL(authorizer_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.response = std::make_shared<GetSessionTokenResponse>();
@@ -1117,7 +1114,7 @@ TEST_F(GcpInstanceClientProviderTest,
   // Empty http response
   auto tags_response_mock = R"({})";
 
-  EXPECT_CALL(*http2_client_, PerformRequest)
+  EXPECT_CALL(http2_client_, PerformRequest)
       .WillOnce([=](AsyncContext<HttpRequest, HttpResponse>& context) {
         const auto& request = *context.request;
         EXPECT_EQ(request.method, HttpMethod::GET);

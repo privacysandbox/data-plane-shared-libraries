@@ -48,7 +48,7 @@ class PublicKeyClient : public PublicKeyClientInterface {
  protected:
   virtual core::ExecutionResult CreatePublicKeyClientProvider() noexcept;
 
-  std::shared_ptr<client_providers::PublicKeyClientProviderInterface>
+  std::unique_ptr<client_providers::PublicKeyClientProviderInterface>
       public_key_client_provider_;
   std::shared_ptr<PublicKeyClientOptions> options_;
   client_providers::CpioProviderInterface* cpio_;

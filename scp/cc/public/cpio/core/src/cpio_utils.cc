@@ -26,7 +26,6 @@
 using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::cpio::client_providers::CpioProviderFactory;
 using google::scp::cpio::client_providers::CpioProviderInterface;
 using google::scp::cpio::client_providers::GlobalCpio;
 

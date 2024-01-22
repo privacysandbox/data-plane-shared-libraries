@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <aws/sts/STSClient.h>
 
@@ -29,17 +30,16 @@ namespace google::scp::core {
 
 class AwsAssumeRoleCredentialsProvider : public CredentialsProviderInterface {
  public:
-  AwsAssumeRoleCredentialsProvider(
-      const std::shared_ptr<std::string>& assume_role_arn,
-      const std::shared_ptr<std::string>& assume_role_external_id,
-      const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-      const std::shared_ptr<AsyncExecutorInterface>& io_async_executor,
-      const std::shared_ptr<std::string>& region)
-      : assume_role_arn_(assume_role_arn),
-        assume_role_external_id_(assume_role_external_id),
+  AwsAssumeRoleCredentialsProvider(std::string assume_role_arn,
+                                   std::string assume_role_external_id,
+                                   AsyncExecutorInterface* async_executor,
+                                   AsyncExecutorInterface* io_async_executor,
+                                   std::string region)
+      : assume_role_arn_(std::move(assume_role_arn)),
+        assume_role_external_id_(std::move(assume_role_external_id)),
         async_executor_(async_executor),
         io_async_executor_(io_async_executor),
-        region_(region) {}
+        region_(std::move(region)) {}
 
   ExecutionResult Init() noexcept override;
 
@@ -69,19 +69,19 @@ class AwsAssumeRoleCredentialsProvider : public CredentialsProviderInterface {
           async_context) noexcept;
 
   /// The assume role name to execute the operation.
-  const std::shared_ptr<std::string> assume_role_arn_;
+  std::string assume_role_arn_;
 
   /// The assume role external id to execute the operation.
-  const std::shared_ptr<std::string> assume_role_external_id_;
+  std::string assume_role_external_id_;
 
   /// An instance of the async executor. To execute call
-  const std::shared_ptr<AsyncExecutorInterface> async_executor_;
+  AsyncExecutorInterface* async_executor_;
 
   /// An instance of the IO async executor.
-  const std::shared_ptr<AsyncExecutorInterface> io_async_executor_;
+  AsyncExecutorInterface* io_async_executor_;
 
   /// The AWS region of the AWS Client.
-  const std::shared_ptr<std::string> region_;
+  std::string region_;
 
   /// An instance of the AWS client configuration.
   std::shared_ptr<Aws::Client::ClientConfiguration> client_config_;

@@ -44,14 +44,12 @@ ExecutionResult GcpRoleCredentialsProvider::GetRoleCredentials(
   return FailureExecutionResult(SC_UNKNOWN);
 }
 
-std::shared_ptr<RoleCredentialsProviderInterface>
+std::unique_ptr<RoleCredentialsProviderInterface>
 RoleCredentialsProviderFactory::Create(
-    const std::shared_ptr<RoleCredentialsProviderOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<core::AsyncExecutorInterface>&
-        io_async_executor) noexcept {
-  return std::make_shared<GcpRoleCredentialsProvider>();
+    RoleCredentialsProviderOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    core::AsyncExecutorInterface* cpu_async_executor,
+    core::AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<GcpRoleCredentialsProvider>();
 }
 }  // namespace google::scp::cpio::client_providers

@@ -49,11 +49,11 @@ class KmsClient : public KmsClientInterface {
           decrypt_context) noexcept override;
 
  protected:
-  std::shared_ptr<client_providers::KmsClientProviderInterface>
+  std::unique_ptr<client_providers::KmsClientProviderInterface>
       kms_client_provider_;
 
  private:
-  std::shared_ptr<KmsClientOptions> options_;
+  std::shared_ptr<const KmsClientOptions> options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio

@@ -38,16 +38,13 @@ namespace google::scp::cpio::client_providers {
 class GcpMetricClientProvider : public MetricClientProvider {
  public:
   explicit GcpMetricClientProvider(
-      const std::shared_ptr<MetricClientOptions>& metric_client_options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor =
-          nullptr,
-      const std::shared_ptr<MetricBatchingOptions>& metric_batching_options =
-          std::make_shared<MetricBatchingOptions>())
-      : MetricClientProvider(async_executor, metric_client_options,
+      MetricClientOptions metric_client_options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* async_executor = nullptr,
+      MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
+      : MetricClientProvider(async_executor, std::move(metric_client_options),
                              instance_client_provider,
-                             metric_batching_options) {}
+                             std::move(metric_batching_options)) {}
 
   GcpMetricClientProvider() = delete;
 
@@ -57,15 +54,13 @@ class GcpMetricClientProvider : public MetricClientProvider {
   explicit GcpMetricClientProvider(
       std::shared_ptr<google::cloud::monitoring::MetricServiceClient>
           metric_service_client,
-      const std::shared_ptr<MetricClientOptions>& metric_client_options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor =
-          nullptr,
-      const std::shared_ptr<MetricBatchingOptions>& metric_batching_options =
-          std::make_shared<MetricBatchingOptions>())
-      : MetricClientProvider(async_executor, metric_client_options,
-                             instance_client_provider, metric_batching_options),
+      MetricClientOptions metric_client_options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* async_executor = nullptr,
+      MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
+      : MetricClientProvider(async_executor, std::move(metric_client_options),
+                             instance_client_provider,
+                             std::move(metric_batching_options)),
         metric_service_client_(std::move(metric_service_client)) {}
 
   virtual void CreateMetricServiceClient() noexcept;

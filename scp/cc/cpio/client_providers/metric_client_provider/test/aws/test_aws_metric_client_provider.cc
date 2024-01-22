@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
@@ -35,20 +36,18 @@ using google::scp::cpio::common::test::CreateTestClientConfiguration;
 
 namespace google::scp::cpio::client_providers {
 void TestAwsMetricClientProvider::CreateClientConfiguration(
-    const std::shared_ptr<std::string>& region,
-    std::shared_ptr<ClientConfiguration>& client_config) noexcept {
+    const std::string& region, ClientConfiguration& client_config) noexcept {
   client_config =
-      CreateTestClientConfiguration(cloud_watch_endpoint_override_, region);
+      CreateTestClientConfiguration(*cloud_watch_endpoint_override_, region);
 }
 
-std::shared_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
-    const std::shared_ptr<MetricClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<TestAwsMetricClientProvider>(
-      std::dynamic_pointer_cast<TestAwsMetricClientOptions>(options),
+std::unique_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
+    MetricClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    AsyncExecutorInterface* async_executor,
+    core::AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<TestAwsMetricClientProvider>(
+      std::move(dynamic_cast<TestAwsMetricClientOptions&>(options)),
       instance_client_provider, async_executor, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

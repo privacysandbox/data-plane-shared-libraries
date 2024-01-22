@@ -25,7 +25,7 @@ using google::scp::core::common::RetryStrategyType;
 constexpr char kHttpClient[] = "Http2Client";
 
 namespace google::scp::core {
-HttpClient::HttpClient(std::shared_ptr<AsyncExecutorInterface>& async_executor,
+HttpClient::HttpClient(AsyncExecutorInterface* async_executor,
                        HttpClientOptions options)
     : http_connection_pool_(std::make_unique<HttpConnectionPool>(
           async_executor, options.max_connections_per_host,

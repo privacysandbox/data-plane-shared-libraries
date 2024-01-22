@@ -61,12 +61,9 @@ static constexpr char kAwsParameterClientProvider[] =
     "AwsParameterClientProvider";
 
 namespace google::scp::cpio::client_providers {
-std::shared_ptr<ClientConfiguration>
-AwsParameterClientProvider::CreateClientConfiguration(
-    std::string_view region) noexcept {
-  return common::CreateClientConfiguration(
-
-      std::make_shared<std::string>(std::move(region)));
+ClientConfiguration AwsParameterClientProvider::CreateClientConfiguration(
+    const std::string& region) noexcept {
+  return common::CreateClientConfiguration(std::move(region));
 }
 
 ExecutionResult AwsParameterClientProvider::Init() noexcept {
@@ -76,17 +73,17 @@ ExecutionResult AwsParameterClientProvider::Init() noexcept {
   if (const std::string& region_code = cpio_->GetRegion();
       !region_code.empty()) {
     ssm_client_ = ssm_client_factory_->CreateSSMClient(
-        *CreateClientConfiguration(region_code), io_async_executor_);
+        CreateClientConfiguration(region_code), io_async_executor_);
   } else {
-    auto region_code_or =
-        AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_provider_);
+    auto region_code_or = AwsInstanceClientUtils::GetCurrentRegionCode(
+        *instance_client_provider_);
     if (!region_code_or.Successful()) {
       SCP_ERROR(kAwsParameterClientProvider, kZeroUuid, region_code_or.result(),
                 "Failed to get region code for current instance");
       return region_code_or.result();
     }
     ssm_client_ = ssm_client_factory_->CreateSSMClient(
-        *CreateClientConfiguration(*region_code_or), io_async_executor_);
+        CreateClientConfiguration(*region_code_or), io_async_executor_);
   }
 
   return SuccessExecutionResult();
@@ -147,24 +144,23 @@ void AwsParameterClientProvider::OnGetParameterCallback(
   get_parameter_context.Finish();
 }
 
-std::shared_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
-    ClientConfiguration& client_config,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
+std::unique_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
+    ClientConfiguration client_config,
+    AsyncExecutorInterface* io_async_executor) noexcept {
   client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor);
-  return std::make_shared<SSMClient>(client_config);
+  return std::make_unique<SSMClient>(std::move(client_config));
 }
 
 #ifndef TEST_CPIO
-std::shared_ptr<ParameterClientProviderInterface>
+std::unique_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
-    const std::shared_ptr<ParameterClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<AwsParameterClientProvider>(
-      options, instance_client_provider, io_async_executor);
+    ParameterClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    core::AsyncExecutorInterface* cpu_async_executor,
+    core::AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<AwsParameterClientProvider>(
+      std::move(options), instance_client_provider, io_async_executor);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

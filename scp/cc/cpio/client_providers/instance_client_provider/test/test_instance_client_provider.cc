@@ -65,10 +65,10 @@ TestInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
     std::string_view resource_name,
     cmrt::sdk::instance_service::v1::InstanceDetails&
         instance_details) noexcept {
-  instance_details.set_instance_id(test_options_->instance_id);
+  instance_details.set_instance_id(test_options_.instance_id);
   auto* network = instance_details.add_networks();
-  network->set_private_ipv4_address(test_options_->private_ipv4_address);
-  network->set_public_ipv4_address(test_options_->public_ipv4_address);
+  network->set_private_ipv4_address(test_options_.private_ipv4_address);
+  network->set_public_ipv4_address(test_options_.public_ipv4_address);
   return SuccessExecutionResult();
 }
 
@@ -102,8 +102,8 @@ ExecutionResult TestInstanceClientProvider::ListInstanceDetailsByEnvironment(
 ExecutionResult TestInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   resource_name =
-      absl::StrFormat(kAwsResourceNameFormat, test_options_->region,
-                      test_options_->project_id, test_options_->instance_id);
+      absl::StrFormat(kAwsResourceNameFormat, test_options_.region,
+                      test_options_.project_id, test_options_.instance_id);
   return SuccessExecutionResult();
 }
 

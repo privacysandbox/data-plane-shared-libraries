@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
@@ -32,19 +33,18 @@ namespace google::scp::cpio::client_providers {
 class TestAwsKmsClientProvider : public NonteeAwsKmsClientProvider {
  public:
   explicit TestAwsKmsClientProvider(
-      const std::shared_ptr<TestAwsKmsClientOptions>& options,
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credentials_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor)
+      TestAwsKmsClientOptions options,
+      RoleCredentialsProviderInterface* role_credentials_provider,
+      core::AsyncExecutorInterface* io_async_executor)
       : NonteeAwsKmsClientProvider(role_credentials_provider,
                                    io_async_executor),
-        test_options_(options) {}
+        test_options_(std::move(options)) {}
 
  protected:
-  std::shared_ptr<Aws::Client::ClientConfiguration> CreateClientConfiguration(
+  Aws::Client::ClientConfiguration CreateClientConfiguration(
       std::string_view region) noexcept override;
 
-  std::shared_ptr<TestAwsKmsClientOptions> test_options_;
+  TestAwsKmsClientOptions test_options_;
 };
 }  // namespace google::scp::cpio::client_providers
 

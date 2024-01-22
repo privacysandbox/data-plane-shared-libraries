@@ -46,9 +46,8 @@ class NonteeAwsKmsClientProvider : public KmsClientProviderInterface {
    * @param io_async_executor the thread pool for batch recording.
    */
   explicit NonteeAwsKmsClientProvider(
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credentials_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor)
+      RoleCredentialsProviderInterface* role_credentials_provider,
+      core::AsyncExecutorInterface* io_async_executor)
       : role_credentials_provider_(role_credentials_provider),
         io_async_executor_(io_async_executor) {}
 
@@ -84,11 +83,10 @@ class NonteeAwsKmsClientProvider : public KmsClientProviderInterface {
    * @brief Creates the Client Config object.
    *
    * @param region the region of the client.
-   * @return std::shared_ptr<Aws::Client::ClientConfiguration> client
-   * configuration.
+   * @return Aws::Client::ClientConfiguration client configuration.
    */
-  virtual std::shared_ptr<Aws::Client::ClientConfiguration>
-  CreateClientConfiguration(std::string_view region) noexcept;
+  virtual Aws::Client::ClientConfiguration CreateClientConfiguration(
+      std::string_view region) noexcept;
 
   /**
    * @brief Creates a KMS Client object.
@@ -157,11 +155,10 @@ class NonteeAwsKmsClientProvider : public KmsClientProviderInterface {
       const std::shared_ptr<std::string>& kms_region) noexcept;
 
   /// Credentials provider.
-  const std::shared_ptr<RoleCredentialsProviderInterface>
-      role_credentials_provider_;
+  RoleCredentialsProviderInterface* role_credentials_provider_;
 
   /// The instance of the io async executor.
-  const std::shared_ptr<core::AsyncExecutorInterface> io_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 };
 }  // namespace google::scp::cpio::client_providers
 

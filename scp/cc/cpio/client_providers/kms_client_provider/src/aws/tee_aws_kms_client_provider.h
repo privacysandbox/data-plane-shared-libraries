@@ -42,8 +42,7 @@ class TeeAwsKmsClientProvider : public KmsClientProviderInterface {
    * @param credential_provider the credential provider.
    */
   explicit TeeAwsKmsClientProvider(
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          credential_provider)
+      RoleCredentialsProviderInterface* credential_provider)
       : credential_provider_(credential_provider) {}
 
   TeeAwsKmsClientProvider() = delete;
@@ -79,7 +78,7 @@ class TeeAwsKmsClientProvider : public KmsClientProviderInterface {
       std::string command, std::vector<std::string> args) noexcept;
 
   /// Credential provider.
-  const std::shared_ptr<RoleCredentialsProviderInterface> credential_provider_;
+  RoleCredentialsProviderInterface* credential_provider_;
 };
 }  // namespace google::scp::cpio::client_providers
 

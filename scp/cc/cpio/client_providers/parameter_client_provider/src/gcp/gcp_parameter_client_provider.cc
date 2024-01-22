@@ -68,7 +68,7 @@ ExecutionResult GcpParameterClientProvider::Init() noexcept {
 
   if (project_id_.empty()) {
     auto project_id_or =
-        GcpInstanceClientUtils::GetCurrentProjectId(instance_client_provider_);
+        GcpInstanceClientUtils::GetCurrentProjectId(*instance_client_provider_);
     if (!project_id_or.Successful()) {
       SCP_ERROR(kGcpParameterClientProvider, kZeroUuid, project_id_or.result(),
                 "Failed to get project ID for current instance");
@@ -158,7 +158,7 @@ void GcpParameterClientProvider::AsyncGetParameterCallback(
                       secret_result.status().message().c_str());
 
     get_parameter_context.result = result;
-    FinishContext(result, get_parameter_context, async_executor_);
+    FinishContext(result, get_parameter_context, *async_executor_);
     return;
   }
 
@@ -168,19 +168,19 @@ void GcpParameterClientProvider::AsyncGetParameterCallback(
   get_parameter_context.result = SuccessExecutionResult();
 
   FinishContext(SuccessExecutionResult(), get_parameter_context,
-                async_executor_);
+                *async_executor_);
 }
 
 #ifndef TEST_CPIO
-std::shared_ptr<ParameterClientProviderInterface>
+std::unique_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
-    const std::shared_ptr<ParameterClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<GcpParameterClientProvider>(
-      cpu_async_executor, io_async_executor, instance_client_provider, options);
+    ParameterClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    core::AsyncExecutorInterface* cpu_async_executor,
+    core::AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<GcpParameterClientProvider>(
+      cpu_async_executor, io_async_executor, instance_client_provider,
+      std::move(options));
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

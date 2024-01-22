@@ -28,8 +28,7 @@ class MockTeeAwsKmsClientProviderWithOverrides
     : public TeeAwsKmsClientProvider {
  public:
   MockTeeAwsKmsClientProviderWithOverrides(
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          credential_provider)
+      RoleCredentialsProviderInterface* credential_provider)
       : TeeAwsKmsClientProvider(credential_provider) {}
 
   core::ExecutionResultOr<std::string> DecryptUsingEnclavesKmstoolCli(

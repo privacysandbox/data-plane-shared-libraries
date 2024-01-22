@@ -54,8 +54,7 @@ constexpr int kTokenTtlInSecondHeaderValue = 21600;
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-AwsAuthTokenProvider::AwsAuthTokenProvider(
-    const std::shared_ptr<HttpClientInterface>& http_client)
+AwsAuthTokenProvider::AwsAuthTokenProvider(HttpClientInterface* http_client)
     : http_client_(http_client) {}
 
 ExecutionResult AwsAuthTokenProvider::Init() noexcept {
@@ -138,8 +137,8 @@ ExecutionResult AwsAuthTokenProvider::GetSessionTokenForTargetAudience(
   return FailureExecutionResult(SC_UNKNOWN);
 }
 
-std::shared_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
-    const std::shared_ptr<core::HttpClientInterface>& http1_client) {
-  return std::make_shared<AwsAuthTokenProvider>(http1_client);
+std::unique_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
+    core::HttpClientInterface* http1_client) {
+  return std::make_unique<AwsAuthTokenProvider>(http1_client);
 }
 }  // namespace google::scp::cpio::client_providers

@@ -34,8 +34,7 @@ class PrivateKeyFetcherProvider : public PrivateKeyFetcherProviderInterface {
  public:
   virtual ~PrivateKeyFetcherProvider() = default;
 
-  explicit PrivateKeyFetcherProvider(
-      const std::shared_ptr<core::HttpClientInterface>& http_client)
+  explicit PrivateKeyFetcherProvider(core::HttpClientInterface* http_client)
       : http_client_(http_client) {}
 
   core::ExecutionResult Init() noexcept override;
@@ -86,7 +85,7 @@ class PrivateKeyFetcherProvider : public PrivateKeyFetcherProviderInterface {
           http_client_context) noexcept;
 
   /// HttpClient for issuing HTTP actions.
-  std::shared_ptr<core::HttpClientInterface> http_client_;
+  core::HttpClientInterface* http_client_;
 };
 }  // namespace google::scp::cpio::client_providers
 

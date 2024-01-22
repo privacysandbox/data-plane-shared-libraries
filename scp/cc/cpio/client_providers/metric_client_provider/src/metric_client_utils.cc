@@ -115,11 +115,10 @@ MetricClientUtils::ConvertToMetricUnitProto(MetricUnit metric_unit) {
 }
 
 ExecutionResult MetricClientUtils::ValidateRequest(
-    const PutMetricsRequest& request,
-    const std::shared_ptr<MetricBatchingOptions>& options) {
+    const PutMetricsRequest& request, const MetricBatchingOptions& options) {
   // If batching recording is not enabled, the namespace should be set in the
   // request.
-  if (!options->enable_batch_recording && request.metric_namespace().empty()) {
+  if (!options.enable_batch_recording && request.metric_namespace().empty()) {
     return FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET);
   }
 

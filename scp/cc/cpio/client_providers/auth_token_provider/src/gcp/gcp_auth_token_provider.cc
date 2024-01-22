@@ -108,8 +108,7 @@ const auto& GetRequiredJWTComponentsForTargetAudienceToken() {
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-GcpAuthTokenProvider::GcpAuthTokenProvider(
-    const std::shared_ptr<HttpClientInterface>& http_client)
+GcpAuthTokenProvider::GcpAuthTokenProvider(HttpClientInterface* http_client)
     : http_client_(http_client) {}
 
 ExecutionResult GcpAuthTokenProvider::Init() noexcept {
@@ -350,8 +349,8 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
   get_token_context.Finish();
 }
 
-std::shared_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
-    const std::shared_ptr<core::HttpClientInterface>& http1_client) {
-  return std::make_shared<GcpAuthTokenProvider>(http1_client);
+std::unique_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
+    core::HttpClientInterface* http1_client) {
+  return std::make_unique<GcpAuthTokenProvider>(http1_client);
 }
 }  // namespace google::scp::cpio::client_providers

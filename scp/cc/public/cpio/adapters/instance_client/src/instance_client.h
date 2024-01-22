@@ -69,8 +69,7 @@ class InstanceClient : public InstanceClientInterface {
  protected:
   virtual core::ExecutionResult CreateInstanceClientProvider() noexcept;
 
-  std::shared_ptr<client_providers::InstanceClientProviderInterface>
-      instance_client_provider_;
+  client_providers::InstanceClientProviderInterface* instance_client_provider_;
 
  private:
   std::shared_ptr<InstanceClientOptions> options_;

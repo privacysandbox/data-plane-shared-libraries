@@ -82,9 +82,10 @@ class AwsS3Tests : public ::testing::Test {
 };
 
 TEST_F(AwsS3Tests, GetBlob) {
-  auto async_executor = std::make_shared<MockAsyncExecutor>();
+  auto async_executor = std::make_unique<MockAsyncExecutor>();
   auto mock_s3_client = std::make_shared<MockS3Client>();
-  auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+  auto s3_client =
+      std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
   mock_s3_client->get_object_async_mock =
       [](const GetObjectRequest& get_object_request,
@@ -94,7 +95,7 @@ TEST_F(AwsS3Tests, GetBlob) {
         EXPECT_THAT(get_object_request.GetKey(), StrEq("blob_name"));
       };
 
-  MockAwsS3Client aws_s3_client(s3_client, async_executor);
+  MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
   get_blob_context.request = std::make_shared<GetBlobRequest>();
   get_blob_context.request->blob_name =
@@ -106,11 +107,12 @@ TEST_F(AwsS3Tests, GetBlob) {
 }
 
 TEST_F(AwsS3Tests, OnGetObjectCallbackWithError) {
-  auto async_executor = std::make_shared<MockAsyncExecutor>();
+  auto async_executor = std::make_unique<MockAsyncExecutor>();
   auto mock_s3_client = std::make_shared<MockS3Client>();
-  auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+  auto s3_client =
+      std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
-  MockAwsS3Client aws_s3_client(s3_client, async_executor);
+  MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
   get_blob_context.request = std::make_shared<GetBlobRequest>();
@@ -144,11 +146,12 @@ TEST_F(AwsS3Tests, OnGetObjectCallback) {
   // stream belongs to the test so by adding blocks we are tricking the SDK to
   // think it has the ownership.
   {
-    auto async_executor = std::make_shared<MockAsyncExecutor>();
+    auto async_executor = std::make_unique<MockAsyncExecutor>();
     auto mock_s3_client = std::make_shared<MockS3Client>();
-    auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+    auto s3_client =
+        std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
-    MockAwsS3Client aws_s3_client(s3_client, async_executor);
+    MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
 
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
     get_blob_context.request = std::make_shared<GetBlobRequest>();
@@ -178,11 +181,12 @@ TEST_F(AwsS3Tests, OnGetObjectCallback) {
 }
 
 TEST_F(AwsS3Tests, OnListObjectsCallbackWithError) {
-  auto async_executor = std::make_shared<MockAsyncExecutor>();
+  auto async_executor = std::make_unique<MockAsyncExecutor>();
   auto mock_s3_client = std::make_shared<MockS3Client>();
-  auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+  auto s3_client =
+      std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
-  MockAwsS3Client aws_s3_client(s3_client, async_executor);
+  MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.request = std::make_shared<ListBlobsRequest>();
@@ -208,11 +212,12 @@ TEST_F(AwsS3Tests, OnListObjectsCallbackWithError) {
 }
 
 TEST_F(AwsS3Tests, OnListObjectsCallback) {
-  auto async_executor = std::make_shared<MockAsyncExecutor>();
+  auto async_executor = std::make_unique<MockAsyncExecutor>();
   auto mock_s3_client = std::make_shared<MockS3Client>();
-  auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+  auto s3_client =
+      std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
-  MockAwsS3Client aws_s3_client(s3_client, async_executor);
+  MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
 
   AsyncContext<ListBlobsRequest, ListBlobsResponse> list_blobs_context;
   list_blobs_context.request = std::make_shared<ListBlobsRequest>();
@@ -236,9 +241,10 @@ TEST_F(AwsS3Tests, OnListObjectsCallback) {
 }
 
 TEST_F(AwsS3Tests, PutBlob) {
-  auto async_executor = std::make_shared<MockAsyncExecutor>();
+  auto async_executor = std::make_unique<MockAsyncExecutor>();
   auto mock_s3_client = std::make_shared<MockS3Client>();
-  auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+  auto s3_client =
+      std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
   mock_s3_client->put_object_async_mock =
       [&](const PutObjectRequest& put_object_request,
@@ -253,7 +259,7 @@ TEST_F(AwsS3Tests, PutBlob) {
                                 Eq('6'), Eq('7'), Eq('8'), Eq('9'), Eq('0')));
       };
 
-  MockAwsS3Client aws_s3_client(s3_client, async_executor);
+  MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
   put_blob_context.request = std::make_shared<PutBlobRequest>();
   put_blob_context.request->blob_name =
@@ -272,11 +278,12 @@ TEST_F(AwsS3Tests, PutBlob) {
 }
 
 TEST_F(AwsS3Tests, OnPutObjectCallbackWithError) {
-  auto async_executor = std::make_shared<MockAsyncExecutor>();
+  auto async_executor = std::make_unique<MockAsyncExecutor>();
   auto mock_s3_client = std::make_shared<MockS3Client>();
-  auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+  auto s3_client =
+      std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
-  MockAwsS3Client aws_s3_client(s3_client, async_executor);
+  MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
 
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
   put_blob_context.request = std::make_shared<PutBlobRequest>();
@@ -301,11 +308,12 @@ TEST_F(AwsS3Tests, OnPutObjectCallbackWithError) {
 }
 
 TEST_F(AwsS3Tests, OnPutObjectCallback) {
-  auto async_executor = std::make_shared<MockAsyncExecutor>();
+  auto async_executor = std::make_unique<MockAsyncExecutor>();
   auto mock_s3_client = std::make_shared<MockS3Client>();
-  auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+  auto s3_client =
+      std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
-  MockAwsS3Client aws_s3_client(s3_client, async_executor);
+  MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
 
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context;
   put_blob_context.request = std::make_shared<PutBlobRequest>();
@@ -327,11 +335,12 @@ TEST_F(AwsS3Tests, OnPutObjectCallback) {
 }
 
 TEST_F(AwsS3Tests, OnDeleteObjectCallbackWithError) {
-  auto async_executor = std::make_shared<MockAsyncExecutor>();
+  auto async_executor = std::make_unique<MockAsyncExecutor>();
   auto mock_s3_client = std::make_shared<MockS3Client>();
-  auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+  auto s3_client =
+      std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
-  MockAwsS3Client aws_s3_client(s3_client, async_executor);
+  MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
 
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context;
   delete_blob_context.request = std::make_shared<DeleteBlobRequest>();
@@ -357,11 +366,12 @@ TEST_F(AwsS3Tests, OnDeleteObjectCallbackWithError) {
 }
 
 TEST_F(AwsS3Tests, OnDeleteObjectCallback) {
-  auto async_executor = std::make_shared<MockAsyncExecutor>();
+  auto async_executor = std::make_unique<MockAsyncExecutor>();
   auto mock_s3_client = std::make_shared<MockS3Client>();
-  auto s3_client = std::dynamic_pointer_cast<S3Client>(mock_s3_client);
+  auto s3_client =
+      std::dynamic_pointer_cast<S3Client>(std::move(mock_s3_client));
 
-  MockAwsS3Client aws_s3_client(s3_client, async_executor);
+  MockAwsS3Client aws_s3_client(std::move(s3_client), async_executor.get());
 
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context;
   delete_blob_context.request = std::make_shared<DeleteBlobRequest>();

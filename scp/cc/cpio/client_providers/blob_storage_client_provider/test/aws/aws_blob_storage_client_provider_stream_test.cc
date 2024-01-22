@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -65,6 +66,7 @@ using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using google::scp::cpio::client_providers::mock::MockS3Client;
 using ::testing::_;
+using testing::ByMove;
 using ::testing::ElementsAre;
 using ::testing::Eq;
 using ::testing::ExplainMatchResult;
@@ -90,22 +92,21 @@ class MockAwsS3Factory : public AwsS3Factory {
  public:
   MOCK_METHOD(core::ExecutionResultOr<std::shared_ptr<Aws::S3::S3Client>>,
               CreateClient,
-              (ClientConfiguration&,
-               const std::shared_ptr<core::AsyncExecutorInterface>&),
+              (ClientConfiguration, core::AsyncExecutorInterface*),
               (noexcept, override));
 };
 
 class AwsBlobStorageClientProviderStreamTest : public ::testing::Test {
  protected:
-  AwsBlobStorageClientProviderStreamTest()
-      : instance_client_(std::make_shared<MockInstanceClientProvider>()),
-        s3_factory_(std::make_shared<NiceMock<MockAwsS3Factory>>()),
-        provider_(std::make_shared<BlobStorageClientOptions>(),
-                  instance_client_, std::make_shared<MockAsyncExecutor>(),
-                  std::make_shared<MockAsyncExecutor>(), s3_factory_) {
+  AwsBlobStorageClientProviderStreamTest() {
+    auto s3_factory = std::make_unique<NiceMock<MockAwsS3Factory>>();
+    s3_factory_ = s3_factory.get();
+    provider_.emplace(BlobStorageClientOptions(), &instance_client_,
+                      &cpu_async_executor_, &io_async_executor_,
+                      std::move(s3_factory));
     InitAPI(options_);
-    instance_client_->instance_resource_name = std::string{kResourceNameMock};
-    s3_client_ = std::make_shared<NiceMock<MockS3Client>>();
+    instance_client_.instance_resource_name = std::string{kResourceNameMock};
+    s3_client_ = std::make_unique<NiceMock<MockS3Client>>();
     abstract_client_ = static_cast<S3Client*>(s3_client_.get());
 
     ON_CALL(*s3_factory_, CreateClient).WillByDefault(Return(s3_client_));
@@ -116,17 +117,19 @@ class AwsBlobStorageClientProviderStreamTest : public ::testing::Test {
       finish_called_ = true;
     };
 
-    EXPECT_SUCCESS(provider_.Init());
-    EXPECT_SUCCESS(provider_.Run());
+    EXPECT_SUCCESS(provider_->Init());
+    EXPECT_SUCCESS(provider_->Run());
   }
 
   ~AwsBlobStorageClientProviderStreamTest() { ShutdownAPI(options_); }
 
-  std::shared_ptr<MockInstanceClientProvider> instance_client_;
   std::shared_ptr<MockS3Client> s3_client_;
   S3Client* abstract_client_;
-  std::shared_ptr<MockAwsS3Factory> s3_factory_;
-  AwsBlobStorageClientProvider provider_;
+  MockAwsS3Factory* s3_factory_;
+  MockInstanceClientProvider instance_client_;
+  MockAsyncExecutor cpu_async_executor_;
+  MockAsyncExecutor io_async_executor_;
+  std::optional<AwsBlobStorageClientProvider> provider_;
 
   ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>
       get_blob_stream_context_;
@@ -227,7 +230,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStream) {
     }
   };
 
-  EXPECT_SUCCESS(provider_.GetBlobStream(get_blob_stream_context_));
+  EXPECT_SUCCESS(provider_->GetBlobStream(get_blob_stream_context_));
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -302,7 +305,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
     }
   };
 
-  EXPECT_SUCCESS(provider_.GetBlobStream(get_blob_stream_context_));
+  EXPECT_SUCCESS(provider_->GetBlobStream(get_blob_stream_context_));
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -391,7 +394,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
     }
   };
 
-  EXPECT_SUCCESS(provider_.GetBlobStream(get_blob_stream_context_));
+  EXPECT_SUCCESS(provider_->GetBlobStream(get_blob_stream_context_));
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -450,7 +453,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamIndexBeyondEnd) {
     }
   };
 
-  EXPECT_SUCCESS(provider_.GetBlobStream(get_blob_stream_context_));
+  EXPECT_SUCCESS(provider_->GetBlobStream(get_blob_stream_context_));
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -483,7 +486,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
     finish_called_ = true;
   };
 
-  EXPECT_SUCCESS(provider_.GetBlobStream(get_blob_stream_context_));
+  EXPECT_SUCCESS(provider_->GetBlobStream(get_blob_stream_context_));
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -522,7 +525,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamFailsIfQueueDone) {
     finish_called_ = true;
   };
 
-  EXPECT_SUCCESS(provider_.GetBlobStream(get_blob_stream_context_));
+  EXPECT_SUCCESS(provider_->GetBlobStream(get_blob_stream_context_));
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -563,7 +566,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
     finish_called_ = true;
   };
 
-  EXPECT_SUCCESS(provider_.GetBlobStream(get_blob_stream_context_));
+  EXPECT_SUCCESS(provider_->GetBlobStream(get_blob_stream_context_));
 
   {
     absl::MutexLock l(&finish_called_mu_);

@@ -141,21 +141,21 @@ namespace google::scp::cpio::client_providers {
 ExecutionResult GcpBlobStorageClientProvider::Init() noexcept {
   // Try to get project_id from Global Cpio Options, otherwise get project_id
   // from running instance_client.
-  std::string project_id_ = GlobalCpio::GetGlobalCpio()->GetProjectId();
+  std::string project_id = options_.project_id;
 
-  if (project_id_.empty()) {
+  if (project_id.empty()) {
     auto project_id_or =
-        GcpInstanceClientUtils::GetCurrentProjectId(instance_client_);
+        GcpInstanceClientUtils::GetCurrentProjectId(*instance_client_);
     if (!project_id_or.Successful()) {
       SCP_ERROR(kGcpBlobStorageClientProvider, kZeroUuid,
                 project_id_or.result(),
                 "Failed to get project ID for current instance");
       return project_id_or.result();
     }
-    project_id_ = std::move(*project_id_or);
+    project_id = std::move(*project_id_or);
   }
 
-  auto client_or = cloud_storage_factory_->CreateClient(options_, project_id_);
+  auto client_or = cloud_storage_factory_->CreateClient(options_, project_id);
   if (!client_or.Successful()) {
     SCP_ERROR(kGcpBlobStorageClientProvider, kZeroUuid, client_or.result(),
               "Failed creating Google Cloud Storage client.");
@@ -261,7 +261,7 @@ void GcpBlobStorageClientProvider::GetBlobInternal(
   }
 
   FinishContext(SuccessExecutionResult(), get_blob_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 ExecutionResult GcpBlobStorageClientProvider::GetBlobStream(
@@ -325,7 +325,7 @@ void GcpBlobStorageClientProvider::GetBlobStreamInternal(
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, get_blob_stream_context,
                       result, "Get blob stream request was cancelled.");
     FinishStreamingContext(result, get_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
   auto response = ReadNextPortion(*get_blob_stream_context.request, *tracker);
@@ -340,7 +340,7 @@ void GcpBlobStorageClientProvider::GetBlobStreamInternal(
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, get_blob_stream_context,
                       push_result, "Failed to push new message.");
     FinishStreamingContext(push_result, get_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
 
@@ -357,12 +357,12 @@ void GcpBlobStorageClientProvider::GetBlobStreamInternal(
         get_blob_stream_context.result,
         "Get blob stream process next message failed to be scheduled");
     FinishStreamingContext(schedule_result, get_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
   }
 
   if (tracker->bytes_remaining == 0) {
     FinishStreamingContext(SuccessExecutionResult(), get_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
 
@@ -378,7 +378,7 @@ void GcpBlobStorageClientProvider::GetBlobStreamInternal(
                       get_blob_stream_context.result,
                       "Get blob stream follow up read failed to be scheduled");
     FinishStreamingContext(schedule_result, get_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
   }
 }
 
@@ -414,7 +414,7 @@ GcpBlobStorageClientProvider::InitGetBlobStreamTracker(
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB);
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, context, result,
                       "Get blob stream request failed. Message: size missing.");
-    FinishStreamingContext(result, context, cpu_async_executor_);
+    FinishStreamingContext(result, context, *cpu_async_executor_);
     return result;
   }
 
@@ -544,7 +544,7 @@ void GcpBlobStorageClientProvider::ListBlobsMetadataInternal(
           "List blobs request failed. Error code: %d, message: %s",
           object_metadata.status().code(),
           object_metadata.status().message().c_str());
-      FinishContext(execution_result, list_blobs_context, cpu_async_executor_);
+      FinishContext(execution_result, list_blobs_context, *cpu_async_executor_);
       return;
     }
     // If the first item returned is the same as the marker provided to this
@@ -573,7 +573,7 @@ void GcpBlobStorageClientProvider::ListBlobsMetadataInternal(
     }
   }
   FinishContext(SuccessExecutionResult(), list_blobs_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 ExecutionResult GcpBlobStorageClientProvider::PutBlob(
@@ -624,12 +624,12 @@ void GcpBlobStorageClientProvider::PutBlobInternal(
     auto execution_result =
         GcpBlobStorageClientUtils::ConvertCloudStorageErrorToExecutionResult(
             object_metadata.status().code());
-    FinishContext(execution_result, put_blob_context, cpu_async_executor_);
+    FinishContext(execution_result, put_blob_context, *cpu_async_executor_);
     return;
   }
   put_blob_context.response = std::make_shared<PutBlobResponse>();
   FinishContext(SuccessExecutionResult(), put_blob_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 ExecutionResult GcpBlobStorageClientProvider::PutBlobStream(
@@ -684,7 +684,7 @@ void GcpBlobStorageClientProvider::InitPutBlobStream(
         "Supplied keepalive duration is greater than the maximum of "
         "10 minutes.");
     FinishStreamingContext(result, put_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
   tracker->expiry_time_ns =
@@ -731,7 +731,7 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, put_blob_stream_context,
                       result, "Put blob stream request was cancelled");
     FinishStreamingContext(result, put_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
 
@@ -757,7 +757,7 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
       put_blob_stream_context.response =
           std::make_shared<PutBlobStreamResponse>();
       FinishStreamingContext(result, put_blob_stream_context,
-                             cpu_async_executor_);
+                             *cpu_async_executor_);
       return;
     }
     // If this session expired, cancel the upload and finish.
@@ -773,7 +773,7 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
       std::move(tracker->stream).Suspend();
       cloud_storage_client.DeleteResumableUpload(session_id);
       FinishStreamingContext(result, put_blob_stream_context,
-                             cpu_async_executor_);
+                             *cpu_async_executor_);
       return;
     }
     // No message is available but we're holding a session - let's suspend it.
@@ -794,7 +794,7 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
                         put_blob_stream_context.result,
                         "Put blob stream request failed to be scheduled");
       FinishStreamingContext(schedule_result, put_blob_stream_context,
-                             cpu_async_executor_);
+                             *cpu_async_executor_);
     }
     return;
   }
@@ -808,7 +808,7 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
                       "Enqueued message does not specify the same blob (bucket "
                       "name, blob name) as previously.");
     FinishStreamingContext(result, put_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
     return;
   }
   RestoreUploadIfSuspended(*tracker, cloud_storage_client);
@@ -829,7 +829,7 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
                       put_blob_stream_context.result,
                       "Put blob stream request failed to be scheduled");
     FinishStreamingContext(schedule_result, put_blob_stream_context,
-                           cpu_async_executor_);
+                           *cpu_async_executor_);
   }
 }
 
@@ -879,46 +879,45 @@ void GcpBlobStorageClientProvider::DeleteBlobInternal(
     auto execution_result =
         GcpBlobStorageClientUtils::ConvertCloudStorageErrorToExecutionResult(
             status.code());
-    FinishContext(execution_result, delete_blob_context, cpu_async_executor_);
+    FinishContext(execution_result, delete_blob_context, *cpu_async_executor_);
     return;
   }
   delete_blob_context.response = std::make_shared<DeleteBlobResponse>();
   FinishContext(SuccessExecutionResult(), delete_blob_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 Options GcpCloudStorageFactory::CreateClientOptions(
-    std::shared_ptr<BlobStorageClientOptions> options,
-    std::string_view project_id) noexcept {
+    BlobStorageClientOptions options, std::string_view project_id) noexcept {
   Options client_options;
   client_options.set<ProjectIdOption>(std::string{project_id});
   client_options.set<ConnectionPoolSizeOption>(kMaxConcurrentConnections);
   client_options.set<RetryPolicyOption>(
-      LimitedErrorCountRetryPolicy(options->retry_limit).clone());
+      LimitedErrorCountRetryPolicy(options.retry_limit).clone());
   client_options.set<IdempotencyPolicyOption>(
       StrictIdempotencyPolicy().clone());
   client_options.set<TransferStallTimeoutOption>(
-      options->transfer_stall_timeout);
+      options.transfer_stall_timeout);
   return client_options;
 }
 
-core::ExecutionResultOr<std::shared_ptr<Client>>
-GcpCloudStorageFactory::CreateClient(
-    std::shared_ptr<BlobStorageClientOptions> options,
-    std::string_view project_id) noexcept {
-  return std::make_shared<Client>(CreateClientOptions(options, project_id));
+core::ExecutionResultOr<std::unique_ptr<Client>>
+GcpCloudStorageFactory::CreateClient(BlobStorageClientOptions options,
+                                     std::string_view project_id) noexcept {
+  return std::make_unique<Client>(
+      CreateClientOptions(std::move(options), project_id));
 }
 
 #ifndef TEST_CPIO
-std::shared_ptr<BlobStorageClientProviderInterface>
+std::unique_ptr<BlobStorageClientProviderInterface>
 BlobStorageClientProviderFactory::Create(
-    std::shared_ptr<BlobStorageClientOptions> options,
-    std::shared_ptr<InstanceClientProviderInterface> instance_client,
-    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<core::AsyncExecutorInterface>&
-        io_async_executor) noexcept {
-  return std::make_shared<GcpBlobStorageClientProvider>(
-      options, instance_client, cpu_async_executor, io_async_executor);
+    BlobStorageClientOptions options,
+    InstanceClientProviderInterface* instance_client,
+    core::AsyncExecutorInterface* cpu_async_executor,
+    core::AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<GcpBlobStorageClientProvider>(
+      std::move(options), instance_client, cpu_async_executor,
+      io_async_executor);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

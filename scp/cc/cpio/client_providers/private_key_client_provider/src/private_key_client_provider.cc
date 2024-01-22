@@ -55,9 +55,9 @@ static constexpr char kPrivateKeyClientProvider[] = "PrivateKeyClientProvider";
 namespace google::scp::cpio::client_providers {
 ExecutionResult PrivateKeyClientProvider::Init() noexcept {
   endpoint_list_.push_back(
-      private_key_client_options_->primary_private_key_vending_endpoint);
+      private_key_client_options_.primary_private_key_vending_endpoint);
   for (const auto& endpoint :
-       private_key_client_options_->secondary_private_key_vending_endpoints) {
+       private_key_client_options_.secondary_private_key_vending_endpoints) {
     endpoint_list_.push_back(endpoint);
   }
   endpoint_count_ = endpoint_list_.size();
@@ -397,22 +397,20 @@ void PrivateKeyClientProvider::OnDecryptCallback(
   }
 }
 
-std::shared_ptr<PrivateKeyClientProviderInterface>
+std::unique_ptr<PrivateKeyClientProviderInterface>
 PrivateKeyClientProviderFactory::Create(
-    const std::shared_ptr<PrivateKeyClientOptions>& options,
-    const std::shared_ptr<core::HttpClientInterface>& http_client,
-    const std::shared_ptr<RoleCredentialsProviderInterface>&
-        role_credentials_provider,
-    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-    const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor) {
+    PrivateKeyClientOptions options, core::HttpClientInterface* http_client,
+    RoleCredentialsProviderInterface* role_credentials_provider,
+    AuthTokenProviderInterface* auth_token_provider,
+    core::AsyncExecutorInterface* io_async_executor) {
   auto kms_client_provider = KmsClientProviderFactory::Create(
-      std::make_shared<KmsClientOptions>(), role_credentials_provider,
-      io_async_executor);
+      KmsClientOptions(), role_credentials_provider, io_async_executor);
   auto private_key_fetcher = PrivateKeyFetcherProviderFactory::Create(
       http_client, role_credentials_provider, auth_token_provider);
 
-  return std::make_shared<PrivateKeyClientProvider>(
-      options, http_client, private_key_fetcher, kms_client_provider);
+  return std::make_unique<PrivateKeyClientProvider>(
+      std::move(options), http_client, std::move(private_key_fetcher),
+      std::move(kms_client_provider));
 }
 
 }  // namespace google::scp::cpio::client_providers

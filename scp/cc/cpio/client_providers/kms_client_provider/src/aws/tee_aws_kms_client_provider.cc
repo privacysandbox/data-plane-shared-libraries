@@ -243,13 +243,11 @@ TeeAwsKmsClientProvider::DecryptUsingEnclavesKmstoolCli(
 }
 
 #ifndef TEST_CPIO
-std::shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    const std::shared_ptr<KmsClientOptions>& options,
-    const std::shared_ptr<RoleCredentialsProviderInterface>&
-        role_credentials_provider,
-    const std::shared_ptr<core::AsyncExecutorInterface>&
-        io_async_executor) noexcept {
-  return std::make_shared<TeeAwsKmsClientProvider>(role_credentials_provider);
+std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
+    KmsClientOptions options,
+    RoleCredentialsProviderInterface* role_credentials_provider,
+    core::AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<TeeAwsKmsClientProvider>(role_credentials_provider);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

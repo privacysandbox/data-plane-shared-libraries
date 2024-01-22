@@ -18,6 +18,7 @@
 #define CPIO_CLIENT_PROVIDERS_PUBLIC_KEY_CLIENT_PROVIDER_SRC_PUBLIC_KEY_CLIENT_PROVIDER_H_
 
 #include <memory>
+#include <utility>
 
 #include "core/interface/async_context.h"
 #include "core/interface/http_client_interface.h"
@@ -37,9 +38,9 @@ class PublicKeyClientProvider : public PublicKeyClientProviderInterface {
   virtual ~PublicKeyClientProvider() = default;
 
   explicit PublicKeyClientProvider(
-      const std::shared_ptr<PublicKeyClientOptions>& public_key_client_options,
-      const std::shared_ptr<core::HttpClientInterface> http_client)
-      : http_client_(http_client),
+      PublicKeyClientOptions public_key_client_options,
+      core::HttpClientInterface* http_client)
+      : http_client_(std::move(http_client)),
         public_key_client_options_(public_key_client_options) {}
 
   core::ExecutionResult Init() noexcept override;
@@ -83,10 +84,10 @@ class PublicKeyClientProvider : public PublicKeyClientProviderInterface {
       std::shared_ptr<std::atomic<size_t>> failed_counters) noexcept;
 
   /// HttpClient for issuing HTTP actions.
-  std::shared_ptr<core::HttpClientInterface> http_client_;
+  core::HttpClientInterface* http_client_;
 
   /// Configurations for PublicKeyClient.
-  std::shared_ptr<PublicKeyClientOptions> public_key_client_options_;
+  PublicKeyClientOptions public_key_client_options_;
 };
 }  // namespace google::scp::cpio::client_providers
 

@@ -70,7 +70,7 @@ ExecutionResult MetricClient::CreateMetricClientProvider() noexcept {
     return ExecutionResult();
   }
   metric_client_provider_ = MetricClientProviderFactory::Create(
-      options_, *instance_client_provider, *cpu_async_executor,
+      *options_, *instance_client_provider, *cpu_async_executor,
       *io_async_executor);
 
   return SuccessExecutionResult();
@@ -118,6 +118,6 @@ core::ExecutionResult MetricClient::PutMetrics(
 std::unique_ptr<MetricClientInterface> MetricClientFactory::Create(
     MetricClientOptions options) {
   return std::make_unique<MetricClient>(
-      std::make_shared<MetricClientOptions>(options));
+      std::make_shared<MetricClientOptions>(std::move(options)));
 }
 }  // namespace google::scp::cpio

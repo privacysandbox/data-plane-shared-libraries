@@ -63,12 +63,12 @@ static constexpr uint64_t kExpectedExpiredTimeInSeconds = 1668811806;
 namespace google::scp::cpio::client_providers::test {
 
 TEST(PublicKeyClientProviderTestI, InitFailedWithInvalidConfig) {
-  auto http_client = std::make_shared<MockHttpClient>();
+  auto http_client = std::make_unique<MockHttpClient>();
 
-  auto public_key_client_options = std::make_shared<PublicKeyClientOptions>();
+  PublicKeyClientOptions public_key_client_options;
 
   auto public_key_client = std::make_unique<PublicKeyClientProvider>(
-      public_key_client_options, http_client);
+      std::move(public_key_client_options), http_client.get());
 
   EXPECT_THAT(public_key_client->Init(),
               ResultIs(FailureExecutionResult(
@@ -76,11 +76,11 @@ TEST(PublicKeyClientProviderTestI, InitFailedWithInvalidConfig) {
 }
 
 TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
-  auto public_key_client_options = std::make_shared<PublicKeyClientOptions>();
-  public_key_client_options->endpoints.emplace_back(kPrivateKeyBaseUri1);
+  PublicKeyClientOptions public_key_client_options;
+  public_key_client_options.endpoints.emplace_back(kPrivateKeyBaseUri1);
 
   auto public_key_client = std::make_unique<PublicKeyClientProvider>(
-      public_key_client_options, nullptr);
+      std::move(public_key_client_options), nullptr);
 
   EXPECT_THAT(public_key_client->Init(),
               ResultIs(FailureExecutionResult(
@@ -90,14 +90,14 @@ TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
 class PublicKeyClientProviderTestII : public ::testing::Test {
  protected:
   void SetUp() override {
-    http_client_ = std::make_shared<MockHttpClient>();
+    http_client_ = std::make_unique<MockHttpClient>();
 
-    auto public_key_client_options = std::make_shared<PublicKeyClientOptions>();
-    public_key_client_options->endpoints.emplace_back(kPrivateKeyBaseUri1);
-    public_key_client_options->endpoints.emplace_back(kPrivateKeyBaseUri2);
+    PublicKeyClientOptions public_key_client_options;
+    public_key_client_options.endpoints.emplace_back(kPrivateKeyBaseUri1);
+    public_key_client_options.endpoints.emplace_back(kPrivateKeyBaseUri2);
 
     public_key_client_ = std::make_unique<PublicKeyClientProvider>(
-        public_key_client_options, http_client_);
+        std::move(public_key_client_options), http_client_.get());
 
     EXPECT_SUCCESS(public_key_client_->Init());
     EXPECT_SUCCESS(public_key_client_->Run());
@@ -129,7 +129,7 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
     }
   }
 
-  std::shared_ptr<MockHttpClient> http_client_;
+  std::unique_ptr<MockHttpClient> http_client_;
   std::unique_ptr<PublicKeyClientProvider> public_key_client_;
 };
 

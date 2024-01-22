@@ -38,9 +38,8 @@ class TestAwsPrivateKeyFetcherProvider : public AwsPrivateKeyFetcherProvider {
    * service.
    */
   TestAwsPrivateKeyFetcherProvider(
-      const std::shared_ptr<core::HttpClientInterface>& http_client,
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credentials_provider)
+      core::HttpClientInterface* http_client,
+      RoleCredentialsProviderInterface* role_credentials_provider)
       : AwsPrivateKeyFetcherProvider(http_client, role_credentials_provider) {}
 
  protected:

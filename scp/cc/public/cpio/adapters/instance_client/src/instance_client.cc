@@ -53,7 +53,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::GetPublicErrorCode;
 using google::scp::core::utils::ConvertToPublicExecutionResult;
 using google::scp::cpio::client_providers::GlobalCpio;
-using google::scp::cpio::client_providers::InstanceClientProviderFactory;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 
 namespace {
@@ -69,7 +68,7 @@ ExecutionResult InstanceClient::CreateInstanceClientProvider() noexcept {
               "Failed to get InstanceClientProvider.");
     return execution_result;
   } else {
-    instance_client_provider_ = *std::move(provider);
+    instance_client_provider_ = *provider;
   }
 
   return SuccessExecutionResult();
@@ -139,6 +138,6 @@ core::ExecutionResult InstanceClient::ListInstanceDetailsByEnvironment(
 std::unique_ptr<InstanceClientInterface> InstanceClientFactory::Create(
     InstanceClientOptions options) {
   return std::make_unique<InstanceClient>(
-      std::make_shared<InstanceClientOptions>(options));
+      std::make_shared<InstanceClientOptions>(std::move(options)));
 }
 }  // namespace google::scp::cpio

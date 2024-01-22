@@ -50,7 +50,7 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return cpu_async_executor the CPU Async Executor.
    */
-  virtual absl::StatusOr<std::shared_ptr<core::AsyncExecutorInterface>>
+  virtual absl::StatusOr<core::AsyncExecutorInterface*>
   GetCpuAsyncExecutor() noexcept = 0;
 
   /**
@@ -59,7 +59,7 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return io_async_executor the IO Async Executor.
    */
-  virtual absl::StatusOr<std::shared_ptr<core::AsyncExecutorInterface>>
+  virtual absl::StatusOr<core::AsyncExecutorInterface*>
   GetIoAsyncExecutor() noexcept = 0;
 
   /**
@@ -68,7 +68,7 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return http_client output Http2 Client
    */
-  virtual absl::StatusOr<std::shared_ptr<core::HttpClientInterface>>
+  virtual absl::StatusOr<core::HttpClientInterface*>
   GetHttpClient() noexcept = 0;
 
   /**
@@ -76,7 +76,7 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return http_client output Http1 Client
    */
-  virtual absl::StatusOr<std::shared_ptr<core::HttpClientInterface>>
+  virtual absl::StatusOr<core::HttpClientInterface*>
   GetHttp1Client() noexcept = 0;
 
   /**
@@ -84,7 +84,7 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return instance_client output InstanceClientProvider.
    */
-  virtual absl::StatusOr<std::shared_ptr<InstanceClientProviderInterface>>
+  virtual absl::StatusOr<InstanceClientProviderInterface*>
   GetInstanceClientProvider() noexcept = 0;
 
   /**
@@ -92,10 +92,10 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return credentials_provider output role credentials provider.
    */
-  virtual absl::StatusOr<std::shared_ptr<RoleCredentialsProviderInterface>>
+  virtual absl::StatusOr<RoleCredentialsProviderInterface*>
   GetRoleCredentialsProvider() noexcept = 0;
 
-  virtual absl::StatusOr<std::shared_ptr<AuthTokenProviderInterface>>
+  virtual absl::StatusOr<AuthTokenProviderInterface*>
   GetAuthTokenProvider() noexcept = 0;
 
   /**
@@ -121,8 +121,7 @@ class CpioProviderFactory {
    *
    * @return std::unique_ptr<CpioProviderInterface> CpioProvider.
    */
-  static std::unique_ptr<CpioProviderInterface> Create(
-      const std::shared_ptr<CpioOptions>& options);
+  static std::unique_ptr<CpioProviderInterface> Create(CpioOptions options);
 };
 }  // namespace google::scp::cpio::client_providers
 

@@ -20,6 +20,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
@@ -45,16 +46,16 @@ class AwsS3Factory;
 class AwsBlobStorageClientProvider : public BlobStorageClientProviderInterface {
  public:
   explicit AwsBlobStorageClientProvider(
-      std::shared_ptr<BlobStorageClientOptions> options,
-      std::shared_ptr<InstanceClientProviderInterface> instance_client,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      std::shared_ptr<AwsS3Factory> s3_factory =
-          std::make_shared<AwsS3Factory>())
+      BlobStorageClientOptions options,
+      InstanceClientProviderInterface* instance_client,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor,
+      std::unique_ptr<AwsS3Factory> s3_factory =
+          std::make_unique<AwsS3Factory>())
       : instance_client_(instance_client),
         cpu_async_executor_(cpu_async_executor),
         io_async_executor_(io_async_executor),
-        s3_factory_(s3_factory) {}
+        s3_factory_(std::move(s3_factory)) {}
 
   core::ExecutionResult Init() noexcept override;
   core::ExecutionResult Run() noexcept override;
@@ -368,18 +369,19 @@ class AwsBlobStorageClientProvider : public BlobStorageClientProviderInterface {
    * @return std::shared_ptr<Aws::Client::ClientConfiguration> client
    * configuration.
    */
-  virtual std::shared_ptr<Aws::Client::ClientConfiguration>
-  CreateClientConfiguration(std::string_view region) noexcept;
+  virtual Aws::Client::ClientConfiguration CreateClientConfiguration(
+      std::string_view region) noexcept;
 
-  std::shared_ptr<InstanceClientProviderInterface> instance_client_;
+  InstanceClientProviderInterface* instance_client_;
 
   /// Instances of the async executor for local compute and blocking IO
   /// operations respectively.
-  const std::shared_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
-      io_async_executor_;
+  core::AsyncExecutorInterface* cpu_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 
+  // TODO(b/321321138): Rewrite test case to make pointer unnecessary.
   // An instance of the factory for Aws::S3::S3Client.
-  std::shared_ptr<AwsS3Factory> s3_factory_;
+  std::unique_ptr<AwsS3Factory> s3_factory_;
 
   /// An instance of the AWS S3 client.
   std::shared_ptr<Aws::S3::S3Client> s3_client_;
@@ -388,10 +390,10 @@ class AwsBlobStorageClientProvider : public BlobStorageClientProviderInterface {
 /// Creates Aws::S3::S3Client
 class AwsS3Factory {
  public:
+  // TODO(b/321793964): Update to return unique_ptr
   virtual core::ExecutionResultOr<std::shared_ptr<Aws::S3::S3Client>>
-  CreateClient(Aws::Client::ClientConfiguration& client_config,
-               const std::shared_ptr<core::AsyncExecutorInterface>&
-                   async_executor) noexcept;
+  CreateClient(Aws::Client::ClientConfiguration client_config,
+               core::AsyncExecutorInterface* async_executor) noexcept;
 
   virtual ~AwsS3Factory() = default;
 };

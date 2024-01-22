@@ -38,8 +38,8 @@ ExecutionResult
 TestAwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   resource_name =
-      absl::StrFormat(kAwsResourceNameFormat, test_options_->region,
-                      test_options_->project_id, test_options_->instance_id);
+      absl::StrFormat(kAwsResourceNameFormat, test_options_.region,
+                      test_options_.project_id, test_options_.instance_id);
   return SuccessExecutionResult();
 }
 

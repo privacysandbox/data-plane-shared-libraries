@@ -33,12 +33,12 @@ class MockKmsClientWithOverrides : public KmsClient {
 
   core::ExecutionResult Init() noexcept override {
     kms_client_provider_ =
-        std::make_shared<client_providers::mock::MockKmsClientProvider>();
+        std::make_unique<client_providers::mock::MockKmsClientProvider>();
     return core::SuccessExecutionResult();
   }
 
   client_providers::mock::MockKmsClientProvider& GetKmsClientProvider() {
-    return static_cast<client_providers::mock::MockKmsClientProvider&>(
+    return dynamic_cast<client_providers::mock::MockKmsClientProvider&>(
         *kms_client_provider_);
   }
 };

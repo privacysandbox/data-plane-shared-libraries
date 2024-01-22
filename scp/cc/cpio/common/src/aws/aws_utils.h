@@ -27,6 +27,6 @@ namespace google::scp::cpio::common {
  *
  * @return ClientConfiguration client configuration.
  */
-std::shared_ptr<Aws::Client::ClientConfiguration> CreateClientConfiguration(
-    const std::shared_ptr<std::string>& region = nullptr) noexcept;
+Aws::Client::ClientConfiguration CreateClientConfiguration(
+    const std::string& region = "") noexcept;
 }  // namespace google::scp::cpio::common

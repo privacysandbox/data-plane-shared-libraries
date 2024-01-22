@@ -48,7 +48,7 @@ class PrivateKeyClient : public PrivateKeyClientInterface {
  protected:
   virtual core::ExecutionResult CreatePrivateKeyClientProvider() noexcept;
 
-  std::shared_ptr<client_providers::PrivateKeyClientProviderInterface>
+  std::unique_ptr<client_providers::PrivateKeyClientProviderInterface>
       private_key_client_provider_;
 
  private:

@@ -46,7 +46,7 @@ class MetricClient : public MetricClientInterface {
           context) noexcept override;
 
  protected:
-  std::shared_ptr<MetricClientInterface> metric_client_provider_;
+  std::unique_ptr<MetricClientInterface> metric_client_provider_;
 
  private:
   virtual core::ExecutionResult CreateMetricClientProvider() noexcept;

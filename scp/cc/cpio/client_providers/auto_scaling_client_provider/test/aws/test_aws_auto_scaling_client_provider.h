@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "cpio/client_providers/auto_scaling_client_provider/src/aws/aws_auto_scaling_client_provider.h"
 
@@ -33,19 +34,18 @@ struct TestAwsAutoScalingClientOptions : public AutoScalingClientOptions {
 class TestAwsAutoScalingClientProvider : public AwsAutoScalingClientProvider {
  public:
   explicit TestAwsAutoScalingClientProvider(
-      const std::shared_ptr<TestAwsAutoScalingClientOptions>& test_options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor)
+      TestAwsAutoScalingClientOptions test_options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* io_async_executor)
       : AwsAutoScalingClientProvider(test_options, instance_client_provider,
                                      io_async_executor),
-        test_options_(test_options) {}
+        test_options_(std::move(test_options)) {}
 
  private:
-  std::shared_ptr<Aws::Client::ClientConfiguration> CreateClientConfiguration(
+  Aws::Client::ClientConfiguration CreateClientConfiguration(
       std::string_view region) noexcept override;
 
-  std::shared_ptr<TestAwsAutoScalingClientOptions> test_options_;
+  TestAwsAutoScalingClientOptions test_options_;
 };
 }  // namespace google::scp::cpio::client_providers
 

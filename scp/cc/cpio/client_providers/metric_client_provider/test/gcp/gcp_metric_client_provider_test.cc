@@ -84,16 +84,13 @@ namespace google::scp::cpio::client_providers::gcp_metric_client::test {
 class GcpMetricClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    async_executor_mock_ = std::make_shared<MockAsyncExecutor>();
-    async_executor_mock_->schedule_for_mock =
+    async_executor_mock_.schedule_for_mock =
         [&](const core::AsyncOperation& work, Timestamp timestamp,
             std::function<bool()>& cancellation_callback) {
           return core::SuccessExecutionResult();
         };
 
-    instance_client_provider_mock_ =
-        std::make_shared<MockInstanceClientProvider>();
-    instance_client_provider_mock_->instance_resource_name =
+    instance_client_provider_mock_.instance_resource_name =
         kInstanceResourceName;
 
     connection_ = std::make_shared<NiceMock<MockMetricServiceConnection>>();
@@ -106,19 +103,19 @@ class GcpMetricClientProviderTest : public ::testing::Test {
 
   std::unique_ptr<MockGcpMetricClientProviderOverrides> CreateClient(
       bool enable_batch_recording) {
-    auto metric_batching_options = std::make_shared<MetricBatchingOptions>();
-    metric_batching_options->enable_batch_recording = enable_batch_recording;
+    MetricBatchingOptions metric_batching_options;
+    metric_batching_options.enable_batch_recording = enable_batch_recording;
     if (enable_batch_recording) {
-      metric_batching_options->metric_namespace = kNamespace;
+      metric_batching_options.metric_namespace = kNamespace;
     }
 
     return std::make_unique<MockGcpMetricClientProviderOverrides>(
-        mock_client_, metric_batching_options, instance_client_provider_mock_,
-        async_executor_mock_);
+        mock_client_, std::move(metric_batching_options),
+        &instance_client_provider_mock_, &async_executor_mock_);
   }
 
-  std::shared_ptr<MockAsyncExecutor> async_executor_mock_;
-  std::shared_ptr<MockInstanceClientProvider> instance_client_provider_mock_;
+  MockAsyncExecutor async_executor_mock_;
+  MockInstanceClientProvider instance_client_provider_mock_;
   std::shared_ptr<MetricServiceClient> mock_client_;
   std::shared_ptr<MockMetricServiceConnection> connection_;
   std::unique_ptr<MockGcpMetricClientProviderOverrides> metric_client_provider_;

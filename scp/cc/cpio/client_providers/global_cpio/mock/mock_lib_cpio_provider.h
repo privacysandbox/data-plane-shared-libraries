@@ -30,14 +30,14 @@
 namespace google::scp::cpio::client_providers::mock {
 class MockLibCpioProvider : public LibCpioProvider {
  public:
-  MockLibCpioProvider() : LibCpioProvider(std::make_shared<CpioOptions>()) {
-    instance_client_provider_ = std::make_shared<MockInstanceClientProvider>();
+  MockLibCpioProvider() : LibCpioProvider(CpioOptions()) {
+    instance_client_provider_ = std::make_unique<MockInstanceClientProvider>();
     cpu_async_executor_ =
-        std::make_shared<core::async_executor::mock::MockAsyncExecutor>();
+        std::make_unique<core::async_executor::mock::MockAsyncExecutor>();
     http2_client_ =
-        std::make_shared<core::http2_client::mock::MockHttpClient>();
+        std::make_unique<core::http2_client::mock::MockHttpClient>();
     role_credentials_provider_ =
-        std::make_shared<mock::MockRoleCredentialsProvider>();
+        std::make_unique<mock::MockRoleCredentialsProvider>();
   }
 };
 }  // namespace google::scp::cpio::client_providers::mock

@@ -52,15 +52,14 @@ class ParameterClientProviderFactory {
    * @brief Factory to create ParameterClientProvider.
    *
    * @param instance_client_provider InstanceClientProvider.
-   * @return std::shared_ptr<ParameterClientProviderInterface> created
+   * @return std::unique_ptr<ParameterClientProviderInterface> created
    * ParameterClientProvider.
    */
-  static std::shared_ptr<ParameterClientProviderInterface> Create(
-      const std::shared_ptr<ParameterClientOptions>& options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor);
+  static std::unique_ptr<ParameterClientProviderInterface> Create(
+      ParameterClientOptions options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
 

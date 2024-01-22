@@ -119,24 +119,20 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
     DecryptOutcome decrypt_outcome(decrypt_result);
     mock_kms_client_->decrypt_outcome_mock = decrypt_outcome;
 
-    mock_credentials_provider_ =
-        std::make_shared<MockRoleCredentialsProvider>();
-    client_ = std::make_unique<MockNonteeAwsKmsClientProviderWithOverrides>(
-        mock_credentials_provider_, mock_kms_client_, mock_io_async_executor_);
+    client_.emplace(&mock_credentials_provider_, mock_kms_client_,
+                    &mock_io_async_executor_);
   }
 
   void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
 
-  std::unique_ptr<MockNonteeAwsKmsClientProviderWithOverrides> client_;
+  std::optional<MockNonteeAwsKmsClientProviderWithOverrides> client_;
   std::shared_ptr<MockKMSClient> mock_kms_client_;
-  std::shared_ptr<MockAsyncExecutor> mock_io_async_executor_ =
-      std::make_shared<MockAsyncExecutor>();
-  std::shared_ptr<RoleCredentialsProviderInterface> mock_credentials_provider_;
+  MockAsyncExecutor mock_io_async_executor_;
+  MockRoleCredentialsProvider mock_credentials_provider_;
 };
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingCredentialsProvider) {
-  client_ = std::make_unique<MockNonteeAwsKmsClientProviderWithOverrides>(
-      nullptr, mock_kms_client_, mock_io_async_executor_);
+  client_.emplace(nullptr, mock_kms_client_, &mock_io_async_executor_);
 
   EXPECT_THAT(client_->Init(),
               ResultIs(FailureExecutionResult(

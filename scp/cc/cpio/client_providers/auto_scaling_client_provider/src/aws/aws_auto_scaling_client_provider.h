@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <aws/autoscaling/AutoScalingClient.h>
@@ -35,7 +36,21 @@
 #include "error_codes.h"
 
 namespace google::scp::cpio::client_providers {
-class AutoScalingClientFactory;
+
+/// Provides AutoScalingClient.
+class AutoScalingClientFactory {
+ public:
+  /**
+   * @brief Creates AutoScalingClient.
+   *
+   * @param client_config the configuration to create the client.
+   * @return std::shared_ptr<Aws::AutoScaling::AutoScalingClient> the creation
+   * result.
+   */
+  std::unique_ptr<Aws::AutoScaling::AutoScalingClient> CreateAutoScalingClient(
+      Aws::Client::ClientConfiguration client_config,
+      core::AsyncExecutorInterface* io_async_executor) noexcept;
+};
 
 /*! @copydoc AutoScalingClientInterface
  */
@@ -49,16 +64,14 @@ class AwsAutoScalingClientProvider : public AutoScalingClientProviderInterface {
    * @param io_async_executor The Aws io async executor.
    */
   AwsAutoScalingClientProvider(
-      const std::shared_ptr<AutoScalingClientOptions>& options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      const std::shared_ptr<AutoScalingClientFactory>&
-          auto_scaling_client_factory =
-              std::make_shared<AutoScalingClientFactory>())
+      AutoScalingClientOptions options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* io_async_executor,
+      AutoScalingClientFactory auto_scaling_client_factory =
+          AutoScalingClientFactory())
       : instance_client_provider_(instance_client_provider),
         io_async_executor_(io_async_executor),
-        auto_scaling_client_factory_(auto_scaling_client_factory) {}
+        auto_scaling_client_factory_(std::move(auto_scaling_client_factory)) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -116,34 +129,18 @@ class AwsAutoScalingClientProvider : public AutoScalingClientProviderInterface {
    * @return std::shared_ptr<Aws::Client::ClientConfiguration> client
    * configuration.
    */
-  virtual std::shared_ptr<Aws::Client::ClientConfiguration>
-  CreateClientConfiguration(std::string_view region) noexcept;
+  virtual Aws::Client::ClientConfiguration CreateClientConfiguration(
+      std::string_view region) noexcept;
 
-  std::shared_ptr<AutoScalingClientOptions> options_;
+  AutoScalingClientOptions options_;
   /// InstanceClientProvider.
-  std::shared_ptr<InstanceClientProviderInterface> instance_client_provider_;
+  InstanceClientProviderInterface* instance_client_provider_;
   /// Instance of the io async executor
-  std::shared_ptr<core::AsyncExecutorInterface> io_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
   /// AutoScalingClientFactory.
-  std::shared_ptr<AutoScalingClientFactory> auto_scaling_client_factory_;
+  AutoScalingClientFactory auto_scaling_client_factory_;
   /// AutoScalingClient.
-  std::shared_ptr<Aws::AutoScaling::AutoScalingClient> auto_scaling_client_;
-};
-
-/// Provides AutoScalingClient.
-class AutoScalingClientFactory {
- public:
-  /**
-   * @brief Creates AutoScalingClient.
-   *
-   * @param client_config the configuration to create the client.
-   * @return std::shared_ptr<Aws::AutoScaling::AutoScalingClient> the creation
-   * result.
-   */
-  std::shared_ptr<Aws::AutoScaling::AutoScalingClient> CreateAutoScalingClient(
-      Aws::Client::ClientConfiguration& client_config,
-      const std::shared_ptr<core::AsyncExecutorInterface>&
-          io_async_executor) noexcept;
+  std::unique_ptr<Aws::AutoScaling::AutoScalingClient> auto_scaling_client_;
 };
 }  // namespace google::scp::cpio::client_providers
 

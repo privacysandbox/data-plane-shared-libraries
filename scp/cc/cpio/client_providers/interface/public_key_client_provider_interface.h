@@ -52,12 +52,11 @@ class PublicKeyClientProviderFactory {
   /**
    * @brief Factory to create PublicKeyClientProvider.
    *
-   * @return std::shared_ptr<PublicKeyClientProviderInterface> created
+   * @return std::unique_ptr<PublicKeyClientProviderInterface> created
    * PublicKeyClientProvider.
    */
-  static std::shared_ptr<PublicKeyClientProviderInterface> Create(
-      const std::shared_ptr<PublicKeyClientOptions>& options,
-      const std::shared_ptr<core::HttpClientInterface>& http_client);
+  static std::unique_ptr<PublicKeyClientProviderInterface> Create(
+      PublicKeyClientOptions options, core::HttpClientInterface* http_client);
 };
 }  // namespace google::scp::cpio::client_providers
 

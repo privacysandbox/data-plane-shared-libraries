@@ -288,6 +288,15 @@ struct ProducerStreamingContext : public StreamingContext<TRequest, TResponse> {
   std::shared_ptr<common::ConcurrentQueue<TRequest>> request_queue;
 };
 
+template <template <typename, typename> typename TContext, typename TRequest,
+          typename TResponse>
+void FinishStreamingContext(
+    const ExecutionResult& result, TContext<TRequest, TResponse>& context,
+    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
+    AsyncPriority priority = AsyncPriority::High) {
+  FinishStreamingContext(result, context, *async_executor, priority);
+}
+
 /**
  * @brief Finish Context on a thread on the provided AsyncExecutor thread pool.
  * Assigns the result to the context, schedules Finish(), and
@@ -302,10 +311,10 @@ struct ProducerStreamingContext : public StreamingContext<TRequest, TResponse> {
  */
 template <template <typename, typename> typename TContext, typename TRequest,
           typename TResponse>
-void FinishStreamingContext(
-    const ExecutionResult& result, TContext<TRequest, TResponse>& context,
-    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-    AsyncPriority priority = AsyncPriority::High) {
+void FinishStreamingContext(const ExecutionResult& result,
+                            TContext<TRequest, TResponse>& context,
+                            AsyncExecutorInterface& async_executor,
+                            AsyncPriority priority = AsyncPriority::High) {
   constexpr bool is_consumer_streaming =
       std::is_base_of_v<ConsumerStreamingContext<TRequest, TResponse>,
                         TContext<TRequest, TResponse>>;
@@ -320,7 +329,7 @@ void FinishStreamingContext(
   // Make a copy of context - this way we know async_executor's handle will
   // never go out of scope.
   if (!async_executor
-           ->Schedule([context]() mutable { context.Finish(); }, priority)
+           .Schedule([context]() mutable { context.Finish(); }, priority)
            .Successful()) {
     context.Finish();
   }

@@ -46,11 +46,10 @@ class GcpParameterClientProvider : public ParameterClientProviderInterface {
    * @param options configurations for ParameterClient.
    */
   GcpParameterClientProvider(
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<ParameterClientOptions>& options)
+      core::AsyncExecutorInterface* async_executor,
+      core::AsyncExecutorInterface* io_async_executor,
+      InstanceClientProviderInterface* instance_client_provider,
+      ParameterClientOptions options)
       : async_executor_(async_executor),
         io_async_executor_(io_async_executor),
         instance_client_provider_(instance_client_provider) {}
@@ -98,13 +97,13 @@ class GcpParameterClientProvider : public ParameterClientProviderInterface {
   std::string project_id_;
 
   /// An instance of the async executor.
-  const std::shared_ptr<core::AsyncExecutorInterface> async_executor_;
+  core::AsyncExecutorInterface* async_executor_;
 
   /// An instance of the IO async executor.
-  const std::shared_ptr<core::AsyncExecutorInterface> io_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 
   /// An instance of Gcp instance client.
-  std::shared_ptr<InstanceClientProviderInterface> instance_client_provider_;
+  InstanceClientProviderInterface* instance_client_provider_;
 
   /// An instance of the GCP Secret Manager client.
   std::shared_ptr<const cloud::secretmanager::SecretManagerServiceClient>

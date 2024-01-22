@@ -40,7 +40,7 @@ void NoOpInitializer::InitCloud() noexcept {}
 
 void NoOpInitializer::ShutdownCloud() noexcept {}
 
-std::shared_ptr<CloudInitializerInterface> CloudInitializerFactory::Create() {
-  return std::make_shared<NoOpInitializer>();
+std::unique_ptr<CloudInitializerInterface> CloudInitializerFactory::Create() {
+  return std::make_unique<NoOpInitializer>();
 }
 }  // namespace google::scp::cpio::client_providers

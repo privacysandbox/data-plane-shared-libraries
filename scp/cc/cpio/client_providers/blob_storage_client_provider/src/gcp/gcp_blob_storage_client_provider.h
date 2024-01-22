@@ -20,6 +20,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "core/interface/async_context.h"
 #include "core/interface/async_executor_interface.h"
@@ -34,22 +35,34 @@
 
 namespace google::scp::cpio::client_providers {
 
-class GcpCloudStorageFactory;
+/// Creates GCP cloud::storage::Client
+class GcpCloudStorageFactory {
+ public:
+  virtual core::ExecutionResultOr<
+      std::unique_ptr<google::cloud::storage::Client>>
+  CreateClient(BlobStorageClientOptions options,
+               std::string_view project_id) noexcept;
+
+  virtual cloud::Options CreateClientOptions(
+      BlobStorageClientOptions options, std::string_view project_id) noexcept;
+
+  virtual ~GcpCloudStorageFactory() = default;
+};
 
 /*! @copydoc BlobStorageClientProviderInterface
  */
 class GcpBlobStorageClientProvider : public BlobStorageClientProviderInterface {
  public:
   explicit GcpBlobStorageClientProvider(
-      std::shared_ptr<BlobStorageClientOptions> options,
-      std::shared_ptr<InstanceClientProviderInterface> instance_client,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      std::shared_ptr<GcpCloudStorageFactory> cloud_storage_factory =
-          std::make_shared<GcpCloudStorageFactory>())
-      : options_(options),
+      BlobStorageClientOptions options,
+      InstanceClientProviderInterface* instance_client,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor,
+      std::unique_ptr<GcpCloudStorageFactory> cloud_storage_factory =
+          std::make_unique<GcpCloudStorageFactory>())
+      : options_(std::move(options)),
         instance_client_(instance_client),
-        cloud_storage_factory_(cloud_storage_factory),
+        cloud_storage_factory_(std::move(cloud_storage_factory)),
         cpu_async_executor_(cpu_async_executor),
         io_async_executor_(io_async_executor) {}
 
@@ -247,47 +260,32 @@ class GcpBlobStorageClientProvider : public BlobStorageClientProviderInterface {
                         "Blob stream failed. Message: %s.",
                         status.message().c_str());
       if constexpr (is_get_blob) {
-        FinishContext(result, context, cpu_async_executor_);
+        FinishContext(result, context, *cpu_async_executor_);
       } else {
-        FinishStreamingContext(result, context, cpu_async_executor_);
+        FinishStreamingContext(result, context, *cpu_async_executor_);
       }
     }
     return result;
   }
 
-  std::shared_ptr<BlobStorageClientOptions> options_;
+  BlobStorageClientOptions options_;
 
-  std::shared_ptr<InstanceClientProviderInterface> instance_client_;
+  InstanceClientProviderInterface* instance_client_;
 
+  // TODO(b/321321138): Rewrite test to make pointer unnecessary.
   // An instance of the factory for cloud::storage::Client.
-  std::shared_ptr<GcpCloudStorageFactory> cloud_storage_factory_;
+  std::unique_ptr<GcpCloudStorageFactory> cloud_storage_factory_;
 
   /// An instance of the GCP GCS client.
-  std::shared_ptr<const google::cloud::storage::Client>
+  std::unique_ptr<const google::cloud::storage::Client>
       cloud_storage_client_shared_;
   /// An instance of the async executor.
-  const std::shared_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
-      io_async_executor_;
+  core::AsyncExecutorInterface* cpu_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 
   static constexpr char kGcpBlobStorageClientProvider[] =
       "GcpBlobStorageClientProvider";
 };
-
-/// Creates GCP cloud::storage::Client
-class GcpCloudStorageFactory {
- public:
-  virtual core::ExecutionResultOr<
-      std::shared_ptr<google::cloud::storage::Client>>
-  CreateClient(std::shared_ptr<BlobStorageClientOptions> options,
-               std::string_view project_id) noexcept;
-
-  virtual cloud::Options CreateClientOptions(
-      std::shared_ptr<BlobStorageClientOptions> options,
-      std::string_view project_id) noexcept;
-
-  virtual ~GcpCloudStorageFactory() = default;
-};
-
 }  // namespace google::scp::cpio::client_providers
 
 #endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_GCP_GCP_BLOB_STORAGE_CLIENT_PROVIDER_H_

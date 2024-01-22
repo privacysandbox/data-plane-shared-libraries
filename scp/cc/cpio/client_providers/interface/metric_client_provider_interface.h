@@ -63,15 +63,14 @@ class MetricClientProviderFactory {
   /**
    * @brief Factory to create MetricClientProvider.
    *
-   * @return std::shared_ptr<MetricClientInterface> created
+   * @return std::unique_ptr<MetricClientInterface> created
    * MetricClientProvider.
    */
-  static std::shared_ptr<MetricClientInterface> Create(
-      const std::shared_ptr<MetricClientOptions>& options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor);
+  static std::unique_ptr<MetricClientInterface> Create(
+      MetricClientOptions options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* async_executor,
+      core::AsyncExecutorInterface* io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
 

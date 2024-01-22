@@ -263,12 +263,10 @@ void NonteeAwsKmsClientProvider::GetSessionCredentialsCallbackToCreateKms(
   create_kms_context.Finish();
 }
 
-std::shared_ptr<ClientConfiguration>
-NonteeAwsKmsClientProvider::CreateClientConfiguration(
+ClientConfiguration NonteeAwsKmsClientProvider::CreateClientConfiguration(
     std::string_view region) noexcept {
-  auto client_config =
-      common::CreateClientConfiguration(std::make_shared<std::string>(region));
-  client_config->executor =
+  auto client_config = common::CreateClientConfiguration(std::string(region));
+  client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor_);
   return client_config;
 }
@@ -277,17 +275,15 @@ std::shared_ptr<KMSClient> NonteeAwsKmsClientProvider::GetKmsClient(
     const std::shared_ptr<AWSCredentials>& aws_credentials,
     const std::shared_ptr<std::string>& kms_region) noexcept {
   return std::make_shared<KMSClient>(*aws_credentials,
-                                     *CreateClientConfiguration(*kms_region));
+                                     CreateClientConfiguration(*kms_region));
 }
 
 #ifndef TEST_CPIO
-std::shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    const std::shared_ptr<KmsClientOptions>& options,
-    const std::shared_ptr<RoleCredentialsProviderInterface>&
-        role_credentials_provider,
-    const std::shared_ptr<core::AsyncExecutorInterface>&
-        io_async_executor) noexcept {
-  return std::make_shared<NonteeAwsKmsClientProvider>(role_credentials_provider,
+std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
+    KmsClientOptions options,
+    RoleCredentialsProviderInterface* role_credentials_provider,
+    core::AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<NonteeAwsKmsClientProvider>(role_credentials_provider,
                                                       io_async_executor);
 }
 #endif

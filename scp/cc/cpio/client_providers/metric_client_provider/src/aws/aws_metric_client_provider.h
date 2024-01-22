@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <aws/monitoring/CloudWatchClient.h>
@@ -50,18 +51,15 @@ class AwsMetricClientProvider : public MetricClientProvider {
    * @param io_async_executor the thread pool to replace aws thread pool.
    */
   explicit AwsMetricClientProvider(
-      const std::shared_ptr<MetricClientOptions>& metric_client_options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      const std::shared_ptr<MetricBatchingOptions>& metric_batching_options =
-          std::make_shared<MetricBatchingOptions>())
-      : MetricClientProvider(async_executor, metric_client_options,
-                             instance_client_provider, metric_batching_options),
+      MetricClientOptions metric_client_options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* async_executor,
+      core::AsyncExecutorInterface* io_async_executor,
+      MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
+      : MetricClientProvider(async_executor, std::move(metric_client_options),
+                             instance_client_provider,
+                             std::move(metric_batching_options)),
         io_async_executor_(io_async_executor) {}
-
-  AwsMetricClientProvider() = delete;
 
   core::ExecutionResult Run() noexcept override;
 
@@ -79,12 +77,11 @@ class AwsMetricClientProvider : public MetricClientProvider {
    * @param client_config returned Client Configuration.
    */
   virtual void CreateClientConfiguration(
-      const std::shared_ptr<std::string>& region,
-      std::shared_ptr<Aws::Client::ClientConfiguration>&
-          client_config) noexcept;
+      const std::string& region,
+      Aws::Client::ClientConfiguration& client_config) noexcept;
 
   /// CloudWatchClient.
-  std::shared_ptr<Aws::CloudWatch::CloudWatchClient> cloud_watch_client_;
+  std::optional<Aws::CloudWatch::CloudWatchClient> cloud_watch_client_;
 
  private:
   /**
@@ -105,7 +102,7 @@ class AwsMetricClientProvider : public MetricClientProvider {
       const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) noexcept;
 
   /// An instance of the IO async executor.
-  const std::shared_ptr<core::AsyncExecutorInterface> io_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 };
 }  // namespace google::scp::cpio::client_providers
 

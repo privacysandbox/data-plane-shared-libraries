@@ -87,8 +87,8 @@ class AuthTokenProviderFactory {
    * @return std::shared_ptr<AuthTokenProviderInterface> created
    * AuthTokenProvider.
    */
-  static std::shared_ptr<AuthTokenProviderInterface> Create(
-      const std::shared_ptr<core::HttpClientInterface>& http1_client);
+  static std::unique_ptr<AuthTokenProviderInterface> Create(
+      core::HttpClientInterface* http1_client);
 };
 }  // namespace google::scp::cpio::client_providers
 

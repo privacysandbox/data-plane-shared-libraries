@@ -53,15 +53,13 @@ class KmsClientProviderFactory {
   /**
    * @brief Factory to create KmsClientProvider.
    *
-   * @return std::shared_ptr<KmsClientProviderInterface> created
+   * @return std::unique_ptr<KmsClientProviderInterface> created
    * KmsClientProvider.
    */
-  static std::shared_ptr<KmsClientProviderInterface> Create(
-      const std::shared_ptr<KmsClientOptions>& options,
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credentials_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>&
-          io_async_executor) noexcept;
+  static std::unique_ptr<KmsClientProviderInterface> Create(
+      KmsClientOptions options,
+      RoleCredentialsProviderInterface* role_credentials_provider,
+      core::AsyncExecutorInterface* io_async_executor) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

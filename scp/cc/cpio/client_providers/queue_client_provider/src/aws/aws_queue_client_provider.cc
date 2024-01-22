@@ -93,15 +93,7 @@ ExecutionResult AwsQueueClientProvider::Init() noexcept {
 
 ExecutionResult AwsQueueClientProvider::Run() noexcept {
   ExecutionResult execution_result(SuccessExecutionResult());
-  if (!queue_client_options_) {
-    execution_result = FailureExecutionResult(
-        SC_AWS_QUEUE_CLIENT_PROVIDER_QUEUE_CLIENT_OPTIONS_REQUIRED);
-    SCP_ERROR(kAwsQueueClientProvider, kZeroUuid, execution_result,
-              "Invalid queue client options.");
-    return execution_result;
-  }
-
-  if (queue_client_options_->queue_name.empty()) {
+  if (queue_client_options_.queue_name.empty()) {
     execution_result = FailureExecutionResult(
         SC_AWS_QUEUE_CLIENT_PROVIDER_QUEUE_NAME_REQUIRED);
     SCP_ERROR(kAwsQueueClientProvider, kZeroUuid, execution_result,
@@ -132,19 +124,18 @@ ExecutionResult AwsQueueClientProvider::Run() noexcept {
   return execution_result;
 }
 
-ExecutionResultOr<std::shared_ptr<ClientConfiguration>>
+ExecutionResultOr<ClientConfiguration>
 AwsQueueClientProvider::CreateClientConfiguration() noexcept {
   auto region_code_or =
-      AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_provider_);
+      AwsInstanceClientUtils::GetCurrentRegionCode(*instance_client_provider_);
   if (!region_code_or.Successful()) {
     SCP_ERROR(kAwsQueueClientProvider, kZeroUuid, region_code_or.result(),
               "Failed to get region code for current instance");
     return region_code_or.result();
   }
 
-  auto client_config = common::CreateClientConfiguration(
-      std::make_shared<std::string>(std::move(*region_code_or)));
-  client_config->executor =
+  auto client_config = common::CreateClientConfiguration(*region_code_or);
+  client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor_);
 
   return client_config;
@@ -152,7 +143,7 @@ AwsQueueClientProvider::CreateClientConfiguration() noexcept {
 
 ExecutionResultOr<std::string> AwsQueueClientProvider::GetQueueUrl() noexcept {
   GetQueueUrlRequest get_queue_url_request;
-  get_queue_url_request.SetQueueName(queue_client_options_->queue_name.c_str());
+  get_queue_url_request.SetQueueName(queue_client_options_.queue_name.c_str());
 
   auto get_queue_url_outcome = sqs_client_->GetQueueUrl(get_queue_url_request);
   if (!get_queue_url_outcome.IsSuccess()) {
@@ -219,13 +210,14 @@ void AwsQueueClientProvider::OnSendMessageCallback(
         "code: %d, error message: %s",
         error_type, error_message);
     FinishContext(execution_result, enqueue_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
   enqueue_message_context.response = std::make_shared<EnqueueMessageResponse>();
   enqueue_message_context.response->set_message_id(
       send_message_outcome.GetResult().GetMessageId().c_str());
-  FinishContext(execution_result, enqueue_message_context, cpu_async_executor_);
+  FinishContext(execution_result, enqueue_message_context,
+                *cpu_async_executor_);
 }
 
 ExecutionResult AwsQueueClientProvider::GetTopMessage(
@@ -263,7 +255,7 @@ void AwsQueueClientProvider::OnReceiveMessageCallback(
         "code: %d, error message: %s",
         error_type, error_message);
     FinishContext(execution_result, get_top_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
@@ -274,7 +266,7 @@ void AwsQueueClientProvider::OnReceiveMessageCallback(
                      "No messages received from the queue.");
     get_top_message_context.response = std::move(response);
     FinishContext(execution_result, get_top_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
@@ -288,7 +280,7 @@ void AwsQueueClientProvider::OnReceiveMessageCallback(
         "than the maximum number. Messages count: %d",
         messages.size());
     FinishContext(execution_result, get_top_message_context,
-                  cpu_async_executor_);
+                  *cpu_async_executor_);
     return;
   }
 
@@ -297,7 +289,8 @@ void AwsQueueClientProvider::OnReceiveMessageCallback(
   response->set_message_body(message.GetBody().c_str());
   response->set_receipt_info(message.GetReceiptHandle().c_str());
   get_top_message_context.response = std::move(response);
-  FinishContext(execution_result, get_top_message_context, cpu_async_executor_);
+  FinishContext(execution_result, get_top_message_context,
+                *cpu_async_executor_);
 }
 
 ExecutionResult AwsQueueClientProvider::UpdateMessageVisibilityTimeout(
@@ -374,7 +367,7 @@ void AwsQueueClientProvider::OnChangeMessageVisibilityCallback(
   }
 
   FinishContext(execution_result, update_message_visibility_timeout_context,
-                cpu_async_executor_);
+                *cpu_async_executor_);
 }
 
 ExecutionResult AwsQueueClientProvider::DeleteMessage(
@@ -425,21 +418,22 @@ void AwsQueueClientProvider::OnDeleteMessageCallback(
                       error_type, error_message);
   }
 
-  FinishContext(execution_result, delete_message_context, cpu_async_executor_);
+  FinishContext(execution_result, delete_message_context, *cpu_async_executor_);
 }
 
 std::shared_ptr<SQSClient> AwsSqsClientFactory::CreateSqsClient(
-    const std::shared_ptr<ClientConfiguration> client_config) noexcept {
-  return std::make_shared<SQSClient>(*client_config);
+    const ClientConfiguration& client_config) noexcept {
+  return std::make_shared<SQSClient>(client_config);
 }
 
-std::shared_ptr<QueueClientProviderInterface>
+std::unique_ptr<QueueClientProviderInterface>
 QueueClientProviderFactory::Create(
-    const std::shared_ptr<QueueClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface> instance_client,
-    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  return std::make_shared<AwsQueueClientProvider>(
-      options, instance_client, cpu_async_executor, io_async_executor);
+    QueueClientOptions options,
+    InstanceClientProviderInterface* instance_client,
+    AsyncExecutorInterface* cpu_async_executor,
+    AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<AwsQueueClientProvider>(
+      std::move(options), instance_client, cpu_async_executor,
+      io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

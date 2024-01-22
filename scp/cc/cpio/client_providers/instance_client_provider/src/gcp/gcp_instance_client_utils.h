@@ -45,8 +45,7 @@ class GcpInstanceClientUtils {
    * @return core::ExecutionResultOr<std::string> project ID if success.
    */
   static core::ExecutionResultOr<std::string> GetCurrentProjectId(
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client) noexcept;
+      InstanceClientProviderInterface& instance_client) noexcept;
 
   /**
    * @brief Parse the project ID from the Instance Resource Name.

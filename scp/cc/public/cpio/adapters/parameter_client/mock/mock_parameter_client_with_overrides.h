@@ -34,18 +34,17 @@ class MockParameterClientWithOverrides : public ParameterClient {
 
   core::ExecutionResult CreateParameterClientProvider() noexcept override {
     if (create_parameter_client_provider_result.Successful()) {
-      parameter_client_provider_ = std::make_shared<
+      parameter_client_provider_ = std::make_unique<
           client_providers::mock::MockParameterClientProvider>();
       return create_parameter_client_provider_result;
     }
     return create_parameter_client_provider_result;
   }
 
-  std::shared_ptr<client_providers::mock::MockParameterClientProvider>
+  client_providers::mock::MockParameterClientProvider&
   GetParameterClientProvider() {
-    return std::dynamic_pointer_cast<
-        client_providers::mock::MockParameterClientProvider>(
-        parameter_client_provider_);
+    return dynamic_cast<client_providers::mock::MockParameterClientProvider&>(
+        *parameter_client_provider_);
   }
 };
 }  // namespace google::scp::cpio::mock

@@ -120,10 +120,12 @@ ExecutionResult HttpConnectionPool::GetConnection(
   auto http_connection_entry = std::make_shared<HttpConnectionPoolEntry>();
   auto pair = std::make_pair(host + ":" + service, http_connection_entry);
   if (connections_.Insert(pair, http_connection_entry).Successful()) {
+    http_connection_entry->http_connections.reserve(max_connections_per_host_);
     for (size_t i = 0; i < max_connections_per_host_; ++i) {
-      auto http_connection = CreateHttpConnection(host, service, is_https,
-                                                  http2_read_timeout_in_sec_);
-      http_connection_entry->http_connections.push_back(http_connection);
+      http_connection_entry->http_connections.push_back(CreateHttpConnection(
+          host, service, is_https, http2_read_timeout_in_sec_));
+      auto* http_connection =
+          http_connection_entry->http_connections.back().get();
       auto execution_result = http_connection->Init();
 
       if (!execution_result.Successful()) {
@@ -148,7 +150,7 @@ ExecutionResult HttpConnectionPool::GetConnection(
       }
       SCP_INFO(kHttpConnection, kZeroUuid,
                "Successfully initialized a connection %p for %s",
-               http_connection.get(), pair.first.c_str());
+               http_connection, pair.first.c_str());
     }
     http_connection_entry->is_initialized = true;
   }

@@ -31,14 +31,14 @@ class MockBlobStorageClientWithOverrides : public BlobStorageClient {
       : BlobStorageClient(options) {}
 
   core::ExecutionResult Init() noexcept override {
-    blob_storage_client_provider_ = std::make_shared<
+    blob_storage_client_provider_ = std::make_unique<
         client_providers::mock::MockBlobStorageClientProvider>();
     return core::SuccessExecutionResult();
   }
 
   client_providers::mock::MockBlobStorageClientProvider&
   GetBlobStorageClientProvider() {
-    return static_cast<client_providers::mock::MockBlobStorageClientProvider&>(
+    return dynamic_cast<client_providers::mock::MockBlobStorageClientProvider&>(
         *blob_storage_client_provider_);
   }
 };

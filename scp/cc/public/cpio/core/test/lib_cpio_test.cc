@@ -80,11 +80,6 @@ TEST(LibCpioTest, StopSuccessfully) {
   auto cpu_async_executor = GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor();
   ASSERT_TRUE(cpu_async_executor.ok());
   ASSERT_SUCCESS(TestLibCpio::ShutdownCpio(options));
-
-  // AsyncExecutor already stopped in ShutdownCpio, and the second stop will
-  // fail.
-  EXPECT_EQ((*cpu_async_executor)->Stop(),
-            FailureExecutionResult(SC_ASYNC_EXECUTOR_NOT_RUNNING));
 }
 
 TEST(LibCpioTest, InitializedCpioSucceedsTest) {

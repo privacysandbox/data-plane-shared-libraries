@@ -19,6 +19,7 @@
 
 #include <functional>
 #include <memory>
+#include <utility>
 
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/DeleteObjectRequest.h>
@@ -31,10 +32,9 @@
 namespace google::scp::core::blob_storage_provider::mock {
 class MockAwsS3Client : public AwsS3Client {
  public:
-  explicit MockAwsS3Client(
-      std::shared_ptr<Aws::S3::S3Client>& s3_client,
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor)
-      : AwsS3Client(s3_client, async_executor) {}
+  explicit MockAwsS3Client(std::shared_ptr<Aws::S3::S3Client> s3_client,
+                           core::AsyncExecutorInterface* async_executor)
+      : AwsS3Client(std::move(s3_client), async_executor) {}
 
   std::function<void(
       AsyncContext<GetBlobRequest, GetBlobResponse>&, const Aws::S3::S3Client*,

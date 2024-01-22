@@ -45,17 +45,17 @@ constexpr std::string_view kAwsAssumeRoleCredentialsProvider =
 
 namespace google::scp::core {
 ExecutionResult AwsAssumeRoleCredentialsProvider::Init() noexcept {
-  if (!assume_role_arn_ || assume_role_arn_->empty()) {
+  if (assume_role_arn_.empty()) {
     return FailureExecutionResult(
         core::errors::SC_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED);
   }
 
-  if (!assume_role_external_id_ || assume_role_external_id_->empty()) {
+  if (assume_role_external_id_.empty()) {
     return FailureExecutionResult(
         core::errors::SC_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED);
   }
 
-  if (!region_ || region_->empty()) {
+  if (region_.empty()) {
     return FailureExecutionResult(
         core::errors::SC_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED);
   }
@@ -63,7 +63,7 @@ ExecutionResult AwsAssumeRoleCredentialsProvider::Init() noexcept {
   client_config_ = std::make_shared<ClientConfiguration>();
   client_config_->executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor_);
-  client_config_->region = *region_;
+  client_config_->region = region_;
   sts_client_ = std::make_shared<STSClient>(*client_config_);
 
   auto timestamp = std::to_string(
@@ -77,8 +77,8 @@ ExecutionResult AwsAssumeRoleCredentialsProvider::GetCredentials(
         get_credentials_context) noexcept {
   AssumeRoleRequest sts_request;
 
-  String assume_role_arn(*assume_role_arn_);
-  String assume_role_external_id(*assume_role_external_id_);
+  String assume_role_arn(assume_role_arn_);
+  String assume_role_external_id(assume_role_external_id_);
   String session_name(*session_name_);
 
   sts_request.SetRoleArn(assume_role_arn);

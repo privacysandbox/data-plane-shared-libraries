@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
@@ -37,30 +38,30 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
 
 namespace google::scp::cpio::client_providers {
-std::shared_ptr<ClientConfiguration>
-TestAwsBlobStorageClientProvider::CreateClientConfiguration(
+ClientConfiguration TestAwsBlobStorageClientProvider::CreateClientConfiguration(
     std::string_view region) noexcept {
-  return CreateTestClientConfiguration(test_options_->s3_endpoint_override,
-                                       std::make_shared<std::string>(region));
+  return CreateTestClientConfiguration(*test_options_.s3_endpoint_override,
+                                       std::string(region));
 }
 
 ExecutionResultOr<std::shared_ptr<S3Client>> AwsS3Factory::CreateClient(
-    ClientConfiguration& client_config,
-    const std::shared_ptr<AsyncExecutorInterface>& async_executor) noexcept {
+    ClientConfiguration client_config,
+    AsyncExecutorInterface* async_executor) noexcept {
   // Should disable virtual host, otherwise, our path-style url will not work.
-  return std::make_shared<S3Client>(
-      client_config, Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never,
+  return std::make_unique<S3Client>(
+      std::move(client_config),
+      Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never,
       /* use virtual host */ false);
 }
 
-std::shared_ptr<BlobStorageClientProviderInterface>
+std::unique_ptr<BlobStorageClientProviderInterface>
 BlobStorageClientProviderFactory::Create(
-    std::shared_ptr<BlobStorageClientOptions> options,
-    std::shared_ptr<InstanceClientProviderInterface> instance_client_provider,
-    const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  return std::make_shared<TestAwsBlobStorageClientProvider>(
-      std::dynamic_pointer_cast<TestAwsBlobStorageClientOptions>(options),
+    BlobStorageClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    AsyncExecutorInterface* cpu_async_executor,
+    AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<TestAwsBlobStorageClientProvider>(
+      std::move(dynamic_cast<TestAwsBlobStorageClientOptions&>(options)),
       instance_client_provider, cpu_async_executor, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

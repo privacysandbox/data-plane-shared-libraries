@@ -20,6 +20,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "absl/synchronization/notification.h"
@@ -62,10 +63,7 @@ namespace google::scp::cpio::client_providers::test {
 class PrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   PrivateKeyFetcherProviderTest()
-      : http_client_(std::make_shared<MockHttpClient>()),
-        private_key_fetcher_provider_(
-            std::make_unique<MockPrivateKeyFetcherProviderWithOverrides>(
-                http_client_)) {
+      : private_key_fetcher_provider_(std::in_place_t{}, &http_client_) {
     private_key_fetcher_provider_->signed_http_request_mock->path =
         std::make_shared<std::string>(std::string(kPrivateKeyBaseUri) + "/" +
                                       std::string(kKeyId));
@@ -81,14 +79,12 @@ class PrivateKeyFetcherProviderTest : public ::testing::Test {
   }
 
   ~PrivateKeyFetcherProviderTest() {
-    if (private_key_fetcher_provider_) {
-      EXPECT_SUCCESS(private_key_fetcher_provider_->Stop());
-    }
+    EXPECT_SUCCESS(private_key_fetcher_provider_->Stop());
   }
 
   void MockRequest(std::string_view uri) {
-    http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = std::make_shared<std::string>(uri);
+    http_client_.request_mock = HttpRequest();
+    http_client_.request_mock.path = std::make_shared<std::string>(uri);
   }
 
   void MockResponse(std::string_view str) {
@@ -97,19 +93,18 @@ class PrivateKeyFetcherProviderTest : public ::testing::Test {
         std::make_shared<std::vector<Byte>>(str.begin(), str.end());
     bytes_buffer.capacity = sizeof(str);
 
-    http_client_->response_mock = HttpResponse();
-    http_client_->response_mock.body = std::move(bytes_buffer);
+    http_client_.response_mock = HttpResponse();
+    http_client_.response_mock.body = std::move(bytes_buffer);
   }
 
-  std::shared_ptr<MockHttpClient> http_client_;
-  std::unique_ptr<MockPrivateKeyFetcherProviderWithOverrides>
+  MockHttpClient http_client_;
+  std::optional<MockPrivateKeyFetcherProviderWithOverrides>
       private_key_fetcher_provider_;
   std::shared_ptr<PrivateKeyFetchingRequest> request_;
 };
 
 TEST_F(PrivateKeyFetcherProviderTest, MissingHttpClient) {
-  private_key_fetcher_provider_ =
-      std::make_unique<MockPrivateKeyFetcherProviderWithOverrides>(nullptr);
+  private_key_fetcher_provider_.emplace(nullptr);
 
   EXPECT_THAT(private_key_fetcher_provider_->Init(),
               ResultIs(FailureExecutionResult(
@@ -162,7 +157,7 @@ TEST_F(PrivateKeyFetcherProviderTest, FetchPrivateKey) {
 
 TEST_F(PrivateKeyFetcherProviderTest, FailedToFetchPrivateKey) {
   ExecutionResult result = FailureExecutionResult(SC_UNKNOWN);
-  http_client_->http_get_result_mock = result;
+  http_client_.http_get_result_mock = result;
 
   absl::Notification condition;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(

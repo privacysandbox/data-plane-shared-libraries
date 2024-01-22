@@ -53,16 +53,14 @@ class PrivateKeyClientProviderFactory {
   /**
    * @brief Factory to create PrivateKeyClientProvider.
    *
-   * @return std::shared_ptr<PrivateKeyClientProviderInterface> created
+   * @return std::unique_ptr<PrivateKeyClientProviderInterface> created
    * PrivateKeyClientProvider.
    */
-  static std::shared_ptr<PrivateKeyClientProviderInterface> Create(
-      const std::shared_ptr<PrivateKeyClientOptions>& options,
-      const std::shared_ptr<core::HttpClientInterface>& http_client,
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credentials_provider,
-      const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor);
+  static std::unique_ptr<PrivateKeyClientProviderInterface> Create(
+      PrivateKeyClientOptions options, core::HttpClientInterface* http_client,
+      RoleCredentialsProviderInterface* role_credentials_provider,
+      AuthTokenProviderInterface* auth_token_provider,
+      core::AsyncExecutorInterface* io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
 

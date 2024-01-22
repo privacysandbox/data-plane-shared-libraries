@@ -193,12 +193,31 @@ void FinishContext(
     const ExecutionResult& result, AsyncContext<TRequest, TResponse>& context,
     const std::shared_ptr<AsyncExecutorInterface>& async_executor,
     AsyncPriority priority = AsyncPriority::High) {
+  FinishContext(result, context, *async_executor, priority);
+}
+
+/**
+ * @brief Finish Context on a thread on the provided AsyncExecutor thread pool.
+ * Assigns the result to the context, schedules Finish(), and
+ * returns the result. If the context cannot be finished async, it will be
+ * finished synchronously on the current thread.
+ * @param result execution result of operation.
+ * @param context the async context to be completed.
+ * @param async_executor the executor (thread pool) for the async context to
+ * be completed on.
+ * @param priority the priority for the executor. Defaults to High.
+ */
+template <typename TRequest, typename TResponse>
+void FinishContext(const ExecutionResult& result,
+                   AsyncContext<TRequest, TResponse>& context,
+                   AsyncExecutorInterface& async_executor,
+                   AsyncPriority priority = AsyncPriority::High) {
   context.result = result;
 
   // Make a copy of context - this way we know async_executor's handle will
   // never go out of scope.
   if (!async_executor
-           ->Schedule([context]() mutable { context.Finish(); }, priority)
+           .Schedule([context]() mutable { context.Finish(); }, priority)
            .Successful()) {
     context.Finish();
   }

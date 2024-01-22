@@ -45,8 +45,7 @@ class AwsInstanceClientUtils {
    * @return core::ExecutionResultOr<std::string> AWS region code if success.
    */
   static core::ExecutionResultOr<std::string> GetCurrentRegionCode(
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client) noexcept;
+      InstanceClientProviderInterface& instance_client) noexcept;
 
   /**
    * @brief Parse region from the Instance Resource Name.

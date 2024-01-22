@@ -77,12 +77,12 @@ class MetricClientProviderTest : public ::testing::Test {
     ShutdownAPI(options);
   }
 
-  std::shared_ptr<MetricBatchingOptions> CreateMetricBatchingOptions(
+  MetricBatchingOptions CreateMetricBatchingOptions(
       bool enable_batch_recording,
       std::string metric_namespace = kMetricNamespace) {
-    auto options = std::make_shared<MetricBatchingOptions>();
-    options->metric_namespace = metric_namespace;
-    options->enable_batch_recording = enable_batch_recording;
+    MetricBatchingOptions options;
+    options.metric_namespace = std::move(metric_namespace);
+    options.enable_batch_recording = enable_batch_recording;
     return options;
   }
 
@@ -96,8 +96,8 @@ class MetricClientProviderTest : public ::testing::Test {
     return request;
   }
 
-  std::shared_ptr<MockAsyncExecutor> mock_async_executor_ =
-      std::make_shared<MockAsyncExecutor>();
+  std::unique_ptr<MockAsyncExecutor> mock_async_executor_ =
+      std::make_unique<MockAsyncExecutor>();
 };
 
 TEST_F(MetricClientProviderTest, EmptyAsyncExecutorIsNotOKWithBatchRecording) {
@@ -139,7 +139,7 @@ TEST_F(MetricClientProviderTest, EmptyAsyncExecutorIsOKWithoutBatchRecording) {
 TEST_F(MetricClientProviderTest,
        FailsWhenEnableBatchRecordingWithoutNamespace) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
-      mock_async_executor_, CreateMetricBatchingOptions(true, ""));
+      mock_async_executor_.get(), CreateMetricBatchingOptions(true, ""));
   auto result = client->Init();
   EXPECT_THAT(result, ResultIs(FailureExecutionResult(
                           SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET)));
@@ -148,7 +148,7 @@ TEST_F(MetricClientProviderTest,
 TEST_F(MetricClientProviderTest,
        FailsWithoutNamespaceInRequestWhenNoBatchRecording) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
-      mock_async_executor_, CreateMetricBatchingOptions(false));
+      mock_async_executor_.get(), CreateMetricBatchingOptions(false));
 
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::make_shared<PutMetricsRequest>(),
@@ -164,7 +164,7 @@ TEST_F(MetricClientProviderTest,
 
 TEST_F(MetricClientProviderTest, FailsWhenNoMetricInRequest) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
-      mock_async_executor_, CreateMetricBatchingOptions(false));
+      mock_async_executor_.get(), CreateMetricBatchingOptions(false));
 
   auto request = std::make_shared<PutMetricsRequest>();
   request->set_metric_namespace(kMetricNamespace);
@@ -182,7 +182,7 @@ TEST_F(MetricClientProviderTest, FailsWhenNoMetricInRequest) {
 
 TEST_F(MetricClientProviderTest, FailedWithoutRunning) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
-      mock_async_executor_, CreateMetricBatchingOptions(true));
+      mock_async_executor_.get(), CreateMetricBatchingOptions(true));
 
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::make_shared<PutMetricsRequest>(),
@@ -199,7 +199,7 @@ TEST_F(MetricClientProviderTest, FailedWithoutRunning) {
 
 TEST_F(MetricClientProviderTest, LaunchScheduleMetricsBatchPushWithRun) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
-      mock_async_executor_, CreateMetricBatchingOptions(true));
+      mock_async_executor_.get(), CreateMetricBatchingOptions(true));
 
   absl::Notification schedule_for_is_called;
   mock_async_executor_->schedule_for_mock =
@@ -216,7 +216,7 @@ TEST_F(MetricClientProviderTest, LaunchScheduleMetricsBatchPushWithRun) {
 
 TEST_F(MetricClientProviderTest, RecordMetricWithoutBatch) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
-      mock_async_executor_, CreateMetricBatchingOptions(false));
+      mock_async_executor_.get(), CreateMetricBatchingOptions(false));
 
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       CreatePutMetricsRequest(kMetricNamespace),
@@ -244,7 +244,7 @@ TEST_F(MetricClientProviderTest, RecordMetricWithoutBatch) {
 
 TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
-      mock_async_executor_, CreateMetricBatchingOptions(true));
+      mock_async_executor_.get(), CreateMetricBatchingOptions(true));
 
   absl::Mutex schedule_for_is_called_mu;
   bool schedule_for_is_called = false;
@@ -295,7 +295,7 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
 
 TEST_F(MetricClientProviderTest, RunMetricsBatchPush) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
-      mock_async_executor_, CreateMetricBatchingOptions(true));
+      mock_async_executor_.get(), CreateMetricBatchingOptions(true));
 
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       CreatePutMetricsRequest(),

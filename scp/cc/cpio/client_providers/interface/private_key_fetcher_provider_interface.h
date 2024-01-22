@@ -142,14 +142,13 @@ class PrivateKeyFetcherProviderFactory {
    *
    * @param http_client the HttpClient.
    * @param role_credentials_provider the RoleCredentialsProvider.
-   * @return std::shared_ptr<PrivateKeyFetcherProviderInterface> created
+   * @return std::unique_ptr<PrivateKeyFetcherProviderInterface> created
    * PrivateKeyFetcherProvider.
    */
-  static std::shared_ptr<PrivateKeyFetcherProviderInterface> Create(
-      const std::shared_ptr<core::HttpClientInterface>& http_client,
-      const std::shared_ptr<RoleCredentialsProviderInterface>&
-          role_credentials_provider,
-      const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider);
+  static std::unique_ptr<PrivateKeyFetcherProviderInterface> Create(
+      core::HttpClientInterface* http_client,
+      RoleCredentialsProviderInterface* role_credentials_provider,
+      AuthTokenProviderInterface* auth_token_provider);
 };
 }  // namespace google::scp::cpio::client_providers
 

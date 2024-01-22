@@ -53,16 +53,16 @@ constexpr std::string_view kPublicKeyClient = "PublicKeyClient";
 namespace google::scp::cpio {
 ExecutionResult PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
   cpio_ = GlobalCpio::GetGlobalCpio().get();
-  std::shared_ptr<HttpClientInterface> http_client;
+  HttpClientInterface* http_client;
   if (auto client = cpio_->GetHttpClient(); !client.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kPublicKeyClient, kZeroUuid, execution_result,
               "Failed to get http client.");
   } else {
-    http_client = *std::move(client);
+    http_client = *client;
   }
   public_key_client_provider_ =
-      PublicKeyClientProviderFactory::Create(options_, http_client);
+      PublicKeyClientProviderFactory::Create(*options_, http_client);
   return SuccessExecutionResult();
 }
 
@@ -105,13 +105,13 @@ core::ExecutionResult PublicKeyClient::ListPublicKeys(
     Callback<ListPublicKeysResponse> callback) noexcept {
   return Execute<ListPublicKeysRequest, ListPublicKeysResponse>(
       absl::bind_front(&PublicKeyClientProviderInterface::ListPublicKeys,
-                       public_key_client_provider_),
+                       public_key_client_provider_.get()),
       request, callback);
 }
 
 std::unique_ptr<PublicKeyClientInterface> PublicKeyClientFactory::Create(
     PublicKeyClientOptions options) {
   return std::make_unique<PublicKeyClient>(
-      std::make_shared<PublicKeyClientOptions>(options));
+      std::make_shared<PublicKeyClientOptions>(std::move(options)));
 }
 }  // namespace google::scp::cpio

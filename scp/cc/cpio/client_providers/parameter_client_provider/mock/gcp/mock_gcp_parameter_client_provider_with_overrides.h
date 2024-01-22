@@ -31,14 +31,12 @@ class MockGcpParameterClientProviderOverrides
     : public GcpParameterClientProvider {
  public:
   explicit MockGcpParameterClientProviderOverrides(
-      const std::shared_ptr<core::AsyncExecutorInterface>& async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider)
+      core::AsyncExecutorInterface* async_executor,
+      core::AsyncExecutorInterface* io_async_executor,
+      InstanceClientProviderInterface* instance_client_provider)
       : GcpParameterClientProvider(async_executor, io_async_executor,
                                    instance_client_provider,
-                                   std::make_shared<ParameterClientOptions>()) {
-  }
+                                   ParameterClientOptions()) {}
 
   std::shared_ptr<cloud::secretmanager::SecretManagerServiceClient>
       secret_manager_mock;

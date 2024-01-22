@@ -65,10 +65,9 @@ constexpr char kRegionsTag[] = "regions";
 namespace google::scp::cpio::client_providers {
 
 ExecutionResultOr<std::string> GcpInstanceClientUtils::GetCurrentProjectId(
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client) noexcept {
+    InstanceClientProviderInterface& instance_client) noexcept {
   std::string instance_resource_name;
-  RETURN_AND_LOG_IF_FAILURE(instance_client->GetCurrentInstanceResourceNameSync(
+  RETURN_AND_LOG_IF_FAILURE(instance_client.GetCurrentInstanceResourceNameSync(
                                 instance_resource_name),
                             kGcpInstanceClientUtils, kZeroUuid,
                             "Failed getting instance resource name.");

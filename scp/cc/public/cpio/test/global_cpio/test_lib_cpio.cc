@@ -33,8 +33,7 @@ using google::scp::cpio::client_providers::TestLibCpioProvider;
 
 namespace google::scp::cpio {
 static ExecutionResult SetGlobalCpio(const TestCpioOptions& options) {
-  cpio_ptr = std::make_unique<TestLibCpioProvider>(
-      std::make_shared<TestCpioOptions>(options));
+  cpio_ptr = std::make_unique<TestLibCpioProvider>(options);
 
   CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr));
 

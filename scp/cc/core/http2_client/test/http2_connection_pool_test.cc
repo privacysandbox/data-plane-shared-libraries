@@ -34,24 +34,22 @@ namespace google::scp::core {
 class HttpConnectionPoolTest : public testing::Test {
  protected:
   void SetUp() override {
-    async_executor_ = std::make_shared<MockAsyncExecutor>();
-    connection_pool_ = std::make_unique<MockHttpConnectionPool>(
-        async_executor_, num_connections_per_host_);
+    connection_pool_.emplace(&async_executor_, num_connections_per_host_);
 
-    EXPECT_SUCCESS(async_executor_->Init());
+    EXPECT_SUCCESS(async_executor_.Init());
     EXPECT_SUCCESS(connection_pool_->Init());
 
-    EXPECT_SUCCESS(async_executor_->Run());
+    EXPECT_SUCCESS(async_executor_.Run());
     EXPECT_SUCCESS(connection_pool_->Run());
   }
 
   void TearDown() override {
     EXPECT_SUCCESS(connection_pool_->Stop());
-    EXPECT_SUCCESS(async_executor_->Stop());
+    EXPECT_SUCCESS(async_executor_.Stop());
   }
 
-  std::shared_ptr<AsyncExecutorInterface> async_executor_;
-  std::unique_ptr<MockHttpConnectionPool> connection_pool_;
+  MockAsyncExecutor async_executor_;
+  std::optional<MockHttpConnectionPool> connection_pool_;
   size_t num_connections_per_host_ = 10;
 };
 
@@ -150,7 +148,7 @@ TEST_F(HttpConnectionPoolTest,
   absl::Notification recycle_invoked_on_connection;
   // Every other connection is dropped.
   connection_pool_->create_connection_override_ =
-      [&, async_executor = async_executor_](
+      [&, async_executor = &async_executor_](
           std::string host, std::string service, bool is_https) {
         auto connection = std::make_shared<MockHttpConnection>(
             async_executor, host, service, is_https);
@@ -206,7 +204,7 @@ TEST_F(HttpConnectionPoolTest,
   std::atomic<size_t> create_connection_counter(0);
   // Every other connection is dropped.
   connection_pool_->create_connection_override_ =
-      [&, async_executor = async_executor_](
+      [&, async_executor = &async_executor_](
           std::string host, std::string service, bool is_https) {
         auto connection = std::make_shared<MockHttpConnection>(
             async_executor, host, service, is_https);
@@ -249,7 +247,7 @@ TEST_F(HttpConnectionPoolTest,
   std::atomic<size_t> create_connection_counter(0);
   // Every other connection is dropped.
   connection_pool_->create_connection_override_ =
-      [&, async_executor = async_executor_](
+      [&, async_executor = &async_executor_](
           std::string host, std::string service, bool is_https) {
         auto connection = std::make_shared<MockHttpConnection>(
             async_executor, host, service, is_https);
@@ -294,7 +292,7 @@ TEST_F(HttpConnectionPoolTest,
   std::atomic<size_t> create_connection_counter(0);
   // Every other connection is dropped.
   connection_pool_->create_connection_override_ =
-      [&, async_executor = async_executor_](
+      [&, async_executor = &async_executor_](
           std::string host, std::string service, bool is_https) {
         auto connection = std::make_shared<MockHttpConnection>(
             async_executor, host, service, is_https);

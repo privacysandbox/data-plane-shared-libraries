@@ -45,9 +45,8 @@ class OperationDispatcher {
    * @param retry_strategy The retry strategy for dispatch operations in case of
    * Retry status code.
    */
-  OperationDispatcher(
-      const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-      RetryStrategy retry_strategy)
+  OperationDispatcher(AsyncExecutorInterface* async_executor,
+                      RetryStrategy retry_strategy)
       : async_executor_(async_executor), retry_strategy_(retry_strategy) {}
 
   /**
@@ -227,7 +226,7 @@ class OperationDispatcher {
   }
 
   /// An instance of the async executor.
-  const std::shared_ptr<AsyncExecutorInterface> async_executor_;
+  AsyncExecutorInterface* async_executor_;
   /// The retry strategy for the dispatcher.
   RetryStrategy retry_strategy_;
 };

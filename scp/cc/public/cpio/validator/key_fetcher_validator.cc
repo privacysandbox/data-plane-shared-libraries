@@ -79,16 +79,16 @@ void RunFetchPrivateKeyValidator(
               << std::endl;
     return;
   }
-  std::shared_ptr<google::scp::core::HttpClientInterface> http_client;
-  std::shared_ptr<RoleCredentialsProviderInterface> role_credentials_provider;
-  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
+  google::scp::core::HttpClientInterface* http_client;
+  RoleCredentialsProviderInterface* role_credentials_provider;
+  AuthTokenProviderInterface* auth_token_provider;
 
   if (auto res = GlobalCpio::GetGlobalCpio()->GetHttp1Client(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Http Client." << std::endl
               << std::endl;
     return;
   } else {
-    http_client = *std::move(res);
+    http_client = *res;
   }
 
   if (auto res = GlobalCpio::GetGlobalCpio()->GetRoleCredentialsProvider();
@@ -98,7 +98,7 @@ void RunFetchPrivateKeyValidator(
               << std::endl;
     return;
   } else {
-    role_credentials_provider = *std::move(res);
+    role_credentials_provider = *res;
   }
 
   if (auto res = GlobalCpio::GetGlobalCpio()->GetAuthTokenProvider();
@@ -107,7 +107,7 @@ void RunFetchPrivateKeyValidator(
               << std::endl;
     return;
   } else {
-    auth_token_provider = *std::move(res);
+    auth_token_provider = *res;
   }
 
   auto key_fetcher =

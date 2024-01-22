@@ -97,8 +97,9 @@ namespace google::scp::cpio::client_providers::test {
 class GcpAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
   GcpAuthTokenProviderTest()
-      : http_client_(std::make_shared<MockCurlClient>()) {
-    authorizer_provider_ = std::make_unique<GcpAuthTokenProvider>(http_client_);
+      : http_client_(std::make_unique<MockCurlClient>()) {
+    authorizer_provider_ =
+        std::make_unique<GcpAuthTokenProvider>(http_client_.get());
     fetch_token_for_target_audience_context_.request =
         std::make_shared<GetSessionTokenForTargetAudienceRequest>();
     fetch_token_for_target_audience_context_.request
@@ -114,7 +115,7 @@ class GcpAuthTokenProviderTest : public testing::TestWithParam<std::string> {
   AsyncContext<GetSessionTokenForTargetAudienceRequest, GetSessionTokenResponse>
       fetch_token_for_target_audience_context_;
 
-  std::shared_ptr<MockCurlClient> http_client_;
+  std::unique_ptr<MockCurlClient> http_client_;
   std::unique_ptr<GcpAuthTokenProvider> authorizer_provider_;
 };
 

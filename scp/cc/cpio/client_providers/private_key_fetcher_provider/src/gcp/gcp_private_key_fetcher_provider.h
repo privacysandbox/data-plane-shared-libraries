@@ -39,9 +39,8 @@ class GcpPrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
    * @param auth_token_provider auth token provider.
    * service.
    */
-  GcpPrivateKeyFetcherProvider(
-      const std::shared_ptr<core::HttpClientInterface>& http_client,
-      const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider)
+  GcpPrivateKeyFetcherProvider(core::HttpClientInterface* http_client,
+                               AuthTokenProviderInterface* auth_token_provider)
       : PrivateKeyFetcherProvider(http_client),
         auth_token_provider_(auth_token_provider) {}
 
@@ -66,7 +65,7 @@ class GcpPrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
                          GetSessionTokenResponse>& get_session_token) noexcept;
 
   // Auth token provider.
-  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider_;
+  AuthTokenProviderInterface* auth_token_provider_;
 };
 }  // namespace google::scp::cpio::client_providers
 

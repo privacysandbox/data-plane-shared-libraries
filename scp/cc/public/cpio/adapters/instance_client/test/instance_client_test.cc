@@ -63,7 +63,7 @@ class InstanceClientTest : public ::testing::Test {
 };
 
 TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
-  EXPECT_CALL(*client_->GetInstanceClientProvider(),
+  EXPECT_CALL(client_->GetInstanceClientProvider(),
               GetCurrentInstanceResourceName)
       .WillOnce(
           [=](AsyncContext<GetCurrentInstanceResourceNameRequest,
@@ -88,7 +88,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
 }
 
 TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
-  EXPECT_CALL(*client_->GetInstanceClientProvider(),
+  EXPECT_CALL(client_->GetInstanceClientProvider(),
               GetCurrentInstanceResourceName)
       .WillOnce(
           [=](AsyncContext<GetCurrentInstanceResourceNameRequest,
@@ -112,7 +112,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
 }
 
 TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
-  EXPECT_CALL(*client_->GetInstanceClientProvider(), GetTagsByResourceName)
+  EXPECT_CALL(client_->GetInstanceClientProvider(), GetTagsByResourceName)
       .WillOnce([=](AsyncContext<GetTagsByResourceNameRequest,
                                  GetTagsByResourceNameResponse>& context) {
         context.response = std::make_shared<GetTagsByResourceNameResponse>();
@@ -134,7 +134,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
 }
 
 TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
-  EXPECT_CALL(*client_->GetInstanceClientProvider(), GetTagsByResourceName)
+  EXPECT_CALL(client_->GetInstanceClientProvider(), GetTagsByResourceName)
       .WillOnce([=](AsyncContext<GetTagsByResourceNameRequest,
                                  GetTagsByResourceNameResponse>& context) {
         context.result = FailureExecutionResult(SC_UNKNOWN);
@@ -156,7 +156,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
 }
 
 TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
-  EXPECT_CALL(*client_->GetInstanceClientProvider(),
+  EXPECT_CALL(client_->GetInstanceClientProvider(),
               GetInstanceDetailsByResourceName)
       .WillOnce(
           [=](AsyncContext<GetInstanceDetailsByResourceNameRequest,
@@ -181,7 +181,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
 }
 
 TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
-  EXPECT_CALL(*client_->GetInstanceClientProvider(),
+  EXPECT_CALL(client_->GetInstanceClientProvider(),
               GetInstanceDetailsByResourceName)
       .WillOnce(
           [=](AsyncContext<GetInstanceDetailsByResourceNameRequest,

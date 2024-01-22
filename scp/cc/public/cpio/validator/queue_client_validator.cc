@@ -51,9 +51,9 @@ void RunEnqueueMessageValidator(
     return;
   }
 
-  std::shared_ptr<InstanceClientProviderInterface> instance_client;
-  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
-  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
+  InstanceClientProviderInterface* instance_client;
+  AsyncExecutorInterface* cpu_async_executor;
+  AsyncExecutorInterface* io_async_executor;
 
   if (auto res = GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider();
       !res.ok()) {
@@ -61,7 +61,7 @@ void RunEnqueueMessageValidator(
               << std::endl;
     return;
   } else {
-    instance_client = *std::move(res);
+    instance_client = *res;
   }
 
   if (auto res = GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor();
@@ -69,21 +69,22 @@ void RunEnqueueMessageValidator(
     std::cout << "[ FAILURE ] Unable to get Cpu Async Executor." << std::endl;
     return;
   } else {
-    cpu_async_executor = *std::move(res);
+    cpu_async_executor = *res;
   }
 
   if (auto res = GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Io Async Executor." << std::endl;
     return;
   } else {
-    io_async_executor = *std::move(res);
+    io_async_executor = *res;
   }
 
-  auto options = std::make_shared<QueueClientOptions>();
-  options->queue_name = kQueueName;
+  QueueClientOptions options;
+  options.queue_name = kQueueName;
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
-          options, instance_client, cpu_async_executor, io_async_executor);
+          std::move(options), instance_client, cpu_async_executor,
+          io_async_executor);
 
   if (google::scp::core::ExecutionResult result = queue_client->Init();
       !result.Successful()) {
@@ -136,9 +137,9 @@ void RunEnqueueMessageValidator(
 }
 
 void RunGetTopMessageValidator(std::string_view name) {
-  std::shared_ptr<InstanceClientProviderInterface> instance_client;
-  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
-  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
+  InstanceClientProviderInterface* instance_client;
+  AsyncExecutorInterface* cpu_async_executor;
+  AsyncExecutorInterface* io_async_executor;
 
   if (auto res = GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider();
       !res.ok()) {
@@ -146,7 +147,7 @@ void RunGetTopMessageValidator(std::string_view name) {
               << std::endl;
     return;
   } else {
-    instance_client = *std::move(res);
+    instance_client = *res;
   }
 
   if (auto res = GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor();
@@ -154,21 +155,22 @@ void RunGetTopMessageValidator(std::string_view name) {
     std::cout << "[ FAILURE ] Unable to get Cpu Async Executor." << std::endl;
     return;
   } else {
-    cpu_async_executor = *std::move(res);
+    cpu_async_executor = *res;
   }
 
   if (auto res = GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Io Async Executor." << std::endl;
     return;
   } else {
-    io_async_executor = *std::move(res);
+    io_async_executor = *res;
   }
 
-  auto options = std::make_shared<QueueClientOptions>();
-  options->queue_name = kQueueName;
+  QueueClientOptions options;
+  options.queue_name = kQueueName;
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
-          options, instance_client, cpu_async_executor, io_async_executor);
+          std::move(options), instance_client, cpu_async_executor,
+          io_async_executor);
 
   if (google::scp::core::ExecutionResult result = queue_client->Init();
       !result.Successful()) {

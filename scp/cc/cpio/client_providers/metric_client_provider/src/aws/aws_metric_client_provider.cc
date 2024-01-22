@@ -78,12 +78,11 @@ static constexpr char kAwsMetricClientProvider[] = "AwsMetricClientProvider";
 
 namespace google::scp::cpio::client_providers {
 void AwsMetricClientProvider::CreateClientConfiguration(
-    const std::shared_ptr<std::string>& region,
-    std::shared_ptr<ClientConfiguration>& client_config) noexcept {
+    const std::string& region, ClientConfiguration& client_config) noexcept {
   client_config = common::CreateClientConfiguration(region);
-  client_config->executor =
+  client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor_);
-  client_config->maxConnections = kCloudwatchMaxConcurrentConnections;
+  client_config.maxConnections = kCloudwatchMaxConcurrentConnections;
 }
 
 ExecutionResult AwsMetricClientProvider::Run() noexcept {
@@ -95,7 +94,7 @@ ExecutionResult AwsMetricClientProvider::Run() noexcept {
   }
 
   auto region_code_or =
-      AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_provider_);
+      AwsInstanceClientUtils::GetCurrentRegionCode(*instance_client_provider_);
 
   if (!region_code_or.Successful()) {
     SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, region_code_or.result(),
@@ -106,11 +105,10 @@ ExecutionResult AwsMetricClientProvider::Run() noexcept {
   SCP_INFO(kAwsMetricClientProvider, kZeroUuid, "GetCurrentRegionCode: %s",
            region_code_or->c_str());
 
-  std::shared_ptr<ClientConfiguration> client_config;
-  CreateClientConfiguration(
-      std::make_shared<std::string>(std::move(*region_code_or)), client_config);
+  ClientConfiguration client_config;
+  CreateClientConfiguration(*region_code_or, client_config);
 
-  cloud_watch_client_ = std::make_shared<CloudWatchClient>(*client_config);
+  cloud_watch_client_.emplace(std::move(client_config));
 
   return SuccessExecutionResult();
 }
@@ -124,7 +122,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
   }
 
   // When perform batch recording, enable_batch_recording should be true.
-  if (!metric_batching_options_->enable_batch_recording &&
+  if (!metric_batching_options_.enable_batch_recording &&
       metric_requests_vector->size() > 1) {
     auto execution_result = FailureExecutionResult(
         SC_AWS_METRIC_CLIENT_PROVIDER_SHOULD_ENABLE_BATCH_RECORDING);
@@ -141,8 +139,8 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
   // batch recording is not enabled and metric_requests_vector should only have
   // one entry.
   std::string name_space =
-      !metric_batching_options_->metric_namespace.empty()
-          ? metric_batching_options_->metric_namespace
+      !metric_batching_options_.metric_namespace.empty()
+          ? metric_batching_options_.metric_namespace
           : (*metric_requests_vector)[0].request->metric_namespace();
   request_chunk.SetNamespace(name_space.c_str());
   size_t chunk_payload = 0;
@@ -226,7 +224,7 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
     for (auto& record_metric_context : metric_requests_vector) {
       record_metric_context.response = std::make_shared<PutMetricsResponse>();
       FinishContext(SuccessExecutionResult(), record_metric_context,
-                    async_executor_);
+                    *async_executor_);
     }
     return;
   }
@@ -239,20 +237,20 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
                     result, "The error is %s",
                     outcome.GetError().GetMessage().c_str());
   for (auto& record_metric_context : metric_requests_vector) {
-    FinishContext(result, record_metric_context, async_executor_);
+    FinishContext(result, record_metric_context, *async_executor_);
   }
   return;
 }
 
 #ifndef TEST_CPIO
-std::shared_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
-    const std::shared_ptr<MetricClientOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<AwsMetricClientProvider>(
-      options, instance_client_provider, async_executor, io_async_executor);
+std::unique_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
+    MetricClientOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    AsyncExecutorInterface* async_executor,
+    AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<AwsMetricClientProvider>(
+      std::move(options), instance_client_provider, async_executor,
+      io_async_executor);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

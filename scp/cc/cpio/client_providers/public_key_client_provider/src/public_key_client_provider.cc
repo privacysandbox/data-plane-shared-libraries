@@ -65,8 +65,7 @@ static constexpr char kPublicKeyClientProvider[] = "PublicKeyClientProvider";
 namespace google::scp::cpio::client_providers {
 
 ExecutionResult PublicKeyClientProvider::Init() noexcept {
-  if (!public_key_client_options_ ||
-      !public_key_client_options_->endpoints.size()) {
+  if (!public_key_client_options_.endpoints.size()) {
     auto execution_result = FailureExecutionResult(
         SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS);
     SCP_ERROR(kPublicKeyClientProvider, kZeroUuid, execution_result,
@@ -114,11 +113,11 @@ ExecutionResult PublicKeyClientProvider::ListPublicKeys(
   // success or failed.
   auto got_success_result = std::make_shared<std::atomic<bool>>(false);
   auto unfinished_counter = std::make_shared<std::atomic<size_t>>(
-      public_key_client_options_->endpoints.size());
+      public_key_client_options_.endpoints.size());
 
   ExecutionResult result = FailureExecutionResult(
       SC_PUBLIC_KEY_CLIENT_PROVIDER_ALL_URIS_REQUEST_PERFORM_FAILED);
-  for (auto uri : public_key_client_options_->endpoints) {
+  for (auto uri : public_key_client_options_.endpoints) {
     auto shared_uri = std::make_shared<Uri>(uri);
 
     auto http_request = std::make_shared<HttpRequest>();
@@ -215,11 +214,11 @@ void PublicKeyClientProvider::OnPerformRequestCallback(
   }
 }
 
-std::shared_ptr<PublicKeyClientProviderInterface>
-PublicKeyClientProviderFactory::Create(
-    const std::shared_ptr<PublicKeyClientOptions>& options,
-    const std::shared_ptr<HttpClientInterface>& http_client) {
-  return std::make_shared<PublicKeyClientProvider>(options, http_client);
+std::unique_ptr<PublicKeyClientProviderInterface>
+PublicKeyClientProviderFactory::Create(PublicKeyClientOptions options,
+                                       HttpClientInterface* http_client) {
+  return std::make_unique<PublicKeyClientProvider>(std::move(options),
+                                                   http_client);
 }
 
 }  // namespace google::scp::cpio::client_providers

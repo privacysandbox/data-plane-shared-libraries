@@ -68,16 +68,14 @@ class RoleCredentialsProviderFactory {
   /**
    * @brief Factory to create RoleCredentialsProviderInterface.
    *
-   * @return std::shared_ptr<RoleCredentialsProviderInterface> created
+   * @return std::unique_ptr<RoleCredentialsProviderInterface> created
    * RoleCredentialsProviderInterface.
    */
-  static std::shared_ptr<RoleCredentialsProviderInterface> Create(
-      const std::shared_ptr<RoleCredentialsProviderOptions>& options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>&
-          io_async_executor) noexcept;
+  static std::unique_ptr<RoleCredentialsProviderInterface> Create(
+      RoleCredentialsProviderOptions options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

@@ -154,9 +154,8 @@ const auto& GetRequiredFieldsForResourceTags() {
 namespace google::scp::cpio::client_providers {
 
 GcpInstanceClientProvider::GcpInstanceClientProvider(
-    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-    const std::shared_ptr<HttpClientInterface>& http1_client,
-    const std::shared_ptr<HttpClientInterface>& http2_client)
+    AuthTokenProviderInterface* auth_token_provider,
+    HttpClientInterface* http1_client, HttpClientInterface* http2_client)
     : http1_client_(http1_client),
       http2_client_(http2_client),
       auth_token_provider_(auth_token_provider),
@@ -887,14 +886,13 @@ void GcpInstanceClientProvider::OnListInstanceDetailsCallback(
   get_instance_details_context.Finish();
 }
 
-std::shared_ptr<InstanceClientProviderInterface>
+std::unique_ptr<InstanceClientProviderInterface>
 InstanceClientProviderFactory::Create(
-    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider,
-    const std::shared_ptr<HttpClientInterface>& http1_client,
-    const std::shared_ptr<HttpClientInterface>& http2_client,
-    const std::shared_ptr<AsyncExecutorInterface>& async_executor,
-    const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) {
-  return std::make_shared<GcpInstanceClientProvider>(
+    AuthTokenProviderInterface* auth_token_provider,
+    HttpClientInterface* http1_client, HttpClientInterface* http2_client,
+    AsyncExecutorInterface* async_executor,
+    AsyncExecutorInterface* io_async_executor) {
+  return std::make_unique<GcpInstanceClientProvider>(
       auth_token_provider, http1_client, http2_client);
 }
 

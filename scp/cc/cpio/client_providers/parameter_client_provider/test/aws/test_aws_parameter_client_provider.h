@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
@@ -33,19 +34,18 @@ namespace google::scp::cpio::client_providers {
 class TestAwsParameterClientProvider : public AwsParameterClientProvider {
  public:
   TestAwsParameterClientProvider(
-      const std::shared_ptr<TestAwsParameterClientOptions>& test_options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor)
+      TestAwsParameterClientOptions test_options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* io_async_executor)
       : AwsParameterClientProvider(test_options, instance_client_provider,
                                    io_async_executor),
-        test_options_(test_options) {}
+        test_options_(std::move(test_options)) {}
 
  protected:
-  std::shared_ptr<Aws::Client::ClientConfiguration> CreateClientConfiguration(
-      std::string_view region) noexcept override;
+  Aws::Client::ClientConfiguration CreateClientConfiguration(
+      const std::string& region) noexcept override;
 
-  std::shared_ptr<TestAwsParameterClientOptions> test_options_;
+  TestAwsParameterClientOptions test_options_;
 };
 }  // namespace google::scp::cpio::client_providers
 

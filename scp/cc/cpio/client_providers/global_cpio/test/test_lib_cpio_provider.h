@@ -29,19 +29,16 @@ namespace google::scp::cpio::client_providers {
  */
 class TestLibCpioProvider : public LibCpioProvider {
  public:
-  explicit TestLibCpioProvider(
-      const std::shared_ptr<TestCpioOptions>& test_options);
+  explicit TestLibCpioProvider(TestCpioOptions test_options);
 
  private:
-  std::shared_ptr<RoleCredentialsProviderInterface>
+  std::unique_ptr<RoleCredentialsProviderInterface>
   CreateRoleCredentialsProvider(
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>&
-          io_async_executor) noexcept override;
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor) noexcept override;
 
-  std::shared_ptr<TestCpioOptions> test_options_;
+  TestCpioOptions test_options_;
 };
 }  // namespace google::scp::cpio::client_providers
 

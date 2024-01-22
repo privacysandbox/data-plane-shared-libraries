@@ -55,12 +55,9 @@ static constexpr char kAwsRoleCredentialsProvider[] =
     "AwsRoleCredentialsProvider";
 
 namespace google::scp::cpio::client_providers {
-std::shared_ptr<ClientConfiguration>
-AwsRoleCredentialsProvider::CreateClientConfiguration(
+ClientConfiguration AwsRoleCredentialsProvider::CreateClientConfiguration(
     std::string_view region) noexcept {
-  return common::CreateClientConfiguration(
-
-      std::make_shared<std::string>(std::move(region)));
+  return common::CreateClientConfiguration(std::string(region));
 }
 
 ExecutionResult AwsRoleCredentialsProvider::Init() noexcept {
@@ -85,7 +82,7 @@ ExecutionResult AwsRoleCredentialsProvider::Run() noexcept {
   }
 
   auto region_code_or =
-      AwsInstanceClientUtils::GetCurrentRegionCode(instance_client_provider_);
+      AwsInstanceClientUtils::GetCurrentRegionCode(*instance_client_provider_);
   if (!region_code_or.Successful()) {
     SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, region_code_or.result(),
               "Failed to get region code for current instance");
@@ -93,9 +90,9 @@ ExecutionResult AwsRoleCredentialsProvider::Run() noexcept {
   }
 
   auto client_config = CreateClientConfiguration(*region_code_or);
-  client_config->executor =
+  client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor_);
-  sts_client_ = std::make_shared<STSClient>(*client_config);
+  sts_client_ = std::make_shared<STSClient>(std::move(client_config));
 
   auto timestamp = std::to_string(
       TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());
@@ -176,15 +173,13 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
 }
 
 #ifndef TEST_CPIO
-std::shared_ptr<RoleCredentialsProviderInterface>
+std::unique_ptr<RoleCredentialsProviderInterface>
 RoleCredentialsProviderFactory::Create(
-    const std::shared_ptr<RoleCredentialsProviderOptions>& options,
-    const std::shared_ptr<InstanceClientProviderInterface>&
-        instance_client_provider,
-    const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-    const std::shared_ptr<core::AsyncExecutorInterface>&
-        io_async_executor) noexcept {
-  return std::make_shared<AwsRoleCredentialsProvider>(
+    RoleCredentialsProviderOptions options,
+    InstanceClientProviderInterface* instance_client_provider,
+    core::AsyncExecutorInterface* cpu_async_executor,
+    core::AsyncExecutorInterface* io_async_executor) noexcept {
+  return std::make_unique<AwsRoleCredentialsProvider>(
       instance_client_provider, cpu_async_executor, io_async_executor);
 }
 #endif

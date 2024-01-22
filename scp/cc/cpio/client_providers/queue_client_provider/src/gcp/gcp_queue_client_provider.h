@@ -35,7 +35,44 @@
 namespace google::scp::cpio::client_providers {
 static constexpr char kPubSubEndpointUri[] = "pubsub.googleapis.com";
 
-class GcpPubSubStubFactory;
+/// Provides GCP Pub/Sub stubs.
+class GcpPubSubStubFactory {
+ public:
+  /**
+   * @brief Creates Publisher Stub.
+   *
+   * @param options the QueueClientOptions.
+   * @return std::shared_ptr<google::pubsub::v1::Publisher::Stub> the creation
+   * result.
+   */
+  virtual std::shared_ptr<google::pubsub::v1::Publisher::StubInterface>
+  CreatePublisherStub(const QueueClientOptions& options) noexcept;
+  /**
+   * @brief Creates Subscriber Stub.
+   *
+   * @param options the QueueClientOptions.
+   * @return std::shared_ptr<google::pubsub::v1::Subscriber::Stub> the creation
+   * result.
+   */
+  virtual std::shared_ptr<google::pubsub::v1::Subscriber::StubInterface>
+  CreateSubscriberStub(const QueueClientOptions& options) noexcept;
+
+  virtual ~GcpPubSubStubFactory() = default;
+
+ private:
+  /**
+   * @brief Gets Pub/Sub Channel.
+   *
+   * @param options the QueueClientOptions.
+   * @return std::shared_ptr<grpc::Channel> the creation result.
+   */
+  virtual std::shared_ptr<grpc::Channel> GetPubSubChannel(
+      const QueueClientOptions& options) noexcept;
+
+ protected:
+  // An Instance of the gRPC Channel for Publisher and Subscriber Stubs.
+  std::shared_ptr<grpc::Channel> channel_;
+};
 
 /*! @copydoc QueueClientProviderInterface
  */
@@ -44,18 +81,17 @@ class GcpQueueClientProvider : public QueueClientProviderInterface {
   virtual ~GcpQueueClientProvider() = default;
 
   explicit GcpQueueClientProvider(
-      const std::shared_ptr<QueueClientOptions>& queue_client_options,
-      const std::shared_ptr<InstanceClientProviderInterface>&
-          instance_client_provider,
-      const std::shared_ptr<core::AsyncExecutorInterface>& cpu_async_executor,
-      const std::shared_ptr<core::AsyncExecutorInterface>& io_async_executor,
-      const std::shared_ptr<GcpPubSubStubFactory>& pubsub_stub_factory =
+      QueueClientOptions queue_client_options,
+      InstanceClientProviderInterface* instance_client_provider,
+      core::AsyncExecutorInterface* cpu_async_executor,
+      core::AsyncExecutorInterface* io_async_executor,
+      std::shared_ptr<GcpPubSubStubFactory> pubsub_stub_factory =
           std::make_shared<GcpPubSubStubFactory>())
-      : queue_client_options_(queue_client_options),
+      : queue_client_options_(std::move(queue_client_options)),
         instance_client_provider_(instance_client_provider),
         cpu_async_executor_(cpu_async_executor),
         io_async_executor_(io_async_executor),
-        pubsub_stub_factory_(pubsub_stub_factory) {}
+        pubsub_stub_factory_(std::move(pubsub_stub_factory)) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -130,14 +166,14 @@ class GcpQueueClientProvider : public QueueClientProviderInterface {
           delete_message_context) noexcept;
 
   /// The configuration for queue client.
-  std::shared_ptr<QueueClientOptions> queue_client_options_;
+  QueueClientOptions queue_client_options_;
 
   /// The instance client provider.
-  std::shared_ptr<InstanceClientProviderInterface> instance_client_provider_;
+  InstanceClientProviderInterface* instance_client_provider_;
 
   /// The instance of the async executor.
-  const std::shared_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
-      io_async_executor_;
+  core::AsyncExecutorInterface* cpu_async_executor_;
+  core::AsyncExecutorInterface* io_async_executor_;
 
   /// Project ID of current instance.
   std::string project_id_;
@@ -150,6 +186,7 @@ class GcpQueueClientProvider : public QueueClientProviderInterface {
   /// projects/{project_id}/subscriptions/{subscription_name}.
   std::string subscription_name_;
 
+  // TODO(b/321321138): Fix test to make pointer unnecessary.
   /// An Instance of the GCP Pub/Sub stub factory.
   std::shared_ptr<GcpPubSubStubFactory> pubsub_stub_factory_;
 
@@ -160,48 +197,6 @@ class GcpQueueClientProvider : public QueueClientProviderInterface {
   std::shared_ptr<google::pubsub::v1::Subscriber::StubInterface>
       subscriber_stub_;
 };
-
-/// Provides GCP Pub/Sub stubs.
-class GcpPubSubStubFactory {
- public:
-  /**
-   * @brief Creates Publisher Stub.
-   *
-   * @param options the QueueClientOptions.
-   * @return std::shared_ptr<google::pubsub::v1::Publisher::Stub> the creation
-   * result.
-   */
-  virtual std::shared_ptr<google::pubsub::v1::Publisher::StubInterface>
-  CreatePublisherStub(
-      const std::shared_ptr<QueueClientOptions>& options) noexcept;
-  /**
-   * @brief Creates Subscriber Stub.
-   *
-   * @param options the QueueClientOptions.
-   * @return std::shared_ptr<google::pubsub::v1::Subscriber::Stub> the creation
-   * result.
-   */
-  virtual std::shared_ptr<google::pubsub::v1::Subscriber::StubInterface>
-  CreateSubscriberStub(
-      const std::shared_ptr<QueueClientOptions>& options) noexcept;
-
-  virtual ~GcpPubSubStubFactory() = default;
-
- private:
-  /**
-   * @brief Gets Pub/Sub Channel.
-   *
-   * @param options the QueueClientOptions.
-   * @return std::shared_ptr<grpc::Channel> the creation result.
-   */
-  virtual std::shared_ptr<grpc::Channel> GetPubSubChannel(
-      const std::shared_ptr<QueueClientOptions>& options) noexcept;
-
- protected:
-  // An Instance of the gRPC Channel for Publisher and Subscriber Stubs.
-  std::shared_ptr<grpc::Channel> channel_;
-};
-
 }  // namespace google::scp::cpio::client_providers
 
 #endif  // CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_GCP_GCP_QUEUE_CLIENT_PROVIDER_H_

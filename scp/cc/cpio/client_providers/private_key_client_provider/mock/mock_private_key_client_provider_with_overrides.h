@@ -18,6 +18,7 @@
 #define CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_CLIENT_PROVIDER_MOCK_MOCK_PRIVATE_KEY_CLIENT_PROVIDER_WITH_OVERRIDES_H_
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "core/http2_client/mock/mock_http_client.h"
@@ -34,13 +35,11 @@ class MockPrivateKeyClientProviderWithOverrides
     : public PrivateKeyClientProvider {
  public:
   explicit MockPrivateKeyClientProviderWithOverrides(
-      const std::shared_ptr<PrivateKeyClientOptions>&
-          private_key_client_options)
+      PrivateKeyClientOptions private_key_client_options)
       : PrivateKeyClientProvider(
-            private_key_client_options,
-            std::make_shared<core::http2_client::mock::MockHttpClient>(),
-            std::make_shared<MockPrivateKeyFetcherProvider>(),
-            std::make_shared<MockKmsClientProvider>()) {}
+            std::move(private_key_client_options), &mock_http_client_,
+            std::make_unique<MockPrivateKeyFetcherProvider>(),
+            std::make_unique<MockKmsClientProvider>()) {}
 
   std::function<core::ExecutionResult(
       core::AsyncContext<
@@ -72,16 +71,16 @@ class MockPrivateKeyClientProviderWithOverrides
     return PrivateKeyClientProvider::ListPrivateKeys(context);
   }
 
-  std::shared_ptr<MockKmsClientProvider> GetKmsClientProvider() {
-    return std::dynamic_pointer_cast<MockKmsClientProvider>(
-        kms_client_provider_);
+  MockKmsClientProvider& GetKmsClientProvider() {
+    return dynamic_cast<MockKmsClientProvider&>(*kms_client_provider_);
   }
 
-  std::shared_ptr<MockPrivateKeyFetcherProvider>
-  GetPrivateKeyFetcherProvider() {
-    return std::dynamic_pointer_cast<MockPrivateKeyFetcherProvider>(
-        private_key_fetcher_);
+  MockPrivateKeyFetcherProvider& GetPrivateKeyFetcherProvider() {
+    return dynamic_cast<MockPrivateKeyFetcherProvider&>(*private_key_fetcher_);
   }
+
+ private:
+  core::http2_client::mock::MockHttpClient mock_http_client_;
 };
 
 }  // namespace google::scp::cpio::client_providers::mock

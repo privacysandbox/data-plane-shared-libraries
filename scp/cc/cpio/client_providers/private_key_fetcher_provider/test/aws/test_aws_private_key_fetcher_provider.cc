@@ -36,13 +36,12 @@ ExecutionResult SignHttpRequestUsingV4Signer(
   return SuccessExecutionResult();
 }
 
-std::shared_ptr<PrivateKeyFetcherProviderInterface>
+std::unique_ptr<PrivateKeyFetcherProviderInterface>
 PrivateKeyFetcherProviderFactory::Create(
-    const std::shared_ptr<HttpClientInterface>& http_client,
-    const std::shared_ptr<RoleCredentialsProviderInterface>&
-        role_credentials_provider,
-    const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider) {
-  return std::make_shared<TestAwsPrivateKeyFetcherProvider>(
+    HttpClientInterface* http_client,
+    RoleCredentialsProviderInterface* role_credentials_provider,
+    AuthTokenProviderInterface* auth_token_provider) {
+  return std::make_unique<TestAwsPrivateKeyFetcherProvider>(
       http_client, role_credentials_provider);
 }
 }  // namespace google::scp::cpio::client_providers

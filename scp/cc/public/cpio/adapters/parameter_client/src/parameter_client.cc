@@ -54,39 +54,39 @@ constexpr std::string_view kParameterClient = "ParameterClient";
 namespace google::scp::cpio {
 ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
   cpio_ = GlobalCpio::GetGlobalCpio().get();
-  std::shared_ptr<InstanceClientProviderInterface> instance_client_provider;
+  InstanceClientProviderInterface* instance_client_provider;
   if (auto provider = cpio_->GetInstanceClientProvider(); !provider.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
               "Failed to get InstanceClientProvider.");
     return execution_result;
   } else {
-    instance_client_provider = *std::move(provider);
+    instance_client_provider = *provider;
   }
 
-  std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
+  AsyncExecutorInterface* cpu_async_executor;
   if (auto executor = cpio_->GetCpuAsyncExecutor(); !executor.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
               "Failed to get CpuAsyncExecutor.");
     return execution_result;
   } else {
-    cpu_async_executor = *std::move(executor);
+    cpu_async_executor = *executor;
   }
 
   // TODO(b/321117161): Replace CPU w/ IO executor.
-  std::shared_ptr<AsyncExecutorInterface> io_async_executor;
+  AsyncExecutorInterface* io_async_executor;
   if (auto executor = cpio_->GetCpuAsyncExecutor(); !executor.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
               "Failed to get IoAsyncExecutor.");
     return execution_result;
   } else {
-    io_async_executor = *std::move(executor);
+    io_async_executor = *executor;
   }
 
   parameter_client_provider_ = ParameterClientProviderFactory::Create(
-      options_, instance_client_provider, cpu_async_executor,
+      *options_, instance_client_provider, cpu_async_executor,
       io_async_executor);
   return SuccessExecutionResult();
 }
@@ -133,13 +133,13 @@ core::ExecutionResult ParameterClient::GetParameter(
     Callback<GetParameterResponse> callback) noexcept {
   return Execute<GetParameterRequest, GetParameterResponse>(
       absl::bind_front(&ParameterClientProviderInterface::GetParameter,
-                       parameter_client_provider_),
+                       parameter_client_provider_.get()),
       request, callback);
 }
 
 std::unique_ptr<ParameterClientInterface> ParameterClientFactory::Create(
     ParameterClientOptions options) {
   return std::make_unique<ParameterClient>(
-      std::make_shared<ParameterClientOptions>(options));
+      std::make_shared<ParameterClientOptions>(std::move(options)));
 }
 }  // namespace google::scp::cpio

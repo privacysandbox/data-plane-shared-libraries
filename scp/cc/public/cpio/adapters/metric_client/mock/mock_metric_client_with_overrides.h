@@ -36,14 +36,14 @@ class MockMetricClientWithOverrides : public MetricClient {
 
   core::ExecutionResult CreateMetricClientProvider() noexcept override {
     if (create_metric_client_provider_result.Successful()) {
-      metric_client_provider_ = std::make_shared<MockMetricClient>();
+      metric_client_provider_ = std::make_unique<MockMetricClient>();
       return create_metric_client_provider_result;
     }
     return create_metric_client_provider_result;
   }
 
-  std::shared_ptr<MockMetricClient> GetMetricClientProvider() {
-    return std::dynamic_pointer_cast<MockMetricClient>(metric_client_provider_);
+  MockMetricClient& GetMetricClientProvider() {
+    return dynamic_cast<MockMetricClient&>(*metric_client_provider_);
   }
 };
 }  // namespace google::scp::cpio::mock
