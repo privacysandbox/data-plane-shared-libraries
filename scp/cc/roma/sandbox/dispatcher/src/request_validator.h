@@ -19,12 +19,10 @@
 
 #include <memory>
 
-#include "public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "roma/interface/roma.h"
 #include "roma/sandbox/constants/constants.h"
 #include "roma/sandbox/worker_api/src/worker_api.h"
-
-#include "error_codes.h"
 
 namespace google::scp::roma::sandbox::dispatcher::request_validator {
 template <typename T>
@@ -35,20 +33,21 @@ struct RequestValidator {};
  */
 template <>
 struct RequestValidator<CodeObject> {
-  static core::ExecutionResult Validate(const CodeObject& request) {
+  static absl::Status Validate(const CodeObject& request) {
     if (request.js.empty() && request.wasm.empty()) {
-      return core::FailureExecutionResult(SC_UNKNOWN);
+      return absl::InvalidArgumentError("Both JS and WASM are empty");
     }
 
     if (!request.js.empty() && !request.wasm.empty()) {
-      return core::FailureExecutionResult(SC_UNKNOWN);
+      return absl::InvalidArgumentError("Both JS and WASM are set");
     }
 
     if (request.version_string.empty() || request.id.empty()) {
-      return core::FailureExecutionResult(SC_UNKNOWN);
+      return absl::InvalidArgumentError(
+          "Either version_string or id must be set");
     }
 
-    return core::SuccessExecutionResult();
+    return absl::OkStatus();
   }
 };
 
@@ -56,19 +55,20 @@ struct RequestValidator<CodeObject> {
  * @brief Common validation fields for invocation requests.
  */
 template <typename RequestT>
-static core::ExecutionResult InvocationRequestCommon(const RequestT& request) {
+static absl::Status InvocationRequestCommon(const RequestT& request) {
   if (request.handler_name.empty() || request.version_string.empty() ||
       request.id.empty()) {
-    return core::FailureExecutionResult(SC_UNKNOWN);
+    return absl::InvalidArgumentError(
+        "One of handler_name, version_string, id must be set");
   }
 
   if (request.treat_input_as_byte_str && request.input.size() > 1) {
-    return core::FailureExecutionResult(
-        core::errors::
-            SC_ROMA_DISPATCHER_DISPATCH_DISALLOWED_MULTIPLE_BYTE_STR_INPUTS);
+    return absl::InvalidArgumentError(
+        "Dispatch is disallowed since there is more than one input when "
+        "InvocationRequest.treat_input_as_byte_str is true.");
   }
 
-  return core::SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 /**
@@ -76,8 +76,7 @@ static core::ExecutionResult InvocationRequestCommon(const RequestT& request) {
  */
 template <typename TMetadata>
 struct RequestValidator<InvocationStrRequest<TMetadata>> {
-  static core::ExecutionResult Validate(
-      const InvocationStrRequest<TMetadata>& request) {
+  static absl::Status Validate(const InvocationStrRequest<TMetadata>& request) {
     return InvocationRequestCommon(request);
   }
 };
@@ -87,7 +86,7 @@ struct RequestValidator<InvocationStrRequest<TMetadata>> {
  */
 template <typename TMetadata>
 struct RequestValidator<InvocationSharedRequest<TMetadata>> {
-  static core::ExecutionResult Validate(
+  static absl::Status Validate(
       const InvocationSharedRequest<TMetadata>& request) {
     return InvocationRequestCommon(request);
   }
@@ -98,7 +97,7 @@ struct RequestValidator<InvocationSharedRequest<TMetadata>> {
  */
 template <typename TMetadata>
 struct RequestValidator<InvocationStrViewRequest<TMetadata>> {
-  static core::ExecutionResult Validate(
+  static absl::Status Validate(
       const InvocationStrViewRequest<TMetadata>& request) {
     return InvocationRequestCommon(request);
   }

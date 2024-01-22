@@ -98,29 +98,17 @@ absl::Status Dispatcher::ReloadCachedCodeObjects(
     }
     const auto run_code_request =
         RequestConverter::FromUserProvided(cached_code, request_type);
-
-    if (!run_code_request.result().Successful()) {
-      {
-        absl::MutexLock l(&pending_requests_mu_);
-        pending_requests_ -= all_cached_code_objects.size();
-      }
-      return absl::InvalidArgumentError(
-          absl::StrCat("Dispatcher validation failed due to: ",
-                       google::scp::core::errors::GetErrorMessage(
-                           run_code_request.result().status_code)));
-    }
-
     // Send the code objects to the worker again so it reloads its cache
-    const auto run_code_result = worker.RunCode(*run_code_request);
+    const auto run_code_result = worker.RunCode(run_code_request);
     if (!run_code_result.result().Successful()) {
       {
         absl::MutexLock l(&pending_requests_mu_);
         pending_requests_ -= all_cached_code_objects.size();
       }
       return absl::InternalError(
-          absl::StrCat("Dispatcher validation failed due to: ",
+          absl::StrCat("Dispatcher RunCode failed due to: ",
                        google::scp::core::errors::GetErrorMessage(
-                           run_code_request.result().status_code)));
+                           run_code_result.result().status_code)));
     }
   }
 

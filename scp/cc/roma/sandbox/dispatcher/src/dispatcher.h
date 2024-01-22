@@ -153,13 +153,10 @@ class Dispatcher {
       request->id = constants::kDefaultRomaRequestId;
     }
 
-    auto validation_result =
+    auto validation_status =
         request_validator::RequestValidator<RequestT>::Validate(*request);
-    if (!validation_result.Successful()) {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Dispatcher validation failed due to: ",
-                       google::scp::core::errors::GetErrorMessage(
-                           validation_result.status_code)));
+    if (!validation_status.ok()) {
+      return validation_status;
     }
 
     size_t index = 0;
@@ -223,20 +220,9 @@ class Dispatcher {
           }
           cache_mu_.Unlock();
 
-          auto run_code_request_or =
+          auto run_code_request =
               RequestConverter::FromUserProvided(*request, request_type);
-          if (!run_code_request_or.result().Successful()) {
-            response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
-                absl::InternalError(core::errors::GetErrorMessage(
-                    run_code_request_or.result().status_code)));
-            callback(std::move(response_or));
-            absl::MutexLock l(&pending_requests_mu_);
-            pending_requests_--;
-            return;
-          }
-
-          auto run_code_response_or =
-              (*worker_or)->RunCode(*run_code_request_or);
+          auto run_code_response_or = (*worker_or)->RunCode(run_code_request);
           if (!run_code_response_or.result().Successful()) {
             auto err_msg = core::errors::GetErrorMessage(
                 run_code_response_or.result().status_code);

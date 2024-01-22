@@ -81,9 +81,9 @@ struct RequestConverter {
    * InvocationStrRequest into a RunCodeRequest.
    */
   template <typename TMetadata>
-  static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(const InvocationStrRequest<TMetadata>& request,
-                   std::string_view request_type) {
+  static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
+      const InvocationStrRequest<TMetadata>& request,
+      std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
@@ -102,9 +102,9 @@ struct RequestConverter {
    * converts a InvocationSharedRequest into a RunCodeRequest.
    */
   template <typename TMetadata>
-  static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(const InvocationSharedRequest<TMetadata>& request,
-                   std::string_view request_type) {
+  static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
+      const InvocationSharedRequest<TMetadata>& request,
+      std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
@@ -123,9 +123,9 @@ struct RequestConverter {
    * converts a InvocationStrViewRequest into a RunCodeRequest.
    */
   template <typename TMetadata>
-  static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(const InvocationStrViewRequest<TMetadata>& request,
-                   std::string_view request_type) {
+  static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
+      const InvocationStrViewRequest<TMetadata>& request,
+      std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
@@ -143,8 +143,8 @@ struct RequestConverter {
    * @brief Template specialization for CodeObject. This converts a CodeObject
    * into a RunCodeRequest.
    */
-  static core::ExecutionResultOr<worker_api::WorkerApi::RunCodeRequest>
-  FromUserProvided(const CodeObject& request, std::string_view request_type) {
+  static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
+      const CodeObject& request, std::string_view request_type) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
