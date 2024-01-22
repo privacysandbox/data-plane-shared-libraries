@@ -27,9 +27,11 @@ load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
 package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
+aws_nitro_enclaves_cli_name = "aws_nitro_enclaves_cli"
+
 alias(
     name = "kms_cli",
-    actual = "@nitrokmscli_aws_nitro_enclaves_sdk_c//:aws_nitro_enclaves_cli",
+    actual = "@nitrokmscli_aws_nitro_enclaves_sdk_c//:{}".format(aws_nitro_enclaves_cli_name),
     visibility = ["//visibility:public"],
 )
 
@@ -112,7 +114,13 @@ container_layer(
 cc_library(
     name = "nontee_aws_kms_client_provider_lib",
     srcs = [
-        ":nontee_aws_kms_client_provider_srcs",
+        ":aws_kms_aead.cc",
+        ":aws_kms_aead.h",
+        ":nontee_aws_kms_client_provider.cc",
+        ":nontee_error_codes.h",
+    ],
+    hdrs = [
+        ":nontee_aws_kms_client_provider.h",
     ],
     deps = [
         "//scp/cc:cc_base_include_dir",
@@ -133,7 +141,19 @@ cc_library(
 cc_library(
     name = "tee_aws_kms_client_provider_lib",
     srcs = [
-        ":tee_aws_kms_client_provider_srcs",
+        ":tee_aws_kms_client_provider.cc",
+        ":tee_aws_kms_client_provider_utils.cc",
+        ":tee_aws_kms_client_provider_utils.h",
+        ":tee_error_codes.h",
+    ],
+    hdrs = [
+        ":tee_aws_kms_client_provider.h",
+    ],
+    defines = [
+        'AWS_NITRO_ENCLAVES_CLI_PATH=\\"{path}{filename}\\"'.format(
+            filename = aws_nitro_enclaves_cli_name,
+            path = "/",
+        ),
     ],
     deps = [
         "//scp/cc:cc_base_include_dir",
@@ -165,25 +185,3 @@ exports_files([
     "tee_aws_kms_client_provider_utils.cc",
     "tee_error_codes.h",
 ])
-
-filegroup(
-    name = "nontee_aws_kms_client_provider_srcs",
-    srcs = [
-        ":aws_kms_aead.cc",
-        ":aws_kms_aead.h",
-        ":nontee_aws_kms_client_provider.cc",
-        ":nontee_aws_kms_client_provider.h",
-        ":nontee_error_codes.h",
-    ],
-)
-
-filegroup(
-    name = "tee_aws_kms_client_provider_srcs",
-    srcs = [
-        ":tee_aws_kms_client_provider.cc",
-        ":tee_aws_kms_client_provider.h",
-        ":tee_aws_kms_client_provider_utils.cc",
-        ":tee_aws_kms_client_provider_utils.h",
-        ":tee_error_codes.h",
-    ],
-)

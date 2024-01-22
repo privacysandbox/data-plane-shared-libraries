@@ -22,6 +22,7 @@
 
 #include <aws/core/Aws.h>
 
+#include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
 #include "core/interface/async_context.h"
 #include "core/utils/src/base64.h"
@@ -64,9 +65,11 @@ using google::scp::cpio::client_providers::mock::
     MockTeeAwsKmsClientProviderWithOverrides;
 using ::testing::StrEq;
 
-static constexpr char kAssumeRoleArn[] = "assumeRoleArn";
-static constexpr char kCiphertext[] = "ciphertext";
-static constexpr char kRegion[] = "us-east-1";
+namespace {
+constexpr std::string_view kAssumeRoleArn = "assumeRoleArn";
+constexpr std::string_view kCiphertext = "ciphertext";
+constexpr std::string_view kRegion = "us-east-1";
+}  // namespace
 
 namespace google::scp::cpio::client_providers::test {
 class TeeAwsKmsClientProviderTest : public ::testing::Test {
@@ -113,13 +116,17 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrpyt_request->set_ciphertext(kCiphertext);
   absl::Notification condition;
 
-  std::string expect_command =
-      "/aws_nitro_enclaves_cli --region us-east-1"
-      " --aws-access-key-id access_key_id"
-      " --aws-secret-access-key access_key_secret"
-      " --aws-session-token security_token"
-      " --ciphertext ";
-  expect_command += kCiphertext;
+  const std::string expect_command = absl::StrJoin(
+      std::vector<std::string_view>{
+          TeeAwsKmsClientProvider::kAwsNitroEnclavesCliPath,
+          "--region us-east-1"
+          "--aws-access-key-id access_key_id"
+          "--aws-secret-access-key access_key_secret"
+          "--aws-session-token security_token"
+          "--ciphertext ",
+          kCiphertext,
+      },
+      " ");
 
   std::string encoded_text;
   core::utils::Base64Encode(expect_command, encoded_text);

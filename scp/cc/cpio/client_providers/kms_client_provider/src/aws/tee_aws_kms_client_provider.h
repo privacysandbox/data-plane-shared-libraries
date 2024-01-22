@@ -32,6 +32,10 @@ namespace google::scp::cpio::client_providers {
  */
 class TeeAwsKmsClientProvider : public KmsClientProviderInterface {
  public:
+  static constexpr std::string_view kAwsNitroEnclavesCliPath =
+      AWS_NITRO_ENCLAVES_CLI_PATH;
+
+ public:
   /**
    * @brief Constructs a new Aws Enclaves Kms Client Provider.
    *
