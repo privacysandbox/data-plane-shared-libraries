@@ -107,12 +107,16 @@ sh_test(
 sh_test(
     name = "preload_exported_symbols_test",
     size = "small",
-    srcs = ["preload_exported_symbols.sh"],
+    srcs = ["preload_exported_symbols"],
     args = [
         "$(location //scp/cc/aws/proxy/src:proxy_preload)",
     ],
     data = [
         "//scp/cc/aws/proxy/src:proxy_preload",
+    ],
+    tags = [
+        # Ubsan adds symbol _ZSt3minIjERKT_S2_S2_, causing this test to fail
+        "noubsan",
     ],
 )
 

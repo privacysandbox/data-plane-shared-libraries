@@ -14,20 +14,12 @@
 # limitations under the License.
 
 
-set -euo pipefail
-
-function calc_sha() {
-  declare -r val="$1"
-  printf "%s" "${val}" | sha1sum | cut -f1 -d" "
-}
+set -o errexit
+set -o nounset
+set -o pipefail
 
 declare -r lib="$1"
 
-declare -a -r objdump_args=(
-  "--dynamic-syms"
-  "--section=.text"
-  "${lib}"
-)
 function objdump_filter() {
     # extract the symbols
     grep -Ewv "SYMBOL TABLE|file format" \
@@ -35,6 +27,16 @@ function objdump_filter() {
       | LC_COLLATE=C sort
 }
 
+function calc_sha() {
+  declare -r val="$1"
+  printf "%s" "${val}" | sha1sum | cut -f1 -d" "
+}
+
+declare -a -r objdump_args=(
+  "--dynamic-syms"
+  "--section=.text"
+  "${lib}"
+)
 # shellcheck disable=SC2207
 declare -a -r symbols_arr=($(objdump "${objdump_args[@]}" | objdump_filter))
 declare -r symbols="${symbols_arr[*]}"
