@@ -64,7 +64,7 @@ class V8JsEngine : public JsEngine {
 
   core::ExecutionResult Stop() noexcept override;
 
-  core::ExecutionResult OneTimeSetup(
+  void OneTimeSetup(
       const absl::flat_hash_map<std::string, std::string>& config =
           absl::flat_hash_map<std::string, std::string>()) noexcept override;
 

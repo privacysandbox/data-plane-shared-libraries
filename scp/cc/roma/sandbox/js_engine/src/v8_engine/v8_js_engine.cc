@@ -149,7 +149,7 @@ std::string GetExePath() {
 }
 }  // namespace
 
-ExecutionResult V8JsEngine::OneTimeSetup(
+void V8JsEngine::OneTimeSetup(
     const absl::flat_hash_map<std::string, std::string>& config) noexcept {
   size_t max_wasm_memory_number_of_pages = 0;
   if (const auto it = config.find(kJsEngineOneTimeSetupWasmPagesKey);
@@ -179,7 +179,6 @@ ExecutionResult V8JsEngine::OneTimeSetup(
     v8::V8::Initialize();
     return v8_platform.release();
   }();
-  return SuccessExecutionResult();
 }
 
 core::ExecutionResult V8JsEngine::CreateSnapshot(

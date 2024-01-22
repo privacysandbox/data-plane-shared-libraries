@@ -79,7 +79,7 @@ class JsEngine {
    * Function that is intended to be called one at the beginning for any
    * one-time setup that is needed.
    */
-  virtual core::ExecutionResult OneTimeSetup(
+  virtual void OneTimeSetup(
       const absl::flat_hash_map<std::string, std::string>& config) noexcept = 0;
 
   /**
