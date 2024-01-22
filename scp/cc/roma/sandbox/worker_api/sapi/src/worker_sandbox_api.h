@@ -176,6 +176,8 @@ class WorkerSandboxApi {
       if (rlimit_as_bytes_ > 0) {
         executor->limits()->set_rlimit_as(rlimit_as_bytes_);
       }
+      // Ensure no core files are generated to avoid egression from the sandbox.
+      executor->limits()->set_rlimit_core(0);
     }
 
     // Build a custom sandbox policy needed proper worker operation
