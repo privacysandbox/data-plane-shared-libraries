@@ -183,7 +183,7 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
                        *get_session_credentials_response.security_token);
 
   const ExecutionResultOr<std::string> plaintext =
-      DecryptUsingEnclavesKmstoolCli("/kmstool_enclave_cli",
+      DecryptUsingEnclavesKmstoolCli("/aws_nitro_enclaves_cli",
                                      std::move(decrypt_args));
 
   if (!plaintext.Successful()) {

@@ -114,7 +114,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   absl::Notification condition;
 
   std::string expect_command =
-      "/kmstool_enclave_cli --region us-east-1"
+      "/aws_nitro_enclaves_cli --region us-east-1"
       " --aws-access-key-id access_key_id"
       " --aws-secret-access-key access_key_secret"
       " --aws-session-token security_token"
