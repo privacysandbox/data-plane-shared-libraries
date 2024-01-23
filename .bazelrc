@@ -86,6 +86,7 @@ build:msan --copt=-DADDRESS_SANITIZER
 build:msan --copt=-O1
 build:msan --copt=-fno-omit-frame-pointer
 build:msan --linkopt=-fsanitize=memory
+build:msan --test_tag_filters=-nomsan
 
 # Undefined Behavior sanitizer
 build:ubsan --config=sanitizers_common

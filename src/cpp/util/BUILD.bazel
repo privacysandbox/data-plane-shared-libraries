@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -84,6 +84,36 @@ cc_test(
     deps = [
         ":protoutil",
         "//scp/cc/core/test/utils:utils_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "rlimit_core_config",
+    srcs = ["rlimit_core_config.cc"],
+    hdrs = ["rlimit_core_config.h"],
+    deps = ["@com_google_absl//absl/log"],
+)
+
+cc_binary(
+    name = "core_dump_generator",
+    srcs = ["core_dump_generator.cc"],
+)
+
+cc_test(
+    name = "rlimit_core_config_test",
+    srcs = [
+        "rlimit_core_config_test.cc",
+    ],
+    data = [":core_dump_generator"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "notsan",
+    ],
+    deps = [
+        ":rlimit_core_config",
+        "@com_google_absl//absl/log:check",
         "@com_google_googletest//:gtest_main",
     ],
 )
