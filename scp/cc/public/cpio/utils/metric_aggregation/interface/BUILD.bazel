@@ -14,25 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//visibility:public"])
-
-cc_library(
-    name = "metric_aggregation_interface",
-    srcs = glob(
-        [
-            "*.h",
-        ],
-        exclude = [
-            "type_def.h",
-        ],
-    ),
-    deps = [
-        ":type_def",
-        "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/interface:interface_lib",
-        "@com_google_protobuf//:protobuf",
-    ],
-)
+package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "type_def",
