@@ -85,13 +85,18 @@ struct DifferentialPrivacy {
   constexpr explicit DifferentialPrivacy(
       T upper_bound = std::numeric_limits<T>::max(),
       T lower_bound = std::numeric_limits<T>::min(),
-      double privacy_budget_weight = 1.0)
+      double min_noise_to_output = 0.0, double privacy_budget_weight = 1.0)
       : upper_bound_(std::max(lower_bound, upper_bound)),
         lower_bound_(std::min(lower_bound, upper_bound)),
+        min_noise_to_output_(min_noise_to_output),
         privacy_budget_weight_(privacy_budget_weight) {}
 
   T upper_bound_;
   T lower_bound_;
+  // The percentile confidence level used for false positive reduction purpose.
+  //  i.e. min_noise_to_output_ = 0.95 means that up to 95% of false
+  //  positive errors will be eliminated from the specified metric.
+  double min_noise_to_output_;
   // All Privacy kImpacting metrics split total privacy budget based on their
   // weight. i.e. privacy_budget = total_budget * privacy_budget_weight_ /
   // total_weight
@@ -218,13 +223,14 @@ struct Definition : DefinitionName,
       absl::string_view name, absl::string_view description,
       absl::string_view partition_type, int max_partitions_contributed,
       absl::Span<const absl::string_view> public_partitions, T upper_bound,
-      T lower_bound,
+      T lower_bound, double min_noise_to_output = 0.0,
       std::enable_if_t<partitioned_counter ==
                        Instrument::kPartitionedCounter>* = nullptr)
       : DefinitionName(name, description),
         internal::Partitioned(partition_type, max_partitions_contributed,
                               public_partitions),
-        internal::DifferentialPrivacy<T>(upper_bound, lower_bound) {
+        internal::DifferentialPrivacy<T>(upper_bound, lower_bound,
+                                         min_noise_to_output) {
     public_partitions_copy_ = public_partitions_;
     privacy_budget_weight_copy_ = privacy_budget_weight_;
   }

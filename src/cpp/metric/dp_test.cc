@@ -67,6 +67,14 @@ constexpr DefinitionPartition kUnitPartitionCounter(
     /*upper_bound*/ 1,
     /*lower_bound*/ 0);
 
+constexpr DefinitionPartition kUnitPartitionCounterWithErrorReport(
+    /*name*/ "kUnitPartitionCounter", "", /*partition_type*/ "buyer_name",
+    /*max_partitions_contributed*/ 2,
+    /*public_partitions*/ pv,
+    /*upper_bound*/ 1,
+    /*lower_bound*/ 0,
+    /*min_noise_to_output*/ 0.95);
+
 constexpr double kHistogram[] = {50, 100, 250};
 constexpr DefinitionHistogram kHistogramCounter("kHistogramCounter", "",
                                                 kHistogram, 10000, 0);
@@ -278,6 +286,30 @@ TEST_F(NoiseTest, DPPartitionCounterNoise) {
   for (const differential_privacy::Output& o : s) {
     EXPECT_THAT(GetNoiseConfidenceInterval(o).upper_bound(),
                 DoubleNear(6, 0.1));
+  }
+}
+
+TEST_F(NoiseTest, DPPartitionCounterNoiseReducedError) {
+  internal::DpAggregator d(&mock_metric_router_,
+                           &kUnitPartitionCounterWithErrorReport, fraction());
+  for (int i = 0; i < 100; ++i) {
+    CHECK_OK(d.Aggregate(1, "buyer_1"));
+  }
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogSafe(Matcher<const DefinitionPartition&>(
+                  Ref(kUnitPartitionCounterWithErrorReport)),
+              A<int>(), _, ElementsAre(Pair(kNoiseAttribute, "Noised"))))
+      .WillRepeatedly(Return(absl::OkStatus()));
+  PS_ASSERT_OK_AND_ASSIGN(std::vector<differential_privacy::Output> s,
+                          d.OutputNoised());
+  for (const differential_privacy::Output& o : s) {
+    EXPECT_THAT(GetNoiseConfidenceInterval(o).upper_bound(),
+                DoubleNear(6, 0.1));
+    EXPECT_THAT(
+        differential_privacy::GetValue<int>(o),
+        testing::AnyOf(
+            0, testing::Ge(GetNoiseConfidenceInterval(o).upper_bound())));
   }
 }
 

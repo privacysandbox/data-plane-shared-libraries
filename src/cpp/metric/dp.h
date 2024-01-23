@@ -120,6 +120,20 @@ class DpAggregator : public DpAggregatorBase {
     auto it = ret.begin();
     for (auto& [partition, bounded_sum] : bounded_sums_) {
       PS_ASSIGN_OR_RETURN(*it, bounded_sum->PartialResult());
+      if ((definition_.min_noise_to_output_ > 0.001) &&
+          (definition_.min_noise_to_output_ < 1.0)) {
+        PS_ASSIGN_OR_RETURN(
+            differential_privacy::ConfidenceInterval noise_bound,
+            bounded_sum->NoiseConfidenceInterval(
+                definition_.min_noise_to_output_));
+        if (differential_privacy::GetValue<TValue>(*it) <=
+            noise_bound.upper_bound()) {
+          differential_privacy::Output output =
+              differential_privacy::MakeOutput<TValue>(
+                  0, differential_privacy::GetNoiseConfidenceInterval(*it));
+          *it = output;
+        }
+      }
       PS_RETURN_IF_ERROR((metric_router_.LogSafe(
           definition_, differential_privacy::GetValue<TValue>(*it), partition,
           {{kNoiseAttribute.data(), "Noised"}})));
