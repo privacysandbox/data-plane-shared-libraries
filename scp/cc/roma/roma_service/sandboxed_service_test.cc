@@ -66,10 +66,7 @@ TEST(SandboxedServiceTest,
   auto roma_service = std::make_unique<RomaService<>>(std::move(config));
   auto status = roma_service->Init();
   EXPECT_FALSE(status.ok());
-  EXPECT_THAT(status.message(),
-              StrEq("Roma initialization failed due to internal "
-                    "error: Could not initialize "
-                    "the wrapper API."));
+  EXPECT_THAT(status.message(), StrEq("Receiving TLV value failed"));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());

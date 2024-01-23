@@ -58,9 +58,9 @@ TEST(WorkerApiSapiTest, WorkerWorksThroughSandbox) {
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  ASSERT_SUCCESS(worker_api.Init());
+  ASSERT_TRUE(worker_api.Init().ok());
 
-  ASSERT_SUCCESS(worker_api.Run());
+  ASSERT_TRUE(worker_api.Run().ok());
 
   WorkerApi::RunCodeRequest request = {
       .code = R"(function hello_world() { return "World. Hello!" })",
@@ -80,9 +80,9 @@ TEST(WorkerApiSapiTest, WorkerWithInputsWorksThroughSandbox) {
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  ASSERT_SUCCESS(worker_api.Init());
+  ASSERT_TRUE(worker_api.Init().ok());
 
-  ASSERT_SUCCESS(worker_api.Run());
+  ASSERT_TRUE(worker_api.Run().ok());
 
   WorkerApi::RunCodeRequest request = {
       .code =
@@ -104,9 +104,9 @@ TEST(WorkerApiSapiTest, WorkerWithByteStringInputsWorksThroughSandbox) {
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  ASSERT_SUCCESS(worker_api.Init());
+  ASSERT_TRUE(worker_api.Init().ok());
 
-  ASSERT_SUCCESS(worker_api.Run());
+  ASSERT_TRUE(worker_api.Run().ok());
 
   WorkerApi::RunCodeRequest request = {
       .code = R"(function func(input1) { return input1 })",
@@ -129,9 +129,9 @@ TEST(WorkerApiSapiTest,
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  ASSERT_SUCCESS(worker_api.Init());
+  ASSERT_TRUE(worker_api.Init().ok());
 
-  ASSERT_SUCCESS(worker_api.Run());
+  ASSERT_TRUE(worker_api.Run().ok());
 
   WorkerApi::RunCodeRequest request = {
       .code = R"(function func(input1) { return input1 })",
@@ -155,9 +155,9 @@ TEST(WorkerApiSapiTest, ShouldGetExecutionMetrics) {
   auto config = GetDefaultConfig();
   WorkerApiSapi worker_api(config);
 
-  ASSERT_SUCCESS(worker_api.Init());
+  ASSERT_TRUE(worker_api.Init().ok());
 
-  ASSERT_SUCCESS(worker_api.Run());
+  ASSERT_TRUE(worker_api.Run().ok());
 
   WorkerApi::RunCodeRequest request = {
       .code =

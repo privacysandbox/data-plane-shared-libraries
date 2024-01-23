@@ -34,10 +34,8 @@ WorkerPoolApiSapi::WorkerPoolApiSapi(
 absl::Status WorkerPoolApiSapi::Init() {
   for (auto& w : workers_) {
     auto result = w->Init();
-    if (!result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("Roma initialization failed due to internal error: ",
-                       GetErrorMessage(result.status_code)));
+    if (!result.ok()) {
+      return result;
     }
   }
 
@@ -47,10 +45,8 @@ absl::Status WorkerPoolApiSapi::Init() {
 absl::Status WorkerPoolApiSapi::Run() {
   for (auto& w : workers_) {
     auto result = w->Run();
-    if (!result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("Roma Run failed due to internal error: ",
-                       GetErrorMessage(result.status_code)));
+    if (!result.ok()) {
+      return result;
     }
   }
 
@@ -60,10 +56,8 @@ absl::Status WorkerPoolApiSapi::Run() {
 absl::Status WorkerPoolApiSapi::Stop() {
   for (auto& w : workers_) {
     auto result = w->Stop();
-    if (!result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("Roma Stop failed due to internal error: ",
-                       GetErrorMessage(result.status_code)));
+    if (!result.ok()) {
+      return result;
     }
   }
 

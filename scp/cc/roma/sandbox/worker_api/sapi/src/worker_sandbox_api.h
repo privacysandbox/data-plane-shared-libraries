@@ -27,6 +27,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "core/interface/service_interface.h"
 #include "roma/config/src/config.h"
@@ -105,11 +106,11 @@ class WorkerSandboxApi {
     sandbox_data_shared_buffer_ptr_ = std::move(buffer).value();
   }
 
-  core::ExecutionResult Init() noexcept;
+  absl::Status Init() noexcept;
 
-  core::ExecutionResult Run() noexcept;
+  absl::Status Run() noexcept;
 
-  core::ExecutionResult Stop() noexcept;
+  absl::Status Stop() noexcept;
 
   /**
    * @brief Send a request to run code to a worker running within a sandbox.
@@ -120,7 +121,7 @@ class WorkerSandboxApi {
   core::ExecutionResult RunCode(
       ::worker_api::WorkerParamsProto& params) noexcept;
 
-  core::ExecutionResult Terminate() noexcept;
+  void Terminate() noexcept;
 
  protected:
   core::ExecutionResult InternalRunCode(

@@ -43,17 +43,17 @@ WorkerApiSapi::WorkerApiSapi(const WorkerApiSapiConfig& config)
           config.sandbox_request_response_shared_buffer_size_mb,
           config.enable_sandbox_sharing_request_response_with_buffer_only) {}
 
-ExecutionResult WorkerApiSapi::Init() noexcept {
+absl::Status WorkerApiSapi::Init() noexcept {
   absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Init();
 }
 
-ExecutionResult WorkerApiSapi::Run() noexcept {
+absl::Status WorkerApiSapi::Run() noexcept {
   absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Run();
 }
 
-ExecutionResult WorkerApiSapi::Stop() noexcept {
+absl::Status WorkerApiSapi::Stop() noexcept {
   absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Stop();
 }
@@ -107,8 +107,8 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
   return code_response;
 }
 
-ExecutionResult WorkerApiSapi::Terminate() noexcept {
+void WorkerApiSapi::Terminate() noexcept {
   absl::MutexLock lock(&run_code_mutex_);
-  return sandbox_api_.Terminate();
+  sandbox_api_.Terminate();
 }
 }  // namespace google::scp::roma::sandbox::worker_api

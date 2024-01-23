@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "core/interface/service_interface.h"
@@ -43,9 +44,9 @@ class WorkerApi {
     absl::flat_hash_map<std::string, absl::Duration> metrics;
   };
 
-  virtual core::ExecutionResult Init() noexcept = 0;
-  virtual core::ExecutionResult Run() noexcept = 0;
-  virtual core::ExecutionResult Stop() noexcept = 0;
+  virtual absl::Status Init() noexcept = 0;
+  virtual absl::Status Run() noexcept = 0;
+  virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Method to execute a code request.
@@ -56,10 +57,8 @@ class WorkerApi {
 
   /**
    * @brief Terminate the underlying worker.
-   *
-   * @return core::ExecutionResult
    */
-  virtual core::ExecutionResult Terminate() noexcept = 0;
+  virtual void Terminate() noexcept = 0;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 

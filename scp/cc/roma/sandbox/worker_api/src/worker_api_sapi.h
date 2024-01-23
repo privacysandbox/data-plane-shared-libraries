@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "absl/base/thread_annotations.h"
+#include "absl/status/status.h"
 #include "absl/synchronization/mutex.h"
 #include "roma/config/src/config.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
@@ -46,21 +47,17 @@ class WorkerApiSapi : public WorkerApi {
  public:
   explicit WorkerApiSapi(const WorkerApiSapiConfig& config);
 
-  core::ExecutionResult Init() noexcept override
-      ABSL_LOCKS_EXCLUDED(run_code_mutex_);
+  absl::Status Init() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  core::ExecutionResult Run() noexcept override
-      ABSL_LOCKS_EXCLUDED(run_code_mutex_);
+  absl::Status Run() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  core::ExecutionResult Stop() noexcept override
-      ABSL_LOCKS_EXCLUDED(run_code_mutex_);
+  absl::Status Stop() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
   core::ExecutionResultOr<WorkerApi::RunCodeResponse> RunCode(
       const WorkerApi::RunCodeRequest& request) noexcept override
       ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  core::ExecutionResult Terminate() noexcept override
-      ABSL_LOCKS_EXCLUDED(run_code_mutex_);
+  void Terminate() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
  private:
   WorkerSandboxApi sandbox_api_ ABSL_GUARDED_BY(run_code_mutex_);

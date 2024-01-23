@@ -45,6 +45,7 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::RetryExecutionResult;
 using google::scp::core::SuccessExecutionResult;
+using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::errors::SC_ROMA_WORKER_API_COULD_NOT_CREATE_IPC_PROTO;
 using google::scp::core::errors::
     SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA;
@@ -99,7 +100,7 @@ int WorkerSandboxApi::TransferFdAndGetRemoteFd(
   return local_fd->GetRemoteFd();
 }
 
-ExecutionResult WorkerSandboxApi::Init() noexcept {
+absl::Status WorkerSandboxApi::Init() noexcept {
   if (worker_sapi_sandbox_) {
     worker_sapi_sandbox_->Terminate(/*attempt_graceful_exit=*/false);
     ROMA_VLOG(1) << "Successfully terminated the existing sapi sandbox";
@@ -109,8 +110,7 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
 
   auto status = worker_sapi_sandbox_->Init();
   if (!status.ok()) {
-    return FailureExecutionResult(
-        SC_ROMA_WORKER_API_COULD_NOT_INITIALIZE_SANDBOX);
+    return status;
   }
 
   worker_wrapper_api_ =
@@ -121,8 +121,8 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
     js_hook_remote_fd = TransferFdAndGetRemoteFd(
         std::make_unique<::sapi::v::Fd>(native_js_function_comms_fd_));
     if (js_hook_remote_fd == kBadFd) {
-      return FailureExecutionResult(
-          SC_ROMA_WORKER_API_COULD_NOT_TRANSFER_FUNCTION_FD_TO_SANDBOXEE);
+      return absl::InternalError(
+          "Could not transfer function comms fd to sandboxee.");
     }
 
     ROMA_VLOG(2)
@@ -134,8 +134,8 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
   int buffer_remote_fd = TransferFdAndGetRemoteFd(
       std::make_unique<::sapi::v::Fd>(sandbox_data_shared_buffer_ptr_->fd()));
   if (buffer_remote_fd == kBadFd) {
-    return FailureExecutionResult(
-        SC_ROMA_WORKER_API_COULD_NOT_TRANSFER_BUFFER_FD_TO_SANDBOXEE);
+    return absl::InternalError(
+        "Could not transfer sandbox2::Buffer fd to sandboxee.");
   }
   ROMA_VLOG(2) << "successfully set up the remote_fd " << buffer_remote_fd
                << " and local_fd " << sandbox_data_shared_buffer_ptr_->fd()
@@ -163,8 +163,7 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
   if (!worker_init_params.SerializeToArray(serialized_data.data(),
                                            serialized_size)) {
     LOG(ERROR) << "Failed to serialize init data.";
-    return FailureExecutionResult(
-        SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_INIT_DATA);
+    return absl::InvalidArgumentError("Failed to serialize init data.");
   }
 
   sapi::v::LenVal sapi_len_val(static_cast<const char*>(serialized_data.data()),
@@ -174,43 +173,44 @@ ExecutionResult WorkerSandboxApi::Init() noexcept {
   if (!status_or.ok()) {
     LOG(ERROR) << "Failed to init the worker via the wrapper with: "
                << status_or.status().message();
-    return FailureExecutionResult(
-        SC_ROMA_WORKER_API_COULD_NOT_INITIALIZE_WRAPPER_API);
+    return status_or.status();
   }
   if (*status_or != SC_OK) {
-    return FailureExecutionResult(*status_or);
+    return absl::InternalError(GetErrorMessage(*status_or));
   }
 
   ROMA_VLOG(1) << "Successfully init the worker in the sapi sandbox";
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult WorkerSandboxApi::Run() noexcept {
+absl::Status WorkerSandboxApi::Run() noexcept {
   if (!worker_sapi_sandbox_ || !worker_wrapper_api_) {
-    return FailureExecutionResult(SC_ROMA_WORKER_API_UNINITIALIZED_SANDBOX);
+    return absl::FailedPreconditionError(
+        "Attempt to call API function with an uninitialized sandbox.");
   }
 
   auto status_or = worker_wrapper_api_->Run();
   if (!status_or.ok()) {
     LOG(ERROR) << "Failed to run the worker via the wrapper with: "
                << status_or.status().message();
-    return FailureExecutionResult(SC_ROMA_WORKER_API_COULD_NOT_RUN_WRAPPER_API);
+    return status_or.status();
   } else if (*status_or != SC_OK) {
-    return FailureExecutionResult(*status_or);
+    return absl::InternalError(GetErrorMessage(*status_or));
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult WorkerSandboxApi::Stop() noexcept {
+absl::Status WorkerSandboxApi::Stop() noexcept {
   if ((!worker_sapi_sandbox_ && !worker_wrapper_api_) ||
       (worker_sapi_sandbox_ && !worker_sapi_sandbox_->is_active())) {
     // Nothing to stop, just return
-    return SuccessExecutionResult();
+    return absl::OkStatus();
   }
 
   if (!worker_sapi_sandbox_ || !worker_wrapper_api_) {
-    return FailureExecutionResult(SC_ROMA_WORKER_API_UNINITIALIZED_SANDBOX);
+    return absl::FailedPreconditionError(
+        "Attempt to call API function with an uninitialized sandbox.");
   }
 
   auto status_or = worker_wrapper_api_->Stop();
@@ -218,14 +218,14 @@ ExecutionResult WorkerSandboxApi::Stop() noexcept {
     LOG(ERROR) << "Failed to stop the worker via the wrapper with: "
                << status_or.status().message();
     // The worker had already died so nothing to stop
-    return SuccessExecutionResult();
+    return absl::OkStatus();
   } else if (*status_or != SC_OK) {
-    return FailureExecutionResult(*status_or);
+    return absl::InternalError(GetErrorMessage(*status_or));
   }
 
   worker_sapi_sandbox_->Terminate(/*attempt_graceful_exit=*/false);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 ExecutionResult WorkerSandboxApi::InternalRunCode(
@@ -362,10 +362,14 @@ ExecutionResult WorkerSandboxApi::RunCode(
   if (!run_code_result.Successful()) {
     if (run_code_result.Retryable()) {
       // This means that the sandbox died so we need to restart it.
-      auto result = Init();
-      RETURN_IF_FAILURE(result);
-      result = Run();
-      RETURN_IF_FAILURE(result);
+      if (auto status = Init(); !status.ok()) {
+        return FailureExecutionResult(
+            SC_ROMA_WORKER_API_COULD_NOT_INITIALIZE_SANDBOX);
+      }
+      if (auto status = Run(); !status.ok()) {
+        return FailureExecutionResult(
+            SC_ROMA_WORKER_API_COULD_NOT_RUN_WRAPPER_API);
+      }
     }
 
     return run_code_result;
@@ -374,8 +378,7 @@ ExecutionResult WorkerSandboxApi::RunCode(
   return SuccessExecutionResult();
 }
 
-ExecutionResult WorkerSandboxApi::Terminate() noexcept {
+void WorkerSandboxApi::Terminate() noexcept {
   worker_sapi_sandbox_->Terminate();
-  return SuccessExecutionResult();
 }
 }  // namespace google::scp::roma::sandbox::worker_api

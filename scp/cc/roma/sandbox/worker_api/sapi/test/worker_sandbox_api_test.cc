@@ -46,9 +46,9 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
       std::vector<std::string>() /*native_js_function_names*/, 0, 0, 0, 0, 0,
       false);
 
-  ASSERT_SUCCESS(sandbox_api.Init());
+  ASSERT_TRUE(sandbox_api.Init().ok());
 
-  ASSERT_SUCCESS(sandbox_api.Run());
+  ASSERT_TRUE(sandbox_api.Run().ok());
 
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(
@@ -62,7 +62,7 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
   EXPECT_THAT(params_proto.response(),
               StrEq(R"js("Hi there from sandboxed JS :)")js"));
 
-  EXPECT_SUCCESS(sandbox_api.Stop());
+  EXPECT_TRUE(sandbox_api.Stop().ok());
 }
 
 TEST(WorkerSandboxApiTest,
@@ -78,9 +78,9 @@ TEST(WorkerSandboxApiTest,
 
   // Initializing the sandbox fail as we're giving a max of 100MB of virtual
   // space address for v8 and the sandbox.
-  EXPECT_FALSE(sandbox_api.Init().Successful());
+  EXPECT_FALSE(sandbox_api.Init().ok());
 
-  EXPECT_SUCCESS(sandbox_api.Stop());
+  EXPECT_TRUE(sandbox_api.Stop().ok());
 }
 
 TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
@@ -92,7 +92,7 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
                                fds[1] /*native_js_function_comms_fd*/,
                                {"my_great_func"}, 0, 0, 0, 0, 0, false);
 
-  ASSERT_SUCCESS(sandbox_api.Init());
+  ASSERT_TRUE(sandbox_api.Init().ok());
 
   std::thread to_handle_function_call(
       [](int fd) {
@@ -107,7 +107,7 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
       },
       fds[0]);
 
-  ASSERT_SUCCESS(sandbox_api.Run());
+  ASSERT_TRUE(sandbox_api.Run().ok());
 
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(
@@ -124,7 +124,7 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
 
   EXPECT_THAT(params_proto.response(), StrEq(R"("from C++ from JS")"));
 
-  EXPECT_SUCCESS(sandbox_api.Stop());
+  EXPECT_TRUE(sandbox_api.Stop().ok());
 }
 
 class WorkerSandboxApiForTests : public WorkerSandboxApi {
@@ -143,9 +143,9 @@ TEST(WorkerSandboxApiTest, SandboxShouldComeBackUpIfItDies) {
       false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
       std::vector<std::string>() /*native_js_function_names*/);
 
-  ASSERT_SUCCESS(sandbox_api.Init());
+  ASSERT_TRUE(sandbox_api.Init().ok());
 
-  ASSERT_SUCCESS(sandbox_api.Run());
+  ASSERT_TRUE(sandbox_api.Run().ok());
 
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(
@@ -168,7 +168,7 @@ TEST(WorkerSandboxApiTest, SandboxShouldComeBackUpIfItDies) {
   EXPECT_THAT(params_proto.response(),
               StrEq(R"js("Hi there from sandboxed JS :)")js"));
 
-  EXPECT_SUCCESS(sandbox_api.Stop());
+  EXPECT_TRUE(sandbox_api.Stop().ok());
 }
 
 TEST(WorkerSandboxApiTest,
@@ -180,7 +180,7 @@ TEST(WorkerSandboxApiTest,
       false /*require_preload*/, fds[1] /*native_js_function_comms_fd*/,
       {"my_great_func"} /*native_js_function_names*/);
 
-  ASSERT_SUCCESS(sandbox_api.Init());
+  ASSERT_TRUE(sandbox_api.Init().ok());
 
   std::thread to_handle_function_call(
       [](int fd) {
@@ -196,7 +196,7 @@ TEST(WorkerSandboxApiTest,
       },
       fds[0]);
 
-  ASSERT_SUCCESS(sandbox_api.Run());
+  ASSERT_TRUE(sandbox_api.Run().ok());
 
   ::worker_api::WorkerParamsProto params_proto;
   // Code calls a hook: "my_great_func"
@@ -224,6 +224,6 @@ TEST(WorkerSandboxApiTest,
 
   EXPECT_THAT(params_proto.response(), StrEq(R"("from C++ hook :) from JS")"));
 
-  EXPECT_SUCCESS(sandbox_api.Stop());
+  EXPECT_TRUE(sandbox_api.Stop().ok());
 }
 }  // namespace google::scp::roma::sandbox::worker_api::test
