@@ -64,6 +64,18 @@ cc_test(
 )
 
 cc_binary(
+    name = "logging_benchmark",
+    srcs = ["logging_benchmark.cc"],
+    deps = [
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/roma/interface:roma_interface_lib",
+        "//scp/cc/roma/roma_service:roma_service_lib",
+        "@com_google_absl//absl/strings",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
     name = "kv_server_udf_benchmark_test",
     srcs = ["kv_server_udf_benchmark.cc"],
     malloc = "@com_google_tcmalloc//tcmalloc",
