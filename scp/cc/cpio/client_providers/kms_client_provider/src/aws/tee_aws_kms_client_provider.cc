@@ -62,7 +62,13 @@ std::vector<std::string> BuildDecryptArgs(std::string region,
                                           std::string access_key_id,
                                           std::string access_key_secret,
                                           std::string security_token) noexcept {
-  std::vector<std::string> args = {"decrypt"};
+  std::vector<std::string> args = {
+      "decrypt",
+      // Add `"--proxy-port 0"` for using the kmstool CLI inside an enclave with
+      // proxy / proxify.
+      "--proxy-port",
+      "0",
+  };
   if (!region.empty()) {
     args.push_back("--region");
     args.push_back(std::move(region));
