@@ -111,7 +111,11 @@ build:instance_gcp --//:instance=gcp
 
 build:instance_aws --//:instance=aws
 
+build:instance_azure --//:instance=azure
+
 build:platform_aws --//:platform=aws
+
+build:platform_azure --//:platform=azure
 
 build:platform_gcp --//:platform=gcp
 
@@ -127,6 +131,13 @@ build:gcp_gcp --config=platform_gcp
 
 build:aws_aws --config=instance_aws
 build:aws_aws --config=platform_aws
+
+
+build:local_azure --config=instance_local
+build:local_azure --config=platform_azure
+
+build:azure_azure --config=instance_azure
+build:azure_azure --config=platform_azure
 
 build:non_prod --//:build_flavor=non_prod
 build:prod --//:build_flavor=prod
