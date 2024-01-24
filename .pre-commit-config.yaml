@@ -55,9 +55,6 @@ repos:
   - id: shellcheck
     exclude: (?x)^(
       build_defs/aws/.*|
-      scp/cc/public/cpio/build_deps/.*|
-      scp/cc/public/tools/.*|
-      scp/cc/tools/.*|
       .*experimental/.*|
       .*internal/.*
       )$
