@@ -179,7 +179,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   function_table.Register("cool_function_name_two", FunctionTwo);
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
   handler.Run();
-  handler.StoreMetadata(kRequestUuid, {});
+  handler.StoreMetadata(absl::StrCat(kRequestUuid, 1), {});
 
   g_called_registered_function_one = false;
   g_called_registered_function_two = false;
@@ -188,7 +188,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   sandbox2::Comms comms(remote_fd);
   proto::RpcWrapper rpc_proto;
   rpc_proto.set_function_name("cool_function_name_one");
-  rpc_proto.set_request_uuid(kRequestUuid);
+  rpc_proto.set_request_uuid(absl::StrCat(kRequestUuid, 1));
   // Send the request over so that it's handled and the registered function
   // can be called
   EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));
@@ -201,8 +201,8 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
 
   rpc_proto.Clear();
   rpc_proto.set_function_name("cool_function_name_two");
-  rpc_proto.set_request_uuid(kRequestUuid);
-  handler.StoreMetadata(kRequestUuid, {});
+  rpc_proto.set_request_uuid(absl::StrCat(kRequestUuid, 2));
+  handler.StoreMetadata(absl::StrCat(kRequestUuid, 2), {});
   // Send the request over so that it's handled and the registered function
   // can be called
   EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));

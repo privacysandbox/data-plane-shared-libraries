@@ -25,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/container/node_hash_map.h"
 #include "absl/log/check.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
@@ -91,14 +92,16 @@ class NativeFunctionHandlerSapiIpc {
           // Get function name
           if (const auto function_name = wrapper_proto.function_name();
               !function_name.empty()) {
+            metadata_map_mutex_.ReaderLock();
             if (FunctionBindingPayload<TMetadata> wrapper{
-                    *io_proto, std::move(GetMetadata(invocation_req_uuid))};
+                    *io_proto, GetMetadata(invocation_req_uuid)};
                 !function_table_->Call(function_name, wrapper).ok()) {
               // If execution failed, add errors to the proto to return
               io_proto->mutable_errors()->Add(
                   std::string(kFailedNativeHandlerExecution));
               ROMA_VLOG(1) << kFailedNativeHandlerExecution;
             }
+            metadata_map_mutex_.ReaderUnlock();
           } else {
             // If we can't find the function, add errors to the proto to return
             io_proto->mutable_errors()->Add(
@@ -137,14 +140,18 @@ class NativeFunctionHandlerSapiIpc {
 
   void StoreMetadata(std::string uuid, TMetadata metadata)
       ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
-    absl::MutexLock lock(&metadata_map_mutex_);
+    metadata_map_mutex_.WriterLock();
+    CHECK(metadata_.find(uuid) == metadata_.end());
     metadata_.emplace(std::move(uuid), std::move(metadata));
+    metadata_map_mutex_.WriterUnlock();
   }
 
   void DeleteMetadata(std::string_view uuid)
       ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
-    absl::MutexLock lock(&metadata_map_mutex_);
+    metadata_map_mutex_.WriterLock();
+    CHECK(metadata_.find(uuid) != metadata_.end());
     metadata_.erase(uuid);
+    metadata_map_mutex_.WriterUnlock();
   }
 
  private:
@@ -156,17 +163,15 @@ class NativeFunctionHandlerSapiIpc {
   // We need the remote file descriptors to unblock the local ones when stopping
   std::vector<int> remote_fds_;
 
-  TMetadata GetMetadata(std::string_view uuid)
+  const TMetadata& GetMetadata(std::string_view uuid)
       ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
-    absl::MutexLock lock(&metadata_map_mutex_);
-
     const auto metadata_it = metadata_.find(uuid);
     CHECK(metadata_it != metadata_.end()) << "Metadata could not be found";
-    return std::move(metadata_it->second);
+    return metadata_it->second;
   }
 
   // Map of invocation request uuid to associated metadata.
-  absl::flat_hash_map<std::string, TMetadata> metadata_
+  absl::node_hash_map<std::string, const TMetadata> metadata_
       ABSL_GUARDED_BY(metadata_map_mutex_);
   absl::Mutex metadata_map_mutex_;
 };

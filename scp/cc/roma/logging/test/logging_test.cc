@@ -137,10 +137,11 @@ TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
   const auto& metadata_tag = "Working";
 
   absl::ScopedMockLog log;
-  for (auto i = 0u; i < kNumThreads; i++) {
-    EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
-                         absl::StrCat("key", i, ": ", metadata_tag, i)))
-        .Times(kBatchSize);
+  for (int i = 0; i < kNumThreads; i++) {
+    for (int j = 0; j < kBatchSize; j++) {
+      EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
+                           absl::StrCat("key", i, ": ", metadata_tag, j)));
+    }
   }
   EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, metadata_tag))
       .Times(kBatchSize * kNumThreads);
@@ -172,16 +173,18 @@ TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
   for (int i = 0; i < kNumThreads; i++) {
     threads.emplace_back([&, i]() {
       absl::Notification local_execute;
-      InvocationStrRequest<> execution_obj{
-          .id = "foo",
-          .version_string = "v1",
-          .handler_name = "Handler",
-          .input = {absl::StrCat("\"", metadata_tag, "\"")},
-      };
-      execution_obj.metadata.insert(
-          {absl::StrCat("key", i), absl::StrCat(metadata_tag, i)});
-
-      std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
+      std::vector<InvocationStrRequest<>> batch;
+      for (int j = 0; j < kBatchSize; j++) {
+        InvocationStrRequest<> execution_obj{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {absl::StrCat("\"", metadata_tag, "\"")},
+            .metadata = {{absl::StrCat("key", i),
+                          absl::StrCat(metadata_tag, j)}},
+        };
+        batch.push_back(execution_obj);
+      }
 
       auto batch_callback =
           [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {

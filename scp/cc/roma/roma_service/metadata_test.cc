@@ -65,7 +65,7 @@ std::unique_ptr<FunctionBindingObjectV2<>> CreateLogFunctionBindingObject() {
                                                      "log_metadata");
 }
 
-TEST(MetadataTest, InvocationReqMetadataVisibleInNativeFunctions) {
+TEST(MetadataTest, InvocationReqMetadataVisibleInNativeFunction) {
   Config config;
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
@@ -221,10 +221,11 @@ TEST(MetadataTest, MetadataAssociatedWithBatchedFunctions) {
   const auto& metadata_tag = "Working";
 
   absl::ScopedMockLog log;
-  for (auto i = 0u; i < kNumThreads; i++) {
-    EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
-                         absl::StrCat("key", i, ": ", metadata_tag, i)))
-        .Times(kBatchSize);
+  for (auto i = 0; i < kNumThreads; i++) {
+    for (int j = 0; j < kBatchSize; j++) {
+      EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
+                           absl::StrCat("key", i, ": ", metadata_tag, j)));
+    }
   }
   log.StartCapturingLogs();
 
@@ -254,15 +255,18 @@ TEST(MetadataTest, MetadataAssociatedWithBatchedFunctions) {
   for (int i = 0; i < kNumThreads; i++) {
     threads.emplace_back([&, i]() {
       absl::Notification local_execute;
-      InvocationStrRequest<> execution_obj{
-          .id = "foo",
-          .version_string = "v1",
-          .handler_name = "Handler",
-      };
-      execution_obj.metadata.insert(
-          {absl::StrCat("key", i), absl::StrCat(metadata_tag, i)});
-
-      std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
+      std::vector<InvocationStrRequest<>> batch;
+      for (int j = 0; j < kBatchSize; j++) {
+        InvocationStrRequest<> execution_obj{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {absl::StrCat("\"", metadata_tag, "\"")},
+            .metadata = {{absl::StrCat("key", i),
+                          absl::StrCat(metadata_tag, j)}},
+        };
+        batch.push_back(execution_obj);
+      }
 
       auto batch_callback =
           [&,
@@ -305,7 +309,7 @@ void LogMetadataStringFunction(FunctionBindingPayload<std::string>& wrapper) {
   LOG(INFO) << wrapper.metadata;
 }
 
-TEST(MetadataTest, StringMetadataVisibleInNativeFunctions) {
+TEST(MetadataTest, StringMetadataVisibleInNativeFunction) {
   Config<std::string> config;
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(CreateFunctionBindingObject<std::string>(
@@ -378,7 +382,7 @@ void LogMetadataVectorFunction(
   }
 }
 
-TEST(MetadataTest, VectorMetadataVisibleInNativeFunctions) {
+TEST(MetadataTest, VectorMetadataVisibleInNativeFunction) {
   Config<std::vector<std::string>> config;
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(
@@ -464,7 +468,7 @@ void LogMetadataStructFunction(
   }
 }
 
-TEST(MetadataTest, CustomMetadataTypeVisibleInNativeFunctions) {
+TEST(MetadataTest, CustomMetadataTypeVisibleInNativeFunction) {
   Config<std::vector<Metadata>> config;
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(
@@ -526,6 +530,170 @@ TEST(MetadataTest, CustomMetadataTypeVisibleInNativeFunctions) {
                 .handler_name = "Handler",
             });
     execution_obj->metadata = metadata_list;
+
+    status = roma_service->Execute(
+        std::move(execution_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          if (resp->ok()) {
+            auto& code_resp = **resp;
+            result = code_resp.resp;
+          }
+          execute_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_THAT(result, testing::StrEq("undefined"));
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
+  log.StopCapturingLogs();
+}
+
+class MoveOnly {
+ public:
+  std::string data_;
+
+  explicit MoveOnly(std::string data) : data_(std::move(data)) {}
+
+  MoveOnly(MoveOnly&& other) : data_(std::move(other.data_)) {
+    other.data_ = "";
+  }
+
+  MoveOnly& operator=(MoveOnly&& other) noexcept {
+    if (this != &other) {
+      data_ = other.data_;
+      other.data_ = "";
+    }
+    return *this;
+  }
+
+  ~MoveOnly() {}
+};
+
+TEST(MetadataTest, MoveOnlyClassCannotBeCopied) {
+  EXPECT_FALSE(std::is_copy_constructible<MoveOnly>::value);
+}
+
+void LogMetadataMoveOnlyFunction(FunctionBindingPayload<MoveOnly>& wrapper) {
+  LOG(INFO) << wrapper.metadata.data_;
+}
+
+TEST(MetadataTest, MoveOnlyMetadataVisibleInNativeFunction) {
+  Config<MoveOnly> config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(CreateFunctionBindingObject<MoveOnly>(
+      LogMetadataMoveOnlyFunction, "log_metadata"));
+  auto roma_service =
+      std::make_unique<RomaService<MoveOnly>>(std::move(config));
+  auto status = roma_service->Init();
+  ASSERT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+  const auto& metadata_tag = "Working";
+
+  absl::ScopedMockLog log;
+  EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, metadata_tag));
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = "var Handler = () => log_metadata();",
+    });
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj = std::make_unique<InvocationStrRequest<MoveOnly>>(
+        InvocationStrRequest<MoveOnly>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .metadata = MoveOnly(metadata_tag),
+        });
+
+    status = roma_service->Execute(
+        std::move(execution_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          if (resp->ok()) {
+            auto& code_resp = **resp;
+            result = code_resp.resp;
+          }
+          execute_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_THAT(result, testing::StrEq("undefined"));
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
+  log.StopCapturingLogs();
+}
+
+TEST(MetadataTest, MoveOnlyMetadataVisibleInAllNativeFunctions) {
+  Config<MoveOnly> config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(CreateFunctionBindingObject<MoveOnly>(
+      LogMetadataMoveOnlyFunction, "log_metadata"));
+  auto roma_service =
+      std::make_unique<RomaService<MoveOnly>>(std::move(config));
+  auto status = roma_service->Init();
+  ASSERT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+  const auto& metadata_tag = "Working";
+
+  absl::ScopedMockLog log;
+  EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, metadata_tag)).Times(2);
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"(var Handler = () => {
+            log_metadata();
+            log_metadata();
+        })",
+    });
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj),
+        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+          EXPECT_TRUE(resp->ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj = std::make_unique<InvocationStrRequest<MoveOnly>>(
+        InvocationStrRequest<MoveOnly>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .metadata = MoveOnly(metadata_tag),
+        });
 
     status = roma_service->Execute(
         std::move(execution_obj),

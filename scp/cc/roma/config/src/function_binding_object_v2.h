@@ -39,7 +39,7 @@ struct FunctionBindingPayload {
    * @brief Metadata passed in from InvocationRequest to native functions
    * outside of sandbox.
    */
-  const TMetadata metadata;
+  const TMetadata& metadata;
 };
 
 template <typename TMetadata = DefaultMetadata>
