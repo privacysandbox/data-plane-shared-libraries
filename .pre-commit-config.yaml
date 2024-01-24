@@ -99,6 +99,15 @@ repos:
     types_or:
     - text
 
+  - id: terraform-fmt
+    name: terraform fmt
+    description: Run terraform via docker to format Terraform files
+    language: script
+    pass_filenames: false
+    entry: builders/tools/terraform fmt -write=true -recursive .
+    types_or:
+    - terraform
+
 - repo: https://github.com/pre-commit/mirrors-prettier
   rev: v3.1.0
   hooks:

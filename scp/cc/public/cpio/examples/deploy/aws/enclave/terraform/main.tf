@@ -26,7 +26,7 @@ terraform {
 }
 
 provider "aws" {
-  region  = "us-east-1"
+  region = "us-east-1"
 }
 
 resource "aws_security_group" "test_allow_all" {
@@ -42,10 +42,10 @@ resource "aws_security_group" "test_allow_all" {
   }
 
   egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
@@ -54,7 +54,7 @@ resource "aws_security_group" "test_allow_all" {
 }
 
 resource "aws_network_interface" "test_network" {
-  subnet_id   = var.subnet_id
+  subnet_id = var.subnet_id
   security_groups = [
     aws_security_group.test_allow_all.id
   ]
@@ -78,14 +78,14 @@ resource "aws_instance" "test" {
 
   # Enforce IMDSv2.
   metadata_options {
-    http_endpoint          = "enabled"
-    http_tokens            = "required"
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
     http_put_response_hop_limit = 2
-    instance_metadata_tags = "enabled"
+    instance_metadata_tags      = "enabled"
   }
 
   iam_instance_profile = aws_iam_instance_profile.test_profile.name
-  key_name = var.key_pair_name
+  key_name             = var.key_pair_name
 
   network_interface {
     network_interface_id = aws_network_interface.test_network.id
@@ -93,7 +93,7 @@ resource "aws_instance" "test" {
   }
 
   tags = {
-    Name = var.instance_name
+    Name        = var.instance_name
     environment = "test"
   }
 }
