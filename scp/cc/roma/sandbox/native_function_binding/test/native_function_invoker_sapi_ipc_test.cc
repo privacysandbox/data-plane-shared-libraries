@@ -26,9 +26,8 @@
 #include <thread>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "core/test/utils/auto_init_run_stop.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "roma/sandbox/constants/constants.h"
 #include "sandboxed_api/sandbox2/comms.h"
 
 using google::scp::roma::sandbox::native_function_binding::
@@ -40,7 +39,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldReturnFailureOnInvokeIfBadFd) {
   NativeFunctionInvokerSapiIpc invoker(-1);
 
   proto::RpcWrapper rpc_proto;
-  EXPECT_FALSE(invoker.Invoke(rpc_proto).Successful());
+  EXPECT_FALSE(invoker.Invoke(rpc_proto).ok());
 }
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldMakeCallOnFd) {
@@ -58,7 +57,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldMakeCallOnFd) {
   });
 
   proto::RpcWrapper rpc_proto;
-  ASSERT_SUCCESS(invoker.Invoke(rpc_proto));
+  ASSERT_TRUE(invoker.Invoke(rpc_proto).ok());
 
   to_handle_message.join();
 

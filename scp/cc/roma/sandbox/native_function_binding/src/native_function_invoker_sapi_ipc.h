@@ -20,11 +20,10 @@
 #include <memory>
 #include <string>
 
-#include "public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "sandboxed_api/sandbox2/comms.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
-#include "error_codes.h"
 #include "native_function_invoker.h"
 
 namespace google::scp::roma::sandbox::native_function_binding {
@@ -37,8 +36,8 @@ class NativeFunctionInvokerSapiIpc : public NativeFunctionInvoker {
  public:
   explicit NativeFunctionInvokerSapiIpc(int comms_fd);
 
-  core::ExecutionResult Invoke(google::scp::roma::proto::RpcWrapper&
-                                   rpc_wrapper_proto) noexcept override;
+  absl::Status Invoke(google::scp::roma::proto::RpcWrapper&
+                          rpc_wrapper_proto) noexcept override;
 
  private:
   std::unique_ptr<sandbox2::Comms> ipc_comms_;

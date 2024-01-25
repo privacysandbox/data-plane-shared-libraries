@@ -35,9 +35,9 @@ cc_test(
     srcs = ["native_function_invoker_sapi_ipc_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_invoker_sapi_ipc_lib",
+        "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],
 )

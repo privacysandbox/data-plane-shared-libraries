@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 namespace google::scp::roma::sandbox::native_function_binding {
@@ -46,7 +46,7 @@ class NativeFunctionInvoker {
    * request's id and uuid, and the name of the native function to call with the
    * function binding context in the host process.
    */
-  virtual core::ExecutionResult Invoke(
+  virtual absl::Status Invoke(
       google::scp::roma::proto::RpcWrapper& rpc_wrapper_proto) noexcept = 0;
 
   // The destructor must be virtual otherwise the base class destructor won't

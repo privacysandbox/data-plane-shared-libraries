@@ -19,17 +19,6 @@
 #include "absl/log/log.h"
 #include "roma/sandbox/constants/constants.h"
 
-#include "error_codes.h"
-
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::errors::
-    SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_COULD_NOT_RECV_RESPONSE_FROM_PARENT;
-using google::scp ::core::errors ::
-    SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_COULD_NOT_SEND_CALL_TO_PARENT;
-using google::scp::core::errors::
-    SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_INVOKE_WITH_UNINITIALIZED_COMMS;
 using google::scp::roma::proto::RpcWrapper;
 using google::scp::roma::sandbox::constants::kRequestId;
 using google::scp::roma::sandbox::constants::kRequestUuid;
@@ -43,25 +32,25 @@ NativeFunctionInvokerSapiIpc::NativeFunctionInvokerSapiIpc(int comms_fd) {
   }
 }
 
-ExecutionResult NativeFunctionInvokerSapiIpc::Invoke(
+absl::Status NativeFunctionInvokerSapiIpc::Invoke(
     RpcWrapper& rpc_wrapper_proto) noexcept {
   if (!ipc_comms_) {
-    return FailureExecutionResult(
-        SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_INVOKE_WITH_UNINITIALIZED_COMMS);
+    return absl::FailedPreconditionError(
+        "A call to invoke was made with an uninitialized comms object.");
   }
 
   auto sent = ipc_comms_->SendProtoBuf(rpc_wrapper_proto);
   if (!sent) {
-    return FailureExecutionResult(
-        SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_COULD_NOT_SEND_CALL_TO_PARENT);
+    return absl::InternalError(
+        "Could not send the call to the parent process.");
   }
 
   auto recv = ipc_comms_->RecvProtoBuf(&rpc_wrapper_proto);
   if (!recv) {
-    return FailureExecutionResult(
-        SC_ROMA_FUNCTION_INVOKER_SAPI_IPC_COULD_NOT_RECV_RESPONSE_FROM_PARENT);
+    return absl::InternalError(
+        "Could not receive a response from the parent process.");
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 }  // namespace google::scp::roma::sandbox::native_function_binding

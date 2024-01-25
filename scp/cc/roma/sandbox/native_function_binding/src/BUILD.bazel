@@ -30,19 +30,13 @@ cc_proto_library(
 
 cc_library(
     name = "roma_native_function_binding_lib",
-    srcs = [
+    hdrs = [
         "native_function_invoker.h",
     ],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
-    ],
-)
-
-cc_library(
-    name = "error_codes",
-    srcs = [
-        "error_codes.h",
+        "@com_google_absl//absl/status",
     ],
 )
 
@@ -50,17 +44,17 @@ cc_library(
     name = "roma_native_function_invoker_sapi_ipc_lib",
     srcs = [
         "native_function_invoker_sapi_ipc.cc",
+    ],
+    hdrs = [
         "native_function_invoker_sapi_ipc.h",
     ],
     deps = [
         ":cc_roma_rpc_wrapper",
-        ":error_codes",
         ":roma_native_function_binding_lib",
         "//scp/cc:cc_base_include_dir",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/public/core/interface:execution_result",
         "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "@com_google_absl//absl/status",
         "@com_google_sandboxed_api//sandboxed_api:sapi",
         "@com_google_sandboxed_api//sandboxed_api:vars",
     ],
@@ -74,7 +68,6 @@ cc_library(
     ],
     deps = [
         ":cc_roma_rpc_wrapper",
-        ":error_codes",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/public/core/interface:execution_result",

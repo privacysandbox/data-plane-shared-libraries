@@ -47,6 +47,7 @@ cc_test(
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
+        "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],
 )

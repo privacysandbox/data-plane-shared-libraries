@@ -24,6 +24,7 @@
 #include <string_view>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "core/test/utils/auto_init_run_stop.h"
 #include "include/v8.h"
 #include "public/core/test/interface/execution_result_matchers.h"
@@ -51,15 +52,14 @@ class V8IsolateFunctionBindingTest : public ::testing::Test {
 class NativeFunctionInvokerMock
     : public native_function_binding::NativeFunctionInvoker {
  public:
-  MOCK_METHOD(ExecutionResult, Invoke, (RpcWrapper&), (noexcept, override));
+  MOCK_METHOD(absl::Status, Invoke, (RpcWrapper&), (noexcept, override));
 
   virtual ~NativeFunctionInvokerMock() = default;
 };
 
 TEST_F(V8IsolateFunctionBindingTest, FunctionBecomesAvailableInJavascript) {
   auto function_invoker = std::make_unique<NativeFunctionInvokerMock>();
-  EXPECT_CALL(*function_invoker, Invoke(_))
-      .WillOnce(Return(SuccessExecutionResult()));
+  EXPECT_CALL(*function_invoker, Invoke(_)).WillOnce(Return(absl::OkStatus()));
 
   std::vector<std::string> function_names = {"cool_func"};
   auto visitor = std::make_unique<v8_js_engine::V8IsolateFunctionBinding>(

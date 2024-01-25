@@ -239,7 +239,7 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
 
   const auto result =
       binding_info_pair->second->function_invoker_->Invoke(rpc_proto);
-  if (!result.Successful()) {
+  if (!result.ok()) {
     isolate->ThrowError(kCouldNotRunFunctionBinding);
     ROMA_VLOG(1) << kCouldNotRunFunctionBinding;
     return;

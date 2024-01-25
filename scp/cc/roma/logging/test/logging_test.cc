@@ -20,6 +20,7 @@
 #include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
+#include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "core/test/utils/auto_init_run_stop.h"
 #include "roma/interface/roma.h"
@@ -46,8 +47,7 @@ class LoggingTest : public ::testing::Test {
 
 class NativeFunctionInvokerMock : public NativeFunctionInvoker {
  public:
-  MOCK_METHOD(core::ExecutionResult, Invoke, (proto::RpcWrapper&),
-              (noexcept, override));
+  MOCK_METHOD(absl::Status, Invoke, (proto::RpcWrapper&), (noexcept, override));
 
   virtual ~NativeFunctionInvokerMock() = default;
 };
