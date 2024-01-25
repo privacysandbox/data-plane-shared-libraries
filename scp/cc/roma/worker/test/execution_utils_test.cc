@@ -86,9 +86,9 @@ class ExecutionUtilsTest : public ::testing::Test {
   }
 
   struct RunCodeArguments {
+    std::string handler_name;
     std::string js;
     std::string wasm;
-    std::string handler_name;
     std::vector<std::string_view> input;
   };
 
@@ -298,16 +298,18 @@ TEST_F(ExecutionUtilsTest, InputToLocalArgvInputWithEmptyString) {
 }
 
 TEST_F(ExecutionUtilsTest, RunCodeObjWithBadInput) {
-  RunCodeArguments code_obj;
-  code_obj.js =
-      R"(
+  constexpr std::string_view bad_arg1 = R"({value":1})";
+  constexpr std::string_view arg2 = R"({"value":2})";
+  RunCodeArguments code_obj{
+      .handler_name = "Handler",
+      .js =
+          R"(
         function Handler(a, b) {
           return (a["value"] + b["value"]);
         }
-      )";
-  code_obj.handler_name = "Handler";
-  code_obj.input =
-      std::vector<std::string_view>({R"({value":1})", R"({"value":2})"});
+      )",
+      .input = std::vector<std::string_view>({bad_arg1, arg2}),
+  };
 
   std::string output;
   std::string err_msg;
@@ -318,18 +320,16 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithBadInput) {
 }
 
 TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInput) {
-  RunCodeArguments code_obj;
-  code_obj.js =
-      R"(
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js =
+          R"(
         function Handler(a, b) {
           return (a["value"] + b["value"]);
         }
-      )";
-  code_obj.handler_name = "Handler";
-  code_obj.input = std::vector<std::string_view>({
-      R"({"value":1})",
-      R"({"value":2})",
-  });
+      )",
+      .input = {R"({"value":1})", R"({"value":2})"},
+  };
 
   std::string output;
   std::string err_msg;
@@ -339,17 +339,17 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInput) {
 }
 
 TEST_F(ExecutionUtilsTest, PerformanceNowDeclaredInJs) {
-  RunCodeArguments code_obj;
-  code_obj.js =
-      R"(
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js =
+          R"(
         function Handler() {
           // Date.now overriden to always return the same number.
           Date.now = () => 1672531200000;
           return performance.now() === Date.now();
         }
-      )";
-  code_obj.handler_name = "Handler";
-
+      )",
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -358,10 +358,10 @@ TEST_F(ExecutionUtilsTest, PerformanceNowDeclaredInJs) {
 }
 
 TEST_F(ExecutionUtilsTest, JsPredicateMatchesTrueOutput) {
-  RunCodeArguments code_obj;
-  code_obj.js = "var Predicate = () => true;";
-  code_obj.handler_name = "Predicate";
-
+  const RunCodeArguments code_obj = {
+      .handler_name = "Predicate",
+      .js = "var Predicate = () => true;",
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -370,10 +370,10 @@ TEST_F(ExecutionUtilsTest, JsPredicateMatchesTrueOutput) {
 }
 
 TEST_F(ExecutionUtilsTest, JsPredicateMatchesFalseOutput) {
-  RunCodeArguments code_obj;
-  code_obj.js = "var Predicate = () => false;";
-  code_obj.handler_name = "Predicate";
-
+  const RunCodeArguments code_obj = {
+      .handler_name = "Predicate",
+      .js = "var Predicate = () => false;",
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -382,10 +382,10 @@ TEST_F(ExecutionUtilsTest, JsPredicateMatchesFalseOutput) {
 }
 
 TEST_F(ExecutionUtilsTest, JsFunctionOutput) {
-  RunCodeArguments code_obj;
-  code_obj.js = "var Handler = () => 3;";
-  code_obj.handler_name = "Handler";
-
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js = "var Handler = () => 3;",
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -394,41 +394,35 @@ TEST_F(ExecutionUtilsTest, JsFunctionOutput) {
 }
 
 TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInputMissKey) {
-  RunCodeArguments code_obj;
-  code_obj.js =
-      R"(
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js =
+          R"(
         function Handler(a, b) {
           return (a.value + b.value);
         }
-      )";
-  code_obj.handler_name = "Handler";
-  code_obj.input = std::vector<std::string_view>({
-      "{:1}",
-      R"({"value":2})",
-  });
-
+      )",
+      .input = {"{:1}", R"({"value":2})"},
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
   EXPECT_THAT(
       result,
       ResultIs(FailureExecutionResult(SC_ROMA_V8_WORKER_BAD_INPUT_ARGS)));
-}
+}  // namespace google::scp::roma::worker::test
 
 TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInputMissValue) {
-  RunCodeArguments code_obj;
-  code_obj.js =
-      R"(
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js =
+          R"(
         function Handler(a, b) {
           return (a["value"] + b.value);
         }
-      )";
-  code_obj.handler_name = "Handler";
-  code_obj.input = std::vector<std::string_view>({
-      R"({"value"})",
-      R"({"value":2})",
-  });
-
+      )",
+      .input = {R"({"value"})", R"({"value":2})"},
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -440,10 +434,10 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInputMissValue) {
 TEST_F(ExecutionUtilsTest, RunCodeObjRunWithLessArgs) {
   // When handler function argument is Json data, function still can call and
   // run without any error, but there is no valid output.
-  RunCodeArguments code_obj;
-  code_obj.js = "var Handler = (a, b) => (a + b);";
-  code_obj.handler_name = "Handler";
-
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js = "var Handler = (a, b) => (a + b);",
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -454,15 +448,15 @@ TEST_F(ExecutionUtilsTest, RunCodeObjRunWithLessArgs) {
 TEST_F(ExecutionUtilsTest, RunCodeObjRunWithJsonArgsMissing) {
   // When handler function argument is Json data, empty input will cause
   // function call fail.
-  RunCodeArguments code_obj;
-  code_obj.js =
-      R"(
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js =
+          R"(
         function Handler(a, b) {
           return (a.value + b.value);
         }
-      )";
-  code_obj.handler_name = "Handler";
-
+      )",
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -471,8 +465,9 @@ TEST_F(ExecutionUtilsTest, RunCodeObjRunWithJsonArgsMissing) {
 }
 
 TEST_F(ExecutionUtilsTest, NoHandlerName) {
-  RunCodeArguments code_obj;
-  code_obj.js = "function Handler(a, b) {return;}";
+  const RunCodeArguments code_obj = {
+      .js = "function Handler(a, b) {return;}",
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -482,10 +477,10 @@ TEST_F(ExecutionUtilsTest, NoHandlerName) {
 }
 
 TEST_F(ExecutionUtilsTest, UnmatchedHandlerName) {
-  RunCodeArguments code_obj;
-  code_obj.js = "function Handler(a, b) {return;}";
-  code_obj.handler_name = "Handler2";
-
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler2",
+      .js = "function Handler(a, b) {return;}",
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -494,54 +489,52 @@ TEST_F(ExecutionUtilsTest, UnmatchedHandlerName) {
 }
 
 TEST_F(ExecutionUtilsTest, ScriptCompileFailure) {
-  std::string output;
-  std::string err_msg;
-  std::string js("function Handler(a, b) {");
+  constexpr std::string_view bad_js = "function Handler(a, b) {";
   {
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
     v8::Local<v8::Context> context = v8::Context::New(isolate_);
     v8::Context::Scope context_scope(context);
-    auto result = ExecutionUtils::CompileRunJS(js, err_msg);
-    EXPECT_EQ(result,
+    std::string err_msg;
+    EXPECT_EQ(ExecutionUtils::CompileRunJS(bad_js, err_msg),
               FailureExecutionResult(SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE));
   }
 }
 
 TEST_F(ExecutionUtilsTest, SuccessWithUnNeedArgs) {
-  RunCodeArguments code_obj;
-  code_obj.handler_name = "Handler";
-  code_obj.js = "function Handler() {return;}";
-  code_obj.input = std::vector<std::string_view>({"1", "0"});
-
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js = "function Handler() {return;}",
+      .input = {"1", "0"},
+  };
   std::string output;
   std::string err_msg;
-  auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_SUCCESS(result);
+  EXPECT_SUCCESS(RunCode(code_obj, output, err_msg));
 }
 
 TEST_F(ExecutionUtilsTest, CodeExecutionFailure) {
-  RunCodeArguments code_obj;
-  code_obj.handler_name = "Handler";
-  code_obj.js = "function Handler() { throw new Error('Required'); return;}";
-
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js = "function Handler() { throw new Error('Required'); return;}",
+  };
   std::string output;
   std::string err_msg;
-  auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_EQ(result,
+  EXPECT_EQ(RunCode(code_obj, output, err_msg),
             FailureExecutionResult(SC_ROMA_V8_WORKER_CODE_EXECUTION_FAILURE));
 }
 
 TEST_F(ExecutionUtilsTest, WasmSourceCodeCompileFailed) {
-  RunCodeArguments code_obj;
-  code_obj.js = "";
-  code_obj.handler_name = "add";
   // Bad wasm byte string.
-  char wasm_bin[] = {0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00,
-                     0x01, 0x07, 0x01, 0x60, 0x02, 0x7f, 0x7f, 0x01};
-  code_obj.wasm.assign(wasm_bin, sizeof(wasm_bin));
-  code_obj.input = std::vector<std::string_view>({"1", "2"});
-
+  const char bad_wasm_bin[] = {
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00,
+      0x01, 0x07, 0x01, 0x60, 0x02, 0x7f, 0x7f, 0x01,
+  };
+  const RunCodeArguments code_obj = {
+      .handler_name = "add",
+      .js = "",
+      .wasm = std::string(bad_wasm_bin, sizeof(bad_wasm_bin)),
+      .input = {"1", "2"},
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -550,16 +543,18 @@ TEST_F(ExecutionUtilsTest, WasmSourceCodeCompileFailed) {
 }
 
 TEST_F(ExecutionUtilsTest, WasmSourceCodeUnmatchedName) {
-  RunCodeArguments code_obj;
-  code_obj.js = "";
-  code_obj.handler_name = "plus";
-  char wasm_bin[] = {0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01,
-                     0x07, 0x01, 0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03,
-                     0x02, 0x01, 0x00, 0x07, 0x07, 0x01, 0x03, 0x61, 0x64,
-                     0x64, 0x00, 0x00, 0x0a, 0x09, 0x01, 0x07, 0x00, 0x20,
-                     0x00, 0x20, 0x01, 0x6a, 0x0b};
-  code_obj.wasm.assign(wasm_bin, sizeof(wasm_bin));
-  code_obj.input = std::vector<std::string_view>({"1", "2"});
+  const char wasm_bin[] = {
+      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
+      0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07,
+      0x07, 0x01, 0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a, 0x09, 0x01,
+      0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6a, 0x0b,
+  };
+  const RunCodeArguments code_obj = {
+      .handler_name = "plus",
+      .js = "",
+      .wasm = std::string(wasm_bin, sizeof(wasm_bin)),
+      .input = {"1", "2"},
+  };
 
   std::string output;
   std::string err_msg;
@@ -570,19 +565,16 @@ TEST_F(ExecutionUtilsTest, WasmSourceCodeUnmatchedName) {
 }
 
 TEST_F(ExecutionUtilsTest, CppWasmWithStringInputAndStringOutput) {
-  RunCodeArguments code_obj;
-  code_obj.js = "";
-  code_obj.handler_name = "Handler";
-
-  auto wasm_bin = WasmTestingUtils::LoadWasmFile(
+  const auto wasm_bin = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/cpp_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
-  code_obj.wasm.assign(reinterpret_cast<char*>(wasm_bin.data()),
-                       wasm_bin.size());
-  code_obj.input = std::vector<std::string_view>({
-      R"str("Input String :)")str",
-  });
-
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js = "",
+      .input = {R"str("Input String :)")str"},
+      .wasm = std::string(reinterpret_cast<const char*>(wasm_bin.data()),
+                          wasm_bin.size()),
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -591,19 +583,16 @@ TEST_F(ExecutionUtilsTest, CppWasmWithStringInputAndStringOutput) {
 }
 
 TEST_F(ExecutionUtilsTest, RustWasmWithStringInputAndStringOutput) {
-  RunCodeArguments code_obj;
-  code_obj.js = "";
-  code_obj.handler_name = "Handler";
-
-  auto wasm_bin = WasmTestingUtils::LoadWasmFile(
+  const auto wasm_bin = WasmTestingUtils::LoadWasmFile(
       "./scp/cc/roma/testing/rust_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
-  code_obj.wasm.assign(reinterpret_cast<char*>(wasm_bin.data()),
-                       wasm_bin.size());
-  code_obj.input = std::vector<std::string_view>({
-      R"str("Input String :)")str",
-  });
-
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js = "",
+      .wasm = std::string(reinterpret_cast<const char*>(wasm_bin.data()),
+                          wasm_bin.size()),
+      .input = {R"str("Input String :)")str"},
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
@@ -612,8 +601,9 @@ TEST_F(ExecutionUtilsTest, RustWasmWithStringInputAndStringOutput) {
 }
 
 TEST_F(ExecutionUtilsTest, JsEmbeddedGlobalWasmCompileRunExecute) {
-  RunCodeArguments code_obj;
-  std::string js = R"(
+  const RunCodeArguments code_obj = {
+      .handler_name = "Handler",
+      .js = R"(
           let bytes = new Uint8Array([
             0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
             0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07,
@@ -625,10 +615,9 @@ TEST_F(ExecutionUtilsTest, JsEmbeddedGlobalWasmCompileRunExecute) {
           function Handler(a, b) {
           return instance.exports.add(a, b);
           }
-        )";
-  code_obj.js = js;
-  code_obj.handler_name = "Handler";
-  code_obj.input = std::vector<std::string_view>({"1", "2"});
+        )",
+      .input = {"1", "2"},
+  };
 
   std::string output;
   std::string err_msg;
@@ -636,4 +625,5 @@ TEST_F(ExecutionUtilsTest, JsEmbeddedGlobalWasmCompileRunExecute) {
   ASSERT_SUCCESS(result);
   EXPECT_THAT(output, StrEq(std::to_string(3).c_str()));
 }
+
 }  // namespace google::scp::roma::worker::test
