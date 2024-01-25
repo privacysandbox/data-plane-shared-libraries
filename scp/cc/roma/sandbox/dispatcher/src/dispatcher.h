@@ -178,7 +178,7 @@ class Dispatcher {
       absl::MutexLock l(&pending_requests_mu_);
       pending_requests_++;
     }
-    const auto& request_id = request->id;
+    const auto request_id = request->id;
     auto schedule_result = async_executor_->Schedule(
         [this, index, request = std::move(request),
          callback = std::move(callback)]() mutable {
