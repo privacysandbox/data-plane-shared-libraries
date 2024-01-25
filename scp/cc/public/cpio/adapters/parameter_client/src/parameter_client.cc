@@ -55,7 +55,7 @@ namespace google::scp::cpio {
 ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
   cpio_ = GlobalCpio::GetGlobalCpio().get();
   std::shared_ptr<InstanceClientProviderInterface> instance_client_provider;
-  if (auto provider = cpio_->GetInstanceClientProvider(); provider.ok()) {
+  if (auto provider = cpio_->GetInstanceClientProvider(); !provider.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
               "Failed to get InstanceClientProvider.");
@@ -65,7 +65,7 @@ ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
   }
 
   std::shared_ptr<AsyncExecutorInterface> cpu_async_executor;
-  if (auto executor = cpio_->GetCpuAsyncExecutor(); executor.ok()) {
+  if (auto executor = cpio_->GetCpuAsyncExecutor(); !executor.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
               "Failed to get CpuAsyncExecutor.");
@@ -76,7 +76,7 @@ ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
 
   // TODO(b/321117161): Replace CPU w/ IO executor.
   std::shared_ptr<AsyncExecutorInterface> io_async_executor;
-  if (auto executor = cpio_->GetCpuAsyncExecutor(); executor.ok()) {
+  if (auto executor = cpio_->GetCpuAsyncExecutor(); !executor.ok()) {
     ExecutionResult execution_result;
     SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
               "Failed to get IoAsyncExecutor.");
