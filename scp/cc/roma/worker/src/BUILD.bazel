@@ -33,6 +33,7 @@ cc_library(
         "//scp/cc/roma/config/src:roma_config_lib",
         "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/wasm/src:roma_wasm_lib",
+        "@com_google_absl//absl/strings",
         "@v8//:v8_icu",
     ],
 )

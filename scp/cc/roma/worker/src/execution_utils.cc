@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_split.h"
 #include "public/core/interface/execution_result.h"
 
 #include "error_codes.h"
@@ -148,20 +149,26 @@ ExecutionResult ExecutionUtils::GetJsHandler(std::string_view handler_name,
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  v8::Local<v8::String> local_name =
-      v8::String::NewFromUtf8(isolate, handler_name.data(),
-                              v8::NewStringType::kNormal, handler_name.size())
-          .ToLocalChecked();
-
-  // If there is no handler function, or if it is not a function,
-  // bail out
-  if (!context->Global()->Get(context, local_name).ToLocal(&handler) ||
-      !handler->IsFunction()) {
+  v8::Local<v8::Object> ctx = context->Global();
+  for (const auto& name : absl::StrSplit(handler_name, ".")) {
+    v8::Local<v8::String> local_name =
+        v8::String::NewFromUtf8(isolate, name.data(),
+                                v8::NewStringType::kNormal, name.size())
+            .ToLocalChecked();
+    // If there is no handler function, or if it is not a function,
+    // bail out
+    if (!ctx->Get(context, local_name).ToLocal(&handler)) {
+      err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
+      return core::FailureExecutionResult(
+          core::errors::SC_ROMA_V8_WORKER_HANDLER_INVALID_FUNCTION);
+    }
+    handler->ToObject(context).ToLocal(&ctx);
+  }
+  if (!handler->IsFunction()) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
     return core::FailureExecutionResult(
         core::errors::SC_ROMA_V8_WORKER_HANDLER_INVALID_FUNCTION);
   }
-
   return core::SuccessExecutionResult();
 }
 

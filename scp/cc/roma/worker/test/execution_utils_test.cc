@@ -325,12 +325,32 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInput) {
       .js =
           R"(
         function Handler(a, b) {
-          return (a["value"] + b["value"]);
+          return (a["value"] + b["intval"]);
         }
       )",
-      .input = {R"({"value":1})", R"({"value":2})"},
+      .input = {R"({"value":1})", R"({"intval":2})"},
   };
 
+  std::string output;
+  std::string err_msg;
+  auto result = RunCode(code_obj, output, err_msg);
+  ASSERT_SUCCESS(result);
+  EXPECT_THAT(output, StrEq("3"));
+}
+
+TEST_F(ExecutionUtilsTest, RunCodeObjWithNamespacedHandler) {
+  const RunCodeArguments code_obj = {
+      .handler_name = "foo.bar.Handler",
+      .js =
+          R"(
+        var foo = {
+          bar: {
+            Handler: (a, b) => { return a["value"] + b["intval"]; },
+          },
+        };
+      )",
+      .input = {R"({"value":1})", R"({"intval":2})"},
+  };
   std::string output;
   std::string err_msg;
   auto result = RunCode(code_obj, output, err_msg);
