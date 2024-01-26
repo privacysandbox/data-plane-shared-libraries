@@ -174,9 +174,9 @@ class ExecutionUtils {
    * @brief Bind UnboundScript to current context and run it.
    *
    * @param err_msg
-   * @return core::ExecutionResult
+   * @return bool success
    */
-  static core::ExecutionResult BindUnboundScript(
+  static bool BindUnboundScript(
       const v8::Global<v8::UnboundScript>& global_unbound_script,
       std::string& err_msg) noexcept;
 
@@ -201,9 +201,9 @@ class ExecutionUtils {
   static v8::Local<v8::Value> GetWasmMemoryObject(
       v8::Isolate* isolate, v8::Local<v8::Context>& context);
 
-  static core::ExecutionResult V8PromiseHandler(v8::Isolate* isolate,
-                                                v8::Local<v8::Value>& result,
-                                                std::string& err_msg);
+  static bool V8PromiseHandler(v8::Isolate* isolate,
+                               v8::Local<v8::Value>& result,
+                               std::string& err_msg);
 };
 }  // namespace google::scp::roma::worker
 

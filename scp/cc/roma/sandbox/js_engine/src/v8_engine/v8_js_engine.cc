@@ -451,13 +451,15 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   // Binding UnboundScript to current context when the compilation context is
   // kUnboundScript.
   if (current_compilation_context->cache_type == CacheType::kUnboundScript) {
-    if (const auto result = ExecutionUtils::BindUnboundScript(
-            current_compilation_context->unbound_script, err_msg);
-        !result.Successful()) {
-      LOG(ERROR) << "BindUnboundScript failed with "
-                 << GetErrorMessage(result.status_code);
+    if (!ExecutionUtils::BindUnboundScript(
+            current_compilation_context->unbound_script, err_msg)) {
+      LOG(ERROR)
+          << "BindUnboundScript failed with "
+          << GetErrorMessage(
+                 core::errors::SC_ROMA_V8_WORKER_BIND_UNBOUND_SCRIPT_FAILED);
       DLOG(ERROR) << "BindUnboundScript failed with debug errors " << err_msg;
-      return result;
+      return core::FailureExecutionResult(
+          core::errors::SC_ROMA_V8_WORKER_BIND_UNBOUND_SCRIPT_FAILED);
     }
   }
 
@@ -510,11 +512,10 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     }
     if (result->IsPromise()) {
       std::string error_msg;
-      if (const auto execution_result =
-              ExecutionUtils::V8PromiseHandler(v8_isolate, result, error_msg);
-          !execution_result.Successful()) {
+      if (!ExecutionUtils::V8PromiseHandler(v8_isolate, result, error_msg)) {
         DLOG(ERROR) << "V8 Promise execution failed" << error_msg;
-        return GetError(v8_isolate, try_catch, execution_result.status_code);
+        return GetError(v8_isolate, try_catch,
+                        core::errors::SC_ROMA_V8_WORKER_ASYNC_EXECUTION_FAILED);
       }
     }
     execution_response.metrics[kHandlerCallMetricJsEngineDuration] =

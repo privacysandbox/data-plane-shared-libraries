@@ -316,7 +316,7 @@ ExecutionResult ExecutionUtils::CreateUnboundScript(
   return core::SuccessExecutionResult();
 }
 
-ExecutionResult ExecutionUtils::BindUnboundScript(
+bool ExecutionUtils::BindUnboundScript(
     const v8::Global<v8::UnboundScript>& global_unbound_script,
     std::string& err_msg) noexcept {
   auto isolate = v8::Isolate::GetCurrent();
@@ -331,11 +331,10 @@ ExecutionResult ExecutionUtils::BindUnboundScript(
   if (!unbound_script->BindToCurrentContext()->Run(context).ToLocal(
           &script_result)) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_BIND_UNBOUND_SCRIPT_FAILED);
+    return false;
   }
 
-  return core::SuccessExecutionResult();
+  return true;
 }
 
 v8::Local<v8::Value> ExecutionUtils::GetWasmMemoryObject(
@@ -650,9 +649,9 @@ v8::Local<v8::Value> ExecutionUtils::ReadFromWasmMemory(
   return ret_val;
 }
 
-ExecutionResult ExecutionUtils::V8PromiseHandler(v8::Isolate* isolate,
-                                                 v8::Local<v8::Value>& result,
-                                                 std::string& err_msg) {
+bool ExecutionUtils::V8PromiseHandler(v8::Isolate* isolate,
+                                      v8::Local<v8::Value>& result,
+                                      std::string& err_msg) {
   // We don't need a callback handler for now. The default handler will wrap
   // the successful result of Promise::kFulfilled and the exception message of
   // Promise::kRejected.
@@ -669,12 +668,11 @@ ExecutionResult ExecutionUtils::V8PromiseHandler(v8::Isolate* isolate,
         v8::Exception::CreateMessage(isolate, promise->Result());
     err_msg = ExecutionUtils::ExtractMessage(isolate, message);
     promise->MarkAsHandled();
-    return core::FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_ASYNC_EXECUTION_FAILED);
+    return false;
   }
 
   result = promise->Result();
-  return core::SuccessExecutionResult();
+  return true;
 }
 
 }  // namespace google::scp::roma::worker
