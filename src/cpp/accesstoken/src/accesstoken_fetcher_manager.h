@@ -2,8 +2,13 @@
 #define SRC_CPP_ACCESSTOKEN_FETCHER_FACTORY_H_
 
 #include <memory>
+#include <tuple>
 
 #include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/http_client_interface.h"
+#include "scp/cc/core/curl_client/src/http1_curl_client.h"
+#include "absl/synchronization/notification.h"
+constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
 
 namespace privacy_sandbox::server_common {
 using AccessTokenServiceEndpoint = std::string;
@@ -12,20 +17,16 @@ using ClientSecret = std::string;
 using ApiIdentifierUri = std::string;
 using AccessTokenValue = std::string;
 
-// Represents an accesstoken fetched from the token Service.
 struct AccessToken {
-  // The value of the accesstoken. This field is the raw, unencoded byte string
   AccessTokenValue accessToken;
 };
 
-/// Represents the accesstoken response object.
 struct GetAccessTokenResponse {
   std::shared_ptr<std::string> accesstoken;
 };
-/// Represents the get accesstoken request object.
+
 struct GetAccessTokenRequest {};
 
-// Configuration for access token endpoint.
 struct AccessTokenClientOptions {
   virtual ~AccessTokenClientOptions() = default;
   
@@ -37,20 +38,25 @@ struct AccessTokenClientOptions {
 
 class AccessTokenClientFactory {
  public:
-  // Constructor that accepts AccessTokenClientOptions
-  explicit AccessTokenClientFactory(
-      const AccessTokenClientOptions& options) noexcept;
+  AccessTokenClientFactory(
+      const AccessTokenClientOptions& options,
+      std::shared_ptr<google::scp::core::HttpClientInterface> http_client) noexcept;
 
   static std::unique_ptr<AccessTokenClientFactory> Create(
-      const AccessTokenClientOptions& options) noexcept;
-  
-  // Method to get access token
-  std::string GetAccessToken();
-  
- private:
-  AccessTokenClientOptions options_;  // Member variable to store the options
-};
+      const AccessTokenClientOptions& options,
+      std::shared_ptr<google::scp::core::HttpClientInterface> http_client) noexcept;
 
+  std::tuple<google::scp::core::ExecutionResult, std::string, int> MakeRequest(
+    const std::string& url,
+    google::scp::core::HttpMethod method = google::scp::core::HttpMethod::GET, 
+    const absl::btree_multimap<std::string, std::string>& headers = {});
+
+  std::string GetAccessToken();
+
+ private:
+  AccessTokenClientOptions options_;
+  std::shared_ptr<google::scp::core::HttpClientInterface> http_client_;
+};
 }  // namespace server_common::privacy_sandbox
 
 #endif  // SRC_CPP_ACCESSTOKEN_FETCHER_FACTORY_H_

@@ -25,6 +25,8 @@ cc_library(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/random",
         "@com_google_absl//absl/strings:str_format",
+        "@google_privacysandbox_servers_common//src/cpp/concurrent:executor",
+        "//scp/cc/core/curl_client/src:http1_curl_client_lib",
         "//scp/cc/public/core/interface:errors"
     ],
 )
