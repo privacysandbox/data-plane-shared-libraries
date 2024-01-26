@@ -25,7 +25,6 @@
 #include "absl/container/flat_hash_map.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/worker/src/worker_utils.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;
@@ -68,36 +67,41 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
     std::string_view code, const std::vector<absl::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     absl::Span<const uint8_t> wasm) {
-  auto request_type_or =
-      WorkerUtils::GetValueFromMetadata(metadata, kRequestType);
-  RETURN_IF_FAILURE(request_type_or.result());
+  auto request_type_it = metadata.find(kRequestType);
+  if (request_type_it == metadata.end()) {
+    return FailureExecutionResult(SC_ROMA_WORKER_MISSING_METADATA_ITEM);
+  }
+  std::string_view request_type = request_type_it->second;
 
-  ROMA_VLOG(2) << "Worker executing request with code type of "
-               << *request_type_or;
+  ROMA_VLOG(2) << "Worker executing request with code type of " << request_type;
 
-  auto code_version_or =
-      WorkerUtils::GetValueFromMetadata(metadata, kCodeVersion);
-  RETURN_IF_FAILURE(code_version_or.result());
+  auto code_version_it = metadata.find(kCodeVersion);
+  if (code_version_it == metadata.end()) {
+    return FailureExecutionResult(SC_ROMA_WORKER_MISSING_METADATA_ITEM);
+  }
+  std::string code_version = std::string(code_version_it->second);
 
   ROMA_VLOG(2) << "Worker executing request with code version of "
-               << *code_version_or;
+               << code_version;
 
-  auto action_or = WorkerUtils::GetValueFromMetadata(metadata, kRequestAction);
-  RETURN_IF_FAILURE(action_or.result());
+  auto action_it = metadata.find(kRequestAction);
+  if (action_it == metadata.end()) {
+    return FailureExecutionResult(SC_ROMA_WORKER_MISSING_METADATA_ITEM);
+  }
+  std::string_view action = action_it->second;
 
-  ROMA_VLOG(2) << "Worker executing request with action of " << *action_or;
+  ROMA_VLOG(2) << "Worker executing request with action of " << action;
 
-  std::string handler_name = "";
-  auto handler_name_or =
-      WorkerUtils::GetValueFromMetadata(metadata, kHandlerName);
+  std::string_view handler_name = "";
+  auto handler_name_it = metadata.find(kHandlerName);
 
   // If we read the handler name successfully, let's store it.
   // Else if we didn't read it and the request is not a load request,
   // then return the failure.
-  if (handler_name_or.result().Successful()) {
-    handler_name = *handler_name_or;
-  } else if (*action_or != kRequestActionLoad) {
-    return handler_name_or.result();
+  if (handler_name_it != metadata.end()) {
+    handler_name = handler_name_it->second;
+  } else if (action != kRequestActionLoad) {
+    return FailureExecutionResult(SC_ROMA_WORKER_MISSING_METADATA_ITEM);
   }
 
   ROMA_VLOG(2) << "Worker executing request with handler name " << handler_name;
@@ -106,8 +110,7 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
 
   // Only reuse the context if this is not a load request.
   // A load request for an existing version should overwrite the given version.
-  const std::string code_version(*code_version_or);
-  if (*action_or != kRequestActionLoad) {
+  if (action != kRequestActionLoad) {
     // To support `require_preload_` we must perform a double lookup.
     absl::MutexLock l(&cache_mu_);
     if (require_preload_ && !compilation_contexts_.Contains(code_version)) {
@@ -122,19 +125,19 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
   }
 
   core::ExecutionResultOr<JsEngineExecutionResponse> response_or;
-  if (*request_type_or == kRequestTypeJavascript) {
+  if (request_type == kRequestTypeJavascript) {
     ROMA_VLOG(2) << "Worker executing request as JavaScript object";
 
     response_or = js_engine_->CompileAndRunJs(code, handler_name, input,
                                               metadata, context);
     RETURN_IF_FAILURE(response_or.result());
-  } else if (*request_type_or == kRequestTypeWasm) {
+  } else if (request_type == kRequestTypeWasm) {
     ROMA_VLOG(2) << "Worker executing request as WASM object";
 
     response_or = js_engine_->CompileAndRunWasm(code, handler_name, input,
                                                 metadata, context);
     RETURN_IF_FAILURE(response_or.result());
-  } else if (*request_type_or == kRequestTypeJavascriptWithWasm) {
+  } else if (request_type == kRequestTypeJavascriptWithWasm) {
     ROMA_VLOG(2) << "Worker executing request as JavaScript with WASM object";
 
     response_or = js_engine_->CompileAndRunJsWithWasm(code, wasm, handler_name,
@@ -144,7 +147,7 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
     return FailureExecutionResult(SC_ROMA_WORKER_REQUEST_TYPE_NOT_SUPPORTED);
   }
 
-  if (*action_or == kRequestActionLoad && response_or->compilation_context) {
+  if (action == kRequestActionLoad && response_or->compilation_context) {
     absl::MutexLock l(&cache_mu_);
     compilation_contexts_.Set(code_version, response_or->compilation_context);
     ROMA_VLOG(1) << "caching compilation context for version " << code_version;

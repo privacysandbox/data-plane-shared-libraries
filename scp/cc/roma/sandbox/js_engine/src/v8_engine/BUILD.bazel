@@ -91,7 +91,7 @@ cc_library(
         "//scp/cc/roma/sandbox/js_engine/src:roma_js_engine_lib",
         "//scp/cc/roma/sandbox/native_function_binding/src:cc_roma_rpc_wrapper",
         "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_binding_lib",
-        "//scp/cc/roma/sandbox/worker/src:roma_worker_utils_lib",
+        "//scp/cc/roma/sandbox/worker/src:roma_worker_lib",
         "//scp/cc/roma/wasm/src:roma_wasm_lib",
         "//scp/cc/roma/worker/src:execution_watchdog_lib",
         "//scp/cc/roma/worker/src:roma_execution_utils_lib",

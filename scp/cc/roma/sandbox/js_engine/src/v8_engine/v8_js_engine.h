@@ -31,7 +31,6 @@
 #include "roma/sandbox/js_engine/src/js_engine.h"
 #include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
 #include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_wrapper.h"
-#include "roma/sandbox/worker/src/worker_utils.h"
 #include "roma/worker/src/execution_utils.h"
 #include "roma/worker/src/execution_watchdog.h"
 

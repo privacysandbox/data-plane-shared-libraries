@@ -35,7 +35,7 @@
 #include "roma/config/src/type_converter.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/worker/src/worker_utils.h"
+#include "roma/sandbox/worker/src/error_codes.h"
 #include "roma/worker/src/execution_utils.h"
 #include "src/cpp/util/duration.h"
 #include "src/debug/debug-interface.h"
@@ -77,7 +77,6 @@ using google::scp::roma::sandbox::js_engine::JsEngineExecutionResponse;
 using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::
     V8IsolateFunctionBinding;
-using google::scp::roma::sandbox::worker::WorkerUtils;
 using google::scp::roma::worker::ExecutionUtils;
 
 namespace {
@@ -232,18 +231,18 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
 
     // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(context);
-    auto wasm_code_array_name_or =
-        worker::WorkerUtils::GetValueFromMetadata(metadata, kWasmCodeArrayName);
-    if (!wasm_code_array_name_or.result().Successful()) {
-      LOG(ERROR) << "Get wasm code array name from metadata with error "
-                 << GetErrorMessage(
-                        wasm_code_array_name_or.result().status_code);
-      return wasm_code_array_name_or.result();
+    auto wasm_code_array_name_it = metadata.find(kWasmCodeArrayName);
+    if (wasm_code_array_name_it == metadata.end()) {
+      LOG(ERROR) << "Wasm code array name not found in metadata: "
+                 << kWasmCodeArrayName;
+      return FailureExecutionResult(
+          core::errors::SC_ROMA_WORKER_MISSING_METADATA_ITEM);
     }
+    std::string_view wasm_code_array_name = wasm_code_array_name_it->second;
 
-    v8::Local<v8::String> name = TypeConverter<std::string>::ToV8(
-                                     isolate, wasm_code_array_name_or.value())
-                                     .As<v8::String>();
+    v8::Local<v8::String> name =
+        TypeConverter<std::string>::ToV8(isolate, wasm_code_array_name)
+            .As<v8::String>();
     context->Global()->Set(
         context, name,
         TypeConverter<uint8_t*>::ToV8(isolate, wasm.data(), wasm.size()));
@@ -320,14 +319,14 @@ void V8JsEngine::StartWatchdogTimer(
   // Get the timeout value from metadata. If no timeout tag is set, the
   // default value kDefaultExecutionTimeout will be used.
   auto timeout_ms = kDefaultExecutionTimeout;
-  auto timeout_str_or =
-      WorkerUtils::GetValueFromMetadata(metadata, kTimeoutDurationTag);
-  if (timeout_str_or.result().Successful()) {
-    if (absl::Duration t; absl::ParseDuration(timeout_str_or.value(), &t)) {
+  auto timeout_str_it = metadata.find(kTimeoutDurationTag);
+  if (timeout_str_it != metadata.end()) {
+    std::string_view timeout_str = timeout_str_it->second;
+    if (absl::Duration t; absl::ParseDuration(timeout_str, &t)) {
       timeout_ms = t;
     } else {
       LOG(ERROR) << "Timeout tag parsing with error: Could not convert timeout "
-                    "tag to absl::Duration.";
+                    "tag to absl::Duration.  ";
     }
   }
   ROMA_VLOG(1) << "StartWatchdogTimer timeout set to " << timeout_ms << " ms";
