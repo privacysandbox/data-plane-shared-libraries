@@ -35,21 +35,15 @@
 
 #include "error_codes.h"
 
-struct V8WorkerEngineParams {
-  int native_js_function_comms_fd;
-  std::vector<std::string> native_js_function_names;
-  google::scp::roma::JsEngineResourceConstraints resource_constraints;
-  size_t max_wasm_memory_number_of_pages;
-  bool require_preload = true;
-  size_t compilation_context_cache_size;
-};
+// All of the types used for these functions, that're wrapped by SAPI, must be
+// C types and cannot be complex C++ types.
 
 extern "C" google::scp::core::StatusCode InitFromSerializedData(
     sapi::LenValStruct* data);
 
 extern "C" google::scp::core::StatusCode Run();
 
-extern "C" google::scp::core::StatusCode Stop();
+extern "C" SapiStatusCode Stop();
 
 /// @brief The sandbox API, which is used to execute all requests, has two data
 /// sharing mechanisms:

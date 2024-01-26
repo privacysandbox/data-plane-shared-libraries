@@ -45,9 +45,24 @@ sapi_proto_library(
 )
 
 cc_library(
+    name = "error_codes",
+    srcs = [
+        "error_codes.cc",
+    ],
+    hdrs = [
+        "error_codes.h",
+    ],
+    deps = [
+        "//scp/cc:cc_base_include_dir",
+        "//scp/cc/roma/config/src:roma_config_lib",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
     name = "roma_worker_wrapper_lib",
     srcs = [
-        "error_codes.h",
         "worker_wrapper.cc",
         "worker_wrapper.h",
     ],
@@ -55,6 +70,7 @@ cc_library(
         "-Wno-deprecated-declarations",
     ],
     deps = [
+        ":error_codes",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
         "//scp/cc:cc_base_include_dir",
@@ -95,13 +111,13 @@ sapi_library(
 cc_library(
     name = "roma_worker_sandbox_api_lib",
     srcs = [
-        "error_codes.h",
         "worker_sandbox_api.cc",
     ],
     hdrs = [
         "worker_sandbox_api.h",
     ],
     deps = [
+        ":error_codes",
         ":roma_worker_wrapper_lib-sapi",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",

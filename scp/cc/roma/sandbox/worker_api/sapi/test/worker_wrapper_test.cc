@@ -102,8 +102,7 @@ TEST(WorkerWrapperTest,
                                             output_serialized_size_ptr));
   EXPECT_THAT(response_proto.response(), StrEq(R"js("Hi there from JS :)")js"));
 
-  result = ::Stop();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
 // Function object which invokes 'free' on its parameter, which must be
@@ -168,8 +167,7 @@ TEST(WorkerWrapperTest,
                                             output_serialized_size_ptr));
   EXPECT_THAT(response_proto.response(), StrEq(R"js("Hi there from JS :)")js"));
 
-  result = ::Stop();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
 TEST(WorkerWrapperTest, OverSizeResponseSharedWithLenValStruct) {
@@ -218,8 +216,7 @@ TEST(WorkerWrapperTest, OverSizeResponseSharedWithLenValStruct) {
   ::worker_api::WorkerParamsProto response_proto;
   ASSERT_TRUE(response_proto.ParseFromArray(sapi_worker_params.data,
                                             sapi_worker_params.size));
-  result = ::Stop();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
 TEST(WorkerWrapperTest, CanRunCodeWithBufferShareOnly) {
@@ -259,8 +256,7 @@ TEST(WorkerWrapperTest, CanRunCodeWithBufferShareOnly) {
                                             output_serialized_size_ptr));
   EXPECT_THAT(response_proto.response(), StrEq(R"js("Hi there from JS :)")js"));
 
-  result = ::Stop();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
 TEST(WorkerWrapperTest,
@@ -301,8 +297,7 @@ TEST(WorkerWrapperTest,
   EXPECT_EQ(SC_ROMA_WORKER_API_RESPONSE_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY,
             result);
 
-  result = ::Stop();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
 TEST(WorkerWrapperTest, FailsToRunCodeWhenPreloadIsRequiredAndExecuteIsSent) {
@@ -341,7 +336,6 @@ TEST(WorkerWrapperTest, FailsToRunCodeWhenPreloadIsRequiredAndExecuteIsSent) {
                                        &output_serialized_size_ptr);
   EXPECT_NE(SC_OK, result);
 
-  result = ::Stop();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 }  // namespace google::scp::roma::sandbox::worker_api::test

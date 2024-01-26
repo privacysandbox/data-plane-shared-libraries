@@ -219,8 +219,8 @@ absl::Status WorkerSandboxApi::Stop() noexcept {
                << status_or.status().message();
     // The worker had already died so nothing to stop
     return absl::OkStatus();
-  } else if (*status_or != SC_OK) {
-    return absl::InternalError(GetErrorMessage(*status_or));
+  } else if (*status_or != SapiStatusCode::kOk) {
+    return SapiStatusCodeToAbslStatus(static_cast<int>(*status_or));
   }
 
   worker_sapi_sandbox_->Terminate(/*attempt_graceful_exit=*/false);

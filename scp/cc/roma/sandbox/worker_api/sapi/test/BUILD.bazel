@@ -34,6 +34,7 @@ cc_test(
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/sandbox/worker_api/sapi/src:error_codes",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_sandbox_api_lib",
         "@com_google_googletest//:gtest_main",
     ],

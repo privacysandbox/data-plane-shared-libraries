@@ -17,8 +17,28 @@
 #ifndef ROMA_SANDBOX_WORKER_API_SAPI_SRC_ERROR_CODES_H_
 #define ROMA_SANDBOX_WORKER_API_SAPI_SRC_ERROR_CODES_H_
 
+#include "absl/status/status.h"
 #include "core/interface/errors.h"
 #include "public/core/interface/execution_result.h"
+
+// It would be preferable to pass an absl::Status in and out of SAPI, but that's
+// a C++ type and SAPI only allows simple C types.
+//
+// We could pass an absl::StatusCode, as that's an enum/int, but that would
+// lose the details about exactly what caused the error as there are relatively
+// few types of canonical ABSL errors.
+//
+// So we have a custom enum with all of the detailed error types and a
+// conversion back to absl::Status.
+enum class SapiStatusCode : int {
+  kOk = 0,
+  kUninitializedWorker = 1,
+};
+
+// Convert the status code enum value into an absl::Status, with a message.
+// SAPI changes the namespace that the enum uses and so it's easier to convert
+// it to an int and pass that around instead.
+absl::Status SapiStatusCodeToAbslStatus(int int_status_code);
 
 namespace google::scp::core::errors {
 REGISTER_COMPONENT_CODE(SC_ROMA_WORKER_API, 0x0B00)

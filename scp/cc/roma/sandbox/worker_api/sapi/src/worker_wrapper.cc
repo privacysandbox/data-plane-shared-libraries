@@ -66,6 +66,16 @@ using google::scp::roma::sandbox::worker::Worker;
 using sandbox2::Buffer;
 
 namespace {
+
+struct V8WorkerEngineParams {
+  int native_js_function_comms_fd;
+  std::vector<std::string> native_js_function_names;
+  google::scp::roma::JsEngineResourceConstraints resource_constraints;
+  size_t max_wasm_memory_number_of_pages;
+  bool require_preload = true;
+  size_t compilation_context_cache_size;
+};
+
 // the pointer of the data shared sandbox2::Buffer which is used to share
 // data between the host process and the sandboxee.
 std::unique_ptr<Buffer> sandbox_data_shared_buffer_ptr_{nullptr};
@@ -216,13 +226,13 @@ StatusCode Run() {
   return SC_OK;
 }
 
-StatusCode Stop() {
+SapiStatusCode Stop() {
   if (!worker_) {
-    return SC_ROMA_WORKER_API_UNINITIALIZED_WORKER;
+    return SapiStatusCode::kUninitializedWorker;
   }
   worker_->Stop();
   worker_.reset();
-  return SC_OK;
+  return SapiStatusCode::kOk;
 }
 
 inline void ClearInputFields(worker_api::WorkerParamsProto& params) {
