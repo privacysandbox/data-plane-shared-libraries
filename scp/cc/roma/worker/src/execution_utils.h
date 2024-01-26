@@ -204,11 +204,6 @@ class ExecutionUtils {
   static core::ExecutionResult V8PromiseHandler(v8::Isolate* isolate,
                                                 v8::Local<v8::Value>& result,
                                                 std::string& err_msg);
-
- private:
-  static core::ExecutionResult CreatePerformanceNow(v8::Isolate* isolate);
-  static core::ExecutionResult CreateNativeLogFunctions(v8::Isolate* isolate);
-  static core::ExecutionResult CreateWasmLogFunctions(v8::Isolate* isolate);
 };
 }  // namespace google::scp::roma::worker
 
