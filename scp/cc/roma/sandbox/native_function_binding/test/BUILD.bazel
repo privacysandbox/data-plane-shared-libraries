@@ -53,3 +53,15 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "thread_safe_map_test",
+    size = "small",
+    srcs = ["thread_safe_map_test.cc"],
+    deps = [
+        "//scp/cc/roma/sandbox/native_function_binding/src:thread_safe_map",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

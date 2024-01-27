@@ -217,13 +217,13 @@ class RomaService {
     return absl::OkStatus();
   }
 
-  void RegisterMetadata(std::string uuid, TMetadata metadata) {
-    native_function_binding_handler_->StoreMetadataAndMutex(
-        std::move(uuid), std::move(metadata));
+  absl::Status StoreMetadata(std::string uuid, TMetadata metadata) {
+    return native_function_binding_handler_->StoreMetadata(std::move(uuid),
+                                                           std::move(metadata));
   }
 
   void DeleteMetadata(std::string_view uuid) {
-    native_function_binding_handler_->DeleteMetadataAndMutex(uuid);
+    native_function_binding_handler_->DeleteMetadata(uuid);
   }
 
   struct NativeFunctionBindingSetup {
@@ -364,14 +364,14 @@ class RomaService {
 
     auto callback_ptr = std::make_unique<Callback>(std::move(callback));
     Callback callback_wrapper =
-        [&, uuid_str, callback_ptr = std::move(callback_ptr)](
+        [this, uuid_str, callback_ptr = std::move(callback_ptr)](
             std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
           (*callback_ptr)(std::move(resp));
           DeleteMetadata(uuid_str);
         };
 
-    RegisterMetadata(std::move(uuid_str), std::move(invocation_req->metadata));
-
+    PS_RETURN_IF_ERROR(StoreMetadata(std::move(uuid_str),
+                                     std::move(invocation_req->metadata)));
     return dispatcher_->Dispatch(std::move(invocation_req),
                                  std::move(callback_wrapper));
   }
@@ -392,7 +392,8 @@ class RomaService {
       request.tags.insert(
           {std::string(google::scp::roma::sandbox::constants::kRequestUuid),
            uuid_str});
-      RegisterMetadata(std::move(uuid_str), std::move(request.metadata));
+      PS_RETURN_IF_ERROR(
+          StoreMetadata(std::move(uuid_str), std::move(request.metadata)));
     }
 
     auto callback_ptr =

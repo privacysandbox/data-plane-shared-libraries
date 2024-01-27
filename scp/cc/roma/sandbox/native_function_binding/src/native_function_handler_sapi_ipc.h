@@ -25,14 +25,14 @@
 #include <utility>
 #include <vector>
 
-#include "absl/container/node_hash_map.h"
-#include "absl/log/check.h"
+#include "absl/status/statusor.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
 #include "sandboxed_api/sandbox2/comms.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 #include "native_function_table.h"
+#include "thread_safe_map.h"
 
 using google::scp::roma::sandbox::constants::kRequestId;
 using google::scp::roma::sandbox::constants::kRequestUuid;
@@ -41,6 +41,10 @@ inline constexpr std::string_view kFailedNativeHandlerExecution =
     "ROMA: Failed to execute the C++ function.";
 inline constexpr std::string_view kCouldNotFindFunctionName =
     "ROMA: Could not find C++ function by name.";
+inline constexpr std::string_view kCouldNotFindMetadata =
+    "ROMA: Could not find metadata associated with C++ function.";
+inline constexpr std::string_view kCouldNotFindMutex =
+    "ROMA: Could not find mutex for metadata associated with C++ function.";
 
 namespace google::scp::roma::sandbox::native_function_binding {
 
@@ -92,11 +96,22 @@ class NativeFunctionHandlerSapiIpc {
           // Get function name
           if (const auto function_name = wrapper_proto.function_name();
               !function_name.empty()) {
-            auto& mutex = GetMutex(invocation_req_uuid);
-            absl::MutexLock lock(&mutex);
-            if (FunctionBindingPayload<TMetadata> wrapper{
-                    *io_proto, GetMetadata(invocation_req_uuid)};
-                !function_table_->Call(function_name, wrapper).ok()) {
+            if (auto reader = ScopedValueReader<TMetadata>::Create(
+                    metadata_map_, invocation_req_uuid);
+                !reader.ok()) {
+              // If mutex can't be found, add errors to the proto to return
+              io_proto->mutable_errors()->Add(std::string(kCouldNotFindMutex));
+              ROMA_VLOG(1) << kCouldNotFindMutex;
+            } else if (auto value = reader->Get(); !value.ok()) {
+              // If metadata can't be found, add errors to the proto to return
+              io_proto->mutable_errors()->Add(
+                  std::string(kCouldNotFindMetadata));
+              ROMA_VLOG(1) << kCouldNotFindMetadata;
+            } else if (FunctionBindingPayload<TMetadata> wrapper{
+                           *io_proto,
+                           **value,
+                       };
+                       !function_table_->Call(function_name, wrapper).ok()) {
               // If execution failed, add errors to the proto to return
               io_proto->mutable_errors()->Add(
                   std::string(kFailedNativeHandlerExecution));
@@ -138,39 +153,11 @@ class NativeFunctionHandlerSapiIpc {
     }
   }
 
-  void StoreMetadata(std::string uuid, TMetadata metadata)
-      ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
-    absl::MutexLock lock(&metadata_map_mutex_);
-    CHECK(metadata_.find(uuid) == metadata_.end());
-    metadata_.emplace(uuid, std::move(metadata));
+  absl::Status StoreMetadata(std::string uuid, TMetadata metadata) {
+    return metadata_map_.Add(std::move(uuid), std::move(metadata));
   }
 
-  void StoreMetadataAndMutex(std::string uuid, TMetadata metadata)
-      ABSL_LOCKS_EXCLUDED(mutex_map_mutex_) {
-    StoreMetadata(uuid, std::move(metadata));
-    absl::MutexLock mu_lock(&mutex_map_mutex_);
-    mutex_map_[uuid];
-  }
-
-  void DeleteMetadata(std::string_view uuid)
-      ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
-    absl::MutexLock lock(&metadata_map_mutex_);
-    auto metadata_it = metadata_.find(uuid);
-    CHECK(metadata_it != metadata_.end());
-    metadata_.erase(metadata_it);
-  }
-
-  void DeleteMetadataAndMutex(std::string_view uuid)
-      ABSL_LOCKS_EXCLUDED(mutex_map_mutex_) {
-    absl::MutexLock mu_lock(&mutex_map_mutex_);
-    auto mutex_it = mutex_map_.find(uuid);
-    CHECK(mutex_it != mutex_map_.end());
-    {
-      absl::MutexLock lock(&mutex_it->second);
-      DeleteMetadata(uuid);
-    }
-    mutex_map_.erase(mutex_it);
-  }
+  void DeleteMetadata(std::string_view uuid) { metadata_map_.Delete(uuid); }
 
  private:
   std::atomic<bool> stop_;
@@ -181,29 +168,8 @@ class NativeFunctionHandlerSapiIpc {
   // We need the remote file descriptors to unblock the local ones when stopping
   std::vector<int> remote_fds_;
 
-  const TMetadata& GetMetadata(std::string_view uuid)
-      ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
-    absl::MutexLock lock(&metadata_map_mutex_);
-    const auto metadata_it = metadata_.find(uuid);
-    CHECK(metadata_it != metadata_.end()) << "Metadata could not be found";
-    return metadata_it->second;
-  }
-
-  absl::Mutex& GetMutex(std::string_view uuid)
-      ABSL_LOCKS_EXCLUDED(mutex_map_mutex_) {
-    absl::MutexLock lock(&mutex_map_mutex_);
-    const auto mutex_it = mutex_map_.find(uuid);
-    CHECK(mutex_it != mutex_map_.end()) << "Mutex could not be found";
-    return mutex_it->second;
-  }
-
   // Map of invocation request uuid to associated metadata.
-  absl::node_hash_map<std::string, TMetadata> metadata_
-      ABSL_GUARDED_BY(metadata_map_mutex_);
-  absl::node_hash_map<std::string, absl::Mutex> mutex_map_
-      ABSL_GUARDED_BY(mutex_map_mutex_);
-  absl::Mutex metadata_map_mutex_;
-  absl::Mutex mutex_map_mutex_;
+  ThreadSafeMap<TMetadata> metadata_map_;
 };
 
 }  // namespace google::scp::roma::sandbox::native_function_binding

@@ -41,6 +41,22 @@ cc_library(
 )
 
 cc_library(
+    name = "thread_safe_map",
+    hdrs = [
+        "thread_safe_map.h",
+    ],
+    deps = [
+        "//scp/cc:cc_base_include_dir",
+        "//src/cpp/util/status_macro:status_macros",
+        "@com_google_absl//absl/container:node_hash_map",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
     name = "roma_native_function_invoker_sapi_ipc_lib",
     srcs = [
         "native_function_invoker_sapi_ipc.cc",
@@ -68,6 +84,7 @@ cc_library(
     ],
     deps = [
         ":cc_roma_rpc_wrapper",
+        ":thread_safe_map",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/public/core/interface:execution_result",
@@ -75,7 +92,6 @@ cc_library(
         "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
         "//scp/cc/roma/logging/src:roma_logging_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
-        "@com_google_absl//absl/container:node_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
         "@com_google_sandboxed_api//sandboxed_api:sapi",
