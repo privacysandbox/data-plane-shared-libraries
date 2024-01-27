@@ -218,12 +218,12 @@ class RomaService {
   }
 
   void RegisterMetadata(std::string uuid, TMetadata metadata) {
-    native_function_binding_handler_->StoreMetadata(std::move(uuid),
-                                                    std::move(metadata));
+    native_function_binding_handler_->StoreMetadataAndMutex(
+        std::move(uuid), std::move(metadata));
   }
 
   void DeleteMetadata(std::string_view uuid) {
-    native_function_binding_handler_->DeleteMetadata(uuid);
+    native_function_binding_handler_->DeleteMetadataAndMutex(uuid);
   }
 
   struct NativeFunctionBindingSetup {

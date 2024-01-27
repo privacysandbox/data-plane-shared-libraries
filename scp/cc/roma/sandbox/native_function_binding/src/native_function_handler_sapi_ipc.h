@@ -92,7 +92,8 @@ class NativeFunctionHandlerSapiIpc {
           // Get function name
           if (const auto function_name = wrapper_proto.function_name();
               !function_name.empty()) {
-            metadata_map_mutex_.ReaderLock();
+            auto& mutex = GetMutex(invocation_req_uuid);
+            absl::MutexLock lock(&mutex);
             if (FunctionBindingPayload<TMetadata> wrapper{
                     *io_proto, GetMetadata(invocation_req_uuid)};
                 !function_table_->Call(function_name, wrapper).ok()) {
@@ -101,7 +102,6 @@ class NativeFunctionHandlerSapiIpc {
                   std::string(kFailedNativeHandlerExecution));
               ROMA_VLOG(1) << kFailedNativeHandlerExecution;
             }
-            metadata_map_mutex_.ReaderUnlock();
           } else {
             // If we can't find the function, add errors to the proto to return
             io_proto->mutable_errors()->Add(
@@ -140,18 +140,36 @@ class NativeFunctionHandlerSapiIpc {
 
   void StoreMetadata(std::string uuid, TMetadata metadata)
       ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
-    metadata_map_mutex_.WriterLock();
+    absl::MutexLock lock(&metadata_map_mutex_);
     CHECK(metadata_.find(uuid) == metadata_.end());
-    metadata_.emplace(std::move(uuid), std::move(metadata));
-    metadata_map_mutex_.WriterUnlock();
+    metadata_.emplace(uuid, std::move(metadata));
+  }
+
+  void StoreMetadataAndMutex(std::string uuid, TMetadata metadata)
+      ABSL_LOCKS_EXCLUDED(mutex_map_mutex_) {
+    StoreMetadata(uuid, std::move(metadata));
+    absl::MutexLock mu_lock(&mutex_map_mutex_);
+    mutex_map_[uuid];
   }
 
   void DeleteMetadata(std::string_view uuid)
       ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
-    metadata_map_mutex_.WriterLock();
-    CHECK(metadata_.find(uuid) != metadata_.end());
-    metadata_.erase(uuid);
-    metadata_map_mutex_.WriterUnlock();
+    absl::MutexLock lock(&metadata_map_mutex_);
+    auto metadata_it = metadata_.find(uuid);
+    CHECK(metadata_it != metadata_.end());
+    metadata_.erase(metadata_it);
+  }
+
+  void DeleteMetadataAndMutex(std::string_view uuid)
+      ABSL_LOCKS_EXCLUDED(mutex_map_mutex_) {
+    absl::MutexLock mu_lock(&mutex_map_mutex_);
+    auto mutex_it = mutex_map_.find(uuid);
+    CHECK(mutex_it != mutex_map_.end());
+    {
+      absl::MutexLock lock(&mutex_it->second);
+      DeleteMetadata(uuid);
+    }
+    mutex_map_.erase(mutex_it);
   }
 
  private:
@@ -165,15 +183,27 @@ class NativeFunctionHandlerSapiIpc {
 
   const TMetadata& GetMetadata(std::string_view uuid)
       ABSL_LOCKS_EXCLUDED(metadata_map_mutex_) {
+    absl::MutexLock lock(&metadata_map_mutex_);
     const auto metadata_it = metadata_.find(uuid);
     CHECK(metadata_it != metadata_.end()) << "Metadata could not be found";
     return metadata_it->second;
   }
 
+  absl::Mutex& GetMutex(std::string_view uuid)
+      ABSL_LOCKS_EXCLUDED(mutex_map_mutex_) {
+    absl::MutexLock lock(&mutex_map_mutex_);
+    const auto mutex_it = mutex_map_.find(uuid);
+    CHECK(mutex_it != mutex_map_.end()) << "Mutex could not be found";
+    return mutex_it->second;
+  }
+
   // Map of invocation request uuid to associated metadata.
-  absl::node_hash_map<std::string, const TMetadata> metadata_
+  absl::node_hash_map<std::string, TMetadata> metadata_
       ABSL_GUARDED_BY(metadata_map_mutex_);
+  absl::node_hash_map<std::string, absl::Mutex> mutex_map_
+      ABSL_GUARDED_BY(mutex_map_mutex_);
   absl::Mutex metadata_map_mutex_;
+  absl::Mutex mutex_map_mutex_;
 };
 
 }  // namespace google::scp::roma::sandbox::native_function_binding
