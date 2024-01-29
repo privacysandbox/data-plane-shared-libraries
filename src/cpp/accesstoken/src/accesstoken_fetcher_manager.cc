@@ -31,7 +31,8 @@ std::unique_ptr<AccessTokenClientFactory> AccessTokenClientFactory::Create(
 std::tuple<google::scp::core::ExecutionResult, std::string, int> AccessTokenClientFactory::MakeRequest(
     const std::string& url,
     google::scp::core::HttpMethod method, 
-    const absl::btree_multimap<std::string, std::string>& headers) {
+    const absl::btree_multimap<std::string, std::string>& headers,
+    std::string request_body) {
   auto request = std::make_shared<google::scp::core::HttpRequest>();
   request->method = method;
   request->path = std::make_shared<std::string>(url);
@@ -39,9 +40,12 @@ std::tuple<google::scp::core::ExecutionResult, std::string, int> AccessTokenClie
     request->headers =
         std::make_shared<google::scp::core::HttpHeaders>(headers);
   }
+  if (!request_body.empty()) { 
+    request->body = google::scp::core::BytesBuffer(request_body);
+  }
   google::scp::core::ExecutionResult context_result;
   absl::Notification finished;
-  std::string body = "";
+  std::string response_body = "";
   int status_code = 404;
   AsyncContext<google::scp::core::HttpRequest, google::scp::core::HttpResponse> context(
       std::move(request),
@@ -51,7 +55,7 @@ std::tuple<google::scp::core::ExecutionResult, std::string, int> AccessTokenClie
           status_code = static_cast<int>(context.response->code);
           if (status_code < 300) {
             const auto& bytes = *context.response->body.bytes;
-            body = std::string(bytes.begin(), bytes.end());
+            response_body = std::string(bytes.begin(), bytes.end());
           }
         }
         finished.Notify();
@@ -61,7 +65,7 @@ std::tuple<google::scp::core::ExecutionResult, std::string, int> AccessTokenClie
 
   finished.WaitForNotification();
 
-  return {context_result, body, status_code};
+  return {context_result, response_body, status_code};
 }
 
 std::string AccessTokenClientFactory::GetAccessToken() {

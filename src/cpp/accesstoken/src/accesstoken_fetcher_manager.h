@@ -49,7 +49,8 @@ class AccessTokenClientFactory {
   std::tuple<google::scp::core::ExecutionResult, std::string, int> MakeRequest(
     const std::string& url,
     google::scp::core::HttpMethod method = google::scp::core::HttpMethod::GET, 
-    const absl::btree_multimap<std::string, std::string>& headers = {});
+    const absl::btree_multimap<std::string, std::string>& headers = {},
+    std::string body = "");
 
   std::string GetAccessToken();
 
