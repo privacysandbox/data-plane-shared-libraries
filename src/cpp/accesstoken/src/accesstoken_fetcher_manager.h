@@ -33,7 +33,7 @@ struct AccessTokenClientOptions {
   AccessTokenServiceEndpoint endpoint;
   ClientApplicationId clientid;
   ClientSecret clientSecret;
-  ApiIdentifierUri apiUri;
+  ApiIdentifierUri apiApplicationId;
 };
 
 class AccessTokenClientFactory {
@@ -52,10 +52,10 @@ class AccessTokenClientFactory {
     const absl::btree_multimap<std::string, std::string>& headers = {},
     std::string body = "");
 
-  std::string GetAccessToken();
+  std::tuple<google::scp::core::ExecutionResult, std::string, int>  GetAccessToken();
 
  private:
-  AccessTokenClientOptions options_;
+  AccessTokenClientOptions tokenOptions_;
   std::shared_ptr<google::scp::core::HttpClientInterface> http_client_;
 };
 }  // namespace server_common::privacy_sandbox
