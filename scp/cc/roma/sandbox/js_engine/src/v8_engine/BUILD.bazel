@@ -27,16 +27,38 @@ cc_library(
 )
 
 cc_library(
+    name = "v8_isolate_function_binding",
+    srcs = [
+        "v8_isolate_function_binding.cc",
+    ],
+    hdrs = [
+        "v8_isolate_function_binding.h",
+    ],
+    deps = [
+        ":v8_isolate_wrapper",
+        "//scp/cc:cc_base_include_dir",
+        "//scp/cc/roma/config/src:roma_config_lib",
+        "//scp/cc/roma/logging/src:roma_logging_lib",
+        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/sandbox/native_function_binding/src:cc_roma_rpc_wrapper",
+        "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_binding_lib",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
     name = "roma_v8_js_engine_lib",
     srcs = [
         "error_codes.h",
         "snapshot_compilation_context.h",
-        "v8_isolate_function_binding.cc",
-        "v8_isolate_function_binding.h",
         "v8_js_engine.cc",
+    ],
+    hdrs = [
         "v8_js_engine.h",
     ],
     deps = [
+        ":v8_isolate_function_binding",
         ":v8_isolate_wrapper",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",

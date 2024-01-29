@@ -28,17 +28,6 @@
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
-#include "error_codes.h"
-
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::errors::
-    SC_ROMA_V8_ENGINE_COULD_NOT_REGISTER_FUNCTION_BINDING;
-using google::scp::core::errors::
-    SC_ROMA_V8_ISOLATE_VISITOR_FUNCTION_BINDING_EMPTY_CONTEXT;
-using google::scp::core::errors::
-    SC_ROMA_V8_ISOLATE_VISITOR_FUNCTION_BINDING_INVALID_ISOLATE;
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::proto::RpcWrapper;
 using google::scp::roma::sandbox::constants::kRequestId;
@@ -253,12 +242,11 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
   info.GetReturnValue().Set(returned_value);
 }
 
-ExecutionResult V8IsolateFunctionBinding::BindFunctions(
+bool V8IsolateFunctionBinding::BindFunctions(
     v8::Isolate* isolate,
     v8::Local<v8::ObjectTemplate>& global_object_template) noexcept {
   if (!isolate) {
-    return FailureExecutionResult(
-        SC_ROMA_V8_ISOLATE_VISITOR_FUNCTION_BINDING_INVALID_ISOLATE);
+    return false;
   }
   for (auto& binding_ref : binding_references_) {
     // Store a pointer to this V8IsolateFunctionBinding instance
@@ -275,7 +263,7 @@ ExecutionResult V8IsolateFunctionBinding::BindFunctions(
   }
 
   CreateGlobalRomaObject(isolate, global_object_template);
-  return SuccessExecutionResult();
+  return true;
 }
 
 void V8IsolateFunctionBinding::CreateGlobalRomaObject(

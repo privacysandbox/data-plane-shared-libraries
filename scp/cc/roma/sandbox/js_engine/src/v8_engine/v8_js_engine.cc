@@ -723,9 +723,12 @@ ExecutionResult V8JsEngine::CreateV8Context(v8::Isolate* isolate,
   v8::Local<v8::ObjectTemplate> global_object_template =
       v8::ObjectTemplate::New(isolate);
   if (isolate_function_binding_) {
-    const auto result = isolate_function_binding_->BindFunctions(
-        isolate, global_object_template);
-    RETURN_IF_FAILURE(result);
+    if (!isolate_function_binding_->BindFunctions(isolate,
+                                                  global_object_template)) {
+      return FailureExecutionResult(
+          core::errors::
+              SC_ROMA_V8_ISOLATE_VISITOR_FUNCTION_BINDING_INVALID_ISOLATE);
+    }
   }
   context = v8::Context::New(isolate, nullptr, global_object_template);
   return SuccessExecutionResult();

@@ -25,8 +25,6 @@
 #include "include/v8.h"
 #include "roma/sandbox/native_function_binding/src/native_function_invoker.h"
 
-#include "error_codes.h"
-
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 class V8IsolateFunctionBinding {
  public:
@@ -49,7 +47,8 @@ class V8IsolateFunctionBinding {
   V8IsolateFunctionBinding(const V8IsolateFunctionBinding&) = delete;
   V8IsolateFunctionBinding& operator=(const V8IsolateFunctionBinding&) = delete;
 
-  core::ExecutionResult BindFunctions(
+  // Returns success
+  bool BindFunctions(
       v8::Isolate* isolate,
       v8::Local<v8::ObjectTemplate>& global_object_template) noexcept;
 
