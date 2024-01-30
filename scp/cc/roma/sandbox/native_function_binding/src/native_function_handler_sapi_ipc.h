@@ -83,7 +83,7 @@ class NativeFunctionHandlerSapiIpc {
 
           // This unblocks once a call is issued from the other side
           const bool received = comms.RecvProtoBuf(&wrapper_proto);
-          if (stop_.load()) {
+          if (absl::MutexLock lock(&stop_mutex_); stop_) {
             break;
           }
           if (!received) {
@@ -132,7 +132,10 @@ class NativeFunctionHandlerSapiIpc {
   }
 
   void Stop() {
-    stop_.store(true);
+    {
+      absl::MutexLock lock(&stop_mutex_);
+      stop_ = true;
+    }
 
     // We write to the comms object so that we can unblock the function binding
     // threads waiting on it.
@@ -160,7 +163,8 @@ class NativeFunctionHandlerSapiIpc {
   void DeleteMetadata(std::string_view uuid) { metadata_map_.Delete(uuid); }
 
  private:
-  std::atomic<bool> stop_;
+  bool stop_ ABSL_GUARDED_BY(stop_mutex_);
+  absl::Mutex stop_mutex_;
 
   NativeFunctionTable<TMetadata>* function_table_;
   std::vector<std::thread> function_handler_threads_;
