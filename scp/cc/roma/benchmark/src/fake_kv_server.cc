@@ -68,12 +68,11 @@ std::string FakeKvServer::ExecuteCode(const std::vector<std::string> keys) {
   const auto status = roma_service_->Execute(
       std::make_unique<InvocationStrRequest<>>(invocation_request),
       [notification, response_status,
-       result](std::unique_ptr<absl::StatusOr<ResponseObject>> response) {
-        if (response->ok()) {
-          auto& code_response = **response;
-          *result = std::move(code_response.resp);
+       result](absl::StatusOr<ResponseObject> resp) {
+        if (resp.ok()) {
+          *result = std::move(resp->resp);
         } else {
-          response_status->Update(std::move(response->status()));
+          response_status->Update(std::move(resp.status()));
         }
         notification->Notify();
       });
@@ -98,10 +97,9 @@ void FakeKvServer::SetCodeObject(CodeConfig code_config) {
 
   absl::Status load_status = roma_service_->LoadCodeObj(
       std::make_unique<CodeObject>(code_object),
-      [notification,
-       response_status](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-        if (!resp->ok()) {
-          response_status->Update(std::move(resp->status()));
+      [notification, response_status](absl::StatusOr<ResponseObject> resp) {
+        if (!resp.ok()) {
+          response_status->Update(std::move(resp.status()));
         }
         notification->Notify();
       });

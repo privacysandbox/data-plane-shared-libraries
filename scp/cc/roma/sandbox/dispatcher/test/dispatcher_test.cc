@@ -73,44 +73,46 @@ TEST(DispatcherTest, CanRunCode) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
+  constexpr size_t max_pending_reqs = 100;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
-  auto load_request = std::make_unique<CodeObject>();
-  load_request->id = "some_id";
-  load_request->version_string = "v1";
-  load_request->js =
-      "function test(input) { return input + \" Some string\"; }";
+  auto load_request = std::make_unique<CodeObject>(CodeObject{
+      .id = "some_id",
+      .version_string = "v1",
+      .js = R"(function test(input) { return input + " Some string"; })",
+  });
 
   absl::Notification done_loading;
 
   ASSERT_TRUE(
       dispatcher
           .Dispatch(std::move(load_request),
-                    [&done_loading](
-                        std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
+                    [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                      EXPECT_TRUE(resp.ok());
                       done_loading.Notify();
                     })
           .ok());
 
   done_loading.WaitForNotification();
 
-  auto execute_request = std::make_unique<InvocationStrRequest<>>();
-  execute_request->id = "some_id";
-  execute_request->version_string = "v1";
-  execute_request->handler_name = "test";
-  execute_request->input.push_back(R"("Hello")");
+  auto execute_request =
+      std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+          .id = "some_id",
+          .version_string = "v1",
+          .handler_name = "test",
+          .input = {R"("Hello")"},
+      });
 
   absl::Notification done_executing;
 
   ASSERT_TRUE(
       dispatcher
           .Dispatch(std::move(execute_request),
-                    [&done_executing](
-                        std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
-                      EXPECT_THAT((*resp)->resp,
-                                  StrEq(R"("Hello Some string")"));
+                    [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                      EXPECT_TRUE(resp.ok());
+                      EXPECT_THAT(resp->resp, StrEq(R"("Hello Some string")"));
                       done_executing.Notify();
                     })
           .ok());
@@ -128,22 +130,24 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
+  constexpr size_t max_pending_reqs = 10;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
-  auto load_request = std::make_unique<CodeObject>();
-  load_request->id = "some_id";
-  load_request->version_string = "v1";
-  load_request->js =
-      "function test(input) { return input + \" Some string\"; }";
+  auto load_request = std::make_unique<CodeObject>(CodeObject{
+      .id = "some_id",
+      .version_string = "v1",
+      .js = "function test(input) { return input + \" Some string\"; }",
+  });
 
   absl::Notification done_loading;
 
   ASSERT_TRUE(
       dispatcher
           .Dispatch(std::move(load_request),
-                    [&done_loading](
-                        std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
+                    [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                      EXPECT_TRUE(resp.ok());
                       done_loading.Notify();
                     })
           .ok());
@@ -164,11 +168,9 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
   ASSERT_TRUE(
       dispatcher
           .Dispatch(std::move(execute_request),
-                    [&done_executing](
-                        std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
-                      EXPECT_THAT((*resp)->resp,
-                                  StrEq(R"("Hello Some string")"));
+                    [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                      EXPECT_TRUE(resp.ok());
+                      EXPECT_THAT(resp->resp, StrEq(R"("Hello Some string")"));
                       done_executing.Notify();
                     })
           .ok());
@@ -186,22 +188,25 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
+  constexpr size_t max_pending_reqs = 10;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
-  auto load_bad_js_request = std::make_unique<CodeObject>();
-  load_bad_js_request->id = "some_id";
-  load_bad_js_request->version_string = "v1";
-  // Bad JS
-  load_bad_js_request->js = "function test(input) { ";
+  auto load_bad_js_request = std::make_unique<CodeObject>(CodeObject{
+      .id = "some_id",
+      .version_string = "v1",
+      // Bad JS
+      .js = "function test(input) { ",
+  });
 
   absl::Notification done_loading;
   ASSERT_TRUE(
       dispatcher
           .Dispatch(std::move(load_bad_js_request),
-                    [&done_loading](
-                        std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                    [&done_loading](absl::StatusOr<ResponseObject> resp) {
                       // That didn't work
-                      EXPECT_FALSE(resp->ok());
+                      EXPECT_FALSE(resp.ok());
                       done_loading.Notify();
                     })
           .ok());
@@ -218,21 +223,25 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
+  constexpr size_t max_pending_reqs = 10;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
-  auto execute_request = std::make_unique<InvocationStrRequest<>>();
-  execute_request->id = "some_id";
-  execute_request->version_string = "v1";
-  execute_request->handler_name = "test";
-  execute_request->input.push_back(R"("Hello")");
+  auto execute_request =
+      std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+          .id = "some_id",
+          .version_string = "v1",
+          .handler_name = "test",
+          .input = {R"("Hello")"},
+      });
 
   absl::Notification done_executing;
   ASSERT_TRUE(
       dispatcher
           .Dispatch(std::move(execute_request),
-                    [&done_executing](
-                        std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_FALSE(resp->ok());
+                    [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                      EXPECT_FALSE(resp.ok());
                       done_executing.Notify();
                     })
           .ok());
@@ -252,20 +261,23 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
+  constexpr size_t max_pending_reqs = 100;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
-  auto load_request = std::make_unique<CodeObject>();
-  load_request->id = "some_id";
-  load_request->version_string = "v1";
-  load_request->js = R"(test = (s) => s + " Some string";)";
+  auto load_request = std::make_unique<CodeObject>(CodeObject{
+      .id = "some_id",
+      .version_string = "v1",
+      .js = R"(test = (s) => s + " Some string";)",
+  });
 
   absl::Notification done_loading;
   ASSERT_TRUE(
       dispatcher
           .Broadcast(std::move(load_request),
-                     [&done_loading](
-                         std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       EXPECT_TRUE(resp->ok());
+                     [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                       EXPECT_TRUE(resp.ok());
                        done_loading.Notify();
                      })
           .ok());
@@ -278,24 +290,25 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   constexpr int kRequestSent = kNumberOfWorkers * 3;
 
   for (int i = 0; i < kRequestSent; i++) {
-    auto execute_request = std::make_unique<InvocationStrRequest<>>();
-    execute_request->id = absl::StrCat("some_id", i);
-    execute_request->version_string = "v1";
-    execute_request->handler_name = "test";
-    execute_request->input.push_back(absl::StrCat(R"("Hello)", i, "\""));
+    auto execute_request =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = absl::StrCat("some_id", i),
+            .version_string = "v1",
+            .handler_name = "test",
+            .input = {absl::StrCat("\"Hello", i, "\"")},
+        });
 
-    ASSERT_TRUE(
-        dispatcher
-            .Dispatch(
-                std::move(execute_request),
-                [&, i](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  EXPECT_THAT((*resp)->resp,
-                              absl::StrCat(R"("Hello)", i, R"( Some string")"));
-                  absl::MutexLock l(&execution_count_mu);
-                  execution_count++;
-                })
-            .ok());
+    ASSERT_TRUE(dispatcher
+                    .Dispatch(std::move(execute_request),
+                              [&, i](absl::StatusOr<ResponseObject> resp) {
+                                EXPECT_TRUE(resp.ok());
+                                EXPECT_THAT(resp->resp,
+                                            absl::StrCat(R"("Hello)", i,
+                                                         R"( Some string")"));
+                                absl::MutexLock l(&execution_count_mu);
+                                execution_count++;
+                              })
+                    .ok());
   }
 
   {
@@ -321,22 +334,25 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
+  constexpr size_t max_pending_reqs = 100;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
-  auto load_bad_js_request = std::make_unique<CodeObject>();
-  load_bad_js_request->id = "some_id";
-  load_bad_js_request->version_string = "v1";
-  // Bad syntax
-  load_bad_js_request->js = "function test(s) { return";
+  auto load_bad_js_request = std::make_unique<CodeObject>(CodeObject{
+      .id = "some_id",
+      .version_string = "v1",
+      // Bad syntax
+      .js = "function test(s) { return",
+  });
 
   absl::Notification done_loading;
   ASSERT_TRUE(
       dispatcher
           .Broadcast(std::move(load_bad_js_request),
-                     [&done_loading](
-                         std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+                     [&done_loading](absl::StatusOr<ResponseObject> resp) {
                        // That failed
-                       EXPECT_FALSE(resp->ok());
+                       EXPECT_FALSE(resp.ok());
                        done_loading.Notify();
                      })
           .ok());
@@ -356,24 +372,26 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 100, 5);
+  constexpr size_t max_pending_reqs = 100;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
   {
-    auto load_request = std::make_unique<CodeObject>();
-    load_request->id = "some_id";
-    load_request->version_string = "v1";
-    load_request->js = R"(test = (s) => s + " Some string";)";
+    auto load_request = std::make_unique<CodeObject>(CodeObject{
+        .id = "some_id",
+        .version_string = "v1",
+        .js = R"(test = (s) => s + " Some string";)",
+    });
 
     absl::Notification done_loading;
     ASSERT_TRUE(
         dispatcher
-            .Broadcast(
-                std::move(load_request),
-                [&done_loading](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  done_loading.Notify();
-                })
+            .Broadcast(std::move(load_request),
+                       [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                         EXPECT_TRUE(resp.ok());
+                         done_loading.Notify();
+                       })
             .ok());
     done_loading.WaitForNotification();
   }
@@ -386,11 +404,12 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   absl::flat_hash_set<std::string> request_ids;
 
   for (int i = 0; i < kRequestSent; i++) {
-    auto execute_request = InvocationStrRequest<>();
-    execute_request.id = absl::StrCat("some_id", i);
-    execute_request.version_string = "v1";
-    execute_request.handler_name = "test";
-    execute_request.input.push_back(absl::StrCat(R"("Hello)", i, "\""));
+    InvocationStrRequest<> execute_request = {
+        .id = absl::StrCat("some_id", i),
+        .version_string = "v1",
+        .handler_name = "test",
+        .input = {"1"},
+    };
 
     // Keep track of the request ids
     request_ids.insert(execute_request.id);
@@ -398,16 +417,17 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   }
 
   absl::Notification finished_batch;
-  std::vector<absl::StatusOr<ResponseObject>> test_batch_response;
 
   ASSERT_TRUE(
       dispatcher
           .DispatchBatch(batch,
-                         [&finished_batch, &test_batch_response](
+                         [&finished_batch, &request_ids](
                              const std::vector<absl::StatusOr<ResponseObject>>&
                                  batch_response) {
                            for (auto& r : batch_response) {
-                             test_batch_response.push_back(r);
+                             EXPECT_TRUE(r.ok());
+                             // Remove the ids we see from the set
+                             request_ids.erase(r->id);
                            }
                            finished_batch.Notify();
                          })
@@ -415,15 +435,75 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
 
   finished_batch.WaitForNotification();
 
-  for (auto& r : test_batch_response) {
-    EXPECT_TRUE(r.ok());
-    // Remove the ids we see form the set
-    request_ids.erase(r->id);
-  }
-
   // Since we should have a gotten a response for all request ID, we expect all
   // the ids to have been removed from this set.
   EXPECT_TRUE(request_ids.empty());
+}
+
+TEST(DispatcherTest, DispatchBatchHandleFailedRequest) {
+  constexpr size_t kNumberOfWorkers = 5;
+  AsyncExecutor async_executor(kNumberOfWorkers, 100);
+
+  std::vector<WorkerApiSapiConfig> configs;
+  for (int i = 0; i < kNumberOfWorkers; i++) {
+    configs.push_back(CreateWorkerApiSapiConfig());
+  }
+
+  WorkerPoolApiSapi worker_pool(configs);
+  AutoInitRunStop for_async_executor(async_executor);
+  AutoInitRunStopStatus for_worker_pool(worker_pool);
+
+  constexpr size_t max_pending_reqs = 100;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
+
+  {
+    auto load_request = std::make_unique<CodeObject>(CodeObject{
+        .id = "some_id",
+        .version_string = "v1",
+        .js = R"(const test = (s) => s + " Some string";)",
+    });
+
+    absl::Notification done_loading;
+    ASSERT_TRUE(
+        dispatcher
+            .Broadcast(std::move(load_request),
+                       [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                         EXPECT_TRUE(resp.ok());
+                         done_loading.Notify();
+                       })
+            .ok());
+    done_loading.WaitForNotification();
+  }
+
+  constexpr int kRequestSent = 5;
+  std::vector<InvocationStrRequest<>> batch;
+  for (int i = 0; i < kRequestSent; i++) {
+    batch.push_back(InvocationStrRequest<>{
+        .id = absl::StrCat("some_id", i),
+        .version_string = "v1",
+        .handler_name = "invalidHandler",
+        .input = {"1"},
+    });
+  }
+
+  absl::Notification finished_batch;
+
+  ASSERT_TRUE(
+      dispatcher
+          .DispatchBatch(batch,
+                         [&finished_batch](
+                             const std::vector<absl::StatusOr<ResponseObject>>&
+                                 batch_response) {
+                           for (auto& r : batch_response) {
+                             EXPECT_FALSE(r.ok());
+                           }
+                           finished_batch.Notify();
+                         })
+          .ok());
+
+  finished_batch.WaitForNotification();
 }
 
 TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
@@ -437,14 +517,16 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool,
-                        100 /*max_pending_requests*/, 5 /*code_version_size*/);
+  constexpr size_t max_pending_reqs = 100;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
-  auto load_request = std::make_unique<CodeObject>();
-  load_request->id = "some_id";
-  load_request->version_string = "v1";
-  // Function that takes long so that queues will have items in it
-  load_request->js = R"""(
+  auto load_request = std::make_unique<CodeObject>(CodeObject{
+      .id = "some_id",
+      .version_string = "v1",
+      // Function that takes long so that queues will have items in it
+      .js = R"""(
     function sleep(milliseconds) {
       const date = Date.now();
       let currentDate = null;
@@ -457,16 +539,16 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
       sleep(2000);
       return "hello";
     }
-  )""";
+  )""",
+  });
 
   absl::Notification done_loading;
 
   ASSERT_TRUE(
       dispatcher
           .Broadcast(std::move(load_request),
-                     [&done_loading](
-                         std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                       EXPECT_TRUE(resp->ok());
+                     [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                       EXPECT_TRUE(resp.ok());
                        done_loading.Notify();
                      })
           .ok());
@@ -475,10 +557,11 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
 
   std::vector<InvocationStrRequest<>> batch;
   for (int i = 0; i < 2; i++) {
-    auto execute_request = InvocationStrRequest<>();
-    execute_request.id = absl::StrCat("some_id", i);
-    execute_request.version_string = "v1";
-    execute_request.handler_name = "takes_long";
+    InvocationStrRequest<> execute_request = {
+        .id = absl::StrCat("some_id", i),
+        .version_string = "v1",
+        .handler_name = "takes_long",
+    };
     batch.push_back(execute_request);
   }
 
@@ -519,7 +602,10 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
+  constexpr size_t max_pending_reqs = 10;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
   {
     auto load_request = std::make_unique<CodeObject>();
@@ -530,36 +616,35 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
     absl::Notification done_loading;
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(load_request),
-                [&done_loading](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  done_loading.Notify();
-                })
+            .Dispatch(std::move(load_request),
+                      [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                        EXPECT_TRUE(resp.ok());
+                        done_loading.Notify();
+                      })
             .ok());
 
     done_loading.WaitForNotification();
   }
 
   {
-    auto execute_request = std::make_unique<InvocationStrRequest<>>();
-    execute_request->id = "some_id";
-    execute_request->version_string = "v1";
-    execute_request->handler_name = "test";
-    execute_request->input.push_back(R"("Hello")");
+    auto execute_request =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "some_id",
+            .version_string = "v1",
+            .handler_name = "test",
+            .input = {R"("Hello")"},
+        });
 
     absl::Notification done_executing;
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(execute_request),
-                [&done_executing](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  EXPECT_THAT((*resp)->resp, StrEq(R"("Hello Some string")"));
-                  done_executing.Notify();
-                })
+            .Dispatch(std::move(execute_request),
+                      [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                        EXPECT_TRUE(resp.ok());
+                        EXPECT_THAT(resp->resp,
+                                    StrEq(R"("Hello Some string")"));
+                        done_executing.Notify();
+                      })
             .ok());
     done_executing.WaitForNotification();
   }
@@ -573,47 +658,49 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   // the execution flow should cause it to be restarted.
 
   {
-    auto execute_request = std::make_unique<InvocationStrRequest<>>();
-    execute_request->id = "some_id";
-    execute_request->version_string = "v1";
-    execute_request->handler_name = "test";
-    execute_request->input.push_back(R"("Hello")");
+    auto execute_request =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "some_id",
+            .version_string = "v1",
+            .handler_name = "test",
+            .input = {R"("Hello")"},
+        });
 
     absl::Notification done_executing;
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(execute_request),
-                [&done_executing](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  // This execution should fail since the worker has died
-                  EXPECT_FALSE(resp->ok());
-                  done_executing.Notify();
-                })
+            .Dispatch(std::move(execute_request),
+                      [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                        // This execution should fail since the worker
+                        // has died
+                        EXPECT_FALSE(resp.ok());
+                        done_executing.Notify();
+                      })
             .ok());
     done_executing.WaitForNotification();
   }
 
   // Now we execute again an this time around we expect it to work
   {
-    auto execute_request = std::make_unique<InvocationStrRequest<>>();
-    execute_request->id = "some_id";
-    execute_request->version_string = "v1";
-    execute_request->handler_name = "test";
-    execute_request->input.push_back(R"JS("Hello after restart :)")JS");
+    auto execute_request =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "some_id",
+            .version_string = "v1",
+            .handler_name = "test",
+            .input = {R"JS("Hello after restart :)")JS"},
+        });
 
     absl::Notification done_executing;
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(execute_request),
-                [&done_executing](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  EXPECT_THAT((*resp)->resp,
-                              StrEq(R"("Hello after restart :) Some string")"));
-                  done_executing.Notify();
-                })
+            .Dispatch(std::move(execute_request),
+                      [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                        EXPECT_TRUE(resp.ok());
+                        EXPECT_THAT(
+                            resp->resp,
+                            StrEq(R"("Hello after restart :) Some string")"));
+                        done_executing.Notify();
+                      })
             .ok());
     done_executing.WaitForNotification();
   }
@@ -630,45 +717,46 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
+  constexpr size_t max_pending_reqs = 10;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
   {
-    auto load_request = std::make_unique<CodeObject>();
-    load_request->id = "some_id";
-    load_request->version_string = "v1";
-    load_request->js = R"(test = (s) => s + " Some string 1";)";
+    auto load_request = std::make_unique<CodeObject>(CodeObject{
+        .id = "some_id",
+        .version_string = "v1",
+        .js = R"(test = (s) => s + " Some string 1";)",
+    });
 
     absl::Notification done_loading;
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(load_request),
-                [&done_loading](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  done_loading.Notify();
-                })
+            .Dispatch(std::move(load_request),
+                      [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                        EXPECT_TRUE(resp.ok());
+                        done_loading.Notify();
+                      })
             .ok());
     done_loading.WaitForNotification();
   }
 
   {
-    auto load_request = std::make_unique<CodeObject>();
-    load_request->id = "some_id_2";
-    load_request->version_string = "v2";
-    load_request->js = R"(test = (s) => s + " Some string 2";)";
+    auto load_request = std::make_unique<CodeObject>(CodeObject{
+        .id = "some_id_2",
+        .version_string = "v2",
+        .js = R"(test = (s) => s + " Some string 2";)",
+    });
 
     absl::Notification done_loading;
 
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(load_request),
-                [&done_loading](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  done_loading.Notify();
-                })
+            .Dispatch(std::move(load_request),
+                      [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                        EXPECT_TRUE(resp.ok());
+                        done_loading.Notify();
+                      })
             .ok());
     done_loading.WaitForNotification();
   }
@@ -679,24 +767,25 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   (*worker)->Terminate();
 
   {
-    auto execute_request = std::make_unique<InvocationStrRequest<>>();
-    execute_request->id = "some_id";
-    execute_request->version_string = "v1";
-    execute_request->handler_name = "test";
-    execute_request->input.push_back(R"("Hello")");
+    auto execute_request =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "some_id",
+            .version_string = "v1",
+            .handler_name = "test",
+            .input = {R"("Hello")"},
+        });
 
     absl::Notification done_executing;
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(execute_request),
-                [&done_executing](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  // This request failed but it should have caused the restart
-                  // of the worker so subsequent requests should work.
-                  EXPECT_FALSE(resp->ok());
-                  done_executing.Notify();
-                })
+            .Dispatch(std::move(execute_request),
+                      [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                        // This request failed but it should have caused
+                        // the restart of the worker so subsequent
+                        // requests should work.
+                        EXPECT_FALSE(resp.ok());
+                        done_executing.Notify();
+                      })
             .ok());
     done_executing.WaitForNotification();
   }
@@ -705,46 +794,46 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
 
   for (int i = 0; i < 10; i++) {
     {
-      auto execute_request = std::make_unique<InvocationStrRequest<>>();
-      execute_request->id = "some_id";
-      execute_request->version_string = "v1";
-      execute_request->handler_name = "test";
-      execute_request->input.push_back(R"("Hello 1")");
+      auto execute_request =
+          std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+              .id = "some_id",
+              .version_string = "v1",
+              .handler_name = "test",
+              .input = {R"("Hello 1")"},
+          });
 
       absl::Notification done_executing;
       ASSERT_TRUE(
           dispatcher
-              .Dispatch(
-                  std::move(execute_request),
-                  [&done_executing](
-                      std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    EXPECT_TRUE(resp->ok());
-                    EXPECT_THAT((*resp)->resp,
-                                StrEq(R"("Hello 1 Some string 1")"));
-                    done_executing.Notify();
-                  })
+              .Dispatch(std::move(execute_request),
+                        [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                          EXPECT_TRUE(resp.ok());
+                          EXPECT_THAT(resp->resp,
+                                      StrEq(R"("Hello 1 Some string 1")"));
+                          done_executing.Notify();
+                        })
               .ok());
       done_executing.WaitForNotification();
     }
     {
-      auto execute_request = std::make_unique<InvocationStrRequest<>>();
-      execute_request->id = "some_id_2";
-      execute_request->version_string = "v2";
-      execute_request->handler_name = "test";
-      execute_request->input.push_back(R"("Hello 2")");
+      auto execute_request =
+          std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+              .id = "some_id_2",
+              .version_string = "v2",
+              .handler_name = "test",
+              .input = {R"("Hello 2")"},
+          });
 
       absl::Notification done_executing;
       ASSERT_TRUE(
           dispatcher
-              .Dispatch(
-                  std::move(execute_request),
-                  [&done_executing](
-                      std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    EXPECT_TRUE(resp->ok());
-                    EXPECT_THAT((*resp)->resp,
-                                StrEq(R"("Hello 2 Some string 2")"));
-                    done_executing.Notify();
-                  })
+              .Dispatch(std::move(execute_request),
+                        [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                          EXPECT_TRUE(resp.ok());
+                          EXPECT_THAT(resp->resp,
+                                      StrEq(R"("Hello 2 Some string 2")"));
+                          done_executing.Notify();
+                        })
               .ok());
       done_executing.WaitForNotification();
     }
@@ -762,47 +851,48 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 10, 5);
+  constexpr size_t max_pending_reqs = 10;
+  constexpr size_t code_version_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
+                        code_version_size);
 
   {
-    auto load_request = std::make_unique<CodeObject>();
-    load_request->id = "some_id";
-    load_request->version_string = "v1";
-    load_request->js = R"(test = (s) => s + " Some string 1";)";
+    auto load_request = std::make_unique<CodeObject>(CodeObject{
+        .id = "some_id",
+        .version_string = "v1",
+        .js = R"(test = (s) => s + " Some string 1";)",
+    });
 
     absl::Notification done_loading;
 
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(load_request),
-                [&done_loading](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  done_loading.Notify();
-                })
+            .Dispatch(std::move(load_request),
+                      [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                        EXPECT_TRUE(resp.ok());
+                        done_loading.Notify();
+                      })
             .ok());
 
     done_loading.WaitForNotification();
   }
 
   {
-    auto load_request = std::make_unique<CodeObject>();
-    load_request->id = "some_id_2";
-    load_request->version_string = "v2";
-    load_request->js = R"(test = (s) => s + " Some string 2";)";
+    auto load_request = std::make_unique<CodeObject>(CodeObject{
+        .id = "some_id_2",
+        .version_string = "v2",
+        .js = R"(test = (s) => s + " Some string 2";)",
+    });
 
     absl::Notification done_loading;
 
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(load_request),
-                [&done_loading](
-                    std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  done_loading.Notify();
-                })
+            .Dispatch(std::move(load_request),
+                      [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                        EXPECT_TRUE(resp.ok());
+                        done_loading.Notify();
+                      })
             .ok());
     done_loading.WaitForNotification();
   }
@@ -814,27 +904,26 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 
   for (int i = 0; i < 2; i++) {
     // The first load should fail as the worker had died
-    auto load_request = std::make_unique<CodeObject>();
-    load_request->id = "some_id_3";
-    load_request->version_string = "v3";
-    load_request->js = R"(test = (s) => s + " Some string 3";)";
+    auto load_request = std::make_unique<CodeObject>(CodeObject{
+        .id = "some_id_3",
+        .version_string = "v3",
+        .js = R"(test = (s) => s + " Some string 3";)",
+    });
 
     absl::Notification done_loading;
     ASSERT_TRUE(
         dispatcher
-            .Dispatch(
-                std::move(load_request),
-                [&done_loading,
-                 i](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  if (i == 0) {
-                    // Failed
-                    EXPECT_FALSE(resp->ok());
-                  } else {
-                    EXPECT_TRUE(resp->ok());
-                  }
+            .Dispatch(std::move(load_request),
+                      [&done_loading, i](absl::StatusOr<ResponseObject> resp) {
+                        if (i == 0) {
+                          // Failed
+                          EXPECT_FALSE(resp.ok());
+                        } else {
+                          EXPECT_TRUE(resp.ok());
+                        }
 
-                  done_loading.Notify();
-                })
+                        done_loading.Notify();
+                      })
             .ok());
 
     done_loading.WaitForNotification();
@@ -843,68 +932,68 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   // Execute all versions, those loaded before and after the worker crash
   for (int i = 0; i < 10; i++) {
     {
-      auto execute_request = std::make_unique<InvocationStrRequest<>>();
-      execute_request->id = "some_id";
-      execute_request->version_string = "v1";
-      execute_request->handler_name = "test";
-      execute_request->input.push_back("\"Hello 1\"");
+      auto execute_request =
+          std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+              .id = "some_id",
+              .version_string = "v1",
+              .handler_name = "test",
+              .input = {R"("Hello 1")"},
+          });
 
       absl::Notification done_executing;
       ASSERT_TRUE(
           dispatcher
-              .Dispatch(
-                  std::move(execute_request),
-                  [&done_executing](
-                      std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    EXPECT_TRUE(resp->ok());
-                    EXPECT_THAT((*resp)->resp,
-                                StrEq("\"Hello 1 Some string 1\""));
-                    done_executing.Notify();
-                  })
+              .Dispatch(std::move(execute_request),
+                        [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                          EXPECT_TRUE(resp.ok());
+                          EXPECT_THAT(resp->resp,
+                                      StrEq("\"Hello 1 Some string 1\""));
+                          done_executing.Notify();
+                        })
               .ok());
       done_executing.WaitForNotification();
     }
     {
-      auto execute_request = std::make_unique<InvocationStrRequest<>>();
-      execute_request->id = "some_id_2";
-      execute_request->version_string = "v2";
-      execute_request->handler_name = "test";
-      execute_request->input.push_back("\"Hello 2\"");
+      auto execute_request =
+          std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+              .id = "some_id_2",
+              .version_string = "v2",
+              .handler_name = "test",
+              .input = {R"("Hello 2")"},
+          });
 
       absl::Notification done_executing;
       ASSERT_TRUE(
           dispatcher
-              .Dispatch(
-                  std::move(execute_request),
-                  [&done_executing](
-                      std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    EXPECT_TRUE(resp->ok());
-                    EXPECT_THAT((*resp)->resp,
-                                StrEq("\"Hello 2 Some string 2\""));
-                    done_executing.Notify();
-                  })
+              .Dispatch(std::move(execute_request),
+                        [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                          EXPECT_TRUE(resp.ok());
+                          EXPECT_THAT(resp->resp,
+                                      StrEq("\"Hello 2 Some string 2\""));
+                          done_executing.Notify();
+                        })
               .ok());
       done_executing.WaitForNotification();
     }
     {
-      auto execute_request = std::make_unique<InvocationStrRequest<>>();
-      execute_request->id = "some_id_3";
-      execute_request->version_string = "v3";
-      execute_request->handler_name = "test";
-      execute_request->input.push_back("\"Hello 3\"");
+      auto execute_request =
+          std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+              .id = "some_id_3",
+              .version_string = "v3",
+              .handler_name = "test",
+              .input = {R"("Hello 3")"},
+          });
 
       absl::Notification done_executing;
       ASSERT_TRUE(
           dispatcher
-              .Dispatch(
-                  std::move(execute_request),
-                  [&done_executing](
-                      std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    EXPECT_TRUE(resp->ok());
-                    EXPECT_THAT((*resp)->resp,
-                                StrEq("\"Hello 3 Some string 3\""));
-                    done_executing.Notify();
-                  })
+              .Dispatch(std::move(execute_request),
+                        [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                          EXPECT_TRUE(resp.ok());
+                          EXPECT_THAT(resp->resp,
+                                      StrEq(R"("Hello 3 Some string 3")"));
+                          done_executing.Notify();
+                        })
               .ok());
       done_executing.WaitForNotification();
     }
@@ -914,9 +1003,9 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
 TEST(DispatcherTest, ShouldFailIfCodeVersionCacheSizeIsZero) {
   AsyncExecutor async_executor(1, 10);
   WorkerPoolApiSapi worker_pool({});
+
   constexpr size_t max_pending_requests = 10;
   constexpr size_t code_version_cache_size = 0;
-
   EXPECT_DEATH(Dispatcher(&async_executor, &worker_pool, max_pending_requests,
                           code_version_cache_size),
                "code_version_cache_size cannot be zero");
@@ -925,9 +1014,9 @@ TEST(DispatcherTest, ShouldFailIfCodeVersionCacheSizeIsZero) {
 TEST(DispatcherTest, ShouldFailIfMaxPendingRequestsIsZero) {
   AsyncExecutor async_executor(1, 10);
   WorkerPoolApiSapi worker_pool({});
+
   constexpr size_t max_pending_requests = 0;
   constexpr size_t code_version_cache_size = 5;
-
   EXPECT_DEATH(Dispatcher(&async_executor, &worker_pool, max_pending_requests,
                           code_version_cache_size),
                "max_pending_requests cannot be zero");
@@ -942,9 +1031,10 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool,
-                        /*max_pending_requests=*/10,
-                        /*code_version_cache_size=*/5);
+  constexpr size_t max_pending_requests = 10;
+  constexpr size_t code_version_cache_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_requests,
+                        code_version_cache_size);
 
   auto load_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",
@@ -957,9 +1047,8 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
   ASSERT_TRUE(
       dispatcher
           .Dispatch(std::move(load_request),
-                    [&done_loading](
-                        std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
+                    [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                      EXPECT_TRUE(resp.ok());
                       done_loading.Notify();
                     })
           .ok());
@@ -980,11 +1069,9 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
   ASSERT_TRUE(
       dispatcher
           .Dispatch(std::move(execute_request),
-                    [&done_executing](
-                        std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
-                      EXPECT_THAT((*resp)->resp,
-                                  StrEq(R"("Hello" Some string)"));
+                    [&done_executing](absl::StatusOr<ResponseObject> resp) {
+                      EXPECT_TRUE(resp.ok());
+                      EXPECT_THAT(resp->resp, StrEq(R"("Hello" Some string)"));
                       done_executing.Notify();
                     })
           .ok());
@@ -1002,7 +1089,10 @@ TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  Dispatcher dispatcher(&async_executor, &worker_pool, 1, 5);
+  constexpr size_t max_pending_requests = 1;
+  constexpr size_t code_version_cache_size = 5;
+  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_requests,
+                        code_version_cache_size);
 
   auto load_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",
@@ -1016,9 +1106,8 @@ TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
   ASSERT_TRUE(
       dispatcher
           .Dispatch(std::move(load_request),
-                    [&done_loading](
-                        std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                      EXPECT_TRUE(resp->ok());
+                    [&done_loading](absl::StatusOr<ResponseObject> resp) {
+                      EXPECT_TRUE(resp.ok());
                       done_loading.Notify();
                     })
           .ok());
@@ -1035,10 +1124,10 @@ TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
           .treat_input_as_byte_str = true,
       });
 
-  ASSERT_FALSE(
-      dispatcher
-          .Dispatch(std::move(execute_request),
-                    [](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {})
-          .ok());
+  ASSERT_FALSE(dispatcher
+                   .Dispatch(std::move(execute_request),
+                             [](absl::StatusOr<ResponseObject> resp) {})
+                   .ok());
 }
+
 }  // namespace google::scp::roma::sandbox::dispatcher::test

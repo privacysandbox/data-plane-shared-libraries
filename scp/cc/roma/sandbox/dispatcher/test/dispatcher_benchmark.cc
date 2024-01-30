@@ -91,13 +91,11 @@ void BM_Dispatch(benchmark::State& state) {
 
       ASSERT_TRUE(
           dispatcher
-              .Dispatch(
-                  std::move(load_request),
-                  [&is_loading](
-                      std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    ASSERT_TRUE(resp->ok());
-                    is_loading.DecrementCount();
-                  })
+              .Dispatch(std::move(load_request),
+                        [&is_loading](absl::StatusOr<ResponseObject> resp) {
+                          ASSERT_TRUE(resp.ok());
+                          is_loading.DecrementCount();
+                        })
               .ok());
     }
     is_loading.Wait();

@@ -32,6 +32,7 @@
 #include <benchmark/benchmark.h>
 
 #include "core/common/time_provider/src/time_provider.h"
+#include "src/cpp/util/status_macro/status_macros.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::roma::CodeObject;
@@ -162,8 +163,7 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
   config.worker_queue_max_items = test_configuration.queue_size;
   config.sandbox_request_response_shared_buffer_size_mb = 16;
   auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  auto status = roma_service->Init();
-  if (!status.ok()) {
+  if (auto status = roma_service->Init(); !status.ok()) {
     std::cout << "Initializing Roma failed due to " << status.message()
               << std::endl;
     return;
@@ -177,8 +177,9 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
             << test_configuration.requests_per_thread
             << "\n\tBatch size: " << test_configuration.batch_size << std::endl;
 
-  status = LoadCodeObject(*roma_service, test_configuration.js_source_code);
-  if (!status.ok()) {
+  if (auto status =
+          LoadCodeObject(*roma_service, test_configuration.js_source_code);
+      !status.ok()) {
     std::cout << "LoadCodeObject failed due to " << status.message()
               << std::endl;
     return;
@@ -225,21 +226,17 @@ absl::Status LoadCodeObject(RomaService<>& roma_service,
   auto code_obj = CreateCodeObj(code_string);
   std::promise<void> done;
   std::atomic_bool load_success{false};
-  auto status = roma_service.LoadCodeObj(
+  PS_RETURN_IF_ERROR(roma_service.LoadCodeObj(
       std::make_unique<CodeObject>(code_obj),
-      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-        if (resp->ok()) {
+      [&](absl::StatusOr<ResponseObject> resp) {
+        if (resp.ok()) {
           load_success = true;
         } else {
-          std::cout << "LoadCodeObj failed with " << resp->status().message()
+          std::cout << "LoadCodeObj failed with " << resp.status().message()
                     << std::endl;
         }
         done.set_value();
-      });
-
-  if (!status.ok()) {
-    return status;
-  }
+      }));
 
   done.get_future().get();
   if (load_success) {
@@ -460,9 +457,9 @@ void RomaBenchmark::CallbackBatch(
 }
 
 void RomaBenchmark::Callback(
-    std::unique_ptr<absl::StatusOr<ResponseObject>> resp,
+    absl::StatusOr<ResponseObject> resp,
     privacy_sandbox::server_common::Stopwatch stopwatch) {
-  if (!resp->ok()) {
+  if (!resp.ok()) {
     failed_requests_.fetch_add(1);
     return;
   }
@@ -470,7 +467,7 @@ void RomaBenchmark::Callback(
 
   BenchmarkMetrics metric;
   metric.total_execute_time = stopwatch.GetElapsedTime();
-  GetMetricFromResponse(resp->value(), metric);
+  GetMetricFromResponse(resp.value(), metric);
   latency_metrics_.at(metric_index_) = metric;
   metric_index_.fetch_add(1);
 }

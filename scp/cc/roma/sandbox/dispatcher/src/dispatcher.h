@@ -36,6 +36,7 @@
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/worker_api/src/worker_api.h"
 #include "roma/sandbox/worker_pool/src/worker_pool.h"
+#include "src/cpp/util/status_macro/status_macros.h"
 
 #include "request_converter.h"
 #include "request_validator.h"
@@ -89,20 +90,19 @@ class Dispatcher {
     auto batch_callback_ptr =
         std::make_shared<BatchCallback>(std::move(batch_callback));
     for (size_t index = 0; index < batch_size; ++index) {
-      auto callback =
-          [batch_response, finished_counter, batch_callback_ptr, index](
-              std::unique_ptr<absl::StatusOr<ResponseObject>> obj_response) {
-            batch_response->at(index) = *std::move(obj_response);
-            auto finished_value = finished_counter->fetch_add(1);
-            if (finished_value + 1 == batch_response->size()) {
-              (*batch_callback_ptr)(*batch_response);
-            }
-          };
+      auto callback = [batch_response, finished_counter, batch_callback_ptr,
+                       index](absl::StatusOr<ResponseObject> obj_response) {
+        (*batch_response)[index] = std::move(obj_response);
+        auto finished_value = finished_counter->fetch_add(1);
+        if (finished_value + 1 == batch_response->size()) {
+          (*batch_callback_ptr)(*batch_response);
+        }
+      };
 
       auto request = std::make_unique<RequestT>(batch[index]);
       absl::Status result;
-      while ((result = Dispatcher::Dispatch(std::move(request), callback)) !=
-             absl::OkStatus()) {
+      while (
+          !(result = Dispatcher::Dispatch(std::move(request), callback)).ok()) {
         // If the first request from the batch got a failure, return failure
         // without waiting.
         if (index == 0) {
@@ -153,14 +153,9 @@ class Dispatcher {
       request->id = constants::kDefaultRomaRequestId;
     }
 
-    auto validation_status =
-        request_validator::RequestValidator<RequestT>::Validate(*request);
-    if (!validation_status.ok()) {
-      return validation_status;
-    }
-
+    PS_RETURN_IF_ERROR(
+        request_validator::RequestValidator<RequestT>::Validate(*request));
     size_t index = 0;
-
     if (worker_index != -1) {
       index = worker_index;
     } else {
@@ -182,13 +177,12 @@ class Dispatcher {
     auto schedule_result = async_executor_->Schedule(
         [this, index, request = std::move(request),
          callback = std::move(callback)]() mutable {
-          std::unique_ptr<absl::StatusOr<ResponseObject>> response_or;
+          absl::StatusOr<ResponseObject> response;
 
           auto worker_or = worker_pool_->GetWorker(index);
-          if (!worker_or.status().ok()) {
-            response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
-                worker_or.status());
-            callback(std::move(response_or));
+          if (!worker_or.ok()) {
+            response = absl::StatusOr<ResponseObject>(worker_or.status());
+            callback(std::move(response));
             absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
             return;
@@ -198,9 +192,9 @@ class Dispatcher {
           cache_mu_.Lock();
           if (!code_object_cache_.Contains(request->version_string)) {
             cache_mu_.Unlock();
-            response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
+            response = absl::StatusOr<ResponseObject>(
                 absl::InternalError("Could not find code version in cache."));
-            callback(std::move(response_or));
+            callback(std::move(response));
             absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
             return;
@@ -222,20 +216,21 @@ class Dispatcher {
 
           auto run_code_request =
               RequestConverter::FromUserProvided(*request, request_type);
-          auto run_code_response_or = (*worker_or)->RunCode(run_code_request);
-          if (!run_code_response_or.result().Successful()) {
+          auto& worker = **worker_or;
+          auto run_code_response = worker.RunCode(run_code_request);
+          if (!run_code_response.result().Successful()) {
             auto err_msg = core::errors::GetErrorMessage(
-                run_code_response_or.result().status_code);
-            response_or = std::make_unique<absl::StatusOr<ResponseObject>>(
-                absl::InternalError(err_msg));
+                run_code_response.result().status_code);
+            response =
+                absl::StatusOr<ResponseObject>(absl::InternalError(err_msg));
             LOG(ERROR) << "The worker " << index
                        << " execute the request failed due to " << err_msg;
 
-            if (run_code_response_or.result().Retryable()) {
+            if (run_code_response.result().Retryable()) {
               // This means that the worker crashed and the request could be
               // retried, however, we need to reload the worker with the
               // cached code.
-              if (auto reload_result = ReloadCachedCodeObjects(**worker_or);
+              if (auto reload_result = ReloadCachedCodeObjects(worker);
                   !reload_result.ok()) {
                 LOG(ERROR) << "Reloading the worker cache failed with "
                            << reload_result;
@@ -245,22 +240,19 @@ class Dispatcher {
                   << index;
             }
 
-            callback(std::move(response_or));
+            callback(std::move(response));
             absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
             return;
           }
 
-          ResponseObject response_object;
-          response_or =
-              std::make_unique<absl::StatusOr<ResponseObject>>(response_object);
-          response_or->value().id = request->id;
-          response_or->value().resp =
-              std::move(*run_code_response_or->response);
-          for (auto& kv : run_code_response_or->metrics) {
-            response_or->value().metrics[kv.first] = kv.second;
+          response = absl::StatusOr<ResponseObject>(ResponseObject());
+          response->id = request->id;
+          response->resp = std::move(*run_code_response->response);
+          for (auto& kv : run_code_response->metrics) {
+            response->metrics[kv.first] = kv.second;
           }
-          callback(std::move(response_or));
+          callback(std::move(response));
           absl::MutexLock l(&pending_requests_mu_);
           pending_requests_--;
         },

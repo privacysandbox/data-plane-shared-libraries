@@ -55,6 +55,7 @@ cc_library(
         "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/roma_service:roma_service_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//src/cpp/util/status_macro:status_macros",
         "@google_benchmark//:benchmark",
     ],
 )

@@ -175,7 +175,7 @@ class RomaBenchmark {
       const std::vector<absl::StatusOr<ResponseObject>> resp_batch,
       privacy_sandbox::server_common::Stopwatch stopwatch);
 
-  void Callback(std::unique_ptr<absl::StatusOr<ResponseObject>> resp,
+  void Callback(absl::StatusOr<ResponseObject> resp,
                 privacy_sandbox::server_common::Stopwatch stopwatch);
 
   InvocationSharedRequest<> code_obj_;

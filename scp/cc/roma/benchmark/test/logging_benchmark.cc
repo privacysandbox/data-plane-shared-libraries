@@ -76,9 +76,8 @@ void DoSetup(const benchmark::State& state) {
         .js = js,
     });
     absl::Status load_status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          CHECK(resp->ok());
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          CHECK(resp.ok());
           load_finished.Notify();
         });
 
@@ -102,9 +101,8 @@ void NumLogsByLengthBenchmark(int length, int iters, benchmark::State& state) {
             .input = {absl::StrCat(length), absl::StrCat(iters)},
         });
     auto execution_status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          CHECK(resp->ok());
+        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          CHECK(resp.ok());
           execute_finished.Notify();
         });
 

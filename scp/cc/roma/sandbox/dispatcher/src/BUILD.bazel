@@ -34,6 +34,7 @@ cc_library(
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_lib",
         "//scp/cc/roma/sandbox/worker_pool/src:roma_worker_pool_lib",
+        "//src/cpp/util/status_macro:status_macros",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",

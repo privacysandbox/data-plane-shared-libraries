@@ -59,9 +59,8 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
     EXPECT_GE(code_obj->js.length(), payload_size);
 
     status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_TRUE(resp.ok());
           load_finished.Notify();
         });
     ASSERT_TRUE(status.ok());
@@ -75,14 +74,12 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          ASSERT_TRUE(resp->ok());
-          auto& code_resp = **resp;
-          result = code_resp.resp;
-          success_execute_finished.Notify();
-        });
+    status = roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     ASSERT_TRUE(resp.ok());
+                                     result = std::move(resp->resp);
+                                     success_execute_finished.Notify();
+                                   });
     EXPECT_TRUE(status.ok());
   }
 
@@ -120,9 +117,8 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   )JS_CODE";
 
     status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_TRUE(resp.ok());
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -139,11 +135,9 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
     execution_obj->input.push_back("\"" + dummy_string + "\"");
 
     status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          ASSERT_TRUE(resp->ok());
-          auto& code_resp = **resp;
-          EXPECT_GE(code_resp.resp.length(), payload_size);
+        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          ASSERT_TRUE(resp.ok());
+          EXPECT_GE(resp->resp.length(), payload_size);
           oversize_execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -184,9 +178,8 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   )JS_CODE";
 
     status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_TRUE(resp.ok());
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -204,11 +197,9 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
     status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          ASSERT_TRUE(resp->ok());
-          auto& code_resp = **resp;
-          EXPECT_GE(code_resp.resp.length(), payload_size);
+        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          ASSERT_TRUE(resp.ok());
+          EXPECT_GE(resp->resp.length(), payload_size);
           oversize_execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -247,10 +238,9 @@ TEST(BufferSizeTest,
     code_obj->js = "\"" + dummy_js_string + "\"";
 
     status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_FALSE(resp->ok());
-          EXPECT_THAT(resp->status().message(),
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_FALSE(resp.ok());
+          EXPECT_THAT(resp.status().message(),
                       StrEq("The size of request serialized data is "
                             "larger than the Buffer capacity."));
           load_finished.Notify();
@@ -293,9 +283,8 @@ TEST(BufferSizeTest,
   )JS_CODE";
 
     status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_TRUE(resp.ok());
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -309,14 +298,12 @@ TEST(BufferSizeTest,
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          ASSERT_TRUE(resp->ok());
-          auto& code_resp = **resp;
-          result = code_resp.resp;
-          success_execute_finished.Notify();
-        });
+    status = roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     ASSERT_TRUE(resp.ok());
+                                     result = std::move(resp->resp);
+                                     success_execute_finished.Notify();
+                                   });
     EXPECT_TRUE(status.ok());
   }
 
@@ -332,10 +319,9 @@ TEST(BufferSizeTest,
     execution_obj->input.push_back("\"" + dummy_string + "\"");
 
     status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_FALSE(resp->ok());
-          EXPECT_THAT(resp->status().message(),
+        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_FALSE(resp.ok());
+          EXPECT_THAT(resp.status().message(),
                       StrEq("The size of request serialized data is "
                             "larger than the Buffer capacity."));
           failed_execute_finished.Notify();
@@ -351,14 +337,12 @@ TEST(BufferSizeTest,
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          ASSERT_TRUE(resp->ok());
-          auto& code_resp = **resp;
-          retry_result = code_resp.resp;
-          retry_success_execute_finished.Notify();
-        });
+    status = roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     ASSERT_TRUE(resp.ok());
+                                     retry_result = std::move(resp->resp);
+                                     retry_success_execute_finished.Notify();
+                                   });
     EXPECT_TRUE(status.ok());
   }
 
@@ -406,9 +390,8 @@ TEST(BufferSizeTest,
   )JS_CODE";
 
     status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_TRUE(resp.ok());
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -422,12 +405,11 @@ TEST(BufferSizeTest,
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"1024\"");
 
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          success_execute_finished.Notify();
-        });
+    status = roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     EXPECT_TRUE(resp.ok());
+                                     success_execute_finished.Notify();
+                                   });
     EXPECT_TRUE(status.ok());
   }
 
@@ -443,11 +425,10 @@ TEST(BufferSizeTest,
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
     status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           // Failure in execution
-          EXPECT_FALSE(resp->ok());
-          EXPECT_THAT(resp->status().message(),
+          EXPECT_FALSE(resp.ok());
+          EXPECT_THAT(resp.status().message(),
                       StrEq("The size of response serialized data is "
                             "larger than the Buffer capacity."));
           failed_execute_finished.Notify();
@@ -464,12 +445,11 @@ TEST(BufferSizeTest,
     auto payload_size = 1024 * 800;
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
-    status = roma_service->Execute(
-        std::move(execution_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
-          retry_success_execute_finished.Notify();
-        });
+    status = roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     EXPECT_TRUE(resp.ok());
+                                     retry_success_execute_finished.Notify();
+                                   });
     EXPECT_TRUE(status.ok());
   }
 

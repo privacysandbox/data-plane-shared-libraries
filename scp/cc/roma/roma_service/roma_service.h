@@ -363,12 +363,12 @@ class RomaService {
          absl::StrCat(invocation_req->min_log_level)});
 
     auto callback_ptr = std::make_unique<Callback>(std::move(callback));
-    Callback callback_wrapper =
-        [this, uuid_str, callback_ptr = std::move(callback_ptr)](
-            std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          (*callback_ptr)(std::move(resp));
-          DeleteMetadata(uuid_str);
-        };
+    Callback callback_wrapper = [this, uuid_str,
+                                 callback_ptr = std::move(callback_ptr)](
+                                    absl::StatusOr<ResponseObject> resp) {
+      (*callback_ptr)(std::move(resp));
+      DeleteMetadata(uuid_str);
+    };
 
     PS_RETURN_IF_ERROR(StoreMetadata(std::move(uuid_str),
                                      std::move(invocation_req->metadata)));

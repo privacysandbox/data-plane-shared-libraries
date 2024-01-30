@@ -59,8 +59,8 @@ void FakeBaServer::LoadSync(absl::string_view version,
 
   absl::Status try_load = roma_service_->LoadCodeObj(
       std::make_unique<LoadRequest>(request),
-      [&is_loading](std::unique_ptr<absl::StatusOr<LoadResponse>> res) {
-        CHECK_OK(*res);
+      [&is_loading](absl::StatusOr<LoadResponse> res) {
+        CHECK_OK(res);
         is_loading.DecrementCount();
       });
   CHECK_OK(try_load);

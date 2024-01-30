@@ -69,15 +69,13 @@ TEST(WasmTest, CanExecuteWasmCode) {
                             wasm_bin.size()),
     });
 
-    EXPECT_TRUE(
-        roma_service
-            ->LoadCodeObj(
-                std::move(code_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  load_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->LoadCodeObj(std::move(code_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    load_finished.Notify();
+                                  })
+                    .ok());
   }
 
   {
@@ -89,18 +87,16 @@ TEST(WasmTest, CanExecuteWasmCode) {
             .input = {R"("Foobar")"},
         });
 
-    EXPECT_TRUE(
-        roma_service
-            ->Execute(
-                std::move(execution_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  if (resp->ok()) {
-                    result = (*resp)->resp;
-                  }
-                  execute_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->Execute(std::move(execution_obj),
+                              [&](absl::StatusOr<ResponseObject> resp) {
+                                EXPECT_TRUE(resp.ok());
+                                if (resp.ok()) {
+                                  result = std::move(resp->resp);
+                                }
+                                execute_finished.Notify();
+                              })
+                    .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
   ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
@@ -153,15 +149,13 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
         .js = absl::StrCat(inline_wasm_js, udf),
     });
 
-    EXPECT_TRUE(
-        roma_service
-            ->LoadCodeObj(
-                std::move(code_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  load_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->LoadCodeObj(std::move(code_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    load_finished.Notify();
+                                  })
+                    .ok());
   }
 
   {
@@ -178,18 +172,16 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
             .input = inputs,
         });
 
-    EXPECT_TRUE(
-        roma_service
-            ->Execute(
-                std::move(execution_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  if (resp->ok()) {
-                    result = (*resp)->resp;
-                  }
-                  execute_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->Execute(std::move(execution_obj),
+                              [&](absl::StatusOr<ResponseObject> resp) {
+                                EXPECT_TRUE(resp.ok());
+                                if (resp.ok()) {
+                                  result = std::move(resp->resp);
+                                }
+                                execute_finished.Notify();
+                              })
+                    .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
   ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
@@ -225,18 +217,17 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
                               wasm_bin.size()),
       });
 
-      EXPECT_TRUE(
-          roma_service
-              ->LoadCodeObj(
-                  std::move(code_obj),
-                  [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    // Fails
-                    EXPECT_FALSE(resp->ok());
-                    EXPECT_THAT(resp->status().message(),
-                                StrEq("Failed to create wasm object."));
-                    load_finished.Notify();
-                  })
-              .ok());
+      EXPECT_TRUE(roma_service
+                      ->LoadCodeObj(
+                          std::move(code_obj),
+                          [&](absl::StatusOr<ResponseObject> resp) {
+                            // Fails
+                            EXPECT_FALSE(resp.ok());
+                            EXPECT_THAT(resp.status().message(),
+                                        StrEq("Failed to create wasm object."));
+                            load_finished.Notify();
+                          })
+                      .ok());
     }
 
     load_finished.WaitForNotification();
@@ -273,16 +264,14 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
                               wasm_bin.size()),
       });
 
-      EXPECT_TRUE(
-          roma_service
-              ->LoadCodeObj(
-                  std::move(code_obj),
-                  [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                    // Loading works
-                    EXPECT_TRUE(resp->ok());
-                    load_finished.Notify();
-                  })
-              .ok());
+      EXPECT_TRUE(roma_service
+                      ->LoadCodeObj(std::move(code_obj),
+                                    [&](absl::StatusOr<ResponseObject> resp) {
+                                      // Loading works
+                                      EXPECT_TRUE(resp.ok());
+                                      load_finished.Notify();
+                                    })
+                      .ok());
     }
 
     load_finished.WaitForNotification();
@@ -316,15 +305,13 @@ TEST(WasmTest, CanExecuteJSWithWasmCode) {
         .tags = {{kWasmCodeArrayName, "addModule"}},
     });
 
-    EXPECT_TRUE(
-        roma_service
-            ->LoadCodeObj(
-                std::move(code_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  load_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->LoadCodeObj(std::move(code_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    load_finished.Notify();
+                                  })
+                    .ok());
   }
 
   {
@@ -336,18 +323,16 @@ TEST(WasmTest, CanExecuteJSWithWasmCode) {
             .input = {"1", "2"},
         });
 
-    EXPECT_TRUE(
-        roma_service
-            ->Execute(
-                std::move(execution_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  if (resp->ok()) {
-                    result = (*resp)->resp;
-                  }
-                  execute_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->Execute(std::move(execution_obj),
+                              [&](absl::StatusOr<ResponseObject> resp) {
+                                EXPECT_TRUE(resp.ok());
+                                if (resp.ok()) {
+                                  result = std::move(resp->resp);
+                                }
+                                execute_finished.Notify();
+                              })
+                    .ok());
   }
 
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
@@ -385,8 +370,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     });
 
     const auto status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
     EXPECT_THAT(status.message(),
@@ -404,8 +388,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     });
 
     const auto status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
     EXPECT_THAT(status.message(),
@@ -422,8 +405,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     });
 
     const auto status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
     EXPECT_THAT(status.message(),
@@ -441,8 +423,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     });
 
     const auto status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {});
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {});
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
     EXPECT_THAT(status.message(),
@@ -460,15 +441,13 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         .tags = {{kWasmCodeArrayName, "wrongName"}},
     });
 
-    EXPECT_TRUE(
-        roma_service
-            ->LoadCodeObj(
-                std::move(code_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_FALSE(resp->ok());
-                  load_finished1.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->LoadCodeObj(std::move(code_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_FALSE(resp.ok());
+                                    load_finished1.Notify();
+                                  })
+                    .ok());
   }
 
   // Invalid wasm code array
@@ -486,15 +465,13 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         .tags = {{kWasmCodeArrayName, "addModule"}},
     });
 
-    EXPECT_TRUE(
-        roma_service
-            ->LoadCodeObj(
-                std::move(code_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_FALSE(resp->ok());
-                  load_finished2.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->LoadCodeObj(std::move(code_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_FALSE(resp.ok());
+                                    load_finished2.Notify();
+                                  })
+                    .ok());
   }
 
   ASSERT_TRUE(load_finished1.WaitForNotificationWithTimeout(kTimeout));
@@ -521,15 +498,13 @@ TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
         .tags = {{kWasmCodeArrayName, "addModule"}},
     });
 
-    EXPECT_TRUE(
-        roma_service
-            ->LoadCodeObj(
-                std::move(code_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  load_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->LoadCodeObj(std::move(code_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    load_finished.Notify();
+                                  })
+                    .ok());
   }
 
   {
@@ -541,18 +516,16 @@ TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
             .input = {"1", "2"},
         });
 
-    EXPECT_TRUE(
-        roma_service
-            ->Execute(
-                std::move(execution_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  if (resp->ok()) {
-                    result = (*resp)->resp;
-                  }
-                  execute_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->Execute(std::move(execution_obj),
+                              [&](absl::StatusOr<ResponseObject> resp) {
+                                EXPECT_TRUE(resp.ok());
+                                if (resp.ok()) {
+                                  result = std::move(resp->resp);
+                                }
+                                execute_finished.Notify();
+                              })
+                    .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
   ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
@@ -601,15 +574,13 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
         .tags = {{kWasmCodeArrayName, "addModule"}},
     });
 
-    EXPECT_TRUE(
-        roma_service
-            ->LoadCodeObj(
-                std::move(code_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  load_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->LoadCodeObj(std::move(code_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    load_finished.Notify();
+                                  })
+                    .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
 
@@ -626,15 +597,15 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
 
     EXPECT_TRUE(
         roma_service
-            ->Execute(
-                std::move(execution_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_FALSE(resp->ok());
-                  EXPECT_THAT(resp->status().message(),
-                              StrEq("Sandbox worker crashed during execution "
-                                    "of request."));
-                  execute_finished.Notify();
-                })
+            ->Execute(std::move(execution_obj),
+                      [&](absl::StatusOr<ResponseObject> resp) {
+                        EXPECT_FALSE(resp.ok());
+                        EXPECT_THAT(
+                            resp.status().message(),
+                            StrEq("Sandbox worker crashed during execution "
+                                  "of request."));
+                        execute_finished.Notify();
+                      })
             .ok());
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   }
@@ -652,18 +623,16 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
             .input = {"1", "2", "1"},
         });
 
-    EXPECT_TRUE(
-        roma_service
-            ->Execute(
-                std::move(execution_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  if (resp->ok()) {
-                    result = (*resp)->resp;
-                  }
-                  execute_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->Execute(std::move(execution_obj),
+                              [&](absl::StatusOr<ResponseObject> resp) {
+                                EXPECT_TRUE(resp.ok());
+                                if (resp.ok()) {
+                                  result = std::move(resp->resp);
+                                }
+                                execute_finished.Notify();
+                              })
+                    .ok());
 
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
 

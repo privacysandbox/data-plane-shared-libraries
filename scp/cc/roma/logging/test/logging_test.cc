@@ -73,15 +73,13 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
         .js = js,
     });
 
-    EXPECT_TRUE(
-        roma_service
-            ->LoadCodeObj(
-                std::move(code_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  load_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->LoadCodeObj(std::move(code_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    load_finished.Notify();
+                                  })
+                    .ok());
   }
 
   {
@@ -93,18 +91,16 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
             .min_log_level = absl::LogSeverity::kWarning,
         });
 
-    EXPECT_TRUE(
-        roma_service
-            ->Execute(
-                std::move(execution_obj),
-                [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-                  EXPECT_TRUE(resp->ok());
-                  if (resp->ok()) {
-                    result = (*resp)->resp;
-                  }
-                  execute_finished.Notify();
-                })
-            .ok());
+    EXPECT_TRUE(roma_service
+                    ->Execute(std::move(execution_obj),
+                              [&](absl::StatusOr<ResponseObject> resp) {
+                                EXPECT_TRUE(resp.ok());
+                                if (resp.ok()) {
+                                  result = std::move(resp->resp);
+                                }
+                                execute_finished.Notify();
+                              })
+                    .ok());
   }
   EXPECT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
@@ -155,9 +151,8 @@ TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
     });
 
     status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-          EXPECT_TRUE(resp->ok());
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_TRUE(resp.ok());
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());

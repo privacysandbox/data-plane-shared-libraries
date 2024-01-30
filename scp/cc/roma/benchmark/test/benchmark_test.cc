@@ -57,9 +57,8 @@ static void LoadCode(std::unique_ptr<RomaService<>>& roma_service,
   absl::Notification load_finished;
 
   auto status = roma_service->LoadCodeObj(
-      std::move(code_obj),
-      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-        EXPECT_TRUE(resp->ok());
+      std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+        EXPECT_TRUE(resp.ok());
         load_finished.Notify();
       });
   EXPECT_TRUE(status.ok());
@@ -78,16 +77,15 @@ static void ExecuteCode(std::unique_ptr<RomaService<>>& roma_service,
   absl::Notification execute_finished;
   std::string result = "";
 
-  auto status = roma_service->Execute(
-      std::move(code_obj),
-      [&](std::unique_ptr<absl::StatusOr<ResponseObject>> resp) {
-        EXPECT_TRUE(resp->ok());
-        if (resp->ok()) {
-          auto& code_resp = **resp;
-          result = code_resp.resp;
-        }
-        execute_finished.Notify();
-      });
+  auto status = roma_service->Execute(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        if (resp.ok()) {
+                                          auto& code_resp = **resp;
+                                          result = code_resp.resp;
+                                        }
+                                        execute_finished.Notify();
+                                      });
 
   execute_finished.WaitForNotification();
 

@@ -26,6 +26,7 @@
 #include "absl/status/statusor.h"
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/constants/constants.h"
+#include "src/cpp/util/status_macro/status_macros.h"
 
 using google::scp::core::errors::GetErrorMessage;
 
@@ -34,40 +35,36 @@ absl::Status Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
                                    Callback broadcast_callback) noexcept {
   auto worker_count = worker_pool_->GetPoolSize();
   auto finished_counter = std::make_shared<std::atomic<size_t>>(0);
-  auto responses_storage = std::make_shared<
-      std::vector<std::unique_ptr<absl::StatusOr<ResponseObject>>>>(
-      worker_count);
+  auto responses_storage =
+      std::make_shared<std::vector<absl::StatusOr<ResponseObject>>>(
+          worker_count);
 
   auto broadcast_callback_ptr =
       std::make_shared<Callback>(std::move(broadcast_callback));
   for (size_t worker_index = 0; worker_index < worker_count; worker_index++) {
-    auto callback =
-        [worker_count, responses_storage, finished_counter,
-         broadcast_callback_ptr, worker_index](
-            std::unique_ptr<absl::StatusOr<ResponseObject>> response) {
-          auto& all_resp = *responses_storage;
-          // Store responses in the vector.
-          all_resp[worker_index].swap(response);
-          auto finished_value = finished_counter->fetch_add(1);
-          // Go through the responses and call the callback on the first failed
-          // one. If all succeeded, call the first callback.
-          if (finished_value + 1 == worker_count) {
-            for (auto& resp : all_resp) {
-              if (!resp->ok()) {
-                (*broadcast_callback_ptr)(std::move(resp));
-                return;
-              }
-            }
-            (*broadcast_callback_ptr)(std::move(all_resp[0]));
+    auto callback = [worker_count, responses_storage, finished_counter,
+                     broadcast_callback_ptr,
+                     worker_index](absl::StatusOr<ResponseObject> response) {
+      auto& all_resp = *responses_storage;
+      // Store responses in the vector.
+      all_resp[worker_index] = std::move(response);
+      auto finished_value = finished_counter->fetch_add(1);
+      // Go through the responses and call the callback on the first failed
+      // one. If all succeeded, call the first callback.
+      if (finished_value + 1 == worker_count) {
+        for (auto& resp : all_resp) {
+          if (!resp.ok()) {
+            (*broadcast_callback_ptr)(std::move(resp));
+            return;
           }
-        };
+        }
+        (*broadcast_callback_ptr)(std::move(all_resp[0]));
+      }
+    };
 
     auto code_object_copy = std::make_unique<CodeObject>(*code_object);
-    if (auto dispatch_result = Dispatch(std::move(code_object_copy),
-                                        std::move(callback), worker_index);
-        !dispatch_result.ok()) {
-      return dispatch_result;
-    }
+    PS_RETURN_IF_ERROR(Dispatch(std::move(code_object_copy),
+                                std::move(callback), worker_index));
   }
 
   return absl::OkStatus();
