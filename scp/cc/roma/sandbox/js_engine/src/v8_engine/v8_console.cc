@@ -99,11 +99,10 @@ void V8Console::HandleLog(const v8::debug::ConsoleCallArguments& args,
   if (GetSeverity(function_name) < min_log_level_) {
     return;
   }
-
   const auto msgs = GetLogMsg(isolate_, args);
   const std::string msg = absl::StrJoin(msgs, " ");
   auto rpc_proto = ConstructRpcWrapper(function_name, msg);
-  invoke_rpc_func_(rpc_proto);
+  (void)invoke_rpc_func_(rpc_proto);
 }
 
 void V8Console::SetIds(std::string_view uuid, std::string_view id) {
@@ -124,7 +123,7 @@ RpcWrapper V8Console::ConstructRpcWrapper(std::string_view function_name,
   rpc_proto.set_function_name(function_name);
   rpc_proto.set_request_id(invocation_req_id_);
   rpc_proto.set_request_uuid(invocation_req_uuid_);
-  *rpc_proto.mutable_io_proto() = function_proto;
+  *rpc_proto.mutable_io_proto() = std::move(function_proto);
   return rpc_proto;
 }
 

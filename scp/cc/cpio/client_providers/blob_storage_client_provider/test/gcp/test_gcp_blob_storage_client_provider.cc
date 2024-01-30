@@ -52,7 +52,7 @@ BlobStorageClientProviderFactory::Create(
     std::shared_ptr<InstanceClientProviderInterface> instance_client_provider,
     const std::shared_ptr<AsyncExecutorInterface>& cpu_async_executor,
     const std::shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-  return make_shared<GcpBlobStorageClientProvider>(
+  return std::make_shared<GcpBlobStorageClientProvider>(
       options, instance_client_provider, cpu_async_executor, io_async_executor,
       std::make_shared<TestGcpCloudStorageFactory>());
 }

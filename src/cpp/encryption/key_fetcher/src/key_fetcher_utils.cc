@@ -24,11 +24,11 @@ std::string ToOhttpKeyId(absl::string_view key_id) {
 
   // Key ID is hex encoded. Left shift first char by 4 and OR with the second
   // char.
-  absl::SimpleHexAtoi(std::string{key_id.at(0)}, &out);
+  (void)absl::SimpleHexAtoi(std::string{key_id.at(0)}, &out);
   ohttp_key_id = out << 4;
 
   int32_t out2;
-  absl::SimpleHexAtoi(std::string{key_id.at(1)}, &out2);
+  (void)absl::SimpleHexAtoi(std::string{key_id.at(1)}, &out2);
   ohttp_key_id = (ohttp_key_id | out2);
 
   return std::to_string(ohttp_key_id);

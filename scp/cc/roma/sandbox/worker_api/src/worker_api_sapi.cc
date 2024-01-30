@@ -83,7 +83,7 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
     // Only this block is mutex protected because everything else is dealing
     // with input and output arguments, which is threadsafe.
     absl::MutexLock lock(&run_code_mutex_);
-    result = std::move(sandbox_api_.RunCode(params_proto));
+    result = sandbox_api_.RunCode(params_proto);
   }
 
   if (!result.Successful()) {

@@ -60,7 +60,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS;
 
-static constexpr int kSToMsConversionBase = 1e3;
 static constexpr char kPublicKeyClientProvider[] = "PublicKeyClientProvider";
 
 namespace google::scp::cpio::client_providers {

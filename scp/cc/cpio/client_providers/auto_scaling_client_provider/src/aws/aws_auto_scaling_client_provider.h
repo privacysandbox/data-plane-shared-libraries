@@ -140,10 +140,10 @@ class AutoScalingClientFactory {
    * @return std::shared_ptr<Aws::AutoScaling::AutoScalingClient> the creation
    * result.
    */
-  virtual std::shared_ptr<Aws::AutoScaling::AutoScalingClient>
-  CreateAutoScalingClient(Aws::Client::ClientConfiguration& client_config,
-                          const std::shared_ptr<core::AsyncExecutorInterface>&
-                              io_async_executor) noexcept;
+  std::shared_ptr<Aws::AutoScaling::AutoScalingClient> CreateAutoScalingClient(
+      Aws::Client::ClientConfiguration& client_config,
+      const std::shared_ptr<core::AsyncExecutorInterface>&
+          io_async_executor) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

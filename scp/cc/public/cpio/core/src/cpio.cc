@@ -42,13 +42,15 @@ using google::scp::cpio::client_providers::CpioProviderInterface;
 using google::scp::cpio::client_providers::GlobalCpio;
 
 namespace google::scp::cpio {
+
+#ifndef TEST_CPIO
 static ExecutionResult SetGlobalCpio(const CpioOptions& options) {
   cpio_ptr =
       CpioProviderFactory::Create(std::make_shared<CpioOptions>(options));
   CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr));
-
   return SuccessExecutionResult();
 }
+#endif
 
 ExecutionResult Cpio::InitCpio(CpioOptions options) {
   InitializeCpioLog(options.log_option);

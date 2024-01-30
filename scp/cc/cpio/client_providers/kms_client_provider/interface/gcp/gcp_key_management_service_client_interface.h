@@ -33,6 +33,7 @@ class GcpKeyManagementServiceClientInterface {
    */
   virtual google::cloud::StatusOr<google::cloud::kms::v1::DecryptResponse>
   Decrypt(const google::cloud::kms::v1::DecryptRequest& request) noexcept = 0;
+  virtual ~GcpKeyManagementServiceClientInterface() = default;
 };
 }  // namespace google::scp::cpio::client_providers
 

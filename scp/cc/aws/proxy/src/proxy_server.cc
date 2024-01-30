@@ -50,8 +50,8 @@ void ProxyServer::BindListen() {
     acceptor_.set_option(socket_base::reuse_address(true));
     struct sockaddr_vm addr = {
         .svm_family = AF_VSOCK,
-        .svm_cid = VMADDR_CID_ANY,
         .svm_port = port_,
+        .svm_cid = VMADDR_CID_ANY,
     };
     Endpoint endpoint(&addr, sizeof(addr));
     acceptor_.bind(endpoint);
@@ -67,8 +67,8 @@ void ProxyServer::BindListen() {
     acceptor_.set_option(socket_base::reuse_address(true));
     struct sockaddr_in6 addr = {
         .sin6_family = AF_INET6,
-        .sin6_addr = IN6ADDR_ANY_INIT,
         .sin6_port = htons(port_),
+        .sin6_addr = IN6ADDR_ANY_INIT,
     };
     Endpoint endpoint(&addr, sizeof(addr));
     acceptor_.bind(endpoint);

@@ -30,7 +30,6 @@ namespace test {
 
 using TestBuffer = BasicBuffer<64>;
 using Block = TestBuffer::Block;
-constexpr size_t block_capacity = TestBuffer::Block::capacity;
 
 TEST(FreelistTest, MultiThread) {
   Freelist<Block> freelist;

@@ -110,7 +110,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumSuccess) {
   EXPECT_TRUE(!parse_request_to_datum_is_called);
   EXPECT_EQ(datum_list.size(), 10);
   double value = 0.0;
-  absl::SimpleAtod(std::string_view(kValue), &value);
+  (void)absl::SimpleAtod(std::string_view(kValue), &value);
   for (auto i = 0; i < 10; i++) {
     EXPECT_THAT(datum_list.at(i).GetMetricName(), StrEq(kName));
     EXPECT_EQ(datum_list.at(i).GetValue(), value);

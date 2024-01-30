@@ -20,6 +20,9 @@ cc_library(
     name = "mock_client",
     testonly = True,
     hdrs = ["mock_client.h"],
+    copts = [
+        "-Wno-deprecated-declarations",
+    ],
     deps = [
         "@com_github_googleapis_google_cloud_cpp//:storage",
         "@com_google_googletest//:gtest",

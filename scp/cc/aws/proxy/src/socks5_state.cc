@@ -28,7 +28,6 @@
 #include "proxy/src/protocol.h"
 
 namespace google::scp::proxy {
-static const size_t kBufferSize = 65536;
 
 std::vector<uint8_t> Socks5State::CreateResp(bool is_bind) {
   struct sockaddr_storage addr_storage;

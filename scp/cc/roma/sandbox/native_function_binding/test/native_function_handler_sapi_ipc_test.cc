@@ -66,10 +66,10 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
-  function_table.Register("cool_function_name", FunctionToBeCalled);
+  (void)function_table.Register("cool_function_name", FunctionToBeCalled);
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
   handler.Run();
-  handler.StoreMetadata(kRequestUuid, {});
+  (void)handler.StoreMetadata(kRequestUuid, {});
   g_called_registered_function = false;
 
   auto remote_fd = remote_fds.at(0);
@@ -99,7 +99,7 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   // We don't register any functions with the function table
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
   handler.Run();
-  handler.StoreMetadata(kRequestUuid, {});
+  (void)handler.StoreMetadata(kRequestUuid, {});
 
   g_called_registered_function = false;
 
@@ -175,11 +175,11 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
-  function_table.Register("cool_function_name_one", FunctionOne);
-  function_table.Register("cool_function_name_two", FunctionTwo);
+  (void)function_table.Register("cool_function_name_one", FunctionOne);
+  (void)function_table.Register("cool_function_name_two", FunctionTwo);
   NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
   handler.Run();
-  handler.StoreMetadata(absl::StrCat(kRequestUuid, 1), {});
+  (void)handler.StoreMetadata(absl::StrCat(kRequestUuid, 1), {});
 
   g_called_registered_function_one = false;
   g_called_registered_function_two = false;
@@ -202,7 +202,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   rpc_proto.Clear();
   rpc_proto.set_function_name("cool_function_name_two");
   rpc_proto.set_request_uuid(absl::StrCat(kRequestUuid, 2));
-  handler.StoreMetadata(absl::StrCat(kRequestUuid, 2), {});
+  (void)handler.StoreMetadata(absl::StrCat(kRequestUuid, 2), {});
   // Send the request over so that it's handled and the registered function
   // can be called
   EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));

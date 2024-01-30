@@ -55,6 +55,9 @@ cc_library(
     hdrs = [
         "v8_console.h",
     ],
+    copts = [
+        "-Wno-macro-redefined",  # v8 and absl define redundant log macros
+    ],
     deps = [
         "//scp/cc/public/core/interface:execution_result",
         "//scp/cc/roma/interface:roma_interface_lib",
@@ -76,6 +79,10 @@ cc_library(
     ],
     hdrs = [
         "v8_js_engine.h",
+    ],
+    copts = [
+        "-Wno-macro-redefined",  # v8 and absl define redundant log macros
+        "-Wno-unused-variable",
     ],
     deps = [
         ":v8_console",

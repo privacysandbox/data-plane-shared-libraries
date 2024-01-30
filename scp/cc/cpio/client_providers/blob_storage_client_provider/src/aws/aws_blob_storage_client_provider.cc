@@ -116,8 +116,11 @@ using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 
 namespace {
+
 constexpr char kAwsS3Provider[] = "AwsBlobStorageClientProvider";
+#ifndef TEST_CPIO
 constexpr size_t kMaxConcurrentConnections = 1000;
+#endif
 constexpr size_t kListBlobsMetadataMaxResults = 1000;
 constexpr size_t k64KbCount = 64 << 10;
 constexpr size_t kMinimumPartSize = 5 << 20;

@@ -591,9 +591,9 @@ TEST_F(ExecutionUtilsTest, CppWasmWithStringInputAndStringOutput) {
   const RunCodeArguments code_obj = {
       .handler_name = "Handler",
       .js = "",
-      .input = {R"str("Input String :)")str"},
       .wasm = std::string(reinterpret_cast<const char*>(wasm_bin.data()),
                           wasm_bin.size()),
+      .input = {R"str("Input String :)")str"},
   };
   std::string output;
   std::string err_msg;

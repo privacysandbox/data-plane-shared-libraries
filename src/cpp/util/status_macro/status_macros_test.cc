@@ -234,6 +234,9 @@ TEST(AssignOrReturn, WorksWithThirdArgumentAndCommas) {
     PS_ASSIGN_OR_RETURN((const auto& [t4, t5, t6]),
                         (ReturnStatusOrTupleError<int, int, int>("EXPECTED A")),
                         adaptor(_));
+    (void)t4;
+    (void)t5;
+    (void)t6;
     return ReturnOk();
   };
   EXPECT_THAT(func().message().data(),

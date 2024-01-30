@@ -341,6 +341,9 @@ cc_binary(
 cc_binary(
     name = "socket_vendor",
     srcs = [":socket_vendor.cc"],
+    copts = [
+        "-Wno-c99-designator",
+    ],
     visibility = [
         "//production/packaging/aws:__subpackages__",
         "//scp/cc/aws/proxy/test:__subpackages__",

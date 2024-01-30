@@ -19,9 +19,7 @@ package(default_visibility = ["//visibility:public"])
 cc_test(
     name = "gcp_cloud_storage_test",
     size = "small",
-    srcs = [
-        "gcp_cloud_storage_test.cc",
-    ],
+    srcs = ["gcp_cloud_storage_test.cc"],
     deps = [
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",

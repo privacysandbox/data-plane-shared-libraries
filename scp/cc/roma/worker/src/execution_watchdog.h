@@ -39,8 +39,8 @@ class ExecutionWatchDog {
  public:
   ExecutionWatchDog()
       : expiring_flag_(SteadyClock::RealClock()),
-        is_terminate_called_(false),
-        is_running_(false) {
+        is_running_(false),
+        is_terminate_called_(false) {
     expiring_flag_.Set(absl::InfiniteDuration());
   }
 

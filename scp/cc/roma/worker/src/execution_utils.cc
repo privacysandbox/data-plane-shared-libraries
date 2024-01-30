@@ -54,7 +54,6 @@ static constexpr std::string_view kWebAssemblyTag = "WebAssembly";
 static constexpr std::string_view kInstanceTag = "Instance";
 static constexpr std::string_view kRegisteredWasmExports =
     "RomaRegisteredWasmExports";
-static constexpr std::string_view kTimeoutErrorMsg = "execution timeout";
 
 ExecutionResult RunJs(v8::Isolate* isolate, std::string_view js_code) {
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
@@ -141,7 +140,7 @@ ExecutionResult ExecutionUtils::GetJsHandler(std::string_view handler_name,
       return core::FailureExecutionResult(
           core::errors::SC_ROMA_V8_WORKER_HANDLER_INVALID_FUNCTION);
     }
-    handler->ToObject(context).ToLocal(&ctx);
+    (void)handler->ToObject(context).ToLocal(&ctx);
   }
   if (!handler->IsFunction()) {
     err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);

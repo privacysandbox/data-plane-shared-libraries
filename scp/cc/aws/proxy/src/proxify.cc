@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
   } else if (fork() == 0) {
     // Fork and run the socket_vendor. If there's already a running
     // socket_vendor, this will end with a benign failure.
-    daemon(1, 0);
+    (void)daemon(1, 0);
     execl(socket_vendor_path.c_str(), socket_vendor_path.c_str(), nullptr);
     return -1;
   }

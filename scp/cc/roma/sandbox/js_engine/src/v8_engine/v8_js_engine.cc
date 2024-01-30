@@ -154,6 +154,7 @@ std::string GetExePath() {
   }
   return my_path;
 }
+
 }  // namespace
 
 void V8JsEngine::OneTimeSetup(
@@ -178,8 +179,7 @@ void V8JsEngine::OneTimeSetup(
         absl::StrCat(kWasmMemPagesV8PlatformFlag, page_count);
     v8::V8::SetFlagsFromString(flag_value.c_str());
   }
-
-  static v8::Platform* v8_platform = [] {
+  static const v8::Platform* v8_platform = [] {
     std::unique_ptr<v8::Platform> v8_platform =
         v8::platform::NewDefaultPlatform();
     v8::V8::InitializePlatform(v8_platform.get());
@@ -243,7 +243,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     v8::Local<v8::String> name =
         TypeConverter<std::string>::ToV8(isolate, wasm_code_array_name)
             .As<v8::String>();
-    context->Global()->Set(
+    (void)context->Global()->Set(
         context, name,
         TypeConverter<uint8_t*>::ToV8(isolate, wasm.data(), wasm.size()));
     // Set above context with compiled and run code as the default context for

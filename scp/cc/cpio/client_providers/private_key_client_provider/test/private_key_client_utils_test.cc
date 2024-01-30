@@ -219,11 +219,11 @@ DecryptResult CreateDecryptResult(
   if (!multi_party_key) {
     encryption_key = CreateSinglePartyEncryptionKey();
   }
-  DecryptResult result;
-  result.decrypt_result = decrypt_result;
-  result.encryption_key = std::move(*encryption_key);
-  result.plaintext = move(plaintext);
-  return result;
+  return DecryptResult{
+      .decrypt_result = decrypt_result,
+      .encryption_key = std::move(*encryption_key),
+      .plaintext = std::move(plaintext),
+  };
 }
 
 TEST(PrivateKeyClientUtilsTest, ConsturctPrivateKeySuccess) {
@@ -526,7 +526,6 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureDecryptResultNotFound) {
 }
 
 TEST(PrivateKeyClientUtilsTest, ExtractSinglePartyKeyReturnNoKey) {
-  auto failure = FailureExecutionResult(SC_UNKNOWN);
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   DecryptResult decrypt_result_out;
   keys_result_list[0].decrypt_result_key_id_map.Insert(

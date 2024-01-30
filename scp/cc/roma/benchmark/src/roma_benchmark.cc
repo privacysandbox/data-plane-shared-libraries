@@ -255,11 +255,11 @@ RomaBenchmark::RomaBenchmark(
     const InvocationSharedRequest<>& test_request, size_t batch_size,
     size_t threads, size_t requests_per_thread)
     : code_obj_(test_request),
-      roma_service_(std::move(roma_service)),
       threads_(threads),
       batch_size_(batch_size),
       requests_per_thread_(requests_per_thread),
-      latency_metrics_(threads * requests_per_thread, BenchmarkMetrics()) {}
+      latency_metrics_(threads * requests_per_thread, BenchmarkMetrics()),
+      roma_service_(std::move(roma_service)) {}
 
 RomaBenchmark::~RomaBenchmark() {
   if (auto status = roma_service_->Stop(); !status.ok()) {

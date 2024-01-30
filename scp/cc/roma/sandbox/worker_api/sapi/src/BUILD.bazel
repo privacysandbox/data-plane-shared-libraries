@@ -51,6 +51,9 @@ cc_library(
         "worker_wrapper.cc",
         "worker_wrapper.h",
     ],
+    copts = [
+        "-Wno-deprecated-declarations",
+    ],
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
