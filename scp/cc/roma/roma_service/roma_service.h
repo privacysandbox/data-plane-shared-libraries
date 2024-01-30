@@ -38,6 +38,7 @@
 #include "roma/sandbox/native_function_binding/src/native_function_table.h"
 #include "roma/sandbox/worker_api/src/worker_api_sapi.h"
 #include "roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
+#include "src/cpp/util/status_macro/status_macros.h"
 
 using google::scp::core::AsyncExecutor;
 using google::scp::core::errors::GetErrorMessage;
@@ -161,24 +162,15 @@ class RomaService {
     if (concurrency == 0) {
       concurrency = std::thread::hardware_concurrency();
     }
-
     size_t worker_queue_cap = config_.worker_queue_max_items;
     if (worker_queue_cap == 0) {
       worker_queue_cap = kWorkerQueueMax;
     }
 
     RegisterLogBindings();
-    auto native_function_binding_info_or =
-        SetupNativeFunctionHandler(concurrency);
-    if (!native_function_binding_info_or.ok()) {
-      return native_function_binding_info_or.status();
-    }
-
-    if (absl::Status status =
-            SetupWorkers(native_function_binding_info_or.value());
-        !status.ok()) {
-      return status;
-    }
+    PS_ASSIGN_OR_RETURN(auto native_function_binding_info,
+                        SetupNativeFunctionHandler(concurrency));
+    PS_RETURN_IF_ERROR(SetupWorkers(native_function_binding_info));
 
     async_executor_ =
         std::make_unique<AsyncExecutor>(concurrency, worker_queue_cap);
@@ -208,9 +200,7 @@ class RomaService {
           absl::StrCat("RunInternal failed due to internal error: ",
                        GetErrorMessage(execution_result.status_code)));
     }
-    if (auto status = worker_pool_->Run(); !status.ok()) {
-      return status;
-    }
+    PS_RETURN_IF_ERROR(worker_pool_->Run());
     return absl::OkStatus();
   }
 
@@ -220,9 +210,7 @@ class RomaService {
     }
     native_function_binding_table_.Clear();
     if (worker_pool_) {
-      if (auto status = worker_pool_->Stop(); !status.ok()) {
-        return status;
-      }
+      PS_RETURN_IF_ERROR(worker_pool_->Stop());
     }
     if (async_executor_) {
       if (auto execution_result = async_executor_->Stop();
@@ -370,11 +358,8 @@ class RomaService {
   template <typename RequestT>
   absl::Status ExecuteInternal(std::unique_ptr<RequestT> invocation_req,
                                Callback callback) {
-    auto validation =
-        ExecutionObjectValidation("Execute", invocation_req.get());
-    if (!validation.ok()) {
-      return validation;
-    }
+    PS_RETURN_IF_ERROR(
+        ExecutionObjectValidation("Execute", invocation_req.get()));
 
     auto request_unique_id = google::scp::core::common::Uuid::GenerateUuid();
     std::string uuid_str =
@@ -440,10 +425,9 @@ class RomaService {
     }
 
     SystemResourceInfoProviderLinux mem_info;
-    auto available_memory_or = mem_info.GetAvailableMemoryKb();
-    ROMA_VLOG(1) << "Available memory is " << available_memory_or.value()
-                 << " Kb";
-    if (!available_memory_or.result().Successful()) {
+    auto available_memory = mem_info.GetAvailableMemoryKb();
+    ROMA_VLOG(1) << "Available memory is " << *available_memory << " Kb";
+    if (!available_memory.result().Successful()) {
       // Failing to read the meminfo file should not stop startup.
       // This mem check is a best-effort check.
       return true;
@@ -451,7 +435,7 @@ class RomaService {
 
     if (config_.GetStartupMemoryCheckMinimumNeededValueKb) {
       return config_.GetStartupMemoryCheckMinimumNeededValueKb() <
-             *available_memory_or;
+             *available_memory;
     }
 
     auto cpu_count = std::thread::hardware_concurrency();
@@ -465,7 +449,7 @@ class RomaService {
     auto minimum_memory_needed =
         num_processes * kDefaultMinStartupMemoryNeededPerWorkerKb;
 
-    return minimum_memory_needed < *available_memory_or;
+    return minimum_memory_needed < *available_memory;
   }
 
   absl::LogSeverity GetSeverity(std::string_view severity) {
