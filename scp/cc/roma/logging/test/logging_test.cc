@@ -184,8 +184,7 @@ TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
       std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
 
       auto batch_callback =
-          [&,
-           i](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
+          [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
             for (auto resp : batch_resp) {
               if (resp.ok()) {
                 EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
