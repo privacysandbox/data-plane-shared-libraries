@@ -70,14 +70,8 @@ class RomaService {
       return absl::InternalError(
           "Roma startup failed due to insufficient system memory.");
     }
-
-    if (absl::Status result = InitInternal(); !result.ok()) {
-      return result;
-    }
-
-    if (absl::Status result = RunInternal(); !result.ok()) {
-      return result;
-    }
+    PS_RETURN_IF_ERROR(InitInternal());
+    PS_RETURN_IF_ERROR(RunInternal());
     return absl::OkStatus();
   }
 
@@ -252,12 +246,8 @@ class RomaService {
     std::vector<std::string> function_names;
     function_names.reserve(function_bindings.size());
     for (const auto& binding : function_bindings) {
-      auto status = native_function_binding_table_.Register(
-          binding->function_name, binding->function);
-      if (!status.ok()) {
-        return status;
-      }
-
+      PS_RETURN_IF_ERROR(native_function_binding_table_.Register(
+          binding->function_name, binding->function));
       function_names.push_back(binding->function_name);
     }
 
@@ -389,11 +379,7 @@ class RomaService {
     uuids.reserve(batch.size());
 
     for (auto& request : batch) {
-      auto validation = ExecutionObjectValidation("BatchExecute", &request);
-      if (!validation.ok()) {
-        return validation;
-      }
-
+      PS_RETURN_IF_ERROR(ExecutionObjectValidation("BatchExecute", &request));
       auto request_unique_id = google::scp::core::common::Uuid::GenerateUuid();
       std::string uuid_str =
           google::scp::core::common::ToString(request_unique_id);
