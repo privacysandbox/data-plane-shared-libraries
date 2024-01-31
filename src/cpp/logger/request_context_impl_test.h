@@ -67,10 +67,8 @@ class ConsentedLogTest : public LogTest {
 
   std::string ReadSs() {
     // Shut down reader now to avoid concurrent access of Ss.
-    {
-      auto not_used = std::move(test_instance_);
-      logger_ = nullptr;
-    }
+    logger_.reset();
+    test_instance_.reset();
     std::string output = GetSs().str();
     GetSs().str("");
     return output;
