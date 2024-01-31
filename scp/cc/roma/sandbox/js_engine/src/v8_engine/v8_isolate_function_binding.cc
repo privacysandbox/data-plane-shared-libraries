@@ -117,16 +117,6 @@ v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
   return v8::Undefined(isolate);
 }
 
-absl::LogSeverity GetSeverity(std::string_view severity) {
-  if (severity == "ROMA_LOG") {
-    return absl::LogSeverity::kInfo;
-  } else if (severity == "ROMA_WARN") {
-    return absl::LogSeverity::kWarning;
-  } else {
-    return absl::LogSeverity::kError;
-  }
-}
-
 }  // namespace
 
 bool V8IsolateFunctionBinding::NativeFieldsToProto(
