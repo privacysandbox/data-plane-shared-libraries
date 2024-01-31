@@ -68,6 +68,7 @@ class ContextImpl : public RequestContext {
         debug_response_sink_(std::move(debug_info)) {
     Update(context_map, debug_config);
   }
+  virtual ~ContextImpl() = default;
 
   absl::string_view ContextStr() const override { return context_; }
 
