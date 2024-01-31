@@ -11,9 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #include "src/cpp/communication/compression.h"
 
-#include "glog/logging.h"
+#include "absl/log/log.h"
 #include "src/cpp/communication/compression_brotli.h"
 #include "src/cpp/communication/uncompressed.h"
 

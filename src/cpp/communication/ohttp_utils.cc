@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/log/log.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "quiche/oblivious_http/buffers/oblivious_http_request.h"

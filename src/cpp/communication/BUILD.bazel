@@ -24,7 +24,6 @@ cc_library(
         "json_utils.h",
     ],
     deps = [
-        "@com_github_google_glog//:glog",
         "@com_google_absl//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
     ],
@@ -50,9 +49,9 @@ cc_library(
         "//src/cpp/encryption/key_fetcher/interface:private_key_fetcher_interface",
         "//src/cpp/encryption/key_fetcher/interface:public_key_fetcher_interface",
         "//src/cpp/util/status_macro:status_macros",
-        "@com_github_google_glog//:glog",
         "@com_github_google_quiche//quiche:oblivious_http_unstable_api",
         "@com_google_absl//absl/hash",
+        "@com_google_absl//absl/log:absl_log",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -77,9 +76,9 @@ cc_library(
     srcs = ["encoding_utils.cc"],
     hdrs = ["encoding_utils.h"],
     deps = [
-        "@com_github_google_glog//:glog",
         "@com_github_google_quiche//quiche:oblivious_http_unstable_api",
         "@com_google_absl//absl/hash",
+        "@com_google_absl//absl/log:absl_log",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
         "@zlib",
@@ -118,8 +117,8 @@ cc_library(
     deps = [
         "@brotli//:brotlidec",
         "@brotli//:brotlienc",
-        "@com_github_google_glog//:glog",
         "@com_github_google_quiche//quiche:quiche_unstable_api",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
     ],
 )
@@ -138,7 +137,6 @@ cc_test(
     srcs = ["compression_brotli_test.cc"],
     deps = [
         ":compression",
-        "@com_github_google_glog//:glog",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -151,7 +149,6 @@ cc_test(
         "@boost//:iostreams",
         "@brotli//:brotlidec",
         "@brotli//:brotlienc",
-        "@com_github_google_glog//:glog",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],

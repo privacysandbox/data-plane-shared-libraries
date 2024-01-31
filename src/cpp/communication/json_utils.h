@@ -20,7 +20,6 @@
 #include <utility>
 
 #include "absl/status/statusor.h"
-#include "glog/logging.h"
 #include "google/protobuf/util/json_util.h"
 
 namespace privacy_sandbox::server_common {
@@ -53,8 +52,9 @@ absl::StatusOr<std::string> ProtoToJson(const ProtoMessage& proto) {
                 "ProtoToJson only encodes from protobuf messages.");
 
   std::string body;
-  google::protobuf::util::JsonOptions options;
-  options.add_whitespace = false;
+  google::protobuf::util::JsonPrintOptions options = {
+      .add_whitespace = false,
+  };
   if (const auto s =
           google::protobuf::util::MessageToJsonString(proto, &body, options);
       !s.ok()) {

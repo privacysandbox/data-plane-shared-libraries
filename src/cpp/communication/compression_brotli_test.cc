@@ -17,7 +17,7 @@
 #include <string>
 #include <string_view>
 
-#include "glog/logging.h"
+#include "absl/log/log.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "src/cpp/communication/uncompressed.h"

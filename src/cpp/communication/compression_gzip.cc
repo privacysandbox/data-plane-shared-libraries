@@ -21,9 +21,9 @@
 #include <utility>
 #include <vector>
 
+#include "absl/log/log.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
-#include "glog/logging.h"
 #include "quiche/common/quiche_data_writer.h"
 
 namespace privacy_sandbox::server_common {
