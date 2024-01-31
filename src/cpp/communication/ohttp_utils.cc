@@ -72,7 +72,7 @@ absl::StatusOr<absl::string_view> GetRequestLabel(
 
   // Next, check to see if this encapsulated request follows the *new* format
   // where the first byte is a zero followed by the encapsulated request.
-  if (read_number64 & 0xFF00000000000000 != 0) {
+  if ((read_number64 & 0xFF00000000000000) != 0) {
     // In the future, we can branch here depending on the value of the first
     // byte in the request. But today, we reject the request if it's not a zero.
     VLOG(2) << "Detected request format using B&A request label, but expected 0"
