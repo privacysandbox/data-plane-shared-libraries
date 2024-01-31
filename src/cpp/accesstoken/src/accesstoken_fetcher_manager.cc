@@ -1,7 +1,5 @@
-#include "src/cpp/accesstoken/src/accesstoken_fetcher_manager.h"
-
 #include <memory>
-
+#include "src/cpp/accesstoken/src/accesstoken_fetcher_manager.h"
 #include "public/core/interface/execution_result.h"
 
 namespace privacy_sandbox::server_common {
@@ -10,12 +8,19 @@ using google::scp::core::Http1CurlClient;
 using google::scp::core::HttpRequest;
 using google::scp::core::HttpResponse;
 
+/// @brief Create a new instance of AccessTokenClientFactory
+/// @param options Set Azure Active Directory parameters
+/// @param http_client client to interface Azure Active Directory
 AccessTokenClientFactory::AccessTokenClientFactory(
     const AccessTokenClientOptions& options,
     std::shared_ptr<google::scp::core::HttpClientInterface>
         http_client) noexcept
     : tokenOptions_(options), http_client_(std::move(http_client)) {}
 
+/// @brief Create the http client needed to access Azure Active Directory
+/// @param options Set Azure Active Directory parameters
+/// @param http_client client to interface Azure Active Directory
+/// @return a new instance of AccessTokenClientFactory
 std::unique_ptr<AccessTokenClientFactory> AccessTokenClientFactory::Create(
     const AccessTokenClientOptions& options,
     std::shared_ptr<google::scp::core::HttpClientInterface>
@@ -30,7 +35,8 @@ std::unique_ptr<AccessTokenClientFactory> AccessTokenClientFactory::Create(
 /// @param url API url
 /// @param method Http method (default GET)
 /// @param headers Request headers (optional)
-/// @return
+/// @param request_body Body for POST (optional)
+/// @return result of the rest call and status code
 std::tuple<google::scp::core::ExecutionResult, std::string, int>
 AccessTokenClientFactory::MakeRequest(
     const std::string& url, google::scp::core::HttpMethod method,
@@ -72,6 +78,8 @@ AccessTokenClientFactory::MakeRequest(
   return {context_result, response_body, status_code};
 }
 
+/// @brief Request an access token from Azure Active Directory based on options passed in constructor
+/// @return the result of access token request and status code
 std::tuple<google::scp::core::ExecutionResult, std::string, int> 
 AccessTokenClientFactory::GetAccessToken() {
   // Use tokenOptions_ to retrieve the access token

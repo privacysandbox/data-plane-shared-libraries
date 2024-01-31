@@ -3,7 +3,6 @@
 
 #include <memory>
 #include <tuple>
-
 #include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/http_client_interface.h"
 #include "scp/cc/core/curl_client/src/http1_curl_client.h"
