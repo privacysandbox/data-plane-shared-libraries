@@ -137,12 +137,12 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
 
     const std::string udf = R"(
       async function HandleRequest(input, log_input, err_input) {
-        roma.n_log("JS HandleRequest START");
+        console.log("JS HandleRequest START");
         const module = await getModule();
-        roma.n_log("WASM loaded");
+        console.log("WASM loaded");
 
         const result = module.HelloClass.SayHello(input, log_input, err_input);
-        roma.n_log("C++ result: " + result);
+        console.log("C++ result: " + result);
         return result;
       }
     )";

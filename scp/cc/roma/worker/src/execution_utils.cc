@@ -76,26 +76,6 @@ ExecutionResult RunJs(v8::Isolate* isolate, std::string_view js_code) {
 
 constexpr std::string_view kPerformanceNowJs =
     "const performance = { now: () => Date.now() };";
-
-constexpr std::string_view kNativeLogFunctionsJs = R"(
-    if (typeof(roma) === 'undefined') {
-      var roma = {};
-    }
-
-    if (typeof(ROMA_LOG) !== 'undefined') {
-      roma.n_log = ROMA_LOG;
-      roma.n_warn = ROMA_WARN;
-      roma.n_error = ROMA_ERROR;
-    }
-  )";
-
-constexpr std::string_view kWasmLogFunctionsJs = R"(
-    if (typeof(ROMA_LOG) !== 'undefined') {
-      print = ROMA_LOG;
-      printErr = ROMA_ERROR;
-    }
-  )";
-
 }  // namespace
 
 ExecutionResult ExecutionUtils::CompileRunJS(
@@ -105,8 +85,7 @@ ExecutionResult ExecutionUtils::CompileRunJS(
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  for (auto src :
-       {kPerformanceNowJs, kNativeLogFunctionsJs, kWasmLogFunctionsJs}) {
+  for (auto src : {kPerformanceNowJs}) {
     if (auto result = RunJs(isolate, src); !result.Successful()) {
       err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
       return result;
