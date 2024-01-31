@@ -175,7 +175,9 @@ ExecutionResult GcpQueueClientProvider::EnqueueMessage(
   }
 
   auto execution_result = io_async_executor_->Schedule(
-      [=, this]() mutable { EnqueueMessageAsync(enqueue_message_context); },
+      [this, &enqueue_message_context]() mutable {
+        EnqueueMessageAsync(enqueue_message_context);
+      },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
     enqueue_message_context.result = execution_result;
@@ -239,7 +241,9 @@ ExecutionResult GcpQueueClientProvider::GetTopMessage(
     AsyncContext<GetTopMessageRequest, GetTopMessageResponse>&
         get_top_message_context) noexcept {
   auto execution_result = io_async_executor_->Schedule(
-      [=, this]() mutable { GetTopMessageAsync(get_top_message_context); },
+      [this, &get_top_message_context]() mutable {
+        GetTopMessageAsync(get_top_message_context);
+      },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
     get_top_message_context.result = execution_result;
@@ -349,7 +353,7 @@ ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
   }
 
   auto execution_result = io_async_executor_->Schedule(
-      [=, this]() mutable {
+      [this, &update_message_visibility_timeout_context]() mutable {
         UpdateMessageVisibilityTimeoutAsync(
             update_message_visibility_timeout_context);
       },
@@ -423,7 +427,9 @@ ExecutionResult GcpQueueClientProvider::DeleteMessage(
   }
 
   auto execution_result = io_async_executor_->Schedule(
-      [=, this]() mutable { DeleteMessageAsync(delete_message_context); },
+      [this, &delete_message_context]() mutable {
+        DeleteMessageAsync(delete_message_context);
+      },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
     delete_message_context.result = execution_result;

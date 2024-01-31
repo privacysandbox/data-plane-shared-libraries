@@ -124,7 +124,7 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
   access_secret_request.set_name(name);
 
   auto schedule_result = io_async_executor_->Schedule(
-      [=, this,
+      [this, &get_parameter_context,
        access_secret_request = std::move(access_secret_request)]() mutable {
         AsyncGetParameterCallback(get_parameter_context, access_secret_request);
       },

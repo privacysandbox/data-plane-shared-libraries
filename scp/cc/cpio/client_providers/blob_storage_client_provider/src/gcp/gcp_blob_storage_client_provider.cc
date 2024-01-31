@@ -191,7 +191,7 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlob(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [=, this] { GetBlobInternal(get_blob_context); },
+          [this, &get_blob_context] { GetBlobInternal(get_blob_context); },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     get_blob_context.result = schedule_result;
@@ -283,7 +283,7 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlobStream(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [=, this] {
+          [this, &get_blob_stream_context] {
             GetBlobStreamInternal(get_blob_stream_context, nullptr /*tracker*/);
           },
           AsyncPriority::Normal);
@@ -303,9 +303,12 @@ void GcpBlobStorageClientProvider::GetBlobStreamInternal(
         get_blob_stream_context,
     std::shared_ptr<GetBlobStreamTracker> tracker) noexcept {
   if (!tracker) {
-    auto tracker_or = InitGetBlobStreamTracker(get_blob_stream_context);
-    if (!tracker_or.Successful()) return;
-    tracker = std::move(*tracker_or);
+    if (auto tracker_or = InitGetBlobStreamTracker(get_blob_stream_context);
+        tracker_or.Successful()) {
+      tracker = std::move(*tracker_or);
+    } else {
+      return;
+    }
   }
   if (get_blob_stream_context.IsCancelled()) {
     auto result = FailureExecutionResult(
@@ -356,7 +359,7 @@ void GcpBlobStorageClientProvider::GetBlobStreamInternal(
 
   // Schedule reading the next section.
   schedule_result = io_async_executor_->Schedule(
-      [=, this] {
+      [this, &get_blob_stream_context, tracker = std::move(tracker)] {
         GetBlobStreamInternal(get_blob_stream_context, std::move(tracker));
       },
       AsyncPriority::Normal);
@@ -482,7 +485,9 @@ ExecutionResult GcpBlobStorageClientProvider::ListBlobsMetadata(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [=, this] { ListBlobsMetadataInternal(list_blobs_context); },
+          [this, &list_blobs_context] {
+            ListBlobsMetadataInternal(list_blobs_context);
+          },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     list_blobs_context.result = schedule_result;
@@ -578,7 +583,7 @@ ExecutionResult GcpBlobStorageClientProvider::PutBlob(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [=, this] { PutBlobInternal(put_blob_context); },
+          [this, &put_blob_context] { PutBlobInternal(put_blob_context); },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     put_blob_context.result = schedule_result;
@@ -637,7 +642,9 @@ ExecutionResult GcpBlobStorageClientProvider::PutBlobStream(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [=, this] { InitPutBlobStream(put_blob_stream_context); },
+          [this, &put_blob_stream_context] {
+            InitPutBlobStream(put_blob_stream_context);
+          },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     put_blob_stream_context.result = schedule_result;
@@ -767,7 +774,9 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
     }
     // Schedule checking for a new message.
     auto schedule_result = io_async_executor_->ScheduleFor(
-        [=, this] { PutBlobStreamInternal(put_blob_stream_context, tracker); },
+        [this, &put_blob_stream_context, &tracker] {
+          PutBlobStreamInternal(put_blob_stream_context, tracker);
+        },
         (TimeProvider::GetSteadyTimestampInNanoseconds() + kPutBlobRescanTime)
             .count());
     if (!schedule_result.Successful()) {
@@ -801,7 +810,9 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
   }
   // Schedule uploading the next portion.
   auto schedule_result = io_async_executor_->Schedule(
-      [=, this] { PutBlobStreamInternal(put_blob_stream_context, tracker); },
+      [this, &put_blob_stream_context, &tracker] {
+        PutBlobStreamInternal(put_blob_stream_context, tracker);
+      },
       AsyncPriority::Normal);
   if (!schedule_result.Successful()) {
     put_blob_stream_context.result = schedule_result;
@@ -830,7 +841,9 @@ ExecutionResult GcpBlobStorageClientProvider::DeleteBlob(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [=, this] { DeleteBlobInternal(delete_blob_context); },
+          [this, &delete_blob_context] {
+            DeleteBlobInternal(delete_blob_context);
+          },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
     delete_blob_context.result = schedule_result;
