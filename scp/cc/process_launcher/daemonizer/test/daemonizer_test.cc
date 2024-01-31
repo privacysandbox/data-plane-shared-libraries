@@ -28,6 +28,7 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/test/scp_test_base.h"
 #include "process_launcher/argument_parser/src/json_arg_parser.h"
@@ -46,6 +47,8 @@ using google::scp::process_launcher::ExecutableArgument;
 
 namespace google::scp::process_launcher::test {
 constexpr int five_hundred_ms = 500000;
+
+namespace {
 
 class DaemonizerForTests : public Daemonizer {
  public:
@@ -72,8 +75,8 @@ class DaemonizerForTests : public Daemonizer {
   int restarts_to_stop_after_ = INT32_MAX;
 };
 
-static std::string GetRandomProcessName() {
-  auto uuid = Uuid::GenerateUuid();
+std::string GetRandomProcessName() {
+  const auto uuid = Uuid::GenerateUuid();
   return std::to_string(uuid.low) + std::to_string(uuid.low) + "_test_process";
 }
 
@@ -84,8 +87,8 @@ static std::string GetRandomProcessName() {
  * @param process_name the name of the process
  * @return std::string the command
  */
-static std::string GetCommandToStartNamedProcess(std::string process_name,
-                                                 bool restart = true) {
+std::string GetCommandToStartNamedProcess(std::string process_name,
+                                          bool restart = true) {
   // Start a named process:
   // bash -c "exec -a <name> <cmd_to_execute>"
   json json_cmd;
@@ -98,19 +101,21 @@ static std::string GetCommandToStartNamedProcess(std::string process_name,
   return json_cmd.dump();
 }
 
-static std::string RunCommand(std::string& cmd) {
-  char buffer[128];
+std::string RunCommand(std::string& cmd) {
+  constexpr size_t kBufsize = 128;
+  char buffer[kBufsize];
   memset(buffer, 0, sizeof(buffer));
   std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"),
                                                 pclose);
   if (!pipe) {
     throw std::runtime_error("popen() failed!");
   }
-  fread(buffer, sizeof(buffer) - 1, 1, pipe.get());
+  constexpr size_t nmemb = 1;
+  (void)fread(buffer, kBufsize - 1, nmemb, pipe.get());
   return std::string(buffer);
 }
 
-static pid_t GetProcessId(std::string& process_name) {
+pid_t GetProcessId(std::string& process_name) {
   auto get_pid_cmd = "pidof " + process_name;
   std::string pid_str = RunCommand(get_pid_cmd);
   int pid;
@@ -120,44 +125,47 @@ static pid_t GetProcessId(std::string& process_name) {
   return -1;
 }
 
-static bool ProcessExists(std::string process_name) {
+bool ProcessExists(std::string process_name) {
   return GetProcessId(process_name) != -1;
 }
 
-static void WaitForProcessToExist(std::string process_name) {
+void WaitForProcessToExist(std::string process_name) {
   int max_tries = 10;
   while (!ProcessExists(process_name) && (max_tries-- > 0)) {
-    usleep(five_hundred_ms);
+    (void)usleep(five_hundred_ms);
   }
 }
 
-static void WaitForProcessNotToExist(std::string process_name) {
+void WaitForProcessNotToExist(std::string process_name) {
   int max_tries = 10;
   while (ProcessExists(process_name) && (max_tries-- > 0)) {
-    usleep(five_hundred_ms);
+    (void)usleep(five_hundred_ms);
   }
 }
 
-static void KillProcessByName(std::string process_name) {
-  system(("kill -9 $(pidof " + process_name + ")").c_str());
+void KillProcessByName(std::string process_name) {
+  if (system(absl::StrCat("kill -9 $(pidof ", process_name, ")").c_str()) < 0) {
+    throw std::runtime_error("process kill failed!");
+  }
   WaitForProcessNotToExist(process_name);
 }
 
-static pid_t ExecuteInNewProcess(const std::function<void()>& func) {
-  pid_t pid = fork();
+pid_t ExecuteInNewProcess(const std::function<void()>& func) {
+  const pid_t pid = fork();
   if (pid == 0) {
     func();
     exit(0);
   }
-
   return pid;
 }
 
 class DaemonizerTest : public ScpTestBase {};
 
+}  // namespace
+
 TEST_F(DaemonizerTest, ShouldStartProcess) {
-  std::string process_name = GetRandomProcessName();
-  std::string cmd = GetCommandToStartNamedProcess(process_name);
+  const std::string process_name = GetRandomProcessName();
+  const std::string cmd = GetCommandToStartNamedProcess(process_name);
   char* args[] = {const_cast<char*>(cmd.c_str())};
 
   DaemonizerForTests d(1, args);
