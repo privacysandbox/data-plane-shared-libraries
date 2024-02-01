@@ -44,23 +44,21 @@ constexpr double kDefaultHistogramBuckets[] = {
     5'000'000'000,
 };
 
-constexpr std::string_view kInstanceId = "instance_id";
-
 class NoopMetricsRecorder : public MetricsRecorder {
   void IncrementEventStatus(std::string event, absl::Status status,
-                            uint64_t count = 1) {}
+                            uint64_t count = 1) override {}
 
-  void IncrementEventCounter(std::string event) {}
+  void IncrementEventCounter(std::string event) override {}
 
   void RegisterHistogram(std::string event, std::string description,
                          std::string unit,
-                         std::vector<double> bucket_boundaries = {}) {}
+                         std::vector<double> bucket_boundaries = {}) override {}
 
-  void RecordHistogramEvent(std::string event, int64_t value) {}
+  void RecordHistogramEvent(std::string event, int64_t value) override {}
 
-  void RecordLatency(std::string event, absl::Duration duration) {}
+  void RecordLatency(std::string event, absl::Duration duration) override {}
 
-  void SetCommonLabel(std::string label, std::string label_value) {}
+  void SetCommonLabel(std::string label, std::string label_value) override {}
 };
 
 class MetricsRecorderImpl : public MetricsRecorder {
@@ -140,7 +138,7 @@ class MetricsRecorderImpl : public MetricsRecorder {
     histograms_.insert_or_assign(std::move(event), std::move(histogram));
   }
 
-  void SetCommonLabel(std::string label, std::string label_value) {
+  void SetCommonLabel(std::string label, std::string label_value) override {
     common_labels_.insert({std::move(label), std::move(label_value)});
   }
 
