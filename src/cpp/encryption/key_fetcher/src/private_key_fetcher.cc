@@ -19,12 +19,12 @@
 #include <utility>
 #include <vector>
 
+#include "absl/log/log.h"
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
-#include "glog/logging.h"
 #include "proto/hpke.pb.h"
 #include "proto/tink.pb.h"
 #include "scp/cc/core/interface/errors.h"
@@ -82,8 +82,10 @@ PrivateKeyFetcher::PrivateKeyFetcher(
     : private_key_client_(std::move(private_key_client)), ttl_(ttl) {}
 
 PrivateKeyFetcher::~PrivateKeyFetcher() {
-  ExecutionResult result = private_key_client_->Stop();
-  VLOG_IF(-1, !result.Successful()) << GetErrorMessage(result.status_code);
+  if (ExecutionResult result = private_key_client_->Stop();
+      !result.Successful()) {
+    VLOG(1) << GetErrorMessage(result.status_code);
+  }
 }
 
 absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {

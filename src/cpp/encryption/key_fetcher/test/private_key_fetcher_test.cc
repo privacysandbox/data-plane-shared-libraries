@@ -105,7 +105,7 @@ TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
           });
 
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client), absl::Hours(1));
-  fetcher.Refresh();
+  (void)fetcher.Refresh();
 
   // Verify all fields were initialized correctly.
   EXPECT_TRUE(fetcher.GetKey("255").has_value());
@@ -144,9 +144,9 @@ TEST(PrivateKeyFetcherTest,
                             absl::Nanoseconds(1));
   // TTL is 1 nanosecond and we wait 1 millisecond to refresh, so the key is
   // booted from the cache.
-  fetcher.Refresh();
+  (void)fetcher.Refresh();
   absl::SleepFor(absl::Milliseconds(1));
-  fetcher.Refresh();
+  (void)fetcher.Refresh();
 
   EXPECT_FALSE(fetcher.GetKey("000000").has_value());
 }
@@ -178,9 +178,9 @@ TEST(PrivateKeyFetcherTest, UnsuccessfulSyncPKSCall_CleansOldKeys) {
                             absl::Nanoseconds(1));
   // TTL is 1 nanosecond and we wait 1 millisecond to refresh, so the key is
   // booted from the cache.
-  fetcher.Refresh();
+  (void)fetcher.Refresh();
   absl::SleepFor(absl::Milliseconds(1));
-  fetcher.Refresh();
+  (void)fetcher.Refresh();
 
   EXPECT_FALSE(fetcher.GetKey("000000").has_value());
 }

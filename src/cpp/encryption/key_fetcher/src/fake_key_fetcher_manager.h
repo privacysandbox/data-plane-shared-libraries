@@ -17,19 +17,19 @@
 #ifndef SRC_CPP_ENCRYPTION_KEY_FETCHER_SRC_FAKE_KEY_FETCHER_MANAGER_H_
 #define SRC_CPP_ENCRYPTION_KEY_FETCHER_SRC_FAKE_KEY_FETCHER_MANAGER_H_
 
-#include <string>
+#include <string_view>
 
 #include "public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "src/cpp/encryption/key_fetcher/interface/key_fetcher_manager_interface.h"
 
 namespace privacy_sandbox::server_common {
 
-inline constexpr char kDefaultKeyId[] = "64";
+inline constexpr std::string_view kDefaultKeyId = "64";
 // Key id 64 public key (only used for testing):
-inline constexpr char kDefaultPublicKeyHex[] =
+inline constexpr std::string_view kDefaultPublicKeyHex =
     "f3b7b2f1764f5c077effecad2afd86154596e63f7375ea522761b881e6c3c323";
 // Key id 64 private key (only used for testing):
-inline constexpr char kDefaultPrivateKeyHex[] =
+inline constexpr std::string_view kDefaultPrivateKeyHex =
     "e7b292f49df28b8065992cdeadbc9d032a0e09e8476cb6d8d507212e7be3b9b4";
 
 // "Fake" implementation of the key fetcher manager that returns hard coded
@@ -37,9 +37,9 @@ inline constexpr char kDefaultPrivateKeyHex[] =
 class FakeKeyFetcherManager : public KeyFetcherManagerInterface {
  public:
   // Constructs hard coded keys from the given public/private key material.
-  FakeKeyFetcherManager(absl::string_view public_key = kDefaultPublicKeyHex,
-                        absl::string_view private_key = kDefaultPrivateKeyHex,
-                        absl::string_view key_id = kDefaultKeyId);
+  FakeKeyFetcherManager(std::string_view public_key = kDefaultPublicKeyHex,
+                        std::string_view private_key = kDefaultPrivateKeyHex,
+                        std::string_view key_id = kDefaultKeyId);
 
   ~FakeKeyFetcherManager() = default;
 

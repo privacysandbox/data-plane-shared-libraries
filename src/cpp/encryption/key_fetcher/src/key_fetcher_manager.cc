@@ -18,8 +18,8 @@
 #include <utility>
 #include <vector>
 
+#include "absl/log/log.h"
 #include "absl/status/statusor.h"
-#include "glog/logging.h"
 #include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "src/cpp/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
 #include "src/cpp/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
@@ -42,13 +42,12 @@ KeyFetcherManager::KeyFetcherManager(
     std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
     std::shared_ptr<privacy_sandbox::server_common::Executor> executor)
     : key_refresh_period_(key_refresh_period),
+      executor_(std::move(executor)),
       public_key_fetcher_(std::move(public_key_fetcher)),
-      private_key_fetcher_(std::move(private_key_fetcher)),
-      executor_(std::move(executor)) {}
+      private_key_fetcher_(std::move(private_key_fetcher)) {}
 
 KeyFetcherManager::~KeyFetcherManager() {
   shutdown_requested_.Notify();
-
   // Cancel the next queued up key refresh task.
   executor_->Cancel(std::move(task_id_));
 }

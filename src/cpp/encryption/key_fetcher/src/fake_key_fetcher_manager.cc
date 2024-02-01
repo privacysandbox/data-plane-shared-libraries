@@ -14,15 +14,15 @@
 
 #include "src/cpp/encryption/key_fetcher/src/fake_key_fetcher_manager.h"
 
-#include <string>
+#include <string_view>
 
 #include "absl/strings/escaping.h"
 
 namespace privacy_sandbox::server_common {
 
-FakeKeyFetcherManager::FakeKeyFetcherManager(absl::string_view public_key,
-                                             absl::string_view private_key,
-                                             absl::string_view key_id) {
+FakeKeyFetcherManager::FakeKeyFetcherManager(std::string_view public_key,
+                                             std::string_view private_key,
+                                             std::string_view key_id) {
   public_key_.set_key_id(key_id);
   public_key_.set_public_key(
       absl::Base64Escape(absl::HexStringToBytes(public_key)));

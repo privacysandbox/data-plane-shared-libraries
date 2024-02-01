@@ -21,13 +21,13 @@
 
 #include <google/protobuf/util/time_util.h>
 
+#include "absl/log/log.h"
 #include "absl/random/distributions.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
-#include "glog/logging.h"
 #include "scp/cc/core/interface/errors.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
