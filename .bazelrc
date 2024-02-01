@@ -25,6 +25,8 @@ build:cpp_nowarn --copt=-Werror
 build:cpp_nowarn --per_file_copt=external/.*@-Wno-error
 build:cpp_nowarn --per_file_copt=scp/.*_test\.cc@-Wno-unused-variable
 build:cpp_nowarn --per_file_copt=src/cpp/(metric|telemetry)/.*@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=scp/cc/cpio/client_providers/.*_client_provider/.*@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=scp/cc/core/blob_storage_provider/test/gcp/.*@-Wno-deprecated-declarations
 
 build:roma_sandboxed --per_file_copt=.*sandboxed_api.*@-Wno-return-type
 build:roma_sandboxed --cxxopt=-fbracket-depth=512
