@@ -21,6 +21,11 @@ build:cpp --copt=-Werror=thread-safety-analysis
 build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
 build:cpp --per_file_copt=external/nitrokmscli_.*\.c@-Wno-int-conversion
 
+build:cpp_nowarn --copt=-Werror
+build:cpp_nowarn --per_file_copt=external/.*@-Wno-error
+build:cpp_nowarn --per_file_copt=scp/.*_test\.cc@-Wno-unused-variable
+build:cpp_nowarn --per_file_copt=src/cpp/(metric|telemetry)/.*@-Wno-deprecated-declarations
+
 build:roma_sandboxed --per_file_copt=.*sandboxed_api.*@-Wno-return-type
 build:roma_sandboxed --cxxopt=-fbracket-depth=512
 
