@@ -30,10 +30,6 @@
 #include "roma/config/src/config.h"
 
 namespace google::scp::roma {
-enum class [[deprecated(
-    "Going forward, this value will be ignored and the only supported return "
-    "type will be string.")]] WasmDataType{kUnknownType, kUint32, kString,
-                                           kListOfString};
 /// @brief The key of timeout tag for request. This tag should be set with a
 /// valid absl::Duration string. From Abseil's Time Programming doc, A duration
 /// string is a possibly signed sequence of decimal numbers, each with optional
@@ -89,11 +85,6 @@ struct InvocationRequest {
   // The signature of the handler function to invoke.
   std::string handler_name;
 
-  // The return type of the WASM handler. For wasm source code execution, this
-  // field is required.
-  [[deprecated(
-      "Going forward, this value will be ignored and the only supported return "
-      "type will be string.")]] WasmDataType wasm_return_type;
   // Any key-value pair tags associated with this code object.
   absl::flat_hash_map<std::string, std::string> tags;
 

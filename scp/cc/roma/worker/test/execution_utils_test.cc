@@ -48,7 +48,6 @@ using google::scp::core::errors::SC_ROMA_V8_WORKER_HANDLER_INVALID_FUNCTION;
 using google::scp::core::errors::SC_ROMA_V8_WORKER_RESULT_PARSE_FAILURE;
 using google::scp::core::errors::SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE;
 using google::scp::core::test::ResultIs;
-using google::scp::roma::WasmDataType;
 using google::scp::roma::wasm::RomaWasmStringRepresentation;
 using google::scp::roma::wasm::WasmDeserializer;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
