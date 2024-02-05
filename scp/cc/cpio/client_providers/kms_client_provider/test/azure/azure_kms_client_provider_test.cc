@@ -16,39 +16,41 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <nlohmann/json.hpp>
 
 #include <memory>
 #include <string>
 
+#include <nlohmann/json.hpp>
+
+#include "absl/synchronization/notification.h"
 #include "core/curl_client/mock/mock_curl_client.h"
 #include "core/interface/async_context.h"
-#include "absl/synchronization/notification.h"
 #include "core/utils/src/base64.h"
-#include "public/core/test/interface/execution_result_matchers.h"
 #include "cpio/client_providers/kms_client_provider/src/azure/error_codes.h"
+#include "public/core/test/interface/execution_result_matchers.h"
 
-using google::scp::core::BytesBuffer;
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;
 using google::scp::core::AsyncContext;
+using google::scp::core::BytesBuffer;
 using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::errors::SC_AZURE_KMS_CLIENT_PROVIDER_KEY_ID_NOT_FOUND;
-using google::scp::core::errors::SC_AZURE_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND;
-using google::scp::core::test::IsSuccessful;
-using google::scp::core::test::ResultIs;
-using google::scp::core::utils::Base64Encode;
 using google::scp::core::HttpClientInterface;
 using google::scp::core::HttpHeaders;
 using google::scp::core::HttpMethod;
 using google::scp::core::HttpRequest;
 using google::scp::core::HttpResponse;
+using google::scp::core::SuccessExecutionResult;
+using google::scp::core::errors::
+    SC_AZURE_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND;
+using google::scp::core::errors::SC_AZURE_KMS_CLIENT_PROVIDER_KEY_ID_NOT_FOUND;
+using google::scp::core::test::IsSuccessful;
+using google::scp::core::test::MockCurlClient;
+using google::scp::core::test::ResultIs;
+using google::scp::core::utils::Base64Encode;
 using std::atomic;
 using testing::Eq;
-using testing::Return;
 using testing::Pointee;
-using google::scp::core::test::MockCurlClient;
+using testing::Return;
 
 static constexpr char kServiceAccount[] = "account";
 static constexpr char kWipProvider[] = "wip";
@@ -67,9 +69,7 @@ class AzureKmsClientProviderTest : public ::testing::Test {
     client_ = std::make_unique<AzureKmsClientProvider>(http_client_);
   }
 
-  void TearDown() override { 
-
-  }
+  void TearDown() override {}
 
   std::shared_ptr<MockCurlClient> http_client_;
   std::unique_ptr<AzureKmsClientProvider> client_;
@@ -141,7 +141,7 @@ TEST_F(AzureKmsClientProviderTest, SuccessToDecrypt) {
     EXPECT_EQ(http_context.request->method, HttpMethod::POST);
     EXPECT_THAT(http_context.request->path, Pointee(Eq(kKmsUnwrapPath)));
     std::string payload(http_context.request->body.bytes->begin(),
-                    http_context.request->body.bytes->end());
+                        http_context.request->body.bytes->end());
     nlohmann::json json_payload = nlohmann::json::parse(payload);
     EXPECT_EQ(json_payload["wrapped"], kCiphertext);
     EXPECT_EQ(json_payload["kid"], kKeyId);
@@ -184,11 +184,13 @@ TEST_F(AzureKmsClientProviderTest, FailedToDecrypt) {
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
-        EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+        EXPECT_THAT(context.result,
+                    ResultIs(FailureExecutionResult(SC_UNKNOWN)));
         condition.Notify();
       });
 
-  EXPECT_THAT(client_->Decrypt(context), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_THAT(client_->Decrypt(context),
+              ResultIs(FailureExecutionResult(SC_UNKNOWN)));
 
   condition.WaitForNotification();
 }

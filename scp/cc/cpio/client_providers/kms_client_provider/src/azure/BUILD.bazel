@@ -12,32 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility=["//scp/cc:scp_internal_pkg"])
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
-    name="azure_kms_client_provider_lib",
-    srcs=[
+    name = "azure_kms_client_provider_lib",
+    srcs = [
         ":azure_kms_client_provider_srcs",
     ],
-    copts=[
+    copts = [
         "-std=c++17",
     ],
-    deps=[
+    deps = [
         "//scp/cc:cc_base_include_dir",
+        "//scp/cc/azure/attestation:aci_attestation_lib",
         "//scp/cc/core/common/uuid/src:uuid_lib",
         "//scp/cc/core/interface:async_context_lib",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/utils/src:core_utils",
-        "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//scp/cc/public/cpio/interface:cpio_errors",
         "//scp/cc/public/cpio/interface/kms_client:type_def",
         "@com_github_googleapis_google_cloud_cpp//:kms",
-        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/strings",
         "@nlohmann_json//:lib",
         "@tink_cc",
-        "//scp/cc/azure/attestation:aci_attestation_lib",
     ],
 )
 
@@ -46,12 +48,12 @@ exports_files(
         "azure_kms_client_provider.cc",
         "azure_kms_client_provider.h",
         "error_codes.h",
-    ]
+    ],
 )
 
 filegroup(
-    name="azure_kms_client_provider_srcs",
-    srcs=[
+    name = "azure_kms_client_provider_srcs",
+    srcs = [
         ":azure_kms_client_provider.cc",
         ":azure_kms_client_provider.h",
         ":error_codes.h",

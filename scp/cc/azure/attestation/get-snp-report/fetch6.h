@@ -16,7 +16,8 @@
 
 #pragma once
 
-bool fetchAttestationReport6(const char* report_data_hexstring, void **snp_report);
+bool fetchAttestationReport6(const char* report_data_hexstring,
+                             void** snp_report);
 
 // 6.1 linux exposees the PSP via /dev/sev-guest
 

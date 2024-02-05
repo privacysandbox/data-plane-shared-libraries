@@ -16,12 +16,13 @@
 
 #include "azure_private_key_fetcher_provider_utils.h"
 
+#include <memory>
+
 #include "azure/attestation/json_attestation_report.h"
 
-
+using google::scp::core::HttpMethod;
 using google::scp::core::HttpRequest;
 using google::scp::core::Uri;
-using google::scp::core::HttpMethod;
 
 namespace google::scp::cpio::client_providers {
 
@@ -31,9 +32,9 @@ void AzurePrivateKeyFetchingClientUtils::CreateHttpRequest(
       request.key_vending_endpoint->private_key_vending_service_endpoint;
   http_request.method = HttpMethod::POST;
 
-  http_request.path =
-      std::make_shared<Uri>(base_uri);
-  const auto report = hasSnp() ? fetchSnpAttestation() : fetchFakeSnpAttestation();
+  http_request.path = std::make_shared<Uri>(base_uri);
+  const auto report =
+      hasSnp() ? fetchSnpAttestation() : fetchFakeSnpAttestation();
   http_request.body = core::BytesBuffer(report.dump());
 }
 }  // namespace google::scp::cpio::client_providers

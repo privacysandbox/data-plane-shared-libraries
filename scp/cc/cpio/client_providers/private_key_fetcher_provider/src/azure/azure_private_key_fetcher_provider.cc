@@ -15,7 +15,6 @@
  */
 
 #include "azure_private_key_fetcher_provider.h"
-#include "azure_private_key_fetcher_provider_utils.h"
 
 #include <utility>
 #include <vector>
@@ -27,6 +26,7 @@
 #include "cpio/client_providers/interface/role_credentials_provider_interface.h"
 #include "cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider_utils.h"
 
+#include "azure_private_key_fetcher_provider_utils.h"
 #include "error_codes.h"
 
 using google::scp::core::AsyncContext;
@@ -34,18 +34,19 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpClientInterface;
 using google::scp::core::HttpHeaders;
+using google::scp::core::HttpMethod;
 using google::scp::core::HttpRequest;
 using google::scp::core::HttpResponse;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
-using google::scp::core::HttpMethod;
 using google::scp::core::errors::
-    SC_AZURE_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND;
+    SC_AZURE_PRIVATE_KEY_FETCHER_CREDENTIALS_PROVIDER_NOT_FOUND;
 using std::bind;
 using std::placeholders::_1;
 
 namespace {
-constexpr char kAzurePrivateKeyFetcherProvider[] = "AzurePrivateKeyFetcherProvider";
+constexpr char kAzurePrivateKeyFetcherProvider[] =
+    "AzurePrivateKeyFetcherProvider";
 constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
 }  // namespace
@@ -57,7 +58,7 @@ ExecutionResult AzurePrivateKeyFetcherProvider::Init() noexcept {
 
   if (!auth_token_provider_) {
     auto execution_result = FailureExecutionResult(
-        SC_AZURE_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND);
+        SC_AZURE_PRIVATE_KEY_FETCHER_CREDENTIALS_PROVIDER_NOT_FOUND);
     SCP_ERROR(kAzurePrivateKeyFetcherProvider, kZeroUuid, execution_result,
               "Failed to get credentials provider.");
     return execution_result;
@@ -105,8 +106,9 @@ void AzurePrivateKeyFetcherProvider::SignHttpRequestCallback(
         sign_http_request_context) noexcept {
   auto execution_result = sign_http_request_context.result;
   if (!execution_result.Successful()) {
-    SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider, private_key_fetching_context,
-                      execution_result, "Failed to sign http request.");
+    SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider,
+                      private_key_fetching_context, execution_result,
+                      "Failed to sign http request.");
     private_key_fetching_context.result = execution_result;
     private_key_fetching_context.Finish();
     return;
@@ -136,22 +138,25 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
     AsyncContext<HttpRequest, HttpResponse>& http_client_context) noexcept {
   private_key_fetching_context.result = http_client_context.result;
   if (!http_client_context.result.Successful()) {
-    std::cout << "Private Key Fetching failed: " << http_client_context.response->body.ToString() << std::endl;
-    SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider, private_key_fetching_context,
-                      private_key_fetching_context.result,
-                      "Failed to fetch private key.");
+    std::cout << "Private Key Fetching failed: "
+              << http_client_context.response->body.ToString() << std::endl;
+    SCP_ERROR_CONTEXT(
+        kAzurePrivateKeyFetcherProvider, private_key_fetching_context,
+        private_key_fetching_context.result, "Failed to fetch private key.");
     private_key_fetching_context.Finish();
     return;
   }
 
   if (static_cast<int>(http_client_context.response->code) == 202) {
-    // `OperationDispatcher` will limit number of retry and control the amount of wait before sending next request
-    // based on `http_client_context.retry_count` value.
-    // Incrementing it here might not be the expected usage of the field.
-    // In that case we can either:
-    // - Modify `HttpClient` implementation under `http2_client/` so that it retries for 202 like it already does for some other status codes
+    // `OperationDispatcher` will limit number of retry and control the amount
+    // of wait before sending next request based on
+    // `http_client_context.retry_count` value. Incrementing it here might not
+    // be the expected usage of the field. In that case we can either:
+    // - Modify `HttpClient` implementation under `http2_client/` so that it
+    // retries for 202 like it already does for some other status codes
     //   (set `RetryExecutionResult()` to http_context.result).
-    // - Implement a retry mechanizm in this class without depending on `OperationDispatcher`.
+    // - Implement a retry mechanizm in this class without depending on
+    // `OperationDispatcher`.
     http_client_context.retry_count++;
     auto execution_result = http_client_->PerformRequest(http_client_context);
     if (!execution_result.Successful()) {
@@ -171,9 +176,9 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
   auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
       http_client_context.response->body, response);
   if (!result.Successful()) {
-    SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider, private_key_fetching_context,
-                      private_key_fetching_context.result,
-                      "Failed to parse private key.");
+    SCP_ERROR_CONTEXT(
+        kAzurePrivateKeyFetcherProvider, private_key_fetching_context,
+        private_key_fetching_context.result, "Failed to parse private key.");
     private_key_fetching_context.result = result;
     private_key_fetching_context.Finish();
     return;
@@ -192,7 +197,7 @@ PrivateKeyFetcherProviderFactory::Create(
         role_credentials_provider,
     const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider) {
   return std::make_shared<AzurePrivateKeyFetcherProvider>(http_client,
-                                                        auth_token_provider);
+                                                          auth_token_provider);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

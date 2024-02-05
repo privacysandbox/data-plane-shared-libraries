@@ -42,8 +42,8 @@ exports_files([
 filegroup(
     name = "azure_parameter_client_provider_srcs",
     srcs = [
-        ":error_codes.h",
         ":azure_parameter_client_provider.cc",
         ":azure_parameter_client_provider.h",
+        ":error_codes.h",
     ],
 )

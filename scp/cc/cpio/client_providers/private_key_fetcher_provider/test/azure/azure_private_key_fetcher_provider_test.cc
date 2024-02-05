@@ -22,9 +22,9 @@
 #include <string>
 
 #include "absl/strings/str_cat.h"
+#include "absl/synchronization/notification.h"
 #include "core/http2_client/mock/mock_http_client.h"
 #include "core/interface/async_context.h"
-#include "absl/synchronization/notification.h"
 #include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
 #include "public/core/interface/execution_result.h"
@@ -40,9 +40,9 @@ using google::scp::core::HttpRequest;
 using google::scp::core::HttpResponse;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::
-    SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND;
-using google::scp::core::errors::
     SC_AZURE_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND;
+using google::scp::core::errors::
+    SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND;
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
@@ -110,7 +110,7 @@ class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
 TEST_F(AzurePrivateKeyFetcherProviderTest, MissingHttpClient) {
   azure_private_key_fetcher_provider_ =
       std::make_unique<AzurePrivateKeyFetcherProvider>(nullptr,
-                                                     credentials_provider_);
+                                                       credentials_provider_);
 
   EXPECT_THAT(azure_private_key_fetcher_provider_->Init(),
               ResultIs(FailureExecutionResult(
@@ -124,7 +124,7 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
   EXPECT_THAT(
       azure_private_key_fetcher_provider_->Init(),
       ResultIs(FailureExecutionResult(
-          SC_AZURE_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND)));
+          SC_AZURE_PRIVATE_KEY_FETCHER_CREDENTIALS_PROVIDER_NOT_FOUND)));
 }
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, SignHttpRequest) {

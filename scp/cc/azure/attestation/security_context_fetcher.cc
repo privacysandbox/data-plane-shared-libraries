@@ -16,6 +16,8 @@
 
 #include "security_context_fetcher.h"
 
+#include <string>
+
 std::vector<uint8_t> fetchSecurityContextFile(std::string file_path) {
   const char* dir = std::getenv("UVM_SECURITY_CONTEXT_DIR");
   if (!dir) {
