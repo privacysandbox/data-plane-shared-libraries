@@ -7,6 +7,8 @@ build --@io_bazel_rules_docker//transitions:enable=false
 build --config=cpp
 build --config=roma_sandboxed
 build --config=otel
+# Disable ICU linking for googleurl.
+build --@com_google_googleurl//build_config:system_icu=0
 
 test --test_output=errors
 
