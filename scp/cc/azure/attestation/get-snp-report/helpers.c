@@ -49,7 +49,8 @@ char* encodeHexToString(uint8_t byte_array[], size_t len) {
   char* hexstring = (char*)malloc((2 * len + 1) * sizeof(char));
 
   for (size_t i = 0; i < len; i++)
-    snprintf(&hexstring[i * 2], 3, "%02x", byte_array[i]);
+    snprintf(&hexstring[i * 2], sizeof(&hexstring[i * 2]), "%02x",
+             byte_array[i]);
 
   hexstring[2 * len] = '\0';  // string padding character
   return hexstring;
