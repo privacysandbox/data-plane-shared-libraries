@@ -35,6 +35,7 @@
 #include "core/utils/src/base64.h"
 #include "core/utils/src/hashing.h"
 #include "cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
+#include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
 #include "google/cloud/options.h"
 #include "google/cloud/status_or.h"
@@ -106,6 +107,7 @@ using google::scp::core::errors::
     SC_BLOB_STORAGE_PROVIDER_STREAM_SESSION_EXPIRED;
 using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
+using google::scp::cpio::client_providers::GlobalCpio;
 
 namespace {
 
@@ -137,16 +139,23 @@ uint64_t GetMaxPageSize(const ListBlobsMetadataRequest& list_blobs_request) {
 namespace google::scp::cpio::client_providers {
 
 ExecutionResult GcpBlobStorageClientProvider::Init() noexcept {
-  auto project_id_or =
-      GcpInstanceClientUtils::GetCurrentProjectId(instance_client_);
-  if (!project_id_or.Successful()) {
-    SCP_ERROR(kGcpBlobStorageClientProvider, kZeroUuid, project_id_or.result(),
-              "Failed to get project ID for current instance");
-    return project_id_or.result();
+  // Try to get project_id from Global Cpio Options, otherwise get project_id
+  // from running instance_client.
+  std::string project_id_ = GlobalCpio::GetGlobalCpio()->GetProjectId();
+
+  if (project_id_.empty()) {
+    auto project_id_or =
+        GcpInstanceClientUtils::GetCurrentProjectId(instance_client_);
+    if (!project_id_or.Successful()) {
+      SCP_ERROR(kGcpBlobStorageClientProvider, kZeroUuid,
+                project_id_or.result(),
+                "Failed to get project ID for current instance");
+      return project_id_or.result();
+    }
+    project_id_ = std::move(*project_id_or);
   }
 
-  auto client_or =
-      cloud_storage_factory_->CreateClient(options_, *project_id_or);
+  auto client_or = cloud_storage_factory_->CreateClient(options_, project_id_);
   if (!client_or.Successful()) {
     SCP_ERROR(kGcpBlobStorageClientProvider, kZeroUuid, client_or.result(),
               "Failed creating Google Cloud Storage client.");
