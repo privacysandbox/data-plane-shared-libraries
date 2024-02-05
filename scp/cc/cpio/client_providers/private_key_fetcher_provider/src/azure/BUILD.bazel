@@ -23,13 +23,13 @@ cc_library(
     ],
     deps = [
         "//scp/cc:cc_base_include_dir",
+        "//scp/cc/azure/attestation:aci_attestation_lib",
         "//scp/cc/core/http2_client/src:http2_client_lib",
         "//scp/cc/cpio/client_providers/auth_token_provider/src/gcp:gcp_auth_token_provider_lib",
         "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//scp/cc/cpio/client_providers/interface:type_def",
         "//scp/cc/cpio/client_providers/private_key_fetcher_provider/src:private_key_fetcher_provider_lib",
         "//scp/cc/public/cpio/interface/private_key_client:type_def",
-        "//scp/cc/azure/attestation:aci_attestation_lib",
     ],
 )
 
@@ -42,10 +42,10 @@ exports_files([
 filegroup(
     name = "azure_private_key_fetcher_provider_srcs",
     srcs = [
-        ":error_codes.h",
         ":azure_private_key_fetcher_provider.cc",
         ":azure_private_key_fetcher_provider.h",
         ":azure_private_key_fetcher_provider_utils.cc",
         ":azure_private_key_fetcher_provider_utils.h",
+        ":error_codes.h",
     ],
 )

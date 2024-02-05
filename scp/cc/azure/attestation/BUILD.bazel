@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -25,27 +25,27 @@ cc_library(
         ],
     ),
     deps = [
-        "@boost//:system",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/log:check",
         ":get-snp-report",
-        "@nlohmann_json//:lib",
         "//scp/cc/core/utils/src:core_utils",
+        "@boost//:system",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/strings",
+        "@nlohmann_json//:lib",
     ],
 )
 
 cc_library(
-    name="get-snp-report",
-    srcs=glob(["get-snp-report/*.c"]),
-    hdrs=glob(["get-snp-report/*.h"]),
+    name = "get-snp-report",
+    srcs = glob(["get-snp-report/*.c"]),
+    hdrs = glob(["get-snp-report/*.h"]),
 )
 
 cc_binary(
     name = "print_snp_json",
     srcs = ["print_snp_json.cc"],
-    linkopts=['-static'],
-    linkstatic=True,
     features = ["fully_static_link"],
+    linkopts = ["-static"],
+    linkstatic = True,
     visibility = ["//visibility:public"],
     deps = [
         "aci_attestation_lib",
