@@ -19,8 +19,10 @@
 #include <cassert>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <regex>
 #include <sstream>
+#include <string>
 
 #include <openssl/base64.h>
 

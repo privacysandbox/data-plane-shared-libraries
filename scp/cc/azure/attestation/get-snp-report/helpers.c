@@ -29,9 +29,8 @@
 #include "snp-ioctl5.h"
 
 // Helper functions
-uint8_t* decodeHexString(const char* hexstring,
-                         size_t padTo)  // will zero pad to bufferLen
-{
+// will zero pad to bufferLen
+uint8_t* decodeHexString(const char* hexstring, size_t padTo) {
   size_t len = strlen(hexstring);
   size_t out_len = len / 2 + 1;
   if (out_len < padTo) out_len = padTo;
@@ -50,7 +49,7 @@ char* encodeHexToString(uint8_t byte_array[], size_t len) {
   char* hexstring = (char*)malloc((2 * len + 1) * sizeof(char));
 
   for (size_t i = 0; i < len; i++)
-    sprintf(&hexstring[i * 2], "%02x", byte_array[i]);
+    snprintf(&hexstring[i * 2], "%02x", byte_array[i]);
 
   hexstring[2 * len] = '\0';  // string padding character
   return hexstring;

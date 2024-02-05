@@ -124,7 +124,8 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
   EXPECT_THAT(
       azure_private_key_fetcher_provider_->Init(),
       ResultIs(FailureExecutionResult(
-          SC_AZURE_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND)));
+          SC_AZURE_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND))
+  );
 }
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, SignHttpRequest) {

@@ -16,6 +16,8 @@
 
 #include "azure_private_key_fetcher_provider_utils.h"
 
+#include <memory>
+
 #include "azure/attestation/json_attestation_report.h"
 
 using google::scp::core::HttpMethod;
