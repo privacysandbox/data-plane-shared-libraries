@@ -44,14 +44,14 @@ typedef struct {
                            // not going to try to use bit fields for this next
                            // one. Too confusing as to which bit of the byte
                            // will be used. Make a mask if you need it
-  uint32_t author_key_en;  // 31 bits of reserved, must be zero, bottom bit
-                           // indicates that the digest of the author key is
-                           // present in AUTHOR_KEY_DIGEST. Set to the value of
-                           // GCTX.AuthorKeyEn.
-  uint32_t reserved1;         // must be zero
-  uint8_t report_data[64];    // Guest provided data.
-  uint8_t measurement[48];    // measurement calculated at launch
-  uint8_t host_data[32];      // data provided by the hypervisor at launch
+  uint32_t author_key_en;   // 31 bits of reserved, must be zero, bottom bit
+                            // indicates that the digest of the author key is
+                            // present in AUTHOR_KEY_DIGEST. Set to the value of
+                            // GCTX.AuthorKeyEn.
+  uint32_t reserved1;       // must be zero
+  uint8_t report_data[64];  // Guest provided data.
+  uint8_t measurement[48];  // measurement calculated at launch
+  uint8_t host_data[32];    // data provided by the hypervisor at launch
   uint8_t id_key_digest[48];  // SHA-384 digest of the ID public key that signed
                               // the ID block provided in SNP_LAUNCH_FINISH
   uint8_t author_key_digest[48];  // SHA-384 digest of the Author public key
