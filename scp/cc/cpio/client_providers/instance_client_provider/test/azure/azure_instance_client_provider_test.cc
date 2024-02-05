@@ -54,8 +54,7 @@ namespace {
 inline constexpr char kOperatorTagName[] = "operator";
 inline constexpr char kEnvironmentTagName[] = "environment";
 inline constexpr char kServiceTagName[] = "service";
-constexpr char kInstanceResourceName[] =
-    "azure_instance_resource_name";
+constexpr char kInstanceResourceName[] = "azure_instance_resource_name";
 constexpr char kInstanceId[] = "azure_instance_id";
 constexpr char kOperatorTagValue[] = "azure_operator";
 constexpr char kEnvironmentTagValue[] = "azure_environment";
@@ -78,9 +77,12 @@ class AzureInstanceClientProviderTest : public testing::Test {
   std::unique_ptr<AzureInstanceClientProvider> instance_provider_;
 };
 
-TEST_F(AzureInstanceClientProviderTest, GetCurrentInstanceResourceNameSyncNotImplemented) {
+TEST_F(AzureInstanceClientProviderTest,
+       GetCurrentInstanceResourceNameSyncNotImplemented) {
   std::string resource_name;
-  EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceNameSync(resource_name), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_THAT(
+      instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
+      ResultIs(FailureExecutionResult(SC_UNKNOWN)));
 }
 
 TEST_F(AzureInstanceClientProviderTest, GetCurrentInstanceResourceName) {
@@ -93,9 +95,8 @@ TEST_F(AzureInstanceClientProviderTest, GetCurrentInstanceResourceName) {
           [&](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             ASSERT_SUCCESS(context.result);
-            EXPECT_THAT(
-                context.response->instance_resource_name(),
-                StrEq(kInstanceResourceName));
+            EXPECT_THAT(context.response->instance_resource_name(),
+                        StrEq(kInstanceResourceName));
             done.Notify();
           });
 
@@ -121,13 +122,14 @@ TEST_F(AzureInstanceClientProviderTest, GetInstanceDetailsSuccess) {
                            GetInstanceDetailsByResourceNameResponse>& context) {
             ASSERT_SUCCESS(context.result);
             const auto& details = context.response->instance_details();
-            EXPECT_THAT(details.instance_id(),StrEq(kInstanceId));
+            EXPECT_THAT(details.instance_id(), StrEq(kInstanceId));
             // We need to update implementation to return networks.
             EXPECT_THAT(details.networks(), SizeIs(0));
             EXPECT_THAT(details.labels(),
-              UnorderedElementsAre(Pair(kOperatorTagName, kOperatorTagValue),
-                                   Pair(kEnvironmentTagName, kEnvironmentTagValue),
-                                   Pair(kServiceTagName, kServiceTagValue)));
+                        UnorderedElementsAre(
+                            Pair(kOperatorTagName, kOperatorTagValue),
+                            Pair(kEnvironmentTagName, kEnvironmentTagValue),
+                            Pair(kServiceTagName, kServiceTagValue)));
             done.Notify();
           });
 
@@ -140,8 +142,7 @@ TEST_F(AzureInstanceClientProviderTest, GetTagsByResourceNameNotImplemented) {
   AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>
       context(std::make_shared<GetTagsByResourceNameRequest>(),
               [&](AsyncContext<GetTagsByResourceNameRequest,
-                               GetTagsByResourceNameResponse>& context) {
-                               });
+                               GetTagsByResourceNameResponse>& context) {});
 
   EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
