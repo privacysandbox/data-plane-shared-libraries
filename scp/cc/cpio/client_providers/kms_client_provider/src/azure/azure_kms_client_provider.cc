@@ -153,7 +153,7 @@ void AzureKmsClientProvider::OnDecryptCallback(
                     http_client_context.response->body.bytes->end());
 
   decrypt_context.response = std::make_shared<DecryptResponse>();
-  
+
   decrypt_context.response->set_plaintext(resp);
 
   decrypt_context.result = SuccessExecutionResult();

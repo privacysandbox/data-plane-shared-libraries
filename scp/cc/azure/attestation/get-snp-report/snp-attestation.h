@@ -65,7 +65,7 @@ typedef struct {
 typedef struct {
     uint32_t status;
     uint32_t report_size;
-    uint8_t reserved[24];    
+    uint8_t reserved[24];
     snp_attestation_report report;
     uint8_t padding[64]; // padding to the size of SEV_SNP_REPORT_RSP_BUF_SZ (i.e., 1280 bytes)
 } msg_response_resp;

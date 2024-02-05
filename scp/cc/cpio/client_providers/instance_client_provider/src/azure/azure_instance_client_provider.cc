@@ -97,7 +97,7 @@ ExecutionResult AzureInstanceClientProvider::GetInstanceDetailsByResourceNameSyn
     const std::string& resource_name,
     cmrt::sdk::instance_service::v1::InstanceDetails&
         instance_details) noexcept {
-  
+
   // Not implemented.
   return FailureExecutionResult(SC_UNKNOWN);
 }

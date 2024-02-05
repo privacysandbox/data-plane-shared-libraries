@@ -67,7 +67,7 @@ class AzureKmsClientProviderTest : public ::testing::Test {
     client_ = std::make_unique<AzureKmsClientProvider>(http_client_);
   }
 
-  void TearDown() override { 
+  void TearDown() override {
 
   }
 

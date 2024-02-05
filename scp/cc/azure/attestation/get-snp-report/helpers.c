@@ -32,30 +32,30 @@
 
 // Helper functions
 uint8_t* decodeHexString(const char *hexstring, size_t padTo) // will zero pad to bufferLen
-{   
+{
     size_t len = strlen(hexstring);
     size_t out_len = len/2+1;
     if (out_len < padTo)
         out_len = padTo;
     uint8_t *byte_array = (uint8_t*) malloc(out_len);
     memset(byte_array, 0, out_len);
-    
-    for (size_t i = 0; i < len; i+=2) {        
+
+    for (size_t i = 0; i < len; i+=2) {
         sscanf(hexstring, "%2hhx", &byte_array[i/2]);
-        hexstring += 2;        
+        hexstring += 2;
     }
 
     return byte_array;
 }
 
 char* encodeHexToString(uint8_t byte_array[], size_t len)
-{    
+{
     char* hexstring = (char*) malloc((2*len+1)*sizeof(char));
 
-    for (size_t i = 0; i < len; i++)       
-        sprintf(&hexstring[i*2], "%02x", byte_array[i]);                    
-    
-    hexstring[2*len] = '\0'; // string padding character    
+    for (size_t i = 0; i < len; i++)
+        sprintf(&hexstring[i*2], "%02x", byte_array[i]);
+
+    hexstring[2*len] = '\0'; // string padding character
     return hexstring;
 }
 
@@ -79,7 +79,7 @@ void printBytes(const char *desc, const uint8_t *data, size_t len, bool swap)
 }
 
 void printReport(const snp_attestation_report *r)
-{    
+{
     PRINT_VAL(r, version);
     PRINT_VAL(r, guest_svn);
     PRINT_VAL(r, policy);
