@@ -28,7 +28,6 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
-#include "core/common/lru_cache/src/lru_cache.h"
 #include "core/interface/service_interface.h"
 #include "public/core/interface/execution_result.h"
 #include "roma/sandbox/js_engine/src/js_engine.h"
@@ -41,8 +40,7 @@ namespace google::scp::roma::sandbox::worker {
 class Worker {
  public:
   explicit Worker(std::unique_ptr<js_engine::JsEngine> js_engine,
-                  bool require_preload = true,
-                  size_t compilation_context_cache_size = 5);
+                  bool require_preload = true);
 
   void Run();
 
@@ -70,7 +68,7 @@ class Worker {
    *
    */
   absl::Mutex cache_mu_;
-  core::common::LruCache<std::string, js_engine::RomaJsEngineCompilationContext>
+  absl::flat_hash_map<std::string, js_engine::RomaJsEngineCompilationContext>
       compilation_contexts_ ABSL_GUARDED_BY(cache_mu_);
 };
 }  // namespace google::scp::roma::sandbox::worker

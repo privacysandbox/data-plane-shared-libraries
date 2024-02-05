@@ -22,8 +22,7 @@ message WorkerInitParamsProto {
   int32 worker_factory_js_engine = 1 [deprecated = true];
   // Whether code preloading is required for execution.
   bool require_code_preload_for_execution = 2;
-  // The number of code compilation contexts to cache.
-  int32 compilation_context_cache_size = 3;
+  reserved 3;
 
   // A file descriptor which is used for the native function invocation from the
   // sandbox.

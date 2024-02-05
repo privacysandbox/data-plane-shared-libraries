@@ -42,7 +42,6 @@ namespace google::scp::roma::sandbox::worker_api::test {
 static WorkerApiSapiConfig GetDefaultConfig() {
   WorkerApiSapiConfig config;
   config.js_engine_require_code_preload = false;
-  config.compilation_context_cache_size = 5;
   config.native_js_function_comms_fd = -1;
   config.native_js_function_names = std::vector<std::string>();
   config.max_worker_virtual_memory_mb = 0;

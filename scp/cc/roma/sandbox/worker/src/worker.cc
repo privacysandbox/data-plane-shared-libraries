@@ -47,13 +47,8 @@ using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
 
 namespace google::scp::roma::sandbox::worker {
 Worker::Worker(std::unique_ptr<js_engine::JsEngine> js_engine,
-               bool require_preload, size_t compilation_context_cache_size)
-    : js_engine_(std::move(js_engine)),
-      require_preload_(require_preload),
-      compilation_contexts_(compilation_context_cache_size) {
-  CHECK(compilation_context_cache_size > 0)
-      << "compilation_context_cache_size cannot be zero";
-}
+               bool require_preload)
+    : js_engine_(std::move(js_engine)), require_preload_(require_preload) {}
 
 void Worker::Run() {
   js_engine_->Run();
@@ -79,7 +74,7 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
   if (code_version_it == metadata.end()) {
     return FailureExecutionResult(SC_ROMA_WORKER_MISSING_METADATA_ITEM);
   }
-  std::string code_version = std::string(code_version_it->second);
+  std::string_view code_version = code_version_it->second;
 
   ROMA_VLOG(2) << "Worker executing request with code version of "
                << code_version;
@@ -111,16 +106,16 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
   // Only reuse the context if this is not a load request.
   // A load request for an existing version should overwrite the given version.
   if (action != kRequestActionLoad) {
-    // To support `require_preload_` we must perform a double lookup.
     absl::MutexLock l(&cache_mu_);
-    if (require_preload_ && !compilation_contexts_.Contains(code_version)) {
+    if (const auto it = compilation_contexts_.find(code_version);
+        it != compilation_contexts_.end()) {
+      context = it->second;
+    } else if (require_preload_) {
       // If we require preloads and we couldn't find a context and this is not a
       // load request, then bail out. This is an execution without a previous
       // load.
       return FailureExecutionResult(
           SC_ROMA_WORKER_MISSING_CONTEXT_WHEN_EXECUTING);
-    } else {
-      context = compilation_contexts_.Get(code_version);
     }
   }
 
@@ -149,7 +144,7 @@ ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
 
   if (action == kRequestActionLoad && response_or->compilation_context) {
     absl::MutexLock l(&cache_mu_);
-    compilation_contexts_.Set(code_version, response_or->compilation_context);
+    compilation_contexts_[code_version] = response_or->compilation_context;
     ROMA_VLOG(1) << "caching compilation context for version " << code_version;
   }
   return response_or->execution_response;

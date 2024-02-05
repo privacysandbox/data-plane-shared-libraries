@@ -34,7 +34,6 @@ namespace google::scp::roma::sandbox::worker_api {
 WorkerApiSapi::WorkerApiSapi(const WorkerApiSapiConfig& config)
     : sandbox_api_(
           config.js_engine_require_code_preload,
-          config.compilation_context_cache_size,
           config.native_js_function_comms_fd, config.native_js_function_names,
           config.max_worker_virtual_memory_mb,
           config.js_engine_resource_constraints.initial_heap_size_in_mb,

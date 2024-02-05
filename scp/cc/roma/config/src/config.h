@@ -109,15 +109,6 @@ class Config {
   size_t max_worker_virtual_memory_mb = 0;
 
   /**
-   * @brief The number of code versions to cache. This determines how many code
-   * version are available to execute after being loaded. This is used for an
-   * LRU cache and if additional code versions are cached, the LRU one will be
-   * replaced.
-   *
-   */
-  size_t code_version_cache_size = 5;
-
-  /**
    * @brief The sandbox data shared buffer provides a shared memory for sharing
    * request and response data between the roma host binary and sandboxee. The
    * default size of the buffer is 1MB, but you can increase the size if needed

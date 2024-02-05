@@ -31,7 +31,6 @@ using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
 namespace {
 const WorkerApiSapiConfig worker_config = {
     .js_engine_require_code_preload = true,
-    .compilation_context_cache_size = 5,
     .native_js_function_comms_fd = -1,
     .native_js_function_names = {},
     .max_worker_virtual_memory_mb = 0,

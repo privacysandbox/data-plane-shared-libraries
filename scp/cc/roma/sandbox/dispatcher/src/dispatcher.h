@@ -29,7 +29,6 @@
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "core/async_executor/src/async_executor.h"
-#include "core/common/lru_cache/src/lru_cache.h"
 #include "core/interface/service_interface.h"
 #include "public/core/interface/execution_result.h"
 #include "roma/interface/roma.h"
@@ -45,17 +44,13 @@ namespace google::scp::roma::sandbox::dispatcher {
 class Dispatcher {
  public:
   Dispatcher(core::AsyncExecutor* async_executor,
-             worker_pool::WorkerPool* worker_pool, size_t max_pending_requests,
-             size_t code_version_cache_size)
+             worker_pool::WorkerPool* worker_pool, size_t max_pending_requests)
       : async_executor_(async_executor),
         worker_pool_(worker_pool),
         worker_index_(0),
         pending_requests_(0),
-        max_pending_requests_(max_pending_requests),
-        code_object_cache_(code_version_cache_size) {
+        max_pending_requests_(max_pending_requests) {
     CHECK(max_pending_requests > 0) << "max_pending_requests cannot be zero";
-    CHECK(code_version_cache_size > 0)
-        << "code_version_cache_size cannot be zero";
   }
 
   // Block until scheduled requests are complete.
@@ -166,7 +161,7 @@ class Dispatcher {
 
     if constexpr (std::is_same<RequestT, CodeObject>::value) {
       absl::MutexLock l(&cache_mu_);
-      code_object_cache_.Set(request->version_string, *request);
+      code_object_cache_[request->version_string] = *request;
     }
 
     {
@@ -190,7 +185,8 @@ class Dispatcher {
 
           std::string request_type;
           cache_mu_.Lock();
-          if (!code_object_cache_.Contains(request->version_string)) {
+          if (const auto it = code_object_cache_.find(request->version_string);
+              it == code_object_cache_.end()) {
             cache_mu_.Unlock();
             response = absl::StatusOr<ResponseObject>(
                 absl::InternalError("Could not find code version in cache."));
@@ -199,9 +195,7 @@ class Dispatcher {
             pending_requests_--;
             return;
           } else {
-            // Double lookup necessary to support above not found error.
-            const CodeObject& code_object =
-                code_object_cache_.Get(request->version_string);
+            const CodeObject& code_object = it->second;
 
             // TODO(b/317791484): Verify this is WAI.
             if (!code_object.wasm_bin.empty()) {
@@ -284,7 +278,7 @@ class Dispatcher {
   int pending_requests_ ABSL_GUARDED_BY(pending_requests_mu_);
   const size_t max_pending_requests_;
   absl::Mutex cache_mu_;
-  core::common::LruCache<std::string, CodeObject> code_object_cache_
+  absl::flat_hash_map<std::string, CodeObject> code_object_cache_
       ABSL_GUARDED_BY(cache_mu_);
 };
 }  // namespace google::scp::roma::sandbox::dispatcher

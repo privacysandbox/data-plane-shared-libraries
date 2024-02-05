@@ -72,11 +72,11 @@ absl::Status Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
 
 absl::Status Dispatcher::ReloadCachedCodeObjects(
     worker_api::WorkerApi& worker) {
-  const absl::flat_hash_map<std::string, CodeObject> all_cached_code_objects =
-      [&] {
-        absl::MutexLock l(&cache_mu_);
-        return code_object_cache_.GetAll();
-      }();
+  absl::flat_hash_map<std::string, CodeObject> all_cached_code_objects;
+  {
+    absl::MutexLock l(&cache_mu_);
+    all_cached_code_objects = code_object_cache_;
+  }
 
   {
     absl::MutexLock l(&pending_requests_mu_);

@@ -234,63 +234,6 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
   worker.Stop();
 }
 
-TEST_F(V8EngineWorkerTest, ShouldReturnFailureIfVersionIsNotInInCache) {
-  auto engine = std::make_unique<V8JsEngine>();
-  Worker worker(std::move(engine), true /*require_preload*/,
-                1 /*compilation_context_cache_size*/);
-  worker.Run();
-
-  std::string js_code = R"(function hello_js() { return "Hello World!"; })";
-  std::vector<absl::string_view> input;
-
-  // Load
-  absl::flat_hash_map<std::string_view, std::string_view> metadata = {
-      {kRequestType, kRequestTypeJavascript},
-      {kHandlerName, "hello_js"},
-      {kCodeVersion, "1"},
-      {kRequestAction, kRequestActionLoad},
-  };
-
-  constexpr absl::Span<const uint8_t> empty_wasm;
-  auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_SUCCESS(response_or.result());
-
-  // Execute v1
-  metadata[kRequestAction] = kRequestActionExecute;
-  // Code was loaded so we don't need to send the source code again
-  response_or = worker.RunCode("", input, metadata, empty_wasm);
-  ASSERT_SUCCESS(response_or.result());
-  EXPECT_THAT(response_or->response, StrEq(R"("Hello World!")"));
-
-  // Execute v2 - Should fail since we haven't loaded v2
-  metadata[kCodeVersion] = "2";
-  metadata[kRequestAction] = kRequestActionExecute;
-  response_or = worker.RunCode("", input, metadata, empty_wasm);
-  EXPECT_FALSE(response_or.result());
-
-  // Load v2
-  metadata[kCodeVersion] = "2";
-  metadata[kRequestAction] = kRequestActionLoad;
-  response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_SUCCESS(response_or.result());
-
-  // Execute v1 - Should fail since the cache size is 1 and we loaded a new
-  // version
-  metadata[kCodeVersion] = "1";
-  metadata[kRequestAction] = kRequestActionExecute;
-  response_or = worker.RunCode("", input, metadata, empty_wasm);
-  EXPECT_FALSE(response_or.result());
-
-  // Execute v2
-  metadata[kCodeVersion] = "2";
-  metadata[kRequestAction] = kRequestActionExecute;
-  // Code was loaded so we don't need to send the source code again
-  response_or = worker.RunCode("", input, metadata, empty_wasm);
-  ASSERT_SUCCESS(response_or.result());
-  EXPECT_THAT(response_or->response, StrEq(R"("Hello World!")"));
-  worker.Stop();
-}
-
 TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), true /*require_preload*/);
@@ -386,16 +329,6 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   ASSERT_SUCCESS(response_or.result());
   EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 1!")"));
   worker.Stop();
-}
-
-TEST_F(V8EngineWorkerTest, ShouldFailIfCompilationContextCacheSizeIsZero) {
-  auto engine = std::make_unique<V8JsEngine>();
-  constexpr bool require_preload = false;
-  constexpr int compilation_context_cache_size = 0;
-
-  ASSERT_DEATH(Worker(std::move(engine), require_preload,
-                      compilation_context_cache_size),
-               "compilation_context_cache_size cannot be zero");
 }
 
 TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
@@ -511,71 +444,6 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   response_or = worker.RunCode(js_code, input, metadata, wasm);
   ASSERT_SUCCESS(response_or.result());
   EXPECT_THAT(response_or->response, StrEq("0"));
-  worker.Stop();
-}
-
-TEST_F(V8EngineWorkerTest,
-       JSWithWasmShouldReturnFailureIfVersionIsNotInInCache) {
-  auto engine = std::make_unique<V8JsEngine>();
-  Worker worker(std::move(engine), true /*require_preload*/,
-                1 /*compilation_context_cache_size*/);
-  worker.Run();
-
-  auto wasm = absl::Span<const uint8_t>(kWasmBin);
-  auto js_code = R"""(
-          const module = new WebAssembly.Module(addModule);
-          const instance = new WebAssembly.Instance(module);
-          function hello_js(a, b) {
-            return instance.exports.add(a, b);
-          }
-        )""";
-
-  std::vector<absl::string_view> input;
-
-  // Load
-  absl::flat_hash_map<std::string_view, std::string_view> metadata = {
-      {kRequestType, kRequestTypeJavascriptWithWasm},
-      {kHandlerName, "hello_js"},
-      {kCodeVersion, "1"},
-      {kRequestAction, kRequestActionLoad},
-      {kWasmCodeArrayName, "addModule"},
-  };
-  auto response_or = worker.RunCode(js_code, input, metadata, wasm);
-  ASSERT_SUCCESS(response_or.result());
-
-  // Execute v1
-  metadata[kRequestAction] = kRequestActionExecute;
-  input = {"1", "2"};
-  response_or = worker.RunCode("", input, metadata, wasm);
-  ASSERT_SUCCESS(response_or.result());
-  EXPECT_THAT(response_or->response, StrEq("3"));
-
-  // Execute v2 - Should fail since we haven't loaded v2
-  metadata[kCodeVersion] = "2";
-  metadata[kRequestAction] = kRequestActionExecute;
-  response_or = worker.RunCode("", input, metadata, wasm);
-  EXPECT_FALSE(response_or.result());
-
-  // Load v2
-  metadata[kCodeVersion] = "2";
-  metadata[kRequestAction] = kRequestActionLoad;
-  response_or = worker.RunCode(js_code, input, metadata, wasm);
-  ASSERT_SUCCESS(response_or.result());
-
-  // Execute v1 - Should fail since the cache size is 1 and we loaded a new
-  // version
-  metadata[kCodeVersion] = "1";
-  metadata[kRequestAction] = kRequestActionExecute;
-  response_or = worker.RunCode("", input, metadata, wasm);
-  EXPECT_FALSE(response_or.result());
-
-  // Execute v2
-  metadata[kCodeVersion] = "2";
-  metadata[kRequestAction] = kRequestActionExecute;
-  // Code was loaded so we don't need to send the source code again
-  response_or = worker.RunCode("", input, metadata, wasm);
-  ASSERT_SUCCESS(response_or.result());
-  EXPECT_THAT(response_or->response, StrEq("3"));
   worker.Stop();
 }
 }  // namespace google::scp::roma::sandbox::worker::test

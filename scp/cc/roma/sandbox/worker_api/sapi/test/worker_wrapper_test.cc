@@ -51,7 +51,6 @@ static ::worker_api::WorkerInitParamsProto GetDefaultInitParams() {
 
   ::worker_api::WorkerInitParamsProto init_params;
   init_params.set_require_code_preload_for_execution(false);
-  init_params.set_compilation_context_cache_size(5);
   init_params.set_native_js_function_comms_fd(-1);
   init_params.mutable_native_js_function_names()->Clear();
   init_params.set_js_engine_initial_heap_size_mb(0);

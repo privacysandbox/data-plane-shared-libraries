@@ -26,7 +26,6 @@ cc_library(
         ":request_validator",
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
-        "//scp/cc/core/common/lru_cache/src:lru_cache_lib",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
         "//scp/cc/roma/interface:roma_interface_lib",

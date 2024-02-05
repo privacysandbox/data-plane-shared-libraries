@@ -41,8 +41,7 @@ using ::testing::StrEq;
 namespace google::scp::roma::sandbox::worker_api::test {
 TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
   WorkerSandboxApi sandbox_api(
-      false /*require_preload*/, 5 /*compilation_context_cache_size*/,
-      -1 /*native_js_function_comms_fd*/,
+      false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
       std::vector<std::string>() /*native_js_function_names*/, 0, 0, 0, 0, 0,
       false);
 
@@ -71,8 +70,7 @@ TEST(WorkerSandboxApiTest,
   // no other limitations, this limit needs to be pretty high for V8 to properly
   // start. We set a limit of 100MB which causes a failure in this case.
   WorkerSandboxApi sandbox_api(
-      false /*require_preload*/, 5 /*compilation_context_cache_size*/,
-      -1 /*native_js_function_comms_fd*/,
+      false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
       std::vector<std::string>() /*native_js_function_names*/,
       100 /*max_worker_virtual_memory_mb*/, 0, 0, 0, 0, false);
 
@@ -88,7 +86,6 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds), 0);
 
   WorkerSandboxApi sandbox_api(false /*require_preload*/,
-                               5 /*compilation_context_cache_size*/,
                                fds[1] /*native_js_function_comms_fd*/,
                                {"my_great_func"}, 0, 0, 0, 0, 0, false);
 
@@ -132,7 +129,7 @@ class WorkerSandboxApiForTests : public WorkerSandboxApi {
   WorkerSandboxApiForTests(
       bool require_preload, int native_js_function_comms_fd,
       const std::vector<std::string>& native_js_function_names)
-      : WorkerSandboxApi(require_preload, 5, native_js_function_comms_fd,
+      : WorkerSandboxApi(require_preload, native_js_function_comms_fd,
                          native_js_function_names, 0, 0, 0, 0, 0, false) {}
 
   ::sapi::Sandbox* GetUnderlyingSandbox() { return worker_sapi_sandbox_.get(); }

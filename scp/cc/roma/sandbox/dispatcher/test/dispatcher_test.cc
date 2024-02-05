@@ -51,7 +51,6 @@ namespace {
 WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
   WorkerApiSapiConfig config;
   config.js_engine_require_code_preload = true;
-  config.compilation_context_cache_size = 5;
   config.native_js_function_comms_fd = -1;
   config.native_js_function_names = std::vector<std::string>();
   config.max_worker_virtual_memory_mb = 0;
@@ -73,10 +72,7 @@ TEST(DispatcherTest, CanRunCode) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 100;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool, /*max_pending_reqs=*/10);
 
   auto load_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",
@@ -130,10 +126,7 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 10;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool, /*max_pending_reqs=*/10);
 
   auto load_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",
@@ -188,10 +181,7 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 10;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool, /*max_pending_reqs=*/10);
 
   auto load_bad_js_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",
@@ -223,10 +213,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 10;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool, /*max_pending_reqs=*/10);
 
   auto execute_request =
       std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
@@ -261,10 +248,8 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 100;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool,
+                        /*max_pending_reqs=*/100);
 
   auto load_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",
@@ -334,10 +319,8 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 100;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool,
+                        /*max_pending_reqs=*/100);
 
   auto load_bad_js_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",
@@ -372,10 +355,8 @@ TEST(DispatcherTest, DispatchBatchShouldExecuteAllRequests) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 100;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool,
+                        /*max_pending_reqs=*/100);
 
   {
     auto load_request = std::make_unique<CodeObject>(CodeObject{
@@ -453,10 +434,8 @@ TEST(DispatcherTest, DispatchBatchHandleFailedRequest) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 100;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool,
+                        /*max_pending_reqs=*/100);
 
   {
     auto load_request = std::make_unique<CodeObject>(CodeObject{
@@ -517,10 +496,8 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 100;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool,
+                        /*max_pending_reqs=*/100);
 
   auto load_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",
@@ -602,10 +579,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 10;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool, /*max_pending_reqs=*/10);
 
   {
     auto load_request = std::make_unique<CodeObject>();
@@ -717,10 +691,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 10;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool, /*max_pending_reqs=*/10);
 
   {
     auto load_request = std::make_unique<CodeObject>(CodeObject{
@@ -851,10 +822,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_reqs = 10;
-  constexpr size_t code_version_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_reqs,
-                        code_version_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool, /*max_pending_reqs=*/10);
 
   {
     auto load_request = std::make_unique<CodeObject>(CodeObject{
@@ -1000,25 +968,12 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
   }
 }
 
-TEST(DispatcherTest, ShouldFailIfCodeVersionCacheSizeIsZero) {
-  AsyncExecutor async_executor(1, 10);
-  WorkerPoolApiSapi worker_pool({});
-
-  constexpr size_t max_pending_requests = 10;
-  constexpr size_t code_version_cache_size = 0;
-  EXPECT_DEATH(Dispatcher(&async_executor, &worker_pool, max_pending_requests,
-                          code_version_cache_size),
-               "code_version_cache_size cannot be zero");
-}
-
 TEST(DispatcherTest, ShouldFailIfMaxPendingRequestsIsZero) {
   AsyncExecutor async_executor(1, 10);
   WorkerPoolApiSapi worker_pool({});
+  constexpr size_t kMaxPendingRequests = 0;
 
-  constexpr size_t max_pending_requests = 0;
-  constexpr size_t code_version_cache_size = 5;
-  EXPECT_DEATH(Dispatcher(&async_executor, &worker_pool, max_pending_requests,
-                          code_version_cache_size),
+  EXPECT_DEATH(Dispatcher(&async_executor, &worker_pool, kMaxPendingRequests),
                "max_pending_requests cannot be zero");
 }
 
@@ -1031,10 +986,8 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_requests = 10;
-  constexpr size_t code_version_cache_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_requests,
-                        code_version_cache_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool,
+                        /*max_pending_reqs=*/10);
 
   auto load_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",
@@ -1089,10 +1042,7 @@ TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
   AutoInitRunStop for_async_executor(async_executor);
   AutoInitRunStopStatus for_worker_pool(worker_pool);
 
-  constexpr size_t max_pending_requests = 1;
-  constexpr size_t code_version_cache_size = 5;
-  Dispatcher dispatcher(&async_executor, &worker_pool, max_pending_requests,
-                        code_version_cache_size);
+  Dispatcher dispatcher(&async_executor, &worker_pool, /*max_pending_reqs=*/1);
 
   auto load_request = std::make_unique<CodeObject>(CodeObject{
       .id = "some_id",

@@ -33,7 +33,6 @@ namespace google::scp::roma::sandbox::worker_api {
 
 struct WorkerApiSapiConfig {
   bool js_engine_require_code_preload;
-  size_t compilation_context_cache_size;
   int native_js_function_comms_fd;
   std::vector<std::string> native_js_function_names;
   size_t max_worker_virtual_memory_mb;

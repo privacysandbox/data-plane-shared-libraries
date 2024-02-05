@@ -178,11 +178,9 @@ class RomaService {
     // TODO: Make max_pending_requests configurable
     dispatcher_ = std::make_unique<class Dispatcher>(
         async_executor_.get(), worker_pool_.get(),
-        concurrency * worker_queue_cap /*max_pending_requests*/,
-        config_.code_version_cache_size);
+        concurrency * worker_queue_cap /*max_pending_requests*/);
     ROMA_VLOG(1) << "RomaService Init with " << config_.number_of_workers
-                 << " workers. The capacity of code cache is "
-                 << config_.code_version_cache_size;
+                 << " workers.";
     return absl::OkStatus();
   }
 
@@ -311,7 +309,6 @@ class RomaService {
     for (const int remote_fd : remote_fds) {
       WorkerApiSapiConfig worker_api_sapi_config{
           .js_engine_require_code_preload = true,
-          .compilation_context_cache_size = config_.code_version_cache_size,
           .native_js_function_comms_fd = remote_fd,
           .native_js_function_names = function_names,
           .max_worker_virtual_memory_mb = config_.max_worker_virtual_memory_mb,

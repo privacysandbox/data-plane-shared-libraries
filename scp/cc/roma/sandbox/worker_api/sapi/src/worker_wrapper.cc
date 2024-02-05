@@ -102,8 +102,7 @@ std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
   auto one_time_setup = GetEngineOneTimeSetup(params);
   v8_engine->OneTimeSetup(one_time_setup);
 
-  return std::make_unique<Worker>(std::move(v8_engine), params.require_preload,
-                                  params.compilation_context_cache_size);
+  return std::make_unique<Worker>(std::move(v8_engine), params.require_preload);
 }
 
 SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
@@ -132,9 +131,7 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       .resource_constraints = resource_constraints,
       .max_wasm_memory_number_of_pages = static_cast<size_t>(
           init_params->js_engine_max_wasm_memory_number_of_pages()),
-      .require_preload = init_params->require_code_preload_for_execution(),
-      .compilation_context_cache_size =
-          static_cast<size_t>(init_params->compilation_context_cache_size())};
+      .require_preload = init_params->require_code_preload_for_execution()};
 
   worker_ = CreateWorker(v8_params);
 

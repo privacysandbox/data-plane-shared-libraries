@@ -143,8 +143,6 @@ absl::Status WorkerSandboxApi::Init() noexcept {
 
   ::worker_api::WorkerInitParamsProto worker_init_params;
   worker_init_params.set_require_code_preload_for_execution(require_preload_);
-  worker_init_params.set_compilation_context_cache_size(
-      compilation_context_cache_size_);
   worker_init_params.set_native_js_function_comms_fd(js_hook_remote_fd);
   worker_init_params.mutable_native_js_function_names()->Assign(
       native_js_function_names_.begin(), native_js_function_names_.end());

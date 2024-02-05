@@ -55,8 +55,6 @@ class WorkerSandboxApi {
    *
    * @param worker_engine The JS engine type used to build the worker.
    * @param require_preload Whether code preloading is required for this engine.
-   * @param compilation_context_cache_size The number of compilation contexts
-   * to cache.
    * @param native_js_function_comms_fd Filed descriptor to be used for native
    * function calls through the sandbox.
    * @param native_js_function_names The names of the functions that should be
@@ -74,8 +72,7 @@ class WorkerSandboxApi {
    * the default value of 1MB will be used.
    */
   WorkerSandboxApi(
-      bool require_preload, size_t compilation_context_cache_size,
-      int native_js_function_comms_fd,
+      bool require_preload, int native_js_function_comms_fd,
       const std::vector<std::string>& native_js_function_names,
       size_t max_worker_virtual_memory_mb,
       size_t js_engine_initial_heap_size_mb,
@@ -84,7 +81,6 @@ class WorkerSandboxApi {
       size_t sandbox_request_response_shared_buffer_size_mb,
       bool enable_sandbox_sharing_request_response_with_buffer_only)
       : require_preload_(require_preload),
-        compilation_context_cache_size_(compilation_context_cache_size),
         native_js_function_comms_fd_(native_js_function_comms_fd),
         native_js_function_names_(native_js_function_names),
         max_worker_virtual_memory_mb_(max_worker_virtual_memory_mb),
@@ -262,7 +258,6 @@ class WorkerSandboxApi {
   std::unique_ptr<WorkerWrapperApi> worker_wrapper_api_;
 
   bool require_preload_;
-  size_t compilation_context_cache_size_;
   int native_js_function_comms_fd_;
   std::vector<std::string> native_js_function_names_;
   size_t max_worker_virtual_memory_mb_;
