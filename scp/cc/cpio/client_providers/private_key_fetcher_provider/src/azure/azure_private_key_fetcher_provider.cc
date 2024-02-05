@@ -40,7 +40,7 @@ using google::scp::core::HttpResponse;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
-    SC_AZURE_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND;
+    SC_AZURE_PRIVATE_KEY_FETCHER_CREDENTIALS_PROVIDER_NOT_FOUND;
 using std::bind;
 using std::placeholders::_1;
 
@@ -58,7 +58,7 @@ ExecutionResult AzurePrivateKeyFetcherProvider::Init() noexcept {
 
   if (!auth_token_provider_) {
     auto execution_result = FailureExecutionResult(
-        SC_AZURE_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND);
+        SC_AZURE_PRIVATE_KEY_FETCHER_CREDENTIALS_PROVIDER_NOT_FOUND);
     SCP_ERROR(kAzurePrivateKeyFetcherProvider, kZeroUuid, execution_result,
               "Failed to get credentials provider.");
     return execution_result;

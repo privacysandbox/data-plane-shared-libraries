@@ -18,6 +18,7 @@
 #define JSON_ATTESTATION_REPORT_H
 
 #include <string>
+
 #include <nlohmann/json.hpp>
 
 #include "get-snp-report/get-snp-report.h"
