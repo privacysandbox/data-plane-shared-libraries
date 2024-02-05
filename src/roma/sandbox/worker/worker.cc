@@ -53,15 +53,6 @@ absl::StatusOr<js_engine::ExecutionResponse> Worker::RunCode(
     std::string_view code, const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     absl::Span<const uint8_t> wasm) {
-  auto request_type_it = metadata.find(kRequestType);
-  if (request_type_it == metadata.end()) {
-    return absl::InvalidArgumentError(absl::StrCat(
-        "Missing expected key in request metadata: ", kRequestType));
-  }
-  std::string_view request_type = request_type_it->second;
-
-  ROMA_VLOG(2) << "Worker executing request with code type of " << request_type;
-
   auto code_version_it = metadata.find(kCodeVersion);
   if (code_version_it == metadata.end()) {
     return absl::InvalidArgumentError(absl::StrCat(
@@ -96,6 +87,11 @@ absl::StatusOr<js_engine::ExecutionResponse> Worker::RunCode(
 
   ROMA_VLOG(2) << "Worker executing request with handler name " << handler_name;
 
+  std::string_view request_type;
+  if (const auto request_type_it = metadata.find(kRequestType);
+      request_type_it != metadata.end()) {
+    request_type = request_type_it->second;
+  }
   RomaJsEngineCompilationContext context;
 
   // Only reuse the context if this is not a load request.
@@ -104,7 +100,8 @@ absl::StatusOr<js_engine::ExecutionResponse> Worker::RunCode(
     absl::MutexLock l(&cache_mu_);
     if (const auto it = compilation_contexts_.find(code_version);
         it != compilation_contexts_.end()) {
-      context = it->second;
+      context = it->second.context;
+      request_type = it->second.request_type;
     } else if (require_preload_) {
       // If we require preloads and we couldn't find a context and this is not a
       // load request, then bail out. This is an execution without a previous
@@ -139,7 +136,10 @@ absl::StatusOr<js_engine::ExecutionResponse> Worker::RunCode(
 
   if (action == kRequestActionLoad && response_or->compilation_context) {
     absl::MutexLock l(&cache_mu_);
-    compilation_contexts_[code_version] = response_or->compilation_context;
+    compilation_contexts_[code_version] = CacheEntry{
+        .context = std::move(response_or)->compilation_context,
+        .request_type = std::string(request_type),
+    };
     ROMA_VLOG(1) << "caching compilation context for version " << code_version;
   }
   return response_or->execution_response;

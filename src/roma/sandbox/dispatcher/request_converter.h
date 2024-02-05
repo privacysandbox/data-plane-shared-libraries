@@ -57,16 +57,13 @@ void RunRequestFromInputRequestCommon(
 template <typename RequestT>
 void InvocationRequestCommon(
     worker_api::WorkerApi::RunCodeRequest& run_code_request,
-    const RequestT& request, std::string_view request_type) {
+    const RequestT& request) {
   run_code_request
       .metadata[google::scp::roma::sandbox::constants::kRequestAction] =
       google::scp::roma::sandbox::constants::kRequestActionExecute;
   run_code_request
       .metadata[google::scp::roma::sandbox::constants::kHandlerName] =
       request.handler_name;
-  run_code_request
-      .metadata[google::scp::roma::sandbox::constants::kRequestType] =
-      request_type;
   if (request.treat_input_as_byte_str) {
     run_code_request
         .metadata[google::scp::roma::sandbox::constants::kInputType] =
@@ -82,8 +79,7 @@ struct RequestConverter {
    */
   template <typename TMetadata>
   static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
-      const InvocationStrRequest<TMetadata>& request,
-      std::string_view request_type) {
+      const InvocationStrRequest<TMetadata>& request) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
@@ -92,7 +88,7 @@ struct RequestConverter {
       run_code_request.input.push_back(i);
     }
     internal::request_converter::InvocationRequestCommon(run_code_request,
-                                                         request, request_type);
+                                                         request);
 
     return run_code_request;
   }
@@ -103,8 +99,7 @@ struct RequestConverter {
    */
   template <typename TMetadata>
   static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
-      const InvocationSharedRequest<TMetadata>& request,
-      std::string_view request_type) {
+      const InvocationSharedRequest<TMetadata>& request) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
@@ -113,7 +108,7 @@ struct RequestConverter {
       run_code_request.input.push_back(*i);
     }
     internal::request_converter::InvocationRequestCommon(run_code_request,
-                                                         request, request_type);
+                                                         request);
 
     return run_code_request;
   }
@@ -124,8 +119,7 @@ struct RequestConverter {
    */
   template <typename TMetadata>
   static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
-      const InvocationStrViewRequest<TMetadata>& request,
-      std::string_view request_type) {
+      const InvocationStrViewRequest<TMetadata>& request) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
@@ -134,7 +128,7 @@ struct RequestConverter {
       run_code_request.input.push_back(i);
     }
     internal::request_converter::InvocationRequestCommon(run_code_request,
-                                                         request, request_type);
+                                                         request);
 
     return run_code_request;
   }
@@ -144,16 +138,25 @@ struct RequestConverter {
    * into a RunCodeRequest.
    */
   static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
-      const CodeObject& request, std::string_view request_type) {
+      const CodeObject& request) {
     worker_api::WorkerApi::RunCodeRequest run_code_request;
     internal::request_converter::RunRequestFromInputRequestCommon(
         run_code_request, request);
     run_code_request
         .metadata[google::scp::roma::sandbox::constants::kRequestAction] =
         google::scp::roma::sandbox::constants::kRequestActionLoad;
-    run_code_request
-        .metadata[google::scp::roma::sandbox::constants::kRequestType] =
-        request_type;
+
+    auto get_request_type = [](const auto& request) {
+      if (!request.wasm_bin.empty()) {
+        return constants::kRequestTypeJavascriptWithWasm;
+      } else if (request.js.empty()) {
+        return constants::kRequestTypeWasm;
+      } else {
+        return constants::kRequestTypeJavascript;
+      }
+    };
+    run_code_request.metadata[constants::kRequestType] =
+        get_request_type(request);
     run_code_request.code = request.js.empty() ? request.wasm : request.js;
     run_code_request.wasm = request.wasm_bin;
     if (const auto it =

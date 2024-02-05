@@ -68,8 +68,14 @@ class Worker {
    *
    */
   absl::Mutex cache_mu_;
-  absl::flat_hash_map<std::string, js_engine::RomaJsEngineCompilationContext>
-      compilation_contexts_ ABSL_GUARDED_BY(cache_mu_);
+
+  struct CacheEntry {
+    js_engine::RomaJsEngineCompilationContext context;
+    std::string request_type;
+  };
+
+  absl::flat_hash_map<std::string, CacheEntry> compilation_contexts_
+      ABSL_GUARDED_BY(cache_mu_);
 };
 }  // namespace google::scp::roma::sandbox::worker
 

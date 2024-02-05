@@ -105,28 +105,18 @@ absl::Status Dispatcher::ReloadCachedCodeObjects(
     pending_requests_ += all_cached_code_objects.size();
   }
 
-  for (const auto& [_, cached_code] : all_cached_code_objects) {
-    // TODO(b/317791484): Verify this is WAI.
-    std::string request_type;
-    if (!cached_code.wasm_bin.empty()) {
-      request_type = std::string(constants::kRequestTypeJavascriptWithWasm);
-    } else if (cached_code.js.empty()) {
-      request_type = std::string(constants::kRequestTypeWasm);
-    } else {
-      request_type = std::string(constants::kRequestTypeJavascript);
-    }
-    const auto run_code_request =
-        RequestConverter::FromUserProvided(cached_code, request_type);
+  for (auto& [_, cached_code] : all_cached_code_objects) {
+    auto run_code_request =
+        RequestConverter::FromUserProvided(std::move(cached_code));
+
     // Send the code objects to the worker again so it reloads its cache
-    const auto run_code_result_and_retry = worker.RunCode(run_code_request);
-    const absl::StatusOr<worker_api::WorkerApi::RunCodeResponse>
-        run_code_result = run_code_result_and_retry.first;
+    auto [run_code_result, retry] = worker.RunCode(std::move(run_code_request));
     if (!run_code_result.ok()) {
       {
         absl::MutexLock l(&pending_requests_mu_);
         pending_requests_ -= all_cached_code_objects.size();
       }
-      return run_code_result.status();
+      return std::move(run_code_result).status();
     }
   }
 

@@ -151,60 +151,31 @@ class Dispatcher {
          callback = std::move(callback)]() mutable {
           absl::StatusOr<ResponseObject> response;
 
-          auto worker_or = worker_pool_->GetWorker(index);
-          if (!worker_or.ok()) {
-            response = absl::StatusOr<ResponseObject>(worker_or.status());
+          auto worker = worker_pool_->GetWorker(index);
+          if (!worker.ok()) {
+            response = absl::StatusOr<ResponseObject>(worker.status());
             callback(std::move(response));
             absl::MutexLock l(&pending_requests_mu_);
             pending_requests_--;
             return;
           }
 
-          std::string request_type;
-          cache_mu_.Lock();
-          if (const auto it = code_object_cache_.find(request->version_string);
-              it == code_object_cache_.end()) {
-            cache_mu_.Unlock();
-            response = absl::StatusOr<ResponseObject>(
-                absl::InternalError("Could not find code version in cache."));
-            callback(std::move(response));
-            absl::MutexLock l(&pending_requests_mu_);
-            pending_requests_--;
-            return;
-          } else {
-            const CodeObject& code_object = it->second;
-
-            // TODO(b/317791484): Verify this is WAI.
-            if (!code_object.wasm_bin.empty()) {
-              request_type = constants::kRequestTypeJavascriptWithWasm;
-            } else if (code_object.js.empty()) {
-              request_type = constants::kRequestTypeWasm;
-            } else {
-              request_type = constants::kRequestTypeJavascript;
-            }
-          }
-          cache_mu_.Unlock();
-
-          auto run_code_request =
-              RequestConverter::FromUserProvided(*request, request_type);
-          auto& worker = **worker_or;
-          auto run_code_response_and_retry = worker.RunCode(run_code_request);
-          absl::StatusOr<worker_api::WorkerApi::RunCodeResponse>
-              run_code_response = run_code_response_and_retry.first;
-
+          worker_api::WorkerApi::RunCodeRequest run_code_request =
+              RequestConverter::FromUserProvided(*request);
+          auto [run_code_response, retry] =
+              (*worker)->RunCode(std::move(run_code_request));
           if (!run_code_response.ok()) {
-            response =
-                absl::StatusOr<ResponseObject>(run_code_response.status());
             LOG(ERROR) << "The worker " << index
                        << " execute the request failed due to "
                        << run_code_response.status().message();
+            response = absl::StatusOr<ResponseObject>(
+                std::move(run_code_response).status());
 
-            if (run_code_response_and_retry.second ==
-                worker_api::WorkerApi::RetryStatus::kRetry) {
+            if (retry == worker_api::WorkerApi::RetryStatus::kRetry) {
               // This means that the worker crashed and the request could be
               // retried, however, we need to reload the worker with the
               // cached code.
-              if (auto reload_result = ReloadCachedCodeObjects(worker);
+              if (auto reload_result = ReloadCachedCodeObjects(**worker);
                   !reload_result.ok()) {
                 LOG(ERROR) << "Reloading the worker cache failed with "
                            << reload_result;

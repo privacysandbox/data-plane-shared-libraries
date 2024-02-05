@@ -431,14 +431,12 @@ TEST(SandboxedServiceTest,
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back(R"("Foobar")");
 
-    status = roma_service->Execute(
-        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          // Execute should fail with the expected error.
-          EXPECT_FALSE(resp.ok());
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("Could not find code version in cache."));
-          execute_finished.Notify();
-        });
+    status = roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     // Execute should fail.
+                                     EXPECT_FALSE(resp.ok());
+                                     execute_finished.Notify();
+                                   });
     EXPECT_TRUE(status.ok());
   }
   ASSERT_TRUE(
