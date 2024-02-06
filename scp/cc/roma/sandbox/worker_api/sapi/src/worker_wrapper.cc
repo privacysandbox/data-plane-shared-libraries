@@ -106,9 +106,14 @@ std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
                                   params.compilation_context_cache_size);
 }
 
-StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
+SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   if (worker_) {
-    Stop();
+    SapiStatusCode status = Stop();
+    // If we fail to stop the previous worker then log but keep going because
+    // we'll be recreating it momentarily.
+    if (status != SapiStatusCode::kOk) {
+      ROMA_VLOG(1) << SapiStatusCodeToAbslStatus(static_cast<int>(status));
+    }
   }
 
   std::vector<std::string> native_js_function_names(
@@ -134,13 +139,13 @@ StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   worker_ = CreateWorker(v8_params);
 
   if (init_params->request_and_response_data_buffer_fd() == kBadFd) {
-    return SC_ROMA_WORKER_API_VALID_SANDBOX_BUFFER_REQUIRED;
+    return SapiStatusCode::kValidSandboxBufferRequired;
   }
   // create Buffer from file descriptor.
   auto buffer =
       Buffer::CreateFromFd(init_params->request_and_response_data_buffer_fd());
   if (!buffer.ok()) {
-    return SC_ROMA_WORKER_API_FAILED_CREATE_BUFFER_INSIDE_SANDBOXEE;
+    return SapiStatusCode::kFailedToCreateBufferInsideSandboxee;
   }
 
   sandbox_data_shared_buffer_ptr_ = std::move(buffer).value();
@@ -148,7 +153,7 @@ StatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       init_params->request_and_response_data_buffer_size_bytes();
 
   ROMA_VLOG(1) << "Worker wrapper successfully created the worker";
-  return SC_OK;
+  return SapiStatusCode::kOk;
 }
 
 StatusCode RunCode(worker_api::WorkerParamsProto* params) {
@@ -208,22 +213,22 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
 
 }  // namespace
 
-StatusCode InitFromSerializedData(sapi::LenValStruct* data) {
+SapiStatusCode InitFromSerializedData(sapi::LenValStruct* data) {
   worker_api::WorkerInitParamsProto init_params;
   if (!init_params.ParseFromArray(data->data, data->size)) {
-    return SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_INIT_DATA;
+    return SapiStatusCode::kCouldNotDeserializeInitData;
   }
 
   ROMA_VLOG(1) << "Worker wrapper successfully received the init data";
   return Init(&init_params);
 }
 
-StatusCode Run() {
+SapiStatusCode Run() {
   if (!worker_) {
-    return SC_ROMA_WORKER_API_UNINITIALIZED_WORKER;
+    return SapiStatusCode::kUninitializedWorker;
   }
   worker_->Run();
-  return SC_OK;
+  return SapiStatusCode::kOk;
 }
 
 SapiStatusCode Stop() {

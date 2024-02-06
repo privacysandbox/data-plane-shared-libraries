@@ -175,8 +175,8 @@ absl::Status WorkerSandboxApi::Init() noexcept {
                << status_or.status().message();
     return status_or.status();
   }
-  if (*status_or != SC_OK) {
-    return absl::InternalError(GetErrorMessage(*status_or));
+  if (*status_or != SapiStatusCode::kOk) {
+    return SapiStatusCodeToAbslStatus(static_cast<int>(*status_or));
   }
 
   ROMA_VLOG(1) << "Successfully init the worker in the sapi sandbox";
@@ -194,8 +194,8 @@ absl::Status WorkerSandboxApi::Run() noexcept {
     LOG(ERROR) << "Failed to run the worker via the wrapper with: "
                << status_or.status().message();
     return status_or.status();
-  } else if (*status_or != SC_OK) {
-    return absl::InternalError(GetErrorMessage(*status_or));
+  } else if (*status_or != SapiStatusCode::kOk) {
+    return SapiStatusCodeToAbslStatus(static_cast<int>(*status_or));
   }
 
   return absl::OkStatus();

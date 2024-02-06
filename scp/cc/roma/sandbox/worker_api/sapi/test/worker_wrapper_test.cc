@@ -72,11 +72,9 @@ TEST(WorkerWrapperTest,
       serialized_init_params.size(),
       static_cast<void*>(serialized_init_params.data()));
 
-  auto result = ::InitFromSerializedData(&sapi_init_params);
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::InitFromSerializedData(&sapi_init_params));
 
-  result = ::Run();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Run());
 
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(
@@ -92,8 +90,8 @@ TEST(WorkerWrapperTest,
 
   size_t output_serialized_size_ptr;
   sapi::LenValStruct sapi_worker_params;
-  result = ::RunCodeFromSerializedData(&sapi_worker_params, serialized_size,
-                                       &output_serialized_size_ptr);
+  auto result = ::RunCodeFromSerializedData(
+      &sapi_worker_params, serialized_size, &output_serialized_size_ptr);
 
   ASSERT_EQ(SC_OK, result);
 
@@ -134,11 +132,9 @@ TEST(WorkerWrapperTest,
       serialized_init_params.size(),
       static_cast<void*>(serialized_init_params.data()));
 
-  auto result = ::InitFromSerializedData(&sapi_init_params);
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::InitFromSerializedData(&sapi_init_params));
 
-  result = ::Run();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Run());
 
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(
@@ -153,8 +149,8 @@ TEST(WorkerWrapperTest,
   auto sapi_worker_params = CreateLenValStruct(serialized_worker_params);
 
   size_t output_serialized_size_ptr;
-  result = ::RunCodeFromSerializedData(&sapi_worker_params, 0,
-                                       &output_serialized_size_ptr);
+  auto result = ::RunCodeFromSerializedData(&sapi_worker_params, 0,
+                                            &output_serialized_size_ptr);
   ASSERT_EQ(SC_OK, result);
 
   // Take ownership of the response bytes, these will have been malloc'd by
@@ -179,11 +175,9 @@ TEST(WorkerWrapperTest, OverSizeResponseSharedWithLenValStruct) {
       serialized_init_params.size(),
       static_cast<void*>(serialized_init_params.data()));
 
-  auto result = ::InitFromSerializedData(&sapi_init_params);
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::InitFromSerializedData(&sapi_init_params));
 
-  result = ::Run();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Run());
 
   ::worker_api::WorkerParamsProto params_proto;
 
@@ -204,8 +198,8 @@ TEST(WorkerWrapperTest, OverSizeResponseSharedWithLenValStruct) {
   auto sapi_worker_params = CreateLenValStruct(serialized_worker_params);
 
   size_t output_serialized_size_ptr;
-  result = ::RunCodeFromSerializedData(&sapi_worker_params, 0,
-                                       &output_serialized_size_ptr);
+  auto result = ::RunCodeFromSerializedData(&sapi_worker_params, 0,
+                                            &output_serialized_size_ptr);
   ASSERT_EQ(SC_OK, result);
 
   // Take ownership of the response bytes, these will have been malloc'd by
@@ -228,11 +222,9 @@ TEST(WorkerWrapperTest, CanRunCodeWithBufferShareOnly) {
       serialized_init_params.size(),
       static_cast<void*>(serialized_init_params.data()));
 
-  auto result = ::InitFromSerializedData(&sapi_init_params);
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::InitFromSerializedData(&sapi_init_params));
 
-  result = ::Run();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Run());
 
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(
@@ -247,7 +239,8 @@ TEST(WorkerWrapperTest, CanRunCodeWithBufferShareOnly) {
       params_proto.SerializeToArray(buffer_ptr_->data(), serialized_size));
 
   size_t output_serialized_size_ptr;
-  result = ::RunCodeFromBuffer(serialized_size, &output_serialized_size_ptr);
+  auto result =
+      ::RunCodeFromBuffer(serialized_size, &output_serialized_size_ptr);
 
   ASSERT_EQ(SC_OK, result);
 
@@ -269,11 +262,9 @@ TEST(WorkerWrapperTest,
       serialized_init_params.size(),
       static_cast<void*>(serialized_init_params.data()));
 
-  auto result = ::InitFromSerializedData(&sapi_init_params);
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::InitFromSerializedData(&sapi_init_params));
 
-  result = ::Run();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Run());
 
   ::worker_api::WorkerParamsProto params_proto;
   // generate oversize response (2 * 1024 * 1024 Bytes==2MB)
@@ -293,7 +284,8 @@ TEST(WorkerWrapperTest,
       params_proto.SerializeToArray(buffer_ptr_->data(), serialized_size));
 
   size_t output_serialized_size_ptr;
-  result = ::RunCodeFromBuffer(serialized_size, &output_serialized_size_ptr);
+  auto result =
+      ::RunCodeFromBuffer(serialized_size, &output_serialized_size_ptr);
   EXPECT_EQ(SC_ROMA_WORKER_API_RESPONSE_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY,
             result);
 
@@ -312,11 +304,9 @@ TEST(WorkerWrapperTest, FailsToRunCodeWhenPreloadIsRequiredAndExecuteIsSent) {
       serialized_init_params.size(),
       static_cast<void*>(serialized_init_params.data()));
 
-  auto result = ::InitFromSerializedData(&sapi_init_params);
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::InitFromSerializedData(&sapi_init_params));
 
-  result = ::Run();
-  EXPECT_EQ(SC_OK, result);
+  EXPECT_EQ(SapiStatusCode::kOk, ::Run());
 
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(
@@ -332,8 +322,8 @@ TEST(WorkerWrapperTest, FailsToRunCodeWhenPreloadIsRequiredAndExecuteIsSent) {
 
   size_t output_serialized_size_ptr;
   sapi::LenValStruct sapi_worker_params;
-  result = ::RunCodeFromSerializedData(&sapi_worker_params, serialized_size,
-                                       &output_serialized_size_ptr);
+  auto result = ::RunCodeFromSerializedData(
+      &sapi_worker_params, serialized_size, &output_serialized_size_ptr);
   EXPECT_NE(SC_OK, result);
 
   EXPECT_EQ(SapiStatusCode::kOk, ::Stop());

@@ -38,10 +38,9 @@
 // All of the types used for these functions, that're wrapped by SAPI, must be
 // C types and cannot be complex C++ types.
 
-extern "C" google::scp::core::StatusCode InitFromSerializedData(
-    sapi::LenValStruct* data);
+extern "C" SapiStatusCode InitFromSerializedData(sapi::LenValStruct* data);
 
-extern "C" google::scp::core::StatusCode Run();
+extern "C" SapiStatusCode Run();
 
 extern "C" SapiStatusCode Stop();
 

@@ -26,6 +26,16 @@ absl::Status SapiStatusCodeToAbslStatus(int int_status_code) {
     case SapiStatusCode::kUninitializedWorker:
       return absl::FailedPreconditionError(
           "A call to run code was issued with an uninitialized worker.");
+    case SapiStatusCode::kCouldNotDeserializeInitData:
+      return absl::InvalidArgumentError("Failed to deserialize init data.");
+    case SapiStatusCode::kValidSandboxBufferRequired:
+      return absl::InternalError(
+          "Failed to create a valid sandbox2 buffer for sandbox "
+          "communication.");
+    case SapiStatusCode::kFailedToCreateBufferInsideSandboxee:
+      return absl::InternalError(
+          "Failed to create the Buffer from fd inside the sandboxee.");
+
       // No default. This will cause a compile error if a new enum value is
       // added without also updating this switch statement.
   }

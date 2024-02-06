@@ -33,6 +33,9 @@
 enum class SapiStatusCode : int {
   kOk = 0,
   kUninitializedWorker = 1,
+  kCouldNotDeserializeInitData = 2,
+  kValidSandboxBufferRequired = 3,
+  kFailedToCreateBufferInsideSandboxee = 4,
 };
 
 // Convert the status code enum value into an absl::Status, with a message.
