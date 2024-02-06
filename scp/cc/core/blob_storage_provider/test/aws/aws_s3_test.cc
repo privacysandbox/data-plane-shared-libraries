@@ -68,7 +68,6 @@ using google::scp::core::blob_storage_provider::aws::mock::MockS3Client;
 using google::scp::core::blob_storage_provider::mock::MockAwsS3Client;
 using ::testing::ElementsAre;
 using ::testing::Eq;
-using ::testing::IsEmpty;
 using ::testing::StrEq;
 
 namespace google::scp::core::test {
