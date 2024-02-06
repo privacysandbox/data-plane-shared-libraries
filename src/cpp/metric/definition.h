@@ -43,6 +43,7 @@ inline constexpr std::array<double, 0> kEmptyHistogramBoundaries = {};
 inline constexpr std::array<absl::string_view, 0> kEmptyPublicPartition = {};
 inline constexpr absl::string_view kEmptyPartitionType;
 inline constexpr absl::string_view kNoiseAttribute = "Noise";
+inline constexpr absl::string_view kGenerationIdAttribute = "generation_id";
 
 struct DefinitionName {
   constexpr explicit DefinitionName(absl::string_view name,

@@ -117,6 +117,22 @@ class Context {
     return request_state_.is_decrypted;
   }
 
+  void SetConsented(std::string gen_id) ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    request_state_.is_consented = true;
+    request_state_.generation_id = std::move(gen_id);
+  }
+
+  bool is_consented() ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    return request_state_.is_consented;
+  }
+
+  absl::string_view GetGenId() ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    return request_state_.generation_id;
+  }
+
   void SetRequestResult(absl::Status s) ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
     request_state_.result = std::move(s);
@@ -246,10 +262,13 @@ class Context {
     if (!metric_router_->metric_config().MetricAllowed()) {
       return absl::PermissionDeniedError("metric is OFF");
     }
-    if (is_decrypted() && privacy == Privacy::kNonImpacting)
+    if (is_decrypted() && privacy == Privacy::kNonImpacting) {
       return absl::FailedPreconditionError(
           "cannot log safe after request being decrypted");
-    if (metric_router_->metric_config().IsDebug()) return true;
+    }
+    if (metric_router_->metric_config().IsDebug() || is_consented()) {
+      return true;
+    }
     return !is_decrypted() && privacy == Privacy::kNonImpacting;
   }
 
@@ -310,8 +329,12 @@ class Context {
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogSafe(const Definition<T, privacy, instrument>& definition,
                        T value, absl::string_view partition) {
-    return metric_router_->LogSafe(definition, value, partition,
-                                   {{kNoiseAttribute.data(), "Raw"}});
+    return metric_router_->LogSafe(
+        definition, value, partition,
+        {
+            {kNoiseAttribute.data(), "Raw"},
+            {kGenerationIdAttribute.data(), GetGenId().data()},
+        });
   }
 
   template <typename T, Privacy privacy, Instrument instrument>
@@ -470,6 +493,8 @@ class Context {
 
   struct RequestState {
     bool is_decrypted = false;
+    bool is_consented = false;
+    std::string generation_id = "";
     absl::Status result = absl::OkStatus();
     absl::flat_hash_map<std::string, std::string> custom;
   };
