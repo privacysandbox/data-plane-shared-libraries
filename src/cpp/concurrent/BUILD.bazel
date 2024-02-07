@@ -14,21 +14,17 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:private"])
 
 cc_library(
     name = "executor",
-    srcs =
-        [
-            "event_engine_executor.cc",
-        ],
-    hdrs =
-        [
-            "event_engine_executor.h",
-            "executor.h",
-        ],
+    srcs = ["event_engine_executor.cc"],
+    hdrs = [
+        "event_engine_executor.h",
+        "executor.h",
+    ],
+    visibility = ["//visibility:public"],
     deps = [
-        "@com_github_grpc_grpc//:event_engine_base_hdrs",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/time",
     ],
@@ -38,6 +34,7 @@ cc_library(
     name = "mocks",
     testonly = 1,
     hdrs = ["mocks.h"],
+    visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_googletest//:gtest",
@@ -46,10 +43,7 @@ cc_library(
 
 cc_test(
     name = "event_engine_executor_test",
-    srcs =
-        [
-            "event_engine_executor_test.cc",
-        ],
+    srcs = ["event_engine_executor_test.cc"],
     deps = [
         ":executor",
         ":mocks",
