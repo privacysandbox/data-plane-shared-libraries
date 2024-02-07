@@ -209,9 +209,11 @@ ScopeLatencyRecorder::ScopeLatencyRecorder(std::string event_name,
     : stop_watch_(Stopwatch()),
       event_name_(std::move(event_name)),
       metrics_recorder_(metrics_recorder) {}
+
 ScopeLatencyRecorder::~ScopeLatencyRecorder() {
   metrics_recorder_.RecordLatency(event_name_, GetLatency());
 }
+
 absl::Duration ScopeLatencyRecorder::GetLatency() {
   return stop_watch_.GetElapsedTime();
 }
