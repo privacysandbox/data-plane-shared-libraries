@@ -41,24 +41,59 @@ declare -r -i -x PROXY_PARENT_CID=1
 
 # Run the proxy, get pid.
 "${proxy_path}" --port ${PROXY_PARENT_PORT} &
-declare -i -r proxy_pid=$!
+declare -i -r PROXY_PID=$!
 sleep 1
 
+function _cleanup() {
+  declare -r -i _status=$?
+  if [[ -v PROXY_PID ]]; then
+    kill ${PROXY_PID}
+  fi
+  exit ${_status}
+}
+trap _cleanup EXIT
 
-# TODO: change this to not depend on google.com
-google_com_len1=$(LD_PRELOAD="${preload_path}" curl -s https://www.google.com | wc -c)
-readonly google_com_len1
-if [[ ${google_com_len1} -lt 4096 ]]; then
-  printf "Preload lib: google.com returned less than 4KiB\n"
-  kill ${proxy_pid}
-  exit 1
-fi
+# Test preload.
+function test_preload_google_com() {
+  printf "Test preload with google.com.\n"
+  # TODO: change this to not depend on google.com
+  preload_len=$(LD_PRELOAD="${preload_path}" curl -s https://www.google.com | wc -c)
+  readonly preload_len
+  if [[ ${preload_len} -lt 4096 ]]; then
+    printf "Failed: test_preload_google_com: preload lib google.com returned less than 4KiB.\n"
+    exit 1
+  fi
+}
+test_preload_google_com
 
-# Test proxify
-google_com_len2=$("${proxify_path}" -- curl -s https://www.google.com | wc -c)
-readonly google_com_len2
-kill ${proxy_pid}
-if [[ ${google_com_len2} -lt 4096 ]]; then
-  printf "Proxify: google.com returned less than 4KiB\n"
-  exit 1
-fi
+# Test proxify.
+function test_proxify_google_com() {
+  printf "Test proxify with google.com.\n"
+  proxify_len=$("${proxify_path}" -- curl -s https://www.google.com | wc -c)
+  readonly proxify_len
+  if [[ ${proxify_len} -lt 4096 ]]; then
+    printf "Failed: test_proxify_google_com: proxify google.com returned less than 4KiB.\n"
+    exit 1
+  fi
+}
+test_proxify_google_com
+
+function test_proxify_timeout_random_unresponsive_ip() {
+  printf "Test proxify timeout with unresponsive IP address.\n"
+  # SECONDS is a special bash variable used for timing.
+  SECONDS=0
+
+  # https://www.rfc-editor.org/rfc/rfc5737#section-3
+  # Using 203.0.113.0.
+  RANDOM_IP="203.0.113.0"
+  # Timeout set to 20s, --max-time set to 10. Proxify should continue to timeout for the whole 20 seconds, instead of the 10 second max time.
+  set +o errexit
+  timeout 20s "${proxify_path}" -- curl -s --max-time 10 "${RANDOM_IP}"
+  set -o errexit
+  declare -i duration=$SECONDS
+  if [[ ${duration} -lt 20 ]]; then
+    printf "Failed: test_proxify_timeout_random_ip: proxify did not timeout as expected.\n"
+    exit 1
+  fi
+}
+test_proxify_timeout_random_unresponsive_ip
