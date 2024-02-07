@@ -27,9 +27,9 @@ def grpc():
         patches = [
             Label("//build_defs/shared:grpc.patch"),
         ],
-        sha256 = "7fa38089fd87e83ed17287276b0f0fda49099a8907df2131b89999ad774bfe33",
-        strip_prefix = "grpc-1.58.1",
+        sha256 = "ba6c53c3924a1d01c663352010e0f73736bad3d99d72108e0f2b1a6466f9be20",
+        strip_prefix = "grpc-1.61.0",
         urls = [
-            "https://github.com/grpc/grpc/archive/refs/tags/v1.58.1.zip",
+            "https://github.com/grpc/grpc/archive/refs/tags/v1.61.0.zip",
         ],
     )
