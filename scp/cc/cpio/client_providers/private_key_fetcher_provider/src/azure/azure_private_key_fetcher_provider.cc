@@ -20,6 +20,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "azure/attestation/json_attestation_report.h"
 #include "core/interface/http_client_interface.h"
@@ -69,21 +70,46 @@ ExecutionResult AzurePrivateKeyFetcherProvider::Init() noexcept {
 ExecutionResult AzurePrivateKeyFetcherProvider::SignHttpRequest(
     AsyncContext<PrivateKeyFetchingRequest, core::HttpRequest>&
         sign_request_context) noexcept {
-  auto http_request = std::make_shared<HttpRequest>();
-  AzurePrivateKeyFetchingClientUtils::CreateHttpRequest(
-      *sign_request_context.request, *http_request);
+  auto request = std::make_shared<GetSessionTokenRequest>();
+  AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
+      get_token_context(
+          std::move(request),
+          absl::bind_front(
+              &AzurePrivateKeyFetcherProvider::OnGetSessionTokenCallback, this,
+              sign_request_context),
+          sign_request_context);
 
-  sign_request_context.response = std::move(http_request);
-  sign_request_context.result = SuccessExecutionResult();
-  sign_request_context.Finish();
-  return SuccessExecutionResult();
+  return auth_token_provider_->GetSessionToken(
+      get_token_context);
 }
 
 void AzurePrivateKeyFetcherProvider::OnGetSessionTokenCallback(
     AsyncContext<PrivateKeyFetchingRequest, core::HttpRequest>&
         sign_request_context,
-    AsyncContext<GetSessionTokenForTargetAudienceRequest,
-                 GetSessionTokenResponse>& get_token_context) noexcept {}
+    AsyncContext<GetSessionTokenRequest,
+                 GetSessionTokenResponse>& get_token_context) noexcept {
+  if (!get_token_context.result.Successful()) {
+    SCP_ERROR_CONTEXT(
+        kAzurePrivateKeyFetcherProvider, sign_request_context,
+        get_token_context.result,
+        "Failed to get the access token.");
+    sign_request_context.result = get_token_context.result;
+    sign_request_context.Finish();
+    return;
+  }
+
+  const auto& access_token = *get_token_context.response->session_token;
+  auto http_request = std::make_shared<HttpRequest>();
+  AzurePrivateKeyFetchingClientUtils::CreateHttpRequest(
+      *sign_request_context.request, *http_request);
+  http_request->headers = std::make_shared<core::HttpHeaders>();
+  http_request->headers->insert(
+      {std::string(kAuthorizationHeaderKey),
+      absl::StrCat(kBearerTokenPrefix, access_token)});
+  sign_request_context.response = std::move(http_request);
+  sign_request_context.result = SuccessExecutionResult();
+  sign_request_context.Finish();
+}
 
 ExecutionResult AzurePrivateKeyFetcherProvider::FetchPrivateKey(
     AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
