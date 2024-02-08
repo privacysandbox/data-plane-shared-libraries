@@ -148,6 +148,9 @@ inline auto* GetContextMap(
 template <const absl::Span<const DefinitionName* const>& L>
 using ServerContext = Context<L, MetricRouter>;
 
+template <const absl::Span<const DefinitionName* const>& L>
+using ServerSafeContext = Context<L, MetricRouter, true>;
+
 }  // namespace privacy_sandbox::server_common::metrics
 
 #endif  // SRC_CPP_METRIC_CONTEXT_MAP_H_
