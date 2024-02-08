@@ -14,7 +14,7 @@
 
 """Expose dependencies for this WORKSPACE."""
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 """Initialize the shared control plane repository."""
@@ -57,6 +57,16 @@ def cpp_dependencies():
             "https://curl.haxx.se/download/curl-8.5.0.tar.gz",
             "https://github.com/curl/curl/releases/download/curl-8_5_0/curl-8.5.0.tar.gz",
         ],
+    )
+    http_file(
+        name = "grpcurl_aarch64",
+        url = "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.9/grpcurl_1.8.9_linux_arm64.tar.gz",
+        sha256 = "1303f4c1c6667f31b80efbe483875c749c94c8cb0d8b631bd64179f0b140714d",
+    )
+    http_file(
+        name = "grpcurl_x86_64",
+        url = "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.9/grpcurl_1.8.9_linux_x86_64.tar.gz",
+        sha256 = "a422d1e8ad854a305c0dd53f2f2053da242211d3d1810e7addb40a041e309516",
     )
     maybe(
         http_archive,
