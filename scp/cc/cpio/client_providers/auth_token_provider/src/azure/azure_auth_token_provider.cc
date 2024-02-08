@@ -54,7 +54,11 @@ using nlohmann::json;
 
 namespace {
 constexpr char kAzureAuthTokenProvider[] = "AzureAuthTokenProvider";
-
+// Local IDP for Managed Identity.
+// https://learn.microsoft.com/en-us/azure/container-instances/container-instances-managed-identity
+// TODO: update `resource` parameter
+constexpr char kTokenServerPath[] =
+    "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01";
 constexpr char kIdentityServerPath[] =
     "http://metadata/computeMetadata/v1/instance/service-accounts/default/"
     "identity";
@@ -127,44 +131,20 @@ ExecutionResult AzureAuthTokenProvider::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-std::string AzureAuthTokenProvider::GetEnvVar(std::string name) {
-const char* value_from_env = std::getenv(name.c_str());
-  if (value_from_env) {
-    return std::string(value_from_env);
-  } else {
-      // throw std::runtime_error("Environment variable not found: " + name);
-    return "";
-  }
-}
-
 ExecutionResult AzureAuthTokenProvider::GetSessionToken(
     AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
         get_token_context) noexcept {
 
-  std::cout << "TEST_TAKURO: GetSessionToken\n";
-  std::string endpoint = GetEnvVar("AZURE_AAD_ENDPOINT");
-  std::string clientid = GetEnvVar("AZURE_CLIENT_ID");
-  std::string clientSecret = GetEnvVar("AZURE_CLIENT_SECRET");
-  std::string apiApplicationId = GetEnvVar("AZURE_API_APPLICATION_ID");
-
   // Create request body
-  std::ostringstream request_body_stream;
-  request_body_stream << "client_id=" << clientid
-                      << "&client_secret=" << clientSecret
-                      << "&scope=" << apiApplicationId
-                      << "/.default"
-                      << "&grant_type=client_credentials";
-  std::string request_body = request_body_stream.str();
   AsyncContext<HttpRequest, HttpResponse> http_context;
 
   http_context.request = std::make_shared<HttpRequest>();
 
-  http_context.request->method = google::scp::core::HttpMethod::POST;
-  http_context.request->path = std::make_shared<Uri>(endpoint);
+  http_context.request->method = google::scp::core::HttpMethod::GET;
+  http_context.request->path = std::make_shared<Uri>(kTokenServerPath);
   http_context.request->headers = std::make_shared<HttpHeaders>();
   http_context.request->headers->insert(
-      std::make_pair("Content-Type", "application/x-www-form-urlencoded"));
-  http_context.request->body = google::scp::core::BytesBuffer(request_body);
+      std::make_pair("Metadata", "true"));
   http_context.callback =
       absl::bind_front(&AzureAuthTokenProvider::OnGetSessionTokenCallback, this,
                        get_token_context);
@@ -196,8 +176,6 @@ void AzureAuthTokenProvider::OnGetSessionTokenCallback(
     get_token_context.Finish();
     return;
   }
-
-  std::cout << "TEST_TAKURO: got token\n";
 
   json json_response;
   try {

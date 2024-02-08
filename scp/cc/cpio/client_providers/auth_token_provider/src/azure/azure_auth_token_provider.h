@@ -64,8 +64,6 @@ class AzureAuthTokenProvider : public AuthTokenProviderInterface {
       core::AsyncContext<core::HttpRequest, core::HttpResponse>&
           http_client_context) noexcept;
 
-  std::string GetEnvVar(std::string name);
-
   /// HttpClient for issuing HTTP actions.
   std::shared_ptr<core::HttpClientInterface> http_client_;
 };
