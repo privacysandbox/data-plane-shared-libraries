@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Google LLC
+ * Portions Copyright (c) Microsoft Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/functional/bind_front.h"
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_split.h"
 #include "core/utils/src/base64.h"
 #include "scp/cc/core/common/uuid/src/uuid.h"
 
@@ -58,48 +56,22 @@ constexpr char kAzureAuthTokenProvider[] = "AzureAuthTokenProvider";
 // https://learn.microsoft.com/en-us/azure/container-instances/container-instances-managed-identity
 // TODO: update `resource` parameter
 constexpr char kTokenServerPath[] =
-    "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01";
-constexpr char kIdentityServerPath[] =
-    "http://metadata/computeMetadata/v1/instance/service-accounts/default/"
-    "identity";
-constexpr char kMetadataFlavorHeader[] = "Metadata-Flavor";
-constexpr char kMetadataFlavorHeaderValue[] = "Google";
+    "http://169.254.169.254/metadata/identity/oauth2/"
+    "token?api-version=2018-02-01";
 constexpr char kJsonAccessTokenKey[] = "access_token";
 constexpr char kJsonTokenExpiryKey[] = "expires_in";
+constexpr char kJsonTokenExtendedExpiryKey[] = "ext_expires_in";
 constexpr char kJsonTokenTypeKey[] = "token_type";
-constexpr char kAudienceParameter[] = "audience=";
-constexpr char kFormatFullParameter[] = "format=full";
-
-constexpr size_t kExpectedTokenPartsSize = 3;
-constexpr char kJsonTokenIssuerKey[] = "iss";
-constexpr char kJsonTokenAudienceKey[] = "aud";
-constexpr char kJsonTokenSubjectKey[] = "sub";
-constexpr char kJsonTokenIssuedAtKey[] = "iat";
-constexpr char kJsonTokenExpiryKeyForTargetAudience[] = "exp";
 
 // Returns a pair of iterators - one to the beginning, one to the end.
 const auto& GetRequiredJWTComponents() {
-  static char const* components[3];
+  static char const* components[4];
   using iterator_type = decltype(std::cbegin(components));
   static std::pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kJsonAccessTokenKey;
     components[1] = kJsonTokenExpiryKey;
-    components[2] = kJsonTokenTypeKey;
-    return std::make_pair(std::cbegin(components), std::cend(components));
-  }();
-  return iterator_pair;
-}
-
-// Returns a pair of iterators - one to the beginning, one to the end.
-const auto& GetRequiredJWTComponentsForTargetAudienceToken() {
-  static char const* components[5];
-  using iterator_type = decltype(std::cbegin(components));
-  static std::pair<iterator_type, iterator_type> iterator_pair = []() {
-    components[0] = kJsonTokenIssuerKey;
-    components[1] = kJsonTokenAudienceKey;
-    components[2] = kJsonTokenSubjectKey;
-    components[3] = kJsonTokenIssuedAtKey;
-    components[4] = kJsonTokenExpiryKeyForTargetAudience;
+    components[2] = kJsonTokenExtendedExpiryKey;
+    components[3] = kJsonTokenTypeKey;
     return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
@@ -134,7 +106,6 @@ ExecutionResult AzureAuthTokenProvider::Stop() noexcept {
 ExecutionResult AzureAuthTokenProvider::GetSessionToken(
     AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
         get_token_context) noexcept {
-
   // Create request body
   AsyncContext<HttpRequest, HttpResponse> http_context;
 
@@ -143,8 +114,7 @@ ExecutionResult AzureAuthTokenProvider::GetSessionToken(
   http_context.request->method = google::scp::core::HttpMethod::GET;
   http_context.request->path = std::make_shared<Uri>(kTokenServerPath);
   http_context.request->headers = std::make_shared<HttpHeaders>();
-  http_context.request->headers->insert(
-      std::make_pair("Metadata", "true"));
+  http_context.request->headers->insert(std::make_pair("Metadata", "true"));
   http_context.callback =
       absl::bind_front(&AzureAuthTokenProvider::OnGetSessionTokenCallback, this,
                        get_token_context);
@@ -210,7 +180,6 @@ void AzureAuthTokenProvider::OnGetSessionTokenCallback(
 
   get_token_context.response = std::make_shared<GetSessionTokenResponse>();
 
-  // The life time of GCP access token is about 1 hour.
   uint64_t expiry_seconds = json_response[kJsonTokenExpiryKey].get<uint64_t>();
   get_token_context.response->token_lifetime_in_seconds =
       std::chrono::seconds(expiry_seconds);
@@ -228,7 +197,6 @@ ExecutionResult AzureAuthTokenProvider::GetSessionTokenForTargetAudience(
   // Not implemented.
   return FailureExecutionResult(SC_UNKNOWN);
 }
-
 
 std::shared_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
     const std::shared_ptr<core::HttpClientInterface>& http1_client) {

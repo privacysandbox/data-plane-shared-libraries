@@ -1,5 +1,21 @@
-#include <memory>
+// Portions Copyright (c) Microsoft Corporation
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "src/cpp/accesstoken/src/accesstoken_fetcher_manager.h"
+
+#include <memory>
+
 #include "public/core/interface/execution_result.h"
 
 namespace privacy_sandbox::server_common {
@@ -78,29 +94,30 @@ AccessTokenClientFactory::MakeRequest(
   return {context_result, response_body, status_code};
 }
 
-/// @brief Request an access token from Azure Active Directory based on options passed in constructor
+/// @brief Request an access token from Azure Active Directory based on options
+/// passed in constructor
 /// @return the result of access token request and status code
-std::tuple<google::scp::core::ExecutionResult, std::string, int> 
+std::tuple<google::scp::core::ExecutionResult, std::string, int>
 AccessTokenClientFactory::GetAccessToken() {
   // Use tokenOptions_ to retrieve the access token
-    // Set http header
-    absl::btree_multimap<std::string, std::string> headers;
-    headers.insert(
-        std::make_pair("Content-Type", "application/x-www-form-urlencoded"));
+  // Set http header
+  absl::btree_multimap<std::string, std::string> headers;
+  headers.insert(
+      std::make_pair("Content-Type", "application/x-www-form-urlencoded"));
 
-    // Create request body
-    std::ostringstream request_body_stream;
-    request_body_stream << "client_id=" << tokenOptions_.clientid
-                        << "&client_secret=" << tokenOptions_.clientSecret
-                        << "&scope=" << tokenOptions_.apiApplicationId
-                        << "/.default"
-                        << "&grant_type=client_credentials";
-    std::string request_body = request_body_stream.str();
+  // Create request body
+  std::ostringstream request_body_stream;
+  request_body_stream << "client_id=" << tokenOptions_.clientid
+                      << "&client_secret=" << tokenOptions_.clientSecret
+                      << "&scope=" << tokenOptions_.apiApplicationId
+                      << "/.default"
+                      << "&grant_type=client_credentials";
+  std::string request_body = request_body_stream.str();
 
-    // Make request
-    return MakeRequest(tokenOptions_.endpoint,
-                       google::scp::core::HttpMethod::POST, headers,
-                       request_body);
+  // Make request
+  return MakeRequest(tokenOptions_.endpoint,
+                     google::scp::core::HttpMethod::POST, headers,
+                     request_body);
 }
 
 }  // namespace privacy_sandbox::server_common

@@ -1,4 +1,4 @@
-# Copyright 2022 Google LLC
+# Portions Copyright (c) Microsoft Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ exports_files([
 filegroup(
     name = "azure_auth_token_provider_srcs",
     srcs = [
-        ":error_codes.h",
         ":azure_auth_token_provider.cc",
         ":azure_auth_token_provider.h",
+        ":error_codes.h",
     ],
 )
