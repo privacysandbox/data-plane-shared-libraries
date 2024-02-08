@@ -40,7 +40,7 @@ using google::scp::core::HttpRequest;
 using google::scp::core::HttpResponse;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::
-    SC_AZURE_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND;
+    SC_AZURE_PRIVATE_KEY_FETCHER_CREDENTIALS_PROVIDER_NOT_FOUND;
 using google::scp::core::errors::
     SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND;
 using google::scp::core::http2_client::mock::MockHttpClient;
