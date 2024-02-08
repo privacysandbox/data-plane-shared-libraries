@@ -177,7 +177,7 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
     // In that case we can either:
     // - Modify `HttpClient` implementation under `http2_client/` so that it retries for 202 like it already does for some other status codes
     //   (set `RetryExecutionResult()` to http_context.result).
-    // - Implement a retry mechanizm in this class without depending on `OperationDispatcher`.
+    // - Implement a retry mechanism in this class without depending on `OperationDispatcher`.
     http_client_context.retry_count++;
     auto execution_result = http_client_->PerformRequest(http_client_context);
     if (!execution_result.Successful()) {
