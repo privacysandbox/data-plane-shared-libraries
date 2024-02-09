@@ -271,7 +271,7 @@ TEST_F(AzureKmsClientProviderTest, FailedToDecrypt) {
   EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = FailureExecutionResult(SC_UNKNOWN);
     http_context.Finish();
-    return FailureExecutionResult(SC_UNKNOWN);
+    return SuccessExecutionResult();
   });
 
   absl::Notification condition;
@@ -279,8 +279,7 @@ TEST_F(AzureKmsClientProviderTest, FailedToDecrypt) {
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
         EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-        if (!condition.HasBeenNotified())
-          condition.Notify();
+        condition.Notify();
       });
 
   EXPECT_SUCCESS(client_->Decrypt(context)); 
