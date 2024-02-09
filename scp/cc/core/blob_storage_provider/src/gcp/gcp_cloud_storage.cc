@@ -148,7 +148,7 @@ ExecutionResult GcpCloudStorageClient::GetBlob(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [this, &get_blob_context] { GetBlobAsync(get_blob_context); },
+          [this, get_blob_context] { GetBlobAsync(get_blob_context); },
           io_async_execution_priority_);
       !schedule_result.Successful()) {
     return schedule_result;
@@ -229,7 +229,7 @@ ExecutionResult GcpCloudStorageClient::ListBlobs(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [this, &list_blobs_context] { ListBlobAsync(list_blobs_context); },
+          [this, list_blobs_context] { ListBlobAsync(list_blobs_context); },
           io_async_execution_priority_);
       !schedule_result.Successful()) {
     return schedule_result;
@@ -314,7 +314,7 @@ ExecutionResult GcpCloudStorageClient::PutBlob(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [this, &put_blob_context] { PutBlobAsync(put_blob_context); },
+          [this, put_blob_context] { PutBlobAsync(put_blob_context); },
           io_async_execution_priority_);
       !schedule_result.Successful()) {
     return schedule_result;
@@ -361,9 +361,7 @@ ExecutionResult GcpCloudStorageClient::DeleteBlob(
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
-          [this, &delete_blob_context] {
-            DeleteBlobAsync(delete_blob_context);
-          },
+          [this, delete_blob_context] { DeleteBlobAsync(delete_blob_context); },
           io_async_execution_priority_);
       !schedule_result.Successful()) {
     return schedule_result;
