@@ -162,7 +162,6 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
     AsyncContext<HttpRequest, HttpResponse>& http_client_context) noexcept {
   private_key_fetching_context.result = http_client_context.result;
   if (!http_client_context.result.Successful()) {
-    std::cout << "TEST_TAKURO: Private Key Fetching failed: " << http_client_context.response->body.ToString() << std::endl;
     SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider, private_key_fetching_context,
                       private_key_fetching_context.result,
                       "Failed to fetch private key.");

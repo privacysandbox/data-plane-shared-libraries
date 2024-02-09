@@ -113,7 +113,6 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   }
 
   const auto& access_token = *get_token_context.response->session_token;
-  std::cout << "TEST_TAKURO: token: " << access_token << std::endl;
 
   const auto& ciphertext = decrypt_context.request->ciphertext();
   if (ciphertext.empty()) {
@@ -183,7 +182,6 @@ void AzureKmsClientProvider::OnDecryptCallback(
     SCP_ERROR_CONTEXT(
         kAzureKmsClientProvider, decrypt_context, http_client_context.result,
         "Failed to decrypt wrapped key using Azure KMS");
-    std::cout << "TEST_TAKURO: Decrypt failed: " << http_client_context.response->body.ToString() << std::endl;
     decrypt_context.result = http_client_context.result;
     decrypt_context.Finish();
     return;
