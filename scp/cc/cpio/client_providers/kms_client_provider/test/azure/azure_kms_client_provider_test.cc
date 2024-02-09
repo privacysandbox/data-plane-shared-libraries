@@ -22,6 +22,7 @@
 #include <string>
 
 #include "core/curl_client/mock/mock_curl_client.h"
+#include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "core/interface/async_context.h"
 #include "absl/synchronization/notification.h"
 #include "core/utils/src/base64.h"
@@ -49,6 +50,7 @@ using testing::Eq;
 using testing::Return;
 using testing::Pointee;
 using google::scp::core::test::MockCurlClient;
+using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 
 static constexpr char kServiceAccount[] = "account";
 static constexpr char kWipProvider[] = "wip";
@@ -64,7 +66,8 @@ class AzureKmsClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
     http_client_ = std::make_shared<MockCurlClient>();
-    client_ = std::make_unique<AzureKmsClientProvider>(http_client_);
+    credentials_provider_ = std::make_shared<MockAuthTokenProvider>();
+    client_ = std::make_unique<AzureKmsClientProvider>(http_client_, credentials_provider_);
   }
 
   void TearDown() override { 
@@ -73,6 +76,7 @@ class AzureKmsClientProviderTest : public ::testing::Test {
 
   std::shared_ptr<MockCurlClient> http_client_;
   std::unique_ptr<AzureKmsClientProvider> client_;
+  std::shared_ptr<MockAuthTokenProvider> credentials_provider_;
 };
 
 TEST_F(AzureKmsClientProviderTest, NullKeyId) {
@@ -135,6 +139,15 @@ TEST_F(AzureKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrpyt_request->set_ciphertext(kCiphertext);
   kms_decrpyt_request->set_account_identity(kServiceAccount);
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
+
+  EXPECT_CALL(*credentials_provider_,
+              GetSessionToken)
+      .WillOnce([=](AsyncContext<GetSessionTokenRequest,
+                                 GetSessionTokenResponse>& context) {
+        context.result = SuccessExecutionResult();
+        context.Finish();
+        return context.result;
+      });
 
   EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();

@@ -27,6 +27,7 @@ cc_test(
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/cpio/client_providers/kms_client_provider/src/azure:azure_kms_client_provider_lib",
+        "//scp/cc/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "@com_github_googleapis_google_cloud_cpp//:kms",
         "@com_google_googletest//:gtest_main",
