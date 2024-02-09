@@ -32,7 +32,7 @@ declare -a -r targets=(
   //scp/cc/roma/config/test:type_converter_benchmark
   //scp/cc/roma/sandbox/dispatcher/test:dispatcher_benchmark
   //scp/cc/roma/sandbox/worker_api/sapi/test:worker_wrapper_benchmark
-  //scp/cc/roma/benchmark/test:logging_benchmark
+  # //scp/cc/roma/benchmark/test:logging_benchmark
   # TODO: b/303250465 - Turn this back on once the segfault is fixed.
   # //scp/cc/roma/benchmark/test:benchmark_suite_test
 )
