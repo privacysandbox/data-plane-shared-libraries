@@ -36,8 +36,11 @@ class AzureKmsClientProvider : public KmsClientProviderInterface {
 
   explicit AzureKmsClientProvider(
       const std::shared_ptr<core::HttpClientInterface>&
-          http_client)
-      : http_client_(http_client) {}
+          http_client,
+      const std::shared_ptr<AuthTokenProviderInterface>&
+          auth_token_provider)
+      : http_client_(http_client),
+      auth_token_provider_(auth_token_provider) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -51,6 +54,21 @@ class AzureKmsClientProvider : public KmsClientProviderInterface {
           decrypt_context) noexcept override;
 
  private:
+
+ /**
+   * @brief Callback to pass token for decryption.
+   *
+   * @param create_kms_context the context of created KMS Client.
+   * @param get_token_context the context of fetched auth token
+   * credentials.
+   * @return core::ExecutionResult the creation results.
+   */
+  void GetSessionCredentialsCallbackToDecrypt(
+      core::AsyncContext<cmrt::sdk::kms_service::v1::DecryptRequest,
+                         cmrt::sdk::kms_service::v1::DecryptResponse>&
+          decrypt_context,
+      core::AsyncContext<GetSessionTokenRequest,
+                         GetSessionTokenResponse>& get_token_context) noexcept;
 
   /**
    * @brief Is called when the decrypt operation
@@ -67,6 +85,8 @@ class AzureKmsClientProvider : public KmsClientProviderInterface {
           http_client_context) noexcept;
 
   std::shared_ptr<core::HttpClientInterface> http_client_;
+  // Auth token provider.
+  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider_;
 };
 }  // namespace google::scp::cpio::client_providers
 
