@@ -285,4 +285,32 @@ TEST_F(AzureKmsClientProviderTest, FailedToDecrypt) {
   EXPECT_SUCCESS(client_->Decrypt(context)); 
   condition.WaitForNotification();
 }
+
+TEST_F(AzureKmsClientProviderTest, FailedToGetAuthToken) {
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
+  kms_decrpyt_request->set_key_resource_name(kKeyId);
+  kms_decrpyt_request->set_ciphertext(kCiphertext);
+  kms_decrpyt_request->set_account_identity(kServiceAccount);
+  kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
+
+  EXPECT_CALL(*credentials_provider_,
+            GetSessionToken)
+    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
+                                GetSessionTokenResponse>& context) {
+      context.result = FailureExecutionResult(SC_UNKNOWN);
+      context.Finish();
+      return context.result;
+    });
+
+  absl::Notification condition;
+  AsyncContext<DecryptRequest, DecryptResponse> context(
+      kms_decrpyt_request,
+      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
+        EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+        condition.Notify();
+      });
+
+  EXPECT_THAT(client_->Decrypt(context), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  condition.WaitForNotification();
+}
 }  // namespace google::scp::cpio::client_providers::test
