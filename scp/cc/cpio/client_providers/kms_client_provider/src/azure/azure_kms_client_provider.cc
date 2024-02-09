@@ -16,15 +16,16 @@
 
 #include "azure_kms_client_provider.h"
 
+#include <utility>
+
 #include <nlohmann/json.hpp>
 
 #include "absl/functional/bind_front.h"
-#include "cpio/client_providers/interface/kms_client_provider_interface.h"
-#include "cpio/client_providers/interface/auth_token_provider_interface.h"
+#include "absl/log/check.h"
 #include "cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "public/cpio/interface/kms_client/type_def.h"
-#include "absl/log/check.h"
 
 #include "error_codes.h"
 
@@ -83,31 +84,26 @@ ExecutionResult AzureKmsClientProvider::Stop() noexcept {
 ExecutionResult AzureKmsClientProvider::Decrypt(
     core::AsyncContext<DecryptRequest, DecryptResponse>&
         decrypt_context) noexcept {
-
   auto get_credentials_request = std::make_shared<GetSessionTokenRequest>();
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       get_token_context(
           std::move(get_credentials_request),
           absl::bind_front(
-              &AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt, this,
-              decrypt_context),
+              &AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt,
+              this, decrypt_context),
           decrypt_context);
 
-  return auth_token_provider_->GetSessionToken(
-      get_token_context);
+  return auth_token_provider_->GetSessionToken(get_token_context);
 }
 
 void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
-      core::AsyncContext<DecryptRequest,
-                         DecryptResponse>&
-          decrypt_context,
-      core::AsyncContext<GetSessionTokenRequest,
-                         GetSessionTokenResponse>& get_token_context) noexcept {
+    core::AsyncContext<DecryptRequest, DecryptResponse>& decrypt_context,
+    core::AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
+        get_token_context) noexcept {
   if (!get_token_context.result.Successful()) {
-    SCP_ERROR_CONTEXT(
-        kAzureKmsClientProvider, decrypt_context,
-        get_token_context.result,
-        "Failed to get the access token.");
+    SCP_ERROR_CONTEXT(kAzureKmsClientProvider, decrypt_context,
+                      get_token_context.result,
+                      "Failed to get the access token.");
     decrypt_context.result = get_token_context.result;
     decrypt_context.Finish();
     return;
@@ -159,7 +155,7 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   http_context.request->headers = std::make_shared<core::HttpHeaders>();
   http_context.request->headers->insert(
       {std::string(kAuthorizationHeaderKey),
-      absl::StrCat(kBearerTokenPrefix, access_token)});
+       absl::StrCat(kBearerTokenPrefix, access_token)});
 
   http_context.callback = bind(&AzureKmsClientProvider::OnDecryptCallback, this,
                                decrypt_context, _1);
@@ -180,9 +176,9 @@ void AzureKmsClientProvider::OnDecryptCallback(
     AsyncContext<DecryptRequest, DecryptResponse>& decrypt_context,
     AsyncContext<HttpRequest, HttpResponse>& http_client_context) noexcept {
   if (!http_client_context.result.Successful()) {
-    SCP_ERROR_CONTEXT(
-        kAzureKmsClientProvider, decrypt_context, http_client_context.result,
-        "Failed to decrypt wrapped key using Azure KMS");
+    SCP_ERROR_CONTEXT(kAzureKmsClientProvider, decrypt_context,
+                      http_client_context.result,
+                      "Failed to decrypt wrapped key using Azure KMS");
     decrypt_context.result = http_client_context.result;
     decrypt_context.Finish();
     return;
@@ -205,17 +201,18 @@ shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
     const shared_ptr<RoleCredentialsProviderInterface>&
         role_credentials_provider,
     const shared_ptr<AsyncExecutorInterface>& io_async_executor) noexcept {
-      // We uses GlobalCpio::GetGlobalCpio()->GetHttpClient() to get http_client object instead of
-      // adding it to KmsClientProviderFactory::Create() as a new parameter.
-      // This is to prevent the existing GCP and AWS implementations from being changed.
-      std::shared_ptr<core::HttpClientInterface> http_client;
-      auto execution_result =
-          GlobalCpio::GetGlobalCpio()->GetHttpClient(http_client);
-      CHECK(execution_result.Successful()) << "failed to get http client";
-      std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
-      execution_result =
-          GlobalCpio::GetGlobalCpio()->GetAuthTokenProvider(auth_token_provider);
-      CHECK(execution_result.Successful()) << "failed to get auth token provider";
+  // We uses GlobalCpio::GetGlobalCpio()->GetHttpClient() to get http_client
+  // object instead of adding it to KmsClientProviderFactory::Create() as a new
+  // parameter. This is to prevent the existing GCP and AWS implementations from
+  // being changed.
+  std::shared_ptr<core::HttpClientInterface> http_client;
+  auto execution_result =
+      GlobalCpio::GetGlobalCpio()->GetHttpClient(http_client);
+  CHECK(execution_result.Successful()) << "failed to get http client";
+  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
+  execution_result =
+      GlobalCpio::GetGlobalCpio()->GetAuthTokenProvider(auth_token_provider);
+  CHECK(execution_result.Successful()) << "failed to get auth token provider";
   return make_shared<AzureKmsClientProvider>(http_client, auth_token_provider);
 }
 #endif

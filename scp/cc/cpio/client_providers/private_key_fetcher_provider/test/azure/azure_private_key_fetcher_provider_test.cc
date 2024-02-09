@@ -42,9 +42,9 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::
     SC_AZURE_PRIVATE_KEY_FETCHER_CREDENTIALS_PROVIDER_NOT_FOUND;
 using google::scp::core::errors::
-    SC_PRIVATE_KEY_FETCHER_PROVIDER_KEY_DATA_NOT_FOUND;
-using google::scp::core::errors::
     SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND;
+using google::scp::core::errors::
+    SC_PRIVATE_KEY_FETCHER_PROVIDER_KEY_DATA_NOT_FOUND;
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
@@ -55,8 +55,8 @@ using testing::Pair;
 using testing::Pointee;
 using testing::Return;
 using testing::SetArgPointee;
-using testing::UnorderedElementsAre;
 using ::testing::StrEq;
+using testing::UnorderedElementsAre;
 
 namespace {
 constexpr char kAccountIdentity[] = "accountIdentity";
@@ -149,8 +149,7 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, SignHttpRequest) {
 }
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, FailedToGetCredentials) {
-  EXPECT_CALL(*credentials_provider_,
-              GetSessionToken)
+  EXPECT_CALL(*credentials_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.result = FailureExecutionResult(SC_UNKNOWN);

@@ -24,9 +24,9 @@
 
 #include "absl/synchronization/notification.h"
 #include "core/curl_client/mock/mock_curl_client.h"
-#include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "core/interface/async_context.h"
 #include "core/utils/src/base64.h"
+#include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "cpio/client_providers/kms_client_provider/src/azure/error_codes.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
@@ -48,11 +48,10 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::utils::Base64Encode;
+using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using std::atomic;
 using testing::Eq;
 using testing::Pointee;
-using google::scp::core::test::MockCurlClient;
-using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 
 static constexpr char kServiceAccount[] = "account";
 static constexpr char kWipProvider[] = "wip";
@@ -69,22 +68,23 @@ class AzureKmsClientProviderTest : public ::testing::Test {
   void SetUp() override {
     http_client_ = std::make_shared<MockCurlClient>();
     credentials_provider_ = std::make_shared<MockAuthTokenProvider>();
-    client_ = std::make_unique<AzureKmsClientProvider>(http_client_, credentials_provider_);
+    client_ = std::make_unique<AzureKmsClientProvider>(http_client_,
+                                                       credentials_provider_);
   }
 
   void TearDown() override {}
 
   void MockGetSessionToken() {
-    EXPECT_CALL(*credentials_provider_,
-            GetSessionToken)
-    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
-                                GetSessionTokenResponse>& context) {
-      context.result = SuccessExecutionResult();
-      context.response = std::make_shared<GetSessionTokenResponse>();
-      context.response->session_token = std::make_shared<std::string>("test_token_contents");
-      context.Finish();
-      return context.result;
-    });
+    EXPECT_CALL(*credentials_provider_, GetSessionToken)
+        .WillOnce([=](AsyncContext<GetSessionTokenRequest,
+                                   GetSessionTokenResponse>& context) {
+          context.result = SuccessExecutionResult();
+          context.response = std::make_shared<GetSessionTokenResponse>();
+          context.response->session_token =
+              std::make_shared<std::string>("test_token_contents");
+          context.Finish();
+          return context.result;
+        });
   }
 
   std::shared_ptr<MockCurlClient> http_client_;
@@ -253,24 +253,25 @@ TEST_F(AzureKmsClientProviderTest, FailedToGetAuthToken) {
   kms_decrpyt_request->set_account_identity(kServiceAccount);
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
 
-  EXPECT_CALL(*credentials_provider_,
-            GetSessionToken)
-    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
-                                GetSessionTokenResponse>& context) {
-      context.result = FailureExecutionResult(SC_UNKNOWN);
-      context.Finish();
-      return context.result;
-    });
+  EXPECT_CALL(*credentials_provider_, GetSessionToken)
+      .WillOnce([=](AsyncContext<GetSessionTokenRequest,
+                                 GetSessionTokenResponse>& context) {
+        context.result = FailureExecutionResult(SC_UNKNOWN);
+        context.Finish();
+        return context.result;
+      });
 
   absl::Notification condition;
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
-        EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+        EXPECT_THAT(context.result,
+                    ResultIs(FailureExecutionResult(SC_UNKNOWN)));
         condition.Notify();
       });
 
-  EXPECT_THAT(client_->Decrypt(context), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_THAT(client_->Decrypt(context),
+              ResultIs(FailureExecutionResult(SC_UNKNOWN)));
   condition.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

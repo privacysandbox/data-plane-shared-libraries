@@ -117,7 +117,8 @@ ExecutionResult AzureAuthTokenProvider::GetSessionToken(
   http_context.request->method = google::scp::core::HttpMethod::GET;
   http_context.request->path = std::make_shared<Uri>(kTokenServerPath);
   http_context.request->headers = std::make_shared<HttpHeaders>();
-  http_context.request->headers->insert(std::make_pair(kMetadataHeader, kMetadataHeaderValue));
+  http_context.request->headers->insert(
+      std::make_pair(kMetadataHeader, kMetadataHeaderValue));
   http_context.callback =
       absl::bind_front(&AzureAuthTokenProvider::OnGetSessionTokenCallback, this,
                        get_token_context);

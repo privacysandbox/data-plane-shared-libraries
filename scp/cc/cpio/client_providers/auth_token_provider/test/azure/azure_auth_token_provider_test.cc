@@ -58,20 +58,14 @@ using testing::Pointee;
 using testing::UnorderedElementsAre;
 
 namespace {
-constexpr char kTokenServerPath[] = "http://169.254.169.254/metadata/identity/oauth2/"
+constexpr char kTokenServerPath[] =
+    "http://169.254.169.254/metadata/identity/oauth2/"
     "token?api-version=2018-02-01";
 constexpr char kMetadataHeader[] = "Metadata";
 constexpr char kMetadataHeaderValue[] = "true";
 constexpr int kTokenTtlInSecondHeaderValue = 1000;
 constexpr int kExtendedTokenTtlInSecondHeaderValue = 1000;
 constexpr char kTokenPayloadValue[] = "b0Aaekm1IeizWZVKoBQQULOiiT_PDcQk";
-const std::string kHttpResponseMock =
-    std::string(R"({
-      "access_token":")") + kTokenPayloadValue + R"(",
-      "expires_in":)" + std::to_string(kTokenTtlInSecondHeaderValue) + R"(,
-      "ext_expires_in": )" + std::to_string(kExtendedTokenTtlInSecondHeaderValue) + R"(,
-      "token_type":"bearer"
-    })";
 }  // namespace
 
 namespace google::scp::cpio::client_providers::test {
@@ -100,10 +94,19 @@ TEST_F(AzureAuthTokenProviderTest,
     EXPECT_THAT(http_context.request->path, Pointee(Eq(kTokenServerPath)));
     EXPECT_THAT(http_context.request->headers,
                 Pointee(UnorderedElementsAre(
-                    Pair(kMetadataHeader,
-                         kMetadataHeaderValue))));
+                    Pair(kMetadataHeader, kMetadataHeaderValue))));
 
     http_context.response = std::make_shared<HttpResponse>();
+    const std::string kHttpResponseMock =
+        std::string(R"({
+        "access_token":")") +
+        kTokenPayloadValue + R"(",
+        "expires_in":)" +
+        std::to_string(kTokenTtlInSecondHeaderValue) + R"(,
+        "ext_expires_in": )" +
+        std::to_string(kExtendedTokenTtlInSecondHeaderValue) + R"(,
+        "token_type":"bearer"
+      })";
     http_context.response->body = BytesBuffer(kHttpResponseMock);
     http_context.Finish();
     return SuccessExecutionResult();
@@ -146,8 +149,9 @@ TEST_F(AzureAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
 TEST_F(AzureAuthTokenProviderTest, NullHttpClientProvider) {
   auto auth_token_provider = std::make_shared<AzureAuthTokenProvider>(nullptr);
 
-  EXPECT_THAT(auth_token_provider->Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED)));
+  EXPECT_THAT(
+      auth_token_provider->Init(),
+      ResultIs(FailureExecutionResult(
+          SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED)));
 }
 }  // namespace google::scp::cpio::client_providers::test
