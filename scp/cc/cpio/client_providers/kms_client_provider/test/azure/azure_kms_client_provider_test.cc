@@ -74,6 +74,19 @@ class AzureKmsClientProviderTest : public ::testing::Test {
 
   }
 
+  void MockGetSessionToken() {
+    EXPECT_CALL(*credentials_provider_,
+            GetSessionToken)
+    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
+                                GetSessionTokenResponse>& context) {
+      context.result = SuccessExecutionResult();
+      context.response = std::make_shared<GetSessionTokenResponse>();
+      context.response->session_token = std::make_shared<std::string>("test_token_contents");
+      context.Finish();
+      return context.result;
+    });
+  }
+
   std::shared_ptr<MockCurlClient> http_client_;
   std::unique_ptr<AzureKmsClientProvider> client_;
   std::shared_ptr<MockAuthTokenProvider> credentials_provider_;
@@ -85,16 +98,7 @@ TEST_F(AzureKmsClientProviderTest, NullKeyId) {
 
   absl::Notification condition;
 
-  EXPECT_CALL(*credentials_provider_,
-            GetSessionToken)
-    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
-                                GetSessionTokenResponse>& context) {
-      context.result = SuccessExecutionResult();
-      context.response = std::make_shared<GetSessionTokenResponse>();
-      context.response->session_token = std::make_shared<std::string>("test_token_contents");
-      context.Finish();
-      return context.result;
-    });
+  MockGetSessionToken();
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
@@ -116,16 +120,7 @@ TEST_F(AzureKmsClientProviderTest, EmptyKeyArn) {
 
   absl::Notification condition;
 
-  EXPECT_CALL(*credentials_provider_,
-            GetSessionToken)
-    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
-                                GetSessionTokenResponse>& context) {
-      context.result = SuccessExecutionResult();
-      context.response = std::make_shared<GetSessionTokenResponse>();
-      context.response->session_token = std::make_shared<std::string>("test_token_contents");
-      context.Finish();
-      return context.result;
-    });
+  MockGetSessionToken();
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
@@ -146,16 +141,7 @@ TEST_F(AzureKmsClientProviderTest, NullCiphertext) {
 
   absl::Notification condition;
 
-  EXPECT_CALL(*credentials_provider_,
-            GetSessionToken)
-    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
-                                GetSessionTokenResponse>& context) {
-      context.result = SuccessExecutionResult();
-      context.response = std::make_shared<GetSessionTokenResponse>();
-      context.response->session_token = std::make_shared<std::string>("test_token_contents");
-      context.Finish();
-      return context.result;
-    });
+  MockGetSessionToken();
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
@@ -177,16 +163,7 @@ TEST_F(AzureKmsClientProviderTest, EmptyCiphertext) {
 
   absl::Notification condition;
 
-  EXPECT_CALL(*credentials_provider_,
-            GetSessionToken)
-    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
-                                GetSessionTokenResponse>& context) {
-      context.result = SuccessExecutionResult();
-      context.response = std::make_shared<GetSessionTokenResponse>();
-      context.response->session_token = std::make_shared<std::string>("test_token_contents");
-      context.Finish();
-      return context.result;
-    });
+  MockGetSessionToken();
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
@@ -208,16 +185,7 @@ TEST_F(AzureKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrpyt_request->set_account_identity(kServiceAccount);
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
 
-  EXPECT_CALL(*credentials_provider_,
-            GetSessionToken)
-    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
-                                GetSessionTokenResponse>& context) {
-      context.result = SuccessExecutionResult();
-      context.response = std::make_shared<GetSessionTokenResponse>();
-      context.response->session_token = std::make_shared<std::string>("test_token_contents");
-      context.Finish();
-      return context.result;
-    });
+  MockGetSessionToken();
 
   EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();
@@ -257,16 +225,7 @@ TEST_F(AzureKmsClientProviderTest, FailedToDecrypt) {
   kms_decrpyt_request->set_account_identity(kServiceAccount);
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
 
-  EXPECT_CALL(*credentials_provider_,
-            GetSessionToken)
-    .WillOnce([=](AsyncContext<GetSessionTokenRequest,
-                                GetSessionTokenResponse>& context) {
-      context.result = SuccessExecutionResult();
-      context.response = std::make_shared<GetSessionTokenResponse>();
-      context.response->session_token = std::make_shared<std::string>("test_token_contents");
-      context.Finish();
-      return context.result;
-    });
+  MockGetSessionToken();
 
   EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = FailureExecutionResult(SC_UNKNOWN);
