@@ -56,7 +56,6 @@ class AzurePrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
           sign_http_request_context) noexcept override;
 
  protected:
-
   /**
    * @brief Triggered to fetch private key when http request is signed.
    *

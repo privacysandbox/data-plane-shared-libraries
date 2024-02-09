@@ -22,45 +22,46 @@
 #include "cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "public/cpio/interface/kms_client/type_def.h"
-#include "absl/strings/escaping.h"
 #include "absl/log/check.h"
 
 #include "error_codes.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;
+using google::scp::core::AsyncContext;
 using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::RetryExecutionResult;
-using google::scp::core::errors::
-    SC_AZURE_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND;
-using google::scp::core::errors::SC_AZURE_KMS_CLIENT_PROVIDER_KEY_ID_NOT_FOUND;
-using google::scp::core::errors::SC_AZURE_KMS_CLIENT_PROVIDER_BAD_UNWRAPPED_KEY;
-using google::scp::core::AsyncContext;
 using google::scp::core::HttpClientInterface;
 using google::scp::core::HttpHeaders;
 using google::scp::core::HttpMethod;
 using google::scp::core::HttpRequest;
 using google::scp::core::HttpResponse;
+using google::scp::core::RetryExecutionResult;
+using google::scp::core::SuccessExecutionResult;
 using google::scp::core::Uri;
-using std::make_shared;
-using std::shared_ptr;
+using google::scp::core::errors::SC_AZURE_KMS_CLIENT_PROVIDER_BAD_UNWRAPPED_KEY;
+using google::scp::core::errors::
+    SC_AZURE_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND;
+using google::scp::core::errors::SC_AZURE_KMS_CLIENT_PROVIDER_KEY_ID_NOT_FOUND;
 using std::all_of;
 using std::bind;
 using std::cbegin;
 using std::cend;
-using std::placeholders::_1;
 using std::make_pair;
+using std::make_shared;
 using std::pair;
+using std::shared_ptr;
+using std::placeholders::_1;
 
 namespace google::scp::cpio::client_providers {
 
 static constexpr char kAzureKmsClientProvider[] = "AzureKmsClientProvider";
 
-// We need to take this value from a command line option (It already exists somewhere).
+// We need to take this value from a command line option (It already exists
+// somewhere).
 constexpr char kKMSUnwrapPath[] =
     "https://127.0.0.1:8000/app/unwrapKey?fmt=tink";
 
@@ -82,7 +83,7 @@ ExecutionResult AzureKmsClientProvider::Stop() noexcept {
 ExecutionResult AzureKmsClientProvider::Decrypt(
     core::AsyncContext<DecryptRequest, DecryptResponse>&
         decrypt_context) noexcept {
-  
+
   auto get_credentials_request = std::make_shared<GetSessionTokenRequest>();
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       get_token_context(
@@ -146,7 +147,8 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   http_context.request->method = HttpMethod::POST;
 
   // Get Attestation Report
-  const auto report = hasSnp() ? fetchSnpAttestation() : fetchFakeSnpAttestation();
+  const auto report =
+      hasSnp() ? fetchSnpAttestation() : fetchFakeSnpAttestation();
 
   nlohmann::json payload;
   payload["wrapped"] = ciphertext;
@@ -159,8 +161,8 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
       {std::string(kAuthorizationHeaderKey),
       absl::StrCat(kBearerTokenPrefix, access_token)});
 
-  http_context.callback = bind(&AzureKmsClientProvider::OnDecryptCallback,
-                               this, decrypt_context, _1);
+  http_context.callback = bind(&AzureKmsClientProvider::OnDecryptCallback, this,
+                               decrypt_context, _1);
 
   auto execution_result = http_client_->PerformRequest(http_context);
   if (!execution_result.Successful()) {
@@ -175,8 +177,7 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 }
 
 void AzureKmsClientProvider::OnDecryptCallback(
-    AsyncContext<DecryptRequest, DecryptResponse>&
-        decrypt_context,
+    AsyncContext<DecryptRequest, DecryptResponse>& decrypt_context,
     AsyncContext<HttpRequest, HttpResponse>& http_client_context) noexcept {
   if (!http_client_context.result.Successful()) {
     SCP_ERROR_CONTEXT(
@@ -188,10 +189,10 @@ void AzureKmsClientProvider::OnDecryptCallback(
   }
 
   std::string resp(http_client_context.response->body.bytes->begin(),
-                    http_client_context.response->body.bytes->end());
+                   http_client_context.response->body.bytes->end());
 
   decrypt_context.response = std::make_shared<DecryptResponse>();
-  
+
   decrypt_context.response->set_plaintext(resp);
 
   decrypt_context.result = SuccessExecutionResult();

@@ -27,7 +27,7 @@ class AzurePrivateKeyFetchingClientUtils {
    *
    * @param private_key_fetching_request request to query private key.
    * @param http_request returned http request.
-   */ 
+   */
   static void CreateHttpRequest(
       const PrivateKeyFetchingRequest& private_key_fetching_request,
       core::HttpRequest& http_request);

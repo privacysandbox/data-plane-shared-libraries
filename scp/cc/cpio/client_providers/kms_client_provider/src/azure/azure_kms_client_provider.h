@@ -22,10 +22,10 @@
 
 #include <tink/aead.h>
 
+#include "azure/attestation/json_attestation_report.h"
 #include "core/interface/async_context.h"
 #include "cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "public/core/interface/execution_result.h"
-#include "azure/attestation/json_attestation_report.h"
 
 namespace google::scp::cpio::client_providers {
 
@@ -33,7 +33,6 @@ namespace google::scp::cpio::client_providers {
  */
 class AzureKmsClientProvider : public KmsClientProviderInterface {
  public:
-
   explicit AzureKmsClientProvider(
       const std::shared_ptr<core::HttpClientInterface>&
           http_client,

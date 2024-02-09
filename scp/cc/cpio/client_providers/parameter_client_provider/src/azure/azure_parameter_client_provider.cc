@@ -16,13 +16,13 @@
 
 #include "azure_parameter_client_provider.h"
 
+#include <cstdlib>
 #include <memory>
 #include <string>
 #include <utility>
-#include <cstdlib>
 
-#include "absl/strings/str_format.h"
 #include "absl/log/check.h"
+#include "absl/strings/str_format.h"
 #include "core/common/uuid/src/uuid.h"
 #include "core/interface/async_context.h"
 #include "google/cloud/secretmanager/secret_manager_client.h"
@@ -47,9 +47,9 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
-    SC_AZURE_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND;
-using google::scp::core::errors::
     SC_AZURE_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME;
+using google::scp::core::errors::
+    SC_AZURE_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND;
 using std::bind;
 using std::placeholders::_1;
 
@@ -80,10 +80,10 @@ ExecutionResult AzureParameterClientProvider::GetParameter(
         get_parameter_context) noexcept {
   get_parameter_context.response = std::make_shared<GetParameterResponse>();
   const auto& parameter_name = get_parameter_context.request->parameter_name();
-  // The `parameter_name` follows the format of <prefix>-<parameter name>, and the prefix
-  // consists of the values from `instance_client_provider`. Our instance client
-  // always returns the same dummy values for the current implementation.
-  // So we can just ignore the prefix for now.
+  // The `parameter_name` follows the format of <prefix>-<parameter name>, and
+  // the prefix consists of the values from `instance_client_provider`. Our
+  // instance client always returns the same dummy values for the current
+  // implementation. So we can just ignore the prefix for now.
   const std::string prefix = "azure_operator-azure_environment-";
 
   if (parameter_name.empty()) {
@@ -96,21 +96,25 @@ ExecutionResult AzureParameterClientProvider::GetParameter(
     return execution_result;
   }
 
-  if (parameter_name.size() <= prefix.size() || parameter_name.substr(0, prefix.size()) != prefix) {
+  if (parameter_name.size() <= prefix.size() ||
+      parameter_name.substr(0, prefix.size()) != prefix) {
     auto execution_result = FailureExecutionResult(
         SC_AZURE_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME);
     SCP_ERROR_CONTEXT(kAzureParameterClientProvider, get_parameter_context,
-                      execution_result, "Request does not have expected prefix.");
+                      execution_result,
+                      "Request does not have expected prefix.");
     get_parameter_context.result = execution_result;
     get_parameter_context.Finish();
     return execution_result;
   }
 
   // Example value: "BUYER_FRONTEND_PORT"
-  const auto& flag = parameter_name.substr(prefix.size(), parameter_name.size() - prefix.size());
+  const auto& flag = parameter_name.substr(
+      prefix.size(), parameter_name.size() - prefix.size());
 
   // Get flag values from environment variables.
-  // We need to consider adding prefix for environment variables to avoid collision.
+  // We need to consider adding prefix for environment variables to avoid
+  // collision.
   const char* value_from_env = std::getenv(flag.c_str());
   if (value_from_env) {
     get_parameter_context.response->set_parameter_value(value_from_env);
@@ -129,7 +133,6 @@ ExecutionResult AzureParameterClientProvider::GetParameter(
     return execution_result;
   }
 }
-
 
 #ifndef TEST_CPIO
 std::shared_ptr<ParameterClientProviderInterface>

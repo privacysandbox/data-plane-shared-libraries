@@ -22,8 +22,8 @@ cc_test(
     srcs =
         ["azure_kms_client_provider_test.cc"],
     deps = [
-        "//scp/cc/core/curl_client/mock:mock_curl_client",
         "//scp/cc:cc_base_include_dir",
+        "//scp/cc/core/curl_client/mock:mock_curl_client",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/cpio/client_providers/kms_client_provider/src/azure:azure_kms_client_provider_lib",

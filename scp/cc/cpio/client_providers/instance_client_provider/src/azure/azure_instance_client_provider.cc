@@ -37,9 +37,9 @@ using google::cmrt::sdk::instance_service::v1::
 using google::scp::core::AsyncContext;
 using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
+using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpClientInterface;
 using google::scp::core::SuccessExecutionResult;
-using google::scp::core::FailureExecutionResult;
 
 namespace google::scp::cpio::client_providers {
 
@@ -78,9 +78,10 @@ ExecutionResult AzureInstanceClientProvider::GetCurrentInstanceResourceName(
                  GetCurrentInstanceResourceNameResponse>&
         get_resource_name_context) noexcept {
   get_resource_name_context.response =
-        std::make_shared<GetCurrentInstanceResourceNameResponse>();
+      std::make_shared<GetCurrentInstanceResourceNameResponse>();
   // We need to figure out what we should return here.
-  get_resource_name_context.response->set_instance_resource_name(kResourceNameValue);
+  get_resource_name_context.response->set_instance_resource_name(
+      kResourceNameValue);
   get_resource_name_context.result = SuccessExecutionResult();
   get_resource_name_context.Finish();
   return SuccessExecutionResult();
@@ -93,11 +94,11 @@ ExecutionResult AzureInstanceClientProvider::GetTagsByResourceName(
   return FailureExecutionResult(SC_UNKNOWN);
 }
 
-ExecutionResult AzureInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
+ExecutionResult
+AzureInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
     const std::string& resource_name,
     cmrt::sdk::instance_service::v1::InstanceDetails&
         instance_details) noexcept {
-  
   // Not implemented.
   return FailureExecutionResult(SC_UNKNOWN);
 }
@@ -122,7 +123,8 @@ ExecutionResult AzureInstanceClientProvider::GetInstanceDetailsByResourceName(
   labels_proto[kEnvironmentTagName] = kEnvironmentTagValue;
   labels_proto[kServiceTagName] = kServiceTagValue;
 
-  *(get_instance_details_context.response->mutable_instance_details()) = instance_details;
+  *(get_instance_details_context.response->mutable_instance_details()) =
+      instance_details;
   get_instance_details_context.result = SuccessExecutionResult();
   get_instance_details_context.Finish();
   return SuccessExecutionResult();

@@ -39,7 +39,6 @@ cc_library(
         "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        
         "@com_google_absl//absl/log:check",
     ],
 )
