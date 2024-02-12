@@ -80,8 +80,8 @@ void BM_RunCodeFromSerializedData(benchmark::State& state) {
       serialized_init_params.size(),
       static_cast<void*>(serialized_init_params.data()));
 
-  ASSERT_EQ(SC_OK, ::InitFromSerializedData(&sapi_init_params));
-  ASSERT_EQ(SC_OK, ::Run());
+  ASSERT_EQ(SapiStatusCode::kOk, ::InitFromSerializedData(&sapi_init_params));
+  ASSERT_EQ(SapiStatusCode::kOk, ::Run());
 
   const ::worker_api::WorkerParamsProto params_proto = GetWorkerParamsProto();
   const int serialized_size = params_proto.ByteSizeLong();
@@ -108,7 +108,7 @@ void BM_RunCodeFromSerializedData(benchmark::State& state) {
     EXPECT_THAT(response_proto.response(),
                 StrEq(R"js("Hi there from JS :)")js"));
   }
-  EXPECT_EQ(SC_OK, ::Stop());
+  EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
 void BM_RunCodeFromBuffer(benchmark::State& state) {
@@ -124,8 +124,8 @@ void BM_RunCodeFromBuffer(benchmark::State& state) {
       serialized_init_params.size(),
       static_cast<void*>(serialized_init_params.data()));
 
-  ASSERT_EQ(SC_OK, ::InitFromSerializedData(&sapi_init_params));
-  ASSERT_EQ(SC_OK, ::Run());
+  ASSERT_EQ(SapiStatusCode::kOk, ::InitFromSerializedData(&sapi_init_params));
+  ASSERT_EQ(SapiStatusCode::kOk, ::Run());
 
   const ::worker_api::WorkerParamsProto params_proto = GetWorkerParamsProto();
   const int serialized_size = params_proto.ByteSizeLong();
@@ -149,7 +149,7 @@ void BM_RunCodeFromBuffer(benchmark::State& state) {
     EXPECT_THAT(response_proto.response(),
                 StrEq(R"js("Hi there from JS :)")js"));
   }
-  EXPECT_EQ(SC_OK, ::Stop());
+  EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
 }  // namespace
