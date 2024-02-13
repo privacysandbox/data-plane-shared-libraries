@@ -141,7 +141,7 @@ namespace google::scp::cpio::client_providers {
 ExecutionResult GcpBlobStorageClientProvider::Init() noexcept {
   // Try to get project_id from Global Cpio Options, otherwise get project_id
   // from running instance_client.
-  std::string project_id = options_.project_id;
+  std::string project_id = GlobalCpio::GetGlobalCpio()->GetProjectId();
 
   if (project_id.empty()) {
     auto project_id_or =

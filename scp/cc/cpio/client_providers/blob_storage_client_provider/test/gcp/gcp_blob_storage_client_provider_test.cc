@@ -131,7 +131,6 @@ class GcpBlobStorageClientProviderTest
         std::make_unique<NiceMock<MockGcpCloudStorageFactory>>();
     storage_factory_ = storage_factory.get();
     BlobStorageClientOptions options;
-    options.project_id = kProjectIdValueMock;
     gcp_cloud_storage_client_.emplace(std::move(options), &instance_client_,
                                       &cpu_async_executor_, &io_async_executor_,
                                       std::move(storage_factory));
@@ -163,12 +162,16 @@ class GcpBlobStorageClientProviderTest
       finish_called_ = true;
     };
 
+    cpio_options_.log_option = LogOption::kConsoleLog;
+    cpio_options_.project_id = kProjectIdValueMock;
+    EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options_));
     EXPECT_SUCCESS(gcp_cloud_storage_client_->Init());
     EXPECT_SUCCESS(gcp_cloud_storage_client_->Run());
   }
 
   ~GcpBlobStorageClientProviderTest() {
     EXPECT_SUCCESS(gcp_cloud_storage_client_->Stop());
+    EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options_));
   }
 
   MockInstanceClientProvider instance_client_;
@@ -177,6 +180,7 @@ class GcpBlobStorageClientProviderTest
   MockGcpCloudStorageFactory* storage_factory_;
   std::shared_ptr<MockClient> mock_client_;
   std::optional<GcpBlobStorageClientProvider> gcp_cloud_storage_client_;
+  TestCpioOptions cpio_options_;
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context_;
 
@@ -952,7 +956,14 @@ TEST(GcpBlobStorageClientProviderTestII, InitFailedToFetchProjectId) {
       BlobStorageClientOptions(), &instance_client_mock, &async_executor_mock,
       &io_async_executor_mock,
       std::make_unique<NiceMock<MockGcpCloudStorageFactory>>());
+
+  // No project_id set.
+  TestCpioOptions cpio_options;
+  EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
+
   EXPECT_THAT(client.Init(), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+
+  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options));
 }
 
 }  // namespace google::scp::cpio::client_providers::test
