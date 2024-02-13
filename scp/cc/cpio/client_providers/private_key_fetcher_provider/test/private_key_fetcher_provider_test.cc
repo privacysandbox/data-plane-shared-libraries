@@ -63,7 +63,7 @@ namespace google::scp::cpio::client_providers::test {
 class PrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   PrivateKeyFetcherProviderTest()
-      : private_key_fetcher_provider_(std::in_place_t{}, &http_client_) {
+      : private_key_fetcher_provider_(std::in_place, &http_client_) {
     private_key_fetcher_provider_->signed_http_request_mock->path =
         std::make_shared<std::string>(std::string(kPrivateKeyBaseUri) + "/" +
                                       std::string(kKeyId));

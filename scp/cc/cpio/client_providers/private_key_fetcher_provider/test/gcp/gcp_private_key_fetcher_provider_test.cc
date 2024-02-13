@@ -72,7 +72,7 @@ namespace google::scp::cpio::client_providers::test {
 class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   GcpPrivateKeyFetcherProviderTest()
-      : gcp_private_key_fetcher_provider_(std::in_place_t{}, &http_client_,
+      : gcp_private_key_fetcher_provider_(std::in_place, &http_client_,
                                           &credentials_provider_) {
     EXPECT_SUCCESS(gcp_private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(gcp_private_key_fetcher_provider_->Run());

@@ -67,7 +67,7 @@ namespace google::scp::cpio::client_providers::test {
 class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   AwsPrivateKeyFetcherProviderTest()
-      : aws_private_key_fetcher_provider_(std::in_place_t{}, &http_client_,
+      : aws_private_key_fetcher_provider_(std::in_place, &http_client_,
                                           &credentials_provider_) {
     SDKOptions options;
     InitAPI(options);
