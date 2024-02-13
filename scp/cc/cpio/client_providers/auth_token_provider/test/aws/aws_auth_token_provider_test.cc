@@ -64,23 +64,20 @@ namespace google::scp::cpio::client_providers::test {
 
 class AwsAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
-  AwsAuthTokenProviderTest()
-      : http_client_(std::make_unique<MockCurlClient>()),
-        authorizer_provider_(
-            std::make_unique<AwsAuthTokenProvider>(http_client_.get())) {}
+  AwsAuthTokenProviderTest() : authorizer_provider_(&http_client_) {}
 
   std::string GetResponseBody() { return GetParam(); }
 
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       fetch_token_context_;
 
-  std::unique_ptr<MockCurlClient> http_client_;
-  std::unique_ptr<AwsAuthTokenProvider> authorizer_provider_;
+  MockCurlClient http_client_;
+  AwsAuthTokenProvider authorizer_provider_;
 };
 
 TEST_F(AwsAuthTokenProviderTest,
        GetSessionTokenSuccessWithValidTokenAndExpireTime) {
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();
     EXPECT_EQ(http_context.request->method, HttpMethod::PUT);
     EXPECT_THAT(http_context.request->path, Pointee(Eq(kTokenServerPath)));
@@ -105,14 +102,14 @@ TEST_F(AwsAuthTokenProviderTest,
               std::chrono::seconds(kTokenTtlInSecondHeaderValue));
     finished.Notify();
   };
-  EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
+  EXPECT_THAT(authorizer_provider_.GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
   finished.WaitForNotification();
 }
 
 TEST_F(AwsAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = FailureExecutionResult(SC_UNKNOWN);
     http_context.Finish();
     return SuccessExecutionResult();
@@ -123,7 +120,7 @@ TEST_F(AwsAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
     finished.Notify();
   };
-  EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
+  EXPECT_THAT(authorizer_provider_.GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
   finished.WaitForNotification();

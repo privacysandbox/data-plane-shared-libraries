@@ -48,22 +48,18 @@ using google::scp::cpio::mock::MockInstanceClientWithOverrides;
 namespace google::scp::cpio::test {
 class InstanceClientTest : public ::testing::Test {
  protected:
-  InstanceClientTest() {
-    auto instance_client_options = std::make_shared<InstanceClientOptions>();
-    client_ = std::make_unique<MockInstanceClientWithOverrides>(
-        instance_client_options);
-
-    EXPECT_THAT(client_->Init(), IsSuccessful());
-    EXPECT_THAT(client_->Run(), IsSuccessful());
+  InstanceClientTest() : client_(std::make_shared<InstanceClientOptions>()) {
+    EXPECT_THAT(client_.Init(), IsSuccessful());
+    EXPECT_THAT(client_.Run(), IsSuccessful());
   }
 
-  ~InstanceClientTest() { EXPECT_THAT(client_->Stop(), IsSuccessful()); }
+  ~InstanceClientTest() { EXPECT_THAT(client_.Stop(), IsSuccessful()); }
 
-  std::unique_ptr<MockInstanceClientWithOverrides> client_;
+  MockInstanceClientWithOverrides client_;
 };
 
 TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
-  EXPECT_CALL(client_->GetInstanceClientProvider(),
+  EXPECT_CALL(client_.GetInstanceClientProvider(),
               GetCurrentInstanceResourceName)
       .WillOnce(
           [=](AsyncContext<GetCurrentInstanceResourceNameRequest,
@@ -76,7 +72,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_->GetCurrentInstanceResourceName(
+  EXPECT_THAT(client_.GetCurrentInstanceResourceName(
                   GetCurrentInstanceResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetCurrentInstanceResourceNameResponse response) {
@@ -88,7 +84,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
 }
 
 TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
-  EXPECT_CALL(client_->GetInstanceClientProvider(),
+  EXPECT_CALL(client_.GetInstanceClientProvider(),
               GetCurrentInstanceResourceName)
       .WillOnce(
           [=](AsyncContext<GetCurrentInstanceResourceNameRequest,
@@ -99,7 +95,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_->GetCurrentInstanceResourceName(
+  EXPECT_THAT(client_.GetCurrentInstanceResourceName(
                   GetCurrentInstanceResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetCurrentInstanceResourceNameResponse response) {
@@ -112,7 +108,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
 }
 
 TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
-  EXPECT_CALL(client_->GetInstanceClientProvider(), GetTagsByResourceName)
+  EXPECT_CALL(client_.GetInstanceClientProvider(), GetTagsByResourceName)
       .WillOnce([=](AsyncContext<GetTagsByResourceNameRequest,
                                  GetTagsByResourceNameResponse>& context) {
         context.response = std::make_shared<GetTagsByResourceNameResponse>();
@@ -122,7 +118,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
       });
 
   absl::Notification finished;
-  EXPECT_THAT(client_->GetTagsByResourceName(
+  EXPECT_THAT(client_.GetTagsByResourceName(
                   GetTagsByResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetTagsByResourceNameResponse response) {
@@ -134,7 +130,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
 }
 
 TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
-  EXPECT_CALL(client_->GetInstanceClientProvider(), GetTagsByResourceName)
+  EXPECT_CALL(client_.GetInstanceClientProvider(), GetTagsByResourceName)
       .WillOnce([=](AsyncContext<GetTagsByResourceNameRequest,
                                  GetTagsByResourceNameResponse>& context) {
         context.result = FailureExecutionResult(SC_UNKNOWN);
@@ -143,7 +139,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
       });
 
   absl::Notification finished;
-  EXPECT_THAT(client_->GetTagsByResourceName(
+  EXPECT_THAT(client_.GetTagsByResourceName(
                   GetTagsByResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetTagsByResourceNameResponse response) {
@@ -156,7 +152,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
 }
 
 TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
-  EXPECT_CALL(client_->GetInstanceClientProvider(),
+  EXPECT_CALL(client_.GetInstanceClientProvider(),
               GetInstanceDetailsByResourceName)
       .WillOnce(
           [=](AsyncContext<GetInstanceDetailsByResourceNameRequest,
@@ -169,7 +165,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_->GetInstanceDetailsByResourceName(
+  EXPECT_THAT(client_.GetInstanceDetailsByResourceName(
                   GetInstanceDetailsByResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetInstanceDetailsByResourceNameResponse response) {
@@ -181,7 +177,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
 }
 
 TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
-  EXPECT_CALL(client_->GetInstanceClientProvider(),
+  EXPECT_CALL(client_.GetInstanceClientProvider(),
               GetInstanceDetailsByResourceName)
       .WillOnce(
           [=](AsyncContext<GetInstanceDetailsByResourceNameRequest,
@@ -192,7 +188,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_->GetInstanceDetailsByResourceName(
+  EXPECT_THAT(client_.GetInstanceDetailsByResourceName(
                   GetInstanceDetailsByResourceNameRequest(),
                   [&](const ExecutionResult result,
                       GetInstanceDetailsByResourceNameResponse response) {
@@ -206,7 +202,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
 
 TEST_F(InstanceClientTest, FailureToCreateInstanceClientProvider) {
   auto failure = FailureExecutionResult(SC_UNKNOWN);
-  client_->create_instance_client_provider_result = failure;
-  EXPECT_EQ(client_->Init(), failure);
+  client_.create_instance_client_provider_result = failure;
+  EXPECT_EQ(client_.Init(), failure);
 }
 }  // namespace google::scp::cpio::test

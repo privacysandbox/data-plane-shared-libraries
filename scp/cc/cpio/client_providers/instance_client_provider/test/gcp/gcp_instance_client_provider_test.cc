@@ -102,11 +102,11 @@ constexpr char kPageSizeSetting[] = "pageSize=300";
 namespace google::scp::cpio::client_providers::test {
 class GcpInstanceClientProviderTest : public testing::Test {
  protected:
-  GcpInstanceClientProviderTest() {
-    instance_provider_.emplace(&authorizer_provider_, &http1_client_,
-                               &http2_client_);
-    EXPECT_SUCCESS(instance_provider_->Init());
-    EXPECT_SUCCESS(instance_provider_->Run());
+  GcpInstanceClientProviderTest()
+      : instance_provider_(&authorizer_provider_, &http1_client_,
+                           &http2_client_) {
+    EXPECT_SUCCESS(instance_provider_.Init());
+    EXPECT_SUCCESS(instance_provider_.Run());
 
     get_details_path_mock_ =
         absl::StrCat(kGcpInstanceGetUrlPrefix, kResourceId);
@@ -121,13 +121,13 @@ class GcpInstanceClientProviderTest : public testing::Test {
   }
 
   ~GcpInstanceClientProviderTest() {
-    EXPECT_SUCCESS(instance_provider_->Stop());
+    EXPECT_SUCCESS(instance_provider_.Stop());
   }
 
   MockCurlClient http1_client_;
   MockCurlClient http2_client_;
   MockAuthTokenProvider authorizer_provider_;
-  std::optional<GcpInstanceClientProvider> instance_provider_;
+  GcpInstanceClientProvider instance_provider_;
 
   std::string get_details_path_mock_;
   std::shared_ptr<GetInstanceDetailsByResourceNameRequest> get_details_request_;
@@ -170,7 +170,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
   std::string resource_name;
 
   ASSERT_SUCCESS(
-      instance_provider_->GetCurrentInstanceResourceNameSync(resource_name));
+      instance_provider_.GetCurrentInstanceResourceNameSync(resource_name));
 
   EXPECT_THAT(resource_name,
               absl::StrCat("//compute.googleapis.com/", kResourceId));
@@ -194,7 +194,7 @@ TEST_F(GcpInstanceClientProviderTest,
 
   std::string resource_name;
   EXPECT_THAT(
-      instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
+      instance_provider_.GetCurrentInstanceResourceNameSync(resource_name),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
 
   EXPECT_THAT(resource_name, IsEmpty());
@@ -246,7 +246,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
+  EXPECT_THAT(instance_provider_.GetCurrentInstanceResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -293,7 +293,7 @@ TEST_F(GcpInstanceClientProviderTest,
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
+  EXPECT_THAT(instance_provider_.GetCurrentInstanceResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -323,7 +323,7 @@ TEST_F(GcpInstanceClientProviderTest, FailedToGetCurrentInstanceResourceName) {
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
+  EXPECT_THAT(instance_provider_.GetCurrentInstanceResourceName(context),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
   done.WaitForNotification();
 }
@@ -418,7 +418,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSyncSuccess) {
       });
 
   InstanceDetails details;
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceNameSync(
+  EXPECT_THAT(instance_provider_.GetInstanceDetailsByResourceNameSync(
                   kInstanceResourceName, details),
               IsSuccessful());
   EXPECT_EQ(details.instance_id(), "123456789");
@@ -507,7 +507,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsAccessConfigLoop) {
       });
 
   InstanceDetails details;
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceNameSync(
+  EXPECT_THAT(instance_provider_.GetInstanceDetailsByResourceNameSync(
                   kInstanceResourceName, details),
               IsSuccessful());
   EXPECT_EQ(details.instance_id(), "123456789");
@@ -544,7 +544,7 @@ TEST_F(GcpInstanceClientProviderTest,
       });
 
   InstanceDetails details;
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceNameSync(
+  EXPECT_THAT(instance_provider_.GetInstanceDetailsByResourceNameSync(
                   kInstanceResourceName, details),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
 }
@@ -634,7 +634,7 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetInstanceDetailsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -727,7 +727,7 @@ TEST_F(GcpInstanceClientProviderTest,
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetInstanceDetailsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -750,7 +750,7 @@ TEST_F(GcpInstanceClientProviderTest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
           });
 
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetInstanceDetailsByResourceName(context),
               ResultIs(FailureExecutionResult(
                   SC_GCP_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME)));
 }
@@ -779,7 +779,7 @@ TEST_F(GcpInstanceClientProviderTest,
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetInstanceDetailsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -819,7 +819,7 @@ TEST_F(GcpInstanceClientProviderTest,
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetInstanceDetailsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -884,7 +884,7 @@ TEST_F(GcpInstanceClientProviderTest,
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetInstanceDetailsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -958,7 +958,7 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
                 done.Notify();
               });
 
-  EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetTagsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -985,7 +985,7 @@ TEST_F(GcpInstanceClientProviderTest,
                 done.Notify();
               });
 
-  EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetTagsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -1023,7 +1023,7 @@ TEST_F(GcpInstanceClientProviderTest,
                 done.Notify();
               });
 
-  EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetTagsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -1093,7 +1093,7 @@ TEST_F(GcpInstanceClientProviderTest,
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetTagsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }
@@ -1140,7 +1140,7 @@ TEST_F(GcpInstanceClientProviderTest,
                 done.Notify();
               });
 
-  EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
+  EXPECT_THAT(instance_provider_.GetTagsByResourceName(context),
               IsSuccessful());
   done.WaitForNotification();
 }

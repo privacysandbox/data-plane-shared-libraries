@@ -96,10 +96,7 @@ namespace google::scp::cpio::client_providers::test {
 
 class GcpAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
-  GcpAuthTokenProviderTest()
-      : http_client_(std::make_unique<MockCurlClient>()) {
-    authorizer_provider_ =
-        std::make_unique<GcpAuthTokenProvider>(http_client_.get());
+  GcpAuthTokenProviderTest() : authorizer_provider_(&http_client_) {
     fetch_token_for_target_audience_context_.request =
         std::make_shared<GetSessionTokenForTargetAudienceRequest>();
     fetch_token_for_target_audience_context_.request
@@ -115,13 +112,13 @@ class GcpAuthTokenProviderTest : public testing::TestWithParam<std::string> {
   AsyncContext<GetSessionTokenForTargetAudienceRequest, GetSessionTokenResponse>
       fetch_token_for_target_audience_context_;
 
-  std::unique_ptr<MockCurlClient> http_client_;
-  std::unique_ptr<GcpAuthTokenProvider> authorizer_provider_;
+  MockCurlClient http_client_;
+  GcpAuthTokenProvider authorizer_provider_;
 };
 
 TEST_F(GcpAuthTokenProviderTest,
        GetSessionTokenSuccessWithValidTokenAndExpireTime) {
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();
     EXPECT_EQ(http_context.request->method, HttpMethod::GET);
     EXPECT_THAT(http_context.request->path, Pointee(Eq(kTokenServerPath)));
@@ -147,14 +144,14 @@ TEST_F(GcpAuthTokenProviderTest,
     }
     finished.Notify();
   };
-  EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
+  EXPECT_THAT(authorizer_provider_.GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
   finished.WaitForNotification();
 }
 
 TEST_F(GcpAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = FailureExecutionResult(SC_UNKNOWN);
     http_context.Finish();
     return SuccessExecutionResult();
@@ -165,14 +162,14 @@ TEST_F(GcpAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
     finished.Notify();
   };
-  EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
+  EXPECT_THAT(authorizer_provider_.GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
   finished.WaitForNotification();
 }
 
 TEST_P(GcpAuthTokenProviderTest, GetSessionTokenFailsIfBadJson) {
-  EXPECT_CALL(*http_client_, PerformRequest)
+  EXPECT_CALL(http_client_, PerformRequest)
       .WillOnce([this](auto& http_context) {
         http_context.result = SuccessExecutionResult();
         http_context.response = std::make_shared<HttpResponse>();
@@ -188,7 +185,7 @@ TEST_P(GcpAuthTokenProviderTest, GetSessionTokenFailsIfBadJson) {
                     SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN)));
     finished.Notify();
   };
-  EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
+  EXPECT_THAT(authorizer_provider_.GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
   finished.WaitForNotification();
@@ -223,7 +220,7 @@ TEST_F(GcpAuthTokenProviderTest, NullHttpClientProvider) {
 }
 
 TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();
     EXPECT_EQ(http_context.request->method, HttpMethod::GET);
     EXPECT_THAT(http_context.request->path, Pointee(Eq(kIdentityServerPath)));
@@ -249,7 +246,7 @@ TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
 
         finished.Notify();
       };
-  EXPECT_THAT(authorizer_provider_->GetSessionTokenForTargetAudience(
+  EXPECT_THAT(authorizer_provider_.GetSessionTokenForTargetAudience(
                   fetch_token_for_target_audience_context_),
               IsSuccessful());
 
@@ -258,7 +255,7 @@ TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
 
 TEST_F(GcpAuthTokenProviderTest,
        FetchTokenForTargetAudienceFailsIfHttpRequestFails) {
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = FailureExecutionResult(SC_UNKNOWN);
     http_context.Finish();
     return SuccessExecutionResult();
@@ -270,7 +267,7 @@ TEST_F(GcpAuthTokenProviderTest,
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
     finished.Notify();
   };
-  EXPECT_THAT(authorizer_provider_->GetSessionTokenForTargetAudience(
+  EXPECT_THAT(authorizer_provider_.GetSessionTokenForTargetAudience(
                   fetch_token_for_target_audience_context_),
               IsSuccessful());
 
@@ -278,7 +275,7 @@ TEST_F(GcpAuthTokenProviderTest,
 }
 
 TEST_P(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceFailsIfBadJson) {
-  EXPECT_CALL(*http_client_, PerformRequest)
+  EXPECT_CALL(http_client_, PerformRequest)
       .WillOnce([this](auto& http_context) {
         http_context.result = SuccessExecutionResult();
 
@@ -296,7 +293,7 @@ TEST_P(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceFailsIfBadJson) {
                     SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN)));
     finished.Notify();
   };
-  EXPECT_THAT(authorizer_provider_->GetSessionTokenForTargetAudience(
+  EXPECT_THAT(authorizer_provider_.GetSessionTokenForTargetAudience(
                   fetch_token_for_target_audience_context_),
               IsSuccessful());
 

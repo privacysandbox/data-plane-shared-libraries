@@ -45,30 +45,26 @@ using testing::Return;
 namespace google::scp::cpio::test {
 class MetricClientTest : public ::testing::Test {
  protected:
-  MetricClientTest() {
-    auto metric_client_options = std::make_shared<MetricClientOptions>();
-    client_ =
-        std::make_unique<MockMetricClientWithOverrides>(metric_client_options);
-
-    EXPECT_THAT(client_->Init(), IsSuccessful());
-    EXPECT_THAT(client_->Run(), IsSuccessful());
+  MetricClientTest() : client_(std::make_shared<MetricClientOptions>()) {
+    EXPECT_THAT(client_.Init(), IsSuccessful());
+    EXPECT_THAT(client_.Run(), IsSuccessful());
   }
 
-  ~MetricClientTest() { EXPECT_THAT(client_->Stop(), IsSuccessful()); }
+  ~MetricClientTest() { EXPECT_THAT(client_.Stop(), IsSuccessful()); }
 
-  std::unique_ptr<MockMetricClientWithOverrides> client_;
+  MockMetricClientWithOverrides client_;
 };
 
 TEST_F(MetricClientTest, PutMetricsSuccess) {
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context;
-  EXPECT_CALL(client_->GetMetricClientProvider(), PutMetrics)
+  EXPECT_CALL(client_.GetMetricClientProvider(), PutMetrics)
       .WillOnce(Return(SuccessExecutionResult()));
-  EXPECT_THAT(client_->PutMetrics(context), IsSuccessful());
+  EXPECT_THAT(client_.PutMetrics(context), IsSuccessful());
 }
 
 TEST_F(MetricClientTest, FailureToCreateMetricClientProvider) {
   auto failure = FailureExecutionResult(SC_UNKNOWN);
-  client_->create_metric_client_provider_result = failure;
-  EXPECT_EQ(client_->Init(), failure);
+  client_.create_metric_client_provider_result = failure;
+  EXPECT_EQ(client_.Init(), failure);
 }
 }  // namespace google::scp::cpio::test

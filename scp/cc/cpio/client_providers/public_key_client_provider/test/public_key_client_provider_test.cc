@@ -63,14 +63,14 @@ static constexpr uint64_t kExpectedExpiredTimeInSeconds = 1668811806;
 namespace google::scp::cpio::client_providers::test {
 
 TEST(PublicKeyClientProviderTestI, InitFailedWithInvalidConfig) {
-  auto http_client = std::make_unique<MockHttpClient>();
+  MockHttpClient http_client;
 
   PublicKeyClientOptions public_key_client_options;
 
-  auto public_key_client = std::make_unique<PublicKeyClientProvider>(
-      std::move(public_key_client_options), http_client.get());
+  PublicKeyClientProvider public_key_client(
+      std::move(public_key_client_options), &http_client);
 
-  EXPECT_THAT(public_key_client->Init(),
+  EXPECT_THAT(public_key_client.Init(),
               ResultIs(FailureExecutionResult(
                   SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS)));
 }
@@ -79,10 +79,10 @@ TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
   PublicKeyClientOptions public_key_client_options;
   public_key_client_options.endpoints.emplace_back(kPrivateKeyBaseUri1);
 
-  auto public_key_client = std::make_unique<PublicKeyClientProvider>(
+  PublicKeyClientProvider public_key_client(
       std::move(public_key_client_options), nullptr);
 
-  EXPECT_THAT(public_key_client->Init(),
+  EXPECT_THAT(public_key_client.Init(),
               ResultIs(FailureExecutionResult(
                   SC_PUBLIC_KEY_CLIENT_PROVIDER_HTTP_CLIENT_REQUIRED)));
 }
@@ -90,14 +90,12 @@ TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
 class PublicKeyClientProviderTestII : public ::testing::Test {
  protected:
   void SetUp() override {
-    http_client_ = std::make_unique<MockHttpClient>();
-
     PublicKeyClientOptions public_key_client_options;
     public_key_client_options.endpoints.emplace_back(kPrivateKeyBaseUri1);
     public_key_client_options.endpoints.emplace_back(kPrivateKeyBaseUri2);
 
-    public_key_client_ = std::make_unique<PublicKeyClientProvider>(
-        std::move(public_key_client_options), http_client_.get());
+    public_key_client_.emplace(std::move(public_key_client_options),
+                               &http_client_);
 
     EXPECT_SUCCESS(public_key_client_->Init());
     EXPECT_SUCCESS(public_key_client_->Run());
@@ -129,14 +127,14 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
     }
   }
 
-  std::unique_ptr<MockHttpClient> http_client_;
-  std::unique_ptr<PublicKeyClientProvider> public_key_client_;
+  MockHttpClient http_client_;
+  std::optional<PublicKeyClientProvider> public_key_client_;
 };
 
 TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
   absl::BlockingCounter perform_calls(2);
   auto success_response = GetValidHttpResponse();
-  http_client_->perform_request_mock =
+  http_client_.perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
         perform_calls.DecrementCount();
         http_context.response =
@@ -178,7 +176,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
 
   absl::BlockingCounter perform_calls(2);
   auto success_response = GetValidHttpResponse();
-  http_client_->perform_request_mock =
+  http_client_.perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
         perform_calls.DecrementCount();
 
@@ -209,7 +207,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
 TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
   absl::BlockingCounter perform_calls(2);
   auto success_response = GetValidHttpResponse();
-  http_client_->perform_request_mock =
+  http_client_.perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
         perform_calls.DecrementCount();
         return FailureExecutionResult(SC_UNKNOWN);
@@ -241,7 +239,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
   ExecutionResult failed_result = FailureExecutionResult(SC_UNKNOWN);
   absl::BlockingCounter perform_calls(2);
   auto success_response = GetValidHttpResponse();
-  http_client_->perform_request_mock =
+  http_client_.perform_request_mock =
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
         perform_calls.DecrementCount();
         if (*http_context.request->path == kPrivateKeyBaseUri2) {
