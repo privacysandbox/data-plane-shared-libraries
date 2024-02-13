@@ -95,7 +95,7 @@ class AwsBlobStorageClientProviderTest : public ::testing::Test {
                       std::move(s3_factory));
     InitAPI(options_);
     instance_client_.instance_resource_name = kResourceNameMock;
-    s3_client_ = std::make_unique<NiceMock<MockS3Client>>();
+    s3_client_ = std::make_shared<NiceMock<MockS3Client>>();
 
     ON_CALL(*s3_factory_, CreateClient).WillByDefault(Return(s3_client_));
 
