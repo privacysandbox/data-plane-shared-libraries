@@ -108,8 +108,9 @@ std::string BuildErrorString(std::vector<std::string> errors) {
 std::vector<std::string> GetErrors(v8::Isolate* isolate,
                                    v8::TryCatch& try_catch,
                                    const uint64_t error_code) noexcept {
-  std::vector<std::string> errors;
-  errors.push_back(std::string(GetErrorMessage(error_code)));
+  std::vector<std::string> errors = {
+      std::string(GetErrorMessage(error_code)),
+  };
   if (try_catch.HasCaught()) {
     if (std::string error_msg;
         !try_catch.Message().IsEmpty() &&
@@ -123,8 +124,7 @@ std::vector<std::string> GetErrors(v8::Isolate* isolate,
 
 ExecutionResult GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
                          const uint64_t error_code) noexcept {
-  // Caught error message from V8 sandbox only shows in DEBUG mode.
-  DLOG(ERROR) << BuildErrorString(GetErrors(isolate, try_catch, error_code));
+  LOG(ERROR) << BuildErrorString(GetErrors(isolate, try_catch, error_code));
   return FailureExecutionResult(error_code);
 }
 
