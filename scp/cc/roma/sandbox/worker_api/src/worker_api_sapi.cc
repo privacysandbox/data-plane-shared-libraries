@@ -61,9 +61,9 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
     const WorkerApi::RunCodeRequest& request) noexcept {
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(std::string(request.code));
-  auto input_type =
-      request.metadata.find(google::scp::roma::sandbox::constants::kInputType);
-  if (input_type != request.metadata.end() &&
+  if (auto input_type = request.metadata.find(
+          google::scp::roma::sandbox::constants::kInputType);
+      input_type != request.metadata.end() &&
       input_type->second ==
           google::scp::roma::sandbox::constants::kInputTypeBytes) {
     params_proto.set_input_bytes(request.input.at(0));
@@ -77,16 +77,14 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
   }
 
   privacy_sandbox::server_common::Stopwatch stopwatch;
-  core::ExecutionResult result;
   {
     // Only this block is mutex protected because everything else is dealing
     // with input and output arguments, which is threadsafe.
     absl::MutexLock lock(&run_code_mutex_);
-    result = sandbox_api_.RunCode(params_proto);
-  }
-
-  if (!result.Successful()) {
-    return result;
+    if (core::ExecutionResult result = sandbox_api_.RunCode(params_proto);
+        !result.Successful()) {
+      return result;
+    }
   }
 
   WorkerApi::RunCodeResponse code_response;
