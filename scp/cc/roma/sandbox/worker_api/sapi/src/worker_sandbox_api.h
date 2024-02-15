@@ -37,7 +37,6 @@
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/sandbox2/policy.h"
 #include "sandboxed_api/sandbox2/policybuilder.h"
-#include "sandboxed_api/sandbox2/util/bpf_helper.h"
 
 #include "error_codes.h"
 
