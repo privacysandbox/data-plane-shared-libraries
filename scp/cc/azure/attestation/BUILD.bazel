@@ -20,8 +20,10 @@ cc_library(
     name = "aci_attestation_lib",
     srcs = glob(
         [
-            "**/*.cc",
-            "**/*.h",
+            "json_attestation_report.cc",
+            "json_attestation_report.h",
+            "security_context_fetcher.cc",
+            "security_context_fetcher.h",
         ],
     ),
     deps = [
