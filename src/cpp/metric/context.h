@@ -38,8 +38,9 @@
 
 namespace privacy_sandbox::server_common::metrics {
 
-constexpr int kLogStandardFreqSec = 60;
-constexpr int kLogLowFreqSec = kLogStandardFreqSec * 10;
+inline constexpr int kLogStandardFreqSec = 60;
+inline constexpr int kLogLowFreqSec = kLogStandardFreqSec * 10;
+inline constexpr std::string_view kDefaultGenerationId = "not_consented";
 
 /*
 One context will be created for one request, used to log metric. It will use
@@ -494,7 +495,7 @@ class Context {
   struct RequestState {
     bool is_decrypted = false;
     bool is_consented = false;
-    std::string generation_id = "";
+    std::string generation_id = std::string(kDefaultGenerationId);
     absl::Status result = absl::OkStatus();
     absl::flat_hash_map<std::string, std::string> custom;
   };
