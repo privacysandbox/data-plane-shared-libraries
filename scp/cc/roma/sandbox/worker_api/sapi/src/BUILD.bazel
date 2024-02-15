@@ -126,6 +126,7 @@ cc_library(
         "//scp/cc/roma/logging/src:roma_logging_lib",
         "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
         "//scp/cc/roma/sandbox/worker/src:roma_worker_lib",
+        "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_lib",
         "@com_google_absl//absl/status",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],

@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/base/thread_annotations.h"
@@ -52,7 +53,7 @@ class WorkerApiSapi : public WorkerApi {
 
   absl::Status Stop() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  core::ExecutionResultOr<WorkerApi::RunCodeResponse> RunCode(
+  std::pair<core::ExecutionResultOr<RunCodeResponse>, RetryStatus> RunCode(
       const WorkerApi::RunCodeRequest& request) noexcept override
       ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 

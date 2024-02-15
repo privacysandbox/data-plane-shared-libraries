@@ -22,6 +22,7 @@
 
 #include "public/core/interface/execution_result.h"
 #include "roma/sandbox/constants/constants.h"
+#include "roma/sandbox/worker_api/src/worker_api.h"
 #include "src/cpp/util/duration.h"
 #include "src/cpp/util/protoutil.h"
 
@@ -57,8 +58,9 @@ absl::Status WorkerApiSapi::Stop() noexcept {
   return sandbox_api_.Stop();
 }
 
-ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
-    const WorkerApi::RunCodeRequest& request) noexcept {
+std::pair<core::ExecutionResultOr<WorkerApi::RunCodeResponse>,
+          WorkerApi::RetryStatus>
+WorkerApiSapi::RunCode(const WorkerApi::RunCodeRequest& request) noexcept {
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(std::string(request.code));
   if (auto input_type = request.metadata.find(
@@ -81,8 +83,9 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
     // Only this block is mutex protected because everything else is dealing
     // with input and output arguments, which is threadsafe.
     absl::MutexLock lock(&run_code_mutex_);
-    if (core::ExecutionResult result = sandbox_api_.RunCode(params_proto);
-        !result.Successful()) {
+    if (std::pair<core::ExecutionResultOr<RunCodeResponse>, RetryStatus>
+            result = sandbox_api_.RunCode(params_proto);
+        !result.first.Successful()) {
       return result;
     }
   }
@@ -95,13 +98,15 @@ ExecutionResultOr<WorkerApi::RunCodeResponse> WorkerApiSapi::RunCode(
     auto duration =
         privacy_sandbox::server_common::DecodeGoogleApiProto(kv.second);
     if (!duration.ok()) {
-      return FailureExecutionResult(SC_ROMA_WORKER_API_INVALID_DURATION);
+      return std::make_pair(
+          FailureExecutionResult(SC_ROMA_WORKER_API_INVALID_DURATION),
+          WorkerApi::RetryStatus::kDoNotRetry);
     }
     code_response.metrics[kv.first] = std::move(duration).value();
   }
   code_response.response =
       std::make_shared<std::string>(std::move(params_proto.response()));
-  return code_response;
+  return std::make_pair(code_response, WorkerApi::RetryStatus::kDoNotRetry);
 }
 
 void WorkerApiSapi::Terminate() noexcept {

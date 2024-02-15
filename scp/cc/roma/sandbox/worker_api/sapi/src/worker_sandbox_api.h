@@ -34,6 +34,7 @@
 #include "roma/logging/src/logging.h"
 #include "roma/sandbox/worker_api/sapi/src/roma_worker_wrapper_lib-sapi.sapi.h"
 #include "roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
+#include "roma/sandbox/worker_api/src/worker_api.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/sandbox2/policy.h"
 #include "sandboxed_api/sandbox2/policybuilder.h"
@@ -111,18 +112,19 @@ class WorkerSandboxApi {
    * @brief Send a request to run code to a worker running within a sandbox.
    *
    * @param params Proto representing a request to the worker.
-   * @return core::ExecutionResult
+   * @return Retry status and core::ExecutionResult
    */
-  core::ExecutionResult RunCode(
+  std::pair<core::ExecutionResult, WorkerApi::RetryStatus> RunCode(
       ::worker_api::WorkerParamsProto& params) noexcept;
 
   void Terminate() noexcept;
 
  protected:
-  core::ExecutionResult InternalRunCode(
+  std::pair<core::ExecutionResult, WorkerApi::RetryStatus> InternalRunCode(
       ::worker_api::WorkerParamsProto& params) noexcept;
 
-  core::ExecutionResult InternalRunCodeBufferShareOnly(
+  std::pair<core::ExecutionResult, WorkerApi::RetryStatus>
+  InternalRunCodeBufferShareOnly(
       ::worker_api::WorkerParamsProto& params) noexcept;
 
   void CreateWorkerSapiSandbox() noexcept;

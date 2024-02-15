@@ -211,7 +211,10 @@ class Dispatcher {
           auto run_code_request =
               RequestConverter::FromUserProvided(*request, request_type);
           auto& worker = **worker_or;
-          auto run_code_response = worker.RunCode(run_code_request);
+          auto run_code_response_and_retry = worker.RunCode(run_code_request);
+          core::ExecutionResultOr<worker_api::WorkerApi::RunCodeResponse>
+              run_code_response = run_code_response_and_retry.first;
+
           if (!run_code_response.result().Successful()) {
             auto err_msg = core::errors::GetErrorMessage(
                 run_code_response.result().status_code);
@@ -220,7 +223,8 @@ class Dispatcher {
             LOG(ERROR) << "The worker " << index
                        << " execute the request failed due to " << err_msg;
 
-            if (run_code_response.result().Retryable()) {
+            if (run_code_response_and_retry.second ==
+                worker_api::WorkerApi::RetryStatus::kRetry) {
               // This means that the worker crashed and the request could be
               // retried, however, we need to reload the worker with the
               // cached code.

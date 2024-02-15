@@ -96,7 +96,9 @@ absl::Status Dispatcher::ReloadCachedCodeObjects(
     const auto run_code_request =
         RequestConverter::FromUserProvided(cached_code, request_type);
     // Send the code objects to the worker again so it reloads its cache
-    const auto run_code_result = worker.RunCode(run_code_request);
+    const auto run_code_result_and_retry = worker.RunCode(run_code_request);
+    const core::ExecutionResultOr<worker_api::WorkerApi::RunCodeResponse>
+        run_code_result = run_code_result_and_retry.first;
     if (!run_code_result.result().Successful()) {
       {
         absl::MutexLock l(&pending_requests_mu_);

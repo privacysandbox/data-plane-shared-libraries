@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
@@ -48,12 +49,16 @@ class WorkerApi {
   virtual absl::Status Run() noexcept = 0;
   virtual absl::Status Stop() noexcept = 0;
 
+  // Whether a request should be retried or not.
+  enum class RetryStatus { kDoNotRetry, kRetry };
+
   /**
    * @brief Method to execute a code request.
    * @note The implementation of this method must be thread safe.
+   * @returns a pair of result and whether this request should be retried
    */
-  virtual core::ExecutionResultOr<RunCodeResponse> RunCode(
-      const RunCodeRequest& request) noexcept = 0;
+  virtual std::pair<core::ExecutionResultOr<RunCodeResponse>, RetryStatus>
+  RunCode(const RunCodeRequest& request) noexcept = 0;
 
   /**
    * @brief Terminate the underlying worker.
