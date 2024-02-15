@@ -30,8 +30,6 @@ cc_library(
         "//src/roma/logging",
         "//src/roma/sandbox/dispatcher",
         "//src/roma/sandbox/native_function_binding:native_function_handler_sapi_ipc",
-        "//src/roma/sandbox/worker_api:worker_api_sapi",
-        "//src/roma/sandbox/worker_pool:worker_pool_api_sapi",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/synchronization",
     ],

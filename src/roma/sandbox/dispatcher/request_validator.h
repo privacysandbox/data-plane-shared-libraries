@@ -21,8 +21,6 @@
 
 #include "absl/status/status.h"
 #include "src/roma/interface/roma.h"
-#include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/worker_api/worker_api.h"
 
 namespace google::scp::roma::sandbox::dispatcher {
 /**

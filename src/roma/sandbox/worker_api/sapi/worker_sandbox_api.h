@@ -36,7 +36,6 @@
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_wrapper-sapi.sapi.h"
-#include "src/roma/sandbox/worker_api/worker_api.h"
 
 namespace google::scp::roma::sandbox::worker_api {
 
@@ -47,6 +46,8 @@ namespace google::scp::roma::sandbox::worker_api {
  */
 class WorkerSandboxApi {
  public:
+  enum class RetryStatus { kDoNotRetry, kRetry };
+
   /**
    * @brief Construct a new Worker Sandbox Api object.
    *
@@ -90,17 +91,17 @@ class WorkerSandboxApi {
    * @param params Proto representing a request to the worker.
    * @return Retry status and execution status
    */
-  std::pair<absl::Status, WorkerApi::RetryStatus> RunCode(
+  std::pair<absl::Status, RetryStatus> RunCode(
       ::worker_api::WorkerParamsProto& params);
 
   void Terminate();
 
  protected:
-  std::pair<absl::Status, WorkerApi::RetryStatus> InternalRunCode(
+  std::pair<absl::Status, RetryStatus> InternalRunCode(
       ::worker_api::WorkerParamsProto& params);
 
-  std::pair<absl::Status, WorkerApi::RetryStatus>
-  InternalRunCodeBufferShareOnly(::worker_api::WorkerParamsProto& params);
+  std::pair<absl::Status, RetryStatus> InternalRunCodeBufferShareOnly(
+      ::worker_api::WorkerParamsProto& params);
 
   void CreateWorkerSapiSandbox();
 

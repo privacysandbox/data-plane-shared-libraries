@@ -66,6 +66,28 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(status.ok());
 }
 
+TEST(SandboxedServiceTest, StopGracefullyWithPendingLoads) {
+  auto roma_service = std::make_unique<RomaService<>>(Config{});
+  ASSERT_TRUE(roma_service->Init().ok());
+  for (int i = 0; i < 100; ++i) {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = absl::StrCat("foo", i),
+        .version_string = "v1",
+        .js = R"JS_CODE(
+    function Handler(input) { return "Hello world! " + JSON.stringify(input);
+    }
+  )JS_CODE",
+    });
+    ASSERT_TRUE(roma_service
+                    ->LoadCodeObj(std::move(code_obj),
+                                  [](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                  })
+                    .ok());
+  }
+  EXPECT_TRUE(roma_service->Stop().ok());
+}
+
 TEST(SandboxedServiceTest, ExecuteCode) {
   Config config;
   config.number_of_workers = 2;

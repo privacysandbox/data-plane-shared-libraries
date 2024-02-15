@@ -30,6 +30,7 @@ proto_library(
 sapi_proto_library(
     name = "worker_params_proto",
     srcs = ["worker_params.proto"],
+    visibility = ["//src/roma/sandbox/dispatcher:__subpackages__"],
     deps = [
         "@com_google_protobuf//:duration_proto",
     ],
@@ -102,7 +103,7 @@ cc_library(
     name = "worker_sandbox_api",
     srcs = ["worker_sandbox_api.cc"],
     hdrs = ["worker_sandbox_api.h"],
-    visibility = ["//src/roma/sandbox/worker_api:__pkg__"],
+    visibility = ["//src/roma/sandbox/dispatcher:__subpackages__"],
     deps = [
         ":error_codes",
         ":worker_init_params_cc_proto",
@@ -112,7 +113,6 @@ cc_library(
         "//src/roma/logging",
         "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
         "//src/roma/sandbox/worker",
-        "//src/roma/sandbox/worker_api",
         "@com_google_absl//absl/status",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],

@@ -36,23 +36,15 @@
 #include "src/roma/sandbox/dispatcher/dispatcher.h"
 #include "src/roma/sandbox/native_function_binding/native_function_handler_sapi_ipc.h"
 #include "src/roma/sandbox/native_function_binding/native_function_table.h"
-#include "src/roma/sandbox/worker_api/worker_api_sapi.h"
-#include "src/roma/sandbox/worker_pool/worker_pool_api_sapi.h"
 #include "src/util/status_macro/status_macros.h"
 
-using google::scp::core::AsyncExecutor;
-using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
 using google::scp::roma::FunctionBindingObjectV2;
-using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::sandbox::constants::kRequestUuid;
 using google::scp::roma::sandbox::dispatcher::Dispatcher;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;
 using google::scp::roma::sandbox::native_function_binding::NativeFunctionTable;
-using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
-using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;
-using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
 
 namespace google::scp::roma::sandbox::roma_service {
 constexpr int kWorkerQueueMax = 100;
@@ -71,7 +63,6 @@ class RomaService {
           "Roma startup failed due to insufficient system memory.");
     }
     PS_RETURN_IF_ERROR(InitInternal());
-    PS_RETURN_IF_ERROR(RunInternal());
     return absl::OkStatus();
   }
 
@@ -81,45 +72,30 @@ class RomaService {
       return absl::InvalidArgumentError(
           "Roma LoadCodeObj failed due to invalid version.");
     }
-    return dispatcher_->Broadcast(std::move(code_object), std::move(callback));
+    return dispatcher_->Load(*std::move(code_object), std::move(callback));
   }
 
   // Async API.
   // Execute single invocation request. Can only be called when a valid
   // code object has been loaded.
+  template <typename InputType>
   absl::Status Execute(
-      std::unique_ptr<InvocationStrRequest<TMetadata>> invocation_req,
+      std::unique_ptr<InvocationRequest<InputType, TMetadata>> invocation_req,
       Callback callback) {
-    return ExecuteInternal(std::move(invocation_req), std::move(callback));
-  }
-
-  absl::Status Execute(
-      std::unique_ptr<InvocationSharedRequest<TMetadata>> invocation_req,
-      Callback callback) {
-    return ExecuteInternal(std::move(invocation_req), std::move(callback));
-  }
-
-  absl::Status Execute(
-      std::unique_ptr<InvocationStrViewRequest<TMetadata>> invocation_req,
-      Callback callback) {
+    // We accept empty request IDs, but we will replace them with a placeholder.
+    if (invocation_req->id.empty()) {
+      invocation_req->id = kDefaultRomaRequestId;
+    }
     return ExecuteInternal(std::move(invocation_req), std::move(callback));
   }
 
   // Async & Batch API.
   // Batch execute a batch of invocation requests. Can only be called when a
   // valid code object has been loaded.
-  absl::Status BatchExecute(std::vector<InvocationStrRequest<>>& batch,
-                            BatchCallback batch_callback) {
-    return BatchExecuteInternal(batch, std::move(batch_callback));
-  }
-
-  absl::Status BatchExecute(std::vector<InvocationSharedRequest<>>& batch,
-                            BatchCallback batch_callback) {
-    return BatchExecuteInternal(batch, std::move(batch_callback));
-  }
-
-  absl::Status BatchExecute(std::vector<InvocationStrViewRequest<>>& batch,
-                            BatchCallback batch_callback) {
+  template <typename InputType>
+  absl::Status BatchExecute(
+      std::vector<InvocationRequest<InputType, TMetadata>>& batch,
+      BatchCallback batch_callback) {
     return BatchExecuteInternal(batch, std::move(batch_callback));
   }
 
@@ -131,7 +107,7 @@ class RomaService {
    * @brief The template parameter, TMetadata, needs to be default
    * assignable and movable.
    */
-  explicit RomaService(Config<TMetadata>&& config = Config<TMetadata>())
+  explicit RomaService(Config<TMetadata> config = Config<TMetadata>())
       : config_(std::move(config)) {}
 
  private:
@@ -149,52 +125,27 @@ class RomaService {
     PS_ASSIGN_OR_RETURN(auto native_function_binding_info,
                         SetupNativeFunctionHandler(concurrency));
     PS_RETURN_IF_ERROR(SetupWorkers(native_function_binding_info));
-
-    async_executor_ =
-        std::make_unique<AsyncExecutor>(concurrency, worker_queue_cap);
-    auto execution_result = async_executor_->Init();
-    if (!execution_result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("InitInternal failed due to internal error: ",
-                       GetErrorMessage(execution_result.status_code)));
-    }
+    native_function_binding_handler_->Run();
 
     // TODO: Make max_pending_requests configurable
     dispatcher_ = std::make_unique<class Dispatcher>(
-        async_executor_.get(), worker_pool_.get(),
+        absl::MakeSpan(workers_),
         concurrency * worker_queue_cap /*max_pending_requests*/);
     ROMA_VLOG(1) << "RomaService Init with " << config_.number_of_workers
                  << " workers.";
     return absl::OkStatus();
   }
 
-  absl::Status RunInternal() {
-    native_function_binding_handler_->Run();
-    if (auto execution_result = async_executor_->Run();
-        !execution_result.Successful()) {
-      return absl::InternalError(
-          absl::StrCat("RunInternal failed due to internal error: ",
-                       GetErrorMessage(execution_result.status_code)));
-    }
-    PS_RETURN_IF_ERROR(worker_pool_->Run());
-    return absl::OkStatus();
-  }
-
-  absl::Status StopInternal() {
+  absl::Status StopInternal() noexcept {
+    // Destroy dispatcher before stopping the workers to which the dispatcher
+    // holds pointers.
+    dispatcher_.reset();
     if (native_function_binding_handler_) {
       native_function_binding_handler_->Stop();
     }
     native_function_binding_table_.Clear();
-    if (worker_pool_) {
-      PS_RETURN_IF_ERROR(worker_pool_->Stop());
-    }
-    if (async_executor_) {
-      if (auto execution_result = async_executor_->Stop();
-          !execution_result.Successful()) {
-        return absl::InternalError(
-            absl::StrCat("RunInternal failed due to internal error: ",
-                         GetErrorMessage(execution_result.status_code)));
-      }
+    for (worker_api::WorkerSandboxApi& worker : workers_) {
+      PS_RETURN_IF_ERROR(worker.Stop());
     }
     return absl::OkStatus();
   }
@@ -288,26 +239,27 @@ class RomaService {
     JsEngineResourceConstraints resource_constraints;
     config_.GetJsEngineResourceConstraints(resource_constraints);
 
-    std::vector<WorkerApiSapiConfig> worker_configs;
-    worker_configs.reserve(remote_fds.size());
+    workers_.reserve(remote_fds.size());
     for (const int remote_fd : remote_fds) {
-      WorkerApiSapiConfig worker_api_sapi_config{
-          .js_engine_require_code_preload = true,
-          .native_js_function_comms_fd = remote_fd,
-          .native_js_function_names = function_names,
-          .max_worker_virtual_memory_mb = config_.max_worker_virtual_memory_mb,
-          .js_engine_resource_constraints = resource_constraints,
-          .js_engine_max_wasm_memory_number_of_pages =
-              config_.max_wasm_memory_number_of_pages,
-          .sandbox_request_response_shared_buffer_size_mb =
-              config_.sandbox_request_response_shared_buffer_size_mb,
-          .enable_sandbox_sharing_request_response_with_buffer_only =
-              config_.enable_sandbox_sharing_request_response_with_buffer_only,
-      };
-      worker_configs.push_back(worker_api_sapi_config);
+      workers_.emplace_back(
+          /*require_preload=*/true,
+          /*native_js_function_comms_fd=*/remote_fd,
+          /*native_js_function_names=*/function_names,
+          /*max_worker_virtual_memory_mb=*/config_.max_worker_virtual_memory_mb,
+          /*js_engine_initial_heap_size_mb=*/
+          resource_constraints.initial_heap_size_in_mb,
+          /*js_engine_maximum_heap_size_mb=*/
+          resource_constraints.maximum_heap_size_in_mb,
+          /*js_engine_max_wasm_memory_number_of_pages=*/
+          config_.max_wasm_memory_number_of_pages,
+          /*sandbox_request_response_shared_buffer_size_mb=*/
+          config_.sandbox_request_response_shared_buffer_size_mb,
+          /*enable_sandbox_sharing_request_response_with_buffer_only=*/
+          config_.enable_sandbox_sharing_request_response_with_buffer_only);
+      PS_RETURN_IF_ERROR(workers_.back().Init());
+      PS_RETURN_IF_ERROR(workers_.back().Run());
     }
-    worker_pool_ = std::make_unique<WorkerPoolApiSapi>(worker_configs);
-    return worker_pool_->Init();
+    return absl::OkStatus();
   }
 
   template <typename InputType>
@@ -327,40 +279,39 @@ class RomaService {
     return absl::OkStatus();
   }
 
-  template <typename RequestT>
-  absl::Status ExecuteInternal(std::unique_ptr<RequestT> invocation_req,
-                               Callback callback) {
+  template <typename InputType>
+  absl::Status ExecuteInternal(
+      std::unique_ptr<InvocationRequest<InputType, TMetadata>> invocation_req,
+      Callback callback) {
     PS_RETURN_IF_ERROR(
         AssertInvocationRequestIsValid("Execute", *invocation_req));
 
     auto request_unique_id = google::scp::core::common::Uuid::GenerateUuid();
     std::string uuid_str =
         google::scp::core::common::ToString(request_unique_id);
-    invocation_req->tags.insert(
-        {std::string(google::scp::roma::sandbox::constants::kRequestUuid),
-         uuid_str});
+    invocation_req->tags.insert({std::string(kRequestUuid), uuid_str});
 
     invocation_req->tags.insert(
         {std::string(google::scp::roma::sandbox::constants::kMinLogLevel),
          absl::StrCat(invocation_req->min_log_level)});
 
-    auto callback_ptr = std::make_unique<Callback>(std::move(callback));
-    Callback callback_wrapper = [this, uuid_str,
-                                 callback_ptr = std::move(callback_ptr)](
-                                    absl::StatusOr<ResponseObject> resp) {
-      (*callback_ptr)(std::move(resp));
-      DeleteMetadata(uuid_str);
-    };
+    Callback callback_wrapper =
+        [this, uuid_str, callback = std::move(callback)](
+            absl::StatusOr<ResponseObject> resp) mutable {
+          callback(std::move(resp));
+          DeleteMetadata(uuid_str);
+        };
 
     PS_RETURN_IF_ERROR(StoreMetadata(std::move(uuid_str),
                                      std::move(invocation_req->metadata)));
-    return dispatcher_->Dispatch(std::move(invocation_req),
-                                 std::move(callback_wrapper));
+    return dispatcher_->Invoke(std::move(*invocation_req),
+                               std::move(callback_wrapper));
   }
 
-  template <typename RequestT>
-  absl::Status BatchExecuteInternal(std::vector<RequestT>& batch,
-                                    BatchCallback batch_callback) {
+  template <typename InputType>
+  absl::Status BatchExecuteInternal(
+      std::vector<InvocationRequest<InputType, TMetadata>>& batch,
+      BatchCallback batch_callback) {
     std::vector<std::string> uuids;
     uuids.reserve(batch.size());
 
@@ -372,25 +323,44 @@ class RomaService {
           google::scp::core::common::ToString(request_unique_id);
       // Save uuids for later removal in callback_wrapper
       uuids.push_back(uuid_str);
-      request.tags.insert(
-          {std::string(google::scp::roma::sandbox::constants::kRequestUuid),
-           uuid_str});
+      request.tags.insert({std::string(kRequestUuid), uuid_str});
       PS_RETURN_IF_ERROR(
           StoreMetadata(std::move(uuid_str), std::move(request.metadata)));
     }
-
-    auto callback_ptr =
-        std::make_unique<BatchCallback>(std::move(batch_callback));
-    BatchCallback callback_wrapper =
-        [&, uuids = std::move(uuids), callback_ptr = std::move(callback_ptr)](
-            const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-          (*callback_ptr)(batch_resp);
-          for (auto& uuid : uuids) {
+    auto batch_callback_ptr = std::make_shared<BatchCallback>(
+        [&, uuids = std::move(uuids),
+         batch_callback = std::move(batch_callback)](
+            const std::vector<absl::StatusOr<ResponseObject>>&
+                batch_resp) mutable {
+          std::move(batch_callback)(batch_resp);
+          for (const auto& uuid : uuids) {
             DeleteMetadata(uuid);
           }
-        };
-
-    return dispatcher_->DispatchBatch(batch, std::move(callback_wrapper));
+        });
+    const auto batch_size = batch.size();
+    auto batch_response =
+        std::make_shared<std::vector<absl::StatusOr<ResponseObject>>>(
+            batch_size, absl::StatusOr<ResponseObject>());
+    auto finished_counter = std::make_shared<std::atomic<size_t>>(0);
+    for (size_t index = 0; index < batch_size; ++index) {
+      auto callback = [batch_response, finished_counter, batch_callback_ptr,
+                       index](absl::StatusOr<ResponseObject> obj_response) {
+        (*batch_response)[index] = std::move(obj_response);
+        auto finished_value = finished_counter->fetch_add(1);
+        if (finished_value + 1 == batch_response->size()) {
+          (*batch_callback_ptr)(*batch_response);
+        }
+      };
+      absl::Status result;
+      while (!(result = dispatcher_->Invoke(batch[index], callback)).ok()) {
+        // If the first request from the batch got a failure, return failure
+        // without waiting.
+        if (index == 0) {
+          return result;
+        }
+      }
+    }
+    return absl::OkStatus();
   }
 
   bool RomaHasEnoughMemoryForStartup() {
@@ -437,14 +407,13 @@ class RomaService {
   }
 
   Config<TMetadata> config_;
-  std::unique_ptr<dispatcher::Dispatcher> dispatcher_;
-  std::unique_ptr<worker_pool::WorkerPool> worker_pool_;
-  std::unique_ptr<core::AsyncExecutor> async_executor_;
+  std::vector<worker_api::WorkerSandboxApi> workers_;
   native_function_binding::NativeFunctionTable<TMetadata>
       native_function_binding_table_;
   std::shared_ptr<
       native_function_binding::NativeFunctionHandlerSapiIpc<TMetadata>>
       native_function_binding_handler_;
+  std::unique_ptr<dispatcher::Dispatcher> dispatcher_;
 };
 }  // namespace google::scp::roma::sandbox::roma_service
 

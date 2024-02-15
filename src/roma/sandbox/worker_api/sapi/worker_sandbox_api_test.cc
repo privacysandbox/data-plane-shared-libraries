@@ -56,10 +56,10 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
   (*params_proto.mutable_metadata())[kCodeVersion] = "1";
   (*params_proto.mutable_metadata())[kRequestAction] = kRequestActionExecute;
 
-  std::pair<absl::Status, WorkerApi::RetryStatus> result_pair =
+  std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
       sandbox_api.RunCode(params_proto);
   ASSERT_TRUE(result_pair.first.ok());
-  EXPECT_EQ(result_pair.second, WorkerApi::RetryStatus::kDoNotRetry);
+  EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kDoNotRetry);
   EXPECT_THAT(params_proto.response(),
               StrEq(R"js("Hi there from sandboxed JS :)")js"));
 
@@ -117,10 +117,10 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   (*params_proto.mutable_metadata())[kRequestAction] = kRequestActionExecute;
   params_proto.mutable_input_strings()->mutable_inputs()->Add(R"("from JS")");
 
-  std::pair<absl::Status, WorkerApi::RetryStatus> result_pair =
+  std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
       sandbox_api.RunCode(params_proto);
   ASSERT_TRUE(result_pair.first.ok());
-  EXPECT_EQ(result_pair.second, WorkerApi::RetryStatus::kDoNotRetry);
+  EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kDoNotRetry);
 
   to_handle_function_call.join();
 
@@ -165,17 +165,17 @@ TEST(WorkerSandboxApiTest, SandboxShouldComeBackUpIfItDies) {
 
   // We expect a failure since the worker process died
   {
-    std::pair<absl::Status, WorkerApi::RetryStatus> result_pair =
+    std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
         sandbox_api.RunCode(params_proto);
     EXPECT_FALSE(result_pair.first.ok());
-    EXPECT_EQ(result_pair.second, WorkerApi::RetryStatus::kRetry);
+    EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kRetry);
   }
 
   // Run code again and this time it should work
-  std::pair<absl::Status, WorkerApi::RetryStatus> result_pair =
+  std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
       sandbox_api.RunCode(params_proto);
   ASSERT_TRUE(result_pair.first.ok());
-  EXPECT_EQ(result_pair.second, WorkerApi::RetryStatus::kDoNotRetry);
+  EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kDoNotRetry);
   EXPECT_THAT(params_proto.response(),
               StrEq(R"js("Hi there from sandboxed JS :)")js"));
 
@@ -227,18 +227,18 @@ TEST(WorkerSandboxApiTest,
 
   // This is expected to fail since we killed the sandbox
   {
-    std::pair<absl::Status, WorkerApi::RetryStatus> result_pair =
+    std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
         sandbox_api.RunCode(params_proto);
     EXPECT_FALSE(result_pair.first.ok());
-    EXPECT_EQ(result_pair.second, WorkerApi::RetryStatus::kRetry);
+    EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kRetry);
   }
 
   // We run the code again and expect it to work this time around since the
   // sandbox should have been restarted
-  std::pair<absl::Status, WorkerApi::RetryStatus> result_pair =
+  std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
       sandbox_api.RunCode(params_proto);
   ASSERT_TRUE(result_pair.first.ok());
-  EXPECT_EQ(result_pair.second, WorkerApi::RetryStatus::kDoNotRetry);
+  EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kDoNotRetry);
 
   to_handle_function_call.join();
 

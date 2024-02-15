@@ -17,157 +17,74 @@
 #ifndef ROMA_SANDBOX_DISPATCHER_REQUEST_CONVERTER_H_
 #define ROMA_SANDBOX_DISPATCHER_REQUEST_CONVERTER_H_
 
+#include <memory>
 #include <string>
+#include <utility>
 
 #include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/worker_api/worker_api.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 
 namespace google::scp::roma::sandbox {
 namespace internal::request_converter {
 /**
- * @brief Converts fields that are common to all request types.
- *
- * @tparam RequestT The request type.
- * @param run_code_request The output request.
- * @param request The input request.
+ * @brief Adds fields that are common to all request types.
  */
-template <typename RequestT>
-void RunRequestFromInputRequestCommon(
-    worker_api::WorkerApi::RunCodeRequest& run_code_request,
-    const RequestT& request) {
-  run_code_request
-      .metadata[google::scp::roma::sandbox::constants::kCodeVersion] =
-      request.version_string;
-  run_code_request.metadata[google::scp::roma::sandbox::constants::kRequestId] =
-      request.id;
-
-  for (const auto& [key, val] : request.tags) {
-    run_code_request.metadata[key] = val;
-  }
-}
-
-/**
- * @brief Converts fields that are common for invocation requests.
- *
- * @tparam RequestT The type of the invocation request.
- * @param run_code_request The output request.
- * @param request The input request.
- */
-template <typename RequestT>
-void InvocationRequestCommon(
-    worker_api::WorkerApi::RunCodeRequest& run_code_request,
-    const RequestT& request) {
-  run_code_request
-      .metadata[google::scp::roma::sandbox::constants::kRequestAction] =
-      google::scp::roma::sandbox::constants::kRequestActionExecute;
-  run_code_request
-      .metadata[google::scp::roma::sandbox::constants::kHandlerName] =
-      request.handler_name;
-  if (request.treat_input_as_byte_str) {
-    run_code_request
-        .metadata[google::scp::roma::sandbox::constants::kInputType] =
-        google::scp::roma::sandbox::constants::kInputTypeBytes;
-  }
-}
+void AddMetadata(std::string version_string, std::string id,
+                 absl::flat_hash_map<std::string, std::string> tags,
+                 ::worker_api::WorkerParamsProto& params);
 }  // namespace internal::request_converter
 
-struct RequestConverter {
-  /**
-   * @brief Template specialization for InvocationStrRequest. This converts a
-   * InvocationStrRequest into a RunCodeRequest.
-   */
-  template <typename TMetadata>
-  static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
-      const InvocationStrRequest<TMetadata>& request) {
-    worker_api::WorkerApi::RunCodeRequest run_code_request;
-    internal::request_converter::RunRequestFromInputRequestCommon(
-        run_code_request, request);
-    run_code_request.input.reserve(request.input.size());
-    for (const auto& i : request.input) {
-      run_code_request.input.push_back(i);
+/**
+ * @brief This converts a CodeObject into a WorkerParamsProto.
+ */
+::worker_api::WorkerParamsProto RequestToProto(CodeObject request);
+
+/**
+ * @brief This converts an InvocationRequest into a WorkerParamsProto.
+ */
+template <typename InputType, typename TMetadata>
+::worker_api::WorkerParamsProto RequestToProto(
+    InvocationRequest<InputType, TMetadata> request) {
+  ::worker_api::WorkerParamsProto params;
+  // Add metadata.
+  internal::request_converter::AddMetadata(std::move(request.version_string),
+                                           std::move(request.id),
+                                           std::move(request.tags), params);
+  auto& metadata = *params.mutable_metadata();
+  metadata[google::scp::roma::sandbox::constants::kRequestAction] =
+      google::scp::roma::sandbox::constants::kRequestActionExecute;
+  metadata[google::scp::roma::sandbox::constants::kHandlerName] =
+      std::move(request.handler_name);
+
+  // Add inputs.
+  if (request.treat_input_as_byte_str) {
+    metadata[google::scp::roma::sandbox::constants::kInputType] =
+        google::scp::roma::sandbox::constants::kInputTypeBytes;
+    if constexpr (std::is_same_v<InputType, std::shared_ptr<std::string>>) {
+      params.set_input_bytes(*request.input.at(0));
+    } else if constexpr (std::is_same_v<InputType, std::string_view>) {
+      params.set_input_bytes(std::string(request.input.at(0)));
+    } else {
+      // InputType is std::string.
+      params.set_input_bytes(std::move(request.input.at(0)));
     }
-    internal::request_converter::InvocationRequestCommon(run_code_request,
-                                                         request);
-
-    return run_code_request;
-  }
-
-  /**
-   * @brief Template specialization for InvocationSharedRequest. This
-   * converts a InvocationSharedRequest into a RunCodeRequest.
-   */
-  template <typename TMetadata>
-  static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
-      const InvocationSharedRequest<TMetadata>& request) {
-    worker_api::WorkerApi::RunCodeRequest run_code_request;
-    internal::request_converter::RunRequestFromInputRequestCommon(
-        run_code_request, request);
-    run_code_request.input.reserve(request.input.size());
-    for (const auto& i : request.input) {
-      run_code_request.input.push_back(*i);
-    }
-    internal::request_converter::InvocationRequestCommon(run_code_request,
-                                                         request);
-
-    return run_code_request;
-  }
-
-  /**
-   * @brief Template specialization for InvocationStrViewRequest. This
-   * converts a InvocationStrViewRequest into a RunCodeRequest.
-   */
-  template <typename TMetadata>
-  static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
-      const InvocationStrViewRequest<TMetadata>& request) {
-    worker_api::WorkerApi::RunCodeRequest run_code_request;
-    internal::request_converter::RunRequestFromInputRequestCommon(
-        run_code_request, request);
-    run_code_request.input.reserve(request.input.size());
-    for (const auto& i : request.input) {
-      run_code_request.input.push_back(i);
-    }
-    internal::request_converter::InvocationRequestCommon(run_code_request,
-                                                         request);
-
-    return run_code_request;
-  }
-
-  /**
-   * @brief Template specialization for CodeObject. This converts a CodeObject
-   * into a RunCodeRequest.
-   */
-  static worker_api::WorkerApi::RunCodeRequest FromUserProvided(
-      const CodeObject& request) {
-    worker_api::WorkerApi::RunCodeRequest run_code_request;
-    internal::request_converter::RunRequestFromInputRequestCommon(
-        run_code_request, request);
-    run_code_request
-        .metadata[google::scp::roma::sandbox::constants::kRequestAction] =
-        google::scp::roma::sandbox::constants::kRequestActionLoad;
-
-    auto get_request_type = [](const auto& request) {
-      if (!request.wasm_bin.empty()) {
-        return constants::kRequestTypeJavascriptWithWasm;
-      } else if (request.js.empty()) {
-        return constants::kRequestTypeWasm;
+  } else {
+    auto& inputs = *params.mutable_input_strings()->mutable_inputs();
+    inputs.Reserve(request.input.size());
+    for (InputType& input : request.input) {
+      if constexpr (std::is_same_v<InputType, std::shared_ptr<std::string>>) {
+        *inputs.Add() = *input;
+      } else if constexpr (std::is_same_v<InputType, std::string_view>) {
+        inputs.Add(std::string(input));
       } else {
-        return constants::kRequestTypeJavascript;
+        // InputType is std::string.
+        inputs.Add(std::move(input));
       }
-    };
-    run_code_request.metadata[constants::kRequestType] =
-        get_request_type(request);
-    run_code_request.code = request.js.empty() ? request.wasm : request.js;
-    run_code_request.wasm = request.wasm_bin;
-    if (const auto it =
-            request.tags.find(google::scp::roma::kWasmCodeArrayName);
-        it != request.tags.end()) {
-      run_code_request.metadata[google::scp::roma::kWasmCodeArrayName] =
-          it->second;
     }
-    return run_code_request;
   }
-};
+  return params;
+}
 }  // namespace google::scp::roma::sandbox
 
 #endif  // ROMA_SANDBOX_DISPATCHER_REQUEST_CONVERTER_H_

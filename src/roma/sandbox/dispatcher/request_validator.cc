@@ -14,6 +14,8 @@
 
 #include "request_validator.h"
 
+#include "src/roma/sandbox/constants/constants.h"
+
 namespace google::scp::roma::sandbox::dispatcher {
 /**
  * @brief Template specialization to validate a CodeObject.
