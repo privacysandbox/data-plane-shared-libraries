@@ -97,17 +97,14 @@ absl::Status Dispatcher::ReloadCachedCodeObjects(
         RequestConverter::FromUserProvided(cached_code, request_type);
     // Send the code objects to the worker again so it reloads its cache
     const auto run_code_result_and_retry = worker.RunCode(run_code_request);
-    const core::ExecutionResultOr<worker_api::WorkerApi::RunCodeResponse>
+    const absl::StatusOr<worker_api::WorkerApi::RunCodeResponse>
         run_code_result = run_code_result_and_retry.first;
-    if (!run_code_result.result().Successful()) {
+    if (!run_code_result.ok()) {
       {
         absl::MutexLock l(&pending_requests_mu_);
         pending_requests_ -= all_cached_code_objects.size();
       }
-      return absl::InternalError(
-          absl::StrCat("Dispatcher RunCode failed due to: ",
-                       google::scp::core::errors::GetErrorMessage(
-                           run_code_result.result().status_code)));
+      return run_code_result.status();
     }
   }
 

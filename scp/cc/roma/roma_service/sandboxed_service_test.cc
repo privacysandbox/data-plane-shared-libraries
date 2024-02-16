@@ -242,10 +242,7 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
 
     status = roma_service->Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          // Execute should fail with the expected error.
-          EXPECT_FALSE(resp.ok());
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("Failed to get valid function handler."));
+          EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
           failed_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -858,10 +855,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
 
     status = roma_service->Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_FALSE(resp.ok());
-          // Timeout error.
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("V8 execution terminated due to timeout."));
+          EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
           execute_timeout.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -877,9 +871,7 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
 
     status = roma_service->Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_FALSE(resp.ok());
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("Error when invoking the handler."));
+          EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
           execute_failed.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -1353,9 +1345,7 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
 
     status = roma_service->LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_FALSE(resp.ok());
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("Failed to compile JavaScript code object."));
+          EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
           load_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -1424,9 +1414,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
 
     status = roma_service->Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          ASSERT_FALSE(resp.ok());
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("Error when invoking the handler."));
+          ASSERT_EQ(resp.status().code(), absl::StatusCode::kInternal);
           execute_failed.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -1499,9 +1487,7 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
 
     status = roma_service->Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          ASSERT_FALSE(resp.ok());
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("Error when invoking the handler."));
+          EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
           execute_failed.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -1611,10 +1597,7 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
 
     status = roma_service->Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_FALSE(resp.ok());
-          // Should return failure
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("Error parsing input as valid JSON."));
+          EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -1670,10 +1653,7 @@ TEST(SandboxedServiceTest,
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           // Execution should fail since load didn't work for this
           // code version
-          EXPECT_FALSE(resp.ok());
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("Could not find a stored context "
-                            "for the execution request."));
+          EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
           execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());

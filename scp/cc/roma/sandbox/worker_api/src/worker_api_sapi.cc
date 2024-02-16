@@ -20,16 +20,10 @@
 #include <string>
 #include <utility>
 
-#include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/roma/sandbox/constants/constants.h"
 #include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
 #include "src/cpp/util/duration.h"
 #include "src/cpp/util/protoutil.h"
-
-using google::scp::core::ExecutionResult;
-using google::scp::core::ExecutionResultOr;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::errors::SC_ROMA_WORKER_API_INVALID_DURATION;
 
 namespace google::scp::roma::sandbox::worker_api {
 WorkerApiSapi::WorkerApiSapi(const WorkerApiSapiConfig& config)
@@ -58,8 +52,7 @@ absl::Status WorkerApiSapi::Stop() noexcept {
   return sandbox_api_.Stop();
 }
 
-std::pair<core::ExecutionResultOr<WorkerApi::RunCodeResponse>,
-          WorkerApi::RetryStatus>
+std::pair<absl::StatusOr<WorkerApi::RunCodeResponse>, WorkerApi::RetryStatus>
 WorkerApiSapi::RunCode(const WorkerApi::RunCodeRequest& request) noexcept {
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(std::string(request.code));
@@ -83,9 +76,9 @@ WorkerApiSapi::RunCode(const WorkerApi::RunCodeRequest& request) noexcept {
     // Only this block is mutex protected because everything else is dealing
     // with input and output arguments, which is threadsafe.
     absl::MutexLock lock(&run_code_mutex_);
-    if (std::pair<core::ExecutionResultOr<RunCodeResponse>, RetryStatus>
-            result = sandbox_api_.RunCode(params_proto);
-        !result.first.Successful()) {
+    if (std::pair<absl::Status, RetryStatus> result =
+            sandbox_api_.RunCode(params_proto);
+        !result.first.ok()) {
       return result;
     }
   }
@@ -98,9 +91,8 @@ WorkerApiSapi::RunCode(const WorkerApi::RunCodeRequest& request) noexcept {
     auto duration =
         privacy_sandbox::server_common::DecodeGoogleApiProto(kv.second);
     if (!duration.ok()) {
-      return std::make_pair(
-          FailureExecutionResult(SC_ROMA_WORKER_API_INVALID_DURATION),
-          WorkerApi::RetryStatus::kDoNotRetry);
+      return std::make_pair(duration.status(),
+                            WorkerApi::RetryStatus::kDoNotRetry);
     }
     code_response.metrics[kv.first] = std::move(duration).value();
   }

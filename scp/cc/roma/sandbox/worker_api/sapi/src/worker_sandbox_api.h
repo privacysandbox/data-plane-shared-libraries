@@ -32,14 +32,11 @@
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/sandbox2/policy.h"
 #include "sandboxed_api/sandbox2/policybuilder.h"
-#include "scp/cc/core/interface/service_interface.h"
 #include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/logging/src/logging.h"
 #include "scp/cc/roma/sandbox/worker_api/sapi/src/roma_worker_wrapper_lib-sapi.sapi.h"
 #include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
 #include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
-
-#include "error_codes.h"
 
 namespace google::scp::roma::sandbox::worker_api {
 
@@ -112,18 +109,18 @@ class WorkerSandboxApi {
    * @brief Send a request to run code to a worker running within a sandbox.
    *
    * @param params Proto representing a request to the worker.
-   * @return Retry status and core::ExecutionResult
+   * @return Retry status and execution status
    */
-  std::pair<core::ExecutionResult, WorkerApi::RetryStatus> RunCode(
+  std::pair<absl::Status, WorkerApi::RetryStatus> RunCode(
       ::worker_api::WorkerParamsProto& params) noexcept;
 
   void Terminate() noexcept;
 
  protected:
-  std::pair<core::ExecutionResult, WorkerApi::RetryStatus> InternalRunCode(
+  std::pair<absl::Status, WorkerApi::RetryStatus> InternalRunCode(
       ::worker_api::WorkerParamsProto& params) noexcept;
 
-  std::pair<core::ExecutionResult, WorkerApi::RetryStatus>
+  std::pair<absl::Status, WorkerApi::RetryStatus>
   InternalRunCodeBufferShareOnly(
       ::worker_api::WorkerParamsProto& params) noexcept;
 

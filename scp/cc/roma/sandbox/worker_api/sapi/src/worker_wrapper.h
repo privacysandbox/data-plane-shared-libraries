@@ -28,12 +28,10 @@
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/var_int.h"
-#include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/roma/config/src/config.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/error_codes.h"
 #include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
 #include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
-
-#include "error_codes.h"
 
 // All of the types used for these functions, that're wrapped by SAPI, must be
 // C types and cannot be complex C++ types.
@@ -58,7 +56,7 @@ extern "C" SapiStatusCode Stop();
 /// @param output_serialized_size The output variable serialized_size is used to
 /// deserialize the response protobuf from the Buffer data in the host binary.
 /// @return
-extern "C" google::scp::core::StatusCode RunCodeFromSerializedData(
+extern "C" SapiStatusCode RunCodeFromSerializedData(
     sapi::LenValStruct* data, int input_serialized_size,
     size_t* output_serialized_size);
 
@@ -68,7 +66,7 @@ extern "C" google::scp::core::StatusCode RunCodeFromSerializedData(
 /// @param output_serialized_size The output variable serialized_size is used to
 /// deserialize the response protobuf from the Buffer data in the host binary.
 /// @return
-extern "C" google::scp::core::StatusCode RunCodeFromBuffer(
-    int input_serialized_size, size_t* output_serialized_size);
+extern "C" SapiStatusCode RunCodeFromBuffer(int input_serialized_size,
+                                            size_t* output_serialized_size);
 
 #endif  // ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_WRAPPER_H_

@@ -24,10 +24,9 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::roma::sandbox::worker_api {
 class WorkerApi {
@@ -57,8 +56,8 @@ class WorkerApi {
    * @note The implementation of this method must be thread safe.
    * @returns a pair of result and whether this request should be retried
    */
-  virtual std::pair<core::ExecutionResultOr<RunCodeResponse>, RetryStatus>
-  RunCode(const RunCodeRequest& request) noexcept = 0;
+  virtual std::pair<absl::StatusOr<RunCodeResponse>, RetryStatus> RunCode(
+      const RunCodeRequest& request) noexcept = 0;
 
   /**
    * @brief Terminate the underlying worker.

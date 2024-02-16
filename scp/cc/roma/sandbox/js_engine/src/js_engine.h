@@ -22,11 +22,10 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
 #include "absl/types/span.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::roma::sandbox::js_engine {
 /**
@@ -95,7 +94,7 @@ class JsEngine {
    * which contains the response from the JS code and a compilation context
    * which could be used to skip compilation of the same code.
    */
-  virtual core::ExecutionResultOr<JsEngineExecutionResponse> CompileAndRunJs(
+  virtual absl::StatusOr<JsEngineExecutionResponse> CompileAndRunJs(
       std::string_view code, std::string_view function_name,
       const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
@@ -115,7 +114,7 @@ class JsEngine {
    * which contains the response from the WASM code and a compilation context
    * which could be used to skip compilation of the same code.
    */
-  virtual core::ExecutionResultOr<JsEngineExecutionResponse> CompileAndRunWasm(
+  virtual absl::StatusOr<JsEngineExecutionResponse> CompileAndRunWasm(
       std::string_view code, std::string_view function_name,
       const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
@@ -138,8 +137,7 @@ class JsEngine {
    * which contains the response from the JS code and a compilation context
    * which could be used to skip compilation of the same code.
    */
-  virtual core::ExecutionResultOr<JsEngineExecutionResponse>
-  CompileAndRunJsWithWasm(
+  virtual absl::StatusOr<JsEngineExecutionResponse> CompileAndRunJsWithWasm(
       std::string_view code, absl::Span<const std::uint8_t> wasm,
       std::string_view function_name,
       const std::vector<std::string_view>& input,

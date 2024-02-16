@@ -25,14 +25,12 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/roma/sandbox/js_engine/src/js_engine.h"
-
-#include "error_codes.h"
 
 namespace google::scp::roma::sandbox::worker {
 /// @brief This class acts a single-threaded worker which receives work items
@@ -53,9 +51,9 @@ class Worker {
    * @param input The input to pass to the code
    * @param metadata The metadata associated with the code request
    * @param wasm The wasm code module needed to run the code
-   * @return core::ExecutionResultOr<std::string>
+   * @return absl::StatusOr<std::string>
    */
-  virtual core::ExecutionResultOr<js_engine::ExecutionResponse> RunCode(
+  virtual absl::StatusOr<js_engine::ExecutionResponse> RunCode(
       std::string_view code, const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       absl::Span<const uint8_t> wasm) ABSL_LOCKS_EXCLUDED(cache_mu_);

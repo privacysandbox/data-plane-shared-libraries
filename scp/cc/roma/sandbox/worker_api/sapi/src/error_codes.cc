@@ -23,18 +23,29 @@ absl::Status SapiStatusCodeToAbslStatus(int int_status_code) {
   switch (status_code) {
     case SapiStatusCode::kOk:
       return absl::OkStatus();
+    case SapiStatusCode::kCouldNotDeserializeInitData:
+      return absl::InvalidArgumentError("Failed to deserialize init data.");
+    case SapiStatusCode::kCouldNotDeserializeRunData:
+      return absl::InvalidArgumentError("Failed to deserialize run data.");
+    case SapiStatusCode::kCouldNotSerializeResponseData:
+      return absl::InternalError("Could not serialize response data");
+    case SapiStatusCode::kExecutionFailed:
+      return absl::InternalError("Execution failed");
+    case SapiStatusCode::kFailedToCreateBufferInsideSandboxee:
+      return absl::InternalError(
+          "Failed to create the Buffer from fd inside the sandboxee.");
+    case SapiStatusCode::kInvalidDuration:
+      return absl::InvalidArgumentError("Failed to convert a duration.");
+    case SapiStatusCode::kResponseLargerThanBuffer:
+      return absl::ResourceExhaustedError(
+          "Response size is bigger than buffer");
     case SapiStatusCode::kUninitializedWorker:
       return absl::FailedPreconditionError(
           "A call to run code was issued with an uninitialized worker.");
-    case SapiStatusCode::kCouldNotDeserializeInitData:
-      return absl::InvalidArgumentError("Failed to deserialize init data.");
     case SapiStatusCode::kValidSandboxBufferRequired:
       return absl::InternalError(
           "Failed to create a valid sandbox2 buffer for sandbox "
           "communication.");
-    case SapiStatusCode::kFailedToCreateBufferInsideSandboxee:
-      return absl::InternalError(
-          "Failed to create the Buffer from fd inside the sandboxee.");
 
       // No default. This will cause a compile error if a new enum value is
       // added without also updating this switch statement.

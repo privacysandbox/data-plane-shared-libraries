@@ -18,16 +18,9 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_js_engine_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["js_engine.h"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/interface:type_def_lib",
-        "//scp/cc/public/core/interface:execution_result",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status",
     ],
 )

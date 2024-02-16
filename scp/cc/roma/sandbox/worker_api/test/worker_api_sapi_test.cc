@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/sandbox/constants/constants.h"
 
 using google::scp::roma::sandbox::constants::kCodeVersion;
@@ -70,10 +69,10 @@ TEST(WorkerApiSapiTest, WorkerWorksThroughSandbox) {
           {std::string(kRequestAction), std::string(kRequestActionExecute)}}};
 
   auto response_or_retry_pair = worker_api.RunCode(request);
-  core::ExecutionResultOr<WorkerApi::RunCodeResponse> response_or =
+  absl::StatusOr<WorkerApi::RunCodeResponse> response_or =
       response_or_retry_pair.first;
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   EXPECT_EQ(response_or_retry_pair.second, WorkerApi::RetryStatus::kDoNotRetry);
   EXPECT_THAT(*response_or->response, StrEq(R"("World. Hello!")"));
 }
@@ -97,10 +96,10 @@ TEST(WorkerApiSapiTest, WorkerWithInputsWorksThroughSandbox) {
           {std::string(kRequestAction), std::string(kRequestActionExecute)}}};
 
   auto response_or_retry_pair = worker_api.RunCode(request);
-  core::ExecutionResultOr<WorkerApi::RunCodeResponse> response_or =
+  absl::StatusOr<WorkerApi::RunCodeResponse> response_or =
       response_or_retry_pair.first;
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   EXPECT_EQ(response_or_retry_pair.second, WorkerApi::RetryStatus::kDoNotRetry);
   EXPECT_THAT(*response_or->response, StrEq(R"("pos0 string pos1 string")"));
 }
@@ -124,10 +123,10 @@ TEST(WorkerApiSapiTest, WorkerWithByteStringInputsWorksThroughSandbox) {
           {std::string(kInputType), std::string(kInputTypeBytes)}}};
 
   auto response_or_retry_pair = worker_api.RunCode(request);
-  core::ExecutionResultOr<WorkerApi::RunCodeResponse> response_or =
+  absl::StatusOr<WorkerApi::RunCodeResponse> response_or =
       response_or_retry_pair.first;
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   EXPECT_EQ(response_or_retry_pair.second, WorkerApi::RetryStatus::kDoNotRetry);
   EXPECT_THAT(*response_or->response, StrEq("pos0 string"));
 }
@@ -152,10 +151,10 @@ TEST(WorkerApiSapiTest,
           {std::string(kInputType), std::string(kInputTypeBytes)}}};
 
   auto response_or_retry_pair = worker_api.RunCode(request);
-  core::ExecutionResultOr<WorkerApi::RunCodeResponse> response_or =
+  absl::StatusOr<WorkerApi::RunCodeResponse> response_or =
       response_or_retry_pair.first;
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   EXPECT_EQ(response_or_retry_pair.second, WorkerApi::RetryStatus::kDoNotRetry);
   // Arguments pos1 and pos2 are ignored because kInputTypeBytes only takes the
   // first argument.
@@ -181,10 +180,10 @@ TEST(WorkerApiSapiTest, ShouldGetExecutionMetrics) {
           {std::string(kRequestAction), std::string(kRequestActionExecute)}}};
 
   auto response_or_retry_pair = worker_api.RunCode(request);
-  core::ExecutionResultOr<WorkerApi::RunCodeResponse> response_or =
+  absl::StatusOr<WorkerApi::RunCodeResponse> response_or =
       response_or_retry_pair.first;
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   EXPECT_EQ(response_or_retry_pair.second, WorkerApi::RetryStatus::kDoNotRetry);
   EXPECT_THAT(*response_or->response, StrEq(R"("pos0 string pos1 string")"));
 

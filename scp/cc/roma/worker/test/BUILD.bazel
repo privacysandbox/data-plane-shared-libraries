@@ -33,7 +33,6 @@ cc_test(
     ],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/roma/wasm/src:roma_wasm_lib",
         "//scp/cc/roma/wasm/test:roma_wasm_testing_lib",
         "//scp/cc/roma/worker/src:roma_execution_utils_lib",

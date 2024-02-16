@@ -32,7 +32,6 @@ cc_test(
     ],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:error_codes",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_sandbox_api_lib",
@@ -48,7 +47,6 @@ cc_test(
     tags = ["manual"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_wrapper_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:worker_init_params_cc_proto",
@@ -63,7 +61,6 @@ cc_test(
     srcs = ["worker_wrapper_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_wrapper_lib",
         "//scp/cc/roma/sandbox/worker_api/sapi/src:worker_init_params_cc_proto",

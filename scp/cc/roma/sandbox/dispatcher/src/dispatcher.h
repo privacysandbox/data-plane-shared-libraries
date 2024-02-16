@@ -29,8 +29,6 @@
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "scp/cc/core/async_executor/src/async_executor.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/roma/interface/roma.h"
 #include "scp/cc/roma/logging/src/logging.h"
 #include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
@@ -212,16 +210,15 @@ class Dispatcher {
               RequestConverter::FromUserProvided(*request, request_type);
           auto& worker = **worker_or;
           auto run_code_response_and_retry = worker.RunCode(run_code_request);
-          core::ExecutionResultOr<worker_api::WorkerApi::RunCodeResponse>
+          absl::StatusOr<worker_api::WorkerApi::RunCodeResponse>
               run_code_response = run_code_response_and_retry.first;
 
-          if (!run_code_response.result().Successful()) {
-            auto err_msg = core::errors::GetErrorMessage(
-                run_code_response.result().status_code);
+          if (!run_code_response.ok()) {
             response =
-                absl::StatusOr<ResponseObject>(absl::InternalError(err_msg));
+                absl::StatusOr<ResponseObject>(run_code_response.status());
             LOG(ERROR) << "The worker " << index
-                       << " execute the request failed due to " << err_msg;
+                       << " execute the request failed due to "
+                       << run_code_response.status().message();
 
             if (run_code_response_and_retry.second ==
                 worker_api::WorkerApi::RetryStatus::kRetry) {

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
 
 #include <benchmark/benchmark.h>
@@ -21,7 +22,6 @@
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/logging/src/logging.h"
 #include "scp/cc/roma/sandbox/constants/constants.h"
@@ -44,7 +44,6 @@ constexpr size_t kBufferSize = 1 * 1024 * 1024 /* 1Mib */;
 ::worker_api::WorkerInitParamsProto GetDefaultInitParams(int fd) {
   ::worker_api::WorkerInitParamsProto init_params;
   init_params.set_require_code_preload_for_execution(false);
-  init_params.set_compilation_context_cache_size(5);
   init_params.set_native_js_function_comms_fd(-1);
   init_params.mutable_native_js_function_names()->Clear();
   init_params.set_js_engine_initial_heap_size_mb(0);
@@ -94,7 +93,7 @@ void BM_RunCodeFromSerializedData(benchmark::State& state) {
     ASSERT_TRUE(
         params_proto.SerializeToArray(buffer_ptr_->data(), serialized_size));
     size_t output_serialized_size_ptr;
-    ASSERT_EQ(SC_OK,
+    ASSERT_EQ(SapiStatusCode::kOk,
               ::RunCodeFromSerializedData(&sapi_worker_params, serialized_size,
                                           &output_serialized_size_ptr));
 
@@ -136,8 +135,9 @@ void BM_RunCodeFromBuffer(benchmark::State& state) {
     ASSERT_TRUE(
         params_proto.SerializeToArray(buffer_ptr_->data(), serialized_size));
     size_t output_serialized_size_ptr;
-    ASSERT_EQ(SC_OK, ::RunCodeFromBuffer(serialized_size,
-                                         &output_serialized_size_ptr));
+    ASSERT_EQ(
+        SapiStatusCode::kOk,
+        ::RunCodeFromBuffer(serialized_size, &output_serialized_size_ptr));
 
     // The rest of the code in this block is to parse and validate the response.
     // We could ignore this and focus the benchmark on just the line above, but

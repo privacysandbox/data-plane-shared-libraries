@@ -22,8 +22,6 @@
 
 namespace google::scp::roma::sandbox::worker_pool {
 
-using core::errors::GetErrorMessage;
-
 WorkerPoolApiSapi::WorkerPoolApiSapi(
     const std::vector<worker_api::WorkerApiSapiConfig>& configs) {
   for (auto config : configs) {

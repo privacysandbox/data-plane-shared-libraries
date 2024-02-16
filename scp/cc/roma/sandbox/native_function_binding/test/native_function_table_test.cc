@@ -20,7 +20,6 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
 namespace google::scp::roma::sandbox::native_function_binding::test {

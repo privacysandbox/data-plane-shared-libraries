@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/sandbox/worker_api/src/worker_api_sapi.h"
 
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;

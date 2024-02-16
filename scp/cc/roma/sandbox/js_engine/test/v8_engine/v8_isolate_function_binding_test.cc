@@ -27,13 +27,10 @@
 #include "absl/status/status.h"
 #include "include/v8.h"
 #include "scp/cc/core/test/utils/auto_init_run_stop.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/native_function_invoker.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
-using google::scp::core::ExecutionResult;
-using google::scp::core::SuccessExecutionResult;
 using google::scp::roma::proto::RpcWrapper;
 
 using ::testing::_;
@@ -70,7 +67,7 @@ TEST_F(V8IsolateFunctionBindingTest, FunctionBecomesAvailableInJavascript) {
 
   auto result_or = js_engine.CompileAndRunJs(
       R"(function func() { cool_func(); return ""; })", "func", {}, {});
-  ASSERT_SUCCESS(result_or.result());
+  ASSERT_TRUE(result_or.ok());
   const auto& response_string = result_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq(R"("")"));
   js_engine.Stop();

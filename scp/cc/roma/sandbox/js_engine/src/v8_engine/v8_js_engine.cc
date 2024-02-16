@@ -31,36 +31,24 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
-#include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/roma/config/src/type_converter.h"
 #include "scp/cc/roma/logging/src/logging.h"
 #include "scp/cc/roma/sandbox/constants/constants.h"
-#include "scp/cc/roma/sandbox/worker/src/error_codes.h"
 #include "scp/cc/roma/worker/src/execution_utils.h"
 #include "src/cpp/util/duration.h"
+#include "src/cpp/util/status_macro/status_macros.h"
 #include "src/debug/debug-interface.h"
 
 #include "error_codes.h"
 #include "snapshot_compilation_context.h"
 
-using google::scp::core::ExecutionResult;
-using google::scp::core::ExecutionResultOr;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
 using google::scp::core::errors::GetErrorMessage;
 using google::scp::core::errors::
     SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_JSON;
 using google::scp::core::errors::
     SC_ROMA_V8_ENGINE_COULD_NOT_CONVERT_OUTPUT_TO_STRING;
-using google::scp::core::errors::SC_ROMA_V8_ENGINE_COULD_NOT_CREATE_ISOLATE;
-using google::scp::core::errors::
-    SC_ROMA_V8_ENGINE_COULD_NOT_FIND_HANDLER_BY_NAME;
 using google::scp::core::errors::SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT;
-using google::scp::core::errors::
-    SC_ROMA_V8_ENGINE_CREATE_COMPILATION_CONTEXT_FAILED_WITH_EMPTY_CODE;
 using google::scp::core::errors::SC_ROMA_V8_ENGINE_ERROR_INVOKING_HANDLER;
-using google::scp::core::errors::SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT;
-using google::scp::core::errors::SC_ROMA_V8_ENGINE_ISOLATE_NOT_INITIALIZED;
 using google::scp::roma::kDefaultExecutionTimeout;
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::TypeConverter;
@@ -122,10 +110,12 @@ std::vector<std::string> GetErrors(v8::Isolate* isolate,
   return errors;
 }
 
-ExecutionResult GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
-                         const uint64_t error_code) noexcept {
-  LOG(ERROR) << BuildErrorString(GetErrors(isolate, try_catch, error_code));
-  return FailureExecutionResult(error_code);
+absl::Status GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
+                      const uint64_t error_code) noexcept {
+  const std::string error_str =
+      BuildErrorString(GetErrors(isolate, try_catch, error_code));
+  LOG(ERROR) << error_str;
+  return absl::InternalError(error_str);
 }
 
 }  // namespace
@@ -188,23 +178,24 @@ void V8JsEngine::OneTimeSetup(
   }();
 }
 
-core::ExecutionResult V8JsEngine::CreateSnapshot(
-    v8::StartupData& startup_data, std::string_view js_code,
-    std::string& err_msg) noexcept {
+absl::Status V8JsEngine::CreateSnapshot(v8::StartupData& startup_data,
+                                        std::string_view js_code,
+                                        std::string& err_msg) noexcept {
   v8::SnapshotCreator creator(external_references_.data());
   v8::Isolate* isolate = creator.GetIsolate();
   {
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     v8::Local<v8::Context> context;
-    auto execution_result = CreateV8Context(isolate, context);
-    RETURN_IF_FAILURE(execution_result);
+    PS_RETURN_IF_ERROR(CreateV8Context(isolate, context));
 
     // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(context);
     //  Compile and run JavaScript code object.
-    execution_result = ExecutionUtils::CompileRunJS(js_code, err_msg);
-    RETURN_IF_FAILURE(execution_result);
+    auto execution_result = ExecutionUtils::CompileRunJS(js_code, err_msg);
+    if (!execution_result.Successful()) {
+      return absl::InternalError(GetErrorMessage(execution_result.status_code));
+    }
 
     // Set above context with compiled and run code as the default context for
     // the StartupData blob to create.
@@ -212,10 +203,10 @@ core::ExecutionResult V8JsEngine::CreateSnapshot(
   }
   startup_data =
       creator.CreateBlob(v8::SnapshotCreator::FunctionCodeHandling::kClear);
-  return core::SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
+absl::Status V8JsEngine::CreateSnapshotWithGlobals(
     v8::StartupData& startup_data, absl::Span<const uint8_t> wasm,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     std::string& err_msg) noexcept {
@@ -226,8 +217,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
     v8::Local<v8::Context> context;
-    auto execution_result = CreateV8Context(isolate, context);
-    RETURN_IF_FAILURE(execution_result);
+    PS_RETURN_IF_ERROR(CreateV8Context(isolate, context));
 
     // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(context);
@@ -235,8 +225,8 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
     if (wasm_code_array_name_it == metadata.end()) {
       LOG(ERROR) << "Wasm code array name not found in metadata: "
                  << kWasmCodeArrayName;
-      return FailureExecutionResult(
-          core::errors::SC_ROMA_WORKER_MISSING_METADATA_ITEM);
+      return absl::InvalidArgumentError(
+          "Wasm code array name not found in metadata");
     }
     std::string_view wasm_code_array_name = wasm_code_array_name_it->second;
 
@@ -252,7 +242,7 @@ core::ExecutionResult V8JsEngine::CreateSnapshotWithGlobals(
   }
   startup_data =
       creator.CreateBlob(v8::SnapshotCreator::FunctionCodeHandling::kClear);
-  return core::SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 static size_t NearHeapLimitCallback(void* data, size_t current_heap_limit,
@@ -337,14 +327,14 @@ void V8JsEngine::StopWatchdogTimer() noexcept {
   execution_watchdog_->EndTimer();
 }
 
-ExecutionResultOr<RomaJsEngineCompilationContext>
+absl::StatusOr<RomaJsEngineCompilationContext>
 V8JsEngine::CreateCompilationContext(
     std::string_view code, absl::Span<const uint8_t> wasm,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     std::string& err_msg) noexcept {
   if (code.empty()) {
-    return FailureExecutionResult(
-        SC_ROMA_V8_ENGINE_CREATE_COMPILATION_CONTEXT_FAILED_WITH_EMPTY_CODE);
+    return absl::InvalidArgumentError(
+        "Create compilation context failed with empty source code.");
   }
 
   auto snapshot_context = std::make_shared<SnapshotCompilationContext>();
@@ -352,29 +342,28 @@ V8JsEngine::CreateCompilationContext(
   // created. Otherwise, a normal snapshot containing compiled JS code will be
   // created.
   const bool js_with_wasm = !wasm.empty();
-  auto execution_result =
+  absl::Status snapshot_status =
       js_with_wasm
           ? CreateSnapshotWithGlobals(snapshot_context->startup_data, wasm,
                                       metadata, err_msg)
           : CreateSnapshot(snapshot_context->startup_data, code, err_msg);
   std::unique_ptr<V8IsolateWrapper> isolate_or;
-  if (execution_result.Successful()) {
+  if (snapshot_status.ok()) {
     isolate_or = CreateIsolate(snapshot_context->startup_data);
     if (!isolate_or) {
-      return FailureExecutionResult(SC_ROMA_V8_ENGINE_COULD_NOT_CREATE_ISOLATE);
+      return absl::InternalError("Creating the isolate failed.");
     }
     snapshot_context->cache_type = CacheType::kSnapshot;
 
     if (js_with_wasm) {
       auto wasm_compile_result =
           CompileWasmCodeArray(isolate_or->isolate(), wasm, err_msg);
-      if (!wasm_compile_result.Successful()) {
-        LOG(ERROR) << "Compile wasm module failed with "
-                   << GetErrorMessage(wasm_compile_result.status_code);
+      if (!wasm_compile_result.ok()) {
+        LOG(ERROR) << "Compile wasm module failed with " << wasm_compile_result;
         DLOG(ERROR) << "Compile wasm module failed with debug error" << err_msg;
         return wasm_compile_result;
       }
-      execution_result = ExecutionUtils::CreateUnboundScript(
+      auto execution_result = ExecutionUtils::CreateUnboundScript(
           snapshot_context->unbound_script, isolate_or->isolate(), code,
           err_msg);
       if (!execution_result.Successful()) {
@@ -382,30 +371,30 @@ V8JsEngine::CreateCompilationContext(
                    << GetErrorMessage(execution_result.status_code);
         DLOG(ERROR) << "CreateUnboundScript failed with debug errors "
                     << err_msg;
-        return execution_result;
+        return absl::InternalError(
+            GetErrorMessage(execution_result.status_code));
       }
       snapshot_context->cache_type = CacheType::kUnboundScript;
     }
 
     ROMA_VLOG(2) << "compilation context cache type is V8 snapshot";
   } else {
-    LOG(ERROR) << "CreateSnapshot failed with "
-               << GetErrorMessage(execution_result.status_code);
+    LOG(ERROR) << "CreateSnapshot failed with " << snapshot_status;
     // err_msg may contain confidential message which only shows in DEBUG mode.
     DLOG(ERROR) << "CreateSnapshot failed with debug errors " << err_msg;
     // Return the failure if it isn't caused by global WebAssembly.
     if (!ExecutionUtils::CheckErrorWithWebAssembly(err_msg)) {
-      return execution_result;
+      return snapshot_status;
     }
 
     isolate_or = CreateIsolate();
     if (!isolate_or) {
-      return FailureExecutionResult(SC_ROMA_V8_ENGINE_COULD_NOT_CREATE_ISOLATE);
+      return absl::InternalError("Creating the isolate failed.");
     }
 
     // TODO(b/298062607): deprecate err_msg, all exceptions should being caught
     // by GetError().
-    execution_result = ExecutionUtils::CreateUnboundScript(
+    auto execution_result = ExecutionUtils::CreateUnboundScript(
         snapshot_context->unbound_script, isolate_or->isolate(), code, err_msg);
     if (!execution_result.Successful()) {
       LOG(ERROR) << "CreateUnboundScript failed with "
@@ -413,7 +402,7 @@ V8JsEngine::CreateCompilationContext(
       // err_msg may contain confidential message which only shows in DEBUG
       // mode.
       DLOG(ERROR) << "CreateUnboundScript failed with debug errors " << err_msg;
-      return execution_result;
+      return absl::InternalError(GetErrorMessage(execution_result.status_code));
     }
 
     snapshot_context->cache_type = CacheType::kUnboundScript;
@@ -428,9 +417,9 @@ V8JsEngine::CreateCompilationContext(
   };
 }
 
-core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
-    v8::Isolate* isolate, absl::Span<const uint8_t> wasm,
-    std::string& err_msg) noexcept {
+absl::Status V8JsEngine::CompileWasmCodeArray(v8::Isolate* isolate,
+                                              absl::Span<const uint8_t> wasm,
+                                              std::string& err_msg) noexcept {
   v8::Isolate::Scope isolate_scope(isolate);
   // Create a handle scope to keep the temporary object references.
   v8::HandleScope handle_scope(isolate);
@@ -447,13 +436,12 @@ core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
                        reinterpret_cast<const unsigned char*>(wasm.data()),
                        wasm.size()));
       module_maybe.IsEmpty()) {
-    return FailureExecutionResult(
-        core::errors::SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE);
+    return absl::InternalError("Failed to compile wasm object.");
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
+absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     const std::shared_ptr<SnapshotCompilationContext>&
         current_compilation_context,
     std::string_view function_name, const std::vector<std::string_view>& input,
@@ -477,12 +465,9 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     if (!ExecutionUtils::BindUnboundScript(
             current_compilation_context->unbound_script, err_msg)) {
       LOG(ERROR)
-          << "BindUnboundScript failed with "
-          << GetErrorMessage(
-                 core::errors::SC_ROMA_V8_WORKER_BIND_UNBOUND_SCRIPT_FAILED);
+          << "BindUnboundScript failed with: Failed to bind unbound script.";
       DLOG(ERROR) << "BindUnboundScript failed with debug errors " << err_msg;
-      return core::FailureExecutionResult(
-          core::errors::SC_ROMA_V8_WORKER_BIND_UNBOUND_SCRIPT_FAILED);
+      return absl::InternalError("Failed to bind unbound script.");
     }
   }
 
@@ -493,7 +478,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     LOG(ERROR) << "GetJsHandler failed with "
                << GetErrorMessage(result.status_code);
     DLOG(ERROR) << "GetJsHandler failed with debug errors " << err_msg;
-    return result;
+    return absl::InternalError(GetErrorMessage(result.status_code));
   }
 
   ExecutionResponse execution_response;
@@ -564,7 +549,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   return execution_response;
 }
 
-ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
+absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
     std::string_view code, std::string_view function_name,
     const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
@@ -573,22 +558,23 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
                                  function_name, input, metadata, context);
 }
 
-ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
+absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
     std::string_view code, std::string_view function_name,
     const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   JsEngineExecutionResponse execution_response;
 
-  // temp solution for CompileAndRunWasm(). This will update in next PR soon.
-  auto isolate_or = CreateIsolate();
-  if (!isolate_or) {
-    return FailureExecutionResult(SC_ROMA_V8_ENGINE_COULD_NOT_CREATE_ISOLATE);
+  if (auto isolate_or = CreateIsolate(); isolate_or) {
+    isolate_wrapper_ = std::move(isolate_or);
+  } else {
+    return absl::InternalError("Creating the isolate failed.");
   }
-  isolate_wrapper_ = std::move(isolate_or);
 
   if (!isolate_wrapper_) {
-    return FailureExecutionResult(SC_ROMA_V8_ENGINE_ISOLATE_NOT_INITIALIZED);
+    return absl::InternalError(
+        "The v8 isolate has not been initialized. The module has not "
+        "been initialized.");
   }
 
   // Start execution watchdog to timeout the execution if it runs too long.
@@ -613,8 +599,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
   v8::Local<v8::Context> v8_context;
 
   {
-    const auto execution_result = CreateV8Context(isolate, v8_context);
-    RETURN_IF_FAILURE(execution_result);
+    PS_RETURN_IF_ERROR(CreateV8Context(isolate, v8_context));
 
     // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(v8_context);
@@ -688,8 +673,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
   return execution_response;
 }
 
-ExecutionResultOr<JsEngineExecutionResponse>
-V8JsEngine::CompileAndRunJsWithWasm(
+absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJsWithWasm(
     std::string_view code, absl::Span<const uint8_t> wasm,
     std::string_view function_name, const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
@@ -699,14 +683,14 @@ V8JsEngine::CompileAndRunJsWithWasm(
   JsEngineExecutionResponse execution_response;
   std::shared_ptr<SnapshotCompilationContext> curr_comp_ctx;
   if (!context) {
-    auto context_or = CreateCompilationContext(code, wasm, metadata, err_msg);
-    if (!context_or.result().Successful()) {
-      LOG(ERROR) << "CreateCompilationContext failed with " << err_msg;
-      return context_or.result();
-    }
-    execution_response.compilation_context = context_or.value();
+    PS_ASSIGN_OR_RETURN(
+        auto comp_context,
+        CreateCompilationContext(code, wasm, metadata, err_msg),
+        _ << "CreateCompilationContext failed with " << err_msg);
+    execution_response.compilation_context = comp_context;
     curr_comp_ctx = std::static_pointer_cast<SnapshotCompilationContext>(
-        context_or.value().context);
+        comp_context.context);
+
   } else {
     curr_comp_ctx =
         std::static_pointer_cast<SnapshotCompilationContext>(context.context);
@@ -727,7 +711,9 @@ V8JsEngine::CompileAndRunJsWithWasm(
   }
   v8::Isolate* v8_isolate = curr_comp_ctx->isolate->isolate();
   if (v8_isolate == nullptr) {
-    return FailureExecutionResult(SC_ROMA_V8_ENGINE_ISOLATE_NOT_INITIALIZED);
+    return absl::FailedPreconditionError(
+        "The v8 isolate has not been initialized. The module has not "
+        "been initialized.");
   }
   // No function_name just return execution_response which may contain
   // RomaJsEngineCompilationContext.
@@ -739,31 +725,31 @@ V8JsEngine::CompileAndRunJsWithWasm(
       ExecuteJs(curr_comp_ctx, function_name, input, metadata);
   // End execution_watchdog_ in case it terminate the standby isolate.
   StopWatchdogTimer();
-  if (execution_result.Successful()) {
+  if (execution_result.ok()) {
     execution_response.execution_response = execution_result.value();
     return execution_response;
   }
   // Return timeout error if the watchdog called isolate terminate.
   if (execution_watchdog_->IsTerminateCalled()) {
-    return FailureExecutionResult(SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT);
+    return absl::ResourceExhaustedError(
+        "V8 execution terminated due to timeout.");
   }
-  return execution_result.result();
+  return execution_result.status();
 }
 
-ExecutionResult V8JsEngine::CreateV8Context(v8::Isolate* isolate,
-                                            v8::Local<v8::Context>& context) {
+absl::Status V8JsEngine::CreateV8Context(v8::Isolate* isolate,
+                                         v8::Local<v8::Context>& context) {
   v8::Local<v8::ObjectTemplate> global_object_template =
       v8::ObjectTemplate::New(isolate);
   if (isolate_function_binding_) {
     if (!isolate_function_binding_->BindFunctions(isolate,
                                                   global_object_template)) {
-      return FailureExecutionResult(
-          core::errors::
-              SC_ROMA_V8_ISOLATE_VISITOR_FUNCTION_BINDING_INVALID_ISOLATE);
+      return absl::InvalidArgumentError(
+          "The v8 isolate passed to the visitor is invalid.");
     }
   }
   context = v8::Context::New(isolate, nullptr, global_object_template);
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

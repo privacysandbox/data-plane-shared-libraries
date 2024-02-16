@@ -22,15 +22,11 @@
 #include "absl/container/flat_hash_map.h"
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/logging/src/logging.h"
 #include "scp/cc/roma/sandbox/constants/constants.h"
 #include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
 
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_RESPONSE_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY;
 using google::scp::roma::sandbox::constants::kCodeVersion;
 using google::scp::roma::sandbox::constants::kHandlerName;
 using google::scp::roma::sandbox::constants::kRequestAction;
@@ -92,7 +88,7 @@ TEST(WorkerWrapperTest,
   auto result = ::RunCodeFromSerializedData(
       &sapi_worker_params, serialized_size, &output_serialized_size_ptr);
 
-  ASSERT_EQ(SC_OK, result);
+  ASSERT_EQ(SapiStatusCode::kOk, result);
 
   ::worker_api::WorkerParamsProto response_proto;
   ASSERT_TRUE(response_proto.ParseFromArray(buffer_ptr_->data(),
@@ -150,7 +146,7 @@ TEST(WorkerWrapperTest,
   size_t output_serialized_size_ptr;
   auto result = ::RunCodeFromSerializedData(&sapi_worker_params, 0,
                                             &output_serialized_size_ptr);
-  ASSERT_EQ(SC_OK, result);
+  ASSERT_EQ(SapiStatusCode::kOk, result);
 
   // Take ownership of the response bytes, these will have been malloc'd by
   // RunCodeFromSerializedData() if it was successful.
@@ -199,7 +195,7 @@ TEST(WorkerWrapperTest, OverSizeResponseSharedWithLenValStruct) {
   size_t output_serialized_size_ptr;
   auto result = ::RunCodeFromSerializedData(&sapi_worker_params, 0,
                                             &output_serialized_size_ptr);
-  ASSERT_EQ(SC_OK, result);
+  ASSERT_EQ(SapiStatusCode::kOk, result);
 
   // Take ownership of the response bytes, these will have been malloc'd by
   // RunCodeFromSerializedData() if it was successful.
@@ -241,7 +237,7 @@ TEST(WorkerWrapperTest, CanRunCodeWithBufferShareOnly) {
   auto result =
       ::RunCodeFromBuffer(serialized_size, &output_serialized_size_ptr);
 
-  ASSERT_EQ(SC_OK, result);
+  ASSERT_EQ(SapiStatusCode::kOk, result);
 
   ::worker_api::WorkerParamsProto response_proto;
   ASSERT_TRUE(response_proto.ParseFromArray(buffer_ptr_->data(),
@@ -285,8 +281,7 @@ TEST(WorkerWrapperTest,
   size_t output_serialized_size_ptr;
   auto result =
       ::RunCodeFromBuffer(serialized_size, &output_serialized_size_ptr);
-  EXPECT_EQ(SC_ROMA_WORKER_API_RESPONSE_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY,
-            result);
+  EXPECT_EQ(result, SapiStatusCode::kResponseLargerThanBuffer);
 
   EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
@@ -323,7 +318,7 @@ TEST(WorkerWrapperTest, FailsToRunCodeWhenPreloadIsRequiredAndExecuteIsSent) {
   sapi::LenValStruct sapi_worker_params;
   auto result = ::RunCodeFromSerializedData(
       &sapi_worker_params, serialized_size, &output_serialized_size_ptr);
-  EXPECT_NE(SC_OK, result);
+  EXPECT_NE(result, SapiStatusCode::kOk);
 
   EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }

@@ -26,16 +26,8 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "scp/cc/core/test/utils/auto_init_run_stop.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/wasm/test/testing_utils.h"
 
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::errors::SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT;
-using google::scp::core::errors::SC_ROMA_V8_ENGINE_ERROR_INVOKING_HANDLER;
-using google::scp::core::errors::SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT;
-using google::scp::core::errors::SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE;
-using google::scp::core::errors::SC_ROMA_V8_WORKER_SCRIPT_RUN_FAILURE;
-using google::scp::core::errors::SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE;
 using google::scp::core::test::ResultIs;
 using google::scp::roma::kDefaultExecutionTimeout;
 using google::scp::roma::kTimeoutDurationTag;
@@ -72,7 +64,7 @@ TEST_F(V8JsEngineTest, CanRunJsCode) {
   const auto response_or =
       engine.CompileAndRunJs(js_code, "hello_js", input, {} /*metadata*/);
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string,
               StrEq(R"("Hello World! vec input 1 vec input 2")"));
@@ -106,7 +98,7 @@ TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseExplicitly) {
   const auto response_or =
       engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq(R"("some cool string")"));
   engine.Stop();
@@ -140,7 +132,7 @@ TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseImplicitly) {
   const auto response_or =
       engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq(R"("some cool string")"));
   engine.Stop();
@@ -171,10 +163,12 @@ TEST_F(V8JsEngineTest, CanHandlePromiseRejectionInAsyncJs) {
           return result;
       }
     )JS_CODE";
-  const auto response_or =
-      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
 
-  EXPECT_FALSE(response_or.result().Successful());
+  EXPECT_EQ(
+      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/)
+          .status()
+          .code(),
+      absl::StatusCode::kInternal);
   engine.Stop();
 }
 
@@ -190,9 +184,7 @@ TEST_F(V8JsEngineTest, CanHandleCompilationFailures) {
   const auto response_or =
       engine.CompileAndRunJs(invalid_js, "hello_js", input, {} /*metadata*/);
 
-  EXPECT_THAT(
-      response_or.result(),
-      ResultIs(FailureExecutionResult(SC_ROMA_V8_WORKER_CODE_COMPILE_FAILURE)));
+  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
   engine.Stop();
 }
 
@@ -213,7 +205,7 @@ TEST_F(V8JsEngineTest, CanRunCodeRequestWithJsonInput) {
   const auto response_or =
       engine.CompileAndRunJs(js_code, "Handler", input, {} /*metadata*/);
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq("3"));
   engine.Stop();
@@ -233,12 +225,11 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputIsBadJsonInput) {
       R"(value":1})",
       R"({"value":2})",
   };
-  const auto response_or =
-      engine.CompileAndRunJs(js_code, "Handler", input, {} /*metadata*/);
-
-  EXPECT_THAT(response_or.result(),
-              ResultIs(FailureExecutionResult(
-                  SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT)));
+  EXPECT_EQ(
+      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/)
+          .status()
+          .code(),
+      absl::StatusCode::kInternal);
   engine.Stop();
 }
 
@@ -261,7 +252,7 @@ TEST_F(V8JsEngineTest, ShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
   const auto response_or =
       engine.CompileAndRunJs(js_code, "", input, {} /*metadata*/);
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, IsEmpty());
   engine.Stop();
@@ -286,9 +277,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputCannotBeParsed) {
   const auto response_or =
       engine.CompileAndRunJs(js_code, "hello_js", input, {} /*metadata*/);
 
-  EXPECT_THAT(response_or.result(),
-              ResultIs(FailureExecutionResult(
-                  SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT)));
+  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
   engine.Stop();
 }
 
@@ -306,11 +295,11 @@ TEST_F(V8JsEngineTest, ShouldFailIfHandlerIsNotFound) {
       R"("vec input 1")",
       R"("vec input 2")",
   };
-
-  const auto response_or =
-      engine.CompileAndRunJs(js_code, "not_found", input, {} /*metadata*/);
-
-  EXPECT_FALSE(response_or.result());
+  EXPECT_EQ(
+      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/)
+          .status()
+          .code(),
+      absl::StatusCode::kInternal);
   engine.Stop();
 }
 
@@ -327,7 +316,7 @@ TEST_F(V8JsEngineTest, CanRunWasmCode) {
   const auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string,
               StrEq(R"("Some input string Hello World from WASM")"));
@@ -348,7 +337,7 @@ TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
   const auto response_or =
       engine.CompileAndRunWasm(wasm_code, "", input, {} /*metadata*/);
 
-  ASSERT_SUCCESS(response_or.result());
+  ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string, IsEmpty());
   engine.Stop();
@@ -368,7 +357,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfInputCannotBeParsed) {
   const auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
 
-  EXPECT_FALSE(response_or.result().Successful());
+  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
   engine.Stop();
 }
 
@@ -389,7 +378,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfBadWasm) {
   const auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
 
-  EXPECT_FALSE(response_or.result().Successful());
+  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
   engine.Stop();
 }
 
@@ -409,9 +398,7 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithDefaultTimeoutValue) {
   const auto response_or =
       engine.CompileAndRunJs(js_code, "hello_js", input, metadata);
 
-  EXPECT_THAT(
-      response_or.result(),
-      ResultIs(FailureExecutionResult(SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT)));
+  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kResourceExhausted);
   engine.Stop();
 }
 
@@ -444,9 +431,8 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithCustomTimeoutTag) {
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, metadata);
 
-    EXPECT_THAT(
-        response_or.result(),
-        ResultIs(FailureExecutionResult(SC_ROMA_V8_ENGINE_EXECUTION_TIMEOUT)));
+    EXPECT_EQ(response_or.status().code(),
+              absl::StatusCode::kResourceExhausted);
   }
 
   {
@@ -454,7 +440,7 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithCustomTimeoutTag) {
     // the code executes successfully.
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, {});
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
   }
   engine.Stop();
 }
@@ -481,14 +467,14 @@ TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
   {
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", {}, {});
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
   }
 
   {
     std::vector<std::string_view> input = {"1", "2"};
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, {});
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
     std::string_view response_string = response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("3"));
   }
@@ -497,7 +483,7 @@ TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
     std::vector<std::string_view> input = {"1", "6"};
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, {});
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
     std::string_view response_string = response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("7"));
   }
@@ -525,14 +511,14 @@ TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
 
   {
     const auto response_or = engine.CompileAndRunJs(js_code, "", {}, {});
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
   }
 
   {
     std::vector<std::string_view> input = {"1", "2"};
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, {});
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
     std::string_view response_string = response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("3"));
   }
@@ -541,7 +527,7 @@ TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
     std::vector<std::string_view> input = {"1", "6"};
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, {});
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
     std::string_view response_string = response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("7"));
   }
@@ -573,7 +559,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
                                        {
                                            {kWasmCodeArrayName, "addModule"},
                                        });
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
   }
   {
     std::vector<std::string_view> input = {"1", "2"};
@@ -582,7 +568,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
                                        {
                                            {kWasmCodeArrayName, "addModule"},
                                        });
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
     std::string_view response_string = response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("3"));
   }
@@ -593,7 +579,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
                                        {
                                            {kWasmCodeArrayName, "addModule"},
                                        });
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
     std::string_view response_string = response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("7"));
   }
@@ -624,9 +610,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteFailWithInvalidWasm) {
                                        {
                                            {kWasmCodeArrayName, "addModule"},
                                        });
-    EXPECT_THAT(response_or.result(),
-                ResultIs(FailureExecutionResult(
-                    SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE)));
+    EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
   }
 
   {
@@ -636,9 +620,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteFailWithInvalidWasm) {
                                        {
                                            {kWasmCodeArrayName, "addModule"},
                                        });
-    EXPECT_THAT(response_or.result(),
-                ResultIs(FailureExecutionResult(
-                    SC_ROMA_V8_WORKER_WASM_COMPILE_FAILURE)));
+    EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
   }
   engine.Stop();
 }
@@ -672,7 +654,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
                                        {
                                            {kWasmCodeArrayName, "testModule"},
                                        });
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
   }
 
   {
@@ -682,7 +664,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
                                        {
                                            {kWasmCodeArrayName, "testModule"},
                                        });
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
     std::string_view response_string = response_or->execution_response.response;
     std::cout << "\n output: " << response_string << "\n";
 
@@ -695,7 +677,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
                                        {
                                            {kWasmCodeArrayName, "testModule"},
                                        });
-    ASSERT_SUCCESS(response_or.result());
+    ASSERT_TRUE(response_or.ok());
     std::string_view response_string = response_or->execution_response.response;
     EXPECT_THAT(response_string, StrEq("1"));
   }

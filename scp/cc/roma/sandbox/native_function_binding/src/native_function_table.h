@@ -26,7 +26,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
-#include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/config/src/function_binding_object_v2.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"

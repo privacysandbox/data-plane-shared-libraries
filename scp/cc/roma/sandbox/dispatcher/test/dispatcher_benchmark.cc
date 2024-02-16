@@ -52,7 +52,6 @@ using google::scp::roma::sandbox::worker_pool::WorkerPoolApiSapi;
 WorkerApiSapiConfig CreateWorkerApiSapiConfig() {
   return WorkerApiSapiConfig{
       .js_engine_require_code_preload = true,
-      .compilation_context_cache_size = 5,
       .native_js_function_comms_fd = -1,
       .native_js_function_names = std::vector<std::string>(),
       .max_worker_virtual_memory_mb = 0,
@@ -78,8 +77,7 @@ void BM_Dispatch(benchmark::State& state) {
   // Note: max_pending_requests must be large enough to hold all of the queued
   // tasks for the benchmark.
   Dispatcher dispatcher(&async_executor, &worker_pool,
-                        /*max_pending_requests=*/100000,
-                        /*code_version_cache_size=*/5);
+                        /*max_pending_requests=*/100000);
 
   for (auto _ : state) {
     absl::BlockingCounter is_loading(number_of_calls);

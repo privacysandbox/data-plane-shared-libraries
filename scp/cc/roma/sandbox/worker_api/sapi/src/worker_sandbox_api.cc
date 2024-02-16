@@ -34,54 +34,25 @@
 #include "sandboxed_api/sandbox2/policybuilder.h"
 #include "scp/cc/roma/logging/src/logging.h"
 #include "scp/cc/roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/error_codes.h"
 #include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
 #include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
 
-#include "error_codes.h"
-
 #define ROMA_CONVERT_MB_TO_BYTES(mb) mb * 1024 * 1024
 
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::errors::GetErrorMessage;
-using google::scp::core::errors::SC_ROMA_WORKER_API_COULD_NOT_CREATE_IPC_PROTO;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_GET_PROTO_MESSAGE_AFTER_EXECUTION;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_INITIALIZE_SANDBOX;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_INITIALIZE_WRAPPER_API;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_RUN_CODE_THROUGH_WRAPPER_API;
-using google::scp::core::errors::SC_ROMA_WORKER_API_COULD_NOT_RUN_WRAPPER_API;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_INIT_DATA;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_DATA;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_TRANSFER_BUFFER_FD_TO_SANDBOXEE;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_TRANSFER_FUNCTION_FD_TO_SANDBOXEE;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_REQUEST_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY;
-using google::scp::core::errors::SC_ROMA_WORKER_API_UNINITIALIZED_SANDBOX;
-using google::scp::core::errors::SC_ROMA_WORKER_API_WORKER_CRASHED;
 using google::scp::roma::sandbox::constants::kBadFd;
 
 namespace google::scp::roma::sandbox::worker_api {
 
 namespace {
 
-std::pair<core::ExecutionResult, WorkerApi::RetryStatus> WrapResultWithNoRetry(
-    core::ExecutionResult result) {
+std::pair<absl::Status, WorkerApi::RetryStatus> WrapResultWithNoRetry(
+    absl::Status result) {
   return std::make_pair(result, WorkerApi::RetryStatus::kDoNotRetry);
 }
 
-std::pair<core::ExecutionResult, WorkerApi::RetryStatus> WrapResultWithRetry(
-    core::ExecutionResult result) {
+std::pair<absl::Status, WorkerApi::RetryStatus> WrapResultWithRetry(
+    absl::Status result) {
   return std::make_pair(result, WorkerApi::RetryStatus::kRetry);
 }
 
@@ -239,7 +210,7 @@ absl::Status WorkerSandboxApi::Stop() noexcept {
   return absl::OkStatus();
 }
 
-std::pair<core::ExecutionResult, WorkerApi::RetryStatus>
+std::pair<absl::Status, WorkerApi::RetryStatus>
 WorkerSandboxApi::InternalRunCode(
     ::worker_api::WorkerParamsProto& params) noexcept {
   const int serialized_size = params.ByteSizeLong();
@@ -257,8 +228,8 @@ WorkerSandboxApi::InternalRunCode(
       LOG(ERROR) << "Failed to serialize run_code request into buffer. The "
                     "request's ByteSizeLong is "
                  << serialized_size;
-      return WrapResultWithNoRetry(FailureExecutionResult(
-          SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_DATA));
+      return WrapResultWithNoRetry(
+          absl::InvalidArgumentError("Failed to serialize run_code data."));
     }
     sapi_len_val = std::make_unique<sapi::v::LenVal>(nullptr, 0);
   } else {
@@ -272,8 +243,8 @@ WorkerSandboxApi::InternalRunCode(
     len_val_data.resize(serialized_size);
     if (!params.SerializeToArray(len_val_data.data(), serialized_size)) {
       LOG(ERROR) << "Failed to serialize run_code request protobuf into array.";
-      return WrapResultWithNoRetry(FailureExecutionResult(
-          SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_DATA));
+      return WrapResultWithNoRetry(
+          absl::InvalidArgumentError("Failed to serialize run_code data."));
     }
     sapi_len_val = std::make_unique<sapi::v::LenVal>(len_val_data.data(),
                                                      len_val_data.size());
@@ -284,10 +255,11 @@ WorkerSandboxApi::InternalRunCode(
       output_serialized_size_ptr.PtrAfter());
 
   if (!status_or.ok()) {
-    return WrapResultWithRetry(
-        FailureExecutionResult(SC_ROMA_WORKER_API_WORKER_CRASHED));
-  } else if (*status_or != SC_OK) {
-    return WrapResultWithNoRetry(FailureExecutionResult(*status_or));
+    return WrapResultWithRetry(absl::InternalError(
+        "Sandbox worker crashed during execution of request."));
+  } else if (*status_or != SapiStatusCode::kOk) {
+    return WrapResultWithNoRetry(
+        SapiStatusCodeToAbslStatus(static_cast<int>(*status_or)));
   }
 
   ::worker_api::WorkerParamsProto out_params;
@@ -297,24 +269,24 @@ WorkerSandboxApi::InternalRunCode(
       LOG(ERROR) << "Could not deserialize run_code response from the Buffer. "
                     "The response serialized size in Bytes is "
                  << output_serialized_size_ptr.GetValue();
-      return WrapResultWithNoRetry(FailureExecutionResult(
-          SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA));
+      return WrapResultWithNoRetry(
+          absl::InternalError("Failed to deserialize run_code data."));
     }
   } else if (!out_params.ParseFromArray(sapi_len_val->GetData(),
                                         sapi_len_val->GetDataSize())) {
     LOG(ERROR) << "Could not deserialize run_code response from "
                   "sapi::v::LenVal. The sapi::v::LenVal data size in Bytes is "
                << sapi_len_val->GetDataSize();
-    return WrapResultWithNoRetry(FailureExecutionResult(
-        SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA));
+    return WrapResultWithNoRetry(
+        absl::InternalError("Failed to deserialize run_code data."));
   }
 
   params = std::move(out_params);
 
-  return WrapResultWithNoRetry(SuccessExecutionResult());
+  return WrapResultWithNoRetry(absl::OkStatus());
 }
 
-std::pair<core::ExecutionResult, WorkerApi::RetryStatus>
+std::pair<absl::Status, WorkerApi::RetryStatus>
 WorkerSandboxApi::InternalRunCodeBufferShareOnly(
     ::worker_api::WorkerParamsProto& params) noexcept {
   int serialized_size = params.ByteSizeLong();
@@ -322,8 +294,9 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
     LOG(ERROR) << "Request serialized size in Bytes " << serialized_size
                << " is larger than the Buffer capacity in Bytes "
                << request_and_response_data_buffer_size_bytes_;
-    return WrapResultWithNoRetry(FailureExecutionResult(
-        SC_ROMA_WORKER_API_REQUEST_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY));
+    return WrapResultWithNoRetry(
+        absl::ResourceExhaustedError("The size of request serialized data is "
+                                     "larger than the Buffer capacity."));
   }
 
   if (!params.SerializeToArray(sandbox_data_shared_buffer_ptr_->data(),
@@ -331,8 +304,8 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
     LOG(ERROR) << "Failed to serialize run_code request into buffer. The "
                   "request serialized size in Bytes is "
                << serialized_size;
-    return WrapResultWithNoRetry(FailureExecutionResult(
-        SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_DATA));
+    return WrapResultWithNoRetry(
+        absl::InvalidArgumentError("Failed to serialize run_code data."));
   }
 
   sapi::v::IntBase<size_t> output_serialized_size_ptr;
@@ -340,10 +313,11 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
       serialized_size, output_serialized_size_ptr.PtrAfter());
 
   if (!status_or.ok()) {
-    return WrapResultWithRetry(
-        FailureExecutionResult(SC_ROMA_WORKER_API_WORKER_CRASHED));
-  } else if (*status_or != SC_OK) {
-    return WrapResultWithNoRetry(FailureExecutionResult(*status_or));
+    return WrapResultWithRetry(absl::InternalError(
+        "Sandbox worker crashed during execution of request."));
+  } else if (*status_or != SapiStatusCode::kOk) {
+    return WrapResultWithNoRetry(
+        SapiStatusCodeToAbslStatus(static_cast<int>(*status_or)));
   }
 
   ::worker_api::WorkerParamsProto out_params;
@@ -352,46 +326,44 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
     LOG(ERROR) << "Could not deserialize run_code response from sandboxee. The "
                   "response serialized size in Bytes is "
                << output_serialized_size_ptr.GetValue();
-    return WrapResultWithNoRetry(FailureExecutionResult(
-        SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA));
+    return WrapResultWithNoRetry(
+        absl::InternalError("Failed to deserialize run_code data."));
   }
 
   params = std::move(out_params);
 
-  return WrapResultWithNoRetry(SuccessExecutionResult());
+  return WrapResultWithNoRetry(absl::OkStatus());
 }
 
-std::pair<core::ExecutionResult, WorkerApi::RetryStatus>
-WorkerSandboxApi::RunCode(::worker_api::WorkerParamsProto& params) noexcept {
+std::pair<absl::Status, WorkerApi::RetryStatus> WorkerSandboxApi::RunCode(
+    ::worker_api::WorkerParamsProto& params) noexcept {
   if (!worker_sapi_sandbox_ || !worker_wrapper_api_) {
-    return WrapResultWithNoRetry(
-        FailureExecutionResult(SC_ROMA_WORKER_API_UNINITIALIZED_SANDBOX));
+    return WrapResultWithNoRetry(absl::FailedPreconditionError(
+        "Attempt to call API function with an uninitialized sandbox."));
   }
 
-  std::pair<core::ExecutionResult, WorkerApi::RetryStatus> run_code_result;
+  std::pair<absl::Status, WorkerApi::RetryStatus> run_code_result;
   if (enable_sandbox_sharing_request_response_with_buffer_only_) {
     run_code_result = InternalRunCodeBufferShareOnly(params);
   } else {
     run_code_result = InternalRunCode(params);
   }
 
-  if (!run_code_result.first.Successful()) {
+  if (!run_code_result.first.ok()) {
     if (run_code_result.second == WorkerApi::RetryStatus::kRetry) {
       // This means that the sandbox died so we need to restart it.
       if (auto status = Init(); !status.ok()) {
-        return WrapResultWithNoRetry(FailureExecutionResult(
-            SC_ROMA_WORKER_API_COULD_NOT_INITIALIZE_SANDBOX));
+        return WrapResultWithNoRetry(status);
       }
       if (auto status = Run(); !status.ok()) {
-        return WrapResultWithNoRetry(FailureExecutionResult(
-            SC_ROMA_WORKER_API_COULD_NOT_RUN_WRAPPER_API));
+        return WrapResultWithNoRetry(status);
       }
     }
 
     return run_code_result;
   }
 
-  return WrapResultWithNoRetry(SuccessExecutionResult());
+  return WrapResultWithNoRetry(absl::OkStatus());
 }
 
 void WorkerSandboxApi::Terminate() noexcept {

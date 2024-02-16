@@ -218,15 +218,12 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
       });
 
       EXPECT_TRUE(roma_service
-                      ->LoadCodeObj(
-                          std::move(code_obj),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            // Fails
-                            EXPECT_FALSE(resp.ok());
-                            EXPECT_THAT(resp.status().message(),
-                                        StrEq("Failed to create wasm object."));
-                            load_finished.Notify();
-                          })
+                      ->LoadCodeObj(std::move(code_obj),
+                                    [&](absl::StatusOr<ResponseObject> resp) {
+                                      EXPECT_EQ(resp.status().code(),
+                                                absl::StatusCode::kInternal);
+                                      load_finished.Notify();
+                                    })
                       .ok());
     }
 

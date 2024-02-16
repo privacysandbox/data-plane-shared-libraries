@@ -24,6 +24,7 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
@@ -53,7 +54,7 @@ class WorkerApiSapi : public WorkerApi {
 
   absl::Status Stop() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  std::pair<core::ExecutionResultOr<RunCodeResponse>, RetryStatus> RunCode(
+  std::pair<absl::StatusOr<RunCodeResponse>, RetryStatus> RunCode(
       const WorkerApi::RunCodeRequest& request) noexcept override
       ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 

@@ -37,21 +37,6 @@
 #include "src/cpp/util/duration.h"
 #include "src/cpp/util/protoutil.h"
 
-using google::scp::core::StatusCode;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_INIT_DATA;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_RESPONSE_DATA;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_FAILED_CREATE_BUFFER_INSIDE_SANDBOXEE;
-using google::scp::core::errors::SC_ROMA_WORKER_API_INVALID_DURATION;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_RESPONSE_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY;
-using google::scp::core::errors::SC_ROMA_WORKER_API_UNINITIALIZED_WORKER;
-using google::scp::core::errors::
-    SC_ROMA_WORKER_API_VALID_SANDBOX_BUFFER_REQUIRED;
 using google::scp::roma::JsEngineResourceConstraints;
 using google::scp::roma::sandbox::constants::kBadFd;
 using google::scp::roma::sandbox::constants::
@@ -153,9 +138,9 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   return SapiStatusCode::kOk;
 }
 
-StatusCode RunCode(worker_api::WorkerParamsProto* params) {
+SapiStatusCode RunCode(worker_api::WorkerParamsProto* params) {
   if (!worker_) {
-    return SC_ROMA_WORKER_API_UNINITIALIZED_WORKER;
+    return SapiStatusCode::kUninitializedWorker;
   }
 
   const auto& code = params->code();
@@ -186,26 +171,26 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
   auto js_duration = privacy_sandbox::server_common::EncodeGoogleApiProto(
       stopwatch.GetElapsedTime());
   if (!js_duration.ok()) {
-    return SC_ROMA_WORKER_API_INVALID_DURATION;
+    return SapiStatusCode::kInvalidDuration;
   }
   (*params->mutable_metrics())[kExecutionMetricJsEngineCallDuration] =
       std::move(js_duration).value();
 
-  if (!response_or.result().Successful()) {
-    return response_or.result().status_code;
+  if (!response_or.ok()) {
+    return SapiStatusCode::kExecutionFailed;
   }
 
   for (const auto& pair : response_or.value().metrics) {
     auto duration =
         privacy_sandbox::server_common::EncodeGoogleApiProto(pair.second);
     if (!duration.ok()) {
-      return SC_ROMA_WORKER_API_INVALID_DURATION;
+      return SapiStatusCode::kInvalidDuration;
     }
     (*params->mutable_metrics())[pair.first] = std::move(duration).value();
   }
 
   params->set_response(std::move(response_or.value().response));
-  return SC_OK;
+  return SapiStatusCode::kOk;
 }
 
 }  // namespace
@@ -243,14 +228,14 @@ inline void ClearInputFields(worker_api::WorkerParamsProto& params) {
   params.clear_input_bytes();
 }
 
-StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
-                                     int input_serialized_size,
-                                     size_t* output_serialized_size) {
+SapiStatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
+                                         int input_serialized_size,
+                                         size_t* output_serialized_size) {
   ROMA_VLOG(1)
       << "Worker wrapper RunCodeFromSerializedData() received the request";
 
   if (!sandbox_data_shared_buffer_ptr_) {
-    return SC_ROMA_WORKER_API_VALID_SANDBOX_BUFFER_REQUIRED;
+    return SapiStatusCode::kValidSandboxBufferRequired;
   }
 
   worker_api::WorkerParamsProto params;
@@ -263,16 +248,16 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
       LOG(ERROR) << "Could not deserialize run_code request from sandbox "
                     "buffer. The input_serialized_size in Bytes is "
                  << input_serialized_size;
-      return SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA;
+      return SapiStatusCode::kCouldNotDeserializeRunData;
     }
   } else if (!params.ParseFromArray(data->data, data->size)) {
     LOG(ERROR) << "Could not deserialize run_code request from "
                   "sapi::LenValStruct* with data size "
                << data->size;
-    return SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA;
+    return SapiStatusCode::kCouldNotDeserializeRunData;
   }
 
-  if (const auto result = RunCode(&params); result != SC_OK) {
+  if (const auto result = RunCode(&params); result != SapiStatusCode::kOk) {
     return result;
   }
 
@@ -289,7 +274,7 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
       LOG(ERROR) << "Failed to serialize run_code response into buffer with "
                     "serialized_size in Bytes "
                  << serialized_size;
-      return SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_RESPONSE_DATA;
+      return SapiStatusCode::kCouldNotSerializeResponseData;
     }
 
     *output_serialized_size = serialized_size;
@@ -304,7 +289,7 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
     if (!serialized_data) {
       LOG(ERROR) << "Failed to allocate uint8_t* serialized_data with size of "
                  << serialized_size;
-      return SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_RESPONSE_DATA;
+      return SapiStatusCode::kCouldNotSerializeResponseData;
     }
 
     if (!params.SerializeToArray(serialized_data, serialized_size)) {
@@ -315,7 +300,7 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
       // We don't free it otherwise, as it is free'd in the destructor of the
       // LenValStruct* passed to this function, which is owned by SAPI.
       free(serialized_data);
-      return SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_RESPONSE_DATA;
+      return SapiStatusCode::kCouldNotSerializeResponseData;
     }
 
     // Free old data
@@ -329,27 +314,27 @@ StatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
   }
 
   ROMA_VLOG(1) << "Worker wrapper successfully executed the request";
-  return SC_OK;
+  return SapiStatusCode::kOk;
 }
 
-StatusCode RunCodeFromBuffer(int input_serialized_size,
-                             size_t* output_serialized_size) {
+SapiStatusCode RunCodeFromBuffer(int input_serialized_size,
+                                 size_t* output_serialized_size) {
   ROMA_VLOG(1) << "Worker wrapper RunCodeFromBuffer() received the request";
 
   if (!sandbox_data_shared_buffer_ptr_) {
-    return SC_ROMA_WORKER_API_VALID_SANDBOX_BUFFER_REQUIRED;
+    return SapiStatusCode::kValidSandboxBufferRequired;
   }
 
   worker_api::WorkerParamsProto params;
   if (!params.ParseFromArray(sandbox_data_shared_buffer_ptr_->data(),
                              input_serialized_size)) {
     LOG(ERROR) << "Could not deserialize run_code request from sandbox";
-    return SC_ROMA_WORKER_API_COULD_NOT_DESERIALIZE_RUN_CODE_DATA;
+    return SapiStatusCode::kCouldNotDeserializeRunData;
   }
 
   ROMA_VLOG(1) << "Worker wrapper successfully received the request data";
   auto result = RunCode(&params);
-  if (result != SC_OK) {
+  if (result != SapiStatusCode::kOk) {
     return result;
   }
 
@@ -361,13 +346,13 @@ StatusCode RunCodeFromBuffer(int input_serialized_size,
     LOG(ERROR) << "Serialized data size " << serialized_size
                << " Bytes is larger than Buffer capacity "
                << request_and_response_data_buffer_size_bytes_ << " Bytes.";
-    return SC_ROMA_WORKER_API_RESPONSE_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY;
+    return SapiStatusCode::kResponseLargerThanBuffer;
   }
 
   if (!params.SerializeToArray(sandbox_data_shared_buffer_ptr_->data(),
                                serialized_size)) {
     LOG(ERROR) << "Failed to serialize run_code response into buffer";
-    return SC_ROMA_WORKER_API_COULD_NOT_SERIALIZE_RUN_CODE_RESPONSE_DATA;
+    return SapiStatusCode::kCouldNotSerializeResponseData;
   }
 
   *output_serialized_size = serialized_size;

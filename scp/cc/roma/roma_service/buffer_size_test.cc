@@ -427,10 +427,7 @@ TEST(BufferSizeTest,
     status = roma_service->Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           // Failure in execution
-          EXPECT_FALSE(resp.ok());
-          EXPECT_THAT(resp.status().message(),
-                      StrEq("The size of response serialized data is "
-                            "larger than the Buffer capacity."));
+          EXPECT_EQ(resp.status().code(), absl::StatusCode::kResourceExhausted);
           failed_execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
