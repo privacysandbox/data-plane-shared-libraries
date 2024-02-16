@@ -30,6 +30,7 @@ cc_library(
         "//src/core/os/linux:system_resource_info_provider_linux",
         "//src/public/core/interface:execution_result",
         "//src/roma/logging",
+        "//src/roma/native_function_grpc_server",
         "//src/roma/sandbox/dispatcher",
         "//src/roma/sandbox/native_function_binding:native_function_handler_sapi_ipc",
         "//src/util/status_macro:status_macros",

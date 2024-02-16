@@ -32,6 +32,7 @@
 #include "src/core/os/linux/system_resource_info_provider_linux.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/roma/logging/logging.h"
+#include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/dispatcher/dispatcher.h"
 #include "src/roma/sandbox/native_function_binding/native_function_handler_sapi_ipc.h"
@@ -124,6 +125,10 @@ class RomaService {
     }
 
     RegisterLogBindings();
+
+    if (config_.enable_native_function_grpc_server) {
+      SetupNativeFunctionGrpcServer();
+    }
     PS_ASSIGN_OR_RETURN(auto native_function_binding_info,
                         SetupNativeFunctionHandler(concurrency));
     PS_RETURN_IF_ERROR(SetupWorkers(native_function_binding_info));
@@ -145,11 +150,30 @@ class RomaService {
     if (native_function_binding_handler_) {
       native_function_binding_handler_->Stop();
     }
+    if (native_function_server_) {
+      native_function_server_->Shutdown();
+      run_server_thread_.join();
+    }
     native_function_binding_table_.Clear();
     for (worker_api::WorkerSandboxApi& worker : workers_) {
       PS_RETURN_IF_ERROR(worker.Stop());
     }
     return absl::OkStatus();
+  }
+
+  void RunServer() {
+    LOG(INFO) << "Initializing the server...";
+    native_function_server_->Run();
+  }
+
+  void SetupNativeFunctionGrpcServer() {
+    std::vector<std::string> socket_addresses = {
+        absl::StrCat("unix:", std::tmpnam(nullptr), ".sock")};
+    native_function_server_ =
+        std::make_unique<grpc_server::NativeFunctionGrpcServer<TMetadata>>(
+            socket_addresses);
+    // Add all services registered from Config<TMetadata>
+    run_server_thread_ = std::thread(&RomaService::RunServer, this);
   }
 
   absl::Status StoreMetadata(std::string uuid, TMetadata metadata) {
@@ -416,6 +440,9 @@ class RomaService {
       native_function_binding::NativeFunctionHandlerSapiIpc<TMetadata>>
       native_function_binding_handler_;
   std::unique_ptr<dispatcher::Dispatcher> dispatcher_;
+  std::unique_ptr<grpc_server::NativeFunctionGrpcServer<TMetadata>>
+      native_function_server_;
+  std::thread run_server_thread_;
 };
 }  // namespace google::scp::roma::sandbox::roma_service
 
