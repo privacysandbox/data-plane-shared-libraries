@@ -35,8 +35,8 @@
 #include "absl/log/scoped_mock_log.h"
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "src/roma/native_function_grpc_server/proto/test_service.grpc.pb.h"
-#include "src/roma/native_function_grpc_server/proto/test_service.pb.h"
+#include "src/roma/config/config.h"
+#include "src/roma/native_function_grpc_server/request_handlers.h"
 #include "src/roma/sandbox/native_function_binding/thread_safe_map.h"
 
 using ::testing::_;
@@ -49,10 +49,6 @@ constexpr std::string_view kMultiClientPath =
 
 namespace google::scp::roma::grpc_server {
 namespace {
-typedef privacy_sandbox::server_common::TestService::AsyncService AsyncService;
-typedef privacy_sandbox::server_common::MultiService::AsyncService
-    AsyncMultiService;
-
 using DefaultMetadata = std::string;
 
 std::string CreateSocketAddress() {
@@ -153,78 +149,6 @@ void TestBinary(std::string_view path, std::string_view socket_address,
   server.Shutdown();
   init_server.join();
 }
-
-template <typename TMetadata>
-class TestMethodImpl
-    : public RequestHandlerBase<
-          privacy_sandbox::server_common::TestMethodRequest,
-          privacy_sandbox::server_common::TestMethodResponse, AsyncService> {
- public:
-  void Request(TService* service, grpc::ServerContext* ctx,
-               grpc::ServerAsyncResponseWriter<TResponse>* responder,
-               grpc::ServerCompletionQueue* cq, void* tag) {
-    service->RequestTestMethod(ctx, &request_, responder, cq, cq, tag);
-  }
-
-  std::pair<TResponse*, grpc::Status> ProcessRequest(
-      const TMetadata& metadata) {
-    LOG(INFO) << "TestMethod gRPC called.";
-    response_.set_output(absl::StrCat(request_.input(), "World. From SERVER"));
-    return std::make_pair(&response_, grpc::Status::OK);
-  }
-
- private:
-  TRequest request_;
-  TResponse response_;
-};
-
-template <typename TMetadata>
-class TestMethod1Impl : public RequestHandlerBase<
-                            privacy_sandbox::server_common::TestMethod1Request,
-                            privacy_sandbox::server_common::TestMethod1Response,
-                            AsyncMultiService> {
- public:
-  void Request(TService* service, grpc::ServerContext* ctx,
-               grpc::ServerAsyncResponseWriter<TResponse>* responder,
-               grpc::ServerCompletionQueue* cq, void* tag) override {
-    service->RequestTestMethod1(ctx, &request_, responder, cq, cq, tag);
-  }
-
-  std::pair<TResponse*, grpc::Status> ProcessRequest(
-      const TMetadata& metadata) {
-    LOG(INFO) << "TestMethod1 gRPC called.";
-    response_.set_output(absl::StrCat(request_.input(), "World. From SERVER"));
-    return std::make_pair(&response_, grpc::Status::OK);
-  }
-
- private:
-  TRequest request_;
-  TResponse response_;
-};
-
-template <typename TMetadata>
-class TestMethod2Impl : public RequestHandlerBase<
-                            privacy_sandbox::server_common::TestMethod2Request,
-                            privacy_sandbox::server_common::TestMethod2Response,
-                            AsyncMultiService> {
- public:
-  void Request(TService* service, grpc::ServerContext* ctx,
-               grpc::ServerAsyncResponseWriter<TResponse>* responder,
-               grpc::ServerCompletionQueue* cq, void* tag) override {
-    service->RequestTestMethod2(ctx, &request_, responder, cq, cq, tag);
-  }
-
-  std::pair<TResponse*, grpc::Status> ProcessRequest(
-      const TMetadata& metadata) {
-    LOG(INFO) << "TestMethod2 gRPC called.";
-    response_.set_output(absl::StrCat(request_.input(), "World. From SERVER"));
-    return std::make_pair(&response_, grpc::Status::OK);
-  }
-
- private:
-  TRequest request_;
-  TResponse response_;
-};
 }  // namespace
 
 TEST_F(NativeFunctionGrpcServerTest, ServerCanLogByDefault) {
@@ -237,6 +161,16 @@ TEST_F(NativeFunctionGrpcServerTest, ServerCanLogByDefault) {
       .Times(num_processes * num_iters);
 
   PopulateMetadataStorage(num_processes, num_iters);
+
+  // Logging Service and associated factory function are registered by default
+  // in RomaService, and lifetime of objects is maintained by config
+  Config<DefaultMetadata> config;
+  config.RegisterService(std::make_unique<AsyncLoggingService>(),
+                         LogHandler<DefaultMetadata>());
+
+  server_->AddService(config.GetServices().front().get());
+  server_->AddFactories(config.GetFactories());
+
   TestBinary(kLoggingClientPath, socket_address_, *server_, num_processes,
              num_iters);
 
@@ -253,8 +187,14 @@ TEST_F(NativeFunctionGrpcServerTest, ServerCanRegisterRpcHandler) {
       .Times(num_processes * num_iters);
 
   PopulateMetadataStorage(num_processes, num_iters);
-  server_->AddService(std::make_unique<AsyncService>(),
-                      TestMethodImpl<DefaultMetadata>());
+
+  Config<DefaultMetadata> config;
+  config.RegisterService(std::make_unique<AsyncService>(),
+                         TestMethodHandler<DefaultMetadata>());
+
+  server_->AddService(config.GetServices().front().get());
+  server_->AddFactories(config.GetFactories());
+
   TestBinary(kClientPath, socket_address_, *server_, num_processes, num_iters);
 
   log.StopCapturingLogs();
@@ -273,9 +213,14 @@ TEST_F(NativeFunctionGrpcServerTest, ServerCanRegisterMultipleRpcHandlers) {
       .Times(num_processes * num_iters);
 
   PopulateMetadataStorage(num_processes, num_iters);
-  server_->AddService(std::make_unique<AsyncMultiService>(),
-                      TestMethod1Impl<DefaultMetadata>(),
-                      TestMethod2Impl<DefaultMetadata>());
+
+  Config<DefaultMetadata> config;
+  config.RegisterService(std::make_unique<AsyncMultiService>(),
+                         TestMethod1Handler<DefaultMetadata>(),
+                         TestMethod2Handler<DefaultMetadata>());
+
+  server_->AddService(config.GetServices().front().get());
+  server_->AddFactories(config.GetFactories());
 
   TestBinary(kMultiClientPath, socket_address_, *server_, num_processes,
              num_iters);

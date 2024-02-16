@@ -14,14 +14,10 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
-package(default_visibility = [
-    "//src/roma/config:__subpackages__",
-    "//src/roma/roma_service:__subpackages__",
-])
-
 cc_library(
     name = "interface",
     hdrs = ["interface.h"],
+    visibility = ["//src/roma/config:__subpackages__"],
     deps = [
         "//src/roma/sandbox/native_function_binding:thread_safe_map",
         "@com_github_grpc_grpc//:grpc++",
@@ -29,8 +25,24 @@ cc_library(
 )
 
 cc_library(
+    name = "request_handlers",
+    hdrs = ["request_handlers.h"],
+    visibility = ["//src/roma/roma_service:__subpackages__"],
+    deps = [
+        ":interface",
+        "//src/roma/native_function_grpc_server/proto:logging_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:logging_service_grpc_proto",
+        "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/log",
+    ],
+)
+
+cc_library(
     name = "native_function_grpc_server",
     hdrs = ["native_function_grpc_server.h"],
+    visibility = ["//src/roma/roma_service:__subpackages__"],
     deps = [
         ":interface",
         "//src/core/common/uuid",
@@ -58,7 +70,9 @@ cc_test(
     tags = ["notsan"],
     deps = [
         ":native_function_grpc_server",
+        ":request_handlers",
         "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
         "@com_google_absl//absl/log:scoped_mock_log",

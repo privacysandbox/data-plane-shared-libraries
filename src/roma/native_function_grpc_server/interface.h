@@ -33,34 +33,20 @@ using google::scp::roma::sandbox::native_function_binding::ThreadSafeMap;
 namespace google::scp::roma::grpc_server {
 inline constexpr std::string_view kUuidTag = "request_uuid";
 
-// Alias for type of functions that handle logic for processing RPCs, used when
-// registering services and handlers on NativeFunctionGrpcServer
+// Alias for type of functions that spawn instances of
+// RequestHandlerImpl<TMetadata, THandler to handle rpcs
 template <typename TMetadata = std::string>
-using CallbackHandler = std::function<void(
-    ::grpc::Service*, grpc::ServerCompletionQueue*, ThreadSafeMap<TMetadata>*)>;
-
-/**
- * @brief Struct containing information to support registration of an arbitrary
- * grpc::Service with the NativeFunctionGrpcServer. This struct allows a
- * `service` to be registered with `CallbackHandlers` for each RPC method on
- * that service, where each `CallbackHandler` corresponds to a diffrent
- * `CompletionQueue`.
- */
-template <typename TMetadata = std::string>
-struct ServiceHandler {
-  std::unique_ptr<grpc::Service> service;
-  std::vector<std::pair<CallbackHandler<TMetadata>,
-                        std::unique_ptr<grpc::ServerCompletionQueue>>>
-      handlers;
-};
+using FactoryFunction = std::function<void(grpc::ServerCompletionQueue*,
+                                           ThreadSafeMap<TMetadata>*)>;
 
 /**
  * @brief Base class for all handlers to be registered on
- * NativeFunctionGrpcServer. Derived classes should override Request with the
- * gRPC Service method to be invoked, and should override ProcessRequest with
- * custom logic for how the server should handle the gRPC method. Request Type
- * (TRequest), Response Type (TResponse), and Service Type (TService) are
- * provided as aliases to derived classes from this base class.
+ * NativeFunctionGrpcServer. Derived classes should override Request with
+ * the gRPC Service method to be invoked, and should override ProcessRequest
+ * with custom logic for how the server should handle the gRPC method.
+ * Request Type (TRequest), Response Type (TResponse), and Service Type
+ * (TService) are provided as aliases to derived classes from this base
+ * class.
  *
  * Request object and Response objects should be privately maintained within
  * derived classes as follows:
@@ -116,7 +102,7 @@ class RequestHandlerImpl : public Proceedable, public THandler<TMetadata> {
   RequestHandlerImpl(typename THandler<TMetadata>::TService* service,
                      grpc::ServerCompletionQueue* cq,
                      ThreadSafeMap<TMetadata>* map,
-                     std::function<void()>& factory)
+                     FactoryFunction<TMetadata>& factory)
       : service_(service),
         completion_queue_(cq),
         map_(map),
@@ -156,7 +142,7 @@ class RequestHandlerImpl : public Proceedable, public THandler<TMetadata> {
       // Spawn a new instance to serve new clients while we
       // process the one for this RequestHandlerImpl. The instance will
       // deallocate itself as part of its kFinish state.
-      factory_();
+      factory_(completion_queue_, map_);
       typename THandler<TMetadata>::TResponse response;
       grpc::Status status(grpc::StatusCode::NOT_FOUND,
                           "UUID not associated with request");
@@ -203,7 +189,7 @@ class RequestHandlerImpl : public Proceedable, public THandler<TMetadata> {
   grpc::ServerAsyncResponseWriter<typename THandler<TMetadata>::TResponse>
       responder_;
   State status_;
-  std::function<void()> factory_;
+  FactoryFunction<TMetadata> factory_;
 
   grpc::ServerContext context_;
   ProceedableWrapper this_wrapper_;
@@ -212,10 +198,10 @@ class RequestHandlerImpl : public Proceedable, public THandler<TMetadata> {
 // Function to handle logic for processing RPCs
 template <typename TMetadata>
 void HandleRpcs(grpc::ServerCompletionQueue* cq, ThreadSafeMap<TMetadata>* map,
-                std::vector<std::function<void()>>& factories) {
+                std::vector<FactoryFunction<TMetadata>>& factories) {
   // Spawn a new RequestHandler instance to serve new clients.
   for (auto& factory : factories) {
-    factory();
+    factory(cq, map);
   }
   bool ok = true;
   while (ok) {

@@ -33,6 +33,7 @@
 #include "src/public/core/interface/execution_result.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
+#include "src/roma/native_function_grpc_server/request_handlers.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/dispatcher/dispatcher.h"
 #include "src/roma/sandbox/native_function_binding/native_function_handler_sapi_ipc.h"
@@ -172,7 +173,16 @@ class RomaService {
     native_function_server_ =
         std::make_unique<grpc_server::NativeFunctionGrpcServer<TMetadata>>(
             socket_addresses);
-    // Add all services registered from Config<TMetadata>
+
+    config_.RegisterService(
+        std::make_unique<grpc_server::AsyncLoggingService>(),
+        grpc_server::LogHandler<TMetadata>());
+    auto& services = config_.GetServices();
+    for (auto& service : services) {
+      native_function_server_->AddService(service.get());
+    }
+    native_function_server_->AddFactories(config_.GetFactories());
+
     run_server_thread_ = std::thread(&RomaService::RunServer, this);
   }
 

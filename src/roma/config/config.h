@@ -26,6 +26,10 @@
 #include <utility>
 #include <vector>
 
+#include <grpcpp/impl/service_type.h>
+
+#include "src/roma/native_function_grpc_server/interface.h"
+
 #include "function_binding_object_v2.h"
 
 namespace google::scp::roma {
@@ -153,9 +157,34 @@ class Config {
     function_binding.release();
   }
 
+  /**
+   * @brief Register an async gRPC service and handlers for all gRPC methods on
+   * this service. Allows clients (V8 and arbitrary binaries) to invoke gRPC
+   * methods in the host process. Config has ownership of all registered
+   * services and associated factory functions, and passes pointers to both to
+   * the NativeFunctionGrpcServer to be registered.
+   *
+   * @param service
+   * @param handlers
+   */
+  template <template <typename> typename... THandlers>
+  void RegisterService(std::unique_ptr<grpc::Service> service,
+                       THandlers<TMetadata>&&... handlers) {
+    services_.push_back(std::move(service));
+    (CreateFactory(handlers), ...);
+  }
+
   std::vector<FunctionBindingObjectPtr> GetFunctionBindings() const {
     return std::vector<FunctionBindingObjectPtr>(function_bindings_v2_.begin(),
                                                  function_bindings_v2_.end());
+  }
+
+  std::vector<std::unique_ptr<grpc::Service>>& GetServices() {
+    return services_;
+  }
+
+  std::vector<grpc_server::FactoryFunction<TMetadata>>* GetFactories() {
+    return factories_.get();
   }
 
   void SetLoggingFunction(LogCallback logging_func) {
@@ -192,9 +221,32 @@ class Config {
 
  private:
   /**
+   * @brief Creates a factory function that spawns a new instance of
+   * RequestHandlerImpl templated on TMetadata and THandler. Each handler for an
+   * rpc method on a grpc::Service should create an associated factory function.
+   */
+  template <template <typename> typename THandler>
+  void CreateFactory(THandler<TMetadata>) {
+    const size_t index = factories_->size();
+    factories_->push_back([service_ptr = services_.back().get(),
+                           factories_ptr = factories_.get(),
+                           index](grpc::ServerCompletionQueue* completion_queue,
+                                  ThreadSafeMap<TMetadata>* metadata_map) {
+      new grpc_server::RequestHandlerImpl<TMetadata, THandler>(
+          static_cast<typename THandler<TMetadata>::TService*>(service_ptr),
+          completion_queue, metadata_map, factories_ptr->at(index));
+    });
+  }
+
+  /**
    * @brief User-registered function JS/C++ function bindings
    */
   std::vector<FunctionBindingObjectPtr> function_bindings_v2_;
+
+  std::vector<std::unique_ptr<grpc::Service>> services_;
+  std::unique_ptr<std::vector<grpc_server::FactoryFunction<TMetadata>>>
+      factories_ = std::make_unique<
+          std::vector<grpc_server::FactoryFunction<TMetadata>>>();
 
   // default no-op logging implementation
   LogCallback logging_func_ = [](absl::LogSeverity severity,

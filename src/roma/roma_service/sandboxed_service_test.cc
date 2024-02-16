@@ -145,6 +145,21 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   EXPECT_TRUE(status.ok());
 }
 
+TEST(SandboxedServiceTest, CanRegisterGrpcServices) {
+  Config config;
+  config.number_of_workers = 2;
+  config.enable_native_function_grpc_server = true;
+  config.RegisterService(std::make_unique<grpc_server::AsyncMultiService>(),
+                         grpc_server::TestMethod1Handler<DefaultMetadata>(),
+                         grpc_server::TestMethod2Handler<DefaultMetadata>());
+
+  RomaService<> roma_service(std::move(config));
+  auto status = roma_service.Init();
+  ASSERT_TRUE(status.ok());
+  status = roma_service.Stop();
+  EXPECT_TRUE(status.ok());
+}
+
 TEST(SandboxedServiceTest, ExecuteCodeWithStringViewInput) {
   Config config;
   config.number_of_workers = 2;
