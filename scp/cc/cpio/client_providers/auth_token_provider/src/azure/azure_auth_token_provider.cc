@@ -59,7 +59,7 @@ constexpr char kMetadataHeaderValue[] = "true";
 // https://learn.microsoft.com/en-us/azure/container-instances/container-instances-managed-identity
 // TODO: update `resource` parameter
 constexpr char kTokenServerPath[] =
-    "http://169.254.169.254/metadata/identity/oauth2/"
+    "http://localhost:3000/metadata/identity/oauth2/"
     "token?api-version=2018-02-01";
 constexpr char kJsonAccessTokenKey[] = "access_token";
 constexpr char kJsonTokenExpiryKey[] = "expires_in";

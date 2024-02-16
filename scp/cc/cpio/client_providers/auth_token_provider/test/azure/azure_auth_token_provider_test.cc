@@ -59,7 +59,7 @@ using testing::UnorderedElementsAre;
 
 namespace {
 constexpr char kTokenServerPath[] =
-    "http://169.254.169.254/metadata/identity/oauth2/"
+    "http://localhost:3000/metadata/identity/oauth2/"
     "token?api-version=2018-02-01";
 constexpr char kMetadataHeader[] = "Metadata";
 constexpr char kMetadataHeaderValue[] = "true";
