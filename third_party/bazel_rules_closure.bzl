@@ -44,3 +44,18 @@ def bazel_rules_closure():
             "https://github.com/protocolbuffers/protobuf/releases/download/v21.12/protobuf-all-21.12.zip",
         ],
     )
+
+    maybe(
+        http_archive,
+        name = "protocolbuffers_protobuf_javascript",
+        patch_args = ["-p1"],
+        patches = [Label("//third_party:protocolbuffers_protobuf_javascript.patch")],
+        sha256 = "5657980a7475a8aaafa69ae9d156cce262aa0038c502168bd092c81c121fab9b",
+        strip_prefix = "protobuf-javascript-3.21.2",
+        repo_mapping = {
+            "@com_google_protobuf": "@com_google_protobuf_for_closure",
+        },
+        urls = [
+            "https://github.com/protocolbuffers/protobuf-javascript/archive/refs/tags/v3.21.2.zip",
+        ],
+    )

@@ -35,7 +35,7 @@ load("//third_party:emscripten_deps2.bzl", "emscripten_deps2")
 
 GO_TOOLCHAINS_VERSION = "1.21.1"
 
-def buf_dependencies():
+def _buf_deps():
     # rules_buf (https://docs.buf.build/build-systems/bazel)
     maybe(
         http_archive,
@@ -45,7 +45,16 @@ def buf_dependencies():
         urls = ["https://github.com/bufbuild/rules_buf/archive/refs/tags/v0.1.1.zip"],
     )
 
-def quiche_dependencies():
+def _proto_deps():
+    maybe(
+        http_archive,
+        name = "rules_proto_grpc",
+        sha256 = "9ba7299c5eb6ec45b6b9a0ceb9916d0ab96789ac8218269322f0124c0c0d24e2",
+        strip_prefix = "rules_proto_grpc-4.5.0",
+        urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/releases/download/4.5.0/rules_proto_grpc-4.5.0.tar.gz"],
+    )
+
+def _quiche_deps():
     maybe(
         http_archive,
         name = "com_github_google_quiche",
@@ -85,8 +94,9 @@ def deps2(
     sandboxed_api()
     google_benchmark()
     swift_rules_dependencies()
-    quiche_dependencies()
-    buf_dependencies()
+    _quiche_deps()
+    _proto_deps()
+    _buf_deps()
     boost_deps()
     rules_rust_dependencies()
     rust_register_toolchains(
