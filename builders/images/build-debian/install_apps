@@ -45,7 +45,7 @@ function apt_update() {
 
 function install_python() {
   DEBIAN_FRONTEND=noninteractive apt-get --quiet install -y --no-install-recommends \
-    python3.9-venv="3.9.*"
+    python3.9-venv="3.9.*" python3.9-dev
   mkdir -p /opt/bin
   update-alternatives \
     --force \
