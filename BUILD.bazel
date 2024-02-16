@@ -137,3 +137,14 @@ gazelle(
     name = "gazelle",
     gazelle = ":gazelle-buf",
 )
+
+gazelle(
+    name = "update-buf-deps",
+    args = [
+        "-from_file=buf.work.yaml",
+        "-to_macro=deps.bzl%buf_deps",
+        "-prune",
+    ],
+    command = "update-repos",
+    gazelle = ":gazelle-buf",
+)

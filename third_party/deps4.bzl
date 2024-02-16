@@ -23,8 +23,22 @@ load(
     "rules_closure_toolchains",
 )
 load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
-load("@io_bazel_rules_docker//repositories:go_repositories.bzl", "go_deps")
 load("@rules_buf//gazelle/buf:repositories.bzl", "gazelle_buf_dependencies")
+load("//:deps.bzl", "buf_deps", "go_dependencies")
+
+def _go_deps():
+    maybe(
+        http_archive,
+        name = "com_github_mwitkow_go_proto_validators",
+        sha256 = "47bf066d07856000d0dd5324f820fea6b96dfe2c06779748296c07d2dcf0c29e",
+        strip_prefix = "go-proto-validators-875cb952c25c7ccadf261b169dba5fd0ced18a72",
+        urls = [
+            "https://github.com/mwitkow/go-proto-validators/archive/875cb952c25c7ccadf261b169dba5fd0ced18a72.zip",
+        ],
+    )
+
+    # gazelle:repository_macro deps.bzl%go_dependencies
+    go_dependencies()
 
 def _aws_nitro_kms_repos():
     nsm_crate_repositories()
@@ -43,8 +57,11 @@ def _aws_nitro_kms_repos():
 
 def deps4():
     container_deps()
-    go_deps()
     gazelle_buf_dependencies()
     rules_closure_dependencies()
     rules_closure_toolchains()
     _aws_nitro_kms_repos()
+    _go_deps()
+
+    # gazelle:repository_macro deps.bzl%buf_deps
+    buf_deps()
