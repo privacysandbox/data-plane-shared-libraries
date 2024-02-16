@@ -14,7 +14,26 @@
 
 """Helper rules and protoc plugin structs for the Roma Application API."""
 
-load("@rules_proto_grpc//:defs.bzl", "ProtoPluginInfo", "proto_compile_attrs", "proto_compile_impl")
+load(
+    "@rules_proto_grpc//:defs.bzl",
+    "ProtoPluginInfo",
+    "proto_compile_attrs",
+    "proto_compile_impl",
+)
+
+_js_protobuf_plugins = [
+    struct(
+        name = "js",
+        exclusions = [],
+        option = ",".join([
+            "library={basename}_pb",
+            "binary",
+            "import_style=closure",
+        ]),
+        outputs = ["{basename}_pb.js"],
+        tool = "@protocolbuffers_protobuf_javascript//generator:protoc-gen-js",
+    ),
+]
 
 # the template_dir_name must be a valid string value for unix directories, the
 # path does not need to exist -- the golang plugin and the plugin options both
@@ -28,6 +47,24 @@ def _get_template_options(suffix, template_file):
         suffix = suffix,
         tmpl = template_file,
     )
+
+_js_template_plugins = [
+    struct(
+        name = "roma_app_api_js_plugin{}".format(i),
+        exclusions = [],
+        option = _get_template_options(suffix, template_file),
+        outputs = ["{basename}" + suffix],
+        tool = "//src/roma/tools/api_plugin:app_api_plugin",
+    )
+    for i, (template_file, suffix) in enumerate([
+        ("js_service_sdk_markdown.tmpl", "_js_service_sdk.md"),
+        ("js_pb_helpers.tmpl", "_pb_helpers.js"),
+        ("js_service_handlers.tmpl", "_service_handlers.js"),
+        ("js_service_handlers_extern.tmpl", "_service_handlers_extern.js"),
+    ])
+]
+
+app_api_js_plugins = _js_protobuf_plugins + _js_template_plugins
 
 _cc_protobuf_plugins = [
     struct(
@@ -52,7 +89,9 @@ _cc_template_plugins = [
         tool = "//src/roma/tools/api_plugin:app_api_plugin",
     )
     for i, (template_file, suffix) in enumerate([
-        ("cpp_markdown.tmpl", "_cpp_client_api.md"),
+        ("cpp_client_sdk_markdown.tmpl", "_cpp_client_sdk.md"),
+        ("cc_test_romav8.tmpl", "_romav8_app_test.cc"),
+        ("hpp_romav8.tmpl", "_roma_app.h.tmpl"),
     ])
 ]
 
@@ -71,5 +110,18 @@ app_api_cc_protoc = rule(
     toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
 )
 
+app_api_js_protoc = rule(
+    implementation = proto_compile_impl,
+    attrs = dict(
+        proto_compile_attrs,
+        _plugins = attr.label_list(
+            providers = [ProtoPluginInfo],
+            default = [Label("//src/roma/tools/api_plugin:{}".format(plugin.name)) for plugin in app_api_js_plugins],
+            doc = "List of protoc plugins to apply",
+        ),
+    ),
+    toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
+)
+
 def get_plugins():
-    return app_api_cc_plugins
+    return app_api_cc_plugins + app_api_js_plugins
