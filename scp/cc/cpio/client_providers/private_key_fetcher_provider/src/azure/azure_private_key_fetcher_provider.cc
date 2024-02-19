@@ -19,6 +19,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "azure/attestation/json_attestation_report.h"
 #include "core/interface/http_client_interface.h"
@@ -70,21 +71,44 @@ ExecutionResult AzurePrivateKeyFetcherProvider::Init() noexcept {
 ExecutionResult AzurePrivateKeyFetcherProvider::SignHttpRequest(
     AsyncContext<PrivateKeyFetchingRequest, core::HttpRequest>&
         sign_request_context) noexcept {
-  auto http_request = std::make_shared<HttpRequest>();
-  AzurePrivateKeyFetchingClientUtils::CreateHttpRequest(
-      *sign_request_context.request, *http_request);
+  auto request = std::make_shared<GetSessionTokenRequest>();
+  AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
+      get_token_context(
+          std::move(request),
+          absl::bind_front(
+              &AzurePrivateKeyFetcherProvider::OnGetSessionTokenCallback, this,
+              sign_request_context),
+          sign_request_context);
 
-  sign_request_context.response = std::move(http_request);
-  sign_request_context.result = SuccessExecutionResult();
-  sign_request_context.Finish();
-  return SuccessExecutionResult();
+  return auth_token_provider_->GetSessionToken(get_token_context);
 }
 
 void AzurePrivateKeyFetcherProvider::OnGetSessionTokenCallback(
     AsyncContext<PrivateKeyFetchingRequest, core::HttpRequest>&
         sign_request_context,
-    AsyncContext<GetSessionTokenForTargetAudienceRequest,
-                 GetSessionTokenResponse>& get_token_context) noexcept {}
+    AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
+        get_token_context) noexcept {
+  if (!get_token_context.result.Successful()) {
+    SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider, sign_request_context,
+                      get_token_context.result,
+                      "Failed to get the access token.");
+    sign_request_context.result = get_token_context.result;
+    sign_request_context.Finish();
+    return;
+  }
+
+  const auto& access_token = *get_token_context.response->session_token;
+  auto http_request = std::make_shared<HttpRequest>();
+  AzurePrivateKeyFetchingClientUtils::CreateHttpRequest(
+      *sign_request_context.request, *http_request);
+  http_request->headers = std::make_shared<core::HttpHeaders>();
+  http_request->headers->insert(
+      {std::string(kAuthorizationHeaderKey),
+       absl::StrCat(kBearerTokenPrefix, access_token)});
+  sign_request_context.response = std::move(http_request);
+  sign_request_context.result = SuccessExecutionResult();
+  sign_request_context.Finish();
+}
 
 ExecutionResult AzurePrivateKeyFetcherProvider::FetchPrivateKey(
     AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse>&
@@ -138,8 +162,6 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
     AsyncContext<HttpRequest, HttpResponse>& http_client_context) noexcept {
   private_key_fetching_context.result = http_client_context.result;
   if (!http_client_context.result.Successful()) {
-    std::cout << "Private Key Fetching failed: "
-              << http_client_context.response->body.ToString() << std::endl;
     SCP_ERROR_CONTEXT(
         kAzurePrivateKeyFetcherProvider, private_key_fetching_context,
         private_key_fetching_context.result, "Failed to fetch private key.");
@@ -155,7 +177,7 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
     // - Modify `HttpClient` implementation under `http2_client/` so that it
     // retries for 202 like it already does for some other status codes
     //   (set `RetryExecutionResult()` to http_context.result).
-    // - Implement a retry mechanizm in this class without depending on
+    // - Implement a retry mechanism in this class without depending on
     // `OperationDispatcher`.
     http_client_context.retry_count++;
     auto execution_result = http_client_->PerformRequest(http_client_context);

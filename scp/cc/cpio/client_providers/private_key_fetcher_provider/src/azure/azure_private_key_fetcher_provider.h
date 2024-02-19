@@ -93,8 +93,8 @@ class AzurePrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
   void OnGetSessionTokenCallback(
       core::AsyncContext<PrivateKeyFetchingRequest, core::HttpRequest>&
           sign_http_request_context,
-      core::AsyncContext<GetSessionTokenForTargetAudienceRequest,
-                         GetSessionTokenResponse>& get_session_token) noexcept;
+      core::AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
+          get_session_token) noexcept;
 
   // Auth token provider.
   std::shared_ptr<AuthTokenProviderInterface> auth_token_provider_;

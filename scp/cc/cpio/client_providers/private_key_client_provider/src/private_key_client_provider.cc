@@ -58,7 +58,8 @@ ExecutionResult PrivateKeyClientProvider::Init() noexcept {
       private_key_client_options_->primary_private_key_vending_endpoint);
   for (const auto& endpoint :
        private_key_client_options_->secondary_private_key_vending_endpoints) {
-    endpoint_list_.push_back(endpoint);
+    if (!endpoint.private_key_vending_service_endpoint.empty())
+      endpoint_list_.push_back(endpoint);
   }
   endpoint_count_ = endpoint_list_.size();
 

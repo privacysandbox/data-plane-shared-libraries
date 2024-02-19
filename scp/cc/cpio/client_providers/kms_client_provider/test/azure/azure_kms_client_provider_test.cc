@@ -26,6 +26,7 @@
 #include "core/curl_client/mock/mock_curl_client.h"
 #include "core/interface/async_context.h"
 #include "core/utils/src/base64.h"
+#include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "cpio/client_providers/kms_client_provider/src/azure/error_codes.h"
 #include "public/core/test/interface/execution_result_matchers.h"
 
@@ -47,10 +48,10 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
 using google::scp::core::utils::Base64Encode;
+using google::scp::cpio::client_providers::mock::MockAuthTokenProvider;
 using std::atomic;
 using testing::Eq;
 using testing::Pointee;
-using testing::Return;
 
 static constexpr char kServiceAccount[] = "account";
 static constexpr char kWipProvider[] = "wip";
@@ -66,26 +67,50 @@ class AzureKmsClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
     http_client_ = std::make_shared<MockCurlClient>();
-    client_ = std::make_unique<AzureKmsClientProvider>(http_client_);
+    credentials_provider_ = std::make_shared<MockAuthTokenProvider>();
+    client_ = std::make_unique<AzureKmsClientProvider>(http_client_,
+                                                       credentials_provider_);
   }
 
   void TearDown() override {}
 
+  void MockGetSessionToken() {
+    EXPECT_CALL(*credentials_provider_, GetSessionToken)
+        .WillOnce([=](AsyncContext<GetSessionTokenRequest,
+                                   GetSessionTokenResponse>& context) {
+          context.result = SuccessExecutionResult();
+          context.response = std::make_shared<GetSessionTokenResponse>();
+          context.response->session_token =
+              std::make_shared<std::string>("test_token_contents");
+          context.Finish();
+          return context.result;
+        });
+  }
+
   std::shared_ptr<MockCurlClient> http_client_;
   std::unique_ptr<AzureKmsClientProvider> client_;
+  std::shared_ptr<MockAuthTokenProvider> credentials_provider_;
 };
 
 TEST_F(AzureKmsClientProviderTest, NullKeyId) {
   auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_ciphertext(kCiphertext);
 
+  absl::Notification condition;
+
+  MockGetSessionToken();
+
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
-      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
+      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
+        EXPECT_THAT(context.result,
+                    ResultIs(FailureExecutionResult(
+                        SC_AZURE_KMS_CLIENT_PROVIDER_KEY_ID_NOT_FOUND)));
+        condition.Notify();
+      });
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AZURE_KMS_CLIENT_PROVIDER_KEY_ID_NOT_FOUND)));
+  EXPECT_SUCCESS(client_->Decrypt(context));
+  condition.WaitForNotification();
 }
 
 TEST_F(AzureKmsClientProviderTest, EmptyKeyArn) {
@@ -93,26 +118,42 @@ TEST_F(AzureKmsClientProviderTest, EmptyKeyArn) {
   kms_decrpyt_request->set_key_resource_name("");
   kms_decrpyt_request->set_ciphertext(kCiphertext);
 
+  absl::Notification condition;
+
+  MockGetSessionToken();
+
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
-      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
+      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
+        EXPECT_THAT(context.result,
+                    ResultIs(FailureExecutionResult(
+                        SC_AZURE_KMS_CLIENT_PROVIDER_KEY_ID_NOT_FOUND)));
+        condition.Notify();
+      });
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AZURE_KMS_CLIENT_PROVIDER_KEY_ID_NOT_FOUND)));
+  EXPECT_SUCCESS(client_->Decrypt(context));
+  condition.WaitForNotification();
 }
 
 TEST_F(AzureKmsClientProviderTest, NullCiphertext) {
   auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
   kms_decrpyt_request->set_key_resource_name(kKeyId);
 
+  absl::Notification condition;
+
+  MockGetSessionToken();
+
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
-      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
+      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
+        EXPECT_THAT(context.result,
+                    ResultIs(FailureExecutionResult(
+                        SC_AZURE_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
+        condition.Notify();
+      });
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AZURE_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
+  EXPECT_SUCCESS(client_->Decrypt(context));
+  condition.WaitForNotification();
 }
 
 TEST_F(AzureKmsClientProviderTest, EmptyCiphertext) {
@@ -120,13 +161,21 @@ TEST_F(AzureKmsClientProviderTest, EmptyCiphertext) {
   kms_decrpyt_request->set_key_resource_name(kKeyId);
   kms_decrpyt_request->set_ciphertext("");
 
+  absl::Notification condition;
+
+  MockGetSessionToken();
+
   AsyncContext<DecryptRequest, DecryptResponse> context(
       kms_decrpyt_request,
-      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
+      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
+        EXPECT_THAT(context.result,
+                    ResultIs(FailureExecutionResult(
+                        SC_AZURE_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
+        condition.Notify();
+      });
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AZURE_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
+  EXPECT_SUCCESS(client_->Decrypt(context));
+  condition.WaitForNotification();
 }
 
 TEST_F(AzureKmsClientProviderTest, SuccessToDecrypt) {
@@ -135,6 +184,8 @@ TEST_F(AzureKmsClientProviderTest, SuccessToDecrypt) {
   kms_decrpyt_request->set_ciphertext(kCiphertext);
   kms_decrpyt_request->set_account_identity(kServiceAccount);
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
+
+  MockGetSessionToken();
 
   EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();
@@ -174,11 +225,41 @@ TEST_F(AzureKmsClientProviderTest, FailedToDecrypt) {
   kms_decrpyt_request->set_account_identity(kServiceAccount);
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
 
+  MockGetSessionToken();
+
   EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = FailureExecutionResult(SC_UNKNOWN);
     http_context.Finish();
-    return FailureExecutionResult(SC_UNKNOWN);
+    return SuccessExecutionResult();
   });
+
+  absl::Notification condition;
+  AsyncContext<DecryptRequest, DecryptResponse> context(
+      kms_decrpyt_request,
+      [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {
+        EXPECT_THAT(context.result,
+                    ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+        condition.Notify();
+      });
+
+  EXPECT_SUCCESS(client_->Decrypt(context));
+  condition.WaitForNotification();
+}
+
+TEST_F(AzureKmsClientProviderTest, FailedToGetAuthToken) {
+  auto kms_decrpyt_request = std::make_shared<DecryptRequest>();
+  kms_decrpyt_request->set_key_resource_name(kKeyId);
+  kms_decrpyt_request->set_ciphertext(kCiphertext);
+  kms_decrpyt_request->set_account_identity(kServiceAccount);
+  kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
+
+  EXPECT_CALL(*credentials_provider_, GetSessionToken)
+      .WillOnce([=](AsyncContext<GetSessionTokenRequest,
+                                 GetSessionTokenResponse>& context) {
+        context.result = FailureExecutionResult(SC_UNKNOWN);
+        context.Finish();
+        return context.result;
+      });
 
   absl::Notification condition;
   AsyncContext<DecryptRequest, DecryptResponse> context(
@@ -191,7 +272,6 @@ TEST_F(AzureKmsClientProviderTest, FailedToDecrypt) {
 
   EXPECT_THAT(client_->Decrypt(context),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-
   condition.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

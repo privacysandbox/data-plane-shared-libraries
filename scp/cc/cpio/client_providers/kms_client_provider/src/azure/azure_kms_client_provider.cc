@@ -16,11 +16,14 @@
 
 #include "azure_kms_client_provider.h"
 
+#include <utility>
+
 #include <nlohmann/json.hpp>
 
+#include "absl/functional/bind_front.h"
 #include "absl/log/check.h"
-#include "absl/strings/escaping.h"
 #include "cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "public/cpio/interface/kms_client/type_def.h"
 
@@ -63,6 +66,9 @@ static constexpr char kAzureKmsClientProvider[] = "AzureKmsClientProvider";
 constexpr char kKMSUnwrapPath[] =
     "https://127.0.0.1:8000/app/unwrapKey?fmt=tink";
 
+constexpr char kAuthorizationHeaderKey[] = "Authorization";
+constexpr char kBearerTokenPrefix[] = "Bearer ";
+
 ExecutionResult AzureKmsClientProvider::Init() noexcept {
   return SuccessExecutionResult();
 }
@@ -78,6 +84,33 @@ ExecutionResult AzureKmsClientProvider::Stop() noexcept {
 ExecutionResult AzureKmsClientProvider::Decrypt(
     core::AsyncContext<DecryptRequest, DecryptResponse>&
         decrypt_context) noexcept {
+  auto get_credentials_request = std::make_shared<GetSessionTokenRequest>();
+  AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
+      get_token_context(
+          std::move(get_credentials_request),
+          absl::bind_front(
+              &AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt,
+              this, decrypt_context),
+          decrypt_context);
+
+  return auth_token_provider_->GetSessionToken(get_token_context);
+}
+
+void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
+    core::AsyncContext<DecryptRequest, DecryptResponse>& decrypt_context,
+    core::AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
+        get_token_context) noexcept {
+  if (!get_token_context.result.Successful()) {
+    SCP_ERROR_CONTEXT(kAzureKmsClientProvider, decrypt_context,
+                      get_token_context.result,
+                      "Failed to get the access token.");
+    decrypt_context.result = get_token_context.result;
+    decrypt_context.Finish();
+    return;
+  }
+
+  const auto& access_token = *get_token_context.response->session_token;
+
   const auto& ciphertext = decrypt_context.request->ciphertext();
   if (ciphertext.empty()) {
     auto execution_result = FailureExecutionResult(
@@ -87,7 +120,7 @@ ExecutionResult AzureKmsClientProvider::Decrypt(
                       "Failed to get cipher text from decryption request.");
     decrypt_context.result = execution_result;
     decrypt_context.Finish();
-    return decrypt_context.result;
+    return;
   }
 
   // Check that there is an ID for the key to decrypt with
@@ -100,7 +133,7 @@ ExecutionResult AzureKmsClientProvider::Decrypt(
                       "Failed to get Key ID from decryption request.");
     decrypt_context.result = execution_result;
     decrypt_context.Finish();
-    return decrypt_context.result;
+    return;
   }
 
   AsyncContext<HttpRequest, HttpResponse> http_context;
@@ -119,6 +152,10 @@ ExecutionResult AzureKmsClientProvider::Decrypt(
   payload["attestation"] = report;
 
   http_context.request->body = core::BytesBuffer(nlohmann::to_string(payload));
+  http_context.request->headers = std::make_shared<core::HttpHeaders>();
+  http_context.request->headers->insert(
+      {std::string(kAuthorizationHeaderKey),
+       absl::StrCat(kBearerTokenPrefix, access_token)});
 
   http_context.callback = bind(&AzureKmsClientProvider::OnDecryptCallback, this,
                                decrypt_context, _1);
@@ -131,10 +168,8 @@ ExecutionResult AzureKmsClientProvider::Decrypt(
 
     decrypt_context.result = execution_result;
     decrypt_context.Finish();
-    return execution_result;
+    return;
   }
-
-  return SuccessExecutionResult();
 }
 
 void AzureKmsClientProvider::OnDecryptCallback(
@@ -144,7 +179,6 @@ void AzureKmsClientProvider::OnDecryptCallback(
     SCP_ERROR_CONTEXT(kAzureKmsClientProvider, decrypt_context,
                       http_client_context.result,
                       "Failed to decrypt wrapped key using Azure KMS");
-
     decrypt_context.result = http_client_context.result;
     decrypt_context.Finish();
     return;
@@ -175,7 +209,11 @@ shared_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
   auto execution_result =
       GlobalCpio::GetGlobalCpio()->GetHttpClient(http_client);
   CHECK(execution_result.Successful()) << "failed to get http client";
-  return make_shared<AzureKmsClientProvider>(http_client);
+  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider;
+  execution_result =
+      GlobalCpio::GetGlobalCpio()->GetAuthTokenProvider(auth_token_provider);
+  CHECK(execution_result.Successful()) << "failed to get auth token provider";
+  return make_shared<AzureKmsClientProvider>(http_client, auth_token_provider);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers
