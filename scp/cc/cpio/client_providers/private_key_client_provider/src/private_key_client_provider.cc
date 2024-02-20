@@ -173,10 +173,9 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
       return;
     }
     // For ListByKeyId, store the key IDs no matter the fetching failed or not.
-    list_keys_status->set_mutex.lock();
+    absl::MutexLock lock(&list_keys_status->set_mutex);
     list_keys_status->key_id_set.insert(
         *fetch_private_key_context.request->key_id);
-    list_keys_status->set_mutex.unlock();
   } else {
     list_keys_status->result_list[uri_index].fetch_result = execution_result;
   }
@@ -198,9 +197,8 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
   for (const auto& encryption_key :
        fetch_private_key_context.response->encryption_keys) {
     if (list_keys_status->listing_method == ListingMethod::kByMaxAge) {
-      list_keys_status->set_mutex.lock();
+      absl::MutexLock lock(&list_keys_status->set_mutex);
       list_keys_status->key_id_set.insert(*encryption_key->key_id);
-      list_keys_status->set_mutex.unlock();
     }
     DecryptRequest kms_decrypt_request;
     execution_result = PrivateKeyClientUtils::GetKmsDecryptRequest(

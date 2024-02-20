@@ -76,11 +76,10 @@ void StatusBuilder::ConditionallyLog(const absl::Status& status) const {
               counts_by_file_and_line ABSL_GUARDED_BY(mutex);
         };
         static auto* log_every_n_sites = new LogSites();
-        log_every_n_sites->mutex.Lock();
+        absl::MutexLock lock(&log_every_n_sites->mutex);
         const uint count =
             log_every_n_sites
                 ->counts_by_file_and_line[{loc_.file_name(), loc_.line()}]++;
-        log_every_n_sites->mutex.Unlock();
         if (count % rep_->n != 0) {
           return;
         }

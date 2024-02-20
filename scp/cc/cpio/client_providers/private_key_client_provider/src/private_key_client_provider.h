@@ -18,12 +18,12 @@
 #define CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_CLIENT_PROVIDER_SRC_PRIVATE_KEY_CLIENT_PROVIDER_H_
 
 #include <memory>
-#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/container/btree_set.h"
+#include "absl/synchronization/mutex.h"
 #include "google/protobuf/any.pb.h"
 #include "scp/cc/core/interface/async_context.h"
 #include "scp/cc/core/interface/http_client_interface.h"
@@ -81,7 +81,7 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
     /// List of ExecutionResult.
     absl::btree_set<std::string> key_id_set;
     // Mutex to make sure only one thread accessing the key_id_set.
-    std::mutex set_mutex;
+    absl::Mutex set_mutex;
 
     ListingMethod listing_method = ListingMethod::kByKeyId;
 
