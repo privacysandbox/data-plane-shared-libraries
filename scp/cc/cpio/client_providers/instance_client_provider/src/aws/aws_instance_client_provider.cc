@@ -26,7 +26,7 @@
 
 #include "absl/container/flat_hash_set.h"
 #include "absl/functional/bind_front.h"
-#include "absl/strings/str_format.h"
+#include "absl/strings/substitute.h"
 #include "scp/cc/core/async_executor/src/aws/aws_async_executor.h"
 #include "scp/cc/core/common/global_logger/src/global_logger.h"
 #include "scp/cc/core/common/uuid/src/uuid.h"
@@ -100,7 +100,7 @@ constexpr char kAccountIdKey[] = "accountId";
 constexpr char kInstanceIdKey[] = "instanceId";
 constexpr char kRegionKey[] = "region";
 constexpr char kAwsInstanceResourceNameFormat[] =
-    "arn:aws:ec2:%s:%s:instance/%s";
+    "arn:aws:ec2:$0:$1:instance/$2";
 constexpr char kDefaultRegionCode[] = "us-east-1";
 
 // Returns a pair of iterators - one to the beginning, one to the end.
@@ -308,10 +308,10 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
   }
 
   auto resource_name =
-      absl::StrFormat(kAwsInstanceResourceNameFormat,
-                      json_response[kRegionKey].get<std::string>(),
-                      json_response[kAccountIdKey].get<std::string>(),
-                      json_response[kInstanceIdKey].get<std::string>());
+      absl::Substitute(kAwsInstanceResourceNameFormat,
+                       json_response[kRegionKey].get<std::string>(),
+                       json_response[kAccountIdKey].get<std::string>(),
+                       json_response[kInstanceIdKey].get<std::string>());
 
   get_resource_name_context.response =
       std::make_shared<GetCurrentInstanceResourceNameResponse>();

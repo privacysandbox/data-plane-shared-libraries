@@ -25,7 +25,6 @@
 
 #include <google/protobuf/util/time_util.h>
 
-#include "absl/strings/str_format.h"
 #include "google/cloud/options.h"
 #include "google/cloud/status_or.h"
 #include "google/cloud/storage/client.h"

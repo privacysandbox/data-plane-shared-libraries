@@ -22,7 +22,6 @@
 #include <utility>
 
 #include "absl/random/random.h"
-#include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "opentelemetry/sdk/trace/id_generator.h"
 #include "opentelemetry/sdk/trace/random_id_generator_factory.h"

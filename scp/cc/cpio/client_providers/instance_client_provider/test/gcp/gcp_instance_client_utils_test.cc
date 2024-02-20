@@ -19,6 +19,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "absl/strings/substitute.h"
 #include "scp/cc/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "scp/cc/cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
@@ -50,7 +51,7 @@ constexpr char kZoneIdMock[] = "us-central1-c";
 constexpr char kProjectIdMock[] = "123456789";
 
 constexpr char kResourceManagerUriFormat[] =
-    "https://%scloudresourcemanager.googleapis.com/v3/tagBindings";
+    "https://$0cloudresourcemanager.googleapis.com/v3/tagBindings";
 }  // namespace
 
 namespace google::scp::cpio::client_providers::test {
@@ -162,7 +163,8 @@ class GcpInstanceClientUtilsTestIII
 TEST_P(GcpInstanceClientUtilsTestIII, CreateRMListTagsUrl) {
   auto resource_name = GetResourceName();
 
-  auto path = absl::StrFormat(kResourceManagerUriFormat, GetResourceLocation());
+  auto path =
+      absl::Substitute(kResourceManagerUriFormat, GetResourceLocation());
   EXPECT_EQ(GcpInstanceClientUtils::CreateRMListTagsUrl(resource_name), path);
 }
 

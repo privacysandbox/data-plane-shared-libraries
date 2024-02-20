@@ -27,7 +27,6 @@
 
 #include "absl/container/btree_map.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/substitute.h"
 
 namespace {

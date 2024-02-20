@@ -21,7 +21,6 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/absl_log.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "absl/synchronization/mutex.h"
 #include "src/cpp/util/status_macro/examine_stack.h"
 
@@ -49,7 +48,7 @@ absl::Status StatusBuilder::JoinMessageToStatus(absl::Status s,
   if (style == MessageJoinStyle::kAnnotate) {
     std::string formatted_msg{msg};
     if (!s.message().empty()) {
-      new_msg = absl::StrFormat("%s; %s", s.message(), formatted_msg);
+      new_msg = absl::StrCat(s.message(), "; ", formatted_msg);
     } else {
       new_msg = formatted_msg;
     }

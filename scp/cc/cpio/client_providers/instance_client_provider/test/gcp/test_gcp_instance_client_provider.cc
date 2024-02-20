@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "absl/strings/str_format.h"
+#include "absl/strings/substitute.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 
 using google::scp::core::ExecutionResult;
@@ -28,7 +28,7 @@ using google::scp::core::SuccessExecutionResult;
 
 namespace {
 constexpr char kGcpResourceNameFormat[] =
-    R"(//compute.googleapis.com/projects/%s/zones/%s/instances/%s)";
+    R"(//compute.googleapis.com/projects/$0/zones/$1/instances/$2)";
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
@@ -37,8 +37,8 @@ ExecutionResult
 TestGcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   resource_name =
-      absl::StrFormat(kGcpResourceNameFormat, test_options_.project_id,
-                      test_options_.zone, test_options_.instance_id);
+      absl::Substitute(kGcpResourceNameFormat, test_options_.project_id,
+                       test_options_.zone, test_options_.instance_id);
   return SuccessExecutionResult();
 }
 

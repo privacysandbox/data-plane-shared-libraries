@@ -23,8 +23,8 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/substitute.h"
 #include "scp/cc/core/common/uuid/src/uuid.h"
 #include "scp/cc/core/interface/http_types.h"
 #include "scp/cc/public/core/interface/execution_result.h"
@@ -56,7 +56,7 @@ constexpr char kInstanceResourceNamePrefix[] = R"(//compute.googleapis.com/)";
 // For more information, see:
 // https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing#listing_tags
 constexpr char kResourceManagerUriFormat[] =
-    "https://%scloudresourcemanager.googleapis.com/v3/tagBindings";
+    "https://$0cloudresourcemanager.googleapis.com/v3/tagBindings";
 constexpr char kLocationsTag[] = "locations";
 constexpr char kZonesTag[] = "zones";
 constexpr char kRegionsTag[] = "regions";
@@ -164,11 +164,11 @@ std::string GcpInstanceClientUtils::CreateRMListTagsUrl(
     if (part == kZonesTag || part == kLocationsTag || part == kRegionsTag) {
       const auto& location = splits.at(i + 1);
 
-      return absl::StrFormat(kResourceManagerUriFormat,
-                             absl::StrCat(location, "-"));
+      return absl::Substitute(kResourceManagerUriFormat,
+                              absl::StrCat(location, "-"));
     }
     i++;
   }
-  return absl::StrFormat(kResourceManagerUriFormat, "");
+  return absl::Substitute(kResourceManagerUriFormat, "");
 }
 }  // namespace google::scp::cpio::client_providers

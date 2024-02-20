@@ -20,7 +20,7 @@
 #include <string>
 #include <utility>
 
-#include "absl/strings/str_format.h"
+#include "absl/strings/substitute.h"
 #include "google/cloud/secretmanager/secret_manager_client.h"
 #include "google/cloud/secretmanager/secret_manager_connection.h"
 #include "scp/cc/core/common/uuid/src/uuid.h"
@@ -57,7 +57,7 @@ using google::scp::cpio::common::GcpUtils;
 static constexpr char kGcpParameterClientProvider[] =
     "GcpParameterClientProvider";
 static constexpr char kGcpSecretNameFormatString[] =
-    "projects/%s/secrets/%s/versions/latest";
+    "projects/$0/secrets/$1/versions/latest";
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult GcpParameterClientProvider::Init() noexcept {
@@ -117,7 +117,7 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
   }
 
   std::string name =
-      absl::StrFormat(kGcpSecretNameFormatString, project_id_, secret);
+      absl::Substitute(kGcpSecretNameFormatString, project_id_, secret);
 
   AccessSecretVersionRequest access_secret_request;
   access_secret_request.set_name(name);

@@ -29,8 +29,8 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/substitute.h"
 #include "scp/cc/core/common/uuid/src/uuid.h"
 #include "scp/cc/core/interface/async_context.h"
 #include "scp/cc/cpio/common/src/cpio_utils.h"
@@ -93,15 +93,15 @@ constexpr char kMetadataFlavorHeaderKey[] = "Metadata-Flavor";
 constexpr char kMetadataFlavorHeaderValue[] = "Google";
 
 constexpr char kGcpInstanceRNFormatString[] =
-    "//compute.googleapis.com/projects/%s/zones/%s/instances/%s";
+    "//compute.googleapis.com/projects/$0/zones/$1/instances/$2";
 
 constexpr char kInstanceResourceNamePrefix[] = "//compute.googleapis.com/";
 constexpr char kGcpInstanceGetUrlPrefix[] =
     "https://compute.googleapis.com/compute/v1/";
 constexpr char kListInstancesFormatString[] =
-    "https://compute.googleapis.com/compute/v1/projects/%s/aggregated/"
-    "instances?filter=(labels.environment=%s)";
-constexpr char kQueryWithPageTokenFormatString[] = "&pageToken=%s";
+    "https://compute.googleapis.com/compute/v1/projects/$0/aggregated/"
+    "instances?filter=(labels.environment=$1)";
+constexpr char kQueryWithPageTokenFormatString[] = "&pageToken=$0";
 constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
 constexpr char kInstanceDetailsJsonIdKey[] = "id";
@@ -342,7 +342,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
         std::make_shared<GetCurrentInstanceResourceNameResponse>();
     // The instance resource name is
     // `projects/PROJECT_ID/zones/ZONE_ID/instances/INSTANCE_ID`.
-    auto resource_name = absl::StrFormat(
+    auto resource_name = absl::Substitute(
         kGcpInstanceRNFormatString, instance_resource_name_tracker->project_id,
         instance_resource_name_tracker->instance_zone,
         instance_resource_name_tracker->instance_id);
@@ -768,12 +768,12 @@ void GcpInstanceClientProvider::OnGetSessionTokenForListInstanceDetailsCallback(
   auto environment = get_instance_details_context.request->environment();
   auto project_id = get_instance_details_context.request->project_id();
   std::string uri =
-      absl::StrFormat(kListInstancesFormatString, project_id, environment);
+      absl::Substitute(kListInstancesFormatString, project_id, environment);
   if (get_instance_details_context.request->page_token().size() > 0) {
     absl::StrAppend(
         &uri,
-        absl::StrFormat(kQueryWithPageTokenFormatString,
-                        get_instance_details_context.request->page_token()));
+        absl::Substitute(kQueryWithPageTokenFormatString,
+                         get_instance_details_context.request->page_token()));
   }
 
   auto signed_request = std::make_shared<HttpRequest>();

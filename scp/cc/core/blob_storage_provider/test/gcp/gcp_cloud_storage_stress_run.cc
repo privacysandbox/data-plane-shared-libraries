@@ -16,7 +16,6 @@
 #include <string>
 
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "google/cloud/storage/client.h"
 #include "scp/cc/core/async_executor/src/async_executor.h"
 #include "scp/cc/core/blob_storage_provider/src/gcp/gcp_cloud_storage.h"

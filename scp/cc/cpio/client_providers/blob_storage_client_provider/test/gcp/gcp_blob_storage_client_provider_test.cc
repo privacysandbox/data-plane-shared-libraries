@@ -23,7 +23,7 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
+#include "absl/strings/substitute.h"
 #include "absl/synchronization/mutex.h"
 #include "google/cloud/status.h"
 #include "google/cloud/storage/client.h"
@@ -481,17 +481,17 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsNoPrefix) {
   EXPECT_CALL(*mock_client_,
               ListObjects(ListObjectsRequestEqualNoOffset(kBucketName)))
       .WillOnce(Return(ByMove(ListObjectsResponse::FromHttpResponse(
-          absl::StrFormat(R"""({
+          absl::Substitute(R"""({
             "items": [
               {
-                "name": "%s"
+                "name": "$0"
               },
               {
-                "name": "%s"
+                "name": "$1"
               }
             ]
           })""",
-                          kBlobName1, kBlobName2)))));
+                           kBlobName1, kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);
@@ -562,17 +562,17 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithPrefix) {
   EXPECT_CALL(*mock_client_, ListObjects(ListObjectsRequestEqualNoOffset(
                                  kBucketName, "blob_", kDefaultMaxPageSize)))
       .WillOnce(Return(ByMove(ListObjectsResponse::FromHttpResponse(
-          absl::StrFormat(R"""({
+          absl::Substitute(R"""({
             "items": [
               {
-                "name": "%s"
+                "name": "$0"
               },
               {
-                "name": "%s"
+                "name": "$1"
               }
             ]
           })""",
-                          kBlobName1, kBlobName2)))));
+                           kBlobName1, kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);
@@ -641,15 +641,15 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithMarker) {
   EXPECT_CALL(*mock_client_,
               ListObjects(ListObjectsRequestEqualWithOffset(
                   kBucketName, "blob_", kDefaultMaxPageSize, kBlobName1)))
-      .WillOnce(Return(ByMove(
-          ListObjectsResponse::FromHttpResponse(absl::StrFormat(R"""({
+      .WillOnce(Return(ByMove(ListObjectsResponse::FromHttpResponse(
+          absl::Substitute(R"""({
             "items": [
               {
-                "name": "%s"
+                "name": "$0"
               }
             ]
           })""",
-                                                                kBlobName2)))));
+                           kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);
@@ -685,17 +685,17 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithMarkerSkipsFirstObject) {
               ListObjects(ListObjectsRequestEqualWithOffset(
                   kBucketName, "blob_", kDefaultMaxPageSize, kBlobName1)))
       .WillOnce(Return(ByMove(ListObjectsResponse::FromHttpResponse(
-          absl::StrFormat(R"""({
+          absl::Substitute(R"""({
             "items": [
               {
-                "name": "%s"
+                "name": "$0"
               },
               {
-                "name": "%s"
+                "name": "$1"
               }
             ]
           })""",
-                          kBlobName1, kBlobName2)))));
+                           kBlobName1, kBlobName2)))));
 
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);
@@ -745,14 +745,14 @@ TEST_F(GcpBlobStorageClientProviderTest,
     if (!items_str.empty()) {
       absl::StrAppend(&items_str, ",");
     }
-    absl::StrAppendFormat(&items_str, R"""({"name": "%s"})""",
-                          absl::StrCat("blob_", i));
+    absl::StrAppend(&items_str, absl::Substitute(R"""({"name": "$0"})""",
+                                                 absl::StrCat("blob_", i)));
   }
 
   EXPECT_CALL(*mock_client_, ListObjects(ListObjectsRequestEqualNoOffset(
                                  kBucketName, "blob_", page_size)))
       .WillOnce(Return(ByMove(ListObjectsResponse::FromHttpResponse(
-          absl::StrFormat(R"""({"items": [%s]})""", items_str)))));
+          absl::Substitute(R"""({"items": [$0]})""", items_str)))));
 
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);

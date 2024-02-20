@@ -23,7 +23,6 @@
 #include <string_view>
 #include <vector>
 
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 
@@ -357,10 +356,10 @@ std::string ExecutionUtils::ExtractMessage(
   int line;
   // Sometimes for multi-line errors there is no line number.
   if (!message->GetLineNumber(isolate->GetCurrentContext()).To(&line)) {
-    return absl::StrFormat("%s", exception_msg);
+    return exception_msg;
   }
 
-  return absl::StrFormat("line %i: %s", line, exception_msg);
+  return absl::StrCat("line ", line, ": ", exception_msg);
 }
 
 v8::Local<v8::Array> ExecutionUtils::ParseAsJsInput(

@@ -21,8 +21,8 @@
 
 #include "absl/log/log.h"
 #include "absl/strings/escaping.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/substitute.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "proto/hpke.pb.h"
@@ -55,15 +55,15 @@ using ::google::scp::cpio::Region;
 namespace privacy_sandbox::server_common {
 namespace {
 
-static constexpr std::string_view kKeyFetchFailMessage =
-    "GetEncryptedPrivateKey call failed (key IDs: %s, status_code: %s)";
+constexpr std::string_view kKeyFetchFailMessage =
+    "GetEncryptedPrivateKey call failed (key IDs: $0, status_code: $1)";
 
 absl::Status HandleFailure(
     const google::protobuf::RepeatedPtrField<std::string>& key_ids,
     google::scp::core::StatusCode status_code) noexcept {
   std::string key_ids_str = absl::StrJoin(key_ids, ", ");
-  const std::string error = absl::StrFormat(kKeyFetchFailMessage, key_ids_str,
-                                            GetErrorMessage(status_code));
+  const std::string error = absl::Substitute(kKeyFetchFailMessage, key_ids_str,
+                                             GetErrorMessage(status_code));
   VLOG(1) << error;
   return absl::UnavailableError(error);
 }
@@ -136,9 +136,9 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
         private_keys_map_.insert_or_assign(key.key_id, std::move(key));
         ++num_priv_keys_added;
         if (VLOG_IS_ON(2)) {
-          VLOG(2) << absl::StrFormat(
-              "Caching private key: (KMS id: %s, OHTTP ID: %s)",
-              private_key.key_id(), key.key_id);
+          VLOG(2) << absl::StrCat(
+              "Caching private key: (KMS id: ", private_key.key_id(),
+              ", OHTTP ID: ", key.key_id, ")");
         }
       }
       KeyFetchResultCounter::SetNumPrivateKeysParsedOnRecentFetch(

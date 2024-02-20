@@ -28,7 +28,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/strings/str_format.h"
 #include "absl/synchronization/notification.h"
 #include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/interface/roma.h"
@@ -52,7 +51,7 @@ static void LoadCode(std::unique_ptr<RomaService<>>& roma_service,
     )JS_CODE";
 
   const std::string bloat(code_bloat_size, 'A');
-  code_obj->js += absl::StrFormat(R"(bloat = "%s";)", bloat);
+  code_obj->js += absl::StrCat("bloat = \"", bloat, "\";");
 
   absl::Notification load_finished;
 
@@ -101,7 +100,7 @@ static void RunLoad(std::unique_ptr<RomaService<>>& roma_service,
 
   const std::string input_bloat(input_size, 'A');
   auto input =
-      std::make_shared<std::string>(absl::StrFormat(R"("%s")", input_bloat));
+      std::make_shared<std::string>(absl::StrCat("\"", input_bloat, "\""));
 
   for (int i = 0; i < number_of_threads; i++) {
     exec_times->at(i).reserve(requests_per_thread);

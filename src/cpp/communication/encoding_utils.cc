@@ -21,7 +21,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/str_format.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "quiche/common/quiche_data_reader.h"
 #include "quiche/common/quiche_data_writer.h"
@@ -35,10 +35,11 @@ absl::StatusOr<std::string> EncodeResponsePayload(
                                   kCompressedDataSizeBytes +
                                   compressed_data.size();
   if (encoded_data_size < min_required_payload_size) {
-    const std::string error = absl::StrFormat(
+    const std::string error = absl::StrCat(
         "Payload too large to be encoded to the given size: "
-        "(encoded_data_size: %d, minimum size required: %d)",
-        encoded_data_size, min_required_payload_size);
+        "(encoded_data_size: ",
+        encoded_data_size,
+        ", minimum size required: ", min_required_payload_size, ")");
     return absl::InternalError(error);
   }
 

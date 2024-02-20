@@ -23,7 +23,6 @@
 #include <string>
 #include <type_traits>
 
-#include "absl/strings/str_format.h"
 #include "scp/cc/core/common/proto/common.pb.h"
 #include "scp/cc/public/core/interface/errors.h"
 #include "scp/cc/public/core/interface/execution_result.h"
@@ -74,12 +73,10 @@ std::string ToString(ExecutionStatus status);
 // EXPECT_THAT(result, ResultIs(expected_result));
 MATCHER_P(ResultIs, expected_result, "") {
   auto execution_result_to_str = [](ExecutionResult result) {
-    return absl::StrFormat(
-        "ExecutionStatus: %s\n\t"
-        "StatusCode: %d\n\t"
-        "ErrorMessage: \"%s\"\n",
-        internal::ToString(result.status), result.status_code,
-        GetErrorMessage(result.status_code));
+    return absl::StrCat("ExecutionStatus: ", internal::ToString(result.status),
+                        "\n\tStatusCode: ", result.status_code,
+                        "\n\tErrorMessage: \"",
+                        GetErrorMessage(result.status_code), "\"\n");
   };
   constexpr bool is_proto = std::is_base_of_v<
       google::scp::core::common::proto::ExecutionResult,
@@ -89,34 +86,30 @@ MATCHER_P(ResultIs, expected_result, "") {
                     std::remove_cv_t<std::remove_reference_t<decltype(arg)>>>) {
     // If arg is an ExecutionResult - directly compare.
     if (arg != expected_result) {
-      *result_listener << absl::StrFormat(
-          "\nExpected result to have:\n\t%s"
-          "Actual result has:\n\t%s",
-          execution_result_to_str(expected_result),
-          execution_result_to_str(arg));
+      *result_listener << absl::StrCat("\nExpected result to have:\n\t",
+                                       execution_result_to_str(expected_result),
+                                       "Actual result has:\n\t",
+                                       execution_result_to_str(arg));
       return false;
     }
   } else if constexpr (is_proto) {
     // If arg is an ExecutionResult proto, convert and compare.
     google::scp::core::ExecutionResult non_proto_execution_result(arg);
     if (non_proto_execution_result != expected_result) {
-      *result_listener << absl::StrFormat(
-          "\nExpected result to have:\n\t%s"
-          "Actual result has:\n\t%s"
-          "Actual result as a proto:\n%s",
-          execution_result_to_str(expected_result),
+      *result_listener << absl::StrCat(
+          "\nExpected result to have:\n\t",
+          execution_result_to_str(expected_result), "Actual result has:\n\t",
           execution_result_to_str(non_proto_execution_result),
-          arg.DebugString());
+          "Actual result as a proto:\n", arg.DebugString());
       return false;
     }
   } else {
     // arg is an ExecutionResultOr - call ::result() and compare.
     if (arg.result() != expected_result) {
-      *result_listener << absl::StrFormat(
-          "\nExpected result to have:\n\t%s"
-          "Actual result has:\n\t%s",
-          execution_result_to_str(expected_result),
-          execution_result_to_str(arg.result()));
+      *result_listener << absl::StrCat("\nExpected result to have:\n\t",
+                                       execution_result_to_str(expected_result),
+                                       "Actual result has:\n\t",
+                                       execution_result_to_str(arg.result()));
       return false;
     }
   }

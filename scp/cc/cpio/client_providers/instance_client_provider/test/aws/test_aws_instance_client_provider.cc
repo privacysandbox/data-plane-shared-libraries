@@ -20,7 +20,7 @@
 #include <string_view>
 #include <vector>
 
-#include "absl/strings/str_format.h"
+#include "absl/strings/substitute.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 
 using google::scp::core::ExecutionResult;
@@ -29,7 +29,7 @@ using google::scp::core::SuccessExecutionResult;
 
 namespace {
 constexpr std::string_view kAwsResourceNameFormat =
-    R"(arn:aws:ec2:%s:%s:instance/%s)";
+    R"(arn:aws:ec2:$0:$1:instance/$2)";
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
@@ -38,8 +38,8 @@ ExecutionResult
 TestAwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   resource_name =
-      absl::StrFormat(kAwsResourceNameFormat, test_options_.region,
-                      test_options_.project_id, test_options_.instance_id);
+      absl::Substitute(kAwsResourceNameFormat, test_options_.region,
+                       test_options_.project_id, test_options_.instance_id);
   return SuccessExecutionResult();
 }
 

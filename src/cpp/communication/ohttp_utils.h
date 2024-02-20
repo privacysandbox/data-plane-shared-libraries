@@ -22,7 +22,6 @@
 #include <utility>
 
 #include "absl/status/statusor.h"
-#include "absl/strings/str_format.h"
 #include "quiche/oblivious_http/buffers/oblivious_http_request.h"
 #include "quiche/oblivious_http/common/oblivious_http_header_key_config.h"
 #include "quiche/oblivious_http/oblivious_http_gateway.h"

@@ -20,7 +20,7 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "absl/strings/str_format.h"
+#include "absl/strings/substitute.h"
 #include "scp/cc/core/common/uuid/src/uuid.h"
 #include "scp/cc/core/interface/async_context.h"
 #include "scp/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
@@ -86,9 +86,9 @@ using grpc::StatusCode;
 using grpc::StubOptions;
 
 static constexpr char kGcpQueueClientProvider[] = "GcpQueueClientProvider";
-static constexpr char kGcpTopicFormatString[] = "projects/%s/topics/%s";
+static constexpr char kGcpTopicFormatString[] = "projects/$0/topics/$1";
 static constexpr char kGcpSubscriptionFormatString[] =
-    "projects/%s/subscriptions/%s";
+    "projects/$0/subscriptions/$1";
 static constexpr uint8_t kMaxNumberOfMessagesReceived = 1;
 static constexpr uint16_t kMaxAckDeadlineSeconds = 600;
 
@@ -137,11 +137,11 @@ ExecutionResult GcpQueueClientProvider::Run() noexcept {
     return execution_result;
   }
 
-  topic_name_ = absl::StrFormat(kGcpTopicFormatString, project_id_,
-                                queue_client_options_.queue_name);
+  topic_name_ = absl::Substitute(kGcpTopicFormatString, project_id_,
+                                 queue_client_options_.queue_name);
   subscription_name_ =
-      absl::StrFormat(kGcpSubscriptionFormatString, project_id_,
-                      queue_client_options_.queue_name);
+      absl::Substitute(kGcpSubscriptionFormatString, project_id_,
+                       queue_client_options_.queue_name);
 
   return SuccessExecutionResult();
 }

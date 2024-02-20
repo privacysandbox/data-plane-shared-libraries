@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-#include "absl/strings/str_format.h"
+#include "absl/strings/str_cat.h"
 #include "google/cloud/options.h"
 #include "google/cloud/status_or.h"
 #include "google/cloud/storage/client.h"
@@ -264,10 +264,10 @@ void GcpCloudStorageClient::ListBlobAsync(
     if (!object_metadata) {
       SCP_DEBUG_CONTEXT(
           kGcpCloudStorageProvider, list_blobs_context,
-          absl::StrFormat("GcpCloudStorageProvider list blobs request failed. "
-                          "Error code: %d, message: %s",
-                          object_metadata.status().code(),
-                          object_metadata.status().message()));
+          absl::StrCat("GcpCloudStorageProvider list blobs request failed. "
+                       "Error code: ",
+                       object_metadata.status().code(),
+                       "message: ", object_metadata.status().message()));
       auto execution_result =
           GcpCloudStorageUtils::ConvertCloudStorageErrorToExecutionResult(
               object_metadata.status().code());

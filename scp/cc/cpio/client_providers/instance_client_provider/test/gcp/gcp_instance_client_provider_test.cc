@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/substitute.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
 #include "scp/cc/core/curl_client/mock/mock_curl_client.h"
@@ -93,7 +94,7 @@ constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
 
 constexpr char kResourceManagerUriFormat[] =
-    "https://%scloudresourcemanager.googleapis.com/v3/tagBindings";
+    "https://$0cloudresourcemanager.googleapis.com/v3/tagBindings";
 constexpr char kParentParameter[] = "parent=";
 constexpr char kPageSizeSetting[] = "pageSize=300";
 
@@ -114,8 +115,8 @@ class GcpInstanceClientProviderTest : public testing::Test {
         std::make_shared<GetInstanceDetailsByResourceNameRequest>();
     get_details_request_->set_instance_resource_name(kInstanceResourceName);
 
-    get_tag_path_mock_ = absl::StrFormat(kResourceManagerUriFormat,
-                                         absl::StrCat(kZoneMock, "-"));
+    get_tag_path_mock_ = absl::Substitute(kResourceManagerUriFormat,
+                                          absl::StrCat(kZoneMock, "-"));
     get_tags_request_ = std::make_shared<GetTagsByResourceNameRequest>();
     get_tags_request_->set_resource_name(kInstanceResourceName);
   }

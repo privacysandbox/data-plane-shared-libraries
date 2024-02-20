@@ -24,8 +24,8 @@
 #include "absl/log/log.h"
 #include "absl/random/distributions.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/substitute.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "scp/cc/core/interface/errors.h"
@@ -51,11 +51,13 @@ using ::google::scp::cpio::PublicKeyClientOptions;
 using ::google::scp::cpio::PublicPrivateKeyPairId;
 using ::google::scp::cpio::Timestamp;
 
-static constexpr std::string_view kKeyFetchFailMessage =
-    "ListPublicKeys call failed (status_code: %s)";
-static constexpr std::string_view kKeyFetchSuccessMessage =
-    "Successfully fetched latest public keys: (key IDs: [%s], expiration time: "
-    "%s)";
+namespace {
+constexpr std::string_view kKeyFetchFailMessage =
+    "ListPublicKeys call failed (status_code: $0)";
+constexpr std::string_view kKeyFetchSuccessMessage =
+    "Successfully fetched latest public keys: (key IDs: [$0], expiration time: "
+    "$1)";
+}  // namespace
 
 PublicKeyFetcher::PublicKeyFetcher(
     absl::flat_hash_map<
@@ -107,7 +109,7 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                 platform, num_public_keys);
             KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
                 platform, num_public_keys);
-            VLOG(3) << absl::StrFormat(
+            VLOG(3) << absl::Substitute(
                 kKeyFetchSuccessMessage,
                 absl::StrJoin(GetKeyIds(platform), ", "),
                 TimeUtil::ToString(response.expiration_time()));
@@ -121,7 +123,7 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
               KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
                   platform, public_keys_[platform].size());
             }
-            VLOG(1) << absl::StrFormat(
+            VLOG(1) << absl::Substitute(
                 kKeyFetchFailMessage,
                 GetErrorMessage(execution_result.status_code));
           }
@@ -130,8 +132,8 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
         });
 
     if (!result.Successful()) {
-      VLOG(1) << absl::StrFormat(kKeyFetchFailMessage,
-                                 GetErrorMessage(result.status_code));
+      VLOG(1) << absl::Substitute(kKeyFetchFailMessage,
+                                  GetErrorMessage(result.status_code));
       all_fetches_done.DecrementCount();
     }
   }

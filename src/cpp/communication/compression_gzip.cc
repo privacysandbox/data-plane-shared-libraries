@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "absl/log/log.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "quiche/common/quiche_data_writer.h"
 
@@ -45,9 +44,9 @@ absl::StatusOr<std::string> CompressOnePartition(std::string_view partition) {
           kDefaultMemLevel, Z_DEFAULT_STRATEGY);
       deflate_init_status != Z_OK) {
     return absl::InternalError(
-        absl::StrFormat("Error initializing data for gzip compression (deflate "
-                        "init status: %d)",
-                        deflate_init_status));
+        absl::StrCat("Error initializing data for gzip compression (deflate "
+                     "init status: ",
+                     deflate_init_status, ")"));
   }
 
   // Determine the upper bound on the size of the compressed data.
@@ -67,17 +66,17 @@ absl::StatusOr<std::string> CompressOnePartition(std::string_view partition) {
   if (const int deflate_status = deflate(&zs, Z_FINISH);
       deflate_status != Z_STREAM_END) {
     deflateEnd(&zs);
-    return absl::InternalError(absl::StrFormat(
-        "Error compressing data using gzip (deflate status: %d)",
-        deflate_status));
+    return absl::InternalError(absl::StrCat(
+        "Error compressing data using gzip (deflate status: ", deflate_status,
+        ")"));
   }
 
   // Free all memory held by the z_stream object.
   if (const int deflate_end_status = deflateEnd(&zs);
       deflate_end_status != Z_OK) {
-    return absl::InternalError(absl::StrFormat(
-        "Error closing compression data stream (deflate end status: %d)",
-        deflate_end_status));
+    return absl::InternalError(absl::StrCat(
+        "Error closing compression data stream (deflate end status: ",
+        deflate_end_status, ")"));
   }
 
   // Write the size of the compressed data into the first 4 indices of the
@@ -100,9 +99,9 @@ absl::StatusOr<std::string> DecompressString(
   if (const int inflate_init_status = inflateInit2(&zs, kGzipWindowBits | 16);
       inflate_init_status != Z_OK) {
     return absl::InternalError(
-        absl::StrFormat("Error during gzip decompression initialization: "
-                        "(inflate init status: %d)",
-                        inflate_init_status));
+        absl::StrCat("Error during gzip decompression initialization: (inflate "
+                     "init status: ",
+                     inflate_init_status, ")"));
   }
 
   char output_buffer[32768];  // 32 KiB chunks.
@@ -122,16 +121,16 @@ absl::StatusOr<std::string> DecompressString(
   } while (inflate_status == Z_OK);
   if (inflate_status != Z_STREAM_END) {
     inflateEnd(&zs);
-    return absl::DataLossError(absl::StrFormat(
-        "Exception during gzip decompression: (inflate status: %d)",
-        inflate_status));
+    return absl::DataLossError(
+        absl::StrCat("Exception during gzip decompression: (inflate status: ",
+                     inflate_status, ")"));
   }
 
   if (const int inflate_end_status = inflateEnd(&zs);
       inflate_end_status != Z_OK) {
-    return absl::InternalError(absl::StrFormat(
-        "Error closing compression data stream (inflate end status: %d(",
-        inflate_end_status));
+    return absl::InternalError(absl::StrCat(
+        "Error closing compression data stream (inflate end status: ",
+        inflate_end_status, ")"));
   }
   return decompressed_string;
 }

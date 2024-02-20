@@ -22,7 +22,6 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "absl/synchronization/mutex.h"
 #include "google/cloud/status.h"
 #include "google/cloud/storage/client.h"
@@ -539,7 +538,7 @@ void ExpectResumableUpload(MockClient& mock_client, std::string_view bucket,
                            const std::vector<std::string>& other_parts,
                            bool expect_queries = false) {
   static int upload_count = 0;
-  auto session_id = absl::StrFormat("session_%d", upload_count++);
+  auto session_id = absl::StrCat("session_", upload_count++);
   InSequence seq;
 
   // First, create a session and upload the initial part.

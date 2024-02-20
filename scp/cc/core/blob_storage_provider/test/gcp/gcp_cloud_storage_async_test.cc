@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "absl/synchronization/notification.h"
 #include "google/cloud/status.h"
 #include "google/cloud/storage/client.h"

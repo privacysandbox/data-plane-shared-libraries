@@ -23,7 +23,6 @@
 #include <curl/curl.h>
 
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 

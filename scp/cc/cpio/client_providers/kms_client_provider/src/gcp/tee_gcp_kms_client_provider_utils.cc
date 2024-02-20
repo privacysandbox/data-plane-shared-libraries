@@ -20,14 +20,14 @@
 
 #include <nlohmann/json.hpp>
 
-#include "absl/strings/str_format.h"
+#include "absl/strings/substitute.h"
 
 namespace {
 
-constexpr std::string_view kAudience = "//iam.googleapis.com/%s";
+constexpr std::string_view kAudience = "//iam.googleapis.com/$0";
 constexpr std::string_view kImpersonationUrl =
     "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/"
-    "%s:generateAccessToken";
+    "$0:generateAccessToken";
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
@@ -37,11 +37,11 @@ void TeeGcpKmsClientProviderUtils::CreateAttestedCredentials(
     std::string& credential_json) noexcept {
   const nlohmann::json configuration{
       {"type", "external_account"},
-      {"audience", absl::StrFormat(kAudience, wip_provider)},
+      {"audience", absl::Substitute(kAudience, wip_provider)},
       {"subject_token_type", "urn:ietf:params:oauth:token-type:jwt"},
       {"token_url", "https://sts.googleapis.com/v1/token"},
       {"service_account_impersonation_url",
-       absl::StrFormat(kImpersonationUrl, service_account_to_impersonate)},
+       absl::Substitute(kImpersonationUrl, service_account_to_impersonate)},
       {"credential_source",
        nlohmann::json{
            {"file",
