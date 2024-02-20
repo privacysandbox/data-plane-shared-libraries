@@ -82,12 +82,12 @@ def _quiche_deps():
 def deps2(
         *,
         go_toolchains_version = GO_TOOLCHAINS_VERSION):
+    go_rules_dependencies()
+    go_register_toolchains(version = go_toolchains_version)
     rpm()
     grpc_deps()
     scp_sdk_dependencies2()
     bazel_skylib_workspace()
-    go_rules_dependencies()
-    go_register_toolchains(version = go_toolchains_version)
     gazelle_dependencies()
     rules_pkg_dependencies()
     import_v8()
