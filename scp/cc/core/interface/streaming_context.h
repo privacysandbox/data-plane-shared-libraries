@@ -196,6 +196,12 @@ struct ConsumerStreamingContext : public StreamingContext<TRequest, TResponse> {
   /// Processes the next message in the queue.
   void ProcessNextMessage() noexcept { this->process_callback(*this, false); }
 
+  void Finish(ExecutionResult result) noexcept {
+    this->result = result;
+    Finish();
+  }
+
+ protected:
   /// Finishes the async operation by calling the callback.
   void Finish() noexcept override {
     if (process_callback) {
@@ -323,15 +329,15 @@ void FinishStreamingContext(const ExecutionResult& result,
                         TContext<TRequest, TResponse>>;
   static_assert(is_consumer_streaming || is_producer_streaming);
 
-  context.result = result;
   context.MarkDone();
 
   // Make a copy of context - this way we know async_executor's handle will
   // never go out of scope.
   if (!async_executor
-           .Schedule([context]() mutable { context.Finish(); }, priority)
+           .Schedule([context, result]() mutable { context.Finish(result); },
+                     priority)
            .Successful()) {
-    context.Finish();
+    context.Finish(result);
   }
 }
 

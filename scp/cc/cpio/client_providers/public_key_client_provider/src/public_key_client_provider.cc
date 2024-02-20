@@ -145,11 +145,10 @@ ExecutionResult PublicKeyClientProvider::ListPublicKeys(
   }
 
   if (!result.Successful()) {
-    public_key_fetching_context.result = result;
     SCP_ERROR_CONTEXT(kPublicKeyClientProvider, public_key_fetching_context,
                       public_key_fetching_context.result,
                       "Failed to perform request with config endpoints.");
-    public_key_fetching_context.Finish();
+    public_key_fetching_context.Finish(result);
   }
 
   return result;
@@ -161,10 +160,9 @@ void ExecutionResultCheckingHelper(
     std::shared_ptr<std::atomic<size_t>> unfinished_counter) noexcept {
   auto pervious_unfinished = unfinished_counter->fetch_sub(1);
   if (pervious_unfinished == 1) {
-    context.result = result;
     SCP_ERROR_CONTEXT(kPublicKeyClientProvider, context, context.result,
                       "Failed to fetch public keys.");
-    context.Finish();
+    context.Finish(result);
   }
 }
 
@@ -209,8 +207,7 @@ void PublicKeyClientProvider::OnPerformRequestCallback(
         TimeUtil::SecondsToTimestamp(expired_time_in_s);
     public_key_fetching_context.response->mutable_public_keys()->Add(
         public_keys.begin(), public_keys.end());
-    public_key_fetching_context.result = SuccessExecutionResult();
-    public_key_fetching_context.Finish();
+    public_key_fetching_context.Finish(SuccessExecutionResult());
   }
 }
 

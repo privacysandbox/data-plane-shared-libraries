@@ -42,9 +42,8 @@ class MockPrivateKeyFetcherProviderWithOverrides
   core::ExecutionResult SignHttpRequest(
       core::AsyncContext<PrivateKeyFetchingRequest, core::HttpRequest>&
           sign_http_request_context) noexcept override {
-    sign_http_request_context.result = sign_http_request_result_mock;
     sign_http_request_context.response = signed_http_request_mock;
-    sign_http_request_context.Finish();
+    sign_http_request_context.Finish(sign_http_request_result_mock);
     return sign_http_request_context.result;
   }
 };

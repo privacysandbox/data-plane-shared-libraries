@@ -43,8 +43,7 @@ class MockHttpClient : public HttpClientInterface {
     }
 
     if (!http_get_result_mock.Successful()) {
-      context.result = http_get_result_mock;
-      context.Finish();
+      context.Finish(http_get_result_mock);
       return SuccessExecutionResult();
     }
 

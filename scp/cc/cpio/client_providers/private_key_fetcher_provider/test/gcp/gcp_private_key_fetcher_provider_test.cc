@@ -143,8 +143,7 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, SignHttpRequest) {
         context.response = std::make_shared<GetSessionTokenResponse>();
         context.response->session_token =
             std::make_shared<std::string>(kSessionTokenMock);
-        context.result = SuccessExecutionResult();
-        context.Finish();
+        context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
 
@@ -174,8 +173,7 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
                   TargetAudienceUriEquals(kPrivateKeyCloudfunctionUri)))
       .WillOnce([=](AsyncContext<GetSessionTokenForTargetAudienceRequest,
                                  GetSessionTokenResponse>& context) {
-        context.result = FailureExecutionResult(SC_UNKNOWN);
-        context.Finish();
+        context.Finish(FailureExecutionResult(SC_UNKNOWN));
         return context.result;
       });
 

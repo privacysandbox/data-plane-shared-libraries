@@ -161,8 +161,7 @@ ExecutionResult GcpAuthTokenProvider::GetSessionToken(
                       execution_result,
                       "Failed to perform http request to fetch access token.");
 
-    get_token_context.result = execution_result;
-    get_token_context.Finish();
+    get_token_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -178,8 +177,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
         kGcpAuthTokenProvider, get_token_context, http_client_context.result,
         "Failed to get access token from Instance Metadata server");
 
-    get_token_context.result = http_client_context.result;
-    get_token_context.Finish();
+    get_token_context.Finish(http_client_context.result);
     return;
   }
 
@@ -194,8 +192,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
     SCP_ERROR_CONTEXT(
         kGcpAuthTokenProvider, get_token_context, result,
         "Received http response could not be parsed into a JSON.");
-    get_token_context.result = result;
-    get_token_context.Finish();
+    get_token_context.Finish(result);
     return;
   }
 
@@ -209,8 +206,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
     SCP_ERROR_CONTEXT(
         kGcpAuthTokenProvider, get_token_context, result,
         "Received http response does not contain all the necessary fields.");
-    get_token_context.result = result;
-    get_token_context.Finish();
+    get_token_context.Finish(result);
     return;
   }
 
@@ -224,8 +220,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
   get_token_context.response->session_token =
       std::make_shared<std::string>(std::move(access_token));
 
-  get_token_context.result = SuccessExecutionResult();
-  get_token_context.Finish();
+  get_token_context.Finish(SuccessExecutionResult());
 }
 
 ExecutionResult GcpAuthTokenProvider::GetSessionTokenForTargetAudience(
@@ -261,9 +256,8 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
     AsyncContext<GetSessionTokenForTargetAudienceRequest,
                  GetSessionTokenResponse>& get_token_context,
     AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept {
-  get_token_context.result = http_context.result;
   if (!http_context.result.Successful()) {
-    get_token_context.Finish();
+    get_token_context.Finish(http_context.result);
     return;
   }
   const auto& response_body = http_context.response->body.ToString();
@@ -274,8 +268,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
     SCP_ERROR_CONTEXT(kGcpAuthTokenProvider, get_token_context, result,
                       "Received token does not have %d parts.",
                       kExpectedTokenPartsSize);
-    get_token_context.result = result;
-    get_token_context.Finish();
+    get_token_context.Finish(result);
     return;
   }
 
@@ -286,8 +279,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
     SCP_ERROR_CONTEXT(kGcpAuthTokenProvider, get_token_context,
                       padded_jwt_or.result(),
                       "Received JWT cannot be padded correctly.");
-    get_token_context.result = padded_jwt_or.result();
-    get_token_context.Finish();
+    get_token_context.Finish(padded_jwt_or.result());
     return;
   }
   std::string decoded_json_str;
@@ -295,8 +287,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
       !decode_result.Successful()) {
     SCP_ERROR_CONTEXT(kGcpAuthTokenProvider, get_token_context, decode_result,
                       "Received token JWT could not be decoded.");
-    get_token_context.result = decode_result;
-    get_token_context.Finish();
+    get_token_context.Finish(decode_result);
     return;
   }
 
@@ -308,8 +299,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
         SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN);
     SCP_ERROR_CONTEXT(kGcpAuthTokenProvider, get_token_context, result,
                       "Received JWT could not be parsed into a JSON.");
-    get_token_context.result = result;
-    get_token_context.Finish();
+    get_token_context.Finish(result);
     return;
   }
 
@@ -323,8 +313,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
     SCP_ERROR_CONTEXT(
         kGcpAuthTokenProvider, get_token_context, result,
         "Received JWT does not contain all the necessary fields.");
-    get_token_context.result = result;
-    get_token_context.Finish();
+    get_token_context.Finish(result);
     return;
   }
 
@@ -345,8 +334,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
   get_token_context.response->token_lifetime_in_seconds =
       std::chrono::seconds(expiry_seconds - issued_seconds);
 
-  get_token_context.result = SuccessExecutionResult();
-  get_token_context.Finish();
+  get_token_context.Finish(SuccessExecutionResult());
 }
 
 std::unique_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(

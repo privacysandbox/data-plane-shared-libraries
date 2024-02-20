@@ -124,11 +124,10 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
         auto got_failure = false;
         if (list_keys_status->got_failure.compare_exchange_strong(got_failure,
                                                                   true)) {
-          list_private_keys_context.result = execution_result;
           SCP_ERROR(kPrivateKeyClientProvider, kZeroUuid, execution_result,
                     "Failed to fetch private key with endpoint %s.",
                     endpoint.private_key_vending_service_endpoint.c_str());
-          list_private_keys_context.Finish();
+          list_private_keys_context.Finish(execution_result);
         }
 
         return execution_result;
@@ -164,11 +163,9 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
       auto got_failure = false;
       if (list_keys_status->got_failure.compare_exchange_strong(got_failure,
                                                                 true)) {
-        list_private_keys_context.result = insert_result;
         SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
-                          list_private_keys_context.result,
-                          "Failed to insert fetch result");
-        list_private_keys_context.Finish();
+                          insert_result, "Failed to insert fetch result");
+        list_private_keys_context.Finish(insert_result);
       }
       return;
     }
@@ -207,11 +204,9 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
       auto got_failure = false;
       if (list_keys_status->got_failure.compare_exchange_strong(got_failure,
                                                                 true)) {
-        list_private_keys_context.result = execution_result;
         SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
-                          list_private_keys_context.result,
-                          "Failed to get the key data.");
-        list_private_keys_context.Finish();
+                          execution_result, "Failed to get the key data.");
+        list_private_keys_context.Finish(execution_result);
       }
       return;
     }
@@ -237,11 +232,9 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
       auto got_failure = false;
       if (list_keys_status->got_failure.compare_exchange_strong(got_failure,
                                                                 true)) {
-        list_private_keys_context.result = execution_result;
         SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
-                          list_private_keys_context.result,
-                          "Failed to send decrypt request.");
-        list_private_keys_context.Finish();
+                          execution_result, "Failed to send decrypt request.");
+        list_private_keys_context.Finish(execution_result);
       }
       return;
     }
@@ -293,11 +286,9 @@ void PrivateKeyClientProvider::OnDecryptCallback(
       auto got_failure = false;
       if (list_keys_status->got_failure.compare_exchange_strong(got_failure,
                                                                 true)) {
-        list_private_keys_context.result = insert_result;
         SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
-                          list_private_keys_context.result,
-                          "Failed to insert decrypt result.");
-        list_private_keys_context.Finish();
+                          insert_result, "Failed to insert decrypt result.");
+        list_private_keys_context.Finish(insert_result);
       }
       return;
     }
@@ -328,12 +319,11 @@ void PrivateKeyClientProvider::OnDecryptCallback(
         auto execution_result = PrivateKeyClientUtils::ExtractAnyFailure(
             list_keys_status->result_list, key_id);
         if (!execution_result.Successful()) {
-          list_private_keys_context.result = execution_result;
-          SCP_ERROR_CONTEXT(
-              kPrivateKeyClientProvider, list_private_keys_context,
-              list_private_keys_context.result,
-              "Failed to fetch the private key for key ID: %s", key_id.c_str());
-          list_private_keys_context.Finish();
+          SCP_ERROR_CONTEXT(kPrivateKeyClientProvider,
+                            list_private_keys_context, execution_result,
+                            "Failed to fetch the private key for key ID: %s",
+                            key_id.c_str());
+          list_private_keys_context.Finish(execution_result);
           return;
         }
         // Key splits returned from each endpoint should match the endpoint
@@ -347,9 +337,8 @@ void PrivateKeyClientProvider::OnDecryptCallback(
               decrypt_result.encryption_key.key_data.size() !=
                   endpoint_count_) {
             if (list_keys_status->listing_method == ListingMethod::kByKeyId) {
-              list_private_keys_context.result = FailureExecutionResult(
-                  SC_PRIVATE_KEY_CLIENT_PROVIDER_UNMATCHED_ENDPOINTS_SPLITS);
-              list_private_keys_context.Finish();
+              list_private_keys_context.Finish(FailureExecutionResult(
+                  SC_PRIVATE_KEY_CLIENT_PROVIDER_UNMATCHED_ENDPOINTS_SPLITS));
               SCP_ERROR_CONTEXT(
                   kPrivateKeyClientProvider, list_private_keys_context,
                   list_private_keys_context.result,
@@ -377,12 +366,10 @@ void PrivateKeyClientProvider::OnDecryptCallback(
         auto private_key_or =
             PrivateKeyClientUtils::ConstructPrivateKey(success_decrypt_result);
         if (!private_key_or.Successful()) {
-          list_private_keys_context.result = private_key_or.result();
           SCP_ERROR_CONTEXT(kPrivateKeyClientProvider,
-                            list_private_keys_context,
-                            list_private_keys_context.result,
+                            list_private_keys_context, private_key_or.result(),
                             "Failed to construct private key.");
-          list_private_keys_context.Finish();
+          list_private_keys_context.Finish(private_key_or.result());
           return;
         }
         *list_private_keys_context.response->add_private_keys() =
@@ -390,8 +377,7 @@ void PrivateKeyClientProvider::OnDecryptCallback(
       }
     }
 
-    list_private_keys_context.result = SuccessExecutionResult();
-    list_private_keys_context.Finish();
+    list_private_keys_context.Finish(SuccessExecutionResult());
   }
 }
 

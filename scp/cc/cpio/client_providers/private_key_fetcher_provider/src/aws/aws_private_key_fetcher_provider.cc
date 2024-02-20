@@ -112,8 +112,7 @@ void AwsPrivateKeyFetcherProvider::
   if (!execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kAwsPrivateKeyFetcherProvider, sign_request_context,
                       execution_result, "Failed to get AWS credentials.");
-    sign_request_context.result = get_session_credentials_context.result;
-    sign_request_context.Finish();
+    sign_request_context.Finish(get_session_credentials_context.result);
     return;
   }
 
@@ -130,8 +129,7 @@ void AwsPrivateKeyFetcherProvider::
   if (execution_result.Successful()) {
     sign_request_context.response = http_request;
   }
-  sign_request_context.result = execution_result;
-  sign_request_context.Finish();
+  sign_request_context.Finish(execution_result);
 }
 
 ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(

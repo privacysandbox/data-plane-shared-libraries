@@ -159,8 +159,7 @@ class OperationDispatcher {
                             dispatch_to_target_function]() mutable {
       auto execution_result = dispatch_to_target_function(async_context);
       if (!execution_result.Successful()) {
-        async_context.result = execution_result;
-        async_context.Finish();
+        async_context.Finish(execution_result);
       }
     };
 
@@ -180,9 +179,8 @@ class OperationDispatcher {
                         async_context.result,
                         "Max retries exceeded. Total retries: %lld",
                         async_context.retry_count);
-      async_context.result =
-          FailureExecutionResult(core::errors::SC_DISPATCHER_EXHAUSTED_RETRIES);
-      async_context.Finish();
+      async_context.Finish(FailureExecutionResult(
+          core::errors::SC_DISPATCHER_EXHAUSTED_RETRIES));
       return;
     }
 
@@ -194,9 +192,8 @@ class OperationDispatcher {
           kOperationDispatcher, async_context, async_context.result,
           "Async Context expired. Total retries: %lld, Expiration time: %lld",
           async_context.retry_count, async_context.expiration_time);
-      async_context.result =
-          FailureExecutionResult(core::errors::SC_DISPATCHER_OPERATION_EXPIRED);
-      async_context.Finish();
+      async_context.Finish(FailureExecutionResult(
+          core::errors::SC_DISPATCHER_OPERATION_EXPIRED));
       return;
     }
 
@@ -211,17 +208,15 @@ class OperationDispatcher {
           "Not enough time available for a retry in Async Context. "
           "Total retries: %lld, Expiration time: %lld",
           async_context.retry_count, async_context.expiration_time);
-      async_context.result = FailureExecutionResult(
-          core::errors::SC_DISPATCHER_NOT_ENOUGH_TIME_REMAINED_FOR_OPERATION);
-      async_context.Finish();
+      async_context.Finish(FailureExecutionResult(
+          core::errors::SC_DISPATCHER_NOT_ENOUGH_TIME_REMAINED_FOR_OPERATION));
       return;
     }
 
     auto execution_result = async_executor_->ScheduleFor(
         async_operation, current_time + back_off_duration_ns);
     if (!execution_result.Successful()) {
-      async_context.result = execution_result;
-      async_context.Finish();
+      async_context.Finish(execution_result);
     }
   }
 

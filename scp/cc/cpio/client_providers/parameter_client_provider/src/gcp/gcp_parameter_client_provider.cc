@@ -112,8 +112,7 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
         SC_GCP_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME);
     SCP_ERROR_CONTEXT(kGcpParameterClientProvider, get_parameter_context,
                       execution_result, "Failed due to an empty parameter.");
-    get_parameter_context.result = execution_result;
-    get_parameter_context.Finish();
+    get_parameter_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -131,8 +130,7 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
       AsyncPriority::Normal);
 
   if (!schedule_result.Successful()) {
-    get_parameter_context.result = schedule_result;
-    get_parameter_context.Finish();
+    get_parameter_context.Finish(schedule_result);
 
     SCP_ERROR_CONTEXT(kGcpParameterClientProvider, get_parameter_context,
                       schedule_result,

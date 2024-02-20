@@ -237,8 +237,7 @@ ExecutionResult CryptoClientProvider::HpkeEncrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, encrypt_context, execution_result,
                       "Hpke encryption failed with error %s.",
                       cipher.status().ToString().c_str());
-    encrypt_context.result = execution_result;
-    encrypt_context.Finish();
+    encrypt_context.Finish(execution_result);
     return encrypt_context.result;
   }
 
@@ -250,8 +249,7 @@ ExecutionResult CryptoClientProvider::HpkeEncrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, encrypt_context, execution_result,
                       "Hpke encryption failed with error %s.",
                       ciphertext.status().ToString().c_str());
-    encrypt_context.result = execution_result;
-    encrypt_context.Finish();
+    encrypt_context.Finish(execution_result);
     return encrypt_context.result;
   }
 
@@ -269,8 +267,7 @@ ExecutionResult CryptoClientProvider::HpkeEncrypt(
                         execution_result,
                         "Hpke encryption failed with error %s.",
                         secret.status().ToString().c_str());
-      encrypt_context.result = execution_result;
-      encrypt_context.Finish();
+      encrypt_context.Finish(execution_result);
       return encrypt_context.result;
     }
     encrypt_context.response->set_secret(
@@ -282,8 +279,7 @@ ExecutionResult CryptoClientProvider::HpkeEncrypt(
   encrypt_context.response->mutable_encrypted_data()->set_ciphertext(
       ConcatenatePayload((*cipher)->EncapsulatedKey(), *ciphertext));
 
-  encrypt_context.result = SuccessExecutionResult();
-  encrypt_context.Finish();
+  encrypt_context.Finish(SuccessExecutionResult());
 
   return SuccessExecutionResult();
 }
@@ -297,8 +293,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
   if (!execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kCryptoClientProvider, decrypt_context, execution_result,
                       "Hpke decryption failed with error.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -309,8 +304,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, decrypt_context, execution_result,
                       "Hpke decryption failed with error %s.",
                       keyset_reader.status().ToString().c_str());
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -321,8 +315,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, decrypt_context, execution_result,
                       "Hpke decryption failed with error %s.",
                       keyset_handle.status().ToString().c_str());
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -332,8 +325,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
         FailureExecutionResult(SC_CRYPTO_CLIENT_PROVIDER_INVALID_KEYSET_SIZE);
     SCP_ERROR_CONTEXT(kCryptoClientProvider, decrypt_context, execution_result,
                       "Hpke decryption failed with error.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
   auto hpke_params = ToHpkeParams(decrypt_context.request->hpke_params(),
@@ -346,8 +338,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, decrypt_context, execution_result,
                       "Hpke decryption failed with error %s.",
                       splitted_ciphertext.status().ToString().c_str());
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -357,8 +348,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
         SC_CRYPTO_CLIENT_PROVIDER_PARSE_HPKE_PRIVATE_KEY_FAILED);
     SCP_ERROR_CONTEXT(kCryptoClientProvider, decrypt_context, execution_result,
                       "Hpke decryption failed with error.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -372,8 +362,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, decrypt_context, execution_result,
                       "Hpke decryption failed with error %s.",
                       cipher.status().ToString().c_str());
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -385,8 +374,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, decrypt_context, execution_result,
                       "Hpke decryption failed with error %s.",
                       payload.status().ToString().c_str());
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -404,8 +392,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
                         execution_result,
                         "Hpke decryption failed with error %s.",
                         secret.status().ToString().c_str());
-      decrypt_context.result = execution_result;
-      decrypt_context.Finish();
+      decrypt_context.Finish(execution_result);
       return decrypt_context.result;
     }
     decrypt_context.response->set_secret(
@@ -413,8 +400,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
   }
 
   decrypt_context.response->set_payload(*payload);
-  decrypt_context.result = SuccessExecutionResult();
-  decrypt_context.Finish();
+  decrypt_context.Finish(SuccessExecutionResult());
 
   return SuccessExecutionResult();
 }
@@ -429,8 +415,7 @@ ExecutionResult CryptoClientProvider::AeadEncrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, context, execution_result,
                       "Aead encryption failed with error %s.",
                       cipher.status().ToString().c_str());
-    context.result = execution_result;
-    context.Finish();
+    context.Finish(execution_result);
     return context.result;
   }
   auto ciphertext = (*cipher)->Encrypt(context.request->payload(),
@@ -441,14 +426,12 @@ ExecutionResult CryptoClientProvider::AeadEncrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, context, execution_result,
                       "Aead encryption failed with error %s.",
                       ciphertext.status().ToString().c_str());
-    context.result = execution_result;
-    context.Finish();
+    context.Finish(execution_result);
     return context.result;
   }
   context.response = std::make_shared<AeadEncryptResponse>();
   context.response->mutable_encrypted_data()->set_ciphertext((*ciphertext));
-  context.result = SuccessExecutionResult();
-  context.Finish();
+  context.Finish(SuccessExecutionResult());
   return SuccessExecutionResult();
 }
 
@@ -462,8 +445,7 @@ ExecutionResult CryptoClientProvider::AeadDecrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, context, execution_result,
                       "Aead decryption failed with error %s.",
                       cipher.status().ToString().c_str());
-    context.result = execution_result;
-    context.Finish();
+    context.Finish(execution_result);
     return context.result;
   }
   auto payload =
@@ -475,14 +457,12 @@ ExecutionResult CryptoClientProvider::AeadDecrypt(
     SCP_ERROR_CONTEXT(kCryptoClientProvider, context, execution_result,
                       "Aead decryption failed with error %s.",
                       payload.status().ToString().c_str());
-    context.result = execution_result;
-    context.Finish();
+    context.Finish(execution_result);
     return context.result;
   }
   context.response = std::make_shared<AeadDecryptResponse>();
   context.response->set_payload((*payload));
-  context.result = SuccessExecutionResult();
-  context.Finish();
+  context.Finish(SuccessExecutionResult());
   return SuccessExecutionResult();
 }
 }  // namespace google::scp::cpio::client_providers

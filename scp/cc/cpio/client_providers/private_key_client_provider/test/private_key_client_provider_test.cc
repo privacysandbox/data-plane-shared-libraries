@@ -238,8 +238,7 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
               if (it != kPlaintextMap.end()) {
                 context.response->set_plaintext(it->second);
               }
-              context.result = mock_result;
-              context.Finish();
+              context.Finish(mock_result);
               if (mock_schedule_result) {
                 return mock_result;
               }
@@ -263,8 +262,7 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
           const auto& endpoint = context.request->key_vending_endpoint
                                      ->private_key_vending_service_endpoint;
           const auto& key_id = *context.request->key_id;
-          context.result = mock_results.at(key_id).at(endpoint);
-          if (context.result.Successful()) {
+          if (mock_results.at(key_id).at(endpoint).Successful()) {
             if (const auto it = mock_responses.find(key_id);
                 it != mock_responses.end()) {
               if (const auto response = it->second.find(endpoint);
@@ -274,7 +272,7 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
               }
             }
           }
-          context.Finish();
+          context.Finish(mock_results.at(key_id).at(endpoint));
           return SuccessExecutionResult();
         });
   }
@@ -290,15 +288,14 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
                                          PrivateKeyFetchingResponse>& context) {
           const auto& endpoint = context.request->key_vending_endpoint
                                      ->private_key_vending_service_endpoint;
-          context.result = mock_results.at(endpoint);
-          if (context.result.Successful()) {
+          if (mock_results.at(endpoint).Successful()) {
             if (const auto it = mock_responses.find(endpoint);
                 it != mock_responses.end()) {
               context.response =
                   std::make_shared<PrivateKeyFetchingResponse>(it->second);
             }
           }
-          context.Finish();
+          context.Finish(mock_results.at(endpoint));
           return context.result;
         });
   }
@@ -424,9 +421,8 @@ TEST_F(PrivateKeyClientProviderTest, KeyListIsEmpty) {
       .Times(3)
       .WillRepeatedly([=](AsyncContext<PrivateKeyFetchingRequest,
                                        PrivateKeyFetchingResponse>& context) {
-        context.result = SuccessExecutionResult();
         context.response = std::make_shared<PrivateKeyFetchingResponse>();
-        context.Finish();
+        context.Finish(SuccessExecutionResult());
         return context.result;
       });
 
@@ -631,15 +627,13 @@ TEST_F(PrivateKeyClientProviderTest, FetchingPrivateKeysFailed) {
       .WillRepeatedly([=](AsyncContext<PrivateKeyFetchingRequest,
                                        PrivateKeyFetchingResponse>& context) {
         if (*context.request->key_id == kTestKeyIdBad) {
-          context.result = FailureExecutionResult(SC_UNKNOWN);
-          context.Finish();
+          context.Finish(FailureExecutionResult(SC_UNKNOWN));
           return SuccessExecutionResult();
         }
 
         context.response = std::make_shared<PrivateKeyFetchingResponse>(
             mock_fetching_response);
-        context.result = SuccessExecutionResult();
-        context.Finish();
+        context.Finish(SuccessExecutionResult());
         return context.result;
       });
 
@@ -801,8 +795,7 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithOneKmsDecryptContext) {
               mock_fetching_response);
         }
 
-        context.result = SuccessExecutionResult();
-        context.Finish();
+        context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
 
@@ -855,8 +848,7 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
             [=](AsyncContext<DecryptRequest, DecryptResponse>& context) {
               context.response = std::make_shared<DecryptResponse>();
               context.response->set_plaintext(kDecryptedSinglePartyKey);
-              context.result = SuccessExecutionResult();
-              context.Finish();
+              context.Finish(SuccessExecutionResult());
               return context.result;
             });
   }
@@ -867,8 +859,6 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
         .Times(call_time)
         .WillRepeatedly([=](AsyncContext<PrivateKeyFetchingRequest,
                                          PrivateKeyFetchingResponse>& context) {
-          context.result = SuccessExecutionResult();
-
           auto encryption_key = std::make_shared<EncryptionKey>();
           encryption_key->resource_name =
               std::make_shared<std::string>(kTestResourceName);
@@ -919,7 +909,7 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
 
           context.response = std::make_shared<PrivateKeyFetchingResponse>();
           context.response->encryption_keys.emplace_back(encryption_key);
-          context.Finish();
+          context.Finish(SuccessExecutionResult());
           return context.result;
         });
   }

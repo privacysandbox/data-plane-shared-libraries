@@ -58,13 +58,12 @@ class MockPrivateKeyClientProviderWithOverrides
       return list_private_keys_by_ids_mock(context);
     }
     if (list_private_keys_by_ids_result_mock) {
-      context.result = list_private_keys_by_ids_result_mock;
       if (list_private_keys_by_ids_result_mock ==
           core::SuccessExecutionResult()) {
         context.response = std::make_shared<
             cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>();
       }
-      context.Finish();
+      context.Finish(list_private_keys_by_ids_result_mock);
       return list_private_keys_by_ids_result_mock;
     }
 

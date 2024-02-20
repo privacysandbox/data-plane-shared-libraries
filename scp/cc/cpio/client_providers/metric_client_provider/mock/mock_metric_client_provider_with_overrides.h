@@ -68,12 +68,11 @@ class MockMetricClientWithOverrides : public MetricClientProvider {
       return record_metric_mock(context);
     }
     if (record_metric_result_mock) {
-      context.result = record_metric_result_mock;
       if (record_metric_result_mock == core::SuccessExecutionResult()) {
         context.response = std::make_shared<
             cmrt::sdk::metric_service::v1::PutMetricsResponse>();
       }
-      context.Finish();
+      context.Finish(record_metric_result_mock);
       return record_metric_result_mock;
     }
 

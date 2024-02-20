@@ -131,8 +131,7 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
         context, name_space, time_series_list);
     // Sets the result for the requests that failed in parsing to time series.
     if (!result.Successful()) {
-      context.result = result;
-      context.Finish();
+      context.Finish(result);
       continue;
     }
 
@@ -182,8 +181,7 @@ void GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback(
 
   for (auto& record_metric_context : metric_requests_vector) {
     record_metric_context.response = std::make_shared<PutMetricsResponse>();
-    record_metric_context.result = result;
-    record_metric_context.Finish();
+    record_metric_context.Finish(result);
   }
   return;
 }

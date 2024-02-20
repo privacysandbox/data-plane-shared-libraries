@@ -237,8 +237,7 @@ TEST(SingleThreadPriorityAsyncExecutorTests, AsyncContextCallback) {
   ASSERT_SUCCESS(executor.ScheduleFor(
       [&] {
         context.response = std::make_shared<std::string>("response");
-        context.result = SuccessExecutionResult();
-        context.Finish();
+        context.Finish(SuccessExecutionResult());
       },
       12345));
 

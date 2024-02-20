@@ -232,8 +232,7 @@ TEST(SingleThreadAsyncExecutorTests, AsyncContextCallback) {
     executor.Schedule(
         [&] {
           context.response = std::make_shared<std::string>("response");
-          context.result = SuccessExecutionResult();
-          context.Finish();
+          context.Finish(SuccessExecutionResult());
         },
         AsyncPriority::Normal);
     {
@@ -248,8 +247,7 @@ TEST(SingleThreadAsyncExecutorTests, AsyncContextCallback) {
     executor.Schedule(
         [&] {
           context.response = std::make_shared<std::string>("response");
-          context.result = SuccessExecutionResult();
-          context.Finish();
+          context.Finish(SuccessExecutionResult());
         },
         AsyncPriority::High);
     {

@@ -61,8 +61,7 @@ TEST_F(ParameterClientTest, GetParameterSuccess) {
       .WillOnce([=](AsyncContext<GetParameterRequest, GetParameterResponse>&
                         context) {
         context.response = std::make_shared<GetParameterResponse>();
-        context.result = SuccessExecutionResult();
-        context.Finish();
+        context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
 
@@ -81,8 +80,7 @@ TEST_F(ParameterClientTest, GetParameterFailure) {
   EXPECT_CALL(client_.GetParameterClientProvider(), GetParameter)
       .WillOnce([=](AsyncContext<GetParameterRequest, GetParameterResponse>&
                         context) {
-        context.result = FailureExecutionResult(SC_UNKNOWN);
-        context.Finish();
+        context.Finish(FailureExecutionResult(SC_UNKNOWN));
         return FailureExecutionResult(SC_UNKNOWN);
       });
 

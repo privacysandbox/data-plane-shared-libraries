@@ -107,8 +107,7 @@ ExecutionResult AwsParameterClientProvider::GetParameter(
                       execution_result,
                       "Failed to get the parameter value for %s.",
                       get_parameter_context.request->parameter_name().c_str());
-    get_parameter_context.result = execution_result;
-    get_parameter_context.Finish();
+    get_parameter_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -132,16 +131,14 @@ void AwsParameterClientProvider::OnGetParameterCallback(
     const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   if (!outcome.IsSuccess()) {
     auto error_type = outcome.GetError().GetErrorType();
-    get_parameter_context.result = SSMErrorConverter::ConvertSSMError(
-        error_type, outcome.GetError().GetMessage());
-    get_parameter_context.Finish();
+    get_parameter_context.Finish(SSMErrorConverter::ConvertSSMError(
+        error_type, outcome.GetError().GetMessage()));
     return;
   }
   get_parameter_context.response = std::make_shared<GetParameterResponse>();
   get_parameter_context.response->set_parameter_value(
       outcome.GetResult().GetParameter().GetValue().c_str());
-  get_parameter_context.result = SuccessExecutionResult();
-  get_parameter_context.Finish();
+  get_parameter_context.Finish(SuccessExecutionResult());
 }
 
 std::unique_ptr<SSMClient> SSMClientFactory::CreateSSMClient(

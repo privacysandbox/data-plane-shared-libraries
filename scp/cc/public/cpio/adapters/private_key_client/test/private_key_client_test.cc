@@ -62,8 +62,7 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysSuccess) {
       .WillOnce([=](AsyncContext<ListPrivateKeysRequest,
                                  ListPrivateKeysResponse>& context) {
         context.response = std::make_shared<ListPrivateKeysResponse>();
-        context.result = SuccessExecutionResult();
-        context.Finish();
+        context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
 
@@ -82,8 +81,7 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysFailure) {
   EXPECT_CALL(client_.GetPrivateKeyClientProvider(), ListPrivateKeys)
       .WillOnce([=](AsyncContext<ListPrivateKeysRequest,
                                  ListPrivateKeysResponse>& context) {
-        context.result = FailureExecutionResult(SC_UNKNOWN);
-        context.Finish();
+        context.Finish(FailureExecutionResult(SC_UNKNOWN));
         return FailureExecutionResult(SC_UNKNOWN);
       });
 

@@ -66,8 +66,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
                            GetCurrentInstanceResourceNameResponse>& context) {
             context.response =
                 std::make_shared<GetCurrentInstanceResourceNameResponse>();
-            context.result = SuccessExecutionResult();
-            context.Finish();
+            context.Finish(SuccessExecutionResult());
             return SuccessExecutionResult();
           });
 
@@ -89,8 +88,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
       .WillOnce(
           [=](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
-            context.result = FailureExecutionResult(SC_UNKNOWN);
-            context.Finish();
+            context.Finish(FailureExecutionResult(SC_UNKNOWN));
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
@@ -112,8 +110,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
       .WillOnce([=](AsyncContext<GetTagsByResourceNameRequest,
                                  GetTagsByResourceNameResponse>& context) {
         context.response = std::make_shared<GetTagsByResourceNameResponse>();
-        context.result = SuccessExecutionResult();
-        context.Finish();
+        context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
 
@@ -133,8 +130,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
   EXPECT_CALL(client_.GetInstanceClientProvider(), GetTagsByResourceName)
       .WillOnce([=](AsyncContext<GetTagsByResourceNameRequest,
                                  GetTagsByResourceNameResponse>& context) {
-        context.result = FailureExecutionResult(SC_UNKNOWN);
-        context.Finish();
+        context.Finish(FailureExecutionResult(SC_UNKNOWN));
         return FailureExecutionResult(SC_UNKNOWN);
       });
 
@@ -159,8 +155,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
                            GetInstanceDetailsByResourceNameResponse>& context) {
             context.response =
                 std::make_shared<GetInstanceDetailsByResourceNameResponse>();
-            context.result = SuccessExecutionResult();
-            context.Finish();
+            context.Finish(SuccessExecutionResult());
             return SuccessExecutionResult();
           });
 
@@ -182,8 +177,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
       .WillOnce(
           [=](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
-            context.result = FailureExecutionResult(SC_UNKNOWN);
-            context.Finish();
+            context.Finish(FailureExecutionResult(SC_UNKNOWN));
             return FailureExecutionResult(SC_UNKNOWN);
           });
 

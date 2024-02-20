@@ -91,8 +91,7 @@ void GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback(
         get_token_context.result,
         "Failed to get the access token for audience target %s.",
         get_token_context.request->token_target_audience_uri->c_str());
-    sign_request_context.result = get_token_context.result;
-    sign_request_context.Finish();
+    sign_request_context.Finish(get_token_context.result);
     return;
   }
 
@@ -105,8 +104,7 @@ void GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback(
       {std::string(kAuthorizationHeaderKey),
        absl::StrCat(kBearerTokenPrefix, access_token)});
   sign_request_context.response = std::move(http_request);
-  sign_request_context.result = SuccessExecutionResult();
-  sign_request_context.Finish();
+  sign_request_context.Finish(SuccessExecutionResult());
 }
 
 #ifndef TEST_CPIO

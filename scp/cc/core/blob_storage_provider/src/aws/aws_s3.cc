@@ -138,14 +138,17 @@ void AwsS3Client::OnGetObjectCallback(
                       get_object_outcome.GetError().GetResponseCode(),
                       get_object_outcome.GetError().GetMessage().c_str());
 
-    get_blob_context.result = AwsS3Utils::ConvertS3ErrorToExecutionResult(
-        get_object_outcome.GetError().GetErrorType());
     if (!async_executor_
              ->Schedule(
-                 [get_blob_context]() mutable { get_blob_context.Finish(); },
+                 [get_blob_context, &get_object_outcome]() mutable {
+                   get_blob_context.Finish(
+                       AwsS3Utils::ConvertS3ErrorToExecutionResult(
+                           get_object_outcome.GetError().GetErrorType()));
+                 },
                  async_execution_priority_)
              .Successful()) {
-      get_blob_context.Finish();
+      get_blob_context.Finish(AwsS3Utils::ConvertS3ErrorToExecutionResult(
+          get_object_outcome.GetError().GetErrorType()));
     }
     return;
   }
@@ -162,20 +165,22 @@ void AwsS3Client::OnGetObjectCallback(
       std::make_shared<std::vector<Byte>>(content_length);
   get_blob_context.response->buffer->length = content_length;
   get_blob_context.response->buffer->capacity = content_length;
-  get_blob_context.result = SuccessExecutionResult();
+  auto execution_result = SuccessExecutionResult();
 
   if (!body.read(get_blob_context.response->buffer->bytes->data(),
                  content_length)) {
-    get_blob_context.result = FailureExecutionResult(
+    execution_result = FailureExecutionResult(
         errors::SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB);
   }
 
   if (!async_executor_
            ->Schedule(
-               [get_blob_context]() mutable { get_blob_context.Finish(); },
+               [get_blob_context, execution_result]() mutable {
+                 get_blob_context.Finish(execution_result);
+               },
                async_execution_priority_)
            .Successful()) {
-    get_blob_context.Finish();
+    get_blob_context.Finish(execution_result);
   }
 }
 
@@ -218,16 +223,16 @@ void AwsS3Client::OnListObjectsCallback(
         "message: %s",
         list_objects_outcome.GetError().GetResponseCode(),
         list_objects_outcome.GetError().GetMessage().c_str());
-    list_blobs_context.result = AwsS3Utils::ConvertS3ErrorToExecutionResult(
+    auto execution_result = AwsS3Utils::ConvertS3ErrorToExecutionResult(
         list_objects_outcome.GetError().GetErrorType());
     if (!async_executor_
              ->Schedule(
-                 [list_blobs_context]() mutable {
-                   list_blobs_context.Finish();
+                 [list_blobs_context, execution_result]() mutable {
+                   list_blobs_context.Finish(execution_result);
                  },
                  async_execution_priority_)
              .Successful()) {
-      list_blobs_context.Finish();
+      list_blobs_context.Finish(execution_result);
     }
     return;
   }
@@ -249,13 +254,14 @@ void AwsS3Client::OnListObjectsCallback(
   list_blobs_context.response->next_marker =
       std::make_shared<Blob>(std::move(next_marker));
 
-  list_blobs_context.result = SuccessExecutionResult();
   if (!async_executor_
            ->Schedule(
-               [list_blobs_context]() mutable { list_blobs_context.Finish(); },
+               [list_blobs_context]() mutable {
+                 list_blobs_context.Finish(SuccessExecutionResult());
+               },
                async_execution_priority_)
            .Successful()) {
-    list_blobs_context.Finish();
+    list_blobs_context.Finish(SuccessExecutionResult());
   }
 }
 
@@ -318,25 +324,28 @@ void AwsS3Client::OnPutObjectCallback(
                       "message: %s",
                       put_object_outcome.GetError().GetResponseCode(),
                       put_object_outcome.GetError().GetMessage().c_str());
-    put_blob_context.result = AwsS3Utils::ConvertS3ErrorToExecutionResult(
+    auto execution_result = AwsS3Utils::ConvertS3ErrorToExecutionResult(
         put_object_outcome.GetError().GetErrorType());
     if (!async_executor_
              ->Schedule(
-                 [put_blob_context]() mutable { put_blob_context.Finish(); },
+                 [put_blob_context, execution_result]() mutable {
+                   put_blob_context.Finish(execution_result);
+                 },
                  async_execution_priority_)
              .Successful()) {
-      put_blob_context.Finish();
+      put_blob_context.Finish(execution_result);
     }
     return;
   }
 
-  put_blob_context.result = SuccessExecutionResult();
   if (!async_executor_
            ->Schedule(
-               [put_blob_context]() mutable { put_blob_context.Finish(); },
+               [put_blob_context]() mutable {
+                 put_blob_context.Finish(SuccessExecutionResult());
+               },
                async_execution_priority_)
            .Successful()) {
-    put_blob_context.Finish();
+    put_blob_context.Finish(SuccessExecutionResult());
   }
 }
 
@@ -371,29 +380,28 @@ void AwsS3Client::OnDeleteObjectCallback(
         "message: %s",
         delete_object_outcome.GetError().GetResponseCode(),
         delete_object_outcome.GetError().GetMessage().c_str());
-    delete_blob_context.result = AwsS3Utils::ConvertS3ErrorToExecutionResult(
+    auto execution_result = AwsS3Utils::ConvertS3ErrorToExecutionResult(
         delete_object_outcome.GetError().GetErrorType());
     if (!async_executor_
              ->Schedule(
-                 [delete_blob_context]() mutable {
-                   delete_blob_context.Finish();
+                 [delete_blob_context, execution_result]() mutable {
+                   delete_blob_context.Finish(execution_result);
                  },
                  async_execution_priority_)
              .Successful()) {
-      delete_blob_context.Finish();
+      delete_blob_context.Finish(execution_result);
     }
     return;
   }
 
-  delete_blob_context.result = SuccessExecutionResult();
   if (!async_executor_
            ->Schedule(
                [delete_blob_context]() mutable {
-                 delete_blob_context.Finish();
+                 delete_blob_context.Finish(SuccessExecutionResult());
                },
                async_execution_priority_)
            .Successful()) {
-    delete_blob_context.Finish();
+    delete_blob_context.Finish(SuccessExecutionResult());
   }
 }
 

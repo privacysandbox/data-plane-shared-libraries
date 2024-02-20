@@ -78,7 +78,6 @@ class AwsAuthTokenProviderTest : public testing::TestWithParam<std::string> {
 TEST_F(AwsAuthTokenProviderTest,
        GetSessionTokenSuccessWithValidTokenAndExpireTime) {
   EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
-    http_context.result = SuccessExecutionResult();
     EXPECT_EQ(http_context.request->method, HttpMethod::PUT);
     EXPECT_THAT(http_context.request->path, Pointee(Eq(kTokenServerPath)));
     EXPECT_THAT(http_context.request->headers,
@@ -88,7 +87,7 @@ TEST_F(AwsAuthTokenProviderTest,
 
     http_context.response = std::make_shared<HttpResponse>();
     http_context.response->body = BytesBuffer(kHttpResponseMock);
-    http_context.Finish();
+    http_context.Finish(SuccessExecutionResult());
     return SuccessExecutionResult();
   });
 
@@ -110,8 +109,7 @@ TEST_F(AwsAuthTokenProviderTest,
 
 TEST_F(AwsAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
   EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
-    http_context.result = FailureExecutionResult(SC_UNKNOWN);
-    http_context.Finish();
+    http_context.Finish(FailureExecutionResult(SC_UNKNOWN));
     return SuccessExecutionResult();
   });
 

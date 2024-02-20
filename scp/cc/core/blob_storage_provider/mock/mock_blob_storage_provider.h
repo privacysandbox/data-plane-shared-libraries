@@ -50,9 +50,8 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
     std::ifstream input_stream(full_path, std::ios::binary | std::ios::ate);
 
     if (!input_stream) {
-      get_blob_context.result = FailureExecutionResult(
-          errors::SC_BLOB_STORAGE_PROVIDER_BLOB_PATH_NOT_FOUND);
-      get_blob_context.Finish();
+      get_blob_context.Finish(FailureExecutionResult(
+          errors::SC_BLOB_STORAGE_PROVIDER_BLOB_PATH_NOT_FOUND));
       return SuccessExecutionResult();
     }
 
@@ -73,15 +72,13 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
               reinterpret_cast<char*>(
                   get_blob_context.response->buffer->bytes->data()),
               content_length)) {
-        get_blob_context.result = FailureExecutionResult(
-            errors::SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB);
-        get_blob_context.Finish();
+        get_blob_context.Finish(FailureExecutionResult(
+            errors::SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB));
         return SuccessExecutionResult();
       }
     }
 
-    get_blob_context.result = SuccessExecutionResult();
-    get_blob_context.Finish();
+    get_blob_context.Finish(SuccessExecutionResult());
     return SuccessExecutionResult();
   }
 
@@ -143,8 +140,7 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
       list_blobs_context.response->next_marker = next_marker;
     }
 
-    list_blobs_context.result = SuccessExecutionResult();
-    list_blobs_context.Finish();
+    list_blobs_context.Finish(SuccessExecutionResult());
     return SuccessExecutionResult();
   }
 
@@ -165,8 +161,7 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
                         put_blob_context.request->buffer->length);
     output_stream.close();
 
-    put_blob_context.result = SuccessExecutionResult();
-    put_blob_context.Finish();
+    put_blob_context.Finish(SuccessExecutionResult());
     return SuccessExecutionResult();
   }
 
@@ -179,14 +174,12 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
     auto full_path = *delete_blob_context.request->bucket_name +
                      std::string("/") + *delete_blob_context.request->blob_name;
     if (!std::filesystem::remove_all(full_path)) {
-      delete_blob_context.result = FailureExecutionResult(
-          errors::SC_BLOB_STORAGE_PROVIDER_BLOB_PATH_NOT_FOUND);
-      delete_blob_context.Finish();
+      delete_blob_context.Finish(FailureExecutionResult(
+          errors::SC_BLOB_STORAGE_PROVIDER_BLOB_PATH_NOT_FOUND));
       return SuccessExecutionResult();
     }
 
-    delete_blob_context.result = SuccessExecutionResult();
-    delete_blob_context.Finish();
+    delete_blob_context.Finish(SuccessExecutionResult());
     return SuccessExecutionResult();
   }
 

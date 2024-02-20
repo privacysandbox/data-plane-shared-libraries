@@ -175,8 +175,7 @@ ExecutionResult AwsQueueClientProvider::EnqueueMessage(
     SCP_ERROR_CONTEXT(kAwsQueueClientProvider, enqueue_message_context,
                       execution_result,
                       "Failed to send message due to missing message body");
-    enqueue_message_context.result = execution_result;
-    enqueue_message_context.Finish();
+    enqueue_message_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -307,8 +306,7 @@ ExecutionResult AwsQueueClientProvider::UpdateMessageVisibilityTimeout(
         execution_result,
         "Failed to update visibility timeout of the message due to "
         "missing receipt info");
-    update_message_visibility_timeout_context.result = execution_result;
-    update_message_visibility_timeout_context.Finish();
+    update_message_visibility_timeout_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -323,8 +321,7 @@ ExecutionResult AwsQueueClientProvider::UpdateMessageVisibilityTimeout(
         execution_result,
         "Failed to update visibility timeout of the message due to "
         "invalid lifetime time");
-    update_message_visibility_timeout_context.result = execution_result;
-    update_message_visibility_timeout_context.Finish();
+    update_message_visibility_timeout_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -381,8 +378,7 @@ ExecutionResult AwsQueueClientProvider::DeleteMessage(
     SCP_ERROR_CONTEXT(kAwsQueueClientProvider, delete_message_context,
                       execution_result,
                       "Failed to delete message due to missing receipt info");
-    delete_message_context.result = execution_result;
-    delete_message_context.Finish();
+    delete_message_context.Finish(execution_result);
     return execution_result;
   }
 

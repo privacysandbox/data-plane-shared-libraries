@@ -214,19 +214,18 @@ void HttpConnection::CancelPendingCallbacks() noexcept {
       continue;
     }
 
+    ExecutionResult execution_result =
+        FailureExecutionResult(errors::SC_HTTP2_CLIENT_CONNECTION_DROPPED);
     // The http_context should retry if the connection is dropped causing the
     // connection to be recycled.
     if (is_dropped_) {
-      http_context.result =
+      execution_result =
           RetryExecutionResult(errors::SC_HTTP2_CLIENT_CONNECTION_DROPPED);
-    } else {
-      http_context.result =
-          FailureExecutionResult(errors::SC_HTTP2_CLIENT_CONNECTION_DROPPED);
     }
 
-    SCP_ERROR_CONTEXT(kHttp2Client, http_context, http_context.result,
+    SCP_ERROR_CONTEXT(kHttp2Client, http_context, execution_result,
                       "Pending callback context is dropped.");
-    http_context.Finish();
+    http_context.Finish(execution_result);
   }
 }
 

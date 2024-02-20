@@ -330,8 +330,7 @@ TEST(AsyncExecutorTests, AsyncContextCallback) {
     executor.Schedule(
         [&] {
           context.response = std::make_shared<std::string>("response");
-          context.result = SuccessExecutionResult();
-          context.Finish();
+          context.Finish(SuccessExecutionResult());
         },
         AsyncPriority::Normal);
 
@@ -355,8 +354,7 @@ TEST(AsyncExecutorTests, AsyncContextCallback) {
     executor.ScheduleFor(
         [&] {
           context.response = std::make_shared<std::string>("response");
-          context.result = SuccessExecutionResult();
-          context.Finish();
+          context.Finish(SuccessExecutionResult());
         },
         12345);
 

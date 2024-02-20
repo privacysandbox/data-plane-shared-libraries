@@ -77,8 +77,7 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
         FailureExecutionResult(SC_GCP_KMS_CLIENT_PROVIDER_CIPHERTEXT_NOT_FOUND);
     SCP_ERROR_CONTEXT(kGcpKmsClientProvider, decrypt_context, execution_result,
                       "Failed to get cipher text from decryption request.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -88,8 +87,7 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
         FailureExecutionResult(SC_GCP_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND);
     SCP_ERROR_CONTEXT(kGcpKmsClientProvider, decrypt_context, execution_result,
                       "Failed to get Key Arn from decryption request.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -100,8 +98,7 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
   if (!aead_or.Successful()) {
     SCP_ERROR_CONTEXT(kGcpKmsClientProvider, decrypt_context, aead_or.result(),
                       "Failed to get Aead.");
-    decrypt_context.result = aead_or.result();
-    decrypt_context.Finish();
+    decrypt_context.Finish(aead_or.result());
     return decrypt_context.result;
   }
 
@@ -112,8 +109,7 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
         SC_GCP_KMS_CLIENT_PROVIDER_BASE64_DECODING_FAILED);
     SCP_ERROR_CONTEXT(kGcpKmsClientProvider, decrypt_context, execution_result,
                       "Failed to decode the ciphertext using base64.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -125,14 +121,12 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
     SCP_ERROR_CONTEXT(kGcpKmsClientProvider, decrypt_context, execution_result,
                       "Aead Decryption failed with error %s.",
                       decrypt_or.status().ToString().c_str());
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
   decrypt_context.response = std::make_shared<DecryptResponse>();
   decrypt_context.response->set_plaintext(std::move(*decrypt_or));
-  decrypt_context.result = SuccessExecutionResult();
-  decrypt_context.Finish();
+  decrypt_context.Finish(SuccessExecutionResult());
   return SuccessExecutionResult();
 }
 

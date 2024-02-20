@@ -112,26 +112,23 @@ ExecutionResult AwsMetricClientUtils::ParseRequestToDatum(
       });
 
   if (record_metric_context.request->metrics().size() > request_metric_limit) {
-    record_metric_context.result = FailureExecutionResult(
-        SC_AWS_METRIC_CLIENT_PROVIDER_METRIC_LIMIT_REACHED_PER_REQUEST);
-    record_metric_context.Finish();
+    record_metric_context.Finish(FailureExecutionResult(
+        SC_AWS_METRIC_CLIENT_PROVIDER_METRIC_LIMIT_REACHED_PER_REQUEST));
     return record_metric_context.result;
   }
 
   for (auto metric : record_metric_context.request->metrics()) {
     if (metric.labels().size() > 30) {
-      record_metric_context.result = FailureExecutionResult(
-          SC_AWS_METRIC_CLIENT_PROVIDER_OVERSIZE_DATUM_DIMENSIONS);
-      record_metric_context.Finish();
+      record_metric_context.Finish(FailureExecutionResult(
+          SC_AWS_METRIC_CLIENT_PROVIDER_OVERSIZE_DATUM_DIMENSIONS));
       return record_metric_context.result;
     }
 
     auto input_timestamp_in_ms =
         TimeUtil::TimestampToMilliseconds(metric.timestamp());
     if (input_timestamp_in_ms < 0) {
-      record_metric_context.result = FailureExecutionResult(
-          SC_AWS_METRIC_CLIENT_PROVIDER_INVALID_TIMESTAMP);
-      record_metric_context.Finish();
+      record_metric_context.Finish(FailureExecutionResult(
+          SC_AWS_METRIC_CLIENT_PROVIDER_INVALID_TIMESTAMP));
       return record_metric_context.result;
     }
 
@@ -149,9 +146,8 @@ ExecutionResult AwsMetricClientUtils::ParseRequestToDatum(
       // later than two hours.
       if (difference > kTwoWeeksSecondsCount ||
           difference < -kTwoHoursSecondsCount) {
-        record_metric_context.result = FailureExecutionResult(
-            SC_AWS_METRIC_CLIENT_PROVIDER_INVALID_TIMESTAMP);
-        record_metric_context.Finish();
+        record_metric_context.Finish(FailureExecutionResult(
+            SC_AWS_METRIC_CLIENT_PROVIDER_INVALID_TIMESTAMP));
         return record_metric_context.result;
       }
     }
@@ -161,9 +157,8 @@ ExecutionResult AwsMetricClientUtils::ParseRequestToDatum(
     double value = 0.0;
 
     if (!absl::SimpleAtod(std::string_view(metric.value()), &value)) {
-      record_metric_context.result = FailureExecutionResult(
-          SC_AWS_METRIC_CLIENT_PROVIDER_INVALID_METRIC_VALUE);
-      record_metric_context.Finish();
+      record_metric_context.Finish(FailureExecutionResult(
+          SC_AWS_METRIC_CLIENT_PROVIDER_INVALID_METRIC_VALUE));
       return record_metric_context.result;
     }
 
@@ -174,9 +169,8 @@ ExecutionResult AwsMetricClientUtils::ParseRequestToDatum(
       unit = it->second;
     }
     if (unit == StandardUnit::NOT_SET) {
-      record_metric_context.result = FailureExecutionResult(
-          SC_AWS_METRIC_CLIENT_PROVIDER_INVALID_METRIC_UNIT);
-      record_metric_context.Finish();
+      record_metric_context.Finish(FailureExecutionResult(
+          SC_AWS_METRIC_CLIENT_PROVIDER_INVALID_METRIC_UNIT));
       return record_metric_context.result;
     }
     datum.SetUnit(unit);

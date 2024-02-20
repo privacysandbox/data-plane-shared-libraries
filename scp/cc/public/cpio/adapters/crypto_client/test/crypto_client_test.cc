@@ -75,8 +75,7 @@ TEST_F(CryptoClientTest, HpkeEncryptSuccess) {
       .WillOnce(
           [=](AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>& context) {
             context.response = std::make_shared<HpkeEncryptResponse>();
-            context.result = SuccessExecutionResult();
-            context.Finish();
+            context.Finish(SuccessExecutionResult());
             return SuccessExecutionResult();
           });
 
@@ -95,8 +94,7 @@ TEST_F(CryptoClientTest, HpkeEncryptFailure) {
   EXPECT_CALL(*client_.GetCryptoClientProvider(), HpkeEncrypt)
       .WillOnce(
           [=](AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>& context) {
-            context.result = FailureExecutionResult(SC_UNKNOWN);
-            context.Finish();
+            context.Finish(FailureExecutionResult(SC_UNKNOWN));
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
@@ -117,8 +115,7 @@ TEST_F(CryptoClientTest, HpkeDecryptSuccess) {
       .WillOnce(
           [=](AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>& context) {
             context.response = std::make_shared<HpkeDecryptResponse>();
-            context.result = SuccessExecutionResult();
-            context.Finish();
+            context.Finish(SuccessExecutionResult());
             return SuccessExecutionResult();
           });
 
@@ -137,8 +134,7 @@ TEST_F(CryptoClientTest, HpkeDecryptFailure) {
   EXPECT_CALL(*client_.GetCryptoClientProvider(), HpkeDecrypt)
       .WillOnce(
           [=](AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>& context) {
-            context.result = FailureExecutionResult(SC_UNKNOWN);
-            context.Finish();
+            context.Finish(FailureExecutionResult(SC_UNKNOWN));
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
@@ -159,8 +155,7 @@ TEST_F(CryptoClientTest, AeadEncryptSuccess) {
       .WillOnce(
           [=](AsyncContext<AeadEncryptRequest, AeadEncryptResponse>& context) {
             context.response = std::make_shared<AeadEncryptResponse>();
-            context.result = SuccessExecutionResult();
-            context.Finish();
+            context.Finish(SuccessExecutionResult());
             return SuccessExecutionResult();
           });
 
@@ -179,8 +174,7 @@ TEST_F(CryptoClientTest, AeadEncryptFailure) {
   EXPECT_CALL(*client_.GetCryptoClientProvider(), AeadEncrypt)
       .WillOnce(
           [=](AsyncContext<AeadEncryptRequest, AeadEncryptResponse>& context) {
-            context.result = FailureExecutionResult(SC_UNKNOWN);
-            context.Finish();
+            context.Finish(FailureExecutionResult(SC_UNKNOWN));
             return FailureExecutionResult(SC_UNKNOWN);
           });
 
@@ -201,8 +195,7 @@ TEST_F(CryptoClientTest, AeadDecryptSuccess) {
       .WillOnce(
           [=](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {
             context.response = std::make_shared<AeadDecryptResponse>();
-            context.result = SuccessExecutionResult();
-            context.Finish();
+            context.Finish(SuccessExecutionResult());
             return SuccessExecutionResult();
           });
 
@@ -221,8 +214,7 @@ TEST_F(CryptoClientTest, AeadDecryptFailure) {
   EXPECT_CALL(*client_.GetCryptoClientProvider(), AeadDecrypt)
       .WillOnce(
           [=](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {
-            context.result = FailureExecutionResult(SC_UNKNOWN);
-            context.Finish();
+            context.Finish(FailureExecutionResult(SC_UNKNOWN));
             return FailureExecutionResult(SC_UNKNOWN);
           });
 

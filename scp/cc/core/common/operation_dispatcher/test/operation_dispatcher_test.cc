@@ -51,8 +51,7 @@ TEST(OperationDispatcherTests, SuccessfulOperation) {
   std::function<ExecutionResult(AsyncContext<std::string, std::string>&)>
       dispatch_to_component =
           [](AsyncContext<std::string, std::string>& context) {
-            context.result = SuccessExecutionResult();
-            context.Finish();
+            context.Finish(SuccessExecutionResult());
             return SuccessExecutionResult();
           };
 
@@ -76,8 +75,7 @@ TEST(OperationDispatcherTests, SuccessfulOperationProducerStreaming) {
       ProducerStreamingContext<std::string, std::string>&)>
       dispatch_to_component =
           [](ProducerStreamingContext<std::string, std::string>& context) {
-            context.result = SuccessExecutionResult();
-            context.Finish();
+            context.Finish(SuccessExecutionResult());
             return SuccessExecutionResult();
           };
 
@@ -110,8 +108,7 @@ TEST(OperationDispatcherTests, SuccessfulOperationConsumerStreaming) {
           [](ConsumerStreamingContext<std::string, std::string>& context) {
             context.ProcessNextMessage();
             context.ProcessNextMessage();
-            context.result = SuccessExecutionResult();
-            context.Finish();
+            context.Finish(SuccessExecutionResult());
             return SuccessExecutionResult();
           };
 
@@ -136,8 +133,7 @@ TEST(OperationDispatcherTests, FailedOperation) {
   std::function<ExecutionResult(AsyncContext<std::string, std::string>&)>
       dispatch_to_component =
           [](AsyncContext<std::string, std::string>& context) {
-            context.result = FailureExecutionResult(1);
-            context.Finish();
+            context.Finish(FailureExecutionResult(1));
             return SuccessExecutionResult();
           };
 
@@ -161,8 +157,7 @@ TEST(OperationDispatcherTests, FailedOperationProducerStreaming) {
       ProducerStreamingContext<std::string, std::string>&)>
       dispatch_to_component =
           [](ProducerStreamingContext<std::string, std::string>& context) {
-            context.result = FailureExecutionResult(1);
-            context.Finish();
+            context.Finish(FailureExecutionResult(1));
             return SuccessExecutionResult();
           };
 
@@ -195,8 +190,7 @@ TEST(OperationDispatcherTests, FailedOperationConsumerStreaming) {
           [](ConsumerStreamingContext<std::string, std::string>& context) {
             context.ProcessNextMessage();
             context.ProcessNextMessage();
-            context.result = FailureExecutionResult(1);
-            context.Finish();
+            context.Finish(FailureExecutionResult(1));
             return SuccessExecutionResult();
           };
 
@@ -224,8 +218,7 @@ TEST(OperationDispatcherTests, RetryOperation) {
   std::function<ExecutionResult(AsyncContext<std::string, std::string>&)>
       dispatch_to_component =
           [](AsyncContext<std::string, std::string>& context) {
-            context.result = RetryExecutionResult(1);
-            context.Finish();
+            context.Finish(RetryExecutionResult(1));
             return SuccessExecutionResult();
           };
 
@@ -252,8 +245,7 @@ TEST(OperationDispatcherTests, RetryOperationProducerStreaming) {
       ProducerStreamingContext<std::string, std::string>&)>
       dispatch_to_component =
           [](ProducerStreamingContext<std::string, std::string>& context) {
-            context.result = RetryExecutionResult(1);
-            context.Finish();
+            context.Finish(RetryExecutionResult(1));
             return SuccessExecutionResult();
           };
 
@@ -289,8 +281,7 @@ TEST(OperationDispatcherTests, RetryOperationConsumerStreaming) {
           [](ConsumerStreamingContext<std::string, std::string>& context) {
             context.ProcessNextMessage();
             context.ProcessNextMessage();
-            context.result = RetryExecutionResult(1);
-            context.Finish();
+            context.Finish(RetryExecutionResult(1));
             return SuccessExecutionResult();
           };
 
@@ -325,8 +316,7 @@ TEST(OperationDispatcherTests, OperationExpiration) {
             if (++retry_count == 4) {
               context.expiration_time = 1234;
             }
-            context.result = RetryExecutionResult(1);
-            context.Finish();
+            context.Finish(RetryExecutionResult(1));
             return SuccessExecutionResult();
           };
 

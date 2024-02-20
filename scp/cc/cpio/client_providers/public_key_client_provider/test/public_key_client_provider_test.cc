@@ -139,8 +139,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
         perform_calls.DecrementCount();
         http_context.response =
             std::make_shared<HttpResponse>(success_response);
-        http_context.result = SuccessExecutionResult();
-        http_context.Finish();
+        http_context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       };
 
@@ -180,8 +179,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
       [&](AsyncContext<HttpRequest, HttpResponse>& http_context) {
         perform_calls.DecrementCount();
 
-        http_context.result = failed_result;
-        http_context.Finish();
+        http_context.Finish(failed_result);
         return SuccessExecutionResult();
       };
 
@@ -245,13 +243,10 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
         if (*http_context.request->path == kPrivateKeyBaseUri2) {
           http_context.response =
               std::make_shared<HttpResponse>(success_response);
-          http_context.result = SuccessExecutionResult();
-          http_context.Finish();
+          http_context.Finish(SuccessExecutionResult());
           return SuccessExecutionResult();
         }
-
-        http_context.result = failed_result;
-        http_context.Finish();
+        http_context.Finish(failed_result);
 
         return failed_result;
       };

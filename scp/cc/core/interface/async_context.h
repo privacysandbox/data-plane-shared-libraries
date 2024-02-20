@@ -217,9 +217,10 @@ void FinishContext(const ExecutionResult& result,
   // Make a copy of context - this way we know async_executor's handle will
   // never go out of scope.
   if (!async_executor
-           .Schedule([context]() mutable { context.Finish(); }, priority)
+           .Schedule([context, result]() mutable { context.Finish(result); },
+                     priority)
            .Successful()) {
-    context.Finish();
+    context.Finish(result);
   }
 }
 
@@ -233,8 +234,7 @@ void FinishContext(const ExecutionResult& result,
 template <typename TRequest, typename TResponse>
 void FinishContext(const ExecutionResult& result,
                    AsyncContext<TRequest, TResponse>& context) {
-  context.result = result;
-  context.Finish();
+  context.Finish(result);
 }
 
 }  // namespace google::scp::core

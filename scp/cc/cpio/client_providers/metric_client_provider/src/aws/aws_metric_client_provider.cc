@@ -166,11 +166,11 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
     datums_piece.SetMetricData(datum_list);
     auto datums_payload = datums_piece.SerializePayload().length();
     if (datums_payload > kAwsPayloadSizeLimit) {
-      context.result = FailureExecutionResult(
+      auto execution_result = FailureExecutionResult(
           SC_AWS_METRIC_CLIENT_PROVIDER_REQUEST_PAYLOAD_OVERSIZE);
-      SCP_ERROR_CONTEXT(kAwsMetricClientProvider, context, context.result,
+      SCP_ERROR_CONTEXT(kAwsMetricClientProvider, context, execution_result,
                         "Invalid metric.");
-      context.Finish();
+      context.Finish(execution_result);
       continue;
     }
 

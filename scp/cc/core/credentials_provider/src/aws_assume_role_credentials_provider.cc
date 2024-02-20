@@ -110,21 +110,20 @@ void AwsAssumeRoleCredentialsProvider::OnGetCredentialsCallback(
         get_credentials_outcome.GetError().GetResponseCode(),
         get_credentials_outcome.GetError().GetMessage().c_str());
 
-    get_credentials_context.result = FailureExecutionResult(
+    auto execution_result = FailureExecutionResult(
         errors::SC_CREDENTIALS_PROVIDER_FAILED_TO_FETCH_CREDENTIALS);
     if (!async_executor_
              ->Schedule(
-                 [get_credentials_context]() mutable {
-                   get_credentials_context.Finish();
+                 [get_credentials_context, execution_result]() mutable {
+                   get_credentials_context.Finish(execution_result);
                  },
                  AsyncPriority::High)
              .Successful()) {
-      get_credentials_context.Finish();
+      get_credentials_context.Finish(execution_result);
     }
     return;
   }
 
-  get_credentials_context.result = SuccessExecutionResult();
   get_credentials_context.response = std::make_shared<GetCredentialsResponse>();
   get_credentials_context.response->access_key_id =
       std::make_shared<std::string>(get_credentials_outcome.GetResult()
@@ -141,7 +140,7 @@ void AwsAssumeRoleCredentialsProvider::OnGetCredentialsCallback(
                                         .GetCredentials()
                                         .GetSessionToken()
                                         .c_str());
-  get_credentials_context.Finish();
+  get_credentials_context.Finish(SuccessExecutionResult());
 }
 
 }  // namespace google::scp::core

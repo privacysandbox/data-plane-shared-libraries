@@ -61,8 +61,7 @@ TEST_F(PublicKeyClientTest, ListPublicKeysSuccess) {
       .WillOnce([=](AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse>&
                         context) {
         context.response = std::make_shared<ListPublicKeysResponse>();
-        context.result = SuccessExecutionResult();
-        context.Finish();
+        context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
 
@@ -81,8 +80,7 @@ TEST_F(PublicKeyClientTest, ListPublicKeysFailure) {
   EXPECT_CALL(client_.GetPublicKeyClientProvider(), ListPublicKeys)
       .WillOnce([=](AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse>&
                         context) {
-        context.result = FailureExecutionResult(SC_UNKNOWN);
-        context.Finish();
+        context.Finish(FailureExecutionResult(SC_UNKNOWN));
         return FailureExecutionResult(SC_UNKNOWN);
       });
 

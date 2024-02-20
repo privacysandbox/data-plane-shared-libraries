@@ -42,8 +42,7 @@ class MockRoleCredentialsProvider : public RoleCredentialsProviderInterface {
       core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
           get_credentials_context) noexcept override {
     if (fail_credentials) {
-      get_credentials_context.result = core::FailureExecutionResult(SC_UNKNOWN);
-      get_credentials_context.Finish();
+      get_credentials_context.Finish(core::FailureExecutionResult(SC_UNKNOWN));
       return core::FailureExecutionResult(SC_UNKNOWN);
     }
 
@@ -55,8 +54,7 @@ class MockRoleCredentialsProvider : public RoleCredentialsProviderInterface {
         std::make_shared<std::string>("access_key_secret");
     get_credentials_context.response->security_token =
         std::make_shared<std::string>("security_token");
-    get_credentials_context.result = core::SuccessExecutionResult();
-    get_credentials_context.Finish();
+    get_credentials_context.Finish(core::SuccessExecutionResult());
     return core::SuccessExecutionResult();
   }
 

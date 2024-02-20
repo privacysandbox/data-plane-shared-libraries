@@ -117,8 +117,7 @@ ExecutionResult AwsAutoScalingClientProvider::TryFinishInstanceTermination(
         SC_AWS_AUTO_SCALING_CLIENT_PROVIDER_INSTANCE_RESOURCE_ID_REQUIRED);
     SCP_ERROR_CONTEXT(kAwsAutoScalingClientProvider, try_termination_context,
                       execution_result, "Invalid request.");
-    try_termination_context.result = execution_result;
-    try_termination_context.Finish();
+    try_termination_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -127,8 +126,7 @@ ExecutionResult AwsAutoScalingClientProvider::TryFinishInstanceTermination(
         SC_AWS_AUTO_SCALING_CLIENT_PROVIDER_LIFECYCLE_HOOK_NAME_REQUIRED);
     SCP_ERROR_CONTEXT(kAwsAutoScalingClientProvider, try_termination_context,
                       execution_result, "Invalid request.");
-    try_termination_context.result = execution_result;
-    try_termination_context.Finish();
+    try_termination_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -153,14 +151,13 @@ void AwsAutoScalingClientProvider::OnDescribeAutoScalingInstancesCallback(
     const DescribeAutoScalingInstancesOutcome& outcome,
     const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   if (!outcome.IsSuccess()) {
-    try_termination_context.result =
+    auto execution_result =
         AutoScalingErrorConverter::ConvertAutoScalingError(outcome.GetError());
     SCP_ERROR_CONTEXT(
         kAwsAutoScalingClientProvider, try_termination_context,
-        try_termination_context.result,
-        "Failed to describe auto-scaling instance for %s.",
+        execution_result, "Failed to describe auto-scaling instance for %s.",
         try_termination_context.request->instance_resource_id().c_str());
-    try_termination_context.Finish();
+    try_termination_context.Finish(execution_result);
     return;
   }
 
@@ -171,8 +168,7 @@ void AwsAutoScalingClientProvider::OnDescribeAutoScalingInstancesCallback(
         kAwsAutoScalingClientProvider, try_termination_context,
         execution_result, "Failed to describe auto-scaling instance for %s.",
         try_termination_context.request->instance_resource_id().c_str());
-    try_termination_context.result = execution_result;
-    try_termination_context.Finish();
+    try_termination_context.Finish(execution_result);
     return;
   }
 
@@ -183,8 +179,7 @@ void AwsAutoScalingClientProvider::OnDescribeAutoScalingInstancesCallback(
         kAwsAutoScalingClientProvider, try_termination_context,
         execution_result, "Failed to describe auto-scaling instance for %s.",
         try_termination_context.request->instance_resource_id().c_str());
-    try_termination_context.result = execution_result;
-    try_termination_context.Finish();
+    try_termination_context.Finish(execution_result);
     return;
   }
 
@@ -195,15 +190,13 @@ void AwsAutoScalingClientProvider::OnDescribeAutoScalingInstancesCallback(
   // Return directly if termination is already scheduled.
   if (lifecycle_state == kLifecycleStateTerminatingProceed) {
     try_termination_context.response->set_termination_scheduled(true);
-    try_termination_context.result = SuccessExecutionResult();
-    try_termination_context.Finish();
+    try_termination_context.Finish(SuccessExecutionResult());
     return;
   }
   // Does nothing when the instance is not in terminating wait state.
   if (lifecycle_state != kLifecycleStateTerminatingWait) {
     try_termination_context.response->set_termination_scheduled(false);
-    try_termination_context.result = SuccessExecutionResult();
-    try_termination_context.Finish();
+    try_termination_context.Finish(SuccessExecutionResult());
     return;
   }
 
@@ -232,20 +225,18 @@ void AwsAutoScalingClientProvider::OnCompleteLifecycleActionCallback(
     const CompleteLifecycleActionOutcome& outcome,
     const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   if (!outcome.IsSuccess()) {
-    try_termination_context.result =
+    auto execution_result =
         AutoScalingErrorConverter::ConvertAutoScalingError(outcome.GetError());
     SCP_ERROR_CONTEXT(
         kAwsAutoScalingClientProvider, try_termination_context,
-        try_termination_context.result,
-        "Failed to complete lifecycle action for %s.",
+        execution_result, "Failed to complete lifecycle action for %s.",
         try_termination_context.request->instance_resource_id().c_str());
-    try_termination_context.Finish();
+    try_termination_context.Finish(execution_result);
     return;
   }
 
   try_termination_context.response->set_termination_scheduled(true);
-  try_termination_context.result = SuccessExecutionResult();
-  try_termination_context.Finish();
+  try_termination_context.Finish(SuccessExecutionResult());
 }
 
 std::unique_ptr<AutoScalingClient>

@@ -211,11 +211,10 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceName(
   auto execution_result =
       auth_token_provider_->GetSessionToken(get_token_context);
   if (!execution_result.Successful()) {
-    get_resource_name_context.result = execution_result;
     SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_resource_name_context,
-                      get_resource_name_context.result,
+                      execution_result,
                       "Failed to get the session token for current instance.");
-    get_resource_name_context.Finish();
+    get_resource_name_context.Finish(execution_result);
 
     return execution_result;
   }
@@ -233,8 +232,7 @@ void AwsInstanceClientProvider::OnGetSessionTokenCallback(
     SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_resource_name_context,
                       get_token_context.result,
                       "Failed to get the access token.");
-    get_resource_name_context.result = get_token_context.result;
-    get_resource_name_context.Finish();
+    get_resource_name_context.Finish(get_token_context.result);
     return;
   }
 
@@ -261,8 +259,7 @@ void AwsInstanceClientProvider::OnGetSessionTokenCallback(
         kAwsInstanceClientProvider, get_resource_name_context, execution_result,
         "Failed to perform http request to get the current instance "
         "resource id.");
-    get_resource_name_context.result = execution_result;
-    get_resource_name_context.Finish();
+    get_resource_name_context.Finish(execution_result);
     return;
   }
 }
@@ -276,8 +273,7 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
     SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_resource_name_context,
                       http_client_context.result,
                       "Failed to get the current instance resource id.");
-    get_resource_name_context.result = http_client_context.result;
-    get_resource_name_context.Finish();
+    get_resource_name_context.Finish(http_client_context.result);
     return;
   }
 
@@ -294,8 +290,7 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
         kAwsInstanceClientProvider, get_resource_name_context,
         malformed_failure,
         "Received http response could not be parsed into a JSON.");
-    get_resource_name_context.result = malformed_failure;
-    get_resource_name_context.Finish();
+    get_resource_name_context.Finish(malformed_failure);
     return;
   }
 
@@ -308,8 +303,7 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
         kAwsInstanceClientProvider, get_resource_name_context,
         malformed_failure,
         "Received http response doesn't contain the required fields.");
-    get_resource_name_context.result = malformed_failure;
-    get_resource_name_context.Finish();
+    get_resource_name_context.Finish(malformed_failure);
     return;
   }
 
@@ -322,8 +316,7 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
   get_resource_name_context.response =
       std::make_shared<GetCurrentInstanceResourceNameResponse>();
   get_resource_name_context.response->set_instance_resource_name(resource_name);
-  get_resource_name_context.result = SuccessExecutionResult();
-  get_resource_name_context.Finish();
+  get_resource_name_context.Finish(SuccessExecutionResult());
 }
 
 ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
@@ -362,25 +355,21 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceName(
   auto execution_result = AwsInstanceClientUtils::GetResourceNameDetails(
       get_details_context.request->instance_resource_name(), details);
   if (!execution_result.Successful()) {
-    get_details_context.result = execution_result;
     SCP_ERROR_CONTEXT(
-        kAwsInstanceClientProvider, get_details_context,
-        get_details_context.result,
+        kAwsInstanceClientProvider, get_details_context, execution_result,
         "Get tags request failed due to invalid resource name %s",
         get_details_context.request->instance_resource_name().c_str());
-    get_details_context.Finish();
+    get_details_context.Finish(execution_result);
     return execution_result;
   }
 
   auto ec2_client_or = GetEC2ClientByRegion(details.region);
   if (!ec2_client_or.Successful()) {
-    get_details_context.result = ec2_client_or.result();
     SCP_ERROR_CONTEXT(
-        kAwsInstanceClientProvider, get_details_context,
-        get_details_context.result,
+        kAwsInstanceClientProvider, get_details_context, ec2_client_or.result(),
         "Get tags request failed to create EC2Client for resource name %s",
         get_details_context.request->instance_resource_name().c_str());
-    get_details_context.Finish();
+    get_details_context.Finish(ec2_client_or.result());
     return ec2_client_or.result();
   }
 
@@ -462,23 +451,21 @@ ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
   auto execution_result = AwsInstanceClientUtils::GetResourceNameDetails(
       get_tags_context.request->resource_name(), details);
   if (!execution_result.Successful()) {
-    get_tags_context.result = execution_result;
     SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_tags_context,
-                      get_tags_context.result,
+                      execution_result,
                       "Get tags request failed due to invalid resource name %s",
                       get_tags_context.request->resource_name().c_str());
-    get_tags_context.Finish();
+    get_tags_context.Finish(execution_result);
     return execution_result;
   }
 
   auto ec2_client_or = GetEC2ClientByRegion(details.region);
   if (!ec2_client_or.Successful()) {
-    get_tags_context.result = ec2_client_or.result();
     SCP_ERROR_CONTEXT(
-        kAwsInstanceClientProvider, get_tags_context, get_tags_context.result,
+        kAwsInstanceClientProvider, get_tags_context, ec2_client_or.result(),
         "Get tags request failed to create EC2Client for resource name %s",
         get_tags_context.request->resource_name().c_str());
-    get_tags_context.Finish();
+    get_tags_context.Finish(ec2_client_or.result());
     return ec2_client_or.result();
   }
 
@@ -533,8 +520,7 @@ ExecutionResult AwsInstanceClientProvider::ListInstanceDetailsByEnvironment(
       core::errors::SC_AWS_INSTANCE_CLIENT_NOT_IMPLEMENTED);
   SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_instance_details_context,
                     result, "Not implemented");
-  get_instance_details_context.result = result;
-  get_instance_details_context.Finish();
+  get_instance_details_context.Finish(result);
   return result;
 }
 

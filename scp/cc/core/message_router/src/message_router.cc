@@ -43,8 +43,7 @@ void MessageRouter::OnMessageReceived(
   if (!result) {
     auto failure_result = FailureExecutionResult(
         errors::SC_MESSAGE_ROUTER_REQUEST_NOT_SUBSCRIBED);
-    context->result = failure_result;
-    context->Finish();
+    context->Finish(failure_result);
   } else {
     action(*context);
   }

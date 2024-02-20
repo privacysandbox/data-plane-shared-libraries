@@ -134,23 +134,20 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
         get_credentials_outcome.GetError().GetErrorType(),
         get_credentials_outcome.GetError().GetMessage());
 
-    get_credentials_context.result = execution_result;
-
     // Retries for retriable errors with high priority if specified in the
     // callback of get_credentials_context.
     if (!cpu_async_executor_
              ->Schedule(
-                 [get_credentials_context]() mutable {
-                   get_credentials_context.Finish();
+                 [get_credentials_context, execution_result]() mutable {
+                   get_credentials_context.Finish(execution_result);
                  },
                  AsyncPriority::High)
              .Successful()) {
-      get_credentials_context.Finish();
+      get_credentials_context.Finish(execution_result);
     }
     return;
   }
 
-  get_credentials_context.result = SuccessExecutionResult();
   get_credentials_context.response =
       std::make_shared<GetRoleCredentialsResponse>();
   get_credentials_context.response->access_key_id =
@@ -169,7 +166,7 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
                                         .GetSessionToken()
                                         .c_str());
 
-  get_credentials_context.Finish();
+  get_credentials_context.Finish(SuccessExecutionResult());
 }
 
 #ifndef TEST_CPIO

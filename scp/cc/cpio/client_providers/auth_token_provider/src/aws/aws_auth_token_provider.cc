@@ -99,8 +99,7 @@ ExecutionResult AwsAuthTokenProvider::GetSessionToken(
     SCP_ERROR_CONTEXT(kAwsAuthTokenProvider, get_token_context,
                       execution_result,
                       "Failed to perform http request to fetch access token.");
-    get_token_context.result = execution_result;
-    get_token_context.Finish();
+    get_token_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -115,8 +114,7 @@ void AwsAuthTokenProvider::OnGetSessionTokenCallback(
     SCP_ERROR_CONTEXT(
         kAwsAuthTokenProvider, get_token_context, http_client_context.result,
         "Failed to get access token from Instance Metadata server");
-    get_token_context.result = http_client_context.result;
-    get_token_context.Finish();
+    get_token_context.Finish(http_client_context.result);
 
     return;
   }
@@ -126,8 +124,7 @@ void AwsAuthTokenProvider::OnGetSessionTokenCallback(
       http_client_context.response->body.ToString());
   get_token_context.response->token_lifetime_in_seconds =
       std::chrono::seconds(kTokenTtlInSecondHeaderValue);
-  get_token_context.result = SuccessExecutionResult();
-  get_token_context.Finish();
+  get_token_context.Finish(SuccessExecutionResult());
 }
 
 ExecutionResult AwsAuthTokenProvider::GetSessionTokenForTargetAudience(

@@ -124,8 +124,7 @@ ExecutionResult TeeAwsKmsClientProvider::Decrypt(
     SCP_ERROR_CONTEXT(kTeeAwsKmsClientProvider, decrypt_context,
                       execution_result,
                       "Failed to get cipher text from decryption request.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return decrypt_context.result;
   }
 
@@ -135,8 +134,7 @@ ExecutionResult TeeAwsKmsClientProvider::Decrypt(
         SC_TEE_AWS_KMS_CLIENT_PROVIDER_ASSUME_ROLE_NOT_FOUND);
     SCP_ERROR_CONTEXT(kTeeAwsKmsClientProvider, decrypt_context,
                       execution_result, "Failed to get AssumeRole Arn.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -146,8 +144,7 @@ ExecutionResult TeeAwsKmsClientProvider::Decrypt(
         FailureExecutionResult(SC_TEE_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND);
     SCP_ERROR_CONTEXT(kTeeAwsKmsClientProvider, decrypt_context,
                       execution_result, "Failed to get region.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -173,8 +170,7 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   if (!execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kTeeAwsKmsClientProvider, decrypt_context,
                       execution_result, "Failed to get AWS Credentials.");
-    decrypt_context.result = execution_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execution_result);
     return;
   }
 
@@ -193,8 +189,7 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
                                      std::move(decrypt_args));
 
   if (!plaintext.Successful()) {
-    decrypt_context.result = plaintext.result();
-    decrypt_context.Finish();
+    decrypt_context.Finish(plaintext.result());
     return;
   }
 
@@ -204,16 +199,14 @@ void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   if (!execute_result.Successful()) {
     SCP_ERROR_CONTEXT(kTeeAwsKmsClientProvider, decrypt_context, execute_result,
                       "Failed to decode data.");
-    decrypt_context.result = execute_result;
-    decrypt_context.Finish();
+    decrypt_context.Finish(execute_result);
     return;
   }
 
   auto kms_decrypt_response = std::make_shared<DecryptResponse>();
   kms_decrypt_response->set_plaintext(std::move(decoded_plaintext));
   decrypt_context.response = kms_decrypt_response;
-  decrypt_context.result = SuccessExecutionResult();
-  decrypt_context.Finish();
+  decrypt_context.Finish(SuccessExecutionResult());
 }
 
 ExecutionResultOr<std::string>

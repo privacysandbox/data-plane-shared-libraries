@@ -161,8 +161,7 @@ ExecutionResult GcpQueueClientProvider::EnqueueMessage(
         "Failed to enqueue message due to missing message body in "
         "the request for topic: %s",
         topic_name_.c_str());
-    enqueue_message_context.result = execution_result;
-    enqueue_message_context.Finish();
+    enqueue_message_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -172,13 +171,12 @@ ExecutionResult GcpQueueClientProvider::EnqueueMessage(
       },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
-    enqueue_message_context.result = execution_result;
     SCP_ERROR_CONTEXT(
         kGcpQueueClientProvider, enqueue_message_context,
         enqueue_message_context.result,
         "Enqueue Message request failed to be scheduled. Topic: %s",
         topic_name_.c_str());
-    enqueue_message_context.Finish();
+    enqueue_message_context.Finish(execution_result);
     return execution_result;
   }
   return SuccessExecutionResult();
@@ -238,13 +236,12 @@ ExecutionResult GcpQueueClientProvider::GetTopMessage(
       },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
-    get_top_message_context.result = execution_result;
     SCP_ERROR_CONTEXT(
         kGcpQueueClientProvider, get_top_message_context,
         get_top_message_context.result,
         "Get Top Message request failed to be scheduled. Topic: %s",
         topic_name_.c_str());
-    get_top_message_context.Finish();
+    get_top_message_context.Finish(execution_result);
     return execution_result;
   }
   return SuccessExecutionResult();
@@ -322,8 +319,7 @@ ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
         "Failed to update message visibility timeout due to missing "
         "receipt info in the request. Subscription: %s",
         subscription_name_.c_str());
-    update_message_visibility_timeout_context.result = execution_result;
-    update_message_visibility_timeout_context.Finish();
+    update_message_visibility_timeout_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -339,8 +335,7 @@ ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
         "Failed to update message visibility timeout due to invalid "
         "message visibility timeout in the request. Subscription: %s",
         subscription_name_.c_str());
-    update_message_visibility_timeout_context.result = execution_result;
-    update_message_visibility_timeout_context.Finish();
+    update_message_visibility_timeout_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -351,14 +346,13 @@ ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
       },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
-    update_message_visibility_timeout_context.result = execution_result;
     SCP_ERROR_CONTEXT(kGcpQueueClientProvider,
                       update_message_visibility_timeout_context,
                       update_message_visibility_timeout_context.result,
                       "Update message visibility timeout request failed to be "
                       "scheduled for subscription: %s",
                       subscription_name_.c_str());
-    update_message_visibility_timeout_context.Finish();
+    update_message_visibility_timeout_context.Finish(execution_result);
     return execution_result;
   }
   return SuccessExecutionResult();
@@ -414,8 +408,7 @@ ExecutionResult GcpQueueClientProvider::DeleteMessage(
                       "Failed to delete message due to missing receipt info in "
                       "the request. Subscription: %s",
                       subscription_name_.c_str());
-    delete_message_context.result = execution_result;
-    delete_message_context.Finish();
+    delete_message_context.Finish(execution_result);
     return execution_result;
   }
 
@@ -425,13 +418,12 @@ ExecutionResult GcpQueueClientProvider::DeleteMessage(
       },
       AsyncPriority::Normal);
   if (!execution_result.Successful()) {
-    delete_message_context.result = execution_result;
     SCP_ERROR_CONTEXT(
         kGcpQueueClientProvider, delete_message_context,
         delete_message_context.result,
         "Delete request failed to be scheduled for subscription: %s",
         subscription_name_.c_str());
-    delete_message_context.Finish();
+    delete_message_context.Finish(execution_result);
     return execution_result;
   }
   return SuccessExecutionResult();

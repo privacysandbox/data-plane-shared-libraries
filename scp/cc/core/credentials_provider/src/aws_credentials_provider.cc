@@ -50,8 +50,7 @@ ExecutionResult AwsCredentialsProvider::GetCredentials(
         core::errors::SC_CREDENTIALS_PROVIDER_FAILED_TO_FETCH_CREDENTIALS);
   }
 
-  get_credentials_context.result = execution_result;
-  get_credentials_context.Finish();
+  get_credentials_context.Finish(execution_result);
   return SuccessExecutionResult();
 }
 

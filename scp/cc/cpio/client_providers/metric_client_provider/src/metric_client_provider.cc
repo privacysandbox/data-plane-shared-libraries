@@ -131,8 +131,7 @@ ExecutionResult MetricClientProvider::PutMetrics(
   if (!execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kMetricClientProvider, record_metric_context,
                       execution_result, "Invalid metric.");
-    record_metric_context.result = execution_result;
-    record_metric_context.Finish();
+    record_metric_context.Finish(execution_result);
     return execution_result;
   }
 

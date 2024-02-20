@@ -157,22 +157,22 @@ ExecutionResult ValidateGetBlobRequest(Context& context) {
   const auto& request = *context.request;
   if (request.blob_metadata().bucket_name().empty() ||
       request.blob_metadata().blob_name().empty()) {
-    context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
-    SCP_ERROR_CONTEXT(kAwsS3Provider, context, context.result,
+    SCP_ERROR_CONTEXT(kAwsS3Provider, context, execution_result,
                       "Get blob request is missing bucket or blob name");
-    context.Finish();
+    context.Finish(execution_result);
     return context.result;
   }
   if (request.has_byte_range() && request.byte_range().begin_byte_index() >
                                       request.byte_range().end_byte_index()) {
-    context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(
-        kAwsS3Provider, context, context.result,
+        kAwsS3Provider, context, execution_result,
         "Get blob request provides begin_byte_index that is larger "
         "than end_byte_index");
-    context.Finish();
+    context.Finish(execution_result);
     return context.result;
   }
   return SuccessExecutionResult();
@@ -478,23 +478,22 @@ ExecutionResult AwsBlobStorageClientProvider::ListBlobsMetadata(
         list_blobs_context) noexcept {
   const auto& request = *list_blobs_context.request;
   if (request.blob_metadata().bucket_name().empty()) {
-    list_blobs_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
-    SCP_ERROR_CONTEXT(kAwsS3Provider, list_blobs_context,
-                      list_blobs_context.result,
+    SCP_ERROR_CONTEXT(kAwsS3Provider, list_blobs_context, execution_result,
                       "List blobs metadata request failed. Bucket name empty.");
-    list_blobs_context.Finish();
+    list_blobs_context.Finish(execution_result);
     return list_blobs_context.result;
   }
   if (request.has_max_page_size() &&
       request.max_page_size() > kListBlobsMetadataMaxResults) {
-    list_blobs_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(
-        kAwsS3Provider, list_blobs_context, list_blobs_context.result,
+        kAwsS3Provider, list_blobs_context, execution_result,
         "List blobs metadata request failed. Max page size cannot be "
         "greater than 1000.");
-    list_blobs_context.Finish();
+    list_blobs_context.Finish(execution_result);
     return list_blobs_context.result;
   }
   String bucket_name(list_blobs_context.request->blob_metadata().bucket_name());
@@ -574,12 +573,12 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlob(
   if (request.blob().metadata().bucket_name().empty() ||
       request.blob().metadata().blob_name().empty() ||
       request.blob().data().empty()) {
-    put_blob_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
-    SCP_ERROR_CONTEXT(kAwsS3Provider, put_blob_context, put_blob_context.result,
+    SCP_ERROR_CONTEXT(kAwsS3Provider, put_blob_context, execution_result,
                       "Put blob request failed. Ensure that bucket name, blob "
                       "name, and data are present.");
-    put_blob_context.Finish();
+    put_blob_context.Finish(execution_result);
     return put_blob_context.result;
   }
 
@@ -593,8 +592,7 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlob(
   if (auto md5_result = SetContentMd5(put_blob_context, put_object_request,
                                       request.blob().data());
       !md5_result.Successful()) {
-    put_blob_context.result = md5_result;
-    put_blob_context.Finish();
+    put_blob_context.Finish(md5_result);
     return put_blob_context.result;
   }
 
@@ -645,13 +643,13 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlobStream(
   if (request.blob_portion().metadata().bucket_name().empty() ||
       request.blob_portion().metadata().blob_name().empty() ||
       request.blob_portion().data().empty()) {
-    put_blob_stream_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(
-        kAwsS3Provider, put_blob_stream_context, put_blob_stream_context.result,
+        kAwsS3Provider, put_blob_stream_context, execution_result,
         "Put blob stream request failed. Ensure that bucket name, blob "
         "name, and data are present.");
-    put_blob_stream_context.Finish();
+    put_blob_stream_context.Finish(execution_result);
     return put_blob_stream_context.result;
   }
 
@@ -1064,12 +1062,12 @@ ExecutionResult AwsBlobStorageClientProvider::DeleteBlob(
   const auto& request = *delete_blob_context.request;
   if (request.blob_metadata().bucket_name().empty() ||
       request.blob_metadata().blob_name().empty()) {
-    delete_blob_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(
-        kAwsS3Provider, delete_blob_context, delete_blob_context.result,
+        kAwsS3Provider, delete_blob_context, execution_result,
         "Delete blob request failed. Missing bucket or blob name.");
-    delete_blob_context.Finish();
+    delete_blob_context.Finish(execution_result);
     return delete_blob_context.result;
   }
   String bucket_name(request.blob_metadata().bucket_name());

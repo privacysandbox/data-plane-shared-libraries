@@ -41,8 +41,7 @@ core::ExecutionResult CallbackToPackAnyResponse(
     any_response->PackFrom(*context.response);
   }
   any_context.response = std::move(any_response);
-  any_context.result = context.result;
-  any_context.Finish();
+  any_context.Finish(context.result);
   return core::SuccessExecutionResult();
 }
 }  // namespace google::scp::cpio::client_providers

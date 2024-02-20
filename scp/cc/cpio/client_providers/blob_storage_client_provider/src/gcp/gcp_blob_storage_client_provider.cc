@@ -177,24 +177,23 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlob(
   const auto& request = *get_blob_context.request;
   if (request.blob_metadata().bucket_name().empty() ||
       request.blob_metadata().blob_name().empty()) {
-    get_blob_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, get_blob_context,
-                      get_blob_context.result,
+                      execution_result,
                       "Get blob request is missing bucket or blob name");
-    get_blob_context.Finish();
+    get_blob_context.Finish(execution_result);
     return get_blob_context.result;
   }
   if (request.has_byte_range() && request.byte_range().begin_byte_index() >
                                       request.byte_range().end_byte_index()) {
-    get_blob_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(
-        kGcpBlobStorageClientProvider, get_blob_context,
-        get_blob_context.result,
+        kGcpBlobStorageClientProvider, get_blob_context, execution_result,
         "Get blob request provides begin_byte_index that is larger "
         "than end_byte_index");
-    get_blob_context.Finish();
+    get_blob_context.Finish(execution_result);
     return get_blob_context.result;
   }
 
@@ -202,11 +201,10 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlob(
           [this, get_blob_context] { GetBlobInternal(get_blob_context); },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
-    get_blob_context.result = schedule_result;
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, get_blob_context,
-                      get_blob_context.result,
+                      schedule_result,
                       "Get blob request failed to be scheduled");
-    get_blob_context.Finish();
+    get_blob_context.Finish(schedule_result);
     return schedule_result;
   }
   return SuccessExecutionResult();
@@ -269,24 +267,24 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlobStream(
   const auto& request = *get_blob_stream_context.request;
   if (request.blob_metadata().bucket_name().empty() ||
       request.blob_metadata().blob_name().empty()) {
-    get_blob_stream_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, get_blob_stream_context,
-                      get_blob_stream_context.result,
+                      execution_result,
                       "Get blob stream request is missing bucket or blob name");
-    get_blob_stream_context.Finish();
+    get_blob_stream_context.Finish(execution_result);
     return get_blob_stream_context.result;
   }
   if (request.has_byte_range() && request.byte_range().begin_byte_index() >
                                       request.byte_range().end_byte_index()) {
-    get_blob_stream_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(
         kGcpBlobStorageClientProvider, get_blob_stream_context,
-        get_blob_stream_context.result,
+        execution_result,
         "Get blob stream request provides begin_byte_index that is larger "
         "than end_byte_index");
-    get_blob_stream_context.Finish();
+    get_blob_stream_context.Finish(execution_result);
     return get_blob_stream_context.result;
   }
 
@@ -296,11 +294,10 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlobStream(
           },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
-    get_blob_stream_context.result = schedule_result;
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, get_blob_stream_context,
-                      get_blob_stream_context.result,
+                      schedule_result,
                       "Get blob stream request failed to be scheduled");
-    get_blob_stream_context.Finish();
+    get_blob_stream_context.Finish(schedule_result);
     return schedule_result;
   }
   return SuccessExecutionResult();
@@ -473,12 +470,12 @@ ExecutionResult GcpBlobStorageClientProvider::ListBlobsMetadata(
         list_blobs_context) noexcept {
   const auto& request = *list_blobs_context.request;
   if (request.blob_metadata().bucket_name().empty()) {
-    list_blobs_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, list_blobs_context,
-                      list_blobs_context.result,
+                      execution_result,
                       "List blobs metadata request failed. Bucket name empty.");
-    list_blobs_context.Finish();
+    list_blobs_context.Finish(execution_result);
     return list_blobs_context.result;
   }
   if (request.has_max_page_size() && request.max_page_size() > 1000) {
@@ -498,11 +495,10 @@ ExecutionResult GcpBlobStorageClientProvider::ListBlobsMetadata(
           },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
-    list_blobs_context.result = schedule_result;
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, list_blobs_context,
-                      list_blobs_context.result,
+                      schedule_result,
                       "List blobs metadata request failed to be scheduled");
-    list_blobs_context.Finish();
+    list_blobs_context.Finish(schedule_result);
     return schedule_result;
   }
   return SuccessExecutionResult();
@@ -594,11 +590,10 @@ ExecutionResult GcpBlobStorageClientProvider::PutBlob(
           [this, put_blob_context] { PutBlobInternal(put_blob_context); },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
-    put_blob_context.result = schedule_result;
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, put_blob_context,
-                      put_blob_context.result,
+                      schedule_result,
                       "Put blob request failed to be scheduled");
-    put_blob_context.Finish();
+    put_blob_context.Finish(schedule_result);
     return schedule_result;
   }
   return SuccessExecutionResult();
@@ -638,14 +633,14 @@ ExecutionResult GcpBlobStorageClientProvider::PutBlobStream(
   if (request.blob_portion().metadata().bucket_name().empty() ||
       request.blob_portion().metadata().blob_name().empty() ||
       request.blob_portion().data().empty()) {
-    put_blob_stream_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(
         kGcpBlobStorageClientProvider, put_blob_stream_context,
-        put_blob_stream_context.result,
+        execution_result,
         "Put blob stream request failed. Ensure that bucket name, blob "
         "name, and data are present.");
-    put_blob_stream_context.Finish();
+    put_blob_stream_context.Finish(execution_result);
     return put_blob_stream_context.result;
   }
 
@@ -655,11 +650,10 @@ ExecutionResult GcpBlobStorageClientProvider::PutBlobStream(
           },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
-    put_blob_stream_context.result = schedule_result;
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, put_blob_stream_context,
-                      put_blob_stream_context.result,
+                      schedule_result,
                       "Put blob stream request failed to be scheduled");
-    put_blob_stream_context.Finish();
+    put_blob_stream_context.Finish(schedule_result);
     return schedule_result;
   }
   return SuccessExecutionResult();
@@ -838,13 +832,12 @@ ExecutionResult GcpBlobStorageClientProvider::DeleteBlob(
   const auto& request = *delete_blob_context.request;
   if (request.blob_metadata().bucket_name().empty() ||
       request.blob_metadata().blob_name().empty()) {
-    delete_blob_context.result =
+    auto execution_result =
         FailureExecutionResult(SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
     SCP_ERROR_CONTEXT(
-        kGcpBlobStorageClientProvider, delete_blob_context,
-        delete_blob_context.result,
+        kGcpBlobStorageClientProvider, delete_blob_context, execution_result,
         "Delete blob request failed. Missing bucket or blob name.");
-    delete_blob_context.Finish();
+    delete_blob_context.Finish(execution_result);
     return delete_blob_context.result;
   }
 
@@ -854,11 +847,10 @@ ExecutionResult GcpBlobStorageClientProvider::DeleteBlob(
           },
           AsyncPriority::Normal);
       !schedule_result.Successful()) {
-    delete_blob_context.result = schedule_result;
     SCP_ERROR_CONTEXT(kGcpBlobStorageClientProvider, delete_blob_context,
-                      delete_blob_context.result,
+                      schedule_result,
                       "Delete blob request failed to be scheduled");
-    delete_blob_context.Finish();
+    delete_blob_context.Finish(schedule_result);
     return schedule_result;
   }
   return SuccessExecutionResult();
