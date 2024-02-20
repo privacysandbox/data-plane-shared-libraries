@@ -26,9 +26,10 @@ cc_library(
         "uuid.h",
     ],
     deps = [
-        "//scp/cc/core/common/time_provider/src:time_provider_lib",
         "//scp/cc/core/interface:errors_lib",
         "//scp/cc/public/core/interface:execution_result",
+        "//src/cpp/util:duration",
+        "@com_google_absl//absl/random",
         "@com_google_absl//absl/strings",
     ],
 )

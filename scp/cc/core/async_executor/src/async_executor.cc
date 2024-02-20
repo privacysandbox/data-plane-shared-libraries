@@ -19,6 +19,7 @@
 #include <thread>
 #include <vector>
 
+#include "absl/random/random.h"
 #include "scp/cc/core/interface/async_context.h"
 #include "scp/cc/core/interface/async_executor_interface.h"
 #include "scp/cc/public/core/interface/execution_result.h"
@@ -112,18 +113,14 @@ ExecutionResultOr<TaskExecutorType*> AsyncExecutor::PickTaskExecutor(
     const std::vector<std::unique_ptr<TaskExecutorType>>& task_executor_pool,
     TaskExecutorPoolType task_executor_pool_type,
     TaskLoadBalancingScheme task_load_balancing_scheme) const {
-  // TODO(b/316372841): Use abseil random library instead.
-  static thread_local std::random_device random_device_local;
-  static thread_local std::mt19937 random_generator(random_device_local());
-  static thread_local std::uniform_int_distribution<uint64_t> distribution;
-
+  absl::BitGen bitgen;
   // Thread local task counters, initial value of the task counter with a random
   // value so that all the caller threads do not pick the same executor to start
   // with
   static thread_local std::atomic<uint64_t> task_counter_urgent_thread_local(
-      distribution(random_generator));
+      absl::Uniform<uint64_t>(bitgen));
   static thread_local std::atomic<uint64_t>
-      task_counter_not_urgent_thread_local(distribution(random_generator));
+      task_counter_not_urgent_thread_local(absl::Uniform<uint64_t>(bitgen));
 
   // Global task counters
   static std::atomic<uint64_t> task_counter_urgent(0);
@@ -168,7 +165,7 @@ ExecutionResultOr<TaskExecutorType*> AsyncExecutor::PickTaskExecutor(
 
   if (task_load_balancing_scheme == TaskLoadBalancingScheme::Random) {
     auto picked_index =
-        distribution(random_generator) % task_executor_pool.size();
+        absl::Uniform<uint64_t>(bitgen) % task_executor_pool.size();
     return task_executor_pool.at(picked_index).get();
   }
 

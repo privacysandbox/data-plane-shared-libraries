@@ -19,31 +19,26 @@
 #include <cctype>
 #include <chrono>
 #include <cstdint>
-#include <random>
 #include <sstream>
 #include <string>
 #include <string_view>
 
+#include "absl/random/random.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
-#include "scp/cc/core/common/time_provider/src/time_provider.h"
+#include "src/cpp/util/duration.h"
 
 #include "error_codes.h"
 
 namespace google::scp::core::common {
 
 Uuid Uuid::GenerateUuid() noexcept {
-  // TODO(b/316599538): Remove use of atomic.
-  static std::atomic<Timestamp> current_clock =
-      TimeProvider::GetWallTimestampInNanosecondsAsClockTicks();
-
-  // TODO(b/316372841): Use abseil random library instead.
-  static thread_local std::random_device random_device_local;
-  static thread_local std::mt19937 random_generator(random_device_local());
-  std::uniform_int_distribution<uint64_t> distribution;
+  absl::BitGen bitgen;
   return Uuid{
-      .high = current_clock.fetch_add(1),
-      .low = distribution(random_generator),
+      .high = static_cast<uint64_t>(absl::ToInt64Nanoseconds(
+          privacy_sandbox::server_common::CpuThreadTimeStopwatch()
+              .GetElapsedTime())),
+      .low = absl::Uniform<uint64_t>(bitgen),
   };
 }
 
