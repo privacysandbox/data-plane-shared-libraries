@@ -24,84 +24,25 @@
 #include "scp/cc/roma/sandbox/constants/constants.h"
 #include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
 
-namespace google::scp::roma::sandbox::dispatcher::request_validator {
-template <typename T>
-struct RequestValidator {};
-
+namespace google::scp::roma::sandbox::dispatcher {
 /**
  * @brief Template specialization to validate a CodeObject.
  */
-template <>
-struct RequestValidator<CodeObject> {
-  static absl::Status Validate(const CodeObject& request) {
-    if (request.js.empty() && request.wasm.empty()) {
-      return absl::InvalidArgumentError("Both JS and WASM are empty");
-    }
-
-    if (!request.js.empty() && !request.wasm.empty()) {
-      return absl::InvalidArgumentError("Both JS and WASM are set");
-    }
-
-    if (request.version_string.empty() || request.id.empty()) {
-      return absl::InvalidArgumentError(
-          "Either version_string or id must be set");
-    }
-
-    return absl::OkStatus();
-  }
-};
+absl::Status AssertRequestIsValid(const CodeObject& request);
 
 /**
  * @brief Common validation fields for invocation requests.
  */
-template <typename RequestT>
-static absl::Status InvocationRequestCommon(const RequestT& request) {
-  if (request.handler_name.empty() || request.version_string.empty() ||
-      request.id.empty()) {
+template <typename InputType, typename TMetadata>
+absl::Status AssertRequestIsValid(
+    const InvocationRequest<InputType, TMetadata>& request) {
+  if (request.treat_input_as_byte_str && request.input.size() != 1) {
     return absl::InvalidArgumentError(
-        "One of handler_name, version_string, id must be set");
+        "Dispatch is disallowed since the number of inputs does not equal one "
+        "and InvocationRequest.treat_input_as_byte_str is true.");
   }
-
-  if (request.treat_input_as_byte_str && request.input.size() > 1) {
-    return absl::InvalidArgumentError(
-        "Dispatch is disallowed since there is more than one input when "
-        "InvocationRequest.treat_input_as_byte_str is true.");
-  }
-
   return absl::OkStatus();
 }
-
-/**
- * @brief Template specialization to validate a InvocationStrRequest.
- */
-template <typename TMetadata>
-struct RequestValidator<InvocationStrRequest<TMetadata>> {
-  static absl::Status Validate(const InvocationStrRequest<TMetadata>& request) {
-    return InvocationRequestCommon(request);
-  }
-};
-
-/**
- * @brief Template specialization to validate a InvocationSharedRequest.
- */
-template <typename TMetadata>
-struct RequestValidator<InvocationSharedRequest<TMetadata>> {
-  static absl::Status Validate(
-      const InvocationSharedRequest<TMetadata>& request) {
-    return InvocationRequestCommon(request);
-  }
-};
-
-/**
- * @brief Template specialization to validate a InvocationStrViewRequest.
- */
-template <typename TMetadata>
-struct RequestValidator<InvocationStrViewRequest<TMetadata>> {
-  static absl::Status Validate(
-      const InvocationStrViewRequest<TMetadata>& request) {
-    return InvocationRequestCommon(request);
-  }
-};
-}  // namespace google::scp::roma::sandbox::dispatcher::request_validator
+}  // namespace google::scp::roma::sandbox::dispatcher
 
 #endif  // ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_VALIDATOR_H_

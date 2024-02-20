@@ -140,14 +140,7 @@ class Dispatcher {
           "Dispatch is disallowed since the number of unfinished requests is "
           "at capacity.");
     }
-
-    // We accept empty request IDs, but we will replace them with a placeholder.
-    if (request->id.empty()) {
-      request->id = constants::kDefaultRomaRequestId;
-    }
-
-    PS_RETURN_IF_ERROR(
-        request_validator::RequestValidator<RequestT>::Validate(*request));
+    PS_RETURN_IF_ERROR(AssertRequestIsValid(*request));
     size_t index = 0;
     if (worker_index != -1) {
       index = worker_index;

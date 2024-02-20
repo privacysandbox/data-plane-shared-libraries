@@ -70,9 +70,6 @@ inline constexpr std::string_view kInputParsingMetricJsEngineDuration =
 inline constexpr std::string_view kHandlerCallMetricJsEngineDuration =
     "roma.metric.js_engine_handler_call_duration";
 
-inline constexpr std::string_view kDefaultRomaRequestId =
-    "roma.defaults.request.id";
-
 // Invalid file descriptor value.
 inline constexpr int kBadFd = -1;
 }  // namespace google::scp::roma::sandbox::constants

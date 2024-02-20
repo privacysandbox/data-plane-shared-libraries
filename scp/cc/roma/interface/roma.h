@@ -44,10 +44,13 @@ inline constexpr absl::Duration kDefaultExecutionTimeout =
 inline constexpr std::string_view kWasmCodeArrayName =
     "roma.request.wasm_array_name";
 
+inline constexpr std::string_view kDefaultRomaRequestId =
+    "roma.defaults.request.id";
+
 // The code object containing untrusted code to be loaded into the Worker.
 struct CodeObject {
   // The id of the code object.
-  std::string id;
+  std::string id = std::string(kDefaultRomaRequestId);
   // The version string of the code object.
   std::string version_string;
   // The javascript code to execute. If empty, this code object is wasm only.
@@ -79,7 +82,7 @@ struct InvocationRequest {
       "std::string_view");
 
   // The id of the invocation request.
-  std::string id;
+  std::string id = std::string(kDefaultRomaRequestId);
   // The version string of the untrusted code that performs the execution
   // object.
   std::string version_string;

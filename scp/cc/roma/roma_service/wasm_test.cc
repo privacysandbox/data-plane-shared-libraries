@@ -367,10 +367,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     const auto status = roma_service->LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {});
     EXPECT_FALSE(status.ok());
-    EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
-    EXPECT_THAT(status.message(),
-                StrEq("Roma LoadCodeObj failed due to wasm code and wasm code "
-                      "array conflict."));
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
   }
 
   // Missing JS code
@@ -385,9 +382,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     const auto status = roma_service->LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {});
     EXPECT_FALSE(status.ok());
-    EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
-    EXPECT_THAT(status.message(),
-                StrEq("Roma LoadCodeObj failed due to empty code content."));
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
   }
 
   // Missing wasm code array name tag
@@ -402,10 +397,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     const auto status = roma_service->LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {});
     EXPECT_FALSE(status.ok());
-    EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
-    EXPECT_THAT(status.message(),
-                StrEq("Roma LoadCodeObj failed due to empty wasm_bin or "
-                      "missing wasm code array name tag."));
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
   }
 
   // Missing wasm_bin
@@ -420,10 +412,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
     const auto status = roma_service->LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {});
     EXPECT_FALSE(status.ok());
-    EXPECT_EQ(status.code(), absl::StatusCode::kInternal);
-    EXPECT_THAT(status.message(),
-                StrEq("Roma LoadCodeObj failed due to empty wasm_bin or "
-                      "missing wasm code array name tag."));
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
   }
 
   // Wrong wasm array name tag

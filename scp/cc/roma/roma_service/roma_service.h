@@ -78,25 +78,9 @@ class RomaService {
   absl::Status LoadCodeObj(std::unique_ptr<CodeObject> code_object,
                            Callback callback) {
     if (code_object->version_string.empty()) {
-      return absl::InternalError(
+      return absl::InvalidArgumentError(
           "Roma LoadCodeObj failed due to invalid version.");
     }
-    if (code_object->js.empty() && code_object->wasm.empty()) {
-      return absl::InternalError(
-          "Roma LoadCodeObj failed due to empty code content.");
-    }
-    if (!code_object->wasm.empty() && !code_object->wasm_bin.empty()) {
-      return absl::InternalError(
-          "Roma LoadCodeObj failed due to wasm code and wasm code array "
-          "conflict.");
-    }
-    if (!code_object->wasm_bin.empty() !=
-        code_object->tags.contains(kWasmCodeArrayName)) {
-      return absl::InternalError(
-          "Roma LoadCodeObj failed due to empty wasm_bin or missing wasm code "
-          "array name tag.");
-    }
-
     return dispatcher_->Broadcast(std::move(code_object), std::move(callback));
   }
 
@@ -326,15 +310,16 @@ class RomaService {
     return worker_pool_->Init();
   }
 
-  template <typename RequestT>
-  absl::Status ExecutionObjectValidation(std::string_view function_name,
-                                         const RequestT& invocation_req) {
-    if (invocation_req->version_string.empty()) {
+  template <typename InputType>
+  absl::Status AssertInvocationRequestIsValid(
+      std::string_view function_name,
+      const InvocationRequest<InputType, TMetadata>& invocation_req) {
+    if (invocation_req.version_string.empty()) {
       return absl::InvalidArgumentError(absl::StrCat(
           "Roma ", function_name, " failed due to invalid version."));
     }
 
-    if (invocation_req->handler_name.empty()) {
+    if (invocation_req.handler_name.empty()) {
       return absl::InvalidArgumentError(absl::StrCat(
           "Roma ", function_name, " failed due to empty handler name."));
     }
@@ -346,7 +331,7 @@ class RomaService {
   absl::Status ExecuteInternal(std::unique_ptr<RequestT> invocation_req,
                                Callback callback) {
     PS_RETURN_IF_ERROR(
-        ExecutionObjectValidation("Execute", invocation_req.get()));
+        AssertInvocationRequestIsValid("Execute", *invocation_req));
 
     auto request_unique_id = google::scp::core::common::Uuid::GenerateUuid();
     std::string uuid_str =
@@ -380,7 +365,8 @@ class RomaService {
     uuids.reserve(batch.size());
 
     for (auto& request : batch) {
-      PS_RETURN_IF_ERROR(ExecutionObjectValidation("BatchExecute", &request));
+      PS_RETURN_IF_ERROR(
+          AssertInvocationRequestIsValid("BatchExecute", request));
       auto request_unique_id = google::scp::core::common::Uuid::GenerateUuid();
       std::string uuid_str =
           google::scp::core::common::ToString(request_unique_id);

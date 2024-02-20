@@ -52,8 +52,10 @@ cc_library(
 
 cc_library(
     name = "request_validator",
+    srcs = ["request_validator.cc"],
     hdrs = ["request_validator.h"],
     deps = [
+        "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
         "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_lib",
         "@com_google_absl//absl/status",
