@@ -25,7 +25,6 @@ cc_library(
         ],
     ),
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
         "@oneTBB//:tbb",

@@ -19,8 +19,8 @@
 #include <optional>
 #include <thread>
 
-#include "core/common/global_logger/src/global_logger.h"
-#include "core/common/uuid/src/uuid.h"
+#include "scp/cc/core/common/global_logger/src/global_logger.h"
+#include "scp/cc/core/common/uuid/src/uuid.h"
 
 #include "error_codes.h"
 

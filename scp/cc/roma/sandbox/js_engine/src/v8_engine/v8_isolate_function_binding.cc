@@ -22,10 +22,10 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "roma/config/src/type_converter.h"
-#include "roma/logging/src/logging.h"
-#include "roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/config/src/type_converter.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
+#include "scp/cc/roma/logging/src/logging.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 using google::scp::roma::proto::FunctionBindingIoProto;

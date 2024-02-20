@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include "core/interface/http_client_interface.h"
+#include "scp/cc/core/interface/http_client_interface.h"
 
 namespace google::scp::core::http2_client::mock {
 class MockHttpClient : public HttpClientInterface {

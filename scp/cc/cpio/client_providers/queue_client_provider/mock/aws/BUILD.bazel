@@ -23,7 +23,6 @@ cc_library(
         "mock_sqs_client.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "@aws_sdk_cpp//:sqs",
         "@com_google_googletest//:gtest",

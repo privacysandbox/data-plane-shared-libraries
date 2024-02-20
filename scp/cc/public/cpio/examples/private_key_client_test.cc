@@ -18,13 +18,13 @@
 #include <string>
 
 #include "absl/synchronization/notification.h"
-#include "core/interface/async_context.h"
-#include "public/core/interface/errors.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/cpio.h"
-#include "public/cpio/interface/private_key_client/private_key_client_interface.h"
-#include "public/cpio/interface/private_key_client/type_def.h"
-#include "public/cpio/interface/type_def.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/public/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/cpio.h"
+#include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
+#include "scp/cc/public/cpio/interface/private_key_client/type_def.h"
+#include "scp/cc/public/cpio/interface/type_def.h"
 
 using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;
 using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse;

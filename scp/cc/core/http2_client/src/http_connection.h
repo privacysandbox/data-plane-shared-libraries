@@ -23,11 +23,11 @@
 
 #include <nghttp2/asio_http2_client.h>
 
-#include "core/common/concurrent_map/src/concurrent_map.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/common/concurrent_map/src/concurrent_map.h"
 #include "scp/cc/core/interface/async_context.h"
 #include "scp/cc/core/interface/async_executor_interface.h"
 #include "scp/cc/core/interface/http_client_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

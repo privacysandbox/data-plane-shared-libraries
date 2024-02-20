@@ -51,7 +51,6 @@ cc_library(
             },
             no_match_error = "Please build for AWS or GCP",
         ) + [
-            "//scp/cc:cc_base_include_dir",
             "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
             "//scp/cc/public/cpio/test/global_cpio:test_cpio_options",
         ],
@@ -62,7 +61,6 @@ cc_test(
     size = "small",
     srcs = ["lib_cpio_provider_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/cpio/client_providers/global_cpio/mock:global_cpio_mock",
         "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",

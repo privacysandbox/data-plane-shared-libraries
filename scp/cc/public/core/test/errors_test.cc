@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "public/core/interface/errors.h"
+#include "scp/cc/public/core/interface/errors.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "public/cpio/interface/error_codes.h"
+#include "scp/cc/public/cpio/interface/error_codes.h"
 
 using google::scp::core::errors::SC_CPIO_INTERNAL_ERROR;
 using ::testing::StrEq;

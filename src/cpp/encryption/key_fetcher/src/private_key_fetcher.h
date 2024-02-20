@@ -20,8 +20,6 @@
 #include <memory>
 #include <vector>
 
-#include <public/cpio/interface/type_def.h>
-
 #include "absl/container/flat_hash_map.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"

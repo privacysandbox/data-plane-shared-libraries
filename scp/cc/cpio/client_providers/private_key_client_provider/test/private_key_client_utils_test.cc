@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "cpio/client_providers/private_key_client_provider/src/private_key_client_utils.h"
+#include "scp/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -27,11 +27,11 @@
 #include <google/protobuf/util/time_util.h>
 
 #include "absl/strings/escaping.h"
-#include "core/interface/http_types.h"
-#include "core/test/utils/timestamp_test_utils.h"
-#include "core/utils/src/base64.h"
-#include "public/core/interface/execution_result.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/core/interface/http_types.h"
+#include "scp/cc/core/test/utils/timestamp_test_utils.h"
+#include "scp/cc/core/utils/src/base64.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::private_key_service::v1::PrivateKey;

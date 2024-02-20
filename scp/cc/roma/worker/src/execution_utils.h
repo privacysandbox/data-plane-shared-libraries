@@ -25,12 +25,12 @@
 #include <vector>
 
 #include "include/v8.h"
-#include "public/core/interface/execution_result.h"
-#include "roma/config/src/type_converter.h"
-#include "roma/interface/roma.h"
-#include "roma/wasm/src/deserializer.h"
-#include "roma/wasm/src/serializer.h"
-#include "roma/wasm/src/wasm_types.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/roma/config/src/type_converter.h"
+#include "scp/cc/roma/interface/roma.h"
+#include "scp/cc/roma/wasm/src/deserializer.h"
+#include "scp/cc/roma/wasm/src/serializer.h"
+#include "scp/cc/roma/wasm/src/wasm_types.h"
 
 #include "error_codes.h"
 

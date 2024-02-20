@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include "core/common/proto/common.pb.h"
+#include "scp/cc/core/common/proto/common.pb.h"
 
 namespace google::scp::core {
 using Timestamp = uint64_t;

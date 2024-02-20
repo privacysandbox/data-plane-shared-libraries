@@ -21,8 +21,8 @@
 
 #include <aws/ec2/EC2Client.h>
 
-#include "cpio/common/src/aws/error_codes.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/cpio/common/src/aws/error_codes.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers {
 /// Converts EC2Errors to our errors.

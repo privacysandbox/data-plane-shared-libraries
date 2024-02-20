@@ -179,8 +179,8 @@ converters for every odd type in Roma. Here is an example of how to use this fea
     Initialize Roma with its configuration configured.
 
     ```cpp
-    #include "roma/config/src/config.h"
-    #include "roma/interface/roma.h"
+    #include "scp/cc/roma/config/src/config.h"
+    #include "scp/cc/roma/interface/roma.h"
 
     // create a config for roma initialization
     Config config;

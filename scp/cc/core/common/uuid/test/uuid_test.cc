@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#include "core/common/uuid/src/uuid.h"
+#include "scp/cc/core/common/uuid/src/uuid.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <string>
 
-#include "core/common/uuid/src/error_codes.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/core/common/uuid/src/error_codes.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::test::ResultIs;
 using testing::StrEq;

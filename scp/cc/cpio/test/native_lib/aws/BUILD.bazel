@@ -23,7 +23,6 @@ cc_test(
     srcs = ["aws_cpio_lib_integration_test.cc"],
     tags = ["manual"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/core/test/utils/aws_helper:aws_helper_lib",
         "//scp/cc/core/test/utils/docker_helper:docker_helper_lib",

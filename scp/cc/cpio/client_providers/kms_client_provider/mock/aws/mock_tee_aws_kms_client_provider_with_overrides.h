@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "cpio/client_providers/kms_client_provider/src/aws/tee_aws_kms_client_provider.h"
+#include "scp/cc/cpio/client_providers/kms_client_provider/src/aws/tee_aws_kms_client_provider.h"
 
 namespace google::scp::cpio::client_providers::mock {
 class MockTeeAwsKmsClientProviderWithOverrides

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "roma/sandbox/dispatcher/src/dispatcher.h"
+#include "scp/cc/roma/sandbox/dispatcher/src/dispatcher.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -29,13 +29,13 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
-#include "core/async_executor/src/async_executor.h"
-#include "core/test/utils/auto_init_run_stop.h"
-#include "roma/interface/roma.h"
-#include "roma/sandbox/worker_api/src/worker_api.h"
-#include "roma/sandbox/worker_api/src/worker_api_sapi.h"
-#include "roma/sandbox/worker_pool/src/worker_pool.h"
-#include "roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
+#include "scp/cc/core/async_executor/src/async_executor.h"
+#include "scp/cc/core/test/utils/auto_init_run_stop.h"
+#include "scp/cc/roma/interface/roma.h"
+#include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
+#include "scp/cc/roma/sandbox/worker_api/src/worker_api_sapi.h"
+#include "scp/cc/roma/sandbox/worker_pool/src/worker_pool.h"
+#include "scp/cc/roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
 
 using google::scp::core::AsyncExecutor;
 using google::scp::core::test::AutoInitRunStop;

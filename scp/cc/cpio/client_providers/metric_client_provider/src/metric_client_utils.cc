@@ -19,12 +19,12 @@
 #include <memory>
 
 #include "absl/container/flat_hash_map.h"
-#include "cpio/client_providers/interface/metric_client_provider_interface.h"
-#include "cpio/client_providers/metric_client_provider/src/error_codes.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/metric_client/metric_client_interface.h"
-#include "public/cpio/interface/metric_client/type_def.h"
-#include "public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "scp/cc/cpio/client_providers/interface/metric_client_provider_interface.h"
+#include "scp/cc/cpio/client_providers/metric_client_provider/src/error_codes.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/metric_client/metric_client_interface.h"
+#include "scp/cc/public/cpio/interface/metric_client/type_def.h"
+#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 #include "error_codes.h"
 

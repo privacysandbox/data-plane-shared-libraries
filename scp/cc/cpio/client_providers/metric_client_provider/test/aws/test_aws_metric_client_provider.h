@@ -24,8 +24,8 @@
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
 
-#include "cpio/client_providers/metric_client_provider/src/aws/aws_metric_client_provider.h"
-#include "public/cpio/test/metric_client/test_aws_metric_client_options.h"
+#include "scp/cc/cpio/client_providers/metric_client_provider/src/aws/aws_metric_client_provider.h"
+#include "scp/cc/public/cpio/test/metric_client/test_aws_metric_client_options.h"
 
 namespace google::scp::cpio::client_providers {
 /*! @copydoc AwsMetricClientProvider

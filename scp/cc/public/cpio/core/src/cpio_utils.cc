@@ -18,10 +18,10 @@
 
 #include <memory>
 
-#include "core/interface/async_executor_interface.h"
-#include "cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "cpio/client_providers/interface/cpio_provider_interface.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/async_executor_interface.h"
+#include "scp/cc/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "scp/cc/cpio/client_providers/interface/cpio_provider_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;

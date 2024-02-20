@@ -20,10 +20,10 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "core/common/time_provider/src/time_provider.h"
-#include "core/interface/async_context.h"
-#include "core/interface/async_executor_interface.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/common/time_provider/src/time_provider.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/interface/async_executor_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core {
 /**

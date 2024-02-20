@@ -24,12 +24,12 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/types/span.h"
-#include "core/test/utils/auto_init_run_stop.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
-#include "roma/sandbox/worker/src/worker.h"
-#include "roma/wasm/test/testing_utils.h"
+#include "scp/cc/core/test/utils/auto_init_run_stop.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
+#include "scp/cc/roma/sandbox/worker/src/worker.h"
+#include "scp/cc/roma/wasm/test/testing_utils.h"
 
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::sandbox::constants::kCodeVersion;

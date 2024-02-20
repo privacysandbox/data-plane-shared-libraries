@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include "cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

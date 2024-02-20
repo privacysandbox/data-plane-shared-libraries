@@ -32,7 +32,7 @@
 #include "src/debug/interface-types.h"
 #include "absl/log/check.h"
 #include "absl/status/status.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 #include "absl/functional/any_invocable.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 

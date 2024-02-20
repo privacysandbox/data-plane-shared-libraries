@@ -24,8 +24,8 @@
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
 
-#include "cpio/client_providers/kms_client_provider/src/aws/nontee_aws_kms_client_provider.h"
-#include "public/cpio/test/kms_client/test_aws_kms_client_options.h"
+#include "scp/cc/cpio/client_providers/kms_client_provider/src/aws/nontee_aws_kms_client_provider.h"
+#include "scp/cc/public/cpio/test/kms_client/test_aws_kms_client_options.h"
 
 namespace google::scp::cpio::client_providers {
 /*! @copydoc AwsKmsClientProvider

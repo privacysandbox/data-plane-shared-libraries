@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -22,10 +22,10 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
-#include "core/curl_client/mock/mock_curl_client.h"
-#include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
-#include "cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/core/curl_client/mock/mock_curl_client.h"
+#include "scp/cc/cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using google::cmrt::sdk::instance_service::v1::
     GetCurrentInstanceResourceNameRequest;

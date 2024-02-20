@@ -15,9 +15,9 @@
 #ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_GCP_ERROR_CODES_H_
 #define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_GCP_ERROR_CODES_H_
 
-#include "core/interface/errors.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/error_codes.h"
+#include "scp/cc/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/error_codes.h"
 
 namespace google::scp::core::errors {
 /// Registers component code as 0x0204 for GCP metric client.

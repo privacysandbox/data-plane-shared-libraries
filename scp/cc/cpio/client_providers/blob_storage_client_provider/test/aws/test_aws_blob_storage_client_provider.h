@@ -24,9 +24,9 @@
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
 
-#include "cpio/client_providers/blob_storage_client_provider/src/aws/aws_blob_storage_client_provider.h"
-#include "cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "public/cpio/test/blob_storage_client/test_aws_blob_storage_client_options.h"
+#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/aws/aws_blob_storage_client_provider.h"
+#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "scp/cc/public/cpio/test/blob_storage_client/test_aws_blob_storage_client_options.h"
 
 namespace google::scp::cpio::client_providers {
 /*! @copydoc AwsBlobStorageClientProvider

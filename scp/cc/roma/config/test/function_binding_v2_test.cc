@@ -32,8 +32,8 @@
 
 #include "absl/functional/bind_front.h"
 #include "include/v8.h"
-#include "roma/config/src/function_binding_object_v2.h"
-#include "roma/config/src/type_converter.h"
+#include "scp/cc/roma/config/src/function_binding_object_v2.h"
+#include "scp/cc/roma/config/src/type_converter.h"
 
 using ::testing::StrEq;
 

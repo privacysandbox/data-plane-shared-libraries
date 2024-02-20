@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "core/interface/type_def.h"
+#include "scp/cc/core/interface/type_def.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

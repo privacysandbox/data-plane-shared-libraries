@@ -21,7 +21,7 @@
 #include <string>
 #include <utility>
 
-#include "cpio/client_providers/queue_client_provider/src/gcp/gcp_queue_client_provider.h"
+#include "scp/cc/cpio/client_providers/queue_client_provider/src/gcp/gcp_queue_client_provider.h"
 
 namespace google::scp::cpio::client_providers {
 /// QueueClientOptions for testing on GCP.

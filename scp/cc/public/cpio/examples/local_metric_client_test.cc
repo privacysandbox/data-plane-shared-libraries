@@ -18,13 +18,13 @@
 #include <string>
 
 #include "absl/synchronization/notification.h"
-#include "public/core/interface/errors.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/metric_client/metric_client_interface.h"
-#include "public/cpio/interface/metric_client/type_def.h"
-#include "public/cpio/interface/type_def.h"
-#include "public/cpio/proto/metric_service/v1/metric_service.pb.h"
-#include "public/cpio/test/global_cpio/test_lib_cpio.h"
+#include "scp/cc/public/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/metric_client/metric_client_interface.h"
+#include "scp/cc/public/cpio/interface/metric_client/type_def.h"
+#include "scp/cc/public/cpio/interface/type_def.h"
+#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "scp/cc/public/cpio/test/global_cpio/test_lib_cpio.h"
 
 using google::cmrt::sdk::metric_service::v1::MetricUnit;
 using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;

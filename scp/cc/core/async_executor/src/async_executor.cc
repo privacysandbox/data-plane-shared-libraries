@@ -19,9 +19,9 @@
 #include <thread>
 #include <vector>
 
-#include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/async_context.h"
 #include "scp/cc/core/interface/async_executor_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 #include "typedef.h"

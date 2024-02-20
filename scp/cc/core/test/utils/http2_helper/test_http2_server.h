@@ -24,8 +24,8 @@
 
 #include <nghttp2/asio_http2_server.h>
 
-#include "core/interface/type_def.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/type_def.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core::test {
 class TestHttp2Server {

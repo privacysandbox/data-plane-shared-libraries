@@ -27,9 +27,9 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
-#include "core/common/global_logger/src/global_logger.h"
-#include "core/common/uuid/src/uuid.h"
-#include "core/utils/src/http.h"
+#include "scp/cc/core/common/global_logger/src/global_logger.h"
+#include "scp/cc/core/common/uuid/src/uuid.h"
+#include "scp/cc/core/utils/src/http.h"
 
 #include "error_codes.h"
 

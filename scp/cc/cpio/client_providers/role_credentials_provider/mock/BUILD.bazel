@@ -24,7 +24,6 @@ cc_library(
         ],
     ),
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
     ],

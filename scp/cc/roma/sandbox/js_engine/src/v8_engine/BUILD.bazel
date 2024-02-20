@@ -36,7 +36,6 @@ cc_library(
     ],
     deps = [
         ":v8_isolate_wrapper",
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/config/src:roma_config_lib",
         "//scp/cc/roma/logging/src:roma_logging_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
@@ -88,7 +87,6 @@ cc_library(
         ":v8_console",
         ":v8_isolate_function_binding",
         ":v8_isolate_wrapper",
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
         "//scp/cc/public/core/interface:execution_result",

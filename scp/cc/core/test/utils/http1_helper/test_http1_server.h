@@ -29,8 +29,8 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/container/btree_map.h"
 #include "absl/synchronization/mutex.h"
-#include "core/interface/type_def.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/type_def.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core::test {
 

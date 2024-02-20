@@ -25,8 +25,8 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/status/status.h"
 #include "absl/synchronization/mutex.h"
-#include "roma/config/src/config.h"
-#include "roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
+#include "scp/cc/roma/config/src/config.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
 
 #include "worker_api.h"
 

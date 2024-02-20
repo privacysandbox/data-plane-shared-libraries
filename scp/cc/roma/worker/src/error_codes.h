@@ -17,8 +17,8 @@
 #ifndef ROMA_WORKER_SRC_ERROR_CODES_H_
 #define ROMA_WORKER_SRC_ERROR_CODES_H_
 
-#include "core/interface/errors.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core::errors {
 REGISTER_COMPONENT_CODE(SC_ROMA_V8_WORKER, 0x0481)

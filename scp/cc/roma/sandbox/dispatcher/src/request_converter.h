@@ -19,9 +19,9 @@
 
 #include <string>
 
-#include "roma/interface/roma.h"
-#include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/worker_api/src/worker_api.h"
+#include "scp/cc/roma/interface/roma.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
 
 namespace google::scp::roma::sandbox {
 namespace internal::request_converter {

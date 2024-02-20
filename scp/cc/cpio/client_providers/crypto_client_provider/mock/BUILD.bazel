@@ -23,7 +23,6 @@ cc_library(
         "mock_crypto_client_provider.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
     ],
 )

@@ -22,7 +22,6 @@ cc_test(
     srcs =
         ["auto_scaling_error_converter_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_lib",
         "//scp/cc/cpio/common/src/aws:aws_utils_lib",
@@ -43,7 +42,6 @@ cc_library(
         "-DTEST_CPIO=1",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_lib",
         "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",
     ],

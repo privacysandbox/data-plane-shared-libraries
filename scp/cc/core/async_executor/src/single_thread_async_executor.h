@@ -20,8 +20,8 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "core/common/concurrent_queue/src/concurrent_queue.h"
-#include "core/interface/async_executor_interface.h"
+#include "scp/cc/core/common/concurrent_queue/src/concurrent_queue.h"
+#include "scp/cc/core/interface/async_executor_interface.h"
 
 #include "async_task.h"
 

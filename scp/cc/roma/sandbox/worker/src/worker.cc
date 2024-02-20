@@ -23,8 +23,8 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "roma/logging/src/logging.h"
-#include "roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/logging/src/logging.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::ExecutionResultOr;

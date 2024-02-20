@@ -23,9 +23,9 @@
 #include <string>
 #include <type_traits>
 
-#include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/config_provider_interface.h"
 #include "scp/cc/core/utils/src/string_util.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

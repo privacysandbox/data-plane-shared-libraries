@@ -22,7 +22,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

@@ -26,9 +26,9 @@
 
 #include <benchmark/benchmark.h>
 
-#include "roma/benchmark/src/fake_kv_server.h"
-#include "roma/benchmark/test/test_code.h"
-#include "roma/config/src/config.h"
+#include "scp/cc/roma/benchmark/src/fake_kv_server.h"
+#include "scp/cc/roma/benchmark/test/test_code.h"
+#include "scp/cc/roma/config/src/config.h"
 
 namespace {
 

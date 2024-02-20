@@ -21,12 +21,12 @@
 #include <string>
 #include <vector>
 
-#include "core/test/utils/auto_init_run_stop.h"
 #include "include/v8.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
-#include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
-#include "roma/sandbox/native_function_binding/src/native_function_invoker.h"
+#include "scp/cc/core/test/utils/auto_init_run_stop.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
+#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
+#include "scp/cc/roma/sandbox/native_function_binding/src/native_function_invoker.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 using google::scp::core::ExecutionResult;

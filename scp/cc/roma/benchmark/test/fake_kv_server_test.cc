@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "roma/benchmark/src/fake_kv_server.h"
+#include "scp/cc/roma/benchmark/src/fake_kv_server.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "roma/config/src/config.h"
+#include "scp/cc/roma/config/src/config.h"
 
 using google::scp::roma::proto::FunctionBindingIoProto;
 using ::testing::StrEq;

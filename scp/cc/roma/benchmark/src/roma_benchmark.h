@@ -20,9 +20,9 @@
 #include <vector>
 
 #include "absl/time/time.h"
-#include "roma/interface/roma.h"
-#include "roma/roma_service/roma_service.h"
-#include "roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/interface/roma.h"
+#include "scp/cc/roma/roma_service/roma_service.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
 #include "src/cpp/util/duration.h"
 
 namespace google::scp::roma::benchmark {

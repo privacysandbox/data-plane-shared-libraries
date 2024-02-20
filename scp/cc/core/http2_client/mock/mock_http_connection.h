@@ -21,7 +21,7 @@
 #include <string>
 #include <utility>
 
-#include "core/http2_client/src/http_connection.h"
+#include "scp/cc/core/http2_client/src/http_connection.h"
 
 namespace google::scp::core::http2_client::mock {
 class MockHttpConnection : public HttpConnection {

@@ -20,9 +20,9 @@
 #include <memory>
 #include <string>
 
-#include "core/interface/service_interface.h"
 #include "google/cloud/future.h"
 #include "google/cloud/secretmanager/secret_manager_client.h"
+#include "scp/cc/core/interface/service_interface.h"
 
 namespace google::scp::cpio {
 /**

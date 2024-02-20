@@ -20,7 +20,6 @@ cc_library(
     name = "core_test_lib",
     srcs = glob(["*.h"]),
     deps = [
-        "//scp/cc:cc_base_include_dir",
     ],
 )
 
@@ -29,7 +28,6 @@ cc_test(
     size = "small",
     srcs = ["service_interface_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "@com_google_googletest//:gtest_main",
     ],
@@ -40,7 +38,6 @@ cc_test(
     size = "small",
     srcs = ["errors_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/concurrent_queue/src:concurrent_queue_lib",
         "//scp/cc/core/http2_client/src:errors_lib",
         "//scp/cc/core/interface:interface_lib",

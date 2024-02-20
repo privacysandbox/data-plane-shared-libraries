@@ -22,7 +22,7 @@
 #include "include/gtest/gtest.h"
 #include "proto/hpke.pb.h"
 #include "proto/tink.pb.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
 
 using ::google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;

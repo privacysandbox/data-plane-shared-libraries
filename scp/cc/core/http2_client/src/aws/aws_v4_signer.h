@@ -19,8 +19,8 @@
 #include <string>
 #include <vector>
 
-#include "core/interface/http_types.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/http_types.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core {
 /**

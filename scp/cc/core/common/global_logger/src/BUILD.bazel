@@ -21,7 +21,6 @@ cc_library(
     srcs = ["global_logger.cc"],
     hdrs = ["global_logger.h"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:errors_lib",
         "//scp/cc/core/logger/interface:logger_interface_lib",
         "//scp/cc/core/logger/mock:logger_mock",

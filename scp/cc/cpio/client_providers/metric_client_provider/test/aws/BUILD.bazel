@@ -27,7 +27,6 @@ cc_library(
         "-DTEST_CPIO=1",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/cpio/client_providers/metric_client_provider/src/aws:aws_metric_client_provider_lib",
         "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",
         "//scp/cc/public/cpio/test/metric_client:test_aws_metric_client_options",
@@ -40,7 +39,6 @@ cc_test(
     srcs =
         ["cloud_watch_error_converter_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/client_providers/metric_client_provider/src/aws:aws_metric_client_provider_lib",
         "//scp/cc/cpio/common/src/aws:aws_utils_lib",
@@ -54,7 +52,6 @@ cc_test(
     size = "small",
     srcs = ["aws_metric_client_utils_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/cpio/client_providers/metric_client_provider/src/aws:aws_metric_client_provider_lib",

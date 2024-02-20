@@ -17,10 +17,10 @@
 #ifndef CPIO_CLIENT_PROVIDERS_INTERFACE_CRYPTO_CLIENT_PROVIDER_INTERFACE_H_
 #define CPIO_CLIENT_PROVIDERS_INTERFACE_CRYPTO_CLIENT_PROVIDER_INTERFACE_H_
 
-#include "core/interface/async_context.h"
-#include "core/interface/service_interface.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/interface/service_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 
 namespace google::scp::cpio::client_providers {
 /**

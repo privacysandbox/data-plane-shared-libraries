@@ -26,7 +26,7 @@
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
-#include "core/common/time_provider/src/time_provider.h"
+#include "scp/cc/core/common/time_provider/src/time_provider.h"
 
 #include "error_codes.h"
 

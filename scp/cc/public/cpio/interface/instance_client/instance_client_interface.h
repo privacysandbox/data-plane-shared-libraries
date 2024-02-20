@@ -21,10 +21,10 @@
 #include <string>
 #include <vector>
 
-#include "core/interface/async_context.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/type_def.h"
-#include "public/cpio/proto/instance_service/v1/instance_service.pb.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/type_def.h"
+#include "scp/cc/public/cpio/proto/instance_service/v1/instance_service.pb.h"
 
 #include "type_def.h"
 

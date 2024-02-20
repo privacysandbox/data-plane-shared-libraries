@@ -20,7 +20,6 @@ cc_library(
     name = "logger_mock",
     srcs = ["mock_log_provider.h"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/uuid/src:uuid_lib",
         "//scp/cc/core/logger/interface:logger_interface_lib",
         "//scp/cc/core/logger/src:logger_lib",

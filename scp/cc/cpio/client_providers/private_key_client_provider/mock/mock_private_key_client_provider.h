@@ -21,7 +21,7 @@
 
 #include <memory>
 
-#include "cpio/client_providers/interface/private_key_client_provider_interface.h"
+#include "scp/cc/cpio/client_providers/interface/private_key_client_provider_interface.h"
 
 namespace google::scp::cpio::client_providers::mock {
 class MockPrivateKeyClientProvider : public PrivateKeyClientProviderInterface {

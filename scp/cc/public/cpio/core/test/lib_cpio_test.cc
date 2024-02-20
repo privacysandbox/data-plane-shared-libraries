@@ -15,20 +15,20 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "core/async_executor/src/async_executor.h"
-#include "core/async_executor/src/error_codes.h"
-#include "core/common/global_logger/src/global_logger.h"
-#include "core/interface/async_executor_interface.h"
-#include "core/message_router/src/message_router.h"
-#include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "google/protobuf/any.pb.h"
-#include "public/core/interface/execution_result.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "public/cpio/interface/cpio.h"
-#include "public/cpio/interface/metric_client/metric_client_interface.h"
-#include "public/cpio/interface/metric_client/type_def.h"
-#include "public/cpio/test/global_cpio/test_cpio_options.h"
-#include "public/cpio/test/global_cpio/test_lib_cpio.h"
+#include "scp/cc/core/async_executor/src/async_executor.h"
+#include "scp/cc/core/async_executor/src/error_codes.h"
+#include "scp/cc/core/common/global_logger/src/global_logger.h"
+#include "scp/cc/core/interface/async_executor_interface.h"
+#include "scp/cc/core/message_router/src/message_router.h"
+#include "scp/cc/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/public/cpio/interface/cpio.h"
+#include "scp/cc/public/cpio/interface/metric_client/metric_client_interface.h"
+#include "scp/cc/public/cpio/interface/metric_client/type_def.h"
+#include "scp/cc/public/cpio/test/global_cpio/test_cpio_options.h"
+#include "scp/cc/public/cpio/test/global_cpio/test_lib_cpio.h"
 
 using google::scp::core::AsyncExecutor;
 using google::scp::core::AsyncExecutorInterface;

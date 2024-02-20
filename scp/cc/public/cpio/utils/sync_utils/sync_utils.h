@@ -22,8 +22,8 @@
 #include <string>
 #include <utility>
 
-#include "core/interface/async_context.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio {
 

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cpio/client_providers/role_credentials_provider/src/aws/sts_error_converter.h"
+#include "scp/cc/cpio/client_providers/role_credentials_provider/src/aws/sts_error_converter.h"
 
 #include <gtest/gtest.h>
 
-#include "cpio/common/src/aws/error_codes.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/cpio/common/src/aws/error_codes.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using Aws::STS::STSErrors;
 using google::scp::core::FailureExecutionResult;

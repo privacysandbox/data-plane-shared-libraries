@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -25,8 +25,8 @@
 #include <thread>
 #include <vector>
 
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "roma/sandbox/constants/constants.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
 #include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 using google::scp::roma::proto::RpcWrapper;

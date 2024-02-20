@@ -20,12 +20,12 @@
 #include <functional>
 #include <memory>
 
-#include "core/async_executor/mock/mock_async_executor.h"
-#include "core/http2_client/mock/mock_http_client.h"
-#include "cpio/client_providers/global_cpio/src/cpio_provider/lib_cpio_provider.h"
-#include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "cpio/client_providers/role_credentials_provider/mock/mock_role_credentials_provider.h"
+#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
+#include "scp/cc/core/http2_client/mock/mock_http_client.h"
+#include "scp/cc/cpio/client_providers/global_cpio/src/cpio_provider/lib_cpio_provider.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
+#include "scp/cc/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "scp/cc/cpio/client_providers/role_credentials_provider/mock/mock_role_credentials_provider.h"
 
 namespace google::scp::cpio::client_providers::mock {
 class MockLibCpioProvider : public LibCpioProvider {

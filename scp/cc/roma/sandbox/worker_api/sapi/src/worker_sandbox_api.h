@@ -29,15 +29,15 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "core/interface/service_interface.h"
-#include "roma/config/src/config.h"
-#include "roma/logging/src/logging.h"
-#include "roma/sandbox/worker_api/sapi/src/roma_worker_wrapper_lib-sapi.sapi.h"
-#include "roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
-#include "roma/sandbox/worker_api/src/worker_api.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/sandbox2/policy.h"
 #include "sandboxed_api/sandbox2/policybuilder.h"
+#include "scp/cc/core/interface/service_interface.h"
+#include "scp/cc/roma/config/src/config.h"
+#include "scp/cc/roma/logging/src/logging.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/roma_worker_wrapper_lib-sapi.sapi.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
+#include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
 
 #include "error_codes.h"
 

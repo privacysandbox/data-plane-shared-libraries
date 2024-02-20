@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-#include "roma/sandbox/worker_api/sapi/src/worker_wrapper.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_wrapper.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "absl/container/flat_hash_map.h"
-#include "core/interface/errors.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "roma/config/src/config.h"
-#include "roma/logging/src/logging.h"
-#include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
+#include "scp/cc/core/interface/errors.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/roma/config/src/config.h"
+#include "scp/cc/roma/logging/src/logging.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
 
 using google::scp::core::errors::
     SC_ROMA_WORKER_API_RESPONSE_DATA_SIZE_LARGER_THAN_BUFFER_CAPACITY;

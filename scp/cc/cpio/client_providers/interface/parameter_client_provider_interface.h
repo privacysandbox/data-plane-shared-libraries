@@ -20,12 +20,12 @@
 #include <memory>
 #include <string>
 
-#include "core/interface/async_context.h"
-#include "core/interface/service_interface.h"
-#include "cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/parameter_client/type_def.h"
-#include "public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/interface/service_interface.h"
+#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/parameter_client/type_def.h"
+#include "scp/cc/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 
 namespace google::scp::cpio::client_providers {
 /**

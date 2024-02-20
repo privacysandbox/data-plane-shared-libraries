@@ -35,12 +35,12 @@
 #include "absl/functional/bind_front.h"
 #include "absl/strings/numbers.h"
 #include "absl/synchronization/notification.h"
-#include "core/async_executor/mock/mock_async_executor.h"
-#include "core/async_executor/src/async_executor.h"
-#include "core/interface/async_context.h"
-#include "core/test/utils/auto_init_run_stop.h"
-#include "public/core/interface/execution_result.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
+#include "scp/cc/core/async_executor/src/async_executor.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/test/utils/auto_init_run_stop.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using namespace nghttp2::asio_http2;          // NOLINT
 using namespace nghttp2::asio_http2::server;  // NOLINT

@@ -19,8 +19,8 @@
 
 #include <memory>
 
-#include "cpio/client_providers/private_key_client_provider/mock/mock_private_key_client_provider.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/cpio/client_providers/private_key_client_provider/mock/mock_private_key_client_provider.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::mock {
 class MockPrivateKeyClientWithOverrides : public PrivateKeyClient {

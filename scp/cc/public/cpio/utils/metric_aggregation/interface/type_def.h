@@ -24,10 +24,10 @@
 #include <utility>
 
 #include "absl/container/flat_hash_map.h"
-#include "core/interface/type_def.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/metric_client/type_def.h"
-#include "public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "scp/cc/core/interface/type_def.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/metric_client/type_def.h"
+#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 namespace google::scp::cpio {
 using MetricNamespace = std::string;

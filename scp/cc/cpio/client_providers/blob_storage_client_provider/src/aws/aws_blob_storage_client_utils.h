@@ -19,7 +19,7 @@
 
 #include <aws/s3/S3Client.h>
 
-#include "cpio/common/src/aws/error_codes.h"
+#include "scp/cc/cpio/common/src/aws/error_codes.h"
 
 namespace google::scp::cpio::client_providers {
 /**

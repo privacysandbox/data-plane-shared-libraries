@@ -22,7 +22,6 @@ cc_library(
         "test_aws_blob_storage_client_options.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/public/cpio/interface/blob_storage_client:type_def",
     ],
 )
@@ -50,7 +49,6 @@ cc_library(
         "test_gcp_blob_storage_client_options.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/public/cpio/interface/blob_storage_client:type_def",
     ],
 )

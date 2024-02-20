@@ -18,7 +18,7 @@
 #include <string>
 
 #include "absl/strings/str_cat.h"
-#include "core/logger/interface/log_provider_interface.h"
+#include "scp/cc/core/logger/interface/log_provider_interface.h"
 
 namespace google::scp::core::logger {
 

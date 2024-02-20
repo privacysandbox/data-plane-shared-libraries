@@ -23,7 +23,6 @@ cc_library(
         "mock_pubsub_stubs.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "@com_github_googleapis_google_cloud_cpp//:pubsub",
         "@com_google_googletest//:gtest",

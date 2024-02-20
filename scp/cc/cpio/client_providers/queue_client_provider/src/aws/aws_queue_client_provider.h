@@ -21,12 +21,13 @@
 #include <string>
 #include <utility>
 
-#include "aws/sqs/SQSClient.h"
-#include "core/interface/async_context.h"
-#include "cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "cpio/client_providers/interface/queue_client_provider_interface.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/proto/queue_service/v1/queue_service.pb.h"
+#include <aws/sqs/SQSClient.h>
+
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "scp/cc/cpio/client_providers/interface/queue_client_provider_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/proto/queue_service/v1/queue_service.pb.h"
 
 #include "error_codes.h"
 

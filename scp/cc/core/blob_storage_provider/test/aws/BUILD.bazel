@@ -31,7 +31,6 @@ cc_library(
         exclude = TEST_SRCS,
     ),
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
         "//scp/cc/core/blob_storage_provider/src/aws:core_blob_storage_provider_aws_lib",
         "//scp/cc/core/interface:interface_lib",
@@ -46,7 +45,6 @@ cc_test(
     size = "small",
     srcs = TEST_SRCS,
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/blob_storage_provider/mock:blob_storage_provider_mock",
         "//scp/cc/core/blob_storage_provider/src/aws:core_blob_storage_provider_aws_lib",

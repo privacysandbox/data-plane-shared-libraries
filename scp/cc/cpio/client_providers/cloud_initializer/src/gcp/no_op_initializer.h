@@ -17,8 +17,8 @@
 #ifndef CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_GCP_NO_OP_INITIALIZER_H_
 #define CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_GCP_NO_OP_INITIALIZER_H_
 
-#include "cpio/client_providers/interface/cloud_initializer_interface.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/cpio/client_providers/interface/cloud_initializer_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers {
 /*! @copydoc CloudInitializerInterface

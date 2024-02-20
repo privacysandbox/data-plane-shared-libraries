@@ -31,7 +31,7 @@
 
 #include <benchmark/benchmark.h>
 
-#include "core/common/time_provider/src/time_provider.h"
+#include "scp/cc/core/common/time_provider/src/time_provider.h"
 #include "src/cpp/util/status_macro/status_macros.h"
 
 using google::scp::core::ExecutionResult;

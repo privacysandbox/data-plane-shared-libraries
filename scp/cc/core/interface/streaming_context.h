@@ -22,8 +22,8 @@
 #include <memory>
 #include <utility>
 
-#include "core/common/concurrent_queue/src/concurrent_queue.h"
-#include "core/common/streaming_context/src/error_codes.h"
+#include "scp/cc/core/common/concurrent_queue/src/concurrent_queue.h"
+#include "scp/cc/core/common/streaming_context/src/error_codes.h"
 
 #include "async_context.h"
 

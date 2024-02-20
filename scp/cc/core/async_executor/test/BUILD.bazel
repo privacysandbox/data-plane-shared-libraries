@@ -21,7 +21,6 @@ cc_test(
     size = "small",
     srcs = ["async_executor_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
         "//scp/cc/core/async_executor/src:error_codes",
@@ -40,7 +39,6 @@ cc_test(
     size = "small",
     srcs = ["single_thread_async_executor_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/async_executor/src:error_codes",
         "//scp/cc/core/async_executor/src:single_thread_async_executor",
@@ -59,7 +57,6 @@ cc_test(
     srcs = ["single_thread_priority_async_executor_test.cc"],
     flaky = True,
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/async_executor/src:error_codes",
         "//scp/cc/core/async_executor/src:single_thread_priority_async_executor",
@@ -79,7 +76,6 @@ cc_test(
         "single_thread_async_executor_benchmark_test.cc",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/async_executor/src:single_thread_priority_async_executor",
         "//scp/cc/core/interface:interface_lib",
@@ -94,7 +90,6 @@ cc_test(
     size = "small",
     srcs = ["async_task_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/async_executor/src:async_task",
         "//scp/cc/core/interface:interface_lib",
@@ -108,7 +103,6 @@ cc_test(
     size = "small",
     srcs = ["async_executor_utils_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/src:async_executor_utils",
         "//scp/cc/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest_main",

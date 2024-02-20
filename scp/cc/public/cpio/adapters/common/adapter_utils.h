@@ -21,9 +21,9 @@
 #include <memory>
 #include <utility>
 
-#include "core/interface/async_context.h"
-#include "core/utils/src/error_utils.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/utils/src/error_utils.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 static constexpr char kCpioClient[] = "CpioClient";
 

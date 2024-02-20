@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "process_launcher/daemonizer/src/daemonizer.h"
+#include "scp/cc/process_launcher/daemonizer/src/daemonizer.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -29,12 +29,12 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
-#include "core/common/uuid/src/uuid.h"
-#include "core/test/scp_test_base.h"
-#include "process_launcher/argument_parser/src/json_arg_parser.h"
-#include "process_launcher/daemonizer/src/error_codes.h"
-#include "public/core/interface/execution_result.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/core/common/uuid/src/uuid.h"
+#include "scp/cc/core/test/scp_test_base.h"
+#include "scp/cc/process_launcher/argument_parser/src/json_arg_parser.h"
+#include "scp/cc/process_launcher/daemonizer/src/error_codes.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::common::Uuid;
 using google::scp::core::test::ScpTestBase;

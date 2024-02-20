@@ -25,13 +25,13 @@
 #include <string>
 #include <vector>
 
-#include "public/core/interface/execution_result.h"
-#include "roma/config/src/config.h"
-#include "roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
-#include "roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/var_int.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/roma/config/src/config.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
 
 #include "error_codes.h"
 

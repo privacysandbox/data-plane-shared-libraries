@@ -28,14 +28,14 @@
 #include <utility>
 #include <vector>
 
-#include "roma/logging/src/logging.h"
-#include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
-#include "roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/sandbox2/policy.h"
 #include "sandboxed_api/sandbox2/policybuilder.h"
+#include "scp/cc/roma/logging/src/logging.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
 
 #include "error_codes.h"
 

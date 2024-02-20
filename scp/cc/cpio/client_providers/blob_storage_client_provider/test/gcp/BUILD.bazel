@@ -23,7 +23,6 @@ cc_test(
         "gcp_blob_storage_client_provider_test.cc",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",
@@ -48,7 +47,6 @@ cc_test(
     # `StorageConnection::UploadChunk` method.
     tags = ["manual"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",

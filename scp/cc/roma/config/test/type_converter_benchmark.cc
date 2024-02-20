@@ -30,7 +30,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_cat.h"
 #include "include/v8.h"
-#include "roma/config/src/type_converter.h"
+#include "scp/cc/roma/config/src/type_converter.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
 using ::google::scp::roma::TypeConverter;

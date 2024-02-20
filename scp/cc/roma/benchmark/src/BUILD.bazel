@@ -21,7 +21,6 @@ cc_library(
     srcs = ["fake_ba_server.cc"],
     hdrs = ["fake_ba_server.h"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/roma_service:roma_service_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
@@ -36,7 +35,6 @@ cc_library(
     srcs = ["fake_kv_server.cc"],
     hdrs = ["fake_kv_server.h"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/roma_service:roma_service_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",
@@ -51,7 +49,6 @@ cc_library(
     srcs = ["roma_benchmark.cc"],
     hdrs = ["roma_benchmark.h"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/roma_service:roma_service_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",

@@ -20,7 +20,7 @@
 #include <utility>
 #include <variant>
 
-#include "core/common/proto/common.pb.h"
+#include "scp/cc/core/common/proto/common.pb.h"
 
 namespace google::scp::core {
 

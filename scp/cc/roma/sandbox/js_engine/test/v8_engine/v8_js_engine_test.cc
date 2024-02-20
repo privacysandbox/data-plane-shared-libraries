@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
+#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -25,9 +25,9 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "core/test/utils/auto_init_run_stop.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "roma/wasm/test/testing_utils.h"
+#include "scp/cc/core/test/utils/auto_init_run_stop.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/roma/wasm/test/testing_utils.h"
 
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::errors::SC_ROMA_V8_ENGINE_COULD_NOT_PARSE_SCRIPT_INPUT;

@@ -19,10 +19,10 @@
 
 #include <vector>
 
-#include "core/interface/partition_interface.h"
-#include "core/interface/partition_types.h"
-#include "core/interface/service_interface.h"
-#include "core/interface/type_def.h"
+#include "scp/cc/core/interface/partition_interface.h"
+#include "scp/cc/core/interface/partition_types.h"
+#include "scp/cc/core/interface/service_interface.h"
+#include "scp/cc/core/interface/type_def.h"
 
 namespace google::scp::core {
 

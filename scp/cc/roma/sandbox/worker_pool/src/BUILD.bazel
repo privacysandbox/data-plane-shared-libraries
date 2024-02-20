@@ -26,7 +26,6 @@ cc_library(
         "worker_pool_api_sapi.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
         "//scp/cc/roma/sandbox/constants:roma_constants_lib",

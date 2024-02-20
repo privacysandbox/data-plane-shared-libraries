@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-#include "public/cpio/interface/cpio.h"
+#include "scp/cc/public/cpio/interface/cpio.h"
 
 #include <memory>
 #include <utility>
 
-#include "core/common/global_logger/src/global_logger.h"
-#include "core/logger/interface/log_provider_interface.h"
-#include "core/logger/src/log_providers/console_log_provider.h"
-#include "core/logger/src/log_providers/syslog/syslog_log_provider.h"
-#include "cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "cpio/client_providers/interface/cpio_provider_interface.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/type_def.h"
+#include "scp/cc/core/common/global_logger/src/global_logger.h"
+#include "scp/cc/core/logger/interface/log_provider_interface.h"
+#include "scp/cc/core/logger/src/log_providers/console_log_provider.h"
+#include "scp/cc/core/logger/src/log_providers/syslog/syslog_log_provider.h"
+#include "scp/cc/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "scp/cc/cpio/client_providers/interface/cpio_provider_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/type_def.h"
 
 #include "cpio_utils.h"
 

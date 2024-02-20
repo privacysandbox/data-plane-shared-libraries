@@ -28,9 +28,9 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
-#include "core/interface/service_interface.h"
-#include "public/core/interface/execution_result.h"
-#include "roma/sandbox/js_engine/src/js_engine.h"
+#include "scp/cc/core/interface/service_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/roma/sandbox/js_engine/src/js_engine.h"
 
 #include "error_codes.h"
 

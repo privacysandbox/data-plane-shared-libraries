@@ -25,8 +25,8 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
-#include "process_launcher/argument_parser/src/json_arg_parser.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/process_launcher/argument_parser/src/json_arg_parser.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::process_launcher {
 class Daemonizer {

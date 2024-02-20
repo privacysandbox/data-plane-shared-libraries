@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cpio/client_providers/private_key_fetcher_provider/src/aws/aws_private_key_fetcher_provider.h"
+#include "scp/cc/cpio/client_providers/private_key_fetcher_provider/src/aws/aws_private_key_fetcher_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -24,13 +24,13 @@
 #include <aws/core/Aws.h>
 
 #include "absl/synchronization/notification.h"
-#include "core/http2_client/mock/mock_http_client.h"
-#include "core/interface/async_context.h"
-#include "cpio/client_providers/private_key_fetcher_provider/src/aws/error_codes.h"
-#include "cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
-#include "cpio/client_providers/role_credentials_provider/mock/mock_role_credentials_provider.h"
-#include "public/core/interface/execution_result.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/core/http2_client/mock/mock_http_client.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/cpio/client_providers/private_key_fetcher_provider/src/aws/error_codes.h"
+#include "scp/cc/cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
+#include "scp/cc/cpio/client_providers/role_credentials_provider/mock/mock_role_credentials_provider.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using Aws::InitAPI;
 using Aws::SDKOptions;

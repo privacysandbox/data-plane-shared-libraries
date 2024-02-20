@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

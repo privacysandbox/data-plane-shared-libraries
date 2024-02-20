@@ -20,15 +20,15 @@
 #include <vector>
 
 #include "absl/functional/bind_front.h"
-#include "core/common/uuid/src/uuid.h"
-#include "core/interface/async_context.h"
-#include "cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
-#include "cpio/common/src/gcp/gcp_utils.h"
 #include "google/cloud/future.h"
 #include "google/cloud/monitoring/metric_client.h"
 #include "google/cloud/monitoring/metric_connection.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "scp/cc/core/common/uuid/src/uuid.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
+#include "scp/cc/cpio/common/src/gcp/gcp_utils.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 #include "error_codes.h"
 #include "gcp_metric_client_utils.h"

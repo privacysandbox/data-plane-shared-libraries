@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "core/interface/partition_types.h"
+#include "scp/cc/core/interface/partition_types.h"
 
 namespace google::scp::core {
 /**

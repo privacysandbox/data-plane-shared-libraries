@@ -21,17 +21,17 @@
 #include <string>
 
 #include "absl/status/statusor.h"
-#include "core/interface/async_executor_interface.h"
-#include "core/interface/http_client_interface.h"
-#include "core/interface/message_router_interface.h"
-#include "core/interface/service_interface.h"
-#include "core/message_router/src/message_router.h"
-#include "cpio/client_providers/interface/auth_token_provider_interface.h"
-#include "cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "cpio/client_providers/interface/role_credentials_provider_interface.h"
 #include "google/protobuf/any.pb.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/type_def.h"
+#include "scp/cc/core/interface/async_executor_interface.h"
+#include "scp/cc/core/interface/http_client_interface.h"
+#include "scp/cc/core/interface/message_router_interface.h"
+#include "scp/cc/core/interface/service_interface.h"
+#include "scp/cc/core/message_router/src/message_router.h"
+#include "scp/cc/cpio/client_providers/interface/auth_token_provider_interface.h"
+#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "scp/cc/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/type_def.h"
 
 namespace google::scp::cpio::client_providers {
 /**

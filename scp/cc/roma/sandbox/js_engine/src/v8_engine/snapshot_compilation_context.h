@@ -22,9 +22,9 @@
 #include <vector>
 
 #include "include/v8.h"
-#include "public/core/interface/execution_result.h"
-#include "roma/sandbox/js_engine/src/js_engine.h"
-#include "roma/sandbox/js_engine/src/v8_engine/v8_isolate_wrapper.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/roma/sandbox/js_engine/src/js_engine.h"
+#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_isolate_wrapper.h"
 
 #include "error_codes.h"
 

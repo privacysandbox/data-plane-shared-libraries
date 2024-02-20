@@ -21,7 +21,7 @@
 #include <memory>
 #include <utility>
 
-#include "core/interface/async_executor_interface.h"
+#include "scp/cc/core/interface/async_executor_interface.h"
 
 namespace google::scp::core::async_executor::mock {
 class MockAsyncExecutor : public core::AsyncExecutorInterface {

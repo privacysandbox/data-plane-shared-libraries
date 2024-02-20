@@ -29,9 +29,9 @@
 #include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
-#include "roma/config/src/config.h"
-#include "roma/interface/roma.h"
-#include "roma/roma_service/roma_service.h"
+#include "scp/cc/roma/config/src/config.h"
+#include "scp/cc/roma/interface/roma.h"
+#include "scp/cc/roma/roma_service/roma_service.h"
 
 namespace {
 

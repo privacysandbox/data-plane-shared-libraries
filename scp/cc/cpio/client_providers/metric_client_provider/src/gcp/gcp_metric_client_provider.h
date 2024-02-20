@@ -22,13 +22,13 @@
 #include <utility>
 #include <vector>
 
-#include "core/interface/async_context.h"
-#include "cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
-#include "cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
 #include "google/cloud/future.h"
 #include "google/cloud/monitoring/metric_client.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
+#include "scp/cc/cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 #include "error_codes.h"
 

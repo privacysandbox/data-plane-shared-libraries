@@ -22,7 +22,6 @@ cc_test(
     srcs =
         ["ec2_error_converter_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
         "//scp/cc/cpio/common/src/aws:aws_utils_lib",
@@ -38,7 +37,6 @@ cc_test(
     srcs =
         ["aws_instance_client_utils_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/curl_client/mock:mock_curl_client",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/test/utils:utils_lib",
@@ -56,7 +54,6 @@ cc_library(
         "test_aws_instance_client_provider.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:async_context_lib",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/client_providers/instance_client_provider/test:test_instance_client_provider_lib",

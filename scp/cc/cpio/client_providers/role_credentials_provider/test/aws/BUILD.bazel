@@ -23,7 +23,6 @@ cc_test(
         "sts_error_converter_test.cc",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_lib",
@@ -46,7 +45,6 @@ cc_library(
         "-DTEST_CPIO=1",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_lib",
         "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",
         "//scp/cc/public/cpio/test/global_cpio:test_cpio_options",

@@ -62,7 +62,6 @@ cc_library(
             "type_def.h",
         ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/global_logger/src:global_logger_lib",
         "//scp/cc/core/interface:async_context_lib",
         "//scp/cc/public/core/interface:execution_result",
@@ -77,7 +76,6 @@ cc_library(
     ],
     deps = [
         ":type_def",
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/logger/src:logger_lib",
         "//scp/cc/core/logger/src/log_providers:log_providers_lib",
@@ -96,7 +94,6 @@ cc_library(
         "error_codes.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
     ],
 )

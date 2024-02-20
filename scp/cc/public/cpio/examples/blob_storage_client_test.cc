@@ -18,12 +18,12 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
-#include "core/common/operation_dispatcher/src/operation_dispatcher.h"
-#include "cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "public/core/interface/errors.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
-#include "public/cpio/interface/cpio.h"
+#include "scp/cc/core/common/operation_dispatcher/src/operation_dispatcher.h"
+#include "scp/cc/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "scp/cc/public/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
+#include "scp/cc/public/cpio/interface/cpio.h"
 
 using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest;
 using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobResponse;

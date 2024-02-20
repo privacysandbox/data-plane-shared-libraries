@@ -28,9 +28,9 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/numbers.h"
-#include "core/interface/async_context.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 #include "error_codes.h"
 

@@ -20,7 +20,7 @@
 #include <utility>
 
 #include "absl/log/check.h"
-#include "cpio/client_providers/interface/cpio_provider_interface.h"
+#include "scp/cc/cpio/client_providers/interface/cpio_provider_interface.h"
 
 namespace google::scp::cpio::client_providers {
 static std::unique_ptr<CpioProviderInterface> cpio_instance_;

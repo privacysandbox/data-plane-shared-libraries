@@ -27,8 +27,8 @@
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
-#include "core/utils/src/base64.h"
 #include "scp/cc/core/common/uuid/src/uuid.h"
+#include "scp/cc/core/utils/src/base64.h"
 
 #include "error_codes.h"
 

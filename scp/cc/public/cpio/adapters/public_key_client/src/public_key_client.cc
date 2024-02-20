@@ -22,15 +22,15 @@
 #include <utility>
 
 #include "absl/functional/bind_front.h"
-#include "core/common/global_logger/src/global_logger.h"
-#include "core/common/uuid/src/uuid.h"
-#include "core/interface/async_context.h"
-#include "core/interface/errors.h"
-#include "core/utils/src/error_utils.h"
-#include "cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/adapters/common/adapter_utils.h"
-#include "public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
+#include "scp/cc/core/common/global_logger/src/global_logger.h"
+#include "scp/cc/core/common/uuid/src/uuid.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/interface/errors.h"
+#include "scp/cc/core/utils/src/error_utils.h"
+#include "scp/cc/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/adapters/common/adapter_utils.h"
+#include "scp/cc/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
 
 using google::cmrt::sdk::public_key_service::v1::ListPublicKeysRequest;
 using google::cmrt::sdk::public_key_service::v1::ListPublicKeysResponse;

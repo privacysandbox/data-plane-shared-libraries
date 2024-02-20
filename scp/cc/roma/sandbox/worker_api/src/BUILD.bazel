@@ -20,7 +20,6 @@ cc_library(
     name = "roma_worker_api_lib",
     hdrs = ["worker_api.h"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
         "//scp/cc/public/core/interface:execution_result",

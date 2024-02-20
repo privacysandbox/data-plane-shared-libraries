@@ -22,7 +22,6 @@ cc_library(
         "system_resource_info_provider.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/public/core/interface:execution_result",
     ],

@@ -25,7 +25,6 @@ cc_library(
         ],
     ),
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/http2_client/mock:http2_client_mock",
         "//scp/cc/core/interface:interface_lib",

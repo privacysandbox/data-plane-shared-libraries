@@ -21,12 +21,12 @@
 #include <grpcpp/grpcpp.h>
 
 #include "absl/strings/str_format.h"
-#include "core/common/uuid/src/uuid.h"
-#include "core/interface/async_context.h"
-#include "cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
-#include "cpio/common/src/gcp/gcp_utils.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/proto/queue_service/v1/queue_service.pb.h"
+#include "scp/cc/core/common/uuid/src/uuid.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
+#include "scp/cc/cpio/common/src/gcp/gcp_utils.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/proto/queue_service/v1/queue_service.pb.h"
 
 #include "error_codes.h"
 

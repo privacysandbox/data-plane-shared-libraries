@@ -24,14 +24,14 @@
 #include <vector>
 
 #include "absl/container/btree_set.h"
-#include "core/interface/async_context.h"
-#include "core/interface/http_client_interface.h"
-#include "core/interface/http_types.h"
-#include "cpio/client_providers/interface/kms_client_provider_interface.h"
-#include "cpio/client_providers/interface/private_key_client_provider_interface.h"
-#include "cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
 #include "google/protobuf/any.pb.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/interface/http_client_interface.h"
+#include "scp/cc/core/interface/http_types.h"
+#include "scp/cc/cpio/client_providers/interface/kms_client_provider_interface.h"
+#include "scp/cc/cpio/client_providers/interface/private_key_client_provider_interface.h"
+#include "scp/cc/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 #include "private_key_client_utils.h"

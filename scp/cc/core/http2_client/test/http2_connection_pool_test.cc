@@ -18,12 +18,12 @@
 #include <atomic>
 
 #include "absl/synchronization/notification.h"
-#include "public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/core/async_executor/mock/mock_async_executor.h"
 #include "scp/cc/core/http2_client/mock/mock_http_connection.h"
 #include "scp/cc/core/http2_client/mock/mock_http_connection_pool_with_overrides.h"
 #include "scp/cc/core/http2_client/src/error_codes.h"
 #include "scp/cc/core/interface/async_executor_interface.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::http2_client::mock::MockHttpConnection;

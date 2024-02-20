@@ -21,7 +21,6 @@ cc_test(
     size = "small",
     srcs = ["gcp_cloud_storage_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/blob_storage_provider/mock:blob_storage_provider_mock",
         "//scp/cc/core/blob_storage_provider/src/gcp:core_blob_storage_provider_gcp_lib",
@@ -44,7 +43,6 @@ cc_library(
     testonly = True,
     srcs = ["gcp_cloud_storage_async_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/blob_storage_provider/mock:blob_storage_provider_mock",
         "//scp/cc/core/blob_storage_provider/src/gcp:core_blob_storage_provider_gcp_lib",

@@ -20,8 +20,8 @@
 
 #include "absl/log/log.h"
 #include "absl/synchronization/notification.h"
-#include "cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "scp/cc/public/core/interface/errors.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"

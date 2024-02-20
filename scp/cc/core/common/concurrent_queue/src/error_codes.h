@@ -15,8 +15,8 @@
 #ifndef CORE_COMMON_CONCURRENT_QUEUE_SRC_ERROR_CODES_H_
 #define CORE_COMMON_CONCURRENT_QUEUE_SRC_ERROR_CODES_H_
 
-#include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core::errors {
 

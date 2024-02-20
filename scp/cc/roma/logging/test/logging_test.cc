@@ -22,9 +22,9 @@
 #include "absl/log/scoped_mock_log.h"
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "roma/config/src/function_binding_object_v2.h"
-#include "roma/interface/roma.h"
-#include "roma/roma_service/roma_service.h"
+#include "scp/cc/roma/config/src/function_binding_object_v2.h"
+#include "scp/cc/roma/interface/roma.h"
+#include "scp/cc/roma/roma_service/roma_service.h"
 
 using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::sandbox::roma_service::RomaService;

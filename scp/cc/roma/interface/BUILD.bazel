@@ -35,7 +35,6 @@ cc_library(
         "*.h",
     ]),
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/config/src:roma_config_lib",
         "@com_google_absl//absl/container:flat_hash_map",

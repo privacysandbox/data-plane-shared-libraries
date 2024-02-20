@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "roma/worker/src/execution_utils.h"
+#include "scp/cc/roma/worker/src/execution_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -29,12 +29,12 @@
 #include <string>
 #include <vector>
 
-#include "core/test/utils/auto_init_run_stop.h"
 #include "include/libplatform/libplatform.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "roma/wasm/src/deserializer.h"
-#include "roma/wasm/src/wasm_types.h"
-#include "roma/wasm/test/testing_utils.h"
+#include "scp/cc/core/test/utils/auto_init_run_stop.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/roma/wasm/src/deserializer.h"
+#include "scp/cc/roma/wasm/src/wasm_types.h"
+#include "scp/cc/roma/wasm/test/testing_utils.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cpio/common/src/gcp/gcp_utils.h"
+#include "scp/cc/cpio/common/src/gcp/gcp_utils.h"
 
 #include <gtest/gtest.h>
 
-#include "cpio/common/src/gcp/error_codes.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/cpio/common/src/gcp/error_codes.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

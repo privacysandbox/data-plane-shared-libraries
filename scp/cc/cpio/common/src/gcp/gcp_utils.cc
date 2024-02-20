@@ -18,7 +18,7 @@
 
 #include <string_view>
 
-#include "core/common/global_logger/src/global_logger.h"
+#include "scp/cc/core/common/global_logger/src/global_logger.h"
 
 #include "error_codes.h"
 

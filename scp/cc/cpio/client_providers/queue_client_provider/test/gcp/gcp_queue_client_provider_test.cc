@@ -22,16 +22,15 @@
 
 #include <google/pubsub/v1/pubsub.grpc.pb.h>
 
-#include "core/async_executor/mock/mock_async_executor.h"
-#include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "cpio/client_providers/interface/queue_client_provider_interface.h"
-#include "cpio/client_providers/queue_client_provider/mock/gcp/mock_pubsub_stubs.h"
-#include "cpio/client_providers/queue_client_provider/src/gcp/error_codes.h"
-#include "cpio/common/src/gcp/error_codes.h"
-#include "public/core/interface/execution_result.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "public/cpio/proto/queue_service/v1/queue_service.pb.h"
+#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
+#include "scp/cc/cpio/client_providers/interface/queue_client_provider_interface.h"
+#include "scp/cc/cpio/client_providers/queue_client_provider/mock/gcp/mock_pubsub_stubs.h"
 #include "scp/cc/cpio/client_providers/queue_client_provider/src/gcp/error_codes.h"
+#include "scp/cc/cpio/common/src/gcp/error_codes.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/public/cpio/proto/queue_service/v1/queue_service.pb.h"
 
 using google::cmrt::sdk::queue_service::v1::DeleteMessageRequest;
 using google::cmrt::sdk::queue_service::v1::DeleteMessageResponse;

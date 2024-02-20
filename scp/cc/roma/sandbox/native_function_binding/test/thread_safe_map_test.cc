@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "roma/sandbox/native_function_binding/src/thread_safe_map.h"
+#include "scp/cc/roma/sandbox/native_function_binding/src/thread_safe_map.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

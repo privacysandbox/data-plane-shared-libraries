@@ -23,8 +23,8 @@
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
 
-#include "cpio/client_providers/role_credentials_provider/src/aws/aws_role_credentials_provider.h"
-#include "cpio/common/test/aws/test_aws_utils.h"
+#include "scp/cc/cpio/client_providers/role_credentials_provider/src/aws/aws_role_credentials_provider.h"
+#include "scp/cc/cpio/common/test/aws/test_aws_utils.h"
 
 using Aws::Client::ClientConfiguration;
 using google::scp::core::AsyncExecutorInterface;

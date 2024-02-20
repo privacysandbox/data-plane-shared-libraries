@@ -20,9 +20,9 @@
 #include <memory>
 #include <string>
 
-#include "core/interface/http_types.h"
-#include "cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/http_types.h"
+#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

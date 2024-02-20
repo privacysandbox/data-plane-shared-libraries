@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cpio/client_providers/crypto_client_provider/src/crypto_client_provider.h"
+#include "scp/cc/cpio/client_providers/crypto_client_provider/src/crypto_client_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -25,17 +25,17 @@
 #include <tink/util/secret_data.h>
 
 #include "absl/strings/escaping.h"
-#include "core/interface/async_context.h"
-#include "core/test/scp_test_base.h"
-#include "core/utils/src/base64.h"
-#include "core/utils/src/error_codes.h"
-#include "cpio/client_providers/crypto_client_provider/src/error_codes.h"
 #include "proto/hpke.pb.h"
 #include "proto/tink.pb.h"
-#include "public/core/interface/execution_result.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "public/cpio/interface/crypto_client/type_def.h"
-#include "public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/test/scp_test_base.h"
+#include "scp/cc/core/utils/src/base64.h"
+#include "scp/cc/core/utils/src/error_codes.h"
+#include "scp/cc/cpio/client_providers/crypto_client_provider/src/error_codes.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/public/cpio/interface/crypto_client/type_def.h"
+#include "scp/cc/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 
 using crypto::tink::util::SecretData;
 using google::cmrt::sdk::crypto_service::v1::AeadDecryptRequest;

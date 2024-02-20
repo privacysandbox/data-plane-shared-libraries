@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "core/interface/errors.h"
+#include "scp/cc/core/interface/errors.h"
 
-#include "public/core/interface/errors.h"
+#include "scp/cc/public/core/interface/errors.h"
 
 namespace google::scp::core {
 

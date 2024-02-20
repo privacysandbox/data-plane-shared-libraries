@@ -27,7 +27,6 @@ cc_library(
         "-DTEST_CPIO=1",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_lib",
         "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",
         "//scp/cc/public/cpio/test/parameter_client:test_aws_parameter_client_options",
@@ -40,7 +39,6 @@ cc_test(
     srcs =
         ["ssm_error_converter_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_lib",
         "//scp/cc/cpio/common/src/aws:aws_utils_lib",

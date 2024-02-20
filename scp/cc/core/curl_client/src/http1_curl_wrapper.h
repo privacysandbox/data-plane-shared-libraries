@@ -22,9 +22,9 @@
 
 #include <curl/curl.h>
 
-#include "core/interface/http_types.h"
-#include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/http_client_interface.h"
+#include "scp/cc/core/interface/http_types.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core {
 // Custom deleters for wrapping the raw pointers used in libcurl in unique_ptrs.

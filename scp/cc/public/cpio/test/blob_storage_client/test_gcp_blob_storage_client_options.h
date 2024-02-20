@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 
-#include "public/cpio/interface/blob_storage_client/type_def.h"
+#include "scp/cc/public/cpio/interface/blob_storage_client/type_def.h"
 
 namespace google::scp::cpio {
 /// BlobStorageClientOptions for testing on GCP.

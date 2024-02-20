@@ -17,7 +17,7 @@
 #include "native_function_invoker_sapi_ipc.h"
 
 #include "absl/log/log.h"
-#include "roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
 
 using google::scp::roma::proto::RpcWrapper;
 using google::scp::roma::sandbox::constants::kRequestId;

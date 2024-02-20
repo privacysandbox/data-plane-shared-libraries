@@ -19,8 +19,8 @@
 
 #include <memory>
 
-#include "cpio/client_providers/blob_storage_client_provider/mock/mock_blob_storage_client_provider.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/cpio/client_providers/blob_storage_client_provider/mock/mock_blob_storage_client_provider.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::mock {
 class MockBlobStorageClientWithOverrides : public BlobStorageClient {

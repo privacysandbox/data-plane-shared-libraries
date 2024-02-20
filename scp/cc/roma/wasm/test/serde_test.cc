@@ -22,8 +22,8 @@
 #include <string>
 #include <vector>
 
-#include "roma/wasm/src/deserializer.h"
-#include "roma/wasm/src/serializer.h"
+#include "scp/cc/roma/wasm/src/deserializer.h"
+#include "scp/cc/roma/wasm/src/serializer.h"
 
 namespace google::scp::roma::wasm::test {
 TEST(WasmSerDeTest, ShouldWriteAndReadCustomString) {

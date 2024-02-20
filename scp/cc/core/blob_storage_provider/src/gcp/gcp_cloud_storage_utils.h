@@ -17,8 +17,8 @@
 #ifndef CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_UTILS_H_
 #define CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_UTILS_H_
 
-#include "core/blob_storage_provider/src/common/error_codes.h"
 #include "google/cloud/status.h"
+#include "scp/cc/core/blob_storage_provider/src/common/error_codes.h"
 
 namespace google::scp::core::blob_storage_provider {
 /**

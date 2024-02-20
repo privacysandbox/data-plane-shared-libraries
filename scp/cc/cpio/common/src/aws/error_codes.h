@@ -15,9 +15,9 @@
 #ifndef CPIO_COMMON_SRC_AWS_ERROR_CODES_H_
 #define CPIO_COMMON_SRC_AWS_ERROR_CODES_H_
 
-#include "core/interface/errors.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/error_codes.h"
+#include "scp/cc/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/error_codes.h"
 
 namespace google::scp::core::errors {
 

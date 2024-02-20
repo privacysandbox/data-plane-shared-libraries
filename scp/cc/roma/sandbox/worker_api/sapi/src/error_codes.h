@@ -18,8 +18,8 @@
 #define ROMA_SANDBOX_WORKER_API_SAPI_SRC_ERROR_CODES_H_
 
 #include "absl/status/status.h"
-#include "core/interface/errors.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 // It would be preferable to pass an absl::Status in and out of SAPI, but that's
 // a C++ type and SAPI only allows simple C types.

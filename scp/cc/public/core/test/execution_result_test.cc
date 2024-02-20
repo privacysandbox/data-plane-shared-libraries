@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -20,12 +20,12 @@
 #include <utility>
 
 #include "absl/log/check.h"
-#include "core/common/global_logger/src/global_logger.h"
-#include "core/common/proto/common.pb.h"
-#include "core/interface/async_context.h"
-#include "core/logger/mock/mock_log_provider.h"
-#include "core/logger/src/log_providers/console_log_provider.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/core/common/global_logger/src/global_logger.h"
+#include "scp/cc/core/common/proto/common.pb.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/logger/mock/mock_log_provider.h"
+#include "scp/cc/core/logger/src/log_providers/console_log_provider.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::common::InitializeCpioLog;
 using google::scp::core::common::LogOption;

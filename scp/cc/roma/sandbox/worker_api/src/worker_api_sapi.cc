@@ -20,9 +20,9 @@
 #include <string>
 #include <utility>
 
-#include "public/core/interface/execution_result.h"
-#include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/worker_api/src/worker_api.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
 #include "src/cpp/util/duration.h"
 #include "src/cpp/util/protoutil.h"
 

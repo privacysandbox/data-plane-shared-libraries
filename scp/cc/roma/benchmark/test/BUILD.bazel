@@ -23,7 +23,6 @@ cc_binary(
     name = "benchmark_suite_test",
     srcs = ["benchmark_suite_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/roma/benchmark/src:roma_benchmark_lib",
         "//scp/cc/roma/interface:roma_interface_lib",
         "//scp/cc/roma/roma_service:roma_service_lib",

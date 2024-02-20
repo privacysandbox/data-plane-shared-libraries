@@ -21,7 +21,6 @@ cc_test(
     size = "small",
     srcs = ["concurrent_queue_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/concurrent_queue/src:concurrent_queue_lib",
         "//scp/cc/core/interface:type_def_lib",
         "//scp/cc/core/test/utils:utils_lib",

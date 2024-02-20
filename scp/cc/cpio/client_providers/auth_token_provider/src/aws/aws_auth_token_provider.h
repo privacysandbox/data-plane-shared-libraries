@@ -20,9 +20,9 @@
 #include <memory>
 #include <utility>
 
-#include "core/interface/async_context.h"
-#include "core/interface/http_client_interface.h"
-#include "cpio/client_providers/interface/auth_token_provider_interface.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/interface/http_client_interface.h"
+#include "scp/cc/cpio/client_providers/interface/auth_token_provider_interface.h"
 
 #include "error_codes.h"
 

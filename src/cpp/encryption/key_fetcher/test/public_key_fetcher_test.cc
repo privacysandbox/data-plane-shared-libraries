@@ -19,8 +19,8 @@
 
 #include "gmock/gmock.h"
 #include "include/gtest/gtest.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/public_key_client/public_key_client_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
 
 namespace privacy_sandbox::server_common {

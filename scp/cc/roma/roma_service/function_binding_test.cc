@@ -28,10 +28,10 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "roma/config/src/config.h"
-#include "roma/config/src/function_binding_object_v2.h"
-#include "roma/interface/roma.h"
-#include "roma/roma_service/roma_service.h"
+#include "scp/cc/roma/config/src/config.h"
+#include "scp/cc/roma/config/src/function_binding_object_v2.h"
+#include "scp/cc/roma/interface/roma.h"
+#include "scp/cc/roma/roma_service/roma_service.h"
 
 using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::sandbox::roma_service::RomaService;

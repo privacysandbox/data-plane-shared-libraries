@@ -18,15 +18,15 @@
 
 #include <benchmark/benchmark.h>
 
-#include "core/interface/errors.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "roma/config/src/config.h"
-#include "roma/logging/src/logging.h"
-#include "roma/sandbox/constants/constants.h"
-#include "roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
-#include "roma/sandbox/worker_api/sapi/src/worker_wrapper.h"
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
+#include "scp/cc/core/interface/errors.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/roma/config/src/config.h"
+#include "scp/cc/roma/logging/src/logging.h"
+#include "scp/cc/roma/sandbox/constants/constants.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_wrapper.h"
 
 using google::scp::roma::sandbox::constants::kCodeVersion;
 using google::scp::roma::sandbox::constants::kHandlerName;

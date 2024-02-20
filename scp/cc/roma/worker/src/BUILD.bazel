@@ -26,7 +26,6 @@ cc_library(
         "execution_utils.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
         "//scp/cc/public/core/interface:execution_result",
@@ -47,7 +46,6 @@ cc_library(
         "execution_watchdog.h",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//src/cpp/util:duration",
         "@com_google_absl//absl/synchronization",
         "@v8//:v8_icu",

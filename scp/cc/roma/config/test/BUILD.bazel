@@ -20,7 +20,6 @@ cc_test(
     name = "function_binding_v2_test",
     srcs = ["function_binding_v2_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/config/src:roma_config_lib",
         "@com_google_absl//absl/functional:bind_front",
@@ -47,7 +46,6 @@ cc_test(
     malloc = "@com_google_tcmalloc//tcmalloc",
     tags = ["manual"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/config/src:roma_config_lib",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -61,7 +59,6 @@ cc_test(
     name = "type_converter_test",
     srcs = ["type_converter_test.cc"],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/config/src:roma_config_lib",
         "@com_google_absl//absl/container:flat_hash_map",

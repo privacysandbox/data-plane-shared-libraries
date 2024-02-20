@@ -22,7 +22,6 @@ cc_library(
         ":nontee_gcp_kms_client_provider_srcs",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/uuid/src:uuid_lib",
         "//scp/cc/core/interface:async_context_lib",
         "//scp/cc/core/interface:interface_lib",
@@ -44,7 +43,6 @@ cc_library(
         ":tee_gcp_kms_client_provider_srcs",
     ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/uuid/src:uuid_lib",
         "//scp/cc/core/interface:async_context_lib",
         "//scp/cc/core/interface:interface_lib",

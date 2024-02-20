@@ -21,11 +21,11 @@
 #include <utility>
 #include <vector>
 
-#include "core/interface/async_context.h"
-#include "cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
 #include "google/protobuf/any.pb.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
+#include "scp/cc/cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers::mock {
 class MockMetricClientWithOverrides : public MetricClientProvider {
@@ -53,7 +53,7 @@ class MockMetricClientWithOverrides : public MetricClientProvider {
 
   core::ExecutionResult record_metric_result_mock;
 
-  void RunMetricsBatchPush() noexcept override {
+  void RunMetricsBatchPush() noexcept override ABSL_NO_THREAD_SAFETY_ANALYSIS {
     if (schedule_metrics_helper_mock) {
       return schedule_metrics_helper_mock();
     }
@@ -81,6 +81,7 @@ class MockMetricClientWithOverrides : public MetricClientProvider {
   }
 
   int GetSizeMetricRequestsVector() {
+    absl::MutexLock l(&(MetricClientProvider::sync_mutex_));
     return MetricClientProvider::metric_requests_vector_.size();
   }
 

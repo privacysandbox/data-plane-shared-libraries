@@ -21,7 +21,7 @@
 #include <string>
 #include <utility>
 
-#include "cpio/client_providers/auto_scaling_client_provider/src/aws/aws_auto_scaling_client_provider.h"
+#include "scp/cc/cpio/client_providers/auto_scaling_client_provider/src/aws/aws_auto_scaling_client_provider.h"
 
 namespace google::scp::cpio::client_providers {
 /// AutoScalingClientOptions for testing on AWS.

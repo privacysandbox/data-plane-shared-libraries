@@ -25,7 +25,6 @@ cc_library(
         ],
     ),
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/core/common/time_provider/src:time_provider_lib",
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/logger/interface:logger_interface_lib",

@@ -20,10 +20,10 @@
 #include <memory>
 #include <string>
 
-#include "core/interface/async_context.h"
-#include "cpio/client_providers/interface/auth_token_provider_interface.h"
-#include "cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/cpio/client_providers/interface/auth_token_provider_interface.h"
+#include "scp/cc/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

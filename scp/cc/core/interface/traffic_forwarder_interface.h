@@ -20,7 +20,7 @@
 #include <string>
 #include <string_view>
 
-#include "core/interface/service_interface.h"
+#include "scp/cc/core/interface/service_interface.h"
 
 namespace google::scp::core {
 

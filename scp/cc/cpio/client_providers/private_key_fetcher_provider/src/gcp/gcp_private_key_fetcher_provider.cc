@@ -21,10 +21,10 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
-#include "core/interface/http_client_interface.h"
-#include "cpio/client_providers/interface/auth_token_provider_interface.h"
-#include "cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider_utils.h"
+#include "scp/cc/core/interface/http_client_interface.h"
+#include "scp/cc/cpio/client_providers/interface/auth_token_provider_interface.h"
+#include "scp/cc/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "scp/cc/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider_utils.h"
 
 #include "error_codes.h"
 

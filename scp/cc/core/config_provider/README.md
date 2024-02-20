@@ -13,7 +13,7 @@ and the parameter value assigning variable.
 ### Includes
 
 ```cpp
-#include "core/config_provider/src/config_provider.h"
+#include "scp/cc/core/config_provider/src/config_provider.h"
 ```
 
 ### Code

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "core/interface/errors.h"
+#include "scp/cc/core/interface/errors.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <string_view>
 
-#include "core/common/concurrent_queue/src/concurrent_queue.h"
+#include "scp/cc/core/common/concurrent_queue/src/concurrent_queue.h"
 #include "scp/cc/core/http2_client/src/error_codes.h"
 
 using ::testing::StrEq;

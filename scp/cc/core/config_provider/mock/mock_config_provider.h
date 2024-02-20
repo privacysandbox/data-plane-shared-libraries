@@ -22,9 +22,9 @@
 #include <utility>
 
 #include "absl/container/flat_hash_map.h"
-#include "public/core/interface/execution_result.h"
 #include "scp/cc/core/config_provider/src/error_codes.h"
 #include "scp/cc/core/interface/config_provider_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core::config_provider::mock {
 class MockConfigProvider : public ConfigProviderInterface {

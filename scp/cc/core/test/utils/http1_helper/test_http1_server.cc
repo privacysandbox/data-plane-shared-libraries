@@ -18,8 +18,8 @@
 #include <string>
 #include <utility>
 
-#include "core/test/utils/http1_helper/errors.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/test/utils/http1_helper/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace beast = boost::beast;
 namespace http = beast::http;

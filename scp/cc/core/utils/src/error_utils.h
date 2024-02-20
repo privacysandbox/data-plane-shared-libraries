@@ -17,7 +17,7 @@
 #ifndef CORE_UTILS_SRC_ERROR_UTILS_H_
 #define CORE_UTILS_SRC_ERROR_UTILS_H_
 
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core::utils {
 /**

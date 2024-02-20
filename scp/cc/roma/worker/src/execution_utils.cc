@@ -25,7 +25,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

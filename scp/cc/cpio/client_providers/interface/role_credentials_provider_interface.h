@@ -20,11 +20,11 @@
 #include <memory>
 #include <string>
 
-#include "core/interface/async_context.h"
-#include "core/interface/async_executor_interface.h"
-#include "core/interface/service_interface.h"
-#include "cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "public/cpio/interface/type_def.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/interface/async_executor_interface.h"
+#include "scp/cc/core/interface/service_interface.h"
+#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "scp/cc/public/cpio/interface/type_def.h"
 
 namespace google::scp::cpio::client_providers {
 /// Configurations for RoleCredentialProvider.

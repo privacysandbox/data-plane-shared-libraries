@@ -21,11 +21,11 @@
 #include <memory>
 #include <string>
 
-#include "core/common/concurrent_map/src/concurrent_map.h"
-#include "core/interface/async_context.h"
-#include "core/interface/message_router_interface.h"
 #include "google/protobuf/any.pb.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/common/concurrent_map/src/concurrent_map.h"
+#include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/interface/message_router_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

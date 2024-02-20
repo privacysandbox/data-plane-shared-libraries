@@ -19,8 +19,8 @@
 
 #include <aws/core/Aws.h>
 
-#include "cpio/client_providers/interface/cloud_initializer_interface.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/cpio/client_providers/interface/cloud_initializer_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers {
 /*! @copydoc CloudInitializerInterface

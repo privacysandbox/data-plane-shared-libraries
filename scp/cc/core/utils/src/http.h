@@ -19,8 +19,8 @@
 
 #include <string>
 
-#include "core/interface/http_client_interface.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/interface/http_client_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core::utils {
 /**

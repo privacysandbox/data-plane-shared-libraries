@@ -19,11 +19,11 @@
 
 #include <memory>
 
-#include "core/common/operation_dispatcher/src/operation_dispatcher.h"
-#include "core/interface/async_executor_interface.h"
-#include "public/core/interface/execution_result.h"
+#include "scp/cc/core/common/operation_dispatcher/src/operation_dispatcher.h"
 #include "scp/cc/core/interface/async_context.h"
+#include "scp/cc/core/interface/async_executor_interface.h"
 #include "scp/cc/core/interface/http_client_interface.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 #include "http_connection_pool.h"

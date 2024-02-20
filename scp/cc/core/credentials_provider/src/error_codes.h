@@ -17,8 +17,8 @@
 #ifndef CORE_CREDENTIALS_PROVIDER_SRC_ERROR_CODES_H_
 #define CORE_CREDENTIALS_PROVIDER_SRC_ERROR_CODES_H_
 
-#include "public/core/interface/execution_result.h"
 #include "scp/cc/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
 
 namespace google::scp::core::errors {
 

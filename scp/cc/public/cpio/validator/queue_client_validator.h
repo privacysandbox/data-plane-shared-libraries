@@ -17,7 +17,7 @@
 #ifndef PUBLIC_CPIO_VALIDATOR_QUEUE_CLIENT_VALIDATOR_H_
 #define PUBLIC_CPIO_VALIDATOR_QUEUE_CLIENT_VALIDATOR_H_
 
-#include "cpio/client_providers/interface/queue_client_provider_interface.h"
+#include "scp/cc/cpio/client_providers/interface/queue_client_provider_interface.h"
 #include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {

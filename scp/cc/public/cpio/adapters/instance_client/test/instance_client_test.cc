@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "public/cpio/adapters/instance_client/src/instance_client.h"
+#include "scp/cc/public/cpio/adapters/instance_client/src/instance_client.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -21,11 +21,11 @@
 #include <string>
 
 #include "absl/synchronization/notification.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "public/cpio/adapters/instance_client/mock/mock_instance_client_with_overrides.h"
-#include "public/cpio/core/mock/mock_lib_cpio.h"
-#include "public/cpio/interface/instance_client/instance_client_interface.h"
-#include "public/cpio/proto/instance_service/v1/instance_service.pb.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/public/cpio/adapters/instance_client/mock/mock_instance_client_with_overrides.h"
+#include "scp/cc/public/cpio/core/mock/mock_lib_cpio.h"
+#include "scp/cc/public/cpio/interface/instance_client/instance_client_interface.h"
+#include "scp/cc/public/cpio/proto/instance_service/v1/instance_service.pb.h"
 
 using google::cmrt::sdk::instance_service::v1::
     GetCurrentInstanceResourceNameRequest;

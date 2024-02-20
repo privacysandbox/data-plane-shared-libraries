@@ -23,7 +23,6 @@ cc_library(
             "mock_metric_client.h",
         ],
     deps = [
-        "//scp/cc:cc_base_include_dir",
         "//scp/cc/public/cpio/interface/metric_client",
         "@com_google_googletest//:gtest",
     ],

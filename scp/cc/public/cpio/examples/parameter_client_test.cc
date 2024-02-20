@@ -18,12 +18,12 @@
 #include <string>
 
 #include "absl/synchronization/notification.h"
-#include "public/core/interface/errors.h"
-#include "public/core/interface/execution_result.h"
-#include "public/cpio/interface/cpio.h"
-#include "public/cpio/interface/parameter_client/parameter_client_interface.h"
-#include "public/cpio/interface/type_def.h"
-#include "public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "scp/cc/public/core/interface/errors.h"
+#include "scp/cc/public/core/interface/execution_result.h"
+#include "scp/cc/public/cpio/interface/cpio.h"
+#include "scp/cc/public/cpio/interface/parameter_client/parameter_client_interface.h"
+#include "scp/cc/public/cpio/interface/type_def.h"
+#include "scp/cc/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;

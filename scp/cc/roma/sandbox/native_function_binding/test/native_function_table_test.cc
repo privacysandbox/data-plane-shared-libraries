@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "roma/sandbox/native_function_binding/src/native_function_table.h"
+#include "scp/cc/roma/sandbox/native_function_binding/src/native_function_table.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
 
 namespace google::scp::roma::sandbox::native_function_binding::test {

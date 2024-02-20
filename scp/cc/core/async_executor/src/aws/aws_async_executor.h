@@ -22,7 +22,7 @@
 
 #include <aws/core/utils/threading/Executor.h>
 
-#include "core/interface/async_executor_interface.h"
+#include "scp/cc/core/interface/async_executor_interface.h"
 
 namespace google::scp::core::async_executor::aws {
 /**
