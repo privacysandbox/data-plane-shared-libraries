@@ -18,10 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "type_def",
-    hdrs =
-        [
-            "type_def.h",
-        ],
+    hdrs = ["type_def.h"],
     deps = [
     ],
 )

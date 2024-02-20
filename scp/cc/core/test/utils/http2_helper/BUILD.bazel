@@ -19,8 +19,7 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "test_http2_server",
     testonly = True,
-    srcs = glob(["*.cc"]),
-    hdrs = glob(["*.h"]),
+    hdrs = ["test_http2_server.h"],
     deps = [
         "//scp/cc/core/interface:errors_lib",
         "//scp/cc/core/test/utils:utils_lib",

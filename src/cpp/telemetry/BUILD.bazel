@@ -19,12 +19,8 @@ package(default_visibility = ["//visibility:private"])
 
 cc_library(
     name = "telemetry",
-    srcs = [
-        "telemetry.cc",
-    ],
-    hdrs = [
-        "telemetry.h",
-    ],
+    srcs = ["telemetry.cc"],
+    hdrs = ["telemetry.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":init",
@@ -53,12 +49,8 @@ cc_test(
 
 cc_library(
     name = "metrics_recorder",
-    srcs = [
-        "metrics_recorder.cc",
-    ],
-    hdrs = [
-        "metrics_recorder.h",
-    ],
+    srcs = ["metrics_recorder.cc"],
+    hdrs = ["metrics_recorder.h"],
     deprecation = "Please switch to the //src/cpp/metric package",
     visibility = ["//visibility:public"],
     deps = [
@@ -73,12 +65,8 @@ cc_library(
 
 cc_library(
     name = "telemetry_provider",
-    srcs = [
-        "telemetry_provider.cc",
-    ],
-    hdrs = [
-        "telemetry_provider.h",
-    ],
+    srcs = ["telemetry_provider.cc"],
+    hdrs = ["telemetry_provider.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":metrics_recorder",
@@ -90,12 +78,8 @@ cc_library(
 
 cc_library(
     name = "tracing",
-    srcs = [
-        "tracing.cc",
-    ],
-    hdrs = [
-        "tracing.h",
-    ],
+    srcs = ["tracing.cc"],
+    hdrs = ["tracing.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":telemetry",
@@ -139,9 +123,7 @@ cc_library(
         ":local_otel_export_ostream": ["init_local_ostream.cc"],
         ":local_otel_export_otlp": ["init_local_otlp.cc"],
     }),
-    hdrs = [
-        "init.h",
-    ],
+    hdrs = ["init.h"],
     deps = [
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/types:optional",
@@ -161,9 +143,7 @@ cc_library(
 cc_library(
     name = "init_aws",
     srcs = ["init_aws.cc"],
-    hdrs = [
-        "init.h",
-    ],
+    hdrs = ["init.h"],
     deps = [
         ":aws_xray",
         "@com_google_absl//absl/types:optional",
@@ -176,9 +156,7 @@ cc_library(
 cc_library(
     name = "init_gcp",
     srcs = ["init_gcp.cc"],
-    hdrs = [
-        "init.h",
-    ],
+    hdrs = ["init.h"],
     deps = [
         "@com_google_absl//absl/types:optional",
         "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_exporter",

@@ -18,11 +18,10 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "core_async_executor_mock",
-    srcs = glob(
-        [
-            "**/*.h",
-        ],
-    ),
+    hdrs = [
+        "mock_async_executor.h",
+        "mock_async_executor_with_internals.h",
+    ],
     deps = [
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
         "//scp/cc/core/interface:interface_lib",

@@ -18,12 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "sync_utils",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["sync_utils.h"],
     deps = [
         "//scp/cc/core/interface:async_context_lib",
         "//scp/cc/core/interface:interface_lib",

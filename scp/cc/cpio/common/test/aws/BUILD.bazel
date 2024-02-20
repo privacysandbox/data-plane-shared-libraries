@@ -18,12 +18,8 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "test_aws_utils_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = ["test_aws_utils.cc"],
+    hdrs = ["test_aws_utils.h"],
     deps = [
         "//scp/cc/public/cpio/interface:cpio_errors",
         "@aws_sdk_cpp//:core",

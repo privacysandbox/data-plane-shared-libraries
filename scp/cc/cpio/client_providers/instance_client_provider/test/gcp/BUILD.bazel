@@ -55,6 +55,8 @@ cc_library(
     name = "test_gcp_instance_client_provider_lib",
     srcs = [
         "test_gcp_instance_client_provider.cc",
+    ],
+    hdrs = [
         "test_gcp_instance_client_provider.h",
     ],
     deps = [

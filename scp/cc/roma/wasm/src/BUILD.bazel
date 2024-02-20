@@ -18,10 +18,13 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_wasm_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "deserializer.cc",
+        "serializer.cc",
+    ],
+    hdrs = [
+        "deserializer.h",
+        "serializer.h",
+        "wasm_types.h",
+    ],
 )

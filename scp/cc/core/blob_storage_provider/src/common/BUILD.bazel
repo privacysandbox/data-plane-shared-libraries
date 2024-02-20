@@ -18,12 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "core_blob_storage_provider_common_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["error_codes.h"],
     deps = [
         "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
         "//scp/cc/core/common/global_logger/src:global_logger_lib",

@@ -38,10 +38,12 @@ cc_library(
     name = "test_aws_private_key_fetcher_provider_lib",
     srcs = [
         "test_aws_private_key_fetcher_provider.cc",
-        "test_aws_private_key_fetcher_provider.h",
         # Need to include the production src here,
         # otherwise, it will fail with duplicate definition for test server.
         "//scp/cc/cpio/client_providers/private_key_fetcher_provider/src/aws:aws_private_key_fetcher_provider_srcs",
+    ],
+    hdrs = [
+        "test_aws_private_key_fetcher_provider.h",
     ],
     copts = [
         "-DTEST_CPIO=1",

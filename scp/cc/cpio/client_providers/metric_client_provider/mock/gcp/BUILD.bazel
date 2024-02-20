@@ -18,12 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_metric_client_provider_mock",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["mock_gcp_metric_client_provider_with_overrides.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/message_router/src:message_router_lib",

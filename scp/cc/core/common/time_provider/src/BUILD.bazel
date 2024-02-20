@@ -18,12 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "time_provider_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["time_provider.h"],
     deps = [
         "//scp/cc/core/interface:type_def_lib",
         "//scp/cc/public/core/interface:execution_result",

@@ -18,5 +18,5 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_constants_lib",
-    srcs = ["constants.h"],
+    hdrs = ["constants.h"],
 )

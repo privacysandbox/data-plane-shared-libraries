@@ -18,12 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "core_aws_async_executor_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["aws_async_executor.h"],
     deps = [
         "//scp/cc/core/async_executor/src:core_async_executor_lib",
         "@aws_sdk_cpp//:core",

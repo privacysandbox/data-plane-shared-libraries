@@ -18,12 +18,13 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_utils_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "gcp_utils.cc",
+    ],
+    hdrs = [
+        "error_codes.h",
+        "gcp_utils.h",
+    ],
     deps = [
         "//scp/cc/core/common/global_logger/src:global_logger_lib",
         "//scp/cc/public/cpio/interface:cpio_errors",

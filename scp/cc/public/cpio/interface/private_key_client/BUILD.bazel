@@ -18,10 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "type_def",
-    hdrs =
-        [
-            "type_def.h",
-        ],
+    hdrs = ["type_def.h"],
     deps = [
         "//scp/cc/public/cpio/interface:type_def",
     ],
@@ -30,10 +27,7 @@ cc_library(
 cc_library(
     name = "private_key_client",
     srcs = ["//scp/cc/public/cpio/adapters/private_key_client/src:private_key_client_srcs"],
-    hdrs =
-        [
-            "private_key_client_interface.h",
-        ],
+    hdrs = ["private_key_client_interface.h"],
     deps = [
         ":type_def",
         "//scp/cc/core/interface:async_context_lib",
@@ -46,5 +40,3 @@ cc_library(
         "//scp/cc/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
     ],
 )
-
-exports_files = ["private_key_client_interface.h"]

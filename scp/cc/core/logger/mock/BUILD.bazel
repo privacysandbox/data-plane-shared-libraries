@@ -18,7 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "logger_mock",
-    srcs = ["mock_log_provider.h"],
+    hdrs = ["mock_log_provider.h"],
     deps = [
         "//scp/cc/core/common/uuid/src:uuid_lib",
         "//scp/cc/core/logger/interface:logger_interface_lib",

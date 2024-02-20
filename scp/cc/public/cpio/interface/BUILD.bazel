@@ -57,10 +57,7 @@ config_setting(
 
 cc_library(
     name = "type_def",
-    hdrs =
-        [
-            "type_def.h",
-        ],
+    hdrs = ["type_def.h"],
     deps = [
         "//scp/cc/core/common/global_logger/src:global_logger_lib",
         "//scp/cc/core/interface:async_context_lib",
@@ -71,9 +68,7 @@ cc_library(
 cc_library(
     name = "cpio",
     srcs = ["//scp/cc/public/cpio/core/src:cpio.cc"],
-    hdrs = [
-        "cpio.h",
-    ],
+    hdrs = ["cpio.h"],
     deps = [
         ":type_def",
         "//scp/cc/core/interface:interface_lib",
@@ -90,9 +85,7 @@ exports_files(["cpio.h"])
 
 cc_library(
     name = "cpio_errors",
-    hdrs = [
-        "error_codes.h",
-    ],
+    hdrs = ["error_codes.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
     ],

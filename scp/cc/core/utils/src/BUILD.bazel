@@ -18,12 +18,21 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "core_utils",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "base64.cc",
+        "error_utils.cc",
+        "hashing.cc",
+        "http.cc",
+        "string_util.cc",
+    ],
+    hdrs = [
+        "base64.h",
+        "error_codes.h",
+        "error_utils.h",
+        "hashing.h",
+        "http.h",
+        "string_util.h",
+    ],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",

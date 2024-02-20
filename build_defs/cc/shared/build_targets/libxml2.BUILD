@@ -16,7 +16,6 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "xml2",
-    #srcs = glob(["*.c"]),
     srcs = [
         "HTMLparser.c",
         "HTMLtree.c",

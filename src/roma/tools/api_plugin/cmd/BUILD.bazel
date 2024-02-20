@@ -18,9 +18,7 @@ package(default_visibility = ["//visibility:private"])
 
 go_library(
     name = "lib",
-    srcs = [
-        "flags.go",
-    ],
+    srcs = ["flags.go"],
     importpath = "github.com/privacysandbox/data-plane-shared/src/roma/tools/api_plugin/cmd/cmd",
     visibility = ["//src/roma/tools/api_plugin:__pkg__"],
     deps = [

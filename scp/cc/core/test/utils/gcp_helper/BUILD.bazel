@@ -18,12 +18,8 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "gcp_helper_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = ["gcp_helper.cc"],
+    hdrs = ["gcp_helper.h"],
     deps = [
         "@com_github_googleapis_google_cloud_cpp//:pubsub",
         "@com_google_googleapis//google/pubsub/v1:pubsub_cc_grpc",

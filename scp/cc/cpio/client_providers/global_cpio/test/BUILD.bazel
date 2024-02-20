@@ -20,8 +20,10 @@ cc_library(
     name = "test_lib_cpio_provider",
     srcs = [
         "test_lib_cpio_provider.cc",
-        "test_lib_cpio_provider.h",
         "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:lib_cpio_provider_srcs",
+    ],
+    hdrs = [
+        "test_lib_cpio_provider.h",
     ],
     copts =
         select(

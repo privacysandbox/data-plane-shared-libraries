@@ -44,9 +44,7 @@ cc_test(
 cc_library(
     name = "metric_router",
     srcs = ["metric_router.cc"],
-    hdrs = [
-        "metric_router.h",
-    ],
+    hdrs = ["metric_router.h"],
     deps = [
         ":definition",
         ":dp",

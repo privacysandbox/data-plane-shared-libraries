@@ -20,10 +20,8 @@ exports_files(["cpio.cc"])
 
 cc_library(
     name = "cpio_utils_lib",
-    srcs = [
-        "cpio_utils.cc",
-        "cpio_utils.h",
-    ],
+    srcs = ["cpio_utils.cc"],
+    hdrs = ["cpio_utils.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/logger/interface:logger_interface_lib",

@@ -106,6 +106,8 @@ cc_library(
     name = "test_aws_kms_client_provider_lib",
     srcs = [
         "test_aws_kms_client_provider.cc",
+    ],
+    hdrs = [
         "test_aws_kms_client_provider.h",
         "//scp/cc/cpio/client_providers/interface:kms_client_provider_interface.h",
     ],

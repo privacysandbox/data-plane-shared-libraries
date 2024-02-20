@@ -51,10 +51,7 @@ cc_test(
 
 cc_library(
     name = "roma_wasm_testing_lib",
-    srcs =
-        [
-            "testing_utils.cc",
-            "testing_utils.h",
-        ],
+    srcs = ["testing_utils.cc"],
+    hdrs = ["testing_utils.h"],
     deps = ["@com_google_absl//absl/log:check"],
 )

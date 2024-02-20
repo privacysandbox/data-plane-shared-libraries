@@ -18,12 +18,17 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "utils_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "logging_utils.cc",
+        "timestamp_test_utils.cc",
+    ],
+    hdrs = [
+        "auto_init_run_stop.h",
+        "error_codes.h",
+        "logging_utils.h",
+        "proto_test_utils.h",
+        "timestamp_test_utils.h",
+    ],
     deps = [
         "//scp/cc/core/common/time_provider/src:time_provider_lib",
         "//scp/cc/core/interface:interface_lib",

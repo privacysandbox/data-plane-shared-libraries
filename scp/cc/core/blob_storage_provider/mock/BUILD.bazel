@@ -18,11 +18,11 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "blob_storage_provider_mock",
-    srcs = glob(
-        [
-            "**/*.h",
-        ],
-    ),
+    hdrs = [
+        "aws/mock_aws_s3_client.h",
+        "aws/mock_s3_client.h",
+        "mock_blob_storage_provider.h",
+    ],
     deps = [
         "//scp/cc/core/blob_storage_provider/src/aws:core_blob_storage_provider_aws_lib",
         "//scp/cc/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",

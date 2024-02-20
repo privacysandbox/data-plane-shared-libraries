@@ -18,7 +18,10 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "core_test_lib",
-    srcs = glob(["*.h"]),
+    hdrs = [
+        "scp_test_base.h",
+        "test_config.h",
+    ],
     deps = [
     ],
 )

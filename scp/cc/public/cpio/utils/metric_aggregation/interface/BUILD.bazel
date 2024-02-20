@@ -18,10 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "type_def",
-    srcs =
-        [
-            "type_def.h",
-        ],
+    hdrs = ["type_def.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "@com_google_absl//absl/container:flat_hash_map",

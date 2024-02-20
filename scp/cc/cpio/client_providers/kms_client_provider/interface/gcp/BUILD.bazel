@@ -18,11 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_kms_client_provider_interface",
-    srcs = glob(
-        [
-            "*.h",
-        ],
-    ),
+    hdrs = ["gcp_key_management_service_client_interface.h"],
     deps = [
         "@com_github_googleapis_google_cloud_cpp//:kms",
     ],

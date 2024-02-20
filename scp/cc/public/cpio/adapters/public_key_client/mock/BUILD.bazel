@@ -19,12 +19,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_library(
     name = "public_key_client_mock",
     testonly = True,
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["mock_public_key_client_with_overrides.h"],
     deps = [
         "//scp/cc/cpio/client_providers/public_key_client_provider/mock:public_key_client_provider_mock",
         "//scp/cc/public/cpio/interface/public_key_client",

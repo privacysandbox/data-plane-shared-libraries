@@ -18,12 +18,15 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "http1_curl_client_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "http1_curl_client.cc",
+        "http1_curl_wrapper.cc",
+    ],
+    hdrs = [
+        "error_codes.h",
+        "http1_curl_client.h",
+        "http1_curl_wrapper.h",
+    ],
     deps = [
         "//scp/cc/core/common/concurrent_map/src:concurrent_map_lib",
         "//scp/cc/core/common/operation_dispatcher/src:operation_dispatcher_lib",

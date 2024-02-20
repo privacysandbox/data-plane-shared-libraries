@@ -19,7 +19,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_library(
     name = "aws_queue_client_provider_mock",
     testonly = True,
-    srcs = [
+    hdrs = [
         "mock_sqs_client.h",
     ],
     deps = [

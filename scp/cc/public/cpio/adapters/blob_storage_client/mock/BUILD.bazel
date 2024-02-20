@@ -19,12 +19,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_library(
     name = "blob_storage_client_mock",
     testonly = True,
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["mock_blob_storage_client_with_overrides.h"],
     deps = [
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/cpio/client_providers/blob_storage_client_provider/mock:mock_blob_storage_provider_lib",

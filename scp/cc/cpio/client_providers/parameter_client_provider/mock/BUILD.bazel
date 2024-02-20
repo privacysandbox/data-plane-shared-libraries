@@ -18,11 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "parameter_client_provider_mock",
-    srcs = glob(
-        [
-            "*.h",
-        ],
-    ),
+    hdrs = ["mock_parameter_client_provider.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",

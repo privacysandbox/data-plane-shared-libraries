@@ -18,12 +18,11 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "aws_kms_client_provider_mock",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = [
+        "mock_kms_client.h",
+        "mock_nontee_aws_kms_client_provider_with_overrides.h",
+        "mock_tee_aws_kms_client_provider_with_overrides.h",
+    ],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/utils/src:core_utils",

@@ -20,6 +20,8 @@ cc_library(
     name = "daemonizer_lib",
     srcs = [
         "daemonizer.cc",
+    ],
+    hdrs = [
         "daemonizer.h",
         "error_codes.h",
     ],

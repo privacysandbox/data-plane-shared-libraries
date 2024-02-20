@@ -68,9 +68,7 @@ cc_library(
 cc_test(
     name = "read_system_test",
     size = "small",
-    srcs = [
-        "read_system_test.cc",
-    ],
+    srcs = ["read_system_test.cc"],
     deps = [
         ":read_system",
         "@com_google_absl//absl/log:check",
@@ -105,9 +103,7 @@ cc_binary(
 cc_test(
     name = "rlimit_core_config_test",
     size = "small",
-    srcs = [
-        "rlimit_core_config_test.cc",
-    ],
+    srcs = ["rlimit_core_config_test.cc"],
     data = [":core_dump_generator"],
     tags = [
         "noasan",

@@ -19,8 +19,10 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "system_resource_info_provider_linux_lib",
     srcs = [
-        "error_codes.h",
         "system_resource_info_provider_linux.cc",
+    ],
+    hdrs = [
+        "error_codes.h",
         "system_resource_info_provider_linux.h",
     ],
     deps = [

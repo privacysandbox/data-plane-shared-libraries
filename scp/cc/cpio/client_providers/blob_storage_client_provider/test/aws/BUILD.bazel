@@ -45,8 +45,10 @@ cc_library(
     name = "test_aws_blob_storage_client_provider_lib",
     srcs = [
         "test_aws_blob_storage_client_provider.cc",
-        "test_aws_blob_storage_client_provider.h",
         "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/aws:aws_blob_storage_client_provider_srcs",
+    ],
+    hdrs = [
+        "test_aws_blob_storage_client_provider.h",
     ],
     copts = [
         "-DTEST_CPIO=1",

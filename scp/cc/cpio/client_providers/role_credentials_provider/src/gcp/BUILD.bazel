@@ -19,8 +19,10 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_library(
     name = "gcp_role_credentials_provider_lib",
     srcs = [
-        "//scp/cc/cpio/client_providers/interface:role_credentials_provider_interface.h",
         "//scp/cc/cpio/client_providers/role_credentials_provider/src/gcp:gcp_role_credentials_provider_srcs",
+    ],
+    hdrs = [
+        "//scp/cc/cpio/client_providers/interface:role_credentials_provider_interface.h",
     ],
     deps = [
         "//scp/cc/core/interface:interface_lib",

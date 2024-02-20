@@ -19,11 +19,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_test(
     name = "gcp_utils_test",
     size = "small",
-    srcs = glob(
-        [
-            "*.cc",
-        ],
-    ),
+    srcs = ["gcp_utils_test.cc"],
     deps = [
         "//scp/cc/cpio/common/src/gcp:gcp_utils_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",

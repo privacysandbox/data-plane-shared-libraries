@@ -38,10 +38,12 @@ filegroup(
 cc_library(
     name = "gcp_instance_client_provider_lib",
     srcs = [
-        "error_codes.h",
         "gcp_instance_client_provider.cc",
-        "gcp_instance_client_provider.h",
         "gcp_instance_client_utils.cc",
+    ],
+    hdrs = [
+        "error_codes.h",
+        "gcp_instance_client_provider.h",
         "gcp_instance_client_utils.h",
     ],
     deps = [

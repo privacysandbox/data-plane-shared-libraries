@@ -33,12 +33,15 @@ cc_library(
 
 cc_library(
     name = "metric_client_provider_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "metric_client_provider.cc",
+        "metric_client_utils.cc",
+    ],
+    hdrs = [
+        "error_codes.h",
+        "metric_client_provider.h",
+        "metric_client_utils.h",
+    ],
     deps = [
         "//scp/cc/core/interface:async_context_lib",
         "//scp/cc/core/interface:interface_lib",

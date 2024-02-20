@@ -19,7 +19,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_library(
     name = "lib_cpio_mock",
     testonly = True,
-    srcs = ["mock_lib_cpio.h"],
+    hdrs = ["mock_lib_cpio.h"],
     deps = [
         "//scp/cc/cpio/client_providers/global_cpio/mock:global_cpio_mock",
         "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",

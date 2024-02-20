@@ -18,11 +18,9 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_execution_utils_lib",
-    srcs = [
-        "error_codes.h",
-        "execution_utils.cc",
-    ],
+    srcs = ["execution_utils.cc"],
     hdrs = [
+        "error_codes.h",
         "execution_utils.h",
     ],
     deps = [
@@ -39,12 +37,8 @@ cc_library(
 
 cc_library(
     name = "execution_watchdog_lib",
-    srcs = [
-        "execution_watchdog.cc",
-    ],
-    hdrs = [
-        "execution_watchdog.h",
-    ],
+    srcs = ["execution_watchdog.cc"],
+    hdrs = ["execution_watchdog.h"],
     deps = [
         "//src/cpp/util:duration",
         "@com_google_absl//absl/synchronization",

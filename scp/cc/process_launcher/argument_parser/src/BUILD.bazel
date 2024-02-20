@@ -18,7 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "argument_parser_lib",
-    srcs = [
+    hdrs = [
         "error_codes.h",
         "json_arg_parser.h",
     ],

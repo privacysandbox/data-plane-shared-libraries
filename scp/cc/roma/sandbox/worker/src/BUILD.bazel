@@ -18,9 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_worker_lib",
-    srcs = [
-        "worker.cc",
-    ],
+    srcs = ["worker.cc"],
     hdrs = ["worker.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",

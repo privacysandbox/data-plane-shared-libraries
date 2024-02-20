@@ -43,9 +43,11 @@ cc_library(
     name = "test_gcp_queue_client_provider_lib",
     srcs = [
         "test_gcp_queue_client_provider.cc",
+        "//scp/cc/cpio/client_providers/queue_client_provider/src/gcp:gcp_queue_client_provider_srcs",
+    ],
+    hdrs = [
         "test_gcp_queue_client_provider.h",
         "//scp/cc/cpio/client_providers/interface:queue_client_provider_interface.h",
-        "//scp/cc/cpio/client_providers/queue_client_provider/src/gcp:gcp_queue_client_provider_srcs",
     ],
     copts = [
         "-DTEST_CPIO=1",

@@ -18,20 +18,14 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "type_def",
-    hdrs =
-        [
-            "type_def.h",
-        ],
+    hdrs = ["type_def.h"],
     deps = [
     ],
 )
 
 cc_library(
     name = "metric_client_interface",
-    hdrs =
-        [
-            "metric_client_interface.h",
-        ],
+    hdrs = ["metric_client_interface.h"],
     deps = [
         ":type_def",
         "//scp/cc/core/interface:async_context_lib",

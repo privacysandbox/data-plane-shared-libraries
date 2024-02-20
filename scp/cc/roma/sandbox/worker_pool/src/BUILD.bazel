@@ -18,9 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "roma_worker_pool_lib",
-    srcs = [
-        "worker_pool_api_sapi.cc",
-    ],
+    srcs = ["worker_pool_api_sapi.cc"],
     hdrs = [
         "worker_pool.h",
         "worker_pool_api_sapi.h",

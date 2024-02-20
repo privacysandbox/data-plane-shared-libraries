@@ -20,9 +20,7 @@ package(default_visibility = [
 
 cc_library(
     name = "json_utils",
-    hdrs = [
-        "json_utils.h",
-    ],
+    hdrs = ["json_utils.h"],
     deps = [
         "@com_google_absl//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
@@ -32,9 +30,7 @@ cc_library(
 cc_test(
     name = "json_utils_test",
     size = "small",
-    srcs = [
-        "json_utils_test.cc",
-    ],
+    srcs = ["json_utils_test.cc"],
     deps = [
         ":json_utils",
         "@com_google_googletest//:gtest_main",
@@ -59,9 +55,7 @@ cc_library(
 cc_test(
     name = "ohttp_utils_test",
     size = "small",
-    srcs = [
-        "ohttp_utils_test.cc",
-    ],
+    srcs = ["ohttp_utils_test.cc"],
     deps = [
         ":ohttp_utils",
         "@com_google_absl//absl/status:statusor",
@@ -88,9 +82,7 @@ cc_library(
 cc_test(
     name = "encoding_utils_test",
     size = "small",
-    srcs = [
-        "encoding_utils_test.cc",
-    ],
+    srcs = ["encoding_utils_test.cc"],
     deps = [
         ":encoding_utils",
         "@com_google_absl//absl/status:statusor",

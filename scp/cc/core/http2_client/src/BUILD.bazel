@@ -28,13 +28,18 @@ cc_library(
 
 cc_library(
     name = "http2_client_lib",
-    srcs = glob(
-        include = [
-            "**/*.cc",
-            "**/*.h",
-        ],
-        exclude = ["error_codes.h"],
-    ),
+    srcs = [
+        "aws/aws_v4_signer.cc",
+        "http2_client.cc",
+        "http_connection.cc",
+        "http_connection_pool.cc",
+    ],
+    hdrs = [
+        "aws/aws_v4_signer.h",
+        "http2_client.h",
+        "http_connection.h",
+        "http_connection_pool.h",
+    ],
     deps = [
         ":errors_lib",
         "//scp/cc/core/common/concurrent_map/src:concurrent_map_lib",

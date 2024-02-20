@@ -301,7 +301,6 @@ cc_binary(
     name = "proxy_preload",
     srcs = [
         ":preload.cc",
-        ":preload.h",
         ":protocol.cc",
         ":protocol.h",
     ],

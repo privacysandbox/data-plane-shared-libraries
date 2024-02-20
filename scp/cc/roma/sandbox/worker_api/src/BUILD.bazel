@@ -30,12 +30,8 @@ cc_library(
 
 cc_library(
     name = "roma_worker_api_sapi_lib",
-    srcs = [
-        "worker_api_sapi.cc",
-    ],
-    hdrs = [
-        "worker_api_sapi.h",
-    ],
+    srcs = ["worker_api_sapi.cc"],
+    hdrs = ["worker_api_sapi.h"],
     deps = [
         ":roma_worker_api_lib",
         "//scp/cc/roma/config/src:roma_config_lib",

@@ -19,10 +19,7 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "blob_storage_client",
     srcs = ["//scp/cc/public/cpio/adapters/blob_storage_client/src:blob_storage_client_srcs"],
-    hdrs =
-        [
-            "blob_storage_client_interface.h",
-        ],
+    hdrs = ["blob_storage_client_interface.h"],
     deps = [
         ":type_def",
         "//scp/cc/core/interface:async_context_lib",

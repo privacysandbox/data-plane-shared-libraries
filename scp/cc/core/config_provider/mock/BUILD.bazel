@@ -18,11 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "core_config_provider_mock",
-    srcs = glob(
-        [
-            "**/*.h",
-        ],
-    ),
+    hdrs = ["mock_config_provider.h"],
     deps = [
         "//scp/cc/core/config_provider/src:config_provider_lib",
         "//scp/cc/core/interface:interface_lib",

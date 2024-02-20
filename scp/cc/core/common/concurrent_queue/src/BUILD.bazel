@@ -18,12 +18,10 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "concurrent_queue_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = [
+        "concurrent_queue.h",
+        "error_codes.h",
+    ],
     deps = [
         "//scp/cc/core/interface:type_def_lib",
         "@oneTBB//:tbb",

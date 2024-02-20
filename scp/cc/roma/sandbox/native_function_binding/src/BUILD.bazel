@@ -30,9 +30,7 @@ cc_proto_library(
 
 cc_library(
     name = "roma_native_function_binding_lib",
-    hdrs = [
-        "native_function_invoker.h",
-    ],
+    hdrs = ["native_function_invoker.h"],
     deps = [
         "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
         "@com_google_absl//absl/status",
@@ -41,9 +39,7 @@ cc_library(
 
 cc_library(
     name = "thread_safe_map",
-    hdrs = [
-        "thread_safe_map.h",
-    ],
+    hdrs = ["thread_safe_map.h"],
     deps = [
         "//src/cpp/util/status_macro:status_macros",
         "@com_google_absl//absl/container:node_hash_map",
@@ -56,12 +52,8 @@ cc_library(
 
 cc_library(
     name = "roma_native_function_invoker_sapi_ipc_lib",
-    srcs = [
-        "native_function_invoker_sapi_ipc.cc",
-    ],
-    hdrs = [
-        "native_function_invoker_sapi_ipc.h",
-    ],
+    srcs = ["native_function_invoker_sapi_ipc.cc"],
+    hdrs = ["native_function_invoker_sapi_ipc.h"],
     deps = [
         ":cc_roma_rpc_wrapper",
         ":roma_native_function_binding_lib",

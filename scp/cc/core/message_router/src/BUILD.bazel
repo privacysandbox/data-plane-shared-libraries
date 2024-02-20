@@ -18,12 +18,11 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "message_router_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = ["message_router.cc"],
+    hdrs = [
+        "error_codes.h",
+        "message_router.h",
+    ],
     deps = [
         "//scp/cc/core/common/concurrent_map/src:concurrent_map_lib",
         "//scp/cc/core/interface:async_context_lib",

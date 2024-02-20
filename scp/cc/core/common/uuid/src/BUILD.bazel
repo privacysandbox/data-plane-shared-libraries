@@ -19,10 +19,10 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "uuid_lib",
     srcs = [
-        "error_codes.h",
         "uuid.cc",
     ],
     hdrs = [
+        "error_codes.h",
         "uuid.h",
     ],
     deps = [

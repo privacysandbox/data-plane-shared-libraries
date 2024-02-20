@@ -18,12 +18,11 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "core_blob_storage_provider_aws_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = ["aws_s3.cc"],
+    hdrs = [
+        "aws_s3.h",
+        "aws_s3_utils.h",
+    ],
     deps = [
         "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
         "//scp/cc/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",

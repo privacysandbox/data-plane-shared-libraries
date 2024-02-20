@@ -19,12 +19,10 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_library(
     name = "private_key_client_provider_mock",
     testonly = True,
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = [
+        "mock_private_key_client_provider.h",
+        "mock_private_key_client_provider_with_overrides.h",
+    ],
     deps = [
         "//scp/cc/core/http2_client/mock:http2_client_mock",
         "//scp/cc/core/interface:interface_lib",

@@ -18,9 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "v8_isolate_wrapper",
-    srcs = [
-        "v8_isolate_wrapper.h",
-    ],
+    hdrs = ["v8_isolate_wrapper.h"],
     deps = [
         "@v8//:v8_icu",
     ],
@@ -28,12 +26,8 @@ cc_library(
 
 cc_library(
     name = "v8_isolate_function_binding",
-    srcs = [
-        "v8_isolate_function_binding.cc",
-    ],
-    hdrs = [
-        "v8_isolate_function_binding.h",
-    ],
+    srcs = ["v8_isolate_function_binding.cc"],
+    hdrs = ["v8_isolate_function_binding.h"],
     deps = [
         ":v8_isolate_wrapper",
         "//scp/cc/roma/config/src:roma_config_lib",
@@ -48,12 +42,8 @@ cc_library(
 
 cc_library(
     name = "v8_console",
-    srcs = [
-        "v8_console.cc",
-    ],
-    hdrs = [
-        "v8_console.h",
-    ],
+    srcs = ["v8_console.cc"],
+    hdrs = ["v8_console.h"],
     copts = [
         "-Wno-macro-redefined",  # v8 and absl define redundant log macros
     ],
@@ -70,12 +60,10 @@ cc_library(
 
 cc_library(
     name = "roma_v8_js_engine_lib",
-    srcs = [
+    srcs = ["v8_js_engine.cc"],
+    hdrs = [
         "error_codes.h",
         "snapshot_compilation_context.h",
-        "v8_js_engine.cc",
-    ],
-    hdrs = [
         "v8_js_engine.h",
     ],
     copts = [

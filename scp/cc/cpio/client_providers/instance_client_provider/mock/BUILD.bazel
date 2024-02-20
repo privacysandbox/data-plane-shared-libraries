@@ -18,12 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "instance_client_provider_mock",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["mock_instance_client_provider.h"],
     deps = [
         "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "@com_google_googletest//:gtest",

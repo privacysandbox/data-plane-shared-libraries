@@ -32,10 +32,9 @@ cc_library(
         "//scp/cc/public/cpio/adapters/blob_storage_client/src:blob_storage_client_srcs",
         "//scp/cc/public/cpio/adapters/blob_storage_client/test:test_aws_blob_storage_client_srcs",
     ],
-    hdrs =
-        [
-            "//scp/cc/public/cpio/interface/blob_storage_client:blob_storage_client_interface.h",
-        ],
+    hdrs = [
+        "//scp/cc/public/cpio/interface/blob_storage_client:blob_storage_client_interface.h",
+    ],
     deps = [
         ":test_aws_blob_storage_client_options",
         "//scp/cc/cpio/client_providers/blob_storage_client_provider/test/aws:test_aws_blob_storage_client_provider_lib",
@@ -59,10 +58,9 @@ cc_library(
         "//scp/cc/public/cpio/adapters/blob_storage_client/src:blob_storage_client_srcs",
         "//scp/cc/public/cpio/adapters/blob_storage_client/test:test_gcp_blob_storage_client_srcs",
     ],
-    hdrs =
-        [
-            "//scp/cc/public/cpio/interface/blob_storage_client:blob_storage_client_interface.h",
-        ],
+    hdrs = [
+        "//scp/cc/public/cpio/interface/blob_storage_client:blob_storage_client_interface.h",
+    ],
     deps = [
         ":test_aws_blob_storage_client_options",
         "//scp/cc/cpio/client_providers/blob_storage_client_provider/test/gcp:test_gcp_blob_storage_client_provider_lib",

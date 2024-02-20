@@ -18,12 +18,15 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "core_credentials_provider_lib",
-    srcs = glob(
-        [
-            "**/*.cc",
-            "**/*.h",
-        ],
-    ),
+    srcs = [
+        "aws_assume_role_credentials_provider.cc",
+        "aws_credentials_provider.cc",
+    ],
+    hdrs = [
+        "aws_assume_role_credentials_provider.h",
+        "aws_credentials_provider.h",
+        "error_codes.h",
+    ],
     deps = [
         "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
         "//scp/cc/core/interface:interface_lib",

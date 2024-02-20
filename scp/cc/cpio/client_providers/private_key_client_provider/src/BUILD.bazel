@@ -18,12 +18,15 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "private_key_client_provider_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "private_key_client_provider.cc",
+        "private_key_client_utils.cc",
+    ],
+    hdrs = [
+        "error_codes.h",
+        "private_key_client_provider.h",
+        "private_key_client_utils.h",
+    ],
     deps = [
         "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//scp/cc/cpio/client_providers/interface:type_def",

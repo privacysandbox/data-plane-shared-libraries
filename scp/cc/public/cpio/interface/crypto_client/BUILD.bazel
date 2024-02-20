@@ -18,10 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "type_def",
-    hdrs =
-        [
-            "type_def.h",
-        ],
+    hdrs = ["type_def.h"],
     deps = [
     ],
 )
@@ -29,10 +26,7 @@ cc_library(
 cc_library(
     name = "crypto_client",
     srcs = ["//scp/cc/public/cpio/adapters/crypto_client/src:crypto_client_srcs"],
-    hdrs =
-        [
-            "crypto_client_interface.h",
-        ],
+    hdrs = ["crypto_client_interface.h"],
     deps = [
         ":type_def",
         "//scp/cc/core/interface:async_context_lib",

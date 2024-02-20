@@ -64,12 +64,8 @@ cc_test(
 
 cc_library(
     name = "request_context_impl",
-    srcs = [
-        "request_context_impl.cc",
-    ],
-    hdrs = [
-        "request_context_impl.h",
-    ],
+    srcs = ["request_context_impl.cc"],
+    hdrs = ["request_context_impl.h"],
     deps = [
         ":logger_cc_proto",
         ":request_context_logger",

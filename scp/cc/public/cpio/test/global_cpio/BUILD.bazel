@@ -18,9 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "test_cpio_options",
-    hdrs = [
-        "test_cpio_options.h",
-    ],
+    hdrs = ["test_cpio_options.h"],
     deps = [
         "//scp/cc/public/cpio/interface:type_def",
     ],

@@ -19,12 +19,11 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_library(
     name = "http2_client_mock",
     testonly = True,
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = [
+        "mock_http_client.h",
+        "mock_http_connection.h",
+        "mock_http_connection_pool_with_overrides.h",
+    ],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/public/core/test/interface:execution_result_matchers",

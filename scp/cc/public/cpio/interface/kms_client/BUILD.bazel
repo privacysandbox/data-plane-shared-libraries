@@ -19,10 +19,7 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "kms_client",
     srcs = ["//scp/cc/public/cpio/adapters/kms_client/src:kms_client_srcs"],
-    hdrs =
-        [
-            "kms_client_interface.h",
-        ],
+    hdrs = ["kms_client_interface.h"],
     deps = [
         ":type_def",
         "//scp/cc/core/interface:async_context_lib",
@@ -36,10 +33,7 @@ cc_library(
 
 cc_library(
     name = "type_def",
-    hdrs =
-        [
-            "type_def.h",
-        ],
+    hdrs = ["type_def.h"],
     deps = [
     ],
 )

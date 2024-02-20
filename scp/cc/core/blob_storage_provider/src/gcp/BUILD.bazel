@@ -18,12 +18,13 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "core_blob_storage_provider_gcp_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    srcs = [
+        "gcp_cloud_storage.cc",
+    ],
+    hdrs = [
+        "gcp_cloud_storage.h",
+        "gcp_cloud_storage_utils.h",
+    ],
     deps = [
         "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
         "//scp/cc/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",

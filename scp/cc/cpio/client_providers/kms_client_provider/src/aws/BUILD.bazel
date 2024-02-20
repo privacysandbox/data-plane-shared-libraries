@@ -115,12 +115,12 @@ cc_library(
     name = "nontee_aws_kms_client_provider_lib",
     srcs = [
         ":aws_kms_aead.cc",
-        ":aws_kms_aead.h",
         ":nontee_aws_kms_client_provider.cc",
-        ":nontee_error_codes.h",
     ],
     hdrs = [
+        ":aws_kms_aead.h",
         ":nontee_aws_kms_client_provider.h",
+        ":nontee_error_codes.h",
     ],
     deps = [
         "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
@@ -142,11 +142,11 @@ cc_library(
     srcs = [
         ":tee_aws_kms_client_provider.cc",
         ":tee_aws_kms_client_provider_utils.cc",
-        ":tee_aws_kms_client_provider_utils.h",
-        ":tee_error_codes.h",
     ],
     hdrs = [
         ":tee_aws_kms_client_provider.h",
+        ":tee_aws_kms_client_provider_utils.h",
+        ":tee_error_codes.h",
     ],
     defines = [
         'AWS_NITRO_ENCLAVES_CLI_PATH=\\"{path}{filename}\\"'.format(

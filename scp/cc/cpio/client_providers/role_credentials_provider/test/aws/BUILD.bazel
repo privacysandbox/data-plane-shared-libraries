@@ -37,9 +37,11 @@ cc_library(
     name = "test_aws_role_credentials_provider_lib",
     srcs = [
         "test_aws_role_credentials_provider.cc",
+        "//scp/cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_srcs",
+    ],
+    hdrs = [
         "test_aws_role_credentials_provider.h",
         "//scp/cc/cpio/client_providers/interface:role_credentials_provider_interface.h",
-        "//scp/cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_srcs",
     ],
     copts = [
         "-DTEST_CPIO=1",

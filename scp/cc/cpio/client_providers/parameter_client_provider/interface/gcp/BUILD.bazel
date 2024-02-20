@@ -18,12 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "parameter_client_provider_gcp_interface",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = ["gcp_secret_manager_interface.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "@com_github_googleapis_google_cloud_cpp//:monitoring",

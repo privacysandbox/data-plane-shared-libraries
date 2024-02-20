@@ -18,12 +18,11 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "operation_dispatcher_lib",
-    srcs = glob(
-        [
-            "*.cc",
-            "*.h",
-        ],
-    ),
+    hdrs = [
+        "error_codes.h",
+        "operation_dispatcher.h",
+        "retry_strategy.h",
+    ],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",

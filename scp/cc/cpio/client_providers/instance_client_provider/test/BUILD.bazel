@@ -20,6 +20,8 @@ cc_library(
     name = "test_instance_client_provider_lib",
     srcs = [
         "test_instance_client_provider.cc",
+    ],
+    hdrs = [
         "test_instance_client_provider.h",
     ],
     deps = [
