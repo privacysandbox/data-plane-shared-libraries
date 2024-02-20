@@ -85,12 +85,14 @@ using grpc::GoogleDefaultCredentials;
 using grpc::StatusCode;
 using grpc::StubOptions;
 
-static constexpr char kGcpQueueClientProvider[] = "GcpQueueClientProvider";
-static constexpr char kGcpTopicFormatString[] = "projects/$0/topics/$1";
-static constexpr char kGcpSubscriptionFormatString[] =
+namespace {
+constexpr std::string_view kGcpQueueClientProvider = "GcpQueueClientProvider";
+constexpr std::string_view kGcpTopicFormatString = "projects/$0/topics/$1";
+constexpr std::string_view kGcpSubscriptionFormatString =
     "projects/$0/subscriptions/$1";
-static constexpr uint8_t kMaxNumberOfMessagesReceived = 1;
-static constexpr uint16_t kMaxAckDeadlineSeconds = 600;
+constexpr uint8_t kMaxNumberOfMessagesReceived = 1;
+constexpr uint16_t kMaxAckDeadlineSeconds = 600;
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 

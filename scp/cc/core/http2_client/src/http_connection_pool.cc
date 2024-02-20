@@ -43,9 +43,11 @@ using boost::system::error_code;
 using google::scp::core::common::kZeroUuid;
 using nghttp2::asio_http2::host_service_from_uri;
 
-static constexpr char kHttpsTag[] = "https";
-static constexpr char kHttpTag[] = "http";
-static constexpr char kHttpConnection[] = "HttpConnection";
+namespace {
+constexpr std::string_view kHttpsTag = "https";
+constexpr std::string_view kHttpTag = "http";
+constexpr std::string_view kHttpConnection = "HttpConnection";
+}  // namespace
 
 namespace google::scp::core {
 ExecutionResult HttpConnectionPool::Init() noexcept {

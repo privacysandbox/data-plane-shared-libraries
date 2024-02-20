@@ -54,13 +54,14 @@ using ::testing::ExplainMatchResult;
 using ::testing::Return;
 using ::testing::StrEq;
 
-static constexpr char kServiceAccount[] = "account";
-static constexpr char kWipProvider[] = "wip";
-static constexpr char kKeyArn[] = "keyArn";
-static constexpr char kCiphertext[] = "ciphertext";
-static constexpr char kPlaintext[] = "plaintext";
-
 namespace google::scp::cpio::client_providers::test {
+namespace {
+constexpr std::string_view kServiceAccount = "account";
+constexpr std::string_view kWipProvider = "wip";
+constexpr std::string_view kKeyArn = "keyArn";
+constexpr std::string_view kCiphertext = "ciphertext";
+constexpr std::string_view kPlaintext = "plaintext";
+
 class MockGcpKmsAeadProvider : public GcpKmsAeadProvider {
  public:
   MOCK_METHOD(ExecutionResultOr<std::shared_ptr<Aead>>, CreateAead,
@@ -261,4 +262,5 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecrypt) {
 
   condition.WaitForNotification();
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

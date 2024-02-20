@@ -39,15 +39,17 @@ using boost::algorithm::to_lower_copy;
 using boost::algorithm::token_compress_off;
 using boost::algorithm::token_compress_on;
 
-static constexpr const char* kEmptyStringSha256 =
+namespace {
+constexpr std::string_view kEmptyStringSha256 =
     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-static constexpr const char* kAmzDateHeader = "X-Amz-Date";
-static constexpr const char* kHostHeader = "Host";
-static constexpr const char* kAmzDateFormat = "%Y%m%dT%H%M%SZ";
-static constexpr const char* kAmzSecurityTokenHeader = "X-Amz-Security-Token";
-static constexpr const char* kAuthorizationHeader = "Authorization";
-static constexpr const char* kSigV4Algorithm = "AWS4-HMAC-SHA256";
-static constexpr const char* hex_lookup = "0123456789abcdef";
+constexpr std::string_view kAmzDateHeader = "X-Amz-Date";
+constexpr std::string_view kHostHeader = "Host";
+constexpr std::string_view kAmzDateFormat = "%Y%m%dT%H%M%SZ";
+constexpr std::string_view kAmzSecurityTokenHeader = "X-Amz-Security-Token";
+constexpr std::string_view kAuthorizationHeader = "Authorization";
+constexpr std::string_view kSigV4Algorithm = "AWS4-HMAC-SHA256";
+constexpr std::string_view kHexLookup = "0123456789abcdef";
+}  // namespace
 
 namespace google::scp::core {
 
@@ -56,8 +58,8 @@ static std::string HexEncode(unsigned char data[], size_t size) {
   result.reserve(size * 2);
   for (size_t i = 0; i < size; ++i) {
     auto b = data[i];
-    result.push_back(hex_lookup[b >> 4]);    // High 4 bits
-    result.push_back(hex_lookup[b & 0x0f]);  // Low 4 bits
+    result.push_back(kHexLookup[b >> 4]);    // High 4 bits
+    result.push_back(kHexLookup[b & 0x0f]);  // Low 4 bits
   }
   return result;
 }
@@ -109,20 +111,20 @@ ExecutionResult AwsV4Signer::GetSignatureParts(
     return FailureExecutionResult(errors::SC_HTTP2_CLIENT_AUTH_BAD_REQUEST);
   }
   auto& headers = http_request.headers;
-  if (headers->count(kAuthorizationHeader) != 0) {
+  if (headers->count(std::string{kAuthorizationHeader}) != 0) {
     return FailureExecutionResult(errors::SC_HTTP2_CLIENT_AUTH_ALREADY_SIGNED);
   }
   // Find the "X-Amz-Date" header, if non found, put one.
-  auto date_entry = headers->find(kAmzDateHeader);
+  auto date_entry = headers->find(std::string{kAmzDateHeader});
   std::string timestamp_value;
   if (date_entry == headers->end()) {
     timestamp_value = GetSigningTime();
-    headers->insert({kAmzDateHeader, timestamp_value});
+    headers->insert({std::string{kAmzDateHeader}, timestamp_value});
   } else {
     timestamp_value = date_entry->second;
   }
   // Find the "Host" header, if non found, try get from the path.
-  auto host_entry = headers->find(kHostHeader);
+  auto host_entry = headers->find(std::string{kHostHeader});
 
   if (host_entry == headers->end()) {
     auto& path = *http_request.path;
@@ -146,7 +148,7 @@ ExecutionResult AwsV4Signer::GetSignatureParts(
       host_value = path.substr(
           start_idx, std::distance(path.begin() + start_idx, end_itr.begin()));
     }
-    headers->insert({kHostHeader, host_value});
+    headers->insert({std::string{kHostHeader}, host_value});
   }
 
   // Sort all headers in headers_to_sign by its all lower cases order.
@@ -336,13 +338,14 @@ void AwsV4Signer::AddSignatureHeader(
   auth_header_value_builder.seekp(-1, std::ios_base::end);
   auth_header_value_builder << ", Signature=" << signature;
   auto auth_header_value = auth_header_value_builder.str();
-  headers->insert({kAuthorizationHeader, auth_header_value});
+  headers->insert({std::string{kAuthorizationHeader}, auth_header_value});
 
   // If the X-Amz-Security-Token header does not exist, add it.
   std::string token;
   if (!aws_security_token_.empty() &&
-      headers->count(kAmzSecurityTokenHeader) == 0) {
-    headers->insert({kAmzSecurityTokenHeader, aws_security_token_});
+      headers->count(std::string{kAmzSecurityTokenHeader}) == 0) {
+    headers->insert(
+        {std::string{kAmzSecurityTokenHeader}, aws_security_token_});
   }
 }
 
@@ -353,7 +356,7 @@ std::string AwsV4Signer::GetSigningTime() {
   gmtime_r(&time_t_now, &gmt_timestamp);
   char formatted_timestamp[64] = {0};
   std::strftime(formatted_timestamp, sizeof(formatted_timestamp),
-                kAmzDateFormat, &gmt_timestamp);
+                kAmzDateFormat.data(), &gmt_timestamp);
   return std::string(formatted_timestamp);
 }
 

@@ -43,19 +43,23 @@ using google::scp::core::errors::
 using google::scp::core::test::ResultIs;
 using ::testing::StrEq;
 
-static constexpr char kPublicKeyHeaderDate[] = "date";
-static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";
-static constexpr char kHeaderDateExample[] = "Wed, 16 Nov 2022 00:02:48 GMT";
-static constexpr char kCacheControlExample[] = "max-age=254838";
-static constexpr char kHeaderDateExampleBadStr[] = "2011-February-18 23:12:34";
-static constexpr char kCacheControlExampleBadInt[] = "max-age=b2t54838abs";
-static constexpr uint64_t kExpectedExpiredTimeSecs = 1668811806;
-
 namespace google::scp::cpio::client_providers::test {
+namespace {
+constexpr std::string_view kPublicKeyHeaderDate = "date";
+constexpr std::string_view kPublicKeyHeaderCacheControl = "cache-control";
+constexpr std::string_view kHeaderDateExample = "Wed, 16 Nov 2022 00:02:48 GMT";
+constexpr std::string_view kCacheControlExample = "max-age=254838";
+constexpr std::string_view kHeaderDateExampleBadStr =
+    "2011-February-18 23:12:34";
+constexpr std::string_view kCacheControlExampleBadInt = "max-age=b2t54838abs";
+constexpr uint64_t kExpectedExpiredTimeSecs = 1668811806;
+
 TEST(PublicKeyClientUtilsTest, ParseExpiredTimeFromHeadersSuccess) {
   HttpHeaders headers;
-  headers.insert({kPublicKeyHeaderDate, kHeaderDateExample});
-  headers.insert({kPublicKeyHeaderCacheControl, kCacheControlExample});
+  headers.insert(
+      {std::string(kPublicKeyHeaderDate), std::string(kHeaderDateExample)});
+  headers.insert({std::string(kPublicKeyHeaderCacheControl),
+                  std::string(kCacheControlExample)});
 
   uint64_t expired_time;
   auto result =
@@ -66,8 +70,9 @@ TEST(PublicKeyClientUtilsTest, ParseExpiredTimeFromHeadersSuccess) {
   // CDNs may add a 'public' response directive.
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
   headers.clear();
-  headers.insert({kPublicKeyHeaderDate, kHeaderDateExample});
-  headers.insert({kPublicKeyHeaderCacheControl,
+  headers.insert(
+      {std::string(kPublicKeyHeaderDate), std::string(kHeaderDateExample)});
+  headers.insert({std::string(kPublicKeyHeaderCacheControl),
                   absl::StrCat("public,", kCacheControlExample)});
 
   result =
@@ -76,8 +81,9 @@ TEST(PublicKeyClientUtilsTest, ParseExpiredTimeFromHeadersSuccess) {
   EXPECT_EQ(expired_time, kExpectedExpiredTimeSecs);
 
   headers.clear();
-  headers.insert({kPublicKeyHeaderDate, kHeaderDateExample});
-  headers.insert({kPublicKeyHeaderCacheControl,
+  headers.insert(
+      {std::string(kPublicKeyHeaderDate), std::string(kHeaderDateExample)});
+  headers.insert({std::string(kPublicKeyHeaderCacheControl),
                   absl::StrCat(kCacheControlExample, ",public")});
 
   result =
@@ -88,7 +94,8 @@ TEST(PublicKeyClientUtilsTest, ParseExpiredTimeFromHeadersSuccess) {
 
 TEST(PublicKeyClientUtilsTest, HeadersMissDate) {
   HttpHeaders headers;
-  headers.insert({kPublicKeyHeaderCacheControl, kCacheControlExample});
+  headers.insert({std::string(kPublicKeyHeaderCacheControl),
+                  std::string(kCacheControlExample)});
 
   uint64_t expired_time;
   auto result =
@@ -100,7 +107,8 @@ TEST(PublicKeyClientUtilsTest, HeadersMissDate) {
 
 TEST(PublicKeyClientUtilsTest, HeadersMissCacheControl) {
   HttpHeaders headers;
-  headers.insert({kPublicKeyHeaderDate, kHeaderDateExample});
+  headers.insert(
+      {std::string(kPublicKeyHeaderDate), std::string(kHeaderDateExample)});
 
   uint64_t expired_time;
   auto result =
@@ -112,8 +120,10 @@ TEST(PublicKeyClientUtilsTest, HeadersMissCacheControl) {
 
 TEST(PublicKeyClientUtilsTest, HeadersWithBadDateStr) {
   HttpHeaders headers;
-  headers.insert({kPublicKeyHeaderDate, kHeaderDateExampleBadStr});
-  headers.insert({kPublicKeyHeaderCacheControl, kCacheControlExample});
+  headers.insert({std::string(kPublicKeyHeaderDate),
+                  std::string(kHeaderDateExampleBadStr)});
+  headers.insert({std::string(kPublicKeyHeaderCacheControl),
+                  std::string(kCacheControlExample)});
 
   uint64_t expired_time;
   auto result =
@@ -125,8 +135,10 @@ TEST(PublicKeyClientUtilsTest, HeadersWithBadDateStr) {
 
 TEST(PublicKeyClientUtilsTest, HeadersWithBadCacheControlStr) {
   HttpHeaders headers;
-  headers.insert({kPublicKeyHeaderDate, kHeaderDateExample});
-  headers.insert({kPublicKeyHeaderCacheControl, kCacheControlExampleBadInt});
+  headers.insert(
+      {std::string(kPublicKeyHeaderDate), std::string(kHeaderDateExample)});
+  headers.insert({std::string(kPublicKeyHeaderCacheControl),
+                  std::string(kCacheControlExampleBadInt)});
 
   uint64_t expired_time;
   auto result =
@@ -210,5 +222,5 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoKey) {
               ResultIs(FailureExecutionResult(
                   SC_PUBLIC_KEY_CLIENT_PROVIDER_PUBLIC_KEYS_FETCH_FAILED)));
 }
-
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

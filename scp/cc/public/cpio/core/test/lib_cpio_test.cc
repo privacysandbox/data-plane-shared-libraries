@@ -42,9 +42,10 @@ using google::scp::cpio::MetricClientOptions;
 using google::scp::cpio::client_providers::GlobalCpio;
 using ::testing::NotNull;
 
-static constexpr char kRegion[] = "us-east-1";
-
 namespace google::scp::cpio::test {
+namespace {
+constexpr std::string_view kRegion = "us-east-1";
+
 TEST(LibCpioTest, NoLogTest) {
   TestCpioOptions options;
   options.log_option = LogOption::kNoLog;
@@ -127,4 +128,5 @@ TEST(LibCpioDeathTest, InitAndShutdownThenInitCpioSucceedsTest) {
 
   ASSERT_DEATH(metric_client->Init(), expected_uninit_cpio_error_message);
 }
+}  // namespace
 }  // namespace google::scp::cpio::test

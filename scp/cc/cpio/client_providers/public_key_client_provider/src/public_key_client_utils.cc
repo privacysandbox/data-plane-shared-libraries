@@ -45,13 +45,15 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_PUBLIC_KEYS_FETCH_FAILED;
 
-static constexpr char kPublicKeysLabel[] = "keys";
-static constexpr char kPublicKeyIdLabel[] = "id";
-static constexpr char kPublicKeyLabel[] = "key";
-static constexpr char kPublicKeyHeaderDate[] = "date";
-static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";
-static constexpr char kPublicKeyDateTimeFormat[] = "%a, %d %b %Y %H:%M:%S";
-static constexpr char kPublicKeyMaxAgeRegex[] = R"(max-age=(\d+))";
+namespace {
+constexpr std::string_view kPublicKeysLabel = "keys";
+constexpr std::string_view kPublicKeyIdLabel = "id";
+constexpr std::string_view kPublicKeyLabel = "key";
+constexpr std::string_view kPublicKeyHeaderDate = "date";
+constexpr std::string_view kPublicKeyHeaderCacheControl = "cache-control";
+constexpr std::string_view kPublicKeyDateTimeFormat = "%a, %d %b %Y %H:%M:%S";
+constexpr std::string_view kPublicKeyMaxAgeRegex = R"(max-age=(\d+))";
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult PublicKeyClientUtils::ParseExpiredTimeFromHeaders(
@@ -64,14 +66,14 @@ ExecutionResult PublicKeyClientUtils::ParseExpiredTimeFromHeaders(
   }
   std::tm time_date = {};
   std::istringstream stream_time(created_date->second);
-  stream_time >> std::get_time(&time_date, kPublicKeyDateTimeFormat);
+  stream_time >> std::get_time(&time_date, kPublicKeyDateTimeFormat.data());
   auto mt_time = std::mktime(&time_date);
   if (mt_time < 0) {
     return FailureExecutionResult(
         SC_PUBLIC_KEY_CLIENT_PROVIDER_EXPIRED_TIME_FETCH_FAILED);
   }
   std::smatch results;
-  std::regex max_age_capture_expression(kPublicKeyMaxAgeRegex);
+  std::regex max_age_capture_expression(std::string{kPublicKeyMaxAgeRegex});
   if (std::regex_search(cache_control->second, results,
                         max_age_capture_expression)) {
     // Use the capture group text (idx 1), not the entire text match (idx 0):

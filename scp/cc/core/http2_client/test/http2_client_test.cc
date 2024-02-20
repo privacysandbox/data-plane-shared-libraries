@@ -56,9 +56,10 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using ::testing::StrEq;
 
-static constexpr TimeDuration kHttp2ReadTimeoutInSeconds = 10;
-
 namespace google::scp::core {
+namespace {
+
+constexpr TimeDuration kHttp2ReadTimeoutInSeconds = 10;
 
 class RandomGenHandler : std::enable_shared_from_this<RandomGenHandler> {
  private:
@@ -441,4 +442,5 @@ TEST_F(HttpClientTestII, ClientFinishesContextWhenServerIsStopped) {
   }
 }
 
+}  // namespace
 }  // namespace google::scp::core

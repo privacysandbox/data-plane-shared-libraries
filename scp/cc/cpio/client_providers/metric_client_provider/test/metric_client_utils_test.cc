@@ -35,9 +35,10 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_METRIC_VALUE_NOT_SET;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::MetricClientUtils;
 
-static constexpr char kMetricNamespace[] = "namespace";
-
 namespace google::scp::cpio::client_providers::test {
+namespace {
+constexpr std::string_view kMetricNamespace = "namespace";
+
 TEST(MetricClientUtilsTest, ConvertMetricUnit) {
   EXPECT_EQ(MetricClientUtils::ConvertToMetricUnitProto(MetricUnit::kBits),
             cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_BITS);
@@ -112,4 +113,5 @@ TEST(MetricClientUtilsTest, ValidMetric) {
   EXPECT_SUCCESS(
       MetricClientUtils::ValidateRequest(request, MetricBatchingOptions()));
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

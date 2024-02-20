@@ -23,7 +23,9 @@ using google::scp::roma::proto::RpcWrapper;
 using google::scp::roma::sandbox::constants::kRequestId;
 using google::scp::roma::sandbox::constants::kRequestUuid;
 
-static constexpr int kBadFd = -1;
+namespace {
+constexpr int kBadFd = -1;
+}
 
 namespace google::scp::roma::sandbox::native_function_binding {
 NativeFunctionInvokerSapiIpc::NativeFunctionInvokerSapiIpc(int comms_fd) {

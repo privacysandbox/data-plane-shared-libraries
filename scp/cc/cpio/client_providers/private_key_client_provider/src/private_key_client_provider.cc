@@ -50,7 +50,10 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_PRIVATE_KEY_CLIENT_PROVIDER_UNMATCHED_ENDPOINTS_SPLITS;
 
-static constexpr char kPrivateKeyClientProvider[] = "PrivateKeyClientProvider";
+namespace {
+constexpr std::string_view kPrivateKeyClientProvider =
+    "PrivateKeyClientProvider";
+}
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult PrivateKeyClientProvider::Init() noexcept {

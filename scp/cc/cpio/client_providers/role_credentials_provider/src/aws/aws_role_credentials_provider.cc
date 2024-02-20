@@ -51,8 +51,10 @@ using google::scp::core::errors::
     SC_AWS_ROLE_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 
-static constexpr char kAwsRoleCredentialsProvider[] =
+namespace {
+constexpr std::string_view kAwsRoleCredentialsProvider =
     "AwsRoleCredentialsProvider";
+}
 
 namespace google::scp::cpio::client_providers {
 ClientConfiguration AwsRoleCredentialsProvider::CreateClientConfiguration(

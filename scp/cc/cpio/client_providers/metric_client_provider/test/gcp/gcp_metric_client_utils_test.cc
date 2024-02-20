@@ -53,19 +53,20 @@ using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::GcpMetricClientUtils;
 
 namespace google::scp::cpio::test {
-static constexpr char kName[] = "test_name";
-static constexpr char kValue[] = "12346.89";
-static constexpr char kBadValue[] = "ab33c6";
-static constexpr MetricUnit kUnit = MetricUnit::METRIC_UNIT_COUNT;
-static constexpr char kNamespace[] = "test_namespace";
-static constexpr char kMetricTypePrefix[] = "custom.googleapis.com";
-static constexpr char kProjectIdValue[] = "project_id_test";
-static constexpr char kInstanceIdValue[] = "instance_id_test";
-static constexpr char kInstanceZoneValue[] = "zone_test";
-static constexpr char kResourceType[] = "gce_instance";
-static constexpr char kProjectIdKey[] = "project_id";
-static constexpr char kInstanceIdKey[] = "instance_id";
-static constexpr char kInstanceZoneKey[] = "zone";
+namespace {
+constexpr std::string_view kName = "test_name";
+constexpr std::string_view kValue = "12346.89";
+constexpr std::string_view kBadValue = "ab33c6";
+constexpr MetricUnit kUnit = MetricUnit::METRIC_UNIT_COUNT;
+constexpr std::string_view kNamespace = "test_namespace";
+constexpr std::string_view kMetricTypePrefix = "custom.googleapis.com";
+constexpr std::string_view kProjectIdValue = "project_id_test";
+constexpr std::string_view kInstanceIdValue = "instance_id_test";
+constexpr std::string_view kInstanceZoneValue = "zone_test";
+constexpr std::string_view kResourceType = "gce_instance";
+constexpr std::string_view kProjectIdKey = "project_id";
+constexpr std::string_view kInstanceIdKey = "instance_id";
+constexpr std::string_view kInstanceZoneKey = "zone";
 
 class GcpMetricClientUtilsTest : public ::testing::Test {
  protected:
@@ -200,5 +201,5 @@ TEST(GcpMetricClientUtilsTestII, AddResourceToTimeSeries) {
               kInstanceZoneValue);
   }
 }
-
+}  // namespace
 }  // namespace google::scp::cpio::test

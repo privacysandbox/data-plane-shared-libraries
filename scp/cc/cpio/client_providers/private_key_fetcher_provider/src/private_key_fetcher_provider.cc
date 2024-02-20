@@ -41,8 +41,10 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::PrivateKeyFetchingRequest;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 
-static constexpr char kPrivateKeyFetcherProvider[] =
+namespace {
+constexpr std::string_view kPrivateKeyFetcherProvider =
     "PrivateKeyFetcherProvider";
+}
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult PrivateKeyFetcherProvider::Init() noexcept {

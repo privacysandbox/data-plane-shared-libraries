@@ -79,21 +79,21 @@ using testing::NiceMock;
 using testing::Return;
 using testing::UnorderedElementsAre;
 
-static constexpr char kInstanceResourceName[] =
-    R"(//compute.googleapis.com/projects/123456789/zones/us-central1-c/instances/987654321)";
-static constexpr char kQueueName[] = "queue_name";
-static constexpr char kMessageBody[] = "message_body";
-static constexpr char kMessageId[] = "message_id";
-static constexpr char kReceiptInfo[] = "receipt_info";
-static constexpr char kExpectedTopicName[] =
-    "projects/123456789/topics/queue_name";
-static constexpr char kExpectedSubscriptionName[] =
-    "projects/123456789/subscriptions/queue_name";
-static constexpr uint8_t kMaxNumberOfMessagesReceived = 1;
-static constexpr uint16_t kAckDeadlineSeconds = 60;
-static constexpr uint16_t kInvalidAckDeadlineSeconds = 1200;
-
 namespace google::scp::cpio::client_providers::gcp_queue_client::test {
+namespace {
+constexpr std::string_view kInstanceResourceName =
+    R"(//compute.googleapis.com/projects/123456789/zones/us-central1-c/instances/987654321)";
+constexpr std::string_view kQueueName = "queue_name";
+constexpr std::string_view kMessageBody = "message_body";
+constexpr std::string_view kMessageId = "message_id";
+constexpr std::string_view kReceiptInfo = "receipt_info";
+constexpr std::string_view kExpectedTopicName =
+    "projects/123456789/topics/queue_name";
+constexpr std::string_view kExpectedSubscriptionName =
+    "projects/123456789/subscriptions/queue_name";
+constexpr uint8_t kMaxNumberOfMessagesReceived = 1;
+constexpr uint16_t kAckDeadlineSeconds = 60;
+constexpr uint16_t kInvalidAckDeadlineSeconds = 1200;
 
 class MockGcpPubSubStubFactory : public GcpPubSubStubFactory {
  public:
@@ -678,5 +678,5 @@ TEST_F(GcpQueueClientProviderTest, DeleteMessageFailureWithPubSubError) {
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
-
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::gcp_queue_client::test

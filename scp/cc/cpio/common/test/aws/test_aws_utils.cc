@@ -24,10 +24,12 @@
 
 using Aws::Client::ClientConfiguration;
 
+namespace {
 /// Fixed connect timeout to create an AWS client.
-static constexpr int kConnectTimeoutMs = 3000;
+constexpr int kConnectTimeoutMs = 3000;
 /// Fixed request timeout to create an AWS client.
-static constexpr int kRequestTimeoutMs = 6000;
+constexpr int kRequestTimeoutMs = 6000;
+}  // namespace
 
 namespace google::scp::cpio::common::test {
 ClientConfiguration CreateTestClientConfiguration(

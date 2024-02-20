@@ -54,10 +54,12 @@ using google::scp::cpio::client_providers::GcpInstanceResourceNameDetails;
 using google::scp::cpio::client_providers::GcpMetricClientUtils;
 using google::scp::cpio::common::GcpUtils;
 
-static constexpr char kGcpMetricClientProvider[] = "GcpMetricClientProvider";
+namespace {
+constexpr std::string_view kGcpMetricClientProvider = "GcpMetricClientProvider";
 
 // The limit of GCP metric client time series list size is 200.
-static constexpr size_t kGcpTimeSeriesSizeLimit = 200;
+constexpr size_t kGcpTimeSeriesSizeLimit = 200;
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 

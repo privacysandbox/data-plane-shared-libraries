@@ -36,11 +36,13 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_COULD_NOT_PARSE_MEMINFO_LINE;
 
-static constexpr char kMemInfoFileName[] = "/proc/meminfo";
-static constexpr char kMemInfoLineSeparator[] = " ";
-static constexpr int kExpectedMemInfoLinePartsCount = 3;
-static constexpr int kExpectedMemInfoLineNumericValueIndex = 1;
-static constexpr char kTotalAvailableMemory[] = "MemAvailable";
+namespace {
+constexpr std::string_view kMemInfoFileName = "/proc/meminfo";
+constexpr std::string_view kMemInfoLineSeparator = " ";
+constexpr int kExpectedMemInfoLinePartsCount = 3;
+constexpr int kExpectedMemInfoLineNumericValueIndex = 1;
+constexpr std::string_view kTotalAvailableMemory = "MemAvailable";
+}  // namespace
 
 namespace google::scp::core::os::linux {
 ExecutionResultOr<uint64_t>
@@ -79,7 +81,7 @@ SystemResourceInfoProviderLinux::GetAvailableMemoryKb() noexcept {
 }
 
 std::string SystemResourceInfoProviderLinux::GetMemInfoFilePath() noexcept {
-  return kMemInfoFileName;
+  return std::string(kMemInfoFileName);
 }
 
 ExecutionResultOr<uint64_t>

@@ -43,8 +43,9 @@ using google::scp::cpio::LogOption;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
 
-static constexpr char kRegion[] = "us-east-1";
-static constexpr char kInstanceId[] = "i-1234";
+namespace {
+constexpr std::string_view kRegion = "us-east-1";
+constexpr std::string_view kInstanceId = "i-1234";
 
 std::unique_ptr<InstanceClientInterface> instance_client;
 
@@ -61,6 +62,7 @@ void GetCurrentInstanceResourceNameCallback(
                "instance resource name is: "
             << get_resource_name_response.instance_resource_name() << std::endl;
 }
+}  // namespace
 
 int main(int argc, char* argv[]) {
   TestCpioOptions cpio_options;

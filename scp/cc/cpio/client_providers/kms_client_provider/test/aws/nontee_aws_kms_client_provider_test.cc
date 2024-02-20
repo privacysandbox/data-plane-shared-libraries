@@ -73,14 +73,15 @@ using google::scp::cpio::client_providers::mock::
     MockNonteeAwsKmsClientProviderWithOverrides;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
 
-static constexpr char kAssumeRoleArn[] = "assumeRoleArn";
-static constexpr char kKeyArn[] = "keyArn";
-static constexpr char kWrongKeyArn[] = "wrongkeyArn";
-static constexpr char kCiphertext[] = "ciphertext";
-static constexpr char kPlaintext[] = "plaintext";
-static constexpr char kRegion[] = "us-east-1";
-
 namespace google::scp::cpio::client_providers::test {
+namespace {
+constexpr std::string_view kAssumeRoleArn = "assumeRoleArn";
+constexpr std::string_view kKeyArn = "keyArn";
+constexpr std::string_view kWrongKeyArn = "wrongkeyArn";
+constexpr std::string_view kCiphertext = "ciphertext";
+constexpr std::string_view kPlaintext = "plaintext";
+constexpr std::string_view kRegion = "us-east-1";
+
 class TeeAwsKmsClientProviderTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
@@ -98,7 +99,7 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
 
     // Mocks DecryptRequest.
     AwsDecryptRequest decrypt_request;
-    decrypt_request.SetKeyId(kKeyArn);
+    decrypt_request.SetKeyId(std::string{kKeyArn});
     std::string ciphertext = std::string(kCiphertext);
     std::string decoded_ciphertext;
     Base64Decode(ciphertext, decoded_ciphertext);
@@ -110,7 +111,7 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
 
     // Mocks success DecryptRequestOutcome.
     DecryptResult decrypt_result;
-    decrypt_result.SetKeyId(kKeyArn);
+    decrypt_result.SetKeyId(std::string{kKeyArn});
     std::string plaintext = std::string(kPlaintext);
     ByteBuffer plaintext_buffer(
         reinterpret_cast<const unsigned char*>(plaintext.data()),
@@ -145,7 +146,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingAssumeRoleArn) {
 
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
-  kms_decrypt_request->set_key_resource_name(kKeyArn);
+  kms_decrypt_request->set_key_resource_name(std::string{kKeyArn});
   kms_decrypt_request->set_ciphertext(kCiphertext);
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
@@ -163,7 +164,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingRegion) {
 
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
-  kms_decrypt_request->set_key_resource_name(kKeyArn);
+  kms_decrypt_request->set_key_resource_name(std::string{kKeyArn});
   kms_decrypt_request->set_ciphertext(kCiphertext);
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
@@ -182,7 +183,7 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
-  kms_decrypt_request->set_key_resource_name(kKeyArn);
+  kms_decrypt_request->set_key_resource_name(std::string{kKeyArn});
   kms_decrypt_request->set_ciphertext(kCiphertext);
   absl::Notification condition;
 
@@ -205,7 +206,7 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
-  kms_decrypt_request->set_key_resource_name(kKeyArn);
+  kms_decrypt_request->set_key_resource_name(std::string{kKeyArn});
   absl::Notification condition;
 
   AsyncContext<DecryptRequest, DecryptResponse> context(
@@ -268,4 +269,5 @@ TEST_F(TeeAwsKmsClientProviderTest, FailedDecryption) {
   EXPECT_SUCCESS(client_->Decrypt(context));
   condition.WaitForNotification();
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

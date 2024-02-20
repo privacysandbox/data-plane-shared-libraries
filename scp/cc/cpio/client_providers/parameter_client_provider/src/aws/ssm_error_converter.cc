@@ -36,8 +36,10 @@ using google::scp::core::errors::SC_AWS_REQUEST_LIMIT_REACHED;
 using google::scp::core::errors::SC_AWS_SERVICE_UNAVAILABLE;
 using google::scp::core::errors::SC_AWS_VALIDATION_FAILED;
 
+namespace {
 /// Filename for logging errors
-static constexpr char kSSMErrorConverter[] = "SSMErrorConverter";
+constexpr std::string_view kSSMErrorConverter = "SSMErrorConverter";
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 FailureExecutionResult SSMErrorConverter::ConvertSSMError(

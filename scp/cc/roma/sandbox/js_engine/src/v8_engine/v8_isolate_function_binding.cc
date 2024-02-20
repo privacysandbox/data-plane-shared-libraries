@@ -34,17 +34,16 @@ using google::scp::roma::sandbox::constants::kRequestId;
 using google::scp::roma::sandbox::constants::kRequestUuid;
 using Callback = void (*)(const v8::FunctionCallbackInfo<v8::Value>& info);
 
-static constexpr char kCouldNotRunFunctionBinding[] =
-    "ROMA: Could not run C++ function binding.";
-static constexpr char kUnexpectedDataInBindingCallback[] =
-    "ROMA: Unexpected data in global callback.";
-static constexpr char kCouldNotConvertJsFunctionInputToNative[] =
-    "ROMA: Could not convert JS function input to native C++ type.";
-static constexpr char kErrorInFunctionBindingInvocation[] =
-    "ROMA: Error while executing native function binding.";
-
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 namespace {
+constexpr char kCouldNotRunFunctionBinding[] =
+    "ROMA: Could not run C++ function binding.";
+constexpr char kUnexpectedDataInBindingCallback[] =
+    "ROMA: Unexpected data in global callback.";
+constexpr char kCouldNotConvertJsFunctionInputToNative[] =
+    "ROMA: Could not convert JS function input to native C++ type.";
+constexpr char kErrorInFunctionBindingInvocation[] =
+    "ROMA: Error while executing native function binding.";
 
 bool V8TypesToProto(const v8::FunctionCallbackInfo<v8::Value>& info,
                     FunctionBindingIoProto& proto) {

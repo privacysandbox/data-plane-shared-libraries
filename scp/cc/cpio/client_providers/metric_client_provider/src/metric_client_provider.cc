@@ -51,10 +51,12 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_ALREADY_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING;
 using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 
-static constexpr char kMetricClientProvider[] = "MetricClientProvider";
-static constexpr size_t kShutdownWaitIntervalMilliseconds = 100;
+namespace {
+constexpr std::string_view kMetricClientProvider = "MetricClientProvider";
+constexpr size_t kShutdownWaitIntervalMilliseconds = 100;
 // The metrics size to trigger a batch push.
-static constexpr size_t kMetricsBatchSize = 1000;
+constexpr size_t kMetricsBatchSize = 1000;
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 

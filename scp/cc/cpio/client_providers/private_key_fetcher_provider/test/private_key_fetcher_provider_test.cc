@@ -55,11 +55,13 @@ using google::scp::cpio::client_providers::mock::
     MockPrivateKeyFetcherProviderWithOverrides;
 using ::testing::StrEq;
 
-static constexpr char kKeyId[] = "123";
-static constexpr char kRegion[] = "region";
-static constexpr char kPrivateKeyBaseUri[] = "http://private_key/privateKeys";
-
 namespace google::scp::cpio::client_providers::test {
+namespace {
+constexpr std::string_view kKeyId = "123";
+constexpr std::string_view kRegion = "region";
+constexpr std::string_view kPrivateKeyBaseUri =
+    "http://private_key/privateKeys";
+
 class PrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   PrivateKeyFetcherProviderTest()
@@ -112,7 +114,7 @@ TEST_F(PrivateKeyFetcherProviderTest, MissingHttpClient) {
 }
 
 TEST_F(PrivateKeyFetcherProviderTest, FetchPrivateKey) {
-  MockRequest(std::string(kPrivateKeyBaseUri) + "/" + kKeyId);
+  MockRequest(absl::StrCat(kPrivateKeyBaseUri, "/", kKeyId));
   MockResponse(
       R"({
     "name": "encryptionKeys/123456",
@@ -190,7 +192,7 @@ TEST_F(PrivateKeyFetcherProviderTest, FailedToSignHttpRequest) {
 }
 
 TEST_F(PrivateKeyFetcherProviderTest, PrivateKeyNotFound) {
-  MockRequest(std::string(kPrivateKeyBaseUri) + "/" + kKeyId);
+  MockRequest(absl::StrCat(kPrivateKeyBaseUri, "/", kKeyId));
   MockResponse(
       R"({
         "name": "encryptionKeys/123456",
@@ -216,4 +218,5 @@ TEST_F(PrivateKeyFetcherProviderTest, PrivateKeyNotFound) {
               IsSuccessful());
   condition.WaitForNotification();
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

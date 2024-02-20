@@ -35,15 +35,13 @@ namespace google::scp::roma::worker {
 
 namespace {
 
-static constexpr std::string_view kWasmMemory = "memory";
-static constexpr std::string_view kWasiSnapshotPreview =
-    "wasi_snapshot_preview1";
-static constexpr std::string_view kWasiProcExitFunctionName = "proc_exit";
-static constexpr std::string_view kExportsTag = "exports";
-static constexpr std::string_view kWebAssemblyTag = "WebAssembly";
-static constexpr std::string_view kInstanceTag = "Instance";
-static constexpr std::string_view kRegisteredWasmExports =
-    "RomaRegisteredWasmExports";
+constexpr std::string_view kWasmMemory = "memory";
+constexpr std::string_view kWasiSnapshotPreview = "wasi_snapshot_preview1";
+constexpr std::string_view kWasiProcExitFunctionName = "proc_exit";
+constexpr std::string_view kExportsTag = "exports";
+constexpr std::string_view kWebAssemblyTag = "WebAssembly";
+constexpr std::string_view kInstanceTag = "Instance";
+constexpr std::string_view kRegisteredWasmExports = "RomaRegisteredWasmExports";
 
 absl::Status RunJs(v8::Isolate* isolate, std::string_view js_code) {
   v8::Local<v8::Context> context(isolate->GetCurrentContext());

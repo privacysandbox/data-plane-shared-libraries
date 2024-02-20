@@ -40,7 +40,9 @@ using google::scp::cpio::MetricClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
 
-static constexpr char kRegion[] = "us-east-1";
+namespace {
+constexpr std::string_view kRegion = "us-east-1";
+}
 
 int main(int argc, char* argv[]) {
   TestCpioOptions cpio_options;

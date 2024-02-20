@@ -53,11 +53,13 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::GetErrorMessage;
 
-static constexpr char kLibCpioProvider[] = "LibCpioProvider";
-static const size_t kThreadPoolThreadCount = 2;
-static const size_t kThreadPoolQueueSize = 100000;
-static const size_t kIOThreadPoolThreadCount = 2;
-static const size_t kIOThreadPoolQueueSize = 100000;
+namespace {
+constexpr std::string_view kLibCpioProvider = "LibCpioProvider";
+constexpr size_t kThreadPoolThreadCount = 2;
+constexpr size_t kThreadPoolQueueSize = 100000;
+constexpr size_t kIOThreadPoolThreadCount = 2;
+constexpr size_t kIOThreadPoolQueueSize = 100000;
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult LibCpioProvider::Init() noexcept {

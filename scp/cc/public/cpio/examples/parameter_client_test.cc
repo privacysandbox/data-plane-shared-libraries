@@ -38,7 +38,9 @@ using google::scp::cpio::ParameterClientFactory;
 using google::scp::cpio::ParameterClientInterface;
 using google::scp::cpio::ParameterClientOptions;
 
-static constexpr char kTestParameterName[] = "test_parameter";
+namespace {
+constexpr std::string_view kTestParameterName = "test_parameter";
+}
 
 int main(int argc, char* argv[]) {
   CpioOptions cpio_options;

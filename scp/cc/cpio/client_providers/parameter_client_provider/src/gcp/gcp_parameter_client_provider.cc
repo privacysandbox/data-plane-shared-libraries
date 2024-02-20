@@ -54,10 +54,12 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
 using google::scp::cpio::common::GcpUtils;
 
-static constexpr char kGcpParameterClientProvider[] =
+namespace {
+constexpr std::string_view kGcpParameterClientProvider =
     "GcpParameterClientProvider";
-static constexpr char kGcpSecretNameFormatString[] =
+constexpr std::string_view kGcpSecretNameFormatString =
     "projects/$0/secrets/$1/versions/latest";
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult GcpParameterClientProvider::Init() noexcept {

@@ -70,12 +70,14 @@ using google::scp::core::errors::
     SC_AWS_AUTO_SCALING_CLIENT_PROVIDER_MULTIPLE_INSTANCES_FOUND;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 
-static constexpr char kAwsAutoScalingClientProvider[] =
+namespace {
+constexpr std::string_view kAwsAutoScalingClientProvider =
     "AwsAutoScalingClientProvider";
-static constexpr char kLifecycleStateTerminatingWait[] = "Terminating:Wait";
-static constexpr char kLifecycleStateTerminatingProceed[] =
+constexpr std::string_view kLifecycleStateTerminatingWait = "Terminating:Wait";
+constexpr std::string_view kLifecycleStateTerminatingProceed =
     "Terminating:Proceed";
-static constexpr char kLifecycleActionResultContinue[] = "CONTINUE";
+constexpr std::string_view kLifecycleActionResultContinue = "CONTINUE";
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 ClientConfiguration AwsAutoScalingClientProvider::CreateClientConfiguration(
@@ -204,7 +206,7 @@ void AwsAutoScalingClientProvider::OnDescribeAutoScalingInstancesCallback(
   complete_lifecycle_action_request.SetAutoScalingGroupName(
       instance.GetAutoScalingGroupName());
   complete_lifecycle_action_request.SetLifecycleActionResult(
-      kLifecycleActionResultContinue);
+      std::string{kLifecycleActionResultContinue});
   complete_lifecycle_action_request.SetInstanceId(
       try_termination_context.request->instance_resource_id());
   complete_lifecycle_action_request.SetLifecycleHookName(

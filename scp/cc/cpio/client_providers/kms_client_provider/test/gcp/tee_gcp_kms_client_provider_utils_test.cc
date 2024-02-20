@@ -20,10 +20,10 @@
 #include <cctype>
 #include <string>
 
-static constexpr char kWipProvider[] = "wip";
-static constexpr char kServiceAccount[] = "service_account";
-
 namespace google::scp::cpio::client_providers::test {
+namespace {
+constexpr std::string_view kWipProvider = "wip";
+constexpr std::string_view kServiceAccount = "service_account";
 
 std::string removeWhitespace(std::string&& str) {
   str.erase(std::remove_if(str.begin(), str.end(),
@@ -52,4 +52,5 @@ TEST(GcpKmsClientProviderUtilsTest, CreateAttestedCredentials) {
 
   EXPECT_EQ(credentials, expectedCreds);
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

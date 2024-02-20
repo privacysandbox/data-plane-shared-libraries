@@ -59,10 +59,12 @@ using nghttp2::asio_http2::client::configure_tls_context;
 using nghttp2::asio_http2::client::response;
 using nghttp2::asio_http2::client::session;
 
-static constexpr char kContentLengthHeader[] = "content-length";
-static constexpr char kHttp2Client[] = "Http2Client";
-static constexpr char kHttpMethodGetTag[] = "GET";
-static constexpr char kHttpMethodPostTag[] = "POST";
+namespace {
+constexpr std::string_view kContentLengthHeader = "content-length";
+constexpr std::string_view kHttp2Client = "Http2Client";
+constexpr std::string_view kHttpMethodGetTag = "GET";
+constexpr std::string_view kHttpMethodPostTag = "POST";
+}  // namespace
 
 namespace google::scp::core {
 HttpConnection::HttpConnection(AsyncExecutorInterface* async_executor,
@@ -309,7 +311,7 @@ void HttpConnection::SendHttpRequest(
   }
 
   // Erase the header if it is already present.
-  headers.erase(kContentLengthHeader);
+  headers.erase(std::string{kContentLengthHeader});
   headers.insert({std::string(kContentLengthHeader),
                   {std::to_string(body.length()), false}});
 

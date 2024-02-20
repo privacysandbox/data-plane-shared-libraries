@@ -68,7 +68,8 @@ using google::scp::cpio::client_providers::AwsMetricClientUtils;
 using ::testing::StrEq;
 
 namespace google::scp::cpio::client_providers::test {
-static constexpr size_t kAwsMetricDatumSizeLimit = 1000;
+namespace {
+constexpr size_t kAwsMetricDatumSizeLimit = 1000;
 constexpr char kName[] = "test_name";
 constexpr char kValue[] = "12346";
 const MetricUnit kUnit = MetricUnit::METRIC_UNIT_COUNT;
@@ -238,5 +239,5 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidUnit) {
   EXPECT_TRUE(datum_list.empty());
   EXPECT_TRUE(parse_request_to_datum_is_called);
 }
-
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

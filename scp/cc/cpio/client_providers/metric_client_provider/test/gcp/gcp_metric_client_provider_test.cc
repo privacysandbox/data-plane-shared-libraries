@@ -64,23 +64,24 @@ using testing::ByMove;
 using testing::NiceMock;
 using testing::Return;
 
-static constexpr char kName[] = "test_name";
-static constexpr char kValue[] = "12346.89";
-static constexpr char kNamespace[] = "gcp_namespace";
-static constexpr char kDifferentNamespace[] = "different_namespace";
-static constexpr char kProjectIdValue[] = "123456789";
-static constexpr char kInstanceIdValue[] = "987654321";
-static constexpr char kInstanceZoneValue[] = "us-central1-c";
+namespace google::scp::cpio::client_providers::gcp_metric_client::test {
+namespace {
+constexpr std::string_view kName = "test_name";
+constexpr std::string_view kValue = "12346.89";
+constexpr std::string_view kNamespace = "gcp_namespace";
+constexpr std::string_view kDifferentNamespace = "different_namespace";
+constexpr std::string_view kProjectIdValue = "123456789";
+constexpr std::string_view kInstanceIdValue = "987654321";
+constexpr std::string_view kInstanceZoneValue = "us-central1-c";
 
 constexpr char kInstanceResourceName[] =
     R"(//compute.googleapis.com/projects/123456789/zones/us-central1-c/instances/987654321)";
 
-static constexpr char kResourceType[] = "gce_instance";
-static constexpr char kProjectIdKey[] = "project_id";
-static constexpr char kInstanceIdKey[] = "instance_id";
-static constexpr char kInstanceZoneKey[] = "zone";
+constexpr std::string_view kResourceType = "gce_instance";
+constexpr std::string_view kProjectIdKey = "project_id";
+constexpr std::string_view kInstanceIdKey = "instance_id";
+constexpr std::string_view kInstanceZoneKey = "zone";
 
-namespace google::scp::cpio::client_providers::gcp_metric_client::test {
 class GcpMetricClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -286,5 +287,5 @@ TEST_F(GcpMetricClientProviderTest, AsyncCreateTimeSeriesCallback) {
                                                            std::move(outcome));
   EXPECT_EQ(received_responses, 5);
 }
-
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::gcp_metric_client::test

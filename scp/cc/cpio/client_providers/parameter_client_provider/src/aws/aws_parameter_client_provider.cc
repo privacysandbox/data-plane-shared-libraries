@@ -56,9 +56,11 @@ using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::common::CreateClientConfiguration;
 
+namespace {
 /// Filename for logging errors
-static constexpr char kAwsParameterClientProvider[] =
+constexpr std::string_view kAwsParameterClientProvider =
     "AwsParameterClientProvider";
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 ClientConfiguration AwsParameterClientProvider::CreateClientConfiguration(

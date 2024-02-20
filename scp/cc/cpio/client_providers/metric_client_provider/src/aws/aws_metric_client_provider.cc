@@ -68,13 +68,15 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 
+namespace {
 // Specifies the maximum number of HTTP connections to a single server.
-static constexpr size_t kCloudwatchMaxConcurrentConnections = 50;
+constexpr size_t kCloudwatchMaxConcurrentConnections = 50;
 // The limit of AWS PutMetricDataRequest metric datum is 1000.
-static constexpr size_t kAwsMetricDatumSizeLimit = 1000;
+constexpr size_t kAwsMetricDatumSizeLimit = 1000;
 // The Aws PutMetricDataRequest payload size limit is about 1MB.
-static constexpr size_t kAwsPayloadSizeLimit = 1024 * 1024;
-static constexpr char kAwsMetricClientProvider[] = "AwsMetricClientProvider";
+constexpr size_t kAwsPayloadSizeLimit = 1024 * 1024;
+constexpr std::string_view kAwsMetricClientProvider = "AwsMetricClientProvider";
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 void AwsMetricClientProvider::CreateClientConfiguration(

@@ -56,13 +56,15 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_AWS_METRIC_CLIENT_PROVIDER_OVERSIZE_DATUM_DIMENSIONS;
 
-static constexpr int kTwoWeeksSecondsCount =
+namespace {
+constexpr int kTwoWeeksSecondsCount =
     std::chrono::duration_cast<std::chrono::seconds>(
         std::chrono::hours(24 * 14))
         .count();
-static constexpr int kTwoHoursSecondsCount =
+constexpr int kTwoHoursSecondsCount =
     std::chrono::duration_cast<std::chrono::seconds>(std::chrono::hours(2))
         .count();
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 

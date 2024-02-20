@@ -35,12 +35,13 @@ using ::testing::ExplainMatchResult;
 using ::testing::Return;
 using ::testing::StrEq;
 
-static constexpr char kKeyName[] = "test";
-static constexpr char kPlaintext[] = "plaintext";
-static constexpr char kCiphertext[] = "ciphertext";
-static constexpr char kAssociatedData[] = "data";
-
 namespace google::scp::cpio::client_providers::test {
+namespace {
+constexpr std::string_view kKeyName = "test";
+constexpr std::string_view kPlaintext = "plaintext";
+constexpr std::string_view kCiphertext = "ciphertext";
+constexpr std::string_view kAssociatedData = "data";
+
 class GcpKmsAeadTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -123,4 +124,5 @@ TEST_F(GcpKmsAeadTest, FailedToDecrypt) {
   EXPECT_EQ(actual_plain_text.status().code(),
             absl::StatusCode::kInvalidArgument);
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

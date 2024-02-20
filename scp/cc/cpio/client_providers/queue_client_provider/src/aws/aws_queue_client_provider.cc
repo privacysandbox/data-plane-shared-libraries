@@ -81,10 +81,12 @@ using google::scp::core::errors::
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 using google::scp::cpio::common::CreateClientConfiguration;
 
-static constexpr char kAwsQueueClientProvider[] = "AwsQueueClientProvider";
-static const uint8_t kMaxNumberOfMessagesReceived = 1;
-static const uint8_t kMaxWaitTimeSeconds = 0;
-static const uint16_t kMaxVisibilityTimeoutSeconds = 600;
+namespace {
+constexpr std::string_view kAwsQueueClientProvider = "AwsQueueClientProvider";
+static constexpr uint8_t kMaxNumberOfMessagesReceived = 1;
+static constexpr uint8_t kMaxWaitTimeSeconds = 0;
+static constexpr uint16_t kMaxVisibilityTimeoutSeconds = 600;
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult AwsQueueClientProvider::Init() noexcept {

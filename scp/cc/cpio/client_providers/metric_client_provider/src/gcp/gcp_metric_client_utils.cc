@@ -52,23 +52,25 @@ using google::scp::core::errors::
     SC_GCP_METRIC_CLIENT_FAILED_WITH_INVALID_TIMESTAMP;
 using google::scp::core::errors::SC_GCP_METRIC_CLIENT_INVALID_METRIC_VALUE;
 
+namespace {
 /// Prefix of the metric type for all custom metrics.
-static constexpr char kCustomMetricTypePrefix[] = "custom.googleapis.com";
+constexpr std::string_view kCustomMetricTypePrefix = "custom.googleapis.com";
 /// Prefix of project name.
-static constexpr char kProjectNamePrefix[] = "projects/";
-static constexpr char kResourceType[] = "gce_instance";
-static constexpr char kProjectIdKey[] = "project_id";
-static constexpr char kInstanceIdKey[] = "instance_id";
-static constexpr char kInstanceZoneKey[] = "zone";
+constexpr std::string_view kProjectNamePrefix = "projects/";
+constexpr std::string_view kResourceType = "gce_instance";
+constexpr std::string_view kProjectIdKey = "project_id";
+constexpr std::string_view kInstanceIdKey = "instance_id";
+constexpr std::string_view kInstanceZoneKey = "zone";
 // The limit of GCP metric labels size is 30.
-static constexpr size_t kGcpMetricLabelsSizeLimit = 30;
+constexpr size_t kGcpMetricLabelsSizeLimit = 30;
 
-static constexpr int k25HoursSecondsCount =
+constexpr int k25HoursSecondsCount =
     std::chrono::duration_cast<std::chrono::seconds>(std::chrono::hours(25))
         .count();
-static constexpr int k5MinsSecondsCount =
+constexpr int k5MinsSecondsCount =
     std::chrono::duration_cast<std::chrono::seconds>(std::chrono::minutes(5))
         .count();
+}  // namespace
 
 namespace google::scp::cpio::client_providers {
 

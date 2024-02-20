@@ -52,15 +52,17 @@ using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::ResultIs;
 using ::testing::StrEq;
 
-static constexpr char kPublicKeyHeaderDate[] = "date";
-static constexpr char kPublicKeyHeaderCacheControl[] = "cache-control";
-static constexpr char kPrivateKeyBaseUri1[] = "http://public_key/publicKeys1";
-static constexpr char kPrivateKeyBaseUri2[] = "http://public_key/publicKeys2";
-static constexpr char kHeaderDateExample[] = "Wed, 16 Nov 2022 00:02:48 GMT";
-static constexpr char kCacheControlExample[] = "max-age=254838";
-static constexpr uint64_t kExpectedExpiredTimeInSeconds = 1668811806;
-
 namespace google::scp::cpio::client_providers::test {
+namespace {
+constexpr std::string_view kPublicKeyHeaderDate = "date";
+constexpr std::string_view kPublicKeyHeaderCacheControl = "cache-control";
+constexpr std::string_view kPrivateKeyBaseUri1 =
+    "http://public_key/publicKeys1";
+constexpr std::string_view kPrivateKeyBaseUri2 =
+    "http://public_key/publicKeys2";
+constexpr std::string_view kHeaderDateExample = "Wed, 16 Nov 2022 00:02:48 GMT";
+constexpr std::string_view kCacheControlExample = "max-age=254838";
+constexpr uint64_t kExpectedExpiredTimeInSeconds = 1668811806;
 
 TEST(PublicKeyClientProviderTestI, InitFailedWithInvalidConfig) {
   MockHttpClient http_client;
@@ -104,8 +106,10 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
   HttpResponse GetValidHttpResponse() {
     HttpResponse response;
     HttpHeaders headers;
-    headers.insert({kPublicKeyHeaderDate, kHeaderDateExample});
-    headers.insert({kPublicKeyHeaderCacheControl, kCacheControlExample});
+    headers.insert(
+        {std::string(kPublicKeyHeaderDate), std::string(kHeaderDateExample)});
+    headers.insert({std::string(kPublicKeyHeaderCacheControl),
+                    std::string(kCacheControlExample)});
     response.headers = std::make_shared<HttpHeaders>(headers);
 
     std::string bytes_str = R"({
@@ -265,5 +269,5 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
   success_callback.WaitForNotification();
   perform_calls.Wait();
 }
-
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

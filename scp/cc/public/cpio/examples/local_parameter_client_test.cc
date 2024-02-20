@@ -38,8 +38,10 @@ using google::scp::cpio::ParameterClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
 
-static constexpr char kRegion[] = "us-east-1";
-static constexpr char kTestParameterName[] = "test_parameter";
+namespace {
+constexpr std::string_view kRegion = "us-east-1";
+constexpr std::string_view kTestParameterName = "test_parameter";
+}  // namespace
 
 int main(int argc, char* argv[]) {
   TestCpioOptions cpio_options;
