@@ -463,7 +463,7 @@ std::shared_ptr<Channel> GcpPubSubStubFactory::GetPubSubChannel(
   if (!channel_) {
     ChannelArguments args;
     args.SetInt(GRPC_ARG_ENABLE_RETRIES, 1);  // enable
-    channel_ = CreateCustomChannel(kPubSubEndpointUri,
+    channel_ = CreateCustomChannel(std::string(kPubSubEndpointUri),
                                    GoogleDefaultCredentials(), args);
   }
   return channel_;

@@ -25,8 +25,6 @@
 #include "scp/cc/core/utils/src/error_utils.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 
-static constexpr char kCpioClient[] = "CpioClient";
-
 namespace google::scp::cpio {
 /**
  * @brief Executes the async call.
@@ -40,6 +38,7 @@ template <typename TRequest, typename TResponse>
 void OnExecutionCallback(Callback<TResponse>& client_callback,
                          core::AsyncContext<TRequest, TResponse>& context) {
   if (!context.result.Successful()) {
+    constexpr std::string_view kCpioClient = "CpioClient";
     SCP_ERROR_CONTEXT(kCpioClient, context, context.result,
                       "Failed to execute.");
     client_callback(core::utils::ConvertToPublicExecutionResult(context.result),

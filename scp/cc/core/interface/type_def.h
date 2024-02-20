@@ -32,7 +32,7 @@ using Byte = char;
 using Token = std::string;
 
 /// The default aggregate interval in milliseconds for AggregatedMetric.
-static constexpr TimeDuration kDefaultAggregatedMetricIntervalMs = 1000;
+inline constexpr TimeDuration kDefaultAggregatedMetricIntervalMs = 1000;
 
 /// Structure that acts as a wrapper around a vector of bytes.
 /// This structure allows callers to keep track of the current used buffer via
@@ -112,9 +112,11 @@ struct Version {
 };
 
 // The http header for the client activity id
-static constexpr char kClientActivityIdHeader[] = "x-gscp-client-activity-id";
-static constexpr char kClaimedIdentityHeader[] = "x-gscp-claimed-identity";
-static constexpr const char kAuthHeader[] = "x-auth-token";
+inline constexpr std::string_view kClientActivityIdHeader =
+    "x-gscp-client-activity-id";
+inline constexpr std::string_view kClaimedIdentityHeader =
+    "x-gscp-claimed-identity";
+inline constexpr std::string_view kAuthHeader = "x-auth-token";
 
 struct LoadableObject {
   LoadableObject() : is_loaded(false), needs_loader(false) {}
@@ -125,15 +127,15 @@ struct LoadableObject {
   std::atomic<bool> needs_loader;
 };
 
-static constexpr TimeDuration kAsyncContextExpirationDurationInSeconds = 90;
+inline constexpr TimeDuration kAsyncContextExpirationDurationInSeconds = 90;
 
 // The default config value for RetryStrategyOptions
-static constexpr size_t kDefaultRetryStrategyMaxRetries = 12;
-static constexpr TimeDuration kDefaultRetryStrategyDelayInMs = 101;
+inline constexpr size_t kDefaultRetryStrategyMaxRetries = 12;
+inline constexpr TimeDuration kDefaultRetryStrategyDelayInMs = 101;
 
 // The default config value for HttpClientOptions
-static constexpr size_t kDefaultMaxConnectionsPerHost = 2;
-static constexpr TimeDuration kDefaultHttp2ReadTimeoutInSeconds = 60;
+inline constexpr size_t kDefaultMaxConnectionsPerHost = 2;
+inline constexpr TimeDuration kDefaultHttp2ReadTimeoutInSeconds = 60;
 
 }  // namespace google::scp::core
 

@@ -31,7 +31,7 @@
 
 namespace google::scp::core {
 
-static constexpr char kCommaDelimiter[] = ",";
+inline constexpr std::string_view kCommaDelimiter = ",";
 
 /*! @copydoc ConfigProviderInterface
  */

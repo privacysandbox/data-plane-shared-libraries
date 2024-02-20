@@ -66,7 +66,8 @@ enum class MetricUnit {
 };
 
 /// A default metric namespace for MetricDefinition creation.
-static constexpr char kDefaultMetricNamespace[] = "DefaultMetricNamespace";
+inline constexpr std::string_view kDefaultMetricNamespace =
+    "DefaultMetricNamespace";
 
 /// Represents the metric definition.
 struct MetricDefinition {

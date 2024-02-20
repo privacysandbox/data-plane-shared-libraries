@@ -94,7 +94,7 @@ std::string ToString(const Uuid& uuid) noexcept;
  */
 ExecutionResult FromString(std::string_view uuid_string, Uuid& uuid) noexcept;
 
-static constexpr Uuid kZeroUuid{0ULL, 0ULL};
+inline constexpr Uuid kZeroUuid{0ULL, 0ULL};
 
 }  // namespace google::scp::core::common
 

@@ -95,7 +95,8 @@ ExecutionResult GcpCloudStorageProvider::CreateClientConfig() noexcept {
   // https://googleapis.dev/cpp/google-cloud-common/2.2.1/classgoogle_1_1cloud_1_1Options.html
   client_config_ = std::make_shared<Options>();
   std::string project;
-  auto execution_result = config_provider_->Get(kGcpProjectId, project);
+  auto execution_result =
+      config_provider_->Get(std::string(kGcpProjectId), project);
   if (!execution_result.Successful()) {
     return execution_result;
   }

@@ -22,13 +22,13 @@
 namespace google::scp::core {
 // TODO: Make the following configurable.
 // The maximum thread count could be set.
-static constexpr size_t kMaxThreadCount = 10000;
+inline constexpr size_t kMaxThreadCount = 10000;
 /// The maximum queue cap could be set.
-static const size_t kMaxQueueCap = UINT_MAX;
+inline constexpr size_t kMaxQueueCap = UINT_MAX;
 /// The sleep interval for shutting down threads in miliseconds.
-static const size_t kSleepDurationMs = 10;
+inline constexpr size_t kSleepDurationMs = 10;
 /// Indicates an infinite wait time.
-static constexpr std::chrono::nanoseconds kInfiniteWaitDurationNs =
+inline constexpr std::chrono::nanoseconds kInfiniteWaitDurationNs =
     std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::hours(87600));  // 10 years
 }  // namespace google::scp::core

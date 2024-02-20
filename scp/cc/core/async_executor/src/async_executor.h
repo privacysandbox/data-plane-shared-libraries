@@ -30,8 +30,6 @@
 #include "single_thread_async_executor.h"
 #include "single_thread_priority_async_executor.h"
 
-static constexpr char kAsyncExecutor[] = "AsyncExecutor";
-
 namespace google::scp::core {
 
 /**
@@ -140,6 +138,9 @@ class AsyncExecutor : public AsyncExecutorInterface {
   /// Load balancing scheme to distribute incoming tasks on to the thread pool
   /// threads.
   TaskLoadBalancingScheme task_load_balancing_scheme_;
+
+ private:
+  static constexpr std::string_view kAsyncExecutor = "AsyncExecutor";
 };
 }  // namespace google::scp::core
 

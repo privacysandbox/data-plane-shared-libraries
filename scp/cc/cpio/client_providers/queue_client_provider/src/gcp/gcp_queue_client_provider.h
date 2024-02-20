@@ -33,7 +33,7 @@
 #include "error_codes.h"
 
 namespace google::scp::cpio::client_providers {
-static constexpr char kPubSubEndpointUri[] = "pubsub.googleapis.com";
+inline constexpr std::string_view kPubSubEndpointUri = "pubsub.googleapis.com";
 
 /// Provides GCP Pub/Sub stubs.
 class GcpPubSubStubFactory {

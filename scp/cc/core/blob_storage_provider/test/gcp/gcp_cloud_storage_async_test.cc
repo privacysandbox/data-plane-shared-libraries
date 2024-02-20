@@ -149,7 +149,7 @@ class GcpCloudStorageClientAsyncTests : public testing::Test {
         io_async_executor_(
             std::make_shared<AsyncExecutor>(kThreadCount, kQueueSize)),
         config_provider_(std::make_shared<MockConfigProvider>()) {
-    config_provider_->Set(kGcpProjectId, std::string(kProject));
+    config_provider_->Set(std::string(kGcpProjectId), std::string(kProject));
 
     async_executor_->Init();
     async_executor_->Run();

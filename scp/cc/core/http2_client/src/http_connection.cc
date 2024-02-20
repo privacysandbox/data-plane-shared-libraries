@@ -314,7 +314,7 @@ void HttpConnection::SendHttpRequest(
                   {std::to_string(body.length()), false}});
 
   // Erase the header if it is already present.
-  headers.erase(kClientActivityIdHeader);
+  headers.erase(std::string(kClientActivityIdHeader));
   headers.insert({std::string(kClientActivityIdHeader),
                   {ToString(http_context.activity_id), false}});
 

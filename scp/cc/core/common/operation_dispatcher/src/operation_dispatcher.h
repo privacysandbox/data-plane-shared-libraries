@@ -30,8 +30,6 @@
 
 namespace google::scp::core::common {
 
-static constexpr char kOperationDispatcher[] = "OperationDispatcher";
-
 /**
  * @brief Provides dispatching mechanism for the callers to automatically retry
  * on the Retry status code.
@@ -151,6 +149,9 @@ class OperationDispatcher {
   }
 
  private:
+  static constexpr std::string_view kOperationDispatcher =
+      "OperationDispatcher";
+
   template <class Context>
   void DispatchWithRetry(Context& async_context,
                          const std::function<ExecutionResult(Context&)>&

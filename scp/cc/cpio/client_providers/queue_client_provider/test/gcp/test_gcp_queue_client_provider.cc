@@ -51,7 +51,7 @@ std::shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(
       auto ssl_credentials = grpc::SslCredentials(ssl_options);
 
       channel_ = CreateCustomChannel(
-          kPubSubEndpointUri,
+          std::string(kPubSubEndpointUri),
           grpc::CompositeChannelCredentials(ssl_credentials, call_credentials),
           args);
     }

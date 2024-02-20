@@ -72,7 +72,8 @@ ExecutionResult AwsS3Provider::CreateClientConfig() noexcept {
       io_async_executor_, io_async_execution_priority_);
 
   std::string region;
-  auto execution_result = config_provider_->Get(kCloudServiceRegion, region);
+  auto execution_result =
+      config_provider_->Get(std::string(kCloudServiceRegion), region);
   if (!execution_result.Successful()) {
     return execution_result;
   }

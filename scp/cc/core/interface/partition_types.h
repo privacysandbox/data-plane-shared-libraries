@@ -27,10 +27,10 @@ using ResourceId = std::string;
 using PartitionId = common::Uuid;
 using PartitionAddressUri = std::string;
 
-static constexpr char kLocalPartitionAddressUri[] = "";
+inline constexpr std::string_view kLocalPartitionAddressUri = "";
 
 // Global Partition ID: 00000000-0000-0000-0000-000000000000
-static constexpr PartitionId kGlobalPartitionId = {0, 0};
+inline constexpr PartitionId kGlobalPartitionId = {0, 0};
 
 }  // namespace google::scp::core
 

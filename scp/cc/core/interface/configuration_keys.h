@@ -19,13 +19,14 @@
 
 namespace google::scp::core {
 // AWS/GCP cloud region name
-static constexpr char kCloudServiceRegion[] = "google_scp_core_cloud_region";
+inline constexpr std::string_view kCloudServiceRegion =
+    "google_scp_core_cloud_region";
 // GCP Project Id (Not project name)
-static constexpr char kGcpProjectId[] = "google_scp_gcp_project_id";
+inline constexpr std::string_view kGcpProjectId = "google_scp_gcp_project_id";
 // Skip a log if unable to apply during log recovery
-static constexpr char kAggregatedMetricIntervalMs[] =
+inline constexpr std::string_view kAggregatedMetricIntervalMs =
     "google_scp_aggregated_metric_interval_ms";
-static constexpr char kHTTPServerRequestRoutingEnabled[] =
+inline constexpr std::string_view kHTTPServerRequestRoutingEnabled =
     "google_scp_http_server_request_routing_enabled";
 }  // namespace google::scp::core
 
