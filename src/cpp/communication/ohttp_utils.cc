@@ -41,7 +41,7 @@ constexpr uint16_t kHkdfSha256Id = EVP_HPKE_HKDF_SHA256;
 constexpr uint16_t kAes256GcmAeadId = EVP_HPKE_AES_256_GCM;
 
 // TODO(b/269787188): Remove once KMS starts returning numeric key IDs.
-absl::StatusOr<uint8_t> ToIntKeyId(absl::string_view key_id) {
+absl::StatusOr<uint8_t> ToIntKeyId(std::string_view key_id) {
   uint32_t val;
   if (!absl::SimpleAtoi(key_id, &val) ||
       val > std::numeric_limits<uint8_t>::max()) {
@@ -54,8 +54,8 @@ absl::StatusOr<uint8_t> ToIntKeyId(absl::string_view key_id) {
 
 // Examines the encapsulated request and determines which request label (AKA
 // media type) should be used to decrypt the request.
-absl::StatusOr<absl::string_view> GetRequestLabel(
-    absl::string_view encapsulated_request) {
+absl::StatusOr<std::string_view> GetRequestLabel(
+    std::string_view encapsulated_request) {
   static_assert((kOHTTPHeaderValue & kOHTTPHeaderCompareMask) ==
                 kOHTTPHeaderValue);
 
@@ -94,7 +94,7 @@ absl::StatusOr<absl::string_view> GetRequestLabel(
 }  // namespace
 
 absl::StatusOr<EncapsulatedRequest> ParseEncapsulatedRequest(
-    absl::string_view encapsulated_request) {
+    std::string_view encapsulated_request) {
   PS_ASSIGN_OR_RETURN(const auto request_label,
                       GetRequestLabel(encapsulated_request));
 
@@ -158,7 +158,7 @@ absl::StatusOr<quiche::ObliviousHttpRequest> DecryptEncapsulatedRequest(
 absl::StatusOr<std::string> EncryptAndEncapsulateResponse(
     const std::string plaintext_data, const PrivateKey& private_key,
     quiche::ObliviousHttpRequest::Context& context,
-    absl::string_view request_label) {
+    std::string_view request_label) {
   const auto key_id = ToIntKeyId(private_key.key_id);
   if (!key_id.ok()) {
     return absl::InternalError(key_id.status().message());
@@ -179,7 +179,7 @@ absl::StatusOr<std::string> EncryptAndEncapsulateResponse(
 
   // Based off of the request label, use the corresponding response label for
   // response encryption.
-  absl::string_view response_label =
+  std::string_view response_label =
       (request_label == kBiddingAuctionOhttpRequestLabel)
           ? kBiddingAuctionOhttpResponseLabel
           : quiche::ObliviousHttpHeaderKeyConfig::kOhttpResponseLabel;

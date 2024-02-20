@@ -42,7 +42,7 @@ class LogSinkMock : public absl::LogSink {
 class TestContext : public RequestContext {
  public:
   // implement interface
-  absl::string_view ContextStr() const override { return context_str_; }
+  std::string_view ContextStr() const override { return context_str_; }
   bool is_consented() const override { return is_consented_; }
   absl::LogSink* ConsentedSink() override { return &consent_sink_; }
   bool is_debug_response() const override { return is_debug_response_; }
@@ -69,7 +69,7 @@ class LogTest : public ::testing::Test {
     return testing::internal::GetCapturedStderr();
   }
 
-  static constexpr absl::string_view kLogContent = "log_content";
+  static constexpr std::string_view kLogContent = "log_content";
   static constexpr int kMaxV = 5;
   TestContext tc;
 };

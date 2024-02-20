@@ -18,7 +18,7 @@
 
 namespace privacy_sandbox::server_common {
 
-std::string ToOhttpKeyId(absl::string_view key_id) {
+std::string ToOhttpKeyId(std::string_view key_id) {
   int32_t ohttp_key_id;
   int32_t out;
 

@@ -456,7 +456,7 @@ core::ExecutionResult V8JsEngine::CompileWasmCodeArray(
 core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     const std::shared_ptr<SnapshotCompilationContext>&
         current_compilation_context,
-    std::string_view function_name, const std::vector<absl::string_view>& input,
+    std::string_view function_name, const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>&
         metadata) noexcept {
   v8::Isolate* v8_isolate = current_compilation_context->isolate->isolate();
@@ -566,7 +566,7 @@ core::ExecutionResultOr<ExecutionResponse> V8JsEngine::ExecuteJs(
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
     std::string_view code, std::string_view function_name,
-    const std::vector<absl::string_view>& input,
+    const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   return CompileAndRunJsWithWasm(code, absl::Span<const uint8_t>(),
@@ -575,7 +575,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJs(
 
 ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
     std::string_view code, std::string_view function_name,
-    const std::vector<absl::string_view>& input,
+    const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept {
   JsEngineExecutionResponse execution_response;
@@ -691,7 +691,7 @@ ExecutionResultOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 ExecutionResultOr<JsEngineExecutionResponse>
 V8JsEngine::CompileAndRunJsWithWasm(
     std::string_view code, absl::Span<const uint8_t> wasm,
-    std::string_view function_name, const std::vector<absl::string_view>& input,
+    std::string_view function_name, const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) noexcept
     ABSL_LOCKS_EXCLUDED(console_mutex_) {

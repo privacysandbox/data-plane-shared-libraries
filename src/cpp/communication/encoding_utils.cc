@@ -29,7 +29,7 @@
 namespace privacy_sandbox::server_common {
 
 absl::StatusOr<std::string> EncodeResponsePayload(
-    CompressionType compression_type, absl::string_view compressed_data,
+    CompressionType compression_type, std::string_view compressed_data,
     int encoded_data_size) {
   int min_required_payload_size = kFramingVersionAndCompressionTypeSizeBytes +
                                   kCompressedDataSizeBytes +
@@ -64,7 +64,7 @@ absl::StatusOr<std::string> EncodeResponsePayload(
   return std::string(buffer, sizeof(buffer));
 }
 
-absl::StatusOr<DecodedRequest> DecodeRequestPayload(absl::string_view payload) {
+absl::StatusOr<DecodedRequest> DecodeRequestPayload(std::string_view payload) {
   quiche::QuicheDataReader reader(payload);
 
   uint8_t first_byte;
@@ -83,7 +83,7 @@ absl::StatusOr<DecodedRequest> DecodeRequestPayload(absl::string_view payload) {
         "Failed to parse compressed data length.");
   }
 
-  absl::string_view compressed_data;
+  std::string_view compressed_data;
   if (!reader.ReadStringPiece(&compressed_data, compressed_data_length)) {
     return absl::InvalidArgumentError("Failed to parse compressed data.");
   }

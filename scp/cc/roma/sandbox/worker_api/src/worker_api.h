@@ -33,8 +33,8 @@ namespace google::scp::roma::sandbox::worker_api {
 class WorkerApi {
  public:
   struct RunCodeRequest {
-    absl::string_view code;
-    std::vector<absl::string_view> input;
+    std::string_view code;
+    std::vector<std::string_view> input;
     absl::flat_hash_map<std::string, std::string> metadata;
     absl::Span<const uint8_t> wasm;
   };

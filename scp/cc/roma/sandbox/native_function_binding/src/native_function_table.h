@@ -46,7 +46,7 @@ class NativeFunctionTable {
    * @param binding The actual function.
    * @return absl::Status
    */
-  absl::Status Register(absl::string_view function_name, NativeBinding binding)
+  absl::Status Register(std::string_view function_name, NativeBinding binding)
       ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_) {
     absl::MutexLock lock(&native_functions_map_mutex_);
     const auto [_, was_inserted] =
@@ -67,7 +67,7 @@ class NativeFunctionTable {
    * @param function_binding_proto The function parameters.
    * @return absl::Status
    */
-  absl::Status Call(absl::string_view function_name,
+  absl::Status Call(std::string_view function_name,
                     FunctionBindingPayload<TMetadata>& function_binding_wrapper)
       ABSL_LOCKS_EXCLUDED(native_functions_map_mutex_) {
     NativeBinding func;

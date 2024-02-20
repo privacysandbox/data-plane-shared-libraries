@@ -21,7 +21,7 @@ namespace privacy_sandbox::server_common::log {
 namespace {
 
 TEST(ServerToken, DieWithShortToken) {
-  absl::string_view short_token = "123";
+  std::string_view short_token = "123";
   EXPECT_DEATH(ServerToken(short_token),
                "server token length must be at least");
 }

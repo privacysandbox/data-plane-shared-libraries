@@ -53,8 +53,8 @@ constexpr Definition<double, Privacy::kNonImpacting, Instrument::kHistogram>
     kSafeHistogramDouble("safe_double_histogram", "description",
                          histogram_boundaries);
 
-constexpr absl::string_view buyer_public_partitions[] = {"buyer_1", "buyer_2",
-                                                         "buyer_3"};
+constexpr std::string_view buyer_public_partitions[] = {"buyer_1", "buyer_2",
+                                                        "buyer_3"};
 constexpr Definition<int, Privacy::kNonImpacting,
                      Instrument::kPartitionedCounter>
     kSafePartitioned("safe_partitioned_counter", "description", "buyer_name",
@@ -268,7 +268,7 @@ class MetricRouterDpNoiseTest : public MetricRouterTest {
 TEST_F(MetricRouterDpNoiseTest, LogPartitioned) {
   for (int i = 0; i < 100; ++i) {
     // kUnsafePartitioned bounded to [0, 2]
-    for (absl::string_view buyer : buyer_public_partitions) {
+    for (std::string_view buyer : buyer_public_partitions) {
       CHECK_OK(test_instance_->LogUnSafe(kUnsafePartitioned, 111, buyer));
     }
   }
@@ -278,7 +278,7 @@ TEST_F(MetricRouterDpNoiseTest, LogPartitioned) {
   EXPECT_THAT(output,
               ContainsRegex("instrument name[ \t]*:[ \t]*kUnsafePartitioned"));
 
-  for (absl::string_view buyer : buyer_public_partitions) {
+  for (std::string_view buyer : buyer_public_partitions) {
     EXPECT_THAT(output,
                 ContainsRegex(absl::StrCat("buyer_name[ \t]*:[ \t]*", buyer)));
   }

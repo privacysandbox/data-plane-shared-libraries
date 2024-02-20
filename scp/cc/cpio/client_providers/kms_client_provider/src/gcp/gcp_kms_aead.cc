@@ -41,12 +41,12 @@ using google::cloud::kms::v1::DecryptRequest;
 
 namespace google::scp::cpio::client_providers {
 GcpKmsAead::GcpKmsAead(
-    absl::string_view key_name,
+    std::string_view key_name,
     std::shared_ptr<GcpKeyManagementServiceClientInterface> kms_client)
     : key_name_(key_name), kms_client_(kms_client) {}
 
 StatusOr<std::unique_ptr<Aead>> GcpKmsAead::New(
-    absl::string_view key_name,
+    std::string_view key_name,
     std::shared_ptr<GcpKeyManagementServiceClientInterface> kms_client) {
   if (key_name.empty()) {
     return Status(absl::StatusCode::kInvalidArgument,
@@ -60,13 +60,13 @@ StatusOr<std::unique_ptr<Aead>> GcpKmsAead::New(
 }
 
 StatusOr<std::string> GcpKmsAead::Encrypt(
-    absl::string_view plaintext, absl::string_view associated_data) const {
+    std::string_view plaintext, std::string_view associated_data) const {
   return Status(absl::StatusCode::kUnimplemented,
                 "GCP KMS encryption unimplemented");
 }
 
 StatusOr<std::string> GcpKmsAead::Decrypt(
-    absl::string_view ciphertext, absl::string_view associated_data) const {
+    std::string_view ciphertext, std::string_view associated_data) const {
   DecryptRequest req;
   req.set_name(key_name_);
   req.set_ciphertext(std::string(ciphertext));

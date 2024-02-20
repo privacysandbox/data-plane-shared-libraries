@@ -21,7 +21,7 @@ namespace privacy_sandbox::server_common::telemetry {
 namespace {
 
 template <typename T>
-inline absl::StatusOr<T> ParseText(absl::string_view text) {
+inline absl::StatusOr<T> ParseText(std::string_view text) {
   T message;
   if (!google::protobuf::TextFormat::ParseFromString(text.data(), &message)) {
     return absl::InvalidArgumentError(
@@ -32,7 +32,7 @@ inline absl::StatusOr<T> ParseText(absl::string_view text) {
 
 }  // namespace
 
-bool AbslParseFlag(absl::string_view text, TelemetryFlag* flag,
+bool AbslParseFlag(std::string_view text, TelemetryFlag* flag,
                    std::string* err) {
   absl::StatusOr<TelemetryConfig> s = ParseText<TelemetryConfig>(text);
   if (!s.ok()) {
@@ -100,7 +100,7 @@ bool BuildDependentConfig::IsDebug() const {
 }
 
 absl::StatusOr<MetricConfig> BuildDependentConfig::GetMetricConfig(
-    absl::string_view metric_name) const {
+    std::string_view metric_name) const {
   if (metric_config_.empty()) {
     return MetricConfig();
   }
@@ -126,16 +126,16 @@ absl::Status BuildDependentConfig::CheckMetricConfig(
 
 // Override the public partition of a metric.
 void BuildDependentConfig::SetPartition(
-    absl::string_view name, absl::Span<const absl::string_view> partitions) {
+    std::string_view name, absl::Span<const std::string_view> partitions) {
   auto& saved = *internal_config_[name].mutable_public_partitions();
   saved.Assign(partitions.begin(), partitions.end());
   absl::c_sort(saved);
   partition_config_view_[name] = {saved.begin(), saved.end()};
 }
 
-absl::Span<const absl::string_view> BuildDependentConfig::GetPartition(
+absl::Span<const std::string_view> BuildDependentConfig::GetPartition(
     const metrics::internal::Partitioned& definition,
-    const absl::string_view name) const {
+    const std::string_view name) const {
   auto it = partition_config_view_.find(name);
   if (it == partition_config_view_.end()) {
     return definition.public_partitions_;

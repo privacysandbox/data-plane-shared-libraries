@@ -35,7 +35,7 @@
 // is caused by malformed input or a server side error.
 namespace privacy_sandbox::server_common {
 
-inline constexpr absl::string_view kInvalidEncapsulatedRequestFormat =
+inline constexpr std::string_view kInvalidEncapsulatedRequestFormat =
     "Unrecognized encapsulated request format";
 
 // The concatenated form of the expected HPKE primitives/config.
@@ -46,16 +46,16 @@ inline constexpr uint64_t kOHTTPHeaderCompareMask = 0x00FFFFFFFFFFFF00;
 
 // Custom media types for B&A. Used as input to request decryption/response
 // encryption.
-inline constexpr absl::string_view kBiddingAuctionOhttpRequestLabel =
+inline constexpr std::string_view kBiddingAuctionOhttpRequestLabel =
     "message/auction request";
-inline constexpr absl::string_view kBiddingAuctionOhttpResponseLabel =
+inline constexpr std::string_view kBiddingAuctionOhttpResponseLabel =
     "message/auction response";
 
 struct EncapsulatedRequest {
   // The actual request to be decrypted.
-  absl::string_view request_payload;
+  std::string_view request_payload;
   // The request_label (media type) that should be used to decrypt the request.
-  absl::string_view request_label;
+  std::string_view request_label;
 };
 
 // Examines the encapsulated request to a) find the starting point of the actual
@@ -72,7 +72,7 @@ struct EncapsulatedRequest {
 // the same format as (1) but prepended with a zero byte, indicating the B&A
 // media type was used instead.
 absl::StatusOr<EncapsulatedRequest> ParseEncapsulatedRequest(
-    absl::string_view encapsulated_request);
+    std::string_view encapsulated_request);
 
 // Decrypts an OHTTP encapsulated request assuming the request follows the
 // DHKEM_X25519_HKDF_SHA256_HKDF_SHA256_AES_256_GCM format.
@@ -88,7 +88,7 @@ absl::StatusOr<quiche::ObliviousHttpRequest> DecryptEncapsulatedRequest(
 absl::StatusOr<std::string> EncryptAndEncapsulateResponse(
     std::string plaintext_data, const PrivateKey& private_key,
     quiche::ObliviousHttpRequest::Context& context,
-    absl::string_view request_label);
+    std::string_view request_label);
 
 }  // namespace privacy_sandbox::server_common
 

@@ -39,7 +39,7 @@ class GzipCompressionGroupConcatenator : public CompressionGroupConcatenator {
 // Reads compression groups built with GzipCompressionGroupConcatenator.
 class GzipCompressionBlobReader : public CompressedBlobReader {
  public:
-  explicit GzipCompressionBlobReader(absl::string_view compressed)
+  explicit GzipCompressionBlobReader(std::string_view compressed)
       : CompressedBlobReader(compressed) {}
 
   absl::StatusOr<std::string> ExtractOneCompressionGroup() override;

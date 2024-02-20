@@ -122,8 +122,7 @@ template <typename T, const absl::Span<const DefinitionName* const>& L>
 inline auto* GetContextMap(
     std::optional<telemetry::BuildDependentConfig> config,
     std::unique_ptr<MetricRouter::MeterProvider> provider,
-    absl::string_view service, absl::string_view version,
-    PrivacyBudget budget) {
+    std::string_view service, std::string_view version, PrivacyBudget budget) {
   static auto* context_map = [config, &provider, service, version,
                               budget]() mutable {
     CHECK(config != std::nullopt) << "cannot be null at initialization";

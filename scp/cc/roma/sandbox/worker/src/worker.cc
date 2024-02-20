@@ -59,7 +59,7 @@ void Worker::Stop() {
 }
 
 ExecutionResultOr<js_engine::ExecutionResponse> Worker::RunCode(
-    std::string_view code, const std::vector<absl::string_view>& input,
+    std::string_view code, const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     absl::Span<const uint8_t> wasm) {
   auto request_type_it = metadata.find(kRequestType);

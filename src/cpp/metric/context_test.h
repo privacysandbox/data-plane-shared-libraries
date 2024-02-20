@@ -61,8 +61,8 @@ inline constexpr DefinitionUnSafe kIntApproximateCounter(
 inline constexpr DefinitionUnSafe kIntApproximateCounter2(
     "kIntApproximateCounter2", "", 0, 1);
 
-inline constexpr absl::string_view pv[] = {"buyer_1", "buyer_2", "buyer_3",
-                                           "buyer_4", "buyer_5", "buyer_6"};
+inline constexpr std::string_view pv[] = {"buyer_1", "buyer_2", "buyer_3",
+                                          "buyer_4", "buyer_5", "buyer_6"};
 inline constexpr DefinitionPartition kIntExactPartitioned(
     "kIntExactPartitioned", "", "buyer_name", pv);
 inline constexpr DefinitionPartition kIntExactAnyPartitioned(
@@ -90,35 +90,35 @@ inline constexpr absl::Span<const DefinitionName* const> metric_list_span =
 class MockMetricRouter {
  public:
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionSafe&), int, absl::string_view,
+              ((const DefinitionSafe&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionUnSafe&), int, absl::string_view,
+              ((const DefinitionUnSafe&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionPartition&), int, absl::string_view,
+              ((const DefinitionPartition&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionPartitionUnsafe&), int, absl::string_view,
+              ((const DefinitionPartitionUnsafe&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionHistogram&), int, absl::string_view,
+              ((const DefinitionHistogram&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionGauge&), int, absl::string_view,
+              ((const DefinitionGauge&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(absl::Status, LogUnSafe,
-              ((const DefinitionUnSafe&), int, absl::string_view));
+              ((const DefinitionUnSafe&), int, std::string_view));
   MOCK_METHOD(absl::Status, LogUnSafe,
-              ((const DefinitionSafe&), int, absl::string_view));
+              ((const DefinitionSafe&), int, std::string_view));
   MOCK_METHOD(absl::Status, LogUnSafe,
-              ((const DefinitionPartition&), int, absl::string_view));
+              ((const DefinitionPartition&), int, std::string_view));
   MOCK_METHOD(absl::Status, LogUnSafe,
-              ((const DefinitionPartitionUnsafe&), int, absl::string_view));
+              ((const DefinitionPartitionUnsafe&), int, std::string_view));
   MOCK_METHOD(absl::Status, LogUnSafe,
-              ((const DefinitionHistogram&), int, absl::string_view));
+              ((const DefinitionHistogram&), int, std::string_view));
   MOCK_METHOD(absl::Status, LogUnSafe,
-              ((const DefinitionGauge&), int, absl::string_view));
+              ((const DefinitionGauge&), int, std::string_view));
   MOCK_METHOD(const telemetry::BuildDependentConfig&, metric_config, ());
 };
 

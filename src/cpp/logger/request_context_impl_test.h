@@ -74,7 +74,7 @@ class ConsentedLogTest : public LogTest {
     return output;
   }
 
-  void SetServerTokenForTestOnly(absl::string_view token) {
+  void SetServerTokenForTestOnly(std::string_view token) {
     test_instance_->SetServerTokenForTestOnly(token);
   }
 
@@ -82,7 +82,7 @@ class ConsentedLogTest : public LogTest {
   std::unique_ptr<ContextImpl> test_instance_;
   ConsentedDebugConfiguration matched_token_, mismatched_token_;
 
-  const absl::string_view kServerToken = "server_tok";
+  const std::string_view kServerToken = "server_tok";
 };
 
 class DebugResponseTest : public ConsentedLogTest {

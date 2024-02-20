@@ -69,7 +69,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
 
   constexpr std::string_view js_code =
       R"(function hello_js() { return "Hello World!"; })";
-  std::vector<absl::string_view> input;
+  std::vector<std::string_view> input;
   const absl::flat_hash_map<std::string_view, std::string_view> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kHandlerName, "hello_js"},
@@ -93,7 +93,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   // Load v1
   std::string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
-  std::vector<absl::string_view> input;
+  std::vector<std::string_view> input;
   absl::flat_hash_map<std::string_view, std::string_view> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
@@ -164,7 +164,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
             return instance.exports.add(a, b);
           }
         )""";
-  std::vector<absl::string_view> input;
+  std::vector<std::string_view> input;
   absl::flat_hash_map<std::string_view, std::string_view> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
@@ -241,7 +241,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 
   // Load v1
   std::string js_code = R"(function hello_js() { return "Hello Version 1!"; })";
-  std::vector<absl::string_view> input;
+  std::vector<std::string_view> input;
   absl::flat_hash_map<std::string_view, std::string_view> metadata = {
       {kRequestType, kRequestTypeJavascript},
       {kCodeVersion, "1"},
@@ -343,7 +343,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
             return instance.exports.add(a, b);
           }
         )""";
-  std::vector<absl::string_view> input{"1", "2"};
+  std::vector<std::string_view> input{"1", "2"};
   absl::flat_hash_map<std::string_view, std::string_view> metadata = {
       {kRequestType, kRequestTypeJavascriptWithWasm},
       {kHandlerName, "hello_js"},
@@ -364,7 +364,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   auto engine = std::make_unique<V8JsEngine>();
   Worker worker(std::move(engine), true /*require_preload*/);
   worker.Run();
-  std::vector<absl::string_view> input;
+  std::vector<std::string_view> input;
 
   // Load v1
   auto js_code = R"""(

@@ -124,7 +124,7 @@ class BrotliDecoder {
       }
 
       // Give the remaining data to Brotli
-      absl::string_view chunk = data_reader.PeekRemainingPayload();
+      std::string_view chunk = data_reader.PeekRemainingPayload();
       const uint8_t* next_in = reinterpret_cast<const uint8_t*>(chunk.data());
       size_t available_in = chunk.size();
       size_t available_out = 0;

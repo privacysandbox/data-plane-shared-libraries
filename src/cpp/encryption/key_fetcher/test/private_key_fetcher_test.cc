@@ -66,8 +66,8 @@ class MockPrivateKeyClient
 };
 
 google::cmrt::sdk::private_key_service::v1::PrivateKey CreateFakePrivateKey(
-    absl::string_view private_key, absl::string_view public_key,
-    absl::string_view key_id) {
+    std::string_view private_key, std::string_view public_key,
+    std::string_view key_id) {
   google::crypto::tink::HpkePrivateKey hpke_private_key;
   hpke_private_key.set_private_key(private_key);
 

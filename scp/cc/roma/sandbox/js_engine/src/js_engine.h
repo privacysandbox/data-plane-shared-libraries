@@ -97,7 +97,7 @@ class JsEngine {
    */
   virtual core::ExecutionResultOr<JsEngineExecutionResponse> CompileAndRunJs(
       std::string_view code, std::string_view function_name,
-      const std::vector<absl::string_view>& input,
+      const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const RomaJsEngineCompilationContext& context) noexcept = 0;
 
@@ -117,7 +117,7 @@ class JsEngine {
    */
   virtual core::ExecutionResultOr<JsEngineExecutionResponse> CompileAndRunWasm(
       std::string_view code, std::string_view function_name,
-      const std::vector<absl::string_view>& input,
+      const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const RomaJsEngineCompilationContext& context) noexcept = 0;
 
@@ -142,7 +142,7 @@ class JsEngine {
   CompileAndRunJsWithWasm(
       std::string_view code, absl::Span<const std::uint8_t> wasm,
       std::string_view function_name,
-      const std::vector<absl::string_view>& input,
+      const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const RomaJsEngineCompilationContext& context) noexcept = 0;
 };

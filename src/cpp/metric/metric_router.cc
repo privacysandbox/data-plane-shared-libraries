@@ -28,7 +28,7 @@ namespace privacy_sandbox::server_common::metrics {
 namespace sdk = ::opentelemetry::sdk::metrics;
 
 MetricRouter::MetricRouter(std::unique_ptr<MeterProvider> provider,
-                           absl::string_view service, absl::string_view version,
+                           std::string_view service, std::string_view version,
                            PrivacyBudget fraction,
                            telemetry::BuildDependentConfig config)
     : provider_(std::move(provider)),
@@ -42,7 +42,7 @@ MetricRouter::MetricRouter(std::unique_ptr<MeterProvider> provider,
   meter_ = provider_->GetMeter(service.data(), version.data()).get();
 }
 
-void MetricRouter::AddHistogramView(absl::string_view instrument_name,
+void MetricRouter::AddHistogramView(std::string_view instrument_name,
                                     const internal::Histogram& histogram) {
   auto aggregation_config = std::make_shared<sdk::HistogramAggregationConfig>();
   aggregation_config->boundaries_ =

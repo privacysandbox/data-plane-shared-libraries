@@ -45,7 +45,7 @@ class MetricRouter {
   using MeterProvider = opentelemetry::metrics::MeterProvider;
 
   MetricRouter(std::unique_ptr<MeterProvider> provider,
-               absl::string_view service, absl::string_view version,
+               std::string_view service, std::string_view version,
                PrivacyBudget fraction, telemetry::BuildDependentConfig config);
 
   ~MetricRouter() = default;
@@ -58,13 +58,13 @@ class MetricRouter {
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogSafe(
       const Definition<T, privacy, instrument>& definition, T value,
-      absl::string_view partition,
+      std::string_view partition,
       absl::flat_hash_map<std::string, std::string> attribute = {});
 
   // For non-partitioned metrics, `partition` be an empty string and not used.
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogUnSafe(const Definition<T, privacy, instrument>& definition,
-                         T value, absl::string_view partition);
+                         T value, std::string_view partition);
 
   const Meter& meter() const { return *meter_; }
   const DifferentiallyPrivate<MetricRouter>& dp() const { return dp_; }
@@ -88,7 +88,7 @@ class MetricRouter {
  private:
   friend class MetricRouterTest;
 
-  void AddHistogramView(absl::string_view instrument_name,
+  void AddHistogramView(std::string_view instrument_name,
                         const internal::Histogram& histogram);
 
   template <typename T>
@@ -99,7 +99,7 @@ class MetricRouter {
   auto* GetCounterInstrument(const DefinitionName& definition, T value);
 
   template <typename T>
-  T* GetInstrument(absl::string_view metric_name,
+  T* GetInstrument(std::string_view metric_name,
                    absl::AnyInvocable<std::unique_ptr<T>() &&> create_new);
 
   absl::Mutex mutex_;
@@ -170,7 +170,7 @@ auto* MetricRouter::GetCounterInstrument(const DefinitionName& definition,
 
 template <typename T>
 T* MetricRouter::GetInstrument(
-    absl::string_view metric_name,
+    std::string_view metric_name,
     absl::AnyInvocable<std::unique_ptr<T>() &&> create_new)
     ABSL_LOCKS_EXCLUDED(mutex_) {
   absl::MutexLock mutex_lock(&mutex_);
@@ -184,7 +184,7 @@ T* MetricRouter::GetInstrument(
 template <typename T, Privacy privacy, Instrument instrument>
 absl::Status MetricRouter::LogSafe(
     const Definition<T, privacy, instrument>& definition, T value,
-    absl::string_view partition,
+    std::string_view partition,
     absl::flat_hash_map<std::string, std::string> attribute) {
   if constexpr (instrument == Instrument::kHistogram) {
     GetHistogramInstrument(definition, value, definition)
@@ -206,9 +206,9 @@ absl::Status MetricRouter::LogSafe(
 template <typename T, Privacy privacy, Instrument instrument>
 absl::Status MetricRouter::LogUnSafe(
     const Definition<T, privacy, instrument>& definition, T value,
-    absl::string_view partition) {
+    std::string_view partition) {
   static_assert(privacy == Privacy::kImpacting);
-  absl::string_view metric_name = definition.name_;
+  std::string_view metric_name = definition.name_;
   if constexpr (instrument != Instrument::kUpDownCounter &&
                 instrument != Instrument::kPartitionedCounter &&
                 instrument != Instrument::kHistogram) {

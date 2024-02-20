@@ -47,7 +47,7 @@ class FakeBaServer {
   FakeBaServer& operator=(const FakeBaServer&) = delete;
 
   // Synchronously loads code.
-  void LoadSync(absl::string_view version, absl::string_view js) const;
+  void LoadSync(std::string_view version, std::string_view js) const;
 
   // Unlike the B&A codebase, this call blocks until all of the execution is
   // finished.

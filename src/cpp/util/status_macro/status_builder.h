@@ -246,7 +246,7 @@ class [[nodiscard]] StatusBuilder {
   //     // ...
   //   };
   //
-  //   void Read(absl::string_view name, util::Task* task) {
+  //   void Read(std::string_view name, util::Task* task) {
   //     int64 id;
   //     PS_RETURN_IF_ERROR(GetIdForName(name, &id)).With(TaskReturn(task));
   //     PS_RETURN_IF_ERROR(ReadForId(id)).With(TaskReturn(task));
@@ -290,7 +290,7 @@ class [[nodiscard]] StatusBuilder {
   };
   // Creates a new status based on an old one by joining the message from the
   // original to an additional message.
-  absl::Status JoinMessageToStatus(absl::Status s, absl::string_view msg,
+  absl::Status JoinMessageToStatus(absl::Status s, std::string_view msg,
                                    MessageJoinStyle style);
   // Creates a Status from this builder and logs it if the builder has been
   // configured to log itself.

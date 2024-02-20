@@ -183,7 +183,7 @@ TEST_F(V8JsEngineTest, CanHandleCompilationFailures) {
   engine.Run();
 
   constexpr std::string_view invalid_js = "function hello_js(input1, input2) {";
-  const std::vector<absl::string_view> input = {
+  const std::vector<std::string_view> input = {
       R"("vec input 1")",
       R"("vec input 2")",
   };
@@ -206,7 +206,7 @@ TEST_F(V8JsEngineTest, CanRunCodeRequestWithJsonInput) {
           return (a["value"] + b["value"]);
         }
       )";
-  std::vector<absl::string_view> input = {
+  std::vector<std::string_view> input = {
       R"({"value":1})",
       R"({"value":2})",
   };
@@ -229,7 +229,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputIsBadJsonInput) {
           return (a["value"] + b["value"]);
         }
       )";
-  std::vector<absl::string_view> input = {
+  std::vector<std::string_view> input = {
       R"(value":1})",
       R"({"value":2})",
   };
@@ -252,7 +252,7 @@ TEST_F(V8JsEngineTest, ShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
           return "Hello World!" + " " + input1 + " " + input2
         }
       )";
-  std::vector<absl::string_view> input = {
+  std::vector<std::string_view> input = {
       R"("vec input 1")",
       R"("vec input 2")",
   };
@@ -278,7 +278,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputCannotBeParsed) {
         }
       )";
   // Bad input
-  std::vector<absl::string_view> input = {
+  std::vector<std::string_view> input = {
       R"(vec input 1")",
       R"("vec input 2")",
   };
@@ -302,7 +302,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfHandlerIsNotFound) {
           return "Hello World!" + " " + input1 + " " + input2
         }
       )";
-  std::vector<absl::string_view> input = {
+  std::vector<std::string_view> input = {
       R"("vec input 1")",
       R"("vec input 2")",
   };
@@ -323,7 +323,7 @@ TEST_F(V8JsEngineTest, CanRunWasmCode) {
       "string_in_string_out.wasm");
   const auto wasm_code = std::string(
       reinterpret_cast<const char*>(wasm_bin.data()), wasm_bin.size());
-  std::vector<absl::string_view> input = {R"("Some input string")"};
+  std::vector<std::string_view> input = {R"("Some input string")"};
   const auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
 
@@ -343,7 +343,7 @@ TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
       "string_in_string_out.wasm");
   const auto wasm_code = std::string(
       reinterpret_cast<const char*>(wasm_bin.data()), wasm_bin.size());
-  std::vector<absl::string_view> input = {R"("Some input string")"};
+  std::vector<std::string_view> input = {R"("Some input string")"};
   // Empty handler
   const auto response_or =
       engine.CompileAndRunWasm(wasm_code, "", input, {} /*metadata*/);
@@ -364,7 +364,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfInputCannotBeParsed) {
   const auto wasm_code = std::string(
       reinterpret_cast<const char*>(wasm_bin.data()), wasm_bin.size());
   // Bad input
-  std::vector<absl::string_view> input = {R"("Some input string)"};
+  std::vector<std::string_view> input = {R"("Some input string)"};
   const auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
 
@@ -385,7 +385,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfBadWasm) {
   const auto wasm_code =
       std::string(reinterpret_cast<const char*>(wasm_bin), sizeof(wasm_bin));
   // Bad input
-  std::vector<absl::string_view> input = {R"("Some input string")"};
+  std::vector<std::string_view> input = {R"("Some input string")"};
   const auto response_or =
       engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
 
@@ -403,7 +403,7 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithDefaultTimeoutValue) {
       return 0;
       }
   )""";
-  std::vector<absl::string_view> input;
+  std::vector<std::string_view> input;
   absl::flat_hash_map<std::string_view, std::string_view> metadata;
 
   const auto response_or =
@@ -433,7 +433,7 @@ TEST_F(V8JsEngineTest, CanTimeoutExecutionWithCustomTimeoutTag) {
         return 0;
       }
   )""";
-  std::vector<absl::string_view> input;
+  std::vector<std::string_view> input;
 
   {
     absl::flat_hash_map<std::string_view, std::string_view> metadata;
@@ -485,7 +485,7 @@ TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
   }
 
   {
-    std::vector<absl::string_view> input = {"1", "2"};
+    std::vector<std::string_view> input = {"1", "2"};
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, {});
     ASSERT_SUCCESS(response_or.result());
@@ -494,7 +494,7 @@ TEST_F(V8JsEngineTest, JsMixedGlobalWasmCompileRunExecute) {
   }
 
   {
-    std::vector<absl::string_view> input = {"1", "6"};
+    std::vector<std::string_view> input = {"1", "6"};
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, {});
     ASSERT_SUCCESS(response_or.result());
@@ -529,7 +529,7 @@ TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
   }
 
   {
-    std::vector<absl::string_view> input = {"1", "2"};
+    std::vector<std::string_view> input = {"1", "2"};
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, {});
     ASSERT_SUCCESS(response_or.result());
@@ -538,7 +538,7 @@ TEST_F(V8JsEngineTest, JsMixedLocalWasmCompileRunExecute) {
   }
 
   {
-    std::vector<absl::string_view> input = {"1", "6"};
+    std::vector<std::string_view> input = {"1", "6"};
     const auto response_or =
         engine.CompileAndRunJs(js_code, "hello_js", input, {});
     ASSERT_SUCCESS(response_or.result());
@@ -576,7 +576,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
     ASSERT_SUCCESS(response_or.result());
   }
   {
-    std::vector<absl::string_view> input = {"1", "2"};
+    std::vector<std::string_view> input = {"1", "2"};
     const auto response_or =
         engine.CompileAndRunJsWithWasm(js_code, wasm, "hello_js", input,
                                        {
@@ -587,7 +587,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecute) {
     EXPECT_THAT(response_string, StrEq("3"));
   }
   {
-    std::vector<absl::string_view> input = {"1", "6"};
+    std::vector<std::string_view> input = {"1", "6"};
     const auto response_or =
         engine.CompileAndRunJsWithWasm(js_code, wasm, "hello_js", input,
                                        {
@@ -630,7 +630,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteFailWithInvalidWasm) {
   }
 
   {
-    std::vector<absl::string_view> input = {"1", "2"};
+    std::vector<std::string_view> input = {"1", "2"};
     const auto response_or =
         engine.CompileAndRunJsWithWasm(js_code, wasm, "hello_js", input,
                                        {
@@ -676,7 +676,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
   }
 
   {
-    const std::vector<absl::string_view> input = {"1"};
+    const std::vector<std::string_view> input = {"1"};
     const auto response_or =
         engine.CompileAndRunJsWithWasm(js_code, wasm, "test_wasi", input,
                                        {
@@ -689,7 +689,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
     EXPECT_THAT(response_string, StrEq("0"));
   }
   {
-    const std::vector<absl::string_view> input = {"6"};
+    const std::vector<std::string_view> input = {"6"};
     const auto response_or =
         engine.CompileAndRunJsWithWasm(js_code, wasm, "test_wasi", input,
                                        {

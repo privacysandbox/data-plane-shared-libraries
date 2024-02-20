@@ -51,9 +51,9 @@ using ::google::scp::cpio::PublicKeyClientOptions;
 using ::google::scp::cpio::PublicPrivateKeyPairId;
 using ::google::scp::cpio::Timestamp;
 
-static constexpr absl::string_view kKeyFetchFailMessage =
+static constexpr std::string_view kKeyFetchFailMessage =
     "ListPublicKeys call failed (status_code: %s)";
-static constexpr absl::string_view kKeyFetchSuccessMessage =
+static constexpr std::string_view kKeyFetchSuccessMessage =
     "Successfully fetched latest public keys: (key IDs: [%s], expiration time: "
     "%s)";
 

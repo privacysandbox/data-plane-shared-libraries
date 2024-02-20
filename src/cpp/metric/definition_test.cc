@@ -23,7 +23,7 @@
 namespace privacy_sandbox::server_common::metrics {
 namespace {
 constexpr double hb[] = {1, 2};
-constexpr absl::string_view pv[] = {"buyer_1", "buyer_2"};
+constexpr std::string_view pv[] = {"buyer_1", "buyer_2"};
 constexpr Definition<int, Privacy::kNonImpacting, Instrument::kUpDownCounter>
     c2(/*name*/ "c2", /*description*/ "c21");
 constexpr Definition<int, Privacy::kImpacting, Instrument::kUpDownCounter> c3(

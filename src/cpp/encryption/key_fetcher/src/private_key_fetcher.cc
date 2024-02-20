@@ -55,7 +55,7 @@ using ::google::scp::cpio::Region;
 namespace privacy_sandbox::server_common {
 namespace {
 
-static constexpr absl::string_view kKeyFetchFailMessage =
+static constexpr std::string_view kKeyFetchFailMessage =
     "GetEncryptedPrivateKey call failed (key IDs: %s, status_code: %s)";
 
 absl::Status HandleFailure(

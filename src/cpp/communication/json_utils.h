@@ -30,7 +30,7 @@ namespace privacy_sandbox::server_common {
 // InvalidArgumentError will be returned if the JSON is malformed or cannot be
 // converted to the specified proto, implying the client sent bad request.
 template <typename ProtoMessage>
-absl::StatusOr<ProtoMessage> JsonToProto(absl::string_view json) {
+absl::StatusOr<ProtoMessage> JsonToProto(std::string_view json) {
   static_assert(std::is_base_of<google::protobuf::Message, ProtoMessage>::value,
                 "JsonToProto only decodes to protobuf messages.");
 

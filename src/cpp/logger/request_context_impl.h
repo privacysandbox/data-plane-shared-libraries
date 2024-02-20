@@ -35,8 +35,8 @@
 
 namespace privacy_sandbox::server_common::log {
 
-inline absl::string_view ServerToken(
-    std::optional<absl::string_view> token = std::nullopt) {
+inline std::string_view ServerToken(
+    std::optional<std::string_view> token = std::nullopt) {
   static std::string* server_token = [token]() {
     if (token == std::nullopt || token->empty()) {
       fprintf(stderr,
@@ -70,7 +70,7 @@ class ContextImpl : public RequestContext {
   }
   virtual ~ContextImpl() = default;
 
-  absl::string_view ContextStr() const override { return context_; }
+  std::string_view ContextStr() const override { return context_; }
 
   bool is_consented() const override { return consented_sink.is_consented(); }
 
@@ -95,7 +95,7 @@ class ContextImpl : public RequestContext {
 
   class ConsentedSinkImpl : public absl::LogSink {
    public:
-    explicit ConsentedSinkImpl(absl::string_view server_token)
+    explicit ConsentedSinkImpl(std::string_view server_token)
         : server_token_(server_token) {}
 
     void Send(const absl::LogEntry& entry) override {
@@ -111,7 +111,7 @@ class ContextImpl : public RequestContext {
     // Debug token given by a consented client request.
     std::string client_debug_token_;
     // Debug token owned by the server.
-    absl::string_view server_token_;
+    std::string_view server_token_;
   };
 
   class DebugResponseSinkImpl : public absl::LogSink {
@@ -131,7 +131,7 @@ class ContextImpl : public RequestContext {
     bool should_log_ = false;
   };
 
-  void SetServerTokenForTestOnly(absl::string_view token) {
+  void SetServerTokenForTestOnly(std::string_view token) {
     consented_sink.server_token_ = token;
   }
 

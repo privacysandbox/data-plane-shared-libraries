@@ -37,14 +37,14 @@ class TestMetricRouter {
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogSafe(T value,
                        const Definition<T, privacy, instrument>& definition,
-                       absl::string_view partition) {
+                       std::string_view partition) {
     return absl::OkStatus();
   }
 
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogUnSafe(T value,
                          const Definition<T, privacy, instrument>& definition,
-                         absl::string_view partition) {
+                         std::string_view partition) {
     return absl::OkStatus();
   }
 
@@ -73,7 +73,7 @@ TEST_F(ContextMapTest, GetContext) {
   EXPECT_FALSE(context_map.Get(&foo).is_decrypted());
 }
 
-constexpr absl::string_view pv[] = {"buyer_2", "buyer_1"};
+constexpr std::string_view pv[] = {"buyer_2", "buyer_1"};
 constexpr Definition<int, Privacy::kNonImpacting,
                      Instrument::kPartitionedCounter>
     kIntExactPartitioned("kPartitioned", "description", "buyer_name", pv);

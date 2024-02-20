@@ -70,7 +70,7 @@ class V8JsEngine : public JsEngine {
 
   core::ExecutionResultOr<js_engine::JsEngineExecutionResponse> CompileAndRunJs(
       std::string_view code, std::string_view function_name,
-      const std::vector<absl::string_view>& input,
+      const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
           RomaJsEngineCompilationContext()) noexcept override;
@@ -79,7 +79,7 @@ class V8JsEngine : public JsEngine {
   CompileAndRunJsWithWasm(
       std::string_view code, absl::Span<const std::uint8_t> wasm,
       std::string_view function_name,
-      const std::vector<absl::string_view>& input,
+      const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
           RomaJsEngineCompilationContext()) noexcept override
@@ -88,7 +88,7 @@ class V8JsEngine : public JsEngine {
   core::ExecutionResultOr<js_engine::JsEngineExecutionResponse>
   CompileAndRunWasm(
       std::string_view code, std::string_view function_name,
-      const std::vector<absl::string_view>& input,
+      const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
           RomaJsEngineCompilationContext()) noexcept override;
@@ -188,7 +188,7 @@ class V8JsEngine : public JsEngine {
       const std::shared_ptr<SnapshotCompilationContext>&
           current_compilation_context,
       std::string_view function_name,
-      const std::vector<absl::string_view>& input,
+      const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>&
           metadata) noexcept;
 

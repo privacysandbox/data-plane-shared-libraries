@@ -53,7 +53,7 @@ struct DecodedRequest {
 // The input of this method should be the compressed data + the algo used, and
 // The output of this method should be used as the input for HPKE encryption.
 absl::StatusOr<std::string> EncodeResponsePayload(
-    CompressionType compression_type, absl::string_view compressed_data,
+    CompressionType compression_type, std::string_view compressed_data,
     int encoded_data_size);
 
 // Parses an encoded request payload and returns the compressed payload.
@@ -64,7 +64,7 @@ absl::StatusOr<std::string> EncodeResponsePayload(
 //
 // The input to this method should be the output of HPKE decryption, and the
 // output of this method should be the input to decompression.
-absl::StatusOr<DecodedRequest> DecodeRequestPayload(absl::string_view payload);
+absl::StatusOr<DecodedRequest> DecodeRequestPayload(std::string_view payload);
 
 }  // namespace privacy_sandbox::server_common
 

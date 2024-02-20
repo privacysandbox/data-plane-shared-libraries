@@ -33,7 +33,7 @@ struct TelemetryFlag {
   TelemetryConfig server_config;
 };
 
-bool AbslParseFlag(absl::string_view text, TelemetryFlag* flag,
+bool AbslParseFlag(std::string_view text, TelemetryFlag* flag,
                    std::string* err);
 
 std::string AbslUnparseFlag(const TelemetryFlag&);
@@ -81,33 +81,33 @@ class BuildDependentConfig {
   // MetricConfig for `metric_name`, otherwise return error; if server_config_
   // has empty MetricConfig list, always return default MetricConfig.
   absl::StatusOr<MetricConfig> GetMetricConfig(
-      absl::string_view metric_name) const;
+      std::string_view metric_name) const;
 
   // return error if metric is not configured right.
   absl::Status CheckMetricConfig(
       absl::Span<const metrics::DefinitionName* const> server_metrics) const;
 
   // Override the public partition of a metric.
-  void SetPartition(absl::string_view name,
-                    absl::Span<const absl::string_view> partitions);
+  void SetPartition(std::string_view name,
+                    absl::Span<const std::string_view> partitions);
 
   // Return the public partition of a metric.
   template <typename MetricT>
-  absl::Span<const absl::string_view> GetPartition(
+  absl::Span<const std::string_view> GetPartition(
       const MetricT& definition) const {
     return GetPartition(definition, definition.name_);
   }
 
   // Return the public partition of a metric.
-  absl::Span<const absl::string_view> GetPartition(
+  absl::Span<const std::string_view> GetPartition(
       const metrics::internal::Partitioned& definition,
-      const absl::string_view name) const;
+      const std::string_view name) const;
 
  private:
   TelemetryConfig server_config_;
   absl::flat_hash_map<std::string, MetricConfig> metric_config_;
   absl::flat_hash_map<std::string, MetricConfig> internal_config_;
-  absl::flat_hash_map<std::string, std::vector<absl::string_view>>
+  absl::flat_hash_map<std::string, std::vector<std::string_view>>
       partition_config_view_;
 };
 

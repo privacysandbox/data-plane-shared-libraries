@@ -26,7 +26,7 @@ namespace privacy_sandbox::server_common {
 // Convert KMS key IDs (hex string) to OHTTP key ID format by reading the first
 // two characters of the string (because two hex characters' value range from 0
 // to 256).
-std::string ToOhttpKeyId(absl::string_view key_id);
+std::string ToOhttpKeyId(std::string_view key_id);
 
 }  // namespace privacy_sandbox::server_common
 

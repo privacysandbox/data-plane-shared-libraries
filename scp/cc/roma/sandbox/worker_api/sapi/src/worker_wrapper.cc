@@ -161,7 +161,7 @@ StatusCode RunCode(worker_api::WorkerParamsProto* params) {
   const auto& code = params->code();
 
   // WorkerParamsProto one of for `input_strings` or `input_bytes` or neither.
-  std::vector<absl::string_view> input;
+  std::vector<std::string_view> input;
   auto input_type = params->metadata().find(
       google::scp::roma::sandbox::constants::kInputType);
   if (input_type != params->metadata().end() &&

@@ -98,7 +98,7 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
 
     for (const auto& dir_entry :
          std::filesystem::recursive_directory_iterator(directory_path)) {
-      absl::string_view blob_name(dir_entry.path().c_str());
+      std::string_view blob_name(dir_entry.path().c_str());
       absl::ConsumePrefix(&blob_name,
                           *list_blobs_context.request->bucket_name + "/");
       if (blob_name_prefix && !blob_name_prefix->empty() &&

@@ -44,7 +44,7 @@ inline bool PS_VLOG_IS_ON(int verbose_level,
 class RequestContext {
  public:
   // `ContextStr()` will be added to the front of log message.
-  virtual absl::string_view ContextStr() const = 0;
+  virtual std::string_view ContextStr() const = 0;
   // if `is_consented()`, `ConsentedSink()` will log
   virtual bool is_consented() const = 0;
   virtual absl::LogSink* ConsentedSink() = 0;
@@ -55,7 +55,7 @@ class RequestContext {
 
 class NoOpContext : public RequestContext {
  public:
-  absl::string_view ContextStr() const override { return ""; }
+  std::string_view ContextStr() const override { return ""; }
   bool is_consented() const override { return false; }
   absl::LogSink* ConsentedSink() override { return nullptr; }
   bool is_debug_response() const override { return false; }

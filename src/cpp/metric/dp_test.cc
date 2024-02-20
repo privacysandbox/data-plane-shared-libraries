@@ -59,7 +59,7 @@ using DefinitionHistogram =
 constexpr DefinitionUnSafe kIntUnSafeCounter("kIntUnSafeCounter", "", 1, 2);
 constexpr DefinitionUnSafe kUnitCounter("kUnitCounter", "", 0, 1);
 
-constexpr absl::string_view pv[] = {"buyer_1", "buyer_2", "buyer_no_data"};
+constexpr std::string_view pv[] = {"buyer_1", "buyer_2", "buyer_no_data"};
 constexpr DefinitionPartition kUnitPartitionCounter(
     /*name*/ "kUnitPartitionCounter", "", /*partition_type*/ "buyer_name",
     /*max_partitions_contributed*/ 2,
@@ -84,13 +84,13 @@ constexpr DefinitionHistogram kHistogramBounded("kHistogramBounded", "",
 class MockMetricRouter {
  public:
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionUnSafe&), int, absl::string_view,
+              ((const DefinitionUnSafe&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionPartition&), int, absl::string_view,
+              ((const DefinitionPartition&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionHistogram&), int, absl::string_view,
+              ((const DefinitionHistogram&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(const telemetry::BuildDependentConfig&, metric_config, ());
 };

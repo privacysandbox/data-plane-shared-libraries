@@ -37,7 +37,7 @@ using crypto::tink::util::StatusOr;
 
 // The implementation in this file are copied from Tink::AwsKmsAead
 
-std::string HexEncode(absl::string_view bytes) {
+std::string HexEncode(std::string_view bytes) {
   std::string hexchars = "0123456789abcdef";
   std::string res(bytes.size() * 2, static_cast<char>(255));
   for (size_t i = 0; i < bytes.size(); ++i) {
@@ -54,14 +54,13 @@ std::string AwsErrorToString(Aws::Client::AWSError<Aws::KMS::KMSErrors> err) {
 }
 
 namespace google::scp::cpio::client_providers {
-AwsKmsAead::AwsKmsAead(absl::string_view key_arn,
+AwsKmsAead::AwsKmsAead(std::string_view key_arn,
                        std::shared_ptr<Aws::KMS::KMSClient> aws_client)
     : key_arn_(key_arn), aws_client_(aws_client) {}
 
 // static
 StatusOr<std::unique_ptr<Aead>> AwsKmsAead::New(
-    absl::string_view key_arn,
-    std::shared_ptr<Aws::KMS::KMSClient> aws_client) {
+    std::string_view key_arn, std::shared_ptr<Aws::KMS::KMSClient> aws_client) {
   if (key_arn.empty()) {
     return Status(absl::StatusCode::kInvalidArgument,
                   "Key ARN cannot be empty.");
@@ -75,7 +74,7 @@ StatusOr<std::unique_ptr<Aead>> AwsKmsAead::New(
 }
 
 StatusOr<std::string> AwsKmsAead::Encrypt(
-    absl::string_view plaintext, absl::string_view associated_data) const {
+    std::string_view plaintext, std::string_view associated_data) const {
   Aws::KMS::Model::EncryptRequest req;
   req.SetKeyId(key_arn_.c_str());
   Aws::Utils::ByteBuffer plaintext_buffer(
@@ -101,7 +100,7 @@ StatusOr<std::string> AwsKmsAead::Encrypt(
 }
 
 StatusOr<std::string> AwsKmsAead::Decrypt(
-    absl::string_view ciphertext, absl::string_view associated_data) const {
+    std::string_view ciphertext, std::string_view associated_data) const {
   Aws::KMS::Model::DecryptRequest req;
   req.SetKeyId(key_arn_.c_str());
   Aws::Utils::ByteBuffer ciphertext_buffer(

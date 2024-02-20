@@ -59,11 +59,11 @@ thread-safe metric_router implementing following 2 templated methods:
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogSafe(const Definition<T, privacy, instrument>& definition,
                        T value,
-                       absl::string_view partition);
+                       std::string_view partition);
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogUnSafe(const Definition<T, privacy, instrument>& definition,
                          T value,
-                         absl::string_view partition);
+                         std::string_view partition);
 */
 template <const absl::Span<const DefinitionName* const>& L, typename U,
           bool safe_metric_only = false>
@@ -91,13 +91,13 @@ class Context {
     }
   }
 
-  void SetCustomState(absl::string_view key, absl::string_view value)
+  void SetCustomState(std::string_view key, std::string_view value)
       ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
     request_state_.custom[key] = value;
   }
 
-  absl::StatusOr<absl::string_view> CustomState(absl::string_view key)
+  absl::StatusOr<std::string_view> CustomState(std::string_view key)
       ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
     auto iter = request_state_.custom.find(key);
@@ -129,7 +129,7 @@ class Context {
     return request_state_.is_consented;
   }
 
-  absl::string_view GetGenId() ABSL_LOCKS_EXCLUDED(mutex_) {
+  std::string_view GetGenId() ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
     return request_state_.generation_id;
   }
@@ -221,7 +221,7 @@ class Context {
   // Metrics must be Privacy::kImpacting.
   template <const auto& definition, typename T>
   absl::Status AccumulateMetric(
-      T value, absl::string_view partition = "",
+      T value, std::string_view partition = "",
       std::enable_if_t<std::is_arithmetic_v<T>>* = nullptr) {
     CheckDefinition<definition, T>();
     // TODO(b/291336238): Uncomment this static check when marking initiated
@@ -329,7 +329,7 @@ class Context {
 
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogSafe(const Definition<T, privacy, instrument>& definition,
-                       T value, absl::string_view partition) {
+                       T value, std::string_view partition) {
     return metric_router_->LogSafe(
         definition, value, partition,
         {
@@ -341,7 +341,7 @@ class Context {
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogMetricInternal(
       T value, const Definition<T, privacy, instrument>& definition,
-      absl::string_view partition) {
+      std::string_view partition) {
     PS_ASSIGN_OR_RETURN(const bool log_safe, ShouldLogSafe<privacy>());
     if (log_safe) {
       PS_RETURN_IF_ERROR(LogSafe(definition, value, partition));
@@ -449,10 +449,10 @@ class Context {
   template <typename T>
   std::vector<std::pair<std::string, T>> BoundPartitionsContributed(
       const absl::flat_hash_map<std::string, T>& value,
-      const internal::Partitioned& partitioned, absl::string_view name,
+      const internal::Partitioned& partitioned, std::string_view name,
       bool is_privacy_impacting) {
     std::vector<std::pair<std::string, T>> ret;
-    if (absl::Span<const absl::string_view> public_partitions =
+    if (absl::Span<const std::string_view> public_partitions =
             metric_router_->metric_config().GetPartition(partitioned, name);
         !public_partitions.empty()) {
       for (auto& [partition, numeric] : value) {

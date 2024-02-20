@@ -42,7 +42,7 @@ StatusBuilder::Rep::Rep(const Rep& r)
       should_log_stack_trace(r.should_log_stack_trace),
       message_join_style(r.message_join_style) {}
 absl::Status StatusBuilder::JoinMessageToStatus(absl::Status s,
-                                                absl::string_view msg,
+                                                std::string_view msg,
                                                 MessageJoinStyle style) {
   if (s.ok() || msg.empty()) return s;
   std::string new_msg;

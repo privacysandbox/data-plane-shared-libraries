@@ -30,21 +30,21 @@ namespace google::scp::cpio::client_providers {
 class AwsKmsAead : public ::crypto::tink::Aead {
  public:
   static crypto::tink::util::StatusOr<std::unique_ptr<Aead>> New(
-      absl::string_view key_arn,
+      std::string_view key_arn,
       std::shared_ptr<Aws::KMS::KMSClient> aws_client);
 
   crypto::tink::util::StatusOr<std::string> Encrypt(
-      absl::string_view plaintext,
-      absl::string_view associated_data) const override;
+      std::string_view plaintext,
+      std::string_view associated_data) const override;
 
   crypto::tink::util::StatusOr<std::string> Decrypt(
-      absl::string_view ciphertext,
-      absl::string_view associated_data) const override;
+      std::string_view ciphertext,
+      std::string_view associated_data) const override;
 
   virtual ~AwsKmsAead() = default;
 
  private:
-  AwsKmsAead(absl::string_view key_arn,
+  AwsKmsAead(std::string_view key_arn,
              std::shared_ptr<Aws::KMS::KMSClient> aws_client);
   std::string key_arn_;  // The location of a crypto key in AWS KMS.
   std::shared_ptr<Aws::KMS::KMSClient> aws_client_;

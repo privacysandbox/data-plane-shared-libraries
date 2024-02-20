@@ -26,11 +26,11 @@ namespace {
 using google::protobuf::util::MessageDifferencer;
 
 TEST(TelemetryFlag, Parse) {
-  absl::string_view flag_str = R"pb(mode: PROD
-                                    metric { name: "m_0" }
-                                    metric { name: "m_1" }
-                                    metric_export_interval_ms: 100
-                                    dp_export_interval_ms: 200)pb";
+  std::string_view flag_str = R"pb(mode: PROD
+                                   metric { name: "m_0" }
+                                   metric { name: "m_1" }
+                                   metric_export_interval_ms: 100
+                                   dp_export_interval_ms: 200)pb";
   TelemetryFlag f_parsed;
   std::string err;
   EXPECT_TRUE(AbslParseFlag(flag_str, &f_parsed, &err));
@@ -117,7 +117,7 @@ TEST(BuildDependentConfig, CheckMetricConfigInList) {
               testing::ContainsRegex("c4 not defined;"));
 }
 
-constexpr absl::string_view kDefaultBuyers[] = {"buyer_1", "buyer_2"};
+constexpr std::string_view kDefaultBuyers[] = {"buyer_1", "buyer_2"};
 constexpr metrics::Definition<int, metrics::Privacy::kNonImpacting,
                               metrics::Instrument::kPartitionedCounter>
     partition_metric("partition_metric", "", "partition_type", kDefaultBuyers);
@@ -129,7 +129,7 @@ TEST(BuildDependentConfig, Partition) {
   EXPECT_THAT(config.GetPartition(partition_metric),
               testing::ElementsAreArray(kDefaultBuyers));
 
-  constexpr absl::string_view new_partitions[] = {"123", "789", "456"};
+  constexpr std::string_view new_partitions[] = {"123", "789", "456"};
   config.SetPartition("another_metric_def", new_partitions);
   EXPECT_THAT(config.GetPartition(partition_metric),
               testing::ElementsAreArray(kDefaultBuyers));

@@ -32,7 +32,7 @@ namespace {
 
 // Responsible for compressing one compression group (see compression.h for the
 // compressed partition output format).
-absl::StatusOr<std::string> CompressOnePartition(absl::string_view partition) {
+absl::StatusOr<std::string> CompressOnePartition(std::string_view partition) {
   z_stream zs = {
       .next_in = reinterpret_cast<Bytef*>(const_cast<char*>(partition.data())),
       .avail_in = static_cast<uInt>(partition.size()),
@@ -91,7 +91,7 @@ absl::StatusOr<std::string> CompressOnePartition(absl::string_view partition) {
 }
 
 absl::StatusOr<std::string> DecompressString(
-    absl::string_view compressed_string) {
+    std::string_view compressed_string) {
   z_stream zs = {
       .next_in =
           reinterpret_cast<Bytef*>(const_cast<char*>(compressed_string.data())),
@@ -160,7 +160,7 @@ GzipCompressionBlobReader::ExtractOneCompressionGroup() {
   }
   VLOG(9) << "compression_group_size: " << compression_group_size;
 
-  absl::string_view compressed_data;
+  std::string_view compressed_data;
   if (!data_reader_.ReadStringPiece(&compressed_data, compression_group_size)) {
     return absl::InvalidArgumentError("Failed to read compression group.");
   }

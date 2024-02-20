@@ -140,7 +140,7 @@ inline absl::Time MakeGoogleApiTimeMin() {
 }
 
 template <typename T>
-T ParseTextOrDie(absl::string_view text) {
+T ParseTextOrDie(std::string_view text) {
   T message;
   CHECK(google::protobuf::TextFormat::ParseFromString(text.data(), &message));
   return message;

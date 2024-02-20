@@ -40,22 +40,22 @@ class GcpKmsAead : public ::crypto::tink::Aead {
   //    projects/*/locations/*/keyRings/*/cryptoKeys/*.
   // See https://cloud.google.com/kms/docs/object-hierarchy for more info.
   static crypto::tink::util::StatusOr<std::unique_ptr<::crypto::tink::Aead>>
-  New(absl::string_view key_name,
+  New(std::string_view key_name,
       std::shared_ptr<GcpKeyManagementServiceClientInterface> kms_client);
 
   crypto::tink::util::StatusOr<std::string> Encrypt(
-      absl::string_view plaintext,
-      absl::string_view associated_data) const override;
+      std::string_view plaintext,
+      std::string_view associated_data) const override;
 
   crypto::tink::util::StatusOr<std::string> Decrypt(
-      absl::string_view ciphertext,
-      absl::string_view associated_data) const override;
+      std::string_view ciphertext,
+      std::string_view associated_data) const override;
 
   virtual ~GcpKmsAead() = default;
 
  private:
   GcpKmsAead(
-      absl::string_view key_name,
+      std::string_view key_name,
       std::shared_ptr<GcpKeyManagementServiceClientInterface> kms_client);
   // The location of a crypto key in GCP KMS.
   std::string key_name_;

@@ -40,19 +40,19 @@ enum class Instrument {
 };
 
 inline constexpr std::array<double, 0> kEmptyHistogramBoundaries = {};
-inline constexpr std::array<absl::string_view, 0> kEmptyPublicPartition = {};
-inline constexpr absl::string_view kEmptyPartitionType;
-inline constexpr absl::string_view kNoiseAttribute = "Noise";
-inline constexpr absl::string_view kGenerationIdAttribute = "generation_id";
+inline constexpr std::array<std::string_view, 0> kEmptyPublicPartition = {};
+inline constexpr std::string_view kEmptyPartitionType;
+inline constexpr std::string_view kNoiseAttribute = "Noise";
+inline constexpr std::string_view kGenerationIdAttribute = "generation_id";
 
 struct DefinitionName {
-  constexpr explicit DefinitionName(absl::string_view name,
-                                    absl::string_view description)
+  constexpr explicit DefinitionName(std::string_view name,
+                                    std::string_view description)
       : name_(name), description_(description) {}
 
-  absl::string_view name_;
-  absl::string_view description_;
-  absl::Span<const absl::string_view> public_partitions_copy_;
+  std::string_view name_;
+  std::string_view description_;
+  absl::Span<const std::string_view> public_partitions_copy_;
   absl::Span<const double> histogram_boundaries_copy_;
   double privacy_budget_weight_copy_ = 0;
 };
@@ -60,17 +60,17 @@ struct DefinitionName {
 namespace internal {
 struct Partitioned {
   constexpr explicit Partitioned(
-      absl::string_view partition_type = kEmptyPartitionType,
+      std::string_view partition_type = kEmptyPartitionType,
       int max_partitions_contributed = 1,
-      absl::Span<const absl::string_view> public_partitions =
+      absl::Span<const std::string_view> public_partitions =
           kEmptyPublicPartition)
       : partition_type_(partition_type),
         max_partitions_contributed_(max_partitions_contributed),
         public_partitions_(public_partitions) {}
 
-  absl::string_view partition_type_;
+  std::string_view partition_type_;
   int max_partitions_contributed_;
-  absl::Span<const absl::string_view> public_partitions_;  // must be sorted
+  absl::Span<const std::string_view> public_partitions_;  // must be sorted
 };
 
 struct Histogram {
@@ -112,7 +112,7 @@ struct DifferentialPrivacy {
 // d1(/*name*/ "d1", /*description*/ "d11");
 //
 // Use kEmptyPublicPartition for non-public partition.
-// absl::string_view public_partitions[] = {"buyer_1", "buyer_2"};
+// std::string_view public_partitions[] = {"buyer_1", "buyer_2"};
 // Definition<int, Privacy::kNonImpacting, Instrument::kPartitionedCounter> d2(
 //     /*name*/ "d2", /*description*/ "d21" /*partition_type*/ "buyer_name",
 //     /*public_partitions*/ public_partitions);
@@ -159,7 +159,7 @@ struct Definition : DefinitionName,
   using internal::DifferentialPrivacy<T>::privacy_budget_weight_;
 
   std::string DebugString() const {
-    absl::string_view instrument_name = "unknown";
+    std::string_view instrument_name = "unknown";
     switch (instrument) {
       case Instrument::kUpDownCounter:
         instrument_name = "UpDownCounter";
@@ -190,14 +190,14 @@ struct Definition : DefinitionName,
 
   template <Privacy non_impact = privacy, Instrument counter = instrument>
   constexpr explicit Definition(
-      absl::string_view name, absl::string_view description,
+      std::string_view name, std::string_view description,
       std::enable_if_t<non_impact == Privacy::kNonImpacting &&
                        counter == Instrument::kUpDownCounter>* = nullptr)
       : DefinitionName(name, description) {}
 
   template <Instrument counter = instrument>
   constexpr explicit Definition(
-      absl::string_view name, absl::string_view description, T upper_bound,
+      std::string_view name, std::string_view description, T upper_bound,
       T lower_bound,
       std::enable_if_t<counter == Instrument::kUpDownCounter>* = nullptr)
       : DefinitionName(name, description),
@@ -208,9 +208,9 @@ struct Definition : DefinitionName,
   template <Privacy non_impact = privacy,
             Instrument partitioned_counter = instrument>
   constexpr explicit Definition(
-      absl::string_view name, absl::string_view description,
-      absl::string_view partition_type,
-      absl::Span<const absl::string_view> public_partitions,
+      std::string_view name, std::string_view description,
+      std::string_view partition_type,
+      absl::Span<const std::string_view> public_partitions,
       std::enable_if_t<non_impact == Privacy::kNonImpacting &&
                        partitioned_counter ==
                            Instrument::kPartitionedCounter>* = nullptr)
@@ -221,9 +221,9 @@ struct Definition : DefinitionName,
 
   template <Instrument partitioned_counter = instrument>
   constexpr explicit Definition(
-      absl::string_view name, absl::string_view description,
-      absl::string_view partition_type, int max_partitions_contributed,
-      absl::Span<const absl::string_view> public_partitions, T upper_bound,
+      std::string_view name, std::string_view description,
+      std::string_view partition_type, int max_partitions_contributed,
+      absl::Span<const std::string_view> public_partitions, T upper_bound,
       T lower_bound, double min_noise_to_output = 0.0,
       std::enable_if_t<partitioned_counter ==
                        Instrument::kPartitionedCounter>* = nullptr)
@@ -238,7 +238,7 @@ struct Definition : DefinitionName,
 
   template <Privacy non_impact = privacy, Instrument histogram = instrument>
   constexpr explicit Definition(
-      absl::string_view name, absl::string_view description,
+      std::string_view name, std::string_view description,
       absl::Span<const double> histogram_boundaries,
       std::enable_if_t<non_impact == Privacy::kNonImpacting &&
                        histogram == Instrument::kHistogram>* = nullptr)
@@ -249,7 +249,7 @@ struct Definition : DefinitionName,
 
   template <Privacy impact = privacy, Instrument histogram = instrument>
   constexpr explicit Definition(
-      absl::string_view name, absl::string_view description,
+      std::string_view name, std::string_view description,
       absl::Span<const double> histogram_boundaries, T upper_bound,
       T lower_bound,
       std::enable_if_t<impact == Privacy::kImpacting &&
@@ -263,7 +263,7 @@ struct Definition : DefinitionName,
 
   template <Privacy non_impact = privacy, Instrument gauge = instrument>
   constexpr explicit Definition(
-      absl::string_view name, absl::string_view description,
+      std::string_view name, std::string_view description,
       std::enable_if_t<non_impact == Privacy::kNonImpacting &&
                        gauge == Instrument::kGauge>* = nullptr)
       : DefinitionName(name, description) {}

@@ -69,17 +69,17 @@ class DpAggregator : public DpAggregatorBase {
   // `DifferentiallyPrivate`, can be called multiple times before
   // `OutputNoised()` result.  Each `partition` aggregate separately. If not
   // partitioned, `partition` is empty string.
-  absl::Status Aggregate(TValue value, absl::string_view partition)
+  absl::Status Aggregate(TValue value, std::string_view partition)
       ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
     auto it = bounded_sums_.find(partition);
     if (it == bounded_sums_.end()) {
       int max_partitions_contributed;
-      const absl::string_view current_partition[] = {partition};
-      absl::Span<const absl::string_view> all_partitions = current_partition;
+      const std::string_view current_partition[] = {partition};
+      absl::Span<const std::string_view> all_partitions = current_partition;
       if constexpr (instrument == Instrument::kPartitionedCounter) {
         max_partitions_contributed = definition_.max_partitions_contributed_;
-        if (absl::Span<const absl::string_view> partitions =
+        if (absl::Span<const std::string_view> partitions =
                 metric_router_.metric_config().template GetPartition(
                     definition_);
             !partitions.empty()) {
@@ -88,7 +88,7 @@ class DpAggregator : public DpAggregatorBase {
       } else {
         max_partitions_contributed = 1;
       }
-      for (absl::string_view each : all_partitions) {
+      for (std::string_view each : all_partitions) {
         PS_ASSIGN_OR_RETURN(
             std::unique_ptr<differential_privacy::BoundedSum<TValue>>
                 bounded_sum,
@@ -202,7 +202,7 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
   // `DifferentiallyPrivate`, can be called multiple times before
   // `OutputNoised()` result.  `partition` is not used, since partitioned
   // histogram is not supported
-  absl::Status Aggregate(TValue value, absl::string_view partition)
+  absl::Status Aggregate(TValue value, std::string_view partition)
       ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
     absl::Span<const double> boundaries = definition_.histogram_boundaries_;
@@ -266,7 +266,7 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
   template <typename TValue, Privacy privacy, Instrument instrument>
   absl::Status TMetricRouter::LogSafe(
       const Definition<TValue, privacy, instrument>& definition, TValue value,
-      absl::string_view partition,
+      std::string_view partition,
       absl::flat_hash_map<std::string, std::string> attribute);
 */
 template <typename TMetricRouter>
@@ -290,8 +290,8 @@ class DifferentiallyPrivate {
   template <typename TValue, Privacy privacy, Instrument instrument>
   absl::Status Aggregate(
       const Definition<TValue, privacy, instrument>* definition, TValue value,
-      absl::string_view partition) ABSL_LOCKS_EXCLUDED(mutex_) {
-    absl::string_view metric_name = definition->name_;
+      std::string_view partition) ABSL_LOCKS_EXCLUDED(mutex_) {
+    std::string_view metric_name = definition->name_;
     using CounterT =
         internal::DpAggregator<TMetricRouter, TValue, privacy, instrument>;
     CounterT* counter;
@@ -325,12 +325,12 @@ class DifferentiallyPrivate {
 
   // Output aggregated results with DP noise added for all defintions with
   // logged metric.
-  absl::StatusOr<absl::flat_hash_map<absl::string_view,
+  absl::StatusOr<absl::flat_hash_map<std::string_view,
                                      std::vector<differential_privacy::Output>>>
   OutputNoised() ABSL_LOCKS_EXCLUDED(mutex_) {
     // ToDo(b/279955396): lock telemetry export when OutputNoised runs
     absl::MutexLock mutex_lock(&mutex_);
-    absl::flat_hash_map<absl::string_view,
+    absl::flat_hash_map<std::string_view,
                         std::vector<differential_privacy::Output>>
         ret;
     if (!has_data_) {
@@ -362,7 +362,7 @@ class DifferentiallyPrivate {
   absl::Duration output_period_;
 
   absl::Mutex mutex_;
-  absl::flat_hash_map<absl::string_view,
+  absl::flat_hash_map<std::string_view,
                       std::unique_ptr<internal::DpAggregatorBase>>
       counter_ ABSL_GUARDED_BY(mutex_);
 
