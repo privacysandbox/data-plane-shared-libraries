@@ -29,12 +29,15 @@
 #include <string>
 #include <vector>
 
+#include "absl/log/check.h"
+#include "absl/status/statusor.h"
 #include "include/libplatform/libplatform.h"
 #include "scp/cc/core/test/utils/auto_init_run_stop.h"
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/wasm/src/deserializer.h"
 #include "scp/cc/roma/wasm/src/wasm_types.h"
 #include "scp/cc/roma/wasm/test/testing_utils.h"
+#include "src/cpp/util/process_util.h"
 #include "src/cpp/util/status_macro/status_macros.h"
 
 using google::scp::core::test::ResultIs;
@@ -50,14 +53,11 @@ namespace google::scp::roma::worker::test {
 class ExecutionUtilsTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
-    const int my_pid = getpid();
-    const std::string proc_exe_path =
-        std::string("/proc/") + std::to_string(my_pid) + "/exe";
-    auto my_path = std::make_unique<char[]>(PATH_MAX);
-    ssize_t sz = readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
-    ASSERT_GT(sz, 0);
-    v8::V8::InitializeICUDefaultLocation(my_path.get());
-    v8::V8::InitializeExternalStartupData(my_path.get());
+    absl::StatusOr<std::string> my_path =
+        ::privacy_sandbox::server_common::GetExePath();
+    CHECK_OK(my_path) << my_path.status();
+    v8::V8::InitializeICUDefaultLocation(my_path->data());
+    v8::V8::InitializeExternalStartupData(my_path->data());
     platform_ = v8::platform::NewDefaultPlatform().release();
     v8::V8::InitializePlatform(platform_);
     v8::V8::Initialize();

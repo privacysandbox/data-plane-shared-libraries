@@ -34,7 +34,9 @@ cc_test(
         "//scp/cc/roma/wasm/src:roma_wasm_lib",
         "//scp/cc/roma/wasm/test:roma_wasm_testing_lib",
         "//scp/cc/roma/worker/src:roma_execution_utils_lib",
-        "//src/cpp/util/status_macro:status_macros",
+        "//src/cpp/util:process_util",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -45,6 +47,9 @@ cc_test(
     srcs = ["execution_watchdog_test.cc"],
     deps = [
         "//scp/cc/roma/worker/src:execution_watchdog_lib",
+        "//src/cpp/util:process_util",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",

@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/log/check.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
@@ -37,6 +38,7 @@
 #include "scp/cc/roma/sandbox/constants/constants.h"
 #include "scp/cc/roma/worker/src/execution_utils.h"
 #include "src/cpp/util/duration.h"
+#include "src/cpp/util/process_util.h"
 #include "src/cpp/util/status_macro/status_macros.h"
 #include "src/debug/debug-interface.h"
 
@@ -118,20 +120,6 @@ void V8JsEngine::Stop() {
   DisposeIsolate();
 }
 
-namespace {
-std::string GetExePath() {
-  const pid_t my_pid = getpid();
-  const auto proc_exe_path = absl::StrCat("/proc/", my_pid, "/exe");
-  std::string my_path;
-  my_path.reserve(PATH_MAX);
-  if (readlink(proc_exe_path.c_str(), my_path.data(), PATH_MAX) < 0) {
-    LOG(ERROR) << "Unable to resolve prod pid exe path: " << strerror(errno);
-  }
-  return my_path;
-}
-
-}  // namespace
-
 void V8JsEngine::OneTimeSetup(
     const absl::flat_hash_map<std::string, std::string>& config) noexcept {
   size_t max_wasm_memory_number_of_pages = 0;
@@ -141,10 +129,11 @@ void V8JsEngine::OneTimeSetup(
     page_count_converter << it->second;
     page_count_converter >> max_wasm_memory_number_of_pages;
   }
-
-  const std::string my_path = GetExePath();
-  v8::V8::InitializeICUDefaultLocation(my_path.data());
-  v8::V8::InitializeExternalStartupData(my_path.data());
+  absl::StatusOr<std::string> my_path =
+      privacy_sandbox::server_common::GetExePath();
+  CHECK_OK(my_path) << my_path.status();
+  v8::V8::InitializeICUDefaultLocation(my_path->data());
+  v8::V8::InitializeExternalStartupData(my_path->data());
 
   // Set the max number of WASM memory pages
   if (max_wasm_memory_number_of_pages != 0) {

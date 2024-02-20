@@ -26,22 +26,23 @@
 
 #include <string>
 
+#include "absl/log/check.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/time/time.h"
 #include "include/libplatform/libplatform.h"
+#include "src/cpp/util/process_util.h"
 
 namespace google::scp::roma::worker::test {
 
 class ExecutionWatchdogTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
-    const int my_pid = getpid();
-    const std::string proc_exe_path = absl::StrCat("/proc/", my_pid, "/exe");
-    std::string my_path(PATH_MAX, '\0');
-    ssize_t sz = readlink(proc_exe_path.c_str(), my_path.data(), PATH_MAX);
-    ASSERT_GT(sz, 0);
-    v8::V8::InitializeICUDefaultLocation(my_path.c_str());
-    v8::V8::InitializeExternalStartupData(my_path.c_str());
+    absl::StatusOr<std::string> my_path =
+        ::privacy_sandbox::server_common::GetExePath();
+    CHECK_OK(my_path) << my_path.status();
+    v8::V8::InitializeICUDefaultLocation(my_path->data());
+    v8::V8::InitializeExternalStartupData(my_path->data());
     platform_ = v8::platform::NewDefaultPlatform().release();
     v8::V8::InitializePlatform(platform_);
     v8::V8::Initialize();

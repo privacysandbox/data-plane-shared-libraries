@@ -23,7 +23,10 @@ cc_test(
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/config/src:roma_config_lib",
+        "//src/cpp/util:process_util",
         "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
         "@v8//:v8_icu",
     ],
@@ -50,7 +53,10 @@ cc_test(
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/config/src:roma_config_lib",
+        "//src/cpp/util:process_util",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
         "@google_benchmark//:benchmark",
         "@v8//:v8_icu",
@@ -64,7 +70,10 @@ cc_test(
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/roma/config/src:roma_config_lib",
+        "//src/cpp/util:process_util",
         "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
         "@v8//:v8_icu",
     ],

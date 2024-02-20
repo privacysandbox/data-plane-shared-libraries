@@ -29,8 +29,11 @@
 #include <libplatform/libplatform.h>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/log/check.h"
+#include "absl/status/statusor.h"
 #include "include/v8.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
+#include "src/cpp/util/process_util.h"
 
 using ::testing::ElementsAreArray;
 using ::testing::StrEq;
@@ -39,14 +42,11 @@ namespace google::scp::roma::config::test {
 class TypeConverterTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
-    const int my_pid = getpid();
-    const std::string proc_exe_path =
-        std::string("/proc/") + std::to_string(my_pid) + "/exe";
-    auto my_path = std::make_unique<char[]>(PATH_MAX);
-    ssize_t sz = readlink(proc_exe_path.c_str(), my_path.get(), PATH_MAX);
-    ASSERT_GT(sz, 0);
-    v8::V8::InitializeICUDefaultLocation(my_path.get());
-    v8::V8::InitializeExternalStartupData(my_path.get());
+    absl::StatusOr<std::string> my_path =
+        ::privacy_sandbox::server_common::GetExePath();
+    CHECK_OK(my_path) << my_path.status();
+    v8::V8::InitializeICUDefaultLocation(my_path->data());
+    v8::V8::InitializeExternalStartupData(my_path->data());
     platform_ = v8::platform::NewDefaultPlatform().release();
     v8::V8::InitializePlatform(platform_);
     v8::V8::Initialize();

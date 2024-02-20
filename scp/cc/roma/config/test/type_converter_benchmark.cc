@@ -28,10 +28,13 @@
 #include <libplatform/libplatform.h>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/log/check.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "include/v8.h"
 #include "scp/cc/roma/config/src/type_converter.h"
 #include "scp/cc/roma/interface/function_binding_io.pb.h"
+#include "src/cpp/util/process_util.h"
 
 using ::google::scp::roma::TypeConverter;
 using ::google::scp::roma::proto::FunctionBindingIoProto;
@@ -41,11 +44,11 @@ using ::testing::StrEq;
 namespace {
 
 v8::Platform* platform_ = []() -> v8::Platform* {
-  const std::string proc_exe_path = absl::StrCat("/proc/", getpid(), "/exe");
-  char my_path[PATH_MAX];
-  readlink(proc_exe_path.c_str(), my_path, PATH_MAX);
-  v8::V8::InitializeICUDefaultLocation(my_path);
-  v8::V8::InitializeExternalStartupData(my_path);
+  absl::StatusOr<std::string> my_path =
+      ::privacy_sandbox::server_common::GetExePath();
+  CHECK_OK(my_path) << my_path.status();
+  v8::V8::InitializeICUDefaultLocation(my_path->data());
+  v8::V8::InitializeExternalStartupData(my_path->data());
   v8::Platform* platform = v8::platform::NewDefaultPlatform().release();
   v8::V8::InitializePlatform(platform);
   v8::V8::Initialize();
