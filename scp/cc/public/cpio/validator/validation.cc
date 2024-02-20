@@ -57,7 +57,7 @@ using google::scp::cpio::validator::proto::TestCase;
 using google::scp::cpio::validator::proto::ValidatorConfig;
 
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
-const char kValidatorConfigPath[] = "/etc/validator_config.txtpb";
+constexpr std::string_view kValidatorConfigPath = "/etc/validator_config.txtpb";
 }  // namespace
 
 std::string_view GetValidatorFailedToRunMsg() {
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
   absl::InitializeLog();
 
   ValidatorConfig validator_config;
-  int fd = open(kValidatorConfigPath, O_RDONLY);
+  int fd = open(kValidatorConfigPath.data(), O_RDONLY);
   if (fd < 0) {
     std::cout << "[ FAILURE ] Unable to open validator config file."
               << std::endl;

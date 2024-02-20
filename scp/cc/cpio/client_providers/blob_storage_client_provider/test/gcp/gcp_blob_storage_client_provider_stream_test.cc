@@ -101,10 +101,10 @@ using testing::Return;
 
 namespace google::scp::cpio::client_providers::test {
 namespace {
-constexpr char kInstanceResourceName[] =
+constexpr std::string_view kInstanceResourceName =
     R"(//compute.googleapis.com/projects/123456789/zones/us-central1-c/instances/987654321)";
-constexpr char kBucketName[] = "bucket";
-constexpr char kBlobName[] = "blob";
+constexpr std::string_view kBucketName = "bucket";
+constexpr std::string_view kBlobName = "blob";
 
 constexpr int64_t kStreamKeepAliveMicrosCount = 100;
 

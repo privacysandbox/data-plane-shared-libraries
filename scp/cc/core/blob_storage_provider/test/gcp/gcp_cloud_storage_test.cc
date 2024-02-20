@@ -87,9 +87,9 @@ using testing::Pointee;
 using testing::Pointwise;
 using testing::Return;
 
-constexpr char kBucketName[] = "bucket";
-constexpr char kBlobName1[] = "blob_1";
-constexpr char kBlobName2[] = "blob_2";
+constexpr std::string_view kBucketName = "bucket";
+constexpr std::string_view kBlobName1 = "blob_1";
+constexpr std::string_view kBlobName2 = "blob_2";
 
 class GcpCloudStorageClientTest : public testing::Test {
  protected:
@@ -708,7 +708,8 @@ TEST_F(GcpCloudStorageClientTest, PutBlob) {
   std::string expected_md5_hash =
       google::cloud::storage::ComputeMD5Hash(bytes_str);
 
-  InsertObjectMediaRequest expected_request(kBucketName, kBlobName1, bytes_str);
+  InsertObjectMediaRequest expected_request(std::string{kBucketName},
+                                            std::string{kBlobName1}, bytes_str);
   expected_request.set_option(MD5HashValue(expected_md5_hash));
 
   EXPECT_CALL(*mock_client_,
@@ -745,7 +746,8 @@ TEST_F(GcpCloudStorageClientTest, PutBlobPropagatesFailure) {
   std::string expected_md5_hash =
       google::cloud::storage::ComputeMD5Hash(bytes_str);
 
-  InsertObjectMediaRequest expected_request(kBucketName, kBlobName1, bytes_str);
+  InsertObjectMediaRequest expected_request(std::string{kBucketName},
+                                            std::string{kBlobName1}, bytes_str);
   expected_request.set_option(MD5HashValue(expected_md5_hash));
 
   EXPECT_CALL(*mock_client_,

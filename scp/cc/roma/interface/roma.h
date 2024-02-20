@@ -35,13 +35,14 @@ namespace google::scp::roma {
 /// string is a possibly signed sequence of decimal numbers, each with optional
 /// fraction and a unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time
 /// units are "ns", "us" "ms", "s", "m", "h".
-static constexpr char kTimeoutDurationTag[] = "TimeoutDuration";
+static constexpr std::string_view kTimeoutDurationTag = "TimeoutDuration";
 /// @brief Default value for request execution timeout. If no timeout tag is
 /// set, the default value will be used.
 static constexpr absl::Duration kDefaultExecutionTimeout =
     absl::Milliseconds(5000);
 /// @brief The wasm code array name tag for request.
-static constexpr char kWasmCodeArrayName[] = "roma.request.wasm_array_name";
+static constexpr std::string_view kWasmCodeArrayName =
+    "roma.request.wasm_array_name";
 
 // The code object containing untrusted code to be loaded into the Worker.
 struct CodeObject {

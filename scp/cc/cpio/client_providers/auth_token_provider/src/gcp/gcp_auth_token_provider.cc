@@ -53,39 +53,39 @@ using google::scp::core::utils::PadBase64Encoding;
 using nlohmann::json;
 
 namespace {
-constexpr char kGcpAuthTokenProvider[] = "GcpAuthTokenProvider";
+constexpr std::string_view kGcpAuthTokenProvider = "GcpAuthTokenProvider";
 
 // This is not HTTPS but this is still safe according to the docs:
 // https://cloud.google.com/compute/docs/metadata/overview#metadata_security_considerations
-constexpr char kTokenServerPath[] =
+constexpr std::string_view kTokenServerPath =
     "http://metadata.google.internal/computeMetadata/v1/instance/"
     "service-accounts/default/token";
-constexpr char kIdentityServerPath[] =
+constexpr std::string_view kIdentityServerPath =
     "http://metadata/computeMetadata/v1/instance/service-accounts/default/"
     "identity";
-constexpr char kMetadataFlavorHeader[] = "Metadata-Flavor";
-constexpr char kMetadataFlavorHeaderValue[] = "Google";
-constexpr char kJsonAccessTokenKey[] = "access_token";
-constexpr char kJsonTokenExpiryKey[] = "expires_in";
-constexpr char kJsonTokenTypeKey[] = "token_type";
-constexpr char kAudienceParameter[] = "audience=";
-constexpr char kFormatFullParameter[] = "format=full";
+constexpr std::string_view kMetadataFlavorHeader = "Metadata-Flavor";
+constexpr std::string_view kMetadataFlavorHeaderValue = "Google";
+constexpr std::string_view kJsonAccessTokenKey = "access_token";
+constexpr std::string_view kJsonTokenExpiryKey = "expires_in";
+constexpr std::string_view kJsonTokenTypeKey = "token_type";
+constexpr std::string_view kAudienceParameter = "audience=";
+constexpr std::string_view kFormatFullParameter = "format=full";
 
 constexpr size_t kExpectedTokenPartsSize = 3;
-constexpr char kJsonTokenIssuerKey[] = "iss";
-constexpr char kJsonTokenAudienceKey[] = "aud";
-constexpr char kJsonTokenSubjectKey[] = "sub";
-constexpr char kJsonTokenIssuedAtKey[] = "iat";
-constexpr char kJsonTokenExpiryKeyForTargetAudience[] = "exp";
+constexpr std::string_view kJsonTokenIssuerKey = "iss";
+constexpr std::string_view kJsonTokenAudienceKey = "aud";
+constexpr std::string_view kJsonTokenSubjectKey = "sub";
+constexpr std::string_view kJsonTokenIssuedAtKey = "iat";
+constexpr std::string_view kJsonTokenExpiryKeyForTargetAudience = "exp";
 
 // Returns a pair of iterators - one to the beginning, one to the end.
 const auto& GetRequiredJWTComponents() {
   static char const* components[3];
   using iterator_type = decltype(std::cbegin(components));
   static std::pair<iterator_type, iterator_type> iterator_pair = []() {
-    components[0] = kJsonAccessTokenKey;
-    components[1] = kJsonTokenExpiryKey;
-    components[2] = kJsonTokenTypeKey;
+    components[0] = kJsonAccessTokenKey.data();
+    components[1] = kJsonTokenExpiryKey.data();
+    components[2] = kJsonTokenTypeKey.data();
     return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
@@ -96,11 +96,11 @@ const auto& GetRequiredJWTComponentsForTargetAudienceToken() {
   static char const* components[5];
   using iterator_type = decltype(std::cbegin(components));
   static std::pair<iterator_type, iterator_type> iterator_pair = []() {
-    components[0] = kJsonTokenIssuerKey;
-    components[1] = kJsonTokenAudienceKey;
-    components[2] = kJsonTokenSubjectKey;
-    components[3] = kJsonTokenIssuedAtKey;
-    components[4] = kJsonTokenExpiryKeyForTargetAudience;
+    components[0] = kJsonTokenIssuerKey.data();
+    components[1] = kJsonTokenAudienceKey.data();
+    components[2] = kJsonTokenSubjectKey.data();
+    components[3] = kJsonTokenIssuedAtKey.data();
+    components[4] = kJsonTokenExpiryKeyForTargetAudience.data();
     return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;

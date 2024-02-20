@@ -44,19 +44,19 @@ using ::testing::UnorderedElementsAre;
 using ::testing::Values;
 
 namespace {
-constexpr char kResourceNameMock[] =
+constexpr std::string_view kResourceNameMock =
     "arn:aws:ec2:us-east-1:123456789012:instance/i-0e9801d129EXAMPLE";
 
-constexpr char kResourceNameWithPathMock[] =
+constexpr std::string_view kResourceNameWithPathMock =
     "arn:aws:ec2:us-east-1:123456789012:instance/Dev/i-0e9801d129EXAMPLE";
-constexpr char kResourceNameNoRegionMock[] =
+constexpr std::string_view kResourceNameNoRegionMock =
     "arn:aws:ec2::123456789012:instance/i-0e9801d129EXAMPLE";
-constexpr char kResourceNameNoAccountMock[] =
+constexpr std::string_view kResourceNameNoAccountMock =
     "arn:aws:ec2:us-east-1::instance/i-0e9801d129EXAMPLE";
 
-constexpr char kInstanceIdMock[] = "i-0e9801d129EXAMPLE";
-constexpr char kRegionMock[] = "us-east-1";
-constexpr char kAccountIdMock[] = "123456789012";
+constexpr std::string_view kInstanceIdMock = "i-0e9801d129EXAMPLE";
+constexpr std::string_view kRegionMock = "us-east-1";
+constexpr std::string_view kAccountIdMock = "123456789012";
 }  // namespace
 
 namespace google::scp::cpio::client_providers::test {

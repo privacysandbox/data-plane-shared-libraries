@@ -40,8 +40,8 @@ using ::testing::StrEq;
 namespace privacy_sandbox::server_common {
 namespace {
 
-constexpr char kPublicKey[] = "pubkey";
-constexpr char kPrivateKey[] = "privkey";
+constexpr std::string_view kPublicKey = "pubkey";
+constexpr std::string_view kPrivateKey = "privkey";
 
 class MockPrivateKeyClient
     : public google::scp::cpio::PrivateKeyClientInterface {

@@ -104,9 +104,9 @@ TEST(LibCpioDeathTest, UninitializedCpioFailsTest) {
   std::unique_ptr<MetricClientInterface> metric_client =
       MetricClientFactory::Create(std::move(metric_client_options));
 
-  constexpr char expected_uninit_cpio_error_message[] =
-      "Cpio must be initialized with Cpio::InitCpio before client use";
-  ASSERT_DEATH(metric_client->Init(), expected_uninit_cpio_error_message);
+  ASSERT_DEATH(
+      metric_client->Init(),
+      "Cpio must be initialized with Cpio::InitCpio before client use");
 }
 
 TEST(LibCpioDeathTest, InitAndShutdownThenInitCpioSucceedsTest) {
@@ -118,15 +118,17 @@ TEST(LibCpioDeathTest, InitAndShutdownThenInitCpioSucceedsTest) {
   std::unique_ptr<MetricClientInterface> metric_client =
       MetricClientFactory::Create(std::move(metric_client_options));
 
-  constexpr char expected_uninit_cpio_error_message[] =
+  constexpr std::string_view kExpectedUninitCpioErrorMessage =
       "Cpio must be initialized with Cpio::InitCpio before client use";
-  ASSERT_DEATH(metric_client->Init(), expected_uninit_cpio_error_message);
+  ASSERT_DEATH(metric_client->Init(),
+               std::string{kExpectedUninitCpioErrorMessage});
 
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   ASSERT_SUCCESS(metric_client->Init());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 
-  ASSERT_DEATH(metric_client->Init(), expected_uninit_cpio_error_message);
+  ASSERT_DEATH(metric_client->Init(),
+               std::string{kExpectedUninitCpioErrorMessage});
 }
 }  // namespace
 }  // namespace google::scp::cpio::test

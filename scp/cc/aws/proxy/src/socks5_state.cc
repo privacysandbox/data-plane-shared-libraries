@@ -105,7 +105,7 @@ bool Socks5State::Proceed(Buffer& buffer) {
         state_ = HandshakeState::kFail;
         break;
       }
-      static const uint8_t kGreetingResp[2] = {0x05, 0x00};
+      static constexpr uint8_t kGreetingResp[2] = {0x05, 0x00};
       if (response_callback_) {
         // Our response is tiny, just 2 bytes. There's no chance for the send to
         // block and require us to poll. So for simplicity, we just check if

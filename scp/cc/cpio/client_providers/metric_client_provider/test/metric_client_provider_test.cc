@@ -37,6 +37,9 @@
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
+namespace google::scp::cpio::client_providers::test {
+namespace {
+
 using Aws::InitAPI;
 using Aws::SDKOptions;
 using Aws::ShutdownAPI;
@@ -59,12 +62,9 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::mock::MockMetricClientWithOverrides;
 
-namespace {
 constexpr size_t kMetricsBatchSize = 1000;
-constexpr char kMetricNamespace[] = "test";
-}  // namespace
+constexpr std::string_view kMetricNamespace = "test";
 
-namespace google::scp::cpio::client_providers::test {
 class MetricClientProviderTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
@@ -79,7 +79,7 @@ class MetricClientProviderTest : public ::testing::Test {
 
   MetricBatchingOptions CreateMetricBatchingOptions(
       bool enable_batch_recording,
-      std::string metric_namespace = kMetricNamespace) {
+      std::string metric_namespace = std::string{kMetricNamespace}) {
     MetricBatchingOptions options;
     options.metric_namespace = std::move(metric_namespace);
     options.enable_batch_recording = enable_batch_recording;
@@ -362,4 +362,5 @@ TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
   EXPECT_SUCCESS(client->Stop());
 }
 
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

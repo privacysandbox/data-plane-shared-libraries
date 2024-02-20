@@ -35,12 +35,10 @@ using google::scp::roma::sandbox::roma_service::RomaService;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using ::testing::StrEq;
 
+namespace google::scp::roma::test {
 namespace {
 constexpr auto kTimeout = absl::Seconds(10);
-}
-
-namespace google::scp::roma::test {
-static const std::vector<uint8_t> kWasmBin = {
+const std::vector<uint8_t> kWasmBin = {
     0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
     0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07,
     0x07, 0x01, 0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a, 0x09, 0x01,
@@ -299,7 +297,7 @@ TEST(WasmTest, CanExecuteJSWithWasmCode) {
           }
     )JS_CODE",
         .wasm_bin = kWasmBin,
-        .tags = {{kWasmCodeArrayName, "addModule"}},
+        .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
     EXPECT_TRUE(roma_service
@@ -363,7 +361,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         .js = std::string(js_code),
         .wasm = "test",
         .wasm_bin = kWasmBin,
-        .tags = {{kWasmCodeArrayName, "addModule"}},
+        .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
     const auto status = roma_service->LoadCodeObj(
@@ -381,7 +379,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         .id = "foo",
         .version_string = "v1",
         .wasm_bin = kWasmBin,
-        .tags = {{kWasmCodeArrayName, "addModule"}},
+        .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
     const auto status = roma_service->LoadCodeObj(
@@ -416,7 +414,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         .id = "foo",
         .version_string = "v1",
         .js = std::string(js_code),
-        .tags = {{kWasmCodeArrayName, "addModule"}},
+        .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
     const auto status = roma_service->LoadCodeObj(
@@ -435,7 +433,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         .version_string = "v1",
         .js = std::string(js_code),
         .wasm_bin = kWasmBin,
-        .tags = {{kWasmCodeArrayName, "wrongName"}},
+        .tags = {{std::string{kWasmCodeArrayName}, "wrongName"}},
     });
 
     EXPECT_TRUE(roma_service
@@ -459,7 +457,7 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         .version_string = "v1",
         .js = std::string(js_code),
         .wasm_bin = invalid_wasm_bin,
-        .tags = {{kWasmCodeArrayName, "addModule"}},
+        .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
     EXPECT_TRUE(roma_service
@@ -492,7 +490,7 @@ TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
         .version_string = "v1",
         .js = "hello_js = (a, b) => a + b;",
         .wasm_bin = kWasmBin,
-        .tags = {{kWasmCodeArrayName, "addModule"}},
+        .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
     EXPECT_TRUE(roma_service
@@ -568,7 +566,7 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
         .version_string = "v1",
         .js = std::string(js_code),
         .wasm_bin = kWasmBin,
-        .tags = {{kWasmCodeArrayName, "addModule"}},
+        .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
     EXPECT_TRUE(roma_service
@@ -638,5 +636,5 @@ TEST(WasmTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
 
   EXPECT_TRUE(roma_service->Stop().ok());
 }
-
+}  // namespace
 }  // namespace google::scp::roma::test

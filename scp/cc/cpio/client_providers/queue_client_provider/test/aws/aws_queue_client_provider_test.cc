@@ -36,6 +36,9 @@
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/public/cpio/proto/queue_service/v1/queue_service.pb.h"
 
+namespace google::scp::cpio::client_providers::test {
+namespace {
+
 using Aws::InitAPI;
 using Aws::SDKOptions;
 using Aws::ShutdownAPI;
@@ -82,22 +85,18 @@ using ::testing::NiceMock;
 using ::testing::Return;
 using ::testing::StrEq;
 
-namespace {
-constexpr char kResourceNameMock[] =
+constexpr std::string_view kResourceNameMock =
     "arn:aws:ec2:us-east-1:123456789012:instance/i-0e9801d129EXAMPLE";
-constexpr char kQueueName[] = "queue name";
-constexpr char kQueueUrl[] = "queue url";
-constexpr char kMessageBody[] = "message body";
-constexpr char kMessageId[] = "message id";
-constexpr char kReceiptInfo[] = "receipt info";
-constexpr char kInvalidReceiptInfo[] = "";
-const uint8_t kDefaultMaxNumberOfMessagesReceived = 1;
-const uint8_t kDefaultMaxWaitTimeSeconds = 0;
-const uint16_t kVisibilityTimeoutSeconds = 10;
-const uint16_t kInvalidVisibilityTimeoutSeconds = 50000;
-}  // namespace
-
-namespace google::scp::cpio::client_providers::test {
+constexpr std::string_view kQueueName = "queue name";
+constexpr std::string_view kQueueUrl = "queue url";
+constexpr std::string_view kMessageBody = "message body";
+constexpr std::string_view kMessageId = "message id";
+constexpr std::string_view kReceiptInfo = "receipt info";
+constexpr std::string_view kInvalidReceiptInfo = "";
+constexpr uint8_t kDefaultMaxNumberOfMessagesReceived = 1;
+constexpr uint8_t kDefaultMaxWaitTimeSeconds = 0;
+constexpr uint16_t kVisibilityTimeoutSeconds = 10;
+constexpr uint16_t kInvalidVisibilityTimeoutSeconds = 50000;
 
 class MockAwsSqsClientFactory : public AwsSqsClientFactory {
  public:
@@ -124,7 +123,7 @@ class AwsQueueClientProviderTest : public ::testing::Test {
     mock_sqs_client_ = std::make_shared<NiceMock<MockSqsClient>>();
 
     GetQueueUrlResult get_queue_url_result;
-    get_queue_url_result.SetQueueUrl(kQueueUrl);
+    get_queue_url_result.SetQueueUrl(std::string{kQueueUrl});
     GetQueueUrlOutcome get_queue_url_outcome(std::move(get_queue_url_result));
     ON_CALL(*mock_sqs_client_, GetQueueUrl)
         .WillByDefault(Return(get_queue_url_outcome));
@@ -212,7 +211,7 @@ MATCHER_P(HasGetQueueUrlRequestParams, queue_name, "") {
 
 TEST_F(AwsQueueClientProviderTest, RunSuccessWithExistingQueue) {
   GetQueueUrlResult get_queue_url_result;
-  get_queue_url_result.SetQueueUrl(kQueueUrl);
+  get_queue_url_result.SetQueueUrl(std::string{kQueueUrl});
   GetQueueUrlOutcome get_queue_url_outcome(std::move(get_queue_url_result));
   EXPECT_CALL(*mock_sqs_client_,
               GetQueueUrl(HasGetQueueUrlRequestParams(kQueueName)))
@@ -260,4 +259,5 @@ TEST_F(AwsQueueClientProviderTest,
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

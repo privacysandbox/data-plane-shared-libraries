@@ -63,9 +63,10 @@ using google::scp::core::utils::GetEscapedUriWithQuery;
 using nghttp2::asio_http2::host_service_from_uri;
 
 namespace {
-constexpr char kAwsPrivateKeyFetcherProvider[] = "AwsPrivateKeyFetcherProvider";
+constexpr std::string_view kAwsPrivateKeyFetcherProvider =
+    "AwsPrivateKeyFetcherProvider";
 /// Generic AWS service name.
-constexpr char kServiceName[] = "execute-api";
+constexpr std::string_view kServiceName = "execute-api";
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
@@ -140,8 +141,8 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
                                     security_token.data());
   auto credentials_provider =
       std::make_shared<SimpleAWSCredentialsProvider>(std::move(credentials));
-  auto signer = AWSAuthV4Signer(std::move(credentials_provider), kServiceName,
-                                region.data());
+  auto signer = AWSAuthV4Signer(std::move(credentials_provider),
+                                kServiceName.data(), region.data());
 
   auto path_with_query = GetEscapedUriWithQuery(*http_request);
   if (!path_with_query.Successful()) {

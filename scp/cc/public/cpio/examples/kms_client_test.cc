@@ -41,8 +41,10 @@ using google::scp::cpio::KmsClientInterface;
 using google::scp::cpio::KmsClientOptions;
 using google::scp::cpio::LogOption;
 
-constexpr char kCiphertext[] = "test_ciphertext";
-constexpr char kKeyResourceName[] = "test_key_resource_name";
+namespace {
+constexpr std::string_view kCiphertext = "test_ciphertext";
+constexpr std::string_view kKeyResourceName = "test_key_resource_name";
+}  // namespace
 
 int main(int argc, char* argv[]) {
   CpioOptions cpio_options;

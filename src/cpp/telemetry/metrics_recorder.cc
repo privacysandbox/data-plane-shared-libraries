@@ -33,8 +33,7 @@ namespace {
 using opentelemetry::sdk::metrics::MeterSelector;
 
 // TODO(b/278899152): Get both library and schema versions updated in one place.
-constexpr char kSchema[] = "https://opentelemetry.io/schemas/1.20.0";
-constexpr size_t kSchemaLen = sizeof(kSchema) - 1;
+constexpr std::string_view kSchema = "https://opentelemetry.io/schemas/1.20.0";
 // The units below are nanoseconds.
 constexpr double kDefaultHistogramBuckets[] = {
     40'000,        80'000,      120'000,     160'000,       220'000,
@@ -162,8 +161,7 @@ class MetricsRecorderImpl : public MetricsRecorder {
     auto histogram_instrument_selector =
         std::make_unique<metric_sdk::InstrumentSelector>(
             metric_sdk::InstrumentType::kHistogram, name);
-    auto histogram_meter_selector =
-        GetMeterSelector(std::string({kSchema, kSchemaLen}));
+    auto histogram_meter_selector = GetMeterSelector(std::string{kSchema});
     auto histogram_aggregation_config =
         std::make_shared<metric_sdk::HistogramAggregationConfig>();
     histogram_aggregation_config->boundaries_ = bucket_boundaries;

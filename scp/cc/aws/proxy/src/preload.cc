@@ -343,7 +343,7 @@ int socks5_client_connect(int sockfd, const struct sockaddr* addr) {
   //     | 1  |  1  | X'00' |  1   | Variable |    2     |
   //     +----+-----+-------+------+----------+----------+
 
-  static const uint8_t expected_reply[] = {0x05, 0x00, 0x05, 0x00, 0x00};
+  static constexpr uint8_t kExpectedReply[] = {0x05, 0x00, 0x05, 0x00, 0x00};
   //                                        |     |     |     |     |
   //                                VER ----      |     |     |     |
   //                             METHOD ----------      |     |     |
@@ -354,13 +354,13 @@ int socks5_client_connect(int sockfd, const struct sockaddr* addr) {
   // Reuse buffer here. Recv 2 more bytes to reveal the ATYP byte, and
   // potentially the length byte if the bound address is a domain name (see
   // DST.ADDR definition from rfc1928).
-  constexpr auto kExpectedReplySize = sizeof(expected_reply) + 2;
+  constexpr auto kExpectedReplySize = sizeof(kExpectedReply) + 2;
   if (const ssize_t received = recv_all(sockfd, buffer, kExpectedReplySize, 0);
       received != kExpectedReplySize) {
     // Not enough data received. No way to proceed.
     return -1;
   }
-  if (memcmp(buffer, expected_reply, sizeof(expected_reply)) != 0) {
+  if (memcmp(buffer, kExpectedReply, sizeof(kExpectedReply)) != 0) {
     // Some error received. If there's a REP byte indicating errors, return the
     // REP byte inverted.
     if (buffer[3] != 0) {
@@ -369,8 +369,8 @@ int socks5_client_connect(int sockfd, const struct sockaddr* addr) {
       return -1;
     }
   }
-  uint8_t atyp = buffer[sizeof(expected_reply)];
-  uint8_t extra_byte = buffer[sizeof(expected_reply) + 1];
+  uint8_t atyp = buffer[sizeof(kExpectedReply)];
+  uint8_t extra_byte = buffer[sizeof(kExpectedReply) + 1];
   ssize_t to_receive = 0;
   if (atyp == 0x01) {
     // IPv4. 4-byte addr, 2-byte port, and we've already recv'd 1 byte extra.

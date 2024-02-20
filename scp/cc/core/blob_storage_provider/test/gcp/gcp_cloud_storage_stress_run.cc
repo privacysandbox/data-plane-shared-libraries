@@ -22,6 +22,7 @@
 #include "scp/cc/core/interface/blob_storage_provider_interface.h"
 
 namespace google::scp::core::test {
+namespace {
 
 using google::cloud::Options;
 using google::cloud::storage::BucketMetadata;
@@ -33,11 +34,11 @@ using google::scp::core::GetBlobResponse;
 using google::scp::core::blob_storage_provider::GcpCloudStorageClient;
 using google::scp::core::errors::GetErrorMessage;
 
-constexpr char kProject[] = "admcloud-coordinator1";
+constexpr std::string_view kProject = "admcloud-coordinator1";
 
-constexpr char kBucketName[] = "test-bucket";
+constexpr std::string_view kBucketName = "test-bucket";
 
-constexpr char kDefaultBlobName[] = "blob";
+constexpr std::string_view kDefaultBlobName = "blob";
 constexpr char kBlobByte = 'a';
 
 constexpr size_t kThreadCount = 5;
@@ -187,6 +188,7 @@ int WriteAndGetBlob(int64_t byte_count) {
   return return_status;
 }
 
+}  // namespace
 }  // namespace google::scp::core::test
 
 constexpr int64_t kBytesCount = 100, kKiloBytesCount = 1000,

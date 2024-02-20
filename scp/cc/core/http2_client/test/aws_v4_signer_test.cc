@@ -47,7 +47,7 @@ TEST(AwsV4SignerTest, BasicE2E) {
                                            "Host"};
   signer.SignRequest(request, headers_to_sign);
 
-  static const char expected_header_val[] =
+  static constexpr std::string_view kExpectedHeaderVal =
       "AWS4-HMAC-SHA256 "
       "Credential=OHMYGODALLCAPS4/20220608/us-west-1/execute-api/"
       "aws4_request, SignedHeaders=content-type;host;x-amz-date, "
@@ -55,7 +55,7 @@ TEST(AwsV4SignerTest, BasicE2E) {
       "239227327adbcecca71c595956134c6f3d3567c60e895a1c5c3c4980238b32cb";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_THAT(iter->second, StrEq(expected_header_val));
+  EXPECT_THAT(iter->second, StrEq(kExpectedHeaderVal));
 }
 
 TEST(AwsV4SignerTest, DelimitedHeadersToSign) {
@@ -74,7 +74,7 @@ TEST(AwsV4SignerTest, DelimitedHeadersToSign) {
   std::string headers_to_sign{"Content-Type, X-Amz-Date; Host"};
   signer.SignRequest(request, headers_to_sign);
 
-  static const char expected_header_val[] =
+  static constexpr std::string_view kExpectedHeaderVal =
       "AWS4-HMAC-SHA256 "
       "Credential=OHMYGODALLCAPS4/20220608/us-west-1/execute-api/"
       "aws4_request, SignedHeaders=content-type;host;x-amz-date, "
@@ -82,7 +82,7 @@ TEST(AwsV4SignerTest, DelimitedHeadersToSign) {
       "239227327adbcecca71c595956134c6f3d3567c60e895a1c5c3c4980238b32cb";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_THAT(iter->second, StrEq(expected_header_val));
+  EXPECT_THAT(iter->second, StrEq(kExpectedHeaderVal));
 }
 
 TEST(AwsV4SignerTest, IteratorHeadersToSign) {
@@ -101,7 +101,7 @@ TEST(AwsV4SignerTest, IteratorHeadersToSign) {
   static const char* headers_to_sign[] = {"Content-Type", "X-Amz-Date", "Host"};
   signer.SignRequest(request, headers_to_sign, headers_to_sign + 3);
 
-  static const char expected_header_val[] =
+  static constexpr std::string_view kExpectedHeaderVal =
       "AWS4-HMAC-SHA256 "
       "Credential=OHMYGODALLCAPS4/20220608/us-west-1/execute-api/"
       "aws4_request, SignedHeaders=content-type;host;x-amz-date, "
@@ -109,7 +109,7 @@ TEST(AwsV4SignerTest, IteratorHeadersToSign) {
       "239227327adbcecca71c595956134c6f3d3567c60e895a1c5c3c4980238b32cb";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_THAT(iter->second, StrEq(expected_header_val));
+  EXPECT_THAT(iter->second, StrEq(kExpectedHeaderVal));
 }
 
 TEST(AwsV4SignerTest, MissingHeader) {
@@ -181,7 +181,7 @@ TEST(AwsV4SignerTest, AutoGenerateHost) {
                                            "Host"};
   signer.SignRequest(request, headers_to_sign);
 
-  static const char expected_header_val[] =
+  static constexpr std::string_view kExpectedHeaderVal =
       "AWS4-HMAC-SHA256 "
       "Credential=OHMYGODALLCAPS4/20220608/us-west-1/execute-api/"
       "aws4_request, SignedHeaders=content-type;host;x-amz-date, "
@@ -189,7 +189,7 @@ TEST(AwsV4SignerTest, AutoGenerateHost) {
       "239227327adbcecca71c595956134c6f3d3567c60e895a1c5c3c4980238b32cb";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_THAT(iter->second, StrEq(expected_header_val));
+  EXPECT_THAT(iter->second, StrEq(kExpectedHeaderVal));
 }
 
 TEST(AwsV4SignerTest, WithBody) {
@@ -225,7 +225,7 @@ x-amz-date:20220608T103745Z
 content-type;host;x-amz-date
 426fc04f04bf8fdb5831dc37bbb6dcf70f63a37e05a68c6ea5f63e85ae579376)"));
 
-  static const char expected_header_val[] =
+  static constexpr std::string_view kExpectedHeaderVal =
       "AWS4-HMAC-SHA256 "
       "Credential=OHMYGODALLCAPS4/20220608/us-west-1/execute-api/"
       "aws4_request, SignedHeaders=content-type;host;x-amz-date, "
@@ -233,6 +233,6 @@ content-type;host;x-amz-date
       "2dea4ba14ba1cf625582ab7d5d03f249b5f0b69632436bc943864a360afccffa";
   auto iter = request.headers->find("Authorization");
   EXPECT_NE(iter, request.headers->end());
-  EXPECT_THAT(iter->second, StrEq(expected_header_val));
+  EXPECT_THAT(iter->second, StrEq(kExpectedHeaderVal));
 }
 }  // namespace google::scp::core

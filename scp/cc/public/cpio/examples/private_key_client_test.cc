@@ -39,12 +39,18 @@ using google::scp::cpio::PrivateKeyClientInterface;
 using google::scp::cpio::PrivateKeyClientOptions;
 using google::scp::cpio::PrivateKeyVendingEndpoint;
 
-constexpr char kPrivateKeyEndpoint1[] = "https://test.privatekey1.com";
-constexpr char kPrivateKeyEndpoint2[] = "https://test.privatekey2.com";
-constexpr char kIamRole1[] = "arn:aws:iam::1234:role/test_assume_role_1";
-constexpr char kIamRole2[] = "arn:aws:iam::1234:role/test_assume_role_2";
-constexpr char kServiceRegion[] = "us-east-1";
-constexpr char kKeyId1[] = "key-id";
+namespace {
+constexpr std::string_view kPrivateKeyEndpoint1 =
+    "https://test.privatekey1.com";
+constexpr std::string_view kPrivateKeyEndpoint2 =
+    "https://test.privatekey2.com";
+constexpr std::string_view kIamRole1 =
+    "arn:aws:iam::1234:role/test_assume_role_1";
+constexpr std::string_view kIamRole2 =
+    "arn:aws:iam::1234:role/test_assume_role_2";
+constexpr std::string_view kServiceRegion = "us-east-1";
+constexpr std::string_view kKeyId1 = "key-id";
+}  // namespace
 
 int main(int argc, char* argv[]) {
   CpioOptions cpio_options;

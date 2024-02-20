@@ -33,6 +33,9 @@
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
+namespace google::scp::cpio::client_providers::test {
+namespace {
+
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::private_key_service::v1::PrivateKey;
 using google::protobuf::util::TimeUtil;
@@ -58,19 +61,18 @@ using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using ::testing::StrEq;
 
-namespace {
-constexpr char kTestKeyId[] = "name_test";
-constexpr char kTestResourceName[] = "encryptionKeys/name_test";
-constexpr char kTestPublicKeysetHandle[] = "publicKeysetHandle";
-constexpr char kTestPublicKeyMaterial[] = "publicKeyMaterial";
+constexpr std::string_view kTestKeyId = "name_test";
+constexpr std::string_view kTestResourceName = "encryptionKeys/name_test";
+constexpr std::string_view kTestPublicKeysetHandle = "publicKeysetHandle";
+constexpr std::string_view kTestPublicKeyMaterial = "publicKeyMaterial";
 constexpr int kTestExpirationTime = 123456;
 constexpr int kTestCreationTime = 111111;
-constexpr char kTestPublicKeySignature[] = "publicKeySignature";
-constexpr char kTestKeyEncryptionKeyUriWithPrefix[] =
+constexpr std::string_view kTestPublicKeySignature = "publicKeySignature";
+constexpr std::string_view kTestKeyEncryptionKeyUriWithPrefix =
     "1234567890keyEncryptionKeyUri";
-constexpr char kTestKeyEncryptionKeyUri[] = "keyEncryptionKeyUri";
-constexpr char kTestKeyMaterial[] = "keyMaterial";
-constexpr char kSinglePartyKeyMaterialJson[] =
+constexpr std::string_view kTestKeyEncryptionKeyUri = "keyEncryptionKeyUri";
+constexpr std::string_view kTestKeyMaterial = "keyMaterial";
+constexpr std::string_view kSinglePartyKeyMaterialJson =
     R"(
     {
     "keysetInfo": {
@@ -85,9 +87,7 @@ constexpr char kSinglePartyKeyMaterialJson[] =
     "encryptedKeyset": "singlepartykey"
     }
     )";
-}  // namespace
 
-namespace google::scp::cpio::client_providers::test {
 std::shared_ptr<EncryptionKey> CreateEncryptionKeyBase() {
   auto encryption_key = std::make_shared<EncryptionKey>();
   encryption_key->key_id = std::make_shared<std::string>(kTestKeyId);
@@ -577,4 +577,5 @@ TEST(PrivateKeyClientUtilsTest, ExtractSinglePartyKeyReturnKey) {
       PrivateKeyClientUtils::ExtractSinglePartyKey(keys_result_list, "key3")
           .has_value());
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

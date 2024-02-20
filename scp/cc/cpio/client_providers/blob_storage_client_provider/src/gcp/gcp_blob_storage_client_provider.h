@@ -283,7 +283,7 @@ class GcpBlobStorageClientProvider : public BlobStorageClientProviderInterface {
   core::AsyncExecutorInterface* cpu_async_executor_;
   core::AsyncExecutorInterface* io_async_executor_;
 
-  static constexpr char kGcpBlobStorageClientProvider[] =
+  static constexpr std::string_view kGcpBlobStorageClientProvider =
       "GcpBlobStorageClientProvider";
 };
 }  // namespace google::scp::cpio::client_providers

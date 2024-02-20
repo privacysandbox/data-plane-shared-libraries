@@ -56,8 +56,8 @@ using google::scp::cpio::LogOption;
 using google::scp::cpio::client_providers::GlobalCpio;
 
 namespace {
-constexpr char kBucketName[] = "blob-storage-service-test-bucket";
-constexpr char kBlobName[] = "some_blob_name";
+constexpr std::string_view kBucketName = "blob-storage-service-test-bucket";
+constexpr std::string_view kBlobName = "some_blob_name";
 }  // namespace
 
 int main(int argc, char* argv[]) {

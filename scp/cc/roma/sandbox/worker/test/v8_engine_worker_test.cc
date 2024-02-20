@@ -46,7 +46,8 @@ using ::testing::IsEmpty;
 using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::worker::test {
-static const std::vector<uint8_t> kWasmBin = {
+namespace {
+constexpr std::array<uint8_t, 41> kWasmBin = {
     0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x07, 0x01,
     0x60, 0x02, 0x7f, 0x7f, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07,
     0x07, 0x01, 0x03, 0x61, 0x64, 0x64, 0x00, 0x00, 0x0a, 0x09, 0x01,
@@ -351,7 +352,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
       {kWasmCodeArrayName, "addModule"},
   };
 
-  auto wasm = absl::Span<const uint8_t>(kWasmBin);
+  auto wasm = absl::MakeConstSpan(kWasmBin);
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
 
   ASSERT_TRUE(response_or.ok());
@@ -380,7 +381,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
       {kWasmCodeArrayName, "addModule"},
   };
 
-  auto wasm = absl::Span<const uint8_t>(kWasmBin);
+  auto wasm = absl::MakeConstSpan(kWasmBin);
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
   ASSERT_TRUE(response_or.ok());
   EXPECT_THAT(response_or->response, IsEmpty());
@@ -445,4 +446,5 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   EXPECT_THAT(response_or->response, StrEq("0"));
   worker.Stop();
 }
+}  // namespace
 }  // namespace google::scp::roma::sandbox::worker::test

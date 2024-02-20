@@ -32,6 +32,9 @@
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
+namespace google::scp::cpio::client_providers::test {
+namespace {
+
 using Aws::InitAPI;
 using Aws::SDKOptions;
 using Aws::ShutdownAPI;
@@ -56,14 +59,11 @@ using google::scp::core::test::ResultIs;
 using google::scp::cpio::client_providers::AwsPrivateKeyFetcherProvider;
 using google::scp::cpio::client_providers::mock::MockRoleCredentialsProvider;
 
-namespace {
-constexpr char kAccountIdentity[] = "accountIdentity";
-constexpr char kRegion[] = "us-east-1";
-constexpr char kKeyId[] = "123";
-constexpr char kPrivateKeyBaseUri[] = "http://localhost.test:8000";
-}  // namespace
+constexpr std::string_view kAccountIdentity = "accountIdentity";
+constexpr std::string_view kRegion = "us-east-1";
+constexpr std::string_view kKeyId = "123";
+constexpr std::string_view kPrivateKeyBaseUri = "http://localhost.test:8000";
 
-namespace google::scp::cpio::client_providers::test {
 class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   AwsPrivateKeyFetcherProviderTest()
@@ -158,4 +158,5 @@ TEST_F(AwsPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
   condition.WaitForNotification();
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

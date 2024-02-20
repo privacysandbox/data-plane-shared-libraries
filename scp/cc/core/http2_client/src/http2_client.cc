@@ -22,7 +22,9 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::RetryStrategy;
 using google::scp::core::common::RetryStrategyType;
 
-constexpr char kHttpClient[] = "Http2Client";
+namespace {
+constexpr std::string_view kHttpClient = "Http2Client";
+}
 
 namespace google::scp::core {
 HttpClient::HttpClient(AsyncExecutorInterface* async_executor,

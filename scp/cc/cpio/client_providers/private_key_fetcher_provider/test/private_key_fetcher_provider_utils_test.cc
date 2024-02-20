@@ -27,6 +27,9 @@
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
+namespace google::scp::cpio::client_providers::test {
+namespace {
+
 using google::scp::core::BytesBuffer;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
@@ -60,12 +63,8 @@ using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
 
-namespace {
-constexpr char kKeyId[] = "123";
-constexpr char kPrivateKeyBaseUri[] = "http://localhost.test:8000";
-}  // namespace
-
-namespace google::scp::cpio::client_providers::test {
+constexpr std::string_view kKeyId = "123";
+constexpr std::string_view kPrivateKeyBaseUri = "http://localhost.test:8000";
 
 TEST(PrivateKeyFetchingClientUtilsTest, ParsePrivateKeySuccess) {
   std::string bytes_str = R"({
@@ -376,4 +375,5 @@ TEST(PrivateKeyFetchingClientUtilsTest, ExtractKeyId) {
               ResultIs(FailureExecutionResult(
                   SC_PRIVATE_KEY_CLIENT_PROVIDER_INVALID_RESOURCE_NAME)));
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

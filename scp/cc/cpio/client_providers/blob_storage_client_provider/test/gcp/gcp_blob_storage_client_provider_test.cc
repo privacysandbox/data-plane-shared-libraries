@@ -99,12 +99,12 @@ using testing::Pointwise;
 using testing::Return;
 
 namespace {
-constexpr char kProjectIdValueMock[] = "123456789";
-constexpr char kInstanceResourceName[] =
+constexpr std::string_view kProjectIdValueMock = "123456789";
+constexpr std::string_view kInstanceResourceName =
     R"(//compute.googleapis.com/projects/123456789/zones/us-central1-c/instances/987654321)";
-constexpr char kBucketName[] = "bucket";
-constexpr char kBlobName1[] = "blob_1";
-constexpr char kBlobName2[] = "blob_2";
+constexpr std::string_view kBucketName = "bucket";
+constexpr std::string_view kBlobName1 = "blob_1";
+constexpr std::string_view kBlobName2 = "blob_2";
 
 constexpr uint64_t kDefaultMaxPageSize = 1000;
 }  // namespace
@@ -849,7 +849,8 @@ TEST_F(GcpBlobStorageClientProviderTest, PutBlob) {
   std::string expected_md5_hash =
       google::cloud::storage::ComputeMD5Hash(bytes_str);
 
-  InsertObjectMediaRequest expected_request(kBucketName, kBlobName1, bytes_str);
+  InsertObjectMediaRequest expected_request(std::string{kBucketName},
+                                            std::string{kBlobName1}, bytes_str);
   expected_request.set_option(MD5HashValue(expected_md5_hash));
 
   EXPECT_CALL(*mock_client_,
@@ -884,7 +885,8 @@ TEST_F(GcpBlobStorageClientProviderTest, PutBlobPropagatesFailure) {
   std::string expected_md5_hash =
       google::cloud::storage::ComputeMD5Hash(bytes_str);
 
-  InsertObjectMediaRequest expected_request(kBucketName, kBlobName1, bytes_str);
+  InsertObjectMediaRequest expected_request(std::string{kBucketName},
+                                            std::string{kBlobName1}, bytes_str);
   expected_request.set_option(MD5HashValue(expected_md5_hash));
 
   EXPECT_CALL(*mock_client_,

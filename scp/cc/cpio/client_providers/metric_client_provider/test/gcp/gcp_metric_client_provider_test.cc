@@ -48,7 +48,6 @@ using google::cmrt::sdk::metric_service::v1::MetricUnit;
 using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
 using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
 using google::monitoring::v3::CreateTimeSeriesRequest;
-using google::protobuf::Timestamp;
 using google::protobuf::util::TimeUtil;
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
@@ -74,7 +73,7 @@ constexpr std::string_view kProjectIdValue = "123456789";
 constexpr std::string_view kInstanceIdValue = "987654321";
 constexpr std::string_view kInstanceZoneValue = "us-central1-c";
 
-constexpr char kInstanceResourceName[] =
+constexpr std::string_view kInstanceResourceName =
     R"(//compute.googleapis.com/projects/123456789/zones/us-central1-c/instances/987654321)";
 
 constexpr std::string_view kResourceType = "gce_instance";
@@ -86,10 +85,10 @@ class GcpMetricClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
     async_executor_mock_.schedule_for_mock =
-        [&](const core::AsyncOperation& work, Timestamp timestamp,
-            std::function<bool()>& cancellation_callback) {
-          return core::SuccessExecutionResult();
-        };
+        [](core::AsyncOperation work, Timestamp timestamp,
+           std::function<bool()>& cancellation_callback) -> ExecutionResult {
+      return core::SuccessExecutionResult();
+    };
 
     instance_client_provider_mock_.instance_resource_name =
         kInstanceResourceName;

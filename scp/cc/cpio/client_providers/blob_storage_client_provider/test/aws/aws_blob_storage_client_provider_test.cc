@@ -71,7 +71,7 @@ using ::testing::Return;
 using ::testing::StrEq;
 
 namespace {
-constexpr char kResourceNameMock[] =
+constexpr std::string_view kResourceNameMock =
     "arn:aws:ec2:us-east-1:123456789012:instance/i-0e9801d129EXAMPLE";
 }
 

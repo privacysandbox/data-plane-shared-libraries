@@ -58,35 +58,36 @@ using testing::Pointee;
 using testing::UnorderedElementsAre;
 
 namespace {
-constexpr char kTokenServerPath[] =
+constexpr std::string_view kTokenServerPath =
     "http://metadata.google.internal/computeMetadata/v1/instance/"
     "service-accounts/default/token";
-constexpr char kMetadataFlavorHeader[] = "Metadata-Flavor";
-constexpr char kMetadataFlavorHeaderValue[] = "Google";
-constexpr char kHttpResponseMock[] =
+constexpr std::string_view kMetadataFlavorHeader = "Metadata-Flavor";
+constexpr std::string_view kMetadataFlavorHeaderValue = "Google";
+constexpr std::string_view kHttpResponseMock =
     R"({
       "access_token":"b0Aaekm1IeizWZVKoBQQULOiiT_PDcQk",
       "expires_in":3599,
       "token_type":"Bearer"
     })";
-constexpr char kAccessTokenMock[] = "b0Aaekm1IeizWZVKoBQQULOiiT_PDcQk";
+constexpr std::string_view kAccessTokenMock =
+    "b0Aaekm1IeizWZVKoBQQULOiiT_PDcQk";
 constexpr std::chrono::seconds kTokenLifetime = std::chrono::seconds(3599);
 
-constexpr char kAuthorizationHeaderKey[] = "Authorization";
-constexpr char kBearerTokenPrefix[] = "Bearer ";
-constexpr char kHttpRequestUriForSigning[] = "www.test.com ";
+constexpr std::string_view kAuthorizationHeaderKey = "Authorization";
+constexpr std::string_view kBearerTokenPrefix = "Bearer ";
+constexpr std::string_view kHttpRequestUriForSigning = "www.test.com ";
 
-constexpr char kIdentityServerPath[] =
+constexpr std::string_view kIdentityServerPath =
     "http://metadata/computeMetadata/v1/instance/service-accounts/default/"
     "identity";
-constexpr char kAudience[] = "www.google.com";
+constexpr std::string_view kAudience = "www.google.com";
 constexpr std::chrono::seconds kTokenLifetimeForTargetAudience =
     std::chrono::seconds(3600);
 
 // eyJleHAiOjE2NzI3NjA3MDEsImlzcyI6Imlzc3VlciIsImF1ZCI6ImF1ZGllbmNlIiwic3ViIjoic3ViamVjdCIsImlhdCI6MTY3Mjc1NzEwMX0=
 // decodes to:
 // "{"exp":1672760701,"iss":"issuer","aud":"audience","sub":"subject","iat":1672757101}"
-constexpr char kBase64EncodedResponse[] =
+constexpr std::string_view kBase64EncodedResponse =
     "someheader."
     "eyJleHAiOjE2NzI3NjA3MDEsImlzcyI6Imlzc3VlciIsImF1ZCI6ImF1ZGllbmNlIiwic3ViIj"
     "oic3ViamVjdCIsImlhdCI6MTY3Mjc1NzEwMX0=.signature";

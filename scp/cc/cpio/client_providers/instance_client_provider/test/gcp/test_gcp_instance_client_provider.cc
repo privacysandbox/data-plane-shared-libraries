@@ -27,7 +27,7 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
 namespace {
-constexpr char kGcpResourceNameFormat[] =
+constexpr std::string_view kGcpResourceNameFormat =
     R"(//compute.googleapis.com/projects/$0/zones/$1/instances/$2)";
 }  // namespace
 

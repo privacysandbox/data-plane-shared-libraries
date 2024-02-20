@@ -83,9 +83,9 @@ using google::scp::cpio::common::CreateClientConfiguration;
 
 namespace {
 constexpr std::string_view kAwsQueueClientProvider = "AwsQueueClientProvider";
-static constexpr uint8_t kMaxNumberOfMessagesReceived = 1;
-static constexpr uint8_t kMaxWaitTimeSeconds = 0;
-static constexpr uint16_t kMaxVisibilityTimeoutSeconds = 600;
+constexpr uint8_t kMaxNumberOfMessagesReceived = 1;
+constexpr uint8_t kMaxWaitTimeSeconds = 0;
+constexpr uint16_t kMaxVisibilityTimeoutSeconds = 600;
 }  // namespace
 
 namespace google::scp::cpio::client_providers {

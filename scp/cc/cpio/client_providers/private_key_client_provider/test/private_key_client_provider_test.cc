@@ -39,6 +39,9 @@
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
 
+namespace google::scp::cpio::client_providers::test {
+namespace {
+
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;
 using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;
@@ -71,36 +74,36 @@ using testing::ElementsAre;
 using testing::Pointwise;
 using testing::UnorderedPointwise;
 
-namespace {
-constexpr char kTestAccountIdentity1[] = "Test1";
-constexpr char kTestAccountIdentity2[] = "Test2";
-constexpr char kTestAccountIdentity3[] = "Test3";
-constexpr char kTestGcpWipProvider1[] = "Wip1";
-constexpr char kTestGcpWipProvider2[] = "Wip2";
-constexpr char kTestGcpWipProvider3[] = "Wip3";
-constexpr char kTestEndpoint1[] = "endpoint1";
-constexpr char kTestEndpoint2[] = "endpoint2";
-constexpr char kTestEndpoint3[] = "endpoint3";
-const std::vector<std::string> kTestEndpoints = {kTestEndpoint1, kTestEndpoint2,
-                                                 kTestEndpoint3};
-constexpr char kTestRegion1[] = "region1";
-constexpr char kTestRegion2[] = "region2";
-constexpr char kTestRegion3[] = "region3";
+constexpr std::string_view kTestAccountIdentity1 = "Test1";
+constexpr std::string_view kTestAccountIdentity2 = "Test2";
+constexpr std::string_view kTestAccountIdentity3 = "Test3";
+constexpr std::string_view kTestGcpWipProvider1 = "Wip1";
+constexpr std::string_view kTestGcpWipProvider2 = "Wip2";
+constexpr std::string_view kTestGcpWipProvider3 = "Wip3";
+constexpr std::string_view kTestEndpoint1 = "endpoint1";
+constexpr std::string_view kTestEndpoint2 = "endpoint2";
+constexpr std::string_view kTestEndpoint3 = "endpoint3";
+const std::vector<std::string> kTestEndpoints{std::string{kTestEndpoint1},
+                                              std::string{kTestEndpoint2},
+                                              std::string{kTestEndpoint3}};
+constexpr std::string_view kTestRegion1 = "region1";
+constexpr std::string_view kTestRegion2 = "region2";
+constexpr std::string_view kTestRegion3 = "region3";
 const std::vector<std::string> kTestKeyIds = {"key_id_1", "key_id_2",
                                               "key_id_3"};
-constexpr char kTestKeyIdBad[] = "bad_key_id";
-constexpr char kTestResourceName[] = "encryptionKeys/key_id";
-constexpr char kTestPublicKeysetHandle[] = "publicKeysetHandle";
-constexpr char kTestPublicKeyMaterial[] = "publicKeyMaterial";
+constexpr std::string_view kTestKeyIdBad = "bad_key_id";
+constexpr std::string_view kTestResourceName = "encryptionKeys/key_id";
+constexpr std::string_view kTestPublicKeysetHandle = "publicKeysetHandle";
+constexpr std::string_view kTestPublicKeyMaterial = "publicKeyMaterial";
 constexpr int kTestExpirationTime = 123456;
 constexpr int kTestCreationTime = 111111;
-constexpr char kTestPublicKeySignature[] = "publicKeySignature";
-constexpr char kTestKeyEncryptionKeyUri[] = "keyEncryptionKeyUri";
+constexpr std::string_view kTestPublicKeySignature = "publicKeySignature";
+constexpr std::string_view kTestKeyEncryptionKeyUri = "keyEncryptionKeyUri";
 const std::vector<std::string> kTestKeyMaterials = {
     "key-material-1", "key-material-2", "key-material-3"};
-constexpr char kTestKeyMaterialBad[] = "bad-key-material";
-constexpr char kTestPrivateKey[] = "Test message";
-constexpr char kSinglePartyPrivateKeyJson[] =
+constexpr std::string_view kTestKeyMaterialBad = "bad-key-material";
+constexpr std::string_view kTestPrivateKey = "Test message";
+constexpr std::string_view kSinglePartyPrivateKeyJson =
     R"(
     {
     "keysetInfo": {
@@ -115,10 +118,8 @@ constexpr char kSinglePartyPrivateKeyJson[] =
     "encryptedKeyset": "AOeDD+K9avWgJPATpSkvxEVqMKG1QpWzpSgOWdaY3H8CdTuEjcRWSTwtUKNIzY62C5g4sdHiFRYbHAErW8fZB0rlAfZx6Al43G/exlWzk8CZcrqEX0r/VTFsTNdGb6zmTFqLGqmV54yqsryTazF92qILsPyNuFMxm4AfZ4hUDXmHSYZPOr9FUbYkfYeQQebeUL5GKV8dSInj4l9/xnAdyG92iVqhG5V7KxsymVAVnaj8bP7JPyM2xF1VEt8YtQemibrnBHhOtkZEzUdz88O1A4qHVYW1bb/6tCtfI4dxJrydYB3fTsdjOFYpTvhoFbQTVbSkF5IPbH8acu0Zr4UWpFKDDAlg5SMgVcsxjteBouO0zum7opp2ymN1pFllNuhIDTg0X7pp5AU+8p2wGrSVrkMEFVgWmifL+dFae6KQRvpFd9sCEz4pw7Kx6uqcVsREE8P2JgxLPctMMh021LGVE25+4fjC1vslYlCRCUziZPN8W3BP9xvORxj0y9IvChBmqBcKjT56M+5C26HXWK2U26ZR7OxLIdesLQ\u003d\u003d"
     }
     )";
-constexpr char kDecryptedSinglePartyKey[] = "singlepartytestkey";
-}  // namespace
+constexpr std::string_view kDecryptedSinglePartyKey = "singlepartytestkey";
 
-namespace google::scp::cpio::client_providers::test {
 static void GetPrivateKeyFetchingResponse(PrivateKeyFetchingResponse& response,
                                           int key_id_index, int uri_index,
                                           size_t splits_in_key_data = 3,
@@ -330,26 +331,26 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
 
   const absl::flat_hash_map<std::string, ExecutionResult>
       kMockSuccessKeyFetchingResultsForListByAge = {
-          {kTestEndpoint1, SuccessExecutionResult()},
-          {kTestEndpoint2, SuccessExecutionResult()},
-          {kTestEndpoint3, SuccessExecutionResult()},
+          {std::string{kTestEndpoint1}, SuccessExecutionResult()},
+          {std::string{kTestEndpoint2}, SuccessExecutionResult()},
+          {std::string{kTestEndpoint3}, SuccessExecutionResult()},
       };
 
   const absl::flat_hash_map<std::string,
                             absl::flat_hash_map<std::string, ExecutionResult>>
       kMockSuccessKeyFetchingResults = {
           {kTestKeyIds[0],
-           {{kTestEndpoint1, SuccessExecutionResult()},
-            {kTestEndpoint2, SuccessExecutionResult()},
-            {kTestEndpoint3, SuccessExecutionResult()}}},
+           {{std::string{kTestEndpoint1}, SuccessExecutionResult()},
+            {std::string{kTestEndpoint2}, SuccessExecutionResult()},
+            {std::string{kTestEndpoint3}, SuccessExecutionResult()}}},
           {kTestKeyIds[1],
-           {{kTestEndpoint1, SuccessExecutionResult()},
-            {kTestEndpoint2, SuccessExecutionResult()},
-            {kTestEndpoint3, SuccessExecutionResult()}}},
+           {{std::string{kTestEndpoint1}, SuccessExecutionResult()},
+            {std::string{kTestEndpoint2}, SuccessExecutionResult()},
+            {std::string{kTestEndpoint3}, SuccessExecutionResult()}}},
           {kTestKeyIds[2],
-           {{kTestEndpoint1, SuccessExecutionResult()},
-            {kTestEndpoint2, SuccessExecutionResult()},
-            {kTestEndpoint3, SuccessExecutionResult()}}},
+           {{std::string{kTestEndpoint1}, SuccessExecutionResult()},
+            {std::string{kTestEndpoint2}, SuccessExecutionResult()},
+            {std::string{kTestEndpoint3}, SuccessExecutionResult()}}},
       };
 
   const absl::flat_hash_map<
@@ -1057,4 +1058,5 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest, ListSinglePartyKeysFailure) {
   EXPECT_SUCCESS(result);
   response_count.WaitForNotification();
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

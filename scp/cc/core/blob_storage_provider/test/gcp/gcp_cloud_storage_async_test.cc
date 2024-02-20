@@ -81,27 +81,23 @@ using testing::IsNull;
 using testing::NotNull;
 using testing::Pointee;
 using testing::Pointwise;
-
 using CloudStatusCode = google::cloud::StatusCode;
 
-constexpr char kProject[] = "admcloud-coordinator1";
-
-constexpr char kBucketName[] = "test-bucket";
-
-constexpr char kDefaultBlobName[] = "blob";
-constexpr char kDefaultBlobValue[] = "default_value";
-
+constexpr std::string_view kProject = "admcloud-coordinator1";
+constexpr std::string_view kBucketName = "test-bucket";
+constexpr std::string_view kDefaultBlobName = "blob";
+constexpr std::string_view kDefaultBlobValue = "default_value";
 constexpr size_t kThreadCount = 5;
 constexpr size_t kQueueSize = 225;
 
 class GcpCloudStorageClientAsyncTests : public testing::Test {
  protected:
   static void SetUpTestSuite() {
-    client_ = new Client(Options{}.set<ProjectIdOption>(kProject));
+    client_ = new Client(Options{}.set<ProjectIdOption>(std::string{kProject}));
   }
 
   static void TearDownTestSuite() {
-    auto s = client_->DeleteBucket(kBucketName);
+    auto s = client_->DeleteBucket(std::string{kBucketName});
     EXPECT_TRUE(s.ok()) << s.message();
     delete client_;
   }
@@ -119,12 +115,14 @@ class GcpCloudStorageClientAsyncTests : public testing::Test {
             buckets_list.begin(), buckets_list.end(),
             [](const auto& bucket) { return bucket->name() == kBucketName; })) {
       auto bucket_metadata_or = client_->CreateBucket(
-          kBucketName, BucketMetadata().set_lifecycle(ExpireImmediately()));
+          std::string{kBucketName},
+          BucketMetadata().set_lifecycle(ExpireImmediately()));
       EXPECT_TRUE(bucket_metadata_or.ok());
     }
 
-    auto metadata_or =
-        client_->InsertObject(kBucketName, kDefaultBlobName, kDefaultBlobValue);
+    auto metadata_or = client_->InsertObject(std::string{kBucketName},
+                                             std::string{kDefaultBlobName},
+                                             std::string{kDefaultBlobValue});
     EXPECT_TRUE(metadata_or.ok()) << metadata_or.status().message();
   }
 
@@ -136,9 +134,11 @@ class GcpCloudStorageClientAsyncTests : public testing::Test {
       return;
     }
 
-    for (const auto& obj_metadata : client_->ListObjects(kBucketName)) {
+    for (const auto& obj_metadata :
+         client_->ListObjects(std::string{kBucketName})) {
       ASSERT_TRUE(obj_metadata.ok()) << obj_metadata.status().message();
-      auto status = client_->DeleteObject(kBucketName, obj_metadata->name());
+      auto status =
+          client_->DeleteObject(std::string{kBucketName}, obj_metadata->name());
       ASSERT_TRUE(status.ok()) << status.message();
     }
   }
@@ -256,7 +256,8 @@ TEST_F(GcpCloudStorageClientAsyncTests, ListBlobsTest) {
   // blob_1001...], they move to the first page right after "blob_10" in
   // lexicographical order.
   for (auto i = 1; i <= (kPageSize + kAdditionalBlobCount); i++) {
-    auto s = client_->InsertObject(kBucketName, absl::StrCat("blob_", i),
+    auto s = client_->InsertObject(std::string{kBucketName},
+                                   absl::StrCat("blob_", i),
                                    absl::StrCat("value_", i));
     ASSERT_TRUE(s.ok()) << s.status().message();
   }
@@ -360,8 +361,8 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimplePutTest) {
   put_blob_context.callback = [&finished, &new_blob_val](auto& context) {
     ASSERT_TRUE(context.result.Successful());
 
-    auto object_read_stream =
-        client_->ReadObject(kBucketName, kDefaultBlobName);
+    auto object_read_stream = client_->ReadObject(
+        std::string{kBucketName}, std::string{kDefaultBlobName});
     ASSERT_TRUE(object_read_stream && !object_read_stream.bad());
 
     BytesBuffer buffer(new_blob_val.size());
@@ -384,7 +385,7 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimpleDeleteTest) {
                         std::make_shared<std::string>(kDefaultBlobName)});
 
   delete_blob_context.callback = [&finished](auto) {
-    auto objects_reader = client_->ListObjects(kBucketName);
+    auto objects_reader = client_->ListObjects(std::string{kBucketName});
     ASSERT_EQ(objects_reader.begin(), objects_reader.end());
     finished.Notify();
   };

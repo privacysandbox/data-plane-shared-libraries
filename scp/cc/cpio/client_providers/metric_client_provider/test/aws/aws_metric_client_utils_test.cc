@@ -70,8 +70,8 @@ using ::testing::StrEq;
 namespace google::scp::cpio::client_providers::test {
 namespace {
 constexpr size_t kAwsMetricDatumSizeLimit = 1000;
-constexpr char kName[] = "test_name";
-constexpr char kValue[] = "12346";
+constexpr std::string_view kName = "test_name";
+constexpr std::string_view kValue = "12346";
 const MetricUnit kUnit = MetricUnit::METRIC_UNIT_COUNT;
 
 class AwsMetricClientUtilsTest : public ::testing::Test {

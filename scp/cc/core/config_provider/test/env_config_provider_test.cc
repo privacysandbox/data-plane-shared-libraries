@@ -47,36 +47,28 @@ TEST(EnvConfigProviderTest, GetConfigsHappyPath) {
   config.Init();
 
   std::string out_string;
-  char string_val[] = "key-for-string-value=10.10.10.20";
-  putenv(string_val);
+  putenv("key-for-string-value=10.10.10.20");
 
   bool out_bool;
-  char bool_val[] = "key-for-bool-value=true";
-  putenv(bool_val);
+  putenv("key-for-bool-value=true");
 
   size_t out_size_t;
-  char size_t_val[] = "key-for-sizet-value=5000";
-  putenv(size_t_val);
+  putenv("key-for-sizet-value=5000");
 
   int32_t out_int32_t;
-  char int32_t_val[] = "key-for-int32t-value=6000";
-  putenv(int32_t_val);
+  putenv("key-for-int32t-value=6000");
 
   std::list<std::string> out_string_list;
-  char string_list_val[] = "key-for-string-list=1,2";
-  putenv(string_list_val);
+  putenv("key-for-string-list=1,2");
 
   std::list<int32_t> out_int32_t_list;
-  char int32_t_list[] = "key-for-int32t-list=1,2";
-  putenv(int32_t_list);
+  putenv("key-for-int32t-list=1,2");
 
   std::list<size_t> out_size_t_list;
-  char size_t_list[] = "key-for-sizet-list=3,4";
-  putenv(size_t_list);
+  putenv("key-for-sizet-list=3,4");
 
   std::list<bool> out_bool_list;
-  char bool_list[] = "key-for-bool-list=true,false";
-  putenv(bool_list);
+  putenv("key-for-bool-list=true,false");
 
   // string
   EXPECT_SUCCESS(config.Get("key-for-string-value", out_string));
@@ -109,8 +101,7 @@ TEST(EnvConfigProviderTest, WhenSetToEmtpyValueGetStringValueShouldSucceed) {
   EnvConfigProvider config;
   config.Init();
 
-  char empty_set_val[] = "a-var-thats-empty=";
-  putenv(empty_set_val);
+  putenv("a-var-thats-empty=");
 
   std::string out_string;
   EXPECT_SUCCESS(config.Get("a-var-thats-empty", out_string));
@@ -121,8 +112,7 @@ TEST(EnvConfigProviderTest, WhenSetToEmptyValueGetNonStringValueShouldFail) {
   EnvConfigProvider config;
   config.Init();
 
-  char empty_set_val[] = "another-var-thats-empty=";
-  putenv(empty_set_val);
+  putenv("another-var-thats-empty=");
 
   int32_t out_int32;
   EXPECT_THAT(config.Get("another-var-thats-empty", out_int32),
@@ -144,8 +134,7 @@ TEST(EnvConfigProviderTest, GetInt32TFailsWhenValueIsNotInt32) {
   EnvConfigProvider config;
   config.Init();
 
-  char env_var[] = "non-int32-val=hello";
-  putenv(env_var);
+  putenv("non-int32-val=hello");
 
   int32_t out_val;
   EXPECT_THAT(config.Get("non-int32-val", out_val),
@@ -157,8 +146,7 @@ TEST(EnvConfigProviderTest, GetSizeTFailsWhenValueIsNotSizeT) {
   EnvConfigProvider config;
   config.Init();
 
-  char env_var[] = "non-size-t-val=hello";
-  putenv(env_var);
+  putenv("non-size-t-val=hello");
 
   size_t out_val;
   EXPECT_THAT(config.Get("non-size-t-val", out_val),
@@ -170,8 +158,7 @@ TEST(EnvConfigProviderTest, GetBoolFailsWhenValueIsNotBool) {
   EnvConfigProvider config;
   config.Init();
 
-  char env_var[] = "non-bool-val=hello";
-  putenv(env_var);
+  putenv("non-bool-val=hello");
 
   bool out_val;
   EXPECT_THAT(config.Get("non-bool-val", out_val),
@@ -193,8 +180,7 @@ TEST(EnvConfigProviderTest, GetStringListShouldHandleSingleItem) {
   EnvConfigProvider config;
   config.Init();
 
-  char env_var[] = "single-item-list=1";
-  putenv(env_var);
+  putenv("single-item-list=1");
 
   std::list<std::string> out_val;
   auto ret = config.Get("single-item-list", out_val);
@@ -208,8 +194,7 @@ TEST(EnvConfigProviderTest, GetInt32TListShouldFailWhenNotInt32TList) {
   EnvConfigProvider config;
   config.Init();
 
-  char env_var[] = "not-int32t-list=a,2,c";
-  putenv(env_var);
+  putenv("not-int32t-list=a,2,c");
 
   std::list<int32_t> out_val;
   auto ret = config.Get("not-int32t-list", out_val);
@@ -222,8 +207,7 @@ TEST(EnvConfigProviderTest, GetSizeTListShouldFailWhenNotSizeTList) {
   EnvConfigProvider config;
   config.Init();
 
-  char env_var[] = "not-sizet-list=a,2,c";
-  putenv(env_var);
+  putenv("not-sizet-list=a,2,c");
 
   std::list<size_t> out_val;
   auto ret = config.Get("not-sizet-list", out_val);
@@ -236,8 +220,7 @@ TEST(EnvConfigProviderTest, GetBoolListShouldFailWhenNotBoolList) {
   EnvConfigProvider config;
   config.Init();
 
-  char env_var[] = "not-bool-list=a,true,c";
-  putenv(env_var);
+  putenv("not-bool-list=a,true,c");
 
   std::list<bool> out_val;
   auto ret = config.Get("not-bool-list", out_val);

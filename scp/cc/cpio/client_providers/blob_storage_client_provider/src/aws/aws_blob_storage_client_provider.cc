@@ -117,7 +117,7 @@ using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 
 namespace {
 
-constexpr char kAwsS3Provider[] = "AwsBlobStorageClientProvider";
+constexpr std::string_view kAwsS3Provider = "AwsBlobStorageClientProvider";
 #ifndef TEST_CPIO
 constexpr size_t kMaxConcurrentConnections = 1000;
 #endif

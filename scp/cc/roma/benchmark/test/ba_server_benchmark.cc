@@ -39,16 +39,17 @@ using google::scp::roma::benchmark::FakeBaServer;
 
 constexpr std::string_view kVersionString = "v1";
 
-void LoadCodeBenchmark(std::string code, benchmark::State& state) {
+void LoadCodeBenchmark(std::string_view code, benchmark::State& state) {
   FakeBaServer server(Config{});
 
   // If the code is being padded with extra bytes then add a comment at the end
   // and fill it with extra zeroes.
   const int extra_padding_bytes = state.range(1);
+  std::string padded_code = std::string(code);
   if (extra_padding_bytes > 0) {
     std::string padding = " // ";
     padding += std::string('0', extra_padding_bytes);
-    code += padding;
+    padded_code += padding;
   }
 
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
@@ -56,24 +57,24 @@ void LoadCodeBenchmark(std::string code, benchmark::State& state) {
   const int number_of_loads = state.range(0);
   for (auto _ : state) {
     for (int i = 0; i < number_of_loads; ++i) {
-      server.LoadSync(kVersionString, code);
+      server.LoadSync(kVersionString, padded_code);
     }
   }
   state.SetItemsProcessed(number_of_loads);
   state.SetBytesProcessed(number_of_loads * code.length());
 }
 
-void ExecuteCodeBenchmark(std::string code, std::string handler_name,
+void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
                           benchmark::State& state) {
   FakeBaServer server(Config{});
-  server.LoadSync(kVersionString, code);
+  server.LoadSync(kVersionString, std::string{code});
 
   // The same request will be used multiple times: the batch will be full of
   // identical code to run.
   DispatchRequest request = {
       .id = "id",
       .version_string = std::string(kVersionString),
-      .handler_name = handler_name,
+      .handler_name = std::string{handler_name},
       // TODO(b/305957393): Right now no input is passed to these calls, add
       // this!
       // .input = { std::make_shared(my_input_value_one) },

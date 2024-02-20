@@ -40,7 +40,9 @@ using google::scp::cpio::PublicKeyClientFactory;
 using google::scp::cpio::PublicKeyClientInterface;
 using google::scp::cpio::PublicKeyClientOptions;
 
-constexpr char kPublicKeyEndpoint[] = "https://test.publickey.com";
+namespace {
+constexpr std::string_view kPublicKeyEndpoint = "https://test.publickey.com";
+}
 
 int main(int argc, char* argv[]) {
   CpioOptions cpio_options;

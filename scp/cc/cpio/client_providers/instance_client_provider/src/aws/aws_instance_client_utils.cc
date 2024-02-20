@@ -39,7 +39,7 @@ using google::scp::core::errors::
     SC_AWS_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME;
 
 namespace {
-constexpr char kAwsInstanceClientUtils[] = "AwsInstanceClientUtils";
+constexpr std::string_view kAwsInstanceClientUtils = "AwsInstanceClientUtils";
 
 // Aws resource name format:
 //     arn:partition:service:region:account-id:resource-id
@@ -49,7 +49,7 @@ constexpr char kAwsInstanceClientUtils[] = "AwsInstanceClientUtils";
 // For some resources, region and account-id can be empty.
 // For more information, refers to
 // https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
-constexpr char kResourceNameRegex[] =
+constexpr std::string_view kResourceNameRegex =
     R"(arn:(aws|aws-cn|aws-us-gov):[a-z0-9]+:([a-z0-9-]*):(\d*):(.*))";
 }  // namespace
 
@@ -105,7 +105,7 @@ AwsInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
 
 ExecutionResult AwsInstanceClientUtils::ValidateResourceNameFormat(
     std::string_view resource_name) noexcept {
-  static std::regex re(kResourceNameRegex);
+  static std::regex re(std::string{kResourceNameRegex});
   if (!std::regex_match(std::string{resource_name}, re)) {
     return FailureExecutionResult(
         SC_AWS_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME);

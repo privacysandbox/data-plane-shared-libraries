@@ -43,14 +43,14 @@ using testing::TestWithParam;
 using testing::UnorderedElementsAre;
 
 namespace {
-constexpr char kResourceNameMock[] =
+constexpr std::string_view kResourceNameMock =
     R"(//compute.googleapis.com/projects/123456789/zones/us-central1-c/instances/987654321)";
 
-constexpr char kInstanceIdMock[] = "987654321";
-constexpr char kZoneIdMock[] = "us-central1-c";
-constexpr char kProjectIdMock[] = "123456789";
+constexpr std::string_view kInstanceIdMock = "987654321";
+constexpr std::string_view kZoneIdMock = "us-central1-c";
+constexpr std::string_view kProjectIdMock = "123456789";
 
-constexpr char kResourceManagerUriFormat[] =
+constexpr std::string_view kResourceManagerUriFormat =
     "https://$0cloudresourcemanager.googleapis.com/v3/tagBindings";
 }  // namespace
 

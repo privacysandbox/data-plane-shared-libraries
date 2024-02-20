@@ -30,11 +30,11 @@
 namespace google::scp::roma::benchmark {
 namespace {
 
-constexpr char kCodeObjectId[] = "id";  // Unused but required.
+constexpr std::string_view kCodeObjectId = "id";  // Unused but required.
 constexpr absl::Duration kCodeUpdateTimeout = absl::Seconds(1);
 constexpr absl::Duration kExecuteCodeTimeout = absl::Seconds(10);
-constexpr char kInvocationRequestId[] = "id";  // Unused but required.
-constexpr char kVersionString[] = "v1";
+constexpr std::string_view kInvocationRequestId = "id";  // Unused but required.
+constexpr std::string_view kVersionString = "v1";
 
 }  // namespace
 
@@ -59,8 +59,8 @@ std::string FakeKvServer::ExecuteCode(const std::vector<std::string> keys) {
   std::shared_ptr<absl::Notification> notification =
       std::make_shared<absl::Notification>();
   InvocationStrRequest<> invocation_request = {
-      .id = kInvocationRequestId,
-      .version_string = kVersionString,
+      .id = std::string{kInvocationRequestId},
+      .version_string = std::string{kVersionString},
       .handler_name = handler_name_,
       .input = std::move(keys),
   };
@@ -89,8 +89,8 @@ void FakeKvServer::SetCodeObject(CodeConfig code_config) {
   std::shared_ptr<absl::Notification> notification =
       std::make_shared<absl::Notification>();
   CodeObject code_object = {
-      .id = kCodeObjectId,
-      .version_string = kVersionString,
+      .id = std::string{kCodeObjectId},
+      .version_string = std::string{kVersionString},
       .js = std::move(code_config.js),
       .wasm = std::move(code_config.wasm),
   };

@@ -40,13 +40,14 @@ using google::scp::core::errors::
     SC_GCP_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME;
 
 namespace {
-constexpr char kGcpInstanceClientUtils[] = "GcpInstanceClientUtils";
+constexpr std::string_view kGcpInstanceClientUtils = "GcpInstanceClientUtils";
 
 // Valid GCP instance resource name format:
 // `//compute.googleapis.com/projects/{PROJECT_ID}/zones/{ZONE_ID}/instances/{INSTANCE_ID}`
-constexpr char kInstanceResourceNameRegex[] =
+constexpr std::string_view kInstanceResourceNameRegex =
     R"(//compute.googleapis.com/projects\/([a-z0-9][a-z0-9-]{5,29})\/zones\/([a-z][a-z0-9-]{5,29})\/instances\/(\d+))";
-constexpr char kInstanceResourceNamePrefix[] = R"(//compute.googleapis.com/)";
+constexpr std::string_view kInstanceResourceNamePrefix =
+    R"(//compute.googleapis.com/)";
 
 // GCP listing all tags attached to a resource has two kinds of urls.
 // For non-location tied resource, like project, it is
@@ -55,11 +56,11 @@ constexpr char kInstanceResourceNamePrefix[] = R"(//compute.googleapis.com/)";
 // https://LOCATION-cloudresourcemanager.googleapis.com/v3/tagBindings
 // For more information, see:
 // https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing#listing_tags
-constexpr char kResourceManagerUriFormat[] =
+constexpr std::string_view kResourceManagerUriFormat =
     "https://$0cloudresourcemanager.googleapis.com/v3/tagBindings";
-constexpr char kLocationsTag[] = "locations";
-constexpr char kZonesTag[] = "zones";
-constexpr char kRegionsTag[] = "regions";
+constexpr std::string_view kLocationsTag = "locations";
+constexpr std::string_view kZonesTag = "zones";
+constexpr std::string_view kRegionsTag = "regions";
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
@@ -120,7 +121,7 @@ GcpInstanceClientUtils::ParseInstanceIdFromInstanceResourceName(
 
 ExecutionResult GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(
     std::string_view resource_name) noexcept {
-  std::regex re(kInstanceResourceNameRegex);
+  std::regex re(std::string{kInstanceResourceNameRegex});
   if (!std::regex_match(std::string{resource_name}, re)) {
     auto result = FailureExecutionResult(
         SC_GCP_INSTANCE_CLIENT_INVALID_INSTANCE_RESOURCE_NAME);
@@ -142,7 +143,7 @@ ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
                             resource_name.data());
 
   const std::string_view resource_id =
-      resource_name.substr(std::strlen(kInstanceResourceNamePrefix));
+      resource_name.substr(kInstanceResourceNamePrefix.length());
   // Splits `projects/project_abc1/zones/us-west1/instances/12345678987654321`
   // to { projects,project_abc1,zones,us-west1,instances,12345678987654321 }
   std::vector<std::string> splits = absl::StrSplit(resource_id, "/");

@@ -31,6 +31,9 @@
 #include "scp/cc/public/cpio/test/global_cpio/test_cpio_options.h"
 #include "scp/cc/public/cpio/test/global_cpio/test_lib_cpio.h"
 
+namespace google::scp::cpio::test {
+namespace {
+
 using google::cloud::Status;
 using google::cloud::StatusCode;
 using google::cloud::StatusOr;
@@ -64,15 +67,12 @@ using testing::ExplainMatchResult;
 using testing::NiceMock;
 using testing::Return;
 
-namespace {
-constexpr char kInstanceResourceName[] =
+constexpr std::string_view kInstanceResourceName =
     R"(//compute.googleapis.com/projects/123456789/zones/us-central1-c/instances/987654321)";
-constexpr char kParameterNameMock[] = "parameter-name-test";
-constexpr char kValueMock[] = "value";
-constexpr char kProjectIdValueMock[] = "123456789";
-}  // namespace
+constexpr std::string_view kParameterNameMock = "parameter-name-test";
+constexpr std::string_view kValueMock = "value";
+constexpr std::string_view kProjectIdValueMock = "123456789";
 
-namespace google::scp::cpio::test {
 class GcpParameterClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -261,4 +261,5 @@ TEST(GcpParameterClientProviderTestII, InitFailedToGetSMClient) {
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options));
 }
 
+}  // namespace
 }  // namespace google::scp::cpio::test

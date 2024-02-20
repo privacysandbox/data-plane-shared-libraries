@@ -63,22 +63,22 @@ using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 
 namespace {
-constexpr char kEncryptionKeyPrefix[] = "encryptionKeys/";
-constexpr char kEncryptionKeysLabel[] = "keys";
-constexpr char kResourceNameLabel[] = "name";
-constexpr char kEncryptionKeyType[] = "encryptionKeyType";
-constexpr char kMultiPartyEnum[] = "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT";
-constexpr char kSinglePartyEnum[] = "SINGLE_PARTY_HYBRID_KEY";
-constexpr char kPublicKeysetHandle[] = "publicKeysetHandle";
-constexpr char kPublicKeyMaterial[] = "publicKeyMaterial";
-constexpr char kExpirationTime[] = "expirationTime";
-constexpr char kCreationTime[] = "creationTime";
-constexpr char kKeyData[] = "keyData";
-constexpr char kPublicKeySignature[] = "publicKeySignature";
-constexpr char kKeyEncryptionKeyUri[] = "keyEncryptionKeyUri";
-constexpr char kKeyMaterial[] = "keyMaterial";
-constexpr char kListKeysByTimeUri[] = ":recent";
-constexpr char kMaxAgeSecondsQueryParameter[] = "maxAgeSeconds=";
+constexpr std::string_view kEncryptionKeyPrefix = "encryptionKeys/";
+constexpr std::string_view kEncryptionKeysLabel = "keys";
+constexpr std::string_view kResourceNameLabel = "name";
+constexpr std::string_view kEncryptionKeyType = "encryptionKeyType";
+constexpr std::string_view kMultiPartyEnum = "MULTI_PARTY_HYBRID_EVEN_KEYSPLIT";
+constexpr std::string_view kSinglePartyEnum = "SINGLE_PARTY_HYBRID_KEY";
+constexpr std::string_view kPublicKeysetHandle = "publicKeysetHandle";
+constexpr std::string_view kPublicKeyMaterial = "publicKeyMaterial";
+constexpr std::string_view kExpirationTime = "expirationTime";
+constexpr std::string_view kCreationTime = "creationTime";
+constexpr std::string_view kKeyData = "keyData";
+constexpr std::string_view kPublicKeySignature = "publicKeySignature";
+constexpr std::string_view kKeyEncryptionKeyUri = "keyEncryptionKeyUri";
+constexpr std::string_view kKeyMaterial = "keyMaterial";
+constexpr std::string_view kListKeysByTimeUri = ":recent";
+constexpr std::string_view kMaxAgeSecondsQueryParameter = "maxAgeSeconds=";
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
@@ -86,7 +86,7 @@ namespace google::scp::cpio::client_providers {
 ExecutionResultOr<std::string> PrivateKeyFetchingClientUtils::ExtractKeyId(
     std::string_view resource_name) noexcept {
   if (resource_name.find(kEncryptionKeyPrefix) == 0) {
-    return std::string{resource_name.substr(strlen(kEncryptionKeyPrefix))};
+    return std::string{resource_name.substr(kEncryptionKeyPrefix.length())};
   }
   return FailureExecutionResult(
       SC_PRIVATE_KEY_CLIENT_PROVIDER_INVALID_RESOURCE_NAME);
@@ -276,7 +276,7 @@ void PrivateKeyFetchingClientUtils::CreateHttpRequest(
   }
 
   http_request.path =
-      std::make_shared<Uri>(absl::StrCat(base_uri + kListKeysByTimeUri));
+      std::make_shared<Uri>(absl::StrCat(base_uri, kListKeysByTimeUri));
   http_request.query = std::make_shared<std::string>(
       absl::StrCat(kMaxAgeSecondsQueryParameter, request.max_age_seconds));
 }

@@ -66,7 +66,7 @@ using google::scp::cpio::client_providers::KeyData;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 
 namespace {
-constexpr char kPrivateKeyClientUtils[] = "PrivateKeyClientUtils";
+constexpr std::string_view kPrivateKeyClientUtils = "PrivateKeyClientUtils";
 // The keyUri returned from KeyVendingService contains prefix "gcp-kms://" or
 // "aws-kms://", and we need to remove it before sending for decryption.
 constexpr int kKeyArnPrefixSize = 10;

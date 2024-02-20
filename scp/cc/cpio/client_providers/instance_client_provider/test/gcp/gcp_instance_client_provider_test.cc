@@ -70,33 +70,33 @@ using ::testing::StrEq;
 using ::testing::UnorderedElementsAre;
 
 namespace {
-constexpr char kURIForProjectId[] =
+constexpr std::string_view kURIForProjectId =
     "http://metadata.google.internal/computeMetadata/v1/project/project-id";
-constexpr char kURIForInstanceId[] =
+constexpr std::string_view kURIForInstanceId =
     "http://metadata.google.internal/computeMetadata/v1/instance/id";
-constexpr char kURIForInstanceZone[] =
+constexpr std::string_view kURIForInstanceZone =
     "http://metadata.google.internal/computeMetadata/v1/instance/zone";
-constexpr char kMetadataFlavorHeaderKey[] = "Metadata-Flavor";
-constexpr char kMetadataFlavorHeaderValue[] = "Google";
-constexpr char kProjectIdResult[] = "123456";
-constexpr char kZoneResult[] = "projects/123456/zones/us-central1-c";
-constexpr char kInstanceIdResult[] = "1234567";
-constexpr char kInstanceResourceName[] =
+constexpr std::string_view kMetadataFlavorHeaderKey = "Metadata-Flavor";
+constexpr std::string_view kMetadataFlavorHeaderValue = "Google";
+constexpr std::string_view kProjectIdResult = "123456";
+constexpr std::string_view kZoneResult = "projects/123456/zones/us-central1-c";
+constexpr std::string_view kInstanceIdResult = "1234567";
+constexpr std::string_view kInstanceResourceName =
     R"(//compute.googleapis.com/projects/123456/zones/us-central1-c/instances/1234567)";
-constexpr char kResourceId[] =
+constexpr std::string_view kResourceId =
     "projects/123456/zones/us-central1-c/instances/1234567";
-constexpr char kZoneMock[] = "us-central1-c";
+constexpr std::string_view kZoneMock = "us-central1-c";
 
-constexpr char kGcpInstanceGetUrlPrefix[] =
+constexpr std::string_view kGcpInstanceGetUrlPrefix =
     "https://compute.googleapis.com/compute/v1/";
-constexpr char kSessionTokenMock[] = "session-token-test";
-constexpr char kAuthorizationHeaderKey[] = "Authorization";
-constexpr char kBearerTokenPrefix[] = "Bearer ";
+constexpr std::string_view kSessionTokenMock = "session-token-test";
+constexpr std::string_view kAuthorizationHeaderKey = "Authorization";
+constexpr std::string_view kBearerTokenPrefix = "Bearer ";
 
-constexpr char kResourceManagerUriFormat[] =
+constexpr std::string_view kResourceManagerUriFormat =
     "https://$0cloudresourcemanager.googleapis.com/v3/tagBindings";
-constexpr char kParentParameter[] = "parent=";
-constexpr char kPageSizeSetting[] = "pageSize=300";
+constexpr std::string_view kParentParameter = "parent=";
+constexpr std::string_view kPageSizeSetting = "pageSize=300";
 
 }  // namespace
 
@@ -137,9 +137,9 @@ class GcpInstanceClientProviderTest : public testing::Test {
 };
 
 TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
-  std::string project_id_result = kProjectIdResult;
-  std::string zone_result = kZoneResult;
-  std::string id_result = kInstanceIdResult;
+  std::string project_id_result{kProjectIdResult};
+  std::string zone_result{kZoneResult};
+  std::string id_result{kInstanceIdResult};
 
   EXPECT_CALL(http1_client_, PerformRequest)
       .Times(3)
@@ -199,9 +199,9 @@ TEST_F(GcpInstanceClientProviderTest,
 }
 
 TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
-  std::string project_id_result = kProjectIdResult;
-  std::string zone_result = kZoneResult;
-  std::string id_result = kInstanceIdResult;
+  std::string project_id_result{kProjectIdResult};
+  std::string zone_result{kZoneResult};
+  std::string id_result{kInstanceIdResult};
 
   EXPECT_CALL(http1_client_, PerformRequest)
       .Times(3)
@@ -249,7 +249,7 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
 
 TEST_F(GcpInstanceClientProviderTest,
        FailedToGetCurrentInstanceResourceNameOnlyGotOneResult) {
-  std::string id_result = kInstanceIdResult;
+  std::string id_result{kInstanceIdResult};
 
   EXPECT_CALL(http1_client_, PerformRequest)
       .Times(3)

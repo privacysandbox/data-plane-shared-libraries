@@ -40,9 +40,10 @@ using google::scp::core::errors::
     SC_GCP_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND;
 
 namespace {
-constexpr char kGcpPrivateKeyFetcherProvider[] = "GcpPrivateKeyFetcherProvider";
-constexpr char kAuthorizationHeaderKey[] = "Authorization";
-constexpr char kBearerTokenPrefix[] = "Bearer ";
+constexpr std::string_view kGcpPrivateKeyFetcherProvider =
+    "GcpPrivateKeyFetcherProvider";
+constexpr std::string_view kAuthorizationHeaderKey = "Authorization";
+constexpr std::string_view kBearerTokenPrefix = "Bearer ";
 }  // namespace
 
 namespace google::scp::cpio::client_providers {

@@ -33,6 +33,9 @@
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 
+namespace google::scp::cpio::client_providers::test {
+namespace {
+
 using google::scp::core::AsyncContext;
 using google::scp::core::Byte;
 using google::scp::core::BytesBuffer;
@@ -57,18 +60,16 @@ using testing::Return;
 using testing::SetArgPointee;
 using testing::UnorderedElementsAre;
 
-namespace {
-constexpr char kAccountIdentity[] = "accountIdentity";
-constexpr char kRegion[] = "us-east-1";
-constexpr char kKeyId[] = "123";
-constexpr char kPrivateKeyBaseUri[] = "http://localhost.test:8000";
-constexpr char kPrivateKeyCloudfunctionUri[] = "http://cloudfunction.test:8000";
-constexpr char kSessionTokenMock[] = "session-token-test";
-constexpr char kAuthorizationHeaderKey[] = "Authorization";
-constexpr char kBearerTokenPrefix[] = "Bearer ";
-}  // namespace
+constexpr std::string_view kAccountIdentity = "accountIdentity";
+constexpr std::string_view kRegion = "us-east-1";
+constexpr std::string_view kKeyId = "123";
+constexpr std::string_view kPrivateKeyBaseUri = "http://localhost.test:8000";
+constexpr std::string_view kPrivateKeyCloudfunctionUri =
+    "http://cloudfunction.test:8000";
+constexpr std::string_view kSessionTokenMock = "session-token-test";
+constexpr std::string_view kAuthorizationHeaderKey = "Authorization";
+constexpr std::string_view kBearerTokenPrefix = "Bearer ";
 
-namespace google::scp::cpio::client_providers::test {
 class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   GcpPrivateKeyFetcherProviderTest()
@@ -190,4 +191,5 @@ TEST_F(GcpPrivateKeyFetcherProviderTest, FailedToGetCredentials) {
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
   condition.WaitForNotification();
 }
+}  // namespace
 }  // namespace google::scp::cpio::client_providers::test

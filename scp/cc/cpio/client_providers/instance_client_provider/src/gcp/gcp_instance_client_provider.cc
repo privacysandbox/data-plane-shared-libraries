@@ -78,60 +78,62 @@ using google::scp::cpio::common::CpioUtils;
 using nlohmann::json;
 
 namespace {
-constexpr char kGcpInstanceClientProvider[] = "GcpInstanceClientProvider";
+constexpr std::string_view kGcpInstanceClientProvider =
+    "GcpInstanceClientProvider";
 
-constexpr char kURIForInstancePrivateIpv4Address[] =
+constexpr std::string_view kURIForInstancePrivateIpv4Address =
     "http://metadata.google.internal/computeMetadata/v1/instance/"
     "network-interfaces/0/ip";
-constexpr char kURIForInstanceId[] =
+constexpr std::string_view kURIForInstanceId =
     "http://metadata.google.internal/computeMetadata/v1/instance/id";
-constexpr char kURIForInstanceZone[] =
+constexpr std::string_view kURIForInstanceZone =
     "http://metadata.google.internal/computeMetadata/v1/instance/zone";
-constexpr char kURIForProjectId[] =
+constexpr std::string_view kURIForProjectId =
     "http://metadata.google.internal/computeMetadata/v1/project/project-id";
-constexpr char kMetadataFlavorHeaderKey[] = "Metadata-Flavor";
-constexpr char kMetadataFlavorHeaderValue[] = "Google";
+constexpr std::string_view kMetadataFlavorHeaderKey = "Metadata-Flavor";
+constexpr std::string_view kMetadataFlavorHeaderValue = "Google";
 
-constexpr char kGcpInstanceRNFormatString[] =
+constexpr std::string_view kGcpInstanceRNFormatString =
     "//compute.googleapis.com/projects/$0/zones/$1/instances/$2";
 
-constexpr char kInstanceResourceNamePrefix[] = "//compute.googleapis.com/";
-constexpr char kGcpInstanceGetUrlPrefix[] =
+constexpr std::string_view kInstanceResourceNamePrefix =
+    "//compute.googleapis.com/";
+constexpr std::string_view kGcpInstanceGetUrlPrefix =
     "https://compute.googleapis.com/compute/v1/";
-constexpr char kListInstancesFormatString[] =
+constexpr std::string_view kListInstancesFormatString =
     "https://compute.googleapis.com/compute/v1/projects/$0/aggregated/"
     "instances?filter=(labels.environment=$1)";
-constexpr char kQueryWithPageTokenFormatString[] = "&pageToken=$0";
-constexpr char kAuthorizationHeaderKey[] = "Authorization";
-constexpr char kBearerTokenPrefix[] = "Bearer ";
-constexpr char kInstanceDetailsJsonIdKey[] = "id";
-constexpr char kNetworkInterfacesKey[] = "networkInterfaces";
-constexpr char kPrivateIpKey[] = "networkIP";
-constexpr char kAccessConfigs[] = "accessConfigs";
-constexpr char kPublicIpKey[] = "natIP";
-constexpr char kInstanceLabelsKey[] = "labels";
+constexpr std::string_view kQueryWithPageTokenFormatString = "&pageToken=$0";
+constexpr std::string_view kAuthorizationHeaderKey = "Authorization";
+constexpr std::string_view kBearerTokenPrefix = "Bearer ";
+constexpr std::string_view kInstanceDetailsJsonIdKey = "id";
+constexpr std::string_view kNetworkInterfacesKey = "networkInterfaces";
+constexpr std::string_view kPrivateIpKey = "networkIP";
+constexpr std::string_view kAccessConfigs = "accessConfigs";
+constexpr std::string_view kPublicIpKey = "natIP";
+constexpr std::string_view kInstanceLabelsKey = "labels";
 
-constexpr char kParentParameter[] = "parent=";
+constexpr std::string_view kParentParameter = "parent=";
 
 // The server allows a maximum of 300 TagBindings to return.
 // For more information, see
 // https://cloud.google.com/resource-manager/reference/rest/v3/tagBindings/list
-constexpr char kPageSizeSetting[] = "pageSize=300";
-constexpr char kTagBindingNameKey[] = "name";
-constexpr char kTagBindingParentKey[] = "parent";
-constexpr char kTagBindingTagValueKey[] = "tagValue";
-constexpr char kTagBindingsListKey[] = "tagBindings";
-constexpr char kItmes[] = "items";
-constexpr char kInstances[] = "instances";
-constexpr char kNextPageToken[] = "nextPageToken";
+constexpr std::string_view kPageSizeSetting = "pageSize=300";
+constexpr std::string_view kTagBindingNameKey = "name";
+constexpr std::string_view kTagBindingParentKey = "parent";
+constexpr std::string_view kTagBindingTagValueKey = "tagValue";
+constexpr std::string_view kTagBindingsListKey = "tagBindings";
+constexpr std::string_view kItmes = "items";
+constexpr std::string_view kInstances = "instances";
+constexpr std::string_view kNextPageToken = "nextPageToken";
 
 // Returns a pair of iterators - one to the beginning, one to the end.
 const auto& GetRequiredFieldsForInstanceDetails() {
   static char const* components[2];
   using iterator_type = decltype(std::cbegin(components));
   static std::pair<iterator_type, iterator_type> iterator_pair = []() {
-    components[0] = kInstanceDetailsJsonIdKey;
-    components[1] = kNetworkInterfacesKey;
+    components[0] = kInstanceDetailsJsonIdKey.data();
+    components[1] = kNetworkInterfacesKey.data();
     return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
@@ -141,9 +143,9 @@ const auto& GetRequiredFieldsForResourceTags() {
   static char const* components[3];
   using iterator_type = decltype(std::cbegin(components));
   static std::pair<iterator_type, iterator_type> iterator_pair = []() {
-    components[0] = kTagBindingNameKey;
-    components[1] = kTagBindingParentKey;
-    components[2] = kTagBindingTagValueKey;
+    components[0] = kTagBindingNameKey.data();
+    components[1] = kTagBindingParentKey.data();
+    components[2] = kTagBindingTagValueKey.data();
     return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
@@ -588,7 +590,7 @@ void GcpInstanceClientProvider::OnGetSessionTokenForInstanceDetailsCallback(
 
   auto resource_id =
       get_instance_details_context.request->instance_resource_name().substr(
-          strlen(kInstanceResourceNamePrefix));
+          kInstanceResourceNamePrefix.length());
 
   auto uri = absl::StrCat(kGcpInstanceGetUrlPrefix, resource_id);
   auto signed_request = std::make_shared<HttpRequest>();

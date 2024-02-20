@@ -50,12 +50,13 @@ using testing::UnorderedElementsAre;
 
 namespace {
 
-constexpr char kTokenServerPath[] = "http://169.254.169.254/latest/api/token";
-constexpr char kTokenTtlInSecondHeader[] =
+constexpr std::string_view kTokenServerPath =
+    "http://169.254.169.254/latest/api/token";
+constexpr std::string_view kTokenTtlInSecondHeader =
     "X-aws-ec2-metadata-token-ttl-seconds";
 constexpr int kTokenTtlInSecondHeaderValue = 21600;
 
-constexpr char kHttpResponseMock[] =
+constexpr std::string_view kHttpResponseMock =
     "TEST_AQAEACXaJIGChRZqwNuG_2hCfQq73UOSCONaS-25g==";
 
 }  // namespace

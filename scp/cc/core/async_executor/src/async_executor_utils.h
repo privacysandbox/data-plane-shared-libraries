@@ -45,7 +45,7 @@ class AsyncExecutorUtils {
   }
 
  private:
-  static constexpr char kAsyncExecutorUtils[] = "AsyncExecutorUtils";
+  static constexpr std::string_view kAsyncExecutorUtils = "AsyncExecutorUtils";
 };
 
 }  // namespace google::scp::core

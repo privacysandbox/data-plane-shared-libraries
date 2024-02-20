@@ -28,7 +28,7 @@
 
 namespace google::scp::core::test {
 /// Default AWS region to create clients.
-constexpr char kDefaultRegion[] = "us-east-1";
+constexpr std::string_view kDefaultRegion = "us-east-1";
 
 std::shared_ptr<Aws::DynamoDB::DynamoDBClient> CreateDynamoDbClient(
     std::string_view endpoint, std::string_view region = kDefaultRegion);

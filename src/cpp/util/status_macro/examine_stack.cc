@@ -25,7 +25,7 @@ constexpr int kDefaultStackTraceDepth = 32;
 // The %p field width for printf() functions is two characters per byte,
 // and two extra for the leading "0x".
 constexpr int kPrintfPointerFieldWidth = 2 + 2 * sizeof(void*);
-constexpr char kStackTracePrefix[] = "    ";
+constexpr std::string_view kStackTracePrefix = "    ";
 void DebugWriteToString(const char* data, void* str) {
   reinterpret_cast<std::string*>(str)->append(data);
 }
@@ -65,7 +65,7 @@ void DumpStackTrace(int skip_count, DebugWriter* writerfn, void* arg,
   int depth = absl::GetStackTrace(stack, ABSL_ARRAYSIZE(stack), skip_count + 1);
   for (int i = 0; i < depth; i++) {
     DumpPCAndSymbol(writerfn, arg, stack[i],
-                    short_format ? "" : kStackTracePrefix, short_format);
+                    short_format ? "" : kStackTracePrefix.data(), short_format);
   }
 }
 std::string CurrentStackTrace(bool short_format) {

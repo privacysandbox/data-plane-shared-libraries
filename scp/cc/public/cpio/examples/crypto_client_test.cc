@@ -48,11 +48,12 @@ using google::scp::cpio::CryptoClientInterface;
 using google::scp::cpio::CryptoClientOptions;
 using google::scp::cpio::LogOption;
 
-constexpr char kPublicKey[] = "testpublickey==";
-constexpr char kPrivateKey[] = "testprivatekey=";
-constexpr char kSharedInfo[] = "shared_info";
-constexpr char kRequestPayload[] = "abcdefg";
-constexpr char kResponsePayload[] = "hijklmn";
+namespace {
+constexpr std::string_view kPublicKey = "testpublickey==";
+constexpr std::string_view kPrivateKey = "testprivatekey=";
+constexpr std::string_view kSharedInfo = "shared_info";
+constexpr std::string_view kRequestPayload = "abcdefg";
+constexpr std::string_view kResponsePayload = "hijklmn";
 
 std::unique_ptr<CryptoClientInterface> crypto_client;
 
@@ -137,6 +138,7 @@ void HpkeEncryptCallback(bool is_bidirectional, absl::Notification& finished,
               << std::endl;
   }
 }
+}  // namespace
 
 int main(int argc, char* argv[]) {
   bool is_bidirectional = false;

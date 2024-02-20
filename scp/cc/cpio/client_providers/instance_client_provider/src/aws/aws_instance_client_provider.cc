@@ -86,31 +86,32 @@ using google::scp::cpio::common::CreateClientConfiguration;
 using nlohmann::json;
 
 namespace {
-constexpr char kAwsInstanceClientProvider[] = "AwsInstanceClientProvider";
-constexpr char kAuthorizationHeaderKey[] = "X-aws-ec2-metadata-token";
+constexpr std::string_view kAwsInstanceClientProvider =
+    "AwsInstanceClientProvider";
+constexpr std::string_view kAuthorizationHeaderKey = "X-aws-ec2-metadata-token";
 constexpr size_t kMaxConcurrentConnections = 1000;
 // Resource ID tag name.
-constexpr char kResourceIdFilterName[] = "resource-id";
+constexpr std::string_view kResourceIdFilterName = "resource-id";
 // Use IMDSv2 to fetch current instance ID.
 // For more information, see
 // https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
-constexpr char kAwsInstanceDynamicDataUrl[] =
+constexpr std::string_view kAwsInstanceDynamicDataUrl =
     "http://169.254.169.254/latest/dynamic/instance-identity/document";
-constexpr char kAccountIdKey[] = "accountId";
-constexpr char kInstanceIdKey[] = "instanceId";
-constexpr char kRegionKey[] = "region";
-constexpr char kAwsInstanceResourceNameFormat[] =
+constexpr std::string_view kAccountIdKey = "accountId";
+constexpr std::string_view kInstanceIdKey = "instanceId";
+constexpr std::string_view kRegionKey = "region";
+constexpr std::string_view kAwsInstanceResourceNameFormat =
     "arn:aws:ec2:$0:$1:instance/$2";
-constexpr char kDefaultRegionCode[] = "us-east-1";
+constexpr std::string_view kDefaultRegionCode = "us-east-1";
 
 // Returns a pair of iterators - one to the beginning, one to the end.
 const auto& GetRequiredFieldsForInstanceDynamicData() {
   static char const* components[3];
   using iterator_type = decltype(std::cbegin(components));
   static std::pair<iterator_type, iterator_type> iterator_pair = []() {
-    components[0] = kAccountIdKey;
-    components[1] = kInstanceIdKey;
-    components[2] = kRegionKey;
+    components[0] = kAccountIdKey.data();
+    components[1] = kInstanceIdKey.data();
+    components[2] = kRegionKey.data();
     return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
@@ -472,7 +473,7 @@ ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
   DescribeTagsRequest request;
 
   Filter resource_name_filter;
-  resource_name_filter.SetName(kResourceIdFilterName);
+  resource_name_filter.SetName(std::string{kResourceIdFilterName});
   resource_name_filter.AddValues(details.resource_id);
   request.AddFilters(resource_name_filter);
 
