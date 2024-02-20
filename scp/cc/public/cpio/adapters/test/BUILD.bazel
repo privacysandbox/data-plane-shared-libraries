@@ -18,6 +18,7 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_test(
     name = "public_mocks_test",
+    size = "small",
     srcs =
         [
             "public_mocks_test.cc",

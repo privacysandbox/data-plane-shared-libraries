@@ -33,7 +33,6 @@ cc_test(
 cc_test(
     name = "aws_instance_client_utils_test",
     size = "small",
-    timeout = "long",
     srcs =
         ["aws_instance_client_utils_test.cc"],
     deps = [

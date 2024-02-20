@@ -28,7 +28,6 @@ filegroup(
 cc_test(
     name = "metric_client_test",
     size = "small",
-    timeout = "long",
     srcs = ["metric_client_test.cc"],
     deps = [
         "//scp/cc/core/interface:interface_lib",

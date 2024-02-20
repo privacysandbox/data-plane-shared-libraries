@@ -36,6 +36,7 @@ cc_test(
 
 cc_test(
     name = "curl_client_test",
+    size = "small",
     srcs =
         [
             "http1_curl_client_test.cc",

@@ -39,7 +39,7 @@ cc_library(
 
 cc_test(
     name = "buffer_size_test",
-    size = "medium",
+    size = "small",
     srcs = ["buffer_size_test.cc"],
     tags = [
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
@@ -56,7 +56,7 @@ cc_test(
 
 cc_test(
     name = "function_binding_test",
-    size = "medium",
+    size = "small",
     srcs = ["function_binding_test.cc"],
     tags = [
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
@@ -76,7 +76,7 @@ cc_test(
 
 cc_test(
     name = "metadata_test",
-    size = "large",
+    size = "small",
     srcs = ["metadata_test.cc"],
     tags = [
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
@@ -95,7 +95,7 @@ cc_test(
 
 cc_test(
     name = "sandboxed_service_test",
-    size = "large",
+    size = "small",
     srcs = ["sandboxed_service_test.cc"],
     tags = [
         "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.

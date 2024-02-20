@@ -53,7 +53,6 @@ cc_test(
 cc_test(
     name = "single_thread_priority_async_executor_test",
     size = "small",
-    timeout = "moderate",
     srcs = ["single_thread_priority_async_executor_test.cc"],
     flaky = True,
     deps = [

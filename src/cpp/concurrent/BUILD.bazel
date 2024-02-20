@@ -43,6 +43,7 @@ cc_library(
 
 cc_test(
     name = "event_engine_executor_test",
+    size = "small",
     srcs = ["event_engine_executor_test.cc"],
     deps = [
         ":executor",

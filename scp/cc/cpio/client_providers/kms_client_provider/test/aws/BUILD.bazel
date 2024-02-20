@@ -38,7 +38,6 @@ cc_binary(
 cc_test(
     name = "nontee_aws_kms_client_provider_test",
     size = "small",
-    timeout = "long",
     srcs = ["nontee_aws_kms_client_provider_test.cc"],
     deps = [
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
@@ -56,7 +55,6 @@ cc_test(
 cc_test(
     name = "tee_aws_kms_client_provider_test",
     size = "small",
-    timeout = "long",
     srcs = ["tee_aws_kms_client_provider_test.cc"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
@@ -74,7 +72,6 @@ cc_test(
 cc_test(
     name = "aws_kms_aead_test",
     size = "small",
-    timeout = "long",
     srcs =
         ["aws_kms_aead_test.cc"],
     deps = [

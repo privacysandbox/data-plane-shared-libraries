@@ -40,7 +40,6 @@ cc_test(
 cc_test(
     name = "http2_connection_test",
     size = "small",
-    timeout = "moderate",
     srcs = [
         "http2_connection_test.cc",
     ],
@@ -60,7 +59,6 @@ cc_test(
 cc_test(
     name = "http2_connection_pool_test",
     size = "small",
-    timeout = "moderate",
     srcs = [
         "http2_connection_pool_test.cc",
     ],

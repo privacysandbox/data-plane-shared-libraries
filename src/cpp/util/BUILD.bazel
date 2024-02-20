@@ -80,6 +80,7 @@ cc_test(
 
 cc_test(
     name = "protoutil_test",
+    size = "small",
     srcs = ["protoutil_test.cc"],
     deps = [
         ":protoutil",
@@ -103,6 +104,7 @@ cc_binary(
 
 cc_test(
     name = "rlimit_core_config_test",
+    size = "small",
     srcs = [
         "rlimit_core_config_test.cc",
     ],

@@ -18,6 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_test(
     name = "function_binding_v2_test",
+    size = "small",
     srcs = ["function_binding_v2_test.cc"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
@@ -30,6 +31,7 @@ cc_test(
 
 cc_test(
     name = "config_log_test",
+    size = "small",
     srcs = ["config_log_test.cc"],
     deps = [
         "//scp/cc/roma/config/src:roma_config_lib",
@@ -57,6 +59,7 @@ cc_test(
 
 cc_test(
     name = "type_converter_test",
+    size = "small",
     srcs = ["type_converter_test.cc"],
     deps = [
         "//scp/cc/core/interface:interface_lib",

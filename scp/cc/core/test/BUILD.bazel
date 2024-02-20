@@ -47,6 +47,7 @@ cc_test(
 
 cc_test(
     name = "type_def_test",
+    size = "small",
     srcs = ["type_def_test.cc"],
     deps = [
         "//scp/cc/core/interface:type_def_lib",

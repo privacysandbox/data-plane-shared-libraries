@@ -19,7 +19,6 @@ package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 cc_test(
     name = "public_key_client_test",
     size = "small",
-    timeout = "long",
     srcs = ["public_key_client_test.cc"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
