@@ -24,8 +24,6 @@ build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-
 build:cpp --per_file_copt=external/nitrokmscli_.*\.c@-Wno-int-conversion
 # Ignore false-positive "mutex 'mutex' is not held on every path through here"
 # caused by PS_ASSIGN_OR_RETURN used for fetching the mutex.
-build:cpp --per_file_copt=scp/cc/experimental/jrereyi/grpc/grpc_server_test.cc@-Wno-thread-safety-analysis
-build:cpp --per_file_copt=scp/cc/experimental/kevinbnaughton/roma_grpc/(invoke_roma|roma_grpc_server).cc@-Wno-thread-safety-analysis
 build:cpp --per_file_copt=scp/cc/roma/benchmark/src/(fake_ba_server|fake_kv_server|roma_benchmark).cc@-Wno-thread-safety-analysis
 build:cpp --per_file_copt=scp/cc/roma/benchmark/test/logging_benchmark.cc@-Wno-thread-safety-analysis
 build:cpp --per_file_copt=scp/cc/roma/logging/test/logging_test.cc@-Wno-thread-safety-analysis
