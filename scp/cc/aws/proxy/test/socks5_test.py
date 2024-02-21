@@ -44,6 +44,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     Python's threading sucks, we know. However here it is basically IO-bound
     processing, so we are fine.
     """
+
     pass
 
 
@@ -51,7 +52,7 @@ def Socks5Handshake(sock, ip, port):
     socks5_req_ipv4 = b"\x05\x01\x00\x05\x01\x00\x01"
     ipv4_addr = socket.inet_aton(ip)
     socks5_req_ipv4 = socks5_req_ipv4 + ipv4_addr
-    socks5_req_ipv4 = socks5_req_ipv4 + struct.pack('!H', port)
+    socks5_req_ipv4 = socks5_req_ipv4 + struct.pack("!H", port)
     sock.send(socks5_req_ipv4)
     # "Method selection reply" is 2 bytes.
     #    +----+--------+
@@ -60,7 +61,7 @@ def Socks5Handshake(sock, ip, port):
     #    | 1  |   1    |
     #    +----+--------+
     buf = sock.recv(2, socket.MSG_WAITALL)
-    if buf != b'\x05\x00':
+    if buf != b"\x05\x00":
         print("Bad method selection: ", buf)
         return False
     # Connection request reply is 10 bytes, in IPv4.
@@ -89,7 +90,7 @@ def VsockProxyClient(vsock_port, ip, ip_port):
     # Since many machines, including kokoro, do not support VSOCK loopback, we
     # use IP socket to to simulate VSOCK here
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(('localhost', vsock_port))
+        sock.connect(("localhost", vsock_port))
         if Socks5Handshake(sock, ip, ip_port) == False:
             print("SOCKS5 Handshake failed")
             return False
@@ -116,11 +117,12 @@ if __name__ == "__main__":
     # Since many machines, including kokoro, do not support VSOCK loopback, we
     # use IP socket to to simulate VSOCK here by setting "-t".
     proxy_proc = subprocess.Popen(
-        [proxy_path, "--use_vsock=0", "0"], stdout=subprocess.PIPE)
+        [proxy_path, "--use_vsock=0", "0"], stdout=subprocess.PIPE
+    )
     proxy_proc.stdout.readline()  # skip first line
     line = proxy_proc.stdout.readline().strip()
     line_prefix = "Running on TCP port "
-    proxy_port = int(line[len(line_prefix):])
+    proxy_port = int(line[len(line_prefix) :])
 
     ip, port = server.server_address
     # Start server threads
@@ -133,8 +135,7 @@ if __name__ == "__main__":
     num_threads = 100
     # Create 100 threads
     for i in range(num_threads):
-        th = threading.Thread(target=ClientThread,
-                              args=(success, proxy_port, ip, port))
+        th = threading.Thread(target=ClientThread, args=(success, proxy_port, ip, port))
         client_threads.append(th)
         th.start()
     # Wait for them to finish
@@ -143,7 +144,7 @@ if __name__ == "__main__":
     proxy_proc.kill()
     server.shutdown()
     # Check results
-    assert (len(success) == 100)
+    assert len(success) == 100
     for ret in success:
         if ret is False:
             sys.exit(1)
