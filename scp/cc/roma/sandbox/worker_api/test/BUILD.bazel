@@ -14,8 +14,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_test(
     name = "worker_api_sapi_test",
     size = "small",
