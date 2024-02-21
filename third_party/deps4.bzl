@@ -27,16 +27,6 @@ load("@rules_buf//gazelle/buf:repositories.bzl", "gazelle_buf_dependencies")
 load("//:deps.bzl", "buf_deps", "go_dependencies")
 
 def _go_deps():
-    maybe(
-        http_archive,
-        name = "com_github_mwitkow_go_proto_validators",
-        sha256 = "47bf066d07856000d0dd5324f820fea6b96dfe2c06779748296c07d2dcf0c29e",
-        strip_prefix = "go-proto-validators-875cb952c25c7ccadf261b169dba5fd0ced18a72",
-        urls = [
-            "https://github.com/mwitkow/go-proto-validators/archive/875cb952c25c7ccadf261b169dba5fd0ced18a72.zip",
-        ],
-    )
-
     # gazelle:repository_macro deps.bzl%go_dependencies
     go_dependencies()
 
