@@ -16,6 +16,7 @@
 
 #include "azure_kms_client_provider.h"
 
+#include <cstdlib>
 #include <utility>
 
 #include <nlohmann/json.hpp>
@@ -61,10 +62,9 @@ namespace google::scp::cpio::client_providers {
 
 static constexpr char kAzureKmsClientProvider[] = "AzureKmsClientProvider";
 
-// We need to take this value from a command line option (It already exists
-// somewhere).
-constexpr char kKMSUnwrapPath[] =
+constexpr char kDefaultKmsUnwrapPath[] =
     "https://127.0.0.1:8000/app/unwrapKey?fmt=tink";
+constexpr char kAzureKmsUnwrapUrlEnvVar[] = "AZURE_BA_PARAM_KMS_UNWRAP_URL";
 
 constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
@@ -139,7 +139,19 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   AsyncContext<HttpRequest, HttpResponse> http_context;
   http_context.request = std::make_shared<HttpRequest>();
 
-  http_context.request->path = std::make_shared<Uri>(kKMSUnwrapPath);
+  // For the first call, it tries to get the unwrap URL from environment
+  // variable. This is done here because Init() is not called by the shared code
+  // and it's a temporary workaround.
+  if (unwrap_url_.empty()) {
+    const char* value_from_env = std::getenv(kAzureKmsUnwrapUrlEnvVar);
+    if (value_from_env) {
+      unwrap_url_ = value_from_env;
+    } else {
+      unwrap_url_ = kDefaultKmsUnwrapPath;
+    }
+  }
+
+  http_context.request->path = std::make_shared<Uri>(unwrap_url_);
   http_context.request->method = HttpMethod::POST;
 
   // Get Attestation Report

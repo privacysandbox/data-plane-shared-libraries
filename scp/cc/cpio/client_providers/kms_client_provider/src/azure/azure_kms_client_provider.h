@@ -17,6 +17,7 @@
 #ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AZURE_AZURE_KMS_CLIENT_PROVIDER_H_
 #define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AZURE_AZURE_KMS_CLIENT_PROVIDER_H_
 
+#include <cstdlib>
 #include <memory>
 #include <string>
 
@@ -36,7 +37,9 @@ class AzureKmsClientProvider : public KmsClientProviderInterface {
   explicit AzureKmsClientProvider(
       const std::shared_ptr<core::HttpClientInterface>& http_client,
       const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider)
-      : http_client_(http_client), auth_token_provider_(auth_token_provider) {}
+      : http_client_(http_client),
+        auth_token_provider_(auth_token_provider),
+        unwrap_url_() {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -82,6 +85,8 @@ class AzureKmsClientProvider : public KmsClientProviderInterface {
   std::shared_ptr<core::HttpClientInterface> http_client_;
   // Auth token provider.
   std::shared_ptr<AuthTokenProviderInterface> auth_token_provider_;
+
+  std::string unwrap_url_;
 };
 }  // namespace google::scp::cpio::client_providers
 

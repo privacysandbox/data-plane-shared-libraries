@@ -57,10 +57,11 @@ constexpr char kMetadataHeaderValue[] = "true";
 
 // Local IDP for Managed Identity.
 // https://learn.microsoft.com/en-us/azure/container-instances/container-instances-managed-identity
-// TODO: update `resource` parameter
-constexpr char kTokenServerPath[] =
-    "http://localhost:3000/metadata/identity/oauth2/"
-    "token?api-version=2018-02-01";
+constexpr char kDefaultGetTokenUrl[] =
+    "http://169.254.169.254/metadata/identity/oauth2/"
+    "token?api-version=2018-02-01&resource=https%3A%2F%2Fprivacysandboxkms."
+    "azure.net";
+constexpr char kGetTokenUrlEnvVar[] = "AZURE_BA_PARAM_GET_TOKEN_URL";
 constexpr char kJsonAccessTokenKey[] = "access_token";
 constexpr char kJsonTokenExpiryKey[] = "expires_in";
 constexpr char kJsonTokenExtendedExpiryKey[] = "ext_expires_in";
@@ -84,7 +85,7 @@ const auto& GetRequiredJWTComponents() {
 namespace google::scp::cpio::client_providers {
 AzureAuthTokenProvider::AzureAuthTokenProvider(
     const std::shared_ptr<HttpClientInterface>& http_client)
-    : http_client_(http_client) {}
+    : http_client_(http_client), get_token_url_() {}
 
 ExecutionResult AzureAuthTokenProvider::Init() noexcept {
   if (!http_client_) {
@@ -93,6 +94,14 @@ ExecutionResult AzureAuthTokenProvider::Init() noexcept {
     SCP_ERROR(kAzureAuthTokenProvider, kZeroUuid, execution_result,
               "Http client cannot be nullptr.");
     return execution_result;
+  }
+
+  // Temporary workaround to configure the IDP URL.
+  const char* value_from_env = std::getenv(kGetTokenUrlEnvVar);
+  if (value_from_env) {
+    get_token_url_ = value_from_env;
+  } else {
+    get_token_url_ = kDefaultGetTokenUrl;
   }
 
   return SuccessExecutionResult();
@@ -115,7 +124,7 @@ ExecutionResult AzureAuthTokenProvider::GetSessionToken(
   http_context.request = std::make_shared<HttpRequest>();
 
   http_context.request->method = google::scp::core::HttpMethod::GET;
-  http_context.request->path = std::make_shared<Uri>(kTokenServerPath);
+  http_context.request->path = std::make_shared<Uri>(get_token_url_);
   http_context.request->headers = std::make_shared<HttpHeaders>();
   http_context.request->headers->insert(
       std::make_pair(kMetadataHeader, kMetadataHeaderValue));

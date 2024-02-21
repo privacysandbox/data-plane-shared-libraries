@@ -18,6 +18,7 @@
 #define CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_AZURE_AZURE_AUTH_TOKEN_PROVIDER_H_
 
 #include <memory>
+#include <string>
 #include <utility>
 
 #include "core/interface/async_executor_interface.h"
@@ -66,6 +67,7 @@ class AzureAuthTokenProvider : public AuthTokenProviderInterface {
 
   /// HttpClient for issuing HTTP actions.
   std::shared_ptr<core::HttpClientInterface> http_client_;
+  std::string get_token_url_;
 };
 }  // namespace google::scp::cpio::client_providers
 
