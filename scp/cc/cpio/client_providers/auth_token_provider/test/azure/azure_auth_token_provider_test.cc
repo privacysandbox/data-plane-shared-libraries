@@ -58,9 +58,10 @@ using testing::Pointee;
 using testing::UnorderedElementsAre;
 
 namespace {
-constexpr char kTokenServerPath[] =
-    "http://localhost:3000/metadata/identity/oauth2/"
-    "token?api-version=2018-02-01";
+constexpr char kDefaultGetTokenUrl[] =
+    "http://169.254.169.254/metadata/identity/oauth2/"
+    "token?api-version=2018-02-01&resource=https%3A%2F%2Fprivacysandboxkms."
+    "azure.net";
 constexpr char kMetadataHeader[] = "Metadata";
 constexpr char kMetadataHeaderValue[] = "true";
 constexpr int kTokenTtlInSecondHeaderValue = 1000;
@@ -75,7 +76,9 @@ class AzureAuthTokenProviderTest : public testing::TestWithParam<std::string> {
   AzureAuthTokenProviderTest()
       : http_client_(std::make_shared<MockCurlClient>()),
         authorizer_provider_(
-            std::make_unique<AzureAuthTokenProvider>(http_client_)) {}
+            std::make_unique<AzureAuthTokenProvider>(http_client_)) {
+    authorizer_provider_->Init();
+  }
 
   std::string GetResponseBody() { return GetParam(); }
 
@@ -91,7 +94,7 @@ TEST_F(AzureAuthTokenProviderTest,
   EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();
     EXPECT_EQ(http_context.request->method, HttpMethod::GET);
-    EXPECT_THAT(http_context.request->path, Pointee(Eq(kTokenServerPath)));
+    EXPECT_THAT(http_context.request->path, Pointee(Eq(kDefaultGetTokenUrl)));
     EXPECT_THAT(http_context.request->headers,
                 Pointee(UnorderedElementsAre(
                     Pair(kMetadataHeader, kMetadataHeaderValue))));
