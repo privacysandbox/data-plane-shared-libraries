@@ -25,9 +25,7 @@ import (
 	"strings"
 
 	pgdCmd "github.com/privacysandbox/data-plane-shared/src/roma/tools/api_plugin/cmd/cmd"
-	romaApi "github.com/privacysandbox/data-plane-shared/apis/roma/v1"
 	gendoc "github.com/pseudomuto/protoc-gen-doc"
-	"github.com/pseudomuto/protoc-gen-doc/extensions"
 	"github.com/pseudomuto/protokit"
 )
 
@@ -131,41 +129,6 @@ func extractTemplates() (err error) {
 		return
 	}
 	return
-}
-
-
-func init() {
-	// src/roma/tools/api_plugin/cmd.AddFunctions("squote_esc", squoteEscape)
-	extensions.SetTransformer(
-		"privacysandbox.apis.roma.app_api.v1.roma_svc_annotation",
-		func(payload interface{}) interface{} {
-			if obj, ok := payload.(*romaApi.RomaServiceAnnotation); ok {
-				return obj
-			} else {
-				return nil
-			}
-		},
-	)
-	extensions.SetTransformer(
-		"privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation",
-		func(payload interface{}) interface{} {
-			if obj, ok := payload.(*romaApi.RomaFunctionAnnotation); ok {
-				return obj
-			} else {
-				return nil
-			}
-		},
-	)
-	extensions.SetTransformer(
-		"privacysandbox.apis.roma.app_api.v1.roma_field_annotation",
-		func(payload interface{}) interface{} {
-			if obj, ok := payload.(*romaApi.RomaFieldAnnotation); ok {
-				return obj
-			} else {
-				return nil
-			}
-		},
-	)
 }
 
 // protoc-gen-doc is used to generate documentation from comments in your proto files.

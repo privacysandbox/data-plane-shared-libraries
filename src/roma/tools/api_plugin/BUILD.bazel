@@ -20,7 +20,10 @@ package(default_visibility = ["//visibility:private"])
 
 go_library(
     name = "app_api_plugin_lib",
-    srcs = ["roma_app_api_plugin.go"],
+    srcs = [
+        "app_api.go",
+        "protoc_template_plugin.go",
+    ],
     embedsrcs = glob(["tmpl/*"]),
     importpath = "github.com/privacysandbox/data-plane-shared/src/roma/tools/api_plugin/cmd",
     x_defs = {
