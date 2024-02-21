@@ -485,7 +485,6 @@ GcpPubSubStubFactory::CreateSubscriberStub(
       Subscriber::NewStub(GetPubSubChannel(options), StubOptions()));
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<QueueClientProviderInterface>
 QueueClientProviderFactory::Create(
     QueueClientOptions options,
@@ -496,5 +495,4 @@ QueueClientProviderFactory::Create(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

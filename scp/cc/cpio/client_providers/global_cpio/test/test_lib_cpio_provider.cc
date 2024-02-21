@@ -61,10 +61,4 @@ TestLibCpioProvider::CreateRoleCredentialsProvider(
   return std::make_unique<GcpRoleCredentialsProvider>();
 #endif
 }
-
-std::unique_ptr<CpioProviderInterface> CpioProviderFactory::Create(
-    CpioOptions options) {
-  return std::make_unique<TestLibCpioProvider>(
-      std::move(dynamic_cast<TestCpioOptions&>(options)));
-}
 }  // namespace google::scp::cpio::client_providers

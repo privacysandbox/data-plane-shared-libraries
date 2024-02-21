@@ -250,7 +250,6 @@ AutoScalingClientFactory::CreateAutoScalingClient(
   return std::make_unique<AutoScalingClient>(client_config);
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<AutoScalingClientProviderInterface>
 AutoScalingClientProviderFactory::Create(
     AutoScalingClientOptions options,
@@ -259,5 +258,4 @@ AutoScalingClientProviderFactory::Create(
   return std::make_unique<AwsAutoScalingClientProvider>(
       std::move(options), instance_client_provider, io_async_executor);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

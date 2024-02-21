@@ -34,9 +34,6 @@ cc_library(
         "test_lib_cpio.h",
         "//scp/cc/public/cpio/interface:cpio.h",
     ],
-    copts = [
-        "-DTEST_CPIO=1",
-    ],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/logger/src:logger_lib",

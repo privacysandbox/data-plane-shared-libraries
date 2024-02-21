@@ -43,25 +43,4 @@ ClientConfiguration TestAwsBlobStorageClientProvider::CreateClientConfiguration(
   return CreateTestClientConfiguration(*test_options_.s3_endpoint_override,
                                        std::string(region));
 }
-
-ExecutionResultOr<std::shared_ptr<S3Client>> AwsS3Factory::CreateClient(
-    ClientConfiguration client_config,
-    AsyncExecutorInterface* async_executor) noexcept {
-  // Should disable virtual host, otherwise, our path-style url will not work.
-  return std::make_unique<S3Client>(
-      std::move(client_config),
-      Aws::Client::AWSAuthV4Signer::PayloadSigningPolicy::Never,
-      /* use virtual host */ false);
-}
-
-std::unique_ptr<BlobStorageClientProviderInterface>
-BlobStorageClientProviderFactory::Create(
-    BlobStorageClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    AsyncExecutorInterface* cpu_async_executor,
-    AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<TestAwsBlobStorageClientProvider>(
-      std::move(dynamic_cast<TestAwsBlobStorageClientOptions&>(options)),
-      instance_client_provider, cpu_async_executor, io_async_executor);
-}
 }  // namespace google::scp::cpio::client_providers

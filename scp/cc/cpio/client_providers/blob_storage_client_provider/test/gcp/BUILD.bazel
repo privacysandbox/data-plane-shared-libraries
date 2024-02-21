@@ -69,9 +69,6 @@ cc_library(
     hdrs = [
         "test_gcp_blob_storage_client_provider.h",
     ],
-    copts = [
-        "-DTEST_CPIO=1",
-    ],
     deps = [
         "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",
         "//scp/cc/public/cpio/test/blob_storage_client:test_gcp_blob_storage_client_options",

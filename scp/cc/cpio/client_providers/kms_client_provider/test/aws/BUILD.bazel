@@ -111,9 +111,6 @@ cc_library(
         "test_aws_kms_client_provider.h",
         "//scp/cc/cpio/client_providers/interface:kms_client_provider_interface.h",
     ],
-    copts = [
-        "-DTEST_CPIO=1",
-    ],
     deps = [
         "//scp/cc/cpio/client_providers/kms_client_provider/src/aws:nontee_aws_kms_client_provider_lib",
         "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",

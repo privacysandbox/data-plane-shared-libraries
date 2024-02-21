@@ -40,14 +40,4 @@ void TestAwsMetricClientProvider::CreateClientConfiguration(
   client_config =
       CreateTestClientConfiguration(*cloud_watch_endpoint_override_, region);
 }
-
-std::unique_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
-    MetricClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    AsyncExecutorInterface* async_executor,
-    core::AsyncExecutorInterface* io_async_executor) {
-  return std::make_unique<TestAwsMetricClientProvider>(
-      std::move(dynamic_cast<TestAwsMetricClientOptions&>(options)),
-      instance_client_provider, async_executor, io_async_executor);
-}
 }  // namespace google::scp::cpio::client_providers

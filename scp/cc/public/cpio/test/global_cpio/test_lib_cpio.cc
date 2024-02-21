@@ -41,7 +41,7 @@ static ExecutionResult SetGlobalCpio(const TestCpioOptions& options) {
 }
 
 ExecutionResult TestLibCpio::InitCpio(TestCpioOptions options) {
-  auto execution_result = Cpio::InitCpio(options.ToCpioOptions());
+  auto execution_result = Cpio::InitCpio(options.ToCpioOptions(), false);
   if (!execution_result.Successful()) {
     return execution_result;
   }

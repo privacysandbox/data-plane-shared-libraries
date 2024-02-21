@@ -43,21 +43,19 @@ using google::scp::cpio::client_providers::GlobalCpio;
 
 namespace google::scp::cpio {
 
-#ifndef TEST_CPIO
 static ExecutionResult SetGlobalCpio(const CpioOptions& options) {
   cpio_ptr = CpioProviderFactory::Create(options);
   CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr));
   return SuccessExecutionResult();
 }
-#endif
 
-ExecutionResult Cpio::InitCpio(CpioOptions options) {
+ExecutionResult Cpio::InitCpio(CpioOptions options,
+                               bool should_set_global_cpio) {
   InitializeCpioLog(options.log_option);
-#ifdef TEST_CPIO
-  return SuccessExecutionResult();
-#else
+  if (!should_set_global_cpio) {
+    return SuccessExecutionResult();
+  }
   return SetGlobalCpio(options);
-#endif
 }
 
 ExecutionResult Cpio::ShutdownCpio(CpioOptions options) {

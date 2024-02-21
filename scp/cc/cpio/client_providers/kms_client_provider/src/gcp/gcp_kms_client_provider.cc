@@ -152,12 +152,10 @@ ExecutionResultOr<std::shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
   return std::move(*aead_result);
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
     KmsClientOptions options,
     RoleCredentialsProviderInterface* role_credentials_provider,
     AsyncExecutorInterface* io_async_executor) noexcept {
   return std::make_unique<GcpKmsClientProvider>();
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

@@ -33,14 +33,4 @@ ClientConfiguration TestAwsAutoScalingClientProvider::CreateClientConfiguration(
       *test_options_.auto_scaling_client_endpoint_override,
       std::string(region));
 }
-
-std::unique_ptr<AutoScalingClientProviderInterface>
-AutoScalingClientProviderFactory::Create(
-    AutoScalingClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* io_async_executor) {
-  return std::make_unique<TestAwsAutoScalingClientProvider>(
-      std::move(dynamic_cast<TestAwsAutoScalingClientOptions&>(options)),
-      instance_client_provider, io_async_executor);
-}
 }  // namespace google::scp::cpio::client_providers

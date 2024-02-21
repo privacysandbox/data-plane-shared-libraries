@@ -45,9 +45,6 @@ cc_library(
     hdrs = [
         "test_aws_private_key_fetcher_provider.h",
     ],
-    copts = [
-        "-DTEST_CPIO=1",
-    ],
     deps = [
         "//scp/cc/core/http2_client/src:http2_client_lib",
         "//scp/cc/cpio/client_providers/private_key_fetcher_provider/src/aws:aws_private_key_fetcher_provider_lib",

@@ -40,13 +40,4 @@ ClientConfiguration TestAwsKmsClientProvider::CreateClientConfiguration(
   return CreateTestClientConfiguration(*test_options_.kms_endpoint_override,
                                        std::string(region));
 }
-
-std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    KmsClientOptions options,
-    RoleCredentialsProviderInterface* role_credentials_provider,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<TestAwsKmsClientProvider>(
-      std::move(dynamic_cast<TestAwsKmsClientOptions&>(options)),
-      role_credentials_provider, io_async_executor);
-}
 }  // namespace google::scp::cpio::client_providers

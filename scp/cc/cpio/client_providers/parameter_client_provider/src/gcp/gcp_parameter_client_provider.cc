@@ -171,7 +171,6 @@ void GcpParameterClientProvider::AsyncGetParameterCallback(
                 *async_executor_);
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
     ParameterClientOptions options,
@@ -182,5 +181,4 @@ ParameterClientProviderFactory::Create(
       cpu_async_executor, io_async_executor, instance_client_provider,
       std::move(options));
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

@@ -118,9 +118,7 @@ using google::scp::cpio::client_providers::AwsInstanceClientUtils;
 namespace {
 
 constexpr std::string_view kAwsS3Provider = "AwsBlobStorageClientProvider";
-#ifndef TEST_CPIO
 constexpr size_t kMaxConcurrentConnections = 1000;
-#endif
 constexpr size_t kListBlobsMetadataMaxResults = 1000;
 constexpr size_t k64KbCount = 64 << 10;
 constexpr size_t kMinimumPartSize = 5 << 20;
@@ -1111,7 +1109,6 @@ void AwsBlobStorageClientProvider::OnDeleteObjectCallback(
                 *cpu_async_executor_, AsyncPriority::High);
 }
 
-#ifndef TEST_CPIO
 ExecutionResultOr<std::shared_ptr<S3Client>> AwsS3Factory::CreateClient(
     ClientConfiguration client_config,
     AsyncExecutorInterface* async_executor) noexcept {
@@ -1130,5 +1127,4 @@ BlobStorageClientProviderFactory::Create(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

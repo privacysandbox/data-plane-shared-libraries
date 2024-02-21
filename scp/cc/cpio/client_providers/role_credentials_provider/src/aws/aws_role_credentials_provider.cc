@@ -171,7 +171,6 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
   get_credentials_context.Finish(SuccessExecutionResult());
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<RoleCredentialsProviderInterface>
 RoleCredentialsProviderFactory::Create(
     RoleCredentialsProviderOptions options,
@@ -181,5 +180,4 @@ RoleCredentialsProviderFactory::Create(
   return std::make_unique<AwsRoleCredentialsProvider>(
       instance_client_provider, cpu_async_executor, io_async_executor);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

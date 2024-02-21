@@ -49,9 +49,6 @@ cc_library(
         "test_gcp_queue_client_provider.h",
         "//scp/cc/cpio/client_providers/interface:queue_client_provider_interface.h",
     ],
-    copts = [
-        "-DTEST_CPIO=1",
-    ],
     deps = [
         "//scp/cc/cpio/client_providers/queue_client_provider/src/gcp:gcp_queue_client_provider_lib",
     ],

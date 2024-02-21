@@ -108,7 +108,6 @@ void GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback(
   sign_request_context.Finish(SuccessExecutionResult());
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<PrivateKeyFetcherProviderInterface>
 PrivateKeyFetcherProviderFactory::Create(
     HttpClientInterface* http_client,
@@ -117,5 +116,4 @@ PrivateKeyFetcherProviderFactory::Create(
   return std::make_unique<GcpPrivateKeyFetcherProvider>(http_client,
                                                         auth_token_provider);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

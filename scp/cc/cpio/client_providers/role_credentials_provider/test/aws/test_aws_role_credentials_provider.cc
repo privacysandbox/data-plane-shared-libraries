@@ -38,15 +38,4 @@ ClientConfiguration TestAwsRoleCredentialsProvider::CreateClientConfiguration(
   return CreateTestClientConfiguration(*test_options_.sts_endpoint_override,
                                        std::string(region));
 }
-
-std::unique_ptr<RoleCredentialsProviderInterface>
-RoleCredentialsProviderFactory::Create(
-    RoleCredentialsProviderOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<TestAwsRoleCredentialsProvider>(
-      std::move(dynamic_cast<TestAwsRoleCredentialsProviderOptions&>(options)),
-      instance_client_provider, cpu_async_executor, io_async_executor);
-}
 }  // namespace google::scp::cpio::client_providers

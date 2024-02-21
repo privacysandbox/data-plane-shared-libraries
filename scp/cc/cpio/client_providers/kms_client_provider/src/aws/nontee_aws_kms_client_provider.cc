@@ -266,7 +266,6 @@ std::shared_ptr<KMSClient> NonteeAwsKmsClientProvider::GetKmsClient(
                                      CreateClientConfiguration(*kms_region));
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
     KmsClientOptions options,
     RoleCredentialsProviderInterface* role_credentials_provider,
@@ -274,5 +273,4 @@ std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
   return std::make_unique<NonteeAwsKmsClientProvider>(role_credentials_provider,
                                                       io_async_executor);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

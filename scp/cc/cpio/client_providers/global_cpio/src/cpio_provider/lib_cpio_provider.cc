@@ -435,10 +435,8 @@ const std::string& LibCpioProvider::GetRegion() noexcept {
   return cpio_options_.region;
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<CpioProviderInterface> CpioProviderFactory::Create(
     CpioOptions options) {
   return std::make_unique<LibCpioProvider>(std::move(options));
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

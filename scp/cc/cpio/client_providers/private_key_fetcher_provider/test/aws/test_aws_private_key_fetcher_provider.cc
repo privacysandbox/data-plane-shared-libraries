@@ -35,13 +35,4 @@ ExecutionResult SignHttpRequestUsingV4Signer(
     std::string_view security_token, std::string_view region) noexcept {
   return SuccessExecutionResult();
 }
-
-std::unique_ptr<PrivateKeyFetcherProviderInterface>
-PrivateKeyFetcherProviderFactory::Create(
-    HttpClientInterface* http_client,
-    RoleCredentialsProviderInterface* role_credentials_provider,
-    AuthTokenProviderInterface* auth_token_provider) {
-  return std::make_unique<TestAwsPrivateKeyFetcherProvider>(
-      http_client, role_credentials_provider);
-}
 }  // namespace google::scp::cpio::client_providers

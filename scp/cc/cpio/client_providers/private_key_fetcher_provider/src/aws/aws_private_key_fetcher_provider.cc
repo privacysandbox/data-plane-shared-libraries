@@ -170,7 +170,6 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
   return SuccessExecutionResult();
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<PrivateKeyFetcherProviderInterface>
 PrivateKeyFetcherProviderFactory::Create(
     HttpClientInterface* http_client,
@@ -179,5 +178,4 @@ PrivateKeyFetcherProviderFactory::Create(
   return std::make_unique<AwsPrivateKeyFetcherProvider>(
       http_client, role_credentials_provider);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

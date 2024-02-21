@@ -40,9 +40,6 @@ cc_library(
     hdrs = [
         "test_aws_auto_scaling_client_provider.h",
     ],
-    copts = [
-        "-DTEST_CPIO=1",
-    ],
     deps = [
         "//scp/cc/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_lib",
         "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",

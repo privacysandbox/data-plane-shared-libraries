@@ -46,15 +46,4 @@ Options TestGcpCloudStorageFactory::CreateClientOptions(
   }
   return client_options;
 }
-
-std::unique_ptr<BlobStorageClientProviderInterface>
-BlobStorageClientProviderFactory::Create(
-    BlobStorageClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    AsyncExecutorInterface* cpu_async_executor,
-    AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<GcpBlobStorageClientProvider>(
-      std::move(options), instance_client_provider, cpu_async_executor,
-      io_async_executor, std::make_unique<TestGcpCloudStorageFactory>());
-}
 }  // namespace google::scp::cpio::client_providers

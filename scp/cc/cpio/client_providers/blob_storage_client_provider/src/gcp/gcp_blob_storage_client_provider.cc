@@ -898,7 +898,6 @@ GcpCloudStorageFactory::CreateClient(BlobStorageClientOptions options,
       CreateClientOptions(std::move(options), project_id));
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<BlobStorageClientProviderInterface>
 BlobStorageClientProviderFactory::Create(
     BlobStorageClientOptions options,
@@ -909,5 +908,4 @@ BlobStorageClientProviderFactory::Create(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

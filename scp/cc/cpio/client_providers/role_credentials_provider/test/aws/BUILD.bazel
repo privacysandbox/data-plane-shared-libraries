@@ -43,9 +43,6 @@ cc_library(
         "test_aws_role_credentials_provider.h",
         "//scp/cc/cpio/client_providers/interface:role_credentials_provider_interface.h",
     ],
-    copts = [
-        "-DTEST_CPIO=1",
-    ],
     deps = [
         "//scp/cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_lib",
         "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",

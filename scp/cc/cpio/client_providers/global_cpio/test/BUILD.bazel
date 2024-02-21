@@ -25,20 +25,17 @@ cc_library(
     hdrs = [
         "test_lib_cpio_provider.h",
     ],
-    copts =
-        select(
-            {
-                "//:aws_platform": [
-                    "-DAWS_TEST=1",
-                ],
-                "//:gcp_platform": [
-                    "-DGCP_TEST=1",
-                ],
-            },
-            no_match_error = "Please build for AWS or GCP",
-        ) + [
-            "-DTEST_CPIO=1",
-        ],
+    copts = select(
+        {
+            "//:aws_platform": [
+                "-DAWS_TEST=1",
+            ],
+            "//:gcp_platform": [
+                "-DGCP_TEST=1",
+            ],
+        },
+        no_match_error = "Please build for AWS or GCP",
+    ),
     deps =
         select(
             {

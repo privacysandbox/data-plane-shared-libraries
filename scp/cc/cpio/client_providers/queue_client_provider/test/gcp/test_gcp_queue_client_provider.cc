@@ -58,15 +58,4 @@ std::shared_ptr<Channel> TestGcpPubSubStubFactory::GetPubSubChannel(
   }
   return channel_;
 }
-
-std::unique_ptr<QueueClientProviderInterface>
-QueueClientProviderFactory::Create(
-    QueueClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    AsyncExecutorInterface* cpu_async_executor,
-    AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<TestGcpQueueClientProvider>(
-      std::move(dynamic_cast<TestGcpQueueClientOptions&>(options)),
-      instance_client_provider, cpu_async_executor, io_async_executor);
-}
 }  // namespace google::scp::cpio::client_providers

@@ -244,7 +244,6 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
   return;
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
     MetricClientOptions options,
     InstanceClientProviderInterface* instance_client_provider,
@@ -254,5 +253,4 @@ std::unique_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
       std::move(options), instance_client_provider, async_executor,
       io_async_executor);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

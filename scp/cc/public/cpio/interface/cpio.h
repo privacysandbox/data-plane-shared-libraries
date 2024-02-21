@@ -43,7 +43,8 @@ class Cpio {
    * @param options global configurations.
    * @return core::ExecutionResult result of initializing CPIO.
    */
-  static core::ExecutionResult InitCpio(CpioOptions options);
+  static core::ExecutionResult InitCpio(CpioOptions options,
+                                        bool should_set_global_cpio = true);
 
   /**
    * @brief Shuts down global CPIO objects.

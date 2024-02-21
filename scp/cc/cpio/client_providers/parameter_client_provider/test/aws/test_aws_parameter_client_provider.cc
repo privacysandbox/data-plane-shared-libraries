@@ -38,15 +38,4 @@ ClientConfiguration TestAwsParameterClientProvider::CreateClientConfiguration(
   return CreateTestClientConfiguration(*test_options_.ssm_endpoint_override,
                                        region);
 }
-
-std::unique_ptr<ParameterClientProviderInterface>
-ParameterClientProviderFactory::Create(
-    ParameterClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) {
-  return std::make_unique<TestAwsParameterClientProvider>(
-      std::move(dynamic_cast<TestAwsParameterClientOptions&>(options)),
-      instance_client_provider, io_async_executor);
-}
 }  // namespace google::scp::cpio::client_providers

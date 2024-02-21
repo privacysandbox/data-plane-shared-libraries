@@ -151,7 +151,6 @@ std::unique_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
   return std::make_unique<SSMClient>(std::move(client_config));
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
     ParameterClientOptions options,
@@ -161,5 +160,4 @@ ParameterClientProviderFactory::Create(
   return std::make_unique<AwsParameterClientProvider>(
       std::move(options), instance_client_provider, io_async_executor);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers
