@@ -191,6 +191,11 @@ ExecutionResultOr<TaskExecutorType*> AsyncExecutor::PickTaskExecutor(
       errors::SC_ASYNC_EXECUTOR_INVALID_LOAD_BALANCING_TYPE);
 }
 
+std::pair<SingleThreadAsyncExecutor*, SingleThreadPriorityAsyncExecutor*>
+AsyncExecutor::GetExecutorForTesting(const std::thread::id& id) const {
+  return thread_id_to_executor_map_.at(id);
+}
+
 ExecutionResult AsyncExecutor::Schedule(AsyncOperation work,
                                         AsyncPriority priority) noexcept {
   return Schedule(std::move(work), priority,

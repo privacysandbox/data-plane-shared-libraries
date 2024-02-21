@@ -417,427 +417,296 @@ TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
   EXPECT_EQ(normal_count, kQueueCap);
 }
 
-// TODO(b/315999983): Remove this class.
-class AsyncExecutorAccessor : public AsyncExecutor {
- public:
-  explicit AsyncExecutorAccessor(size_t thread_count = 1)
-      : AsyncExecutor(thread_count, 1 /* queue cap */) {}
+template <typename TExecutor>
+void TestPickTaskExecutor(TaskExecutorPoolType pool_type,
+                          TaskLoadBalancingScheme scheme,
+                          const std::vector<int>& pick_times_list = {10}) {
+  AsyncExecutor executor(1, 1);
+  std::vector<std::unique_ptr<TExecutor>> task_executor_pool;
 
-  void TestPickTaskExecutorRoundRobinGlobalUrgentPool() {
-    int num_executors = 10;
-    std::vector<std::unique_ptr<SingleThreadPriorityAsyncExecutor>>
-        task_executor_pool;
-    for (int i = 0; i < num_executors; i++) {
-      task_executor_pool.push_back(
-          std::make_unique<SingleThreadPriorityAsyncExecutor>(
-              100 /* queue cap */));
-    }
-
-    // Run picking executors
-    absl::flat_hash_map<SingleThreadPriorityAsyncExecutor*, int>
-        task_executor_pool_picked_counts;
-    for (int i = 0; i < num_executors; i++) {
-      auto task_executor_or =
-          PickTaskExecutor(AsyncExecutorAffinitySetting::NonAffinitized,
-                           task_executor_pool, TaskExecutorPoolType::UrgentPool,
-                           TaskLoadBalancingScheme::RoundRobinGlobal);
-      ASSERT_SUCCESS(task_executor_or);
-      task_executor_pool_picked_counts[*task_executor_or] += 1;
-    }
-
-    // Verify the picked counts are 1 on all the executors
-    for (const auto& task_executor : task_executor_pool) {
-      EXPECT_EQ(task_executor_pool_picked_counts[task_executor.get()], 1);
-    }
+  int num_executors =
+      std::accumulate(pick_times_list.begin(), pick_times_list.end(), 0);
+  for (int i = 0; i < num_executors; i++) {
+    task_executor_pool.push_back(
+        std::make_unique<TExecutor>(100 /* queue cap */));
   }
 
-  void TestPickTaskExecutorRoundRobinGlobalNonUrgentPool() {
-    int num_executors = 10;
-    std::vector<std::unique_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
-    for (int i = 0; i < num_executors; i++) {
-      task_executor_pool.push_back(
-          std::make_unique<SingleThreadAsyncExecutor>(100 /* queue cap */));
-    }
+  // Run picking executors
+  absl::Mutex task_executor_pool_picked_counts_mu;
+  absl::flat_hash_map<TExecutor*, int> task_executor_pool_picked_counts;
 
-    // Run picking executors
-    absl::flat_hash_map<SingleThreadAsyncExecutor*, int>
-        task_executor_pool_picked_counts;
-    for (int i = 0; i < num_executors; i++) {
-      auto task_executor_or = PickTaskExecutor(
+  auto picking_function = [&](int pick_times) {
+    for (int i = 0; i < pick_times; i++) {
+      auto task_executor_or = executor.PickTaskExecutor(
           AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
-          TaskExecutorPoolType::NotUrgentPool,
-          TaskLoadBalancingScheme::RoundRobinGlobal);
+          pool_type, scheme);
       ASSERT_SUCCESS(task_executor_or);
+      absl::MutexLock l(&task_executor_pool_picked_counts_mu);
       task_executor_pool_picked_counts[*task_executor_or] += 1;
     }
+  };
 
-    // Verify the picked counts are 1 on all the executors
-    for (const auto& task_executor : task_executor_pool) {
-      EXPECT_EQ(task_executor_pool_picked_counts[task_executor.get()], 1);
-    }
+  std::vector<std::thread> threads;
+  threads.reserve(pick_times_list.size());
+  for (auto pick_times : pick_times_list) {
+    threads.emplace_back(picking_function, pick_times);
   }
 
-  void PickTaskExecutorRoundRobinThreadLocalUrgentPool() {
-    int num_executors = 10;
-    std::vector<std::unique_ptr<SingleThreadPriorityAsyncExecutor>>
-        task_executor_pool;
-    for (int i = 0; i < num_executors; i++) {
-      task_executor_pool.push_back(
-          std::make_unique<SingleThreadPriorityAsyncExecutor>(
-              100 /* queue cap */));
-    }
-
-    // Run picking executors
-    absl::flat_hash_map<SingleThreadPriorityAsyncExecutor*, int>
-        task_executor_pool_picked_counts;
-    for (int i = 0; i < num_executors; i++) {
-      auto task_executor_or =
-          PickTaskExecutor(AsyncExecutorAffinitySetting::NonAffinitized,
-                           task_executor_pool, TaskExecutorPoolType::UrgentPool,
-                           TaskLoadBalancingScheme::RoundRobinPerThread);
-      ASSERT_SUCCESS(task_executor_or);
-      task_executor_pool_picked_counts[*task_executor_or] += 1;
-    }
-
-    // Verify the picked counts are 1 on all the executors
-    for (const auto& task_executor : task_executor_pool) {
-      EXPECT_EQ(task_executor_pool_picked_counts[task_executor.get()], 1);
-    }
-
-    // A different thread picks round robin as well.
-    std::thread thread([&] {
-      for (int i = 0; i < num_executors; i++) {
-        auto task_executor_or = PickTaskExecutor(
-            AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
-            TaskExecutorPoolType::UrgentPool,
-            TaskLoadBalancingScheme::RoundRobinPerThread);
-        ASSERT_SUCCESS(task_executor_or);
-        task_executor_pool_picked_counts[*task_executor_or] += 1;
-      }
-
-      // Verify the picked counts are 2 on all the executors
-      for (const auto& task_executor : task_executor_pool) {
-        EXPECT_EQ(task_executor_pool_picked_counts[task_executor.get()], 2);
-      }
-    });
+  for (auto& thread : threads) {
     thread.join();
   }
 
-  void PickTaskExecutorRoundRobinThreadLocalNonUrgentPool() {
-    int num_executors = 10;
-    std::vector<std::unique_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
-    for (int i = 0; i < num_executors; i++) {
-      task_executor_pool.push_back(
-          std::make_unique<SingleThreadAsyncExecutor>(100 /* queue cap */));
+  bool atleast_one_executor_picked_twice = false;
+  bool is_thread_local_concurrent =
+      scheme == TaskLoadBalancingScheme::RoundRobinPerThread &&
+      pick_times_list.size() > 1;
+  size_t total_count = 0;
+  for (const auto& task_executor : task_executor_pool) {
+    if (is_thread_local_concurrent) {
+      if (task_executor_pool_picked_counts[task_executor.get()] >= 2) {
+        atleast_one_executor_picked_twice = true;
+      }
+    } else {
+      EXPECT_EQ(task_executor_pool_picked_counts[task_executor.get()], 1);
     }
+    total_count += task_executor_pool_picked_counts[task_executor.get()];
+  }
 
-    // Run picking executors
-    absl::flat_hash_map<SingleThreadAsyncExecutor*, int>
-        task_executor_pool_picked_counts;
+  ASSERT_TRUE(
+      !is_thread_local_concurrent ||
+      (is_thread_local_concurrent && atleast_one_executor_picked_twice));
+  ASSERT_EQ(total_count, num_executors);
+}
+
+TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinGlobalUrgentPool) {
+  TestPickTaskExecutor<SingleThreadPriorityAsyncExecutor>(
+      TaskExecutorPoolType::UrgentPool,
+      TaskLoadBalancingScheme::RoundRobinGlobal);
+}
+
+TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinGlobalNonUrgentPool) {
+  TestPickTaskExecutor<SingleThreadAsyncExecutor>(
+      TaskExecutorPoolType::NotUrgentPool,
+      TaskLoadBalancingScheme::RoundRobinGlobal);
+}
+
+TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinThreadLocalUrgentPool) {
+  AsyncExecutor executor(1, 1);
+  int num_executors = 10;
+  std::vector<std::unique_ptr<SingleThreadPriorityAsyncExecutor>>
+      task_executor_pool;
+  for (int i = 0; i < num_executors; i++) {
+    task_executor_pool.push_back(
+        std::make_unique<SingleThreadPriorityAsyncExecutor>(
+            100 /* queue cap */));
+  }
+
+  // Run picking executors
+  absl::flat_hash_map<SingleThreadPriorityAsyncExecutor*, int>
+      task_executor_pool_picked_counts;
+  for (int i = 0; i < num_executors; i++) {
+    auto task_executor_or = executor.PickTaskExecutor(
+        AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
+        TaskExecutorPoolType::UrgentPool,
+        TaskLoadBalancingScheme::RoundRobinPerThread);
+    ASSERT_SUCCESS(task_executor_or);
+    task_executor_pool_picked_counts[*task_executor_or] += 1;
+  }
+
+  // Verify the picked counts are 1 on all the executors
+  for (const auto& task_executor : task_executor_pool) {
+    EXPECT_EQ(task_executor_pool_picked_counts[task_executor.get()], 1);
+  }
+
+  // A different thread picks round robin as well.
+  std::thread thread([&] {
     for (int i = 0; i < num_executors; i++) {
-      auto task_executor_or = PickTaskExecutor(
+      auto task_executor_or = executor.PickTaskExecutor(
           AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
-          TaskExecutorPoolType::NotUrgentPool,
+          TaskExecutorPoolType::UrgentPool,
           TaskLoadBalancingScheme::RoundRobinPerThread);
       ASSERT_SUCCESS(task_executor_or);
       task_executor_pool_picked_counts[*task_executor_or] += 1;
     }
 
-    // Verify the picked counts are 1 on all the executors
+    // Verify the picked counts are 2 on all the executors
     for (const auto& task_executor : task_executor_pool) {
-      EXPECT_EQ(task_executor_pool_picked_counts[task_executor.get()], 1);
+      EXPECT_EQ(task_executor_pool_picked_counts[task_executor.get()], 2);
     }
-  }
-
-  void PickTaskExecutorRoundRobinThreadLocalConcurrent() {
-    int num_executors = 40;
-    std::vector<std::unique_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
-    for (int i = 0; i < num_executors; i++) {
-      task_executor_pool.push_back(
-          std::make_unique<SingleThreadAsyncExecutor>(100 /* queue cap */));
-    }
-
-    // Run picking executors
-    absl::Mutex task_executor_pool_picked_counts_mu;
-    absl::flat_hash_map<SingleThreadAsyncExecutor*, int>
-        task_executor_pool_picked_counts;
-
-    auto picking_function = [&](int pick_times) {
-      for (int i = 0; i < pick_times; i++) {
-        auto task_executor_or = PickTaskExecutor(
-            AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
-            TaskExecutorPoolType::NotUrgentPool,
-            TaskLoadBalancingScheme::RoundRobinPerThread);
-        ASSERT_SUCCESS(task_executor_or);
-        absl::MutexLock l(&task_executor_pool_picked_counts_mu);
-        task_executor_pool_picked_counts[*task_executor_or] += 1;
-      }
-    };
-
-    // 40 tasks for the 40 executors.
-    std::thread thread1(picking_function, 15);
-    std::thread thread2(picking_function, 4);
-    std::thread thread3(picking_function, 10);
-    std::thread thread4(picking_function, 11);
-
-    thread1.join();
-    thread2.join();
-    thread3.join();
-    thread4.join();
-
-    // Verify the picked counts are atleast 2 on one of the executors
-    // since tasks are picked w.r.t. thread local weak counters
-    bool atleast_one_executor_picked_twice = false;
-    size_t total_count = 0;
-    for (const auto& task_executor : task_executor_pool) {
-      if (task_executor_pool_picked_counts[task_executor.get()] >= 2) {
-        atleast_one_executor_picked_twice = true;
-      }
-      total_count += task_executor_pool_picked_counts[task_executor.get()];
-    }
-    ASSERT_EQ(atleast_one_executor_picked_twice, true);
-    ASSERT_EQ(total_count, 40);
-  }
-
-  void PickTaskExecutorRoundRobinGlobalConcurrent() {
-    int num_executors = 40;
-    std::vector<std::unique_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
-    for (int i = 0; i < num_executors; i++) {
-      task_executor_pool.push_back(
-          std::make_unique<SingleThreadAsyncExecutor>(100 /* queue cap */));
-    }
-
-    // Run picking executors
-    absl::Mutex task_executor_pool_picked_counts_mu;
-    absl::flat_hash_map<SingleThreadAsyncExecutor*, int>
-        task_executor_pool_picked_counts;
-
-    auto picking_function = [&](int pick_times) {
-      for (int i = 0; i < pick_times; i++) {
-        auto task_executor_or = PickTaskExecutor(
-            AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
-            TaskExecutorPoolType::NotUrgentPool,
-            TaskLoadBalancingScheme::RoundRobinGlobal);
-        ASSERT_SUCCESS(task_executor_or);
-        absl::MutexLock l(&task_executor_pool_picked_counts_mu);
-        task_executor_pool_picked_counts[*task_executor_or] += 1;
-      }
-    };
-
-    // 40 tasks for the 40 executors.
-    std::thread thread1(picking_function, 15);
-    std::thread thread2(picking_function, 4);
-    std::thread thread3(picking_function, 10);
-    std::thread thread4(picking_function, 11);
-
-    thread1.join();
-    thread2.join();
-    thread3.join();
-    thread4.join();
-
-    // Verify the picked counts are 1 on all the executors
-    // since threads pick w.r.t. global strong task count
-    size_t total_count = 0;
-    for (const auto& task_executor : task_executor_pool) {
-      EXPECT_EQ(task_executor_pool_picked_counts[task_executor.get()], 1);
-      total_count += task_executor_pool_picked_counts[task_executor.get()];
-    }
-    ASSERT_EQ(total_count, 40);
-  }
-
-  void TestPickRandomTaskExecutorWithAffinity() {
-    ASSERT_SUCCESS(Init());
-    ASSERT_SUCCESS(Run());
-    std::vector<std::unique_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
-    task_executor_pool.push_back(
-        std::make_unique<SingleThreadAsyncExecutor>(100 /* queue cap */));
-    auto& executor = task_executor_pool.back();
-    ASSERT_SUCCESS(executor->Init());
-    ASSERT_SUCCESS(executor->Run());
-    const auto expected_id = *executor->GetThreadId();
-    auto chosen_task_executor_or = PickTaskExecutor(
-        AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
-        task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
-        TaskLoadBalancingScheme::Random);
-
-    ASSERT_SUCCESS(chosen_task_executor_or);
-
-    // Picking an executor should result in a random executor being chosen.
-    EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
-                IsSuccessfulAndHolds(expected_id));
-    EXPECT_SUCCESS(executor->Stop());
-    EXPECT_SUCCESS(Stop());
-  }
-
-  void TestPickNonUrgentToNonUrgentTaskExecutorWithAffinity() {
-    ASSERT_SUCCESS(Init());
-    ASSERT_SUCCESS(Run());
-    // Scheduling another task with affinity should result in using the same
-    // thread.
-    absl::Notification done;
-    std::vector<std::unique_ptr<SingleThreadAsyncExecutor>>
-        task_executor_pool;  // unused.
-    // Schedule arbitrary work to be done. Using the chosen thread of this work,
-    // ensure that picking another executor with affinity chooses this same
-    // thread.
-    Schedule(
-        [this, &done, &task_executor_pool] {
-          auto chosen_task_executor_or = PickTaskExecutor(
-              AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
-              task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
-              TaskLoadBalancingScheme::Random);
-          ASSERT_SUCCESS(chosen_task_executor_or);
-          // Picking an executor should choose the executor owning the current
-          // thread.
-          EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
-                      IsSuccessfulAndHolds(std::this_thread::get_id()));
-          done.Notify();
-        },
-        AsyncPriority::Normal);
-    done.WaitForNotification();
-    EXPECT_SUCCESS(Stop());
-  }
-
-  void TestPickNonUrgentToUrgentTaskExecutorWithAffinity() {
-    ASSERT_SUCCESS(Init());
-    ASSERT_SUCCESS(Run());
-    // Scheduling another task with affinity should result in using the same
-    // thread.
-    absl::Notification done;
-    std::vector<std::unique_ptr<SingleThreadPriorityAsyncExecutor>>
-        task_executor_pool;  // unused.
-    // Schedule arbitrary work to be done. Using the chosen thread of this work,
-    // ensure that picking another executor with affinity chooses this same
-    // thread.
-    Schedule(
-        [this, &done, &task_executor_pool] {
-          auto chosen_task_executor_or = PickTaskExecutor(
-              AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
-              task_executor_pool, TaskExecutorPoolType::UrgentPool,
-              TaskLoadBalancingScheme::Random);
-          ASSERT_SUCCESS(chosen_task_executor_or);
-          // Lookup the corresponding threads in the map.
-          const auto& [normal_executor, urgent_executor] =
-              this->thread_id_to_executor_map_[std::this_thread::get_id()];
-          EXPECT_EQ(urgent_executor, *chosen_task_executor_or);
-          done.Notify();
-        },
-        AsyncPriority::Normal);
-    done.WaitForNotification();
-    EXPECT_SUCCESS(Stop());
-  }
-
-  void TestPickUrgentToUrgentTaskExecutorWithAffinity() {
-    ASSERT_SUCCESS(Init());
-    ASSERT_SUCCESS(Run());
-    // Scheduling another task with affinity should result in using the same
-    // thread.
-    absl::Notification done;
-    std::vector<std::unique_ptr<SingleThreadPriorityAsyncExecutor>>
-        task_executor_pool;  // unused.
-    // Schedule arbitrary work to be done. Using the chosen thread of this work,
-    // ensure that picking another executor with affinity chooses this same
-    // thread.
-    ScheduleFor(
-        [this, &done, &task_executor_pool] {
-          auto chosen_task_executor_or = PickTaskExecutor(
-              AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
-              task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
-              TaskLoadBalancingScheme::Random);
-          ASSERT_SUCCESS(chosen_task_executor_or);
-          // Picking an executor should choose the executor owning the current
-          // thread.
-          EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
-                      IsSuccessfulAndHolds(std::this_thread::get_id()));
-          done.Notify();
-        },
-        123456);
-    done.WaitForNotification();
-    EXPECT_SUCCESS(Stop());
-  }
-
-  void TestPickUrgentToNonUrgentTaskExecutorWithAffinity() {
-    ASSERT_SUCCESS(Init());
-    ASSERT_SUCCESS(Run());
-    // Scheduling another task with affinity should result in using the same
-    // thread.
-    absl::Notification done;
-    std::vector<std::unique_ptr<SingleThreadAsyncExecutor>>
-        task_executor_pool;  // unused.
-    // Schedule arbitrary work to be done. Using the chosen thread of this work,
-    // ensure that picking another executor with affinity chooses this same
-    // thread.
-    ScheduleFor(
-        [this, &done, &task_executor_pool] {
-          auto chosen_task_executor_or = PickTaskExecutor(
-              AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
-              task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
-              TaskLoadBalancingScheme::Random);
-          ASSERT_SUCCESS(chosen_task_executor_or);
-          // Lookup the corresponding threads in the map.
-          const auto& [normal_executor, urgent_executor] =
-              this->thread_id_to_executor_map_[std::this_thread::get_id()];
-          EXPECT_EQ(normal_executor, *chosen_task_executor_or);
-          done.Notify();
-        },
-        123456);
-    done.WaitForNotification();
-    EXPECT_SUCCESS(Stop());
-  }
-};
-
-TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinGlobalUrgentPool) {
-  AsyncExecutorAccessor().TestPickTaskExecutorRoundRobinGlobalUrgentPool();
-}
-
-TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinGlobalNonUrgentPool) {
-  AsyncExecutorAccessor().TestPickTaskExecutorRoundRobinGlobalNonUrgentPool();
-}
-
-TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinThreadLocalUrgentPool) {
-  AsyncExecutorAccessor().PickTaskExecutorRoundRobinThreadLocalUrgentPool();
+  });
+  thread.join();
 }
 
 TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinThreadLocalNonUrgentPool) {
-  AsyncExecutorAccessor().PickTaskExecutorRoundRobinThreadLocalNonUrgentPool();
+  TestPickTaskExecutor<SingleThreadAsyncExecutor>(
+      TaskExecutorPoolType::NotUrgentPool,
+      TaskLoadBalancingScheme::RoundRobinPerThread);
 }
 
 TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinThreadLocalConcurrent) {
-  // Does not differentiate between urgent and non urgent modes.
-  AsyncExecutorAccessor().PickTaskExecutorRoundRobinThreadLocalConcurrent();
+  std::vector<int> pick_times = {15, 4, 10, 11};
+  TestPickTaskExecutor<SingleThreadAsyncExecutor>(
+      TaskExecutorPoolType::NotUrgentPool,
+      TaskLoadBalancingScheme::RoundRobinPerThread, pick_times);
 }
 
 TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinGlobalConcurrent) {
-  // Does not differentiate between urgent and non urgent modes.
-  AsyncExecutorAccessor().PickTaskExecutorRoundRobinGlobalConcurrent();
+  std::vector<int> pick_times = {15, 4, 10, 11};
+  TestPickTaskExecutor<SingleThreadAsyncExecutor>(
+      TaskExecutorPoolType::NotUrgentPool,
+      TaskLoadBalancingScheme::RoundRobinGlobal, pick_times);
 }
 
 TEST(AsyncExecutorTests, TestPickRandomTaskExecutorWithAffinity) {
   // Picks random executor even with affinity.
-  AsyncExecutorAccessor().TestPickRandomTaskExecutorWithAffinity();
+  AsyncExecutor async_executor(1, 1);
+  ASSERT_SUCCESS(async_executor.Init());
+  ASSERT_SUCCESS(async_executor.Run());
+  std::vector<std::unique_ptr<SingleThreadAsyncExecutor>> task_executor_pool;
+  task_executor_pool.push_back(
+      std::make_unique<SingleThreadAsyncExecutor>(100 /* queue cap */));
+  auto& executor = task_executor_pool.back();
+  ASSERT_SUCCESS(executor->Init());
+  ASSERT_SUCCESS(executor->Run());
+  const auto expected_id = *executor->GetThreadId();
+  auto chosen_task_executor_or = async_executor.PickTaskExecutor(
+      AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
+      task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
+      TaskLoadBalancingScheme::Random);
+
+  ASSERT_SUCCESS(chosen_task_executor_or);
+
+  // Picking an executor should result in a random executor being chosen.
+  EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
+              IsSuccessfulAndHolds(expected_id));
+  EXPECT_SUCCESS(executor->Stop());
+  EXPECT_SUCCESS(async_executor.Stop());
 }
 
 TEST(AsyncExecutorTests, TestPickNonUrgentToNonUrgentTaskExecutorWithAffinity) {
   // Picks the same non-urgent thread when executing subsequent work.
-  AsyncExecutorAccessor(10)
-      .TestPickNonUrgentToNonUrgentTaskExecutorWithAffinity();
+  AsyncExecutor executor(10, 1);
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
+  // Scheduling another task with affinity should result in using the same
+  // thread.
+  absl::Notification done;
+  std::vector<std::unique_ptr<SingleThreadAsyncExecutor>>
+      task_executor_pool;  // unused.
+  // Schedule arbitrary work to be done. Using the chosen thread of this work,
+  // ensure that picking another executor with affinity chooses this same
+  // thread.
+  executor.Schedule(
+      [&executor, &done, &task_executor_pool] {
+        auto chosen_task_executor_or = executor.PickTaskExecutor(
+            AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
+            task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
+            TaskLoadBalancingScheme::Random);
+        ASSERT_SUCCESS(chosen_task_executor_or);
+        // Picking an executor should choose the executor owning the current
+        // thread.
+        EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
+                    IsSuccessfulAndHolds(std::this_thread::get_id()));
+        done.Notify();
+      },
+      AsyncPriority::Normal);
+  done.WaitForNotification();
+  EXPECT_SUCCESS(executor.Stop());
 }
 
 TEST(AsyncExecutorTests, TestPickNonUrgentToUrgentTaskExecutorWithAffinity) {
   // Picks the urgent thread with the same affinity when executing subsequent
   // work.
-  AsyncExecutorAccessor(10).TestPickNonUrgentToUrgentTaskExecutorWithAffinity();
+  AsyncExecutor executor(10, 1);
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
+  // Scheduling another task with affinity should result in using the same
+  // thread.
+  absl::Notification done;
+  std::vector<std::unique_ptr<SingleThreadPriorityAsyncExecutor>>
+      task_executor_pool;  // unused.
+  // Schedule arbitrary work to be done. Using the chosen thread of this work,
+  // ensure that picking another executor with affinity chooses this same
+  // thread.
+  executor.Schedule(
+      [&executor, &done, &task_executor_pool] {
+        auto chosen_task_executor_or = executor.PickTaskExecutor(
+            AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
+            task_executor_pool, TaskExecutorPoolType::UrgentPool,
+            TaskLoadBalancingScheme::Random);
+        ASSERT_SUCCESS(chosen_task_executor_or);
+        // Lookup the corresponding threads in the map.
+        const auto& [normal_executor, urgent_executor] =
+            executor.GetExecutorForTesting(std::this_thread::get_id());
+        EXPECT_EQ(urgent_executor, *chosen_task_executor_or);
+        done.Notify();
+      },
+      AsyncPriority::Normal);
+  done.WaitForNotification();
+  EXPECT_SUCCESS(executor.Stop());
 }
 
 TEST(AsyncExecutorTests, TestPickUrgentToUrgentTaskExecutorWithAffinity) {
   // Picks the non-urgent thread with the same affinity when executing
   // subsequent work.
-  AsyncExecutorAccessor(10).TestPickUrgentToUrgentTaskExecutorWithAffinity();
+  AsyncExecutor executor(10, 1);
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
+  // Scheduling another task with affinity should result in using the same
+  // thread.
+  absl::Notification done;
+  std::vector<std::unique_ptr<SingleThreadPriorityAsyncExecutor>>
+      task_executor_pool;  // unused.
+  // Schedule arbitrary work to be done. Using the chosen thread of this work,
+  // ensure that picking another executor with affinity chooses this same
+  // thread.
+  executor.ScheduleFor(
+      [&executor, &done, &task_executor_pool] {
+        auto chosen_task_executor_or = executor.PickTaskExecutor(
+            AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
+            task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
+            TaskLoadBalancingScheme::Random);
+        ASSERT_SUCCESS(chosen_task_executor_or);
+        // Picking an executor should choose the executor owning the current
+        // thread.
+        EXPECT_THAT((*chosen_task_executor_or)->GetThreadId(),
+                    IsSuccessfulAndHolds(std::this_thread::get_id()));
+        done.Notify();
+      },
+      123456);
+  done.WaitForNotification();
+  EXPECT_SUCCESS(executor.Stop());
 }
 
 TEST(AsyncExecutorTests, TestPickUrgentToNonUrgentTaskExecutorWithAffinity) {
   // Picks the non-urgent thread with the same affinity when executing
   // subsequent work.
-  AsyncExecutorAccessor(10).TestPickUrgentToNonUrgentTaskExecutorWithAffinity();
+  AsyncExecutor executor(10, 1);
+  ASSERT_SUCCESS(executor.Init());
+  ASSERT_SUCCESS(executor.Run());
+  // Scheduling another task with affinity should result in using the same
+  // thread.
+  absl::Notification done;
+  std::vector<std::unique_ptr<SingleThreadAsyncExecutor>>
+      task_executor_pool;  // unused.
+  // Schedule arbitrary work to be done. Using the chosen thread of this work,
+  // ensure that picking another executor with affinity chooses this same
+  // thread.
+  executor.ScheduleFor(
+      [&executor, &done, &task_executor_pool] {
+        auto chosen_task_executor_or = executor.PickTaskExecutor(
+            AsyncExecutorAffinitySetting::AffinitizedToCallingAsyncExecutor,
+            task_executor_pool, TaskExecutorPoolType::NotUrgentPool,
+            TaskLoadBalancingScheme::Random);
+        ASSERT_SUCCESS(chosen_task_executor_or);
+        // Lookup the corresponding threads in the map.
+        const auto& [normal_executor, urgent_executor] =
+            executor.GetExecutorForTesting(std::this_thread::get_id());
+        EXPECT_EQ(normal_executor, *chosen_task_executor_or);
+        done.Notify();
+      },
+      123456);
+  done.WaitForNotification();
+  EXPECT_SUCCESS(executor.Stop());
 }
 }  // namespace google::scp::core::test

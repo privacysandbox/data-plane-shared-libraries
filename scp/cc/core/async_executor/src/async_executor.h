@@ -109,10 +109,6 @@ class AsyncExecutor : public AsyncExecutorInterface {
       TaskCancellationLambda& cancellation_callback,
       AsyncExecutorAffinitySetting affinity) noexcept override;
 
- protected:
-  using UrgentTaskExecutor = SingleThreadPriorityAsyncExecutor;
-  using NormalTaskExecutor = SingleThreadAsyncExecutor;
-
   // Pointer is non-null if status is ok.
   template <class TaskExecutorType>
   ExecutionResultOr<TaskExecutorType*> PickTaskExecutor(
@@ -120,6 +116,13 @@ class AsyncExecutor : public AsyncExecutorInterface {
       const std::vector<std::unique_ptr<TaskExecutorType>>& task_executor_pool,
       TaskExecutorPoolType task_executor_pool_type,
       TaskLoadBalancingScheme task_load_balancing_scheme) const;
+
+  std::pair<SingleThreadAsyncExecutor*, SingleThreadPriorityAsyncExecutor*>
+  GetExecutorForTesting(const std::thread::id& id) const;
+
+ protected:
+  using UrgentTaskExecutor = SingleThreadPriorityAsyncExecutor;
+  using NormalTaskExecutor = SingleThreadAsyncExecutor;
 
   /// Number of threads in the thread pool.
   size_t thread_count_;
