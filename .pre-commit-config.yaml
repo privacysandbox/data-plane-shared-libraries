@@ -60,12 +60,12 @@ repos:
       )$
 
 - repo: https://github.com/bufbuild/buf
-  rev: v1.28.1
+  rev: v1.29.0
   hooks:
   - id: buf-format
 
 - repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: v17.0.5
+  rev: v17.0.6
   hooks:
   - id: clang-format
     types_or:
@@ -115,7 +115,7 @@ repos:
     - javascript
 
 - repo: https://github.com/DavidAnson/markdownlint-cli2
-  rev: v0.11.0
+  rev: v0.12.1
   hooks:
   - id: markdownlint-cli2
     name: lint markdown
