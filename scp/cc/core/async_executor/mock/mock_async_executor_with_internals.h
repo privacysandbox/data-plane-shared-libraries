@@ -70,7 +70,7 @@ class MockAsyncExecutorWithInternals : public core::AsyncExecutor {
   ExecutionResult ScheduleFor(
       AsyncOperation work, Timestamp timestamp,
       AsyncExecutorAffinitySetting affinity) noexcept override {
-    return ScheduleFor(std::move(work), timestamp, affinity);
+    return AsyncExecutor::ScheduleFor(std::move(work), timestamp, affinity);
   }
 
   ExecutionResult ScheduleFor(

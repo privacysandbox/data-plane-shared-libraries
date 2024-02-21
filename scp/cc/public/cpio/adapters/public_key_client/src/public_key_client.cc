@@ -58,6 +58,7 @@ ExecutionResult PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
     ExecutionResult execution_result;
     SCP_ERROR(kPublicKeyClient, kZeroUuid, execution_result,
               "Failed to get http client.");
+    return execution_result;
   } else {
     http_client = *client;
   }

@@ -103,9 +103,10 @@ struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
       const google::protobuf::Map<std::string, std::string>& val) {
     auto map = v8::Map::New(isolate);
     for (const auto& [k, v] : val) {
-      map->Set(isolate->GetCurrentContext(),
-               TypeConverter<std::string>::ToV8(isolate, k),
-               TypeConverter<std::string>::ToV8(isolate, v));
+      // void-cast to ignore v8::Map::Set failure.
+      (void)map->Set(isolate->GetCurrentContext(),
+                     TypeConverter<std::string>::ToV8(isolate, k),
+                     TypeConverter<std::string>::ToV8(isolate, v));
     }
     return map;
   }
