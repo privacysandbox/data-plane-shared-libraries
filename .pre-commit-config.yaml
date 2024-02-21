@@ -150,3 +150,9 @@ repos:
     - --exclude=scp/cc/aws/proxy/src/preload.h
     - --exclude=scp/cc/aws/proxy/src/socks5_state.cc
     - --quiet
+
+- repo: https://github.com/tekwizely/pre-commit-golang
+  rev: v1.0.0-rc.1
+  hooks:
+  - id: go-fmt
+    name: go format
