@@ -45,13 +45,13 @@ void ExecutionWatchDog::Stop() {
   }
 }
 
-bool ExecutionWatchDog::IsTerminateCalled() noexcept {
+bool ExecutionWatchDog::IsTerminateCalled() {
   absl::MutexLock lock(&mutex_);
   return is_terminate_called_;
 }
 
 void ExecutionWatchDog::StartTimer(v8::Isolate* isolate,
-                                   absl::Duration timeout) noexcept {
+                                   absl::Duration timeout) {
   absl::MutexLock lock(&mutex_);
   // Cancel TerminateExecution in case there was a previous
   // isolate->TerminateExecution() flag alive
@@ -62,12 +62,12 @@ void ExecutionWatchDog::StartTimer(v8::Isolate* isolate,
   cv_.Signal();
 }
 
-void ExecutionWatchDog::EndTimer() noexcept {
+void ExecutionWatchDog::EndTimer() {
   absl::MutexLock lock(&mutex_);
   expiring_flag_.Set(absl::InfiniteDuration());
 }
 
-void ExecutionWatchDog::WaitForTimeout() noexcept {
+void ExecutionWatchDog::WaitForTimeout() {
   absl::MutexLock lock(&mutex_);
   is_running_ = true;
   while (is_running_) {

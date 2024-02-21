@@ -49,7 +49,7 @@ class V8IsolateFunctionBindingTest : public ::testing::Test {
 class NativeFunctionInvokerMock
     : public native_function_binding::NativeFunctionInvoker {
  public:
-  MOCK_METHOD(absl::Status, Invoke, (RpcWrapper&), (noexcept, override));
+  MOCK_METHOD(absl::Status, Invoke, (RpcWrapper&), (override));
 
   virtual ~NativeFunctionInvokerMock() = default;
 };

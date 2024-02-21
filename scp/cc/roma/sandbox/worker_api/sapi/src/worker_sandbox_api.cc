@@ -58,7 +58,7 @@ std::pair<absl::Status, WorkerApi::RetryStatus> WrapResultWithRetry(
 
 }  // namespace
 
-void WorkerSandboxApi::CreateWorkerSapiSandbox() noexcept {
+void WorkerSandboxApi::CreateWorkerSapiSandbox() {
   // Get the environment variable ROMA_VLOG_LEVEL value.
   int external_verbose_level = logging::GetVlogVerboseLevel();
 
@@ -68,7 +68,7 @@ void WorkerSandboxApi::CreateWorkerSapiSandbox() noexcept {
 }
 
 int WorkerSandboxApi::TransferFdAndGetRemoteFd(
-    std::unique_ptr<::sapi::v::Fd> local_fd) noexcept {
+    std::unique_ptr<::sapi::v::Fd> local_fd) {
   // We don't want the SAPI FD object to manage the local FD or it'd close it
   // upon its deletion.
   local_fd->OwnLocalFd(false);
@@ -84,7 +84,7 @@ int WorkerSandboxApi::TransferFdAndGetRemoteFd(
   return local_fd->GetRemoteFd();
 }
 
-absl::Status WorkerSandboxApi::Init() noexcept {
+absl::Status WorkerSandboxApi::Init() {
   if (worker_sapi_sandbox_) {
     worker_sapi_sandbox_->Terminate(/*attempt_graceful_exit=*/false);
     ROMA_VLOG(1) << "Successfully terminated the existing sapi sandbox";
@@ -165,7 +165,7 @@ absl::Status WorkerSandboxApi::Init() noexcept {
   return absl::OkStatus();
 }
 
-absl::Status WorkerSandboxApi::Run() noexcept {
+absl::Status WorkerSandboxApi::Run() {
   if (!worker_sapi_sandbox_ || !worker_wrapper_api_) {
     return absl::FailedPreconditionError(
         "Attempt to call API function with an uninitialized sandbox.");
@@ -183,7 +183,7 @@ absl::Status WorkerSandboxApi::Run() noexcept {
   return absl::OkStatus();
 }
 
-absl::Status WorkerSandboxApi::Stop() noexcept {
+absl::Status WorkerSandboxApi::Stop() {
   if ((!worker_sapi_sandbox_ && !worker_wrapper_api_) ||
       (worker_sapi_sandbox_ && !worker_sapi_sandbox_->is_active())) {
     // Nothing to stop, just return
@@ -211,8 +211,7 @@ absl::Status WorkerSandboxApi::Stop() noexcept {
 }
 
 std::pair<absl::Status, WorkerApi::RetryStatus>
-WorkerSandboxApi::InternalRunCode(
-    ::worker_api::WorkerParamsProto& params) noexcept {
+WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
   const int serialized_size = params.ByteSizeLong();
 
   std::unique_ptr<sapi::v::LenVal> sapi_len_val;
@@ -288,7 +287,7 @@ WorkerSandboxApi::InternalRunCode(
 
 std::pair<absl::Status, WorkerApi::RetryStatus>
 WorkerSandboxApi::InternalRunCodeBufferShareOnly(
-    ::worker_api::WorkerParamsProto& params) noexcept {
+    ::worker_api::WorkerParamsProto& params) {
   int serialized_size = params.ByteSizeLong();
   if (serialized_size > request_and_response_data_buffer_size_bytes_) {
     LOG(ERROR) << "Request serialized size in Bytes " << serialized_size
@@ -336,7 +335,7 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
 }
 
 std::pair<absl::Status, WorkerApi::RetryStatus> WorkerSandboxApi::RunCode(
-    ::worker_api::WorkerParamsProto& params) noexcept {
+    ::worker_api::WorkerParamsProto& params) {
   if (!worker_sapi_sandbox_ || !worker_wrapper_api_) {
     return WrapResultWithNoRetry(absl::FailedPreconditionError(
         "Attempt to call API function with an uninitialized sandbox."));
@@ -366,7 +365,7 @@ std::pair<absl::Status, WorkerApi::RetryStatus> WorkerSandboxApi::RunCode(
   return WrapResultWithNoRetry(absl::OkStatus());
 }
 
-void WorkerSandboxApi::Terminate() noexcept {
+void WorkerSandboxApi::Terminate() {
   worker_sapi_sandbox_->Terminate();
 }
 }  // namespace google::scp::roma::sandbox::worker_api

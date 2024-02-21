@@ -73,7 +73,7 @@ class Dispatcher {
    */
   template <typename RequestT>
   absl::Status DispatchBatch(std::vector<RequestT>& batch,
-                             BatchCallback batch_callback) noexcept {
+                             BatchCallback batch_callback) {
     auto batch_size = batch.size();
     auto batch_response =
         std::make_shared<std::vector<absl::StatusOr<ResponseObject>>>(
@@ -117,7 +117,7 @@ class Dispatcher {
    * @return absl::Status Whether the broadcast succeeded or failed.
    */
   absl::Status Broadcast(std::unique_ptr<CodeObject> code_object,
-                         Callback broadcast_callback) noexcept;
+                         Callback broadcast_callback);
 
   /**
    * @brief Enqueues a request to be handled by the workers. Can return failure
@@ -132,7 +132,7 @@ class Dispatcher {
    */
   template <typename RequestT>
   absl::Status Dispatch(std::unique_ptr<RequestT> request, Callback callback,
-                        int32_t worker_index = -1) noexcept
+                        int32_t worker_index = -1)
       ABSL_LOCKS_EXCLUDED(pending_requests_mu_, worker_index_mu_, cache_mu_) {
     if (absl::MutexLock l(&pending_requests_mu_);
         pending_requests_ >= max_pending_requests_) {

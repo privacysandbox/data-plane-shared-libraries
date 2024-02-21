@@ -83,7 +83,7 @@ class ExecutionUtilsTest : public ::testing::Test {
 
   // RunCode() is used to create an executable environment to execute the code.
   absl::Status RunCode(const RunCodeArguments& args, std::string& output,
-                       std::string& err_msg) noexcept {
+                       std::string& err_msg) {
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
     v8::TryCatch try_catch(isolate_);

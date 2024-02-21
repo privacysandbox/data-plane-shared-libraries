@@ -135,7 +135,7 @@ class RomaService {
       : config_(std::move(config)) {}
 
  private:
-  absl::Status InitInternal() noexcept {
+  absl::Status InitInternal() {
     size_t concurrency = config_.number_of_workers;
     if (concurrency == 0) {
       concurrency = std::thread::hardware_concurrency();
@@ -168,7 +168,7 @@ class RomaService {
     return absl::OkStatus();
   }
 
-  absl::Status RunInternal() noexcept {
+  absl::Status RunInternal() {
     native_function_binding_handler_->Run();
     if (auto execution_result = async_executor_->Run();
         !execution_result.Successful()) {
@@ -180,7 +180,7 @@ class RomaService {
     return absl::OkStatus();
   }
 
-  absl::Status StopInternal() noexcept {
+  absl::Status StopInternal() {
     if (native_function_binding_handler_) {
       native_function_binding_handler_->Stop();
     }
@@ -260,7 +260,7 @@ class RomaService {
     return setup;
   }
 
-  void RegisterLogBindings() noexcept {
+  void RegisterLogBindings() {
     const auto log_fn_factory = [&](std::string_view function_name) {
       auto function_binding_object =
           std::make_unique<FunctionBindingObjectV2<TMetadata>>();

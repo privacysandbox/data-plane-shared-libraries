@@ -44,9 +44,9 @@ class WorkerApi {
     absl::flat_hash_map<std::string, absl::Duration> metrics;
   };
 
-  virtual absl::Status Init() noexcept = 0;
-  virtual absl::Status Run() noexcept = 0;
-  virtual absl::Status Stop() noexcept = 0;
+  virtual absl::Status Init() = 0;
+  virtual absl::Status Run() = 0;
+  virtual absl::Status Stop() = 0;
 
   // Whether a request should be retried or not.
   enum class RetryStatus { kDoNotRetry, kRetry };
@@ -57,12 +57,12 @@ class WorkerApi {
    * @returns a pair of result and whether this request should be retried
    */
   virtual std::pair<absl::StatusOr<RunCodeResponse>, RetryStatus> RunCode(
-      const RunCodeRequest& request) noexcept = 0;
+      const RunCodeRequest& request) = 0;
 
   /**
    * @brief Terminate the underlying worker.
    */
-  virtual void Terminate() noexcept = 0;
+  virtual void Terminate() = 0;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 

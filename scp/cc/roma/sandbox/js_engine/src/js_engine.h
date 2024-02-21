@@ -79,7 +79,7 @@ class JsEngine {
    * one-time setup that is needed.
    */
   virtual void OneTimeSetup(
-      const absl::flat_hash_map<std::string, std::string>& config) noexcept = 0;
+      const absl::flat_hash_map<std::string, std::string>& config) = 0;
 
   /**
    * @brief Builds and runs the JS code provided as input, and returns a context
@@ -98,7 +98,7 @@ class JsEngine {
       std::string_view code, std::string_view function_name,
       const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
-      const RomaJsEngineCompilationContext& context) noexcept = 0;
+      const RomaJsEngineCompilationContext& context) = 0;
 
   /**
    * @brief Builds and runs the WASM binary provided as input, and returns a
@@ -118,7 +118,7 @@ class JsEngine {
       std::string_view code, std::string_view function_name,
       const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
-      const RomaJsEngineCompilationContext& context) noexcept = 0;
+      const RomaJsEngineCompilationContext& context) = 0;
 
   /**
    * @brief Builds and runs the JS code provided as input, loads the provided
@@ -142,7 +142,7 @@ class JsEngine {
       std::string_view function_name,
       const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
-      const RomaJsEngineCompilationContext& context) noexcept = 0;
+      const RomaJsEngineCompilationContext& context) = 0;
 };
 }  // namespace google::scp::roma::sandbox::js_engine
 

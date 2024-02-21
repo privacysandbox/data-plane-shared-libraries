@@ -180,7 +180,7 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
 
 bool V8IsolateFunctionBinding::BindFunctions(
     v8::Isolate* isolate,
-    v8::Local<v8::ObjectTemplate>& global_object_template) noexcept {
+    v8::Local<v8::ObjectTemplate>& global_object_template) {
   if (!isolate) {
     return false;
   }
@@ -202,7 +202,7 @@ bool V8IsolateFunctionBinding::BindFunctions(
 }
 
 void V8IsolateFunctionBinding::AddIds(std::string_view uuid,
-                                      std::string_view id) noexcept {
+                                      std::string_view id) {
   if (binding_references_.size() > 0) {
     binding_references_[0].second->invocation_req_uuid_ = uuid;
     binding_references_[0].second->invocation_req_id_ = id;
@@ -210,7 +210,7 @@ void V8IsolateFunctionBinding::AddIds(std::string_view uuid,
 }
 
 void V8IsolateFunctionBinding::AddExternalReferences(
-    std::vector<intptr_t>& external_references) noexcept {
+    std::vector<intptr_t>& external_references) {
   // Must add pointers that are not within the v8 heap to external_references_
   // so that the snapshot serialization works.
   for (const auto& binding_ref : binding_references_) {

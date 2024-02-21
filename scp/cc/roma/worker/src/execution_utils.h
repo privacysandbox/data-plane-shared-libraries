@@ -48,7 +48,7 @@ class ExecutionUtils {
    */
   static absl::Status CompileRunJS(
       std::string_view js, std::string& err_msg,
-      v8::Local<v8::UnboundScript>* unbound_script = nullptr) noexcept;
+      v8::Local<v8::UnboundScript>* unbound_script = nullptr);
 
   /**
    * @brief Get JS handler from context.
@@ -60,7 +60,7 @@ class ExecutionUtils {
    */
   static absl::Status GetJsHandler(std::string_view handler_name,
                                    v8::Local<v8::Value>& handler,
-                                   std::string& err_msg) noexcept;
+                                   std::string& err_msg);
 
   /**
    * @brief Compiles and runs WASM code object.
@@ -71,7 +71,7 @@ class ExecutionUtils {
    * object compile and run.
    */
   static absl::Status CompileRunWASM(std::string_view wasm,
-                                     std::string& err_msg) noexcept;
+                                     std::string& err_msg);
 
   /**
    * @brief Get handler from WASM export object.
@@ -83,7 +83,7 @@ class ExecutionUtils {
    */
   static absl::Status GetWasmHandler(std::string_view handler_name,
                                      v8::Local<v8::Value>& handler,
-                                     std::string& err_msg) noexcept;
+                                     std::string& err_msg);
 
   /**
    * @brief Converts string vector to v8 Array.
@@ -96,7 +96,7 @@ class ExecutionUtils {
    */
   static v8::Local<v8::Array> InputToLocalArgv(
       const std::vector<std::string_view>& input, bool is_wasm = false,
-      bool is_byte_str = false) noexcept;
+      bool is_byte_str = false);
 
   /**
    * @brief Read a value from WASM memory
@@ -118,7 +118,7 @@ class ExecutionUtils {
    * @return std::string
    */
   static std::string ExtractMessage(v8::Isolate* isolate,
-                                    v8::Local<v8::Message> message) noexcept;
+                                    v8::Local<v8::Message> message);
 
   /**
    * @brief Parse the input string directly to turn it into a v8::String type.
@@ -152,7 +152,7 @@ class ExecutionUtils {
    * @return true
    * @return false
    */
-  static bool CheckErrorWithWebAssembly(std::string& err_msg) noexcept {
+  static bool CheckErrorWithWebAssembly(std::string& err_msg) {
     constexpr std::string_view kJsWasmMixedError =
         "ReferenceError: WebAssembly is not defined";
     return err_msg.find(kJsWasmMixedError) != std::string::npos;
@@ -167,7 +167,7 @@ class ExecutionUtils {
    */
   static absl::Status CreateUnboundScript(
       v8::Global<v8::UnboundScript>& unbound_script, v8::Isolate* isolate,
-      std::string_view js, std::string& err_msg) noexcept;
+      std::string_view js, std::string& err_msg);
 
   /**
    * @brief Bind UnboundScript to current context and run it.
@@ -177,7 +177,7 @@ class ExecutionUtils {
    */
   static bool BindUnboundScript(
       const v8::Global<v8::UnboundScript>& global_unbound_script,
-      std::string& err_msg) noexcept;
+      std::string& err_msg);
 
   /**
    * @brief Generate an object that represents the WASM imports modules
@@ -188,7 +188,7 @@ class ExecutionUtils {
   static v8::Local<v8::Object> GenerateWasmImports(v8::Isolate* isolate);
 
   static std::string DescribeError(v8::Isolate* isolate,
-                                   v8::TryCatch* try_catch) noexcept;
+                                   v8::TryCatch* try_catch);
 
   /**
    * @brief Get the WASM memory object that was registered in the global context

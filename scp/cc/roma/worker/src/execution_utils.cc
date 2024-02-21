@@ -66,7 +66,7 @@ constexpr std::string_view kPerformanceNowJs =
 
 absl::Status ExecutionUtils::CompileRunJS(
     std::string_view js, std::string& err_msg,
-    v8::Local<v8::UnboundScript>* unbound_script) noexcept {
+    v8::Local<v8::UnboundScript>* unbound_script) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
@@ -104,7 +104,7 @@ absl::Status ExecutionUtils::CompileRunJS(
 
 absl::Status ExecutionUtils::GetJsHandler(std::string_view handler_name,
                                           v8::Local<v8::Value>& handler,
-                                          std::string& err_msg) noexcept {
+                                          std::string& err_msg) {
   if (handler_name.empty()) {
     return absl::InvalidArgumentError("Handler name cannot be empty");
   }
@@ -135,7 +135,7 @@ absl::Status ExecutionUtils::GetJsHandler(std::string_view handler_name,
 }
 
 absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
-                                            std::string& err_msg) noexcept {
+                                            std::string& err_msg) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::HandleScope handle_scope(isolate);
   v8::TryCatch try_catch(isolate);
@@ -214,7 +214,7 @@ absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
 
 absl::Status ExecutionUtils::GetWasmHandler(std::string_view handler_name,
                                             v8::Local<v8::Value>& handler,
-                                            std::string& err_msg) noexcept {
+                                            std::string& err_msg) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
@@ -252,7 +252,7 @@ absl::Status ExecutionUtils::GetWasmHandler(std::string_view handler_name,
 
 absl::Status ExecutionUtils::CreateUnboundScript(
     v8::Global<v8::UnboundScript>& unbound_script, v8::Isolate* isolate,
-    std::string_view js, std::string& err_msg) noexcept {
+    std::string_view js, std::string& err_msg) {
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
 
@@ -271,7 +271,7 @@ absl::Status ExecutionUtils::CreateUnboundScript(
 
 bool ExecutionUtils::BindUnboundScript(
     const v8::Global<v8::UnboundScript>& global_unbound_script,
-    std::string& err_msg) noexcept {
+    std::string& err_msg) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
@@ -310,7 +310,7 @@ v8::Local<v8::Value> ExecutionUtils::GetWasmMemoryObject(
 
 v8::Local<v8::Array> ExecutionUtils::InputToLocalArgv(
     const std::vector<std::string_view>& input, bool is_wasm,
-    bool is_byte_str) noexcept {
+    bool is_byte_str) {
   auto isolate = v8::Isolate::GetCurrent();
   auto context = isolate->GetCurrentContext();
 
@@ -321,8 +321,8 @@ v8::Local<v8::Array> ExecutionUtils::InputToLocalArgv(
   return ExecutionUtils::ParseAsJsInput(input, is_byte_str);
 }
 
-std::string ExecutionUtils::ExtractMessage(
-    v8::Isolate* isolate, v8::Local<v8::Message> message) noexcept {
+std::string ExecutionUtils::ExtractMessage(v8::Isolate* isolate,
+                                           v8::Local<v8::Message> message) {
   std::string exception_msg;
   TypeConverter<std::string>::FromV8(isolate, message->Get(), &exception_msg);
   // We want to return a message of the form:
@@ -471,7 +471,7 @@ v8::Local<v8::Array> ExecutionUtils::ParseAsWasmInput(
 }
 
 std::string ExecutionUtils::DescribeError(v8::Isolate* isolate,
-                                          v8::TryCatch* try_catch) noexcept {
+                                          v8::TryCatch* try_catch) {
   const v8::Local<v8::Message> message = try_catch->Message();
   if (message.IsEmpty()) {
     return std::string();

@@ -48,14 +48,12 @@ class V8IsolateFunctionBinding {
   V8IsolateFunctionBinding& operator=(const V8IsolateFunctionBinding&) = delete;
 
   // Returns success
-  bool BindFunctions(
-      v8::Isolate* isolate,
-      v8::Local<v8::ObjectTemplate>& global_object_template) noexcept;
+  bool BindFunctions(v8::Isolate* isolate,
+                     v8::Local<v8::ObjectTemplate>& global_object_template);
 
-  void AddExternalReferences(
-      std::vector<intptr_t>& external_references) noexcept;
+  void AddExternalReferences(std::vector<intptr_t>& external_references);
 
-  void AddIds(std::string_view uuid, std::string_view id) noexcept;
+  void AddIds(std::string_view uuid, std::string_view id);
 
   absl::Status InvokeRpc(google::scp::roma::proto::RpcWrapper& rpc_proto);
 

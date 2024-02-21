@@ -47,7 +47,7 @@ class NativeFunctionInvoker {
    * function binding context in the host process.
    */
   virtual absl::Status Invoke(
-      google::scp::roma::proto::RpcWrapper& rpc_wrapper_proto) noexcept = 0;
+      google::scp::roma::proto::RpcWrapper& rpc_wrapper_proto) = 0;
 
   // The destructor must be virtual otherwise the base class destructor won't
   // ever be invoked.

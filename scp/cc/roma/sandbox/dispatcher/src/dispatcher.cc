@@ -32,7 +32,7 @@ using google::scp::core::errors::GetErrorMessage;
 
 namespace google::scp::roma::sandbox::dispatcher {
 absl::Status Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
-                                   Callback broadcast_callback) noexcept {
+                                   Callback broadcast_callback) {
   auto worker_count = worker_pool_->GetPoolSize();
   auto finished_counter = std::make_shared<std::atomic<size_t>>(0);
   auto responses_storage =

@@ -57,17 +57,17 @@ class ExecutionWatchDog {
    * @param isolate
    * @param ms_before_timeout
    */
-  void StartTimer(v8::Isolate* isolate, absl::Duration timeout) noexcept;
+  void StartTimer(v8::Isolate* isolate, absl::Duration timeout);
 
   /// @brief End timing execution. This function will reset the
   /// timeout_timestamp_ to UINT64_MAX to avoid terminate standby isolate.
-  void EndTimer() noexcept;
+  void EndTimer();
 
-  bool IsTerminateCalled() noexcept;
+  bool IsTerminateCalled();
 
  private:
   /// @brief Timer function running in ExecutionWatchDog thread.
-  void WaitForTimeout() noexcept;
+  void WaitForTimeout();
 
   /// @brief Used to track timeouts.
   ExpiringFlag expiring_flag_;

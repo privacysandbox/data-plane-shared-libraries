@@ -36,8 +36,8 @@ class NativeFunctionInvokerSapiIpc : public NativeFunctionInvoker {
  public:
   explicit NativeFunctionInvokerSapiIpc(int comms_fd);
 
-  absl::Status Invoke(google::scp::roma::proto::RpcWrapper&
-                          rpc_wrapper_proto) noexcept override;
+  absl::Status Invoke(
+      google::scp::roma::proto::RpcWrapper& rpc_wrapper_proto) override;
 
  private:
   std::unique_ptr<sandbox2::Comms> ipc_comms_;

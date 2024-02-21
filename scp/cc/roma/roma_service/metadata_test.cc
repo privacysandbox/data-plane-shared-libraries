@@ -546,7 +546,7 @@ class MoveOnly {
     other.data_ = "";
   }
 
-  MoveOnly& operator=(MoveOnly&& other) noexcept {
+  MoveOnly& operator=(MoveOnly&& other) {
     if (this != &other) {
       data_ = other.data_;
       other.data_ = "";

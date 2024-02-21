@@ -99,11 +99,11 @@ class WorkerSandboxApi {
     sandbox_data_shared_buffer_ptr_ = std::move(buffer).value();
   }
 
-  absl::Status Init() noexcept;
+  absl::Status Init();
 
-  absl::Status Run() noexcept;
+  absl::Status Run();
 
-  absl::Status Stop() noexcept;
+  absl::Status Stop();
 
   /**
    * @brief Send a request to run code to a worker running within a sandbox.
@@ -112,23 +112,21 @@ class WorkerSandboxApi {
    * @return Retry status and execution status
    */
   std::pair<absl::Status, WorkerApi::RetryStatus> RunCode(
-      ::worker_api::WorkerParamsProto& params) noexcept;
+      ::worker_api::WorkerParamsProto& params);
 
-  void Terminate() noexcept;
+  void Terminate();
 
  protected:
   std::pair<absl::Status, WorkerApi::RetryStatus> InternalRunCode(
-      ::worker_api::WorkerParamsProto& params) noexcept;
+      ::worker_api::WorkerParamsProto& params);
 
   std::pair<absl::Status, WorkerApi::RetryStatus>
-  InternalRunCodeBufferShareOnly(
-      ::worker_api::WorkerParamsProto& params) noexcept;
+  InternalRunCodeBufferShareOnly(::worker_api::WorkerParamsProto& params);
 
-  void CreateWorkerSapiSandbox() noexcept;
+  void CreateWorkerSapiSandbox();
 
   // Transfer the local FD into sandboxee and return the remote FD.
-  int TransferFdAndGetRemoteFd(
-      std::unique_ptr<::sapi::v::Fd> local_fd) noexcept;
+  int TransferFdAndGetRemoteFd(std::unique_ptr<::sapi::v::Fd> local_fd);
 
   /**
    * @brief Class to allow overwriting the policy for the SAPI sandbox.

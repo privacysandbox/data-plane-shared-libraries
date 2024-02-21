@@ -65,14 +65,14 @@ class V8JsEngine : public JsEngine {
 
   void OneTimeSetup(
       const absl::flat_hash_map<std::string, std::string>& config =
-          absl::flat_hash_map<std::string, std::string>()) noexcept override;
+          absl::flat_hash_map<std::string, std::string>()) override;
 
   absl::StatusOr<js_engine::JsEngineExecutionResponse> CompileAndRunJs(
       std::string_view code, std::string_view function_name,
       const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
-          RomaJsEngineCompilationContext()) noexcept override;
+          RomaJsEngineCompilationContext()) override;
 
   absl::StatusOr<js_engine::JsEngineExecutionResponse> CompileAndRunJsWithWasm(
       std::string_view code, absl::Span<const std::uint8_t> wasm,
@@ -80,7 +80,7 @@ class V8JsEngine : public JsEngine {
       const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
-          RomaJsEngineCompilationContext()) noexcept override
+          RomaJsEngineCompilationContext()) override
       ABSL_LOCKS_EXCLUDED(console_mutex_);
 
   absl::StatusOr<js_engine::JsEngineExecutionResponse> CompileAndRunWasm(
@@ -88,7 +88,7 @@ class V8JsEngine : public JsEngine {
       const std::vector<std::string_view>& input,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
       const js_engine::RomaJsEngineCompilationContext& context =
-          RomaJsEngineCompilationContext()) noexcept override;
+          RomaJsEngineCompilationContext()) override;
 
  private:
   /**
@@ -111,8 +111,7 @@ class V8JsEngine : public JsEngine {
    * @return absl::Status
    */
   absl::Status CreateSnapshot(v8::StartupData& startup_data,
-                              std::string_view js_code,
-                              std::string& err_msg) noexcept;
+                              std::string_view js_code, std::string& err_msg);
   /**
    * @brief Create a Snapshot object with start up data containing global
    * objects that can be directly referenced in the JS code.
@@ -126,7 +125,7 @@ class V8JsEngine : public JsEngine {
   absl::Status CreateSnapshotWithGlobals(
       v8::StartupData& startup_data, absl::Span<const std::uint8_t> wasm,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
-      std::string& err_msg) noexcept;
+      std::string& err_msg);
   /**
    * @brief Create a Compilation Context object which wraps a object of
    * SnapshotCompilationContext in the context.
@@ -142,14 +141,14 @@ class V8JsEngine : public JsEngine {
   CreateCompilationContext(
       std::string_view code, absl::Span<const std::uint8_t> wasm,
       const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
-      std::string& err_msg) noexcept;
+      std::string& err_msg);
 
   /// @brief Create a v8 isolate instance.  Returns nullptr on failure.
   virtual std::unique_ptr<V8IsolateWrapper> CreateIsolate(
-      const v8::StartupData& startup_data = {nullptr, 0}) noexcept;
+      const v8::StartupData& startup_data = {nullptr, 0});
 
   /// @brief Dispose v8 isolate.
-  virtual void DisposeIsolate() noexcept;
+  virtual void DisposeIsolate();
 
   /**
    * @brief Start timing the execution running in the isolate with watchdog.
@@ -162,15 +161,14 @@ class V8JsEngine : public JsEngine {
    */
   void StartWatchdogTimer(
       v8::Isolate* isolate,
-      const absl::flat_hash_map<std::string_view, std::string_view>&
-          metadata) noexcept;
+      const absl::flat_hash_map<std::string_view, std::string_view>& metadata);
   /**
    * @brief Stop the timer for the execution in isolate. Call this function
    * after execution is complete to avoid watchdog termination of standby
    * isolate.
    *
    */
-  void StopWatchdogTimer() noexcept;
+  void StopWatchdogTimer();
 
   /**
    * @brief Execute invocation request in current compilation context.
@@ -186,8 +184,7 @@ class V8JsEngine : public JsEngine {
           current_compilation_context,
       std::string_view function_name,
       const std::vector<std::string_view>& input,
-      const absl::flat_hash_map<std::string_view, std::string_view>&
-          metadata) noexcept;
+      const absl::flat_hash_map<std::string_view, std::string_view>& metadata);
 
   /**
    * @brief Compile the wasm code array as a wasm module.
@@ -199,7 +196,7 @@ class V8JsEngine : public JsEngine {
    */
   absl::Status CompileWasmCodeArray(v8::Isolate* isolate,
                                     absl::Span<const std::uint8_t> wasm,
-                                    std::string& err_msg) noexcept;
+                                    std::string& err_msg);
 
   std::unique_ptr<V8IsolateWrapper> isolate_wrapper_;
   std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding_;

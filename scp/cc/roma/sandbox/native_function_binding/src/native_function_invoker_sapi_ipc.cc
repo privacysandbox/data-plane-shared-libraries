@@ -35,7 +35,7 @@ NativeFunctionInvokerSapiIpc::NativeFunctionInvokerSapiIpc(int comms_fd) {
 }
 
 absl::Status NativeFunctionInvokerSapiIpc::Invoke(
-    RpcWrapper& rpc_wrapper_proto) noexcept {
+    RpcWrapper& rpc_wrapper_proto) {
   if (!ipc_comms_) {
     return absl::FailedPreconditionError(
         "A call to invoke was made with an uninitialized comms object.");

@@ -37,23 +37,23 @@ WorkerApiSapi::WorkerApiSapi(const WorkerApiSapiConfig& config)
           config.sandbox_request_response_shared_buffer_size_mb,
           config.enable_sandbox_sharing_request_response_with_buffer_only) {}
 
-absl::Status WorkerApiSapi::Init() noexcept {
+absl::Status WorkerApiSapi::Init() {
   absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Init();
 }
 
-absl::Status WorkerApiSapi::Run() noexcept {
+absl::Status WorkerApiSapi::Run() {
   absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Run();
 }
 
-absl::Status WorkerApiSapi::Stop() noexcept {
+absl::Status WorkerApiSapi::Stop() {
   absl::MutexLock lock(&run_code_mutex_);
   return sandbox_api_.Stop();
 }
 
 std::pair<absl::StatusOr<WorkerApi::RunCodeResponse>, WorkerApi::RetryStatus>
-WorkerApiSapi::RunCode(const WorkerApi::RunCodeRequest& request) noexcept {
+WorkerApiSapi::RunCode(const WorkerApi::RunCodeRequest& request) {
   ::worker_api::WorkerParamsProto params_proto;
   params_proto.set_code(std::string(request.code));
   if (auto input_type = request.metadata.find(
@@ -101,7 +101,7 @@ WorkerApiSapi::RunCode(const WorkerApi::RunCodeRequest& request) noexcept {
   return std::make_pair(code_response, WorkerApi::RetryStatus::kDoNotRetry);
 }
 
-void WorkerApiSapi::Terminate() noexcept {
+void WorkerApiSapi::Terminate() {
   absl::MutexLock lock(&run_code_mutex_);
   sandbox_api_.Terminate();
 }

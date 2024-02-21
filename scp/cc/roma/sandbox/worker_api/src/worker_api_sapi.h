@@ -48,17 +48,17 @@ class WorkerApiSapi : public WorkerApi {
  public:
   explicit WorkerApiSapi(const WorkerApiSapiConfig& config);
 
-  absl::Status Init() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
+  absl::Status Init() override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  absl::Status Run() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
+  absl::Status Run() override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  absl::Status Stop() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
+  absl::Status Stop() override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
   std::pair<absl::StatusOr<RunCodeResponse>, RetryStatus> RunCode(
-      const WorkerApi::RunCodeRequest& request) noexcept override
+      const WorkerApi::RunCodeRequest& request) override
       ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
-  void Terminate() noexcept override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
+  void Terminate() override ABSL_LOCKS_EXCLUDED(run_code_mutex_);
 
  private:
   WorkerSandboxApi sandbox_api_ ABSL_GUARDED_BY(run_code_mutex_);
