@@ -31,13 +31,13 @@ class MockHttpClient : public HttpClientInterface {
   ExecutionResult Stop() noexcept override { return SuccessExecutionResult(); };
 
   ExecutionResult PerformRequest(
-      AsyncContext<HttpRequest, HttpResponse>& context) noexcept {
+      AsyncContext<HttpRequest, HttpResponse>& context) noexcept override {
     return PerformRequest(context, kHttpRequestTimeout);
   }
 
   ExecutionResult PerformRequest(
       AsyncContext<HttpRequest, HttpResponse>& context,
-      const absl::Duration& timeout) noexcept {
+      const absl::Duration& timeout) noexcept override {
     if (perform_request_mock) {
       return perform_request_mock(context);
     }

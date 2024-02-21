@@ -114,6 +114,8 @@ struct AsyncContext {
             .count();
   }
 
+  virtual ~AsyncContext() = default;
+
   AsyncContext(const AsyncContext& right) {
     parent_activity_id = right.parent_activity_id;
     activity_id = right.activity_id;

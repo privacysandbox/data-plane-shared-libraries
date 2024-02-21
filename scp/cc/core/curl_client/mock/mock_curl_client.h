@@ -33,7 +33,7 @@ class MockCurlClient : public HttpClientInterface {
 
   ExecutionResult PerformRequest(
       AsyncContext<HttpRequest, HttpResponse>& context,
-      const absl::Duration& timeout) noexcept {
+      const absl::Duration& timeout) noexcept override {
     return PerformRequest(context);
   }
 

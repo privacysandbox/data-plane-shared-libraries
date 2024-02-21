@@ -36,7 +36,6 @@ Http1CurlClient::Http1CurlClient(
     common::RetryStrategyOptions retry_strategy_options)
     : curl_wrapper_provider_(std::move(curl_wrapper_provider)),
       cpu_async_executor_(cpu_async_executor),
-      io_async_executor_(io_async_executor),
       operation_dispatcher_(io_async_executor,
                             RetryStrategy(retry_strategy_options)) {}
 

@@ -69,7 +69,6 @@ class Http1CurlClient : public HttpClientInterface {
   std::unique_ptr<Http1CurlWrapperProvider> curl_wrapper_provider_;
 
   AsyncExecutorInterface* cpu_async_executor_;
-  AsyncExecutorInterface* io_async_executor_;
   /// Operation dispatcher
   common::OperationDispatcher operation_dispatcher_;
 };

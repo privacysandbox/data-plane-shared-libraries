@@ -82,8 +82,8 @@ struct MetricDefinition {
                             MetricLabels metric_labels)
       : name(std::move(metric_name)),
         unit(metric_unit),
-        metric_namespace(std::move(input_namespace)),
-        labels(std::move(metric_labels)) {}
+        labels(std::move(metric_labels)),
+        metric_namespace(std::move(input_namespace)) {}
 
   void AddMetricLabels(MetricLabels metric_labels) {
     labels.insert(std::make_move_iterator(metric_labels.begin()),
