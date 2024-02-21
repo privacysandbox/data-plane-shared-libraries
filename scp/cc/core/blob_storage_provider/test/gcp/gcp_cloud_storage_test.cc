@@ -26,6 +26,7 @@
 #include "google/cloud/status.h"
 #include "google/cloud/storage/client.h"
 #include "google/cloud/storage/internal/object_requests.h"
+#include "google/cloud/storage/testing/mock_client.h"
 #include "scp/cc/core/async_executor/mock/mock_async_executor.h"
 #include "scp/cc/core/async_executor/src/async_executor.h"
 #include "scp/cc/core/blob_storage_provider/src/common/error_codes.h"
@@ -33,7 +34,6 @@
 #include "scp/cc/core/utils/src/base64.h"
 #include "scp/cc/core/utils/src/hashing.h"
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/third_party/cloud_cpp/google/cloud/storage/testing/mock_client.h"
 
 namespace google::scp::core::test {
 namespace {
