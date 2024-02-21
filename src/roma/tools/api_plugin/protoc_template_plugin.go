@@ -44,7 +44,7 @@ func squoteEscape(input string) string {
 func copyToDir(srcFS fs.FS, destDir string) error {
 	return fs.WalkDir(srcFS, ".", func(filePath string, d fs.DirEntry, e error) error {
 		if e != nil {
-				return e
+			return e
 		}
 		if !d.Type().IsDir() {
 			_destDir := path.Join(destDir, path.Dir(filePath))
@@ -108,7 +108,7 @@ func listFS(srcFS fs.FS) error {
 }
 
 func extractTemplates() (err error) {
- 	// tmplWorkdir is a temp dir into which embedded sut files and
+	// tmplWorkdir is a temp dir into which embedded sut files and
 	// workdir/zip content are copied
 	if tmplWorkdir, err = os.MkdirTemp("", "tmpl"); err != nil {
 		return
