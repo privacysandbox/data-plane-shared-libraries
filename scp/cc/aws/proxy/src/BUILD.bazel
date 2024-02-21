@@ -140,7 +140,6 @@ cc_library(
     hdrs = ["acceptor_pool.h"],
     deps = [
         ":socket_types",
-        "//scp/cc/aws:include_dir",
         "@com_google_absl_for_proxy//absl/container:flat_hash_map",
         "@com_google_absl_for_proxy//absl/log",
     ],
@@ -151,7 +150,6 @@ cc_library(
     hdrs = ["buffer.h"],
     deps = [
         ":freelist",
-        "//scp/cc/aws:include_dir",
     ],
 )
 
@@ -162,7 +160,6 @@ cc_library(
     deps = [
         ":socket_types",
         ":socket_vendor_protocol",
-        "//scp/cc/aws:include_dir",
         "@boost//:asio",
         "@com_google_absl_for_proxy//absl/log",
     ],
@@ -172,7 +169,6 @@ cc_library(
     name = "config",
     hdrs = ["config.h"],
     deps = [
-        "//scp/cc/aws:include_dir",
     ],
 )
 
@@ -180,7 +176,6 @@ cc_library(
     name = "freelist",
     hdrs = ["freelist.h"],
     deps = [
-        "//scp/cc/aws:include_dir",
     ],
 )
 
@@ -193,7 +188,6 @@ cc_library(
     deps = [
         ":protocol",
         ":socket_vendor_protocol",
-        "//scp/cc/aws:include_dir",
     ],
 )
 
@@ -202,7 +196,6 @@ cc_library(
     srcs = ["protocol.cc"],
     hdrs = ["protocol.h"],
     deps = [
-        "//scp/cc/aws:include_dir",
     ],
 )
 
@@ -215,7 +208,6 @@ cc_library(
         ":buffer",
         ":socket_types",
         ":socks5_state",
-        "//scp/cc/aws:include_dir",
         "@boost//:asio",
         "@com_google_absl_for_proxy//absl/log",
     ],
@@ -230,7 +222,6 @@ cc_library(
         ":config",
         ":proxy_bridge",
         ":socket_types",
-        "//scp/cc/aws:include_dir",
         "@boost//:asio",
     ],
 )
@@ -239,7 +230,6 @@ cc_library(
     name = "socket_types",
     hdrs = ["socket_types.h"],
     deps = [
-        "//scp/cc/aws:include_dir",
     ],
 )
 
@@ -247,7 +237,6 @@ cc_library(
     name = "socket_vendor_protocol",
     hdrs = ["socket_vendor_protocol.h"],
     deps = [
-        "//scp/cc/aws:include_dir",
     ],
 )
 
@@ -258,7 +247,6 @@ cc_library(
     deps = [
         ":client_session_pool",
         ":socket_types",
-        "//scp/cc/aws:include_dir",
         "@boost//:asio",
         "@com_google_absl_for_proxy//absl/log",
     ],
@@ -271,7 +259,6 @@ cc_library(
     deps = [
         ":buffer",
         ":protocol",
-        "//scp/cc/aws:include_dir",
         "@com_google_absl_for_proxy//absl/log",
     ],
 )
@@ -317,7 +304,6 @@ cc_binary(
         ":preload",
         ":protocol",
         ":socket_vendor_protocol",
-        "//scp/cc/aws:include_dir",
     ],
 )
 
@@ -329,7 +315,6 @@ cc_binary(
         "//scp/cc/aws/proxy/test:__subpackages__",
     ],
     deps = [
-        "//scp/cc/aws:include_dir",
         "@com_google_absl_for_proxy//absl/flags:parse",
         "@com_google_absl_for_proxy//absl/strings",
     ],

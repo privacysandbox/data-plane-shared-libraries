@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "proxy/src/socks5_state.h"
+#include "scp/cc/aws/proxy/src/socks5_state.h"
 
 #include <gtest/gtest.h>
 
@@ -21,7 +21,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "proxy/src/buffer.h"
+#include "scp/cc/aws/proxy/src/buffer.h"
 
 namespace google::scp::proxy::test {
 using BufferUnitType = uint8_t;

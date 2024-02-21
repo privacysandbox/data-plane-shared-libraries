@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "proxy/src/buffer.h"
+#include "scp/cc/aws/proxy/src/buffer.h"
 
 #include <gtest/gtest.h>
 

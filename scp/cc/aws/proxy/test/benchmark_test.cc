@@ -24,8 +24,8 @@
 #include <benchmark/benchmark.h>
 #include <boost/asio.hpp>
 
-#include "proxy/src/config.h"
-#include "proxy/src/proxy_server.h"
+#include "scp/cc/aws/proxy/src/config.h"
+#include "scp/cc/aws/proxy/src/proxy_server.h"
 
 using boost::asio::io_service;
 using boost::asio::ip::tcp;

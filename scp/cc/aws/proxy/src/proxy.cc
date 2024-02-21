@@ -24,8 +24,8 @@
 #include "absl/log/flags.h"
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
-#include "proxy/src/config.h"
-#include "proxy/src/proxy_server.h"
+#include "scp/cc/aws/proxy/src/config.h"
+#include "scp/cc/aws/proxy/src/proxy_server.h"
 
 using google::scp::proxy::Config;
 using google::scp::proxy::ProxyServer;

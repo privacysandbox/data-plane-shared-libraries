@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "proxy/src/socks5_state.h"
+#include "scp/cc/aws/proxy/src/socks5_state.h"
 
 #include <fcntl.h>
 #include <netinet/ip.h>
@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "absl/log/log.h"
-#include "proxy/src/protocol.h"
+#include "scp/cc/aws/proxy/src/protocol.h"
 
 namespace google::scp::proxy {
 

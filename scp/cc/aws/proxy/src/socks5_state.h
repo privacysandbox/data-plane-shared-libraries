@@ -25,7 +25,7 @@
 #include <utility>
 #include <vector>
 
-#include "proxy/src/buffer.h"
+#include "scp/cc/aws/proxy/src/buffer.h"
 
 namespace google::scp::proxy {
 namespace test {
