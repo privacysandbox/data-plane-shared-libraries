@@ -21,7 +21,6 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "scp/cc/core/interface/service_interface.h"
 #include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
 
 namespace google::scp::roma::sandbox::worker_pool {

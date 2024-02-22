@@ -32,6 +32,7 @@ cc_test(
         "//scp/cc/roma/sandbox/dispatcher/src:dispatcher",
         "//scp/cc/roma/sandbox/worker_api/src:worker_api_sapi",
         "//scp/cc/roma/sandbox/worker_pool/src:worker_pool",
+        "//scp/cc/roma/sandbox/worker_pool/src:worker_pool_api_sapi",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
@@ -51,6 +52,7 @@ cc_test(
         "//scp/cc/roma/sandbox/dispatcher/src:dispatcher",
         "//scp/cc/roma/sandbox/worker_api/src:worker_api_sapi",
         "//scp/cc/roma/sandbox/worker_pool/src:worker_pool",
+        "//scp/cc/roma/sandbox/worker_pool/src:worker_pool_api_sapi",
         "@google_benchmark//:benchmark",
     ],
 )

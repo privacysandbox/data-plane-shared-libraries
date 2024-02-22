@@ -26,7 +26,7 @@ cc_test(
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/sandbox/worker_api/src:worker_api_sapi",
-        "//scp/cc/roma/sandbox/worker_pool/src:worker_pool",
+        "//scp/cc/roma/sandbox/worker_pool/src:worker_pool_api_sapi",
         "@com_google_googletest//:gtest_main",
     ],
 )
