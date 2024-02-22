@@ -97,12 +97,28 @@ std::vector<std::string> GetErrors(v8::Isolate* isolate,
   return errors;
 }
 
+std::string GetStackTrace(v8::Isolate* isolate, v8::TryCatch& try_catch,
+                          v8::Local<v8::Context> context) {
+  v8::MaybeLocal<v8::Value> maybe_stack_trace = try_catch.StackTrace(context);
+  v8::Local<v8::Value> stack_trace_str;
+  if (maybe_stack_trace.IsEmpty() ||
+      !maybe_stack_trace.ToLocal(&stack_trace_str) ||
+      !stack_trace_str->IsString()) {
+    return "<no stack trace found>";
+  }
+  v8::String::Utf8Value stack_trace(isolate, stack_trace_str.As<v8::String>());
+  return *stack_trace != nullptr ? std::string(*stack_trace)
+                                 : "<failed to convert stack trace>";
+}
+
 absl::Status GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
+                      v8::Local<v8::Context> context,
                       std::string_view top_level_error) {
-  const std::string error_str =
-      absl::StrJoin(GetErrors(isolate, try_catch, top_level_error), "\n");
-  LOG(ERROR) << top_level_error;
-  return absl::InternalError(error_str);
+  std::vector<std::string> errors =
+      GetErrors(isolate, try_catch, top_level_error);
+  errors.push_back(GetStackTrace(isolate, try_catch, context));
+  LOG(ERROR) << absl::StrJoin(errors, "\n");
+  return absl::InternalError(top_level_error);
 }
 
 }  // namespace
@@ -479,7 +495,7 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     // If argv_array size doesn't match with input. Input conversion failed.
     if (argv_array.IsEmpty() || argv_array->Length() != argc) {
       LOG(ERROR) << "Could not parse the inputs";
-      return GetError(v8_isolate, try_catch,
+      return GetError(v8_isolate, try_catch, v8_context,
                       "Error parsing input as valid JSON.");
     }
     v8::Local<v8::Value> argv[argc];
@@ -493,14 +509,14 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     if (!handler_func->Call(v8_context, v8_context->Global(), argc, argv)
              .ToLocal(&result)) {
       LOG(ERROR) << "Handler function calling failed";
-      return GetError(v8_isolate, try_catch,
+      return GetError(v8_isolate, try_catch, v8_context,
                       "Error when invoking the handler.");
     }
     if (result->IsPromise()) {
       std::string error_msg;
       if (!ExecutionUtils::V8PromiseHandler(v8_isolate, result, error_msg)) {
         DLOG(ERROR) << "V8 Promise execution failed" << error_msg;
-        return GetError(v8_isolate, try_catch,
+        return GetError(v8_isolate, try_catch, v8_context,
                         "The code object async function execution failed.");
       }
     }
@@ -513,14 +529,14 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
       if (auto result_json_maybe = v8::JSON::Stringify(v8_context, result);
           !result_json_maybe.ToLocal(&result)) {
         LOG(ERROR) << "Failed to convert the V8 JSON result to Local string";
-        return GetError(v8_isolate, try_catch,
+        return GetError(v8_isolate, try_catch, v8_context,
                         "Error converting output to JSON.");
       }
     }
     if (!TypeConverter<std::string>::FromV8(v8_isolate, result,
                                             &execution_response.response)) {
       LOG(ERROR) << "Failed to convert the V8 Local string to std::string";
-      return GetError(v8_isolate, try_catch,
+      return GetError(v8_isolate, try_catch, v8_context,
                       "Error converting output to JSON.");
     }
   }
@@ -605,7 +621,7 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
       if (wasm_input_array.IsEmpty() ||
           wasm_input_array->Length() != input.size()) {
-        return GetError(isolate, try_catch,
+        return GetError(isolate, try_catch, context,
                         "Error parsing input as valid JSON.");
       }
 
@@ -621,7 +637,7 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
       if (!handler_function
                ->Call(context, context->Global(), input_length, wasm_input)
                .ToLocal(&wasm_result)) {
-        return GetError(isolate_wrapper_->isolate(), try_catch,
+        return GetError(isolate_wrapper_->isolate(), try_catch, context,
                         "Error when invoking the handler.");
       }
 
@@ -632,14 +648,14 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
           v8::JSON::Stringify(context, wasm_execution_output);
       v8::Local<v8::String> result_json;
       if (!result_json_maybe.ToLocal(&result_json)) {
-        return GetError(isolate_wrapper_->isolate(), try_catch,
+        return GetError(isolate_wrapper_->isolate(), try_catch, context,
                         "Error converting output to native string.");
       }
 
       if (!TypeConverter<std::string>::FromV8(
               isolate, result_json,
               &execution_response.execution_response.response)) {
-        return GetError(isolate, try_catch,
+        return GetError(isolate, try_catch, context,
                         "Error converting output to native string.");
       }
     }
