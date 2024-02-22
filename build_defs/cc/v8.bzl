@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@rules_python//python:pip.bzl", "pip_parse")
 
 def import_v8():
     maybe(
-        git_repository,
+        http_archive,
         name = "v8",
-        # tag 11.1.277.9
-        commit = "3e5cb8693c290fa0f60eb92aad84d09e68507678",
-        remote = "https://chromium.googlesource.com/v8/v8.git",
-        shallow_since = "1677006717 +0000",
         patch_args = ["-p1"],
         patches = [Label("//build_defs/cc:v8.patch")],
+        sha256 = "33f996c0b47cad6b492130d4f7ae8180d55a4d1bd4ff639b5c43ca56ffb7f5c1",
+        strip_prefix = "v8-11.1.277.9",
+        urls = ["https://github.com/v8/v8/archive/refs/tags/11.1.277.9.zip"],
     )
 
     pip_parse(
