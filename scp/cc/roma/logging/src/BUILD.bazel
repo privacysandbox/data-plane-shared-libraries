@@ -17,11 +17,11 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "roma_logging_lib",
+    name = "logging",
     srcs = ["logging.cc"],
     hdrs = ["logging.h"],
     deps = [
-        "//scp/cc/roma/config/src:roma_config_lib",
+        "//scp/cc/roma/config/src:config",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/strings",

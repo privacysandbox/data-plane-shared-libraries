@@ -34,8 +34,8 @@
 #include "sandboxed_api/sandbox2/policybuilder.h"
 #include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/logging/src/logging.h"
-#include "scp/cc/roma/sandbox/worker_api/sapi/src/roma_worker_wrapper_lib-sapi.sapi.h"
 #include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
+#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_wrapper-sapi.sapi.h"
 #include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
 
 namespace google::scp::roma::sandbox::worker_api {

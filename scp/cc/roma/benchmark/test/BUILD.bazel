@@ -23,10 +23,10 @@ cc_binary(
     name = "benchmark_suite_test",
     srcs = ["benchmark_suite_test.cc"],
     deps = [
-        "//scp/cc/roma/benchmark/src:roma_benchmark_lib",
-        "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
-        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/benchmark/src:benchmark",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
+        "//scp/cc/roma/sandbox/constants",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -38,8 +38,8 @@ cc_test(
     tags = ["manual"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
         "//src/cpp/util:duration",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
@@ -67,8 +67,8 @@ cc_binary(
     srcs = ["logging_benchmark.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
         "@com_google_absl//absl/strings",
         "@google_benchmark//:benchmark",
     ],
@@ -81,8 +81,8 @@ cc_binary(
     deps = [
         ":test_code",
         "//scp/cc/roma/benchmark/src:fake_kv_server",
-        "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -94,8 +94,8 @@ cc_binary(
     deps = [
         ":test_code",
         "//scp/cc/roma/benchmark/src:fake_ba_server",
-        "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
         "@google_benchmark//:benchmark",
     ],
 )

@@ -22,7 +22,7 @@ cc_test(
     srcs = ["serializer_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/wasm/src:roma_wasm_lib",
+        "//scp/cc/roma/wasm/src:wasm",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -33,7 +33,7 @@ cc_test(
     srcs = ["deserializer_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/wasm/src:roma_wasm_lib",
+        "//scp/cc/roma/wasm/src:wasm",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -44,13 +44,13 @@ cc_test(
     srcs = ["serde_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/wasm/src:roma_wasm_lib",
+        "//scp/cc/roma/wasm/src:wasm",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_library(
-    name = "roma_wasm_testing_lib",
+    name = "wasm_testing",
     testonly = True,
     srcs = ["testing_utils.cc"],
     hdrs = ["testing_utils.h"],

@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "roma_worker_api_lib",
+    name = "worker_api",
     hdrs = ["worker_api.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
@@ -29,13 +29,13 @@ cc_library(
 )
 
 cc_library(
-    name = "roma_worker_api_sapi_lib",
+    name = "worker_api_sapi",
     srcs = ["worker_api_sapi.cc"],
     hdrs = ["worker_api_sapi.h"],
     deps = [
-        ":roma_worker_api_lib",
-        "//scp/cc/roma/config/src:roma_config_lib",
-        "//scp/cc/roma/sandbox/worker_api/sapi/src:roma_worker_sandbox_api_lib",
+        ":worker_api",
+        "//scp/cc/roma/config/src:config",
+        "//scp/cc/roma/sandbox/worker_api/sapi/src:worker_sandbox_api",
         "//src/cpp/util:protoutil",
         "@com_google_absl//absl/status",
     ],

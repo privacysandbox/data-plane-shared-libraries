@@ -29,8 +29,8 @@ cc_test(
     ],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
-        "//scp/cc/roma/wasm/test:roma_wasm_testing_lib",
+        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
+        "//scp/cc/roma/wasm/test:wasm_testing",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
     ],
@@ -42,7 +42,7 @@ cc_test(
     srcs = ["v8_console_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
+        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -53,7 +53,7 @@ cc_test(
     srcs = ["v8_isolate_function_binding_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
+        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
         "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],

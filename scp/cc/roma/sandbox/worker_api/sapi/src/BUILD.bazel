@@ -49,14 +49,14 @@ cc_library(
     srcs = ["error_codes.cc"],
     hdrs = ["error_codes.h"],
     deps = [
-        "//scp/cc/roma/config/src:roma_config_lib",
+        "//scp/cc/roma/config/src:config",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
     ],
 )
 
 cc_library(
-    name = "roma_worker_wrapper_lib",
+    name = "worker_wrapper",
     srcs = ["worker_wrapper.cc"],
     hdrs = ["worker_wrapper.h"],
     copts = [
@@ -66,11 +66,11 @@ cc_library(
         ":error_codes",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
-        "//scp/cc/roma/config/src:roma_config_lib",
-        "//scp/cc/roma/logging/src:roma_logging_lib",
-        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
-        "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_invoker_sapi_ipc_lib",
-        "//scp/cc/roma/sandbox/worker/src:roma_worker_lib",
+        "//scp/cc/roma/config/src:config",
+        "//scp/cc/roma/logging/src:logging",
+        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
+        "//scp/cc/roma/sandbox/native_function_binding/src:native_function_invoker_sapi_ipc",
+        "//scp/cc/roma/sandbox/worker/src:worker",
         "//src/cpp/util:protoutil",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/flags:flag",
@@ -79,7 +79,7 @@ cc_library(
 )
 
 sapi_library(
-    name = "roma_worker_wrapper_lib-sapi",
+    name = "worker_wrapper-sapi",
     hdrs = ["worker_wrapper.h"],
     functions = [
         "InitFromSerializedData",
@@ -90,7 +90,7 @@ sapi_library(
     ],
     generator_version = 1,
     input_files = ["worker_wrapper.cc"],
-    lib = ":roma_worker_wrapper_lib",
+    lib = ":worker_wrapper",
     lib_name = "WorkerWrapper",
     namespace = "google::scp::roma::sandbox::worker_api",
     deps = [
@@ -101,19 +101,19 @@ sapi_library(
 )
 
 cc_library(
-    name = "roma_worker_sandbox_api_lib",
+    name = "worker_sandbox_api",
     srcs = ["worker_sandbox_api.cc"],
     hdrs = ["worker_sandbox_api.h"],
     deps = [
         ":error_codes",
-        ":roma_worker_wrapper_lib-sapi",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
+        ":worker_wrapper-sapi",
         "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/roma/logging/src:roma_logging_lib",
-        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:roma_v8_js_engine_lib",
-        "//scp/cc/roma/sandbox/worker/src:roma_worker_lib",
-        "//scp/cc/roma/sandbox/worker_api/src:roma_worker_api_lib",
+        "//scp/cc/roma/logging/src:logging",
+        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
+        "//scp/cc/roma/sandbox/worker/src:worker",
+        "//scp/cc/roma/sandbox/worker_api/src:worker_api",
         "@com_google_absl//absl/status",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],

@@ -17,16 +17,16 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "roma_worker_lib",
+    name = "worker",
     srcs = ["worker.cc"],
     hdrs = ["worker.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
-        "//scp/cc/roma/config/src:roma_config_lib",
-        "//scp/cc/roma/logging/src:roma_logging_lib",
-        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
-        "//scp/cc/roma/sandbox/js_engine/src:roma_js_engine_lib",
+        "//scp/cc/roma/config/src:config",
+        "//scp/cc/roma/logging/src:logging",
+        "//scp/cc/roma/sandbox/constants",
+        "//scp/cc/roma/sandbox/js_engine/src:js_engine",
         "//src/cpp/util/status_macro:status_macros",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log:check",

@@ -18,21 +18,21 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
-    name = "roma_rpc_wrapper",
+    name = "rpc_wrapper_proto",
     srcs = ["rpc_wrapper.proto"],
-    deps = ["//scp/cc/roma/interface:roma_function_binding_io_proto"],
+    deps = ["//scp/cc/roma/interface:function_binding_io_proto"],
 )
 
 cc_proto_library(
-    name = "cc_roma_rpc_wrapper",
-    deps = [":roma_rpc_wrapper"],
+    name = "rpc_wrapper_cc_proto",
+    deps = [":rpc_wrapper_proto"],
 )
 
 cc_library(
-    name = "roma_native_function_binding_lib",
+    name = "native_function_binding",
     hdrs = ["native_function_invoker.h"],
     deps = [
-        "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
+        "//scp/cc/roma/interface:function_binding_io_cc_proto",
         "@com_google_absl//absl/status",
     ],
 )
@@ -51,14 +51,14 @@ cc_library(
 )
 
 cc_library(
-    name = "roma_native_function_invoker_sapi_ipc_lib",
+    name = "native_function_invoker_sapi_ipc",
     srcs = ["native_function_invoker_sapi_ipc.cc"],
     hdrs = ["native_function_invoker_sapi_ipc.h"],
     deps = [
-        ":cc_roma_rpc_wrapper",
-        ":roma_native_function_binding_lib",
-        "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
-        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        ":native_function_binding",
+        ":rpc_wrapper_cc_proto",
+        "//scp/cc/roma/interface:function_binding_io_cc_proto",
+        "//scp/cc/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_sandboxed_api//sandboxed_api:sapi",
         "@com_google_sandboxed_api//sandboxed_api:vars",
@@ -66,19 +66,19 @@ cc_library(
 )
 
 cc_library(
-    name = "roma_native_function_handler_sapi_ipc_lib",
+    name = "native_function_handler_sapi_ipc",
     hdrs = [
         "native_function_handler_sapi_ipc.h",
         "native_function_table.h",
     ],
     deps = [
-        ":cc_roma_rpc_wrapper",
+        ":rpc_wrapper_cc_proto",
         ":thread_safe_map",
         "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/roma/config/src:roma_config_lib",
-        "//scp/cc/roma/interface:roma_function_binding_io_cc_proto",
-        "//scp/cc/roma/logging/src:roma_logging_lib",
-        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/config/src:config",
+        "//scp/cc/roma/interface:function_binding_io_cc_proto",
+        "//scp/cc/roma/logging/src:logging",
+        "//scp/cc/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
         "@com_google_sandboxed_api//sandboxed_api:sapi",

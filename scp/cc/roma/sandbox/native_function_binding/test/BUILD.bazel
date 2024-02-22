@@ -20,8 +20,8 @@ cc_test(
     srcs = ["native_function_handler_sapi_ipc_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
-        "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_handler_sapi_ipc_lib",
+        "//scp/cc/roma/sandbox/constants",
+        "//scp/cc/roma/sandbox/native_function_binding/src:native_function_handler_sapi_ipc",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -32,8 +32,8 @@ cc_test(
     srcs = ["native_function_invoker_sapi_ipc_test.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
-        "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_invoker_sapi_ipc_lib",
+        "//scp/cc/roma/sandbox/constants",
+        "//scp/cc/roma/sandbox/native_function_binding/src:native_function_invoker_sapi_ipc",
         "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],
@@ -44,7 +44,7 @@ cc_test(
     size = "small",
     srcs = ["native_function_table_test.cc"],
     deps = [
-        "//scp/cc/roma/sandbox/native_function_binding/src:roma_native_function_handler_sapi_ipc_lib",
+        "//scp/cc/roma/sandbox/native_function_binding/src:native_function_handler_sapi_ipc",
         "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],

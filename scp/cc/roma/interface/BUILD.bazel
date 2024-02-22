@@ -19,21 +19,21 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
-    name = "roma_function_binding_io_proto",
+    name = "function_binding_io_proto",
     srcs = ["function_binding_io.proto"],
 )
 
 cc_proto_library(
-    name = "roma_function_binding_io_cc_proto",
-    deps = [":roma_function_binding_io_proto"],
+    name = "function_binding_io_cc_proto",
+    deps = [":function_binding_io_proto"],
 )
 
 cc_library(
-    name = "roma_interface_lib",
+    name = "interface",
     hdrs = ["roma.h"],
     deps = [
         "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/roma/config/src:roma_config_lib",
+        "//scp/cc/roma/config/src:config",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/status",
@@ -42,8 +42,8 @@ cc_library(
 )
 
 buf_lint_test(
-    name = "roma_function_binding_io_proto_lint",
+    name = "function_binding_io_proto_lint",
     size = "small",
     config = "//scp:buf.yaml",
-    targets = [":roma_function_binding_io_proto"],
+    targets = [":function_binding_io_proto"],
 )

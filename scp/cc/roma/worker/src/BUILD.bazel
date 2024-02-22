@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "roma_execution_utils_lib",
+    name = "execution_utils",
     srcs = [
         "execution_utils.cc",
     ],
@@ -27,9 +27,9 @@ cc_library(
     deps = [
         "//scp/cc/core/interface:interface_lib",
         "//scp/cc/core/interface:type_def_lib",
-        "//scp/cc/roma/config/src:roma_config_lib",
-        "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/wasm/src:roma_wasm_lib",
+        "//scp/cc/roma/config/src:config",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/wasm/src:wasm",
         "//src/cpp/util/status_macro:status_macros",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",

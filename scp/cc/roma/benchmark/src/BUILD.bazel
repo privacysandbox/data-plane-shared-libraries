@@ -21,9 +21,9 @@ cc_library(
     srcs = ["fake_ba_server.cc"],
     hdrs = ["fake_ba_server.h"],
     deps = [
-        "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
-        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
+        "//scp/cc/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
@@ -35,9 +35,9 @@ cc_library(
     srcs = ["fake_kv_server.cc"],
     hdrs = ["fake_kv_server.h"],
     deps = [
-        "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
-        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
+        "//scp/cc/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
@@ -45,13 +45,13 @@ cc_library(
 )
 
 cc_library(
-    name = "roma_benchmark_lib",
+    name = "benchmark",
     srcs = ["roma_benchmark.cc"],
     hdrs = ["roma_benchmark.h"],
     deps = [
-        "//scp/cc/roma/interface:roma_interface_lib",
-        "//scp/cc/roma/roma_service:roma_service_lib",
-        "//scp/cc/roma/sandbox/constants:roma_constants_lib",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
+        "//scp/cc/roma/sandbox/constants",
         "//src/cpp/util/status_macro:status_macros",
         "@google_benchmark//:benchmark",
     ],
