@@ -40,6 +40,8 @@ class Worker {
   explicit Worker(std::unique_ptr<js_engine::JsEngine> js_engine,
                   bool require_preload = true);
 
+  virtual ~Worker() = default;
+
   void Run();
 
   void Stop();

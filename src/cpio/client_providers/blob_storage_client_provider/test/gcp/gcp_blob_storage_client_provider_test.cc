@@ -821,7 +821,7 @@ MATCHER_P(InsertObjectRequestEquals, expected_request, "") {
                           result_listener)) {
     equal = false;
   }
-  if (!ExplainMatchResult(Eq(expected_request.contents()), arg.contents(),
+  if (!ExplainMatchResult(Eq(expected_request.payload()), arg.payload(),
                           result_listener)) {
     equal = false;
   }
