@@ -15,7 +15,7 @@
 load("@com_google_sandboxed_api//sandboxed_api/bazel:proto.bzl", "sapi_proto_library")
 load("@com_google_sandboxed_api//sandboxed_api/bazel:sapi.bzl", "sapi_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//scp/cc/roma/sandbox/worker_api:__subpackages__"])
@@ -124,4 +124,56 @@ buf_lint_test(
     size = "small",
     config = "//scp:buf.yaml",
     targets = [":worker_api_proto"],
+)
+
+cc_test(
+    name = "worker_sandbox_api_test",
+    size = "small",
+    srcs = ["worker_sandbox_api_test.cc"],
+    # Run with TCMalloc in this test to make sure that everything works with
+    # the allocator that we'll be using in benchmarks and production.
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    tags = [
+        # This test has a translation unit too big for the debug ASAN build,
+        # run it in optimized mode:
+        "asanopt",
+        "noasan",
+        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
+    ],
+    deps = [
+        ":error_codes",
+        ":worker_sandbox_api",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/roma/sandbox/constants",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "worker_wrapper_benchmark",
+    timeout = "eternal",
+    srcs = ["worker_wrapper_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    tags = ["manual"],
+    deps = [
+        ":worker_init_params_cc_proto",
+        ":worker_wrapper",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/roma/sandbox/constants",
+        "@com_google_googletest//:gtest_main",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_test(
+    name = "worker_wrapper_test",
+    size = "small",
+    srcs = ["worker_wrapper_test.cc"],
+    deps = [
+        ":worker_init_params_cc_proto",
+        ":worker_wrapper",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/roma/sandbox/constants",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
