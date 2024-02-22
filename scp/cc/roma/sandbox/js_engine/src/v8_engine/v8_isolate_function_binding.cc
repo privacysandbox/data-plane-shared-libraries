@@ -118,6 +118,16 @@ v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
 
 }  // namespace
 
+V8IsolateFunctionBinding::V8IsolateFunctionBinding(
+    const std::vector<std::string>& function_names,
+    std::unique_ptr<native_function_binding::NativeFunctionInvoker>
+        function_invoker)
+    : function_invoker_(std::move(function_invoker)) {
+  for (const auto& function_name : function_names) {
+    binding_references_.emplace_back(std::make_pair(function_name, this));
+  }
+}
+
 bool V8IsolateFunctionBinding::NativeFieldsToProto(
     const BindingPair& binding_pair, FunctionBindingIoProto& function_proto,
     RpcWrapper& rpc_proto) {

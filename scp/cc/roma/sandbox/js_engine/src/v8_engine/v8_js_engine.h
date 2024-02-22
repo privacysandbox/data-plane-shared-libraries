@@ -47,17 +47,7 @@ class V8JsEngine : public JsEngine {
   V8JsEngine(std::unique_ptr<V8IsolateFunctionBinding>
                  isolate_function_binding = nullptr,
              const JsEngineResourceConstraints& v8_resource_constraints =
-                 JsEngineResourceConstraints())
-      : isolate_function_binding_(std::move(isolate_function_binding)),
-        v8_resource_constraints_(v8_resource_constraints),
-        execution_watchdog_(
-            std::make_unique<roma::worker::ExecutionWatchDog>()) {
-    if (isolate_function_binding_) {
-      isolate_function_binding_->AddExternalReferences(external_references_);
-    }
-    // Must be null terminated
-    external_references_.push_back(0);
-  }
+                 JsEngineResourceConstraints());
 
   void Run() override;
 

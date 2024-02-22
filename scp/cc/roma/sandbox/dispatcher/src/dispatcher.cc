@@ -31,6 +31,28 @@
 using google::scp::core::errors::GetErrorMessage;
 
 namespace google::scp::roma::sandbox::dispatcher {
+
+Dispatcher::Dispatcher(core::AsyncExecutor* async_executor,
+                       worker_pool::WorkerPool* worker_pool,
+                       size_t max_pending_requests)
+    : async_executor_(async_executor),
+      worker_pool_(worker_pool),
+      worker_index_(0),
+      pending_requests_(0),
+      max_pending_requests_(max_pending_requests) {
+  CHECK(max_pending_requests > 0) << "max_pending_requests cannot be zero";
+}
+
+// Block until scheduled requests are complete.
+Dispatcher::~Dispatcher() {
+  auto fn = [this] {
+    pending_requests_mu_.AssertReaderHeld();
+    return pending_requests_ == 0;
+  };
+  absl::MutexLock l(&pending_requests_mu_);
+  pending_requests_mu_.Await(absl::Condition(&fn));
+}
+
 absl::Status Dispatcher::Broadcast(std::unique_ptr<CodeObject> code_object,
                                    Callback broadcast_callback) {
   auto worker_count = worker_pool_->GetPoolSize();

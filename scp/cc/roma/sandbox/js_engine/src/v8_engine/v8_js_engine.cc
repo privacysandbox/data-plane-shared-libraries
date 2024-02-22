@@ -109,6 +109,19 @@ absl::Status GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
+V8JsEngine::V8JsEngine(
+    std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding,
+    const JsEngineResourceConstraints& v8_resource_constraints)
+    : isolate_function_binding_(std::move(isolate_function_binding)),
+      v8_resource_constraints_(v8_resource_constraints),
+      execution_watchdog_(std::make_unique<roma::worker::ExecutionWatchDog>()) {
+  if (isolate_function_binding_) {
+    isolate_function_binding_->AddExternalReferences(external_references_);
+  }
+  // Must be null terminated
+  external_references_.push_back(0);
+}
+
 void V8JsEngine::Run() {
   execution_watchdog_->Run();
 }

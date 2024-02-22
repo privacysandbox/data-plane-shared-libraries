@@ -58,6 +58,36 @@ std::pair<absl::Status, WorkerApi::RetryStatus> WrapResultWithRetry(
 
 }  // namespace
 
+WorkerSandboxApi::WorkerSandboxApi(
+    bool require_preload, int native_js_function_comms_fd,
+    const std::vector<std::string>& native_js_function_names,
+    size_t max_worker_virtual_memory_mb, size_t js_engine_initial_heap_size_mb,
+    size_t js_engine_maximum_heap_size_mb,
+    size_t js_engine_max_wasm_memory_number_of_pages,
+    size_t sandbox_request_response_shared_buffer_size_mb,
+    bool enable_sandbox_sharing_request_response_with_buffer_only)
+    : require_preload_(require_preload),
+      native_js_function_comms_fd_(native_js_function_comms_fd),
+      native_js_function_names_(native_js_function_names),
+      max_worker_virtual_memory_mb_(max_worker_virtual_memory_mb),
+      js_engine_initial_heap_size_mb_(js_engine_initial_heap_size_mb),
+      js_engine_maximum_heap_size_mb_(js_engine_maximum_heap_size_mb),
+      js_engine_max_wasm_memory_number_of_pages_(
+          js_engine_max_wasm_memory_number_of_pages),
+      enable_sandbox_sharing_request_response_with_buffer_only_(
+          enable_sandbox_sharing_request_response_with_buffer_only) {
+  // create a sandbox2 buffer
+  request_and_response_data_buffer_size_bytes_ =
+      sandbox_request_response_shared_buffer_size_mb > 0
+          ? sandbox_request_response_shared_buffer_size_mb * kMB
+          : kDefaultBufferSizeInMb * kMB;
+  auto buffer = sandbox2::Buffer::CreateWithSize(
+      request_and_response_data_buffer_size_bytes_);
+  CHECK(buffer.ok()) << "Create Buffer with size failed with "
+                     << buffer.status().message();
+  sandbox_data_shared_buffer_ptr_ = std::move(buffer).value();
+}
+
 void WorkerSandboxApi::CreateWorkerSapiSandbox() {
   // Get the environment variable ROMA_VLOG_LEVEL value.
   int external_verbose_level = logging::GetVlogVerboseLevel();

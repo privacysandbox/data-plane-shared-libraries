@@ -23,6 +23,17 @@
 
 namespace google::scp::roma::worker {
 
+ExecutionWatchDog::ExecutionWatchDog()
+    : expiring_flag_(SteadyClock::RealClock()),
+      is_running_(false),
+      is_terminate_called_(false) {
+  expiring_flag_.Set(absl::InfiniteDuration());
+}
+
+ExecutionWatchDog::~ExecutionWatchDog() {
+  Stop();
+}
+
 void ExecutionWatchDog::Run() {
   absl::MutexLock lock(&mutex_);
   execution_watchdog_thread_ =

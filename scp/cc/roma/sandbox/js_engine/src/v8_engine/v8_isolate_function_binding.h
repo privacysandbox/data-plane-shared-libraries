@@ -36,12 +36,7 @@ class V8IsolateFunctionBinding {
   V8IsolateFunctionBinding(
       const std::vector<std::string>& function_names,
       std::unique_ptr<native_function_binding::NativeFunctionInvoker>
-          function_invoker)
-      : function_invoker_(std::move(function_invoker)) {
-    for (const auto& function_name : function_names) {
-      binding_references_.emplace_back(std::make_pair(function_name, this));
-    }
-  }
+          function_invoker);
 
   // Not copyable or movable
   V8IsolateFunctionBinding(const V8IsolateFunctionBinding&) = delete;
