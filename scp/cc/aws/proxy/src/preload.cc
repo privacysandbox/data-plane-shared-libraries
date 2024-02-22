@@ -18,6 +18,7 @@
 #include <sys/types.h>
 
 #include <algorithm>
+#include <cstdint>
 
 #include "protocol.h"
 #include "socket_vendor_protocol.h"
@@ -271,7 +272,7 @@ static ssize_t recv_all(int fd, void* buf, size_t len, int flags) {
 // most ioctl calls still follow the fastest path, here we still make the ioctl
 // syscall first, and only on errors we kick-in and check if that's the case we
 // want to handle.
-EXPORT int ioctl(int fd, unsigned long request, void* argp) {  // NOLINT
+EXPORT int ioctl(int fd, uint32_t request, void* argp) {  // NOLINT
 #ifndef FIONREAD
 #define FIONREAD 0x541B
 #endif  // FIONREAD

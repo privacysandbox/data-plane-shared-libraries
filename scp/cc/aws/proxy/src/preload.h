@@ -50,7 +50,7 @@ static int (*libc_setsockopt)(int sockfd, int level, int optname,
 static int (*libc_getsockopt)(int sockfd, int level, int optname,
                               void* __restrict optval,
                               socklen_t* __restrict optlen);
-static int (*libc_ioctl)(int fd, unsigned long request, ...);
+static int (*libc_ioctl)(int fd, uint32_t request, ...);
 static int (*libc_bind)(int sockfd, const struct sockaddr* addr,
                         socklen_t addrlen);
 static int (*libc_listen)(int sockfd, int backlog);
@@ -65,7 +65,7 @@ static int (*libc_epoll_ctl)(int epfd, int op, int fd,
 // real syscall cannot have variadic arguments at all. The real internal
 // signature is really just an argument with char* or void* type.
 // ref: https://static.lwn.net/images/pdf/LDD3/ch06.pdf
-int ioctl(int fd, unsigned long request, void* argp);
+int ioctl(int fd, uint32_t request, void* argp);
 }
 
 static int socks5_client_connect(int sockfd, const struct sockaddr* addr);
@@ -98,7 +98,7 @@ static ssize_t recv_all(int fd, void* buf, size_t len, int flags);
 // most ioctl calls still follow the fastest path, here we still make the ioctl
 // syscall first, and only on errors we kick-in and check if that's the case we
 // want to handle.
-EXPORT int ioctl(int fd, unsigned long request, void* argp);
+EXPORT int ioctl(int fd, uint32_t request, void* argp);
 
 int socks5_client_connect(int sockfd, const struct sockaddr* addr);
 
