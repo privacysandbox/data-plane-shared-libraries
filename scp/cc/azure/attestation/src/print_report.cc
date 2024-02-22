@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-#pragma once
+#include <iostream>
 
-bool fetchAttestationReport6(const char* report_data_hexstring,
-                             void** snp_report);
+#include "attestation.h"
 
-// 6.1 linux exposees the PSP via /dev/sev-guest
+using google::scp::azure::attestation::fetchFakeSnpAttestation;
+using google::scp::azure::attestation::fetchSnpAttestation;
+using google::scp::azure::attestation::hasSnp;
 
-bool supportsDevSevGuest();
+int main() {
+  const auto report =
+      hasSnp() ? fetchSnpAttestation() : fetchFakeSnpAttestation();
+  CHECK(report.has_value()) << "Failed to get attestation report";
+  std::cout << "report (fake=" << !hasSnp() << "):\n";
+  std::cout << nlohmann::json(report.value()).dump(2) << std::endl;
+  return 0;
+}

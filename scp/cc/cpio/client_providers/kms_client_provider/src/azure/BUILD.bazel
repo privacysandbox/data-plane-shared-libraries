@@ -26,7 +26,7 @@ cc_library(
     ],
     deps = [
         "//scp/cc:cc_base_include_dir",
-        "//scp/cc/azure/attestation:aci_attestation_lib",
+        "//scp/cc/azure:attestation",
         "//scp/cc/core/common/uuid/src:uuid_lib",
         "//scp/cc/core/interface:async_context_lib",
         "//scp/cc/core/interface:interface_lib",

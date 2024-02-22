@@ -21,7 +21,7 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
-#include "azure/attestation/json_attestation_report.h"
+#include "azure/attestation/src/attestation.h"
 #include "core/interface/http_client_interface.h"
 #include "cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "cpio/client_providers/interface/role_credentials_provider_interface.h"

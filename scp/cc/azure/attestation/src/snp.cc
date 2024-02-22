@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-#include "security_context_fetcher.h"
+#include "attestation.h"
 
-#include <string>
+namespace google::scp::azure::attestation {
 
-std::vector<uint8_t> fetchSecurityContextFile(std::string file_path) {
-  const char* dir = std::getenv("UVM_SECURITY_CONTEXT_DIR");
-  if (!dir) {
-    throw std::runtime_error(
-        "UVM_SECURITY_CONTEXT_DIR environment variable is not set");
+SnpType getSnpType() {
+  std::ifstream sev_file("/dev/sev");
+  if (sev_file.good()) {
+    return SnpType::SEV;
   }
-
-  std::string full_path = std::string(dir) + file_path;
-  std::ifstream file(full_path, std::ios::binary);
-
-  if (!file) {
-    throw std::runtime_error("Unable to open file at full_path: " + full_path);
+  std::ifstream sev_guest_file("/dev/sev-guest");
+  if (sev_file.good()) {
+    return SnpType::SEV_GUEST;
   }
-
-  return {std::istreambuf_iterator<char>(file),
-          std::istreambuf_iterator<char>()};
+  return SnpType::NONE;
 }
+
+bool hasSnp() {
+  return getSnpType() != SnpType::NONE;
+}
+
+}  // namespace google::scp::azure::attestation

@@ -12,19 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
 package(default_visibility = ["//visibility:public"])
 
-alias(
-    name = "src",
-    actual = "//scp/cc/azure/attestation/src:attestation",
-)
-
-alias(
-    name = "utils",
-    actual = "//scp/cc/azure/attestation/src/utils:attestation_utils",
-)
-
-alias(
-    name = "print_report",
-    actual = "//scp/cc/azure/attestation/src:print_report",
+cc_test(
+    name = "attestation",
+    srcs = ["attestation_test.cc"],
+    deps = [
+        "//scp/cc/azure:attestation",
+        "@com_google_googletest//:gtest_main",
+    ],
 )

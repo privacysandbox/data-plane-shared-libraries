@@ -12,19 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 package(default_visibility = ["//visibility:public"])
 
-alias(
-    name = "src",
-    actual = "//scp/cc/azure/attestation/src:attestation",
-)
-
-alias(
-    name = "utils",
-    actual = "//scp/cc/azure/attestation/src/utils:attestation_utils",
-)
-
-alias(
-    name = "print_report",
-    actual = "//scp/cc/azure/attestation/src:print_report",
+cc_library(
+    name = "attestation_utils",
+    srcs = [
+        "host_amd_certs.cc",
+        "security_context.cc",
+    ],
+    hdrs = [
+        "host_amd_certs.h",
+        "security_context.h",
+    ],
+    deps = [
+        "//scp/cc/core/utils/src:core_utils",
+        "@nlohmann_json//:lib",
+    ],
 )

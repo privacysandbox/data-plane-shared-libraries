@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-#pragma once
+#include <cstdlib>
+#include <fstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
-bool fetchAttestationReport5(const char* report_data_hexstring,
-                             void** snp_report);
+#include <nlohmann/json.hpp>
 
-// does /dev/sev exists. This is where the PSP is exposed in 5.15.*
-bool supportsDevSev();
+namespace google::scp::azure::attestation::utils {
+
+std::string getSecurityContextFile(std::string file_path);
+
+}

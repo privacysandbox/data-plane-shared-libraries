@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-#include <cstdlib>
-#include <fstream>
-#include <stdexcept>
 #include <string>
-#include <vector>
 
-std::vector<uint8_t> fetchSecurityContextFile(std::string file_path);
+#include <nlohmann/json.hpp>
+
+#include "core/utils/src/base64.h"
+
+#include "security_context.h"
+
+namespace google::scp::azure::attestation::utils {
+
+nlohmann::json getHostAmdCerts();
+
+}

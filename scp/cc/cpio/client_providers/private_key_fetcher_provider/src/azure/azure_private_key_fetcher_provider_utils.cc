@@ -18,8 +18,11 @@
 
 #include <memory>
 
-#include "azure/attestation/json_attestation_report.h"
+#include "azure/attestation/src/attestation.h"
 
+using google::scp::azure::attestation::fetchFakeSnpAttestation;
+using google::scp::azure::attestation::fetchSnpAttestation;
+using google::scp::azure::attestation::hasSnp;
 using google::scp::core::HttpMethod;
 using google::scp::core::HttpRequest;
 using google::scp::core::Uri;
@@ -35,6 +38,7 @@ void AzurePrivateKeyFetchingClientUtils::CreateHttpRequest(
   http_request.path = std::make_shared<Uri>(base_uri);
   const auto report =
       hasSnp() ? fetchSnpAttestation() : fetchFakeSnpAttestation();
-  http_request.body = core::BytesBuffer(report.dump());
+  CHECK(report.has_value()) << "Failed to get attestation report";
+  http_request.body = core::BytesBuffer(nlohmann::json(report.value()).dump());
 }
 }  // namespace google::scp::cpio::client_providers

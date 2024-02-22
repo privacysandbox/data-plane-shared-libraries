@@ -32,6 +32,9 @@
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;
+using google::scp::azure::attestation::fetchFakeSnpAttestation;
+using google::scp::azure::attestation::fetchSnpAttestation;
+using google::scp::azure::attestation::hasSnp;
 using google::scp::core::AsyncContext;
 using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;
@@ -157,11 +160,12 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   // Get Attestation Report
   const auto report =
       hasSnp() ? fetchSnpAttestation() : fetchFakeSnpAttestation();
+  CHECK(report.has_value()) << "Failed to get attestation report";
 
   nlohmann::json payload;
   payload["wrapped"] = ciphertext;
   payload["kid"] = key_id;
-  payload["attestation"] = report;
+  payload["attestation"] = nlohmann::json(report.value());
 
   http_context.request->body = core::BytesBuffer(nlohmann::to_string(payload));
   http_context.request->headers = std::make_shared<core::HttpHeaders>();

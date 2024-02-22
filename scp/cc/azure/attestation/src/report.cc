@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-#include <fcntl.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include "attestation.h"
 
-#include "fetch5.h"
-#include "fetch6.h"
-#include "snp-attestation.h"
+namespace google::scp::azure::attestation {
 
-bool fetchSnpReport(const char* report_data_hexstring, void** snp_report);
+std::optional<AttestationReport> fetchSnpAttestation(
+    const std::string report_data) {
+  if (!hasSnp()) {
+    return std::nullopt;
+  }
+
+  try {
+    return AttestationReport{
+        getSnpEvidence(report_data),
+        getSnpEndorsements(),
+        getSnpUvmEndorsements(),
+        getSnpEndorsedTcb(),
+    };
+  } catch (...) {
+    return std::nullopt;
+  }
+}
+
+}  // namespace google::scp::azure::attestation

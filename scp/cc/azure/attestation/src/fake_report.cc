@@ -14,121 +14,13 @@
  * limitations under the License.
  */
 
-#include "json_attestation_report.h"
+#include "attestation.h"
 
-#include <cassert>
-#include <iomanip>
-#include <iostream>
-#include <memory>
-#include <regex>
-#include <sstream>
-#include <string>
+namespace google::scp::azure::attestation {
 
-#include <openssl/base64.h>
-
-#include "core/utils/src/base64.h"
-
-using google::scp::core::utils::Base64Decode;
-using google::scp::core::utils::Base64Encode;
-
-void Base64EncodeBytes(const uint8_t* decoded, size_t size,
-                       std::string& encoded) {
-  size_t required_len = 0;
-  EVP_EncodedLength(&required_len, size);
-  auto buffer = std::make_unique<uint8_t[]>(required_len);
-  int ret = EVP_EncodeBlock(buffer.get(), decoded, size);
-  encoded = std::string(reinterpret_cast<char*>(buffer.get()), ret);
-}
-
-std::string replace(const std::string& input, const std::string toReplace,
-                    const std::string replaceWith) {
-  std::string output = input;
-  size_t pos = 0;
-  while ((pos = output.find(toReplace, pos)) != std::string::npos) {
-    output.replace(pos, toReplace.length(), replaceWith);
-    pos += replaceWith.length();
-  }
-  return output;
-}
-
-std::string getSnpReport(const std::string report_data) {
-  // Call the C code to fetch the report
-  uint8_t* snp_report_hex;
-  fetchSnpReport(report_data.c_str(), (void*)&snp_report_hex);
-
-  // Base64 encode the report
-  std::string snp_report_hex_str;
-  Base64EncodeBytes(snp_report_hex, sizeof(snp_attestation_report),
-                    snp_report_hex_str);
-
-  return snp_report_hex_str;
-}
-
-nlohmann::json loadHostAmdCerts() {
-  // Read the local Base64 encoded AMD certs
-  const auto host_certs_b64 = fetchSecurityContextFile("/host-amd-cert-base64");
-  std::string host_certs_b64_str(host_certs_b64.begin(), host_certs_b64.end());
-
-  // Decode the contents of the file
-  std::string host_certs_str;
-  Base64Decode(host_certs_b64_str, host_certs_str);
-
-  // Parse the decoded string into JSON
-  return nlohmann::json::parse(host_certs_str);
-}
-
-std::string getEndorsementCerts(nlohmann::json host_certs_json) {
-  // Extract the certs from the JSON
-  std::string vcekCert = host_certs_json["vcekCert"].dump();
-  std::string certificateChain = host_certs_json["certificateChain"].dump();
-
-  // Combine the certs into a chain and cleanup characters that shouldn't be
-  // there
-  std::string endorsementCerts = vcekCert + certificateChain;
-  endorsementCerts.erase(
-      std::remove(endorsementCerts.begin(), endorsementCerts.end(), '\"'),
-      endorsementCerts.cend());
-  endorsementCerts = replace(endorsementCerts, "\\n", "\n");
-
-  // Base64 encode the certificate chain
-  Base64Encode(endorsementCerts, endorsementCerts);
-  return endorsementCerts;
-}
-
-std::string getUvmEndorsements() {
-  // Read the local Base64 encoded UVM endorsements
-  const auto uvm_endorsements =
-      fetchSecurityContextFile("/reference-info-base64");
-  std::string uvm_endorsements_str(uvm_endorsements.begin(),
-                                   uvm_endorsements.end());
-
-  return uvm_endorsements_str;
-}
-
-std::string getEndorsedTcb(nlohmann::json host_certs_json) {
-  // Extract the endorsed TCB from the JSON
-  std::string endorsed_tcb_reversed_endian = host_certs_json["tcbm"];
-
-  // Reverse the endianess of the endorsed TCB
-  std::string endorsed_tcb = "";
-  for (int i = endorsed_tcb_reversed_endian.length() - 2; i >= 0; i -= 2) {
-    endorsed_tcb += endorsed_tcb_reversed_endian.substr(i, 2);
-  }
-
-  return endorsed_tcb;
-}
-
-bool hasSnp() {
-  std::ifstream sev_file("/dev/sev");
-  return sev_file.good();
-}
-
-nlohmann::json fetchFakeSnpAttestation() {
-  // Update this value by running //scp/cc/azure/attestation:print_snp_json (The
-  // usage is in print_snp_json.cc). Also you need to update the fake
-  // attestation in Azure KMS.
-  nlohmann::json kms_request_body;
-  kms_request_body["evidence"] =
+std::optional<AttestationReport> fetchFakeSnpAttestation() {
+  return AttestationReport{
+      // Evidence
       "AgAAAAIAAAAfAAMAAAAAAAEAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAEA"
       "AAADAAAAAAAI0gEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAsOw1b8dJW+"
@@ -155,8 +47,8 @@ nlohmann::json fetchFakeSnpAttestation() {
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
       "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-      "AAAAAAAAAAAAAAAAAAA=";
-  kms_request_body["endorsements"] =
+      "AAAAAAAAAAAAAAAAAAA=",
+      // Endorsements
       "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUZURENDQXZ1Z0F3SUJBZ0lCQURCR0Jn"
       "a3Foa2lHOXcwQkFRb3dPYUFQTUEwR0NXQ0dTQUZsQXdRQ0FnVUEKb1J3d0dnWUpLb1pJaHZj"
       "TkFRRUlNQTBHQ1dDR1NBRmxBd1FDQWdVQW9nTUNBVENqQXdJQkFUQjdNUlF3RWdZRApWUVFM"
@@ -277,8 +169,8 @@ nlohmann::json fetchFakeSnpAttestation() {
       "V2NkOGJMcjltZHNVbgpKWkowK3R1UE1LbUJuU0g4NjBsbEtrK1ZwVlFzZ3FiekRJdk9MdkQ2"
       "VzFVbXEyNWJveENZSitUdUJvYTRzK0hICkNWaUF2Z1Q5a2YvckJxMWQraXZqNnNra0h4dXpj"
       "eGJrMXh2NlpHeHJ0ZUp4Vkg3S2xYN1lSZFo2ZUFSS3dMZTQKQUZaRUF3b0tDUT09Ci0tLS0t"
-      "RU5EIENFUlRJRklDQVRFLS0tLS0K";
-  kms_request_body["uvm_endorsements"] =
+      "RU5EIENFUlRJRklDQVRFLS0tLS0K",
+      // UVM Endorsements
       "0oRZE86nATglA3BhcHBsaWNhdGlvbi9qc29uGCGDWQZvMIIGazCCBFOgAwIBAgITMwAAABxx"
       "pnEfWQZPEAAAAAAAHDANBgkqhkiG9w0BAQwFADBVMQswCQYDVQQGEwJVUzEeMBwGA1UEChMV"
       "TWljcm9zb2Z0IENvcnBvcmF0aW9uMSYwJAYDVQQDEx1NaWNyb3NvZnQgU0NEIFByb2R1Y3Rz"
@@ -540,21 +432,9 @@ nlohmann::json fetchFakeSnpAttestation() {
       "JHtbxmGyNp9fEhM5IzuXlG8SI0ElNTdBweMKL87LWeTdygcM5zsFULCHlNCNf5NNDjP0kZoO"
       "0BYulfE74Ba/"
       "71qZQEnmKhdWDim4sdVl8t7UIu4AbtMpqBEjea6leuXnckZytZVDGY6C6+"
-      "4DnIlfB7jEHE4f11xqAnRcxKvSpSf6Vj";
-  kms_request_body["endorsed_tcb"] = "0300000000000873";
-  return kms_request_body;
+      "4DnIlfB7jEHE4f11xqAnRcxKvSpSf6Vj",
+      // Endorsed TCB
+      "0300000000000873"};
 }
 
-nlohmann::json fetchSnpAttestation(const std::string report_data) {
-  assert(hasSnp());
-
-  const auto host_certs_json = loadHostAmdCerts();
-
-  nlohmann::json kms_request_body;
-  kms_request_body["evidence"] = getSnpReport(report_data);
-  kms_request_body["endorsements"] = getEndorsementCerts(host_certs_json);
-  kms_request_body["uvm_endorsements"] = getUvmEndorsements();
-  kms_request_body["endorsed_tcb"] = getEndorsedTcb(host_certs_json);
-
-  return kms_request_body;
-}
+}  // namespace google::scp::azure::attestation

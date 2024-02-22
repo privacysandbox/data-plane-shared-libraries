@@ -23,7 +23,7 @@
 
 #include <tink/aead.h>
 
-#include "azure/attestation/json_attestation_report.h"
+#include "azure/attestation/src/attestation.h"
 #include "core/interface/async_context.h"
 #include "cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "public/core/interface/execution_result.h"
