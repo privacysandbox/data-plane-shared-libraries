@@ -59,10 +59,21 @@ cc_library(
 )
 
 cc_library(
+    name = "snapshot_compilation_context",
+    hdrs = [
+        "snapshot_compilation_context.h",
+    ],
+    deps = [
+        ":v8_isolate_wrapper",
+        "//scp/cc/roma/sandbox/js_engine/src:js_engine",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
     name = "v8_js_engine",
     srcs = ["v8_js_engine.cc"],
     hdrs = [
-        "snapshot_compilation_context.h",
         "v8_js_engine.h",
     ],
     copts = [
@@ -70,6 +81,7 @@ cc_library(
         "-Wno-unused-variable",
     ],
     deps = [
+        ":snapshot_compilation_context",
         ":v8_console",
         ":v8_isolate_function_binding",
         ":v8_isolate_wrapper",
