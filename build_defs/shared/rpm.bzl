@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def rpm():
+    # Lastest commit in main branch as of 2021-11-29
     maybe(
-        git_repository,
+        http_archive,
         name = "com_github_google_rpmpack",
-        # Lastest commit in main branch as of 2021-11-29
-        commit = "d0ed9b1b61b95992d3c4e83df3e997f3538a7b6c",
-        remote = "https://github.com/google/rpmpack.git",
-        shallow_since = "1637822718 +0200",
+        strip_prefix = "rpmpack-d0ed9b1b61b95992d3c4e83df3e997f3538a7b6c",
+        url = "https://github.com/google/rpmpack/archive/d0ed9b1b61b95992d3c4e83df3e997f3538a7b6c.zip",
+        sha256 = "798eaeb4d354e8015deaa561beffe7829aad894bedbdf6a196bee98750980a59",
     )
