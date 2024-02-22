@@ -24,6 +24,11 @@ readonly TOOLS_DIR="${SCRIPT_DIR}"/../builders/tools
 # shellcheck disable=SC1090
 source "${TOOLS_DIR}"/builder.sh
 
+# TODO: b/326459539 - Normalize benchmark target names
+# JSON output files for each benchmark and the metrics that're in perfgate are
+# named after the build target, so changing the build target will lose history
+# if not preserved. To remedy this, add a map from "json_file_names" to
+# "perfgate_benchmark_name" in https://source.corp.google.com/piper///depot/google3/chrome/privacy_sandbox/kiwi_air_force/perfgate/backfill_placer_data.sh;l=44.
 declare -a -r targets=(
   //scp/cc/aws/proxy/test:benchmark_test
   //scp/cc/core/common/uuid/test:uuid_benchmark
