@@ -159,8 +159,7 @@ to call the function.
 Roma users can register C++ hook functions, which can then be used by JavaScript. These binding
 functions must be registered when Roma is initialized. UDFs can accept a list of strings or a map of
 string and bytes as input. This allows users to define their own objects without having to implement
-converters for every odd type in Roma. Here is an example of how to use this feature in
-[roma/examples/proto_in_hooks](/scp/cc/roma/examples/proto_in_hooks/README.md).
+converters for every odd type in Roma.
 
 # Getting Started with Roma
 
@@ -262,6 +261,3 @@ converters for every odd type in Roma. Here is an example of how to use this fea
     ```cpp
     status = roma_service->Stop();
     ```
-
-For more information on how to get started with Roma, see the examples in the
-[roma/examples](/scp/cc/roma/examples/) directory.
