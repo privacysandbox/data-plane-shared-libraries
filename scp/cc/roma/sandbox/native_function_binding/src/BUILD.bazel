@@ -66,12 +66,25 @@ cc_library(
 )
 
 cc_library(
-    name = "native_function_handler_sapi_ipc",
+    name = "native_function_table",
     hdrs = [
-        "native_function_handler_sapi_ipc.h",
         "native_function_table.h",
     ],
     deps = [
+        "//scp/cc/roma/config/src:config",
+        "//scp/cc/roma/interface:function_binding_io_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "native_function_handler_sapi_ipc",
+    hdrs = [
+        "native_function_handler_sapi_ipc.h",
+    ],
+    deps = [
+        ":native_function_table",
         ":rpc_wrapper_cc_proto",
         ":thread_safe_map",
         "//scp/cc/core/interface:interface_lib",
