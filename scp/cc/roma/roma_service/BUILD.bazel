@@ -131,7 +131,7 @@ cc_test(
         ":roma_service",
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/interface",
-        "//scp/cc/roma/wasm/test:wasm_testing",
+        "//scp/cc/roma/wasm/src:wasm_testing",
         "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",

@@ -29,7 +29,7 @@
 #include "scp/cc/roma/config/src/config.h"
 #include "scp/cc/roma/interface/roma.h"
 #include "scp/cc/roma/roma_service/roma_service.h"
-#include "scp/cc/roma/wasm/test/testing_utils.h"
+#include "scp/cc/roma/wasm/src/testing_utils.h"
 
 using google::scp::roma::sandbox::roma_service::RomaService;
 using google::scp::roma::wasm::testing::WasmTestingUtils;

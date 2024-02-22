@@ -30,7 +30,7 @@ cc_test(
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
         "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
-        "//scp/cc/roma/wasm/test:wasm_testing",
+        "//scp/cc/roma/wasm/src:wasm_testing",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
     ],

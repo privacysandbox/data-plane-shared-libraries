@@ -35,8 +35,8 @@
 #include "scp/cc/core/test/utils/auto_init_run_stop.h"
 #include "scp/cc/public/core/test/interface/execution_result_matchers.h"
 #include "scp/cc/roma/wasm/src/deserializer.h"
+#include "scp/cc/roma/wasm/src/testing_utils.h"
 #include "scp/cc/roma/wasm/src/wasm_types.h"
-#include "scp/cc/roma/wasm/test/testing_utils.h"
 #include "src/cpp/util/process_util.h"
 #include "src/cpp/util/status_macro/status_macros.h"
 

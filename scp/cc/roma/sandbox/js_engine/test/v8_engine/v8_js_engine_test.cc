@@ -26,7 +26,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "scp/cc/core/test/utils/auto_init_run_stop.h"
-#include "scp/cc/roma/wasm/test/testing_utils.h"
+#include "scp/cc/roma/wasm/src/testing_utils.h"
 
 using google::scp::core::test::ResultIs;
 using google::scp::roma::kDefaultExecutionTimeout;

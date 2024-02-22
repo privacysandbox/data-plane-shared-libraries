@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -43,4 +43,44 @@ cc_library(
     hdrs = [
         "wasm_types.h",
     ],
+)
+
+cc_test(
+    name = "serializer_test",
+    size = "small",
+    srcs = ["serializer_test.cc"],
+    deps = [
+        ":serializer",
+        "//scp/cc/core/test/utils:utils_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "deserializer_test",
+    size = "small",
+    srcs = ["deserializer_test.cc"],
+    deps = [
+        ":deserializer",
+        "//scp/cc/core/test/utils:utils_lib",
+    ],
+)
+
+cc_test(
+    name = "serde_test",
+    size = "small",
+    srcs = ["serde_test.cc"],
+    deps = [
+        ":deserializer",
+        ":serializer",
+        "//scp/cc/core/test/utils:utils_lib",
+    ],
+)
+
+cc_library(
+    name = "wasm_testing",
+    testonly = True,
+    srcs = ["testing_utils.cc"],
+    hdrs = ["testing_utils.h"],
+    deps = ["@com_google_absl//absl/log:check"],
 )

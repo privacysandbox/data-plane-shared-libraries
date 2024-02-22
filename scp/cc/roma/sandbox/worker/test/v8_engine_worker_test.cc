@@ -28,7 +28,7 @@
 #include "scp/cc/roma/sandbox/constants/constants.h"
 #include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 #include "scp/cc/roma/sandbox/worker/src/worker.h"
-#include "scp/cc/roma/wasm/test/testing_utils.h"
+#include "scp/cc/roma/wasm/src/testing_utils.h"
 
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::sandbox::constants::kCodeVersion;
