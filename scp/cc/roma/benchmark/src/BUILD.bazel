@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -53,6 +53,76 @@ cc_library(
         "//scp/cc/roma/roma_service",
         "//scp/cc/roma/sandbox/constants",
         "//src/cpp/util/status_macro:status_macros",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_library(
+    name = "test_code",
+    hdrs = ["test_code.h"],
+)
+
+cc_binary(
+    name = "benchmark_suite_test",
+    srcs = ["benchmark_suite_test.cc"],
+    deps = [
+        ":benchmark",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
+        "//scp/cc/roma/sandbox/constants",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_test(
+    name = "fake_kv_server_test",
+    size = "small",
+    srcs = ["fake_kv_server_test.cc"],
+    tags = [
+        "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
+        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
+    ],
+    deps = [
+        ":fake_kv_server",
+        "//scp/cc/core/test/utils:utils_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "logging_benchmark",
+    srcs = ["logging_benchmark.cc"],
+    deps = [
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
+        "@com_google_absl//absl/strings",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
+    name = "kv_server_udf_benchmark_test",
+    srcs = ["kv_server_udf_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    deps = [
+        ":fake_kv_server",
+        ":test_code",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
+    name = "ba_server_benchmark",
+    srcs = ["ba_server_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    deps = [
+        ":fake_ba_server",
+        ":test_code",
+        "//scp/cc/roma/interface",
+        "//scp/cc/roma/roma_service",
         "@google_benchmark//:benchmark",
     ],
 )

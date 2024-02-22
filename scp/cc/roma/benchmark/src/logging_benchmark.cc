@@ -17,7 +17,7 @@
  * output):
  *
  * builders/tools/bazel-debian run \
- * //scp/cc/roma/benchmark/test:logging_benchmark \
+ * //scp/cc/roma/benchmark/src:logging_benchmark \
  * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 

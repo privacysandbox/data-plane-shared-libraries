@@ -17,7 +17,7 @@
  * output):
  *
  * builders/tools/bazel-debian run \
- * //scp/cc/roma/benchmark/test:ba_server_benchmark \
+ * //scp/cc/roma/benchmark/src:kv_server_udf_benchmark_test \
  * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 
@@ -26,30 +26,34 @@
 
 #include <benchmark/benchmark.h>
 
-#include "scp/cc/roma/benchmark/src/fake_ba_server.h"
-#include "scp/cc/roma/benchmark/test/test_code.h"
+#include "scp/cc/roma/benchmark/src/fake_kv_server.h"
+#include "scp/cc/roma/benchmark/src/test_code.h"
 #include "scp/cc/roma/config/src/config.h"
 
 namespace {
 
 using google::scp::roma::Config;
 using google::scp::roma::FunctionBindingObjectV2;
-using google::scp::roma::benchmark::DispatchRequest;
-using google::scp::roma::benchmark::FakeBaServer;
+using google::scp::roma::FunctionBindingPayload;
+using google::scp::roma::benchmark::CodeConfig;
+using google::scp::roma::benchmark::FakeKvServer;
 
-constexpr std::string_view kVersionString = "v1";
+void LoadCodeBenchmark(std::string_view code, std::string_view handler_name,
+                       benchmark::State& state) {
+  Config config;
+  FakeKvServer server(std::move(config));
 
-void LoadCodeBenchmark(std::string_view code, benchmark::State& state) {
-  FakeBaServer server(Config{});
+  CodeConfig code_config;
+  code_config.js = code;
+  code_config.udf_handler_name = handler_name;
 
   // If the code is being padded with extra bytes then add a comment at the end
   // and fill it with extra zeroes.
   const int extra_padding_bytes = state.range(1);
-  std::string padded_code = std::string(code);
   if (extra_padding_bytes > 0) {
     std::string padding = " // ";
     padding += std::string('0', extra_padding_bytes);
-    padded_code += padding;
+    code_config.js += padding;
   }
 
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
@@ -57,50 +61,77 @@ void LoadCodeBenchmark(std::string_view code, benchmark::State& state) {
   const int number_of_loads = state.range(0);
   for (auto _ : state) {
     for (int i = 0; i < number_of_loads; ++i) {
-      server.LoadSync(kVersionString, padded_code);
+      server.SetCodeObject(code_config);
     }
   }
   state.SetItemsProcessed(number_of_loads);
-  state.SetBytesProcessed(number_of_loads * code.length());
+  state.SetBytesProcessed(number_of_loads * code_config.js.length());
 }
 
 void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
                           benchmark::State& state) {
-  FakeBaServer server(Config{});
-  server.LoadSync(kVersionString, std::string{code});
+  const int number_of_calls = state.range(0);
+  Config config;
+  FakeKvServer server(std::move(config));
 
-  // The same request will be used multiple times: the batch will be full of
-  // identical code to run.
-  DispatchRequest request = {
-      .id = "id",
-      .version_string = std::string(kVersionString),
-      .handler_name = std::string{handler_name},
-      // TODO(b/305957393): Right now no input is passed to these calls, add
-      // this!
-      // .input = { std::make_shared(my_input_value_one) },
-  };
-
-  std::vector<DispatchRequest> batch;
-  const int batch_size = state.range(0);
-  for (int i = 0; i < batch_size; ++i) {
-    batch.push_back(request);
-  }
+  CodeConfig code_config;
+  code_config.js = code;
+  code_config.udf_handler_name = handler_name;
+  server.SetCodeObject(code_config);
 
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
   // is what's timed.
   for (auto _ : state) {
-    server.BatchExecute(batch);
+    for (int i = 0; i < number_of_calls; ++i) {
+      benchmark::DoNotOptimize(server.ExecuteCode({}));
+    }
   }
-  state.SetItemsProcessed(batch_size);
+  state.SetItemsProcessed(number_of_calls);
+}
+
+// This C++ callback function is called in the benchmark below:
+static void HelloWorldCallback(FunctionBindingPayload<>& wrapper) {
+  wrapper.io_proto.set_output_string("I am a callback");
+}
+
+void BM_ExecuteHelloWorldCallback(benchmark::State& state) {
+  const int number_of_calls = state.range(0);
+  Config config;
+  {
+    auto function_object = std::make_unique<FunctionBindingObjectV2<>>();
+    function_object->function_name = "callback";
+    function_object->function = HelloWorldCallback;
+    config.RegisterFunctionBinding(std::move(function_object));
+  }
+  FakeKvServer server(std::move(config));
+
+  CodeConfig code_config{
+      .js = "hello = () => 'Hello world! ' + callback();",
+      .udf_handler_name = "hello",
+  };
+  server.SetCodeObject(code_config);
+
+  // Each benchmark routine has exactly one `for (auto s : state)` loop, this
+  // is what's timed.
+  for (auto _ : state) {
+    for (int i = 0; i < number_of_calls; ++i) {
+      benchmark::DoNotOptimize(server.ExecuteCode({}));
+    }
+  }
+  state.SetItemsProcessed(number_of_calls);
 }
 
 void BM_LoadHelloWorld(benchmark::State& state) {
-  LoadCodeBenchmark(google::scp::roma::benchmark::kCodeHelloWorld, state);
+  LoadCodeBenchmark(google::scp::roma::benchmark::kCodeHelloWorld,
+                    google::scp::roma::benchmark::kHandlerNameHelloWorld,
+                    state);
 }
 
 void BM_LoadGoogleAdManagerGenerateBid(benchmark::State& state) {
   LoadCodeBenchmark(
-      google::scp::roma::benchmark::kCodeGoogleAdManagerGenerateBid, state);
+      google::scp::roma::benchmark::kCodeGoogleAdManagerGenerateBid,
+      google::scp::roma::benchmark::kHandlerNameGoogleAdManagerGenerateBid,
+      state);
 }
 
 void BM_ExecuteHelloWorld(benchmark::State& state) {
@@ -128,9 +159,8 @@ BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
         {1, 10, 100},  // Run this many loads of the code.
         {0},           // No need to pad this code with extra bytes.
     });
-
-// Run these benchmarks with {1, 10, 100} requests in each batch.
 BENCHMARK(BM_ExecuteHelloWorld)->RangeMultiplier(10)->Range(1, 100);
+BENCHMARK(BM_ExecuteHelloWorldCallback)->RangeMultiplier(10)->Range(1, 100);
 BENCHMARK(BM_ExecutePrimeSieve)->RangeMultiplier(10)->Range(1, 100);
 
 // Run the benchmark

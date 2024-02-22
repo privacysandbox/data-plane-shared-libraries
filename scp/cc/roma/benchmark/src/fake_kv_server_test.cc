@@ -19,6 +19,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <utility>
+
 #include "scp/cc/roma/config/src/config.h"
 
 using google::scp::roma::proto::FunctionBindingIoProto;
