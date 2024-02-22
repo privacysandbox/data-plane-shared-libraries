@@ -17,7 +17,7 @@
  * output):
  *
  * builders/tools/bazel-debian run \
- * //scp/cc/roma/sandbox/dispatcher/test:dispatcher_benchmark \
+ * //scp/cc/roma/sandbox/dispatcher/src:dispatcher_benchmark \
  * --test_output=all
  */
 
