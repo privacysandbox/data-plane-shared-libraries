@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -32,5 +32,28 @@ cc_library(
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_test(
+    name = "v8_engine_worker_test",
+    size = "small",
+    srcs = ["v8_engine_worker_test.cc"],
+    data = [
+        "//scp/cc/roma/testing/cpp_wasi_dependency_example",
+    ],
+    tags = [
+        "noasan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
+        "notsan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
+        "noubsan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
+    ],
+    deps = [
+        ":worker",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/roma/sandbox/constants",
+        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
+        "//scp/cc/roma/wasm/src:wasm_testing",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_googletest//:gtest_main",
     ],
 )
