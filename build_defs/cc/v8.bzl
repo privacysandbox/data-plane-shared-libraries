@@ -34,13 +34,11 @@ def import_v8():
         requirements_lock = "@v8//:bazel/requirements.txt",
     )
 
-    new_git_repository(
+    http_archive(
         name = "com_googlesource_chromium_icu",
         build_file = "@v8//:bazel/BUILD.icu",
-        commit = "7ff1e9befce5567754dc88392dfaa4704e261ab3",
-        remote = "https://chromium.googlesource.com/chromium/deps/icu.git",
-        shallow_since = "1676660986 +0000",
         patch_cmds = ["find source -name BUILD.bazel | xargs rm"],
+        urls = ["https://chromium.googlesource.com/chromium/deps/icu/+archive/7ff1e9befce5567754dc88392dfaa4704e261ab3.tar.gz"],
     )
 
     native.bind(
