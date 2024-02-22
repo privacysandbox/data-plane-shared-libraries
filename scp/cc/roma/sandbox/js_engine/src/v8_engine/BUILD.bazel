@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -104,5 +104,50 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@v8//:v8_icu",
+    ],
+)
+
+cc_test(
+    name = "v8_js_engine_test",
+    size = "small",
+    srcs = ["v8_js_engine_test.cc"],
+    data = [
+        "//scp/cc/roma/testing/cpp_wasi_dependency_example",
+        "//scp/cc/roma/testing/cpp_wasm_string_in_string_out_example",
+    ],
+    tags = [
+        "noasan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
+        "notsan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
+        "noubsan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
+    ],
+    deps = [
+        ":v8_js_engine",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/roma/wasm/src:wasm_testing",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "v8_console_test",
+    size = "small",
+    srcs = ["v8_console_test.cc"],
+    deps = [
+        ":v8_js_engine",
+        "//scp/cc/core/test/utils:utils_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "v8_isolate_function_binding_test",
+    size = "small",
+    srcs = ["v8_isolate_function_binding_test.cc"],
+    deps = [
+        ":v8_js_engine",
+        "//scp/cc/core/test/utils:utils_lib",
+        "@com_google_absl//absl/status",
+        "@com_google_googletest//:gtest_main",
     ],
 )
