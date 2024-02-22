@@ -17,7 +17,7 @@ load(
     "@io_bazel_rules_docker//container:container.bzl",
     "container_layer",
 )
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load(
     "@rules_pkg//pkg:mappings.bzl",
     "pkg_attributes",
@@ -184,3 +184,105 @@ exports_files([
     "tee_aws_kms_client_provider_utils.cc",
     "tee_error_codes.h",
 ])
+
+cc_binary(
+    name = "true",
+    srcs = ["true_main.cc"],
+)
+
+cc_binary(
+    name = "false",
+    srcs = ["false_main.cc"],
+)
+
+cc_binary(
+    name = "hello",
+    srcs = ["hello_main.cc"],
+    deps = [
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
+)
+
+cc_test(
+    name = "nontee_aws_kms_client_provider_test",
+    size = "small",
+    srcs = ["nontee_aws_kms_client_provider_test.cc"],
+    deps = [
+        ":nontee_aws_kms_client_provider_lib",
+        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
+        "//scp/cc/core/interface:interface_lib",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
+        "//scp/cc/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "tee_aws_kms_client_provider_test",
+    size = "small",
+    srcs = ["tee_aws_kms_client_provider_test.cc"],
+    deps = [
+        ":tee_aws_kms_client_provider_lib",
+        "//scp/cc/core/interface:interface_lib",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
+        "//scp/cc/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "aws_kms_aead_test",
+    size = "small",
+    srcs =
+        ["aws_kms_aead_test.cc"],
+    deps = [
+        ":nontee_aws_kms_client_provider_lib",
+        "//scp/cc/core/interface:interface_lib",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "tee_aws_kms_client_provider_utils_test",
+    size = "small",
+    srcs = ["tee_aws_kms_client_provider_utils_test.cc"],
+    data = [
+        ":false",
+        ":hello",
+        ":true",
+    ],
+    deps = [
+        ":tee_aws_kms_client_provider_lib",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "test_aws_kms_client_provider_lib",
+    srcs = [
+        "test_aws_kms_client_provider.cc",
+    ],
+    hdrs = [
+        "test_aws_kms_client_provider.h",
+        "//scp/cc/cpio/client_providers/interface:kms_client_provider_interface.h",
+    ],
+    deps = [
+        ":nontee_aws_kms_client_provider_lib",
+        "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",
+        "//scp/cc/public/cpio/test/kms_client:test_aws_kms_client_options",
+    ],
+)

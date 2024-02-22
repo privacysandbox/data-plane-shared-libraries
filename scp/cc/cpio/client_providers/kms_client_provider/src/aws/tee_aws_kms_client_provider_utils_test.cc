@@ -21,6 +21,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -36,7 +37,7 @@ namespace google::scp::cpio::client_providers::utils {
 TEST(TeeAwsKmsClientProviderUtilsTest, ExecOutputsEmptyString) {
   const absl::StatusOr<std::string> output = Exec(
       {const_cast<char*>(
-           "./scp/cc/cpio/client_providers/kms_client_provider/test/aws/true"),
+           "./scp/cc/cpio/client_providers/kms_client_provider/src/aws/true"),
        nullptr});
   ASSERT_TRUE(output.ok());
   EXPECT_THAT(*output, IsEmpty());
@@ -45,7 +46,7 @@ TEST(TeeAwsKmsClientProviderUtilsTest, ExecOutputsEmptyString) {
 TEST(TeeAwsKmsClientProviderUtilsTest, ExecSingleThreadedHelloWorld) {
   const absl::StatusOr<std::string> output = Exec(
       {const_cast<char*>(
-           "./scp/cc/cpio/client_providers/kms_client_provider/test/aws/hello"),
+           "./scp/cc/cpio/client_providers/kms_client_provider/src/aws/hello"),
        nullptr});
   ASSERT_TRUE(output.ok());
   EXPECT_THAT(*output, StrEq("Hello, world!\n"));
@@ -58,10 +59,9 @@ TEST(TeeAwsKmsClientProviderUtilsTest, ExecMultiThreadedHelloWorld) {
   exec_threads.reserve(kNumThreads);
   for (int i = 0; i < kNumThreads; ++i) {
     exec_threads.emplace_back([&, i] {
-      outputs[i] =
-          Exec({const_cast<char*>("./scp/cc/cpio/client_providers/"
-                                  "kms_client_provider/test/aws/hello"),
-                absl::StrCat("--name=", i).data(), nullptr});
+      outputs[i] = Exec({const_cast<char*>("./scp/cc/cpio/client_providers/"
+                                           "kms_client_provider/src/aws/hello"),
+                         absl::StrCat("--name=", i).data(), nullptr});
     });
   }
   for (int i = 0; i < kNumThreads; ++i) {
@@ -73,7 +73,7 @@ TEST(TeeAwsKmsClientProviderUtilsTest, ExecMultiThreadedHelloWorld) {
 
 TEST(TeeAwsKmsClientProviderUtilsTest, ExecChildProcessFails) {
   EXPECT_FALSE(Exec({const_cast<char*>("./scp/cc/cpio/client_providers/"
-                                       "kms_client_provider/test/aws/false"),
+                                       "kms_client_provider/src/aws/false"),
                      nullptr})
                    .ok());
 }

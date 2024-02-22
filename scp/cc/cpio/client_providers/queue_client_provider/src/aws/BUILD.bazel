@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:private"])
+package(default_visibility = ["//scp/cc:scp_internal_pkg"])
 
 cc_library(
     name = "error_codes_lib",
@@ -62,5 +62,40 @@ cc_library(
         "@aws_sdk_cpp//:sqs",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "sqs_error_converter_test",
+    size = "small",
+    srcs =
+        ["sqs_error_converter_test.cc"],
+    deps = [
+        ":aws_queue_client_provider_lib",
+        "//scp/cc/core/interface:interface_lib",
+        "//scp/cc/cpio/common/src/aws:aws_utils_lib",
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "aws_queue_client_provider_test",
+    size = "small",
+    timeout = "short",
+    srcs = [
+        "aws_queue_client_provider_test.cc",
+    ],
+    deps = [
+        ":aws_queue_client_provider_lib",
+        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
+        "//scp/cc/core/interface:interface_lib",
+        "//scp/cc/core/test/utils:utils_lib",
+        "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//scp/cc/cpio/client_providers/queue_client_provider/mock/aws:aws_queue_client_provider_mock",
+        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//scp/cc/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
     ],
 )

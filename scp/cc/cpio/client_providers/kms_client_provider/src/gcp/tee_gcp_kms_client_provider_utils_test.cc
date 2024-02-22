@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
+#include <utility>
 
 namespace google::scp::cpio::client_providers::test {
 namespace {

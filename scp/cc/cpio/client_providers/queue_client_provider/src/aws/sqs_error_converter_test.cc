@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <tuple>
 
 #include <aws/core/Aws.h>
 #include <aws/sqs/SQSErrors.h>

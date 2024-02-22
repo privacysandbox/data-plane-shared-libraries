@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include "scp/cc/cpio/client_providers/kms_client_provider/test/aws/test_aws_kms_client_provider.h"
+#include "scp/cc/cpio/client_providers/kms_client_provider/src/aws/test_aws_kms_client_provider.h"
 #include "scp/cc/public/core/interface/execution_result.h"
 #include "scp/cc/public/cpio/adapters/kms_client/src/kms_client.h"
 #include "scp/cc/public/cpio/test/kms_client/test_aws_kms_client_options.h"
