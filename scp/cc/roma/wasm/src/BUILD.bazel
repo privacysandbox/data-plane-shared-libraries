@@ -17,14 +17,30 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "wasm",
+    name = "deserializer",
     srcs = [
         "deserializer.cc",
-        "serializer.cc",
     ],
     hdrs = [
         "deserializer.h",
+    ],
+    deps = ["wasm_types"],
+)
+
+cc_library(
+    name = "serializer",
+    srcs = [
+        "serializer.cc",
+    ],
+    hdrs = [
         "serializer.h",
+    ],
+    deps = ["wasm_types"],
+)
+
+cc_library(
+    name = "wasm_types",
+    hdrs = [
         "wasm_types.h",
     ],
 )

@@ -81,7 +81,6 @@ cc_library(
         "//scp/cc/roma/sandbox/native_function_binding/src:native_function_binding",
         "//scp/cc/roma/sandbox/native_function_binding/src:rpc_wrapper_cc_proto",
         "//scp/cc/roma/sandbox/worker/src:worker",
-        "//scp/cc/roma/wasm/src:wasm",
         "//scp/cc/roma/worker/src:execution_utils",
         "//scp/cc/roma/worker/src:execution_watchdog_lib",
         "//src/cpp/util:duration",
