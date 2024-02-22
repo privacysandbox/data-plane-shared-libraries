@@ -20,7 +20,7 @@ cc_library(
 )
 
 cc_binary(
-    name = "benchmark_suite_test",
+    name = "benchmark_suite",
     srcs = ["benchmark_suite_test.cc"],
     deps = [
         "//scp/cc/roma/benchmark/src:benchmark",
@@ -63,7 +63,7 @@ cc_test(
 )
 
 cc_binary(
-    name = "logging_benchmark",
+    name = "logging",
     srcs = ["logging_benchmark.cc"],
     deps = [
         "//scp/cc/core/test/utils:utils_lib",
@@ -75,7 +75,7 @@ cc_binary(
 )
 
 cc_binary(
-    name = "kv_server_udf_benchmark_test",
+    name = "kv_server_udf",
     srcs = ["kv_server_udf_benchmark.cc"],
     malloc = "@com_google_tcmalloc//tcmalloc",
     deps = [
@@ -88,7 +88,7 @@ cc_binary(
 )
 
 cc_binary(
-    name = "ba_server_benchmark",
+    name = "ba_server",
     srcs = ["ba_server_benchmark.cc"],
     malloc = "@com_google_tcmalloc//tcmalloc",
     deps = [
