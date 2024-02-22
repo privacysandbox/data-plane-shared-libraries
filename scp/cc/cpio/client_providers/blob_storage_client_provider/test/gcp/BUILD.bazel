@@ -45,7 +45,6 @@ cc_test(
     # This test case appears to depend on GCP implementation details.
     # It checks how many calls GCP internal libraries make to the user defined
     # `StorageConnection::UploadChunk` method.
-    tags = ["manual"],
     deps = [
         "//scp/cc/core/async_executor/mock:core_async_executor_mock",
         "//scp/cc/core/test/utils:utils_lib",
