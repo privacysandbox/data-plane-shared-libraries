@@ -85,7 +85,7 @@ bool Socks5State::Proceed(Buffer& buffer) {
       buffer.CopyOut(greeting, sizeof(greeting));
       if (greeting[0] != 0x05 || greeting[1] == 0) {
         char s[32] = {0};
-        sprintf(s, "%#04x %#04x\n", greeting[0], greeting[1]);
+        snprintf(s, sizeof(s), "%#04x %#04x\n", greeting[0], greeting[1]);
         LOG(ERROR) << "Malformed client greeting: " << s;
         state_ = HandshakeState::kFail;
         break;
