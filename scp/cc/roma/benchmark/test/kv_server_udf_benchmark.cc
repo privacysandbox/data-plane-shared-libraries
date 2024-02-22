@@ -17,7 +17,7 @@
  * output):
  *
  * builders/tools/bazel-debian run \
- * //scp/cc/roma/benchmark/test:kv_server_udf_benchmark \
+ * //scp/cc/roma/benchmark/test:kv_server_udf_benchmark_test \
  * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 

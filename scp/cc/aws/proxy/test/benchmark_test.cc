@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 // To run these benchmarks:
-//   builders/tools/bazel-debian run scp/cc/aws/proxy/test:benchmark \
+//   builders/tools/bazel-debian run scp/cc/aws/proxy/test:benchmark_test \
 //   --test_output=all \
 //   -- \
 //   --benchmark_repetitions=1 \
