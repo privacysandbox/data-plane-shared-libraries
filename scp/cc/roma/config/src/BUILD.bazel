@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -28,6 +28,69 @@ cc_library(
         "//scp/cc/roma/interface:function_binding_io_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_test(
+    name = "function_binding_v2_test",
+    size = "small",
+    srcs = ["function_binding_v2_test.cc"],
+    deps = [
+        ":config",
+        "//scp/cc/core/interface:interface_lib",
+        "//src/cpp/util:process_util",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_test(
+    name = "config_log_test",
+    size = "small",
+    srcs = ["config_log_test.cc"],
+    deps = [
+        ":config",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:scoped_mock_log",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "type_converter_benchmark",
+    timeout = "eternal",
+    srcs = ["type_converter_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    tags = ["manual"],
+    deps = [
+        ":config",
+        "//scp/cc/core/interface:interface_lib",
+        "//src/cpp/util:process_util",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+        "@google_benchmark//:benchmark",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_test(
+    name = "type_converter_test",
+    size = "small",
+    srcs = ["type_converter_test.cc"],
+    deps = [
+        ":config",
+        "//scp/cc/core/interface:interface_lib",
+        "//src/cpp/util:process_util",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
         "@v8//:v8_icu",
     ],
 )
