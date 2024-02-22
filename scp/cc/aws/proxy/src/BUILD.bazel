@@ -24,12 +24,11 @@
 load("@com_github_grpc_grpc//bazel:grpc_build_system.bzl", "grpc_proto_library")
 load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:pkg.bzl", "pkg_tar")
 load("@rules_proto//proto:defs.bzl", "proto_library")
-
-package(default_visibility = ["//scp/cc/aws/proxy/test:__subpackages__"])
+load("@rules_python//python:defs.bzl", "py_test")
 
 cc_binary(
     name = "resolv_conf_getter_client",
@@ -298,7 +297,6 @@ cc_binary(
     linkshared = True,
     visibility = [
         "//production/packaging/aws:__subpackages__",
-        "//scp/cc/aws/proxy/test:__subpackages__",
     ],
     deps = [
         ":preload",
@@ -312,7 +310,6 @@ cc_binary(
     srcs = [":proxify.cc"],
     visibility = [
         "//production/packaging/aws:__subpackages__",
-        "//scp/cc/aws/proxy/test:__subpackages__",
     ],
     deps = [
         "@com_google_absl_for_proxy//absl/flags:parse",
@@ -328,7 +325,6 @@ cc_binary(
     ],
     visibility = [
         "//production/packaging/aws:__subpackages__",
-        "//scp/cc/aws/proxy/test:__subpackages__",
     ],
     deps = [
         ":protocol",
@@ -441,5 +437,184 @@ container_layer(
     ],
     visibility = [
         "//visibility:public",  # Leave as public for KV server.
+    ],
+)
+
+cc_test(
+    name = "socks5_state_test",
+    size = "small",
+    srcs = ["socks5_state_test.cc"],
+    deps = [
+        ":buffer",
+        ":socks5_state",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "socks5_state_input_test",
+    size = "small",
+    srcs = ["socks5_state_input_test.cc"],
+    deps = [
+        ":socks5_state",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "protocol_test",
+    size = "small",
+    srcs = ["protocol_test.cc"],
+    deps = [
+        ":protocol",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "preload_test",
+    size = "small",
+    srcs = ["preload_test.cc"],
+    linkopts = ["-ldl"],
+    deps = [
+        ":preload",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+py_test(
+    name = "socks5_test",
+    size = "small",
+    srcs = ["socks5_test.py"],
+    args = ["$(location :proxy)"],
+    data = [
+        ":proxy",
+    ],
+)
+
+sh_test(
+    name = "preload_curl_test",
+    size = "small",
+    srcs = ["curl_client_test.sh"],
+    args = [
+        "$(location :proxy)",
+        "$(location :proxy_preload)",
+        "$(location :proxify)",
+    ],
+    data = [
+        ":proxify",
+        ":proxy",
+        ":proxy_preload",
+        ":socket_vendor",
+    ],
+    tags = [
+        "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
+        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
+    ],
+)
+
+sh_test(
+    name = "resolv_conf_getter_test",
+    size = "small",
+    srcs = ["resolv_conf_getter_test_app"],
+    args = [
+        "$(location :resolv_conf_getter_client)",
+        "$(location :resolv_conf_getter_server)",
+    ],
+    data = [
+        ":resolv_conf_getter_client",
+        ":resolv_conf_getter_server",
+    ],
+)
+
+sh_test(
+    name = "preload_exported_symbols_test",
+    size = "small",
+    srcs = ["preload_exported_symbols"],
+    args = [
+        "$(location :proxy_preload)",
+    ],
+    data = [
+        ":proxy_preload",
+    ],
+    tags = [
+        # Ubsan adds symbol _ZSt3minIjERKT_S2_S2_, causing this test to fail
+        "noubsan",
+    ],
+)
+
+cc_test(
+    name = "buffer_test",
+    size = "small",
+    srcs = ["buffer_test.cc"],
+    deps = [
+        ":buffer",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "freelist_test",
+    size = "small",
+    srcs = ["freelist_test.cc"],
+    deps = [
+        ":buffer",
+        ":freelist",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "proxy_bridge_test",
+    size = "small",
+    srcs = ["proxy_bridge_test.cc"],
+    deps = [
+        ":proxy_bridge",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "proxy_server_test",
+    size = "small",
+    srcs = ["proxy_server_test.cc"],
+    deps = [
+        ":proxy_server",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "client_session_pool_test",
+    size = "small",
+    srcs = ["client_session_pool_test.cc"],
+    tags = ["noasan"],  # TODO(b/315002386) - Fix ASAN errors in this test.
+    deps = [
+        ":client_session_pool",
+        ":socket_vendor_protocol",
+        "@com_google_absl//absl/log",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "socket_vendor_server_test",
+    size = "small",
+    srcs = ["socket_vendor_server_test.cc"],
+    deps = [
+        ":socket_types",
+        ":socket_vendor_server",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "benchmark_test",
+    srcs = ["benchmark_test.cc"],
+    deps = [
+        ":proxy_server",
+        "@boost//:asio",
+        "@google_benchmark//:benchmark",
     ],
 )
