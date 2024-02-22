@@ -107,7 +107,6 @@ class ScopedValueReader {
   static absl::StatusOr<ScopedValueReader<V>> Create(ThreadSafeMap<V>& map,
                                                      std::string_view key) {
     PS_ASSIGN_OR_RETURN(auto mutex, map.GetMutex(key));
-    mutex->Lock();
     return ScopedValueReader(map, key, mutex);
   }
 
@@ -142,7 +141,9 @@ class ScopedValueReader {
  private:
   ScopedValueReader(ThreadSafeMap<V>& map, std::string_view key,
                     absl::Mutex* mutex)
-      : map_(map), key_(key), mutex_(mutex) {}
+      : map_(map), key_(key), mutex_(mutex) {
+    mutex_->Lock();
+  }
 
   ThreadSafeMap<V>& map_;
   std::string_view key_;
