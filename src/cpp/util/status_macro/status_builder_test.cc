@@ -58,9 +58,7 @@ class StatusBuilderTestWithLog : public Test {
 };
 
 // Converts a StatusBuilder to a Status.
-absl::Status ToStatus(const StatusBuilder& s) {
-  return s;
-}
+absl::Status ToStatus(const StatusBuilder& s) { return s; }
 
 // Converts a StatusBuilder to a Status and then ignores it.
 void ConvertToStatusAndIgnore(const StatusBuilder& s) {

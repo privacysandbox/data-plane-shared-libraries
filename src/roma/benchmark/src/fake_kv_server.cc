@@ -45,9 +45,7 @@ FakeKvServer::FakeKvServer(Config<> config) {
   CHECK(roma_service_->Init().ok());
 }
 
-FakeKvServer::~FakeKvServer() {
-  CHECK(roma_service_->Stop().ok());
-}
+FakeKvServer::~FakeKvServer() { CHECK(roma_service_->Stop().ok()); }
 
 std::string FakeKvServer::ExecuteCode(const std::vector<std::string> keys) {
   CHECK(handler_name_ != "")

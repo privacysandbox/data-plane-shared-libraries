@@ -237,13 +237,9 @@ void HttpConnection::Reset() noexcept {
   session_ = nullptr;
 }
 
-bool HttpConnection::IsDropped() noexcept {
-  return is_dropped_.load();
-}
+bool HttpConnection::IsDropped() noexcept { return is_dropped_.load(); }
 
-bool HttpConnection::IsReady() noexcept {
-  return is_ready_.load();
-}
+bool HttpConnection::IsReady() noexcept { return is_ready_.load(); }
 
 ExecutionResult HttpConnection::Execute(
     AsyncContext<HttpRequest, HttpResponse>& http_context,

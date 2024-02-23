@@ -52,9 +52,7 @@ KeyFetcherManager::~KeyFetcherManager() {
   executor_->Cancel(std::move(task_id_));
 }
 
-void KeyFetcherManager::Start() noexcept {
-  RunPeriodicKeyRefresh();
-}
+void KeyFetcherManager::Start() noexcept { RunPeriodicKeyRefresh(); }
 
 void KeyFetcherManager::RunPeriodicKeyRefresh() {
   // Queue up another key refresh task.

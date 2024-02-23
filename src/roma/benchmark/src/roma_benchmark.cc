@@ -287,7 +287,8 @@ void RomaBenchmark::RunTest() {
 
   // wait until all requests got response.
   while (success_requests_ + failed_requests_ <
-         threads_ * requests_per_thread_) {}
+         threads_ * requests_per_thread_) {
+  }
   elapsed_time_ = stopwatch.GetElapsedTime();
 }
 
@@ -414,7 +415,8 @@ void RomaBenchmark::SendRequestBatch() {
                     std::bind(&RomaBenchmark::CallbackBatch, this,
                               std::placeholders::_1,
                               privacy_sandbox::server_common::Stopwatch()))
-                .ok()) {}
+                .ok()) {
+    }
     sent_request++;
   }
 }

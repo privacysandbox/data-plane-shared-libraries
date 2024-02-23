@@ -33,9 +33,7 @@ using google::scp::core::logger::mock::MockLogProvider;
 namespace google::scp::core::common {
 static LogOption log_option = LogOption::kNoLog;
 
-void InitializeCpioLog(LogOption option) {
-  log_option = option;
-}
+void InitializeCpioLog(LogOption option) { log_option = option; }
 
 namespace internal::cpio_log {
 ::absl::Nullable<LogProviderInterface*> GetLogger() {

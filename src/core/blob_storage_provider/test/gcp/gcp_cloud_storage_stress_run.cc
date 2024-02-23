@@ -98,7 +98,8 @@ void WriteObjectOfByteCount(GcpCloudStorageClient& client, int64_t byte_count) {
 
   assert(client.PutBlob(put_blob_context).Successful());
 
-  while (!finished) {}
+  while (!finished) {
+  }
 
   if (!result.Successful()) {
     std::cerr << errors::GetErrorMessage(result.status_code) << std::endl;
@@ -176,7 +177,8 @@ int WriteAndGetBlob(int64_t byte_count) {
     finished = true;
   }
 
-  while (!finished) {}
+  while (!finished) {
+  }
 
   async_executor->Stop();
   io_async_executor->Stop();

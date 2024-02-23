@@ -62,9 +62,7 @@ absl::Status WorkerPoolApiSapi::Stop() {
   return absl::OkStatus();
 }
 
-size_t WorkerPoolApiSapi::GetPoolSize() {
-  return workers_.size();
-}
+size_t WorkerPoolApiSapi::GetPoolSize() { return workers_.size(); }
 
 absl::StatusOr<worker_api::WorkerApi*> WorkerPoolApiSapi::GetWorker(
     size_t index) {

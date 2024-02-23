@@ -44,9 +44,7 @@ FakeBaServer::FakeBaServer(DispatchConfig config) {
   CHECK(roma_service_->Init().ok());
 }
 
-FakeBaServer::~FakeBaServer() {
-  CHECK_OK(roma_service_->Stop());
-}
+FakeBaServer::~FakeBaServer() { CHECK_OK(roma_service_->Stop()); }
 
 void FakeBaServer::LoadSync(std::string_view version,
                             std::string_view js) const {

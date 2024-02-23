@@ -395,7 +395,5 @@ std::pair<absl::Status, WorkerApi::RetryStatus> WorkerSandboxApi::RunCode(
   return WrapResultWithNoRetry(absl::OkStatus());
 }
 
-void WorkerSandboxApi::Terminate() {
-  worker_sapi_sandbox_->Terminate();
-}
+void WorkerSandboxApi::Terminate() { worker_sapi_sandbox_->Terminate(); }
 }  // namespace google::scp::roma::sandbox::worker_api

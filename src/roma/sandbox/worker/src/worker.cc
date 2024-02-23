@@ -45,13 +45,9 @@ Worker::Worker(std::unique_ptr<js_engine::JsEngine> js_engine,
                bool require_preload)
     : js_engine_(std::move(js_engine)), require_preload_(require_preload) {}
 
-void Worker::Run() {
-  js_engine_->Run();
-}
+void Worker::Run() { js_engine_->Run(); }
 
-void Worker::Stop() {
-  js_engine_->Stop();
-}
+void Worker::Stop() { js_engine_->Stop(); }
 
 absl::StatusOr<js_engine::ExecutionResponse> Worker::RunCode(
     std::string_view code, const std::vector<std::string_view>& input,

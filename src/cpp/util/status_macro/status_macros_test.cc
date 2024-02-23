@@ -36,13 +36,9 @@ using ::testing::HasSubstr;
 using ::testing::Pointwise;
 using ::testing::StrEq;
 
-absl::Status ReturnOk() {
-  return absl::OkStatus();
-}
+absl::Status ReturnOk() { return absl::OkStatus(); }
 
-StatusBuilder ReturnOkBuilder() {
-  return StatusBuilder(absl::OkStatus());
-}
+StatusBuilder ReturnOkBuilder() { return StatusBuilder(absl::OkStatus()); }
 
 absl::Status ReturnError(std::string_view msg) {
   return absl::UnknownError(msg);
@@ -56,9 +52,7 @@ StatusBuilder ReturnErrorBuilder(std::string_view msg) {
   return StatusBuilder(absl::UnknownError(msg));
 }
 
-absl::StatusOr<int> ReturnStatusOrValue(int v) {
-  return v;
-}
+absl::StatusOr<int> ReturnStatusOrValue(int v) { return v; }
 
 absl::StatusOr<int> ReturnStatusOrError(std::string_view msg) {
   return absl::UnknownError(msg);

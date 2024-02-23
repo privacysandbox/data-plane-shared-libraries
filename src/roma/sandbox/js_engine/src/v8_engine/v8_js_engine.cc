@@ -138,9 +138,7 @@ V8JsEngine::V8JsEngine(
   external_references_.push_back(0);
 }
 
-void V8JsEngine::Run() {
-  execution_watchdog_->Run();
-}
+void V8JsEngine::Run() { execution_watchdog_->Run(); }
 
 void V8JsEngine::Stop() {
   if (execution_watchdog_) {
@@ -297,9 +295,7 @@ V8Console* V8JsEngine::console(v8::Isolate* isolate)
   return console_.get();
 }
 
-void V8JsEngine::DisposeIsolate() {
-  isolate_wrapper_ = nullptr;
-}
+void V8JsEngine::DisposeIsolate() { isolate_wrapper_ = nullptr; }
 
 void V8JsEngine::StartWatchdogTimer(
     v8::Isolate* isolate,
@@ -321,9 +317,7 @@ void V8JsEngine::StartWatchdogTimer(
   execution_watchdog_->StartTimer(isolate, timeout_ms);
 }
 
-void V8JsEngine::StopWatchdogTimer() {
-  execution_watchdog_->EndTimer();
-}
+void V8JsEngine::StopWatchdogTimer() { execution_watchdog_->EndTimer(); }
 
 absl::StatusOr<RomaJsEngineCompilationContext>
 V8JsEngine::CreateCompilationContext(

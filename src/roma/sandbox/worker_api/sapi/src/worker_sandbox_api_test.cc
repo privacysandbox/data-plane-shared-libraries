@@ -160,7 +160,8 @@ TEST(WorkerSandboxApiTest, SandboxShouldComeBackUpIfItDies) {
   int sandbox_pid = sandbox_api.GetUnderlyingSandbox()->pid();
   EXPECT_EQ(kill(sandbox_pid, SIGKILL), 0);
   // Wait for the sandbox to die
-  while (sandbox_api.GetUnderlyingSandbox()->is_active()) {}
+  while (sandbox_api.GetUnderlyingSandbox()->is_active()) {
+  }
 
   // We expect a failure since the worker process died
   {
@@ -221,7 +222,8 @@ TEST(WorkerSandboxApiTest,
   int sandbox_pid = sandbox_api.GetUnderlyingSandbox()->pid();
   EXPECT_EQ(kill(sandbox_pid, SIGKILL), 0);
   // Wait for the sandbox to die
-  while (sandbox_api.GetUnderlyingSandbox()->is_active()) {}
+  while (sandbox_api.GetUnderlyingSandbox()->is_active()) {
+  }
 
   // This is expected to fail since we killed the sandbox
   {

@@ -36,7 +36,5 @@ void GlobalCpio::SetGlobalCpio(std::unique_ptr<CpioProviderInterface>& cpio) {
   cpio_instance_ = std::move(cpio);
 }
 
-void GlobalCpio::ShutdownGlobalCpio() {
-  cpio_instance_ = nullptr;
-}
+void GlobalCpio::ShutdownGlobalCpio() { cpio_instance_ = nullptr; }
 }  // namespace google::scp::cpio::client_providers

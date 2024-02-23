@@ -69,7 +69,8 @@ void ProxyBridge::Socks5HandshakeHandler(const error_code& ec,
   }
 
   while (socks5_state_.state() != Socks5State::HandshakeState::kSuccess &&
-         socks5_state_.Proceed(upstream_buff_)) {}
+         socks5_state_.Proceed(upstream_buff_)) {
+  }
   // If we need to read more data to proceed, schedule reading.
   if (socks5_state_.InsufficientBuffer(upstream_buff_)) {
     auto buffer = upstream_buff_.ReserveAtLeast<mutable_buffer>(1);

@@ -612,8 +612,6 @@ inline StatusBuilder::operator absl::Status() && {
   return std::move(*this).CreateStatusAndConditionallyLog();
 }
 
-inline SourceLocation StatusBuilder::source_location() const {
-  return loc_;
-}
+inline SourceLocation StatusBuilder::source_location() const { return loc_; }
 }  // namespace privacy_sandbox::server_common
 #endif  // SERVICES_COMMON_UTIL_STATUS_BUILDER_H_

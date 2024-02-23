@@ -128,9 +128,7 @@ void TestHttp1Server::ReadFromSocketAndWriteResponse(tcp::socket& socket) {
   HandleErrorIfPresent(ec, "close");
 }
 
-in_port_t TestHttp1Server::PortNumber() const {
-  return port_number_;
-}
+in_port_t TestHttp1Server::PortNumber() const { return port_number_; }
 
 std::string TestHttp1Server::GetPath() const {
   return "http://localhost:" + std::to_string(port_number_);

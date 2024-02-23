@@ -75,9 +75,7 @@ void SocketVendorServer::Run() {
   }
 }
 
-void SocketVendorServer::Stop() {
-  io_context_.stop();
-}
+void SocketVendorServer::Stop() { io_context_.stop(); }
 
 void SocketVendorServer::StartAsyncAccept() {
   acceptor_.async_accept([this](boost::system::error_code ec, Socket socket) {

@@ -531,9 +531,7 @@ ConstBufferSequence MakeBuffer(std::string_view s) {
   return ConstBufferSequence{ConstBuffer(s.data(), s.length())};
 }
 
-ConstBufferSequence EmptyBuffer() {
-  return ConstBufferSequence();
-}
+ConstBufferSequence EmptyBuffer() { return ConstBufferSequence(); }
 
 MATCHER_P(HasSessionUrl, url, "") {
   return ExplainMatchResult(url, arg.upload_session_url(), result_listener);

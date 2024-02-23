@@ -196,7 +196,8 @@ TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
             }
             local_execute.Notify();
           };
-      while (!roma_service->BatchExecute(batch, batch_callback).ok()) {}
+      while (!roma_service->BatchExecute(batch, batch_callback).ok()) {
+      }
 
       // Thread cannot join until batch_callback is called.
       local_execute.WaitForNotification();

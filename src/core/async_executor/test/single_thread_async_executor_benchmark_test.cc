@@ -56,7 +56,8 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
   SetUpExecutor();
   std::atomic<bool> start = false;
   auto task_queueing_function = [&](int id) {
-    while (!start) {}
+    while (!start) {
+    }
     for (int i = 0; i < task_schedule_count_per_thread_; i++) {
       EXPECT_SUCCESS(
           async_executor_->Schedule(test_work_function_, AsyncPriority::High));
@@ -95,7 +96,8 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTaskMixedPriority) {
   SetUpExecutor();
   std::atomic<bool> start = false;
   auto task_queueing_function = [&](int id) {
-    while (!start) {}
+    while (!start) {
+    }
     for (int i = 0; i < task_schedule_count_per_thread_; i++) {
       auto seed = static_cast<uint32_t>(
           TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());

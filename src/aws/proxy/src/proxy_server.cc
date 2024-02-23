@@ -94,9 +94,7 @@ void ProxyServer::StartAsyncAccept() {
   });
 }
 
-void ProxyServer::Stop() {
-  io_context_.stop();
-}
+void ProxyServer::Stop() { io_context_.stop(); }
 
 void ProxyServer::Run(size_t concurrency) {
   if (concurrency == 0) {

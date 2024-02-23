@@ -56,9 +56,7 @@ class CompareTest : public ExperimentTest {
   }
 };
 
-TEST_F(CompareTest, LogBeforeDecrypt) {
-  LogSafeOK();
-}
+TEST_F(CompareTest, LogBeforeDecrypt) { LogSafeOK(); }
 
 TEST_F(CompareTest, LogAfterDecrypt) {
   context_->SetDecrypted();

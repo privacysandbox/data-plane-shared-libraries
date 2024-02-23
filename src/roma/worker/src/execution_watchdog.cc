@@ -30,9 +30,7 @@ ExecutionWatchDog::ExecutionWatchDog()
   expiring_flag_.Set(absl::InfiniteDuration());
 }
 
-ExecutionWatchDog::~ExecutionWatchDog() {
-  Stop();
-}
+ExecutionWatchDog::~ExecutionWatchDog() { Stop(); }
 
 void ExecutionWatchDog::Run() {
   absl::MutexLock lock(&mutex_);

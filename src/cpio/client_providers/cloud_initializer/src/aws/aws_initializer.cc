@@ -40,13 +40,9 @@ ExecutionResult AwsInitializer::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-void AwsInitializer::InitCloud() noexcept {
-  InitAPI(options_);
-}
+void AwsInitializer::InitCloud() noexcept { InitAPI(options_); }
 
-void AwsInitializer::ShutdownCloud() noexcept {
-  ShutdownAPI(options_);
-}
+void AwsInitializer::ShutdownCloud() noexcept { ShutdownAPI(options_); }
 
 std::unique_ptr<CloudInitializerInterface> CloudInitializerFactory::Create() {
   return std::make_unique<AwsInitializer>();

@@ -46,7 +46,8 @@ class Freelist {
     }
     while (!head_.compare_exchange_weak(old_head, old_head->next,
                                         std::memory_order_release,
-                                        std::memory_order_relaxed)) {}
+                                        std::memory_order_relaxed)) {
+    }
 
     BlockType* ret = old_head;
     size_--;
@@ -60,7 +61,8 @@ class Freelist {
     new_head->next = head_.load();
     while (!head_.compare_exchange_weak(new_head->next, new_head,
                                         std::memory_order_release,
-                                        std::memory_order_relaxed)) {}
+                                        std::memory_order_relaxed)) {
+    }
     size_++;
   }
 
@@ -78,7 +80,8 @@ class Freelist {
     BlockType* new_head = head;
     while (!head_.compare_exchange_weak(tail->next, new_head,
                                         std::memory_order_release,
-                                        std::memory_order_relaxed)) {}
+                                        std::memory_order_relaxed)) {
+    }
     size_.fetch_add(count);
   }
 

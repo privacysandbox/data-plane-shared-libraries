@@ -43,9 +43,7 @@ static core::ExecutionResult SetGlobalCpio() {
   return core::SuccessExecutionResult();
 }
 
-core::ExecutionResult InitCpio() {
-  return SetGlobalCpio();
-}
+core::ExecutionResult InitCpio() { return SetGlobalCpio(); }
 
 core::ExecutionResult ShutdownCpio() {
   if (client_providers::GlobalCpio::GetGlobalCpio()) {
