@@ -30,7 +30,7 @@ cc_library(
     name = "test_aws_kms_client",
     srcs = [
         "//src/public/cpio/adapters/kms_client/src:kms_client_srcs",
-        "//src/public/cpio/adapters/kms_client/test:test_aws_kms_client_srcs",
+        "//src/public/cpio/adapters/kms_client/src:test_aws_kms_client_srcs",
     ],
     hdrs = [
         "//src/public/cpio/interface/kms_client:kms_client_interface.h",

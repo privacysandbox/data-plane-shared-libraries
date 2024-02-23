@@ -26,7 +26,7 @@
 #include "src/cpio/client_providers/private_key_client_provider/mock/mock_private_key_client_provider_with_overrides.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test/interface/execution_result_matchers.h"
-#include "src/public/cpio/adapters/private_key_client/mock/mock_private_key_client_with_overrides.h"
+#include "src/public/cpio/adapters/private_key_client/src/mock_private_key_client_with_overrides.h"
 #include "src/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "src/public/cpio/interface/private_key_client/type_def.h"
 #include "src/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"

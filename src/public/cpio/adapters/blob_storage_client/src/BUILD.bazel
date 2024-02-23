@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 exports_files([
@@ -24,5 +26,54 @@ filegroup(
     srcs = [
         ":blob_storage_client.cc",
         ":blob_storage_client.h",
+    ],
+)
+
+exports_files(["test_aws_blob_storage_client.h"])
+
+filegroup(
+    name = "test_aws_blob_storage_client_srcs",
+    srcs = [
+        ":test_aws_blob_storage_client.h",
+    ],
+)
+
+exports_files(["test_gcp_blob_storage_client.h"])
+
+filegroup(
+    name = "test_gcp_blob_storage_client_srcs",
+    srcs = [
+        ":test_gcp_blob_storage_client.h",
+    ],
+)
+
+cc_test(
+    name = "blob_storage_client_test",
+    size = "small",
+    srcs = ["blob_storage_client_test.cc"],
+    deps = [
+        ":blob_storage_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider/src:blob_storage_client_provider_select_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/core/mock:lib_cpio_mock",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface:type_def",
+        "//src/public/cpio/interface/blob_storage_client",
+        "//src/public/cpio/proto/blob_storage_service/v1:blob_storage_service_cc_proto",
+        "@com_google_absl//absl/log:check",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "blob_storage_client_mock",
+    testonly = True,
+    hdrs = ["mock_blob_storage_client_with_overrides.h"],
+    deps = [
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/cpio/client_providers/blob_storage_client_provider/mock:mock_blob_storage_provider_lib",
+        "//src/public/cpio/interface/blob_storage_client",
     ],
 )

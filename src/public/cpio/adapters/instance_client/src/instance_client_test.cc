@@ -22,7 +22,7 @@
 
 #include "absl/synchronization/notification.h"
 #include "src/public/core/test/interface/execution_result_matchers.h"
-#include "src/public/cpio/adapters/instance_client/mock/mock_instance_client_with_overrides.h"
+#include "src/public/cpio/adapters/instance_client/src/mock_instance_client_with_overrides.h"
 #include "src/public/cpio/core/mock/mock_lib_cpio.h"
 #include "src/public/cpio/interface/instance_client/instance_client_interface.h"
 #include "src/public/cpio/proto/instance_service/v1/instance_service.pb.h"

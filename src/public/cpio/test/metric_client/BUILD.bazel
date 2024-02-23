@@ -28,7 +28,7 @@ cc_library(
     name = "test_aws_metric_client",
     srcs = [
         "//src/public/cpio/adapters/metric_client/src:metric_client_srcs",
-        "//src/public/cpio/adapters/metric_client/test:test_aws_metric_client_srcs",
+        "//src/public/cpio/adapters/metric_client/src:test_aws_metric_client_srcs",
     ],
     hdrs =
         [

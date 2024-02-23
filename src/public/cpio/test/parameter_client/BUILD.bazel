@@ -28,7 +28,7 @@ cc_library(
     name = "test_aws_parameter_client",
     srcs = [
         "//src/public/cpio/adapters/parameter_client/src:parameter_client_srcs",
-        "//src/public/cpio/adapters/parameter_client/test:test_aws_parameter_client_srcs",
+        "//src/public/cpio/adapters/parameter_client/src:test_aws_parameter_client_srcs",
     ],
     hdrs = [
         "//src/public/cpio/interface/parameter_client:parameter_client_interface.h",
