@@ -18,6 +18,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <tuple>
+#include <utility>
+
 #include "src/core/curl_client/src/error_codes.h"
 #include "src/core/test/utils/http1_helper/test_http1_server.h"
 #include "src/public/core/test/interface/execution_result_matchers.h"

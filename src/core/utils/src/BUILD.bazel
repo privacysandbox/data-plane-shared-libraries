@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -41,5 +41,22 @@ cc_library(
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@curl",
+    ],
+)
+
+cc_test(
+    name = "core_utils_test",
+    size = "small",
+    srcs = [
+        "base64_test.cc",
+        "error_utils_test.cc",
+        "hashing_test.cc",
+        "string_util_test.cc",
+    ],
+    deps = [
+        ":core_utils",
+        "//src/core/interface:interface_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
     ],
 )

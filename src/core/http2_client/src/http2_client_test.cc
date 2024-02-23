@@ -23,8 +23,10 @@
 #include <csignal>
 #include <future>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <boost/algorithm/string.hpp>

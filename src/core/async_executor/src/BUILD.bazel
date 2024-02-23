@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src/core/async_executor:__subpackages__"])
 
@@ -86,5 +86,97 @@ cc_library(
         "//src/core/interface:interface_lib",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_test(
+    name = "async_executor_test",
+    size = "small",
+    srcs = ["async_executor_test.cc"],
+    deps = [
+        ":core_async_executor_lib",
+        ":error_codes",
+        ":typedef",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "single_thread_async_executor_test",
+    size = "small",
+    srcs = ["single_thread_async_executor_test.cc"],
+    deps = [
+        ":error_codes",
+        ":single_thread_async_executor",
+        ":typedef",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface:interface_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "single_thread_priority_async_executor_test",
+    size = "small",
+    srcs = ["single_thread_priority_async_executor_test.cc"],
+    flaky = True,
+    deps = [
+        ":error_codes",
+        ":single_thread_priority_async_executor",
+        ":typedef",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "async_executor_benchmark_tests",
+    size = "small",
+    srcs = [
+        "single_thread_async_executor_benchmark_test.cc",
+    ],
+    deps = [
+        ":single_thread_priority_async_executor",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "async_task_test",
+    size = "small",
+    srcs = ["async_task_test.cc"],
+    deps = [
+        ":async_task",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "async_executor_utils_test",
+    size = "small",
+    srcs = ["async_executor_utils_test.cc"],
+    deps = [
+        ":async_executor_utils",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
     ],
 )

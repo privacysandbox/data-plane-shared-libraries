@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <future>
+#include <memory>
 
 #include "src/core/http2_client/src/error_codes.h"
 #include "src/core/http2_client/src/http2_client.h"

@@ -24,6 +24,7 @@
 #include <fstream>
 #include <list>
 #include <memory>
+#include <utility>
 
 #include "src/core/config_provider/src/error_codes.h"
 #include "src/public/core/test/interface/execution_result_matchers.h"
@@ -47,7 +48,7 @@ std::filesystem::path GetTestDataDir(std::string relative_path) {
 
 TEST(ConfigProviderTest, GetConfigs) {
   std::filesystem::path relative_path =
-      "src/core/config_provider/test/resources/test_config.json";
+      "src/core/config_provider/src/resources/test_config.json";
   std::filesystem::path full_path = GetTestDataDir(relative_path);
 
   ConfigProvider config(full_path);
@@ -81,7 +82,7 @@ TEST(ConfigProviderTest, GetConfigs) {
 
 TEST(ConfigProviderTest, GetConfigsFailed) {
   std::filesystem::path relative_path =
-      "src/core/config_provider/test/resources/test_config.json";
+      "src/core/config_provider/src/resources/test_config.json";
   std::filesystem::path full_path = GetTestDataDir(relative_path);
   ConfigProvider config(full_path);
   config.Init();
@@ -97,7 +98,7 @@ TEST(ConfigProviderTest, GetConfigsFailed) {
 
 TEST(ConfigProviderTest, InitFailed) {
   std::filesystem::path relative_path =
-      "src/core/config_provider/test/resources/unknown_config.json";
+      "src/core/config_provider/src/resources/unknown_config.json";
   std::filesystem::path full_path = GetTestDataDir(relative_path);
   ConfigProvider config(full_path);
   const auto res = config.Init();

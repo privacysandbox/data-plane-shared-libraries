@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -29,4 +31,38 @@ cc_library(
         "//src/core/interface:interface_lib",
         "@com_google_protobuf//:protobuf",
     ],
+)
+
+proto_library(
+    name = "test_proto",
+    srcs = ["test.proto"],
+)
+
+cc_proto_library(
+    name = "test_cc_proto",
+    deps = [":test_proto"],
+)
+
+cc_test(
+    name = "message_router_test",
+    size = "small",
+    srcs = ["message_router_test.cc"],
+    deps = [
+        ":message_router_lib",
+        ":test_cc_proto",
+        "//src/core/common/concurrent_queue/src:concurrent_queue_lib",
+        "//src/core/interface:interface_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+buf_lint_test(
+    name = "test_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":test_proto"],
 )

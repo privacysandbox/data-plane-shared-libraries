@@ -27,7 +27,7 @@
 #include "src/core/common/concurrent_queue/src/concurrent_queue.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/message_router/src/error_codes.h"
-#include "src/core/message_router/test/test.pb.h"
+#include "src/core/message_router/src/test.pb.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test/interface/execution_result_matchers.h"
 

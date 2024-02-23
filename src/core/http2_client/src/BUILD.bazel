@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -54,5 +54,78 @@ cc_library(
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_test(
+    name = "http2_client_test",
+    size = "small",
+    timeout = "moderate",
+    srcs = [
+        "http2_client_test.cc",
+    ],
+    deps = [
+        ":http2_client_lib",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/http2_client/mock:http2_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_github_nghttp2_nghttp2//:nghttp2",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "http2_connection_test",
+    size = "small",
+    srcs = [
+        "http2_connection_test.cc",
+    ],
+    deps = [
+        ":http2_client_lib",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/http2_client/mock:http2_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_github_nghttp2_nghttp2//:nghttp2",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "http2_connection_pool_test",
+    size = "small",
+    srcs = [
+        "http2_connection_pool_test.cc",
+    ],
+    deps = [
+        ":http2_client_lib",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/http2_client/mock:http2_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_github_nghttp2_nghttp2//:nghttp2",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "aws_v4_signer_test",
+    size = "small",
+    srcs = ["aws/aws_v4_signer_test.cc"],
+    deps = [
+        ":http2_client_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_github_nghttp2_nghttp2//:nghttp2",
+        "@com_google_googletest//:gtest_main",
     ],
 )
