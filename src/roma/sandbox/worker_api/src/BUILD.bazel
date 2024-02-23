@@ -34,9 +34,9 @@ cc_library(
     hdrs = ["worker_api_sapi.h"],
     deps = [
         ":worker_api",
-        "//src/cpp/util:protoutil",
         "//src/roma/config/src:config",
         "//src/roma/sandbox/worker_api/sapi/src:worker_sandbox_api",
+        "//src/util:protoutil",
         "@com_google_absl//absl/status",
     ],
 )

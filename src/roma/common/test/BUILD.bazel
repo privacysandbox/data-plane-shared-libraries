@@ -19,7 +19,7 @@ cc_test(
     size = "small",
     srcs = ["v8_basic.cc"],
     deps = [
-        "//src/cpp/util:process_util",
+        "//src/util:process_util",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",

@@ -27,8 +27,6 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/escaping.h"
 #include "src/core/interface/errors.h"
-#include "src/cpp/util/duration.h"
-#include "src/cpp/util/protoutil.h"
 #include "src/roma/config/src/config.h"
 #include "src/roma/logging/src/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
@@ -36,6 +34,8 @@
 #include "src/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 #include "src/roma/sandbox/native_function_binding/src/native_function_invoker_sapi_ipc.h"
 #include "src/roma/sandbox/worker/src/worker.h"
+#include "src/util/duration.h"
+#include "src/util/protoutil.h"
 
 using google::scp::roma::JsEngineResourceConstraints;
 using google::scp::roma::sandbox::constants::kBadFd;

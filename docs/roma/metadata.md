@@ -47,9 +47,9 @@ See examples below for how to use `execution_obj.min_log_level`.
 ## Use With Universal Logger (PS_VLOG)
 
 Integrators using Roma can implement a logging function that calls
-[PS_VLOG](/src/cpp/logger/request_context_logger.h) to conditionally log messages given verbosity
-and context. To do so, Config and RomaService can be templated either on `RequestContext` directly,
-or on some struct/class that maintains `RequestContext` as a member (henceforth referred to as
+[PS_VLOG](/src/logger/request_context_logger.h) to conditionally log messages given verbosity and
+context. To do so, Config and RomaService can be templated either on `RequestContext` directly, or
+on some struct/class that maintains `RequestContext` as a member (henceforth referred to as
 `ContextWrapper`).
 
 This allows clients to construct `InvocationStrRequest<RequestContext>` or

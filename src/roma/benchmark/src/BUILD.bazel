@@ -49,10 +49,10 @@ cc_library(
     srcs = ["roma_benchmark.cc"],
     hdrs = ["roma_benchmark.h"],
     deps = [
-        "//src/cpp/util/status_macro:status_macros",
         "//src/roma/interface",
         "//src/roma/roma_service",
         "//src/roma/sandbox/constants",
+        "//src/util/status_macro:status_macros",
         "@google_benchmark//:benchmark",
     ],
 )

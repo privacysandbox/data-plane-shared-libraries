@@ -27,8 +27,8 @@ cc_library(
     ],
     deps = [
         "//src/core/interface:errors_lib",
-        "//src/cpp/util:duration",
         "//src/public/core/interface:execution_result",
+        "//src/util:duration",
         "@com_google_absl//absl/random",
         "@com_google_absl//absl/strings",
     ],

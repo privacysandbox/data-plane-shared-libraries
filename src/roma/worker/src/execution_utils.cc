@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "absl/strings/str_split.h"
-#include "src/cpp/util/status_macro/status_macros.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::scp::roma::wasm::RomaWasmListOfStringRepresentation;
 using google::scp::roma::wasm::RomaWasmStringRepresentation;

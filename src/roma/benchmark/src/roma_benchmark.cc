@@ -32,7 +32,7 @@
 #include <benchmark/benchmark.h>
 
 #include "src/core/common/time_provider/src/time_provider.h"
-#include "src/cpp/util/status_macro/status_macros.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::scp::roma::CodeObject;
 using google::scp::roma::Config;

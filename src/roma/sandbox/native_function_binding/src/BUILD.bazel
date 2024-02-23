@@ -41,7 +41,7 @@ cc_library(
     name = "thread_safe_map",
     hdrs = ["thread_safe_map.h"],
     deps = [
-        "//src/cpp/util/status_macro:status_macros",
+        "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/container:node_hash_map",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",

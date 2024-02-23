@@ -27,12 +27,12 @@ cc_library(
     deps = [
         "//src/core/interface:interface_lib",
         "//src/core/interface:type_def_lib",
-        "//src/cpp/util/status_macro:status_macros",
         "//src/roma/config/src:config",
         "//src/roma/interface",
         "//src/roma/wasm/src:deserializer",
         "//src/roma/wasm/src:serializer",
         "//src/roma/wasm/src:wasm_types",
+        "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@v8//:v8_icu",
@@ -44,7 +44,7 @@ cc_library(
     srcs = ["execution_watchdog.cc"],
     hdrs = ["execution_watchdog.h"],
     deps = [
-        "//src/cpp/util:duration",
+        "//src/util:duration",
         "@com_google_absl//absl/synchronization",
         "@v8//:v8_icu",
     ],
@@ -68,10 +68,10 @@ cc_test(
     deps = [
         ":execution_utils",
         "//src/core/test/utils:utils_lib",
-        "//src/cpp/util:process_util",
         "//src/roma/wasm/src:deserializer",
         "//src/roma/wasm/src:wasm_testing",
         "//src/roma/wasm/src:wasm_types",
+        "//src/util:process_util",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
@@ -84,7 +84,7 @@ cc_test(
     srcs = ["execution_watchdog_test.cc"],
     deps = [
         ":execution_watchdog_lib",
-        "//src/cpp/util:process_util",
+        "//src/util:process_util",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",

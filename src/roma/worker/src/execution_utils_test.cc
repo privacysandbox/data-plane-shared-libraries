@@ -33,12 +33,12 @@
 #include "absl/status/statusor.h"
 #include "include/libplatform/libplatform.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
-#include "src/cpp/util/process_util.h"
-#include "src/cpp/util/status_macro/status_macros.h"
 #include "src/public/core/test/interface/execution_result_matchers.h"
 #include "src/roma/wasm/src/deserializer.h"
 #include "src/roma/wasm/src/testing_utils.h"
 #include "src/roma/wasm/src/wasm_types.h"
+#include "src/util/process_util.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::scp::core::test::ResultIs;
 using google::scp::roma::wasm::RomaWasmStringRepresentation;

@@ -30,7 +30,6 @@
 #include "src/core/async_executor/src/async_executor.h"
 #include "src/core/interface/service_interface.h"
 #include "src/core/os/src/linux/system_resource_info_provider_linux.h"
-#include "src/cpp/util/status_macro/status_macros.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/roma/logging/src/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
@@ -39,6 +38,7 @@
 #include "src/roma/sandbox/native_function_binding/src/native_function_table.h"
 #include "src/roma/sandbox/worker_api/src/worker_api_sapi.h"
 #include "src/roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::scp::core::AsyncExecutor;
 using google::scp::core::errors::GetErrorMessage;

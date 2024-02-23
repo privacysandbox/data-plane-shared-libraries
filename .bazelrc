@@ -25,8 +25,8 @@ build:cpp --per_file_copt=external/nitrokmscli_.*\.c@-Wno-int-conversion
 
 build:cpp_nowarn --copt=-Werror
 build:cpp_nowarn --per_file_copt=external/.*@-Wno-error
-build:cpp_nowarn --per_file_copt=scp/.*_test\.cc@-Wno-unused-variable
-build:cpp_nowarn --per_file_copt=src/cpp/(metric|telemetry)/.*@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/.*_test\.cc@-Wno-unused-variable
+build:cpp_nowarn --per_file_copt=src/(metric|telemetry)/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/cpio/client_providers/.*_client_provider/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/core/blob_storage_provider/test/gcp/.*@-Wno-deprecated-declarations
 

@@ -20,10 +20,10 @@
 #include <vector>
 
 #include "absl/time/time.h"
-#include "src/cpp/util/duration.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/util/duration.h"
 
 namespace google::scp::roma::benchmark {
 enum InputsType {

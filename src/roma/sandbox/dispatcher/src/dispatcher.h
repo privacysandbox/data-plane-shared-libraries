@@ -29,11 +29,11 @@
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "src/core/async_executor/src/async_executor.h"
-#include "src/cpp/util/status_macro/status_macros.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/logging/src/logging.h"
 #include "src/roma/sandbox/worker_api/src/worker_api.h"
 #include "src/roma/sandbox/worker_pool/src/worker_pool.h"
+#include "src/util/status_macro/status_macros.h"
 
 #include "request_converter.h"
 #include "request_validator.h"

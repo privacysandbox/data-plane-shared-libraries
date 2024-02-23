@@ -23,11 +23,11 @@ cc_library(
     deps = [
         "//src/core/interface:interface_lib",
         "//src/core/interface:type_def_lib",
-        "//src/cpp/util/status_macro:status_macros",
         "//src/roma/config/src:config",
         "//src/roma/logging/src:logging",
         "//src/roma/sandbox/constants",
         "//src/roma/sandbox/js_engine/src:js_engine",
+        "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",

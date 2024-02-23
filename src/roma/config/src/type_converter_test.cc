@@ -32,8 +32,8 @@
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "include/v8.h"
-#include "src/cpp/util/process_util.h"
 #include "src/roma/interface/function_binding_io.pb.h"
+#include "src/util/process_util.h"
 
 using ::testing::ElementsAreArray;
 using ::testing::StrEq;

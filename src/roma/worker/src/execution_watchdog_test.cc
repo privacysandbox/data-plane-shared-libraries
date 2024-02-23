@@ -31,7 +31,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/time/time.h"
 #include "include/libplatform/libplatform.h"
-#include "src/cpp/util/process_util.h"
+#include "src/util/process_util.h"
 
 namespace google::scp::roma::worker::test {
 

@@ -23,7 +23,7 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
 #include "include/v8.h"
-#include "src/cpp/util/duration.h"
+#include "src/util/duration.h"
 
 using privacy_sandbox::server_common::ExpiringFlag;
 using privacy_sandbox::server_common::SteadyClock;

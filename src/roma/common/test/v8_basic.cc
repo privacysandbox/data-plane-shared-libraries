@@ -38,7 +38,7 @@
 
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
-#include "src/cpp/util/process_util.h"
+#include "src/util/process_util.h"
 
 using ::testing::StrEq;
 
