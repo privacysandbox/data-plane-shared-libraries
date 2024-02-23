@@ -167,7 +167,7 @@ cc_test(
 
 cc_test(
     name = "worker_wrapper_test",
-    size = "small",
+    size = "medium",
     srcs = ["worker_wrapper_test.cc"],
     deps = [
         ":worker_init_params_cc_proto",
