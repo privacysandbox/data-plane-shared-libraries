@@ -53,6 +53,8 @@ class MockMetricClientWithOverrides : public MetricClientProvider {
 
   core::ExecutionResult record_metric_result_mock;
 
+  absl::Mutex* mock_sync_mutex_ = &sync_mutex_;
+
   void RunMetricsBatchPush() noexcept override ABSL_NO_THREAD_SAFETY_ANALYSIS {
     if (schedule_metrics_helper_mock) {
       return schedule_metrics_helper_mock();

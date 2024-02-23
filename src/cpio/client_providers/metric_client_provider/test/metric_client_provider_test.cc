@@ -323,7 +323,10 @@ TEST_F(MetricClientProviderTest, RunMetricsBatchPush) {
   EXPECT_SUCCESS(client->PutMetrics(context));
   EXPECT_SUCCESS(client->PutMetrics(context));
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 2);
-  client->RunMetricsBatchPush();
+  {
+    absl::MutexLock l(client->mock_sync_mutex_);
+    client->RunMetricsBatchPush();
+  }
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
   batch_push_called_count.WaitForNotification();
   schedule_metric_push.WaitForNotification();
