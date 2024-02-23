@@ -18,8 +18,8 @@
 
 #include <memory>
 
+#include "src/cpio/client_providers/global_cpio/src/cpio_provider/test_lib_cpio_provider.h"
 #include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "src/cpio/client_providers/global_cpio/test/test_lib_cpio_provider.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/core/src/cpio_utils.h"

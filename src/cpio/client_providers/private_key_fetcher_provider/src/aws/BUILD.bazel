@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -46,5 +46,40 @@ filegroup(
         ":aws_private_key_fetcher_provider.cc",
         ":aws_private_key_fetcher_provider.h",
         ":error_codes.h",
+    ],
+)
+
+cc_test(
+    name = "aws_private_key_fetcher_provider_test",
+    size = "small",
+    srcs = ["aws_private_key_fetcher_provider_test.cc"],
+    deps = [
+        ":aws_private_key_fetcher_provider_lib",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/http2_client/mock:http2_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@aws_sdk_cpp//:core",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "test_aws_private_key_fetcher_provider_lib",
+    srcs = [
+        "test_aws_private_key_fetcher_provider.cc",
+        # Need to include the production src here,
+        # otherwise, it will fail with duplicate definition for test server.
+        ":aws_private_key_fetcher_provider_srcs",
+    ],
+    hdrs = [
+        "test_aws_private_key_fetcher_provider.h",
+    ],
+    deps = [
+        ":aws_private_key_fetcher_provider_lib",
+        "//src/core/http2_client/src:http2_client_lib",
     ],
 )

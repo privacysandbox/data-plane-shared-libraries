@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -38,5 +38,46 @@ cc_library(
         "@com_google_absl//absl/container:btree",
         "@com_google_absl//absl/strings",
         "@tink_cc//:json_keyset_reader",
+    ],
+)
+
+cc_test(
+    name = "private_key_client_provider_test",
+    size = "small",
+    srcs = ["private_key_client_provider_test.cc"],
+    deps = [
+        ":private_key_client_provider_lib",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/message_router/src:message_router_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/kms_client_provider/mock:kms_client_provider_mock",
+        "//src/cpio/client_providers/private_key_client_provider/mock:private_key_client_provider_mock",
+        "//src/cpio/client_providers/private_key_fetcher_provider/mock:private_key_fetcher_provider_mock",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
+        "//src/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "private_key_client_utils_test",
+    size = "small",
+    srcs = ["private_key_client_utils_test.cc"],
+    deps = [
+        ":private_key_client_provider_lib",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/message_router/src:message_router_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/private_key_client_provider/mock:private_key_client_provider_mock",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
     ],
 )

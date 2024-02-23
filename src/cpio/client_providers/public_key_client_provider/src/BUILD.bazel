@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -37,5 +37,36 @@ cc_library(
         "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
         "@nlohmann_json//:lib",
+    ],
+)
+
+cc_test(
+    name = "public_key_client_provider_test",
+    size = "small",
+    srcs = ["public_key_client_provider_test.cc"],
+    deps = [
+        ":public_key_client_provider_lib",
+        "//src/core/http2_client/mock:http2_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/message_router/src:message_router_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "public_key_client_utils_test",
+    size = "small",
+    srcs = ["public_key_client_utils_test.cc"],
+    deps = [
+        ":public_key_client_provider_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
     ],
 )

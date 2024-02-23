@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -43,5 +43,22 @@ filegroup(
         ":error_codes.h",
         ":gcp_private_key_fetcher_provider.cc",
         ":gcp_private_key_fetcher_provider.h",
+    ],
+)
+
+cc_test(
+    name = "gcp_private_key_fetcher_provider_test",
+    size = "small",
+    srcs = ["gcp_private_key_fetcher_provider_test.cc"],
+    deps = [
+        ":gcp_private_key_fetcher_provider_lib",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/http2_client/mock:http2_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
     ],
 )

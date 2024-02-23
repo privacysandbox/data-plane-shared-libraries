@@ -30,3 +30,21 @@ cc_library(
         no_match_error = "Please build for AWS or GCP",
     ),
 )
+
+cc_library(
+    name = "test_instance_client_provider_lib",
+    srcs = [
+        "test_instance_client_provider.cc",
+    ],
+    hdrs = [
+        "test_instance_client_provider.h",
+    ],
+    deps = [
+        "//src/core/interface:async_context_lib",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//src/public/cpio/test/global_cpio:test_cpio_options",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)

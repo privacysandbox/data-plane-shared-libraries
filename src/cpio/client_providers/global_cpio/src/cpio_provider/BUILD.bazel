@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -49,5 +49,57 @@ cc_library(
         "//src/public/cpio/interface:type_def",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "test_lib_cpio_provider",
+    srcs = [
+        "test_lib_cpio_provider.cc",
+        ":lib_cpio_provider_srcs",
+    ],
+    hdrs = [
+        "test_lib_cpio_provider.h",
+    ],
+    copts = select(
+        {
+            "//:aws_platform": [
+                "-DAWS_TEST=1",
+            ],
+            "//:gcp_platform": [
+                "-DGCP_TEST=1",
+            ],
+        },
+        no_match_error = "Please build for AWS or GCP",
+    ),
+    deps =
+        select(
+            {
+                "//:aws_platform": [
+                    "//src/cpio/client_providers/instance_client_provider/src/aws:test_aws_instance_client_provider_lib",
+                    "//src/cpio/client_providers/role_credentials_provider/src/aws:test_aws_role_credentials_provider_lib",
+                ],
+                "//:gcp_platform": [
+                    "//src/cpio/client_providers/instance_client_provider/src/gcp:test_gcp_instance_client_provider_lib",
+                    "//src/cpio/client_providers/role_credentials_provider/src/gcp:gcp_role_credentials_provider_lib",
+                ],
+            },
+            no_match_error = "Please build for AWS or GCP",
+        ) + [
+            ":cpio_provider_lib",
+            "//src/public/cpio/test/global_cpio:test_cpio_options",
+        ],
+)
+
+cc_test(
+    name = "lib_cpio_provider_test",
+    size = "small",
+    srcs = ["lib_cpio_provider_test.cc"],
+    deps = [
+        ":cpio_provider_lib",
+        "//src/cpio/client_providers/global_cpio/mock:global_cpio_mock",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/interface:cpio",
+        "@com_google_googletest//:gtest_main",
     ],
 )

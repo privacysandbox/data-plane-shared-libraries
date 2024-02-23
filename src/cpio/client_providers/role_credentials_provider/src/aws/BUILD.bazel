@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "aws_role_credentials_provider_lib",
     srcs = [
-        "//src/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_srcs",
+        ":aws_role_credentials_provider_srcs",
     ],
     hdrs = [
         "//src/cpio/client_providers/interface:role_credentials_provider_interface.h",
@@ -51,5 +51,39 @@ filegroup(
         ":error_codes.h",
         ":sts_error_converter.cc",
         ":sts_error_converter.h",
+    ],
+)
+
+cc_test(
+    name = "sts_error_converter_test",
+    size = "small",
+    srcs = [
+        "sts_error_converter_test.cc",
+    ],
+    deps = [
+        ":aws_role_credentials_provider_lib",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@aws_sdk_cpp//:sts",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "test_aws_role_credentials_provider_lib",
+    srcs = [
+        "test_aws_role_credentials_provider.cc",
+        ":aws_role_credentials_provider_srcs",
+    ],
+    hdrs = [
+        "test_aws_role_credentials_provider.h",
+        "//src/cpio/client_providers/interface:role_credentials_provider_interface.h",
+    ],
+    deps = [
+        ":aws_role_credentials_provider_lib",
+        "//src/cpio/common/test/aws:test_aws_utils_lib",
+        "//src/public/cpio/test/global_cpio:test_cpio_options",
     ],
 )

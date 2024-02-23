@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -42,6 +42,24 @@ cc_library(
         "@tink_cc//hybrid/internal:hpke_context",
         "@tink_cc//proto:hpke_cc_proto",
         "@tink_cc//subtle",
+        "@tink_cc//util:secret_data",
+    ],
+)
+
+cc_test(
+    name = "crypto_client_provider_test",
+    size = "small",
+    srcs = ["crypto_client_provider_test.cc"],
+    deps = [
+        ":crypto_client_provider_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/interface/crypto_client:type_def",
+        "//src/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
+        "@com_google_googletest//:gtest_main",
+        "@tink_cc//proto:hpke_cc_proto",
+        "@tink_cc//proto:tink_cc_proto",
         "@tink_cc//util:secret_data",
     ],
 )
