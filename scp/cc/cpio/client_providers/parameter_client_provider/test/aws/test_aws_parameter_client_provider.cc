@@ -34,7 +34,7 @@ using google::scp::cpio::common::test::CreateTestClientConfiguration;
 
 namespace google::scp::cpio::client_providers {
 ClientConfiguration TestAwsParameterClientProvider::CreateClientConfiguration(
-    const std::string& region) noexcept {
+    std::string_view region) noexcept {
   return CreateTestClientConfiguration(*test_options_.ssm_endpoint_override,
                                        region);
 }

@@ -556,8 +556,7 @@ MATCHER_P(HasSessionUrl, url, "") {
  * before *each* UploadChunk call.
  */
 void ExpectResumableUpload(MockClient& mock_client, std::string_view bucket,
-                           std::string_view blob,
-                           const std::string& initial_part,
+                           std::string_view blob, std::string_view initial_part,
                            const std::vector<std::string>& other_parts,
                            bool expect_queries = false) {
   static int upload_count = 0;

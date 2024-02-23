@@ -94,7 +94,7 @@ class AwsParameterClientProvider : public ParameterClientProviderInterface {
    * @return core::ExecutionResult creation result.
    */
   virtual Aws::Client::ClientConfiguration CreateClientConfiguration(
-      const std::string& region) noexcept;
+      std::string_view region) noexcept;
 
   /// InstanceClientProvider.
   InstanceClientProviderInterface* instance_client_provider_;

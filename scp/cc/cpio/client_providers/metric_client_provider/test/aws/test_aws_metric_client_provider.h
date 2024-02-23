@@ -46,7 +46,7 @@ class TestAwsMetricClientProvider : public AwsMetricClientProvider {
 
  protected:
   void CreateClientConfiguration(
-      const std::string& region,
+      std::string_view region,
       Aws::Client::ClientConfiguration& client_config) noexcept override;
 
   std::shared_ptr<const std::string> cloud_watch_endpoint_override_;

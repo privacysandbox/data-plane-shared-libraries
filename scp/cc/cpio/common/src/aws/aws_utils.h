@@ -28,5 +28,5 @@ namespace google::scp::cpio::common {
  * @return ClientConfiguration client configuration.
  */
 Aws::Client::ClientConfiguration CreateClientConfiguration(
-    const std::string& region = "") noexcept;
+    std::string_view region = "") noexcept;
 }  // namespace google::scp::cpio::common

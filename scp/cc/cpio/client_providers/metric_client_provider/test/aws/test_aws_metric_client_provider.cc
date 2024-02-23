@@ -36,7 +36,7 @@ using google::scp::cpio::common::test::CreateTestClientConfiguration;
 
 namespace google::scp::cpio::client_providers {
 void TestAwsMetricClientProvider::CreateClientConfiguration(
-    const std::string& region, ClientConfiguration& client_config) noexcept {
+    std::string_view region, ClientConfiguration& client_config) noexcept {
   client_config =
       CreateTestClientConfiguration(*cloud_watch_endpoint_override_, region);
 }

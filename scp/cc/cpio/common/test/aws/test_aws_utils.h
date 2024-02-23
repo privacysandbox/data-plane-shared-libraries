@@ -30,6 +30,5 @@ namespace google::scp::cpio::common::test {
  * ClientConfiguration.
  */
 Aws::Client::ClientConfiguration CreateTestClientConfiguration(
-    const std::string& endpoint_override,
-    const std::string& region = "") noexcept;
+    std::string_view endpoint_override, std::string_view region = "") noexcept;
 }  // namespace google::scp::cpio::common::test

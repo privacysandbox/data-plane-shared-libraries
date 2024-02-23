@@ -64,8 +64,8 @@ constexpr std::string_view kAwsParameterClientProvider =
 
 namespace google::scp::cpio::client_providers {
 ClientConfiguration AwsParameterClientProvider::CreateClientConfiguration(
-    const std::string& region) noexcept {
-  return common::CreateClientConfiguration(std::move(region));
+    std::string_view region) noexcept {
+  return common::CreateClientConfiguration(region);
 }
 
 ExecutionResult AwsParameterClientProvider::Init() noexcept {

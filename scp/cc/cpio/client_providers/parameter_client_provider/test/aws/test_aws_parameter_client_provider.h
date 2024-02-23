@@ -43,7 +43,7 @@ class TestAwsParameterClientProvider : public AwsParameterClientProvider {
 
  protected:
   Aws::Client::ClientConfiguration CreateClientConfiguration(
-      const std::string& region) noexcept override;
+      std::string_view region) noexcept override;
 
   TestAwsParameterClientOptions test_options_;
 };

@@ -80,7 +80,7 @@ constexpr std::string_view kAwsMetricClientProvider = "AwsMetricClientProvider";
 
 namespace google::scp::cpio::client_providers {
 void AwsMetricClientProvider::CreateClientConfiguration(
-    const std::string& region, ClientConfiguration& client_config) noexcept {
+    std::string_view region, ClientConfiguration& client_config) noexcept {
   client_config = common::CreateClientConfiguration(region);
   client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor_);

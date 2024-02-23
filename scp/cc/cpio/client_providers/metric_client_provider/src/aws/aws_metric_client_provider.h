@@ -77,7 +77,7 @@ class AwsMetricClientProvider : public MetricClientProvider {
    * @param client_config returned Client Configuration.
    */
   virtual void CreateClientConfiguration(
-      const std::string& region,
+      std::string_view region,
       Aws::Client::ClientConfiguration& client_config) noexcept;
 
   /// CloudWatchClient.

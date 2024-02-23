@@ -33,11 +33,11 @@ constexpr int kRequestTimeoutMs = 6000;
 
 namespace google::scp::cpio::common {
 ClientConfiguration CreateClientConfiguration(
-    const std::string& region) noexcept {
+    std::string_view region) noexcept {
   ClientConfiguration config;
   // TODO: Check the region is valid AWS region.
   if (!region.empty()) {
-    config.region = region.c_str();
+    config.region = region;
   }
 
   config.scheme = Aws::Http::Scheme::HTTPS;
