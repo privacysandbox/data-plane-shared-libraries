@@ -24,7 +24,7 @@
 
 #include "src/core/common/uuid/src/uuid.h"
 #include "src/core/test/scp_test_base.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::common::ConcurrentMap;

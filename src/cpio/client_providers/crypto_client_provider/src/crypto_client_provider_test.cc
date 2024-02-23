@@ -34,7 +34,7 @@
 #include "src/core/utils/src/error_codes.h"
 #include "src/cpio/client_providers/crypto_client_provider/src/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 #include "src/public/cpio/interface/crypto_client/type_def.h"
 #include "src/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 

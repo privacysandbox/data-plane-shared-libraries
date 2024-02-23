@@ -25,7 +25,7 @@
 #include "src/core/interface/async_context.h"
 #include "src/core/logger/mock/mock_log_provider.h"
 #include "src/core/logger/src/log_providers/console_log_provider.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using google::scp::core::common::InitializeCpioLog;
 using google::scp::core::common::LogOption;

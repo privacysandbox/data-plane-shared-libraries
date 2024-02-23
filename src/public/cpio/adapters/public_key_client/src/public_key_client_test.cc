@@ -24,7 +24,7 @@
 #include "absl/synchronization/notification.h"
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 #include "src/public/cpio/adapters/public_key_client/src/mock_public_key_client_with_overrides.h"
 #include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "src/public/cpio/interface/public_key_client/type_def.h"

@@ -25,7 +25,7 @@
 #include "src/core/async_executor/src/async_executor.h"
 #include "src/core/curl_client/src/error_codes.h"
 #include "src/core/curl_client/src/http1_curl_wrapper.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using testing::AtLeast;
 using testing::ByMove;

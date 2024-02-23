@@ -54,7 +54,7 @@ cc_test(
         ":crypto_client_provider_lib",
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "//src/public/cpio/interface/crypto_client:type_def",
         "//src/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
         "@com_google_googletest//:gtest_main",

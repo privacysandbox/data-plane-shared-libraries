@@ -23,7 +23,7 @@
 #include "src/core/message_router/src/message_router.h"
 #include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 #include "src/public/cpio/interface/cpio.h"
 #include "src/public/cpio/interface/metric_client/metric_client_interface.h"
 #include "src/public/cpio/interface/metric_client/type_def.h"

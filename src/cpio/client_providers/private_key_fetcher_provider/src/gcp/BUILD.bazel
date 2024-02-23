@@ -57,7 +57,7 @@ cc_test(
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
         "//src/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],

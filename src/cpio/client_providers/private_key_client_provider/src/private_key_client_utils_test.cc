@@ -31,7 +31,7 @@
 #include "src/core/test/utils/timestamp_test_utils.h"
 #include "src/core/utils/src/base64.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 namespace google::scp::cpio::client_providers::test {
 namespace {

@@ -12,9 +12,68 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//src:scp_internal_pkg"])
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
 
 exports_files([
     "errors.cc",
     "execution_result.cc",
 ])
+
+cc_library(
+    name = "test_execution_result_matchers",
+    srcs = ["test_execution_result_matchers.cc"],
+    hdrs = ["test_execution_result_matchers.h"],
+    deps = [
+        "//src/core/common/proto:core_common_proto_lib",
+        "//src/public/core/interface:errors",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_library(
+    name = "test_struct_matchers",
+    testonly = True,
+    hdrs = ["test_struct_matchers.h"],
+    deps = [
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_test(
+    name = "errors_test",
+    size = "small",
+    srcs = ["errors_test.cc"],
+    deps = [
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio_errors",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "execution_result_test",
+    size = "small",
+    srcs = ["execution_result_test.cc"],
+    deps = [
+        "//src/core/common/global_logger/src:global_logger_lib",
+        "//src/core/common/proto:core_common_proto_lib",
+        "//src/core/logger/mock:logger_mock",
+        "//src/public/core/interface:execution_result",
+        "//src/public/core/src:test_execution_result_matchers",
+        "@com_google_absl//absl/log:check",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "struct_matchers_test",
+    size = "small",
+    srcs = ["struct_matchers_test.cc"],
+    deps = [
+        "//src/public/core/src:test_struct_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

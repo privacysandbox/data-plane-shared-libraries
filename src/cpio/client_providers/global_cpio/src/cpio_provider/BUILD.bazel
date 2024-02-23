@@ -98,7 +98,7 @@ cc_test(
     deps = [
         ":cpio_provider_lib",
         "//src/cpio/client_providers/global_cpio/mock:global_cpio_mock",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "//src/public/cpio/interface:cpio",
         "@com_google_googletest//:gtest_main",
     ],

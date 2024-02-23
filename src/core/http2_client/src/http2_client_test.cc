@@ -42,7 +42,7 @@
 #include "src/core/interface/async_context.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using namespace nghttp2::asio_http2;          // NOLINT
 using namespace nghttp2::asio_http2::server;  // NOLINT

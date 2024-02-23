@@ -27,7 +27,7 @@
 #include <memory>
 
 #include "src/core/config_provider/src/error_codes.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using google::scp::core::EnvConfigProvider;
 using google::scp::core::FailureExecutionResult;

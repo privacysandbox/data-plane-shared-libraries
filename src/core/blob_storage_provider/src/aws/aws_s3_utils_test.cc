@@ -19,7 +19,7 @@
 #include <aws/s3/S3Errors.h>
 
 #include "src/core/blob_storage_provider/src/common/error_codes.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using Aws::S3::S3Errors;
 using google::scp::core::blob_storage_provider::AwsS3Utils;

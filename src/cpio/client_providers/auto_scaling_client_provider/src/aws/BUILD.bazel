@@ -63,7 +63,7 @@ cc_test(
         ":aws_auto_scaling_client_provider_lib",
         "//src/core/interface:interface_lib",
         "//src/cpio/common/src/aws:aws_utils_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "@aws_sdk_cpp//:autoscaling",
         "@com_google_googletest//:gtest_main",
     ],

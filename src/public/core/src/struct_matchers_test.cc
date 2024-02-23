@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/public/core/test/interface/struct_matchers.h"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include "src/public/core/src/test_struct_matchers.h"
 
 using testing::ElementsAre;
 using testing::Eq;

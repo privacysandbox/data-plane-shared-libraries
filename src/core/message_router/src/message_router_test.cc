@@ -29,7 +29,7 @@
 #include "src/core/message_router/src/error_codes.h"
 #include "src/core/message_router/src/test.pb.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using core::message_router::test::TestBoolRequest;
 using core::message_router::test::TestBoolResponse;

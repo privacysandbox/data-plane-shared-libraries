@@ -39,7 +39,7 @@ cc_test(
     srcs = ["gcp_utils_test.cc"],
     deps = [
         ":gcp_utils_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "//src/public/cpio/interface:cpio_errors",
         "@com_github_googleapis_google_cloud_cpp//:common",
         "@com_google_googletest//:gtest_main",

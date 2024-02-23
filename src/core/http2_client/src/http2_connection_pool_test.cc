@@ -23,7 +23,7 @@
 #include "src/core/http2_client/mock/mock_http_connection_pool_with_overrides.h"
 #include "src/core/http2_client/src/error_codes.h"
 #include "src/core/interface/async_executor_interface.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::http2_client::mock::MockHttpConnection;

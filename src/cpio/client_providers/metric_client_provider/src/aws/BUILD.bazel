@@ -102,7 +102,7 @@ cc_test(
         ":aws_metric_client_provider_lib",
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",

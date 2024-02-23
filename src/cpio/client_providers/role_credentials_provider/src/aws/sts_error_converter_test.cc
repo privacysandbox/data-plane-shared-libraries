@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 
 #include "src/cpio/common/src/aws/error_codes.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using Aws::STS::STSErrors;
 using google::scp::core::FailureExecutionResult;

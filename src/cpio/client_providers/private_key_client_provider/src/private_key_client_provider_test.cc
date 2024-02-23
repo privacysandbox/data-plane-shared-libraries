@@ -36,7 +36,7 @@
 #include "src/cpio/client_providers/private_key_client_provider/src/private_key_client_utils.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/mock/mock_private_key_fetcher_provider.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 #include "src/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
 
 namespace google::scp::cpio::client_providers::test {

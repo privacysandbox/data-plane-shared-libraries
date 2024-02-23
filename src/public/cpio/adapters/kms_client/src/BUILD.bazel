@@ -47,7 +47,7 @@ cc_test(
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
         "//src/cpio/client_providers/kms_client_provider/src:kms_client_provider_select_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "//src/public/cpio/core/src:lib_cpio_mock",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface:type_def",

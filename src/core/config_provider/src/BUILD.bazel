@@ -41,7 +41,7 @@ cc_test(
     data = ["resources/test_config.json"],
     deps = [
         ":config_provider_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -52,7 +52,7 @@ cc_test(
     srcs = ["env_config_provider_test.cc"],
     deps = [
         ":config_provider_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

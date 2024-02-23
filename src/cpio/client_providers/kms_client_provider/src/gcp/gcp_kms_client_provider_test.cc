@@ -27,7 +27,7 @@
 #include "src/cpio/client_providers/kms_client_provider/mock/gcp/mock_gcp_key_management_service_client.h"
 #include "src/cpio/client_providers/kms_client_provider/src/gcp/error_codes.h"
 #include "src/cpio/client_providers/kms_client_provider/src/gcp/gcp_kms_aead.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using crypto::tink::Aead;
 using crypto::tink::util::StatusOr;

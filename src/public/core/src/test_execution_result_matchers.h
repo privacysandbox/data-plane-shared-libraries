@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CORE_TEST_INTERFACE_EXECUTION_RESULT_MATCHERS_H_
-#define PUBLIC_CORE_TEST_INTERFACE_EXECUTION_RESULT_MATCHERS_H_
+#ifndef PUBLIC_CORE_SRC_TEST_EXECUTION_RESULT_MATCHERS_H_
+#define PUBLIC_CORE_SRC_TEST_EXECUTION_RESULT_MATCHERS_H_
 
 #include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
@@ -148,4 +148,4 @@ MATCHER_P(IsSuccessfulAndHolds, inner_matcher, "") {
 
 }  // namespace google::scp::core::test
 
-#endif  // PUBLIC_CORE_TEST_INTERFACE_EXECUTION_RESULT_MATCHERS_H_
+#endif  // PUBLIC_CORE_SRC_TEST_EXECUTION_RESULT_MATCHERS_H_

@@ -30,7 +30,7 @@
 #include "src/cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
 #include "src/cpio/client_providers/role_credentials_provider/mock/mock_role_credentials_provider.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 namespace google::scp::cpio::client_providers::test {
 namespace {

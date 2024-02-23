@@ -33,7 +33,7 @@
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/test/test_config.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using google::scp::core::common::TimeProvider;
 using testing::Values;

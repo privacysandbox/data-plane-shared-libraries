@@ -26,7 +26,7 @@
 #include "src/cpio/client_providers/parameter_client_provider/src/gcp/error_codes.h"
 #include "src/cpio/common/src/gcp/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 #include "src/public/cpio/test/global_cpio/test_cpio_options.h"
 #include "src/public/cpio/test/global_cpio/test_lib_cpio.h"

@@ -60,7 +60,7 @@ cc_test(
         "//src/core/test/utils:utils_lib",
         "//src/cpio/client_providers/parameter_client_provider/mock/gcp:gcp_parameter_client_provider_mock",
         "//src/cpio/common/src/gcp:gcp_utils_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager_mocks",
         "@com_google_absl//absl/synchronization",

@@ -35,7 +35,7 @@
 #include "src/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
 #include "src/cpio/client_providers/blob_storage_client_provider/src/gcp/gcp_blob_storage_client_provider.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 #include "src/public/cpio/test/global_cpio/test_cpio_options.h"
 #include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 

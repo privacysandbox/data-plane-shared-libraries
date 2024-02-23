@@ -18,7 +18,7 @@
 
 #include "src/cpio/client_providers/parameter_client_provider/src/aws/error_codes.h"
 #include "src/cpio/common/src/aws/error_codes.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using Aws::SSM::SSMErrors;
 using google::scp::core::FailureExecutionResult;

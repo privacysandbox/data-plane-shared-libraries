@@ -49,7 +49,7 @@ cc_test(
         "//src/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

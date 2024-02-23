@@ -26,7 +26,7 @@
 #include "src/core/http2_client/mock/mock_http_client.h"
 #include "src/core/interface/async_context.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 #include "src/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
 
 using google::cmrt::sdk::public_key_service::v1::ListPublicKeysRequest;

@@ -33,7 +33,7 @@
 #include "absl/status/statusor.h"
 #include "include/libplatform/libplatform.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 #include "src/roma/wasm/src/deserializer.h"
 #include "src/roma/wasm/src/testing_utils.h"
 #include "src/roma/wasm/src/wasm_types.h"

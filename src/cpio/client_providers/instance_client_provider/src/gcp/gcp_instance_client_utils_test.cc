@@ -24,7 +24,7 @@
 #include "absl/strings/substitute.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "src/cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

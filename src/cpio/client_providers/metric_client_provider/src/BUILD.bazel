@@ -72,7 +72,7 @@ cc_test(
         "//src/core/test/utils:utils_lib",
         "//src/cpio/client_providers/metric_client_provider/mock:metric_client_provider_mock",
         "//src/cpio/common/src/aws:aws_utils_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
@@ -87,7 +87,7 @@ cc_test(
     deps = [
         ":metric_client_provider_lib",
         "//src/core/interface:interface_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "@com_google_googletest//:gtest_main",
     ],

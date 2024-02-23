@@ -35,7 +35,7 @@
 #include "src/core/interface/blob_storage_provider_interface.h"
 #include "src/core/utils/src/base64.h"
 #include "src/core/utils/src/hashing.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 namespace google::scp::core::test {
 namespace {

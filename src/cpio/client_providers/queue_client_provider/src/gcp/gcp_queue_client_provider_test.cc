@@ -29,7 +29,7 @@
 #include "src/cpio/client_providers/queue_client_provider/src/gcp/error_codes.h"
 #include "src/cpio/common/src/gcp/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 #include "src/public/cpio/proto/queue_service/v1/queue_service.pb.h"
 
 using google::cmrt::sdk::queue_service::v1::DeleteMessageRequest;

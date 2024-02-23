@@ -18,7 +18,7 @@
 
 #include "src/core/interface/errors.h"
 #include "src/core/interface/type_def.h"
-#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/src/test_execution_result_matchers.h"
 
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::RetryExecutionResult;

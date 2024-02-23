@@ -36,7 +36,7 @@ cc_test(
     srcs = ["lib_cpio_test.cc"],
     deps = [
         "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "//src/public/cpio/interface/metric_client",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_google_googletest//:gtest_main",

@@ -66,7 +66,7 @@ cc_test(
         "//src/core/test/utils:utils_lib",
         "//src/core/utils/src:core_utils",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
         "@com_google_absl//absl/synchronization",

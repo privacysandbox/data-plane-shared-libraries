@@ -57,7 +57,7 @@ cc_test(
         "//src/core/curl_client/mock:mock_curl_client",
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core/src:test_execution_result_matchers",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
