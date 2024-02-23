@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Google LLC
+ * Copyright (C) Microsoft Corporation. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +28,7 @@ enum class CloudPlatform {
   kLocal,
   kGcp,
   kAws,
+  kAzure,
 };
 
 }  // namespace privacy_sandbox::server_common
