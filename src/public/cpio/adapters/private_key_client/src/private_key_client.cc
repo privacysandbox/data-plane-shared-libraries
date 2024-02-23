@@ -59,7 +59,7 @@ constexpr std::string_view kPrivateKeyClient = "PrivateKeyClient";
 
 namespace google::scp::cpio {
 ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
-  cpio_ = GlobalCpio::GetGlobalCpio().get();
+  cpio_ = &GlobalCpio::GetGlobalCpio();
   HttpClientInterface* http_client;
   if (auto client = cpio_->GetHttpClient(); !client.ok()) {
     ExecutionResult execution_result;

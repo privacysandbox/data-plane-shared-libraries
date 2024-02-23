@@ -83,7 +83,7 @@ void RunFetchPrivateKeyValidator(
   RoleCredentialsProviderInterface* role_credentials_provider;
   AuthTokenProviderInterface* auth_token_provider;
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetHttp1Client(); !res.ok()) {
+  if (auto res = GlobalCpio::GetGlobalCpio().GetHttp1Client(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Http Client." << std::endl
               << std::endl;
     return;
@@ -91,7 +91,7 @@ void RunFetchPrivateKeyValidator(
     http_client = *res;
   }
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetRoleCredentialsProvider();
+  if (auto res = GlobalCpio::GetGlobalCpio().GetRoleCredentialsProvider();
       !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Role Credentials Provider."
               << std::endl
@@ -101,7 +101,7 @@ void RunFetchPrivateKeyValidator(
     role_credentials_provider = *res;
   }
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetAuthTokenProvider();
+  if (auto res = GlobalCpio::GetGlobalCpio().GetAuthTokenProvider();
       !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Auth Token Provider." << std::endl
               << std::endl;

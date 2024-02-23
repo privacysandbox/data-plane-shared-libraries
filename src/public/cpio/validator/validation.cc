@@ -132,7 +132,7 @@ void RunHttpValidator(
     std::string_view name,
     const google::scp::cpio::validator::proto::HttpConfig& http_config) {
   google::scp::core::HttpClientInterface* http_client;
-  if (auto result = GlobalCpio::GetGlobalCpio()->GetHttp1Client();
+  if (auto result = GlobalCpio::GetGlobalCpio().GetHttp1Client();
       !result.ok()) {
     std::cout << "[ FAILURE ] " << name << " Unable to get Http Client."
               << std::endl;

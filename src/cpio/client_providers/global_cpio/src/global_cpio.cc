@@ -25,14 +25,14 @@
 namespace google::scp::cpio::client_providers {
 static std::unique_ptr<CpioProviderInterface> cpio_instance_;
 
-const std::unique_ptr<CpioProviderInterface>& GlobalCpio::GetGlobalCpio() {
+CpioProviderInterface& GlobalCpio::GetGlobalCpio() {
   CHECK(cpio_instance_.get() != nullptr)
       << "Cpio must be initialized with Cpio::InitCpio before client "
          "use";
-  return cpio_instance_;
+  return *cpio_instance_;
 }
 
-void GlobalCpio::SetGlobalCpio(std::unique_ptr<CpioProviderInterface>& cpio) {
+void GlobalCpio::SetGlobalCpio(std::unique_ptr<CpioProviderInterface> cpio) {
   cpio_instance_ = std::move(cpio);
 }
 

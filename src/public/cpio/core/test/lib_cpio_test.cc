@@ -51,7 +51,6 @@ TEST(LibCpioTest, NoLogTest) {
   options.log_option = LogOption::kNoLog;
   options.region = kRegion;
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_THAT(GlobalCpio::GetGlobalCpio(), NotNull());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }
 
@@ -60,7 +59,6 @@ TEST(LibCpioTest, ConsoleLogTest) {
   options.log_option = LogOption::kConsoleLog;
   options.region = kRegion;
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_THAT(GlobalCpio::GetGlobalCpio(), NotNull());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }
 
@@ -69,7 +67,6 @@ TEST(LibCpioTest, SysLogTest) {
   options.log_option = LogOption::kSysLog;
   options.region = kRegion;
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_THAT(GlobalCpio::GetGlobalCpio(), NotNull());
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }
 
@@ -78,7 +75,7 @@ TEST(LibCpioTest, StopSuccessfully) {
   options.log_option = LogOption::kSysLog;
   options.region = kRegion;
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  auto cpu_async_executor = GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor();
+  auto cpu_async_executor = GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor();
   ASSERT_TRUE(cpu_async_executor.ok());
   ASSERT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }

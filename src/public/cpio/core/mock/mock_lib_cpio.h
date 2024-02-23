@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 #include "src/cpio/client_providers/global_cpio/mock/mock_lib_cpio_provider.h"
 #include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
@@ -38,7 +39,7 @@ static core::ExecutionResult SetGlobalCpio() {
   if (!execution_result.Successful()) {
     return execution_result;
   }
-  client_providers::GlobalCpio::SetGlobalCpio(cpio_ptr);
+  client_providers::GlobalCpio::SetGlobalCpio(std::move(cpio_ptr));
 
   return core::SuccessExecutionResult();
 }
@@ -46,14 +47,10 @@ static core::ExecutionResult SetGlobalCpio() {
 core::ExecutionResult InitCpio() { return SetGlobalCpio(); }
 
 core::ExecutionResult ShutdownCpio() {
-  if (client_providers::GlobalCpio::GetGlobalCpio()) {
-    auto execution_result =
-        client_providers::GlobalCpio::GetGlobalCpio()->Stop();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
+  auto execution_result = client_providers::GlobalCpio::GetGlobalCpio().Stop();
+  if (!execution_result.Successful()) {
+    return execution_result;
   }
-
   return core::SuccessExecutionResult();
 }
 }  // namespace google::scp::cpio

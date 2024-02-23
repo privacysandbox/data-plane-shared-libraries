@@ -71,7 +71,7 @@ ClientConfiguration AwsParameterClientProvider::CreateClientConfiguration(
 ExecutionResult AwsParameterClientProvider::Init() noexcept {
   // Try to get region code from Global Cpio Options, otherwise get region code
   // from running instance_client.
-  cpio_ = GlobalCpio::GetGlobalCpio().get();
+  cpio_ = &GlobalCpio::GetGlobalCpio();
   if (const std::string& region_code = cpio_->GetRegion();
       !region_code.empty()) {
     ssm_client_ = ssm_client_factory_->CreateSSMClient(

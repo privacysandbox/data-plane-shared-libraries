@@ -31,17 +31,17 @@ class GlobalCpio {
   /**
    * @brief Gets the Global Cpio object.
    *
-   * @return const std::unique_ptr<CpioProviderInterface>& the global Cpio
+   * @return CpioProviderInterface& the global Cpio
    * object.
    */
-  static const std::unique_ptr<CpioProviderInterface>& GetGlobalCpio();
+  static CpioProviderInterface& GetGlobalCpio();
 
   /**
    * @brief Sets the Global Cpio object.
    *
    * @param cpio sets the global Cpio object.
    */
-  static void SetGlobalCpio(std::unique_ptr<CpioProviderInterface>& cpio);
+  static void SetGlobalCpio(std::unique_ptr<CpioProviderInterface> cpio);
 
   /**
    * @brief Shuts down the Global Cpio object, setting to nullptr.

@@ -65,7 +65,7 @@ namespace google::scp::cpio::client_providers {
 ExecutionResult GcpParameterClientProvider::Init() noexcept {
   // Try to get project_id from Global Cpio Options, otherwise get project_id
   // from running instance_client.
-  cpio_ = GlobalCpio::GetGlobalCpio().get();
+  cpio_ = &GlobalCpio::GetGlobalCpio();
   project_id_ = cpio_->GetProjectId();
 
   if (project_id_.empty()) {

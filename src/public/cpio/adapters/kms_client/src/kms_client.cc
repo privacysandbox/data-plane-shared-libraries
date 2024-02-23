@@ -46,7 +46,7 @@ constexpr std::string_view kKmsClient = "KmsClient";
 namespace google::scp::cpio {
 
 ExecutionResult KmsClient::Init() noexcept {
-  cpio_ = GlobalCpio::GetGlobalCpio().get();
+  cpio_ = &GlobalCpio::GetGlobalCpio();
   RoleCredentialsProviderInterface* role_credentials_provider;
   if (auto provider = cpio_->GetRoleCredentialsProvider(); !provider.ok()) {
     ExecutionResult execution_result;

@@ -55,7 +55,7 @@ void RunEnqueueMessageValidator(
   AsyncExecutorInterface* cpu_async_executor;
   AsyncExecutorInterface* io_async_executor;
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider();
+  if (auto res = GlobalCpio::GetGlobalCpio().GetInstanceClientProvider();
       !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Instance Client Provider."
               << std::endl;
@@ -64,15 +64,14 @@ void RunEnqueueMessageValidator(
     instance_client = *res;
   }
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor();
-      !res.ok()) {
+  if (auto res = GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Cpu Async Executor." << std::endl;
     return;
   } else {
     cpu_async_executor = *res;
   }
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(); !res.ok()) {
+  if (auto res = GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Io Async Executor." << std::endl;
     return;
   } else {
@@ -141,7 +140,7 @@ void RunGetTopMessageValidator(std::string_view name) {
   AsyncExecutorInterface* cpu_async_executor;
   AsyncExecutorInterface* io_async_executor;
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetInstanceClientProvider();
+  if (auto res = GlobalCpio::GetGlobalCpio().GetInstanceClientProvider();
       !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Instance Client Provider."
               << std::endl;
@@ -150,15 +149,14 @@ void RunGetTopMessageValidator(std::string_view name) {
     instance_client = *res;
   }
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetCpuAsyncExecutor();
-      !res.ok()) {
+  if (auto res = GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Cpu Async Executor." << std::endl;
     return;
   } else {
     cpu_async_executor = *res;
   }
 
-  if (auto res = GlobalCpio::GetGlobalCpio()->GetIoAsyncExecutor(); !res.ok()) {
+  if (auto res = GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor(); !res.ok()) {
     std::cout << "[ FAILURE ] Unable to get Io Async Executor." << std::endl;
     return;
   } else {

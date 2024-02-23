@@ -58,7 +58,7 @@ constexpr std::string_view kBlobStorageClient = "BlobStorageClient";
 namespace google::scp::cpio {
 
 ExecutionResult BlobStorageClient::Init() noexcept {
-  cpio_ = GlobalCpio::GetGlobalCpio().get();
+  cpio_ = &GlobalCpio::GetGlobalCpio();
   AsyncExecutorInterface* cpu_async_executor;
   if (auto executor = cpio_->GetCpuAsyncExecutor(); !executor.ok()) {
     ExecutionResult execution_result;

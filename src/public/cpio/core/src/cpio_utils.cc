@@ -34,7 +34,7 @@ ExecutionResult CpioUtils::RunAndSetGlobalCpio(
     std::unique_ptr<CpioProviderInterface> cpio_ptr) {
   RETURN_IF_FAILURE(cpio_ptr->Init());
   RETURN_IF_FAILURE(cpio_ptr->Run());
-  GlobalCpio::SetGlobalCpio(cpio_ptr);
+  GlobalCpio::SetGlobalCpio(std::move(cpio_ptr));
 
   return SuccessExecutionResult();
 }

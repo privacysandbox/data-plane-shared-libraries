@@ -59,14 +59,11 @@ ExecutionResult Cpio::InitCpio(CpioOptions options,
 }
 
 ExecutionResult Cpio::ShutdownCpio(CpioOptions options) {
-  if (GlobalCpio::GetGlobalCpio()) {
-    auto execution_result = GlobalCpio::GetGlobalCpio()->Stop();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
-    GlobalCpio::ShutdownGlobalCpio();
+  auto execution_result = GlobalCpio::GetGlobalCpio().Stop();
+  if (!execution_result.Successful()) {
+    return execution_result;
   }
-
+  GlobalCpio::ShutdownGlobalCpio();
   return SuccessExecutionResult();
 }
 

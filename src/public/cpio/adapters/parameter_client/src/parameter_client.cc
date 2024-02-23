@@ -53,7 +53,7 @@ constexpr std::string_view kParameterClient = "ParameterClient";
 
 namespace google::scp::cpio {
 ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
-  cpio_ = GlobalCpio::GetGlobalCpio().get();
+  cpio_ = &GlobalCpio::GetGlobalCpio();
   InstanceClientProviderInterface* instance_client_provider;
   if (auto provider = cpio_->GetInstanceClientProvider(); !provider.ok()) {
     ExecutionResult execution_result;
