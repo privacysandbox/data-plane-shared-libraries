@@ -113,19 +113,19 @@ const tink::HpkeParams kDefaultHpkeParams = {tink::HpkeKem::kX25519HkdfSha256,
 /// Map from HpkeKem to Tink HpkeKem.
 const auto& kHpkeKemMap = *new absl::flat_hash_map<HpkeKem, tink::HpkeKem>{
     {HpkeKem::DHKEM_X25519_HKDF_SHA256, tink::HpkeKem::kX25519HkdfSha256},
-    {HpkeKem::KEM_UNKNOWN, tink::HpkeKem::kUnknownKem},
+    {HpkeKem::KEM_UNSPECIFIED, tink::HpkeKem::kUnknownKem},
 };
 /// Map from HpkeKdf to Tink HpkeKdf.
 const auto& kHpkeKdfMap = *new absl::flat_hash_map<HpkeKdf, tink::HpkeKdf>{
     {HpkeKdf::HKDF_SHA256, tink::HpkeKdf::kHkdfSha256},
-    {HpkeKdf::KDF_UNKNOWN, tink::HpkeKdf::kUnknownKdf},
+    {HpkeKdf::KDF_UNSPECIFIED, tink::HpkeKdf::kUnknownKdf},
 };
 /// Map from HpkeAead to Tink HpkeAead.
 const auto& kHpkeAeadMap = *new absl::flat_hash_map<HpkeAead, tink::HpkeAead>{
     {HpkeAead::AES_128_GCM, tink::HpkeAead::kAes128Gcm},
     {HpkeAead::AES_256_GCM, tink::HpkeAead::kAes256Gcm},
     {HpkeAead::CHACHA20_POLY1305, tink::HpkeAead::kChaCha20Poly1305},
-    {HpkeAead::AEAD_UNKNOWN, tink::HpkeAead::kUnknownAead},
+    {HpkeAead::AEAD_UNSPECIFIED, tink::HpkeAead::kUnknownAead},
 };
 }  // namespace
 

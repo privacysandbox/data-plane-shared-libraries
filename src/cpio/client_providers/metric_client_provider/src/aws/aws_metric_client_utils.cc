@@ -74,7 +74,7 @@ ExecutionResult AwsMetricClientUtils::ParseRequestToDatum(
   // Static duration map is heap allocated to avoid destructor call.
   static const auto& kAwsMetricUnitMap =
       *new absl::flat_hash_map<MetricUnit, StandardUnit>({
-          {MetricUnit::METRIC_UNIT_UNKNOWN, StandardUnit::NOT_SET},
+          {MetricUnit::METRIC_UNIT_UNSPECIFIED, StandardUnit::NOT_SET},
           {MetricUnit::METRIC_UNIT_SECONDS, StandardUnit::Seconds},
           {MetricUnit::METRIC_UNIT_MICROSECONDS, StandardUnit::Microseconds},
           {MetricUnit::METRIC_UNIT_MILLISECONDS, StandardUnit::Milliseconds},

@@ -90,7 +90,7 @@ TEST(ExecutionResultTest, FromProto) {
 TEST(ExecutionResultTest, FromUnknownProto) {
   core::common::proto::ExecutionResult unknown_proto;
   unknown_proto.set_status(
-      core::common::proto::ExecutionStatus::EXECUTION_STATUS_UNKNOWN);
+      core::common::proto::ExecutionStatus::EXECUTION_STATUS_UNSPECIFIED);
   auto actual_result = ExecutionResult(unknown_proto);
   EXPECT_EQ(actual_result.status, ExecutionStatus::Failure);
   EXPECT_EQ(actual_result.status_code, 0);

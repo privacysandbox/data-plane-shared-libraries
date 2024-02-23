@@ -37,19 +37,19 @@ service CryptoService {
 
 // Hpke Kem config.
 enum HpkeKem {
-  KEM_UNKNOWN = 0;
+  KEM_UNSPECIFIED = 0;
   DHKEM_X25519_HKDF_SHA256 = 1;
 }
 
 // Hpke Kdf config.
 enum HpkeKdf {
-  KDF_UNKNOWN = 0;
+  KDF_UNSPECIFIED = 0;
   HKDF_SHA256 = 1;
 }
 
 // Hpke Aead config.
 enum HpkeAead {
-  AEAD_UNKNOWN = 0;
+  AEAD_UNSPECIFIED = 0;
   AES_128_GCM = 1;
   AES_256_GCM = 2;
   CHACHA20_POLY1305 = 3;
@@ -64,7 +64,7 @@ message HpkeParams {
 
 // The length of exposed secret.
 enum SecretLength {
-  SECRET_LENGTH_UNKNOWN = 0;
+  SECRET_LENGTH_UNSPECIFIED = 0;
   SECRET_LENGTH_16_BYTES = 1;
   SECRET_LENGTH_32_BYTES = 2;
 }

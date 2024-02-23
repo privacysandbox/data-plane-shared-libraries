@@ -33,7 +33,7 @@ message Version {
 
 // The status of execution result.
 enum ExecutionStatus {
-  EXECUTION_STATUS_UNKNOWN = 0; // Unknown status.
+  EXECUTION_STATUS_UNSPECIFIED = 0; // Unknown status.
   EXECUTION_STATUS_SUCCESS = 1; // The execution is successful.
   EXECUTION_STATUS_FAILURE = 2; // The execution is failed.
   EXECUTION_STATUS_RETRY = 3; // The execution is retriable.

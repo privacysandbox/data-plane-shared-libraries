@@ -24,7 +24,7 @@ lint:
     - PACKAGE_VERSION_SUFFIX
     - ENUM_ZERO_VALUE_SUFFIX
     - ENUM_VALUE_PREFIX
-  enum_zero_value_suffix: _UNKNOWN
+  enum_zero_value_suffix: _UNSPECIFIED
   rpc_allow_same_request_response: false
   rpc_allow_google_protobuf_empty_requests: false
   rpc_allow_google_protobuf_empty_responses: false

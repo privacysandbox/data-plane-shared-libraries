@@ -44,7 +44,7 @@ message PutMetricsResponse {
 
 // Metric unit enum.
 enum MetricUnit {
-  METRIC_UNIT_UNKNOWN = 0;
+  METRIC_UNIT_UNSPECIFIED = 0;
   METRIC_UNIT_SECONDS = 1;
   METRIC_UNIT_MICROSECONDS = 2;
   METRIC_UNIT_MILLISECONDS = 3;

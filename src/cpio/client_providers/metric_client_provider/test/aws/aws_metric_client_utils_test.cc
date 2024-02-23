@@ -223,7 +223,7 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumInvalidUnit) {
   auto metric = record_metric_request.add_metrics();
   metric->set_name(kName);
   metric->set_value(kValue);
-  metric->set_unit(MetricUnit::METRIC_UNIT_UNKNOWN);
+  metric->set_unit(MetricUnit::METRIC_UNIT_UNSPECIFIED);
 
   bool parse_request_to_datum_is_called = false;
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(

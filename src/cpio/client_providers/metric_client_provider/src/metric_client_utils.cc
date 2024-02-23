@@ -111,7 +111,7 @@ MetricClientUtils::ConvertToMetricUnitProto(MetricUnit metric_unit) {
       it != kMetricUnitMap.end()) {
     return it->second;
   }
-  return cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_UNKNOWN;
+  return cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_UNSPECIFIED;
 }
 
 ExecutionResult MetricClientUtils::ValidateRequest(
