@@ -83,7 +83,7 @@ cc_library(
     ],
     deps = [
         ":aws_role_credentials_provider_lib",
-        "//src/cpio/common/test/aws:test_aws_utils_lib",
+        "//src/cpio/common/src/aws:test_aws_utils_lib",
         "//src/public/cpio/test/global_cpio:test_cpio_options",
     ],
 )

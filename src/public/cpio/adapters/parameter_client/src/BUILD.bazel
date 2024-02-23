@@ -48,7 +48,7 @@ cc_test(
         "//src/core/test/utils:utils_lib",
         "//src/cpio/client_providers/parameter_client_provider/src:parameter_client_provider_select_lib",
         "//src/public/core/test/interface:execution_result_matchers",
-        "//src/public/cpio/core/mock:lib_cpio_mock",
+        "//src/public/cpio/core/src:lib_cpio_mock",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/parameter_client",
         "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",

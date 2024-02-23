@@ -75,7 +75,7 @@ cc_library(
     ],
     deps = [
         ":aws_metric_client_provider_lib",
-        "//src/cpio/common/test/aws:test_aws_utils_lib",
+        "//src/cpio/common/src/aws:test_aws_utils_lib",
         "//src/public/cpio/test/metric_client:test_aws_metric_client_options",
     ],
 )

@@ -282,7 +282,7 @@ cc_library(
     ],
     deps = [
         ":nontee_aws_kms_client_provider_lib",
-        "//src/cpio/common/test/aws:test_aws_utils_lib",
+        "//src/cpio/common/src/aws:test_aws_utils_lib",
         "//src/public/cpio/test/kms_client:test_aws_kms_client_options",
     ],
 )

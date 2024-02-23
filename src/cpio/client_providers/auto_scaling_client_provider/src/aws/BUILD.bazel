@@ -80,6 +80,6 @@ cc_library(
     ],
     deps = [
         ":aws_auto_scaling_client_provider_lib",
-        "//src/cpio/common/test/aws:test_aws_utils_lib",
+        "//src/cpio/common/src/aws:test_aws_utils_lib",
     ],
 )

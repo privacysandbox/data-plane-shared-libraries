@@ -21,7 +21,7 @@
 #include <utility>
 
 #include "src/cpio/client_providers/interface/auto_scaling_client_provider_interface.h"
-#include "src/cpio/common/test/aws/test_aws_utils.h"
+#include "src/cpio/common/src/aws/test_aws_utils.h"
 
 using Aws::Client::ClientConfiguration;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;

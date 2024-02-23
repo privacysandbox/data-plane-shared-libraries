@@ -16,6 +16,8 @@
 
 #include <gtest/gtest.h>
 
+#include <tuple>
+
 #include "src/cpio/common/src/gcp/error_codes.h"
 #include "src/public/core/test/interface/execution_result_matchers.h"
 

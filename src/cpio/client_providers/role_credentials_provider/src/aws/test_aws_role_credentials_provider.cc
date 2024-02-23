@@ -24,7 +24,7 @@
 #include <aws/core/client/ClientConfiguration.h>
 
 #include "src/cpio/client_providers/role_credentials_provider/src/aws/aws_role_credentials_provider.h"
-#include "src/cpio/common/test/aws/test_aws_utils.h"
+#include "src/cpio/common/src/aws/test_aws_utils.h"
 
 using Aws::Client::ClientConfiguration;
 using google::scp::core::AsyncExecutorInterface;
