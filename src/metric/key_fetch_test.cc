@@ -25,75 +25,66 @@ using testing::UnorderedElementsAre;
 
 TEST(KeyFetchResultInstrumentation, GetKeyFetchFailureCount) {
   EXPECT_THAT(KeyFetchResultCounter::GetKeyFetchFailureCount(),
-              UnorderedElementsAre(Pair("public key dispatch", 0),
-                                   Pair("public key async", 0),
-                                   Pair("private key dispatch", 0),
-                                   Pair("private key async", 0)));
+              UnorderedElementsAre(
+                  Pair("public key sync", 0), Pair("public key async", 0),
+                  Pair("private key sync", 0), Pair("private key async", 0)));
 
-  KeyFetchResultCounter::IncrementPublicKeyFetchDispatchFailureCount();
+  KeyFetchResultCounter::IncrementPublicKeyFetchSyncFailureCount();
   KeyFetchResultCounter::IncrementPublicKeyFetchAsyncFailureCount();
   EXPECT_THAT(KeyFetchResultCounter::GetKeyFetchFailureCount(),
-              UnorderedElementsAre(Pair("public key dispatch", 1),
-                                   Pair("public key async", 1),
-                                   Pair("private key dispatch", 0),
-                                   Pair("private key async", 0)));
+              UnorderedElementsAre(
+                  Pair("public key sync", 1), Pair("public key async", 1),
+                  Pair("private key sync", 0), Pair("private key async", 0)));
 
-  KeyFetchResultCounter::IncrementPrivateKeyFetchDispatchFailureCount();
+  KeyFetchResultCounter::IncrementPrivateKeyFetchSyncFailureCount();
   KeyFetchResultCounter::IncrementPrivateKeyFetchAsyncFailureCount();
   EXPECT_THAT(KeyFetchResultCounter::GetKeyFetchFailureCount(),
-              UnorderedElementsAre(Pair("public key dispatch", 1),
-                                   Pair("public key async", 1),
-                                   Pair("private key dispatch", 1),
-                                   Pair("private key async", 1)));
+              UnorderedElementsAre(
+                  Pair("public key sync", 1), Pair("public key async", 1),
+                  Pair("private key sync", 1), Pair("private key async", 1)));
 }
 
-TEST(KeyFetchResultInstrumentation, GetNumKeysParsedOnRecentFetch) {
+TEST(KeyFetchResultInstrumentation, GetNumKeysParsed) {
   EXPECT_THAT(
-      KeyFetchResultCounter::GetNumKeysParsedOnRecentFetch(),
-      UnorderedElementsAre(Pair("public key GCP", 0), Pair("public key AWS", 0),
+      KeyFetchResultCounter::GetNumKeysParsed(),
+      UnorderedElementsAre(Pair("GCP public key", 0), Pair("AWS public key", 0),
                            Pair("private key", 0)));
 
-  KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(
-      CloudPlatform::kGcp, 5);
-  KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(
-      CloudPlatform::kAws, 4);
+  KeyFetchResultCounter::SetNumPublicKeysParsed(CloudPlatform::kGcp, 5);
+  KeyFetchResultCounter::SetNumPublicKeysParsed(CloudPlatform::kAws, 4);
   // Should do nothing.
-  KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(
-      CloudPlatform::kLocal, 5);
+  KeyFetchResultCounter::SetNumPublicKeysParsed(CloudPlatform::kLocal, 5);
   EXPECT_THAT(
-      KeyFetchResultCounter::GetNumKeysParsedOnRecentFetch(),
-      UnorderedElementsAre(Pair("public key GCP", 5), Pair("public key AWS", 4),
+      KeyFetchResultCounter::GetNumKeysParsed(),
+      UnorderedElementsAre(Pair("GCP public key", 5), Pair("AWS public key", 4),
                            Pair("private key", 0)));
 
-  KeyFetchResultCounter::SetNumPrivateKeysParsedOnRecentFetch(5);
+  KeyFetchResultCounter::SetNumPrivateKeysParsed(5);
   EXPECT_THAT(
-      KeyFetchResultCounter::GetNumKeysParsedOnRecentFetch(),
-      UnorderedElementsAre(Pair("public key GCP", 5), Pair("public key AWS", 4),
+      KeyFetchResultCounter::GetNumKeysParsed(),
+      UnorderedElementsAre(Pair("GCP public key", 5), Pair("AWS public key", 4),
                            Pair("private key", 5)));
 }
 
-TEST(KeyFetchResultInstrumentation, GetNumKeysCachedAfterRecentFetch) {
+TEST(KeyFetchResultInstrumentation, GetNumKeysCached) {
   EXPECT_THAT(
-      KeyFetchResultCounter::GetNumKeysCachedAfterRecentFetch(),
-      UnorderedElementsAre(Pair("public key GCP", 0), Pair("public key AWS", 0),
+      KeyFetchResultCounter::GetNumKeysCached(),
+      UnorderedElementsAre(Pair("GCP public key", 0), Pair("AWS public key", 0),
                            Pair("private key", 0)));
 
-  KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
-      CloudPlatform::kGcp, 5);
-  KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
-      CloudPlatform::kAws, 4);
+  KeyFetchResultCounter::SetNumPublicKeysCached(CloudPlatform::kGcp, 5);
+  KeyFetchResultCounter::SetNumPublicKeysCached(CloudPlatform::kAws, 4);
   // Should do nothing.
-  KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
-      CloudPlatform::kLocal, 5);
+  KeyFetchResultCounter::SetNumPublicKeysCached(CloudPlatform::kLocal, 5);
   EXPECT_THAT(
-      KeyFetchResultCounter::GetNumKeysCachedAfterRecentFetch(),
-      UnorderedElementsAre(Pair("public key GCP", 5), Pair("public key AWS", 4),
+      KeyFetchResultCounter::GetNumKeysCached(),
+      UnorderedElementsAre(Pair("GCP public key", 5), Pair("AWS public key", 4),
                            Pair("private key", 0)));
 
-  KeyFetchResultCounter::SetNumPrivateKeysCachedAfterRecentFetch(5);
+  KeyFetchResultCounter::SetNumPrivateKeysCached(5);
   EXPECT_THAT(
-      KeyFetchResultCounter::GetNumKeysCachedAfterRecentFetch(),
-      UnorderedElementsAre(Pair("public key GCP", 5), Pair("public key AWS", 4),
+      KeyFetchResultCounter::GetNumKeysCached(),
+      UnorderedElementsAre(Pair("GCP public key", 5), Pair("AWS public key", 4),
                            Pair("private key", 5)));
 }
 

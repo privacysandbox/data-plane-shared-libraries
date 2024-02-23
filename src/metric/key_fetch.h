@@ -35,53 +35,49 @@ class KeyFetchResultCounter {
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
     return absl::flat_hash_map<std::string, double>{
-        {"public key dispatch", public_key_dispatch_failure_count_},
-        {"public key async", public_key_async_failure_count_},
-        {"private key dispatch", private_key_dispatch_failure_count_},
+        {"public key sync", public_key_fetch_sync_failure_count_},
+        {"public key async", public_key_fetch_async_failure_count_},
+        {"private key sync", private_key_fetch_async_failure_count_},
         {"private key async", private_key_async_failure_count_},
     };
   }
 
-  static absl::flat_hash_map<std::string, double>
-  GetNumKeysParsedOnRecentFetch() ABSL_LOCKS_EXCLUDED(mu_) {
-    absl::MutexLock lock(&mu_);
-    return absl::flat_hash_map<std::string, double>{
-        {"public key GCP",
-         num_public_keys_parsed_recent_fetch_[CloudPlatform::kGcp]},
-        {"public key AWS",
-         num_public_keys_parsed_recent_fetch_[CloudPlatform::kAws]},
-        {"private key", num_private_keys_parsed_recent_fetch_},
-    };
-  }
-
-  static absl::flat_hash_map<std::string, double>
-  GetNumKeysCachedAfterRecentFetch() ABSL_LOCKS_EXCLUDED(mu_) {
-    absl::MutexLock lock(&mu_);
-    return absl::flat_hash_map<std::string, double>{
-        {"public key GCP",
-         num_public_keys_cached_recent_fetch_[CloudPlatform::kGcp]},
-        {"public key AWS",
-         num_public_keys_cached_recent_fetch_[CloudPlatform::kAws]},
-        {"private key", num_private_keys_cached_recent_fetch_},
-    };
-  }
-
-  static void IncrementPublicKeyFetchDispatchFailureCount()
+  static absl::flat_hash_map<std::string, double> GetNumKeysParsed()
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
-    ++public_key_dispatch_failure_count_;
+    return absl::flat_hash_map<std::string, double>{
+        {"GCP public key", num_public_keys_parsed_[CloudPlatform::kGcp]},
+        {"AWS public key", num_public_keys_parsed_[CloudPlatform::kAws]},
+        {"private key", num_private_keys_parsed_},
+    };
+  }
+
+  static absl::flat_hash_map<std::string, double> GetNumKeysCached()
+      ABSL_LOCKS_EXCLUDED(mu_) {
+    absl::MutexLock lock(&mu_);
+    return absl::flat_hash_map<std::string, double>{
+        {"GCP public key", num_public_keys_cached_[CloudPlatform::kGcp]},
+        {"AWS public key", num_public_keys_cached_[CloudPlatform::kAws]},
+        {"private key", num_private_keys_cached_},
+    };
+  }
+
+  static void IncrementPublicKeyFetchSyncFailureCount()
+      ABSL_LOCKS_EXCLUDED(mu_) {
+    absl::MutexLock lock(&mu_);
+    ++public_key_fetch_sync_failure_count_;
   }
 
   static void IncrementPublicKeyFetchAsyncFailureCount()
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
-    ++public_key_async_failure_count_;
+    ++public_key_fetch_async_failure_count_;
   }
 
-  static void IncrementPrivateKeyFetchDispatchFailureCount()
+  static void IncrementPrivateKeyFetchSyncFailureCount()
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
-    ++private_key_dispatch_failure_count_;
+    ++private_key_fetch_async_failure_count_;
   }
 
   static void IncrementPrivateKeyFetchAsyncFailureCount()
@@ -90,51 +86,46 @@ class KeyFetchResultCounter {
     ++private_key_async_failure_count_;
   }
 
-  static void SetNumPublicKeysParsedOnRecentFetch(CloudPlatform platform,
-                                                  int num)
+  static void SetNumPublicKeysParsed(CloudPlatform platform, int num)
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
-    num_public_keys_parsed_recent_fetch_[platform] = num;
+    num_public_keys_parsed_[platform] = num;
   }
 
-  static void SetNumPrivateKeysParsedOnRecentFetch(int num)
-      ABSL_LOCKS_EXCLUDED(mu_) {
+  static void SetNumPrivateKeysParsed(int num) ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
-    num_private_keys_parsed_recent_fetch_ = num;
+    num_private_keys_parsed_ = num;
   }
 
-  static void SetNumPublicKeysCachedAfterRecentFetch(CloudPlatform platform,
-                                                     int num)
+  static void SetNumPublicKeysCached(CloudPlatform platform, int num)
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
-    num_public_keys_cached_recent_fetch_[platform] = num;
+    num_public_keys_cached_[platform] = num;
   }
 
-  static void SetNumPrivateKeysCachedAfterRecentFetch(int num)
-      ABSL_LOCKS_EXCLUDED(mu_) {
+  static void SetNumPrivateKeysCached(int num) ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
-    num_private_keys_cached_recent_fetch_ = num;
+    num_private_keys_cached_ = num;
   }
 
  private:
   ABSL_CONST_INIT static inline absl::Mutex mu_{absl::kConstInit};
 
-  static inline int public_key_dispatch_failure_count_ ABSL_GUARDED_BY(mu_){0};
-  static inline int public_key_async_failure_count_ ABSL_GUARDED_BY(mu_){0};
-  static inline int private_key_dispatch_failure_count_ ABSL_GUARDED_BY(mu_){0};
+  static inline int public_key_fetch_sync_failure_count_ ABSL_GUARDED_BY(mu_){
+      0};
+  static inline int public_key_fetch_async_failure_count_ ABSL_GUARDED_BY(mu_){
+      0};
+  static inline int private_key_fetch_async_failure_count_ ABSL_GUARDED_BY(mu_){
+      0};
   static inline int private_key_async_failure_count_ ABSL_GUARDED_BY(mu_){0};
 
-  static inline absl::flat_hash_map<CloudPlatform, int>
-      num_public_keys_parsed_recent_fetch_ ABSL_GUARDED_BY(mu_){
-          {CloudPlatform::kGcp, 0}, {CloudPlatform::kAws, 0}};
-  static inline int num_private_keys_parsed_recent_fetch_ ABSL_GUARDED_BY(mu_){
-      0};
+  static inline absl::flat_hash_map<CloudPlatform, int> num_public_keys_parsed_
+      ABSL_GUARDED_BY(mu_){{CloudPlatform::kGcp, 0}, {CloudPlatform::kAws, 0}};
+  static inline int num_private_keys_parsed_ ABSL_GUARDED_BY(mu_){0};
 
-  static inline absl::flat_hash_map<CloudPlatform, int>
-      num_public_keys_cached_recent_fetch_ ABSL_GUARDED_BY(mu_){
-          {CloudPlatform::kGcp, 0}, {CloudPlatform::kAws, 0}};
-  static inline int num_private_keys_cached_recent_fetch_ ABSL_GUARDED_BY(mu_){
-      0};
+  static inline absl::flat_hash_map<CloudPlatform, int> num_public_keys_cached_
+      ABSL_GUARDED_BY(mu_){{CloudPlatform::kGcp, 0}, {CloudPlatform::kAws, 0}};
+  static inline int num_private_keys_cached_ ABSL_GUARDED_BY(mu_){0};
 };
 
 }  // namespace privacy_sandbox::server_common

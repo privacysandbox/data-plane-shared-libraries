@@ -63,7 +63,7 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
     if (public_key_fetcher_) {
       absl::Status public_key_refresh_status = public_key_fetcher_->Refresh();
       if (!public_key_refresh_status.ok()) {
-        KeyFetchResultCounter::IncrementPublicKeyFetchDispatchFailureCount();
+        KeyFetchResultCounter::IncrementPublicKeyFetchSyncFailureCount();
         VLOG(1) << "Public key refresh failed: "
                 << public_key_refresh_status.message();
       }
@@ -71,7 +71,7 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
 
     absl::Status private_key_refresh_status = private_key_fetcher_->Refresh();
     if (!private_key_refresh_status.ok()) {
-      KeyFetchResultCounter::IncrementPrivateKeyFetchDispatchFailureCount();
+      KeyFetchResultCounter::IncrementPrivateKeyFetchSyncFailureCount();
       VLOG(1) << "Private key refresh failed: " << private_key_refresh_status;
     }
   } else {

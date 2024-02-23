@@ -141,11 +141,10 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
               ", OHTTP ID: ", key.key_id, ")");
         }
       }
-      KeyFetchResultCounter::SetNumPrivateKeysParsedOnRecentFetch(
-          num_priv_keys_added);
+      KeyFetchResultCounter::SetNumPrivateKeysParsed(num_priv_keys_added);
     } else {
       KeyFetchResultCounter::IncrementPrivateKeyFetchAsyncFailureCount();
-      KeyFetchResultCounter::SetNumPrivateKeysParsedOnRecentFetch(0);
+      KeyFetchResultCounter::SetNumPrivateKeysParsed(0);
       HandleFailure(request.key_ids(), result.status_code).IgnoreError();
     }
     fetch_notify.Notify();
@@ -170,8 +169,7 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
       it++;
     }
   }
-  KeyFetchResultCounter::SetNumPrivateKeysCachedAfterRecentFetch(
-      private_keys_map_.size());
+  KeyFetchResultCounter::SetNumPrivateKeysCached(private_keys_map_.size());
   return absl::OkStatus();
 }
 

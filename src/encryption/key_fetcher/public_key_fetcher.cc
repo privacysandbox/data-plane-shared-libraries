@@ -105,10 +105,10 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
               public_keys_[platform] = std::move(platform_public_keys);
             }
 
-            KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(
-                platform, num_public_keys);
-            KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
-                platform, num_public_keys);
+            KeyFetchResultCounter::SetNumPublicKeysParsed(platform,
+                                                          num_public_keys);
+            KeyFetchResultCounter::SetNumPublicKeysCached(platform,
+                                                          num_public_keys);
             VLOG(3) << absl::Substitute(
                 kKeyFetchSuccessMessage,
                 absl::StrJoin(GetKeyIds(platform), ", "),
@@ -116,11 +116,10 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
             VLOG(3) << "Public key refresh flow completed successfully. ";
           } else {
             KeyFetchResultCounter::IncrementPublicKeyFetchAsyncFailureCount();
-            KeyFetchResultCounter::SetNumPublicKeysParsedOnRecentFetch(platform,
-                                                                       0);
+            KeyFetchResultCounter::SetNumPublicKeysParsed(platform, 0);
             {
               absl::MutexLock l(&mutex_);
-              KeyFetchResultCounter::SetNumPublicKeysCachedAfterRecentFetch(
+              KeyFetchResultCounter::SetNumPublicKeysCached(
                   platform, public_keys_[platform].size());
             }
             VLOG(1) << absl::Substitute(
