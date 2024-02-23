@@ -41,6 +41,7 @@ ExecutionResult AzureRoleCredentialsProvider::Stop() noexcept {
 ExecutionResult AzureRoleCredentialsProvider::GetRoleCredentials(
     core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
         get_credentials_context) noexcept {
+  // Not implemented.
   return FailureExecutionResult(SC_UNKNOWN);
 }
 
