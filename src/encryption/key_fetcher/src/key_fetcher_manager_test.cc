@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <grpc/event_engine/event_engine.h>
 #include <grpc/grpc.h>
