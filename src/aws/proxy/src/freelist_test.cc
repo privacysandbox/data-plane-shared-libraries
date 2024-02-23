@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/aws/proxy/src/freelist.h"
+#include "src/aws/proxy/src/freelist.h"
 
 #include <gtest/gtest.h>
 
@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_set.h"
-#include "scp/cc/aws/proxy/src/buffer.h"
+#include "src/aws/proxy/src/buffer.h"
 
 namespace google::scp::proxy {
 

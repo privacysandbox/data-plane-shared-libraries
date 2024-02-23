@@ -14,18 +14,18 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:__subpackages__"])
+package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
     name = "global_logger_lib",
     srcs = ["global_logger.cc"],
     hdrs = ["global_logger.h"],
     deps = [
-        "//scp/cc/core/interface:errors_lib",
-        "//scp/cc/core/logger/interface:logger_interface_lib",
-        "//scp/cc/core/logger/mock:logger_mock",
-        "//scp/cc/core/logger/src/log_providers:log_providers_lib",
-        "//scp/cc/core/logger/src/log_providers/syslog:syslog_lib",
+        "//src/core/interface:errors_lib",
+        "//src/core/logger/interface:logger_interface_lib",
+        "//src/core/logger/mock:logger_mock",
+        "//src/core/logger/src/log_providers:log_providers_lib",
+        "//src/core/logger/src/log_providers/syslog:syslog_lib",
         "@com_google_absl//absl/base:no_destructor",
         "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/strings",

@@ -21,9 +21,9 @@
 #include <aws/autoscaling/AutoScalingClient.h>
 #include <aws/core/Aws.h>
 
-#include "scp/cc/core/common/global_logger/src/global_logger.h"
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/cpio/common/src/aws/error_codes.h"
+#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/cpio/common/src/aws/error_codes.h"
 
 #include "error_codes.h"
 

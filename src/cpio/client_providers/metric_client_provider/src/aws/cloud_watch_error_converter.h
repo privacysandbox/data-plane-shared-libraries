@@ -22,7 +22,7 @@
 #include <aws/monitoring/CloudWatchClient.h>
 #include <aws/monitoring/CloudWatchErrors.h>
 
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

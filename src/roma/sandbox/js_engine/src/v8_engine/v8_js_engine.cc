@@ -33,14 +33,14 @@
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
-#include "scp/cc/roma/config/src/type_converter.h"
-#include "scp/cc/roma/logging/src/logging.h"
-#include "scp/cc/roma/sandbox/constants/constants.h"
-#include "scp/cc/roma/worker/src/execution_utils.h"
 #include "src/cpp/util/duration.h"
 #include "src/cpp/util/process_util.h"
 #include "src/cpp/util/status_macro/status_macros.h"
 #include "src/debug/debug-interface.h"
+#include "src/roma/config/src/type_converter.h"
+#include "src/roma/logging/src/logging.h"
+#include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/worker/src/execution_utils.h"
 
 #include "snapshot_compilation_context.h"
 

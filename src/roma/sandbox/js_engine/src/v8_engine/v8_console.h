@@ -33,7 +33,7 @@
 #include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/functional/any_invocable.h"
-#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 // clang-format on
 

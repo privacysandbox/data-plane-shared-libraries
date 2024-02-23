@@ -31,9 +31,9 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/substitute.h"
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/cpio/common/src/cpio_utils.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/interface/async_context.h"
+#include "src/cpio/common/src/cpio_utils.h"
 
 #include "error_codes.h"
 #include "gcp_instance_client_utils.h"

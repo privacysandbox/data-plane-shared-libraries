@@ -24,8 +24,8 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "scp/cc/core/http2_client/src/http_connection_pool.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/http2_client/src/http_connection_pool.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 namespace google::scp::core::http2_client::mock {
 class MockHttpConnectionPool : public HttpConnectionPool {

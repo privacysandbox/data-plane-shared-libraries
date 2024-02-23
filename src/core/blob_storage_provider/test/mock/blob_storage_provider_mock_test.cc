@@ -22,8 +22,8 @@
 #include <string>
 #include <vector>
 
-#include "scp/cc/core/blob_storage_provider/mock/mock_blob_storage_provider.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/blob_storage_provider/mock/mock_blob_storage_provider.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::blob_storage_provider::mock::MockBlobStorageProvider;
 using ::testing::StrEq;

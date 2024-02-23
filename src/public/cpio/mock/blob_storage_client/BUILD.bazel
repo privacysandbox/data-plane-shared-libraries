@@ -24,7 +24,7 @@ cc_library(
             "mock_blob_storage_client.h",
         ],
     deps = [
-        "//scp/cc/public/cpio/interface/blob_storage_client",
+        "//src/public/cpio/interface/blob_storage_client",
         "@com_google_googletest//:gtest",
     ],
 )

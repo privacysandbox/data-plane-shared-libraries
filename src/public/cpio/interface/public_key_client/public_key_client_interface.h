@@ -21,10 +21,10 @@
 #include <string>
 #include <vector>
 
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
-#include "scp/cc/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
+#include "src/core/interface/service_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/type_def.h"
+#include "src/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
 
 #include "type_def.h"
 

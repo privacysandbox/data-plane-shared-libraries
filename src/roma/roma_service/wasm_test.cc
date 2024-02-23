@@ -26,10 +26,10 @@
 #include "absl/log/scoped_mock_log.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "scp/cc/roma/config/src/config.h"
-#include "scp/cc/roma/interface/roma.h"
-#include "scp/cc/roma/roma_service/roma_service.h"
-#include "scp/cc/roma/wasm/src/testing_utils.h"
+#include "src/roma/config/src/config.h"
+#include "src/roma/interface/roma.h"
+#include "src/roma/roma_service/roma_service.h"
+#include "src/roma/wasm/src/testing_utils.h"
 
 using google::scp::roma::sandbox::roma_service::RomaService;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
@@ -56,7 +56,7 @@ TEST(WasmTest, CanExecuteWasmCode) {
   absl::Notification execute_finished;
 
   auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-      "./scp/cc/roma/testing/"
+      "./src/roma/testing/"
       "cpp_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
   {
@@ -126,7 +126,7 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
   log.StartCapturingLogs();
   {
     const std::string inline_wasm_js = WasmTestingUtils::LoadJsWithWasmFile(
-        "./scp/cc/roma/testing/cpp_wasm_hello_world_example/"
+        "./src/roma/testing/cpp_wasm_hello_world_example/"
         "cpp_wasm_hello_world_example_generated.js");
 
     const std::string udf = R"(
@@ -202,7 +202,7 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
     ASSERT_TRUE(roma_service->Init().ok());
 
     auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-        "./scp/cc/roma/testing/"
+        "./src/roma/testing/"
         "cpp_wasm_allocate_memory/allocate_memory.wasm");
 
     absl::Notification load_finished;
@@ -246,7 +246,7 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
     ASSERT_TRUE(roma_service->Init().ok());
 
     auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-        "./scp/cc/roma/testing/"
+        "./src/roma/testing/"
         "cpp_wasm_allocate_memory/allocate_memory.wasm");
 
     absl::Notification load_finished;

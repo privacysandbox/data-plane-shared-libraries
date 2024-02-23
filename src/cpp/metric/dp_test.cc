@@ -109,7 +109,9 @@ class NoNoiseTest : public ::testing::Test {
   }
 
   std::unique_ptr<telemetry::BuildDependentConfig> metric_config_;
+
   virtual PrivacyBudget fraction() { return PrivacyBudget{1e10}; }
+
   StrictMock<MockMetricRouter> mock_metric_router_;
 };
 

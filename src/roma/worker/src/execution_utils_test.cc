@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/roma/worker/src/execution_utils.h"
+#include "src/roma/worker/src/execution_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -32,13 +32,13 @@
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "include/libplatform/libplatform.h"
-#include "scp/cc/core/test/utils/auto_init_run_stop.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/cc/roma/wasm/src/deserializer.h"
-#include "scp/cc/roma/wasm/src/testing_utils.h"
-#include "scp/cc/roma/wasm/src/wasm_types.h"
+#include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/cpp/util/process_util.h"
 #include "src/cpp/util/status_macro/status_macros.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/roma/wasm/src/deserializer.h"
+#include "src/roma/wasm/src/testing_utils.h"
+#include "src/roma/wasm/src/wasm_types.h"
 
 using google::scp::core::test::ResultIs;
 using google::scp::roma::wasm::RomaWasmStringRepresentation;
@@ -559,7 +559,7 @@ TEST_F(ExecutionUtilsTest, WasmSourceCodeUnmatchedName) {
 
 TEST_F(ExecutionUtilsTest, CppWasmWithStringInputAndStringOutput) {
   const auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-      "./scp/cc/roma/testing/cpp_wasm_string_in_string_out_example/"
+      "./src/roma/testing/cpp_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
   const RunCodeArguments code_obj = {
       .handler_name = "Handler",
@@ -576,7 +576,7 @@ TEST_F(ExecutionUtilsTest, CppWasmWithStringInputAndStringOutput) {
 
 TEST_F(ExecutionUtilsTest, RustWasmWithStringInputAndStringOutput) {
   const auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-      "./scp/cc/roma/testing/rust_wasm_string_in_string_out_example/"
+      "./src/roma/testing/rust_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
   const RunCodeArguments code_obj = {
       .handler_name = "Handler",

@@ -22,7 +22,7 @@ cc_library(
         "system_resource_info_provider.h",
     ],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/public/core/interface:execution_result",
+        "//src/core/interface:interface_lib",
+        "//src/public/core/interface:execution_result",
     ],
 )

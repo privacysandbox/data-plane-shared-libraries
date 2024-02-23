@@ -17,8 +17,8 @@
 #ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_COMMON_ERROR_CODES_H_
 #define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_COMMON_ERROR_CODES_H_
 
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/cpio/interface/error_codes.h"
+#include "src/core/interface/errors.h"
+#include "src/public/cpio/interface/error_codes.h"
 
 namespace google::scp::core::errors {
 /// Registers component code as 0x001A for blob storage provider.

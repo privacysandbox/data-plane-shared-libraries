@@ -20,10 +20,10 @@
 
 #include "absl/log/log.h"
 #include "absl/status/statusor.h"
-#include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "src/cpp/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
 #include "src/cpp/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
 #include "src/cpp/metric/key_fetch.h"
+#include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
 
 namespace privacy_sandbox::server_common {
 
@@ -52,7 +52,9 @@ KeyFetcherManager::~KeyFetcherManager() {
   executor_->Cancel(std::move(task_id_));
 }
 
-void KeyFetcherManager::Start() noexcept { RunPeriodicKeyRefresh(); }
+void KeyFetcherManager::Start() noexcept {
+  RunPeriodicKeyRefresh();
+}
 
 void KeyFetcherManager::RunPeriodicKeyRefresh() {
   // Queue up another key refresh task.

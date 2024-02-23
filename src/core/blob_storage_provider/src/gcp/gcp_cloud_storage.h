@@ -22,10 +22,10 @@
 #include <string>
 
 #include "google/cloud/storage/client.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/core/interface/blob_storage_provider_interface.h"
-#include "scp/cc/core/interface/config_provider_interface.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/core/interface/blob_storage_provider_interface.h"
+#include "src/core/interface/config_provider_interface.h"
 
 namespace google::scp::core::blob_storage_provider {
 /*! @copydoc BlobStorageClientInterface

@@ -17,7 +17,7 @@
 #ifndef CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_SRC_GCP_GCP_ROLE_CREDENTIALS_PROVIDER_H_
 #define CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_SRC_GCP_GCP_ROLE_CREDENTIALS_PROVIDER_H_
 
-#include "scp/cc/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
 
 namespace google::scp::cpio::client_providers {
 

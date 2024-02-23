@@ -62,10 +62,14 @@ SteadyTime SteadyTime::Now() {
 }
 
 // static
-SteadyTime SteadyTime::Max() { return SteadyTime(kTimePointMax); }
+SteadyTime SteadyTime::Max() {
+  return SteadyTime(kTimePointMax);
+}
 
 // static
-SteadyTime SteadyTime::Min() { return SteadyTime(kTimePointMin); }
+SteadyTime SteadyTime::Min() {
+  return SteadyTime(kTimePointMin);
+}
 
 SteadyTime& SteadyTime::operator+=(const absl::Duration d) {
   const auto chrono_duration = ToSteadyDuration(d);
@@ -98,6 +102,7 @@ SteadyTime operator+(const SteadyTime& t, const absl::Duration d) {
   }
   return SteadyTime(t.time_ + chrono_duration);
 }
+
 SteadyTime operator-(const SteadyTime& t, const absl::Duration d) {
   return t + (-d);
 }
@@ -109,9 +114,13 @@ absl::Duration operator-(const SteadyTime& t1, const SteadyTime& t2) {
 Stopwatch::Stopwatch(SteadyClock& clock)
     : clock_(clock), start_time_(clock_.Now()) {}
 
-void Stopwatch::Reset() { start_time_ = clock_.Now(); }
+void Stopwatch::Reset() {
+  start_time_ = clock_.Now();
+}
 
-SteadyTime Stopwatch::GetStartTime() const { return start_time_; }
+SteadyTime Stopwatch::GetStartTime() const {
+  return start_time_;
+}
 
 absl::Duration Stopwatch::GetElapsedTime() const {
   return clock_.Now() - start_time_;

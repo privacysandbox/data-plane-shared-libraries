@@ -36,8 +36,14 @@ using ::testing::HasSubstr;
 using ::testing::Pointwise;
 using ::testing::StrEq;
 
-absl::Status ReturnOk() { return absl::OkStatus(); }
-StatusBuilder ReturnOkBuilder() { return StatusBuilder(absl::OkStatus()); }
+absl::Status ReturnOk() {
+  return absl::OkStatus();
+}
+
+StatusBuilder ReturnOkBuilder() {
+  return StatusBuilder(absl::OkStatus());
+}
+
 absl::Status ReturnError(std::string_view msg) {
   return absl::UnknownError(msg);
 }
@@ -45,11 +51,14 @@ absl::Status ReturnError(std::string_view msg) {
 grpc::Status ReturnGrpcError(std::string_view msg) {
   return {grpc::StatusCode::UNKNOWN, std::string(msg)};
 }
+
 StatusBuilder ReturnErrorBuilder(std::string_view msg) {
   return StatusBuilder(absl::UnknownError(msg));
 }
 
-absl::StatusOr<int> ReturnStatusOrValue(int v) { return v; }
+absl::StatusOr<int> ReturnStatusOrValue(int v) {
+  return v;
+}
 
 absl::StatusOr<int> ReturnStatusOrError(std::string_view msg) {
   return absl::UnknownError(msg);
@@ -203,6 +212,7 @@ TEST(AssignOrReturn, WorksWithAppend) {
   EXPECT_THAT(func().message().data(),
               AllOf(HasSubstr("EXPECTED A"), HasSubstr("EXPECTED B")));
 }
+
 TEST(AssignOrReturn, WorksWithAdaptorFunc) {
   auto fail_test_if_called = [](StatusBuilder builder) {
     ADD_FAILURE();
@@ -218,6 +228,7 @@ TEST(AssignOrReturn, WorksWithAdaptorFunc) {
   EXPECT_THAT(func().message().data(),
               AllOf(HasSubstr("EXPECTED A"), HasSubstr("EXPECTED B")));
 }
+
 TEST(AssignOrReturn, WorksWithThirdArgumentAndCommas) {
   auto fail_test_if_called = [](StatusBuilder builder) {
     ADD_FAILURE();
@@ -242,6 +253,7 @@ TEST(AssignOrReturn, WorksWithThirdArgumentAndCommas) {
   EXPECT_THAT(func().message().data(),
               AllOf(HasSubstr("EXPECTED A"), HasSubstr("EXPECTED B")));
 }
+
 TEST(AssignOrReturn, WorksWithAppendIncludingLocals) {
   auto func = [&](std::string_view str) -> absl::Status {
     [[maybe_unused]] int value;
@@ -272,6 +284,7 @@ TEST(ReturnIfError, WorksWithBuilder) {
   };
   EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
+
 TEST(ReturnIfError, WorksWithLambda) {
   auto func = []() -> absl::Status {
     PS_RETURN_IF_ERROR([] { return ReturnOk(); }());
@@ -281,6 +294,7 @@ TEST(ReturnIfError, WorksWithLambda) {
 
   EXPECT_THAT(func().message(), StrEq("EXPECTED"));
 }
+
 TEST(ReturnIfError, WorksWithAppend) {
   auto fail_test_if_called = []() -> std::string {
     ADD_FAILURE();
@@ -294,6 +308,7 @@ TEST(ReturnIfError, WorksWithAppend) {
   EXPECT_THAT(func().message().data(),
               AllOf(HasSubstr("EXPECTED A"), HasSubstr("EXPECTED B")));
 }
+
 TEST(ReturnIfError, WorksWithVoidReturnAdaptor) {
   int code = 0;
   int phase = 0;

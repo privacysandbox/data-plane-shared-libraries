@@ -15,8 +15,8 @@
 #ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_GCP_ERROR_CODES_H_
 #define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_GCP_ERROR_CODES_H_
 
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/cpio/interface/error_codes.h"
+#include "src/core/interface/errors.h"
+#include "src/public/cpio/interface/error_codes.h"
 
 namespace google::scp::core::errors {
 /// Registers component code as 0x0225 for GCP KMS client provider.

@@ -68,6 +68,7 @@ class ContextImpl : public RequestContext {
         debug_response_sink_(std::move(debug_info)) {
     Update(context_map, debug_config);
   }
+
   virtual ~ContextImpl() = default;
 
   std::string_view ContextStr() const override { return context_; }
@@ -102,6 +103,7 @@ class ContextImpl : public RequestContext {
       logger_private->EmitLogRecord(
           entry.text_message_with_prefix_and_newline_c_str());
     }
+
     void Flush() override {}
 
     bool is_consented() const {

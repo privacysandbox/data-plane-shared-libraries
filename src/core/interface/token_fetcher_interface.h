@@ -17,8 +17,8 @@
 #ifndef CORE_INTERFACE_TOKEN_FETCHER_INTERFACE_H_
 #define CORE_INTERFACE_TOKEN_FETCHER_INTERFACE_H_
 
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/initializable_interface.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/initializable_interface.h"
 
 namespace google::scp::core {
 

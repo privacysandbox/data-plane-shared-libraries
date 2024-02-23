@@ -23,7 +23,7 @@ string_flag(
         "gcp",
         "local",
     ],
-    visibility = ["//scp/cc:__subpackages__"],
+    visibility = ["//src:__subpackages__"],
 )
 
 config_setting(
@@ -58,7 +58,7 @@ string_flag(
         "gcp",
         "local",
     ],
-    visibility = ["//scp/cc:__subpackages__"],
+    visibility = ["//src:__subpackages__"],
 )
 
 config_setting(

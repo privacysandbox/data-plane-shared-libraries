@@ -38,12 +38,12 @@
 #include "absl/status/status.h"
 #include "absl/strings/escaping.h"
 #include "proto/hpke.pb.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/core/utils/src/base64.h"
-#include "scp/cc/cpio/client_providers/interface/type_def.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/service_interface.h"
+#include "src/core/utils/src/base64.h"
+#include "src/cpio/client_providers/interface/type_def.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 
 #include "error_codes.h"
 

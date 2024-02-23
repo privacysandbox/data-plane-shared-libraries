@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/cpio/client_providers/auth_token_provider/src/aws/aws_auth_token_provider.h"
+#include "src/cpio/client_providers/auth_token_provider/src/aws/aws_auth_token_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -22,9 +22,9 @@
 #include <utility>
 
 #include "absl/synchronization/notification.h"
-#include "scp/cc/core/curl_client/mock/mock_curl_client.h"
-#include "scp/cc/cpio/client_providers/auth_token_provider/src/aws/error_codes.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/curl_client/mock/mock_curl_client.h"
+#include "src/cpio/client_providers/auth_token_provider/src/aws/error_codes.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::AsyncContext;
 using google::scp::core::BytesBuffer;

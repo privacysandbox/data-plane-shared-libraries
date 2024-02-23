@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/core/os/src/linux/system_resource_info_provider_linux.h"
+#include "src/core/os/src/linux/system_resource_info_provider_linux.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -42,7 +42,7 @@ class SystemResourceInfoProviderLinuxForTests
 
 TEST(SystemResourceInfoProviderLinux, ShouldFailIfMemInfoFileIsInvalid) {
   SystemResourceInfoProviderLinuxForTests mem_info(
-      "scp/cc/core/os/test/linux/files/invalid_format_meminfo_file.txt");
+      "src/core/os/test/linux/files/invalid_format_meminfo_file.txt");
 
   auto result_or = mem_info.GetAvailableMemoryKb();
 
@@ -52,7 +52,7 @@ TEST(SystemResourceInfoProviderLinux, ShouldFailIfMemInfoFileIsInvalid) {
 TEST(SystemResourceInfoProviderLinux,
      ShouldFailIfExpectedFieldMissingInMemInfoFile) {
   SystemResourceInfoProviderLinuxForTests mem_info(
-      "scp/cc/core/os/test/linux/files/missing_available_meminfo_file.txt");
+      "src/core/os/test/linux/files/missing_available_meminfo_file.txt");
 
   auto result_or = mem_info.GetAvailableMemoryKb();
 
@@ -70,7 +70,7 @@ TEST(SystemResourceInfoProviderLinux, ShouldFailIfMemInfoFileDoesNotExist) {
 
 TEST(SystemResourceInfoProviderLinux, ShouldReadMemInfoIfValidFile) {
   SystemResourceInfoProviderLinuxForTests mem_info(
-      "scp/cc/core/os/test/linux/files/valid_meminfo_file.txt");
+      "src/core/os/test/linux/files/valid_meminfo_file.txt");
 
   auto result_or = mem_info.GetAvailableMemoryKb();
 

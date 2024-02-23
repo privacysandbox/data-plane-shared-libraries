@@ -19,8 +19,8 @@
 
 #include <memory>
 
-#include "scp/cc/public/cpio/interface/parameter_client/parameter_client_interface.h"
-#include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
+#include "src/public/cpio/interface/parameter_client/parameter_client_interface.h"
+#include "src/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {
 

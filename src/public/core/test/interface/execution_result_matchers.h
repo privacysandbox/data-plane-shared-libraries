@@ -23,9 +23,9 @@
 #include <string>
 #include <type_traits>
 
-#include "scp/cc/core/common/proto/common.pb.h"
-#include "scp/cc/public/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/common/proto/common.pb.h"
+#include "src/public/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core::test {
 namespace internal {

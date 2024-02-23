@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "http2_client_mock",
@@ -25,8 +25,8 @@ cc_library(
         "mock_http_connection_pool_with_overrides.h",
     ],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/interface:interface_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
     ],

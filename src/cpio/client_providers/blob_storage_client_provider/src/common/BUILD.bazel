@@ -20,6 +20,6 @@ cc_library(
     name = "core_blob_storage_provider_common_lib",
     hdrs = ["error_codes.h"],
     deps = [
-        "//scp/cc/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface:cpio_errors",
     ],
 )

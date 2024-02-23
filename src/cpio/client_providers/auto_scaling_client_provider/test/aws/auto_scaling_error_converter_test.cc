@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/cpio/client_providers/auto_scaling_client_provider/src/aws/auto_scaling_error_converter.h"
+#include "src/cpio/client_providers/auto_scaling_client_provider/src/aws/auto_scaling_error_converter.h"
 
 #include <gtest/gtest.h>
 
@@ -21,9 +21,9 @@
 #include <aws/autoscaling/AutoScalingErrors.h>
 #include <aws/core/Aws.h>
 
-#include "scp/cc/cpio/common/src/aws/error_codes.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/cpio/common/src/aws/error_codes.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using Aws::AutoScaling::AutoScalingErrors;
 using Aws::Client::AWSError;

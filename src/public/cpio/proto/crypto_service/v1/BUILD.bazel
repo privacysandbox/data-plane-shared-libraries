@@ -22,9 +22,9 @@ proto_library(
     name = "crypto_service_proto",
     srcs = ["crypto_service.proto"],
     deps = [
-        "//scp/cc/core/common/proto:core_common_proto",
-        "//scp/cc/public/cpio/proto/private_key_service/v1:private_key_service_proto",
-        "//scp/cc/public/cpio/proto/public_key_service/v1:public_key_service_proto",
+        "//src/core/common/proto:core_common_proto",
+        "//src/public/cpio/proto/private_key_service/v1:private_key_service_proto",
+        "//src/public/cpio/proto/public_key_service/v1:public_key_service_proto",
     ],
 )
 
@@ -47,6 +47,6 @@ cc_grpc_library(
 buf_lint_test(
     name = "crypto_service_proto_lint",
     size = "small",
-    config = "//scp:buf.yaml",
+    config = "//src:buf.yaml",
     targets = [":crypto_service_proto"],
 )

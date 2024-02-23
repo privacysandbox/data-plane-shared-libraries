@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/core/async_executor/src/async_executor.h"
+#include "src/core/async_executor/src/async_executor.h"
 
 #include <gtest/gtest.h>
 
@@ -26,14 +26,14 @@
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
-#include "scp/cc/core/async_executor/mock/mock_async_executor_with_internals.h"
-#include "scp/cc/core/async_executor/src/error_codes.h"
-#include "scp/cc/core/async_executor/src/typedef.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/core/test/test_config.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/async_executor/mock/mock_async_executor_with_internals.h"
+#include "src/core/async_executor/src/error_codes.h"
+#include "src/core/async_executor/src/typedef.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/core/test/test_config.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::async_executor::mock::MockAsyncExecutorWithInternals;
 

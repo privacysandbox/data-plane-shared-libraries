@@ -20,8 +20,8 @@
 #include <cstdint>
 #include <string>
 
-#include "scp/cc/core/os/src/system_resource_info_provider.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/os/src/system_resource_info_provider.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core::os::linux {
 class SystemResourceInfoProviderLinux : public SystemResourceInfoProvider {

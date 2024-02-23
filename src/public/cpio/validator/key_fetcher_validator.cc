@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/public/cpio/validator/key_fetcher_validator.h"
+#include "src/public/cpio/validator/key_fetcher_validator.h"
 
 #include <memory>
 #include <string>
@@ -20,11 +20,11 @@
 
 #include "absl/log/log.h"
 #include "absl/synchronization/notification.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "scp/cc/public/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
+#include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "src/public/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {
 

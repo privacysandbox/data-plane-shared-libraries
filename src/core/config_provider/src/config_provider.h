@@ -22,8 +22,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include "scp/cc/core/interface/config_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/interface/config_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

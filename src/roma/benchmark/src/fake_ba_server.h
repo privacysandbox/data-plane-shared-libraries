@@ -18,10 +18,10 @@
 #include <string>
 #include <vector>
 
-#include "scp/cc/roma/config/src/config.h"
-#include "scp/cc/roma/interface/roma.h"
-#include "scp/cc/roma/roma_service/roma_service.h"
-#include "scp/cc/roma/sandbox/constants/constants.h"
+#include "src/roma/config/src/config.h"
+#include "src/roma/interface/roma.h"
+#include "src/roma/roma_service/roma_service.h"
+#include "src/roma/sandbox/constants/constants.h"
 
 namespace google::scp::roma::benchmark {
 using DispatchConfig = google::scp::roma::Config<>;

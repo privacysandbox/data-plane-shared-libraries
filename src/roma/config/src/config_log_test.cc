@@ -23,7 +23,7 @@
 
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
-#include "scp/cc/roma/config/src/config.h"
+#include "src/roma/config/src/config.h"
 
 namespace google::scp::roma::test {
 

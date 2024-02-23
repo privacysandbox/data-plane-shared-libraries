@@ -16,19 +16,19 @@
 #include <gtest/gtest.h>
 
 #include "google/protobuf/any.pb.h"
-#include "scp/cc/core/async_executor/src/async_executor.h"
-#include "scp/cc/core/async_executor/src/error_codes.h"
-#include "scp/cc/core/common/global_logger/src/global_logger.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/core/message_router/src/message_router.h"
-#include "scp/cc/cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/cc/public/cpio/interface/cpio.h"
-#include "scp/cc/public/cpio/interface/metric_client/metric_client_interface.h"
-#include "scp/cc/public/cpio/interface/metric_client/type_def.h"
-#include "scp/cc/public/cpio/test/global_cpio/test_cpio_options.h"
-#include "scp/cc/public/cpio/test/global_cpio/test_lib_cpio.h"
+#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/async_executor/src/error_codes.h"
+#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/core/message_router/src/message_router.h"
+#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/cpio/interface/cpio.h"
+#include "src/public/cpio/interface/metric_client/metric_client_interface.h"
+#include "src/public/cpio/interface/metric_client/type_def.h"
+#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
+#include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 
 using google::scp::core::AsyncExecutor;
 using google::scp::core::AsyncExecutorInterface;

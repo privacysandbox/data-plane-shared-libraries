@@ -18,7 +18,7 @@
 #define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_GCP_GCP_BLOB_STORAGE_CLIENT_UTILS_H_
 
 #include "google/cloud/status.h"
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
 
 namespace google::scp::cpio::client_providers {
 /**

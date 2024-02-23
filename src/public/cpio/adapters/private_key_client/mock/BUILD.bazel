@@ -14,15 +14,15 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "private_key_client_mock",
     testonly = True,
     hdrs = ["mock_private_key_client_with_overrides.h"],
     deps = [
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/cpio/client_providers/private_key_client_provider/mock:private_key_client_provider_mock",
-        "//scp/cc/public/cpio/interface/private_key_client",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/cpio/client_providers/private_key_client_provider/mock:private_key_client_provider_mock",
+        "//src/public/cpio/interface/private_key_client",
     ],
 )

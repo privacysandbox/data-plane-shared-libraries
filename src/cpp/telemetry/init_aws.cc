@@ -30,6 +30,7 @@ std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter(
   }
   return opentelemetry::exporter::otlp::OtlpGrpcExporterFactory::Create(opts);
 }
+
 std::unique_ptr<opentelemetry::sdk::trace::IdGenerator> CreateIdGenerator() {
   return CreateXrayIdGenerator();
 }

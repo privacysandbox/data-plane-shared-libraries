@@ -17,7 +17,7 @@
 #ifndef CORE_UTILS_SRC_ERROR_CODES_H_
 #define CORE_UTILS_SRC_ERROR_CODES_H_
 
-#include "scp/cc/core/interface/errors.h"
+#include "src/core/interface/errors.h"
 
 namespace google::scp::core::errors {
 

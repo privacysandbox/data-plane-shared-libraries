@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include "scp/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
+#include "src/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "scp/cc/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "scp/cc/cpio/client_providers/instance_client_provider/src/aws/error_codes.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
+#include "src/cpio/client_providers/instance_client_provider/src/aws/error_codes.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

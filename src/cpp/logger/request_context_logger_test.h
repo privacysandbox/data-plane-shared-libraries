@@ -42,9 +42,13 @@ class TestContext : public RequestContext {
  public:
   // implement interface
   std::string_view ContextStr() const override { return context_str_; }
+
   bool is_consented() const override { return is_consented_; }
+
   absl::LogSink* ConsentedSink() override { return &consent_sink_; }
+
   bool is_debug_response() const override { return is_debug_response_; }
+
   absl::LogSink* DebugResponseSink() override { return &debug_response_sink_; }
 
   // data source of interface

@@ -23,7 +23,7 @@
 #include <utility>
 
 #include "absl/functional/bind_front.h"
-#include "scp/cc/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/src/uuid.h"
 
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;

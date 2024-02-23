@@ -50,13 +50,17 @@ struct Locs {
 class StatusBuilderTestWithLog : public Test {
  protected:
   void SetUp() override {}
+
   void TearDown() override {}
+
   absl::ScopedMockLog scoped_mock_log_ =
       absl::ScopedMockLog(absl::MockLogDefault::kDisallowUnexpected);
 };
 
 // Converts a StatusBuilder to a Status.
-absl::Status ToStatus(const StatusBuilder& s) { return s; }
+absl::Status ToStatus(const StatusBuilder& s) {
+  return s;
+}
 
 // Converts a StatusBuilder to a Status and then ignores it.
 void ConvertToStatusAndIgnore(const StatusBuilder& s) {
@@ -332,12 +336,15 @@ TEST(StatusBuilderTest, WithVoidTypeAndSideEffects) {
   StatusBuilder(absl::OkStatus(), SourceLocation()).With(policy);
   EXPECT_EQ(absl::StatusCode::kOk, code);
 }
+
 struct MoveOnlyAdaptor {
   std::unique_ptr<int> value;
+
   std::unique_ptr<int> operator()(const absl::Status&) && {
     return std::move(value);
   }
 };
+
 TEST(StatusBuilderTest, WithMoveOnlyAdaptor) {
   StatusBuilder sb(absl::AbortedError("zomg"), SourceLocation());
   EXPECT_THAT(sb.With(MoveOnlyAdaptor{std::make_unique<int>(100)}),
@@ -346,6 +353,7 @@ TEST(StatusBuilderTest, WithMoveOnlyAdaptor) {
                   .With(MoveOnlyAdaptor{std::make_unique<int>(100)}),
               Pointee(100));
 }
+
 template <typename T>
 std::string ToStringViaStream(const T& x) {
   std::ostringstream os;

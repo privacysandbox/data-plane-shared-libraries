@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/core/common/concurrent_map/src/concurrent_map.h"
+#include "src/core/common/concurrent_map/src/concurrent_map.h"
 
 #include <gtest/gtest.h>
 
@@ -22,9 +22,9 @@
 #include <thread>
 #include <vector>
 
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/core/test/scp_test_base.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/test/scp_test_base.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::common::ConcurrentMap;

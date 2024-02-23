@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include <vector>
-
 #include <gmock/gmock.h>
 
+#include <vector>
+
 #include "include/gtest/gtest.h"
-#include "scp/cc/public/cpio/interface/private_key_client/type_def.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
 #include "src/cpp/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
+#include "src/public/cpio/interface/private_key_client/type_def.h"
+#include "src/public/cpio/interface/type_def.h"
 
 namespace privacy_sandbox::server_common {
 

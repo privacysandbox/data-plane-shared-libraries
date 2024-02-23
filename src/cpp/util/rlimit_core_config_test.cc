@@ -14,14 +14,13 @@
 
 #include "src/cpp/util/rlimit_core_config.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <string>
-
-#include <gmock/gmock.h>
 
 #include "absl/log/check.h"
 

@@ -22,6 +22,6 @@ cc_library(
         "test_aws_private_key_client_options.h",
     ],
     deps = [
-        "//scp/cc/public/cpio/interface/private_key_client:type_def",
+        "//src/public/cpio/interface/private_key_client:type_def",
     ],
 )

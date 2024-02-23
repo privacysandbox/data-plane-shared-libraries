@@ -21,9 +21,9 @@ cc_library(
     srcs = ["console_log_provider.cc"],
     hdrs = ["console_log_provider.h"],
     deps = [
-        "//scp/cc/core/common/time_provider/src:time_provider_lib",
-        "//scp/cc/core/common/uuid/src:uuid_lib",
-        "//scp/cc/core/logger/interface:logger_interface_lib",
-        "//scp/cc/core/logger/src:logger_lib",
+        "//src/core/common/time_provider/src:time_provider_lib",
+        "//src/core/common/uuid/src:uuid_lib",
+        "//src/core/logger/interface:logger_interface_lib",
+        "//src/core/logger/src:logger_lib",
     ],
 )

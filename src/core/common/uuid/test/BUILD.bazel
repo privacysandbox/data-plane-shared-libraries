@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "uuid_test",
@@ -23,8 +23,8 @@ cc_test(
         "uuid_test.cc",
     ],
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -38,7 +38,7 @@ cc_library(
         "uuid_to_string.h",
     ],
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
+        "//src/core/test/utils:utils_lib",
         "@com_google_absl//absl/functional:any_invocable",
     ],
 )
@@ -60,7 +60,7 @@ cc_binary(
     srcs = ["uuid_benchmark.cc"],
     deps = [
         ":uuid_to_string",
-        "//scp/cc/core/test/utils:utils_lib",
+        "//src/core/test/utils:utils_lib",
         "@google_benchmark//:benchmark",
     ],
 )

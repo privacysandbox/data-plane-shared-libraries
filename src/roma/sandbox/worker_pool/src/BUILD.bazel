@@ -24,8 +24,8 @@ cc_library(
     ],
     deps = [
         ":worker_pool",
-        "//scp/cc/roma/sandbox/worker_api/src:worker_api",
-        "//scp/cc/roma/sandbox/worker_api/src:worker_api_sapi",
+        "//src/roma/sandbox/worker_api/src:worker_api",
+        "//src/roma/sandbox/worker_api/src:worker_api_sapi",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
@@ -38,7 +38,7 @@ cc_library(
         "worker_pool.h",
     ],
     deps = [
-        "//scp/cc/roma/sandbox/worker_api/src:worker_api",
+        "//src/roma/sandbox/worker_api/src:worker_api",
         "@com_google_absl//absl/status",
     ],
 )
@@ -54,8 +54,8 @@ cc_test(
     ],
     deps = [
         ":worker_pool_api_sapi",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/worker_api/src:worker_api_sapi",
+        "//src/core/test/utils:utils_lib",
+        "//src/roma/sandbox/worker_api/src:worker_api_sapi",
         "@com_google_googletest//:gtest_main",
     ],
 )

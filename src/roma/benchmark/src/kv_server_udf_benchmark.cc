@@ -17,7 +17,7 @@
  * output):
  *
  * builders/tools/bazel-debian run \
- * //scp/cc/roma/benchmark/src:kv_server_udf_benchmark_test \
+ * //src/roma/benchmark/src:kv_server_udf_benchmark_test \
  * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 
@@ -26,9 +26,9 @@
 
 #include <benchmark/benchmark.h>
 
-#include "scp/cc/roma/benchmark/src/fake_kv_server.h"
-#include "scp/cc/roma/benchmark/src/test_code.h"
-#include "scp/cc/roma/config/src/config.h"
+#include "src/roma/benchmark/src/fake_kv_server.h"
+#include "src/roma/benchmark/src/test_code.h"
+#include "src/roma/config/src/config.h"
 
 namespace {
 

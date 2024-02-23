@@ -14,15 +14,15 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "errors_test",
     size = "small",
     srcs = ["errors_test.cc"],
     deps = [
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface:cpio_errors",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio_errors",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -32,11 +32,11 @@ cc_test(
     size = "small",
     srcs = ["execution_result_test.cc"],
     deps = [
-        "//scp/cc/core/common/global_logger/src:global_logger_lib",
-        "//scp/cc/core/common/proto:core_common_proto_lib",
-        "//scp/cc/core/logger/mock:logger_mock",
-        "//scp/cc/public/core/interface:execution_result",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/common/global_logger/src:global_logger_lib",
+        "//src/core/common/proto:core_common_proto_lib",
+        "//src/core/logger/mock:logger_mock",
+        "//src/public/core/interface:execution_result",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_absl//absl/log:check",
         "@com_google_googletest//:gtest_main",
     ],
@@ -47,7 +47,7 @@ cc_test(
     size = "small",
     srcs = ["struct_matchers_test.cc"],
     deps = [
-        "//scp/cc/public/core/test/interface:struct_matchers",
+        "//src/public/core/test/interface:struct_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

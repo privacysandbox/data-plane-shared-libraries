@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/aws/proxy/src/client_session_pool.h"
+#include "src/aws/proxy/src/client_session_pool.h"
 
 #include <gtest/gtest.h>
 
@@ -25,7 +25,7 @@
 #include <boost/asio.hpp>
 
 #include "absl/log/log.h"
-#include "scp/cc/aws/proxy/src/socket_vendor_protocol.h"
+#include "src/aws/proxy/src/socket_vendor_protocol.h"
 
 using UdsSocket = boost::asio::local::stream_protocol::socket;
 namespace asio = boost::asio;

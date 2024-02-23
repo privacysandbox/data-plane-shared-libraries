@@ -24,11 +24,11 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/types/span.h"
-#include "scp/cc/core/test/utils/auto_init_run_stop.h"
-#include "scp/cc/roma/sandbox/constants/constants.h"
-#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
-#include "scp/cc/roma/sandbox/worker/src/worker.h"
-#include "scp/cc/roma/wasm/src/testing_utils.h"
+#include "src/core/test/utils/auto_init_run_stop.h"
+#include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
+#include "src/roma/sandbox/worker/src/worker.h"
+#include "src/roma/wasm/src/testing_utils.h"
 
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::sandbox::constants::kCodeVersion;
@@ -402,7 +402,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
       }
     )""";
   auto wasm_str = WasmTestingUtils::LoadWasmFile(
-      "./scp/cc/roma/testing/cpp_wasi_dependency_example/wasi_dependency.wasm");
+      "./src/roma/testing/cpp_wasi_dependency_example/wasi_dependency.wasm");
   std::vector<uint8_t> wasm_code(wasm_str.begin(), wasm_str.end());
   wasm = absl::Span<const uint8_t>(wasm_code);
   metadata = {

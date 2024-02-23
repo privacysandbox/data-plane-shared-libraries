@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/cpio/client_providers/kms_client_provider/src/aws/tee_aws_kms_client_provider_utils.h"
+#include "src/cpio/client_providers/kms_client_provider/src/aws/tee_aws_kms_client_provider_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -35,10 +35,10 @@ using ::testing::StrEq;
 namespace google::scp::cpio::client_providers::utils {
 
 TEST(TeeAwsKmsClientProviderUtilsTest, ExecOutputsEmptyString) {
-  const absl::StatusOr<std::string> output = Exec(
-      {const_cast<char*>(
-           "./scp/cc/cpio/client_providers/kms_client_provider/src/aws/true"),
-       nullptr});
+  const absl::StatusOr<std::string> output =
+      Exec({const_cast<char*>(
+                "./src/cpio/client_providers/kms_client_provider/src/aws/true"),
+            nullptr});
   ASSERT_TRUE(output.ok());
   EXPECT_THAT(*output, IsEmpty());
 }
@@ -46,7 +46,7 @@ TEST(TeeAwsKmsClientProviderUtilsTest, ExecOutputsEmptyString) {
 TEST(TeeAwsKmsClientProviderUtilsTest, ExecSingleThreadedHelloWorld) {
   const absl::StatusOr<std::string> output = Exec(
       {const_cast<char*>(
-           "./scp/cc/cpio/client_providers/kms_client_provider/src/aws/hello"),
+           "./src/cpio/client_providers/kms_client_provider/src/aws/hello"),
        nullptr});
   ASSERT_TRUE(output.ok());
   EXPECT_THAT(*output, StrEq("Hello, world!\n"));
@@ -59,7 +59,7 @@ TEST(TeeAwsKmsClientProviderUtilsTest, ExecMultiThreadedHelloWorld) {
   exec_threads.reserve(kNumThreads);
   for (int i = 0; i < kNumThreads; ++i) {
     exec_threads.emplace_back([&, i] {
-      outputs[i] = Exec({const_cast<char*>("./scp/cc/cpio/client_providers/"
+      outputs[i] = Exec({const_cast<char*>("./src/cpio/client_providers/"
                                            "kms_client_provider/src/aws/hello"),
                          absl::StrCat("--name=", i).data(), nullptr});
     });
@@ -72,7 +72,7 @@ TEST(TeeAwsKmsClientProviderUtilsTest, ExecMultiThreadedHelloWorld) {
 }
 
 TEST(TeeAwsKmsClientProviderUtilsTest, ExecChildProcessFails) {
-  EXPECT_FALSE(Exec({const_cast<char*>("./scp/cc/cpio/client_providers/"
+  EXPECT_FALSE(Exec({const_cast<char*>("./src/cpio/client_providers/"
                                        "kms_client_provider/src/aws/false"),
                      nullptr})
                    .ok());

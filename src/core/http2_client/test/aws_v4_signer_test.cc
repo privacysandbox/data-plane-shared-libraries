@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-#include "scp/cc/core/http2_client/src/aws/aws_v4_signer.h"
+#include "src/core/http2_client/src/aws/aws_v4_signer.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <future>
 
-#include "scp/cc/core/http2_client/src/error_codes.h"
-#include "scp/cc/core/http2_client/src/http2_client.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/http2_client/src/error_codes.h"
+#include "src/core/http2_client/src/http2_client.h"
+#include "src/core/interface/async_context.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::test::ResultIs;
 using ::testing::StrEq;

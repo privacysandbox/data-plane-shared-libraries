@@ -41,6 +41,7 @@ class KeyFetchResultCounter {
         {"private key async", private_key_async_failure_count_},
     };
   }
+
   static absl::flat_hash_map<std::string, double>
   GetNumKeysParsedOnRecentFetch() ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
@@ -52,6 +53,7 @@ class KeyFetchResultCounter {
         {"private key", num_private_keys_parsed_recent_fetch_},
     };
   }
+
   static absl::flat_hash_map<std::string, double>
   GetNumKeysCachedAfterRecentFetch() ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
@@ -69,16 +71,19 @@ class KeyFetchResultCounter {
     absl::MutexLock lock(&mu_);
     ++public_key_dispatch_failure_count_;
   }
+
   static void IncrementPublicKeyFetchAsyncFailureCount()
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
     ++public_key_async_failure_count_;
   }
+
   static void IncrementPrivateKeyFetchDispatchFailureCount()
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
     ++private_key_dispatch_failure_count_;
   }
+
   static void IncrementPrivateKeyFetchAsyncFailureCount()
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
@@ -91,6 +96,7 @@ class KeyFetchResultCounter {
     absl::MutexLock lock(&mu_);
     num_public_keys_parsed_recent_fetch_[platform] = num;
   }
+
   static void SetNumPrivateKeysParsedOnRecentFetch(int num)
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
@@ -103,6 +109,7 @@ class KeyFetchResultCounter {
     absl::MutexLock lock(&mu_);
     num_public_keys_cached_recent_fetch_[platform] = num;
   }
+
   static void SetNumPrivateKeysCachedAfterRecentFetch(int num)
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);

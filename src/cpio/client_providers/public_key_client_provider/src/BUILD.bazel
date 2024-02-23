@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "public_key_client_provider_lib",
@@ -28,11 +28,11 @@ cc_library(
         "public_key_client_utils.h",
     ],
     deps = [
-        "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//scp/cc/cpio/client_providers/interface:type_def",
-        "//scp/cc/public/cpio/interface:cpio_errors",
-        "//scp/cc/public/cpio/interface/public_key_client:type_def",
-        "//scp/cc/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:type_def",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface/public_key_client:type_def",
+        "//src/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",

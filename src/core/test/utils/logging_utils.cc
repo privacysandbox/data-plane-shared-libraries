@@ -17,11 +17,11 @@
 #include <memory>
 #include <utility>
 
-#include "scp/cc/core/common/global_logger/src/global_logger.h"
-#include "scp/cc/core/logger/interface/log_provider_interface.h"
-#include "scp/cc/core/logger/src/log_providers/console_log_provider.h"
-#include "scp/cc/core/logger/src/log_providers/syslog/syslog_log_provider.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
+#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/logger/interface/log_provider_interface.h"
+#include "src/core/logger/src/log_providers/console_log_provider.h"
+#include "src/core/logger/src/log_providers/syslog/syslog_log_provider.h"
+#include "src/public/cpio/interface/type_def.h"
 
 using google::scp::core::common::InitializeCpioLog;
 using google::scp::core::logger::ConsoleLogProvider;

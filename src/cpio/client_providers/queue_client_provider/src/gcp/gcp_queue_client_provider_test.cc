@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/cpio/client_providers/queue_client_provider/src/gcp/gcp_queue_client_provider.h"
+#include "src/cpio/client_providers/queue_client_provider/src/gcp/gcp_queue_client_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -22,15 +22,15 @@
 
 #include <google/pubsub/v1/pubsub.grpc.pb.h>
 
-#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
-#include "scp/cc/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "scp/cc/cpio/client_providers/interface/queue_client_provider_interface.h"
-#include "scp/cc/cpio/client_providers/queue_client_provider/mock/gcp/mock_pubsub_stubs.h"
-#include "scp/cc/cpio/client_providers/queue_client_provider/src/gcp/error_codes.h"
-#include "scp/cc/cpio/common/src/gcp/error_codes.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/cc/public/cpio/proto/queue_service/v1/queue_service.pb.h"
+#include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
+#include "src/cpio/client_providers/interface/queue_client_provider_interface.h"
+#include "src/cpio/client_providers/queue_client_provider/mock/gcp/mock_pubsub_stubs.h"
+#include "src/cpio/client_providers/queue_client_provider/src/gcp/error_codes.h"
+#include "src/cpio/common/src/gcp/error_codes.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/cpio/proto/queue_service/v1/queue_service.pb.h"
 
 using google::cmrt::sdk::queue_service::v1::DeleteMessageRequest;
 using google::cmrt::sdk::queue_service::v1::DeleteMessageResponse;

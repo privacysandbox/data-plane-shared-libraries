@@ -16,6 +16,7 @@
 #define SERVICES_COMMON_UTIL_EXAMINESTACK_H_
 
 #include <string>
+
 namespace privacy_sandbox::server_common {
 // Type of function used for printing in stack trace dumping, etc.
 // We avoid closures to keep things simple.

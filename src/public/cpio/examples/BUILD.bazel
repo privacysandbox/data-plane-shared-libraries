@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 LINK_OPTS = [
     # Tell LD to look in the working directory of the executable for SO
@@ -34,11 +34,11 @@ cc_binary(
     }),
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface:cpio",
-        "//scp/cc/public/cpio/interface/blob_storage_client",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio",
+        "//src/public/cpio/interface/blob_storage_client",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
     ],
@@ -49,10 +49,10 @@ cc_binary(
     srcs = ["metric_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface:cpio",
-        "//scp/cc/public/cpio/interface/metric_client",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio",
+        "//src/public/cpio/interface/metric_client",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -62,10 +62,10 @@ cc_binary(
     srcs = ["local_metric_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface/metric_client",
-        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface/metric_client",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -75,10 +75,10 @@ cc_binary(
     srcs = ["public_key_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface:cpio",
-        "//scp/cc/public/cpio/interface/public_key_client",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio",
+        "//src/public/cpio/interface/public_key_client",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -88,10 +88,10 @@ cc_binary(
     srcs = ["kms_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface:cpio",
-        "//scp/cc/public/cpio/interface/kms_client",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio",
+        "//src/public/cpio/interface/kms_client",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -102,10 +102,10 @@ cc_binary(
     srcs = ["local_private_key_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface/private_key_client",
-        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface/private_key_client",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -115,10 +115,10 @@ cc_binary(
     srcs = ["private_key_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface:cpio",
-        "//scp/cc/public/cpio/interface/private_key_client",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio",
+        "//src/public/cpio/interface/private_key_client",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -128,10 +128,10 @@ cc_binary(
     srcs = ["crypto_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface:cpio",
-        "//scp/cc/public/cpio/interface/crypto_client",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio",
+        "//src/public/cpio/interface/crypto_client",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -141,11 +141,11 @@ cc_binary(
     srcs = ["parameter_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface:cpio",
-        "//scp/cc/public/cpio/interface/parameter_client",
-        "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio",
+        "//src/public/cpio/interface/parameter_client",
+        "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -155,11 +155,11 @@ cc_binary(
     srcs = ["local_parameter_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface/parameter_client",
-        "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
-        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface/parameter_client",
+        "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -169,11 +169,11 @@ cc_binary(
     srcs = ["instance_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface:cpio",
-        "//scp/cc/public/cpio/interface/instance_client",
-        "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio",
+        "//src/public/cpio/interface/instance_client",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -183,11 +183,11 @@ cc_binary(
     srcs = ["local_instance_client_test.cc"],
     linkopts = LINK_OPTS,
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/interface:errors",
-        "//scp/cc/public/cpio/interface/instance_client",
-        "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
-        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface/instance_client",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_google_absl//absl/synchronization",
     ],
 )

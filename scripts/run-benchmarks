@@ -30,16 +30,16 @@ source "${TOOLS_DIR}"/builder.sh
 # if not preserved. To remedy this, add a map from "json_file_names" to
 # "perfgate_benchmark_name" in https://source.corp.google.com/piper///depot/google3/chrome/privacy_sandbox/kiwi_air_force/perfgate/backfill_placer_data.sh;l=44.
 declare -a -r targets=(
-  //scp/cc/aws/proxy/src:benchmark_test
-  //scp/cc/core/common/uuid/test:uuid_benchmark
-  //scp/cc/roma/benchmark/src:ba_server_benchmark
-  //scp/cc/roma/benchmark/src:kv_server_udf_benchmark_test
-  //scp/cc/roma/config/src:type_converter_benchmark
-  //scp/cc/roma/sandbox/dispatcher/src:dispatcher_benchmark
-  //scp/cc/roma/sandbox/worker_api/sapi/src:worker_wrapper_benchmark
-  # //scp/cc/roma/benchmark/src:logging_benchmark
+  //src/aws/proxy/src:benchmark_test
+  //src/core/common/uuid/test:uuid_benchmark
+  //src/roma/benchmark/src:ba_server_benchmark
+  //src/roma/benchmark/src:kv_server_udf_benchmark_test
+  //src/roma/config/src:type_converter_benchmark
+  //src/roma/sandbox/dispatcher/src:dispatcher_benchmark
+  //src/roma/sandbox/worker_api/sapi/src:worker_wrapper_benchmark
+  # //src/roma/benchmark/src:logging_benchmark
   # TODO: b/303250465 - Turn this back on once the segfault is fixed.
-  # //scp/cc/roma/benchmark/src:benchmark_suite_test
+  # //src/roma/benchmark/src:benchmark_suite_test
 )
 
 mkdir -p "${WORKSPACE}"/dist/benchmarks

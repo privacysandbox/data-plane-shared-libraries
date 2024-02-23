@@ -26,13 +26,13 @@
 #include <aws/sqs/model/SendMessageRequest.h>
 
 #include "absl/functional/bind_front.h"
-#include "scp/cc/core/async_executor/src/aws/aws_async_executor.h"
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
-#include "scp/cc/cpio/common/src/aws/aws_utils.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/proto/queue_service/v1/queue_service.pb.h"
+#include "src/core/async_executor/src/aws/aws_async_executor.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
+#include "src/cpio/common/src/aws/aws_utils.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/proto/queue_service/v1/queue_service.pb.h"
 
 #include "sqs_error_converter.h"
 

@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "aws_auto_scaling_client_provider_lib",
@@ -22,13 +22,13 @@ cc_library(
         ":aws_auto_scaling_client_provider_srcs",
     ],
     deps = [
-        "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
-        "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//scp/cc/cpio/client_providers/interface:type_def",
-        "//scp/cc/cpio/common/src/aws:aws_utils_lib",
-        "//scp/cc/public/cpio/interface:cpio_errors",
-        "//scp/cc/public/cpio/proto/auto_scaling_service/v1:auto_scaling_service_cc_proto",
+        "//src/core/async_executor/src/aws:core_aws_async_executor_lib",
+        "//src/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:type_def",
+        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/proto/auto_scaling_service/v1:auto_scaling_service_cc_proto",
         "@aws_sdk_cpp//:autoscaling",
         "@aws_sdk_cpp//:core",
         "@com_google_absl//absl/functional:bind_front",

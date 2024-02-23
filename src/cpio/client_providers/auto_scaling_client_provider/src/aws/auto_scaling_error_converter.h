@@ -22,7 +22,7 @@
 #include <aws/autoscaling/AutoScalingClient.h>
 #include <aws/core/Aws.h>
 
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

@@ -14,11 +14,10 @@
 
 #include "src/cpp/communication/json_utils.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <string>
-
-#include <gmock/gmock.h>
 
 #include "google/protobuf/struct.pb.h"
 #include "google/protobuf/text_format.h"

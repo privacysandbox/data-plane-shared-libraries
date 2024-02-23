@@ -14,15 +14,15 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "kms_client_provider_mock",
     hdrs = ["mock_kms_client_provider.h"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/message_router/src:message_router_lib",
-        "//scp/cc/cpio/client_providers/kms_client_provider/src:kms_client_provider_select_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/message_router/src:message_router_lib",
+        "//src/cpio/client_providers/kms_client_provider/src:kms_client_provider_select_lib",
         "@com_google_protobuf//:protobuf",
     ],
 )

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/public/cpio/adapters/parameter_client/src/parameter_client.h"
+#include "src/public/cpio/adapters/parameter_client/src/parameter_client.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -22,14 +22,14 @@
 #include <utility>
 
 #include "absl/synchronization/notification.h"
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/cpio/client_providers/parameter_client_provider/mock/mock_parameter_client_provider.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/cc/public/cpio/adapters/parameter_client/mock/mock_parameter_client_with_overrides.h"
-#include "scp/cc/public/cpio/interface/parameter_client/parameter_client_interface.h"
-#include "scp/cc/public/cpio/interface/parameter_client/type_def.h"
-#include "scp/cc/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "src/core/interface/errors.h"
+#include "src/cpio/client_providers/parameter_client_provider/mock/mock_parameter_client_provider.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/cpio/adapters/parameter_client/mock/mock_parameter_client_with_overrides.h"
+#include "src/public/cpio/interface/parameter_client/parameter_client_interface.h"
+#include "src/public/cpio/interface/parameter_client/type_def.h"
+#include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;

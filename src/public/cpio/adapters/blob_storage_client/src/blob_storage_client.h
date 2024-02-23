@@ -21,15 +21,15 @@
 #include <string>
 #include <vector>
 
-#include "scp/cc/core/common/concurrent_queue/src/concurrent_queue.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/cpio/client_providers/interface/blob_storage_client_provider_interface.h"
-#include "scp/cc/cpio/client_providers/interface/cpio_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/type_def.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
-#include "scp/cc/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
+#include "src/core/common/concurrent_queue/src/concurrent_queue.h"
+#include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/interface/blob_storage_client_provider_interface.h"
+#include "src/cpio/client_providers/interface/cpio_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
+#include "src/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/public/cpio/interface/type_def.h"
+#include "src/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
 
 namespace google::scp::cpio {
 /*! @copydoc BlobStorageClientInterface

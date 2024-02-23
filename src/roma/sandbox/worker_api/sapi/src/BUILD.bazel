@@ -18,7 +18,7 @@ load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
-package(default_visibility = ["//scp/cc/roma/sandbox/worker_api:__subpackages__"])
+package(default_visibility = ["//src/roma/sandbox/worker_api:__subpackages__"])
 
 proto_library(
     name = "worker_api_proto",
@@ -49,7 +49,7 @@ cc_library(
     srcs = ["error_codes.cc"],
     hdrs = ["error_codes.h"],
     deps = [
-        "//scp/cc/roma/config/src:config",
+        "//src/roma/config/src:config",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
     ],
@@ -66,12 +66,12 @@ cc_library(
         ":error_codes",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
-        "//scp/cc/roma/config/src:config",
-        "//scp/cc/roma/logging/src:logging",
-        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
-        "//scp/cc/roma/sandbox/native_function_binding/src:native_function_invoker_sapi_ipc",
-        "//scp/cc/roma/sandbox/worker/src:worker",
         "//src/cpp/util:protoutil",
+        "//src/roma/config/src:config",
+        "//src/roma/logging/src:logging",
+        "//src/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
+        "//src/roma/sandbox/native_function_binding/src:native_function_invoker_sapi_ipc",
+        "//src/roma/sandbox/worker/src:worker",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/flags:flag",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
@@ -96,7 +96,7 @@ sapi_library(
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/interface:interface_lib",
     ],
 )
 
@@ -109,11 +109,11 @@ cc_library(
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
         ":worker_wrapper-sapi",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/roma/logging/src:logging",
-        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
-        "//scp/cc/roma/sandbox/worker/src:worker",
-        "//scp/cc/roma/sandbox/worker_api/src:worker_api",
+        "//src/core/interface:interface_lib",
+        "//src/roma/logging/src:logging",
+        "//src/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
+        "//src/roma/sandbox/worker/src:worker",
+        "//src/roma/sandbox/worker_api/src:worker_api",
         "@com_google_absl//absl/status",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],
@@ -122,7 +122,7 @@ cc_library(
 buf_lint_test(
     name = "worker_api_proto_lint",
     size = "small",
-    config = "//scp:buf.yaml",
+    config = "//src:buf.yaml",
     targets = [":worker_api_proto"],
 )
 
@@ -143,8 +143,8 @@ cc_test(
     deps = [
         ":error_codes",
         ":worker_sandbox_api",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/constants",
+        "//src/core/test/utils:utils_lib",
+        "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -158,8 +158,8 @@ cc_test(
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_wrapper",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/constants",
+        "//src/core/test/utils:utils_lib",
+        "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
         "@google_benchmark//:benchmark",
     ],
@@ -172,8 +172,8 @@ cc_test(
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_wrapper",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/constants",
+        "//src/core/test/utils:utils_lib",
+        "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
     ],
 )

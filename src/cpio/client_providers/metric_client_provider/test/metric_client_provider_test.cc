@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
+#include "src/cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -28,14 +28,14 @@
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
-#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/cpio/client_providers/metric_client_provider/mock/mock_metric_client_provider_with_overrides.h"
-#include "scp/cc/cpio/client_providers/metric_client_provider/src/error_codes.h"
-#include "scp/cc/cpio/common/src/aws/error_codes.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/metric_client_provider/mock/mock_metric_client_provider_with_overrides.h"
+#include "src/cpio/client_providers/metric_client_provider/src/error_codes.h"
+#include "src/cpio/common/src/aws/error_codes.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 namespace google::scp::cpio::client_providers::test {
 namespace {

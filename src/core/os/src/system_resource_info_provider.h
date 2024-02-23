@@ -19,7 +19,7 @@
 
 #include <cstdint>
 
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core::os::linux {
 class SystemResourceInfoProvider {

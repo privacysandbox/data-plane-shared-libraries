@@ -27,9 +27,9 @@
 
 #include "absl/status/statusor.h"
 #include "sandboxed_api/sandbox2/comms.h"
-#include "scp/cc/roma/logging/src/logging.h"
-#include "scp/cc/roma/sandbox/constants/constants.h"
-#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/roma/logging/src/logging.h"
+#include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 #include "native_function_table.h"
 #include "thread_safe_map.h"

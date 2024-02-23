@@ -26,12 +26,12 @@
 
 #include "absl/status/status.h"
 #include "include/v8.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/roma/config/src/type_converter.h"
-#include "scp/cc/roma/interface/roma.h"
-#include "scp/cc/roma/wasm/src/deserializer.h"
-#include "scp/cc/roma/wasm/src/serializer.h"
-#include "scp/cc/roma/wasm/src/wasm_types.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/roma/config/src/type_converter.h"
+#include "src/roma/interface/roma.h"
+#include "src/roma/wasm/src/deserializer.h"
+#include "src/roma/wasm/src/serializer.h"
+#include "src/roma/wasm/src/wasm_types.h"
 
 namespace google::scp::roma::worker {
 

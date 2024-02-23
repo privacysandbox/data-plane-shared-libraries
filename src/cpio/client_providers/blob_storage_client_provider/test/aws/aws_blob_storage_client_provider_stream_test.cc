@@ -28,14 +28,14 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
-#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
-#include "scp/cc/core/async_executor/src/async_executor.h"
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/aws/aws_blob_storage_client_provider.h"
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/test/aws/mock_s3_client.h"
-#include "scp/cc/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "scp/cc/cpio/common/src/aws/error_codes.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/core/async_executor/src/async_executor.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/src/aws/aws_blob_storage_client_provider.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/test/aws/mock_s3_client.h"
+#include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
+#include "src/cpio/common/src/aws/error_codes.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using Aws::InitAPI;
 using Aws::SDKOptions;

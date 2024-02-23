@@ -14,13 +14,13 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "parameter_client_provider_gcp_interface",
     hdrs = ["gcp_secret_manager_interface.h"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/interface:interface_lib",
         "@com_github_googleapis_google_cloud_cpp//:monitoring",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager",
     ],

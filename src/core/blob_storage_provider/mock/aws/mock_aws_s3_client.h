@@ -27,7 +27,7 @@
 #include <aws/s3/model/ListObjectsRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
 
-#include "scp/cc/core/blob_storage_provider/src/aws/aws_s3.h"
+#include "src/core/blob_storage_provider/src/aws/aws_s3.h"
 
 namespace google::scp::core::blob_storage_provider::mock {
 class MockAwsS3Client : public AwsS3Client {

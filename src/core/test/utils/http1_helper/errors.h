@@ -17,7 +17,7 @@
 #ifndef CORE_TEST_UTILS_HTTP1_HELPER_ERRORS_H_
 #define CORE_TEST_UTILS_HTTP1_HELPER_ERRORS_H_
 
-#include "scp/cc/core/interface/errors.h"
+#include "src/core/interface/errors.h"
 
 namespace google::scp::core::errors {
 

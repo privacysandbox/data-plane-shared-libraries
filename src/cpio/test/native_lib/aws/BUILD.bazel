@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "aws_cpio_lib_integration_test",
@@ -23,21 +23,21 @@ cc_test(
     srcs = ["aws_cpio_lib_integration_test.cc"],
     tags = ["manual"],
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/core/test/utils/aws_helper:aws_helper_lib",
-        "//scp/cc/core/test/utils/docker_helper:docker_helper_lib",
-        "//scp/cc/core/utils/src:core_utils",
-        "//scp/cc/public/core/interface:execution_result",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/interface:cpio_errors",
-        "//scp/cc/public/cpio/test/blob_storage_client:test_aws_blob_storage_client",
-        "//scp/cc/public/cpio/test/blob_storage_client:test_aws_blob_storage_client_options",
-        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
-        "//scp/cc/public/cpio/test/kms_client:test_aws_kms_client",
-        "//scp/cc/public/cpio/test/kms_client:test_aws_kms_client_options",
-        "//scp/cc/public/cpio/test/metric_client:test_aws_metric_client",
-        "//scp/cc/public/cpio/test/parameter_client:test_aws_parameter_client",
-        "//scp/cc/public/cpio/test/parameter_client:test_aws_parameter_client_options",
+        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils/aws_helper:aws_helper_lib",
+        "//src/core/test/utils/docker_helper:docker_helper_lib",
+        "//src/core/utils/src:core_utils",
+        "//src/public/core/interface:execution_result",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/test/blob_storage_client:test_aws_blob_storage_client",
+        "//src/public/cpio/test/blob_storage_client:test_aws_blob_storage_client_options",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
+        "//src/public/cpio/test/kms_client:test_aws_kms_client",
+        "//src/public/cpio/test/kms_client:test_aws_kms_client_options",
+        "//src/public/cpio/test/metric_client:test_aws_metric_client",
+        "//src/public/cpio/test/parameter_client:test_aws_parameter_client",
+        "//src/public/cpio/test/parameter_client:test_aws_parameter_client_options",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],

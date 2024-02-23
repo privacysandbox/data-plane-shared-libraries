@@ -23,9 +23,9 @@
 
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "scp/cc/roma/config/src/config.h"
-#include "scp/cc/roma/interface/roma.h"
-#include "scp/cc/roma/roma_service/roma_service.h"
+#include "src/roma/config/src/config.h"
+#include "src/roma/interface/roma.h"
+#include "src/roma/roma_service/roma_service.h"
 
 using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::StrEq;

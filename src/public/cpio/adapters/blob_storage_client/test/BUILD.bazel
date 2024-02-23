@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 exports_files(["test_aws_blob_storage_client.h"])
 
@@ -39,16 +39,16 @@ cc_test(
     size = "small",
     srcs = ["blob_storage_client_test.cc"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/blob_storage_client_provider/src:blob_storage_client_provider_select_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/adapters/blob_storage_client/mock:blob_storage_client_mock",
-        "//scp/cc/public/cpio/core/mock:lib_cpio_mock",
-        "//scp/cc/public/cpio/interface:cpio_errors",
-        "//scp/cc/public/cpio/interface:type_def",
-        "//scp/cc/public/cpio/interface/blob_storage_client",
-        "//scp/cc/public/cpio/proto/blob_storage_service/v1:blob_storage_service_cc_proto",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider/src:blob_storage_client_provider_select_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/adapters/blob_storage_client/mock:blob_storage_client_mock",
+        "//src/public/cpio/core/mock:lib_cpio_mock",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface:type_def",
+        "//src/public/cpio/interface/blob_storage_client",
+        "//src/public/cpio/proto/blob_storage_service/v1:blob_storage_service_cc_proto",
         "@com_google_absl//absl/log:check",
         "@com_google_googletest//:gtest_main",
     ],

@@ -28,12 +28,12 @@
 #include "absl/strings/substitute.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
-#include "scp/cc/public/cpio/interface/public_key_client/type_def.h"
+#include "src/core/interface/errors.h"
 #include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
 #include "src/cpp/metric/key_fetch.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
+#include "src/public/cpio/interface/public_key_client/type_def.h"
 
 namespace privacy_sandbox::server_common {
 

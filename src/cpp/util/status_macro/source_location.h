@@ -15,6 +15,7 @@
 #ifndef SERVICES_COMMON_UTIL_SOURCE_LOCATION_H_
 #define SERVICES_COMMON_UTIL_SOURCE_LOCATION_H_
 #include <cstdint>
+
 namespace privacy_sandbox::server_common {
 // Class representing a specific location in the source code of a program.
 // SourceLocation is copyable.
@@ -22,21 +23,26 @@ class SourceLocation {
  public:
   // Avoid this constructor; it populates the object with placeholder values.
   constexpr SourceLocation() : line_(0), file_name_(nullptr) {}
+
   // Wrapper to invoke the private constructor below. This should only be
   // used by the PS_LOC macro, hence the name.
   static constexpr SourceLocation DoNotInvokeDirectly(std::uint_least32_t line,
                                                       const char* file_name) {
     return SourceLocation(line, file_name);
   }
+
   static constexpr SourceLocation current(
       std::uint_least32_t line = __builtin_LINE(),
       const char* file_name = __builtin_FILE()) {
     return SourceLocation(line, file_name);
   }
+
   // The line number of the captured source location.
   constexpr std::uint_least32_t line() const { return line_; }
+
   // The file name of the captured source location.
   constexpr const char* file_name() const { return file_name_; }
+
   // column() and function_name() are omitted because we don't have a
   // way to support them.
  private:
@@ -47,6 +53,7 @@ class SourceLocation {
   // object, so in practice it should be a std::string literal.
   constexpr SourceLocation(std::uint_least32_t line, const char* file_name)
       : line_(line), file_name_(file_name) {}
+
   std::uint_least32_t line_;
   const char* file_name_;
 };

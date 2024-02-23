@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "adapter_utils",
@@ -23,8 +23,8 @@ cc_library(
             "adapter_utils.h",
         ],
     deps = [
-        "//scp/cc/core/interface:async_context_lib",
-        "//scp/cc/core/utils/src:core_utils",
-        "//scp/cc/public/core/interface:execution_result",
+        "//src/core/interface:async_context_lib",
+        "//src/core/utils/src:core_utils",
+        "//src/public/core/interface:execution_result",
     ],
 )

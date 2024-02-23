@@ -26,8 +26,8 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
-#include "scp/cc/roma/config/src/config.h"
-#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
+#include "src/roma/config/src/config.h"
+#include "src/roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
 
 #include "worker_api.h"
 

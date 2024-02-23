@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "absl/container/flat_hash_map.h"
-#include "scp/cc/core/common/proto/common.pb.h"
+#include "src/core/common/proto/common.pb.h"
 
 namespace google::scp::core {
 namespace {

@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/public/cpio/adapters/kms_client/src/kms_client.h"
+#include "src/public/cpio/adapters/kms_client/src/kms_client.h"
 
 #include <gtest/gtest.h>
 
 #include <atomic>
 
 #include "absl/log/check.h"
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/cc/public/cpio/adapters/kms_client/mock/mock_kms_client_with_overrides.h"
-#include "scp/cc/public/cpio/interface/kms_client/kms_client_interface.h"
-#include "scp/cc/public/cpio/proto/kms_service/v1/kms_service.pb.h"
+#include "src/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/cpio/adapters/kms_client/mock/mock_kms_client_with_overrides.h"
+#include "src/public/cpio/interface/kms_client/kms_client_interface.h"
+#include "src/public/cpio/proto/kms_service/v1/kms_service.pb.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;

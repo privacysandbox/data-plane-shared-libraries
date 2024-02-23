@@ -20,10 +20,10 @@
 #include <memory>
 #include <string>
 
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/http_client_interface.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/http_client_interface.h"
+#include "src/core/interface/service_interface.h"
+#include "src/public/cpio/interface/type_def.h"
 
 namespace google::scp::cpio::client_providers {
 /// Represents the get session token request object.

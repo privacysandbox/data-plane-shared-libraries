@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/roma/worker/src/execution_watchdog.h"
+#include "src/roma/worker/src/execution_watchdog.h"
 
 #include <gtest/gtest.h>
 

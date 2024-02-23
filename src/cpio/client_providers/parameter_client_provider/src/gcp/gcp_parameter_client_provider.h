@@ -22,13 +22,13 @@
 #include <utility>
 
 #include "google/cloud/secretmanager/secret_manager_client.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/cpio/client_providers/interface/cpio_provider_interface.h"
-#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "scp/cc/cpio/client_providers/interface/parameter_client_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/cpio/client_providers/interface/cpio_provider_interface.h"
+#include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "src/cpio/client_providers/interface/parameter_client_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 
 #include "error_codes.h"
 

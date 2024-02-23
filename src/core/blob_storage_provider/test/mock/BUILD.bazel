@@ -19,10 +19,10 @@ cc_test(
     size = "small",
     srcs = ["blob_storage_provider_mock_test.cc"],
     deps = [
-        "//scp/cc/core/blob_storage_provider/mock:blob_storage_provider_mock",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/blob_storage_provider/mock:blob_storage_provider_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest",
     ],
 )

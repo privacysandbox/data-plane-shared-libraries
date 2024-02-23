@@ -21,9 +21,9 @@ cc_library(
     srcs = ["fake_ba_server.cc"],
     hdrs = ["fake_ba_server.h"],
     deps = [
-        "//scp/cc/roma/interface",
-        "//scp/cc/roma/roma_service",
-        "//scp/cc/roma/sandbox/constants",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
@@ -35,9 +35,9 @@ cc_library(
     srcs = ["fake_kv_server.cc"],
     hdrs = ["fake_kv_server.h"],
     deps = [
-        "//scp/cc/roma/interface",
-        "//scp/cc/roma/roma_service",
-        "//scp/cc/roma/sandbox/constants",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
@@ -49,10 +49,10 @@ cc_library(
     srcs = ["roma_benchmark.cc"],
     hdrs = ["roma_benchmark.h"],
     deps = [
-        "//scp/cc/roma/interface",
-        "//scp/cc/roma/roma_service",
-        "//scp/cc/roma/sandbox/constants",
         "//src/cpp/util/status_macro:status_macros",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/roma/sandbox/constants",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -67,9 +67,9 @@ cc_binary(
     srcs = ["benchmark_suite_test.cc"],
     deps = [
         ":benchmark",
-        "//scp/cc/roma/interface",
-        "//scp/cc/roma/roma_service",
-        "//scp/cc/roma/sandbox/constants",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/roma/sandbox/constants",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -84,7 +84,7 @@ cc_test(
     ],
     deps = [
         ":fake_kv_server",
-        "//scp/cc/core/test/utils:utils_lib",
+        "//src/core/test/utils:utils_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -93,9 +93,9 @@ cc_binary(
     name = "logging_benchmark",
     srcs = ["logging_benchmark.cc"],
     deps = [
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/interface",
-        "//scp/cc/roma/roma_service",
+        "//src/core/test/utils:utils_lib",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
         "@com_google_absl//absl/strings",
         "@google_benchmark//:benchmark",
     ],
@@ -108,8 +108,8 @@ cc_binary(
     deps = [
         ":fake_kv_server",
         ":test_code",
-        "//scp/cc/roma/interface",
-        "//scp/cc/roma/roma_service",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -121,8 +121,8 @@ cc_binary(
     deps = [
         ":fake_ba_server",
         ":test_code",
-        "//scp/cc/roma/interface",
-        "//scp/cc/roma/roma_service",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
         "@google_benchmark//:benchmark",
     ],
 )

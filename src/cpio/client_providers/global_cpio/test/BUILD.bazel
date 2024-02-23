@@ -14,13 +14,13 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "test_lib_cpio_provider",
     srcs = [
         "test_lib_cpio_provider.cc",
-        "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:lib_cpio_provider_srcs",
+        "//src/cpio/client_providers/global_cpio/src/cpio_provider:lib_cpio_provider_srcs",
     ],
     hdrs = [
         "test_lib_cpio_provider.h",
@@ -40,18 +40,18 @@ cc_library(
         select(
             {
                 "//:aws_platform": [
-                    "//scp/cc/cpio/client_providers/instance_client_provider/test/aws:test_aws_instance_client_provider_lib",
-                    "//scp/cc/cpio/client_providers/role_credentials_provider/test/aws:test_aws_role_credentials_provider_lib",
+                    "//src/cpio/client_providers/instance_client_provider/test/aws:test_aws_instance_client_provider_lib",
+                    "//src/cpio/client_providers/role_credentials_provider/test/aws:test_aws_role_credentials_provider_lib",
                 ],
                 "//:gcp_platform": [
-                    "//scp/cc/cpio/client_providers/instance_client_provider/test/gcp:test_gcp_instance_client_provider_lib",
-                    "//scp/cc/cpio/client_providers/role_credentials_provider/src/gcp:gcp_role_credentials_provider_lib",
+                    "//src/cpio/client_providers/instance_client_provider/test/gcp:test_gcp_instance_client_provider_lib",
+                    "//src/cpio/client_providers/role_credentials_provider/src/gcp:gcp_role_credentials_provider_lib",
                 ],
             },
             no_match_error = "Please build for AWS or GCP",
         ) + [
-            "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
-            "//scp/cc/public/cpio/test/global_cpio:test_cpio_options",
+            "//src/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
+            "//src/public/cpio/test/global_cpio:test_cpio_options",
         ],
 )
 
@@ -60,10 +60,10 @@ cc_test(
     size = "small",
     srcs = ["lib_cpio_provider_test.cc"],
     deps = [
-        "//scp/cc/cpio/client_providers/global_cpio/mock:global_cpio_mock",
-        "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/interface:cpio",
+        "//src/cpio/client_providers/global_cpio/mock:global_cpio_mock",
+        "//src/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/interface:cpio",
         "@com_google_googletest//:gtest_main",
     ],
 )

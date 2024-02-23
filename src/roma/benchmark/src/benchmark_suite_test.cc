@@ -16,7 +16,7 @@
 
 #include <benchmark/benchmark.h>
 
-#include "scp/cc/roma/benchmark/src/roma_benchmark.h"
+#include "src/roma/benchmark/src/roma_benchmark.h"
 
 using google::scp::roma::benchmark::InputsType;
 using google::scp::roma::benchmark::RomaBenchmarkSuite;

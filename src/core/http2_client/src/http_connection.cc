@@ -31,12 +31,12 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
-#include "scp/cc/core/common/global_logger/src/global_logger.h"
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/http_client_interface.h"
-#include "scp/cc/core/utils/src/http.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/http_client_interface.h"
+#include "src/core/utils/src/http.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 #include "http2_client.h"

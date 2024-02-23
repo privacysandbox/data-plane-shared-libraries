@@ -82,7 +82,7 @@ cc_test(
     srcs = ["protoutil_test.cc"],
     deps = [
         ":protoutil",
-        "//scp/cc/core/test/utils:utils_lib",
+        "//src/core/test/utils:utils_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )

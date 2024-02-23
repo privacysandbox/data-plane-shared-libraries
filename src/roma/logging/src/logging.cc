@@ -20,7 +20,7 @@
 
 #include "absl/log/check.h"
 #include "absl/strings/numbers.h"
-#include "scp/cc/roma/config/src/config.h"
+#include "src/roma/config/src/config.h"
 
 namespace google::scp::roma::logging {
 

@@ -19,10 +19,10 @@
 
 #include <memory>
 
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/cpio/client_providers/global_cpio/src/cpio_provider/lib_cpio_provider.h"
-#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "scp/cc/public/cpio/test/global_cpio/test_cpio_options.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/cpio/client_providers/global_cpio/src/cpio_provider/lib_cpio_provider.h"
+#include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
 
 namespace google::scp::cpio::client_providers {
 /*! @copydoc LibCpioProvider

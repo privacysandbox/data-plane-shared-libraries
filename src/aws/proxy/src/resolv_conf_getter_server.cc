@@ -27,7 +27,7 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/strings/str_cat.h"
-#include "scp/cc/aws/proxy/src/resolv_conf_getter.grpc.pb.h"
+#include "src/aws/proxy/src/resolv_conf_getter.grpc.pb.h"
 
 ABSL_FLAG(int, port, 1600, "Port on which client and server communicate.");
 

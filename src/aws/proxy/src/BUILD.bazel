@@ -70,7 +70,7 @@ grpc_proto_library(
 buf_lint_test(
     name = "resolv_conf_getter_proto_lint",
     size = "small",
-    config = "//scp:buf.yaml",
+    config = "//src:buf.yaml",
     targets = [":resolv_conf_getter_proto"],
 )
 
@@ -360,7 +360,7 @@ container_layer(
         ":proxy_tar",
     ],
     visibility = [
-        "//scp/cc/aws:__subpackages__",
+        "//src/aws:__subpackages__",
     ],
 )
 
@@ -386,9 +386,9 @@ container_image(
 pkg_files(
     name = "proxify_executables",
     srcs = [
-        "//scp/cc/aws/proxy/src:proxify",
-        "//scp/cc/aws/proxy/src:resolv_conf_getter_client",
-        "//scp/cc/aws/proxy/src:socket_vendor",
+        "//src/aws/proxy/src:proxify",
+        "//src/aws/proxy/src:resolv_conf_getter_client",
+        "//src/aws/proxy/src:socket_vendor",
     ],
     attributes = pkg_attributes(mode = "0555"),
     prefix = "/",
@@ -397,7 +397,7 @@ pkg_files(
 pkg_files(
     name = "proxify_libs",
     srcs = [
-        "//scp/cc/aws/proxy/src:proxy_preload",
+        "//src/aws/proxy/src:proxy_preload",
     ],
     attributes = pkg_attributes(mode = "0444"),
     prefix = "/",
@@ -414,7 +414,7 @@ pkg_tar(
 pkg_files(
     name = "libnsm_libs",
     srcs = [
-        "//scp/cc/cpio/client_providers/kms_client_provider/src/aws:libnsm_so",
+        "//src/cpio/client_providers/kms_client_provider/src/aws:libnsm_so",
     ],
     attributes = pkg_attributes(mode = "0444"),
     prefix = "/usr/lib/x86_64-linux-gnu/",

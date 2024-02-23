@@ -23,7 +23,7 @@
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/credentials.h>
 
-#include "scp/cc/cpio/client_providers/interface/queue_client_provider_interface.h"
+#include "src/cpio/client_providers/interface/queue_client_provider_interface.h"
 
 using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ExecutionResult;

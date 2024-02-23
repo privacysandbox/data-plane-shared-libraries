@@ -20,15 +20,15 @@
 #include <memory>
 #include <string>
 
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/metric_client/metric_client_interface.h"
-#include "scp/cc/public/cpio/interface/metric_client/type_def.h"
-#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
-#include "scp/cc/public/cpio/utils/metric_aggregation/interface/type_def.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/core/interface/service_interface.h"
+#include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/metric_client/metric_client_interface.h"
+#include "src/public/cpio/interface/metric_client/type_def.h"
+#include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "src/public/cpio/utils/metric_aggregation/interface/type_def.h"
 
 namespace google::scp::cpio::client_providers {
 

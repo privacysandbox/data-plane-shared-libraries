@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
-#define SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
+#ifndef CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
+#define CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
 
 #include <memory>
 #include <optional>
@@ -23,8 +23,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
-#include "scp/cc/public/cpio/interface/private_key_client/type_def.h"
+#include "src/public/cpio/interface/private_key_client/private_key_client_interface.h"
+#include "src/public/cpio/interface/private_key_client/type_def.h"
 
 namespace privacy_sandbox::server_common {
 
@@ -71,4 +71,4 @@ class PrivateKeyFetcherFactory {
 
 }  // namespace privacy_sandbox::server_common
 
-#endif  // SRC_CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_
+#endif  // CPP_ENCRYPTION_KEY_FETCHER_INTERFACE_PRIVATE_KEY_FETCHER_INTERFACE_H_

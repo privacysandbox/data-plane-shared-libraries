@@ -32,7 +32,10 @@ using ::testing::Return;
 
 using TaskHandle = grpc_event_engine::experimental::EventEngine::TaskHandle;
 
-void FakeRun(absl::AnyInvocable<void()> method) { method(); }
+void FakeRun(absl::AnyInvocable<void()> method) {
+  method();
+}
+
 TaskHandle FakeRunAfter(testing::Unused, absl::AnyInvocable<void()> method) {
   method();
   TaskHandle task_handle = {1, 2};

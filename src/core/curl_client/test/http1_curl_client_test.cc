@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "scp/cc/core/curl_client/src/http1_curl_client.h"
+#include "src/core/curl_client/src/http1_curl_client.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "absl/log/check.h"
 #include "absl/synchronization/notification.h"
-#include "scp/cc/core/async_executor/src/async_executor.h"
-#include "scp/cc/core/curl_client/src/error_codes.h"
-#include "scp/cc/core/curl_client/src/http1_curl_wrapper.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/curl_client/src/error_codes.h"
+#include "src/core/curl_client/src/http1_curl_wrapper.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using testing::AtLeast;
 using testing::ByMove;

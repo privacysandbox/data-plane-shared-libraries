@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/public/cpio/adapters/crypto_client/src/crypto_client.h"
+#include "src/public/cpio/adapters/crypto_client/src/crypto_client.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -22,13 +22,13 @@
 #include <utility>
 
 #include "absl/synchronization/notification.h"
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/cc/public/cpio/adapters/crypto_client/mock/mock_crypto_client_with_overrides.h"
-#include "scp/cc/public/cpio/interface/crypto_client/crypto_client_interface.h"
-#include "scp/cc/public/cpio/interface/crypto_client/type_def.h"
-#include "scp/cc/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
+#include "src/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/cpio/adapters/crypto_client/mock/mock_crypto_client_with_overrides.h"
+#include "src/public/cpio/interface/crypto_client/crypto_client_interface.h"
+#include "src/public/cpio/interface/crypto_client/type_def.h"
+#include "src/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 
 using google::cmrt::sdk::crypto_service::v1::AeadDecryptRequest;
 using google::cmrt::sdk::crypto_service::v1::AeadDecryptResponse;

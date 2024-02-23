@@ -17,9 +17,9 @@
 #ifndef CORE_INTERFACE_PARTITION_INTERFACE_H_
 #define CORE_INTERFACE_PARTITION_INTERFACE_H_
 
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/core/interface/initializable_interface.h"
-#include "scp/cc/core/interface/partition_interface.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/interface/initializable_interface.h"
+#include "src/core/interface/partition_interface.h"
 
 namespace google::scp::core {
 

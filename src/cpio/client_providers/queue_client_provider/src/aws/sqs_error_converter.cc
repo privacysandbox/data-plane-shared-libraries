@@ -16,7 +16,7 @@
 
 #include "sqs_error_converter.h"
 
-#include "scp/cc/cpio/common/src/aws/error_codes.h"
+#include "src/cpio/common/src/aws/error_codes.h"
 
 using Aws::SQS::SQSErrors;
 using google::scp::core::FailureExecutionResult;

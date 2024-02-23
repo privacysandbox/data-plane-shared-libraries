@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "gcp_blob_storage_client_provider_test",
@@ -23,12 +23,12 @@ cc_test(
         "gcp_blob_storage_client_provider_test.cc",
     ],
     deps = [
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_github_googleapis_google_cloud_cpp//:storage",
         "@com_github_googleapis_google_cloud_cpp//google/cloud/storage:storage_client_testing",
         "@com_google_absl//absl/synchronization",
@@ -46,12 +46,12 @@ cc_test(
     # It checks how many calls GCP internal libraries make to the user defined
     # `StorageConnection::UploadChunk` method.
     deps = [
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_github_googleapis_google_cloud_cpp//:storage",
         "@com_github_googleapis_google_cloud_cpp//google/cloud/storage:storage_client_testing",
         "@com_google_absl//absl/synchronization",
@@ -63,13 +63,13 @@ cc_library(
     name = "test_gcp_blob_storage_client_provider_lib",
     srcs = [
         "test_gcp_blob_storage_client_provider.cc",
-        "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_srcs",
+        "//src/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_srcs",
     ],
     hdrs = [
         "test_gcp_blob_storage_client_provider.h",
     ],
     deps = [
-        "//scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",
-        "//scp/cc/public/cpio/test/blob_storage_client:test_gcp_blob_storage_client_options",
+        "//src/cpio/client_providers/blob_storage_client_provider/src/gcp:gcp_blob_storage_client_provider_lib",
+        "//src/public/cpio/test/blob_storage_client:test_gcp_blob_storage_client_options",
     ],
 )

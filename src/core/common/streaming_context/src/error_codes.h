@@ -15,8 +15,8 @@
 #ifndef CORE_COMMON_STREAMING_CONTEXT_SRC_ERROR_CODES_H_
 #define CORE_COMMON_STREAMING_CONTEXT_SRC_ERROR_CODES_H_
 
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core::errors {
 

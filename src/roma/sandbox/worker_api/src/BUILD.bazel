@@ -20,8 +20,8 @@ cc_library(
     name = "worker_api",
     hdrs = ["worker_api.h"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/interface:type_def_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/interface:type_def_lib",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
@@ -34,9 +34,9 @@ cc_library(
     hdrs = ["worker_api_sapi.h"],
     deps = [
         ":worker_api",
-        "//scp/cc/roma/config/src:config",
-        "//scp/cc/roma/sandbox/worker_api/sapi/src:worker_sandbox_api",
         "//src/cpp/util:protoutil",
+        "//src/roma/config/src:config",
+        "//src/roma/sandbox/worker_api/sapi/src:worker_sandbox_api",
         "@com_google_absl//absl/status",
     ],
 )
@@ -52,8 +52,8 @@ cc_test(
     ],
     deps = [
         ":worker_api_sapi",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/constants",
+        "//src/core/test/utils:utils_lib",
+        "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
     ],
 )

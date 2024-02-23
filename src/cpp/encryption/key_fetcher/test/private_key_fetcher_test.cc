@@ -22,8 +22,8 @@
 #include "include/gtest/gtest.h"
 #include "proto/hpke.pb.h"
 #include "proto/tink.pb.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/private_key_client/private_key_client_interface.h"
 
 using ::google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;
 using ::google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse;
@@ -47,12 +47,15 @@ class MockPrivateKeyClient
     : public google::scp::cpio::PrivateKeyClientInterface {
  public:
   ExecutionResult init_result_mock = SuccessExecutionResult();
+
   ExecutionResult Init() noexcept override { return init_result_mock; }
 
   ExecutionResult run_result_mock = SuccessExecutionResult();
+
   ExecutionResult Run() noexcept override { return run_result_mock; }
 
   ExecutionResult stop_result_mock = SuccessExecutionResult();
+
   ExecutionResult Stop() noexcept override { return stop_result_mock; }
 
   MOCK_METHOD(

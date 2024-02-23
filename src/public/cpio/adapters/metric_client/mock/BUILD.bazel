@@ -14,15 +14,15 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "metric_client_mock",
     testonly = 1,
     hdrs = ["mock_metric_client_with_overrides.h"],
     deps = [
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/public/cpio/interface/metric_client",
-        "//scp/cc/public/cpio/mock/metric_client:metric_client_mock",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/public/cpio/interface/metric_client",
+        "//src/public/cpio/mock/metric_client:metric_client_mock",
     ],
 )

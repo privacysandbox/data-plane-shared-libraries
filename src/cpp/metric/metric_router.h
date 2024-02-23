@@ -67,6 +67,7 @@ class MetricRouter {
                          T value, std::string_view partition);
 
   const Meter& meter() const { return *meter_; }
+
   const DifferentiallyPrivate<MetricRouter>& dp() const { return dp_; }
 
   // Add callback for observerable metric, must be Privacy:kNonImpacting

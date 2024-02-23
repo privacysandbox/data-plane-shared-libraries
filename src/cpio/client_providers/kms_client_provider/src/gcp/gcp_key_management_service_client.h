@@ -23,7 +23,7 @@
 
 #include "absl/strings/string_view.h"
 #include "google/cloud/kms/key_management_client.h"
-#include "scp/cc/cpio/client_providers/kms_client_provider/interface/gcp/gcp_key_management_service_client_interface.h"
+#include "src/cpio/client_providers/kms_client_provider/interface/gcp/gcp_key_management_service_client_interface.h"
 
 namespace google::scp::cpio::client_providers {
 /*! @copydoc GcpKeyManagementServiceClientInterface

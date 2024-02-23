@@ -20,10 +20,10 @@
 #include <memory>
 #include <string>
 
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "scp/cc/cpio/client_providers/private_key_fetcher_provider/src/aws/aws_private_key_fetcher_provider.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/src/aws/aws_private_key_fetcher_provider.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers {
 /*! @copydoc AwsPrivateKeyFetcherProvider

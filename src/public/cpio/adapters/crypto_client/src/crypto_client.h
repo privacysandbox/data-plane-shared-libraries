@@ -19,10 +19,10 @@
 
 #include <memory>
 
-#include "scp/cc/cpio/client_providers/interface/crypto_client_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/crypto_client/crypto_client_interface.h"
-#include "scp/cc/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
+#include "src/cpio/client_providers/interface/crypto_client_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/crypto_client/crypto_client_interface.h"
+#include "src/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 
 namespace google::scp::cpio {
 /*! @copydoc CryptoClientInterface

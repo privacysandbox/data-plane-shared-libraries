@@ -56,9 +56,13 @@ class RequestContext {
 class NoOpContext : public RequestContext {
  public:
   std::string_view ContextStr() const override { return ""; }
+
   bool is_consented() const override { return false; }
+
   absl::LogSink* ConsentedSink() override { return nullptr; }
+
   bool is_debug_response() const override { return false; }
+
   absl::LogSink* DebugResponseSink() override { return nullptr; }
 };
 

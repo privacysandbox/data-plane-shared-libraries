@@ -24,9 +24,9 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_cat.h"
-#include "scp/cc/roma/logging/src/logging.h"
-#include "scp/cc/roma/sandbox/constants/constants.h"
 #include "src/cpp/util/status_macro/status_macros.h"
+#include "src/roma/logging/src/logging.h"
+#include "src/roma/sandbox/constants/constants.h"
 
 using google::scp::roma::sandbox::constants::kCodeVersion;
 using google::scp::roma::sandbox::constants::kHandlerName;

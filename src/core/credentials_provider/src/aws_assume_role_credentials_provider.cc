@@ -24,8 +24,8 @@
 #include <aws/sts/model/AssumeRoleRequest.h>
 
 #include "absl/functional/bind_front.h"
-#include "scp/cc/core/async_executor/src/aws/aws_async_executor.h"
-#include "scp/cc/core/common/time_provider/src/time_provider.h"
+#include "src/core/async_executor/src/aws/aws_async_executor.h"
+#include "src/core/common/time_provider/src/time_provider.h"
 
 #include "error_codes.h"
 

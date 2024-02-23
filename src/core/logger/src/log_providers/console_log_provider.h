@@ -20,8 +20,8 @@
 #include <string>
 #include <string_view>
 
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/core/logger/interface/log_provider_interface.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/logger/interface/log_provider_interface.h"
 
 namespace google::scp::core::logger {
 /**

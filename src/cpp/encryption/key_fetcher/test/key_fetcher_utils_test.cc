@@ -14,9 +14,9 @@
 
 #include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
 
-#include <string>
-
 #include <gmock/gmock.h>
+
+#include <string>
 
 #include "include/gtest/gtest.h"
 

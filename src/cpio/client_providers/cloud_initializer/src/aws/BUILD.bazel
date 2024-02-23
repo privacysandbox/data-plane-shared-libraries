@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "aws_initializer_lib",
@@ -22,8 +22,8 @@ cc_library(
         ":aws_initializer_srcs",
     ],
     deps = [
-        "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//scp/cc/public/core/interface:execution_result",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/public/core/interface:execution_result",
         "@aws_sdk_cpp//:core",
     ],
 )

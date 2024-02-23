@@ -23,10 +23,10 @@
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
 
-#include "scp/cc/cpio/client_providers/interface/metric_client_provider_interface.h"
-#include "scp/cc/cpio/common/test/aws/test_aws_utils.h"
-#include "scp/cc/public/cpio/interface/metric_client/metric_client_interface.h"
-#include "scp/cc/public/cpio/test/metric_client/test_aws_metric_client_options.h"
+#include "src/cpio/client_providers/interface/metric_client_provider_interface.h"
+#include "src/cpio/common/test/aws/test_aws_utils.h"
+#include "src/public/cpio/interface/metric_client/metric_client_interface.h"
+#include "src/public/cpio/test/metric_client/test_aws_metric_client_options.h"
 
 using Aws::Client::ClientConfiguration;
 using google::scp::core::AsyncExecutorInterface;

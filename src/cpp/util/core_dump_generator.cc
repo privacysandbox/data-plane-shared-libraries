@@ -14,4 +14,6 @@
 
 #include <stdlib.h>
 
-int main() { std::abort(); }
+int main() {
+  std::abort();
+}

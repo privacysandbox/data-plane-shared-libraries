@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "ec2_error_converter_test",
@@ -22,10 +22,10 @@ cc_test(
     srcs =
         ["ec2_error_converter_test.cc"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
-        "//scp/cc/cpio/common/src/aws:aws_utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
+        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -36,12 +36,12 @@ cc_test(
     srcs =
         ["aws_instance_client_utils_test.cc"],
     deps = [
-        "//scp/cc/core/curl_client/mock:mock_curl_client",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//scp/cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/curl_client/mock:mock_curl_client",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -53,12 +53,12 @@ cc_library(
     ],
     hdrs = ["test_aws_instance_client_provider.h"],
     deps = [
-        "//scp/cc/core/interface:async_context_lib",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/test:test_instance_client_provider_lib",
-        "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
-        "//scp/cc/public/cpio/test/global_cpio:test_cpio_options",
+        "//src/core/interface:async_context_lib",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/client_providers/instance_client_provider/test:test_instance_client_provider_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//src/public/cpio/test/global_cpio:test_cpio_options",
         "@com_google_absl//absl/strings:str_format",
     ],
 )

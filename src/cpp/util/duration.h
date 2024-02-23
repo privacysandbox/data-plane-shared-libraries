@@ -45,6 +45,7 @@ class SteadyTime {
   SteadyTime& operator+=(const absl::Duration d);
 
   friend SteadyTime operator+(const SteadyTime& t, const absl::Duration d);
+
   friend SteadyTime operator+(const absl::Duration d, const SteadyTime& t) {
     return t + d;
   }
@@ -56,18 +57,23 @@ class SteadyTime {
   friend bool operator<(const SteadyTime& t1, const SteadyTime& t2) {
     return t1.time_ < t2.time_;
   }
+
   friend bool operator<=(const SteadyTime& t1, const SteadyTime& t2) {
     return t1.time_ <= t2.time_;
   }
+
   friend bool operator>(const SteadyTime& t1, const SteadyTime& t2) {
     return t1.time_ > t2.time_;
   }
+
   friend bool operator>=(const SteadyTime& t1, const SteadyTime& t2) {
     return t1.time_ >= t2.time_;
   }
+
   friend bool operator==(const SteadyTime& t1, const SteadyTime& t2) {
     return t1.time_ == t2.time_;
   }
+
   friend bool operator!=(const SteadyTime& t1, const SteadyTime& t2) {
     return t1.time_ != t2.time_;
   }
@@ -134,6 +140,7 @@ class SteadyClock {
 class SimulatedSteadyClock : public SteadyClock {
  public:
   explicit SimulatedSteadyClock(SteadyTime t) : now_(t) {}
+
   SimulatedSteadyClock() : SimulatedSteadyClock(SteadyTime()) {}
 
   // Returns the simulated steady time.
@@ -155,6 +162,7 @@ class Stopwatch {
  public:
   // Starts the timer.
   explicit Stopwatch(SteadyClock& clock);
+
   Stopwatch() : Stopwatch(SteadyClock::RealClock()) {}
 
   // Resets the start time.

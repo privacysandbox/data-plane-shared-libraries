@@ -23,9 +23,9 @@
 
 #include <nlohmann/json.hpp>
 
-#include "scp/cc/core/interface/http_types.h"
-#include "scp/cc/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/interface/http_types.h"
+#include "src/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

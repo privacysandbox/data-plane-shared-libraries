@@ -14,20 +14,20 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "public_key_client_provider_test",
     size = "small",
     srcs = ["public_key_client_provider_test.cc"],
     deps = [
-        "//scp/cc/core/http2_client/mock:http2_client_mock",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/message_router/src:message_router_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/public_key_client_provider/src:public_key_client_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
+        "//src/core/http2_client/mock:http2_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/message_router/src:message_router_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/public_key_client_provider/src:public_key_client_provider_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
@@ -38,10 +38,10 @@ cc_test(
     size = "small",
     srcs = ["public_key_client_utils_test.cc"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/public_key_client_provider/src:public_key_client_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/public_key_client_provider/src:public_key_client_provider_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],

@@ -1,4 +1,4 @@
-# proto-file: scp/cc/public/cpio/validator/proto/validator_config.proto
+# proto-file: src/public/cpio/validator/proto/validator_config.proto
 # proto-message: ValidatorConfig
 
 test_cases {

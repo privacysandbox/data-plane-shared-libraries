@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package google.cmrt.sdk.kms_service.v1;
 
-import "scp/cc/core/common/proto/common.proto";
+import "src/core/common/proto/common.proto";
 
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;

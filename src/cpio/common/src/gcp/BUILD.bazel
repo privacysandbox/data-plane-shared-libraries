@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_utils_lib",
@@ -26,8 +26,8 @@ cc_library(
         "gcp_utils.h",
     ],
     deps = [
-        "//scp/cc/core/common/global_logger/src:global_logger_lib",
-        "//scp/cc/public/cpio/interface:cpio_errors",
+        "//src/core/common/global_logger/src:global_logger_lib",
+        "//src/public/cpio/interface:cpio_errors",
         "@com_github_googleapis_google_cloud_cpp//:common",
         "@com_github_grpc_grpc//:grpc++",
     ],

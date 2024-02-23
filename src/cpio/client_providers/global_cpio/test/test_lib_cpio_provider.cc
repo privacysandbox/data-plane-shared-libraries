@@ -19,17 +19,17 @@
 #include <memory>
 #include <utility>
 
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/cpio/client_providers/global_cpio/src/cpio_provider/lib_cpio_provider.h"
-#include "scp/cc/cpio/client_providers/interface/cpio_provider_interface.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/cpio/client_providers/global_cpio/src/cpio_provider/lib_cpio_provider.h"
+#include "src/cpio/client_providers/interface/cpio_provider_interface.h"
+#include "src/public/cpio/interface/type_def.h"
 
 #if defined(AWS_TEST)
-#include "scp/cc/cpio/client_providers/instance_client_provider/test/aws/test_aws_instance_client_provider.h"
-#include "scp/cc/cpio/client_providers/role_credentials_provider/test/aws/test_aws_role_credentials_provider.h"
+#include "src/cpio/client_providers/instance_client_provider/test/aws/test_aws_instance_client_provider.h"
+#include "src/cpio/client_providers/role_credentials_provider/test/aws/test_aws_role_credentials_provider.h"
 #elif defined(GCP_TEST)
-#include "scp/cc/cpio/client_providers/instance_client_provider/test/gcp/test_gcp_instance_client_provider.h"
-#include "scp/cc/cpio/client_providers/role_credentials_provider/src/gcp/gcp_role_credentials_provider.h"
+#include "src/cpio/client_providers/instance_client_provider/test/gcp/test_gcp_instance_client_provider.h"
+#include "src/cpio/client_providers/role_credentials_provider/src/gcp/gcp_role_credentials_provider.h"
 #else
 #error "Must provide AWS_TEST or GCP_TEST"
 #endif

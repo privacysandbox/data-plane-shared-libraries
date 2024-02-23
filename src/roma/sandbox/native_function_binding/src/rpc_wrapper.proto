@@ -16,7 +16,7 @@
 syntax = "proto3";
 package google.scp.roma.proto;
 
-import "scp/cc/roma/interface/function_binding_io.proto";
+import "src/roma/interface/function_binding_io.proto";
 
 message RpcWrapper {
   // Proto containing input/output args for native function.

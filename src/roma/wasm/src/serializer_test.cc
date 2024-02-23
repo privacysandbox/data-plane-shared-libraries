@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include "scp/cc/roma/wasm/src/serializer.h"
+#include "src/roma/wasm/src/serializer.h"
 
 #include <gtest/gtest.h>
 
 #include <string>
 #include <vector>
 
-#include "scp/cc/roma/wasm/src/wasm_types.h"
+#include "src/roma/wasm/src/wasm_types.h"
 
 namespace google::scp::roma::wasm::test {
 

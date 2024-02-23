@@ -20,7 +20,7 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 namespace google::scp::roma::sandbox::native_function_binding {
 /**

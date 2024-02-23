@@ -26,9 +26,13 @@
 
 namespace privacy_sandbox::server_common {
 StatusBuilder::StatusBuilder() {}
+
 StatusBuilder::Rep::Rep(const absl::Status& s) : status(s) {}
+
 StatusBuilder::Rep::Rep(absl::Status&& s) : status(std::move(s)) {}
+
 StatusBuilder::Rep::~Rep() {}
+
 StatusBuilder::Rep::Rep(const Rep& r)
     : status(r.status),
       logging_mode(r.logging_mode),
@@ -40,6 +44,7 @@ StatusBuilder::Rep::Rep(const Rep& r)
       stream(&stream_message),
       should_log_stack_trace(r.should_log_stack_trace),
       message_join_style(r.message_join_style) {}
+
 absl::Status StatusBuilder::JoinMessageToStatus(absl::Status s,
                                                 std::string_view msg,
                                                 MessageJoinStyle style) {
@@ -59,6 +64,7 @@ absl::Status StatusBuilder::JoinMessageToStatus(absl::Status s,
   }
   return absl::Status(s.code(), new_msg);
 }
+
 void StatusBuilder::ConditionallyLog(const absl::Status& status) const {
   if (rep_->logging_mode == Rep::LoggingMode::kDisabled) return;
   absl::LogSeverity severity = rep_->log_severity;
@@ -74,6 +80,7 @@ void StatusBuilder::ConditionallyLog(const absl::Status& status) const {
           absl::flat_hash_map<std::pair<const void*, uint>, uint>
               counts_by_file_and_line ABSL_GUARDED_BY(mutex);
         };
+
         static auto* log_every_n_sites = new LogSites();
         absl::MutexLock lock(&log_every_n_sites->mutex);
         const uint count =
@@ -92,6 +99,7 @@ void StatusBuilder::ConditionallyLog(const absl::Status& status) const {
   absl::log_internal::LogMessage(loc_.file_name(), loc_.line(), severity)
       << status << maybe_stack_trace;
 }
+
 absl::Status StatusBuilder::CreateStatusAndConditionallyLog() && {
   absl::Status result = JoinMessageToStatus(
       std::move(rep_->status), rep_->stream_message, rep_->message_join_style);
@@ -102,9 +110,11 @@ absl::Status StatusBuilder::CreateStatusAndConditionallyLog() && {
   rep_ = nullptr;
   return result;
 }
+
 std::ostream& operator<<(std::ostream& os, const StatusBuilder& builder) {
   return os << static_cast<absl::Status>(builder);
 }
+
 std::ostream& operator<<(std::ostream& os, StatusBuilder&& builder) {
   return os << static_cast<absl::Status>(std::move(builder));
 }

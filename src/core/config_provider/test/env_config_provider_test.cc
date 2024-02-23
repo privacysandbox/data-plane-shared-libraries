@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/core/config_provider/src/env_config_provider.h"
+#include "src/core/config_provider/src/env_config_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -26,8 +26,8 @@
 #include <list>
 #include <memory>
 
-#include "scp/cc/core/config_provider/src/error_codes.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/config_provider/src/error_codes.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::EnvConfigProvider;
 using google::scp::core::FailureExecutionResult;

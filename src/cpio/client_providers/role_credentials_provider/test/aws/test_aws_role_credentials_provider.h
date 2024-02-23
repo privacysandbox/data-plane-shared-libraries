@@ -24,8 +24,8 @@
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
 
-#include "scp/cc/cpio/client_providers/role_credentials_provider/src/aws/aws_role_credentials_provider.h"
-#include "scp/cc/public/cpio/test/global_cpio/test_cpio_options.h"
+#include "src/cpio/client_providers/role_credentials_provider/src/aws/aws_role_credentials_provider.h"
+#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
 
 namespace google::scp::cpio::client_providers {
 /// RoleCredentialsProviderOptions for testing on AWS.

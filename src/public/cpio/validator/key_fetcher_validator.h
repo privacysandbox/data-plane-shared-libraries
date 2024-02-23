@@ -17,8 +17,8 @@
 #ifndef PUBLIC_CPIO_VALIDATOR_KEY_FETCHER_VALIDATOR_H_
 #define PUBLIC_CPIO_VALIDATOR_KEY_FETCHER_VALIDATOR_H_
 
-#include "scp/cc/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
-#include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
+#include "src/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
+#include "src/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {
 

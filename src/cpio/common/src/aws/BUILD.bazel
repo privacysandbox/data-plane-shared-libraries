@@ -25,9 +25,9 @@ cc_library(
         "aws_utils.h",
         "error_codes.h",
     ],
-    visibility = ["//scp/cc:scp_internal_pkg"],
+    visibility = ["//src:scp_internal_pkg"],
     deps = [
-        "//scp/cc/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface:cpio_errors",
         "@aws_sdk_cpp//:core",
     ],
 )

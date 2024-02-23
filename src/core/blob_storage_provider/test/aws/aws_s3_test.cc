@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/core/blob_storage_provider/src/aws/aws_s3.h"
+#include "src/core/blob_storage_provider/src/aws/aws_s3.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -28,11 +28,11 @@
 #include <aws/s3/model/ListObjectsRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
 
-#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
-#include "scp/cc/core/blob_storage_provider/mock/aws/mock_aws_s3_client.h"
-#include "scp/cc/core/blob_storage_provider/mock/aws/mock_s3_client.h"
-#include "scp/cc/core/blob_storage_provider/src/common/error_codes.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/core/blob_storage_provider/mock/aws/mock_aws_s3_client.h"
+#include "src/core/blob_storage_provider/mock/aws/mock_s3_client.h"
+#include "src/core/blob_storage_provider/src/common/error_codes.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using Aws::InitAPI;
 using Aws::IOStream;

@@ -20,13 +20,13 @@
 #include <memory>
 #include <string>
 
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/kms_client/type_def.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
-#include "scp/cc/public/cpio/proto/kms_service/v1/kms_service.pb.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/service_interface.h"
+#include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/kms_client/type_def.h"
+#include "src/public/cpio/interface/type_def.h"
+#include "src/public/cpio/proto/kms_service/v1/kms_service.pb.h"
 
 namespace google::scp::cpio::client_providers {
 

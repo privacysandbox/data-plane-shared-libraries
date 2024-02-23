@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 
-#include "scp/cc/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
 
 namespace google::scp::cpio::client_providers::mock {
 

@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "aws_instance_client_provider_lib",
@@ -22,15 +22,15 @@ cc_library(
         ":aws_instance_client_provider_srcs",
     ],
     deps = [
-        "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
-        "//scp/cc/core/common/concurrent_map/src:concurrent_map_lib",
-        "//scp/cc/core/common/uuid/src:uuid_lib",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//scp/cc/cpio/common/src:cpio_utils_lib",
-        "//scp/cc/cpio/common/src/aws:aws_utils_lib",
-        "//scp/cc/public/cpio/interface:cpio_errors",
-        "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//src/core/async_executor/src/aws:core_aws_async_executor_lib",
+        "//src/core/common/concurrent_map/src:concurrent_map_lib",
+        "//src/core/common/uuid/src:uuid_lib",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/common/src:cpio_utils_lib",
+        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:ec2",
         "@com_google_absl//absl/container:flat_hash_set",

@@ -19,7 +19,7 @@
 
 #include <gmock/gmock.h>
 
-#include "scp/cc/cpio/client_providers/interface/queue_client_provider_interface.h"
+#include "src/cpio/client_providers/interface/queue_client_provider_interface.h"
 
 namespace google::scp::cpio::client_providers::mock {
 

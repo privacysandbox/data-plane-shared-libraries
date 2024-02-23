@@ -22,11 +22,11 @@
 #include <vector>
 
 #include "include/v8.h"
-#include "scp/cc/core/test/utils/auto_init_run_stop.h"
-#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
-#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
-#include "scp/cc/roma/sandbox/native_function_binding/src/native_function_invoker.h"
-#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/core/test/utils/auto_init_run_stop.h"
+#include "src/roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
+#include "src/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
+#include "src/roma/sandbox/native_function_binding/src/native_function_invoker.h"
+#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 using google::scp::roma::proto::RpcWrapper;
 

@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "aws_kms_client_provider_mock",
@@ -24,8 +24,8 @@ cc_library(
         "mock_tee_aws_kms_client_provider_with_overrides.h",
     ],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/utils/src:core_utils",
+        "//src/core/interface:interface_lib",
+        "//src/core/utils/src:core_utils",
         "@aws_sdk_cpp//:kms",
     ],
 )

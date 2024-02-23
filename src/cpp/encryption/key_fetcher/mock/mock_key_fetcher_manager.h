@@ -21,10 +21,10 @@
 
 #include "absl/status/statusor.h"
 #include "include/gtest/gtest.h"
-#include "scp/cc/public/cpio/interface/private_key_client/type_def.h"
-#include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
 #include "src/cpp/encryption/key_fetcher/interface/key_fetcher_manager_interface.h"
+#include "src/public/cpio/interface/private_key_client/type_def.h"
+#include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
+#include "src/public/cpio/interface/type_def.h"
 
 namespace privacy_sandbox::server_common {
 

@@ -21,8 +21,8 @@
 
 #include <memory>
 
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
 
 namespace google::scp::cpio {
 class MockPublicKeyClient : public PublicKeyClientInterface {

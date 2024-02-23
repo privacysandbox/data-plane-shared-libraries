@@ -26,9 +26,9 @@ cc_library(
         "system_resource_info_provider_linux.h",
     ],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/os/src:system_resource_info_provider_lib",
-        "//scp/cc/public/core/interface:execution_result",
+        "//src/core/interface:interface_lib",
+        "//src/core/os/src:system_resource_info_provider_lib",
+        "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/strings",
     ],
 )

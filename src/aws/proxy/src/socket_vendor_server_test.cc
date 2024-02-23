@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/aws/proxy/src/socket_vendor_server.h"
+#include "src/aws/proxy/src/socket_vendor_server.h"
 
 #include <gtest/gtest.h>
 
@@ -20,7 +20,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "scp/cc/aws/proxy/src/socket_types.h"
+#include "src/aws/proxy/src/socket_types.h"
 
 namespace {
 

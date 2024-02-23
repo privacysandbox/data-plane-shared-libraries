@@ -55,7 +55,7 @@ establishment, you'll probably get some garbage.
 ## Building and running tests
 
 ```shell
-    bazel test //scp/cc/aws/proxy/...
+    bazel test //src/aws/proxy/...
 ```
 
 # Other useful tips
@@ -67,16 +67,16 @@ If you'd like to try out this proxy with your own application, follow these step
 1. Use `scripts/build_proxy` to build proxy.
 1. Look for `dist/aws/proxy-al2-amd64.zip`, unzip and upload it to your EC2 instance.
 1. Run proxy in background on the EC2 instance.
-1. (Optional) Run `//scp/cc/aws/proxy/src:copy_to_dist` and upload
+1. (Optional) Run `//src/aws/proxy/src:copy_to_dist` and upload
    `dist/aws/resolv_conf_getter_server_debian_image.tar` to your EC2 instance.
 1. (Optional) Run the `resolv_conf_getter` server in the background.
 
 ```shell
 docker load -i resolv_conf_getter_server_debian_image.tar
-docker run -d -p 1600:1600 bazel/scp/cc/aws/proxy/src:resolv_conf_getter_server_debian_image
+docker run -d -p 1600:1600 bazel/src/aws/proxy/src:resolv_conf_getter_server_debian_image
 ```
 
-1. Add the `//scp/cc/aws/proxy/src:proxify_layer` layer to the definition of your image.
+1. Add the `//src/aws/proxy/src:proxify_layer` layer to the definition of your image.
 1. Put CMD as `["/path/to/proxify", "--", "your_app", "one_arg", "more_args"]`.
 1. Build and run the enclave image.
 
@@ -94,5 +94,5 @@ docker run -d -p 1600:1600 bazel/scp/cc/aws/proxy/src:resolv_conf_getter_server_
    performing the optional steps in the [previous section](#running-your-own-application).
 1. AmazonLinux2 (AL2) uses an old version of glibc. Newer compilers with newer glibc on your build
    machine may generate binary that's not runnable on AL2. That's why we created
-   `//scp/cc/aws/proxy:reproducible_proxy_outputs` target to generate binaries that's guaranteed
+   `//src/aws/proxy:reproducible_proxy_outputs` target to generate binaries that's guaranteed
    runnable on AL2. It also makes the build reproducible for building enclave images.

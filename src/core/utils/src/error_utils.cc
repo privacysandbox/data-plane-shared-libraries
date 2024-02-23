@@ -16,8 +16,8 @@
 
 #include "error_utils.h"
 
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
 
 using google::scp::core::errors::GetPublicErrorCode;
 

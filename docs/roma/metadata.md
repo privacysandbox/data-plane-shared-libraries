@@ -12,7 +12,7 @@ said metadata, and defaults to `absl::flat_hash_map<std::string, std::string>`
 
 -   See more information about Roma [here](README.md)
 -   See examples of how to use this feature in
-    [roma/roma_service/metadata_test.cc](/scp/cc/roma/roma_service/metadata_test.cc)
+    [roma/roma_service/metadata_test.cc](/src/roma/roma_service/metadata_test.cc)
 
 ## Implementing Logging
 

@@ -31,6 +31,6 @@ cc_proto_library(
 buf_lint_test(
     name = "core_common_proto_lint",
     size = "small",
-    config = "//scp:buf.yaml",
+    config = "//src:buf.yaml",
     targets = [":core_common_proto"],
 )

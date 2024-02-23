@@ -22,12 +22,12 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/synchronization/notification.h"
-#include "scp/cc/public/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/cpio.h"
-#include "scp/cc/public/cpio/interface/crypto_client/crypto_client_interface.h"
-#include "scp/cc/public/cpio/interface/crypto_client/type_def.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
+#include "src/public/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/cpio.h"
+#include "src/public/cpio/interface/crypto_client/crypto_client_interface.h"
+#include "src/public/cpio/interface/crypto_client/type_def.h"
+#include "src/public/cpio/interface/type_def.h"
 
 using google::cmrt::sdk::crypto_service::v1::AeadDecryptRequest;
 using google::cmrt::sdk::crypto_service::v1::AeadDecryptResponse;

@@ -19,11 +19,11 @@
 
 #include <memory>
 
-#include "scp/cc/cpio/client_providers/interface/cpio_provider_interface.h"
-#include "scp/cc/cpio/client_providers/interface/metric_client_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/metric_client/metric_client_interface.h"
-#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "src/cpio/client_providers/interface/cpio_provider_interface.h"
+#include "src/cpio/client_providers/interface/metric_client_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/metric_client/metric_client_interface.h"
+#include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 namespace google::scp::cpio {
 /*! @copydoc MetricClientInterface

@@ -34,9 +34,9 @@
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "include/v8.h"
-#include "scp/cc/roma/config/src/function_binding_object_v2.h"
-#include "scp/cc/roma/config/src/type_converter.h"
 #include "src/cpp/util/process_util.h"
+#include "src/roma/config/src/function_binding_object_v2.h"
+#include "src/roma/config/src/type_converter.h"
 
 using ::testing::StrEq;
 

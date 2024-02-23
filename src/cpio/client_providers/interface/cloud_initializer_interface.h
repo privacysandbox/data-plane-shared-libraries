@@ -22,8 +22,8 @@
 #include <string>
 #include <vector>
 
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/interface/service_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers {
 /**

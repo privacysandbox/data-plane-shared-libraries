@@ -23,11 +23,11 @@
 #include <vector>
 
 #include "google/protobuf/any.pb.h"
-#include "scp/cc/core/interface/http_types.h"
-#include "scp/cc/cpio/client_providers/interface/kms_client_provider_interface.h"
-#include "scp/cc/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
+#include "src/core/interface/http_types.h"
+#include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
+#include "src/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
 
 #include "error_codes.h"
 

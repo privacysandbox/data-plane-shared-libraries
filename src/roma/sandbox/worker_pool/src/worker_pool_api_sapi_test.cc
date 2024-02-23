@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
+#include "src/roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
 
 #include <gtest/gtest.h>
 
@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "scp/cc/roma/sandbox/worker_api/src/worker_api_sapi.h"
+#include "src/roma/sandbox/worker_api/src/worker_api_sapi.h"
 
 using google::scp::roma::sandbox::worker_api::WorkerApiSapi;
 using google::scp::roma::sandbox::worker_api::WorkerApiSapiConfig;

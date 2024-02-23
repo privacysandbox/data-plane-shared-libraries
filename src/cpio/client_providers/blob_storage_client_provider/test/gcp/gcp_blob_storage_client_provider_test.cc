@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp/gcp_blob_storage_client_provider.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/src/gcp/gcp_blob_storage_client_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -29,15 +29,15 @@
 #include "google/cloud/storage/client.h"
 #include "google/cloud/storage/internal/object_requests.h"
 #include "google/cloud/storage/testing/mock_client.h"
-#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
-#include "scp/cc/core/async_executor/src/async_executor.h"
-#include "scp/cc/core/utils/src/base64.h"
-#include "scp/cc/core/utils/src/hashing.h"
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
-#include "scp/cc/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/cc/public/cpio/test/global_cpio/test_cpio_options.h"
-#include "scp/cc/public/cpio/test/global_cpio/test_lib_cpio.h"
+#include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/utils/src/base64.h"
+#include "src/core/utils/src/hashing.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
+#include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
+#include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 
 using google::cloud::Status;
 using google::cloud::StatusOr;

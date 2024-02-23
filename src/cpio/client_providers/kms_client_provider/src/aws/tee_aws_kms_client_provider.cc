@@ -24,9 +24,9 @@
 #include "absl/functional/bind_front.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/strip.h"
-#include "scp/cc/core/utils/src/base64.h"
-#include "scp/cc/cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "scp/cc/public/cpio/interface/kms_client/type_def.h"
+#include "src/core/utils/src/base64.h"
+#include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "src/public/cpio/interface/kms_client/type_def.h"
 
 #include "tee_aws_kms_client_provider_utils.h"
 #include "tee_error_codes.h"

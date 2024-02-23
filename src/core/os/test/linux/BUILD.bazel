@@ -26,9 +26,9 @@ cc_test(
         "files/valid_meminfo_file.txt",
     ],
     deps = [
-        "//scp/cc/core/os/src/linux:system_resource_info_provider_linux_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/os/src/linux:system_resource_info_provider_linux_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

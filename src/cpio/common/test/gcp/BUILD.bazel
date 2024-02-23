@@ -14,16 +14,16 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "gcp_utils_test",
     size = "small",
     srcs = ["gcp_utils_test.cc"],
     deps = [
-        "//scp/cc/cpio/common/src/gcp:gcp_utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/interface:cpio_errors",
+        "//src/cpio/common/src/gcp:gcp_utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/interface:cpio_errors",
         "@com_github_googleapis_google_cloud_cpp//:common",
         "@com_google_googletest//:gtest_main",
     ],

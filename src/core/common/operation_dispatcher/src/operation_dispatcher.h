@@ -21,9 +21,9 @@
 #include <functional>
 #include <memory>
 
-#include "scp/cc/core/common/time_provider/src/time_provider.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/core/interface/streaming_context.h"
+#include "src/core/common/time_provider/src/time_provider.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/core/interface/streaming_context.h"
 
 #include "error_codes.h"
 #include "retry_strategy.h"

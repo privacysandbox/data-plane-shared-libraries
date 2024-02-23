@@ -21,8 +21,8 @@ cc_library(
     srcs = ["execution_result_matchers.cc"],
     hdrs = ["execution_result_matchers.h"],
     deps = [
-        "//scp/cc/core/common/proto:core_common_proto_lib",
-        "//scp/cc/public/core/interface:errors",
+        "//src/core/common/proto:core_common_proto_lib",
+        "//src/public/core/interface:errors",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_googletest//:gtest",
     ],

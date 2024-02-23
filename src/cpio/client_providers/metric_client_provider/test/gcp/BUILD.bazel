@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "gcp_metric_client_provider_test",
@@ -23,15 +23,15 @@ cc_test(
         "gcp_metric_client_provider_test.cc",
     ],
     deps = [
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//scp/cc/cpio/client_providers/metric_client_provider/mock/gcp:gcp_metric_client_provider_mock",
-        "//scp/cc/cpio/client_providers/metric_client_provider/src:metric_client_provider_lib",
-        "//scp/cc/cpio/client_providers/metric_client_provider/src/gcp:gcp_metric_client_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/cpio/client_providers/metric_client_provider/mock/gcp:gcp_metric_client_provider_mock",
+        "//src/cpio/client_providers/metric_client_provider/src:metric_client_provider_lib",
+        "//src/cpio/client_providers/metric_client_provider/src/gcp:gcp_metric_client_provider_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "@com_github_googleapis_google_cloud_cpp//:monitoring",
         "@com_github_googleapis_google_cloud_cpp//:monitoring_mocks",
         "@com_google_absl//absl/strings",
@@ -46,11 +46,11 @@ cc_test(
         "gcp_metric_client_utils_test.cc",
     ],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/metric_client_provider/src:metric_client_provider_lib",
-        "//scp/cc/cpio/client_providers/metric_client_provider/src/gcp:gcp_metric_client_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/metric_client_provider/src:metric_client_provider_lib",
+        "//src/cpio/client_providers/metric_client_provider/src/gcp:gcp_metric_client_provider_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_github_googleapis_google_cloud_cpp//:monitoring",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",

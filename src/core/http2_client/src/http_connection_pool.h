@@ -27,9 +27,9 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "scp/cc/core/common/concurrent_map/src/concurrent_map.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/common/concurrent_map/src/concurrent_map.h"
+#include "src/core/interface/async_context.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 #include "http_connection.h"

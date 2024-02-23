@@ -58,7 +58,9 @@ namespace privacy_sandbox::server_common {
 class [[nodiscard]] StatusBuilder {
  public:
   StatusBuilder();
+
   ~StatusBuilder() {}
+
   // Creates a `StatusBuilder` based on an original status.  If logging is
   // enabled, it will use `location` as the location from which the log message
   // occurs.  A typical user will not specify `location`, allowing it to default
@@ -108,14 +110,21 @@ class [[nodiscard]] StatusBuilder {
   // functions.  Returns `*this` to allow method chaining.
   StatusBuilder& Log(absl::LogSeverity level) &;
   [[nodiscard]] StatusBuilder&& Log(absl::LogSeverity level) &&;
+
   StatusBuilder& LogError() & { return Log(absl::LogSeverity::kError); }
+
   [[nodiscard]] StatusBuilder&& LogError() && { return std::move(LogError()); }
+
   StatusBuilder& LogWarning() & { return Log(absl::LogSeverity::kWarning); }
+
   [[nodiscard]] StatusBuilder&& LogWarning() && {
     return std::move(LogWarning());
   }
+
   StatusBuilder& LogInfo() & { return Log(absl::LogSeverity::kInfo); }
+
   [[nodiscard]] StatusBuilder&& LogInfo() && { return std::move(LogInfo()); }
+
   // Mutates the builder so that the result status will be logged every N
   // invocations (without a stack trace) when this builder is converted to a
   // Status.  This overrides the logging settings from earlier calls to any of
@@ -156,6 +165,7 @@ class [[nodiscard]] StatusBuilder {
   // StatusBuilder. Returns `*this` to allow method chaining.
   StatusBuilder& SetCode(absl::StatusCode code) &;
   [[nodiscard]] StatusBuilder&& SetCode(absl::StatusCode code) &&;
+
   ///////////////////////////////// Adaptors /////////////////////////////////
   //
   // A StatusBuilder `adaptor` is a functor which can be included in a builder
@@ -260,12 +270,14 @@ class [[nodiscard]] StatusBuilder {
       Adaptor&& adaptor) & -> decltype(std::forward<Adaptor>(adaptor)(*this)) {
     return std::forward<Adaptor>(adaptor)(*this);
   }
+
   template <typename Adaptor>
   [[nodiscard]] auto
   With(Adaptor&& adaptor) && -> decltype(std::forward<Adaptor>(adaptor)(
       std::move(*this))) {
     return std::forward<Adaptor>(adaptor)(std::move(*this));
   }
+
   // Returns true if the Status created by this builder will be ok().
   [[nodiscard]] bool ok() const;
   // Returns the (canonical) error code for the Status created by this builder.
@@ -299,6 +311,7 @@ class [[nodiscard]] StatusBuilder {
   // is split from the above to isolate the portability issues around logging
   // into a single place.
   void ConditionallyLog(const absl::Status& status) const;
+
   // Infrequently set builder options, instantiated lazily. This reduces
   // average construction/destruction time (e.g. the `stream` is fairly
   // expensive). Stacks can also be blown if StatusBuilder grows too large.
@@ -341,6 +354,7 @@ class [[nodiscard]] StatusBuilder {
     // Specifies how to join the message in `status` and `stream`.
     MessageJoinStyle message_join_style = MessageJoinStyle::kAnnotate;
   };
+
   static std::unique_ptr<Rep> InitRep(const absl::Status& s) {
     if (s.ok()) {
       return nullptr;
@@ -348,6 +362,7 @@ class [[nodiscard]] StatusBuilder {
       return std::make_unique<Rep>(s);
     }
   }
+
   static std::unique_ptr<Rep> InitRep(absl::Status&& s) {
     if (s.ok()) {
       return nullptr;
@@ -355,16 +370,19 @@ class [[nodiscard]] StatusBuilder {
       return std::make_unique<Rep>(std::move(s));
     }
   }
+
   const absl::Status& RepStatusOrOk() const {
     static absl::Status* ok = new absl::Status;
     return rep_ == nullptr ? *ok : rep_->status;
   }
+
   // The location to record if this status is logged.
   SourceLocation loc_;
   // nullptr if the result status will be OK.  Extra fields moved to the heap to
   // minimize stack space.
   std::unique_ptr<Rep> rep_;
 };
+
 // Implicitly converts `builder` to `Status` and write it to `os`.
 std::ostream& operator<<(std::ostream& os, const StatusBuilder& builder);
 std::ostream& operator<<(std::ostream& os, StatusBuilder&& builder);
@@ -402,6 +420,7 @@ StatusBuilder UnimplementedErrorBuilder(
     SourceLocation location PS_LOC_CURRENT_DEFAULT_ARG);
 StatusBuilder UnknownErrorBuilder(
     SourceLocation location PS_LOC_CURRENT_DEFAULT_ARG);
+
 // StatusBuilder policy to append an extra message to the original status.
 //
 // This is most useful with adaptors such as util::TaskReturn that otherwise
@@ -423,8 +442,10 @@ StatusBuilder UnknownErrorBuilder(
 class ExtraMessage {
  public:
   ExtraMessage() : ExtraMessage(std::string()) {}
+
   explicit ExtraMessage(std::string msg)
       : msg_(std::move(msg)), stream_(&msg_) {}
+
   // Appends to the extra message that will be added to the original status.  By
   // default, the extra message is added to the original message as if by
   // `util::Annotate`, which includes a convenience separator between the
@@ -434,6 +455,7 @@ class ExtraMessage {
     stream_ << value;
     return *this;
   }
+
   // Appends to the extra message that will be added to the original status.  By
   // default, the extra message is added to the original message as if by
   // `util::Annotate`, which includes a convenience separator between the
@@ -447,21 +469,26 @@ class ExtraMessage {
   std::string msg_;
   absl::strings_internal::OStringStream stream_;
 };
+
 // Implementation details follow; clients should ignore.
 inline StatusBuilder::StatusBuilder(const absl::Status& original_status,
                                     SourceLocation location)
     : loc_(location), rep_(InitRep(original_status)) {}
+
 inline StatusBuilder::StatusBuilder(absl::Status&& original_status,
                                     SourceLocation location)
     : loc_(location), rep_(InitRep(std::move(original_status))) {}
+
 inline StatusBuilder::StatusBuilder(const StatusBuilder& sb) : loc_(sb.loc_) {
   if (sb.rep_ != nullptr) {
     rep_ = std::make_unique<Rep>(*sb.rep_);
   }
 }
+
 inline StatusBuilder::StatusBuilder(absl::StatusCode code,
                                     SourceLocation location)
     : loc_(location), rep_(InitRep(absl::Status(code, ""))) {}
+
 inline StatusBuilder& StatusBuilder::operator=(const StatusBuilder& sb) {
   loc_ = sb.loc_;
   if (sb.rep_ != nullptr) {
@@ -471,22 +498,27 @@ inline StatusBuilder& StatusBuilder::operator=(const StatusBuilder& sb) {
   }
   return *this;
 }
+
 inline StatusBuilder& StatusBuilder::SetPrepend() & {
   if (rep_ == nullptr) return *this;
   rep_->message_join_style = MessageJoinStyle::kPrepend;
   return *this;
 }
+
 inline StatusBuilder&& StatusBuilder::SetPrepend() && {
   return std::move(SetPrepend());
 }
+
 inline StatusBuilder& StatusBuilder::SetAppend() & {
   if (rep_ == nullptr) return *this;
   rep_->message_join_style = MessageJoinStyle::kAppend;
   return *this;
 }
+
 inline StatusBuilder&& StatusBuilder::SetAppend() && {
   return std::move(SetAppend());
 }
+
 inline StatusBuilder& StatusBuilder::SetNoLogging() & {
   if (rep_ != nullptr) {
     rep_->logging_mode = Rep::LoggingMode::kDisabled;
@@ -494,18 +526,22 @@ inline StatusBuilder& StatusBuilder::SetNoLogging() & {
   }
   return *this;
 }
+
 inline StatusBuilder&& StatusBuilder::SetNoLogging() && {
   return std::move(SetNoLogging());
 }
+
 inline StatusBuilder& StatusBuilder::Log(absl::LogSeverity level) & {
   if (rep_ == nullptr) return *this;
   rep_->logging_mode = Rep::LoggingMode::kLog;
   rep_->log_severity = level;
   return *this;
 }
+
 inline StatusBuilder&& StatusBuilder::Log(absl::LogSeverity level) && {
   return std::move(Log(level));
 }
+
 inline StatusBuilder& StatusBuilder::LogEveryN(absl::LogSeverity level,
                                                int n) & {
   if (rep_ == nullptr) return *this;
@@ -515,10 +551,12 @@ inline StatusBuilder& StatusBuilder::LogEveryN(absl::LogSeverity level,
   rep_->n = n;
   return *this;
 }
+
 inline StatusBuilder&& StatusBuilder::LogEveryN(absl::LogSeverity level,
                                                 int n) && {
   return std::move(LogEveryN(level, n));
 }
+
 // ToDo(b/261739087): enable with absl vlog support
 // inline StatusBuilder& StatusBuilder::VLog(int verbose_level) & {
 //   if (rep_ == nullptr) return *this;
@@ -539,33 +577,43 @@ inline StatusBuilder& StatusBuilder::EmitStackTrace() & {
   rep_->should_log_stack_trace = true;
   return *this;
 }
+
 inline StatusBuilder&& StatusBuilder::EmitStackTrace() && {
   return std::move(EmitStackTrace());
 }
+
 template <typename T>
 StatusBuilder& StatusBuilder::operator<<(const T& value) & {
   if (rep_ == nullptr) return *this;
   rep_->stream << value;
   return *this;
 }
+
 template <typename T>
 StatusBuilder&& StatusBuilder::operator<<(const T& value) && {
   return std::move(operator<<(value));
 }
+
 inline bool StatusBuilder::ok() const {
   return rep_ == nullptr ? true : rep_->status.ok();
 }
+
 inline absl::StatusCode StatusBuilder::code() const {
   return rep_ == nullptr ? absl::StatusCode::kOk : rep_->status.code();
 }
+
 inline StatusBuilder::operator absl::Status() const& {
   if (rep_ == nullptr) return absl::Status();
   return StatusBuilder(*this).CreateStatusAndConditionallyLog();
 }
+
 inline StatusBuilder::operator absl::Status() && {
   if (rep_ == nullptr) return absl::Status();
   return std::move(*this).CreateStatusAndConditionallyLog();
 }
-inline SourceLocation StatusBuilder::source_location() const { return loc_; }
+
+inline SourceLocation StatusBuilder::source_location() const {
+  return loc_;
+}
 }  // namespace privacy_sandbox::server_common
 #endif  // SERVICES_COMMON_UTIL_STATUS_BUILDER_H_

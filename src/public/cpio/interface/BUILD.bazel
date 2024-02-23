@@ -59,25 +59,25 @@ cc_library(
     name = "type_def",
     hdrs = ["type_def.h"],
     deps = [
-        "//scp/cc/core/common/global_logger/src:global_logger_lib",
-        "//scp/cc/core/interface:async_context_lib",
-        "//scp/cc/public/core/interface:execution_result",
+        "//src/core/common/global_logger/src:global_logger_lib",
+        "//src/core/interface:async_context_lib",
+        "//src/public/core/interface:execution_result",
     ],
 )
 
 cc_library(
     name = "cpio",
-    srcs = ["//scp/cc/public/cpio/core/src:cpio.cc"],
+    srcs = ["//src/public/cpio/core/src:cpio.cc"],
     hdrs = ["cpio.h"],
     deps = [
         ":type_def",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/logger/src:logger_lib",
-        "//scp/cc/core/logger/src/log_providers:log_providers_lib",
-        "//scp/cc/core/logger/src/log_providers/syslog:syslog_lib",
-        "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
-        "//scp/cc/public/cpio/core/src:cpio_utils_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/logger/src:logger_lib",
+        "//src/core/logger/src/log_providers:log_providers_lib",
+        "//src/core/logger/src/log_providers/syslog:syslog_lib",
+        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
+        "//src/public/cpio/core/src:cpio_utils_lib",
     ],
 )
 
@@ -87,6 +87,6 @@ cc_library(
     name = "cpio_errors",
     hdrs = ["error_codes.h"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/interface:interface_lib",
     ],
 )

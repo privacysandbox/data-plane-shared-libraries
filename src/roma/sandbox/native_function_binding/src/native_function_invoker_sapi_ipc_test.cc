@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/roma/sandbox/native_function_binding/src/native_function_invoker_sapi_ipc.h"
+#include "src/roma/sandbox/native_function_binding/src/native_function_invoker_sapi_ipc.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -28,7 +28,7 @@
 
 #include "absl/status/status.h"
 #include "sandboxed_api/sandbox2/comms.h"
-#include "scp/cc/core/test/utils/auto_init_run_stop.h"
+#include "src/core/test/utils/auto_init_run_stop.h"
 
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;

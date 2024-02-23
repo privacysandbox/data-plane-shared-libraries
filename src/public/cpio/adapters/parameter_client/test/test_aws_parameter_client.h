@@ -19,9 +19,9 @@
 
 #include <memory>
 
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/adapters/parameter_client/src/parameter_client.h"
-#include "scp/cc/public/cpio/test/parameter_client/test_aws_parameter_client_options.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/adapters/parameter_client/src/parameter_client.h"
+#include "src/public/cpio/test/parameter_client/test_aws_parameter_client_options.h"
 
 namespace google::scp::cpio {
 /*! @copydoc ParameterClientInterface

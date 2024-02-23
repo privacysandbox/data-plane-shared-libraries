@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/core/interface/service_interface.h"
+#include "src/core/interface/service_interface.h"
 
 #include <gtest/gtest.h>
 

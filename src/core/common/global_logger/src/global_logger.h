@@ -23,8 +23,8 @@
 
 #include "absl/base/nullability.h"
 #include "absl/strings/str_cat.h"
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/core/logger/interface/log_provider_interface.h"
+#include "src/core/interface/errors.h"
+#include "src/core/logger/interface/log_provider_interface.h"
 
 namespace google::scp::core::common {
 enum class LogOption {

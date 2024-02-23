@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/core/common/operation_dispatcher/src/operation_dispatcher.h"
+#include "src/core/common/operation_dispatcher/src/operation_dispatcher.h"
 
 #include <gtest/gtest.h>
 
@@ -25,11 +25,11 @@
 #include <string>
 
 #include "absl/synchronization/notification.h"
-#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
-#include "scp/cc/core/common/operation_dispatcher/src/error_codes.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/streaming_context.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/core/common/operation_dispatcher/src/error_codes.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/streaming_context.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 using google::scp::core::AsyncContext;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;

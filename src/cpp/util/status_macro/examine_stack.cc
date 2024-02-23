@@ -26,10 +26,12 @@ constexpr int kDefaultStackTraceDepth = 32;
 // and two extra for the leading "0x".
 constexpr int kPrintfPointerFieldWidth = 2 + 2 * sizeof(void*);
 constexpr std::string_view kStackTracePrefix = "    ";
+
 void DebugWriteToString(const char* data, void* str) {
   reinterpret_cast<std::string*>(str)->append(data);
 }
 }  // namespace
+
 // Print a program counter and its symbol name.
 static void DumpPCAndSymbol(DebugWriter* writerfn, void* arg, void* pc,
                             const char* const prefix, bool short_format) {
@@ -55,6 +57,7 @@ static void DumpPCAndSymbol(DebugWriter* writerfn, void* arg, void* pc,
   }
   writerfn(buf, arg);
 }
+
 // Dump current stack trace as directed by writerfn.
 // Make sure this function is not inlined to avoid skipping too many top frames.
 ABSL_ATTRIBUTE_NOINLINE
@@ -68,6 +71,7 @@ void DumpStackTrace(int skip_count, DebugWriter* writerfn, void* arg,
                     short_format ? "" : kStackTracePrefix.data(), short_format);
   }
 }
+
 std::string CurrentStackTrace(bool short_format) {
   std::string result = "Stacktrace:";
   if (!short_format) {

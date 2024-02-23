@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "absl/strings/substitute.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/public/core/interface/execution_result.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

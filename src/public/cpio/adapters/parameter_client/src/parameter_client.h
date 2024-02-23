@@ -20,11 +20,11 @@
 #include <memory>
 #include <string>
 
-#include "scp/cc/cpio/client_providers/interface/cpio_provider_interface.h"
-#include "scp/cc/cpio/client_providers/interface/parameter_client_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/parameter_client/parameter_client_interface.h"
-#include "scp/cc/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "src/cpio/client_providers/interface/cpio_provider_interface.h"
+#include "src/cpio/client_providers/interface/parameter_client_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/parameter_client/parameter_client_interface.h"
+#include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 
 namespace google::scp::cpio {
 /*! @copydoc ParameterClientInterface

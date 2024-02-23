@@ -22,13 +22,13 @@
 #include <vector>
 
 #include "google/protobuf/any.pb.h"
-#include "scp/cc/core/http2_client/mock/mock_http_client.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/cpio/client_providers/kms_client_provider/mock/mock_kms_client_provider.h"
-#include "scp/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.h"
-#include "scp/cc/cpio/client_providers/private_key_client_provider/src/private_key_client_utils.h"
-#include "scp/cc/cpio/client_providers/private_key_fetcher_provider/mock/mock_private_key_fetcher_provider.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/http2_client/mock/mock_http_client.h"
+#include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/kms_client_provider/mock/mock_kms_client_provider.h"
+#include "src/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.h"
+#include "src/cpio/client_providers/private_key_client_provider/src/private_key_client_utils.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/mock/mock_private_key_fetcher_provider.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers::mock {
 class MockPrivateKeyClientProviderWithOverrides

@@ -499,6 +499,7 @@ class Context {
     absl::Status result = absl::OkStatus();
     absl::flat_hash_map<std::string, std::string> custom;
   };
+
   RequestState request_state_ ABSL_GUARDED_BY(mutex_);
 
   struct Accumulator {
@@ -506,6 +507,7 @@ class Context {
     PartitionedValue values;
     absl::AnyInvocable<absl::Status(const PartitionedValue&) &&> callback;
   };
+
   absl::flat_hash_map<const DefinitionName*, Accumulator> accumulated_metric_
       ABSL_GUARDED_BY(mutex_);
 };

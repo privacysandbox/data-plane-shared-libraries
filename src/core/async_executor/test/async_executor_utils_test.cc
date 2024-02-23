@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/core/async_executor/src/async_executor_utils.h"
+#include "src/core/async_executor/src/async_executor_utils.h"
 
 #include <gtest/gtest.h>
 
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 namespace google::scp::core::test {
 TEST(AsyncExecutorUtilsTest, BasicTests) {

@@ -20,12 +20,12 @@
 #include <memory>
 #include <string>
 
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/core/interface/http_types.h"
-#include "scp/cc/core/interface/partition_interface.h"
-#include "scp/cc/core/interface/partition_types.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/core/interface/type_def.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/interface/http_types.h"
+#include "src/core/interface/partition_interface.h"
+#include "src/core/interface/partition_types.h"
+#include "src/core/interface/service_interface.h"
+#include "src/core/interface/type_def.h"
 
 namespace google::scp::core {
 

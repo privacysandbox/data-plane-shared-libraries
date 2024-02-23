@@ -14,20 +14,20 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "gcp_private_key_fetcher_provider_test",
     size = "small",
     srcs = ["gcp_private_key_fetcher_provider_test.cc"],
     deps = [
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/core/http2_client/mock:http2_client_mock",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
-        "//scp/cc/cpio/client_providers/private_key_fetcher_provider/src/gcp:gcp_private_key_fetcher_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/http2_client/mock:http2_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
+        "//src/cpio/client_providers/private_key_fetcher_provider/src/gcp:gcp_private_key_fetcher_provider_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],

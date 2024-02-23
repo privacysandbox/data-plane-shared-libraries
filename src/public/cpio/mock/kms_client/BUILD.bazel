@@ -24,7 +24,7 @@ cc_library(
             "mock_kms_client.h",
         ],
     deps = [
-        "//scp/cc/public/cpio/interface/kms_client",
+        "//src/public/cpio/interface/kms_client",
         "@com_google_googletest//:gtest",
     ],
 )

@@ -21,9 +21,9 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "async_task.h"
 #include "error_codes.h"

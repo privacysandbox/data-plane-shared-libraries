@@ -14,22 +14,22 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "aws_role_credentials_provider_lib",
     srcs = [
-        "//scp/cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_srcs",
+        "//src/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_srcs",
     ],
     hdrs = [
-        "//scp/cc/cpio/client_providers/interface:role_credentials_provider_interface.h",
+        "//src/cpio/client_providers/interface:role_credentials_provider_interface.h",
     ],
     deps = [
-        "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
-        "//scp/cc/cpio/common/src/aws:aws_utils_lib",
-        "//scp/cc/public/cpio/interface:type_def",
+        "//src/core/async_executor/src/aws:core_aws_async_executor_lib",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
+        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/public/cpio/interface:type_def",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:sts",
     ],

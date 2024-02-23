@@ -17,9 +17,9 @@
 
 #include "absl/strings/str_cat.h"
 #include "google/cloud/storage/client.h"
-#include "scp/cc/core/async_executor/src/async_executor.h"
-#include "scp/cc/core/blob_storage_provider/src/gcp/gcp_cloud_storage.h"
-#include "scp/cc/core/interface/blob_storage_provider_interface.h"
+#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/blob_storage_provider/src/gcp/gcp_cloud_storage.h"
+#include "src/core/interface/blob_storage_provider_interface.h"
 
 namespace google::scp::core::test {
 namespace {

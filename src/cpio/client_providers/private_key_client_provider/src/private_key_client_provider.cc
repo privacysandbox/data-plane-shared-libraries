@@ -22,13 +22,13 @@
 #include <utility>
 #include <vector>
 
-#include "scp/cc/core/common/concurrent_map/src/concurrent_map.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/http_client_interface.h"
-#include "scp/cc/core/interface/http_types.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/private_key_client/type_def.h"
-#include "scp/cc/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
+#include "src/core/common/concurrent_map/src/concurrent_map.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/http_client_interface.h"
+#include "src/core/interface/http_types.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/private_key_client/type_def.h"
+#include "src/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
 
 #include "error_codes.h"
 #include "private_key_client_utils.h"

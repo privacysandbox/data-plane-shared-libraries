@@ -21,13 +21,13 @@ cc_library(
     srcs = ["worker.cc"],
     hdrs = ["worker.h"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/interface:type_def_lib",
-        "//scp/cc/roma/config/src:config",
-        "//scp/cc/roma/logging/src:logging",
-        "//scp/cc/roma/sandbox/constants",
-        "//scp/cc/roma/sandbox/js_engine/src:js_engine",
+        "//src/core/interface:interface_lib",
+        "//src/core/interface:type_def_lib",
         "//src/cpp/util/status_macro:status_macros",
+        "//src/roma/config/src:config",
+        "//src/roma/logging/src:logging",
+        "//src/roma/sandbox/constants",
+        "//src/roma/sandbox/js_engine/src:js_engine",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
@@ -40,7 +40,7 @@ cc_test(
     size = "small",
     srcs = ["v8_engine_worker_test.cc"],
     data = [
-        "//scp/cc/roma/testing/cpp_wasi_dependency_example",
+        "//src/roma/testing/cpp_wasi_dependency_example",
     ],
     tags = [
         "noasan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
@@ -49,10 +49,10 @@ cc_test(
     ],
     deps = [
         ":worker",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/roma/sandbox/constants",
-        "//scp/cc/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
-        "//scp/cc/roma/wasm/src:wasm_testing",
+        "//src/core/test/utils:utils_lib",
+        "//src/roma/sandbox/constants",
+        "//src/roma/sandbox/js_engine/src/v8_engine:v8_js_engine",
+        "//src/roma/wasm/src:wasm_testing",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
     ],

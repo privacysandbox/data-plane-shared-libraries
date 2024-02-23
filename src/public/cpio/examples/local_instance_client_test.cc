@@ -20,13 +20,13 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/synchronization/notification.h"
-#include "scp/cc/public/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/cpio.h"
-#include "scp/cc/public/cpio/interface/instance_client/instance_client_interface.h"
-#include "scp/cc/public/cpio/interface/type_def.h"
-#include "scp/cc/public/cpio/proto/instance_service/v1/instance_service.pb.h"
-#include "scp/cc/public/cpio/test/global_cpio/test_lib_cpio.h"
+#include "src/public/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/cpio.h"
+#include "src/public/cpio/interface/instance_client/instance_client_interface.h"
+#include "src/public/cpio/interface/type_def.h"
+#include "src/public/cpio/proto/instance_service/v1/instance_service.pb.h"
+#include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 
 using google::cmrt::sdk::instance_service::v1::
     GetCurrentInstanceResourceNameRequest;

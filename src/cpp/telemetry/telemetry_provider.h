@@ -49,7 +49,9 @@ class TelemetryProvider {
   void operator=(const TelemetryProvider&) = delete;
 
   bool trace_enabled() const { return trace_enabled_; }
+
   bool metric_enabled() const { return metric_enabled_; }
+
   bool log_enabled() const { return log_enabled_; }
 
  private:

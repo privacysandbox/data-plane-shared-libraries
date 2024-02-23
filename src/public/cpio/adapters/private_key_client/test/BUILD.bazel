@@ -14,24 +14,24 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "private_key_client_test",
     size = "small",
     srcs = ["private_key_client_test.cc"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/cpio/client_providers/private_key_client_provider/src:private_key_client_provider_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/adapters/private_key_client/mock:private_key_client_mock",
-        "//scp/cc/public/cpio/core/mock:lib_cpio_mock",
-        "//scp/cc/public/cpio/interface:cpio_errors",
-        "//scp/cc/public/cpio/interface:type_def",
-        "//scp/cc/public/cpio/interface/private_key_client",
-        "//scp/cc/public/cpio/interface/private_key_client:type_def",
-        "//scp/cc/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/cpio/client_providers/private_key_client_provider/src:private_key_client_provider_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/adapters/private_key_client/mock:private_key_client_mock",
+        "//src/public/cpio/core/mock:lib_cpio_mock",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface:type_def",
+        "//src/public/cpio/interface/private_key_client",
+        "//src/public/cpio/interface/private_key_client:type_def",
+        "//src/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],

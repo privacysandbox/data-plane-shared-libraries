@@ -23,7 +23,7 @@ cc_library(
         "error_codes.h",
     ],
     deps = [
-        "//scp/cc/core/interface:type_def_lib",
+        "//src/core/interface:type_def_lib",
         "@oneTBB//:tbb",
     ],
 )

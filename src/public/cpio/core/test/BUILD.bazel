@@ -14,17 +14,17 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "lib_cpio_test",
     size = "small",
     srcs = ["lib_cpio_test.cc"],
     deps = [
-        "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
-        "//scp/cc/public/cpio/interface/metric_client",
-        "//scp/cc/public/cpio/test/global_cpio:test_lib_cpio",
+        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/cpio/interface/metric_client",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_google_googletest//:gtest_main",
     ],
 )

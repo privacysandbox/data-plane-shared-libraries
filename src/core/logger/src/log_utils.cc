@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "scp/cc/core/logger/src/log_utils.h"
+#include "src/core/logger/src/log_utils.h"
 
 #include <string>
 
 #include "absl/strings/str_cat.h"
-#include "scp/cc/core/logger/interface/log_provider_interface.h"
+#include "src/core/logger/interface/log_provider_interface.h"
 
 namespace google::scp::core::logger {
 

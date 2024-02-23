@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_metric_client_provider_lib",
@@ -22,16 +22,16 @@ cc_library(
         ":gcp_metric_client_provider_srcs",
     ],
     deps = [
-        "//scp/cc/core/interface:async_context_lib",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/src/gcp:gcp_instance_client_provider_lib",
-        "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//scp/cc/cpio/client_providers/interface:type_def",
-        "//scp/cc/cpio/client_providers/metric_client_provider/src:metric_client_provider_lib",
-        "//scp/cc/cpio/common/src/gcp:gcp_utils_lib",
-        "//scp/cc/public/cpio/interface:cpio_errors",
-        "//scp/cc/public/cpio/interface/metric_client:type_def",
-        "//scp/cc/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "//src/core/interface:async_context_lib",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/client_providers/instance_client_provider/src/gcp:gcp_instance_client_provider_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:type_def",
+        "//src/cpio/client_providers/metric_client_provider/src:metric_client_provider_lib",
+        "//src/cpio/common/src/gcp:gcp_utils_lib",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface/metric_client:type_def",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "@com_github_googleapis_google_cloud_cpp//:monitoring",
         "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",

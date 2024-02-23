@@ -21,9 +21,9 @@
 #include <memory>
 #include <string>
 
-#include "scp/cc/core/common/global_logger/src/global_logger.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio {
 using AccountIdentity = std::string;

@@ -23,7 +23,7 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
+#include "src/core/interface/async_executor_interface.h"
 
 #include "async_task.h"
 

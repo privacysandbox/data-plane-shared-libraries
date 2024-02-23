@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "global_cpio_mock",
@@ -24,12 +24,12 @@ cc_library(
         "mock_lib_cpio_provider_with_overrides.h",
     ],
     deps = [
-        "//scp/cc/core/async_executor/mock:core_async_executor_mock",
-        "//scp/cc/core/http2_client/mock:http2_client_mock",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//scp/cc/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/http2_client/mock:http2_client_mock",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
         "@com_google_absl//absl/status:statusor",
     ],
 )

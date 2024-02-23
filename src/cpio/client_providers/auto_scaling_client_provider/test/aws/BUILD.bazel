@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "auto_scaling_error_converter_test",
@@ -22,10 +22,10 @@ cc_test(
     srcs =
         ["auto_scaling_error_converter_test.cc"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_lib",
-        "//scp/cc/cpio/common/src/aws:aws_utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_lib",
+        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@aws_sdk_cpp//:autoscaling",
         "@com_google_googletest//:gtest_main",
     ],
@@ -35,13 +35,13 @@ cc_library(
     name = "test_aws_auto_scaling_client_provider_lib",
     srcs = [
         "test_aws_auto_scaling_client_provider.cc",
-        "//scp/cc/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_srcs",
+        "//src/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_srcs",
     ],
     hdrs = [
         "test_aws_auto_scaling_client_provider.h",
     ],
     deps = [
-        "//scp/cc/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_lib",
-        "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",
+        "//src/cpio/client_providers/auto_scaling_client_provider/src/aws:aws_auto_scaling_client_provider_lib",
+        "//src/cpio/common/test/aws:test_aws_utils_lib",
     ],
 )

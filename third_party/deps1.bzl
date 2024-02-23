@@ -29,7 +29,7 @@ def _absl_deps():
         urls = ["https://github.com/abseil/abseil-cpp/archive/f845e60acd880dbf07788a5a2c0dbad0f9c57231.zip"],
     )
 
-    # use an older version of absl only for //scp/cc/aws/proxy/src:all. This is
+    # use an older version of absl only for //src/aws/proxy/src:all. This is
     # to work around the incompatibility between the clang-11 compiler used on
     # amazonlinux2 and the versions of absl since 2023-11-17 (commit 00e087f).
     # clang-11 doesn't have std::filesystem, instead it's in std::experimental

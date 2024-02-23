@@ -17,9 +17,9 @@
 #ifndef CORE_INTERFACE_HTTP_REQUEST_ROUTER_INTERFACE_H_
 #define CORE_INTERFACE_HTTP_REQUEST_ROUTER_INTERFACE_H_
 
-#include "scp/cc/core/interface/http_request_route_resolver_interface.h"
-#include "scp/cc/core/interface/http_types.h"
-#include "scp/cc/core/interface/service_interface.h"
+#include "src/core/interface/http_request_route_resolver_interface.h"
+#include "src/core/interface/http_types.h"
+#include "src/core/interface/service_interface.h"
 
 namespace google::scp::core {
 /**

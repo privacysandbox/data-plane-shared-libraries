@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "include/v8.h"
-#include "scp/cc/roma/sandbox/native_function_binding/src/native_function_invoker.h"
+#include "src/roma/sandbox/native_function_binding/src/native_function_invoker.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 class V8IsolateFunctionBinding {

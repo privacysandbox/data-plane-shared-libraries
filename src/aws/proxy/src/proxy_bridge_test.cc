@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/aws/proxy/src/proxy_bridge.h"
+#include "src/aws/proxy/src/proxy_bridge.h"
 
 #include <gtest/gtest.h>
 

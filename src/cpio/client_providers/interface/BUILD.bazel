@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "cpio_client_providers_interface_lib",
@@ -22,25 +22,25 @@ cc_library(
         ":cpio_client_provider_interface_srcs",
     ],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/public/core/interface:execution_result",
-        "//scp/cc/public/cpio/interface:type_def",
-        "//scp/cc/public/cpio/interface/blob_storage_client:type_def",
-        "//scp/cc/public/cpio/interface/kms_client:type_def",
-        "//scp/cc/public/cpio/interface/metric_client:metric_client_interface",
-        "//scp/cc/public/cpio/interface/metric_client:type_def",
-        "//scp/cc/public/cpio/interface/parameter_client:type_def",
-        "//scp/cc/public/cpio/interface/private_key_client:type_def",
-        "//scp/cc/public/cpio/proto/blob_storage_service/v1:blob_storage_service_cc_proto",
-        "//scp/cc/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
-        "//scp/cc/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
-        "//scp/cc/public/cpio/proto/kms_service/v1:kms_service_cc_proto",
-        "//scp/cc/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
-        "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
-        "//scp/cc/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
-        "//scp/cc/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
-        "//scp/cc/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
-        "//scp/cc/public/cpio/utils/metric_aggregation/interface:type_def",
+        "//src/core/interface:interface_lib",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface:type_def",
+        "//src/public/cpio/interface/blob_storage_client:type_def",
+        "//src/public/cpio/interface/kms_client:type_def",
+        "//src/public/cpio/interface/metric_client:metric_client_interface",
+        "//src/public/cpio/interface/metric_client:type_def",
+        "//src/public/cpio/interface/parameter_client:type_def",
+        "//src/public/cpio/interface/private_key_client:type_def",
+        "//src/public/cpio/proto/blob_storage_service/v1:blob_storage_service_cc_proto",
+        "//src/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//src/public/cpio/proto/kms_service/v1:kms_service_cc_proto",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//src/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
+        "//src/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
+        "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
+        "//src/public/cpio/utils/metric_aggregation/interface:type_def",
         "@com_google_absl//absl/status:statusor",
         "@com_google_protobuf//:protobuf",
     ],
@@ -92,7 +92,7 @@ cc_library(
             "type_def.h",
         ],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/interface:interface_lib",
         "@com_google_protobuf//:protobuf",
     ],
 )

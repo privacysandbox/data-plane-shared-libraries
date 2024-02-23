@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider_utils.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -23,9 +23,9 @@
 #include <string>
 #include <utility>
 
-#include "scp/cc/core/interface/http_types.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/interface/http_types.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 namespace google::scp::cpio::client_providers::test {
 namespace {

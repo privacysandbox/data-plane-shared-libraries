@@ -23,10 +23,10 @@
 #include <string_view>
 #include <vector>
 
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/core/logger/interface/log_provider_interface.h"
-#include "scp/cc/core/logger/src/log_providers/console_log_provider.h"
-#include "scp/cc/core/logger/src/log_utils.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/logger/interface/log_provider_interface.h"
+#include "src/core/logger/src/log_providers/console_log_provider.h"
+#include "src/core/logger/src/log_utils.h"
 
 namespace google::scp::core::logger::mock {
 class MockLogProvider : public ConsoleLogProvider {

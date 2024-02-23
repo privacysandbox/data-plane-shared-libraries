@@ -23,7 +23,7 @@ cc_library(
         "mock_async_executor_with_internals.h",
     ],
     deps = [
-        "//scp/cc/core/async_executor/src:core_async_executor_lib",
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/async_executor/src:core_async_executor_lib",
+        "//src/core/interface:interface_lib",
     ],
 )

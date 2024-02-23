@@ -22,8 +22,8 @@
 #include <string>
 
 #include "google/cloud/options.h"
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/gcp/gcp_blob_storage_client_provider.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/src/gcp/gcp_blob_storage_client_provider.h"
+#include "src/public/cpio/interface/blob_storage_client/type_def.h"
 
 namespace google::scp::cpio::client_providers {
 class TestGcpCloudStorageFactory : public GcpCloudStorageFactory {

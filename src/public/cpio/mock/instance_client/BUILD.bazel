@@ -24,7 +24,7 @@ cc_library(
             "mock_instance_client.h",
         ],
     deps = [
-        "//scp/cc/public/cpio/interface/instance_client",
+        "//src/public/cpio/interface/instance_client",
         "@com_google_googletest//:gtest",
     ],
 )

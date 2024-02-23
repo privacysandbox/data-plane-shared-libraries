@@ -22,10 +22,10 @@
 #include <string>
 
 #include "google/protobuf/any.pb.h"
-#include "scp/cc/core/common/concurrent_map/src/concurrent_map.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/message_router_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/common/concurrent_map/src/concurrent_map.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/message_router_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

@@ -27,13 +27,13 @@
 #include "absl/synchronization/notification.h"
 #include "proto/hpke.pb.h"
 #include "proto/tink.pb.h"
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/core/interface/type_def.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/private_key_client/private_key_client_interface.h"
-#include "scp/cc/public/cpio/interface/private_key_client/type_def.h"
+#include "src/core/interface/errors.h"
+#include "src/core/interface/type_def.h"
 #include "src/cpp/encryption/key_fetcher/src/key_fetcher_utils.h"
 #include "src/cpp/metric/key_fetch.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/private_key_client/private_key_client_interface.h"
+#include "src/public/cpio/interface/private_key_client/type_def.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

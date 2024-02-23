@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
+#include "src/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -25,8 +25,8 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "scp/cc/core/test/utils/auto_init_run_stop.h"
-#include "scp/cc/roma/wasm/src/testing_utils.h"
+#include "src/core/test/utils/auto_init_run_stop.h"
+#include "src/roma/wasm/src/testing_utils.h"
 
 using google::scp::core::test::ResultIs;
 using google::scp::roma::kDefaultExecutionTimeout;
@@ -308,7 +308,7 @@ TEST_F(V8JsEngineTest, CanRunWasmCode) {
   engine.Run();
 
   const auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-      "./scp/cc/roma/testing/cpp_wasm_string_in_string_out_example/"
+      "./src/roma/testing/cpp_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
   const auto wasm_code = std::string(
       reinterpret_cast<const char*>(wasm_bin.data()), wasm_bin.size());
@@ -328,7 +328,7 @@ TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
   engine.Run();
 
   const auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-      "./scp/cc/roma/testing/cpp_wasm_string_in_string_out_example/"
+      "./src/roma/testing/cpp_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
   const auto wasm_code = std::string(
       reinterpret_cast<const char*>(wasm_bin.data()), wasm_bin.size());
@@ -348,7 +348,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfInputCannotBeParsed) {
   engine.Run();
 
   const auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-      "./scp/cc/roma/testing/cpp_wasm_string_in_string_out_example/"
+      "./src/roma/testing/cpp_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
   const auto wasm_code = std::string(
       reinterpret_cast<const char*>(wasm_bin.data()), wasm_bin.size());
@@ -645,7 +645,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
           }
         )""";
   const auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-      "./scp/cc/roma/testing/cpp_wasi_dependency_example/wasi_dependency.wasm");
+      "./src/roma/testing/cpp_wasi_dependency_example/wasi_dependency.wasm");
   const auto wasm = absl::Span<const uint8_t>(
       reinterpret_cast<const uint8_t*>(wasm_bin.data()), wasm_bin.size());
   {

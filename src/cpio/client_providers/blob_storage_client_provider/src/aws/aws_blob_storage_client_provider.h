@@ -30,12 +30,12 @@
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/ListObjectsRequest.h>
 
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/core/interface/config_provider_interface.h"
-#include "scp/cc/core/interface/streaming_context.h"
-#include "scp/cc/cpio/client_providers/interface/blob_storage_client_provider_interface.h"
-#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/core/interface/config_provider_interface.h"
+#include "src/core/interface/streaming_context.h"
+#include "src/cpio/client_providers/interface/blob_storage_client_provider_interface.h"
+#include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "src/public/cpio/interface/blob_storage_client/type_def.h"
 
 namespace google::scp::cpio::client_providers {
 

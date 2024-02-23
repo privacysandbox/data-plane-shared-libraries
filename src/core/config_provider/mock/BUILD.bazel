@@ -20,8 +20,8 @@ cc_library(
     name = "core_config_provider_mock",
     hdrs = ["mock_config_provider.h"],
     deps = [
-        "//scp/cc/core/config_provider/src:config_provider_lib",
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/config_provider/src:config_provider_lib",
+        "//src/core/interface:interface_lib",
         "@com_google_absl//absl/container:flat_hash_map",
     ],
 )

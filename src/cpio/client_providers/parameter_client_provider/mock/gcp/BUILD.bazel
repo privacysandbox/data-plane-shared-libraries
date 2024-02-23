@@ -14,14 +14,14 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_parameter_client_provider_mock",
     hdrs = ["mock_gcp_parameter_client_provider_with_overrides.h"],
     deps = [
-        "//scp/cc/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//scp/cc/cpio/client_providers/parameter_client_provider/src/gcp:gcp_parameter_client_provider_lib",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/cpio/client_providers/parameter_client_provider/src/gcp:gcp_parameter_client_provider_lib",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager",
     ],
     alwayslink = 1,

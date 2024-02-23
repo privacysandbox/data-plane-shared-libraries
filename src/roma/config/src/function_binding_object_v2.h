@@ -20,7 +20,7 @@
 #include <functional>
 #include <string>
 
-#include "scp/cc/roma/interface/function_binding_io.pb.h"
+#include "src/roma/interface/function_binding_io.pb.h"
 
 namespace google::scp::roma {
 

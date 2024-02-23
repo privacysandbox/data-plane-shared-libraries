@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/core/blob_storage_provider/src/gcp/gcp_cloud_storage.h"
+#include "src/core/blob_storage_provider/src/gcp/gcp_cloud_storage.h"
 
 #include <gtest/gtest.h>
 
@@ -27,13 +27,13 @@
 #include "google/cloud/storage/client.h"
 #include "google/cloud/storage/internal/object_requests.h"
 #include "google/cloud/storage/testing/mock_client.h"
-#include "scp/cc/core/async_executor/mock/mock_async_executor.h"
-#include "scp/cc/core/async_executor/src/async_executor.h"
-#include "scp/cc/core/blob_storage_provider/src/common/error_codes.h"
-#include "scp/cc/core/interface/blob_storage_provider_interface.h"
-#include "scp/cc/core/utils/src/base64.h"
-#include "scp/cc/core/utils/src/hashing.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
+#include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/blob_storage_provider/src/common/error_codes.h"
+#include "src/core/interface/blob_storage_provider_interface.h"
+#include "src/core/utils/src/base64.h"
+#include "src/core/utils/src/hashing.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
 
 namespace google::scp::core::test {
 namespace {

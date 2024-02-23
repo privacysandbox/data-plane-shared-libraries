@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "core_credentials_provider_lib",
@@ -28,8 +28,8 @@ cc_library(
         "error_codes.h",
     ],
     deps = [
-        "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/async_executor/src/aws:core_aws_async_executor_lib",
+        "//src/core/interface:interface_lib",
         "@aws_sdk_cpp//:sts",
         "@com_google_absl//absl/functional:bind_front",
     ],

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/cpio/client_providers/kms_client_provider/src/gcp/tee_gcp_kms_client_provider_utils.h"
+#include "src/cpio/client_providers/kms_client_provider/src/gcp/tee_gcp_kms_client_provider_utils.h"
 
 #include <gtest/gtest.h>
 

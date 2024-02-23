@@ -23,15 +23,15 @@
 #include <utility>
 
 #include "google/cloud/storage/client.h"
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/core/interface/config_provider_interface.h"
-#include "scp/cc/core/interface/streaming_context.h"
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
-#include "scp/cc/cpio/client_providers/interface/blob_storage_client_provider_interface.h"
-#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "scp/cc/cpio/common/src/gcp/gcp_utils.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/core/interface/config_provider_interface.h"
+#include "src/core/interface/streaming_context.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
+#include "src/cpio/client_providers/interface/blob_storage_client_provider_interface.h"
+#include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "src/cpio/common/src/gcp/gcp_utils.h"
+#include "src/public/cpio/interface/blob_storage_client/type_def.h"
 
 namespace google::scp::cpio::client_providers {
 

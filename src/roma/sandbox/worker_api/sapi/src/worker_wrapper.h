@@ -28,10 +28,10 @@
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/var_int.h"
-#include "scp/cc/roma/config/src/config.h"
-#include "scp/cc/roma/sandbox/worker_api/sapi/src/error_codes.h"
-#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
-#include "scp/cc/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
+#include "src/roma/config/src/config.h"
+#include "src/roma/sandbox/worker_api/sapi/src/error_codes.h"
+#include "src/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
 
 // All of the types used for these functions, that're wrapped by SAPI, must be
 // C types and cannot be complex C++ types.

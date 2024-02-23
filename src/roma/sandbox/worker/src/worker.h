@@ -30,7 +30,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
-#include "scp/cc/roma/sandbox/js_engine/src/js_engine.h"
+#include "src/roma/sandbox/js_engine/src/js_engine.h"
 
 namespace google::scp::roma::sandbox::worker {
 /// @brief This class acts a single-threaded worker which receives work items

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/cpio/client_providers/kms_client_provider/src/gcp/gcp_kms_aead.h"
+#include "src/cpio/client_providers/kms_client_provider/src/gcp/gcp_kms_aead.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -21,7 +21,7 @@
 #include <string>
 
 #include "google/cloud/kms/key_management_client.h"
-#include "scp/cc/cpio/client_providers/kms_client_provider/mock/gcp/mock_gcp_key_management_service_client.h"
+#include "src/cpio/client_providers/kms_client_provider/mock/gcp/mock_gcp_key_management_service_client.h"
 
 using crypto::tink::Aead;
 using crypto::tink::util::StatusOr;

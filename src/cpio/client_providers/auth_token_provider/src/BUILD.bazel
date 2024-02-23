@@ -21,10 +21,10 @@ cc_library(
     deps = select(
         {
             "//:aws_platform": [
-                "//scp/cc/cpio/client_providers/auth_token_provider/src/aws:aws_auth_token_provider_lib",
+                "//src/cpio/client_providers/auth_token_provider/src/aws:aws_auth_token_provider_lib",
             ],
             "//:gcp_platform": [
-                "//scp/cc/cpio/client_providers/auth_token_provider/src/gcp:gcp_auth_token_provider_lib",
+                "//src/cpio/client_providers/auth_token_provider/src/gcp:gcp_auth_token_provider_lib",
             ],
         },
         no_match_error = "Please build for AWS or GCP",

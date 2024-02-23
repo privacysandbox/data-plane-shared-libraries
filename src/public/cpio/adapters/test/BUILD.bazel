@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "public_mocks_test",
@@ -24,14 +24,14 @@ cc_test(
             "public_mocks_test.cc",
         ],
     deps = [
-        "//scp/cc/public/cpio/mock/blob_storage_client:blob_storage_client_mock",
-        "//scp/cc/public/cpio/mock/crypto_client:crypto_client_mock",
-        "//scp/cc/public/cpio/mock/instance_client:instance_client_mock",
-        "//scp/cc/public/cpio/mock/kms_client:kms_client_mock",
-        "//scp/cc/public/cpio/mock/metric_client:metric_client_mock",
-        "//scp/cc/public/cpio/mock/parameter_client:parameter_client_mock",
-        "//scp/cc/public/cpio/mock/private_key_client:private_key_client_mock",
-        "//scp/cc/public/cpio/mock/public_key_client:public_key_client_mock",
+        "//src/public/cpio/mock/blob_storage_client:blob_storage_client_mock",
+        "//src/public/cpio/mock/crypto_client:crypto_client_mock",
+        "//src/public/cpio/mock/instance_client:instance_client_mock",
+        "//src/public/cpio/mock/kms_client:kms_client_mock",
+        "//src/public/cpio/mock/metric_client:metric_client_mock",
+        "//src/public/cpio/mock/parameter_client:parameter_client_mock",
+        "//src/public/cpio/mock/private_key_client:private_key_client_mock",
+        "//src/public/cpio/mock/public_key_client:public_key_client_mock",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],

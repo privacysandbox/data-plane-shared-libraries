@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "core_test_lib",
@@ -31,7 +31,7 @@ cc_test(
     size = "small",
     srcs = ["service_interface_test.cc"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/interface:interface_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -41,9 +41,9 @@ cc_test(
     size = "small",
     srcs = ["errors_test.cc"],
     deps = [
-        "//scp/cc/core/common/concurrent_queue/src:concurrent_queue_lib",
-        "//scp/cc/core/http2_client/src:errors_lib",
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/common/concurrent_queue/src:concurrent_queue_lib",
+        "//src/core/http2_client/src:errors_lib",
+        "//src/core/interface:interface_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -53,7 +53,7 @@ cc_test(
     size = "small",
     srcs = ["type_def_test.cc"],
     deps = [
-        "//scp/cc/core/interface:type_def_lib",
+        "//src/core/interface:type_def_lib",
         "@com_google_googletest//:gtest_main",
     ],
 )

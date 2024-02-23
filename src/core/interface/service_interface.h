@@ -17,7 +17,7 @@
 #ifndef CORE_INTERFACE_SERVICE_INTERFACE_H_
 #define CORE_INTERFACE_SERVICE_INTERFACE_H_
 
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core {
 /**

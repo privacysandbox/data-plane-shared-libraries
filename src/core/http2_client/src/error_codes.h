@@ -15,8 +15,8 @@
 #ifndef CORE_HTTP2_CLIENT_SRC_ERROR_CODES_H_
 #define CORE_HTTP2_CLIENT_SRC_ERROR_CODES_H_
 
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core::errors {
 /// Registers component code as 0x0012 for HTTP2 Client.

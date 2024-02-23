@@ -20,29 +20,29 @@ cc_library(
     name = "test_aws_parameter_client_options",
     hdrs = ["test_aws_parameter_client_options.h"],
     deps = [
-        "//scp/cc/public/cpio/interface/parameter_client:type_def",
+        "//src/public/cpio/interface/parameter_client:type_def",
     ],
 )
 
 cc_library(
     name = "test_aws_parameter_client",
     srcs = [
-        "//scp/cc/public/cpio/adapters/parameter_client/src:parameter_client_srcs",
-        "//scp/cc/public/cpio/adapters/parameter_client/test:test_aws_parameter_client_srcs",
+        "//src/public/cpio/adapters/parameter_client/src:parameter_client_srcs",
+        "//src/public/cpio/adapters/parameter_client/test:test_aws_parameter_client_srcs",
     ],
     hdrs = [
-        "//scp/cc/public/cpio/interface/parameter_client:parameter_client_interface.h",
+        "//src/public/cpio/interface/parameter_client:parameter_client_interface.h",
     ],
     deps = [
         ":test_aws_parameter_client_options",
-        "//scp/cc/core/interface:async_context_lib",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/utils/src:core_utils",
-        "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//scp/cc/cpio/client_providers/parameter_client_provider/test/aws:test_aws_parameter_client_provider_lib",
-        "//scp/cc/public/cpio/adapters/common:adapter_utils",
-        "//scp/cc/public/cpio/interface:type_def",
-        "//scp/cc/public/cpio/interface/parameter_client:type_def",
-        "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//src/core/interface:async_context_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/utils/src:core_utils",
+        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/cpio/client_providers/parameter_client_provider/test/aws:test_aws_parameter_client_provider_lib",
+        "//src/public/cpio/adapters/common:adapter_utils",
+        "//src/public/cpio/interface:type_def",
+        "//src/public/cpio/interface/parameter_client:type_def",
+        "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
     ],
 )

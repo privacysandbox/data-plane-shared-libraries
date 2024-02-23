@@ -24,9 +24,9 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
-#include "scp/cc/roma/logging/src/logging.h"
-#include "scp/cc/roma/sandbox/constants/constants.h"
 #include "src/cpp/util/status_macro/status_macros.h"
+#include "src/roma/logging/src/logging.h"
+#include "src/roma/sandbox/constants/constants.h"
 
 using google::scp::core::errors::GetErrorMessage;
 

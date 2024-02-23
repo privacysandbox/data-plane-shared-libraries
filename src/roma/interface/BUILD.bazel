@@ -32,8 +32,8 @@ cc_library(
     name = "interface",
     hdrs = ["roma.h"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/roma/config/src:config",
+        "//src/core/interface:interface_lib",
+        "//src/roma/config/src:config",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/status",
@@ -44,6 +44,6 @@ cc_library(
 buf_lint_test(
     name = "function_binding_io_proto_lint",
     size = "small",
-    config = "//scp:buf.yaml",
+    config = "//src:buf.yaml",
     targets = [":function_binding_io_proto"],
 )

@@ -18,19 +18,19 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "errors",
-    srcs = ["//scp/cc/public/core/src:errors.cc"],
+    srcs = ["//src/public/core/src:errors.cc"],
     hdrs = ["errors.h"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/interface:interface_lib",
     ],
 )
 
 cc_library(
     name = "execution_result",
-    srcs = ["//scp/cc/public/core/src:execution_result.cc"],
+    srcs = ["//src/public/core/src:execution_result.cc"],
     hdrs = ["execution_result.h"],
     deps = [
-        "//scp/cc/core/common/proto:core_common_proto_lib",
+        "//src/core/common/proto:core_common_proto_lib",
         "@com_google_absl//absl/container:flat_hash_map",
     ],
 )

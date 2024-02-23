@@ -39,14 +39,14 @@
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
-#include "scp/cc/core/async_executor/src/aws/aws_async_executor.h"
-#include "scp/cc/core/utils/src/base64.h"
-#include "scp/cc/core/utils/src/hashing.h"
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/aws/aws_blob_storage_client_utils.h"
-#include "scp/cc/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
-#include "scp/cc/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
-#include "scp/cc/cpio/common/src/aws/aws_utils.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/core/async_executor/src/aws/aws_async_executor.h"
+#include "src/core/utils/src/base64.h"
+#include "src/core/utils/src/hashing.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/src/aws/aws_blob_storage_client_utils.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
+#include "src/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
+#include "src/cpio/common/src/aws/aws_utils.h"
+#include "src/public/cpio/interface/blob_storage_client/type_def.h"
 
 using Aws::MakeShared;
 using Aws::String;

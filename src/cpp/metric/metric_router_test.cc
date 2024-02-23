@@ -80,6 +80,7 @@ class MetricRouterTest : public ::testing::Test {
                     kExportIntervalMillis / 2)}));
     return provider;
   }
+
   telemetry::BuildDependentConfig InitConfig(
       absl::Duration dp_export_interval) {
     telemetry::TelemetryConfig config_proto;
@@ -101,6 +102,7 @@ class MetricRouterTest : public ::testing::Test {
     static auto* ss = new std::stringstream();
     return *ss;
   }
+
   std::string ReadSs() {
     absl::SleepFor(absl::Milliseconds(kExportIntervalMillis * 2));
     // Shut down metric reader now to avoid concurrent access of Ss.
@@ -109,6 +111,7 @@ class MetricRouterTest : public ::testing::Test {
     GetSs().str("");
     return output;
   }
+
   std::unique_ptr<MetricRouter> test_instance_;
 };
 
@@ -211,6 +214,7 @@ class MetricRouterDpNoNoiseTest : public MetricRouterTest {
         init(), "not used name", "0.0.1", PrivacyBudget{1e10},
         InitConfig(kDpInterval));
   }
+
   absl::Duration kDpInterval = 5 * absl::Milliseconds(kExportIntervalMillis);
 };
 
@@ -262,6 +266,7 @@ class MetricRouterDpNoiseTest : public MetricRouterTest {
                                                     "0.0.1", PrivacyBudget{0.5},
                                                     InitConfig(kDpInterval));
   }
+
   absl::Duration kDpInterval = 5 * absl::Milliseconds(kExportIntervalMillis);
 };
 

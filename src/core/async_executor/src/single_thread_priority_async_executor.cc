@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-#include "scp/cc/core/common/time_provider/src/time_provider.h"
+#include "src/core/common/time_provider/src/time_provider.h"
 
 #include "async_executor_utils.h"
 #include "error_codes.h"

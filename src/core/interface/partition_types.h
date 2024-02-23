@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "scp/cc/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/src/uuid.h"
 
 namespace google::scp::core {
 

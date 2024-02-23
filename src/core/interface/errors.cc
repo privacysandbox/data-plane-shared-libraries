@@ -17,7 +17,7 @@
 #include "errors.h"
 
 #include "absl/container/flat_hash_map.h"
-#include "scp/cc/public/core/interface/execution_result.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core::errors {
 

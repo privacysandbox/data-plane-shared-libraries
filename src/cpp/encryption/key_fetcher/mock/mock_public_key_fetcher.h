@@ -18,9 +18,9 @@
 
 #include "absl/status/statusor.h"
 #include "include/gtest/gtest.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "src/cpp/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
 
 namespace privacy_sandbox::server_common {
 

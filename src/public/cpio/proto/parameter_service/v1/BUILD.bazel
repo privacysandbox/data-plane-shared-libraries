@@ -22,7 +22,7 @@ proto_library(
     name = "parameter_service_proto",
     srcs = ["parameter_service.proto"],
     deps = [
-        "//scp/cc/core/common/proto:core_common_proto",
+        "//src/core/common/proto:core_common_proto",
     ],
 )
 
@@ -42,6 +42,6 @@ cc_grpc_library(
 buf_lint_test(
     name = "parameter_service_proto_lint",
     size = "small",
-    config = "//scp:buf.yaml",
+    config = "//src:buf.yaml",
     targets = [":parameter_service_proto"],
 )

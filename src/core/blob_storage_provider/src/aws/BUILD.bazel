@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "core_blob_storage_provider_aws_lib",
@@ -24,11 +24,11 @@ cc_library(
         "aws_s3_utils.h",
     ],
     deps = [
-        "//scp/cc/core/async_executor/src/aws:core_aws_async_executor_lib",
-        "//scp/cc/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",
-        "//scp/cc/core/common/global_logger/src:global_logger_lib",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/utils/src:core_utils",
+        "//src/core/async_executor/src/aws:core_aws_async_executor_lib",
+        "//src/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",
+        "//src/core/common/global_logger/src:global_logger_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/utils/src:core_utils",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
         "@com_google_absl//absl/functional:bind_front",

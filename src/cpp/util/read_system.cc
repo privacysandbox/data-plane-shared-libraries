@@ -41,8 +41,7 @@ std::vector<size_t> SystemCpuTime() {
   }
   proc_stat.ignore(5, ' ');  // Skip the 'cpu' prefix.
   std::vector<size_t> cpu_times;
-  for (size_t time; proc_stat >> time; cpu_times.push_back(time)) {
-  }
+  for (size_t time; proc_stat >> time; cpu_times.push_back(time)) {}
   return cpu_times;
 }
 
@@ -55,8 +54,7 @@ std::vector<std::string> SelfStat() {
   }
   std::vector<std::string> self_stat_fields;
   for (std::string field; proc_self_stat >> field;
-       self_stat_fields.push_back(field)) {
-  }
+       self_stat_fields.push_back(field)) {}
   return self_stat_fields;
 }
 }  // namespace

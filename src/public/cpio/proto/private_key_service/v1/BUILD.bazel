@@ -22,7 +22,7 @@ proto_library(
     name = "private_key_service_proto",
     srcs = ["private_key_service.proto"],
     deps = [
-        "//scp/cc/core/common/proto:core_common_proto",
+        "//src/core/common/proto:core_common_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )
@@ -43,6 +43,6 @@ cc_grpc_library(
 buf_lint_test(
     name = "private_key_service_proto_lint",
     size = "small",
-    config = "//scp:buf.yaml",
+    config = "//src:buf.yaml",
     targets = [":private_key_service_proto"],
 )

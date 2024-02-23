@@ -22,22 +22,22 @@ cc_library(
         "test_aws_kms_client_options.h",
     ],
     deps = [
-        "//scp/cc/public/cpio/interface/kms_client:type_def",
+        "//src/public/cpio/interface/kms_client:type_def",
     ],
 )
 
 cc_library(
     name = "test_aws_kms_client",
     srcs = [
-        "//scp/cc/public/cpio/adapters/kms_client/src:kms_client_srcs",
-        "//scp/cc/public/cpio/adapters/kms_client/test:test_aws_kms_client_srcs",
+        "//src/public/cpio/adapters/kms_client/src:kms_client_srcs",
+        "//src/public/cpio/adapters/kms_client/test:test_aws_kms_client_srcs",
     ],
     hdrs = [
-        "//scp/cc/public/cpio/interface/kms_client:kms_client_interface.h",
+        "//src/public/cpio/interface/kms_client:kms_client_interface.h",
     ],
     deps = [
         ":test_aws_kms_client_options",
-        "//scp/cc/cpio/client_providers/kms_client_provider/src/aws:test_aws_kms_client_provider_lib",
-        "//scp/cc/public/cpio/interface/kms_client",
+        "//src/cpio/client_providers/kms_client_provider/src/aws:test_aws_kms_client_provider_lib",
+        "//src/public/cpio/interface/kms_client",
     ],
 )

@@ -130,6 +130,7 @@ class MetricConfigTest : public ::testing::Test {
     metric_config_ =
         std::make_unique<telemetry::BuildDependentConfig>(config_proto);
   }
+
   std::unique_ptr<telemetry::BuildDependentConfig> metric_config_;
 };
 

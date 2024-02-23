@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/public/cpio/validator/instance_client_validator.h"
+#include "src/public/cpio/validator/instance_client_validator.h"
 
 #include <utility>
 
 #include "absl/functional/bind_front.h"
 #include "absl/log/log.h"
 #include "absl/synchronization/notification.h"
-#include "scp/cc/public/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/instance_client/instance_client_interface.h"
-#include "scp/cc/public/cpio/interface/instance_client/type_def.h"
-#include "scp/cc/public/cpio/proto/instance_service/v1/instance_service.pb.h"
-#include "scp/cc/public/cpio/validator/proto/validator_config.pb.h"
+#include "src/public/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/instance_client/instance_client_interface.h"
+#include "src/public/cpio/interface/instance_client/type_def.h"
+#include "src/public/cpio/proto/instance_service/v1/instance_service.pb.h"
+#include "src/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {
 

@@ -8,7 +8,7 @@ Config AWS credential in ~/.aws/credentials.
 
 Run the following command to create the AMI:
 
-        bazel run --//:platform=aws scp/cc/public/cpio/examples/deploy/aws/enclave:cpio_test
+        bazel run --//:platform=aws src/public/cpio/examples/deploy/aws/enclave:cpio_test
 
 ## Bring up EC2 instance
 

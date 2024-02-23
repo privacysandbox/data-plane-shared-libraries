@@ -60,6 +60,7 @@ absl::StatusCode MapStatusCode(grpc::StatusCode const& code) {
       return absl::StatusCode::kUnknown;
   }
 }
+
 grpc::StatusCode MapStatusCode(absl::StatusCode const& code) {
   switch (code) {
     case absl::StatusCode::kOk:

@@ -21,7 +21,7 @@ cc_library(
     srcs = ["log_utils.cc"],
     hdrs = ["log_utils.h"],
     deps = [
-        "//scp/cc/core/logger/interface:logger_interface_lib",
+        "//src/core/logger/interface:logger_interface_lib",
         "@com_google_absl//absl/strings",
     ],
 )

@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "blob_storage_provider_mock",
@@ -24,9 +24,9 @@ cc_library(
         "mock_blob_storage_provider.h",
     ],
     deps = [
-        "//scp/cc/core/blob_storage_provider/src/aws:core_blob_storage_provider_aws_lib",
-        "//scp/cc/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",
-        "//scp/cc/core/interface:interface_lib",
+        "//src/core/blob_storage_provider/src/aws:core_blob_storage_provider_aws_lib",
+        "//src/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",
+        "//src/core/interface:interface_lib",
         "@com_google_absl//absl/strings",
     ],
 )

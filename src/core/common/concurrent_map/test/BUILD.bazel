@@ -14,17 +14,17 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_test(
     name = "concurrent_map_test",
     size = "small",
     srcs = ["concurrent_map_test.cc"],
     deps = [
-        "//scp/cc/core/common/concurrent_map/src:concurrent_map_lib",
-        "//scp/cc/core/interface:type_def_lib",
-        "//scp/cc/core/test/utils:utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/common/concurrent_map/src:concurrent_map_lib",
+        "//src/core/interface:type_def_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

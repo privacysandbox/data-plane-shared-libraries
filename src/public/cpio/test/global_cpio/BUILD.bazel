@@ -14,13 +14,13 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "test_cpio_options",
     hdrs = ["test_cpio_options.h"],
     deps = [
-        "//scp/cc/public/cpio/interface:type_def",
+        "//src/public/cpio/interface:type_def",
     ],
 )
 
@@ -28,20 +28,20 @@ cc_library(
     name = "test_lib_cpio",
     srcs = [
         "test_lib_cpio.cc",
-        "//scp/cc/public/cpio/core/src:cpio.cc",
+        "//src/public/cpio/core/src:cpio.cc",
     ],
     hdrs = [
         "test_lib_cpio.h",
-        "//scp/cc/public/cpio/interface:cpio.h",
+        "//src/public/cpio/interface:cpio.h",
     ],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/logger/src:logger_lib",
-        "//scp/cc/core/logger/src/log_providers:log_providers_lib",
-        "//scp/cc/core/logger/src/log_providers/syslog:syslog_lib",
-        "//scp/cc/cpio/client_providers/cloud_initializer/src:cloud_initializer_select_lib",
-        "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//scp/cc/cpio/client_providers/global_cpio/test:test_lib_cpio_provider",
-        "//scp/cc/public/cpio/core/src:cpio_utils_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/logger/src:logger_lib",
+        "//src/core/logger/src/log_providers:log_providers_lib",
+        "//src/core/logger/src/log_providers/syslog:syslog_lib",
+        "//src/cpio/client_providers/cloud_initializer/src:cloud_initializer_select_lib",
+        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio/test:test_lib_cpio_provider",
+        "//src/public/cpio/core/src:cpio_utils_lib",
     ],
 )

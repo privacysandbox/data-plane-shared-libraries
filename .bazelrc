@@ -27,8 +27,8 @@ build:cpp_nowarn --copt=-Werror
 build:cpp_nowarn --per_file_copt=external/.*@-Wno-error
 build:cpp_nowarn --per_file_copt=scp/.*_test\.cc@-Wno-unused-variable
 build:cpp_nowarn --per_file_copt=src/cpp/(metric|telemetry)/.*@-Wno-deprecated-declarations
-build:cpp_nowarn --per_file_copt=scp/cc/cpio/client_providers/.*_client_provider/.*@-Wno-deprecated-declarations
-build:cpp_nowarn --per_file_copt=scp/cc/core/blob_storage_provider/test/gcp/.*@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/cpio/client_providers/.*_client_provider/.*@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/core/blob_storage_provider/test/gcp/.*@-Wno-deprecated-declarations
 
 build:roma_sandboxed --per_file_copt=.*sandboxed_api.*@-Wno-return-type
 build:roma_sandboxed --cxxopt=-fbracket-depth=512
@@ -104,7 +104,7 @@ build:ubsan --strip=never
 build:ubsan --copt=-fsanitize=undefined
 build:ubsan --copt=-O1
 build:ubsan --copt=-fno-omit-frame-pointer
-build:ubsan --per_file_copt=//scp/cc/roma/sandbox/worker_api/sapi/.*@-DUNDEFINED_BEHAVIOR_SANITIZER
+build:ubsan --per_file_copt=//src/roma/sandbox/worker_api/sapi/.*@-DUNDEFINED_BEHAVIOR_SANITIZER
 build:ubsan --linkopt=-lubsan
 build:ubsan --test_tag_filters=-noubsan
 

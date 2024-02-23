@@ -28,8 +28,8 @@ cc_library(
         "error_codes.h",
     ],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/utils/src:core_utils",
+        "//src/core/interface:interface_lib",
+        "//src/core/utils/src:core_utils",
         "@nlohmann_json//:lib",
     ],
 )

@@ -138,6 +138,7 @@
       (__VA_ARGS__, PS_STATUS_MACROS_IMPL_PS_ASSIGN_OR_RETURN_3_, \
        PS_STATUS_MACROS_IMPL_PS_ASSIGN_OR_RETURN_2_))             \
   (__VA_ARGS__)
+
 // =================================================================
 // == Implementation details, do not rely on anything below here. ==
 // =================================================================
@@ -151,6 +152,7 @@ constexpr bool HasPotentialConditionalOperator(const char* lhs, int index) {
                            HasPotentialConditionalOperator(lhs, index - 1)));
 }
 }  // namespace privacy_sandbox::server_common::internal
+
 #define PS_STATUS_MACROS_IMPL_GET_VARIADIC_HELPER_(_1, _2, _3, NAME, ...) NAME
 #define PS_STATUS_MACROS_IMPL_GET_VARIADIC_(args) \
   PS_STATUS_MACROS_IMPL_GET_VARIADIC_HELPER_ args
@@ -247,10 +249,12 @@ constexpr bool HasPotentialConditionalOperator(const char* lhs, int index) {
   switch (0)                                \
   case 0:                                   \
   default:  // NOLINT
+
 // Forward decl to avoid a heavy dependency on grpc.
 namespace grpc {
 class Status;
 }
+
 namespace privacy_sandbox::server_common {
 namespace status_macro_internal {
 // Provides a conversion to bool so that it can be used inside an if statement
@@ -259,17 +263,24 @@ class StatusAdaptorForMacros {
  public:
   StatusAdaptorForMacros(const absl::Status& status, SourceLocation loc)
       : builder_(status, loc) {}
+
   StatusAdaptorForMacros(const grpc::Status& grpc_status, SourceLocation loc)
       : builder_(ToAbslStatus(grpc_status), loc) {}
+
   StatusAdaptorForMacros(absl::Status&& status, SourceLocation loc)
       : builder_(std::move(status), loc) {}
+
   StatusAdaptorForMacros(const StatusBuilder& builder, SourceLocation loc)
       : builder_(builder) {}
+
   StatusAdaptorForMacros(StatusBuilder&& builder, SourceLocation loc)
       : builder_(std::move(builder)) {}
+
   StatusAdaptorForMacros(const StatusAdaptorForMacros&) = delete;
   StatusAdaptorForMacros& operator=(const StatusAdaptorForMacros&) = delete;
+
   explicit operator bool() const { return ABSL_PREDICT_TRUE(builder_.ok()); }
+
   StatusBuilder&& Consume() { return std::move(builder_); }
 
  private:

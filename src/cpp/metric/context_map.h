@@ -45,6 +45,7 @@ class ContextMap {
         safe_metric_(SafeContextT::GetContext(metric_router_.get())) {
     CHECK_OK(CheckListOrder());
   }
+
   ~ContextMap() = default;
 
   // ContextMap is neither copyable nor movable.
@@ -86,6 +87,7 @@ class ContextMap {
   telemetry::BuildDependentConfig& metric_config() {
     return metric_router_->metric_config();
   }
+
   const U& metric_router() const { return *metric_router_.get(); }
 
   absl::Status CheckListOrder() {

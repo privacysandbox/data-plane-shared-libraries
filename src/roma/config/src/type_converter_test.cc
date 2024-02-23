@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "scp/cc/roma/config/src/type_converter.h"
+#include "src/roma/config/src/type_converter.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -32,8 +32,8 @@
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "include/v8.h"
-#include "scp/cc/roma/interface/function_binding_io.pb.h"
 #include "src/cpp/util/process_util.h"
+#include "src/roma/interface/function_binding_io.pb.h"
 
 using ::testing::ElementsAreArray;
 using ::testing::StrEq;

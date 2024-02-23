@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "scp/cc/core/logger/interface/log_provider_interface.h"
+#include "src/core/logger/interface/log_provider_interface.h"
 
 namespace google::scp::core::logger {
 

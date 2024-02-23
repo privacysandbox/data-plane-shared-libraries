@@ -20,13 +20,13 @@
 #include <string_view>
 #include <utility>
 
-#include "scp/cc/core/common/global_logger/src/global_logger.h"
-#include "scp/cc/core/common/uuid/src/uuid.h"
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/type_def.h"
-#include "scp/cc/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
+#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/interface/errors.h"
+#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
 
 using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest;
 using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobResponse;

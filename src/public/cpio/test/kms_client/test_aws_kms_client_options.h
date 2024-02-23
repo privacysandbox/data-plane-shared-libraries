@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 
-#include "scp/cc/public/cpio/interface/kms_client/type_def.h"
-#include "scp/cc/public/cpio/test/kms_client/test_aws_kms_client_options.h"
+#include "src/public/cpio/interface/kms_client/type_def.h"
+#include "src/public/cpio/test/kms_client/test_aws_kms_client_options.h"
 
 namespace google::scp::cpio {
 /// BlobStorageClientOptions for testing on AWS.

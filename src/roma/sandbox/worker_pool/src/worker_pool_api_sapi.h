@@ -22,8 +22,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
-#include "scp/cc/roma/sandbox/worker_api/src/worker_api_sapi.h"
+#include "src/roma/sandbox/worker_api/src/worker_api.h"
+#include "src/roma/sandbox/worker_api/src/worker_api_sapi.h"
 
 #include "worker_pool.h"
 

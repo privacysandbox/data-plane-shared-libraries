@@ -21,10 +21,10 @@
 
 #include "google/cloud/credentials.h"
 #include "google/cloud/options.h"
-#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/type_def.h"
-#include "scp/cc/public/cpio/test/blob_storage_client/test_gcp_blob_storage_client_options.h"
+#include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/public/cpio/test/blob_storage_client/test_gcp_blob_storage_client_options.h"
 
 using google::cloud::MakeGoogleDefaultCredentials;
 using google::cloud::MakeImpersonateServiceAccountCredentials;

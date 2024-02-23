@@ -19,8 +19,8 @@
 
 #include <aws/s3/S3Client.h>
 
-#include "scp/cc/core/blob_storage_provider/src/common/error_codes.h"
-#include "scp/cc/core/interface/blob_storage_provider_interface.h"
+#include "src/core/blob_storage_provider/src/common/error_codes.h"
+#include "src/core/interface/blob_storage_provider_interface.h"
 
 namespace google::scp::core::blob_storage_provider {
 /**

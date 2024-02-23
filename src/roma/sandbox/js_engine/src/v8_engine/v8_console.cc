@@ -27,9 +27,9 @@
 #include "absl/log/log.h"
 #include "absl/strings/str_join.h"
 #include "include/v8.h"
-#include "scp/cc/roma/interface/function_binding_io.pb.h"
-#include "scp/cc/roma/logging/src/logging.h"
-#include "scp/cc/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/roma/interface/function_binding_io.pb.h"
+#include "src/roma/logging/src/logging.h"
+#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
 
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::proto::RpcWrapper;

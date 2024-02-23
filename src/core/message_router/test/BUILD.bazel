@@ -16,7 +16,7 @@ load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 proto_library(
     name = "test_proto",
@@ -34,10 +34,10 @@ cc_test(
     srcs = ["message_router_test.cc"],
     deps = [
         ":test_cc_proto",
-        "//scp/cc/core/common/concurrent_queue/src:concurrent_queue_lib",
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/core/message_router/src:message_router_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/common/concurrent_queue/src:concurrent_queue_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/message_router/src:message_router_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
@@ -48,6 +48,6 @@ cc_test(
 buf_lint_test(
     name = "test_proto_lint",
     size = "small",
-    config = "//scp:buf.yaml",
+    config = "//src:buf.yaml",
     targets = [":test_proto"],
 )

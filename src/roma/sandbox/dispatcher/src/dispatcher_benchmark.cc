@@ -17,7 +17,7 @@
  * output):
  *
  * builders/tools/bazel-debian run \
- * //scp/cc/roma/sandbox/dispatcher/src:dispatcher_benchmark \
+ * //src/roma/sandbox/dispatcher/src:dispatcher_benchmark \
  * --test_output=all
  */
 
@@ -25,14 +25,14 @@
 
 #include "absl/status/statusor.h"
 #include "absl/synchronization/blocking_counter.h"
-#include "scp/cc/core/async_executor/src/async_executor.h"
-#include "scp/cc/core/test/utils/auto_init_run_stop.h"
-#include "scp/cc/roma/interface/roma.h"
-#include "scp/cc/roma/sandbox/dispatcher/src/dispatcher.h"
-#include "scp/cc/roma/sandbox/worker_api/src/worker_api.h"
-#include "scp/cc/roma/sandbox/worker_api/src/worker_api_sapi.h"
-#include "scp/cc/roma/sandbox/worker_pool/src/worker_pool.h"
-#include "scp/cc/roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
+#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/test/utils/auto_init_run_stop.h"
+#include "src/roma/interface/roma.h"
+#include "src/roma/sandbox/dispatcher/src/dispatcher.h"
+#include "src/roma/sandbox/worker_api/src/worker_api.h"
+#include "src/roma/sandbox/worker_api/src/worker_api_sapi.h"
+#include "src/roma/sandbox/worker_pool/src/worker_pool.h"
+#include "src/roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
 
 namespace {
 

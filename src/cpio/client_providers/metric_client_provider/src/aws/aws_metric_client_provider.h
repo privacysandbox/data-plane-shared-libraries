@@ -25,14 +25,14 @@
 #include <aws/monitoring/CloudWatchClient.h>
 #include <aws/monitoring/model/PutMetricDataRequest.h>
 
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/core/interface/message_router_interface.h"
-#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "scp/cc/cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/cpio/interface/metric_client/type_def.h"
-#include "scp/cc/public/cpio/proto/metric_service/v1/metric_service.pb.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/core/interface/message_router_interface.h"
+#include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "src/cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/metric_client/type_def.h"
+#include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 #include "error_codes.h"
 

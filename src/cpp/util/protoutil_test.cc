@@ -23,7 +23,7 @@
 #include "google/protobuf/duration.pb.h"
 #include "google/protobuf/timestamp.pb.h"
 #include "gtest/gtest.h"
-#include "scp/cc/core/test/utils/proto_test_utils.h"
+#include "src/core/test/utils/proto_test_utils.h"
 
 using google::scp::core::test::EqualsProto;
 
@@ -75,8 +75,10 @@ TEST(ProtoUtilGoogleApi, RoundTripDuration) {
   // Shorthand to make the test cases readable.
   const auto& s = [](int64_t n) { return absl::Seconds(n); };
   const auto& ns = [](int64_t n) { return absl::Nanoseconds(n); };
+
   const struct {
     absl::Duration d;
+
     struct {
       int64_t sec;
       int32_t nsec;
@@ -102,8 +104,10 @@ TEST(ProtoUtilGoogleApi, DurationTruncTowardZero) {
   // Shorthand to make the test cases readable.
   const absl::Duration tick = absl::Nanoseconds(1) / 4;
   const auto& s = [](int64_t n) { return absl::Seconds(n); };
+
   const struct {
     absl::Duration d;
+
     struct {
       int64_t sec;
       int32_t nsec;
@@ -214,8 +218,10 @@ TEST(ProtoUtilGoogleApi, RoundTripTime) {
   const absl::Time epoch = absl::UnixEpoch();  // The protobuf epoch.
   const auto& s = [](int64_t n) { return absl::Seconds(n); };
   const auto& ns = [](int64_t n) { return absl::Nanoseconds(n); };
+
   const struct {
     absl::Time t;
+
     struct {
       int64_t sec;
       int32_t nsec;
@@ -242,8 +248,10 @@ TEST(ProtoUtilGoogleApi, TimeTruncTowardInfPast) {
   const absl::Time before_epoch = absl::FromUnixSeconds(-1234567890);
   const absl::Time epoch = absl::UnixEpoch();
   const absl::Time after_epoch = absl::FromUnixSeconds(1234567890);
+
   const struct {
     absl::Time t;
+
     struct {
       int64_t sec;
       int32_t nsec;

@@ -31,10 +31,10 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "scp/cc/roma/config/src/config.h"
-#include "scp/cc/roma/config/src/function_binding_object_v2.h"
-#include "scp/cc/roma/interface/roma.h"
-#include "scp/cc/roma/roma_service/roma_service.h"
+#include "src/roma/config/src/config.h"
+#include "src/roma/config/src/function_binding_object_v2.h"
+#include "src/roma/interface/roma.h"
+#include "src/roma/roma_service/roma_service.h"
 
 using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::sandbox::roma_service::RomaService;

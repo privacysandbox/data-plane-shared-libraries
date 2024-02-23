@@ -67,6 +67,7 @@ class BrotliDecoder {
  public:
   // Owns the decoder memory
   explicit BrotliDecoder(BrotliDecoderState* decoder) : decoder_(decoder) {}
+
   static absl::StatusOr<std::unique_ptr<BrotliDecoder>> Create() {
     BrotliDecoderState* decoder =
         BrotliDecoderCreateInstance(/* alloc_func= */ nullptr,

@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_parameter_client_provider_lib",
@@ -22,14 +22,14 @@ cc_library(
         ":gcp_parameter_client_provider_srcs",
     ],
     deps = [
-        "//scp/cc/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//scp/cc/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
-        "//scp/cc/cpio/client_providers/instance_client_provider/src/gcp:gcp_instance_client_provider_lib",
-        "//scp/cc/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//scp/cc/cpio/client_providers/interface:type_def",
-        "//scp/cc/cpio/common/src/gcp:gcp_utils_lib",
-        "//scp/cc/public/cpio/interface:cpio_errors",
-        "//scp/cc/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
+        "//src/cpio/client_providers/instance_client_provider/src/gcp:gcp_instance_client_provider_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:type_def",
+        "//src/cpio/common/src/gcp:gcp_utils_lib",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager",
     ],
 )

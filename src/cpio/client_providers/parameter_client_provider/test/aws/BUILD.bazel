@@ -14,21 +14,21 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//scp/cc:scp_internal_pkg"])
+package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "test_aws_parameter_client_provider_lib",
     srcs = [
         "test_aws_parameter_client_provider.cc",
-        "//scp/cc/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_srcs",
+        "//src/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_srcs",
     ],
     hdrs = [
         "test_aws_parameter_client_provider.h",
     ],
     deps = [
-        "//scp/cc/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_lib",
-        "//scp/cc/cpio/common/test/aws:test_aws_utils_lib",
-        "//scp/cc/public/cpio/test/parameter_client:test_aws_parameter_client_options",
+        "//src/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_lib",
+        "//src/cpio/common/test/aws:test_aws_utils_lib",
+        "//src/public/cpio/test/parameter_client:test_aws_parameter_client_options",
     ],
 )
 
@@ -38,10 +38,10 @@ cc_test(
     srcs =
         ["ssm_error_converter_test.cc"],
     deps = [
-        "//scp/cc/core/interface:interface_lib",
-        "//scp/cc/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_lib",
-        "//scp/cc/cpio/common/src/aws:aws_utils_lib",
-        "//scp/cc/public/core/test/interface:execution_result_matchers",
+        "//src/core/interface:interface_lib",
+        "//src/cpio/client_providers/parameter_client_provider/src/aws:aws_parameter_client_provider_lib",
+        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

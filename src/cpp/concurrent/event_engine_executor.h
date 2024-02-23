@@ -34,6 +34,7 @@ class EventEngineExecutor : public Executor {
       std::shared_ptr<grpc_event_engine::experimental::EventEngine>
           event_engine)
       : event_engine_(std::move(event_engine)) {}
+
   // EventEngineExecutor is neither copyable nor movable.
   EventEngineExecutor(const EventEngineExecutor&) = delete;
   EventEngineExecutor& operator=(const EventEngineExecutor&) = delete;
@@ -61,6 +62,7 @@ class EventEngineExecutor : public Executor {
 // Keep an GrpcInit object alive for the duration of grpc usage.
 struct GrpcInit {
   GrpcInit() { grpc_init(); }
+
   ~GrpcInit() { grpc_shutdown(); }
 };
 

@@ -54,7 +54,7 @@ The ROMA interface provides three public static functions for interacting with R
     requests in the batch are enqueued.
 
 To learn more about the structure of Roma requests and the API functions that are available, see the
-[roma interface](/scp/cc/roma/interface/roma.h) directory.
+[roma interface](/src/roma/interface/roma.h) directory.
 
 ## Data flow
 
@@ -165,8 +165,8 @@ converters for every odd type in Roma.
 
 1. To initialize Roma, you need to create a `Config` object. This object defines the number of
    workers, queue size, code object cache size, and resource limit for Roma. For more information on
-   how to configure Roma, see the file config.h in the
-   [roma/config](/scp/cc/roma/config/src/config.h) directory.
+   how to configure Roma, see the file config.h in the [roma/config](/src/roma/config/src/config.h)
+   directory.
 
     ```cpp
     // an example of UDF
@@ -178,8 +178,8 @@ converters for every odd type in Roma.
     Initialize Roma with its configuration configured.
 
     ```cpp
-    #include "scp/cc/roma/config/src/config.h"
-    #include "scp/cc/roma/interface/roma.h"
+    #include "src/roma/config/src/config.h"
+    #include "src/roma/interface/roma.h"
 
     // create a config for roma initialization
     Config config;

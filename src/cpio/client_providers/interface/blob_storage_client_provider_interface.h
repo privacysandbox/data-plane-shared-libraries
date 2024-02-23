@@ -21,14 +21,14 @@
 #include <string>
 #include <vector>
 
-#include "scp/cc/core/interface/async_context.h"
-#include "scp/cc/core/interface/async_executor_interface.h"
-#include "scp/cc/core/interface/service_interface.h"
-#include "scp/cc/core/interface/streaming_context.h"
-#include "scp/cc/core/interface/type_def.h"
-#include "scp/cc/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/type_def.h"
-#include "scp/cc/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/async_executor_interface.h"
+#include "src/core/interface/service_interface.h"
+#include "src/core/interface/streaming_context.h"
+#include "src/core/interface/type_def.h"
+#include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
+#include "src/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
 
 namespace google::scp::cpio::client_providers {
 

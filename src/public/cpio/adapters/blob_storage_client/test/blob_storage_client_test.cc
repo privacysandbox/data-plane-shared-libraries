@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "scp/cc/public/cpio/adapters/blob_storage_client/src/blob_storage_client.h"
+#include "src/public/cpio/adapters/blob_storage_client/src/blob_storage_client.h"
 
 #include <gtest/gtest.h>
 
 #include "absl/log/check.h"
-#include "scp/cc/core/interface/errors.h"
-#include "scp/cc/public/core/interface/execution_result.h"
-#include "scp/cc/public/core/test/interface/execution_result_matchers.h"
-#include "scp/cc/public/cpio/adapters/blob_storage_client/mock/mock_blob_storage_client_with_overrides.h"
-#include "scp/cc/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
-#include "scp/cc/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
+#include "src/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test/interface/execution_result_matchers.h"
+#include "src/public/cpio/adapters/blob_storage_client/mock/mock_blob_storage_client_with_overrides.h"
+#include "src/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
+#include "src/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
 
 using google::cmrt::sdk::blob_storage_service::v1::BlobMetadata;
 using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest;

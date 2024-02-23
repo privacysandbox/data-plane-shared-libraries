@@ -16,9 +16,9 @@ syntax = "proto3";
 
 package google.cmrt.sdk.crypto_service.v1;
 
-import "scp/cc/core/common/proto/common.proto";
-import "scp/cc/public/cpio/proto/private_key_service/v1/private_key_service.proto";
-import "scp/cc/public/cpio/proto/public_key_service/v1/public_key_service.proto";
+import "src/core/common/proto/common.proto";
+import "src/public/cpio/proto/private_key_service/v1/private_key_service.proto";
+import "src/public/cpio/proto/public_key_service/v1/public_key_service.proto";
 
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
