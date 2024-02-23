@@ -8,9 +8,9 @@ without it ever being exposed to untrusted code of the UDF.
 Metadata is templated to allow for flexibility regarding the type Roma clients wish to use to pass
 said metadata, and defaults to `absl::flat_hash_map<std::string, std::string>`
 
-![Metadata Flow](/images/roma_metadata_flow.png)
+![Metadata Flow](images/metadata_flow.png)
 
--   See more information about Roma [here](/scp/cc/roma/README.md)
+-   See more information about Roma [here](README.md)
 -   See examples of how to use this feature in
     [roma/roma_service/metadata_test.cc](/scp/cc/roma/roma_service/metadata_test.cc)
 
@@ -30,7 +30,7 @@ in any function that accepts:
 -   `std::string_view` - The message to be logged
 
 This function will be invoked whenever the provided Roma logging functions are invoked from JS code
-(see [here](roma-logging.md) for more details).
+(see [here](logging.md) for more details).
 
 Logging is, by default, a no-op unless a logging function is set on the `Config<T>`.
 

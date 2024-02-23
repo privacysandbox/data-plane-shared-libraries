@@ -21,7 +21,7 @@
     to install the CLI and devel if not found.
 
 1. Upload the
-   [build_and_run_validator_enclave](../scp/cc/public/cpio/validator/build_and_run_validator_enclave)
+   [build_and_run_validator_enclave](/scp/cc/public/cpio/validator/build_and_run_validator_enclave)
    script to your EC2 instance.
 
 ### Building the validator
@@ -42,9 +42,9 @@
 ### Building and Running the Enclave on EC2
 
 1. Make sure the [prerequisites](#prerequisites-for-ec2) are available.
-1. Create a text proto ([example](../scp/cc/public/cpio/validator/validator_config.txtpb)) with
-   [validator_config](../scp/cc/public/cpio/validator/proto/validator_config.proto) you would like
-   to test.
+1. Create a text proto ([example](/scp/cc/public/cpio/validator/validator_config.txtpb)) with
+   [validator_config](/scp/cc/public/cpio/validator/proto/validator_config.proto) you would like to
+   test.
 1. Run the validator using the script. Example:
 
     ```shell

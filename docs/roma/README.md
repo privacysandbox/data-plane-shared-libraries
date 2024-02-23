@@ -29,7 +29,7 @@ In addition to sandboxing, Roma also uses IPC to communicate between the untrust
 and the Roma host process. This further isolates the untrusted code and prevents it from affecting
 the rest of the system.
 
-![Roma overview](images/roma_overview.svg 'image_tooltip')
+![Roma overview](images/overview.svg 'image_tooltip')
 
 # Roma explained
 
@@ -86,7 +86,7 @@ listens to UDF invocation requests from the sandbox. There is one UDF handler th
 sandbox. Refer to [Function Binding Registration](#user-defined-function-bindings) for more
 information about UDF handlers.
 
-![roma dataflow](images/roma_dataflow.svg 'image_tooltip')
+![roma dataflow](images/dataflow.svg 'image_tooltip')
 
 ## Data Share
 
