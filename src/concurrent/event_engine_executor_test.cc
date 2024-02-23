@@ -14,13 +14,14 @@
 
 #include "src/concurrent/event_engine_executor.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <random>
 #include <utility>
 
 #include "absl/time/clock.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "src/concurrent/mocks.h"
 
 namespace privacy_sandbox::server_common {

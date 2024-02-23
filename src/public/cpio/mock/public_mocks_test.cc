@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
 #include "src/public/cpio/mock/blob_storage_client/mock_blob_storage_client.h"
 #include "src/public/cpio/mock/crypto_client/mock_crypto_client.h"
 #include "src/public/cpio/mock/instance_client/mock_instance_client.h"

@@ -17,10 +17,10 @@
 #ifndef COMPONENTS_TELEMETRY_MOCKS_H_
 #define COMPONENTS_TELEMETRY_MOCKS_H_
 
+#include <gmock/gmock.h>
+
 #include <string>
 #include <vector>
-
-#include "gmock/gmock.h"
 
 #include "metrics_recorder.h"
 

@@ -14,11 +14,12 @@
 
 #include "src/metric/definition.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <vector>
 
 #include "absl/log/absl_log.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 
 namespace privacy_sandbox::server_common::metrics {
 namespace {

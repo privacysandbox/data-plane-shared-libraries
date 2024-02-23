@@ -14,12 +14,13 @@
 
 #include "src/metric/dp.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <future>
 
 #include "absl/log/absl_log.h"
 #include "absl/log/check.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "src/telemetry/flag/telemetry_flag.h"
 
 namespace privacy_sandbox::server_common::metrics {

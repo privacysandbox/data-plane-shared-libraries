@@ -12,6 +12,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -20,8 +23,6 @@
 
 #include "absl/log/absl_log.h"
 #include "absl/log/check.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "src/metric/context.h"
 
 namespace privacy_sandbox::server_common::metrics {

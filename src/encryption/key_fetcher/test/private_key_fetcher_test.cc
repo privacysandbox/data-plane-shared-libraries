@@ -14,11 +14,12 @@
 
 #include "src/encryption/key_fetcher/src/private_key_fetcher.h"
 
+#include <gmock/gmock.h>
+
 #include <utility>
 
 #include "absl/strings/escaping.h"
 #include "absl/time/clock.h"
-#include "gmock/gmock.h"
 #include "include/gtest/gtest.h"
 #include "proto/hpke.pb.h"
 #include "proto/tink.pb.h"

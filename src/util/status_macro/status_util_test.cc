@@ -15,12 +15,11 @@
 #include "src/util/status_macro/status_util.h"
 
 #include <gmock/gmock-matchers.h>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <utility>
 #include <vector>
-
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 
 using ::testing::StrEq;
 

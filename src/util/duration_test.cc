@@ -14,10 +14,11 @@
 
 #include "src/util/duration.h"
 
+#include <gtest/gtest.h>
+
 #include <limits>
 
 #include "absl/time/time.h"
-#include "gtest/gtest.h"
 
 namespace privacy_sandbox::server_common {
 namespace {

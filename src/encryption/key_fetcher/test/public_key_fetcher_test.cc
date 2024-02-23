@@ -14,10 +14,11 @@
 
 #include "src/encryption/key_fetcher/src/public_key_fetcher.h"
 
+#include <gmock/gmock.h>
+
 #include <string>
 #include <utility>
 
-#include "gmock/gmock.h"
 #include "include/gtest/gtest.h"
 #include "src/encryption/key_fetcher/src/key_fetcher_utils.h"
 #include "src/public/core/interface/execution_result.h"

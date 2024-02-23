@@ -14,10 +14,11 @@
 
 #include "src/util/read_system.h"
 
+#include <gmock/gmock.h>
+
 #include "absl/log/absl_log.h"
 #include "absl/log/check.h"
 #include "absl/strings/str_join.h"
-#include "gmock/gmock.h"
 #include "include/gtest/gtest.h"
 
 namespace privacy_sandbox::server_common {

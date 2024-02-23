@@ -14,6 +14,9 @@
 
 #include "src/metric/metric_router.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <regex>
 #include <sstream>
 #include <string>
@@ -24,8 +27,6 @@
 #include "absl/log/check.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "opentelemetry/exporters/ostream/metric_exporter.h"
 #include "opentelemetry/metrics/provider.h"
 #include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader.h"

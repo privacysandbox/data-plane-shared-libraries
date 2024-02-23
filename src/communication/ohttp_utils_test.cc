@@ -14,10 +14,11 @@
 
 #include "src/communication/ohttp_utils.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include "absl/strings/escaping.h"
 #include "absl/strings/match.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "quiche/common/quiche_random.h"
 #include "quiche/oblivious_http/oblivious_http_client.h"
 

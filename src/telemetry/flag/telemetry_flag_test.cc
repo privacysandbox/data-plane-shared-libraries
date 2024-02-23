@@ -14,11 +14,12 @@
 
 #include "src/telemetry/flag/telemetry_flag.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include "absl/log/absl_log.h"
 #include "absl/log/check.h"
-#include "gmock/gmock.h"
 #include "google/protobuf/util/message_differencer.h"
-#include "gtest/gtest.h"
 
 namespace privacy_sandbox::server_common::telemetry {
 namespace {

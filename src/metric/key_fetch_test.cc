@@ -14,8 +14,8 @@
 
 #include "src/metric/key_fetch.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 namespace privacy_sandbox::server_common {
 namespace {

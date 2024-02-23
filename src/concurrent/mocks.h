@@ -17,11 +17,12 @@
 #ifndef CONCURRENT_MOCKS_H_
 #define CONCURRENT_MOCKS_H_
 
+#include <gmock/gmock.h>
+
 #include <memory>
 
 #include "absl/functional/any_invocable.h"
 #include "absl/status/statusor.h"
-#include "gmock/gmock.h"
 #include "include/grpc/event_engine/event_engine.h"
 #include "src/concurrent/event_engine_executor.h"
 

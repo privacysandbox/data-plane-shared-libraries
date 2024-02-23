@@ -14,12 +14,13 @@
 
 #include "src/communication/encoding_utils.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <string>
 
 #include "absl/status/statusor.h"
 #include "absl/strings/escaping.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 
 using ::testing::StrEq;
 

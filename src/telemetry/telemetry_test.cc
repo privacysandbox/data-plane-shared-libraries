@@ -14,8 +14,9 @@
 
 #include "telemetry.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include "opentelemetry/logs/provider.h"
 #include "opentelemetry/metrics/provider.h"
 

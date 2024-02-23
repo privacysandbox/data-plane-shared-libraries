@@ -16,13 +16,14 @@
 #ifndef LOGGER_REQUEST_CONTEXT_IMPL_TEST_H_
 #define LOGGER_REQUEST_CONTEXT_IMPL_TEST_H_
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <memory>
 #include <string>
 #include <utility>
 
 #include "absl/log/check.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "opentelemetry/exporters/ostream/log_record_exporter.h"
 #include "opentelemetry/sdk/logs/logger_provider_factory.h"
 #include "opentelemetry/sdk/logs/simple_log_record_processor_factory.h"

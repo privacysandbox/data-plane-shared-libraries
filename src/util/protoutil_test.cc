@@ -14,15 +14,16 @@
 
 #include "src/util/protoutil.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <cstdint>
 #include <limits>
 
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "gmock/gmock.h"
 #include "google/protobuf/duration.pb.h"
 #include "google/protobuf/timestamp.pb.h"
-#include "gtest/gtest.h"
 #include "src/core/test/utils/proto_test_utils.h"
 
 using google::scp::core::test::EqualsProto;

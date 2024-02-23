@@ -14,6 +14,9 @@
 
 #include "src/communication/compression_gzip.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <algorithm>
 #include <string>
 #include <string_view>
@@ -23,8 +26,6 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 
 #include "absl/log/log.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "quiche/common/quiche_data_writer.h"
 #include "src/communication/uncompressed.h"
 

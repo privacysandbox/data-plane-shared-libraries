@@ -17,6 +17,9 @@
 #ifndef LOGGER_REQUEST_CONTEXT_LOGGER_TEST_H_
 #define LOGGER_REQUEST_CONTEXT_LOGGER_TEST_H_
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <string>
 #include <utility>
 
@@ -24,8 +27,6 @@
 #include "absl/log/check.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "src/logger/request_context_logger.h"
 
 namespace privacy_sandbox::server_common::log {

@@ -14,14 +14,15 @@
 
 #include "src/util/status_macro/status_builder.h"
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include <string>
 #include <utility>
 
 #include "absl/base/log_severity.h"
 #include "absl/flags/flag.h"
 #include "absl/log/scoped_mock_log.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 
 using ::testing::_;
 using ::testing::AnyOf;
