@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -32,5 +32,24 @@ cc_library(
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
         "@com_google_absl//absl/functional:bind_front",
+    ],
+)
+
+cc_test(
+    name = "aws_s3_test",
+    size = "small",
+    srcs = [
+        "aws_s3_test.cc",
+        "aws_s3_utils_test.cc",
+    ],
+    deps = [
+        ":core_blob_storage_provider_aws_lib",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/blob_storage_provider/mock:blob_storage_provider_mock",
+        "//src/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",
+        "//src/core/interface:interface_lib",
+        "//src/core/test/utils:utils_lib",
+        "//src/public/core/test/interface:execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
     ],
 )
