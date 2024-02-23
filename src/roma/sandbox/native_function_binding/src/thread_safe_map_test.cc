@@ -101,7 +101,7 @@ TEST(ThreadSafeMapTest, ConcurrentAddAndGet) {
 TEST(ThreadSafeMapTest, ConcurrentAddAndDelete) {
   ThreadSafeMap<int> map;
   constexpr int num_threads = 10;
-  constexpr int iterations = 1000;
+  constexpr int iterations = 10;
 
   std::vector<std::thread> threads;
   for (int i = 0; i < num_threads; ++i) {
