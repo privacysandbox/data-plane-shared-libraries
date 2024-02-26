@@ -16,7 +16,6 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = [
-    "//src/experimental:__subpackages__",  # copybara:strip
     "//src/roma/roma_service:__subpackages__",
     "//src/roma/sandbox/js_engine/src/v8_engine:__subpackages__",
     "//src/roma/sandbox/worker_api/sapi/src:__subpackages__",

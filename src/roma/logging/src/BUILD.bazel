@@ -19,7 +19,6 @@ cc_library(
     srcs = ["logging.cc"],
     hdrs = ["logging.h"],
     visibility = [
-        "//src/experimental:__subpackages__",  # copybara:strip
         "//src/roma:__subpackages__",
     ],
     deps = [
