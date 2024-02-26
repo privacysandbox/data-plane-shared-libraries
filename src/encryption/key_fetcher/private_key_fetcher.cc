@@ -99,6 +99,8 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                               const ExecutionResult result,
                               const ListPrivateKeysResponse response) {
     if (result.Successful()) {
+      KeyFetchResultCounter::SetNumPrivateKeysFetched(
+          response.private_keys().size());
       absl::MutexLock l(&mutex_);
       int num_priv_keys_added = 0;
       for (const auto& private_key : response.private_keys()) {

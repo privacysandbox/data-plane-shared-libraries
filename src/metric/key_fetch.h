@@ -42,6 +42,14 @@ class KeyFetchResultCounter {
     };
   }
 
+  static absl::flat_hash_map<std::string, double> GetNumPrivateKeysFetched()
+      ABSL_LOCKS_EXCLUDED(mu_) {
+    absl::MutexLock lock(&mu_);
+    return absl::flat_hash_map<std::string, double>{
+        {"private key", num_private_keys_fetched_},
+    };
+  }
+
   static absl::flat_hash_map<std::string, double> GetNumKeysParsed()
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
@@ -86,6 +94,11 @@ class KeyFetchResultCounter {
     ++private_key_async_failure_count_;
   }
 
+  static void SetNumPrivateKeysFetched(int num) ABSL_LOCKS_EXCLUDED(mu_) {
+    absl::MutexLock lock(&mu_);
+    num_private_keys_fetched_ = num;
+  }
+
   static void SetNumPublicKeysParsed(CloudPlatform platform, int num)
       ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
@@ -118,6 +131,7 @@ class KeyFetchResultCounter {
   static inline int private_key_fetch_async_failure_count_ ABSL_GUARDED_BY(mu_){
       0};
   static inline int private_key_async_failure_count_ ABSL_GUARDED_BY(mu_){0};
+  static inline int num_private_keys_fetched_ ABSL_GUARDED_BY(mu_){0};
 
   static inline absl::flat_hash_map<CloudPlatform, int> num_public_keys_parsed_
       ABSL_GUARDED_BY(mu_){{CloudPlatform::kGcp, 0}, {CloudPlatform::kAws, 0}};

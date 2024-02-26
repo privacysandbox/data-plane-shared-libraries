@@ -88,5 +88,18 @@ TEST(KeyFetchResultInstrumentation, GetNumKeysCached) {
                            Pair("private key", 5)));
 }
 
+TEST(KeyFetchResultInstrumentation, GetNumPrivateKeysFetched) {
+  EXPECT_THAT(KeyFetchResultCounter::GetNumPrivateKeysFetched(),
+              UnorderedElementsAre(Pair("private key", 0)));
+
+  KeyFetchResultCounter::SetNumPrivateKeysFetched(5);
+  EXPECT_THAT(KeyFetchResultCounter::GetNumPrivateKeysFetched(),
+              UnorderedElementsAre(Pair("private key", 5)));
+
+  KeyFetchResultCounter::SetNumPrivateKeysFetched(1);
+  EXPECT_THAT(KeyFetchResultCounter::GetNumPrivateKeysFetched(),
+              UnorderedElementsAre(Pair("private key", 1)));
+}
+
 }  // namespace
 }  // namespace privacy_sandbox::server_common

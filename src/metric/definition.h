@@ -320,14 +320,16 @@ inline constexpr Definition<double, Privacy::kNonImpacting, Instrument::kGauge>
         "system.key_fetch.failure_count",
         "failure counts for fetching keys with the coordinator");
 inline constexpr Definition<double, Privacy::kNonImpacting, Instrument::kGauge>
-    kNumKeysParsedOnRecentFetch(
-        "system.key_fetch.num_keys_parsed_on_recent_fetch",
-        "Number of keys parsed on the most recent key fetch");
+    kNumPrivateKeysFetched(
+        "system.key_fetch.num_private_keys_fetched",
+        "Number of private keys in response from Private Key Service");
 inline constexpr Definition<double, Privacy::kNonImpacting, Instrument::kGauge>
-    kNumKeysCachedAfterRecentFetch(
-        "system.key_fetch.num_keys_cached_after_recent_fetch",
-        "Number of keys currently cached in memory "
-        "after the most recent key fetch");
+    kNumKeysParsed("system.key_fetch.num_keys_parsed",
+                   "Number of keys parsed after the most recent key fetch");
+inline constexpr Definition<double, Privacy::kNonImpacting, Instrument::kGauge>
+    kNumKeysCached("system.key_fetch.num_keys_cached",
+                   "Number of keys currently cached in memory "
+                   "after the most recent key fetch");
 
 inline constexpr Definition<int, Privacy::kNonImpacting,
                             Instrument::kUpDownCounter>
