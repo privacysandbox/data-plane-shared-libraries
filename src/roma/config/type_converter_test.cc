@@ -70,7 +70,7 @@ class TypeConverterTest : public ::testing::Test {
 
 v8::Platform* TypeConverterTest::platform_{nullptr};
 
-static void AssertStringEquality(v8::Isolate* isolate,
+static void ExpectStringEquality(v8::Isolate* isolate,
                                  std::string_view native_str,
                                  const v8::Local<v8::String>& v8_str) {
   EXPECT_EQ(v8_str->Length(), native_str.size());
@@ -86,7 +86,7 @@ TEST_F(TypeConverterTest, NativeStringToV8) {
   v8::Local<v8::String> v8_str =
       TypeConverter<std::string>::ToV8(isolate_, native_str).As<v8::String>();
 
-  AssertStringEquality(isolate_, native_str, v8_str);
+  ExpectStringEquality(isolate_, native_str, v8_str);
 }
 
 TEST_F(TypeConverterTest, v8StringToNative) {
@@ -100,7 +100,7 @@ TEST_F(TypeConverterTest, v8StringToNative) {
   EXPECT_TRUE(
       TypeConverter<std::string>::FromV8(isolate_, v8_str, &native_str));
 
-  AssertStringEquality(isolate_, native_str, v8_str);
+  ExpectStringEquality(isolate_, native_str, v8_str);
 }
 
 TEST_F(TypeConverterTest, v8StringToNativeFailsWhenNotString) {
@@ -116,37 +116,86 @@ TEST_F(TypeConverterTest, v8StringToNativeFailsWhenNotString) {
   EXPECT_TRUE(native_str.empty());
 }
 
-static void AssertArrayEquality(v8::Isolate* isolate,
+static void ExpectArrayEquality(v8::Isolate* isolate,
                                 const std::vector<std::string>& vec,
                                 const v8::Local<v8::Array>& v8_array) {
   EXPECT_EQ(v8_array->Length(), vec.size());
-
   for (uint32_t i = 0; i < v8_array->Length(); i++) {
     auto v8_array_item = v8_array->Get(isolate->GetCurrentContext(), i)
                              .ToLocalChecked()
                              .As<v8::String>();
-    AssertStringEquality(isolate, vec.at(i), v8_array_item);
+    ExpectStringEquality(isolate, vec.at(i), v8_array_item);
   }
 }
 
+void TestStringListConversionToV8ArrayTest(
+    v8::Isolate* isolate, const std::vector<std::string>& vec) {
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
+  // Array allocation requires a context
+  v8::Local<v8::Context> global_context = v8::Context::New(isolate);
+  v8::Context::Scope context_scope(global_context);
+
+  proto::FunctionBindingIoProto io_proto;
+  io_proto.mutable_output_list_of_string()->mutable_data()->Add(vec.begin(),
+                                                                vec.end());
+  const v8::Local<v8::Array> v8_array =
+      TypeConverter<std::vector<std::string>>::ToV8(
+          isolate, io_proto.output_list_of_string().data())
+          .As<v8::Array>();
+  ExpectArrayEquality(isolate, vec, v8_array);
+}
+
+TEST_F(TypeConverterTest, EmptyListOfStringProtoToV8Array) {
+  TestStringListConversionToV8ArrayTest(isolate_, {});
+}
+
 TEST_F(TypeConverterTest, ListOfStringProtoToV8Array) {
+  TestStringListConversionToV8ArrayTest(isolate_, {"one", "two", "three"});
+}
+
+void PopulateV8Array(v8::Local<v8::Context> global_context,
+                     v8::Isolate* isolate, v8::Local<v8::Array> v8_array,
+                     const std::vector<std::string>& elems) {
+  for (int i = 0; i < elems.size(); ++i) {
+    const std::string& elem = elems[i];
+    v8_array
+        ->Set(global_context, i,
+              v8::String::NewFromUtf8(isolate, elem.data(),
+                                      v8::NewStringType::kNormal, elem.size())
+                  .ToLocalChecked())
+        .Check();
+  }
+}
+
+TEST_F(TypeConverterTest, EmptyV8ArrayToVectorOfString) {
   v8::Isolate::Scope isolate_scope(isolate_);
   v8::HandleScope handle_scope(isolate_);
   // Array allocation requires a context
   v8::Local<v8::Context> global_context = v8::Context::New(isolate_);
   v8::Context::Scope context_scope(global_context);
 
-  const std::vector<std::string> kv_vec = {"one", "two", "three"};
-  proto::FunctionBindingIoProto io_proto;
-  (*io_proto.mutable_output_list_of_string()->mutable_data())
-      .Add(kv_vec.begin(), kv_vec.end());
+  v8::Local<v8::Array> v8_array = v8::Array::New(isolate_, 0);
+  PopulateV8Array(global_context, isolate_, v8_array, {});
+  std::vector<std::string> vec;
+  EXPECT_TRUE(TypeConverter<std::vector<std::string>>::FromV8(isolate_,
+                                                              v8_array, &vec));
+  ExpectArrayEquality(isolate_, vec, v8_array);
+}
 
-  const v8::Local<v8::Array> v8_array =
-      TypeConverter<std::vector<std::string>>::ToV8(
-          isolate_, io_proto.output_list_of_string().data())
-          .As<v8::Array>();
+TEST_F(TypeConverterTest, v8ArrayEmptyStrElemToVectorOfString) {
+  v8::Isolate::Scope isolate_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
+  // Array allocation requires a context
+  v8::Local<v8::Context> global_context = v8::Context::New(isolate_);
+  v8::Context::Scope context_scope(global_context);
 
-  AssertArrayEquality(isolate_, kv_vec, v8_array);
+  v8::Local<v8::Array> v8_array = v8::Array::New(isolate_, 1);
+  PopulateV8Array(global_context, isolate_, v8_array, {""});
+  std::vector<std::string> vec;
+  EXPECT_TRUE(TypeConverter<std::vector<std::string>>::FromV8(isolate_,
+                                                              v8_array, &vec));
+  ExpectArrayEquality(isolate_, vec, v8_array);
 }
 
 TEST_F(TypeConverterTest, v8ArrayToVectorOfString) {
@@ -157,25 +206,14 @@ TEST_F(TypeConverterTest, v8ArrayToVectorOfString) {
   v8::Context::Scope context_scope(global_context);
 
   v8::Local<v8::Array> v8_array = v8::Array::New(isolate_, 3);
-  v8_array
-      ->Set(global_context, 0, v8::String::NewFromUtf8Literal(isolate_, "one"))
-      .Check();
-  v8_array
-      ->Set(global_context, 1, v8::String::NewFromUtf8Literal(isolate_, "two"))
-      .Check();
-  v8_array
-      ->Set(global_context, 2,
-            v8::String::NewFromUtf8Literal(isolate_, "three"))
-      .Check();
-
+  PopulateV8Array(global_context, isolate_, v8_array, {"one", "two", "three"});
   std::vector<std::string> vec;
   EXPECT_TRUE(TypeConverter<std::vector<std::string>>::FromV8(isolate_,
                                                               v8_array, &vec));
-
-  AssertArrayEquality(isolate_, vec, v8_array);
+  ExpectArrayEquality(isolate_, vec, v8_array);
 }
 
-TEST_F(TypeConverterTest, v8ArrayToVectorOfStringFailsWhenUnsupportedType) {
+TEST_F(TypeConverterTest, v8IntegerArrayToVectorOfStringFails) {
   v8::Isolate::Scope isolate_scope(isolate_);
   v8::HandleScope handle_scope(isolate_);
   // Array allocation requires a context
@@ -188,12 +226,10 @@ TEST_F(TypeConverterTest, v8ArrayToVectorOfStringFailsWhenUnsupportedType) {
   std::vector<std::string> vec;
   EXPECT_FALSE(TypeConverter<std::vector<std::string>>::FromV8(isolate_,
                                                                v8_array, &vec));
-
   EXPECT_TRUE(vec.empty());
 }
 
-TEST_F(TypeConverterTest,
-       v8ArrayToVectorOfStringFailsWhenUnsupportedMixedTypes) {
+TEST_F(TypeConverterTest, v8MixedArrayToVectorOfStringFails) {
   v8::Isolate::Scope isolate_scope(isolate_);
   v8::HandleScope handle_scope(isolate_);
   // Array allocation requires a context
@@ -214,7 +250,7 @@ TEST_F(TypeConverterTest,
   EXPECT_FALSE(TypeConverter<std::vector<std::string>>::FromV8(isolate_,
                                                                v8_array, &vec));
 
-  EXPECT_TRUE(vec.empty());
+  EXPECT_THAT(vec, testing::IsEmpty());
 }
 
 static void AssertFlatHashMapOfStringEquality(
@@ -236,8 +272,8 @@ static void AssertFlatHashMapOfStringEquality(
   std::vector<std::string> v8_map_keys;
   std::vector<std::string> v8_map_vals;
   for (size_t i = 0; i < v8_map_as_array->Length(); i += 2) {
-    auto key_index = i;
-    auto value_index = i + 1;
+    const auto key_index = i;
+    const auto value_index = i + 1;
 
     auto v8_key = v8_map_as_array->Get(isolate->GetCurrentContext(), key_index)
                       .ToLocalChecked()
@@ -351,8 +387,7 @@ TEST_F(TypeConverterTest,
   EXPECT_FALSE(
       (TypeConverter<absl::flat_hash_map<std::string, std::string>>::FromV8(
           isolate_, v8_map, &map)));
-
-  EXPECT_EQ(map.size(), 0);
+  EXPECT_THAT(map, testing::IsEmpty());
 }
 
 TEST_F(TypeConverterTest,
@@ -373,16 +408,14 @@ TEST_F(TypeConverterTest,
   EXPECT_FALSE(
       (TypeConverter<absl::flat_hash_map<std::string, std::string>>::FromV8(
           isolate_, v8_map, &map)));
-
-  EXPECT_EQ(map.size(), 0);
+  EXPECT_THAT(map, testing::IsEmpty());
 }
 
 TEST_F(TypeConverterTest, NativeUint32ToV8) {
   v8::Isolate::Scope isolate_scope(isolate_);
   v8::HandleScope handle_scope(isolate_);
 
-  uint32_t native_val = 1234;
-
+  constexpr uint32_t native_val = 1234;
   v8::Local<v8::Uint32> v8_val =
       TypeConverter<uint32_t>::ToV8(isolate_, native_val).As<v8::Uint32>();
 
@@ -397,7 +430,6 @@ TEST_F(TypeConverterTest, v8Uint32ToNative) {
 
   uint32_t native_val;
   EXPECT_TRUE(TypeConverter<uint32_t>::FromV8(isolate_, v8_val, &native_val));
-
   EXPECT_EQ(native_val, 4567);
 }
 
