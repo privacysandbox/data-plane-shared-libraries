@@ -495,7 +495,7 @@ py_test(
 sh_test(
     name = "preload_curl_test",
     size = "small",
-    srcs = ["curl_client_test.sh"],
+    srcs = [":curl_client_test"],
     args = [
         "$(location :proxy)",
         "$(location :proxy_preload)",

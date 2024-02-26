@@ -85,12 +85,12 @@ function test_proxify_timeout_random_unresponsive_ip() {
 
   # https://www.rfc-editor.org/rfc/rfc5737#section-3
   # Using 203.0.113.0.
-  RANDOM_IP="203.0.113.0"
+  declare -r random_ip="203.0.113.0"
   # Timeout set to 20s, --max-time set to 10. Proxify should continue to timeout for the whole 20 seconds, instead of the 10 second max time.
   set +o errexit
-  timeout 20s "${proxify_path}" -- curl -s --max-time 10 "${RANDOM_IP}"
+  timeout 20s "${proxify_path}" -- curl -s --max-time 10 "${random_ip}"
   set -o errexit
-  declare -i duration=$SECONDS
+  declare -r -i duration=$SECONDS
   if [[ ${duration} -lt 20 ]]; then
     printf "Failed: test_proxify_timeout_random_ip: proxify did not timeout as expected.\n"
     exit 1
