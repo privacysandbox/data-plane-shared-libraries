@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/queue_client_provider/src/aws/aws_queue_client_provider.h"
+#include "src/cpio/client_providers/queue_client_provider/aws/aws_queue_client_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -27,13 +27,13 @@
 #include "absl/synchronization/mutex.h"
 #include "src/core/async_executor/mock/mock_async_executor.h"
 #include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_provider.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "src/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_provider.h"
+#include "src/cpio/client_providers/queue_client_provider/aws/error_codes.h"
 #include "src/cpio/client_providers/queue_client_provider/mock/aws/mock_sqs_client.h"
-#include "src/cpio/client_providers/queue_client_provider/src/aws/error_codes.h"
-#include "src/cpio/common/src/aws/error_codes.h"
+#include "src/cpio/common/aws/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 #include "src/public/cpio/proto/queue_service/v1/queue_service.pb.h"
 
 namespace google::scp::cpio::client_providers::test {

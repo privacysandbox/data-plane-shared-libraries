@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_GCP_NO_OP_INITIALIZER_H_
-#define CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_GCP_NO_OP_INITIALIZER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_GCP_NO_OP_INITIALIZER_H_
+#define CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_GCP_NO_OP_INITIALIZER_H_
 
 #include "src/cpio/client_providers/interface/cloud_initializer_interface.h"
 #include "src/public/core/interface/execution_result.h"
@@ -37,4 +37,4 @@ class NoOpInitializer : public CloudInitializerInterface {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_GCP_NO_OP_INITIALIZER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_GCP_NO_OP_INITIALIZER_H_

@@ -32,11 +32,11 @@
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/sandbox2/policy.h"
 #include "sandboxed_api/sandbox2/policybuilder.h"
-#include "src/roma/logging/src/logging.h"
+#include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/worker_api/sapi/src/error_codes.h"
-#include "src/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
-#include "src/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/error_codes.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 
 #define ROMA_CONVERT_MB_TO_BYTES(mb) mb * 1024 * 1024
 

@@ -33,7 +33,7 @@ cc_library(
     hdrs = ["roma.h"],
     deps = [
         "//src/core/interface:interface_lib",
-        "//src/roma/config/src:config",
+        "//src/roma/config",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/status",

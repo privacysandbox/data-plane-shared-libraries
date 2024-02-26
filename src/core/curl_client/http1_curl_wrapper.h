@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_CURL_CLIENT_SRC_HTTP1_CURL_WRAPPER_H_
-#define CORE_CURL_CLIENT_SRC_HTTP1_CURL_WRAPPER_H_
+#ifndef CORE_CURL_CLIENT_HTTP1_CURL_WRAPPER_H_
+#define CORE_CURL_CLIENT_HTTP1_CURL_WRAPPER_H_
 
 #include <memory>
 #include <string>
@@ -83,4 +83,4 @@ class Http1CurlWrapperProvider {
 
 }  // namespace google::scp::core
 
-#endif  // CORE_CURL_CLIENT_SRC_HTTP1_CURL_WRAPPER_H_
+#endif  // CORE_CURL_CLIENT_HTTP1_CURL_WRAPPER_H_

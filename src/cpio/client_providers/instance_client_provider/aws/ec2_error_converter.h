@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_EC2_ERROR_CONVERTER_H_
-#define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_EC2_ERROR_CONVERTER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_EC2_ERROR_CONVERTER_H_
+#define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_EC2_ERROR_CONVERTER_H_
 
 #include <string>
 
 #include <aws/ec2/EC2Client.h>
 
-#include "src/cpio/common/src/aws/error_codes.h"
+#include "src/cpio/common/aws/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers {
@@ -40,4 +40,4 @@ class EC2ErrorConverter {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_EC2_ERROR_CONVERTER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_EC2_ERROR_CONVERTER_H_

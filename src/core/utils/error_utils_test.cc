@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/core/utils/src/error_utils.h"
+#include "src/core/utils/error_utils.h"
 
 #include <gtest/gtest.h>
 
 #include "src/core/interface/errors.h"
 #include "src/core/interface/type_def.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::RetryExecutionResult;

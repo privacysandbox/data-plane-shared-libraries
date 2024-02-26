@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
+#include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -26,7 +26,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
-#include "src/roma/wasm/src/testing_utils.h"
+#include "src/roma/wasm/testing_utils.h"
 
 using google::scp::core::test::ResultIs;
 using google::scp::roma::kDefaultExecutionTimeout;

@@ -23,16 +23,16 @@
 #include "google/cloud/status.h"
 #include "google/cloud/storage/client.h"
 #include "google/cloud/storage/internal/object_requests.h"
+#include "src/core/async_executor/async_executor.h"
 #include "src/core/async_executor/mock/mock_async_executor.h"
-#include "src/core/async_executor/src/async_executor.h"
-#include "src/core/blob_storage_provider/src/common/error_codes.h"
-#include "src/core/blob_storage_provider/src/gcp/gcp_cloud_storage.h"
+#include "src/core/blob_storage_provider/common/error_codes.h"
+#include "src/core/blob_storage_provider/gcp/gcp_cloud_storage.h"
 #include "src/core/config_provider/mock/mock_config_provider.h"
 #include "src/core/interface/blob_storage_provider_interface.h"
 #include "src/core/interface/configuration_keys.h"
-#include "src/core/utils/src/base64.h"
-#include "src/core/utils/src/hashing.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/core/utils/base64.h"
+#include "src/core/utils/hashing.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 namespace google::scp::core::test {
 namespace {

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_UTILS_SRC_ERROR_UTILS_H_
-#define CORE_UTILS_SRC_ERROR_UTILS_H_
+#ifndef CORE_UTILS_ERROR_UTILS_H_
+#define CORE_UTILS_ERROR_UTILS_H_
 
 #include "src/public/core/interface/execution_result.h"
 
@@ -30,4 +30,4 @@ ExecutionResult ConvertToPublicExecutionResult(
     const ExecutionResult& execution_result);
 }  // namespace google::scp::core::utils
 
-#endif  // CORE_UTILS_SRC_ERROR_UTILS_H_
+#endif  // CORE_UTILS_ERROR_UTILS_H_

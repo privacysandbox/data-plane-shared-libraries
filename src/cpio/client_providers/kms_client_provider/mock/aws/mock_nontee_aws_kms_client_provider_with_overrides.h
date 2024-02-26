@@ -24,7 +24,7 @@
 
 #include <aws/kms/KMSClient.h>
 
-#include "src/cpio/client_providers/kms_client_provider/src/aws/nontee_aws_kms_client_provider.h"
+#include "src/cpio/client_providers/kms_client_provider/aws/nontee_aws_kms_client_provider.h"
 
 #include "mock_kms_client.h"
 

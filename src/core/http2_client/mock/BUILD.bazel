@@ -26,7 +26,7 @@ cc_library(
     ],
     deps = [
         "//src/core/interface:interface_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
     ],

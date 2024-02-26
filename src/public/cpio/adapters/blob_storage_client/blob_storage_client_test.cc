@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/public/cpio/adapters/blob_storage_client/src/blob_storage_client.h"
+#include "src/public/cpio/adapters/blob_storage_client/blob_storage_client.h"
 
 #include <gtest/gtest.h>
 
 #include "absl/log/check.h"
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
-#include "src/public/cpio/adapters/blob_storage_client/src/mock_blob_storage_client_with_overrides.h"
+#include "src/public/core/test_execution_result_matchers.h"
+#include "src/public/cpio/adapters/blob_storage_client/mock_blob_storage_client_with_overrides.h"
 #include "src/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
 #include "src/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
 

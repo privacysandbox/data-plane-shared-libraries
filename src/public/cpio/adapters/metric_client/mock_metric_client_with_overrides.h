@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_SRC_MOCK_METRIC_CLIENT_WITH_OVERRIDES_H_
-#define PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_SRC_MOCK_METRIC_CLIENT_WITH_OVERRIDES_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_MOCK_METRIC_CLIENT_WITH_OVERRIDES_H_
+#define PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_MOCK_METRIC_CLIENT_WITH_OVERRIDES_H_
 
 #include <memory>
 
 #include "src/core/async_executor/mock/mock_async_executor.h"
-#include "src/core/message_router/src/message_router.h"
+#include "src/core/message_router/message_router.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/mock/metric_client/mock_metric_client.h"
 
@@ -48,4 +48,4 @@ class MockMetricClientWithOverrides : public MetricClient {
 };
 }  // namespace google::scp::cpio::mock
 
-#endif  // PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_SRC_MOCK_METRIC_CLIENT_WITH_OVERRIDES_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_MOCK_METRIC_CLIENT_WITH_OVERRIDES_H_

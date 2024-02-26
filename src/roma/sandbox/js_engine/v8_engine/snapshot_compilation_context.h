@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_SNAPSHOT_COMPILATION_CONTEXT_H_
-#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_SNAPSHOT_COMPILATION_CONTEXT_H_
+#ifndef ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_SNAPSHOT_COMPILATION_CONTEXT_H_
+#define ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_SNAPSHOT_COMPILATION_CONTEXT_H_
 
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "include/v8.h"
-#include "src/roma/sandbox/js_engine/src/js_engine.h"
-#include "src/roma/sandbox/js_engine/src/v8_engine/v8_isolate_wrapper.h"
+#include "src/roma/sandbox/js_engine/js_engine.h"
+#include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_wrapper.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 /// The type of the code content, including JavaScript,  WASM, and
@@ -66,4 +66,4 @@ class SnapshotCompilationContext {
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 
-#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_SNAPSHOT_COMPILATION_CONTEXT_H_
+#endif  // ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_SNAPSHOT_COMPILATION_CONTEXT_H_

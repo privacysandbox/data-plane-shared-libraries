@@ -30,7 +30,7 @@
 #include <nghttp2/asio_http2.h>
 #include <nghttp2/asio_http2_client.h>
 
-#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/common/global_logger/global_logger.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/public/core/interface/execution_result.h"

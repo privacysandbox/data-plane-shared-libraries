@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_WORKER_POOL_SRC_WORKER_POOL_API_SAPI_H_
-#define ROMA_SANDBOX_WORKER_POOL_SRC_WORKER_POOL_API_SAPI_H_
+#ifndef ROMA_SANDBOX_WORKER_POOL_WORKER_POOL_API_SAPI_H_
+#define ROMA_SANDBOX_WORKER_POOL_WORKER_POOL_API_SAPI_H_
 
 #include <memory>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "src/roma/sandbox/worker_api/src/worker_api.h"
-#include "src/roma/sandbox/worker_api/src/worker_api_sapi.h"
+#include "src/roma/sandbox/worker_api/worker_api.h"
+#include "src/roma/sandbox/worker_api/worker_api_sapi.h"
 
 #include "worker_pool.h"
 
@@ -55,4 +55,4 @@ class WorkerPoolApiSapi : public WorkerPool {
 };
 }  // namespace google::scp::roma::sandbox::worker_pool
 
-#endif  // ROMA_SANDBOX_WORKER_POOL_SRC_WORKER_POOL_API_SAPI_H_
+#endif  // ROMA_SANDBOX_WORKER_POOL_WORKER_POOL_API_SAPI_H_

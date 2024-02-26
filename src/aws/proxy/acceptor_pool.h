@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef PROXY_SRC_ACCEPTOR_POOL_H_
-#define PROXY_SRC_ACCEPTOR_POOL_H_
+#ifndef PROXY_ACCEPTOR_POOL_H_
+#define PROXY_ACCEPTOR_POOL_H_
 
 #include <mutex>
 #include <shared_mutex>
@@ -97,4 +97,4 @@ class AcceptorPool {
 };
 }  // namespace google::scp::proxy
 
-#endif  // PROXY_SRC_ACCEPTOR_POOL_H_
+#endif  // PROXY_ACCEPTOR_POOL_H_

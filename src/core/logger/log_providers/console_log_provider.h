@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef CORE_LOGGER_SRC_LOG_PROVIDERS_CONSOLE_LOG_PROVIDER_H_
-#define CORE_LOGGER_SRC_LOG_PROVIDERS_CONSOLE_LOG_PROVIDER_H_
+#ifndef CORE_LOGGER_LOG_PROVIDERS_CONSOLE_LOG_PROVIDER_H_
+#define CORE_LOGGER_LOG_PROVIDERS_CONSOLE_LOG_PROVIDER_H_
 
 #include <string>
 #include <string_view>
 
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/logger/interface/log_provider_interface.h"
 
 namespace google::scp::core::logger {
@@ -41,4 +41,4 @@ class ConsoleLogProvider : public LogProviderInterface {
 };
 }  // namespace google::scp::core::logger
 
-#endif  // CORE_LOGGER_SRC_LOG_PROVIDERS_CONSOLE_LOG_PROVIDER_H_
+#endif  // CORE_LOGGER_LOG_PROVIDERS_CONSOLE_LOG_PROVIDER_H_

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ENCRYPTION_KEY_FETCHER_SRC_KEY_FETCHER_UTILS_H_
-#define ENCRYPTION_KEY_FETCHER_SRC_KEY_FETCHER_UTILS_H_
+#ifndef ENCRYPTION_KEY_FETCHER_KEY_FETCHER_UTILS_H_
+#define ENCRYPTION_KEY_FETCHER_KEY_FETCHER_UTILS_H_
 
 #include <string>
 
@@ -30,4 +30,4 @@ std::string ToOhttpKeyId(std::string_view key_id);
 
 }  // namespace privacy_sandbox::server_common
 
-#endif  // ENCRYPTION_KEY_FETCHER_SRC_KEY_FETCHER_UTILS_H_
+#endif  // ENCRYPTION_KEY_FETCHER_KEY_FETCHER_UTILS_H_

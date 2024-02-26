@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_UTILS_SRC_HASHING_H_
-#define CORE_UTILS_SRC_HASHING_H_
+#ifndef CORE_UTILS_HASHING_H_
+#define CORE_UTILS_HASHING_H_
 
 #include <string>
 
@@ -45,4 +45,4 @@ ExecutionResult CalculateMd5Hash(std::string_view buffer,
 
 }  // namespace google::scp::core::utils
 
-#endif  // CORE_UTILS_SRC_HASHING_H_
+#endif  // CORE_UTILS_HASHING_H_

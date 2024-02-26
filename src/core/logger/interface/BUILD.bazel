@@ -20,7 +20,7 @@ cc_library(
     name = "logger_interface_lib",
     hdrs = ["log_provider_interface.h"],
     deps = [
-        "//src/core/common/uuid/src:uuid_lib",
+        "//src/core/common/uuid:uuid_lib",
         "//src/core/interface:service_interface_lib",
         "//src/public/core/interface:execution_result",
     ],

@@ -25,10 +25,10 @@ cc_library(
         "//src/cpio/client_providers/interface:role_credentials_provider_interface.h",
     ],
     deps = [
-        "//src/core/async_executor/src/aws:core_aws_async_executor_lib",
+        "//src/core/async_executor/aws:core_aws_async_executor_lib",
         "//src/core/interface:interface_lib",
-        "//src/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
-        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider_lib",
+        "//src/cpio/common/aws:aws_utils_lib",
         "//src/public/cpio/interface:type_def",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:sts",
@@ -64,8 +64,8 @@ cc_test(
         ":aws_role_credentials_provider_lib",
         "//src/core/async_executor/mock:core_async_executor_mock",
         "//src/core/interface:interface_lib",
-        "//src/cpio/common/src/aws:aws_utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/cpio/common/aws:aws_utils_lib",
+        "//src/public/core:test_execution_result_matchers",
         "@aws_sdk_cpp//:sts",
         "@com_google_googletest//:gtest_main",
     ],
@@ -83,7 +83,7 @@ cc_library(
     ],
     deps = [
         ":aws_role_credentials_provider_lib",
-        "//src/cpio/common/src/aws:test_aws_utils_lib",
+        "//src/cpio/common/aws:test_aws_utils_lib",
         "//src/public/cpio/test/global_cpio:test_cpio_options",
     ],
 )

@@ -19,11 +19,11 @@
 #include <memory>
 #include <utility>
 
-#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/common/global_logger/global_logger.h"
 #include "src/core/logger/interface/log_provider_interface.h"
-#include "src/core/logger/src/log_providers/console_log_provider.h"
-#include "src/core/logger/src/log_providers/syslog/syslog_log_provider.h"
-#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "src/core/logger/log_providers/console_log_provider.h"
+#include "src/core/logger/log_providers/syslog/syslog_log_provider.h"
+#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/type_def.h"

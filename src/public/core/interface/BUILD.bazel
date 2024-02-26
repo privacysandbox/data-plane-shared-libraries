@@ -18,7 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "errors",
-    srcs = ["//src/public/core/src:errors.cc"],
+    srcs = ["//src/public/core:errors.cc"],
     hdrs = ["errors.h"],
     deps = [
         "//src/core/interface:interface_lib",
@@ -27,7 +27,7 @@ cc_library(
 
 cc_library(
     name = "execution_result",
-    srcs = ["//src/public/core/src:execution_result.cc"],
+    srcs = ["//src/public/core:execution_result.cc"],
     hdrs = ["execution_result.h"],
     deps = [
         "//src/core/common/proto:core_common_proto_lib",

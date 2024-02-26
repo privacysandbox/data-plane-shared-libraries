@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_WORKER_API_SAPI_SRC_ERROR_CODES_H_
-#define ROMA_SANDBOX_WORKER_API_SAPI_SRC_ERROR_CODES_H_
+#ifndef ROMA_SANDBOX_WORKER_API_SAPI_ERROR_CODES_H_
+#define ROMA_SANDBOX_WORKER_API_SAPI_ERROR_CODES_H_
 
 #include "absl/status/status.h"
 
@@ -47,4 +47,4 @@ enum class SapiStatusCode : int {
 // it to an int and pass that around instead.
 absl::Status SapiStatusCodeToAbslStatus(int int_status_code);
 
-#endif  // ROMA_SANDBOX_WORKER_API_SAPI_SRC_ERROR_CODES_H_
+#endif  // ROMA_SANDBOX_WORKER_API_SAPI_ERROR_CODES_H_

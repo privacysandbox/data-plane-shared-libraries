@@ -26,7 +26,7 @@ cc_library(
         "message_router.h",
     ],
     deps = [
-        "//src/core/common/concurrent_map/src:concurrent_map_lib",
+        "//src/core/common/concurrent_map:concurrent_map_lib",
         "//src/core/interface:async_context_lib",
         "//src/core/interface:interface_lib",
         "@com_google_protobuf//:protobuf",
@@ -50,9 +50,9 @@ cc_test(
     deps = [
         ":message_router_lib",
         ":test_cc_proto",
-        "//src/core/common/concurrent_queue/src:concurrent_queue_lib",
+        "//src/core/common/concurrent_queue:concurrent_queue_lib",
         "//src/core/interface:interface_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_INVOKER_H_
-#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_INVOKER_H_
+#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_INVOKER_H_
+#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_INVOKER_H_
 
 #include <string>
 
 #include "absl/status/status.h"
-#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
 namespace google::scp::roma::sandbox::native_function_binding {
 /**
@@ -55,4 +55,4 @@ class NativeFunctionInvoker {
 };
 }  // namespace google::scp::roma::sandbox::native_function_binding
 
-#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_INVOKER_H_
+#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_INVOKER_H_

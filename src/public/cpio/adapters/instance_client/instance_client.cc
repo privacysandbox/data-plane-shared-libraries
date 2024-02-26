@@ -23,10 +23,10 @@
 #include <utility>
 
 #include "absl/functional/bind_front.h"
-#include "src/core/common/global_logger/src/global_logger.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/global_logger/global_logger.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/errors.h"
-#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/common/adapter_utils.h"
 #include "src/public/cpio/proto/instance_service/v1/instance_service.pb.h"

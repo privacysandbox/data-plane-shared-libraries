@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/private_key_client_provider/src/private_key_client_provider.h"
+#include "src/cpio/client_providers/private_key_client_provider/private_key_client_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -30,13 +30,13 @@
 #include "src/core/interface/async_context.h"
 #include "src/core/test/utils/proto_test_utils.h"
 #include "src/core/test/utils/timestamp_test_utils.h"
-#include "src/core/utils/src/base64.h"
+#include "src/core/utils/base64.h"
 #include "src/cpio/client_providers/kms_client_provider/mock/mock_kms_client_provider.h"
 #include "src/cpio/client_providers/private_key_client_provider/mock/mock_private_key_client_provider_with_overrides.h"
-#include "src/cpio/client_providers/private_key_client_provider/src/private_key_client_utils.h"
+#include "src/cpio/client_providers/private_key_client_provider/private_key_client_utils.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/mock/mock_private_key_fetcher_provider.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 #include "src/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
 
 namespace google::scp::cpio::client_providers::test {

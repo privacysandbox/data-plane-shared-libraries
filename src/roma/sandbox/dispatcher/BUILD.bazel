@@ -26,14 +26,14 @@ cc_library(
     deps = [
         ":request_converter",
         ":request_validator",
-        "//src/core/async_executor/src:core_async_executor_lib",
+        "//src/core/async_executor:core_async_executor_lib",
         "//src/core/interface:interface_lib",
         "//src/core/interface:type_def_lib",
         "//src/roma/interface",
-        "//src/roma/logging/src:logging",
+        "//src/roma/logging",
         "//src/roma/sandbox/constants",
-        "//src/roma/sandbox/worker_api/src:worker_api",
-        "//src/roma/sandbox/worker_pool/src:worker_pool",
+        "//src/roma/sandbox/worker_api",
+        "//src/roma/sandbox/worker_pool",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
@@ -48,7 +48,7 @@ cc_library(
     deps = [
         "//src/roma/interface",
         "//src/roma/sandbox/constants",
-        "//src/roma/sandbox/worker_api/src:worker_api",
+        "//src/roma/sandbox/worker_api",
     ],
 )
 
@@ -59,7 +59,7 @@ cc_library(
     deps = [
         "//src/roma/interface",
         "//src/roma/sandbox/constants",
-        "//src/roma/sandbox/worker_api/src:worker_api",
+        "//src/roma/sandbox/worker_api",
         "@com_google_absl//absl/status",
     ],
 )
@@ -75,12 +75,12 @@ cc_test(
     ],
     deps = [
         ":dispatcher",
-        "//src/core/async_executor/src:core_async_executor_lib",
+        "//src/core/async_executor:core_async_executor_lib",
         "//src/core/test/utils:utils_lib",
         "//src/roma/interface",
-        "//src/roma/sandbox/worker_api/src:worker_api_sapi",
-        "//src/roma/sandbox/worker_pool/src:worker_pool",
-        "//src/roma/sandbox/worker_pool/src:worker_pool_api_sapi",
+        "//src/roma/sandbox/worker_api:worker_api_sapi",
+        "//src/roma/sandbox/worker_pool",
+        "//src/roma/sandbox/worker_pool:worker_pool_api_sapi",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
@@ -95,12 +95,12 @@ cc_test(
     tags = ["manual"],
     deps = [
         ":dispatcher",
-        "//src/core/async_executor/src:core_async_executor_lib",
+        "//src/core/async_executor:core_async_executor_lib",
         "//src/core/test/utils:utils_lib",
         "//src/roma/interface",
-        "//src/roma/sandbox/worker_api/src:worker_api_sapi",
-        "//src/roma/sandbox/worker_pool/src:worker_pool",
-        "//src/roma/sandbox/worker_pool/src:worker_pool_api_sapi",
+        "//src/roma/sandbox/worker_api:worker_api_sapi",
+        "//src/roma/sandbox/worker_pool",
+        "//src/roma/sandbox/worker_pool:worker_pool_api_sapi",
         "@google_benchmark//:benchmark",
     ],
 )

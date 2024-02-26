@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_SRC_MOCK_INSTANCE_CLIENT_WITH_OVERRIDES_H_
-#define PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_SRC_MOCK_INSTANCE_CLIENT_WITH_OVERRIDES_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_MOCK_INSTANCE_CLIENT_WITH_OVERRIDES_H_
+#define PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_MOCK_INSTANCE_CLIENT_WITH_OVERRIDES_H_
 
 #include <memory>
 
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "src/public/cpio/adapters/instance_client/src/instance_client.h"
+#include "src/public/cpio/adapters/instance_client/instance_client.h"
 
 namespace google::scp::cpio::mock {
 class MockInstanceClientWithOverrides : public InstanceClient {
@@ -51,4 +51,4 @@ class MockInstanceClientWithOverrides : public InstanceClient {
 };
 }  // namespace google::scp::cpio::mock
 
-#endif  // PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_SRC_MOCK_INSTANCE_CLIENT_WITH_OVERRIDES_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_MOCK_INSTANCE_CLIENT_WITH_OVERRIDES_H_

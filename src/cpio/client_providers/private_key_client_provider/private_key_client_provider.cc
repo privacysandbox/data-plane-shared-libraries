@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-#include "src/core/common/concurrent_map/src/concurrent_map.h"
+#include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/http_types.h"

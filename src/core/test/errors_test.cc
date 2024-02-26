@@ -19,8 +19,8 @@
 
 #include <string_view>
 
-#include "src/core/common/concurrent_queue/src/concurrent_queue.h"
-#include "src/core/http2_client/src/error_codes.h"
+#include "src/core/common/concurrent_queue/concurrent_queue.h"
+#include "src/core/http2_client/error_codes.h"
 
 using ::testing::StrEq;
 

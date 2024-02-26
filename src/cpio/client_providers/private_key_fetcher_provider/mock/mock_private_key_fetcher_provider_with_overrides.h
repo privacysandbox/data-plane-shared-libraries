@@ -22,7 +22,7 @@
 
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
-#include "src/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/private_key_fetcher_provider.h"
 #include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers::mock {

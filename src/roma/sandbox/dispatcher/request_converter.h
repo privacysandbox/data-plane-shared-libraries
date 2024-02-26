@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_CONVERTER_H_
-#define ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_CONVERTER_H_
+#ifndef ROMA_SANDBOX_DISPATCHER_REQUEST_CONVERTER_H_
+#define ROMA_SANDBOX_DISPATCHER_REQUEST_CONVERTER_H_
 
 #include <string>
 
 #include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/worker_api/src/worker_api.h"
+#include "src/roma/sandbox/worker_api/worker_api.h"
 
 namespace google::scp::roma::sandbox {
 namespace internal::request_converter {
@@ -167,4 +167,4 @@ struct RequestConverter {
 };
 }  // namespace google::scp::roma::sandbox
 
-#endif  // ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_CONVERTER_H_
+#endif  // ROMA_SANDBOX_DISPATCHER_REQUEST_CONVERTER_H_

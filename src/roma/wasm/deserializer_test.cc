@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/wasm/src/deserializer.h"
+#include "src/roma/wasm/deserializer.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

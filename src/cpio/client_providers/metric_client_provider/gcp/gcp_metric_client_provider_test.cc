@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_provider.h"
+#include "src/cpio/client_providers/metric_client_provider/gcp/gcp_metric_client_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -28,12 +28,12 @@
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "src/cpio/client_providers/interface/metric_client_provider_interface.h"
+#include "src/cpio/client_providers/metric_client_provider/gcp/error_codes.h"
+#include "src/cpio/client_providers/metric_client_provider/gcp/gcp_metric_client_utils.h"
 #include "src/cpio/client_providers/metric_client_provider/mock/gcp/mock_gcp_metric_client_provider_with_overrides.h"
-#include "src/cpio/client_providers/metric_client_provider/src/gcp/error_codes.h"
-#include "src/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.h"
-#include "src/cpio/common/src/gcp/error_codes.h"
+#include "src/cpio/common/gcp/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 #include "src/public/cpio/interface/metric_client/metric_client_interface.h"
 #include "src/public/cpio/interface/metric_client/type_def.h"
 #include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"

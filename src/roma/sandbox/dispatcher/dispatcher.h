@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_DISPATCHER_SRC_DISPATCHER_H_
-#define ROMA_SANDBOX_DISPATCHER_SRC_DISPATCHER_H_
+#ifndef ROMA_SANDBOX_DISPATCHER_DISPATCHER_H_
+#define ROMA_SANDBOX_DISPATCHER_DISPATCHER_H_
 
 #include <memory>
 #include <stdexcept>
@@ -28,11 +28,11 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
-#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/async_executor/async_executor.h"
 #include "src/roma/interface/roma.h"
-#include "src/roma/logging/src/logging.h"
-#include "src/roma/sandbox/worker_api/src/worker_api.h"
-#include "src/roma/sandbox/worker_pool/src/worker_pool.h"
+#include "src/roma/logging/logging.h"
+#include "src/roma/sandbox/worker_api/worker_api.h"
+#include "src/roma/sandbox/worker_pool/worker_pool.h"
 #include "src/util/status_macro/status_macros.h"
 
 #include "request_converter.h"
@@ -263,4 +263,4 @@ class Dispatcher {
 };
 }  // namespace google::scp::roma::sandbox::dispatcher
 
-#endif  // ROMA_SANDBOX_DISPATCHER_SRC_DISPATCHER_H_
+#endif  // ROMA_SANDBOX_DISPATCHER_DISPATCHER_H_

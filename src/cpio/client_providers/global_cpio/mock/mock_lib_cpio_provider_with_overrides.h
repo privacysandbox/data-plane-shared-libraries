@@ -21,7 +21,7 @@
 #include <memory>
 
 #include "absl/status/statusor.h"
-#include "src/cpio/client_providers/global_cpio/src/cpio_provider/lib_cpio_provider.h"
+#include "src/cpio/client_providers/global_cpio/cpio_provider/lib_cpio_provider.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
 

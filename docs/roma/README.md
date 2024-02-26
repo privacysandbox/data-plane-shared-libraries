@@ -165,7 +165,7 @@ converters for every odd type in Roma.
 
 1. To initialize Roma, you need to create a `Config` object. This object defines the number of
    workers, queue size, code object cache size, and resource limit for Roma. For more information on
-   how to configure Roma, see the file config.h in the [roma/config](/src/roma/config/src/config.h)
+   how to configure Roma, see the file config.h in the [roma/config](/src/roma/config/config.h)
    directory.
 
     ```cpp
@@ -178,7 +178,7 @@ converters for every odd type in Roma.
     Initialize Roma with its configuration configured.
 
     ```cpp
-    #include "src/roma/config/src/config.h"
+    #include "src/roma/config/config.h"
     #include "src/roma/interface/roma.h"
 
     // create a config for roma initialization

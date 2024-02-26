@@ -26,12 +26,12 @@
 #include <aws/ssm/model/GetParameterRequest.h>
 
 #include "absl/functional/bind_front.h"
-#include "src/core/async_executor/src/aws/aws_async_executor.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/async_executor/aws/aws_async_executor.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "src/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
-#include "src/cpio/common/src/aws/aws_utils.h"
+#include "src/cpio/client_providers/global_cpio/global_cpio.h"
+#include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
+#include "src/cpio/common/aws/aws_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 

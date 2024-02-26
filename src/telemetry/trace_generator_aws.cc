@@ -42,7 +42,7 @@ class XRayIdGenerator : public opentelemetry::sdk::trace::IdGenerator {
   // Format definition: https://aws-otel.github.io/docs/getting-started/x-ray
   // Writing bytes of timestamp + random value is fine in network byte order.
   // example:
-  // https://github.com/alfianabdi/opentelemetry-cpp/blob/main/sdk/src/trace/aws_xray_id_generator.cc
+  // https://github.com/alfianabdi/opentelemetry-cpp/blob/main/sdk/trace/aws_xray_id_generator.cc
   opentelemetry::trace::TraceId GenerateTraceId() noexcept override {
     const uint32_t seconds_nl = htonl(absl::ToUnixSeconds(now_func_()));
     const uint64_t lo =

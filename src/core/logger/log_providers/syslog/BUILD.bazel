@@ -21,7 +21,7 @@ cc_library(
     srcs = ["syslog_log_provider.cc"],
     hdrs = ["syslog_log_provider.h"],
     deps = [
-        "//src/core/common/uuid/src:uuid_lib",
+        "//src/core/common/uuid:uuid_lib",
         "//src/core/logger/interface:logger_interface_lib",
         "@com_google_absl//absl/strings",
     ],

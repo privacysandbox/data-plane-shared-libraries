@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -24,11 +24,11 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "google/protobuf/any.pb.h"
-#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/async_executor/async_executor.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/message_router_interface.h"
-#include "src/core/message_router/src/message_router.h"
+#include "src/core/message_router/message_router.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/cloud_initializer_interface.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
@@ -100,4 +100,4 @@ class LibCpioProvider : public CpioProviderInterface {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_CPIO_PROVIDER_LIB_CPIO_PROVIDER_H_

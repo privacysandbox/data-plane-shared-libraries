@@ -171,9 +171,9 @@ cc_library(
     srcs = ["queue_client_validator.cc"],
     hdrs = ["queue_client_validator.h"],
     deps = [
-        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//src/cpio/client_providers/queue_client_provider/src:queue_client_provider_select_lib",
+        "//src/cpio/client_providers/queue_client_provider:queue_client_provider_select_lib",
         "//src/public/core/interface:errors",
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
@@ -189,9 +189,9 @@ cc_library(
     srcs = ["key_fetcher_validator.cc"],
     hdrs = ["key_fetcher_validator.h"],
     deps = [
-        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//src/cpio/client_providers/private_key_fetcher_provider/src:private_key_fetcher_provider_select_lib",
+        "//src/cpio/client_providers/private_key_fetcher_provider:private_key_fetcher_provider_select_lib",
         "//src/public/core/interface:errors",
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
@@ -212,7 +212,7 @@ cc_binary(
         ":key_fetcher_validator",
         ":parameter_client_validator",
         ":queue_client_validator",
-        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
         "//src/public/core/interface:errors",
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/validator/proto:validator_config_proto_lib",
@@ -289,7 +289,7 @@ container_layer(
 pkg_files(
     name = "kmstool_enclave_execs",
     srcs = [
-        "//src/cpio/client_providers/kms_client_provider/src/aws:kms_cli",
+        "//src/cpio/client_providers/kms_client_provider/aws:kms_cli",
     ],
     attributes = pkg_attributes(mode = "0555"),
     prefix = "/server/bin",
@@ -364,7 +364,7 @@ container_image(
     entrypoint = ["/bin/bash"],
     layers = [
         ":init_server_enclave_layer",
-        "//src/aws/proxy/src:proxify_layer",
+        "//src/aws/proxy:proxify_layer",
         ":grpcurl_layer",
         ":kmstool_enclave_layer",
         ":resolv_conf_layer",

@@ -25,8 +25,8 @@ cc_library(
     deps = [
         "//src/core/interface:interface_lib",
         "//src/core/logger/interface:logger_interface_lib",
-        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//src/cpio/client_providers/global_cpio/src/cpio_provider:cpio_provider_lib",
+        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio/cpio_provider:cpio_provider_lib",
     ],
 )
 
@@ -35,8 +35,8 @@ cc_test(
     size = "small",
     srcs = ["lib_cpio_test.cc"],
     deps = [
-        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
+        "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/interface/metric_client",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_google_googletest//:gtest_main",
@@ -48,7 +48,7 @@ cc_library(
     testonly = True,
     hdrs = ["mock_lib_cpio.h"],
     deps = [
+        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
         "//src/cpio/client_providers/global_cpio/mock:global_cpio_mock",
-        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
     ],
 )

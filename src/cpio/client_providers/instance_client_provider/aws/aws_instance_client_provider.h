@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_
 
 #include <map>
 #include <memory>
@@ -25,7 +25,7 @@
 
 #include <aws/ec2/EC2Client.h>
 
-#include "src/core/common/concurrent_map/src/concurrent_map.h"
+#include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 
@@ -203,4 +203,4 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_SRC_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_

@@ -24,7 +24,7 @@ import (
 	"path"
 	"strings"
 
-	pgdCmd "github.com/privacysandbox/data-plane-shared/src/roma/tools/api_plugin/cmd/cmd"
+	pgdCmd "github.com/privacysandbox/data-plane-shared/roma/tools/api_plugin/cmd/cmd"
 	gendoc "github.com/pseudomuto/protoc-gen-doc"
 	"github.com/pseudomuto/protokit"
 )

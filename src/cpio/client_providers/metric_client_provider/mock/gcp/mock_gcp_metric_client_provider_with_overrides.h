@@ -24,7 +24,7 @@
 
 #include "google/protobuf/any.pb.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_provider.h"
+#include "src/cpio/client_providers/metric_client_provider/gcp/gcp_metric_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers::mock {

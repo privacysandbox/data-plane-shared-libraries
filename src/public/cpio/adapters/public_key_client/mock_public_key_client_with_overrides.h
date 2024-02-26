@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_SRC_MOCK_PUBLIC_KEY_CLIENT_WITH_OVERRIDES_H_
-#define PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_SRC_MOCK_PUBLIC_KEY_CLIENT_WITH_OVERRIDES_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_MOCK_PUBLIC_KEY_CLIENT_WITH_OVERRIDES_H_
+#define PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_MOCK_PUBLIC_KEY_CLIENT_WITH_OVERRIDES_H_
 
 #include <memory>
 
-#include "src/core/message_router/src/message_router.h"
+#include "src/core/message_router/message_router.h"
 #include "src/cpio/client_providers/public_key_client_provider/mock/mock_public_key_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
 
@@ -50,4 +50,4 @@ class MockPublicKeyClientWithOverrides : public PublicKeyClient {
 };
 }  // namespace google::scp::cpio::mock
 
-#endif  // PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_SRC_MOCK_PUBLIC_KEY_CLIENT_WITH_OVERRIDES_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_MOCK_PUBLIC_KEY_CLIENT_WITH_OVERRIDES_H_

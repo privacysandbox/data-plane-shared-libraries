@@ -28,13 +28,13 @@
 
 #include "absl/functional/bind_front.h"
 #include "google/protobuf/any.pb.h"
-#include "src/core/async_executor/src/aws/aws_async_executor.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/async_executor/aws/aws_async_executor.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/instance_client_provider/src/aws/aws_instance_client_utils.h"
+#include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
 #include "src/cpio/client_providers/interface/auto_scaling_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "src/cpio/common/src/aws/aws_utils.h"
+#include "src/cpio/common/aws/aws_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/auto_scaling_service/v1/auto_scaling_service.pb.h"
 

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_SANDBOX_API_H_
-#define ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_SANDBOX_API_H_
+#ifndef ROMA_SANDBOX_WORKER_API_SAPI_WORKER_SANDBOX_API_H_
+#define ROMA_SANDBOX_WORKER_API_SAPI_WORKER_SANDBOX_API_H_
 
 #include <sys/syscall.h>
 
@@ -32,11 +32,11 @@
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/sandbox2/policy.h"
 #include "sandboxed_api/sandbox2/policybuilder.h"
-#include "src/roma/config/src/config.h"
-#include "src/roma/logging/src/logging.h"
-#include "src/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
-#include "src/roma/sandbox/worker_api/sapi/src/worker_wrapper-sapi.sapi.h"
-#include "src/roma/sandbox/worker_api/src/worker_api.h"
+#include "src/roma/config/config.h"
+#include "src/roma/logging/logging.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_wrapper-sapi.sapi.h"
+#include "src/roma/sandbox/worker_api/worker_api.h"
 
 namespace google::scp::roma::sandbox::worker_api {
 
@@ -249,4 +249,4 @@ class WorkerSandboxApi {
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 
-#endif  // ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_SANDBOX_API_H_
+#endif  // ROMA_SANDBOX_WORKER_API_SAPI_WORKER_SANDBOX_API_H_

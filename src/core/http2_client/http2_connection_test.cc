@@ -30,13 +30,13 @@
 #include <openssl/sha.h>
 
 #include "absl/synchronization/notification.h"
+#include "src/core/async_executor/async_executor.h"
 #include "src/core/async_executor/mock/mock_async_executor.h"
-#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/http2_client/http2_client.h"
 #include "src/core/http2_client/mock/mock_http_connection.h"
-#include "src/core/http2_client/src/http2_client.h"
 #include "src/core/interface/async_context.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using namespace nghttp2::asio_http2;          // NOLINT
 using namespace nghttp2::asio_http2::server;  // NOLINT

@@ -17,7 +17,7 @@
 #include <memory>
 
 #include "src/core/interface/async_executor_interface.h"
-#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 

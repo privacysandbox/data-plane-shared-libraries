@@ -26,9 +26,9 @@
 #include "absl/types/span.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
-#include "src/roma/sandbox/worker/src/worker.h"
-#include "src/roma/wasm/src/testing_utils.h"
+#include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
+#include "src/roma/sandbox/worker/worker.h"
+#include "src/roma/wasm/testing_utils.h"
 
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::sandbox::constants::kCodeVersion;

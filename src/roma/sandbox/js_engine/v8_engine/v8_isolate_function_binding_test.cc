@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
+#include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_function_binding.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -27,9 +27,9 @@
 #include "absl/status/status.h"
 #include "include/v8.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
-#include "src/roma/sandbox/js_engine/src/v8_engine/v8_js_engine.h"
-#include "src/roma/sandbox/native_function_binding/src/native_function_invoker.h"
-#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
+#include "src/roma/sandbox/native_function_binding/native_function_invoker.h"
+#include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
 using google::scp::roma::proto::RpcWrapper;
 

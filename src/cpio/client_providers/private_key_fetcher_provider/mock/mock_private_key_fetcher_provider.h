@@ -26,7 +26,7 @@
 
 #include "google/protobuf/any.pb.h"
 #include "src/core/interface/async_context.h"
-#include "src/core/message_router/src/message_router.h"
+#include "src/core/message_router/message_router.h"
 #include "src/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 

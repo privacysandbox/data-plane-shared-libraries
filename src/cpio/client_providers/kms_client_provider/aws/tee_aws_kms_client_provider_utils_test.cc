@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/kms_client_provider/src/aws/tee_aws_kms_client_provider_utils.h"
+#include "src/cpio/client_providers/kms_client_provider/aws/tee_aws_kms_client_provider_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -37,17 +37,17 @@ namespace google::scp::cpio::client_providers::utils {
 TEST(TeeAwsKmsClientProviderUtilsTest, ExecOutputsEmptyString) {
   const absl::StatusOr<std::string> output =
       Exec({const_cast<char*>(
-                "./src/cpio/client_providers/kms_client_provider/src/aws/true"),
+                "./src/cpio/client_providers/kms_client_provider/aws/true"),
             nullptr});
   ASSERT_TRUE(output.ok());
   EXPECT_THAT(*output, IsEmpty());
 }
 
 TEST(TeeAwsKmsClientProviderUtilsTest, ExecSingleThreadedHelloWorld) {
-  const absl::StatusOr<std::string> output = Exec(
-      {const_cast<char*>(
-           "./src/cpio/client_providers/kms_client_provider/src/aws/hello"),
-       nullptr});
+  const absl::StatusOr<std::string> output =
+      Exec({const_cast<char*>(
+                "./src/cpio/client_providers/kms_client_provider/aws/hello"),
+            nullptr});
   ASSERT_TRUE(output.ok());
   EXPECT_THAT(*output, StrEq("Hello, world!\n"));
 }
@@ -60,7 +60,7 @@ TEST(TeeAwsKmsClientProviderUtilsTest, ExecMultiThreadedHelloWorld) {
   for (int i = 0; i < kNumThreads; ++i) {
     exec_threads.emplace_back([&, i] {
       outputs[i] = Exec({const_cast<char*>("./src/cpio/client_providers/"
-                                           "kms_client_provider/src/aws/hello"),
+                                           "kms_client_provider/aws/hello"),
                          absl::StrCat("--name=", i).data(), nullptr});
     });
   }
@@ -73,7 +73,7 @@ TEST(TeeAwsKmsClientProviderUtilsTest, ExecMultiThreadedHelloWorld) {
 
 TEST(TeeAwsKmsClientProviderUtilsTest, ExecChildProcessFails) {
   EXPECT_FALSE(Exec({const_cast<char*>("./src/cpio/client_providers/"
-                                       "kms_client_provider/src/aws/false"),
+                                       "kms_client_provider/aws/false"),
                      nullptr})
                    .ok());
 }

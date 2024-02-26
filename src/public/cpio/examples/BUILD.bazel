@@ -35,7 +35,7 @@ cc_binary(
     linkopts = LINK_OPTS,
     deps = [
         "//src/core/test/utils:utils_lib",
-        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
         "//src/public/core/interface:errors",
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/interface/blob_storage_client",

@@ -19,8 +19,8 @@
 // but these are the actual functions that the sandbox infra calls.
 // The extern "C" is to avoid name mangling to enable sapi code generation.
 
-#ifndef ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_WRAPPER_H_
-#define ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_WRAPPER_H_
+#ifndef ROMA_SANDBOX_WORKER_API_SAPI_WORKER_WRAPPER_H_
+#define ROMA_SANDBOX_WORKER_API_SAPI_WORKER_WRAPPER_H_
 
 #include <string>
 #include <vector>
@@ -28,10 +28,10 @@
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "sandboxed_api/var_int.h"
-#include "src/roma/config/src/config.h"
-#include "src/roma/sandbox/worker_api/sapi/src/error_codes.h"
-#include "src/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
-#include "src/roma/sandbox/worker_api/sapi/src/worker_params.pb.h"
+#include "src/roma/config/config.h"
+#include "src/roma/sandbox/worker_api/sapi/error_codes.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 
 // All of the types used for these functions, that're wrapped by SAPI, must be
 // C types and cannot be complex C++ types.
@@ -69,4 +69,4 @@ extern "C" SapiStatusCode RunCodeFromSerializedData(
 extern "C" SapiStatusCode RunCodeFromBuffer(int input_serialized_size,
                                             size_t* output_serialized_size);
 
-#endif  // ROMA_SANDBOX_WORKER_API_SAPI_SRC_WORKER_WRAPPER_H_
+#endif  // ROMA_SANDBOX_WORKER_API_SAPI_WORKER_WRAPPER_H_

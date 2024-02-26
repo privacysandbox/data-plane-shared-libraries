@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_UTILS_H_
-#define CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_UTILS_H_
+#ifndef CORE_BLOB_STORAGE_PROVIDER_AWS_AWS_S3_UTILS_H_
+#define CORE_BLOB_STORAGE_PROVIDER_AWS_AWS_S3_UTILS_H_
 
 #include <aws/s3/S3Client.h>
 
-#include "src/core/blob_storage_provider/src/common/error_codes.h"
+#include "src/core/blob_storage_provider/common/error_codes.h"
 #include "src/core/interface/blob_storage_provider_interface.h"
 
 namespace google::scp::core::blob_storage_provider {
@@ -56,4 +56,4 @@ class AwsS3Utils {
 };
 }  // namespace google::scp::core::blob_storage_provider
 
-#endif  // CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_UTILS_H_
+#endif  // CORE_BLOB_STORAGE_PROVIDER_AWS_AWS_S3_UTILS_H_

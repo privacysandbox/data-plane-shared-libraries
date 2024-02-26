@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORE_COMMON_OPERATION_DISPATCHER_SRC_ERROR_CODES_H_
-#define CORE_COMMON_OPERATION_DISPATCHER_SRC_ERROR_CODES_H_
+#ifndef CORE_COMMON_OPERATION_DISPATCHER_ERROR_CODES_H_
+#define CORE_COMMON_OPERATION_DISPATCHER_ERROR_CODES_H_
 
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -38,4 +38,4 @@ DEFINE_ERROR_CODE(SC_DISPATCHER_NOT_ENOUGH_TIME_REMAINED_FOR_OPERATION,
 
 }  // namespace google::scp::core::errors
 
-#endif  // CORE_COMMON_OPERATION_DISPATCHER_SRC_ERROR_CODES_H_
+#endif  // CORE_COMMON_OPERATION_DISPATCHER_ERROR_CODES_H_

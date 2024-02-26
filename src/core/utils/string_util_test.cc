@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/core/utils/src/string_util.h"
+#include "src/core/utils/string_util.h"
 
 #include <gtest/gtest.h>
 

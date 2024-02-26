@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_CORE_SRC_MOCK_LIB_CPIO_H_
-#define PUBLIC_CPIO_CORE_SRC_MOCK_LIB_CPIO_H_
+#ifndef PUBLIC_CPIO_CORE_MOCK_LIB_CPIO_H_
+#define PUBLIC_CPIO_CORE_MOCK_LIB_CPIO_H_
 
 #include <memory>
 #include <stdexcept>
 #include <utility>
 
+#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/global_cpio/mock/mock_lib_cpio_provider.h"
-#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 
@@ -55,4 +55,4 @@ core::ExecutionResult ShutdownCpio() {
 }
 }  // namespace google::scp::cpio
 
-#endif  // PUBLIC_CPIO_CORE_SRC_MOCK_LIB_CPIO_H_
+#endif  // PUBLIC_CPIO_CORE_MOCK_LIB_CPIO_H_

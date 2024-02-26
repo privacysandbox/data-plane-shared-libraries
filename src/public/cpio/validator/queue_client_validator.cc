@@ -20,7 +20,7 @@
 #include "absl/log/log.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/public/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/queue_service/v1/queue_service.pb.h"

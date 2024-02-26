@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_INVOKER_SAPI_IPC_H_
-#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_INVOKER_SAPI_IPC_H_
+#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_INVOKER_SAPI_IPC_H_
+#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_INVOKER_SAPI_IPC_H_
 
 #include <memory>
 #include <string>
 
 #include "absl/status/status.h"
 #include "sandboxed_api/sandbox2/comms.h"
-#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
 #include "native_function_invoker.h"
 
@@ -44,4 +44,4 @@ class NativeFunctionInvokerSapiIpc : public NativeFunctionInvoker {
 };
 }  // namespace google::scp::roma::sandbox::native_function_binding
 
-#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_NATIVE_FUNCTION_INVOKER_SAPI_IPC_H_
+#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_INVOKER_SAPI_IPC_H_

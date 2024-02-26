@@ -25,7 +25,7 @@ cc_library(
     ],
     deps = [
         "//src/core/interface:interface_lib",
-        "//src/core/utils/src:core_utils",
+        "//src/core/utils:core_utils",
         "@aws_sdk_cpp//:kms",
     ],
 )

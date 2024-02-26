@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_COMMON_SRC_CPIO_UTILS_H_
-#define CPIO_COMMON_SRC_CPIO_UTILS_H_
+#ifndef CPIO_COMMON_CPIO_UTILS_H_
+#define CPIO_COMMON_CPIO_UTILS_H_
 
 #include <memory>
 #include <string>
@@ -57,4 +57,4 @@ class CpioUtils {
 };
 }  // namespace google::scp::cpio::common
 
-#endif  // CPIO_COMMON_SRC_CPIO_UTILS_H_
+#endif  // CPIO_COMMON_CPIO_UTILS_H_

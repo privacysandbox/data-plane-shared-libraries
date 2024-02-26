@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORE_COMMON_CONCURRENT_MAP_SRC_ERROR_CODES_H_
-#define CORE_COMMON_CONCURRENT_MAP_SRC_ERROR_CODES_H_
+#ifndef CORE_COMMON_CONCURRENT_MAP_ERROR_CODES_H_
+#define CORE_COMMON_CONCURRENT_MAP_ERROR_CODES_H_
 
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -33,4 +33,4 @@ DEFINE_ERROR_CODE(SC_CONCURRENT_MAP_ENTRY_DOES_NOT_EXIST, SC_CONCURRENT_MAP,
 
 }  // namespace google::scp::core::errors
 
-#endif  // CORE_COMMON_CONCURRENT_MAP_SRC_ERROR_CODES_H_
+#endif  // CORE_COMMON_CONCURRENT_MAP_ERROR_CODES_H_

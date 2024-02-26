@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_COMMON_UUID_SRC_UUID_H_
-#define CORE_COMMON_UUID_SRC_UUID_H_
+#ifndef CORE_COMMON_UUID_UUID_H_
+#define CORE_COMMON_UUID_UUID_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -98,4 +98,4 @@ inline constexpr Uuid kZeroUuid{0ULL, 0ULL};
 
 }  // namespace google::scp::core::common
 
-#endif  // CORE_COMMON_UUID_SRC_UUID_H_
+#endif  // CORE_COMMON_UUID_UUID_H_

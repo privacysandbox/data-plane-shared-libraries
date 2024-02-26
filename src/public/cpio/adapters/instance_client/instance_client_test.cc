@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/public/cpio/adapters/instance_client/src/instance_client.h"
+#include "src/public/cpio/adapters/instance_client/instance_client.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -21,9 +21,9 @@
 #include <string>
 
 #include "absl/synchronization/notification.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
-#include "src/public/cpio/adapters/instance_client/src/mock_instance_client_with_overrides.h"
-#include "src/public/cpio/core/src/mock_lib_cpio.h"
+#include "src/public/core/test_execution_result_matchers.h"
+#include "src/public/cpio/adapters/instance_client/mock_instance_client_with_overrides.h"
+#include "src/public/cpio/core/mock_lib_cpio.h"
 #include "src/public/cpio/interface/instance_client/instance_client_interface.h"
 #include "src/public/cpio/proto/instance_service/v1/instance_service.pb.h"
 

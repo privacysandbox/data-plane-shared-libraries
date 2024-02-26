@@ -20,7 +20,7 @@
 #include <string>
 
 #include "absl/functional/any_invocable.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 
 namespace google::scp::core::common::test {
 

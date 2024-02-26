@@ -42,7 +42,7 @@ cc_test(
     ],
     deps = [
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

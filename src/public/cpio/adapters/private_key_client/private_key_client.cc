@@ -22,14 +22,14 @@
 #include <utility>
 
 #include "absl/functional/bind_front.h"
-#include "src/core/common/global_logger/src/global_logger.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/global_logger/global_logger.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/errors.h"
 #include "src/core/interface/http_client_interface.h"
-#include "src/core/utils/src/error_utils.h"
-#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "src/core/utils/error_utils.h"
+#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"

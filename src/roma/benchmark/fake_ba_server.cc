@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/benchmark/src/fake_ba_server.h"
+#include "src/roma/benchmark/fake_ba_server.h"
 
 #include <memory>
 #include <string>

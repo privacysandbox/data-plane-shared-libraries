@@ -24,7 +24,7 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/http_types.h"
 #include "src/public/core/interface/execution_result.h"
 

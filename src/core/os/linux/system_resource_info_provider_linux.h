@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef CORE_OS_SRC_LINUX_SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_H_
-#define CORE_OS_SRC_LINUX_SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_H_
+#ifndef CORE_OS_LINUX_SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_H_
+#define CORE_OS_LINUX_SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_H_
 
 #include <cstdint>
 #include <string>
 
-#include "src/core/os/src/system_resource_info_provider.h"
+#include "src/core/os/system_resource_info_provider.h"
 #include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core::os::linux {
@@ -53,4 +53,4 @@ class SystemResourceInfoProviderLinux : public SystemResourceInfoProvider {
 };
 }  // namespace google::scp::core::os::linux
 
-#endif  // CORE_OS_SRC_LINUX_SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_H_
+#endif  // CORE_OS_LINUX_SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_H_

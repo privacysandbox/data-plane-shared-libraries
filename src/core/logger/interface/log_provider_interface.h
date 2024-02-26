@@ -20,7 +20,7 @@
 #include <cstdarg>
 #include <string_view>
 
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/service_interface.h"
 #include "src/public/core/interface/execution_result.h"
 

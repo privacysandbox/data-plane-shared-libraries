@@ -20,16 +20,16 @@
 #include <utility>
 
 #include "src/core/interface/async_executor_interface.h"
-#include "src/cpio/client_providers/global_cpio/src/cpio_provider/lib_cpio_provider.h"
+#include "src/cpio/client_providers/global_cpio/cpio_provider/lib_cpio_provider.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/public/cpio/interface/type_def.h"
 
 #if defined(AWS_TEST)
-#include "src/cpio/client_providers/instance_client_provider/src/aws/test_aws_instance_client_provider.h"
-#include "src/cpio/client_providers/role_credentials_provider/src/aws/test_aws_role_credentials_provider.h"
+#include "src/cpio/client_providers/instance_client_provider/aws/test_aws_instance_client_provider.h"
+#include "src/cpio/client_providers/role_credentials_provider/aws/test_aws_role_credentials_provider.h"
 #elif defined(GCP_TEST)
-#include "src/cpio/client_providers/instance_client_provider/src/gcp/test_gcp_instance_client_provider.h"
-#include "src/cpio/client_providers/role_credentials_provider/src/gcp/gcp_role_credentials_provider.h"
+#include "src/cpio/client_providers/instance_client_provider/gcp/test_gcp_instance_client_provider.h"
+#include "src/cpio/client_providers/role_credentials_provider/gcp/gcp_role_credentials_provider.h"
 #else
 #error "Must provide AWS_TEST or GCP_TEST"
 #endif

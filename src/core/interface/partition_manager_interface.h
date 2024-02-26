@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/http_types.h"
 #include "src/core/interface/partition_interface.h"
 #include "src/core/interface/partition_types.h"

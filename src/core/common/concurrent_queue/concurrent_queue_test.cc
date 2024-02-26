@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/core/common/concurrent_queue/src/concurrent_queue.h"
+#include "src/core/common/concurrent_queue/concurrent_queue.h"
 
 #include <gtest/gtest.h>
 
@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "src/core/test/scp_test_base.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::common::ConcurrentQueue;

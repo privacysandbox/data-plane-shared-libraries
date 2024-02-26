@@ -57,7 +57,7 @@ logging functions.
 
 This benchmark measures the time it takes to execute a simple UDF that calls `console.log()` with a
 `N` character long string `M` times. Benchmark code can be found
-[here](/src/roma/benchmark/src/logging_benchmark.cc).
+[here](/src/roma/benchmark/logging_benchmark.cc).
 
 ## Example
 

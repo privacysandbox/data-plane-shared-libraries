@@ -34,7 +34,7 @@ namespace privacy_sandbox::server_common {
 
 // Encodes an absl::Duration as a google::protobuf::Duration.
 // encoding rules specified at
-// https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/duration.proto
+// https://github.com/protocolbuffers/protobuf/blob/main/google/protobuf/duration.proto
 // Returns an error if the given absl::Duration is beyond the range allowed by
 // the protobuf. Otherwise, truncates toward zero with nanosecond precision and
 // returns the google::protobuf::Duration.
@@ -50,13 +50,13 @@ absl::Status EncodeGoogleApiProto(absl::Duration d,
 
 // Decodes the given protobuf and returns an absl::Duration, or returns an error
 // status if the argument is invalid according to
-// https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/duration.proto
+// https://github.com/protocolbuffers/protobuf/blob/main/google/protobuf/duration.proto
 absl::StatusOr<absl::Duration> DecodeGoogleApiProto(
     const google::protobuf::Duration& proto);
 
 // Returns the max Duration proto representing approximately 10,000 years,
 // as defined by:
-// https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/duration.proto
+// https://github.com/protocolbuffers/protobuf/blob/main/google/protobuf/duration.proto
 inline google::protobuf::Duration MakeGoogleApiDurationProtoMax() {
   google::protobuf::Duration proto;
   proto.set_seconds(315576000000);
@@ -73,7 +73,7 @@ inline absl::Duration MakeGoogleApiDurationMax() {
 
 // Returns the min Duration proto representing approximately -10,000 years,
 // as defined by:
-// https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/duration.proto
+// https://github.com/protocolbuffers/protobuf/blob/main/google/protobuf/duration.proto
 inline google::protobuf::Duration MakeGoogleApiDurationProtoMin() {
   google::protobuf::Duration proto;
   proto.set_seconds(-315576000000);

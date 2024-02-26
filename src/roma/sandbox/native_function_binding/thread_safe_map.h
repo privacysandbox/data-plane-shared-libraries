@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_THREAD_SAFE_MAP_H_
-#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_THREAD_SAFE_MAP_H_
+#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_THREAD_SAFE_MAP_H_
+#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_THREAD_SAFE_MAP_H_
 
 #include <string>
 #include <utility>
@@ -152,4 +152,4 @@ class ScopedValueReader {
 
 }  // namespace google::scp::roma::sandbox::native_function_binding
 
-#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_SRC_THREAD_SAFE_MAP_H_
+#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_THREAD_SAFE_MAP_H_

@@ -20,9 +20,9 @@ cc_library(
     name = "logger_mock",
     hdrs = ["mock_log_provider.h"],
     deps = [
-        "//src/core/common/uuid/src:uuid_lib",
+        "//src/core/common/uuid:uuid_lib",
+        "//src/core/logger:logger_lib",
         "//src/core/logger/interface:logger_interface_lib",
-        "//src/core/logger/src:logger_lib",
-        "//src/core/logger/src/log_providers:log_providers_lib",
+        "//src/core/logger/log_providers:log_providers_lib",
     ],
 )

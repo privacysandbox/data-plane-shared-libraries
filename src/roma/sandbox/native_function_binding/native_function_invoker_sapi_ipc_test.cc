@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/native_function_binding/src/native_function_invoker_sapi_ipc.h"
+#include "src/roma/sandbox/native_function_binding/native_function_invoker_sapi_ipc.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

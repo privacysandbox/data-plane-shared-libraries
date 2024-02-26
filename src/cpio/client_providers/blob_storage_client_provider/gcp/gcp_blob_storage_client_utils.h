@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_GCP_GCP_BLOB_STORAGE_CLIENT_UTILS_H_
-#define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_GCP_GCP_BLOB_STORAGE_CLIENT_UTILS_H_
+#ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_GCP_GCP_BLOB_STORAGE_CLIENT_UTILS_H_
+#define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_GCP_GCP_BLOB_STORAGE_CLIENT_UTILS_H_
 
 #include "google/cloud/status.h"
-#include "src/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
 
 namespace google::scp::cpio::client_providers {
 /**
@@ -83,4 +83,4 @@ class GcpBlobStorageClientUtils {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_GCP_GCP_BLOB_STORAGE_CLIENT_UTILS_H_
+#endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_GCP_GCP_BLOB_STORAGE_CLIENT_UTILS_H_

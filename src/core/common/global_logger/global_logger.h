@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_COMMON_GLOBAL_LOGGER_SRC_GLOBAL_LOGGER_H_
-#define CORE_COMMON_GLOBAL_LOGGER_SRC_GLOBAL_LOGGER_H_
+#ifndef CORE_COMMON_GLOBAL_LOGGER_GLOBAL_LOGGER_H_
+#define CORE_COMMON_GLOBAL_LOGGER_GLOBAL_LOGGER_H_
 
 #include <cstdarg>
 #include <memory>
@@ -159,4 +159,4 @@ namespace internal::cpio_log {
                 component_name, SCP_LOCATION, message, ##__VA_ARGS__);      \
   }
 
-#endif  // CORE_COMMON_GLOBAL_LOGGER_SRC_GLOBAL_LOGGER_H_
+#endif  // CORE_COMMON_GLOBAL_LOGGER_GLOBAL_LOGGER_H_

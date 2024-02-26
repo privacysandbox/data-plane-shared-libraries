@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/public/cpio/adapters/kms_client/src/kms_client.h"
+#include "src/public/cpio/adapters/kms_client/kms_client.h"
 
 #include <gtest/gtest.h>
 
@@ -21,8 +21,8 @@
 #include "absl/log/check.h"
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
-#include "src/public/cpio/adapters/kms_client/src/mock_kms_client_with_overrides.h"
+#include "src/public/core/test_execution_result_matchers.h"
+#include "src/public/cpio/adapters/kms_client/mock_kms_client_with_overrides.h"
 #include "src/public/cpio/interface/kms_client/kms_client_interface.h"
 #include "src/public/cpio/proto/kms_service/v1/kms_service.pb.h"
 

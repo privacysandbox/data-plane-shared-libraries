@@ -31,11 +31,11 @@
 #include <aws/s3/model/PutObjectRequest.h>
 
 #include "absl/functional/bind_front.h"
-#include "src/core/async_executor/src/aws/aws_async_executor.h"
-#include "src/core/blob_storage_provider/src/aws/aws_s3_utils.h"
+#include "src/core/async_executor/aws/aws_async_executor.h"
+#include "src/core/blob_storage_provider/aws/aws_s3_utils.h"
 #include "src/core/interface/configuration_keys.h"
-#include "src/core/utils/src/base64.h"
-#include "src/core/utils/src/hashing.h"
+#include "src/core/utils/base64.h"
+#include "src/core/utils/hashing.h"
 
 using Aws::MakeShared;
 using Aws::String;

@@ -27,7 +27,7 @@ namespace privacy_sandbox::server_common {
 namespace {
 
 // Validation requirements documented at:
-// https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/duration.proto
+// https://github.com/protocolbuffers/protobuf/blob/main/google/protobuf/duration.proto
 absl::Status Validate(const google::protobuf::Duration& d) {
   const auto sec = d.seconds();
   const auto ns = d.nanos();
@@ -44,7 +44,7 @@ absl::Status Validate(const google::protobuf::Duration& d) {
 }
 
 // Validation requirements documented at:
-// https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/timestamp.proto
+// https://github.com/protocolbuffers/protobuf/blob/main/google/protobuf/timestamp.proto
 absl::Status Validate(const google::protobuf::Timestamp& t) {
   const auto sec = t.seconds();
   const auto ns = t.nanos();

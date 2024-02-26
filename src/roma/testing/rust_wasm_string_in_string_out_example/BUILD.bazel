@@ -16,6 +16,6 @@ filegroup(
     name = "rust_wasm_string_in_string_out_example",
     srcs = ["string_in_string_out.wasm"],
     visibility = [
-        "//src/roma/worker/src:__subpackages__",
+        "//src/roma/worker:__subpackages__",
     ],
 )

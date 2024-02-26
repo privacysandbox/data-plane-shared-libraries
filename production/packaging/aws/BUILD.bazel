@@ -18,7 +18,7 @@ load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
 pkg_zip(
     name = "aws_artifacts",
     srcs = [
-        "//src/aws/proxy/src:proxy",
+        "//src/aws/proxy",
     ],
 )
 
@@ -31,7 +31,7 @@ genrule(
     name = "copy_to_dist",
     srcs = [
         ":aws_artifacts",
-        "//src/aws/proxy/src:proxy_debian_image.tar",
+        "//src/aws/proxy:proxy_debian_image.tar",
     ],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat <<EOF >'$@'
@@ -40,7 +40,7 @@ mkdir -p \\$${target_dir}
 readonly file_prefix="\\$${target_dir}/proxy"
 cp $(execpath :aws_artifacts) "\\$${file_prefix}-\\$$1-\\$$2.zip"
 if [[ \\$$1 == debian ]]; then
-  cp $(execpath //src/aws/proxy/src:proxy_debian_image.tar) "\\$${file_prefix}-image-\\$$2.tar"
+  cp $(execpath //src/aws/proxy:proxy_debian_image.tar) "\\$${file_prefix}-image-\\$$2.tar"
 fi
 builders/tools/normalize-dist
 EOF""",

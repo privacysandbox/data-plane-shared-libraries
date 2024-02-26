@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_UTILS_H_
-#define CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_UTILS_H_
+#ifndef CORE_BLOB_STORAGE_PROVIDER_GCP_GCP_CLOUD_STORAGE_UTILS_H_
+#define CORE_BLOB_STORAGE_PROVIDER_GCP_GCP_CLOUD_STORAGE_UTILS_H_
 
 #include "google/cloud/status.h"
-#include "src/core/blob_storage_provider/src/common/error_codes.h"
+#include "src/core/blob_storage_provider/common/error_codes.h"
 
 namespace google::scp::core::blob_storage_provider {
 /**
@@ -83,4 +83,4 @@ class GcpCloudStorageUtils {
 };
 }  // namespace google::scp::core::blob_storage_provider
 
-#endif  // CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_UTILS_H_
+#endif  // CORE_BLOB_STORAGE_PROVIDER_GCP_GCP_CLOUD_STORAGE_UTILS_H_

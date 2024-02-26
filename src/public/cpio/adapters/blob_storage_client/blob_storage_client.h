@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_SRC_BLOB_STORAGE_CLIENT_H_
-#define PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_SRC_BLOB_STORAGE_CLIENT_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_BLOB_STORAGE_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_BLOB_STORAGE_CLIENT_H_
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "src/core/common/concurrent_queue/src/concurrent_queue.h"
+#include "src/core/common/concurrent_queue/concurrent_queue.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/blob_storage_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
@@ -93,4 +93,4 @@ class BlobStorageClient : public BlobStorageClientInterface {
 };
 }  // namespace google::scp::cpio
 
-#endif  // PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_SRC_BLOB_STORAGE_CLIENT_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_BLOB_STORAGE_CLIENT_H_

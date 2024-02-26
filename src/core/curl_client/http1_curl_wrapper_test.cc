@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "src/core/curl_client/src/http1_curl_wrapper.h"
+#include "src/core/curl_client/http1_curl_wrapper.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -21,9 +21,9 @@
 #include <tuple>
 #include <utility>
 
-#include "src/core/curl_client/src/error_codes.h"
+#include "src/core/curl_client/error_codes.h"
 #include "src/core/test/utils/http1_helper/test_http1_server.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using boost::beast::http::status;
 using ::testing::IsEmpty;

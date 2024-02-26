@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_SRC_METRIC_CLIENT_H_
-#define PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_SRC_METRIC_CLIENT_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_METRIC_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_METRIC_CLIENT_H_
 
 #include <memory>
 
@@ -56,4 +56,4 @@ class MetricClient : public MetricClientInterface {
 };
 }  // namespace google::scp::cpio
 
-#endif  // PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_SRC_METRIC_CLIENT_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_METRIC_CLIENT_H_

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_SRC_GCP_GCP_PRIVATE_KEY_FETCHER_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_SRC_GCP_GCP_PRIVATE_KEY_FETCHER_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_GCP_GCP_PRIVATE_KEY_FETCHER_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_GCP_GCP_PRIVATE_KEY_FETCHER_PROVIDER_H_
 
 #include <memory>
 #include <string>
 
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
-#include "src/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/private_key_fetcher_provider.h"
 #include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
@@ -69,4 +69,4 @@ class GcpPrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_SRC_GCP_GCP_PRIVATE_KEY_FETCHER_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_GCP_GCP_PRIVATE_KEY_FETCHER_PROVIDER_H_

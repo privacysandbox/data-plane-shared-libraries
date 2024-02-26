@@ -33,10 +33,10 @@ cc_test(
     size = "small",
     srcs = ["concurrent_queue_test.cc"],
     deps = [
-        "//src/core/common/concurrent_queue/src:concurrent_queue_lib",
+        "//src/core/common/concurrent_queue:concurrent_queue_lib",
         "//src/core/interface:type_def_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

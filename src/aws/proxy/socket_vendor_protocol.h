@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef PROXY_SRC_SOCKET_VENDOR_PROTOCOL_H_
-#define PROXY_SRC_SOCKET_VENDOR_PROTOCOL_H_
+#ifndef PROXY_SOCKET_VENDOR_PROTOCOL_H_
+#define PROXY_SOCKET_VENDOR_PROTOCOL_H_
 
 #include <stdint.h>
 
@@ -70,4 +70,4 @@ struct NewConnectionResponse : public Message {
 
 }  // namespace google::scp::proxy::socket_vendor
 
-#endif  // PROXY_SRC_SOCKET_VENDOR_PROTOCOL_H_
+#endif  // PROXY_SOCKET_VENDOR_PROTOCOL_H_

@@ -13,7 +13,7 @@
 // limitations under the License.
 //
 // To run these benchmarks:
-//   builders/tools/bazel-debian run src/aws/proxy/src:benchmark_test \
+//   builders/tools/bazel-debian run src/aws/proxy:benchmark_test \
 //   --test_output=all \
 //   -- \
 //   --benchmark_repetitions=1 \
@@ -24,8 +24,8 @@
 #include <benchmark/benchmark.h>
 #include <boost/asio.hpp>
 
-#include "src/aws/proxy/src/config.h"
-#include "src/aws/proxy/src/proxy_server.h"
+#include "src/aws/proxy/config.h"
+#include "src/aws/proxy/proxy_server.h"
 
 using boost::asio::io_service;
 using boost::asio::ip::tcp;

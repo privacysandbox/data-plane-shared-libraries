@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/config/src/type_converter.h"
+#include "src/roma/config/type_converter.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

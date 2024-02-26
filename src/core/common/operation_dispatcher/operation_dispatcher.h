@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef CORE_COMMON_OPERATION_DISPATCHER_SRC_OPERATION_DISPATCHER_H_
-#define CORE_COMMON_OPERATION_DISPATCHER_SRC_OPERATION_DISPATCHER_H_
+#ifndef CORE_COMMON_OPERATION_DISPATCHER_OPERATION_DISPATCHER_H_
+#define CORE_COMMON_OPERATION_DISPATCHER_OPERATION_DISPATCHER_H_
 
 #include <chrono>
 #include <functional>
 #include <memory>
 
-#include "src/core/common/time_provider/src/time_provider.h"
+#include "src/core/common/time_provider/time_provider.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/streaming_context.h"
 
@@ -228,4 +228,4 @@ class OperationDispatcher {
 };
 }  // namespace google::scp::core::common
 
-#endif  // CORE_COMMON_OPERATION_DISPATCHER_SRC_OPERATION_DISPATCHER_H_
+#endif  // CORE_COMMON_OPERATION_DISPATCHER_OPERATION_DISPATCHER_H_

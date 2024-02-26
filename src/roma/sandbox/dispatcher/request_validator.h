@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_VALIDATOR_H_
-#define ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_VALIDATOR_H_
+#ifndef ROMA_SANDBOX_DISPATCHER_REQUEST_VALIDATOR_H_
+#define ROMA_SANDBOX_DISPATCHER_REQUEST_VALIDATOR_H_
 
 #include <memory>
 
 #include "absl/status/status.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/worker_api/src/worker_api.h"
+#include "src/roma/sandbox/worker_api/worker_api.h"
 
 namespace google::scp::roma::sandbox::dispatcher {
 /**
@@ -45,4 +45,4 @@ absl::Status AssertRequestIsValid(
 }
 }  // namespace google::scp::roma::sandbox::dispatcher
 
-#endif  // ROMA_SANDBOX_DISPATCHER_SRC_REQUEST_VALIDATOR_H_
+#endif  // ROMA_SANDBOX_DISPATCHER_REQUEST_VALIDATOR_H_

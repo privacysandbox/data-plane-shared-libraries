@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/private_key_fetcher_provider/src/gcp/gcp_private_key_fetcher_provider.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/gcp/gcp_private_key_fetcher_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -29,10 +29,10 @@
 #include "src/core/http2_client/mock/mock_http_client.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
-#include "src/cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
-#include "src/cpio/client_providers/private_key_fetcher_provider/src/gcp/error_codes.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/error_codes.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/gcp/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 namespace google::scp::cpio::client_providers::test {
 namespace {

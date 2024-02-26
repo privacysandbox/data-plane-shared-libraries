@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ENCRYPTION_KEY_FETCHER_SRC_FAKE_KEY_FETCHER_MANAGER_H_
-#define ENCRYPTION_KEY_FETCHER_SRC_FAKE_KEY_FETCHER_MANAGER_H_
+#ifndef ENCRYPTION_KEY_FETCHER_FAKE_KEY_FETCHER_MANAGER_H_
+#define ENCRYPTION_KEY_FETCHER_FAKE_KEY_FETCHER_MANAGER_H_
 
 #include <string_view>
 
@@ -66,4 +66,4 @@ class FakeKeyFetcherManager : public KeyFetcherManagerInterface {
 
 }  // namespace privacy_sandbox::server_common
 
-#endif  // ENCRYPTION_KEY_FETCHER_SRC_FAKE_KEY_FETCHER_MANAGER_H_
+#endif  // ENCRYPTION_KEY_FETCHER_FAKE_KEY_FETCHER_MANAGER_H_

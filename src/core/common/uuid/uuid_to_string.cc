@@ -24,8 +24,8 @@
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
-#include "src/core/common/uuid/src/error_codes.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/error_codes.h"
+#include "src/core/common/uuid/uuid.h"
 
 namespace google::scp::core::common::test {
 

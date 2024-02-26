@@ -31,7 +31,7 @@
 
 #include <benchmark/benchmark.h>
 
-#include "src/core/common/time_provider/src/time_provider.h"
+#include "src/core/common/time_provider/time_provider.h"
 #include "src/util/status_macro/status_macros.h"
 
 using google::scp::roma::CodeObject;

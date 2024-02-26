@@ -26,10 +26,10 @@
 #include "absl/log/scoped_mock_log.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "src/roma/config/src/config.h"
+#include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
-#include "src/roma/wasm/src/testing_utils.h"
+#include "src/roma/wasm/testing_utils.h"
 
 using google::scp::roma::sandbox::roma_service::RomaService;
 using google::scp::roma::wasm::testing::WasmTestingUtils;

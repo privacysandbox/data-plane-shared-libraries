@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORE_ASYNC_EXECUTOR_SRC_ASYNC_TASK_H_
-#define CORE_ASYNC_EXECUTOR_SRC_ASYNC_TASK_H_
+#ifndef CORE_ASYNC_EXECUTOR_ASYNC_TASK_H_
+#define CORE_ASYNC_EXECUTOR_ASYNC_TASK_H_
 
 #include <memory>
 #include <utility>
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "src/core/common/time_provider/src/time_provider.h"
+#include "src/core/common/time_provider/time_provider.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/public/core/interface/execution_result.h"
@@ -104,4 +104,4 @@ class AsyncTaskCompareGreater {
 };
 }  // namespace google::scp::core
 
-#endif  // CORE_ASYNC_EXECUTOR_SRC_ASYNC_TASK_H_
+#endif  // CORE_ASYNC_EXECUTOR_ASYNC_TASK_H_

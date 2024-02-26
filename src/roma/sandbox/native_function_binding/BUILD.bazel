@@ -17,8 +17,8 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(default_visibility = [
     "//src/roma/roma_service:__subpackages__",
-    "//src/roma/sandbox/js_engine/src/v8_engine:__subpackages__",
-    "//src/roma/sandbox/worker_api/sapi/src:__subpackages__",
+    "//src/roma/sandbox/js_engine/v8_engine:__subpackages__",
+    "//src/roma/sandbox/worker_api/sapi:__subpackages__",
 ])
 
 proto_library(
@@ -75,7 +75,7 @@ cc_library(
         "native_function_table.h",
     ],
     deps = [
-        "//src/roma/config/src:config",
+        "//src/roma/config",
         "//src/roma/interface:function_binding_io_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
@@ -92,9 +92,9 @@ cc_library(
         ":rpc_wrapper_cc_proto",
         ":thread_safe_map",
         "//src/core/interface:interface_lib",
-        "//src/roma/config/src:config",
+        "//src/roma/config",
         "//src/roma/interface:function_binding_io_cc_proto",
-        "//src/roma/logging/src:logging",
+        "//src/roma/logging",
         "//src/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",

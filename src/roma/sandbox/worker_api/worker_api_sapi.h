@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_SAPI_H_
-#define ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_SAPI_H_
+#ifndef ROMA_SANDBOX_WORKER_API_WORKER_API_SAPI_H_
+#define ROMA_SANDBOX_WORKER_API_WORKER_API_SAPI_H_
 
 #include <memory>
 #include <string>
@@ -26,8 +26,8 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
-#include "src/roma/config/src/config.h"
-#include "src/roma/sandbox/worker_api/sapi/src/worker_sandbox_api.h"
+#include "src/roma/config/config.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_sandbox_api.h"
 
 #include "worker_api.h"
 
@@ -66,4 +66,4 @@ class WorkerApiSapi : public WorkerApi {
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 
-#endif  // ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_SAPI_H_
+#endif  // ROMA_SANDBOX_WORKER_API_WORKER_API_SAPI_H_

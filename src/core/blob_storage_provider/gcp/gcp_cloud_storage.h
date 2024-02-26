@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_H_
-#define CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_H_
+#ifndef CORE_BLOB_STORAGE_PROVIDER_GCP_GCP_CLOUD_STORAGE_H_
+#define CORE_BLOB_STORAGE_PROVIDER_GCP_GCP_CLOUD_STORAGE_H_
 
 #include <memory>
 #include <sstream>
@@ -169,4 +169,4 @@ class GcpCloudStorageProvider : public BlobStorageProviderInterface {
 };
 }  // namespace google::scp::core::blob_storage_provider
 
-#endif  // CORE_BLOB_STORAGE_PROVIDER_SRC_GCP_GCP_CLOUD_STORAGE_H_
+#endif  // CORE_BLOB_STORAGE_PROVIDER_GCP_GCP_CLOUD_STORAGE_H_

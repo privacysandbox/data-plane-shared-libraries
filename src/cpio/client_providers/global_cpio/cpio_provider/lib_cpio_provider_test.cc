@@ -15,11 +15,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/async_executor/async_executor.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/cpio/client_providers/global_cpio/mock/mock_lib_cpio_provider_with_overrides.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::AsyncExecutor;
 using google::scp::core::AsyncExecutorInterface;

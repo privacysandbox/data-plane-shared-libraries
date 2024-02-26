@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef PROXY_SRC_CLIENT_SESSION_POOL_H_
-#define PROXY_SRC_CLIENT_SESSION_POOL_H_
+#ifndef PROXY_CLIENT_SESSION_POOL_H_
+#define PROXY_CLIENT_SESSION_POOL_H_
 
 #include <atomic>
 #include <memory>
@@ -110,4 +110,4 @@ class ClientSessionPool
 
 }  // namespace google::scp::proxy
 
-#endif  // PROXY_SRC_CLIENT_SESSION_POOL_H_
+#endif  // PROXY_CLIENT_SESSION_POOL_H_

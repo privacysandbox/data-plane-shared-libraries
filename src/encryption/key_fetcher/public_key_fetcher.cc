@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/encryption/key_fetcher/src/public_key_fetcher.h"
+#include "src/encryption/key_fetcher/public_key_fetcher.h"
 
 #include <memory>
 #include <string>
@@ -29,7 +29,7 @@
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "src/core/interface/errors.h"
-#include "src/encryption/key_fetcher/src/key_fetcher_utils.h"
+#include "src/encryption/key_fetcher/key_fetcher_utils.h"
 #include "src/metric/key_fetch.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"

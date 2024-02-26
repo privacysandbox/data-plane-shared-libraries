@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_GLOBAL_CPIO_H_
-#define CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_GLOBAL_CPIO_H_
+#ifndef CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_GLOBAL_CPIO_H_
+#define CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_GLOBAL_CPIO_H_
 
 #include <memory>
 
@@ -50,4 +50,4 @@ class GlobalCpio {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_SRC_GLOBAL_CPIO_H_
+#endif  // CPIO_CLIENT_PROVIDERS_GLOBAL_CPIO_GLOBAL_CPIO_H_

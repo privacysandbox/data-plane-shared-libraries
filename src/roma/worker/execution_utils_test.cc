@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/worker/src/execution_utils.h"
+#include "src/roma/worker/execution_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -33,10 +33,10 @@
 #include "absl/status/statusor.h"
 #include "include/libplatform/libplatform.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
-#include "src/roma/wasm/src/deserializer.h"
-#include "src/roma/wasm/src/testing_utils.h"
-#include "src/roma/wasm/src/wasm_types.h"
+#include "src/public/core/test_execution_result_matchers.h"
+#include "src/roma/wasm/deserializer.h"
+#include "src/roma/wasm/testing_utils.h"
+#include "src/roma/wasm/wasm_types.h"
 #include "src/util/process_util.h"
 #include "src/util/status_macro/status_macros.h"
 

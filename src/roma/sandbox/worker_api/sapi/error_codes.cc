@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/worker_api/sapi/src/error_codes.h"
+#include "src/roma/sandbox/worker_api/sapi/error_codes.h"
 
 #include "absl/strings/str_cat.h"
 

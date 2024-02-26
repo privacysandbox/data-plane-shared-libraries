@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef PROXY_SRC_PROXY_SERVER_H_
-#define PROXY_SRC_PROXY_SERVER_H_
+#ifndef PROXY_PROXY_SERVER_H_
+#define PROXY_PROXY_SERVER_H_
 
 #include <stdint.h>
 
@@ -51,4 +51,4 @@ class ProxyServer {
 };
 }  // namespace google::scp::proxy
 
-#endif  // PROXY_SRC_PROXY_SERVER_H_
+#endif  // PROXY_PROXY_SERVER_H_

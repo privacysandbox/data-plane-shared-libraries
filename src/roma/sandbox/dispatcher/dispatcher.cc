@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
-#include "src/roma/logging/src/logging.h"
+#include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/util/status_macro/status_macros.h"
 

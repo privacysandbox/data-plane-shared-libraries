@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "absl/container/btree_map.h"
-#include "src/core/common/concurrent_map/src/concurrent_map.h"
+#include "src/core/common/concurrent_map/concurrent_map.h"
 
 #include "type_def.h"
 

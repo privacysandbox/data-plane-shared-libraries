@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/native_function_binding/src/native_function_handler_sapi_ipc.h"
+#include "src/roma/sandbox/native_function_binding/native_function_handler_sapi_ipc.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -29,8 +29,8 @@
 #include "sandboxed_api/sandbox2/comms.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/native_function_binding/src/native_function_table.h"
-#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/roma/sandbox/native_function_binding/native_function_table.h"
+#include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;

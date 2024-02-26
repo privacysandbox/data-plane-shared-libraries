@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/core/common/operation_dispatcher/src/retry_strategy.h"
+#include "src/core/common/operation_dispatcher/retry_strategy.h"
 
 #include <gtest/gtest.h>
 

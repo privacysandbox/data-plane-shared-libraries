@@ -21,7 +21,7 @@
 #include <utility>
 
 #include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/worker_api/src/worker_api.h"
+#include "src/roma/sandbox/worker_api/worker_api.h"
 #include "src/util/duration.h"
 #include "src/util/protoutil.h"
 

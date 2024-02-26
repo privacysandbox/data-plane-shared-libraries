@@ -25,8 +25,8 @@
 
 #include "absl/functional/bind_front.h"
 #include "google/protobuf/any.pb.h"
-#include "src/core/common/time_provider/src/time_provider.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/time_provider/time_provider.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/cpio/client_providers/interface/type_def.h"

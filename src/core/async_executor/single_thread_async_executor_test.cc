@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/core/async_executor/src/single_thread_async_executor.h"
+#include "src/core/async_executor/single_thread_async_executor.h"
 
 #include <gtest/gtest.h>
 
@@ -23,15 +23,15 @@
 
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
+#include "src/core/async_executor/error_codes.h"
 #include "src/core/async_executor/mock/mock_async_executor_with_internals.h"
-#include "src/core/async_executor/src/error_codes.h"
-#include "src/core/async_executor/src/typedef.h"
-#include "src/core/common/time_provider/src/time_provider.h"
+#include "src/core/async_executor/typedef.h"
+#include "src/core/common/time_provider/time_provider.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/test/test_config.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::common::TimeProvider;
 using testing::Values;

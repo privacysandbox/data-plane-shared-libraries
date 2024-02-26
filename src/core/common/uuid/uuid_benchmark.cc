@@ -18,7 +18,7 @@
 
 #include <benchmark/benchmark.h>
 
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 
 #include "uuid_to_string.h"
 

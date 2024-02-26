@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef CORE_MESSAGE_ROUTER_SRC_MESSAGE_ROUTER_H_
-#define CORE_MESSAGE_ROUTER_SRC_MESSAGE_ROUTER_H_
+#ifndef CORE_MESSAGE_ROUTER_MESSAGE_ROUTER_H_
+#define CORE_MESSAGE_ROUTER_MESSAGE_ROUTER_H_
 
 #include <map>
 #include <memory>
 #include <string>
 
 #include "google/protobuf/any.pb.h"
-#include "src/core/common/concurrent_map/src/concurrent_map.h"
+#include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/message_router_interface.h"
 #include "src/public/core/interface/execution_result.h"
@@ -63,4 +63,4 @@ class MessageRouter : public MessageRouterInterface<google::protobuf::Any,
 };
 }  // namespace google::scp::core
 
-#endif  // CORE_MESSAGE_ROUTER_SRC_MESSAGE_ROUTER_H_
+#endif  // CORE_MESSAGE_ROUTER_MESSAGE_ROUTER_H_

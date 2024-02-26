@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_
-#define CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_
+#ifndef CORE_COMMON_CONCURRENT_QUEUE_CONCURRENT_QUEUE_H_
+#define CORE_COMMON_CONCURRENT_QUEUE_CONCURRENT_QUEUE_H_
 
 #include <utility>
 
@@ -87,4 +87,4 @@ class ConcurrentQueue {
 };
 }  // namespace google::scp::core::common
 
-#endif  // CORE_COMMON_CONCURRENT_QUEUE_SRC_CONCURRENT_QUEUE_H_
+#endif  // CORE_COMMON_CONCURRENT_QUEUE_CONCURRENT_QUEUE_H_

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_LOGGING_SRC_LOGGING_H_
-#define ROMA_LOGGING_SRC_LOGGING_H_
+#ifndef ROMA_LOGGING_LOGGING_H_
+#define ROMA_LOGGING_LOGGING_H_
 
 #include "absl/log/log.h"
 
@@ -41,4 +41,4 @@ int GetVlogVerboseLevel();
 
 #endif
 
-#endif  // ROMA_LOGGING_SRC_LOGGING_H_
+#endif  // ROMA_LOGGING_LOGGING_H_

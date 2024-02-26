@@ -17,9 +17,9 @@
 #include <functional>
 #include <vector>
 
-#include "src/core/async_executor/src/single_thread_async_executor.h"
-#include "src/core/common/time_provider/src/time_provider.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/core/async_executor/single_thread_async_executor.h"
+#include "src/core/common/time_provider/time_provider.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

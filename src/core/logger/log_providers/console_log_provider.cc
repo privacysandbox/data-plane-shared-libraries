@@ -21,9 +21,9 @@
 #include <string_view>
 #include <vector>
 
-#include "src/core/common/time_provider/src/time_provider.h"
-#include "src/core/common/uuid/src/uuid.h"
-#include "src/core/logger/src/log_utils.h"
+#include "src/core/common/time_provider/time_provider.h"
+#include "src/core/common/uuid/uuid.h"
+#include "src/core/logger/log_utils.h"
 
 using google::scp::core::common::TimeProvider;
 using google::scp::core::common::ToString;

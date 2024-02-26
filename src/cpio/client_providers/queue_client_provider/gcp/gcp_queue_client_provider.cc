@@ -21,10 +21,10 @@
 #include <grpcpp/grpcpp.h>
 
 #include "absl/strings/substitute.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
-#include "src/cpio/common/src/gcp/gcp_utils.h"
+#include "src/cpio/client_providers/instance_client_provider/gcp/gcp_instance_client_utils.h"
+#include "src/cpio/common/gcp/gcp_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/queue_service/v1/queue_service.pb.h"
 

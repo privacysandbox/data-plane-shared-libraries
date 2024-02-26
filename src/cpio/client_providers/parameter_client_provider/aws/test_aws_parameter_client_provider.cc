@@ -24,7 +24,7 @@
 #include <aws/core/client/ClientConfiguration.h>
 
 #include "src/cpio/client_providers/interface/parameter_client_provider_interface.h"
-#include "src/cpio/common/src/aws/test_aws_utils.h"
+#include "src/cpio/common/aws/test_aws_utils.h"
 #include "src/public/cpio/test/parameter_client/test_aws_parameter_client_options.h"
 
 using Aws::Client::ClientConfiguration;

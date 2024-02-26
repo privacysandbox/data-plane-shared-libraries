@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORE_ASYNC_EXECUTOR_SRC_ERROR_CODES_H_
-#define CORE_ASYNC_EXECUTOR_SRC_ERROR_CODES_H_
+#ifndef CORE_ASYNC_EXECUTOR_ERROR_CODES_H_
+#define CORE_ASYNC_EXECUTOR_ERROR_CODES_H_
 
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -63,4 +63,4 @@ DEFINE_ERROR_CODE(SC_ASYNC_EXECUTOR_UNABLE_TO_SET_AFFINITY, SC_ASYNC_EXECUTOR,
                   HttpStatusCode::BAD_REQUEST)
 }  // namespace google::scp::core::errors
 
-#endif  // CORE_ASYNC_EXECUTOR_SRC_ERROR_CODES_H_
+#endif  // CORE_ASYNC_EXECUTOR_ERROR_CODES_H_

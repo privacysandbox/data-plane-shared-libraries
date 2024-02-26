@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef PROXY_SRC_PROTOCOL_H_
-#define PROXY_SRC_PROTOCOL_H_
+#ifndef PROXY_PROTOCOL_H_
+#define PROXY_PROTOCOL_H_
 
 #include <netinet/ip.h>
 
@@ -38,4 +38,4 @@ sockaddr_vm GetProxyVsockAddr();
 
 }  // namespace google::scp::proxy
 
-#endif  // PROXY_SRC_PROTOCOL_H_
+#endif  // PROXY_PROTOCOL_H_

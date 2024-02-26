@@ -27,7 +27,7 @@
 #include <tuple>
 
 #include "absl/strings/str_join.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 
 using google::scp::core::common::ToString;
 using google::scp::core::common::Uuid;

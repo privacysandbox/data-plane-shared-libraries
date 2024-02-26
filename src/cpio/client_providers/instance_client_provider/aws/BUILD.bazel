@@ -22,13 +22,13 @@ cc_library(
         ":aws_instance_client_provider_srcs",
     ],
     deps = [
-        "//src/core/async_executor/src/aws:core_aws_async_executor_lib",
-        "//src/core/common/concurrent_map/src:concurrent_map_lib",
-        "//src/core/common/uuid/src:uuid_lib",
+        "//src/core/async_executor/aws:core_aws_async_executor_lib",
+        "//src/core/common/concurrent_map:concurrent_map_lib",
+        "//src/core/common/uuid:uuid_lib",
         "//src/core/interface:interface_lib",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//src/cpio/common/src:cpio_utils_lib",
-        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/cpio/common:cpio_utils_lib",
+        "//src/cpio/common/aws:aws_utils_lib",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "@aws_sdk_cpp//:core",
@@ -69,8 +69,8 @@ cc_test(
     deps = [
         ":aws_instance_client_provider_lib",
         "//src/core/interface:interface_lib",
-        "//src/cpio/common/src/aws:aws_utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/cpio/common/aws:aws_utils_lib",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -86,7 +86,7 @@ cc_test(
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -100,7 +100,7 @@ cc_library(
     deps = [
         "//src/core/interface:async_context_lib",
         "//src/core/interface:interface_lib",
-        "//src/cpio/client_providers/instance_client_provider/src:test_instance_client_provider_lib",
+        "//src/cpio/client_providers/instance_client_provider:test_instance_client_provider_lib",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "//src/public/cpio/test/global_cpio:test_cpio_options",

@@ -29,15 +29,15 @@ cc_library(
 cc_library(
     name = "test_aws_blob_storage_client",
     srcs = [
-        "//src/public/cpio/adapters/blob_storage_client/src:blob_storage_client_srcs",
-        "//src/public/cpio/adapters/blob_storage_client/src:test_aws_blob_storage_client_srcs",
+        "//src/public/cpio/adapters/blob_storage_client:blob_storage_client_srcs",
+        "//src/public/cpio/adapters/blob_storage_client:test_aws_blob_storage_client_srcs",
     ],
     hdrs = [
         "//src/public/cpio/interface/blob_storage_client:blob_storage_client_interface.h",
     ],
     deps = [
         ":test_aws_blob_storage_client_options",
-        "//src/cpio/client_providers/blob_storage_client_provider/src/aws:test_aws_blob_storage_client_provider_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider/aws:test_aws_blob_storage_client_provider_lib",
         "//src/public/cpio/interface/blob_storage_client",
     ],
 )
@@ -55,15 +55,15 @@ cc_library(
 cc_library(
     name = "test_gcp_blob_storage_client",
     srcs = [
-        "//src/public/cpio/adapters/blob_storage_client/src:blob_storage_client_srcs",
-        "//src/public/cpio/adapters/blob_storage_client/src:test_gcp_blob_storage_client_srcs",
+        "//src/public/cpio/adapters/blob_storage_client:blob_storage_client_srcs",
+        "//src/public/cpio/adapters/blob_storage_client:test_gcp_blob_storage_client_srcs",
     ],
     hdrs = [
         "//src/public/cpio/interface/blob_storage_client:blob_storage_client_interface.h",
     ],
     deps = [
         ":test_aws_blob_storage_client_options",
-        "//src/cpio/client_providers/blob_storage_client_provider/src/gcp:test_gcp_blob_storage_client_provider_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider/gcp:test_gcp_blob_storage_client_provider_lib",
         "//src/public/cpio/interface/blob_storage_client",
     ],
 )

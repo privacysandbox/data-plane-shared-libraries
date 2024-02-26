@@ -17,7 +17,7 @@
 #ifndef CORE_INTERFACE_PARTITION_INTERFACE_H_
 #define CORE_INTERFACE_PARTITION_INTERFACE_H_
 
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/initializable_interface.h"
 #include "src/core/interface/partition_interface.h"
 

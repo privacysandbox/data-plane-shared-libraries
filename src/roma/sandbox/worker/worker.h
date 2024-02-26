@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_WORKER_SRC_WORKER_H_
-#define ROMA_SANDBOX_WORKER_SRC_WORKER_H_
+#ifndef ROMA_SANDBOX_WORKER_WORKER_H_
+#define ROMA_SANDBOX_WORKER_WORKER_H_
 
 #include <memory>
 #include <stdexcept>
@@ -30,7 +30,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
-#include "src/roma/sandbox/js_engine/src/js_engine.h"
+#include "src/roma/sandbox/js_engine/js_engine.h"
 
 namespace google::scp::roma::sandbox::worker {
 /// @brief This class acts a single-threaded worker which receives work items
@@ -73,4 +73,4 @@ class Worker {
 };
 }  // namespace google::scp::roma::sandbox::worker
 
-#endif  // ROMA_SANDBOX_WORKER_SRC_WORKER_H_
+#endif  // ROMA_SANDBOX_WORKER_WORKER_H_

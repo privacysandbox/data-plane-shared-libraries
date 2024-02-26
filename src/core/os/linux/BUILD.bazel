@@ -27,7 +27,7 @@ cc_library(
     ],
     deps = [
         "//src/core/interface:interface_lib",
-        "//src/core/os/src:system_resource_info_provider_lib",
+        "//src/core/os:system_resource_info_provider_lib",
         "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/strings",
     ],
@@ -45,7 +45,7 @@ cc_test(
     deps = [
         ":system_resource_info_provider_linux_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

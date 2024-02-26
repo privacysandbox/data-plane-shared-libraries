@@ -22,11 +22,11 @@ cc_library(
         ":aws_auto_scaling_client_provider_srcs",
     ],
     deps = [
-        "//src/core/async_executor/src/aws:core_aws_async_executor_lib",
-        "//src/cpio/client_providers/instance_client_provider/src/aws:aws_instance_client_provider_lib",
+        "//src/core/async_executor/aws:core_aws_async_executor_lib",
+        "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider_lib",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//src/cpio/client_providers/interface:type_def",
-        "//src/cpio/common/src/aws:aws_utils_lib",
+        "//src/cpio/common/aws:aws_utils_lib",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/auto_scaling_service/v1:auto_scaling_service_cc_proto",
         "@aws_sdk_cpp//:autoscaling",
@@ -62,8 +62,8 @@ cc_test(
     deps = [
         ":aws_auto_scaling_client_provider_lib",
         "//src/core/interface:interface_lib",
-        "//src/cpio/common/src/aws:aws_utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/cpio/common/aws:aws_utils_lib",
+        "//src/public/core:test_execution_result_matchers",
         "@aws_sdk_cpp//:autoscaling",
         "@com_google_googletest//:gtest_main",
     ],
@@ -80,6 +80,6 @@ cc_library(
     ],
     deps = [
         ":aws_auto_scaling_client_provider_lib",
-        "//src/cpio/common/src/aws:test_aws_utils_lib",
+        "//src/cpio/common/aws:test_aws_utils_lib",
     ],
 )

@@ -19,7 +19,7 @@
 #include <string>
 #include <string_view>
 
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/logger/interface/log_provider_interface.h"
 
 namespace google::scp::core::logger::log_providers {

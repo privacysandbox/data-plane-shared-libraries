@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_CONSOLE_H_
-#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_CONSOLE_H_
+#ifndef ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_CONSOLE_H_
+#define ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_CONSOLE_H_
 #undef ABSL_LOG_CHECK_H_
 
 // Clang is disabled in the include statements below because including
@@ -33,7 +33,7 @@
 #include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/functional/any_invocable.h"
-#include "src/roma/sandbox/native_function_binding/src/rpc_wrapper.pb.h"
+#include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
 // clang-format on
 
@@ -72,4 +72,4 @@ class V8Console : public v8::debug::ConsoleDelegate {
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 
-#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_CONSOLE_H_
+#endif  // ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_CONSOLE_H_

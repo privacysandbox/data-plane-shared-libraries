@@ -15,7 +15,7 @@
  */
 
 /* This code is based on the serdes implementation of uvwasi for node JS
-  https://github.com/nodejs/uvwasi/blob/main/src/wasi_serdes.c */
+  https://github.com/nodejs/uvwasi/blob/main/wasi_serdes.c */
 
 /*
 MIT License

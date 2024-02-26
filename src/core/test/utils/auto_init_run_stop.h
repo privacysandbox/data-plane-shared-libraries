@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 namespace google::scp::core::test {
 

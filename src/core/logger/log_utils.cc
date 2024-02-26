@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "src/core/logger/src/log_utils.h"
+#include "src/core/logger/log_utils.h"
 
 #include <string>
 

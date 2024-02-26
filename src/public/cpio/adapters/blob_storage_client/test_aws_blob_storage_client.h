@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_SRC_TEST_AWS_BLOB_STORAGE_CLIENT_H_
-#define PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_SRC_TEST_AWS_BLOB_STORAGE_CLIENT_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_TEST_AWS_BLOB_STORAGE_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_TEST_AWS_BLOB_STORAGE_CLIENT_H_
 
 #include <memory>
 
-#include "src/cpio/client_providers/blob_storage_client_provider/src/aws/test_aws_blob_storage_client_provider.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/aws/test_aws_blob_storage_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/adapters/blob_storage_client/src/blob_storage_client.h"
+#include "src/public/cpio/adapters/blob_storage_client/blob_storage_client.h"
 #include "src/public/cpio/test/blob_storage_client/test_aws_blob_storage_client_options.h"
 
 namespace google::scp::cpio {
@@ -35,4 +35,4 @@ class TestAwsBlobStorageClient : public BlobStorageClient {
 };
 }  // namespace google::scp::cpio
 
-#endif  // PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_SRC_TEST_AWS_BLOB_STORAGE_CLIENT_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_TEST_AWS_BLOB_STORAGE_CLIENT_H_

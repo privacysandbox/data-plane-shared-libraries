@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_OS_SRC_SYSTEM_RESOURCE_INFO_PROVIDER_H_
-#define CORE_OS_SRC_SYSTEM_RESOURCE_INFO_PROVIDER_H_
+#ifndef CORE_OS_SYSTEM_RESOURCE_INFO_PROVIDER_H_
+#define CORE_OS_SYSTEM_RESOURCE_INFO_PROVIDER_H_
 
 #include <cstdint>
 
@@ -34,4 +34,4 @@ class SystemResourceInfoProvider {
 };
 }  // namespace google::scp::core::os::linux
 
-#endif  // CORE_OS_SRC_SYSTEM_RESOURCE_INFO_PROVIDER_H_
+#endif  // CORE_OS_SYSTEM_RESOURCE_INFO_PROVIDER_H_

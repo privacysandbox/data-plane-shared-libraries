@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_KMS_CLIENT_SRC_MOCK_KMS_CLIENT_WITH_OVERRIDES_H_
-#define PUBLIC_CPIO_ADAPTERS_KMS_CLIENT_SRC_MOCK_KMS_CLIENT_WITH_OVERRIDES_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_KMS_CLIENT_MOCK_KMS_CLIENT_WITH_OVERRIDES_H_
+#define PUBLIC_CPIO_ADAPTERS_KMS_CLIENT_MOCK_KMS_CLIENT_WITH_OVERRIDES_H_
 
 #include <memory>
 
 #include "src/cpio/client_providers/kms_client_provider/mock/mock_kms_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/adapters/kms_client/src/kms_client.h"
+#include "src/public/cpio/adapters/kms_client/kms_client.h"
 
 namespace google::scp::cpio::mock {
 class MockKmsClientWithOverrides : public KmsClient {
@@ -44,4 +44,4 @@ class MockKmsClientWithOverrides : public KmsClient {
 };
 }  // namespace google::scp::cpio::mock
 
-#endif  // PUBLIC_CPIO_ADAPTERS_KMS_CLIENT_SRC_MOCK_KMS_CLIENT_WITH_OVERRIDES_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_KMS_CLIENT_MOCK_KMS_CLIENT_WITH_OVERRIDES_H_

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_FUNCTION_BINDING_H_
-#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_FUNCTION_BINDING_H_
+#ifndef ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_ISOLATE_FUNCTION_BINDING_H_
+#define ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_ISOLATE_FUNCTION_BINDING_H_
 
 #include <memory>
 #include <string>
@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "include/v8.h"
-#include "src/roma/sandbox/native_function_binding/src/native_function_invoker.h"
+#include "src/roma/sandbox/native_function_binding/native_function_invoker.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 class V8IsolateFunctionBinding {
@@ -71,4 +71,4 @@ class V8IsolateFunctionBinding {
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 
-#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_FUNCTION_BINDING_H_
+#endif  // ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_ISOLATE_FUNCTION_BINDING_H_

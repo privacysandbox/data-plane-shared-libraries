@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_CONFIG_SRC_CONFIG_H_
-#define ROMA_CONFIG_SRC_CONFIG_H_
+#ifndef ROMA_CONFIG_CONFIG_H_
+#define ROMA_CONFIG_CONFIG_H_
 
 #include <stddef.h>
 
@@ -200,4 +200,4 @@ class Config {
 };
 }  // namespace google::scp::roma
 
-#endif  // ROMA_CONFIG_SRC_CONFIG_H_
+#endif  // ROMA_CONFIG_CONFIG_H_

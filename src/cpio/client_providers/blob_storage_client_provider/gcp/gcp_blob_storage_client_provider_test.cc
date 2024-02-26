@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/blob_storage_client_provider/src/gcp/gcp_blob_storage_client_provider.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/gcp/gcp_blob_storage_client_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -31,13 +31,13 @@
 #include "google/cloud/storage/client.h"
 #include "google/cloud/storage/internal/object_requests.h"
 #include "google/cloud/storage/testing/mock_client.h"
+#include "src/core/async_executor/async_executor.h"
 #include "src/core/async_executor/mock/mock_async_executor.h"
-#include "src/core/async_executor/src/async_executor.h"
-#include "src/core/utils/src/base64.h"
-#include "src/core/utils/src/hashing.h"
-#include "src/cpio/client_providers/blob_storage_client_provider/src/common/error_codes.h"
+#include "src/core/utils/base64.h"
+#include "src/core/utils/hashing.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 #include "src/public/cpio/test/global_cpio/test_cpio_options.h"
 #include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 

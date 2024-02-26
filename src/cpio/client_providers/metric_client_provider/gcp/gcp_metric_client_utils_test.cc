@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/metric_client_provider/src/gcp/gcp_metric_client_utils.h"
+#include "src/cpio/client_providers/metric_client_provider/gcp/gcp_metric_client_utils.h"
 
 #include <gtest/gtest.h>
 
@@ -24,9 +24,9 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/numbers.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/metric_client_provider/src/gcp/error_codes.h"
+#include "src/cpio/client_providers/metric_client_provider/gcp/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 #include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 using google::api::MonitoredResource;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/core/message_router/src/message_router.h"
+#include "src/core/message_router/message_router.h"
 
 #include <gtest/gtest.h>
 
@@ -24,12 +24,12 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "google/protobuf/any.pb.h"
-#include "src/core/common/concurrent_queue/src/concurrent_queue.h"
+#include "src/core/common/concurrent_queue/concurrent_queue.h"
 #include "src/core/interface/async_context.h"
-#include "src/core/message_router/src/error_codes.h"
-#include "src/core/message_router/src/test.pb.h"
+#include "src/core/message_router/error_codes.h"
+#include "src/core/message_router/test.pb.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using core::message_router::test::TestBoolRequest;
 using core::message_router::test::TestBoolResponse;

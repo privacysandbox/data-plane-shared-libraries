@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_WASM_SRC_WASM_TYPES_H_
-#define ROMA_WASM_SRC_WASM_TYPES_H_
+#ifndef ROMA_WASM_WASM_TYPES_H_
+#define ROMA_WASM_WASM_TYPES_H_
 
 #include <stddef.h>
 
@@ -89,4 +89,4 @@ struct RomaWasmListOfStringRepresentation {
 };
 }  // namespace google::scp::roma::wasm
 
-#endif  // ROMA_WASM_SRC_WASM_TYPES_H_
+#endif  // ROMA_WASM_WASM_TYPES_H_

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_WRAPPER_H_
-#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_WRAPPER_H_
+#ifndef ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_ISOLATE_WRAPPER_H_
+#define ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_ISOLATE_WRAPPER_H_
 
 #include <memory>
 #include <utility>
@@ -50,4 +50,4 @@ class V8IsolateWrapper {
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 
-#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_ISOLATE_WRAPPER_H_
+#endif  // ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_ISOLATE_WRAPPER_H_

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/worker_api/src/worker_api_sapi.h"
+#include "src/roma/sandbox/worker_api/worker_api_sapi.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

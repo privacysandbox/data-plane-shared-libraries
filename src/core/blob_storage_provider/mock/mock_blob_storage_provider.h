@@ -28,7 +28,7 @@
 #include <vector>
 
 #include "absl/strings/strip.h"
-#include "src/core/blob_storage_provider/src/common/error_codes.h"
+#include "src/core/blob_storage_provider/common/error_codes.h"
 #include "src/core/interface/blob_storage_provider_interface.h"
 
 namespace google::scp::core::blob_storage_provider::mock {

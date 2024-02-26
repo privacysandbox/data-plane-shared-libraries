@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/aws/proxy/src/protocol.h"
+#include "src/aws/proxy/protocol.h"
 
 #include <gtest/gtest.h>
 

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_H_
-#define CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_H_
+#ifndef CORE_BLOB_STORAGE_PROVIDER_AWS_AWS_S3_H_
+#define CORE_BLOB_STORAGE_PROVIDER_AWS_AWS_S3_H_
 
 #include <memory>
 #include <sstream>
@@ -195,4 +195,4 @@ class AwsS3Provider : public BlobStorageProviderInterface {
 };
 }  // namespace google::scp::core::blob_storage_provider
 
-#endif  // CORE_BLOB_STORAGE_PROVIDER_SRC_AWS_AWS_S3_H_
+#endif  // CORE_BLOB_STORAGE_PROVIDER_AWS_AWS_S3_H_

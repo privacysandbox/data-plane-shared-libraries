@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/encryption/key_fetcher/src/key_fetcher_utils.h"
+#include "src/encryption/key_fetcher/key_fetcher_utils.h"
 
 #include "absl/strings/numbers.h"
 

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_H_
-#define ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_H_
+#ifndef ROMA_SANDBOX_WORKER_API_WORKER_API_H_
+#define ROMA_SANDBOX_WORKER_API_WORKER_API_H_
 
 #include <memory>
 #include <string>
@@ -66,4 +66,4 @@ class WorkerApi {
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 
-#endif  // ROMA_SANDBOX_WORKER_API_SRC_WORKER_API_H_
+#endif  // ROMA_SANDBOX_WORKER_API_WORKER_API_H_

@@ -20,7 +20,7 @@
 #include <memory>
 
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/adapters/instance_client/src/instance_client.h"
+#include "src/public/cpio/adapters/instance_client/instance_client.h"
 #include "src/public/cpio/test/instance_client/test_aws_instance_client_options.h"
 
 namespace google::scp::cpio {

@@ -201,7 +201,7 @@ container_image(
         ":sshd_commands_layer",
         ":ssh_cert_layer",
         ":socat_layer",
-        "//src/aws/proxy/src:proxify_layer",
+        "//src/aws/proxy:proxify_layer",
         ":init_server_enclave_layer",
         ":resolv_conf_layer",
     ],

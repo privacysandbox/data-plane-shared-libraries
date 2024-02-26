@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_ERROR_CODES_H_
-#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_ERROR_CODES_H_
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_AWS_ERROR_CODES_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_AWS_ERROR_CODES_H_
 
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -74,4 +74,4 @@ MAP_TO_PUBLIC_ERROR_CODE(
     SC_CPIO_INTERNAL_ERROR)
 }  // namespace google::scp::core::errors
 
-#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_ERROR_CODES_H_
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_AWS_ERROR_CODES_H_

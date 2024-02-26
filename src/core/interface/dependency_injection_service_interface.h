@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "src/core/dependency_injection/src/component_dependency_node.h"
-#include "src/core/dependency_injection/src/dependency_graph.h"
+#include "src/core/dependency_injection/component_dependency_node.h"
+#include "src/core/dependency_injection/dependency_graph.h"
 #include "src/public/core/interface/execution_result.h"
 
 #include "service_interface.h"

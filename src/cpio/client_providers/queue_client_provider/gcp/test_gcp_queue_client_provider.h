@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_GCP_TEST_GCP_QUEUE_CLIENT_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_GCP_TEST_GCP_QUEUE_CLIENT_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_GCP_TEST_GCP_QUEUE_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_GCP_TEST_GCP_QUEUE_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
 #include <utility>
 
-#include "src/cpio/client_providers/queue_client_provider/src/gcp/gcp_queue_client_provider.h"
+#include "src/cpio/client_providers/queue_client_provider/gcp/gcp_queue_client_provider.h"
 
 namespace google::scp::cpio::client_providers {
 /// QueueClientOptions for testing on GCP.
@@ -64,4 +64,4 @@ class TestGcpQueueClientProvider : public GcpQueueClientProvider {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_SRC_GCP_TEST_GCP_QUEUE_CLIENT_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_QUEUE_CLIENT_PROVIDER_GCP_TEST_GCP_QUEUE_CLIENT_PROVIDER_H_

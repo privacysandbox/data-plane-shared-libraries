@@ -24,7 +24,7 @@
 #include <aws/core/client/ClientConfiguration.h>
 
 #include "src/cpio/client_providers/interface/metric_client_provider_interface.h"
-#include "src/cpio/common/src/aws/test_aws_utils.h"
+#include "src/cpio/common/aws/test_aws_utils.h"
 #include "src/public/cpio/interface/metric_client/metric_client_interface.h"
 #include "src/public/cpio/test/metric_client/test_aws_metric_client_options.h"
 

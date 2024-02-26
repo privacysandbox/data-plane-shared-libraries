@@ -21,9 +21,9 @@
 
 #include "absl/base/no_destructor.h"
 #include "src/core/logger/interface/log_provider_interface.h"
+#include "src/core/logger/log_providers/console_log_provider.h"
+#include "src/core/logger/log_providers/syslog/syslog_log_provider.h"
 #include "src/core/logger/mock/mock_log_provider.h"
-#include "src/core/logger/src/log_providers/console_log_provider.h"
-#include "src/core/logger/src/log_providers/syslog/syslog_log_provider.h"
 
 using google::scp::core::logger::ConsoleLogProvider;
 using google::scp::core::logger::LogProviderInterface;

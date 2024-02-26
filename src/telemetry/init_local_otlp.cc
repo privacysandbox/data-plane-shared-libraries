@@ -23,7 +23,7 @@
 // https://www.jaegertracing.io/docs/1.42/getting-started/
 // Then build run server with flags for local and otlp.  Ex:
 // `bazel run //components/data_server/server:server --//:instance=local
-// --//:platform=aws --//src/telemetry:local_otel_export=otlp --
+// --//:platform=aws --//telemetry:local_otel_export=otlp --
 // --environment="test"`
 namespace privacy_sandbox::server_common {
 

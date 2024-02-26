@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
+#include "src/cpio/client_providers/instance_client_provider/gcp/gcp_instance_client_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -22,9 +22,9 @@
 #include <tuple>
 
 #include "absl/strings/substitute.h"
+#include "src/cpio/client_providers/instance_client_provider/gcp/error_codes.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
-#include "src/cpio/client_providers/instance_client_provider/src/gcp/error_codes.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;

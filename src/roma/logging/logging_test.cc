@@ -22,7 +22,7 @@
 #include "absl/log/scoped_mock_log.h"
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "src/roma/config/src/function_binding_object_v2.h"
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 

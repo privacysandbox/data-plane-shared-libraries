@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_SRC_AWS_TEST_AWS_PARAMETER_CLIENT_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_SRC_AWS_TEST_AWS_PARAMETER_CLIENT_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_AWS_TEST_AWS_PARAMETER_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_AWS_TEST_AWS_PARAMETER_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -25,7 +25,7 @@
 #include <aws/core/client/ClientConfiguration.h>
 
 #include "src/cpio/client_providers/interface/parameter_client_provider_interface.h"
-#include "src/cpio/client_providers/parameter_client_provider/src/aws/aws_parameter_client_provider.h"
+#include "src/cpio/client_providers/parameter_client_provider/aws/aws_parameter_client_provider.h"
 #include "src/public/cpio/test/parameter_client/test_aws_parameter_client_options.h"
 
 namespace google::scp::cpio::client_providers {
@@ -49,4 +49,4 @@ class TestAwsParameterClientProvider : public AwsParameterClientProvider {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_SRC_AWS_TEST_AWS_PARAMETER_CLIENT_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_PARAMETER_CLIENT_PROVIDER_AWS_TEST_AWS_PARAMETER_CLIENT_PROVIDER_H_

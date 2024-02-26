@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORE_ASYNC_EXECUTOR_SRC_SINGLE_THREAD_ASYNC_EXECUTOR_H_
-#define CORE_ASYNC_EXECUTOR_SRC_SINGLE_THREAD_ASYNC_EXECUTOR_H_
+#ifndef CORE_ASYNC_EXECUTOR_SINGLE_THREAD_ASYNC_EXECUTOR_H_
+#define CORE_ASYNC_EXECUTOR_SINGLE_THREAD_ASYNC_EXECUTOR_H_
 
 #include <memory>
 #include <optional>
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "src/core/common/concurrent_queue/src/concurrent_queue.h"
+#include "src/core/common/concurrent_queue/concurrent_queue.h"
 #include "src/core/interface/async_executor_interface.h"
 
 #include "async_task.h"
@@ -100,4 +100,4 @@ class SingleThreadAsyncExecutor : ServiceInterface {
 };
 }  // namespace google::scp::core
 
-#endif  // CORE_ASYNC_EXECUTOR_SRC_SINGLE_THREAD_ASYNC_EXECUTOR_H_
+#endif  // CORE_ASYNC_EXECUTOR_SINGLE_THREAD_ASYNC_EXECUTOR_H_

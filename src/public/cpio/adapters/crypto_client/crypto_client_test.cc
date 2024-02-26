@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/public/cpio/adapters/crypto_client/src/crypto_client.h"
+#include "src/public/cpio/adapters/crypto_client/crypto_client.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -24,8 +24,8 @@
 #include "absl/synchronization/notification.h"
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
-#include "src/public/cpio/adapters/crypto_client/src/mock_crypto_client_with_overrides.h"
+#include "src/public/core/test_execution_result_matchers.h"
+#include "src/public/cpio/adapters/crypto_client/mock_crypto_client_with_overrides.h"
 #include "src/public/cpio/interface/crypto_client/crypto_client_interface.h"
 #include "src/public/cpio/interface/crypto_client/type_def.h"
 #include "src/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"

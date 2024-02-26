@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/kms_client_provider/src/gcp/gcp_kms_aead.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_kms_aead.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

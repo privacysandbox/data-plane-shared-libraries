@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_CONFIG_SRC_FUNCTION_BINDING_OBJECT_V2_H_
-#define ROMA_CONFIG_SRC_FUNCTION_BINDING_OBJECT_V2_H_
+#ifndef ROMA_CONFIG_FUNCTION_BINDING_OBJECT_V2_H_
+#define ROMA_CONFIG_FUNCTION_BINDING_OBJECT_V2_H_
 
 #include <functional>
 #include <string>
@@ -58,4 +58,4 @@ class FunctionBindingObjectV2 {
 
 }  // namespace google::scp::roma
 
-#endif  // ROMA_CONFIG_SRC_FUNCTION_BINDING_OBJECT_V2_H_
+#endif  // ROMA_CONFIG_FUNCTION_BINDING_OBJECT_V2_H_

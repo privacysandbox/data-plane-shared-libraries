@@ -41,8 +41,8 @@ cc_test(
     size = "small",
     srcs = ["errors_test.cc"],
     deps = [
-        "//src/core/common/concurrent_queue/src:concurrent_queue_lib",
-        "//src/core/http2_client/src:errors_lib",
+        "//src/core/common/concurrent_queue:concurrent_queue_lib",
+        "//src/core/http2_client:errors_lib",
         "//src/core/interface:interface_lib",
         "@com_google_googletest//:gtest_main",
     ],

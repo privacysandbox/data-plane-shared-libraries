@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_SRC_TEST_AWS_PARAMETER_CLIENT_H_
-#define PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_SRC_TEST_AWS_PARAMETER_CLIENT_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_TEST_AWS_PARAMETER_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_TEST_AWS_PARAMETER_CLIENT_H_
 
 #include <memory>
 
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/adapters/parameter_client/src/parameter_client.h"
+#include "src/public/cpio/adapters/parameter_client/parameter_client.h"
 #include "src/public/cpio/test/parameter_client/test_aws_parameter_client_options.h"
 
 namespace google::scp::cpio {
@@ -34,4 +34,4 @@ class TestAwsParameterClient : public ParameterClient {
 };
 }  // namespace google::scp::cpio
 
-#endif  // PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_SRC_TEST_AWS_PARAMETER_CLIENT_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_TEST_AWS_PARAMETER_CLIENT_H_

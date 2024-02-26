@@ -48,7 +48,7 @@ cc_library(
     hdrs = ["async_executor_utils.h"],
     deps = [
         ":error_codes",
-        "//src/core/common/global_logger/src:global_logger_lib",
+        "//src/core/common/global_logger:global_logger_lib",
     ],
 )
 
@@ -69,7 +69,7 @@ cc_library(
         ":async_executor_utils",
         ":async_task",
         ":typedef",
-        "//src/core/common/concurrent_queue/src:concurrent_queue_lib",
+        "//src/core/common/concurrent_queue:concurrent_queue_lib",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/synchronization",
     ],
@@ -100,7 +100,7 @@ cc_test(
         "//src/core/async_executor/mock:core_async_executor_mock",
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
@@ -117,7 +117,7 @@ cc_test(
         ":typedef",
         "//src/core/async_executor/mock:core_async_executor_mock",
         "//src/core/interface:interface_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
@@ -135,7 +135,7 @@ cc_test(
         "//src/core/async_executor/mock:core_async_executor_mock",
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
@@ -152,7 +152,7 @@ cc_test(
         "//src/core/async_executor/mock:core_async_executor_mock",
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -176,7 +176,7 @@ cc_test(
     srcs = ["async_executor_utils_test.cc"],
     deps = [
         ":async_executor_utils",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

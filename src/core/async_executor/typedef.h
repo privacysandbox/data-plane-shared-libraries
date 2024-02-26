@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_ASYNC_EXECUTOR_SRC_TYPEDEF_H_
-#define CORE_ASYNC_EXECUTOR_SRC_TYPEDEF_H_
+#ifndef CORE_ASYNC_EXECUTOR_TYPEDEF_H_
+#define CORE_ASYNC_EXECUTOR_TYPEDEF_H_
 
 #include <chrono>
 
@@ -33,4 +33,4 @@ inline constexpr std::chrono::nanoseconds kInfiniteWaitDurationNs =
         std::chrono::hours(87600));  // 10 years
 }  // namespace google::scp::core
 
-#endif  // CORE_ASYNC_EXECUTOR_SRC_TYPEDEF_H_
+#endif  // CORE_ASYNC_EXECUTOR_TYPEDEF_H_

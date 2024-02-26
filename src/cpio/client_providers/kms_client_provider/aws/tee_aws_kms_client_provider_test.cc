@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/kms_client_provider/src/aws/tee_aws_kms_client_provider.h"
+#include "src/cpio/client_providers/kms_client_provider/aws/tee_aws_kms_client_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -25,14 +25,14 @@
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/interface/async_context.h"
-#include "src/core/utils/src/base64.h"
-#include "src/core/utils/src/error_codes.h"
+#include "src/core/utils/base64.h"
+#include "src/core/utils/error_codes.h"
+#include "src/cpio/client_providers/kms_client_provider/aws/tee_error_codes.h"
 #include "src/cpio/client_providers/kms_client_provider/mock/aws/mock_tee_aws_kms_client_provider_with_overrides.h"
-#include "src/cpio/client_providers/kms_client_provider/src/aws/tee_error_codes.h"
 #include "src/cpio/client_providers/role_credentials_provider/mock/mock_role_credentials_provider.h"
-#include "src/cpio/common/src/aws/error_codes.h"
+#include "src/cpio/common/aws/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using Aws::InitAPI;
 using Aws::SDKOptions;

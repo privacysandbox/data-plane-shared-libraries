@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/private_key_fetcher_provider/src/private_key_fetcher_provider.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/private_key_fetcher_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -28,10 +28,10 @@
 #include "absl/synchronization/notification.h"
 #include "src/core/http2_client/mock/mock_http_client.h"
 #include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/error_codes.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/mock/mock_private_key_fetcher_provider_with_overrides.h"
-#include "src/cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::AsyncContext;
 using google::scp::core::Byte;

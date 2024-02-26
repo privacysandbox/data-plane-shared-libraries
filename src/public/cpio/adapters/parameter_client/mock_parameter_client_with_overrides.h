@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_SRC_MOCK_PARAMETER_CLIENT_WITH_OVERRIDES_H_
-#define PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_SRC_MOCK_PARAMETER_CLIENT_WITH_OVERRIDES_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_MOCK_PARAMETER_CLIENT_WITH_OVERRIDES_H_
+#define PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_MOCK_PARAMETER_CLIENT_WITH_OVERRIDES_H_
 
 #include <memory>
 
 #include "src/cpio/client_providers/parameter_client_provider/mock/mock_parameter_client_provider.h"
-#include "src/public/cpio/adapters/parameter_client/src/parameter_client.h"
+#include "src/public/cpio/adapters/parameter_client/parameter_client.h"
 
 namespace google::scp::cpio::mock {
 class MockParameterClientWithOverrides : public ParameterClient {
@@ -49,4 +49,4 @@ class MockParameterClientWithOverrides : public ParameterClient {
 };
 }  // namespace google::scp::cpio::mock
 
-#endif  // PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_SRC_MOCK_PARAMETER_CLIENT_WITH_OVERRIDES_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_MOCK_PARAMETER_CLIENT_WITH_OVERRIDES_H_

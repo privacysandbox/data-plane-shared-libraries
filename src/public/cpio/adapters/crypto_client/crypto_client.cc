@@ -21,12 +21,12 @@
 #include <string_view>
 
 #include "absl/functional/bind_front.h"
-#include "src/core/common/global_logger/src/global_logger.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/global_logger/global_logger.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/errors.h"
-#include "src/core/utils/src/error_utils.h"
-#include "src/cpio/client_providers/crypto_client_provider/src/crypto_client_provider.h"
+#include "src/core/utils/error_utils.h"
+#include "src/cpio/client_providers/crypto_client_provider/crypto_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/common/adapter_utils.h"
 #include "src/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"

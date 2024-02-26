@@ -19,11 +19,11 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 cc_library(
     name = "gcp_auth_token_provider_lib",
     srcs = [
-        "//src/cpio/client_providers/auth_token_provider/src/gcp:gcp_auth_token_provider_srcs",
+        "//src/cpio/client_providers/auth_token_provider/gcp:gcp_auth_token_provider_srcs",
     ],
     deps = [
         "//src/core/interface:interface_lib",
-        "//src/core/utils/src:core_utils",
+        "//src/core/utils:core_utils",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface:type_def",
@@ -57,7 +57,7 @@ cc_test(
         "//src/core/curl_client/mock:mock_curl_client",
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],

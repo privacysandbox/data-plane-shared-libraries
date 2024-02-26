@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/core/config_provider/src/config_provider.h"
+#include "src/core/config_provider/config_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -26,8 +26,8 @@
 #include <memory>
 #include <utility>
 
-#include "src/core/config_provider/src/error_codes.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/core/config_provider/error_codes.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::ConfigProvider;
 using google::scp::core::FailureExecutionResult;
@@ -48,7 +48,7 @@ std::filesystem::path GetTestDataDir(std::string relative_path) {
 
 TEST(ConfigProviderTest, GetConfigs) {
   std::filesystem::path relative_path =
-      "src/core/config_provider/src/resources/test_config.json";
+      "src/core/config_provider/resources/test_config.json";
   std::filesystem::path full_path = GetTestDataDir(relative_path);
 
   ConfigProvider config(full_path);
@@ -82,7 +82,7 @@ TEST(ConfigProviderTest, GetConfigs) {
 
 TEST(ConfigProviderTest, GetConfigsFailed) {
   std::filesystem::path relative_path =
-      "src/core/config_provider/src/resources/test_config.json";
+      "src/core/config_provider/resources/test_config.json";
   std::filesystem::path full_path = GetTestDataDir(relative_path);
   ConfigProvider config(full_path);
   config.Init();
@@ -98,7 +98,7 @@ TEST(ConfigProviderTest, GetConfigsFailed) {
 
 TEST(ConfigProviderTest, InitFailed) {
   std::filesystem::path relative_path =
-      "src/core/config_provider/src/resources/unknown_config.json";
+      "src/core/config_provider/resources/unknown_config.json";
   std::filesystem::path full_path = GetTestDataDir(relative_path);
   ConfigProvider config(full_path);
   const auto res = config.Init();

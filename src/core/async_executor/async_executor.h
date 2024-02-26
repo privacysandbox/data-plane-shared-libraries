@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_H_
-#define CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_H_
+#ifndef CORE_ASYNC_EXECUTOR_ASYNC_EXECUTOR_H_
+#define CORE_ASYNC_EXECUTOR_ASYNC_EXECUTOR_H_
 
 #include <memory>
 #include <thread>
@@ -147,4 +147,4 @@ class AsyncExecutor : public AsyncExecutorInterface {
 };
 }  // namespace google::scp::core
 
-#endif  // CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_H_
+#endif  // CORE_ASYNC_EXECUTOR_ASYNC_EXECUTOR_H_

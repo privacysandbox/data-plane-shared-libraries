@@ -17,7 +17,7 @@
  * output):
  *
  * builders/tools/bazel-debian run \
- * //src/roma/benchmark/src:ba_server_benchmark \
+ * //src/roma/benchmark:ba_server_benchmark \
  * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 
@@ -26,9 +26,9 @@
 
 #include <benchmark/benchmark.h>
 
-#include "src/roma/benchmark/src/fake_ba_server.h"
-#include "src/roma/benchmark/src/test_code.h"
-#include "src/roma/config/src/config.h"
+#include "src/roma/benchmark/fake_ba_server.h"
+#include "src/roma/benchmark/test_code.h"
+#include "src/roma/config/config.h"
 
 namespace {
 

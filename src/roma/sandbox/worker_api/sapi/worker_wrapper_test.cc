@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/worker_api/sapi/src/worker_wrapper.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_wrapper.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -25,10 +25,10 @@
 #include "absl/container/flat_hash_map.h"
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
-#include "src/roma/config/src/config.h"
-#include "src/roma/logging/src/logging.h"
+#include "src/roma/config/config.h"
+#include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/worker_api/sapi/src/worker_init_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
 
 using google::scp::roma::sandbox::constants::kCodeVersion;
 using google::scp::roma::sandbox::constants::kHandlerName;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/encryption/key_fetcher/src/private_key_fetcher.h"
+#include "src/encryption/key_fetcher/private_key_fetcher.h"
 
 #include <gmock/gmock.h>
 

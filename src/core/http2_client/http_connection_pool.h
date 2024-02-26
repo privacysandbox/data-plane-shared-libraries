@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_POOL_H_
-#define CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_POOL_H_
+#ifndef CORE_HTTP2_CLIENT_HTTP_CONNECTION_POOL_H_
+#define CORE_HTTP2_CLIENT_HTTP_CONNECTION_POOL_H_
 
 #include <memory>
 #include <string>
@@ -27,7 +27,7 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "src/core/common/concurrent_map/src/concurrent_map.h"
+#include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/core/interface/async_context.h"
 #include "src/public/core/interface/execution_result.h"
 
@@ -136,4 +136,4 @@ class HttpConnectionPool : public ServiceInterface {
 };
 }  // namespace google::scp::core
 
-#endif  // CORE_HTTP2_CLIENT_SRC_HTTP_CONNECTION_POOL_H_
+#endif  // CORE_HTTP2_CLIENT_HTTP_CONNECTION_POOL_H_

@@ -20,12 +20,12 @@
 #include <utility>
 
 #include "absl/log/check.h"
-#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/common/global_logger/global_logger.h"
 #include "src/core/common/proto/common.pb.h"
 #include "src/core/interface/async_context.h"
+#include "src/core/logger/log_providers/console_log_provider.h"
 #include "src/core/logger/mock/mock_log_provider.h"
-#include "src/core/logger/src/log_providers/console_log_provider.h"
-#include "src/public/core/src/test_execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::common::InitializeCpioLog;
 using google::scp::core::common::LogOption;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/benchmark/src/fake_kv_server.h"
+#include "src/roma/benchmark/fake_kv_server.h"
 
 #include <functional>
 #include <memory>

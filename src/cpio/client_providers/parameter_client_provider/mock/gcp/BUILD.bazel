@@ -21,7 +21,7 @@ cc_library(
     hdrs = ["mock_gcp_parameter_client_provider_with_overrides.h"],
     deps = [
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//src/cpio/client_providers/parameter_client_provider/src/gcp:gcp_parameter_client_provider_lib",
+        "//src/cpio/client_providers/parameter_client_provider/gcp:gcp_parameter_client_provider_lib",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager",
     ],
     alwayslink = 1,

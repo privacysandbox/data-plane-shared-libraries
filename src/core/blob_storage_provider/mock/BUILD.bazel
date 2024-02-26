@@ -24,8 +24,8 @@ cc_library(
         "mock_blob_storage_provider.h",
     ],
     deps = [
-        "//src/core/blob_storage_provider/src/aws:core_blob_storage_provider_aws_lib",
-        "//src/core/blob_storage_provider/src/common:core_blob_storage_provider_common_lib",
+        "//src/core/blob_storage_provider/aws:core_blob_storage_provider_aws_lib",
+        "//src/core/blob_storage_provider/common:core_blob_storage_provider_common_lib",
         "//src/core/interface:interface_lib",
         "@com_google_absl//absl/strings",
     ],

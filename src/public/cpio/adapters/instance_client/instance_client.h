@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_SRC_INSTANCE_CLIENT_H_
-#define PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_SRC_INSTANCE_CLIENT_H_
+#ifndef PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_INSTANCE_CLIENT_H_
+#define PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_INSTANCE_CLIENT_H_
 
 #include <memory>
 #include <string>
@@ -77,4 +77,4 @@ class InstanceClient : public InstanceClientInterface {
 };
 }  // namespace google::scp::cpio
 
-#endif  // PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_SRC_INSTANCE_CLIENT_H_
+#endif  // PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_INSTANCE_CLIENT_H_

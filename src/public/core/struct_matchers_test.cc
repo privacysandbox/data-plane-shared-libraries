@@ -15,7 +15,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "src/public/core/src/test_struct_matchers.h"
+#include "src/public/core/test_struct_matchers.h"
 
 using testing::ElementsAre;
 using testing::Eq;

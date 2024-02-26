@@ -25,7 +25,7 @@
 
 #include "absl/functional/bind_front.h"
 #include "google/protobuf/any.pb.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/http_types.h"

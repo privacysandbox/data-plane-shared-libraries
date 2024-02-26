@@ -21,7 +21,7 @@
 #include <memory>
 #include <string>
 
-#include "src/core/common/global_logger/src/global_logger.h"
+#include "src/core/common/global_logger/global_logger.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/public/core/interface/execution_result.h"
 

@@ -21,10 +21,10 @@ cc_library(
     deps = select(
         {
             "//:aws_platform": [
-                "//src/cpio/client_providers/private_key_fetcher_provider/src/aws:aws_private_key_fetcher_provider_lib",
+                "//src/cpio/client_providers/private_key_fetcher_provider/aws:aws_private_key_fetcher_provider_lib",
             ],
             "//:gcp_platform": [
-                "//src/cpio/client_providers/private_key_fetcher_provider/src/gcp:gcp_private_key_fetcher_provider_lib",
+                "//src/cpio/client_providers/private_key_fetcher_provider/gcp:gcp_private_key_fetcher_provider_lib",
             ],
         },
         no_match_error = "Please build for AWS or GCP",
@@ -43,7 +43,7 @@ cc_library(
         "private_key_fetcher_provider_utils.h",
     ],
     deps = [
-        "//src/core/http2_client/src:http2_client_lib",
+        "//src/core/http2_client:http2_client_lib",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
         "//src/cpio/client_providers/interface:type_def",
         "//src/public/cpio/interface:cpio_errors",
@@ -64,7 +64,7 @@ cc_test(
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
         "//src/cpio/client_providers/private_key_fetcher_provider/mock:private_key_fetcher_provider_mock",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
@@ -81,7 +81,7 @@ cc_test(
         "//src/core/interface:interface_lib",
         "//src/core/test/utils:utils_lib",
         "//src/cpio/client_providers/private_key_fetcher_provider/mock:private_key_fetcher_provider_mock",
-        "//src/public/core/src:test_execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],

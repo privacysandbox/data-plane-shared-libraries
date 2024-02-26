@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_CREDENTIALS_PROVIDER_SRC_ERROR_CODES_H_
-#define CORE_CREDENTIALS_PROVIDER_SRC_ERROR_CODES_H_
+#ifndef CORE_CREDENTIALS_PROVIDER_ERROR_CODES_H_
+#define CORE_CREDENTIALS_PROVIDER_ERROR_CODES_H_
 
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -36,4 +36,4 @@ DEFINE_ERROR_CODE(SC_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED,
 
 }  // namespace google::scp::core::errors
 
-#endif  // CORE_CREDENTIALS_PROVIDER_SRC_ERROR_CODES_H_
+#endif  // CORE_CREDENTIALS_PROVIDER_ERROR_CODES_H_

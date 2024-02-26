@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_AWS_METRIC_CLIENT_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_AWS_METRIC_CLIENT_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_AWS_AWS_METRIC_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_AWS_AWS_METRIC_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -29,7 +29,7 @@
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/message_router_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "src/cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
+#include "src/cpio/client_providers/metric_client_provider/metric_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/metric_client/type_def.h"
 #include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"
@@ -106,4 +106,4 @@ class AwsMetricClientProvider : public MetricClientProvider {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_AWS_METRIC_CLIENT_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_AWS_AWS_METRIC_CLIENT_PROVIDER_H_

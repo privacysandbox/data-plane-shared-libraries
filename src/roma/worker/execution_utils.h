@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_WORKER_SRC_EXECUTION_UTILS_H_
-#define ROMA_WORKER_SRC_EXECUTION_UTILS_H_
+#ifndef ROMA_WORKER_EXECUTION_UTILS_H_
+#define ROMA_WORKER_EXECUTION_UTILS_H_
 
 #include <algorithm>
 #include <memory>
@@ -27,11 +27,11 @@
 #include "absl/status/status.h"
 #include "include/v8.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/roma/config/src/type_converter.h"
+#include "src/roma/config/type_converter.h"
 #include "src/roma/interface/roma.h"
-#include "src/roma/wasm/src/deserializer.h"
-#include "src/roma/wasm/src/serializer.h"
-#include "src/roma/wasm/src/wasm_types.h"
+#include "src/roma/wasm/deserializer.h"
+#include "src/roma/wasm/serializer.h"
+#include "src/roma/wasm/wasm_types.h"
 
 namespace google::scp::roma::worker {
 
@@ -206,4 +206,4 @@ class ExecutionUtils {
 };
 }  // namespace google::scp::roma::worker
 
-#endif  // ROMA_WORKER_SRC_EXECUTION_UTILS_H_
+#endif  // ROMA_WORKER_EXECUTION_UTILS_H_

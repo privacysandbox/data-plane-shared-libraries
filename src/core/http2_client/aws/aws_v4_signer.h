@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_HTTP2_CLIENT_SRC_AWS_AWS_V4_SIGNER_H_
-#define CORE_HTTP2_CLIENT_SRC_AWS_AWS_V4_SIGNER_H_
+#ifndef CORE_HTTP2_CLIENT_AWS_AWS_V4_SIGNER_H_
+#define CORE_HTTP2_CLIENT_AWS_AWS_V4_SIGNER_H_
 #include <string>
 #include <vector>
 
@@ -165,4 +165,4 @@ class AwsV4Signer {
 };
 }  // namespace google::scp::core
 
-#endif  // CORE_HTTP2_CLIENT_SRC_AWS_AWS_V4_SIGNER_H_
+#endif  // CORE_HTTP2_CLIENT_AWS_AWS_V4_SIGNER_H_

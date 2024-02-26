@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_ROMA_SERVICE_SRC_ROMA_SERVICE_H_
-#define ROMA_SANDBOX_ROMA_SERVICE_SRC_ROMA_SERVICE_H_
+#ifndef ROMA_SANDBOX_ROMA_SERVICE_ROMA_SERVICE_H_
+#define ROMA_SANDBOX_ROMA_SERVICE_ROMA_SERVICE_H_
 
 #include <functional>
 #include <memory>
@@ -27,17 +27,17 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "src/core/async_executor/src/async_executor.h"
+#include "src/core/async_executor/async_executor.h"
 #include "src/core/interface/service_interface.h"
-#include "src/core/os/src/linux/system_resource_info_provider_linux.h"
+#include "src/core/os/linux/system_resource_info_provider_linux.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/roma/logging/src/logging.h"
+#include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
-#include "src/roma/sandbox/dispatcher/src/dispatcher.h"
-#include "src/roma/sandbox/native_function_binding/src/native_function_handler_sapi_ipc.h"
-#include "src/roma/sandbox/native_function_binding/src/native_function_table.h"
-#include "src/roma/sandbox/worker_api/src/worker_api_sapi.h"
-#include "src/roma/sandbox/worker_pool/src/worker_pool_api_sapi.h"
+#include "src/roma/sandbox/dispatcher/dispatcher.h"
+#include "src/roma/sandbox/native_function_binding/native_function_handler_sapi_ipc.h"
+#include "src/roma/sandbox/native_function_binding/native_function_table.h"
+#include "src/roma/sandbox/worker_api/worker_api_sapi.h"
+#include "src/roma/sandbox/worker_pool/worker_pool_api_sapi.h"
 #include "src/util/status_macro/status_macros.h"
 
 using google::scp::core::AsyncExecutor;
@@ -448,4 +448,4 @@ class RomaService {
 };
 }  // namespace google::scp::roma::sandbox::roma_service
 
-#endif  // ROMA_SANDBOX_ROMA_SERVICE_SRC_ROMA_SERVICE_H_
+#endif  // ROMA_SANDBOX_ROMA_SERVICE_ROMA_SERVICE_H_

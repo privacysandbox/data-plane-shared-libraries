@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_GCP_GCP_METRIC_CLIENT_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_GCP_GCP_METRIC_CLIENT_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_GCP_GCP_METRIC_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_GCP_GCP_METRIC_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -25,8 +25,8 @@
 #include "google/cloud/future.h"
 #include "google/cloud/monitoring/metric_client.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/instance_client_provider/src/gcp/gcp_instance_client_utils.h"
-#include "src/cpio/client_providers/metric_client_provider/src/metric_client_provider.h"
+#include "src/cpio/client_providers/instance_client_provider/gcp/gcp_instance_client_utils.h"
+#include "src/cpio/client_providers/metric_client_provider/metric_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
@@ -95,4 +95,4 @@ class GcpMetricClientProvider : public MetricClientProvider {
 
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_GCP_GCP_METRIC_CLIENT_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_GCP_GCP_METRIC_CLIENT_PROVIDER_H_

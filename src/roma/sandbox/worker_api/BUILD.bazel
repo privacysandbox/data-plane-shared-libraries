@@ -18,9 +18,9 @@ cc_library(
     name = "worker_api",
     hdrs = ["worker_api.h"],
     visibility = [
-        "//src/roma/sandbox/dispatcher/src:__subpackages__",
+        "//src/roma/sandbox/dispatcher:__subpackages__",
         "//src/roma/sandbox/worker_api/sapi:__subpackages__",
-        "//src/roma/sandbox/worker_pool/src:__subpackages__",
+        "//src/roma/sandbox/worker_pool:__subpackages__",
     ],
     deps = [
         "//src/core/interface:interface_lib",
@@ -37,13 +37,13 @@ cc_library(
     hdrs = ["worker_api_sapi.h"],
     visibility = [
         "//src/roma/roma_service:__subpackages__",
-        "//src/roma/sandbox/dispatcher/src:__subpackages__",
-        "//src/roma/sandbox/worker_pool/src:__subpackages__",
+        "//src/roma/sandbox/dispatcher:__subpackages__",
+        "//src/roma/sandbox/worker_pool:__subpackages__",
     ],
     deps = [
         ":worker_api",
-        "//src/roma/config/src:config",
-        "//src/roma/sandbox/worker_api/sapi/src:worker_sandbox_api",
+        "//src/roma/config",
+        "//src/roma/sandbox/worker_api/sapi:worker_sandbox_api",
         "//src/util:protoutil",
         "@com_google_absl//absl/status",
     ],

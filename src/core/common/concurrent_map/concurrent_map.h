@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_COMMON_CONCURRENT_MAP_SRC_CONCURRENT_MAP_H_
-#define CORE_COMMON_CONCURRENT_MAP_SRC_CONCURRENT_MAP_H_
+#ifndef CORE_COMMON_CONCURRENT_MAP_CONCURRENT_MAP_H_
+#define CORE_COMMON_CONCURRENT_MAP_CONCURRENT_MAP_H_
 
 #include <mutex>
 #include <shared_mutex>
@@ -152,4 +152,4 @@ class ConcurrentMap {
 };
 }  // namespace google::scp::core::common
 
-#endif  // CORE_COMMON_CONCURRENT_MAP_SRC_CONCURRENT_MAP_H_
+#endif  // CORE_COMMON_CONCURRENT_MAP_CONCURRENT_MAP_H_

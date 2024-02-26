@@ -38,7 +38,7 @@ unzip dist/aws/proxy-al2-amd64.zip
 The `resolv_conf_getter` is a tool for copying the host network configuration into the enclave.
 
 ```shell
-builders/tools/bazel-debian run //src/aws/proxy/src:copy_to_dist
+builders/tools/bazel-debian run //src/aws/proxy:copy_to_dist
 ```
 
 ## Creating an EIF from Docker Image
@@ -152,7 +152,7 @@ scp -i ${EC2_PEM} \
 
 ```shell
 docker load -i resolv_conf_getter_server_debian_image.tar
-docker run -p 1600:1600 bazel/src/aws/proxy/src:resolv_conf_getter_server_debian_image
+docker run -p 1600:1600 bazel/src/aws/proxy:resolv_conf_getter_server_debian_image
 ```
 
 1. (Optional) From a new terminal SSH-ed into the enclave in your EC2 instance, run the

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_JS_ENGINE_H_
-#define ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_JS_ENGINE_H_
+#ifndef ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_JS_ENGINE_H_
+#define ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_JS_ENGINE_H_
 
 #include <memory>
 #include <string>
@@ -28,11 +28,11 @@
 #include "include/libplatform/libplatform.h"
 #include "include/v8.h"
 #include "src/roma/interface/roma.h"
-#include "src/roma/sandbox/js_engine/src/js_engine.h"
-#include "src/roma/sandbox/js_engine/src/v8_engine/v8_isolate_function_binding.h"
-#include "src/roma/sandbox/js_engine/src/v8_engine/v8_isolate_wrapper.h"
-#include "src/roma/worker/src/execution_utils.h"
-#include "src/roma/worker/src/execution_watchdog.h"
+#include "src/roma/sandbox/js_engine/js_engine.h"
+#include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_function_binding.h"
+#include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_wrapper.h"
+#include "src/roma/worker/execution_utils.h"
+#include "src/roma/worker/execution_watchdog.h"
 
 #include "snapshot_compilation_context.h"
 #include "v8_console.h"
@@ -207,4 +207,4 @@ class V8JsEngine : public JsEngine {
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 
-#endif  // ROMA_SANDBOX_JS_ENGINE_SRC_V8_ENGINE_V8_JS_ENGINE_H_
+#endif  // ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_JS_ENGINE_H_

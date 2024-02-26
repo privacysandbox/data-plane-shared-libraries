@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_UTILS_H_
-#define CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_UTILS_H_
+#ifndef CORE_ASYNC_EXECUTOR_ASYNC_EXECUTOR_UTILS_H_
+#define CORE_ASYNC_EXECUTOR_ASYNC_EXECUTOR_UTILS_H_
 
 #include <iostream>
 #include <optional>
 #include <thread>
 
-#include "src/core/common/global_logger/src/global_logger.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/global_logger/global_logger.h"
+#include "src/core/common/uuid/uuid.h"
 
 #include "error_codes.h"
 
@@ -50,4 +50,4 @@ class AsyncExecutorUtils {
 
 }  // namespace google::scp::core
 
-#endif  // CORE_ASYNC_EXECUTOR_SRC_ASYNC_EXECUTOR_UTILS_H_
+#endif  // CORE_ASYNC_EXECUTOR_ASYNC_EXECUTOR_UTILS_H_

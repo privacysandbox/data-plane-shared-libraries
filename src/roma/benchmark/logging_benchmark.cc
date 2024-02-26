@@ -17,7 +17,7 @@
  * output):
  *
  * builders/tools/bazel-debian run \
- * //src/roma/benchmark/src:logging_benchmark \
+ * //src/roma/benchmark:logging_benchmark \
  * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 
@@ -29,7 +29,7 @@
 #include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
-#include "src/roma/config/src/config.h"
+#include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 

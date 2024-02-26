@@ -23,8 +23,8 @@
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
 
-#include "src/cpio/client_providers/kms_client_provider/src/aws/nontee_aws_kms_client_provider.h"
-#include "src/cpio/common/src/aws/test_aws_utils.h"
+#include "src/cpio/client_providers/kms_client_provider/aws/nontee_aws_kms_client_provider.h"
+#include "src/cpio/common/aws/test_aws_utils.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 #include "src/public/cpio/test/kms_client/test_aws_kms_client_options.h"
 

@@ -23,7 +23,7 @@
 
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "src/roma/config/src/config.h"
+#include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 

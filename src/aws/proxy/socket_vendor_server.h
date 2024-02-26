@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef PROXY_SRC_SOCKET_VENDOR_SERVER_H_
-#define PROXY_SRC_SOCKET_VENDOR_SERVER_H_
+#ifndef PROXY_SOCKET_VENDOR_SERVER_H_
+#define PROXY_SOCKET_VENDOR_SERVER_H_
 
 #include <string>
 #include <thread>
@@ -55,4 +55,4 @@ class SocketVendorServer {
 };
 }  // namespace google::scp::proxy
 
-#endif  // PROXY_SRC_SOCKET_VENDOR_SERVER_H_
+#endif  // PROXY_SOCKET_VENDOR_SERVER_H_

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/metric_client_provider/src/aws/cloud_watch_error_converter.h"
+#include "src/cpio/client_providers/metric_client_provider/aws/cloud_watch_error_converter.h"
 
 #include <gtest/gtest.h>
 
@@ -22,7 +22,7 @@
 #include <aws/monitoring/CloudWatchErrors.h>
 
 #include "absl/container/flat_hash_map.h"
-#include "src/cpio/common/src/aws/error_codes.h"
+#include "src/cpio/common/aws/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
 
 using Aws::Client::AWSError;

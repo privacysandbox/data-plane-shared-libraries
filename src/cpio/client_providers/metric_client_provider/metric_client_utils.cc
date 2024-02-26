@@ -20,7 +20,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "src/cpio/client_providers/interface/metric_client_provider_interface.h"
-#include "src/cpio/client_providers/metric_client_provider/src/error_codes.h"
+#include "src/cpio/client_providers/metric_client_provider/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/metric_client/metric_client_interface.h"
 #include "src/public/cpio/interface/metric_client/type_def.h"

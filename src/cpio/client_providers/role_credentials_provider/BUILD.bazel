@@ -21,10 +21,10 @@ cc_library(
     deps = select(
         {
             "//:aws_platform": [
-                "//src/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_lib",
+                "//src/cpio/client_providers/role_credentials_provider/aws:aws_role_credentials_provider_lib",
             ],
             "//:gcp_platform": [
-                "//src/cpio/client_providers/role_credentials_provider/src/gcp:gcp_role_credentials_provider_lib",
+                "//src/cpio/client_providers/role_credentials_provider/gcp:gcp_role_credentials_provider_lib",
             ],
         },
         no_match_error = "Please build for AWS or GCP",

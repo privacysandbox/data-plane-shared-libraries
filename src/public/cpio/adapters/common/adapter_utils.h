@@ -22,7 +22,7 @@
 #include <utility>
 
 #include "src/core/interface/async_context.h"
-#include "src/core/utils/src/error_utils.h"
+#include "src/core/utils/error_utils.h"
 #include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio {

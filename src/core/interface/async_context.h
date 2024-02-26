@@ -22,9 +22,9 @@
 #include <memory>
 #include <utility>
 
-#include "src/core/common/global_logger/src/global_logger.h"
-#include "src/core/common/time_provider/src/time_provider.h"
-#include "src/core/common/uuid/src/uuid.h"
+#include "src/core/common/global_logger/global_logger.h"
+#include "src/core/common/time_provider/time_provider.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_executor_interface.h"
 
 #include "errors.h"

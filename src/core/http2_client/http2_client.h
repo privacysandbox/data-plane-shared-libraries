@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef CORE_HTTP2_CLIENT_SRC_HTTP2_CLIENT_H_
-#define CORE_HTTP2_CLIENT_SRC_HTTP2_CLIENT_H_
+#ifndef CORE_HTTP2_CLIENT_HTTP2_CLIENT_H_
+#define CORE_HTTP2_CLIENT_HTTP2_CLIENT_H_
 
 #include <memory>
 
-#include "src/core/common/operation_dispatcher/src/operation_dispatcher.h"
+#include "src/core/common/operation_dispatcher/operation_dispatcher.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/http_client_interface.h"
@@ -90,4 +90,4 @@ class HttpClient : public HttpClientInterface {
 };
 }  // namespace google::scp::core
 
-#endif  // CORE_HTTP2_CLIENT_SRC_HTTP2_CLIENT_H_
+#endif  // CORE_HTTP2_CLIENT_HTTP2_CLIENT_H_

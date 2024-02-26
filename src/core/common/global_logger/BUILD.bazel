@@ -23,9 +23,9 @@ cc_library(
     deps = [
         "//src/core/interface:errors_lib",
         "//src/core/logger/interface:logger_interface_lib",
+        "//src/core/logger/log_providers:log_providers_lib",
+        "//src/core/logger/log_providers/syslog:syslog_lib",
         "//src/core/logger/mock:logger_mock",
-        "//src/core/logger/src/log_providers:log_providers_lib",
-        "//src/core/logger/src/log_providers/syslog:syslog_lib",
         "@com_google_absl//absl/base:no_destructor",
         "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/strings",

@@ -67,16 +67,16 @@ If you'd like to try out this proxy with your own application, follow these step
 1. Use `scripts/build_proxy` to build proxy.
 1. Look for `dist/aws/proxy-al2-amd64.zip`, unzip and upload it to your EC2 instance.
 1. Run proxy in background on the EC2 instance.
-1. (Optional) Run `//src/aws/proxy/src:copy_to_dist` and upload
+1. (Optional) Run `//src/aws/proxy:copy_to_dist` and upload
    `dist/aws/resolv_conf_getter_server_debian_image.tar` to your EC2 instance.
 1. (Optional) Run the `resolv_conf_getter` server in the background.
 
 ```shell
 docker load -i resolv_conf_getter_server_debian_image.tar
-docker run -d -p 1600:1600 bazel/src/aws/proxy/src:resolv_conf_getter_server_debian_image
+docker run -d -p 1600:1600 bazel/src/aws/proxy:resolv_conf_getter_server_debian_image
 ```
 
-1. Add the `//src/aws/proxy/src:proxify_layer` layer to the definition of your image.
+1. Add the `//src/aws/proxy:proxify_layer` layer to the definition of your image.
 1. Put CMD as `["/path/to/proxify", "--", "your_app", "one_arg", "more_args"]`.
 1. Build and run the enclave image.
 

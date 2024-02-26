@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_TEST_AWS_METRIC_CLIENT_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_TEST_AWS_METRIC_CLIENT_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_AWS_TEST_AWS_METRIC_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_AWS_TEST_AWS_METRIC_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -24,7 +24,7 @@
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
 
-#include "src/cpio/client_providers/metric_client_provider/src/aws/aws_metric_client_provider.h"
+#include "src/cpio/client_providers/metric_client_provider/aws/aws_metric_client_provider.h"
 #include "src/public/cpio/test/metric_client/test_aws_metric_client_options.h"
 
 namespace google::scp::cpio::client_providers {
@@ -53,4 +53,4 @@ class TestAwsMetricClientProvider : public AwsMetricClientProvider {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_SRC_AWS_TEST_AWS_METRIC_CLIENT_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_METRIC_CLIENT_PROVIDER_AWS_TEST_AWS_METRIC_CLIENT_PROVIDER_H_

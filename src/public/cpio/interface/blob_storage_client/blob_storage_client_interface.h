@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "src/core/common/concurrent_queue/src/concurrent_queue.h"
+#include "src/core/common/concurrent_queue/concurrent_queue.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/streaming_context.h"
 #include "src/public/core/interface/execution_result.h"

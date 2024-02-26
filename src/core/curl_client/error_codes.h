@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CORE_CURL_CLIENT_SRC_ERROR_CODES_H_
-#define CORE_CURL_CLIENT_SRC_ERROR_CODES_H_
+#ifndef CORE_CURL_CLIENT_ERROR_CODES_H_
+#define CORE_CURL_CLIENT_ERROR_CODES_H_
 
 #include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -87,4 +87,4 @@ DEFINE_ERROR_CODE(SC_CURL_CLIENT_REQUEST_BAD_REGEX_PARSING, SC_CURL_CLIENT,
 
 }  // namespace google::scp::core::errors
 
-#endif  // CORE_CURL_CLIENT_SRC_ERROR_CODES_H_
+#endif  // CORE_CURL_CLIENT_ERROR_CODES_H_

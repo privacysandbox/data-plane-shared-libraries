@@ -20,7 +20,7 @@ cc_library(
     name = "core_aws_async_executor_lib",
     hdrs = ["aws_async_executor.h"],
     deps = [
-        "//src/core/async_executor/src:core_async_executor_lib",
+        "//src/core/async_executor:core_async_executor_lib",
         "@aws_sdk_cpp//:core",
     ],
 )

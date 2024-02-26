@@ -32,7 +32,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "include/v8.h"
-#include "src/roma/config/src/type_converter.h"
+#include "src/roma/config/type_converter.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/util/process_util.h"
 

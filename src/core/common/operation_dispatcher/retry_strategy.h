@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_COMMON_OPERATION_DISPATCHER_SRC_RETRY_STRATEGY_H_
-#define CORE_COMMON_OPERATION_DISPATCHER_SRC_RETRY_STRATEGY_H_
+#ifndef CORE_COMMON_OPERATION_DISPATCHER_RETRY_STRATEGY_H_
+#define CORE_COMMON_OPERATION_DISPATCHER_RETRY_STRATEGY_H_
 
 #include <chrono>
 #include <cmath>
@@ -120,4 +120,4 @@ class RetryStrategy {
 };
 }  // namespace google::scp::core::common
 
-#endif  // CORE_COMMON_OPERATION_DISPATCHER_SRC_RETRY_STRATEGY_H_
+#endif  // CORE_COMMON_OPERATION_DISPATCHER_RETRY_STRATEGY_H_

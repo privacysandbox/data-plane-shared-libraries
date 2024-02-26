@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/native_function_binding/src/native_function_table.h"
+#include "src/roma/sandbox/native_function_binding/native_function_table.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

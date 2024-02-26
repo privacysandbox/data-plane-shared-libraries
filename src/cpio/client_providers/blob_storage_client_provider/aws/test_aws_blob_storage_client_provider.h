@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_AWS_TEST_AWS_BLOB_STORAGE_CLIENT_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_AWS_TEST_AWS_BLOB_STORAGE_CLIENT_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_AWS_TEST_AWS_BLOB_STORAGE_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_AWS_TEST_AWS_BLOB_STORAGE_CLIENT_PROVIDER_H_
 
 #include <memory>
 #include <string>
@@ -24,7 +24,7 @@
 #include <aws/core/Aws.h>
 #include <aws/core/client/ClientConfiguration.h>
 
-#include "src/cpio/client_providers/blob_storage_client_provider/src/aws/aws_blob_storage_client_provider.h"
+#include "src/cpio/client_providers/blob_storage_client_provider/aws/aws_blob_storage_client_provider.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/public/cpio/test/blob_storage_client/test_aws_blob_storage_client_options.h"
 
@@ -50,4 +50,4 @@ class TestAwsBlobStorageClientProvider : public AwsBlobStorageClientProvider {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_SRC_AWS_TEST_AWS_BLOB_STORAGE_CLIENT_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_BLOB_STORAGE_CLIENT_PROVIDER_AWS_TEST_AWS_BLOB_STORAGE_CLIENT_PROVIDER_H_

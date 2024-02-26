@@ -17,7 +17,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "src/aws/proxy/src/socks5_state.h"
+#include "src/aws/proxy/socks5_state.h"
 
 namespace google::scp::proxy::test {
 using BufferUnitType = uint8_t;

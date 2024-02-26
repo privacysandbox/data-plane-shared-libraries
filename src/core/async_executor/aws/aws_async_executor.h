@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CORE_ASYNC_EXECUTOR_SRC_AWS_AWS_ASYNC_EXECUTOR_H_
-#define CORE_ASYNC_EXECUTOR_SRC_AWS_AWS_ASYNC_EXECUTOR_H_
+#ifndef CORE_ASYNC_EXECUTOR_AWS_AWS_ASYNC_EXECUTOR_H_
+#define CORE_ASYNC_EXECUTOR_AWS_AWS_ASYNC_EXECUTOR_H_
 
 #include <functional>
 #include <memory>
@@ -57,4 +57,4 @@ class AwsAsyncExecutor : public Aws::Utils::Threading::Executor {
 };
 }  // namespace google::scp::core::async_executor::aws
 
-#endif  // CORE_ASYNC_EXECUTOR_SRC_AWS_AWS_ASYNC_EXECUTOR_H_
+#endif  // CORE_ASYNC_EXECUTOR_AWS_AWS_ASYNC_EXECUTOR_H_

@@ -386,9 +386,9 @@ container_image(
 pkg_files(
     name = "proxify_executables",
     srcs = [
-        "//src/aws/proxy/src:proxify",
-        "//src/aws/proxy/src:resolv_conf_getter_client",
-        "//src/aws/proxy/src:socket_vendor",
+        "//src/aws/proxy:proxify",
+        "//src/aws/proxy:resolv_conf_getter_client",
+        "//src/aws/proxy:socket_vendor",
     ],
     attributes = pkg_attributes(mode = "0555"),
     prefix = "/",
@@ -397,7 +397,7 @@ pkg_files(
 pkg_files(
     name = "proxify_libs",
     srcs = [
-        "//src/aws/proxy/src:proxy_preload",
+        "//src/aws/proxy:proxy_preload",
     ],
     attributes = pkg_attributes(mode = "0444"),
     prefix = "/",
@@ -414,7 +414,7 @@ pkg_tar(
 pkg_files(
     name = "libnsm_libs",
     srcs = [
-        "//src/cpio/client_providers/kms_client_provider/src/aws:libnsm_so",
+        "//src/cpio/client_providers/kms_client_provider/aws:libnsm_so",
     ],
     attributes = pkg_attributes(mode = "0444"),
     prefix = "/usr/lib/x86_64-linux-gnu/",

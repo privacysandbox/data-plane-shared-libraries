@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_AUTO_SCALING_CLIENT_PROVIDER_SRC_AWS_AWS_AUTO_SCALING_CLIENT_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_AUTO_SCALING_CLIENT_PROVIDER_SRC_AWS_AWS_AUTO_SCALING_CLIENT_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_AUTO_SCALING_CLIENT_PROVIDER_AWS_AWS_AUTO_SCALING_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_AUTO_SCALING_CLIENT_PROVIDER_AWS_AWS_AUTO_SCALING_CLIENT_PROVIDER_H_
 
 #include <map>
 #include <memory>
@@ -26,7 +26,7 @@
 #include <aws/autoscaling/AutoScalingClient.h>
 
 #include "google/protobuf/any.pb.h"
-#include "src/core/async_executor/src/aws/aws_async_executor.h"
+#include "src/core/async_executor/aws/aws_async_executor.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/auto_scaling_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
@@ -144,4 +144,4 @@ class AwsAutoScalingClientProvider : public AutoScalingClientProviderInterface {
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_AUTO_SCALING_CLIENT_PROVIDER_SRC_AWS_AWS_AUTO_SCALING_CLIENT_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_AUTO_SCALING_CLIENT_PROVIDER_AWS_AWS_AUTO_SCALING_CLIENT_PROVIDER_H_

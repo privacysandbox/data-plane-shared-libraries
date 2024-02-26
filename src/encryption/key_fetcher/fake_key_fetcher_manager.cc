@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/encryption/key_fetcher/src/fake_key_fetcher_manager.h"
+#include "src/encryption/key_fetcher/fake_key_fetcher_manager.h"
 
 #include <string_view>
 

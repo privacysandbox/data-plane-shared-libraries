@@ -28,7 +28,7 @@ cc_library(
     name = "test_lib_cpio",
     srcs = [
         "test_lib_cpio.cc",
-        "//src/public/cpio/core/src:cpio.cc",
+        "//src/public/cpio/core:cpio.cc",
     ],
     hdrs = [
         "test_lib_cpio.h",
@@ -36,12 +36,12 @@ cc_library(
     ],
     deps = [
         "//src/core/interface:interface_lib",
-        "//src/core/logger/src:logger_lib",
-        "//src/core/logger/src/log_providers:log_providers_lib",
-        "//src/core/logger/src/log_providers/syslog:syslog_lib",
-        "//src/cpio/client_providers/cloud_initializer/src:cloud_initializer_select_lib",
-        "//src/cpio/client_providers/global_cpio/src:global_cpio_lib",
-        "//src/cpio/client_providers/global_cpio/src/cpio_provider:test_lib_cpio_provider",
-        "//src/public/cpio/core/src:cpio_utils_lib",
+        "//src/core/logger:logger_lib",
+        "//src/core/logger/log_providers:log_providers_lib",
+        "//src/core/logger/log_providers/syslog:syslog_lib",
+        "//src/cpio/client_providers/cloud_initializer:cloud_initializer_select_lib",
+        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio/cpio_provider:test_lib_cpio_provider",
+        "//src/public/cpio/core:cpio_utils_lib",
     ],
 )

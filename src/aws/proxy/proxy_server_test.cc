@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/aws/proxy/src/proxy_server.h"
+#include "src/aws/proxy/proxy_server.h"
 
 #include <gtest/gtest.h>
 
-#include "src/aws/proxy/src/config.h"
+#include "src/aws/proxy/config.h"
 
 using google::scp::proxy::Config;
 using google::scp::proxy::ProxyServer;
