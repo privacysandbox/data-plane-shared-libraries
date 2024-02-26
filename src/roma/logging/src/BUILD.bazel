@@ -14,12 +14,14 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
     name = "logging",
     srcs = ["logging.cc"],
     hdrs = ["logging.h"],
+    visibility = [
+        "//src/experimental:__subpackages__",  # copybara:strip
+        "//src/roma:__subpackages__",
+    ],
     deps = [
         "//src/roma/config/src:config",
         "@com_google_absl//absl/log",

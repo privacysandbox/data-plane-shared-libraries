@@ -1,0 +1,88 @@
+#!/bin/bash
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -o errexit
+set -o xtrace
+export TZ=Etc/UTC
+export PS4='+\t $(basename ${BASH_SOURCE[0]}):${LINENO} ' # xtrace prompt
+
+# shellcheck disable=SC1091
+source "$(dirname "$(readlink -f "$0")")"/lib_build.sh
+# shellcheck disable=SC1091
+source "$(dirname "$(readlink -f "$0")")"/../tools/lib_rewrite_workspace.sh
+
+trap _cleanup EXIT
+function _cleanup() {
+  declare -r -i _status=$?
+  kokoro::extract_dist_logs local-local-logs.zip
+  if [[ ${_status} -eq 0 ]] && [[ -n ${REPO_CLONE_DIR} ]]; then
+    rm -rf "${REPO_CLONE_DIR}" || true
+  fi
+  if [[ -v KOKORO_ARTIFACTS_DIR ]]; then
+    sleep 5s
+  fi
+  exit ${_status}
+}
+
+kokoro::setup_git_auth
+
+if [[ -n ${KOKORO_ARTIFACTS_DIR} ]]; then
+  COMMON_REPO_PATH="${KOKORO_ARTIFACTS_DIR}/git/servers-common"
+else
+  COMMON_REPO_PATH="$(git rev-parse --show-toplevel)"
+fi
+readonly COMMON_REPO_PATH
+REPO_CLONE_DIR="$(mktemp -d)"
+readonly REPO_CLONE_DIR
+declare -a -r GITCMD=(
+  git
+  -C "${REPO_CLONE_DIR}"
+)
+declare -r KV_REPO="team/kiwi-air-force-eng-team/kv-server"
+"${GITCMD[@]}" clone sso://"${KV_REPO}" "${REPO_CLONE_DIR}" &>/dev/null
+"${GITCMD[@]}" switch main
+"${GITCMD[@]}" submodule update --init --remote --force
+
+WORKSPACE="${REPO_CLONE_DIR}"
+export WORKSPACE
+cd "${WORKSPACE}"
+
+declare -r -a KV_BUILD_IMAGES=(
+  presubmit
+  build-debian
+  build-amazonlinux2
+  utils
+  test-tools
+)
+EXTERNAL_REPO_TEST=1 kokoro::configure_build_env KV_BUILD_IMAGES
+
+declare -r REPO_NAME=google_privacysandbox_servers_common
+buildozer::rewrite_workspace "${REPO_NAME}" "/src/${REPO_NAME}" "${WORKSPACE}/WORKSPACE" >"${WORKSPACE}/WORKSPACE.build-system"
+
+mv "${WORKSPACE}/WORKSPACE" "${WORKSPACE}/WORKSPACE.orig"
+mv "${WORKSPACE}/WORKSPACE.build-system" "${WORKSPACE}/WORKSPACE"
+
+# Required for kv-server testing/functionaltest/run-tests to not run with local bazel.
+export NO_LOCAL_BAZEL=1
+
+export EXTRA_DOCKER_RUN_ARGS="${EXTRA_DOCKER_RUN_ARGS} --volume ${COMMON_REPO_PATH}:/src/${REPO_NAME}"
+export BAZEL_EXTRA_ARGS="${BAZEL_EXTRA_ARGS} --config=run_all_tests"
+"${WORKSPACE}"/production/packaging/build_and_test_all_in_docker \
+  --no-precommit \
+  --verbose \
+  --platform local \
+  --instance local \
+  --with-tests
+"${WORKSPACE}"/builders/tools/bazel-debian run //production/packaging/tools:copy_to_dist

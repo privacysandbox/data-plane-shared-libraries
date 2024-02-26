@@ -20,7 +20,9 @@ cc_library(
     name = "dispatcher",
     srcs = ["dispatcher.cc"],
     hdrs = ["dispatcher.h"],
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//src/roma/roma_service:__subpackages__",
+    ],
     deps = [
         ":request_converter",
         ":request_validator",

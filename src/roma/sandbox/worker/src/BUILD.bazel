@@ -14,12 +14,14 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
     name = "worker",
     srcs = ["worker.cc"],
     hdrs = ["worker.h"],
+    visibility = [
+        "//src/roma/sandbox/js_engine:__subpackages__",
+        "//src/roma/sandbox/worker_api:__subpackages__",
+    ],
     deps = [
         "//src/core/interface:interface_lib",
         "//src/core/interface:type_def_lib",

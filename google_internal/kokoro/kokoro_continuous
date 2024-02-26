@@ -1,0 +1,141 @@
+#!/bin/bash
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -o errexit
+set -o xtrace
+
+export TZ=Etc/UTC
+export PS4='+\t $(basename ${BASH_SOURCE[0]}):${LINENO} ' # xtrace prompt
+
+# shellcheck disable=SC1091
+source "$(dirname "$(readlink -f "$0")")"/lib_build.sh
+
+export IMAGE_BUILD_VERBOSE=1
+kokoro::configure_build_env
+
+ARCH="$("${WORKSPACE}"/builders/tools/get-architecture)"
+readonly ARCH
+
+function _collect_debian_logs() {
+  filename="$1"
+  printf 'Collecting bazel logs from build-debian [%s]...\n' "${filename}" &>/dev/stderr
+  "${WORKSPACE}"/builders/tools/bazel-debian run //:collect-test-logs -- --zip-filename "${filename}"
+}
+
+trap 'ERRO_LINENO=$LINENO' ERR  # When an error happens store the line number
+
+function _cleanup() {
+  declare -r -i _status=$?
+  declare -r build_logs=continuous-test-logs.zip
+  _collect_debian_logs ${build_logs}
+  declare -r -a logfiles=(
+    "${build_logs}"
+    proxy-debian-"${ARCH}"-test-logs.zip
+    proxy-al2023-"${ARCH}"-test-logs.zip
+  )
+  for lf in "${logfiles[@]}"; do
+    kokoro::extract_dist_logs "logs/${lf}" "${lf%-test-logs.zip}"
+  done
+
+  # This stacktrace code is largely taken from:
+  # https://opensource.com/article/22/7/print-stack-trace-bash-scripts
+  #
+  # Only log if this was both an error status (!=0) and it was unexpected
+  # (i.e. not part of an 'if' statement, this is what $- does).
+  if [[ $- =~ e && ${status} != 0 ]]
+  then
+      printf "\n========= CATASTROPHIC COMMAND FAIL =========\n\n"
+      printf "SCRIPT EXITED ON ERROR CODE: %s\n\n" "${STATUS}"
+      LEN=${#BASH_LINENO[@]}
+      for (( INDEX=0; INDEX<LEN-1; INDEX++ ))
+      do
+          printf -- "---\n"
+          printf "FILE: %s\n" "$(basename "${BASH_SOURCE[${INDEX}+1]}")"
+          printf "  FUNCTION: %s\n" "${FUNCNAME[${INDEX}+1]}"
+          if [[ ${INDEX} -gt 0 ]]
+          then
+              printf "  STACK COMMAND: %s\n" "${FUNCNAME[${INDEX}]}"
+              printf "  STACK LINE: %s\n" "${BASH_LINENO[${INDEX}]}"
+          else
+              printf "  FAILED COMMAND: %s\n" "${BASH_COMMAND}"
+              printf "  FAILED LINE: %s\n" "${ERRO_LINENO}"
+          fi
+      done
+      printf "\n======= END CATASTROPHIC COMMAND FAIL =======\n\n"
+  fi
+
+  if [[ -v KOKORO_ARTIFACTS_DIR ]]; then
+    sleep 5s  # Make sure that stdout has time to be written
+  fi
+
+  exit ${_status}
+}
+trap _cleanup EXIT
+
+# Upload all of the JSON microbenchmark output files to Perfgate
+#
+# This is in here rather than the run-benchmarks script because that's a public
+# script and Perfgate is an internal tool.
+function upload_benchmarks_to_perfgate() {
+  if [[ -v KOKORO_ARTIFACTS_DIR ]]; then
+    # The architecture is appended to the name of the benchmark
+    local -r upload_arch="$("${WORKSPACE}"/builders/tools/get-architecture)"
+
+    # List of all of the benchmark files to upload:
+    local -a -r json_file_names=(
+      ba_server_benchmark
+      # This test is currently disabled:
+      # benchmark_test
+      dispatcher_benchmark
+      kv_server_udf_benchmark
+      # logging_benchmark
+      type_converter_benchmark
+      uuid_benchmark
+      worker_wrapper_benchmark
+    )
+
+    for json_file_name in "${json_file_names[@]}"; do
+      local json_path="${WORKSPACE}"/dist/benchmarks/"${json_file_name}".json
+      # Each benchmark is named after the json file (which is the same as the
+      # bazel build target), with the architecture appended.
+      local benchmark_name="${json_file_name}"-"${upload_arch}"
+
+      printf "Will upload file: [%s] with benchmark name: [%s]\n" \
+        "${json_path}" "${benchmark_name}"
+      kokoro::upload_to_perfgate "${json_path}" "${benchmark_name}"
+    done
+  fi
+}
+
+if [[ -v KOKORO_ARTIFACTS_DIR ]]; then
+  kokoro::init_perfgate
+fi
+
+#--------------------------
+# Tests without any sanitizers:
+#--------------------------
+"${WORKSPACE}"/builders/tools/bazel-debian test --keep_going //...
+
+EXTRA_DOCKER_RUN_ARGS=${EXTRA_DOCKER_RUN_ARGS}" --security-opt seccomp=unconfined " \
+  "${WORKSPACE}"/builders/tools/bazel-debian test --keep_going \
+  //src/roma/roma_service:sandboxed_service_test
+#--------------------------
+
+"${WORKSPACE}"/scripts/run-benchmarks
+
+upload_benchmarks_to_perfgate
+
+declare -x -r NO_LOCAL_BAZEL
+"${WORKSPACE}"/testing/test_import/run-build

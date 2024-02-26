@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:public"])
-
 filegroup(
     name = "rust_wasm_string_in_string_out_example",
     srcs = ["string_in_string_out.wasm"],
+    visibility = [
+        "//src/roma/worker/src:__subpackages__",
+    ],
 )

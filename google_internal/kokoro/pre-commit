@@ -1,4 +1,5 @@
-# Copyright 2022 Google LLC
+#!/bin/bash
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,10 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-filegroup(
-    name = "rust_wasm_list_of_string_in_list_of_string_out_example",
-    srcs = ["list_of_string_in_list_of_string_out.wasm"],
-    visibility = [
-        "//src/roma/worker/src:__subpackages__",
-    ],
-)
+set -o errexit
+set -o xtrace
+export TZ=Etc/UTC
+export PS4='+\t $(basename ${BASH_SOURCE[0]}):${LINENO} ' # xtrace prompt
+
+trap _cleanup EXIT
+function _cleanup() {
+  sleep 5s
+}
+
+# shellcheck disable=SC1091
+source "$(dirname "$(readlink -f "$0")")"/lib_build.sh
+
+export IMAGE_BUILD_VERBOSE=1
+kokoro::configure_build_env
+
+if [[ -v KOKORO_ARTIFACTS_DIR ]]; then
+  kokoro::init_perfgate
+fi
+
+"${WORKSPACE}"/builders/tools/pre-commit

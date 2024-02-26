@@ -1,0 +1,213 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_layer")
+load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit_layer")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+
+package(default_visibility = ["//src/aws:__subpackages__"])
+
+pkg_files(
+    name = "init_server_enclave_execs",
+    srcs = [
+        ":init_server_enclave",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "init_server_enclave_tar",
+    srcs = [
+        ":init_server_enclave_execs",
+    ],
+)
+
+container_layer(
+    name = "init_server_enclave_layer",
+    directory = "/",
+    tars = [
+        ":init_server_enclave_tar",
+    ],
+)
+
+write_file(
+    name = "resolv_conf",
+    out = "resolv_override.conf",
+    content = ["""
+; use-vc forces use of TCP for DNS resolutions.
+; See https://man7.org/linux/man-pages/man5/resolv.conf.5.html
+options use-vc timeout:2 attempts:5
+search ec2.internal
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1
+"""],
+)
+
+pkg_files(
+    name = "resolv_conf_files",
+    srcs = [
+        ":resolv_conf",
+    ],
+    attributes = pkg_attributes(mode = "0444"),
+    prefix = "/etc",
+)
+
+pkg_tar(
+    name = "resolv_conf_tar",
+    srcs = [
+        ":resolv_conf_files",
+    ],
+)
+
+container_layer(
+    name = "resolv_conf_layer",
+    directory = "/",
+    tars = [
+        ":resolv_conf_tar",
+    ],
+)
+
+genrule(
+    name = "ssh_certs",
+    outs = [
+        "ssh_host_rsa_key",
+        "ssh_host_rsa_key.pub",
+    ],
+    cmd_bash = """
+mkdir -p mykey/etc/ssh
+ssh-keygen -v -A -f mykey
+mv mykey/etc/ssh/ssh_host_rsa_key $(execpath :ssh_host_rsa_key)
+mv mykey/etc/ssh/ssh_host_rsa_key.pub $(execpath :ssh_host_rsa_key.pub)
+""",
+    local = True,
+    # AWS Nitro enclave image building tagged as manual to hide from wildcards.
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+)
+
+pkg_files(
+    name = "ssh_cert_files",
+    srcs = [
+        ":ssh_host_rsa_key.pub",
+    ],
+    attributes = pkg_attributes(mode = "0400"),
+    prefix = "/root/.ssh",
+    renames = {
+        ":ssh_host_rsa_key.pub": "authorized_keys",
+    },
+)
+
+pkg_mkdirs(
+    name = "ssh_cert_dirs",
+    dirs = [
+        "/run/sshd",
+    ],
+)
+
+pkg_tar(
+    name = "ssh_cert_tar",
+    srcs = [
+        ":ssh_cert_dirs",
+        ":ssh_cert_files",
+    ],
+)
+
+container_layer(
+    name = "ssh_cert_layer",
+    directory = "/",
+    tars = [
+        ":ssh_cert_tar",
+    ],
+)
+
+container_run_and_commit_layer(
+    name = "sshd_commands_layer",
+    commands = [
+        # Install socat, IP command, Open SSH, strace, etc.
+        """
+apt-get update
+apt-get install -y iproute2 openssh-client openssh-server strace sysvinit-utils util-linux
+""",
+    ],
+    image = select({
+        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64//image",
+        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64//image",
+    }),
+    # AWS Nitro enclave image building tagged as manual to hide from wildcards.
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+)
+
+container_run_and_commit_layer(
+    name = "socat_layer",
+    commands = [
+        """
+apt-get -o 'Acquire::https::No-Cache=True' -o 'Acquire::http::No-Cache=True' update --quiet
+DEBIAN_FRONTEND=noninteractive apt-get install --quiet -y --no-install-recommends curl gcc libc-dev make
+mkdir -p /tmp/socat-build
+cd /tmp/socat-build
+curl -L http://www.dest-unreach.org/socat/download/socat-1.7.4.4.tar.gz \
+  | tar -xz --strip-components=1
+./configure
+make -j socat
+mv socat /
+cd /
+rm -rf /tmp/socat-build
+""",
+    ],
+    image = select({
+        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64//image",
+        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64//image",
+    }),
+    # AWS Nitro enclave image building tagged as manual to hide from wildcards.
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+)
+
+container_image(
+    name = "aws_nitro_enclaves_debug_debian_image",
+    architecture = select({
+        "@platforms//cpu:aarch64": "arm64",
+        "@platforms//cpu:x86_64": "amd64",
+    }),
+    base = select({
+        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64//image",
+        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64//image",
+    }),
+    cmd = ["/server/bin/init_server_enclave"],
+    entrypoint = ["/bin/bash"],
+    layers = [
+        ":sshd_commands_layer",
+        ":ssh_cert_layer",
+        ":socat_layer",
+        "//src/aws/proxy/src:proxify_layer",
+        ":init_server_enclave_layer",
+        ":resolv_conf_layer",
+    ],
+    # AWS Nitro enclave image building tagged as manual to hide from wildcards.
+    tags = [
+        "manual",
+        "no-remote",
+    ],
+)

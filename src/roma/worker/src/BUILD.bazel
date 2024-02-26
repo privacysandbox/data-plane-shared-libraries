@@ -14,8 +14,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
     name = "execution_utils",
     srcs = [
@@ -23,6 +21,9 @@ cc_library(
     ],
     hdrs = [
         "execution_utils.h",
+    ],
+    visibility = [
+        "//src/roma/sandbox/js_engine:__subpackages__",
     ],
     deps = [
         "//src/core/interface:interface_lib",
@@ -43,6 +44,9 @@ cc_library(
     name = "execution_watchdog_lib",
     srcs = ["execution_watchdog.cc"],
     hdrs = ["execution_watchdog.h"],
+    visibility = [
+        "//src/roma/sandbox/js_engine:__subpackages__",
+    ],
     deps = [
         "//src/util:duration",
         "@com_google_absl//absl/synchronization",

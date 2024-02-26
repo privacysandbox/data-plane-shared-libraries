@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+set -o errexit
+
+INSTANCE_NAME=${1}
+if [[ -v INSTANCE_NAME ]]; then
+  INSTANCE_NAME=${USER}-arm64-$(date +%Y%m%d-%H%M)
+fi
+
+declare -r PROJECT=kiwi-air-force-remote-build
+declare -r MAX_RUN_HOURS=6
+declare -r ZONE=us-central1-a
+declare -r MACHINE_TYPE=t2a-standard-8
+declare -r IMAGE=projects/${PROJECT}/global/images/privacy-sandbox-kokoro-debian-11-arm64-20230411150133
+declare -r SERVICE_ACCT=315201216184-compute@developer.gserviceaccount.com
+# INSTANCE_TERMINATION_ACTION=STOP
+declare -r INSTANCE_TERMINATION_ACTION=DELETE
+declare -a -r SCOPES=(
+  https://www.googleapis.com/auth/devstorage.read_only
+  https://www.googleapis.com/auth/logging.write
+  https://www.googleapis.com/auth/monitoring.write
+  https://www.googleapis.com/auth/servicecontrol
+  https://www.googleapis.com/auth/service.management.readonly
+  https://www.googleapis.com/auth/trace.append
+  https://www.googleapis.com/auth/gerritcodereview
+  https://www.googleapis.com/auth/cloud-platform
+)
+# https://www.googleapis.com/auth/source.full_control
+# https://www.googleapis.com/auth/source.read_write
+# https://www.googleapis.com/auth/source.read_only
+
+function get_scopes() {
+  declare -r IFS=,
+  declare -n arr=$1
+  printf "%s" "${arr[*]}"
+}
+
+printf "Creating compute instance %s\n" "${INSTANCE_NAME}"
+gcloud beta compute instances create "${INSTANCE_NAME}" \
+  --project="${PROJECT}" \
+  --zone="${ZONE}" \
+  --machine-type="${MACHINE_TYPE}" \
+  --no-restart-on-failure \
+  --maintenance-policy=TERMINATE \
+  --provisioning-model=SPOT \
+  --instance-termination-action="${INSTANCE_TERMINATION_ACTION}" \
+  --max-run-duration=$((MAX_RUN_HOURS * 3600))s \
+  --service-account="${SERVICE_ACCT}" \
+  --scopes="$(get_scopes SCOPES)" \
+  --create-disk=auto-delete=yes,boot=yes,device-name="${INSTANCE_NAME}",image="${IMAGE}",mode=rw,size=100,type=projects/"${PROJECT}"/zones/"${ZONE}"/diskTypes/pd-ssd
+
+declare -a -r PROXY_FLAGS=(
+  "-o"
+  "ProxyCommand='corp-ssh-helper %h %p'"
+)
+
+cat <<EOF
+tar up a copy of the workspace files, eg.
+  tar cfz ps-common.tar.gz ps-common/
+
+ssh into the instance using:
+  gcloud compute ssh "${INSTANCE_NAME}" -- ${PROXY_FLAGS[@]}
+
+Keeping that ssh connection open, you can then use scp to copy the workspace
+archive file into the home dir on the instance:
+  gcloud compute scp --scp-flag "${PROXY_FLAGS[@]}" ps-common.tar.gz ${INSTANCE_NAME}:
+
+At the ssh prompt on the GCE VM, use a hack to facilitate read access to the
+GAR docker repo and enable use of the bazel remote cache:
+  mkdir -p git/servers-common
+  tar xz --directory git/servers-common/ --strip-components 1 -f ps-common.tar.gz
+  export KOKORO_ARTIFACTS_DIR=\${HOME}
+  cd git/servers-common
+  source google_internal/rbe_setup.sh
+  builders/tools/bazel-debian build //...
+
+EOF
+
+
+cat <<EOF >/dev/null
+NOTE: direct access to GoB team host not yet configured due to ACL restrictions
+configure instance to access GoB team host:
+run the git-cookie-authdaemon:
+  git clone https://gerrit.googlesource.com/gcompute-tools /tmp/gcompute-tools
+  python3 /tmp/gcompute-tools/git-cookie-authdaemon
+
+  git config --global url.https://team.googlesource.com/.insteadOf sso://team/
+  declare -a -r _team_repos=(
+    "kiwi-air-force-eng-team/kv-server"
+    "potassium-engprod-team/functionaltest-system"
+    "android-privacy-sandbox-remarketing/fledge/servers/bidding-auction-server"
+    "kiwi-air-force-eng-team/build-system"
+  )
+  for _team_repo in "${_team_repos[@]}"; do
+    git config --global url.https://team.googlesource.com/"${_team_repo}".insteadOf rpc://team/"${_team_repo}"
+  done
+
+  git ls-remote https://team.googlesource.com/kiwi-air-force-eng-team/build-system
+EOF

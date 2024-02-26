@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -o errexit
+
+# Please look at https://g3doc.corp.google.com/chrome/privacy_sandbox/kiwi_air_force/g3doc/internal/kv-server/dev_process.md#debugging
+if [[ -f /.dockerenv ]]; then
+  printf "Running inside Docker container? This script is only designed to be executed outside docker\n" &>/dev/stderr
+  exit 1
+fi
+
+if [[ -z $PWD ]]; then
+  printf "PWD is not set in script." &>/dev/stderr
+  exit 1
+fi
+
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+readonly SCRIPT_DIR
+if [[ ${PWD}/google_internal/tools != "${SCRIPT_DIR}" ]]; then
+  printf "Please run this script in the repo top level directory.\n"
+  exit 1
+fi
+
+# Transform long options to short ones.
+for arg in "$@"; do
+  shift
+  case "$arg" in
+    '--program')     set -- "$@" '-p'   ;;
+    '--build-bazel') set -- "$@" '-b'   ;;
+    *)               set -- "$@" "$arg" ;;
+  esac
+done
+
+declare program=""
+declare -i build_bazel=0
+
+while getopts "bp:" flag; do
+  case $flag in
+    # --build-bazel
+    'b') build_bazel=1 ;;
+    # --program
+    'p') program=$OPTARG ;;
+    \?) printf "Please only use --program -p or --build-bazel -b\n" &>/dev/stderr ; exit 1 ;;
+  esac
+done
+
+if [[ ${build_bazel} -eq 1 ]]; then
+  if [[ -z ${program} ]]; then
+    printf "Please provide --program when using --build-bazel\n" &>/dev/stderr
+    exit 1
+  fi
+  builders/tools/bazel-debian build -c dbg --dynamic_mode=off "${program}"
+fi
+
+# Get the latest bazel cached directory. For "builders/tools/bazel-debian" should look like "build_ubuntu_xxx"
+BAZEL_CACHE_EXTERNAL_DIR="$(builders/tools/bazel-debian info output_base 2>&1 | head -n 1 | sed 's:.*\[/bazel_root/::' | sed 's/.$//')"/external
+readonly BAZEL_CACHE_EXTERNAL_DIR
+declare -r LAUNCH_JSON_PATH=".vscode/launch.json"
+
+# sed command to strip comments from JSON.
+JSON=$(cat ${LAUNCH_JSON_PATH} \
+  | sed 's/^ *\/\/.*//' \
+  | builders/tools/jq '.configurations[0].sourceMap |= [["/proc/self/cwd/external","${workspaceRoot}/bazel-common/'"${BAZEL_CACHE_EXTERNAL_DIR}"'"],["/proc/self/cwd","${workspaceRoot}"]]')
+
+
+if [[ -n ${program} ]]; then
+  program="${program/:/"/"}"
+  JSON=$(echo "${JSON}" | builders/tools/jq '.configurations[0].program="${workspaceRoot}/bazel-bin/'"${program/:/"/"}"'"')
+fi
+
+printf "%s" "${JSON}" >"${LAUNCH_JSON_PATH}"
+
+printf "Please completely restart VSCode to notice changes.\n"

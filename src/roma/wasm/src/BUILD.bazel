@@ -14,8 +14,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
     name = "deserializer",
     srcs = [
@@ -23,6 +21,9 @@ cc_library(
     ],
     hdrs = [
         "deserializer.h",
+    ],
+    visibility = [
+        "//src/roma/worker:__subpackages__",
     ],
     deps = ["wasm_types"],
 )
@@ -35,6 +36,9 @@ cc_library(
     hdrs = [
         "serializer.h",
     ],
+    visibility = [
+        "//src/roma/worker:__subpackages__",
+    ],
     deps = ["wasm_types"],
 )
 
@@ -42,6 +46,9 @@ cc_library(
     name = "wasm_types",
     hdrs = [
         "wasm_types.h",
+    ],
+    visibility = [
+        "//src/roma/worker:__subpackages__",
     ],
 )
 
@@ -82,5 +89,10 @@ cc_library(
     testonly = True,
     srcs = ["testing_utils.cc"],
     hdrs = ["testing_utils.h"],
+    visibility = [
+        "//src/roma/roma_service:__subpackages__",
+        "//src/roma/sandbox:__subpackages__",
+        "//src/roma/worker:__subpackages__",
+    ],
     deps = ["@com_google_absl//absl/log:check"],
 )

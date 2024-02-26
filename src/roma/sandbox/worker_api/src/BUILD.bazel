@@ -14,11 +14,14 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
     name = "worker_api",
     hdrs = ["worker_api.h"],
+    visibility = [
+        "//src/roma/sandbox/dispatcher/src:__subpackages__",
+        "//src/roma/sandbox/worker_api/sapi:__subpackages__",
+        "//src/roma/sandbox/worker_pool/src:__subpackages__",
+    ],
     deps = [
         "//src/core/interface:interface_lib",
         "//src/core/interface:type_def_lib",
@@ -32,6 +35,11 @@ cc_library(
     name = "worker_api_sapi",
     srcs = ["worker_api_sapi.cc"],
     hdrs = ["worker_api_sapi.h"],
+    visibility = [
+        "//src/roma/roma_service:__subpackages__",
+        "//src/roma/sandbox/dispatcher/src:__subpackages__",
+        "//src/roma/sandbox/worker_pool/src:__subpackages__",
+    ],
     deps = [
         ":worker_api",
         "//src/roma/config/src:config",
