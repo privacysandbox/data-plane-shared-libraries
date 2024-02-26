@@ -22,7 +22,7 @@ proto_library(
     name = "parameter_service_proto",
     srcs = ["parameter_service.proto"],
     deps = [
-        "//src/core/common/proto:core_common_proto",
+        "//src/core/common/proto:common_proto",
     ],
 )
 

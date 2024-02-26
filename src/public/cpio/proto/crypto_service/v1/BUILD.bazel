@@ -21,16 +21,16 @@ package(default_visibility = ["//visibility:public"])
 proto_library(
     name = "crypto_service_proto",
     srcs = ["crypto_service.proto"],
+    visibility = [
+        "//docs/cpio/protobuf:__pkg__",
+    ],
     deps = [
-        "//src/core/common/proto:core_common_proto",
+        "//src/core/common/proto:common_proto",
         "//src/public/cpio/proto/private_key_service/v1:private_key_service_proto",
         "//src/public/cpio/proto/public_key_service/v1:public_key_service_proto",
     ],
 )
 
-##############################################################################
-# C++
-##############################################################################
 cc_proto_library(
     name = "crypto_service_cc_proto",
     deps = [":crypto_service_proto"],

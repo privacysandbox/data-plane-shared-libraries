@@ -19,6 +19,14 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies = "sdk_dependencies")
 load("//third_party:emscripten_deps1.bzl", "emscripten_deps1")
 
+def _bazel_deps():
+    http_archive(
+        name = "aspect_bazel_lib",
+        sha256 = "f5ea76682b209cc0bd90d0f5a3b26d2f7a6a2885f0c5f615e72913f4805dbb0d",
+        strip_prefix = "bazel-lib-2.5.0",
+        urls = ["https://github.com/aspect-build/bazel-lib/releases/download/v2.5.0/bazel-lib-v2.5.0.tar.gz"],
+    )
+
 def _absl_deps():
     maybe(
         http_archive,
@@ -50,6 +58,7 @@ def _rust_deps():
     )
 
 def deps1():
+    _bazel_deps()
     _absl_deps()
     _rust_deps()
     scp_sdk_dependencies()

@@ -22,7 +22,7 @@ proto_library(
     name = "instance_service_proto",
     srcs = ["instance_service.proto"],
     deps = [
-        "//src/core/common/proto:core_common_proto",
+        "//src/core/common/proto:common_proto",
     ],
 )
 

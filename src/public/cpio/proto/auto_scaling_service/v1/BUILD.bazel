@@ -22,7 +22,7 @@ proto_library(
     name = "auto_scaling_service_proto",
     srcs = ["auto_scaling_service.proto"],
     deps = [
-        "//src/core/common/proto:core_common_proto",
+        "//src/core/common/proto:common_proto",
     ],
 )
 

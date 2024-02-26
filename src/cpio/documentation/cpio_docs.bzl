@@ -12,17 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load(
+    "@rules_proto_grpc//:defs.bzl",
+    "ProtoPluginInfo",
+    "proto_compile_attrs",
+    "proto_compile_impl",
+)
 
-package(default_visibility = ["//visibility:private"])
-
-go_library(
-    name = "lib",
-    srcs = ["flags.go"],
-    importpath = "github.com/privacysandbox/data-plane-shared/roma/tools/api_plugin/cmd/cmd",
-    #visibility = ["//src/roma/tools/api_plugin:__pkg__"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "@com_github_pseudomuto_protoc_gen_doc//:go_default_library",
-    ],
+cpio_docs = rule(
+    implementation = proto_compile_impl,
+    attrs = dict(
+        proto_compile_attrs,
+        _plugins = attr.label_list(
+            providers = [ProtoPluginInfo],
+            default = [Label("//src/cpio/documentation:cpio_protobuf_gen_md")],
+            doc = "List of protoc plugins to apply",
+        ),
+    ),
+    toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
 )

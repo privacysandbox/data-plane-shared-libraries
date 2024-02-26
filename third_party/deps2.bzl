@@ -14,6 +14,7 @@
 
 """Further initialization of shared control plane dependencies."""
 
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -82,6 +83,8 @@ def _quiche_deps():
 def deps2(
         *,
         go_toolchains_version = GO_TOOLCHAINS_VERSION):
+    aspect_bazel_lib_dependencies()
+    aspect_bazel_lib_register_toolchains()
     go_rules_dependencies()
     go_register_toolchains(version = go_toolchains_version)
     rpm()

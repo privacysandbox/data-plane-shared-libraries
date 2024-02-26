@@ -21,6 +21,9 @@ package(default_visibility = ["//src/public/cpio/validator:__subpackages__"])
 proto_library(
     name = "validator_config_proto",
     srcs = ["validator_config.proto"],
+    visibility = [
+        "//docs/cpio/protobuf:__pkg__",
+    ],
 )
 
 cc_proto_library(

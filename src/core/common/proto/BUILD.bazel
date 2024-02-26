@@ -19,18 +19,18 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
-    name = "core_common_proto",
+    name = "common_proto",
     srcs = ["common.proto"],
 )
 
 cc_proto_library(
-    name = "common_proto",
-    deps = [":core_common_proto"],
+    name = "common_cc_proto",
+    deps = [":common_proto"],
 )
 
 buf_lint_test(
-    name = "core_common_proto_lint",
+    name = "common_proto_lint",
     size = "small",
     config = "//src:buf.yaml",
-    targets = [":core_common_proto"],
+    targets = [":common_proto"],
 )

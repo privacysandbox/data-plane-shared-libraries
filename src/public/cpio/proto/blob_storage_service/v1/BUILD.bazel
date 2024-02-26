@@ -22,7 +22,7 @@ proto_library(
     name = "blob_storage_service_proto",
     srcs = ["blob_storage_service.proto"],
     deps = [
-        "//src/core/common/proto:core_common_proto",
+        "//src/core/common/proto:common_proto",
         "@com_google_protobuf//:duration_proto",
     ],
 )

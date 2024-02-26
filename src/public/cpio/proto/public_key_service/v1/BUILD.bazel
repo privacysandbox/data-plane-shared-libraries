@@ -22,7 +22,7 @@ proto_library(
     name = "public_key_service_proto",
     srcs = ["public_key_service.proto"],
     deps = [
-        "//src/core/common/proto:core_common_proto",
+        "//src/core/common/proto:common_proto",
         "@com_google_protobuf//:timestamp_proto",
     ],
 )

@@ -19,7 +19,8 @@ exclude: (?x)^(
   .bazel_output/.*|
   builders/.*|
   (third_party|src)/.*\.patch|
-  version.txt
+  version.txt|
+  docs/cpio/protobuf/.*\.md
   )$
 
 fail_fast: true

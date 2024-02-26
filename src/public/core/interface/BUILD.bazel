@@ -30,7 +30,7 @@ cc_library(
     srcs = ["//src/public/core:execution_result.cc"],
     hdrs = ["execution_result.h"],
     deps = [
-        "//src/core/common/proto:common_proto",
+        "//src/core/common/proto:common_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
     ],
 )
