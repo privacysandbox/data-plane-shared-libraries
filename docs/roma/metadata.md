@@ -8,7 +8,7 @@ without it ever being exposed to untrusted code of the UDF.
 Metadata is templated to allow for flexibility regarding the type Roma clients wish to use to pass
 said metadata, and defaults to `absl::flat_hash_map<std::string, std::string>`
 
-![Metadata Flow](images/metadata_flow.png)
+![Metadata Flow](images/metadata-flow.png)
 
 -   See more information about Roma [here](README.md)
 -   See examples of how to use this feature in
