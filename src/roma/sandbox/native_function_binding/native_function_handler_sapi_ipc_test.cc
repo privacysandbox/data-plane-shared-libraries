@@ -28,10 +28,12 @@
 
 #include "sandboxed_api/sandbox2/comms.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
+#include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/native_function_binding/native_function_table.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
+using google::scp::roma::metadata_storage::MetadataStorage;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionHandlerSapiIpc;
 using google::scp::roma::sandbox::native_function_binding::NativeFunctionTable;
@@ -48,7 +50,9 @@ TEST(NativeFunctionHandlerSapiIpcTest, IninRunStop) {
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
-  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
+  MetadataStorage<google::scp::roma::DefaultMetadata> metadata_storage;
+  NativeFunctionHandlerSapiIpc handler(&function_table, &metadata_storage,
+                                       local_fds, remote_fds);
 
   handler.Run();
   handler.Stop();
@@ -69,9 +73,11 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   NativeFunctionTable function_table;
   function_table.Register("cool_function_name", FunctionToBeCalled)
       .IgnoreError();
-  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
+  MetadataStorage<google::scp::roma::DefaultMetadata> metadata_storage;
+  NativeFunctionHandlerSapiIpc handler(&function_table, &metadata_storage,
+                                       local_fds, remote_fds);
   handler.Run();
-  handler.StoreMetadata(std::string{kRequestUuid}, {}).IgnoreError();
+  metadata_storage.Add(std::string{kRequestUuid}, {}).IgnoreError();
   g_called_registered_function = false;
 
   auto remote_fd = remote_fds.at(0);
@@ -99,9 +105,11 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
   // We don't register any functions with the function table
-  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
+  MetadataStorage<google::scp::roma::DefaultMetadata> metadata_storage;
+  NativeFunctionHandlerSapiIpc handler(&function_table, &metadata_storage,
+                                       local_fds, remote_fds);
   handler.Run();
-  handler.StoreMetadata(std::string{kRequestUuid}, {}).IgnoreError();
+  metadata_storage.Add(std::string{kRequestUuid}, {}).IgnoreError();
 
   g_called_registered_function = false;
 
@@ -134,7 +142,9 @@ TEST(NativeFunctionHandlerSapiIpcTest,
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
   // We don't register any functions with the function table
-  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
+  MetadataStorage<google::scp::roma::DefaultMetadata> metadata_storage;
+  NativeFunctionHandlerSapiIpc handler(&function_table, &metadata_storage,
+                                       local_fds, remote_fds);
   handler.Run();
 
   g_called_registered_function = false;
@@ -179,9 +189,11 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   NativeFunctionTable function_table;
   function_table.Register("cool_function_name_one", FunctionOne).IgnoreError();
   function_table.Register("cool_function_name_two", FunctionTwo).IgnoreError();
-  NativeFunctionHandlerSapiIpc handler(&function_table, local_fds, remote_fds);
+  MetadataStorage<google::scp::roma::DefaultMetadata> metadata_storage;
+  NativeFunctionHandlerSapiIpc handler(&function_table, &metadata_storage,
+                                       local_fds, remote_fds);
   handler.Run();
-  handler.StoreMetadata(absl::StrCat(kRequestUuid, 1), {}).IgnoreError();
+  metadata_storage.Add(absl::StrCat(kRequestUuid, 1), {}).IgnoreError();
 
   g_called_registered_function_one = false;
   g_called_registered_function_two = false;
@@ -204,7 +216,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   rpc_proto.Clear();
   rpc_proto.set_function_name("cool_function_name_two");
   rpc_proto.set_request_uuid(absl::StrCat(kRequestUuid, 2));
-  handler.StoreMetadata(absl::StrCat(kRequestUuid, 2), {}).IgnoreError();
+  metadata_storage.Add(absl::StrCat(kRequestUuid, 2), {}).IgnoreError();
   // Send the request over so that it's handled and the registered function
   // can be called
   EXPECT_TRUE(comms.SendProtoBuf(rpc_proto));

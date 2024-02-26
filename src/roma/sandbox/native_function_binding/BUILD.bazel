@@ -43,19 +43,6 @@ cc_library(
 )
 
 cc_library(
-    name = "thread_safe_map",
-    hdrs = ["thread_safe_map.h"],
-    deps = [
-        "//src/util/status_macro:status_macros",
-        "@com_google_absl//absl/container:node_hash_map",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/synchronization",
-    ],
-)
-
-cc_library(
     name = "native_function_invoker_sapi_ipc",
     srcs = ["native_function_invoker_sapi_ipc.cc"],
     hdrs = ["native_function_invoker_sapi_ipc.h"],
@@ -91,11 +78,11 @@ cc_library(
     deps = [
         ":native_function_table",
         ":rpc_wrapper_cc_proto",
-        ":thread_safe_map",
         "//src/core/interface",
         "//src/roma/config",
         "//src/roma/interface:function_binding_io_cc_proto",
         "//src/roma/logging",
+        "//src/roma/metadata_storage",
         "//src/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
@@ -136,18 +123,6 @@ cc_test(
     deps = [
         ":native_function_handler_sapi_ipc",
         "@com_google_absl//absl/status",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "thread_safe_map_test",
-    size = "small",
-    srcs = ["thread_safe_map_test.cc"],
-    deps = [
-        ":thread_safe_map",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )

@@ -25,10 +25,10 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "src/roma/sandbox/native_function_binding/thread_safe_map.h"
+#include "src/roma/metadata_storage/metadata_storage.h"
 
-using google::scp::roma::sandbox::native_function_binding::ScopedValueReader;
-using google::scp::roma::sandbox::native_function_binding::ThreadSafeMap;
+using google::scp::roma::metadata_storage::MetadataStorage;
+using google::scp::roma::metadata_storage::ScopedValueReader;
 
 namespace google::scp::roma::grpc_server {
 inline constexpr std::string_view kUuidTag = "request_uuid";
@@ -37,7 +37,7 @@ inline constexpr std::string_view kUuidTag = "request_uuid";
 // RequestHandlerImpl<TMetadata, THandler to handle rpcs
 template <typename TMetadata = std::string>
 using FactoryFunction = std::function<void(grpc::ServerCompletionQueue*,
-                                           ThreadSafeMap<TMetadata>*)>;
+                                           MetadataStorage<TMetadata>*)>;
 
 /**
  * @brief Base class for all handlers to be registered on
@@ -101,11 +101,11 @@ class RequestHandlerImpl : public Proceedable, public THandler<TMetadata> {
  public:
   RequestHandlerImpl(typename THandler<TMetadata>::TService* service,
                      grpc::ServerCompletionQueue* cq,
-                     ThreadSafeMap<TMetadata>* map,
+                     MetadataStorage<TMetadata>* ms,
                      FactoryFunction<TMetadata>& factory)
       : service_(service),
         completion_queue_(cq),
-        map_(map),
+        metadata_storage_(ms),
         responder_(&context_),
         status_(State::kCreate),
         factory_(factory),
@@ -142,17 +142,18 @@ class RequestHandlerImpl : public Proceedable, public THandler<TMetadata> {
       // Spawn a new instance to serve new clients while we
       // process the one for this RequestHandlerImpl. The instance will
       // deallocate itself as part of its kFinish state.
-      factory_(completion_queue_, map_);
+      factory_(completion_queue_, metadata_storage_);
       typename THandler<TMetadata>::TResponse response;
       grpc::Status status(grpc::StatusCode::NOT_FOUND,
                           "UUID not associated with request");
 
       auto client_metadata = context_.client_metadata();
       if (auto it = client_metadata.find(std::string(kUuidTag));
-          it != client_metadata.end() && map_ != nullptr) {
+          it != client_metadata.end() && metadata_storage_ != nullptr) {
         std::string_view uuid =
             std::string_view(it->second.data(), it->second.size());
-        if (auto reader = ScopedValueReader<TMetadata>::Create(*map_, uuid);
+        if (auto reader = ScopedValueReader<TMetadata>::Create(
+                metadata_storage_->GetMetadataMap(), uuid);
             reader.ok()) {
           if (auto value = reader->Get(); value.ok()) {
             auto response_status_pair = this->ProcessRequest(**value);
@@ -185,7 +186,7 @@ class RequestHandlerImpl : public Proceedable, public THandler<TMetadata> {
  protected:
   typename THandler<TMetadata>::TService* service_;
   grpc::ServerCompletionQueue* completion_queue_;
-  ThreadSafeMap<TMetadata>* map_;
+  MetadataStorage<TMetadata>* metadata_storage_;
   grpc::ServerAsyncResponseWriter<typename THandler<TMetadata>::TResponse>
       responder_;
   State status_;
@@ -197,11 +198,11 @@ class RequestHandlerImpl : public Proceedable, public THandler<TMetadata> {
 
 // Function to handle logic for processing RPCs
 template <typename TMetadata>
-void HandleRpcs(grpc::ServerCompletionQueue* cq, ThreadSafeMap<TMetadata>* map,
+void HandleRpcs(grpc::ServerCompletionQueue* cq, MetadataStorage<TMetadata>* ms,
                 std::vector<FactoryFunction<TMetadata>>& factories) {
   // Spawn a new RequestHandler instance to serve new clients.
   for (auto& factory : factories) {
-    factory(cq, map);
+    factory(cq, ms);
   }
   bool ok = true;
   while (ok) {

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_THREAD_SAFE_MAP_H_
-#define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_THREAD_SAFE_MAP_H_
+#ifndef ROMA_METADATA_STORAGE_THREAD_SAFE_MAP_H_
+#define ROMA_METADATA_STORAGE_THREAD_SAFE_MAP_H_
 
 #include <string>
 #include <utility>
@@ -28,7 +28,7 @@
 #include "absl/synchronization/mutex.h"
 #include "src/util/status_macro/status_macros.h"
 
-namespace google::scp::roma::sandbox::native_function_binding {
+namespace google::scp::roma::metadata_storage {
 
 // Supports thread safe insertion, deletion, and lookups. Provides client with
 // row-level lock associated for a value to allow for thread-safe reading of
@@ -150,6 +150,6 @@ class ScopedValueReader {
   absl::Mutex* mutex_;
 };
 
-}  // namespace google::scp::roma::sandbox::native_function_binding
+}  // namespace google::scp::roma::metadata_storage
 
-#endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_THREAD_SAFE_MAP_H_
+#endif  // ROMA_METADATA_STORAGE_THREAD_SAFE_MAP_H_

@@ -28,11 +28,11 @@
 #include "absl/status/statusor.h"
 #include "sandboxed_api/sandbox2/comms.h"
 #include "src/roma/logging/logging.h"
+#include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
 #include "native_function_table.h"
-#include "thread_safe_map.h"
 
 using google::scp::roma::sandbox::constants::kRequestId;
 using google::scp::roma::sandbox::constants::kRequestUuid;
@@ -62,10 +62,12 @@ class NativeFunctionHandlerSapiIpc {
    * process uses to send requests to this process.
    */
   NativeFunctionHandlerSapiIpc(NativeFunctionTable<TMetadata>* function_table,
+                               MetadataStorage<TMetadata>* metadata_storage,
                                const std::vector<int>& local_fds,
                                std::vector<int> remote_fds)
       : stop_(false),
         function_table_(function_table),
+        metadata_storage_(metadata_storage),
         remote_fds_(std::move(remote_fds)) {
     ipc_comms_.reserve(local_fds.size());
     for (const int local_fd : local_fds) {
@@ -97,7 +99,7 @@ class NativeFunctionHandlerSapiIpc {
           if (const auto function_name = wrapper_proto.function_name();
               !function_name.empty()) {
             if (auto reader = ScopedValueReader<TMetadata>::Create(
-                    metadata_map_, invocation_req_uuid);
+                    metadata_storage_->GetMetadataMap(), invocation_req_uuid);
                 !reader.ok()) {
               // If mutex can't be found, add errors to the proto to return
               io_proto->mutable_errors()->Add(std::string(kCouldNotFindMutex));
@@ -156,26 +158,17 @@ class NativeFunctionHandlerSapiIpc {
     }
   }
 
-  absl::Status StoreMetadata(std::string uuid, TMetadata metadata) {
-    return metadata_map_.Add(std::move(uuid), std::move(metadata));
-  }
-
-  void DeleteMetadata(std::string_view uuid) {
-    (void)metadata_map_.Delete(uuid);
-  }
-
  private:
   bool stop_ ABSL_GUARDED_BY(stop_mutex_);
   absl::Mutex stop_mutex_;
 
   NativeFunctionTable<TMetadata>* function_table_;
+  // Map of invocation request uuid to associated metadata.
+  MetadataStorage<TMetadata>* metadata_storage_;
   std::vector<std::thread> function_handler_threads_;
   std::vector<sandbox2::Comms> ipc_comms_;
   // We need the remote file descriptors to unblock the local ones when stopping
   std::vector<int> remote_fds_;
-
-  // Map of invocation request uuid to associated metadata.
-  ThreadSafeMap<TMetadata> metadata_map_;
 };
 
 }  // namespace google::scp::roma::sandbox::native_function_binding

@@ -32,6 +32,7 @@
 #include "src/core/os/linux/system_resource_info_provider_linux.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/roma/logging/logging.h"
+#include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
 #include "src/roma/native_function_grpc_server/request_handlers.h"
 #include "src/roma/sandbox/constants/constants.h"
@@ -172,7 +173,7 @@ class RomaService {
         absl::StrCat("unix:", std::tmpnam(nullptr), ".sock")};
     native_function_server_ =
         std::make_unique<grpc_server::NativeFunctionGrpcServer<TMetadata>>(
-            socket_addresses);
+            &metadata_storage_, socket_addresses);
 
     config_.RegisterService(
         std::make_unique<grpc_server::AsyncLoggingService>(),
@@ -187,13 +188,10 @@ class RomaService {
   }
 
   absl::Status StoreMetadata(std::string uuid, TMetadata metadata) {
-    return native_function_binding_handler_->StoreMetadata(std::move(uuid),
-                                                           std::move(metadata));
+    return metadata_storage_.Add(std::move(uuid), std::move(metadata));
   }
 
-  void DeleteMetadata(std::string_view uuid) {
-    native_function_binding_handler_->DeleteMetadata(uuid);
-  }
+  void DeleteMetadata(std::string_view uuid) { metadata_storage_.Delete(uuid); }
 
   struct NativeFunctionBindingSetup {
     std::vector<int> remote_file_descriptors;
@@ -237,7 +235,8 @@ class RomaService {
 
     native_function_binding_handler_ =
         std::make_unique<NativeFunctionHandlerSapiIpc<TMetadata>>(
-            &native_function_binding_table_, local_fds, remote_fds);
+            &native_function_binding_table_, &metadata_storage_, local_fds,
+            remote_fds);
 
     NativeFunctionBindingSetup setup{
         .remote_file_descriptors = std::move(remote_fds),
@@ -446,6 +445,8 @@ class RomaService {
   std::vector<worker_api::WorkerSandboxApi> workers_;
   native_function_binding::NativeFunctionTable<TMetadata>
       native_function_binding_table_;
+  // Map of invocation request uuid to associated metadata.
+  MetadataStorage<TMetadata> metadata_storage_;
   std::shared_ptr<
       native_function_binding::NativeFunctionHandlerSapiIpc<TMetadata>>
       native_function_binding_handler_;

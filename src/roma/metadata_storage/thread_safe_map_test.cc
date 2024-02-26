@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/native_function_binding/thread_safe_map.h"
+#include "src/roma/metadata_storage/thread_safe_map.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -26,7 +26,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 
-namespace google::scp::roma::sandbox::native_function_binding::test {
+namespace google::scp::roma::metadata_storage::test {
 
 TEST(ThreadSafeMapTest, AddAndGetSingleValue) {
   ThreadSafeMap<std::string> map;
@@ -139,4 +139,4 @@ TEST(ThreadSafeMapTest, ConcurrentAddAndDelete) {
   }
 }
 
-}  // namespace google::scp::roma::sandbox::native_function_binding::test
+}  // namespace google::scp::roma::metadata_storage::test

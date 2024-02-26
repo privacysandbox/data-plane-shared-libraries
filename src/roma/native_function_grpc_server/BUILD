@@ -19,7 +19,7 @@ cc_library(
     hdrs = ["interface.h"],
     visibility = ["//src/roma/config:__subpackages__"],
     deps = [
-        "//src/roma/sandbox/native_function_binding:thread_safe_map",
+        "//src/roma/metadata_storage",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
@@ -47,9 +47,7 @@ cc_library(
         ":interface",
         "//src/core/common/uuid",
         "//src/roma/logging",
-        "//src/roma/native_function_grpc_server/proto:logging_service_cc_proto",
-        "//src/roma/native_function_grpc_server/proto:logging_service_grpc_proto",
-        "//src/roma/sandbox/native_function_binding:thread_safe_map",
+        "//src/roma/metadata_storage",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",

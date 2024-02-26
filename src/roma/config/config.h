@@ -228,14 +228,15 @@ class Config {
   template <template <typename> typename THandler>
   void CreateFactory(THandler<TMetadata>) {
     const size_t index = factories_->size();
-    factories_->push_back([service_ptr = services_.back().get(),
-                           factories_ptr = factories_.get(),
-                           index](grpc::ServerCompletionQueue* completion_queue,
-                                  ThreadSafeMap<TMetadata>* metadata_map) {
-      new grpc_server::RequestHandlerImpl<TMetadata, THandler>(
-          static_cast<typename THandler<TMetadata>::TService*>(service_ptr),
-          completion_queue, metadata_map, factories_ptr->at(index));
-    });
+    factories_->push_back(
+        [service_ptr = services_.back().get(), factories_ptr = factories_.get(),
+         index](
+            grpc::ServerCompletionQueue* completion_queue,
+            metadata_storage::MetadataStorage<TMetadata>* metadata_storage) {
+          new grpc_server::RequestHandlerImpl<TMetadata, THandler>(
+              static_cast<typename THandler<TMetadata>::TService*>(service_ptr),
+              completion_queue, metadata_storage, factories_ptr->at(index));
+        });
   }
 
   /**

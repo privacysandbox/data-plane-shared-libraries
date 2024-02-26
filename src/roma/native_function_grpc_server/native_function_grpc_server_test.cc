@@ -36,8 +36,8 @@
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "src/roma/config/config.h"
+#include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/native_function_grpc_server/request_handlers.h"
-#include "src/roma/sandbox/native_function_binding/thread_safe_map.h"
 
 using ::testing::_;
 constexpr std::string_view kClientPath =
@@ -62,8 +62,9 @@ class NativeFunctionGrpcServerTest : public ::testing::Test {
     std::vector<std::string> socket_addresses = {
         absl::StrCat("unix:", socket_address_)};
 
+    metadata_storage_ = std::make_unique<MetadataStorage<DefaultMetadata>>();
     server_ = std::make_unique<NativeFunctionGrpcServer<DefaultMetadata>>(
-        socket_addresses);
+        metadata_storage_.get(), socket_addresses);
   }
 
   void PopulateMetadataStorage(int num_processes, int num_iters) {
@@ -72,12 +73,13 @@ class NativeFunctionGrpcServerTest : public ::testing::Test {
         std::string uuid = absl::StrCat((iter * num_processes) + i);
         std::string metadata = absl::StrCat("metadata_", uuid);
         ASSERT_TRUE(
-            server_->StoreMetadata(std::move(uuid), std::move(metadata)).ok());
+            metadata_storage_->Add(std::move(uuid), std::move(metadata)).ok());
       }
     }
   }
 
   std::unique_ptr<NativeFunctionGrpcServer<DefaultMetadata>> server_;
+  std::unique_ptr<MetadataStorage<DefaultMetadata>> metadata_storage_;
   std::string socket_address_;
 };
 

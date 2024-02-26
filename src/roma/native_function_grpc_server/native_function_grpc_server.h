@@ -37,11 +37,11 @@
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/native_function_grpc_server/interface.h"
-#include "src/roma/sandbox/native_function_binding/thread_safe_map.h"
 
 namespace google::scp::roma::grpc_server {
-using roma::sandbox::native_function_binding::ThreadSafeMap;
+using roma::metadata_storage::MetadataStorage;
 
 template <typename TMetadata = std::string>
 class NativeFunctionGrpcServer final {
@@ -49,7 +49,9 @@ class NativeFunctionGrpcServer final {
   NativeFunctionGrpcServer() = delete;
 
   explicit NativeFunctionGrpcServer(
-      const std::vector<std::string>& server_addresses) {
+      MetadataStorage<TMetadata>* metadata_storage,
+      const std::vector<std::string>& server_addresses)
+      : metadata_storage_(metadata_storage) {
     for (const auto& addr : server_addresses) {
       builder_.AddListeningPort(addr, grpc::InsecureServerCredentials());
     }
@@ -80,17 +82,12 @@ class NativeFunctionGrpcServer final {
     factories_ = factories;
   }
 
-  absl::Status StoreMetadata(std::string uuid, TMetadata metadata) {
-    return metadata_map_.Add(std::move(uuid), std::move(metadata));
-  }
-
-  void DeleteMetadata(std::string_view uuid) { metadata_map_.Delete(uuid); }
-
   void Run() {
     // Start accepting requests to the server.
     completion_queue_ = builder_.AddCompletionQueue();
     server_ = builder_.BuildAndStart();
-    HandleRpcs<TMetadata>(completion_queue_.get(), &metadata_map_, *factories_);
+    HandleRpcs<TMetadata>(completion_queue_.get(), metadata_storage_,
+                          *factories_);
   }
 
  private:
@@ -105,7 +102,7 @@ class NativeFunctionGrpcServer final {
   }
 
   std::unique_ptr<grpc::ServerCompletionQueue> completion_queue_;
-  ThreadSafeMap<TMetadata> metadata_map_;
+  MetadataStorage<TMetadata>* metadata_storage_;
   std::vector<FactoryFunction<TMetadata>>* factories_;
   std::unique_ptr<grpc::Server> server_;
   grpc::ServerBuilder builder_;
